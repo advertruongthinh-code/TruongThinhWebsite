@@ -5,6 +5,7 @@ source: []
 tests:
   - tests/site/scroll-feel.e2e.mjs
   - tests/site/middle-autoscroll.e2e.mjs
+  - tests/site/scroll-trace.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
 updated: 2026-10-31
 ---

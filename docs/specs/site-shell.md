@@ -15,6 +15,9 @@ tests:
   - tests/site/mobile-*.mjs
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/logo-route-crossfade.e2e.mjs
+  - tests/site/advertising-route-preload.e2e.mjs
+  - tests/site/reduced-motion-live.e2e.mjs
+  - tests/site/route-veil-header.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
 updated: 2026-10-31
 ---
@@ -270,7 +273,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R10 | `footer-consistency.e2e.mjs`, `TT_E2E_FOOTER_ONLY`, `shared-header-menu-p7.test.mjs` |
 | R11 | `mobile-viewport-stability.e2e.mjs`; Android thật: `mobile-viewport-android-record.mjs` |
 | R12 | `mobile-layout-parity.e2e.mjs --scope matrix` (22 × 5 × 2 cỡ chữ × 3 engine = 660 ca) |
-| R13 | `TT_E2E_REDUCED_ONLY`, `cross-browser.smoke.spec.cjs` |
+| R13 | `TT_E2E_REDUCED_ONLY`, `cross-browser.smoke.spec.cjs`; `reduced-motion-live.e2e.mjs` (đổi reduced motion khi trang đang mở thì dừng hoặc chạy lại, không reload) |
 
 ## Gate còn mở
 

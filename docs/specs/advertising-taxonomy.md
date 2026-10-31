@@ -47,13 +47,13 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (9); Biển chỉ dẫn & sơ đồ tòa nhà (24); Biển phòng ban (10); Bảng chức danh để bàn (10); Kỷ niệm chương (9) |
 | Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (16); Quầy bán hàng di động (14) |
 
-Tên cụm liệt kê vài sản phẩm chính để khách đọc là biết cụm có gì (owner 2026-10-12), mở đầu bằng cụm từ có lượt tìm
+Tên cụm liệt kê vài sản phẩm chính để khách đọc là biết cụm có gì, mở đầu bằng cụm từ có lượt tìm
 cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có thể khác tên cụm. Quy tắc kèm theo:
 
 - Vật liệu và cấu tạo (inox, mica, alu, hiflex, siêu mỏng, nắp hít) lặp ở nhiều sản phẩm nên là tag, không thành tầng.
 - Biển chỉ dẫn gắn tag nơi dùng (khu công nghiệp, nhà máy, văn phòng, tòa nhà) và loại (thoát hiểm, WC; không làm biển
   PCCC theo owner 2026-10-12); chữ của tag vào đoạn giới thiệu và alt. Tag đủ ngưỡng R5 và có lượt tìm thì nâng thành sản phẩm (R2).
-- Bảng hiệu LED (owner 2026-10-18) là biển viền LED dot hoặc LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo cửa hàng nhỏ, biển neon làm bảng hiệu (tag `variant-led-neon`).
+- Bảng hiệu LED là biển viền LED dot hoặc LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo cửa hàng nhỏ, biển neon làm bảng hiệu (tag `variant-led-neon`).
   Thuộc cụm LED vì nhãn cụm đã có "bảng LED" và ảnh hiện có đa số trong cụm đó; ảnh bảng vẫy LED gắn cả Bảng vẫy và Bảng hiệu LED. Bảng LED ma trận không viền LED chỉ gắn Bảng LED chạy chữ.
   Biển neon nay làm bằng LED neon, không còn neon ống thủy tinh, nên có sản phẩm chính Bảng hiệu LED (vd `signage-raised-letters-33`); tag `variant-led-neon` đủ ngưỡng R5 thì nâng thành sản phẩm LED neon.
 - Không làm trang theo tỉnh trong spec này: "bảng hiệu bến tre" 10-100, "quảng cáo bến tre", "in ấn bến tre" 50,
@@ -101,7 +101,7 @@ ngưỡng chip R5; chip của sản phẩm chưa có trang trỏ trang cụm kè
 Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): từ 1025px rail một hàng nâng lên một bậc, hàng chip nằm
-chỗ rail cũ và chữ "Cuộn xuống" vẫn hiện bên dưới (owner 2026-10-17); hẹp hơn thì chip nằm ngay dưới rail; trang
+chỗ rail cũ và chữ "Cuộn xuống" vẫn hiện bên dưới; hẹp hơn thì chip nằm ngay dưới rail; trang
 tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
 quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
@@ -141,7 +141,7 @@ một phần card cho Google? Mặc định: giữ như R10, chữ và link tron
 
 ### R5. Ngưỡng chip và trang mỏng
 
-Hai ngưỡng là hằng số trong `taxonomy.mjs` (R2), đếm số media có `productIds` chứa sản phẩm (owner 2026-10-17):
+Hai ngưỡng là hằng số trong `taxonomy.mjs` (R2), đếm số media có `productIds` chứa sản phẩm:
 
 - Từ 3 ảnh (`ADVERTISING_CHIP_PRODUCT_THRESHOLD`): sản phẩm có chip trong hàng chip của cụm (R3), lọc tại chỗ.
 - Từ 9 ảnh (`ADVERTISING_THIN_PRODUCT_THRESHOLD`): sản phẩm có thêm trang riêng R4, chip trỏ trang đó.

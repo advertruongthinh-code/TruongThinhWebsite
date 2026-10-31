@@ -7,15 +7,14 @@ tests:
   - tests/site/primary-video-keyframes.test.mjs
   - tests/site/advertising-photo-layout.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Player video primary, khung media ngang và chữ nút gợi ý
 
 ## Mục đích
 
-Player video primary ([media-card R6](media-card.md#r6-media-trong-primary)) trên PC nay là một hàng (R7, owner
-2026-10-25); hướng Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế
+Player video primary ([media-card R6](media-card.md#r6-media-trong-primary)) trên PC nay là một hàng (R7). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế
 với demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng đen cho chữ nút trong "Có thể bạn thích" và
 UI player, và cho khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Đoạn player trong
 media-card R6 trỏ tới đây; [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) theo R6 ở đây. Bản thiết kế:
@@ -28,8 +27,8 @@ media-card R6 trỏ tới đây; [advertising-detail R2](advertising-detail.md#r
 Áp dụng khi thiết bị không có hover (`hover: none`): điện thoại và tablet. Mặc định Thread chọn theo cách nhập thay vì
 độ rộng, vì cột âm lượng của PC mở bằng hover nên không dùng được trên màn hình cảm ứng ở mọi độ rộng.
 
-- Không có nút phát giữa video, kể cả khi dừng (owner 2026-10-25); chạm vào video thì phát hoặc dừng.
-- Nút phát/tạm dừng, giờ, thanh tua, nút tiếng nằm một hàng cao `40px` (nút toàn màn hình bỏ 2026-10-24, R8). Giờ `14px` 700, số đều, tổng thời lượng
+- Không có nút phát giữa video, kể cả khi dừng; chạm vào video thì phát hoặc dừng.
+- Nút phát/tạm dừng, giờ, thanh tua, nút tiếng nằm một hàng cao `40px` (không có nút toàn màn hình, R8). Giờ `14px` 700, số đều, tổng thời lượng
   opacity `0.6`. Thanh tua chiếm phần còn lại, cách giờ `12px` và cách nút tiếng `8px`; đường `4px` bo tròn, núm
   `12px` như demo, vùng chạm cao `40px`. Nút tiếng vuông `40px`, icon `18px`.
 - Thanh không có dải gradient đáy (R4); lề trái, phải, đáy `4px`; ở primary lề phải `60px` để nút
@@ -58,8 +57,7 @@ And thanh không có dải gradient đáy (R4)
 
 Áp dụng cho PC và cảm ứng. Kéo trong đoạn đã tải (`buffered`): video tạm dừng, khung hiện đúng frame tại núm mỗi lần
 núm đổi, mỗi frame tối đa một lệnh tua (lệnh mới chờ `seeked` của lệnh trước, kể cả lệnh lúc thả tay; lệnh trùng chỗ đang tua thì bỏ); thả tay thì phát
-tiếp nếu trước đó đang phát, video đang dừng thì đứng ở frame dưới núm (owner 2026-10-26: video dừng vẫn kéo núm xem
-trước được). Kéo qua đoạn chưa tải: núm vẫn theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua; thả tay thì tua tới
+tiếp nếu trước đó đang phát, video đang dừng thì đứng ở frame dưới núm. Kéo qua đoạn chưa tải: núm vẫn theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua; thả tay thì tua tới
 đó, có `seeked` rồi phát tiếp nếu trước đó đang phát. Giao diện thanh tua giữ như demo, không thêm nhãn.
 
 ```gherkin
@@ -78,9 +76,7 @@ And thả tay thì video tua tới 5,6 giây rồi phát tiếp
 
 ### R3. Mã hóa video cho tua mượt
 
-Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Clip tạm trước đây chỉ có một
-keyframe đầu clip (đo `ffprobe` kiosk-posm-13-v1: 8,5s, H.264 24fps); thêm keyframe mỗi `0,5s` làm 37 clip tạm tăng từ 14,9MB
-lên 29,6MB (+98%, PR #434). Clip thật sinh bằng `scripts/site/build-video-ladder.mjs` (ép keyframe mỗi `0,5s`, [video-delivery R5](video-delivery.md#r5-dữ-liệu-và-script)).
+Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Keyframe mỗi `0,5s` làm clip nặng gần gấp đôi so với một keyframe đầu clip. Clip thật sinh bằng `scripts/site/build-video-ladder.mjs` (ép keyframe mỗi `0,5s`, [video-delivery R5](video-delivery.md#r5-dữ-liệu-và-script)).
 
 ```gherkin
 Given mọi file MP4 trong src/site/assets
@@ -91,17 +87,16 @@ Then khoảng cách giữa hai keyframe liền nhau, và từ keyframe cuối t�
 ### R4. Bóng đen hai lớp cho nút gợi ý và UI player (ngoại lệ Design System)
 
 Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũi tên trên card masonry) dưới quầng `0 0 12px` đen
-`0.4`. Owner chọn phương án D trên canvas bản 33 cho player và cho nút gợi ý (2026-10-24).
+`0.4`, dùng cho player và cho nút gợi ý.
 
 - Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow` hai lớp; nút đang chọn (chữ `ink` trên nền giấy) không có bóng.
-  Lớp tối của nút đen `0.5` phẳng, luôn hiện: nút "Ý tưởng bạn có thể thích" của Pinterest đo được `0.4`, hover `0.6`, owner
-  chốt `0.5` và bỏ đổi khi hover (2026-10-26; trước đó 2026-10-24: chữ vẫn khó đọc).
+  Lớp tối của nút đen `0.5` phẳng, luôn hiện: nút "Ý tưởng bạn có thể thích" của Pinterest đo được `0.4`, hover `0.6`; ở đây
+  chốt `0.5` và không đổi khi hover.
 - Player PC và cảm ứng: icon trên thanh dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo), mỗi nút icon là
   lớp riêng (`will-change: transform`) để bóng chỉ vẽ một lần, không vẽ lại khi thanh tua hay giờ đổi; mũi tên card và icon
-  phát trên thumbnail video cũng vậy (owner 2026-10-26 chọn "Giữ bóng, tách lớp"; A04s: hết rơi frame, số đo ở mục Kiểm tra); thanh tua dùng
-  `box-shadow` hai lớp ở đường tua và núm, không filter (owner 2026-10-26 chọn "Bóng vẽ rẻ hơn": `drop-shadow` tính lại
-  mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0). Số chỉnh để nhìn như `drop-shadow` cũ (owner
-  hỏi giữ visual, so ảnh 2026-10-26): đường tua `0 0 4px` đen `0.12`, `0 0 24px` đen `0.22`, dưới gradient trắng thêm
+  phát trên thumbnail video cũng vậy (A04s hết rơi frame); thanh tua dùng
+  `box-shadow` hai lớp ở đường tua và núm, không filter (`drop-shadow` tính lại
+  mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0). Số chỉnh để nhìn như `drop-shadow` cũ: đường tua `0 0 4px` đen `0.12`, `0 0 24px` đen `0.22`, dưới gradient trắng thêm
   lớp đen `0.19` phần đã phát, `0.08` phần chưa phát (bóng cũ lộ qua đường tua trong mờ); núm `0 0 4px` đen `0.5`,
   `0 0 28px` đen `0.45`. Giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
   sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
@@ -126,7 +121,7 @@ And thanh điều khiển không có nền gradient
 ### R5. Núm đặc
 
 Núm thanh tua và núm thanh âm lượng đổi từ trắng `0.5` sang trắng `#fbfbf9` đặc, cho PC và cảm ứng: núm trong suốt
-để lộ đường tua chạy xuyên qua, nhìn như UI chồng lớp (owner 2026-10-24). Đường tua giữ như demo.
+để lộ đường tua chạy xuyên qua, nhìn như UI chồng lớp. Đường tua giữ như demo.
 
 ```gherkin
 Given primary đang phát video, thanh điều khiển đang hiện
@@ -138,7 +133,7 @@ Then cả hai là màu đặc, alpha 1
 
 Layout `split` (PC, màn hình ngang) đổi chiều cao vùng ảnh từ cố định bằng phần viewport `H` (advertising-detail R2) sang
 `min(W/r, H)`, với `W` là bề rộng vùng ảnh và `r` tỷ lệ cover (mọi media trong card cùng tỷ lệ). Media ngang vì thế không
-có vùng dư trên, dưới, không có zoom blur ở đó (owner 2026-10-24); media dọc vẫn cao `H`, vùng dư hai bên là zoom blur như cũ.
+có vùng dư trên, dưới, không có zoom blur ở đó; media dọc vẫn cao `H`, vùng dư hai bên là zoom blur như cũ.
 Primary thấp lại và hàng related dồn lên ngay dưới, như pin Pinterest. Info cao bằng vùng ảnh; info cần cao hơn (đủ một dòng
 mô tả, CTA, indicator như R2) thì primary cao theo info, khung ảnh nằm trên cùng cột ảnh, phần dưới để nền trang. Layout
 `pinterest` giữ nguyên (đã cao theo ảnh).
@@ -153,10 +148,9 @@ And card có cover dọc thì khung vẫn cao hết phần viewport, zoom blur h
 
 ### R7. Nút vuông trắng
 
-Owner 2026-10-24: mũi tên "<", ">" của primary, nút mở lớn và nút trong viewer (đóng, phóng to, thu nhỏ; nút về kích
-thước ban đầu bỏ 2026-10-25) cùng một kiểu: ô `36px` nền trắng, không viền, góc vuông, icon nét mảnh `16px` nét `2px` như chevron. Nút mở lớn
-chỉ còn icon, tên "Xem lớn hơn" / "View larger" qua `aria-label`, không bung chữ khi hover. Player PC là một hàng (owner 2026-10-25, "ô riêng
-cùng hàng"): nút phát, giờ, thanh tua, nút tiếng cao `36px`, icon `16px`, tâm thẳng tâm nút mở lớn; icon tiếng dừng
+Mũi tên "<", ">" của primary, nút mở lớn và nút trong viewer (đóng, phóng to, thu nhỏ; không có nút về kích
+thước ban đầu) cùng một kiểu: ô `36px` nền trắng, không viền, góc vuông, icon nét mảnh `16px` nét `2px` như chevron. Nút mở lớn
+chỉ còn icon, tên "Xem lớn hơn" / "View larger" qua `aria-label`, không bung chữ khi hover. Player PC là một hàng, ô riêng cùng hàng: nút phát, giờ, thanh tua, nút tiếng cao `36px`, icon `16px`, tâm thẳng tâm nút mở lớn; icon tiếng dừng
 trước nút mở lớn `8px`; nút mở lớn vẫn là ô trắng riêng. Cảm ứng giữ cỡ R1; viewer cảm ứng vẫn ẩn nút theo
 [viewer R8](advertising-viewer-touch-zoom.md#r8-màn-cảm-ứng-nút-viewer-ẩn-khỏi-mắt).
 
@@ -172,14 +166,14 @@ And mở viewer thì nút đóng, phóng to, thu nhỏ cùng kiểu đó
 
 Nút mở lớn hiện cả với video và mở video vào viewer như ảnh: nền blur như ảnh, không nền đen; video phát tiếp đúng giây
 và đúng trạng thái phát, dừng, tiếng; có thanh player (PC theo R7 và R9, cảm ứng theo R1). Dãy thumbnail dưới viewer, như dãy của primary, đổi media của card
-(media trượt như primary); hai mũi tên viewer bỏ (owner 2026-10-25). Video không phóng to: không nút phóng to, thu nhỏ,
+(media trượt như primary); viewer không có hai mũi tên. Video không phóng to: không nút phóng to, thu nhỏ,
 không con lăn, không pinch; ảnh vẫn theo
 [viewer R5](advertising-viewer-touch-zoom.md#r5-nút-con-lăn-phím-và-trạng-thái-dùng-chung-một-tỷ-lệ). Đóng viewer
 thì primary đứng ở media vừa xem, video ở đúng giây. Player không còn nút toàn màn hình; Fullscreen API không dùng nữa.
 
 PC: bấm video thì phát hoặc dừng. Cảm ứng: chạm video trong viewer phát hoặc dừng như R1; vuốt đóng không bắt đầu
 trên video, đóng bằng chạm nền hoặc nút back. Dãy thumbnail viewer ẩn trên cảm ứng như các nút viewer khác (mặc
-định Thread chọn). Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn. PC (owner 2026-10-26): dãy
+định Thread chọn). Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn. PC: dãy
 thumbnail tự ẩn (trượt xuống `1rem`, mờ `0.3s`) khi chuột đứng yên 3s, rê chuột hoặc bấm phím thì hiện lại; chuột trên dãy
 hoặc focus bàn phím trong dãy giữ dãy hiện. Mũi tên trái, phải đổi media như bấm thumbnail; ảnh đang phóng to thì mũi tên
 kéo ảnh như viewer R5.
@@ -197,7 +191,7 @@ And chuột đứng yên 3s thì dãy thumbnail ẩn, rê chuột thì hiện; m
 
 PC: video đang phát và chuột không ở trên khung thì cả cụm nút player (thanh tua, giờ, nút phát, tiếng) mờ đi, nút mở lớn
 vẫn hiện; chuột vào khung, focus bàn phím bên trong hoặc video dừng thì cụm hiện lại. Focus còn lại sau khi bấm chuột vào video,
-nút hay thanh tua không giữ cụm hiện (owner 2026-10-25 báo cụm không ẩn). Không có nút phát giữa video (R1). Cảm ứng giữ
+nút hay thanh tua không giữ cụm hiện. Không có nút phát giữa video (R1). Cảm ứng giữ
 R1 (thanh luôn hiện).
 
 ```gherkin
@@ -210,7 +204,7 @@ And bấm video cho dừng thì cụm nút hiện lại, giữa video không có
 ### R10. Kéo tua không kéo dải
 
 Cảm ứng, primary và viewer: ngón đặt trên thanh tua hoặc thanh âm lượng chỉ tua hoặc chỉnh tiếng, không bắt đầu kéo dải
-media, không đổi media, không chặn click (owner 2026-10-24: kéo núm làm dải cuộn theo).
+media, không đổi media, không chặn click.
 
 ```gherkin
 Given primary card nhiều media đang ở video trên điện thoại
@@ -222,7 +216,7 @@ Then video tua theo núm, dải media đứng yên, media không đổi
 
 Trong lúc tiếng fade theo nhịp dải ([media-card R6](media-card.md#r6-media-trong-primary)), người xem kéo thanh âm lượng
 hoặc bấm bật, tắt tiếng thì fade dừng ngay, video giữ đúng mức người xem vừa chọn; mức đó thành mức tiếng của card cho các
-lần fade sau (owner 2026-10-24).
+lần fade sau.
 
 ```gherkin
 Given video đích đang to tiếng dần sau khi dải dừng
@@ -233,7 +227,7 @@ Then volume giữ 0.3, không tăng tiếp
 ### R12. Đổi video: giờ đứng ở video cũ
 
 Primary và viewer: đổi từ video sang video khác trong cùng card (mũi tên, thumbnail, vuốt) thì giờ, tổng thời lượng và
-thanh tua đứng ở video cũ trong lúc media trượt; video mới bắt đầu phát thì cả ba đổi theo video mới (owner 2026-10-25).
+thanh tua đứng ở video cũ trong lúc media trượt; video mới bắt đầu phát thì cả ba đổi theo video mới.
 
 ```gherkin
 Given primary đang phát video 3 giây ở giây 1, video kế dài 4 giây
@@ -273,11 +267,11 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
 | R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
-| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1 đạt 2026-10-26 trên SM-A047F, Chrome dọc, 2 lượt; R2 đạt 2026-10-26 sau PR #583 (2 lượt, 16 lệnh tua, 0 chồng, thả tay phát tiếp đúng chỗ), video đang dừng đạt ở PR #596 (primary và viewer, mỗi chỗ 2 lượt, 0 chồng, thả tay vẫn dừng). [Gate](../decisions/phone-frame-budget.md) video đang phát không rơi frame: primary đạt (0 rơi, 23,7/24 frame mỗi giây); viewer, thanh luôn hiện, đạt ở PR #596 (4 vòng xen kẽ: 0 rơi mỗi 8 s, 23,8/24, SurfaceFlinger 47 fps; cùng lượt, bóng cũ không tách lớp rơi 7,3, tắt mọi bóng 0) |
+| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1, R2 (kể cả video đang dừng) và [gate](../decisions/phone-frame-budget.md) không rơi frame ở primary và viewer đạt trên SM-A047F |
 
 ## Gate còn mở
 
-- R3 tăng byte clip gần gấp đôi (số đo ở R3); owner xem. Owner.
+- R3 tăng byte clip gần gấp đôi; owner xem. Owner.
 
 ## Chú thích thuật ngữ
 

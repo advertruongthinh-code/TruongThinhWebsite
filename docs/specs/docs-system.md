@@ -8,6 +8,7 @@ source:
   - .github/workflows/docs.yml
 tests:
   - scripts/docs/check-docs.mjs
+  - tests/tooling/docs-malformed-link.test.mjs
 notion: none
 ---
 
@@ -203,6 +204,7 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 | R3 | Agent đối chiếu từng requirement với source và test khi review PR |
 | R5-R7 | Xem [Design System và Impeccable](design-system.md#kiểm-tra) |
 | R10 | Owner xem board Notion |
+| Gate link | `tests/tooling/docs-malformed-link.test.mjs`: link mã hóa phần trăm hỏng thì gate báo rõ, không crash |
 
 ## Chú thích thuật ngữ
 

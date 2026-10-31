@@ -79,14 +79,14 @@ When thanh địa chỉ thu, mở làm chiều cao vùng nhìn thấy đổi qua
 Then mọi khung đang thấy giữ node, assignment và không chạy lại hiệu ứng vào
 ```
 
-Flow chờ ảnh primary lấy màu từ chính ảnh đang chờ (owner 2026-10-31): bốn màu của preset bốc được thay bằng bốn màu
+Flow chờ ảnh primary lấy màu từ chính ảnh đang chờ: bốn màu của preset bốc được thay bằng bốn màu
 nổi bật của ảnh đó, sắp từ sáng tới tối như preset; field, anchor, chiều chảy, pha, tốc độ vẫn bốc như trên. Lúc build,
 `build-image-variants.mjs` trích bốn màu bằng k-means (k = 4, khởi đầu k-means++ seed cố định) trên bản thu 64px và ghi vào `MEDIA_COLORS` cùng màu chủ
 đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)); `--check` báo ảnh thiếu.
 Media không có bốn màu (video không poster, ảnh mới chưa build) dùng màu preset. Batch dưới CTA giữ 12 preset.
 Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi. Thêm ảnh: chép
 WebP vào thư mục Advertising rồi chạy build. Thay ảnh cùng tên: xóa variant cũ của ảnh đó (`-240` tới `-2048`, `.avif`,
-`.jxl`) rồi chạy build; build tính lại màu mỗi khi dựng lại variant của ảnh (owner 2026-10-31).
+`.jxl`) rồi chạy build; build tính lại màu mỗi khi dựng lại variant của ảnh.
 
 ```gherkin
 Given trang detail mở media có bốn màu trong MEDIA_COLORS

@@ -4,6 +4,7 @@ status: live
 source: []
 tests:
   - tests/site/logo-route-crossfade.e2e.mjs
+  - tests/site/brand-mark-rise.e2e.mjs
 notion: none
 updated: 2026-10-31
 ---
@@ -18,9 +19,8 @@ từ chân hay lớp crossfade trong lúc chuyển trang; cả cụm logo luôn 
 Spec này mô tả phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
-([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Owner chốt intent 2026-10-11 qua interview-me;
-R7 owner chốt sau khi so đo Espacio frame theo frame; owner chọn mark đậm theo
-Espacio (kiểu b) thay mark CMYK trên veil, và bỏ crossfade riêng của mark.
+([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Veil dùng mark đậm theo
+Espacio (kiểu b) thay mark CMYK, không có crossfade riêng của mark.
 
 ## Hành vi
 
@@ -115,7 +115,7 @@ trong `src/site/motion.js`.
 | --- | --- |
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm tween màu (fill inline trên path), không clip-path; mỗi tween dưới 0.5s, sang đậm bắt đầu lúc bấm, sang màu trang đích bắt đầu khi veil phủ kín và trước khi mở xong |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
-| R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
+| R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-rise.e2e.mjs` (lớp màu mọc từ chân lên theo thứ tự dải, cùng xong ở 1s) |
 | Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
 
 ## Gate còn mở
