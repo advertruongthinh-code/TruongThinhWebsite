@@ -2199,11 +2199,13 @@
     return Promise.all([covered, closing]);
   };
 
-  const playRouteEnter = () => {
+  const playRouteEnter = async () => {
     if (!hasGsap || reduceMotion) {
       clearRouteEntry();
-      return Promise.resolve();
+      return;
     }
+    // Veil chờ cả font để chữ hero không đổi font sau khi lộ; font lỗi vẫn làm ready xong (progressive-loading R4).
+    await document.fonts.ready;
     routeTimeline?.kill();
     showHeader();
     header.classList.add("is-route-pinned");

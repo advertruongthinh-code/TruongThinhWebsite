@@ -259,7 +259,7 @@ gõ `republish`.
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
 | R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
 | R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải); viewer chưa có test |
-| R4 | `first-load-parity.e2e.mjs`, thêm ca hero trễ 3s và font trễ 1s (chưa có test) |
+| R4 | `first-load-parity.e2e.mjs`: font trễ 1s thì veil mở sau khi font về, ảnh hero trễ 3s thì veil không chờ |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
