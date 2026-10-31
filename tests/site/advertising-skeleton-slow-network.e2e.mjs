@@ -1,4 +1,4 @@
-// Card chờ ảnh khi mạng chậm (progressive-loading R9): Kính mờ thay skeleton Flow; ảnh card bị giữ 8s như Slow 3G.
+// Card chờ ảnh khi mạng chậm (progressive-loading R9): ảnh tự mờ thay skeleton Flow; ảnh card bị giữ 8s như Slow 3G.
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-skeleton-slow-network.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -18,7 +18,7 @@ const open = async (device) => {
   });
   return { context, page, slow };
 };
-// Card trong viewport: ảnh chưa tải mà không Kính là ô trống; card không còn khung skeleton hay canvas Flow.
+// Card trong viewport: ảnh chưa tải mà không blur là ô trống; card không còn khung skeleton hay canvas Flow.
 const cardStates = (page, selector = "[data-project-grid] [data-advertising-card]") => page.evaluate((selector) =>
   [...document.querySelectorAll(selector)].filter((card) => {
     const { top, bottom } = card.getBoundingClientRect();
@@ -28,29 +28,32 @@ const cardStates = (page, selector = "[data-project-grid] [data-advertising-card
     return {
       id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
-      glass: Boolean(card.querySelector(".glass-surface[data-glass-reveal]")),
+      blur: Boolean(image?.style.filter.startsWith("blur(")),
+      glass: Boolean(card.querySelector(".glass-surface")),
       skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton], canvas")),
     };
   }), selector);
 const assertNoBlank = (label, states) => {
   assert.ok(states.length, `${label}: cards in view`);
-  assert.deepEqual(states.filter(({ loaded, glass }) => !loaded && !glass), [], `${label}: loading cards without Kính`);
+  assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
+  // Kính backdrop-filter trên card làm rớt FPS khi kéo thanh cuộn (owner 2026-10-31).
+  assert.deepEqual(states.filter(({ glass }) => glass), [], `${label}: cards still carry Kính`);
   assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
 };
 
 try {
-  // Lúc tải trang: card đầu mang một Kính từ frame đầu, không fade vào, không bị thay node.
+  // Lúc tải trang: ảnh card đầu mờ từ frame đầu, không animate vào, không bị thay node.
   for (const [label, device] of [["phone", phone], ["desktop", { viewport: { width: 1440, height: 900 } }]]) {
     const { context, page } = await open(device);
     await page.addInitScript(() => {
       const ids = new WeakMap();
       let next = 0;
-      window.__glassTrace = [];
+      window.__blurTrace = [];
       const tick = () => {
-        for (const glass of document.querySelectorAll("[data-project-grid] [data-advertising-card] .glass-surface[data-glass-reveal]")) {
-          if (!ids.has(glass)) ids.set(glass, ++next);
-          window.__glassTrace.push([glass.closest("[data-advertising-card]").dataset.advertisingCard, ids.get(glass),
-            glass.getAnimations({ subtree: true }).length]);
+        for (const image of document.querySelectorAll("[data-project-grid] [data-advertising-card] img[style*='blur(']")) {
+          if (!ids.has(image)) ids.set(image, ++next);
+          window.__blurTrace.push([image.closest("[data-advertising-card]").dataset.advertisingCard, ids.get(image),
+            image.getAnimations().length]);
         }
         if (performance.now() < 3000) requestAnimationFrame(tick);
       };
@@ -59,14 +62,14 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 3000);
     const cards = new Map();
-    for (const [card, glass, animations] of await page.evaluate(() => window.__glassTrace)) {
+    for (const [card, image, animations] of await page.evaluate(() => window.__blurTrace)) {
       if (!cards.has(card)) cards.set(card, []);
-      cards.get(card).push({ glass, animations });
+      cards.get(card).push({ image, animations });
     }
-    assert.ok(cards.size, `${label}: first cards wear Kính while images load`);
+    assert.ok(cards.size, `${label}: first cards blur while images load`);
     for (const [card, samples] of cards) {
-      assert.equal(new Set(samples.map(({ glass }) => glass)).size, 1, `${label}: ${card} keeps one Kính node`);
-      assert.ok(samples.every(({ animations }) => !animations), `${label}: ${card} Kính starts at full, no fade in`);
+      assert.equal(new Set(samples.map(({ image }) => image)).size, 1, `${label}: ${card} keeps one image node`);
+      assert.ok(samples.every(({ animations }) => !animations), `${label}: ${card} blur starts at full, no fade in`);
     }
     assertNoBlank(`${label} load`, await cardStates(page));
     await context.close();
@@ -92,7 +95,7 @@ try {
     await context.close();
   }
 
-  // PC cao: hơn 12 card cùng chờ ảnh đều mang Kính.
+  // PC cao: hơn 12 card cùng chờ ảnh đều mờ.
   {
     const { context, page } = await open({ viewport: { width: 1920, height: 1400 } });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
@@ -103,12 +106,12 @@ try {
     }
     await page.waitForTimeout(1500);
     const states = await cardStates(page);
-    assert.ok(states.filter(({ glass }) => glass).length > 12, `desktop tall: more than 12 cards wear Kính ${states.length}`);
+    assert.ok(states.filter(({ blur }) => blur).length > 12, `desktop tall: more than 12 cards blur ${states.length}`);
     assertNoBlank("desktop tall", states);
     await context.close();
   }
 
-  // Điện thoại: mở detail từ masonry đã cuộn nhảy về y=0 mà không có scrollend; card related mang Kính lúc chờ,
+  // Điện thoại: mở detail từ masonry đã cuộn nhảy về y=0 mà không có scrollend; ảnh card related mờ lúc chờ,
   // tải xong vẫn tan mà không cần người xem cuộn thêm.
   {
     const { context, page, slow } = await open(phone);
@@ -132,12 +135,12 @@ try {
     await page.evaluate(() => scrollTo(0, document.querySelector("[data-advertising-related-card]").getBoundingClientRect().top - 100));
     await page.waitForTimeout(500);
     const related = await cardStates(page, "[data-advertising-related-card]");
-    assert.ok(related.some(({ glass }) => glass), `phone: related cards wear Kính while loading ${JSON.stringify(related)}`);
+    assert.ok(related.some(({ blur }) => blur), `phone: related cards blur while loading ${JSON.stringify(related)}`);
     await page.waitForFunction(() => {
       const loaded = [...document.querySelectorAll("[data-advertising-related-card]")]
-        .filter((card) => card.querySelector("img")?.naturalWidth > 0);
-      return loaded.length && loaded.every((card) => !card.querySelector(".glass-surface[data-glass-reveal]"));
-    }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still under Kính "
+        .map((card) => card.querySelector("img")).filter((image) => image?.naturalWidth > 0);
+      return loaded.length && loaded.every((image) => !image.style.filter.startsWith("blur("));
+    }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still blurred "
       + JSON.stringify(await cardStates(page, "[data-advertising-related-card]"))));
     await context.close();
   }

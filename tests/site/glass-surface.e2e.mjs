@@ -240,17 +240,15 @@ try {
       const primary = timings.filter(({ host }) => host === "primary").map(({ timing }) => JSON.stringify(timing));
       // Lần mở trang, related (tải chậm) và Back (có sẵn) cùng một nhịp.
       check(primary.length >= 3 && new Set(primary).size === 1, `cached and slow primary reveals use different timing ${primary.join(" | ")}`);
-      // Card tải chậm trên masonry (progressive-loading R9): Kính gắn ngay ở mức đủ, không fade vào, ảnh không chạy
-      // animation riêng; ảnh về thì Kính tan rồi bị gỡ.
+      // Card tải chậm trên masonry (progressive-loading R9): không Kính, ảnh mờ ngay từ đầu, ảnh về thì blur tan rồi gỡ.
       slow = true;
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm`);
-      await page.waitForFunction(() => window.__ttRevealTimings.some(({ host }) => host === "card"), null, { timeout: 20000 });
-      const card = await page.evaluate(() => window.__ttRevealTimings.find(({ host }) => host === "card").timing);
-      check(card.every((animations) => !animations?.length), `card Kính fades in instead of starting at full ${JSON.stringify(card)}`);
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 });
+      check(!(await page.evaluate(() => window.__ttRevealTimings.some(({ host }) => host === "card"))), "loading card wears Kính");
       slow = false;
       await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile")
-        && !document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]"), null, { timeout: 20000 })
-        .catch(() => check(false, "card Kính stays after the photo loaded"));
+        && !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 })
+        .catch(() => check(false, "card blur stays after the photo loaded"));
     } finally {
       await page.close();
     }

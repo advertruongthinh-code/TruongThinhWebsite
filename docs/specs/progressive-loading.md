@@ -88,7 +88,7 @@ byte hay header, đếm byte, và khi đạt `thresholdBytes` thì gửi `{ url 
 
 - Trang tĩnh: script `<head>` của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) nhận tin thì settle khung ngay
   (vệt gỡ, ảnh hiện), không chờ `decode()`. Sau đó trình duyệt tự vẽ nét dần tới hết file.
-- Advertising: card và primary chạy Kính của [skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md) lúc nhận tin thay vì lúc
+- Advertising: card cho blur tan, primary chạy Kính ([skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md)) lúc nhận tin thay vì lúc
   `decode()` xong.
 - Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn), tải bản gốc riêng; đủ ngưỡng (hoặc `load` xong) thì đổi
   sang bản gốc, request đang chạy được dùng lại nên ảnh nét dần tiếp.
@@ -207,28 +207,31 @@ When chạy image-delivery-measure.mjs --runs 5 trên bản cũ và bản mới
 Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 ```
 
-### R9. Kính mờ thay skeleton Flow trên card chờ ảnh
+### R9. Ảnh tự mờ thay skeleton Flow trên card chờ ảnh
 
-Card masonry chính và related đang chờ ảnh dùng Kính mờ thay skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh
-chưa đủ ngưỡng thì khung media nhận ngay Kính phủ đều ba bậc ở mức đủ (`createGlassSurface("even", 3)`, không fade vào, vì
-card có thể chỉ lướt qua). Dưới Kính, ảnh hiện ở opacity cuối trên nền `media-loading-surface`, trình duyệt vẽ dần các
-lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Đủ ngưỡng (R3) thì chạy bước "Kính tan" (theo tỉ lệ nhịp `0.6s` của card) trong
-[Hiện và tan trên ảnh vừa tải](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) rồi gỡ Kính.
-Không có tin ngưỡng thì tan khi `load` và `decode()` xong, như R3.
+Card masonry chính và related đang chờ ảnh không dùng skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh chưa đủ
+ngưỡng thì ảnh hiện ngay ở opacity cuối dưới `filter: blur(24px)` của chính nó (không animate vào, vì card có thể chỉ lướt
+qua); trình duyệt vẽ dần các lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Đủ ngưỡng (R3) thì blur tan về 0
+trong `0.6s`, rồi gỡ. Không có tin ngưỡng thì tan khi `load` và `decode()` xong, như R3. Chi tiết ở
+[skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ).
 
-- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không có Kính. Card ra khỏi viewport
-  khi Kính chưa tan thì gỡ Kính; vào lại khi đã đủ ngưỡng thì hiện thẳng.
+Bản đầu dùng Kính ba bậc (`backdrop-filter`) phủ trên ảnh. Owner kéo thanh cuộn cực đoan khi tắt cache, mạng 3G thấy FPS
+không hơn Flow (2026-10-31 09:59). Trace Chromium 1920px cùng kịch bản: có Kính 14 đến 15 FPS, bỏ Kính 42, blur trên ảnh
+41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s) có Kính 8,6 đến 10,6 FPS, ảnh đã tải hết không Kính 60. Owner
+chọn blur trên ảnh.
+
+- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
+  blur chưa tan thì gỡ blur; vào lại khi đã đủ ngưỡng thì hiện thẳng.
 - Điện thoại giữ luật chờ trang ngừng cuộn `120ms` trước khi tan (`PHONE_REVEAL_SCROLL_IDLE_MS`).
-- Card không còn khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
-  ([skeleton](advertising-skeleton.md)). Gỡ bản giảm tải tạm của PR #618 (Flow 30 hình/giây, đứng khi giữ thanh cuộn).
+- Card không còn Kính, khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
+  ([skeleton](advertising-skeleton.md)). Đã gỡ bản giảm tải tạm của PR #618.
 - Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ), chỉ đổi lúc chạy Kính sang lúc đủ ngưỡng (R3).
-- Gate hiệu năng theo [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt) khi 15 đến 18 card cùng mang Kính, đo trên A04s.
 
 ```gherkin
 Given masonry Advertising trên PC, tắt cache, mạng chậm
-When cuộn làm card mới vào viewport
-Then khung media của card có ngay Kính ba bậc, không có canvas Flow hay khung skeleton
-And dưới Kính ảnh được vẽ dần; khi đủ ngưỡng Kính tan rồi bị gỡ khỏi DOM
+When kéo thanh cuộn nhanh làm card mới vào viewport
+Then ảnh của card hiện mờ ngay, card không có Kính, canvas Flow hay khung skeleton
+And ảnh được vẽ dần dưới blur; khi đủ ngưỡng blur tan rồi bị gỡ
 ```
 
 ## Giao diện và dữ liệu
@@ -260,12 +263,12 @@ gõ `republish`.
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
 | R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
-| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải; viewer đổi sang bản gốc lúc ngưỡng, một request) |
+| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; blur card tan khi ảnh còn tải; viewer đổi sang bản gốc lúc ngưỡng, một request) |
 | R4 | `first-load-parity.e2e.mjs`: font trễ 1s thì veil mở sau khi font về, ảnh hero trễ 3s thì veil không chờ |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
-| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9 |
+| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `jxl-threshold.e2e.mjs` |
 
 ## Gate còn mở
 

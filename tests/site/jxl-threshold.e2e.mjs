@@ -54,24 +54,23 @@ try {
   assert.ok(hero.settled && hero.settled < hero.load - 200, `hero settles on the threshold, before load ${JSON.stringify(hero)}`);
   assert.equal(jxlRequests.get(hero.src), 1, `hero file requested once ${JSON.stringify([...jxlRequests])}`);
 
-  // Advertising: Kính của card bắt đầu tan khi ảnh còn đang tải (tin ngưỡng), không chờ decode.
+  // Advertising: blur trên ảnh card bắt đầu tan khi ảnh còn đang tải (tin ngưỡng), không chờ decode.
   await page.addInitScript(() => {
-    window.__glassTrace = [];
+    window.__blurTrace = [];
     const tick = () => {
-      for (const glass of document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]")) {
-        if (glass.__traced || !glass.getAnimations({ subtree: true }).length) continue;
-        glass.__traced = true;
-        const image = glass.parentElement.querySelector("img");
-        window.__glassTrace.push({ complete: image.complete, src: image.currentSrc });
+      for (const image of document.querySelectorAll("[data-project-grid] img[style*='blur(']")) {
+        if (image.__traced || !image.getAnimations().length) continue;
+        image.__traced = true;
+        window.__blurTrace.push({ complete: image.complete, src: image.currentSrc });
       }
       if (performance.now() < 20_000) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   });
   await page.goto(`${origin}/vi/advertising-products/`);
-  await page.waitForFunction(() => window.__glassTrace.length >= 3, null, { timeout: 30_000 });
-  const glass = await page.evaluate(() => window.__glassTrace);
-  assert.ok(glass.some(({ complete }) => !complete), `card Kính starts dissolving before the photo finishes ${JSON.stringify(glass.slice(0, 5))}`);
+  await page.waitForFunction(() => window.__blurTrace.length >= 3, null, { timeout: 30_000 });
+  const blur = await page.evaluate(() => window.__blurTrace);
+  assert.ok(blur.some(({ complete }) => !complete), `card blur starts dissolving before the photo finishes ${JSON.stringify(blur.slice(0, 5))}`);
 
   // Viewer: hiện ảnh primary đang có, đổi sang bản gốc khi tin ngưỡng tới, trước khi bản gốc tải xong.
   // Card có bản gốc rộng hơn 1600 nên primary ở 1440px lấy cỡ 1600, viewer phải đổi sang bản gốc.

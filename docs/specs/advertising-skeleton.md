@@ -19,7 +19,7 @@ updated: 2026-10-26
 
 Batch skeleton nối tiếp [masonry](advertising-masonry.md) từ đáy card thật tới footer, mặt là Flow WebGL với 12
 preset, làm nền cho CTA cuối trang. Spec sở hữu hình học batch, preset, assignment, vòng đời và WebGL context. Card
-chờ ảnh dùng Kính, không dùng Flow ([tải theo nấc R9](progressive-loading.md#r9-kính-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Vị trí chữ CTA ở
+chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Vị trí chữ CTA ở
 [CTA giữa viewport](advertising-cta-center-parallax.md), kính ở [Kính](glass-surface.md).
 
 ## Hành vi

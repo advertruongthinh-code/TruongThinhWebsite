@@ -1307,18 +1307,18 @@ try {
     // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
     await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
-    // Card related chờ ảnh mang Kính, ảnh ở opacity cuối dưới Kính (progressive-loading R9); ảnh về thì Kính tan và bị gỡ.
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] .glass-surface[data-glass-reveal]`), initialMediaId);
+    // Ảnh card related chờ tải ở opacity cuối dưới blur của chính nó (progressive-loading R9); ảnh về thì blur tan và bị gỡ.
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img[style*='blur(']`), initialMediaId);
     mediaReleased = true;
     await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
     await relatedPage.unroute(mediaPattern);
     await relatedPage.waitForFunction((id) => {
       const card = document.querySelector(`[data-advertising-related-card="${id}"]`);
-      return card?.querySelector("img")?.naturalWidth && !card.querySelector(".glass-surface[data-glass-reveal]");
+      return card?.querySelector("img")?.naturalWidth && !card.querySelector("img[style*='blur(']");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
     assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => !frame.fading) && initialMedia.frames.at(-1).opacity >= 0.99,
-      `related initial media fades instead of waiting under Kính ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
+      `related initial media fades instead of waiting under its blur ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
     // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
