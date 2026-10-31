@@ -904,7 +904,7 @@ async function runP7PinterestContract(browser, locale) {
       const glass = frame?.querySelector(":scope > .glass-surface");
       const items = [...(relatedGrid?.children || [])].filter((node) => node.getBoundingClientRect().width > 0);
       return {
-        viewportHeight: visualViewport?.height || innerHeight,
+        viewportHeight: visualViewport?.height || innerHeight, viewportWidth: innerWidth,
         columns: Number(relatedGrid?.dataset.advertisingRelatedColumns),
         span: Number(view?.dataset.advertisingPrimarySpan),
         layout: view?.dataset.advertisingPhotoLayout,
@@ -929,7 +929,12 @@ async function runP7PinterestContract(browser, locale) {
           clientHeight: suggestion.clientHeight,
           buttons: [...suggestion.querySelectorAll("[data-advertising-suggestion-tag]")]
             .map((node) => node.getBoundingClientRect().toJSON()) } : null,
-        hasBack: Boolean(document.querySelector("[data-advertising-photo-back]")),
+        back: (() => {
+          const button = document.querySelector("[data-advertising-photo-back]");
+          const frame = button?.closest(".advertising-photo-view__hero-frame")?.getBoundingClientRect();
+          const rect = button?.getBoundingClientRect();
+          return rect && frame ? { dx: rect.left - frame.left, dy: rect.top - frame.top, width: rect.width } : null;
+        })(),
         viewerTouchAction: getComputedStyle(document.querySelector("[data-advertising-photo-viewport]")).touchAction,
       };
     });
@@ -955,7 +960,10 @@ async function runP7PinterestContract(browser, locale) {
     assert(initial.suggestion.scrollHeight <= initial.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
     assert.equal(initial.suggestion.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
     for (const button of initial.suggestion.buttons) assert(contained(button, initial.suggestion.rect), `${label}: suggestion button leaves its solver cell`);
-    assert.equal(initial.hasBack, false, `${label}: dedicated Back control returned`);
+    // Nút quay lại kiểu Pinterest (detail R10, owner 2026-10-27): góc trên trái khung media, cả màn hẹp.
+    const backInset = initial.viewportWidth > 750 ? 16 : 8;
+    assert.deepEqual(initial.back && [Math.round(initial.back.dx), Math.round(initial.back.dy), initial.back.width],
+      [backInset, backInset, 36], `${label}: Back control is not at the media frame top-left`);
     assert.equal(initial.viewerTouchAction, "none", `${label}: fullscreen viewer lost exclusive pan/zoom gestures`);
 
     stage = "description-scroll";
