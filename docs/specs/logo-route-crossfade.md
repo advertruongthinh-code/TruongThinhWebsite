@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/logo-route-crossfade.e2e.mjs
 notion: none
-updated: 2026-10-12
+updated: 2026-10-31
 ---
 
 # Logo đổi màu khi chuyển trang
@@ -19,7 +19,7 @@ Spec này mô tả phần "Chuyển route" trong [state machine màu](../../desi
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
 ([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Owner chốt intent 2026-10-11 qua interview-me;
-R7 owner chốt 2026-10-12 sau khi so đo Espacio frame theo frame (PR #309); cùng ngày owner chọn mark đậm theo
+R7 owner chốt sau khi so đo Espacio frame theo frame; owner chọn mark đậm theo
 Espacio (kiểu b) thay mark CMYK trên veil, và bỏ crossfade riêng của mark.
 
 ## Hành vi
@@ -56,7 +56,7 @@ And lúc veil phủ kín mark là #2f2f2f
 
 Trang đích hero trắng (hiện là Advertising `/vi/advertising-products/`, `/en/advertising-products/`): mark sang
 đậm lúc bấm (R1), rồi từng dải về CMYK của nó lúc veil mở (R2). Mark đang CMYK lúc bấm vẫn sang đậm, vì mark
-luôn cùng màu chữ trên veil (agent chọn theo kiểu b, owner xem trên demo).
+luôn cùng màu chữ trên veil (kiểu b).
 
 ```gherkin
 Given /vi/ ở đầu trang, mark trắng
@@ -67,7 +67,7 @@ Then mark sang đậm lúc bấm, sang CMYK lúc veil bắt đầu mở, rồi g
 ### R4. Đổi ngôn ngữ
 
 Đổi ngôn ngữ dùng cùng veil ([Shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ)) nên theo R1 tới R3
-(agent chọn, owner duyệt trong intent).
+(owner duyệt).
 
 ### R5. Chuyển giữa chừng
 
@@ -88,8 +88,7 @@ Mỗi lần chuyển trang theo R1 tới R4, cả cụm logo trên header (mark,
 · QUẢNG CÁO") giữ `opacity 1` và nằm trên veil (header `z-index 1000`, veil `999`), nên lúc veil phủ kín vẫn
 thấy logo: chữ và mark cùng `#2f2f2f`. Mark và chữ đổi màu cùng lúc, cùng `0.3s expo.out` (R1, R2), như Espacio
 (logo, nav, hamburger đổi màu chung một tween ngay lúc bấm, logo không mờ). Áp dụng cho PC và điện thoại, mọi
-route mềm, đổi ngôn ngữ, route từ full menu, kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil
-(#303) ngày 2026-10-12.
+route mềm, đổi ngôn ngữ, route từ full menu, kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
 
 ```gherkin
 Given /vi/ ở đầu trang, 1440px hoặc 412×915
@@ -117,7 +116,7 @@ trong `src/site/motion.js`.
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm tween màu (fill inline trên path), không clip-path; mỗi tween dưới 0.5s, sang đậm bắt đầu lúc bấm, sang màu trang đích bắt đầu khi veil phủ kín và trước khi mở xong |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
-| Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (số đo trong PR đóng gate #307; kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
+| Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
 
 ## Gate còn mở
 
