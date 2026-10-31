@@ -31,7 +31,7 @@ web server:
    thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do
    trước khi dùng. Không bắt buộc cho mọi UI change.
 4. Playwright inspect DOM, computed style, accessibility tree, console,
-   network và screenshot của cùng route (Chrome DevTools MCP đã gỡ 2026-10-19).
+   network và screenshot của cùng route (Chrome DevTools MCP gỡ 2026-10-19, cài lại không cửa sổ 2026-10-31, không thay Playwright).
 
 Layer bắt buộc (1, 2, 4) unavailable hoặc interaction fail thì QA bị block. Screenshot, static
 review hoặc một automated assertion đơn lẻ không phải release pass. Browser

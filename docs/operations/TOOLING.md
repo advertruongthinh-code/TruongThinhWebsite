@@ -14,7 +14,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 | Scope | Nội dung đã cài (2026-10-17) |
 | --- | --- |
-| User global | Graphify 0.9.92, uv 0.13.1, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 56 direct skill và native persona |
+| User global | Graphify 0.9.97, Serena 2.1.0, chrome-devtools-mcp 1.12.0, uv 0.13.1, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 59 direct skill và native persona |
 | Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.graphifyignore`, Git hook, watcher và policy |
 | Encode ảnh | `cjxl`, `djxl` libjxl 0.11.1 Linux x86_64 (`scripts/tooling/install-jxl.sh` cài vào `.tooling/libjxl/`, kiểm SHA-256 ghim; chỉ cần khi sinh JXL) |
 
@@ -37,12 +37,12 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ~/.codex/AGENTS.md         rule global ADHD, Ponytail ultra, Caveman chỉ khi user gọi
 ~/.claude/CLAUDE.md        import @~/.codex/AGENTS.md
 ~/.claude/agents/*.md      bốn persona review, chép từ ~/.codex/agents/*.toml
-~/.claude.json             MCP user scope Claude: graphify qua mcp.ps1
+~/.claude.json             MCP user scope Claude: graphify, serena, chrome-devtools qua mcp.ps1, graphify-cloud HTTP
 ```
 
 Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
 là bản chép tay; đổi persona Codex thì chép lại. `global-mcp.ps1` (chép thành `mcp.ps1`)
-chạy Graphify MCP trên PC.
+chạy Graphify, Serena, Chrome DevTools MCP trên PC; đây là wrapper dùng chung với PrintWork, sửa thì giữ đủ ba service.
 
 ## Machine mới hoặc repair
 
@@ -97,7 +97,10 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | ponytail | Plugin: 6 skill (bản 5 bỏ MCP `ponytail`) |
 | impeccable | Plugin: skill, 4 agent; engine 0.1.15 cache, CLI npm 4.6.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |
-| graphify | `graphifyy[all]` 0.9.92, skill global, MCP `graphify` |
+| graphify | `graphifyy[all]` 0.9.97, skill global, MCP `graphify` |
+| serena | `serena-agent` 2.1.0, MCP `serena`, context `claude-code` |
+| chrome-devtools | `chrome-devtools-mcp` 1.12.0, MCP `chrome-devtools`, không cửa sổ |
+| find-skills, kie-models, kie-chat-agents | Skill thường trong `~/.claude/skills`; kie tải tarball từ kie.ai, kiểm SHA-256 ghim |
 
 Pin trong script khớp `tooling-versions.json`; đổi pin thì sửa cả hai rồi dán
 lại script, cache tự build lại.
@@ -118,7 +121,9 @@ Không cài, có lý do:
   không có trên cloud. Agent cloud chạy `ponytail-review` thủ công trước commit.
 
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
-`claude plugin list` liệt kê sáu plugin `@skills-dir`.
+`claude plugin list` liệt kê sáu plugin `@skills-dir`. Script đổi thì owner dán lại vào environment.
+
+`graphify-cloud` là connector claude.ai, không nằm trong script: OAuth trong container mất khi container bị thu hồi.
 
 ## Browser QA trên cloud
 
@@ -168,10 +173,13 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 | MCP | Policy | Mục đích |
 | --- | --- | --- |
 | Graphify | required | Architecture, relationship, project-content graph |
+| Serena | required | Declaration, reference, diagnostics trên working tree |
+| Chrome DevTools | required | Debug browser không cửa sổ; QA gate vẫn là Playwright và CDP script |
+| Graphify Cloud | required | Graph trên snapshot GitHub; PC `graphify-cloud`, cloud qua connector |
 
 Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
-Chrome DevTools MCP đã gỡ (owner 2026-10-19) để giảm token MCP; symbol dùng `rg`,
-QA browser dùng Playwright và CDP script.
+Owner chốt 2026-10-31: bốn MCP trên là bộ chuẩn cho mọi project, thay quyết định gỡ ngày 2026-10-19.
+QA browser vẫn chạy bằng Playwright và CDP script; Chrome không được cướp focus trên PC.
 Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`
 (pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ phần cờ nếu Chromium mới đã bật JXL sẵn.
 Patch cũng mặc định `serviceWorkers: "block"`: Service Worker chặn `page.route` và CDP Fetch; site không còn đăng ký

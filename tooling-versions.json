@@ -25,16 +25,18 @@
     "impeccable-skill": "4.6.0",
     "ponytail-count": 6,
     "ponytail-skill": "5.3.2",
-    "global-total": 56
+    "global-total": 59
   },
   "python": {
-    "graphifyy": "0.9.92",
+    "graphifyy": "0.9.97",
+    "serena-agent": "2.1.0",
     "uv": "0.13.1",
     "graphify_extras": "all"
   },
   "node": {
     "global": {
-      "impeccable": "4.6.0"
+      "impeccable": "4.6.0",
+      "chrome-devtools-mcp": "1.12.0"
     },
     "project": {
       "playwright": "1.64.1",
@@ -60,7 +62,8 @@
     "juliusbrussee/caveman": "a5705b01a5d877c34d44c4961f14816b21bfb72a",
     "pbakaus/impeccable": "8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7",
     "microsoft/playwright": "cfe490d941f992655948eee8fd4fd94e1c4234bf",
-    "dietrichgebert/ponytail": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+    "dietrichgebert/ponytail": "16352ac229eb08a9598dcae48fe9f2b342567d86",
+    "vercel-labs/skills": "92a9a34ac3bf88e695e468b90c7bf32f163d32c8"
   },
   "repository_urls": {
     "Graphify-Labs/graphify": "https://github.com/Graphify-Labs/graphify.git",
@@ -69,6 +72,7 @@
     "juliusbrussee/caveman": "https://github.com/juliusbrussee/caveman.git",
     "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
     "microsoft/playwright": "https://github.com/microsoft/playwright.git",
-    "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git"
+    "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git",
+    "vercel-labs/skills": "https://github.com/vercel-labs/skills.git"
   }
 }

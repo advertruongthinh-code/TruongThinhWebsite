@@ -25,7 +25,7 @@ File này chỉ giữ routing tool.
 ## Graphify
 
 - Graphify trước cho code và meaningful non-media content qua wrapper; chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
-- Sau Graphify dùng `rg` cho symbol, reference.
+- Sau Graphify dùng Serena hoặc `rg` cho symbol, reference; Serena chốt declaration và reference trên working tree.
 - Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
 - Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
 

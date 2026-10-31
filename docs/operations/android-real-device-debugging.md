@@ -12,7 +12,7 @@ related_specs:
 Owner xác nhận thiết bị là Android, browser Chrome, máy host Windows chạy
 Codex. Trang chạy trên điện thoại thật; viewport desktop emulation không thay
 gate này. Ngày27/09/2026 đã đọc DOM và chụp ảnh trang Advertising local qua
-Chrome DevTools MCP (nay đã gỡ) trên Galaxy A05s thật (máy cũ; từ 2026-10-18 owner dùng phone Android khác, cùng quy trình adb/CDP). Đây là PASS kết nối/debug; chưa là
+Chrome DevTools MCP trên Galaxy A05s thật (máy cũ; từ 2026-10-18 owner dùng phone Android khác, cùng quy trình adb/CDP). Đây là PASS kết nối/debug; chưa là
 nghiệm thu giao diện. Owner yêu cầu local trước, sau phát hành mới debug demo Cloudflare.
 
 ## Cài đặt điện thoại
@@ -67,7 +67,7 @@ Google [documented CDP socket forwarding](https://developer.chrome.com/docs/devt
 Nếu endpoint không có hoặc socket khác, đọc exact error và transport của
 browser đang chạy; không nối desktop Chrome để giả là điện thoại.
 
-Chrome DevTools MCP đã gỡ (owner 2026-10-19). Attach qua CDP script trong `tests/site/`
+Attach qua CDP script trong `tests/site/`
 (ví dụ `DEVICE_CDP=http://127.0.0.1:9223`). Dùng phiên debug riêng, không chuyển
 target của session desktop đang chạy. Phạm vi đọc là tab website cần test;
 không đọc cookie/token hoặc trang riêng tư khác.
