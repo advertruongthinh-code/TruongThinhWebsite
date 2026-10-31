@@ -7,6 +7,7 @@
   "scripts": {
     "prepare:site": "node scripts/site/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && node scripts/tooling/serve-static-parity.mjs --port 8787",
+    "cms:dev": "node scripts/cms/dev-local.mjs",
     "deploy:demo": "pnpm prepare:site && pnpm demo:wrangler deploy --config wrangler.static.toml",
     "demo:wrangler": "pnpm dlx --allow-build=esbuild --allow-build=workerd wrangler@4.124.0",
     "qa:static": "node tests/site/site-static-contract.cjs",
