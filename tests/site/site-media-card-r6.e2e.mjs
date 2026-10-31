@@ -273,8 +273,8 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
-test("R6-R3 public legacy catalog keeps 279 image-only cards", () => {
-  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 279);
+test("R6-R3 public legacy catalog keeps 283 image-only cards", () => {
+  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 283);
   assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
     && card.mediaItems[0].kind === "image"));
 });

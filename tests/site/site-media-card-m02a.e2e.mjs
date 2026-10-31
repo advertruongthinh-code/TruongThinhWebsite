@@ -19,7 +19,7 @@ const { chromium } = await import("playwright");
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
   crowded = false, twoVideos = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
-  assert.equal(artifact.cards.length, 279, "fixture retains all legacy cards");
+  assert.equal(artifact.cards.length, 283, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
   assert(card && card.media.width * 2 === card.media.height * 3);
   // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
