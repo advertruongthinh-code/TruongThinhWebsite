@@ -46,7 +46,7 @@ And card không có Kính, canvas Flow hay khung skeleton
 
 Ảnh tải xong và `img.decode()` xong ([tải theo nấc R3](progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong); video không
 chờ decode), khi card còn giao viewport thì runtime (`revealCard`) animate `filter` của media từ
-blur về `blur(0px)` trong `0.6s`, `cubic-bezier(0.65, 0, 0.35, 1)`, rồi gỡ blur. Card chưa mờ (gắn trong `revealCard`)
+blur về `none` trong `0.6s`, `cubic-bezier(0.65, 0, 0.35, 1)`, rồi gỡ blur. Card chưa mờ (gắn trong `revealCard`)
 chỉ crossfade media.
 
 Trên điện thoại (cùng điều kiện `skeletonPhone` của [skeleton R1](advertising-skeleton.md)), card đến lượt tan khi đang

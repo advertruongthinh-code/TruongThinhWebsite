@@ -2610,7 +2610,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const layers = mediaLayers(node);
       if (entry.blur) {
         // Blur tan về 0 trong 0.6s (progressive-loading R9).
-        entry.animations = layers.map((media) => media.animate([{ filter: CARD_LOADING_BLUR }, { filter: "blur(0px)" }],
+        entry.animations = layers.map((media) => media.animate([{ filter: CARD_LOADING_BLUR }, { filter: "none" }],
           { duration: CARD_REVEAL_MS, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }));
       } else {
         layers.forEach((media) => {
