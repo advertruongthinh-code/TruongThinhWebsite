@@ -14,8 +14,8 @@ structural freshness. Agent lifecycle hook bị disabled.
 
 Cloud/Linux không có PowerShell: `scripts/tooling/invoke-graphify.sh query "..."` hoặc MCP `graphify`.
 
-Wrapper block query khi structural refresh fail, report semantic lag riêng. Dùng
-`rg` sau Graphify cho exact symbol, reference.
+Wrapper block query khi structural refresh fail, report semantic lag riêng. Rule
+chống stale và thứ tự tool ở [Workflow và tool](agent-rule-workflow-tools.md#graphify).
 
 Khi **Graphify: Watch** đang chạy và đã xử lý save gần nhất, query graph hiện có
 mà không tranh refresh lock:

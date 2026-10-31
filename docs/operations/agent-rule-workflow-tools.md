@@ -47,10 +47,23 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 
 ## Graphify
 
-- Graphify trước cho code và meaningful non-media content qua wrapper; chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
-- Sau Graphify dùng Serena hoặc `rg` cho symbol, reference; Serena chốt declaration và reference trên working tree.
+- Mọi truy vấn về code, tài liệu, quan hệ, blast radius dùng Graphify trước. Chỉ đi thẳng `rg` hoặc đọc file khi tìm literal, hoặc đã biết đúng file.
+- Đường mặc định là wrapper trong [scripts map](agent-rule-scripts.md): wrapper tự refresh AST và fail closed khi refresh lỗi. Chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
+- Chống stale với MCP `graphify`: gọi `graph_stats` trước. Chỉ tin khi báo `matches HEAD` và working tree sạch; còn lại query qua wrapper. Cloud clone mới chưa có `graph.json`, query đầu tiên phải qua wrapper.
+- Chống stale với `graphify-cloud`: so `graph_stats.freshness.commit` với `git rev-parse HEAD`; lệch hoặc có sửa chưa commit thì dùng local.
+- Graph chỉ định hướng. Kết luận về code hiện tại phải kiểm lại trên working tree bằng Serena hoặc đọc file.
 - Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
 - Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
+
+## Serena
+
+- Mỗi repo có cấu hình riêng ở `.serena/project.yml`. Website bật TypeScript (gồm `.js`, `.mjs`, `.cjs`) và Bash.
+- Dùng sau Graphify. Đọc code: `get_symbols_overview`, rồi `find_symbol` với `include_body`; không đọc cả file để khám phá.
+- Quan hệ: `find_declaration`, `find_implementations`, `find_referencing_symbols`. Lỗi: `get_diagnostics_for_file`.
+- Sửa cả symbol: `replace_symbol_body`, `insert_after_symbol`, `insert_before_symbol`. Đổi tên, xóa: `rename_symbol`, `safe_delete_symbol`. Sửa vài dòng: `replace_content`. Cùng một sửa ở nhiều file: `replace_in_files`, chạy `dry_run` trước.
+- Markdown, HTML, CSS, PowerShell và path trong `ignored_paths` dùng tool thường. Literal dùng `rg`.
+- Số dòng Serena trả về tính từ 0. Các lệnh độc lập gọi song song trong một lượt.
+- Serena lỗi: chuyển `rg` và đọc file, ghi rõ fallback trong handoff.
 
 ## Chú thích thuật ngữ
 
