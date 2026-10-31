@@ -6,6 +6,7 @@ source:
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/jxl-threshold.e2e.mjs
+  - tests/site/image-format-fallback.e2e.mjs
   - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
@@ -54,8 +55,8 @@ duyệt đọc được JXL chỉ tải JXL (owner chọn 2026-10-31). Logo khá
 - `build-image-variants.mjs` thêm bước JXL, ghim `cjxl`, `djxl` trong `tooling-versions.json` (env `CJXL`, `DJXL` hoặc PATH),
   `--check` kiểm đủ file và ngưỡng (R2). `--jobs N` chạy N ảnh song song; ngưỡng ghi sau mỗi ảnh nên lần chạy dài bị ngắt
   chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
-- Runtime Advertising chỉ trỏ JXL: trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi
-  ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)). Owner chấp nhận. Trang card tĩnh giữ `<img>` WebP như trên.
+- Mọi trình duyệt phải tải được ảnh (owner 2026-10-31, thay quyết định chỉ JXL ngày 2026-10-27): runtime Advertising dò
+  ảnh JXL 1x1 trước lần dựng đầu; không giải mã được (Firefox, Chrome dưới 155) thì dùng WebP 240, 480, 960 và bản gốc.
 - AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); og:image, JSON-LD, sitemap ảnh giữ WebP.
 
 Trung tâm vùng ưu tiên dùng giữa ảnh. Đặt tâm theo model Google Attention Center là việc sau, cần TensorFlow Lite.
