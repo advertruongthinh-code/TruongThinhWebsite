@@ -55,7 +55,6 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 - Exit 3 là tên mơ hồ: chọn tên cụ thể trong danh sách. Exit 4 là không có node: chuyển `rg`.
 - Cạnh `EXTRACTED` có trong source; cạnh `INFERRED` do Graphify suy ra, phải kiểm lại.
 - Chống stale với MCP `graphify`: launcher tự bật một watcher mỗi repo, MCP tự nạp lại graph, trễ khoảng 30 giây sau khi lưu. Vừa sửa file, hoặc graph chưa có, thì query qua wrapper.
-- Chống stale với `graphify-cloud`: so `graph_stats.freshness.commit` với `git rev-parse HEAD`; lệch hoặc có sửa chưa commit thì dùng local.
 - Chỉ build/update semantic index khi user explicit request; không thì báo file pending.
 
 ## Serena

@@ -37,7 +37,7 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ~/.codex/AGENTS.md         rule global ADHD, Ponytail ultra, Caveman chỉ khi user gọi
 ~/.claude/CLAUDE.md        import @~/.codex/AGENTS.md
 ~/.claude/agents/*.md      bốn persona review, chép từ ~/.codex/agents/*.toml
-~/.claude.json             MCP user scope Claude: graphify, serena, chrome-devtools qua mcp.ps1, graphify-cloud HTTP
+~/.claude.json             MCP user scope Claude: graphify, serena, chrome-devtools qua wrapper
 ```
 
 Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
@@ -123,8 +123,6 @@ Không cài, có lý do:
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
 `claude plugin list` liệt kê sáu plugin `@skills-dir`. Script đổi thì owner dán lại vào environment.
 
-`graphify-cloud` là connector claude.ai, không nằm trong script: OAuth trong container mất khi container bị thu hồi.
-
 ## Git hook trên app desktop
 
 - App desktop của owner chạy qua provider KIE.ai và đặt `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` cho shell con; CLI trong hook kế thừa nên báo "Not logged in". Chạy `git commit`/`git push` với `env -u` các biến đó để hook dùng phiên claude.ai của CLI.
@@ -179,10 +177,9 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 | Graphify | required | Architecture, relationship, project-content graph |
 | Serena | required | Declaration, reference, diagnostics trên working tree |
 | Chrome DevTools | required | Debug browser không cửa sổ; QA gate vẫn là Playwright và CDP script |
-| Graphify Cloud | required | Graph trên snapshot GitHub; PC `graphify-cloud`, cloud qua connector |
 
 Graphify là STDIO MCP host launch mỗi session; launcher giữ thêm một watcher nền cho mỗi repo ([graphify](graphify.md)).
-Owner chốt 2026-10-31: bốn MCP trên là bộ chuẩn cho mọi project, thay quyết định gỡ ngày 2026-10-19.
+Owner chốt 2026-10-31: ba MCP trên là bộ chuẩn cho mọi project, thay quyết định gỡ ngày 2026-10-19.
 QA browser vẫn chạy bằng Playwright và CDP script; Chrome không được cướp focus trên PC.
 Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`
 (pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ phần cờ nếu Chromium mới đã bật JXL sẵn.
