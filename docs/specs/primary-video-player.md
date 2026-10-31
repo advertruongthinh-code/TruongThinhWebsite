@@ -267,7 +267,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
 | R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
-| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP; [gate](../decisions/phone-frame-budget.md) video đang phát không rơi frame ở primary và viewer |
+| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1, R2 (kể cả video đang dừng) và [gate](../decisions/phone-frame-budget.md) không rơi frame ở primary và viewer đạt trên SM-A047F |
 
 ## Gate còn mở
 

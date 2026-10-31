@@ -271,7 +271,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 | R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, ngưỡng xoay 20°, vùng chết pan 10px, chạm đúp, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
-| R1–R6 | phone Android thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm; R7 đến R10 thêm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` và vuốt `adb shell input swipe` 30% chiều cao; ngang qua CDP override 800×360 hoặc đặt máy ngang; pinch và xoay hai ngón R11 thử tay |
+| R1–R6 | phone Android thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm; R7 đến R10 thêm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` và vuốt `adb shell input swipe` 30% chiều cao; ngang qua CDP override 800×360 hoặc đặt máy ngang; pinch và xoay hai ngón R11 thử tay. R1 đến R10 đạt trên phone Android thật (SM-A057F) |
 
 ## Gate còn mở
 

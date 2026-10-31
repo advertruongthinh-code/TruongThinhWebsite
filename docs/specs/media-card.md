@@ -249,7 +249,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Không chặn phát hành. Gộp ảnh thành card nhiều media làm đợt khác, khi toàn bộ media đã chuẩn: AI đề xuất nhóm, owner audit tay từng nhóm, không luật gộp tự động. Chưa có
+- Không chặn phát hành. Card là một loại sản phẩm ([media-seo](media-seo.md#mục-đích)). Gộp ảnh thành card nhiều media làm đợt khác, khi toàn bộ media đã chuẩn: AI đề xuất nhóm, owner audit tay từng nhóm, không luật gộp tự động. Chưa có
   clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
@@ -265,7 +265,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster và metadata trước, không cố tải cả file. Code chỉ tạo video
   khi item thành active với `preload="auto"` (R4). Ngân sách byte, lề preload, buffer chưa khóa, cần clip thật và trace
   thiết bị.
-- Không lưu GIF public; định dạng và thang chất lượng theo [video-delivery R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video). Chưa có clip thật.
+- Không lưu GIF public; video là thang H.264 HLS theo [video-delivery R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video) (thay quyết định AV1/WebM kèm MP4 H.264 cũ), poster WebP. Chưa có clip thật.
 - Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Ngưỡng vuốt (10px chốt hướng,
