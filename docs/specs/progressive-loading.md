@@ -40,8 +40,9 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
 
 ### R1. Định dạng và biến thể
 
-Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poster video) là JXL progressive, không có định dạng dự phòng
-(owner 2026-10-27). Logo khách hàng SVG giữ nguyên. Video có tiếng và clip dài vẫn là HLS ([video](video-delivery.md)).
+Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poster video) là JXL progressive (owner 2026-10-27). Google Images
+và Discover chưa index JXL (John Mueller, 2026-10-15), nên HTML tĩnh bọc `<picture>`: `<source>` JXL, `<img>` giữ WebP; trình
+duyệt đọc được JXL chỉ tải JXL (đề xuất 2026-10-31, chờ owner chọn). Logo khách hàng SVG giữ nguyên. Video có tiếng và clip dài vẫn là HLS ([video](video-delivery.md)).
 
 - Cỡ: 240, 480, 960, 1600, 2048 và bản gốc (3072px hiện nay, 3840px khi có ảnh nguồn); cỡ không nhỏ hơn bản gốc thì bỏ.
 - Encode: `cjxl -p --group_order=1` (vùng giữa ảnh tới trước), effort 7. Mỗi file chọn `distance` sao cho dung lượng không
@@ -50,9 +51,9 @@ Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poste
 - `build-image-variants.mjs` thêm bước JXL, ghim `cjxl`, `djxl` trong `tooling-versions.json` (env `CJXL`, `DJXL` hoặc PATH),
   `--check` kiểm đủ file và ngưỡng (R2). `--jobs N` chạy N ảnh song song; ngưỡng ghi sau mỗi ảnh nên lần chạy dài bị ngắt
   chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
-- Trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)).
-  Owner chấp nhận.
-- AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); HTML và runtime không trỏ tới chúng nữa.
+- Runtime Advertising chỉ trỏ JXL: trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi
+  ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)). Owner chấp nhận. Trang card tĩnh giữ `<img>` WebP như trên.
+- AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); og:image, JSON-LD, sitemap ảnh giữ WebP.
 
 Trung tâm vùng ưu tiên dùng giữa ảnh. Đặt tâm theo model Google Attention Center là việc sau, cần TensorFlow Lite.
 

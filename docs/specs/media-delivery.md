@@ -44,10 +44,10 @@ And chạy lại với --check thì exit 0
 ### R2. HTML tĩnh chọn biến thể
 
 Build bọc `<img>` nội dung trong `<picture>` ([phát hành tĩnh R6](static-release.md#r6-ảnh-nội-dung-bọc-)). Khi có
-`width` và cỡ 240, 480, 960 đủ hai định dạng: `<source type="image/avif">` và `<img>` (WebP) cùng mang `srcset` gồm các cỡ
-đó cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"` nhận `auto, 100vw` (trình
-duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` hoặc không có cỡ nhỏ hơn thì `<source>` chỉ có
-`<tên>.avif`. `src` WebP gốc giữ làm fallback và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
+`width`: `<source type="image/jxl">` mang `srcset` các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ hơn `width`, `<img>` mang
+`srcset` WebP 240, 480, 960, cả hai cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"`
+nhận `auto, 100vw` (trình duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` thì `<source>` chỉ có `<tên>.jxl`.
+`<img>` WebP cho Google Images và trình duyệt chưa đọc JXL ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)), và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
 `data-srcset`; `hydrateDeferredHeroImages` (`motion.js`) chép sang `srcset` trên `<source>` và `<img>` rồi gán `src`
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). `picture { display: contents }` nên không thêm box;
 selector nhắm ảnh viết thêm `X > picture > img`.
@@ -76,16 +76,16 @@ And không ảnh nào bị request hai lần cùng URL
 ```gherkin
 Given <img src="/assets/content/projects/storefront.webp" width="1536" loading="lazy"> trong HTML nguồn
 When build xong
-Then source AVIF có srcset storefront-240.avif 240w, storefront-480.avif 480w, storefront-960.avif 960w, storefront.avif 1536w, sizes "auto, 100vw"
-And trình duyệt hỗ trợ AVIF tải đúng một file cho ảnh đó, không tải WebP
+Then source JXL có srcset storefront-240.jxl 240w, storefront-480.jxl 480w, storefront-960.jxl 960w, storefront.jxl 1536w, sizes "auto, 100vw"
+And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, không tải WebP
 ```
 
 ### R3. Runtime Advertising chọn biến thể
 
-`responsive-image.mjs` probe AVIF một lần khi module nạp (ảnh AVIF 1×1 dạng data URI); ảnh tạo trước khi probe xong
-giữ WebP. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/` có `width`, trả các cỡ 240, 480, 960 nhỏ hơn
-`width` cộng bản gốc, theo định dạng đã probe; `responsiveSource(src)` đổi đuôi sang `.avif` khi probe đạt. Module không
-kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
+`responsive-image.mjs` chỉ trỏ JXL ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)).
+`responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/` có `width`, trả các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ
+hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ JXL nhỏ nhất không dưới `needed` pixel, không có
+`needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
 
 | Nơi | Cách tải |
 | --- | --- |
@@ -93,14 +93,14 @@ kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `d
 | Nút suggestion | native lazy, `srcset`, `sizes="auto, 50vw"`; ảnh kế của slideshow eager, `sizes` ghim bằng bề rộng nút |
 | Item khác trên card nhiều media | native lazy, `sizes="auto, 50vw"` ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
 | Thumbnail primary | lazy, `sizes="auto, 25vw"`; video dùng poster |
-| Ảnh primary | `responsiveSource`, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư cùng URL |
+| Ảnh primary | `responsiveSource` với `needed` = bề rộng viewport × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư cùng URL |
 | Viewer | `responsiveSource` gán lúc mở, `fetchPriority="high"` |
 
 ```gherkin
-Given trình duyệt hỗ trợ AVIF và probe đã xong
+Given trình duyệt đọc được JXL, viewport 1440 DPR 1
 When mở detail kiosk-posm-07 rồi bấm "Xem lớn hơn"
-Then ảnh primary và ảnh viewer cùng một URL .avif cỡ gốc
-And card masonry dùng data-srcset AVIF 240w, 480w, 960w và bản gốc
+Then ảnh primary là <tên>-1600.jxl và ảnh viewer là <tên>.jxl cỡ gốc
+And card masonry dùng data-srcset JXL 240w, 480w, 960w, 1600w, 2048w và bản gốc
 ```
 
 ### R4. Thứ tự ưu tiên tải
