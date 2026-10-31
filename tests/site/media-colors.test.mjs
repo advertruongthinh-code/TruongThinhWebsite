@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { palette } from "../../scripts/site/image-palette.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const { MEDIA_COLORS } = await import(path.join(root, "src/site/advertising-products/media-colors.mjs"));
+const { MEDIA_COLORS } = await import(pathToFileURL(path.join(root, "src/site/advertising-products/media-colors.mjs")).href);
 
 // advertising-skeleton R3: ảnh tổng hợp bốn mảng màu (diện tích khác nhau) ra đúng bốn màu, sắp từ sáng tới tối.
 const blocks = [[[20, 30, 200], 700], [[240, 230, 210], 300], [[200, 40, 40], 500], [[30, 20, 10], 900]];
