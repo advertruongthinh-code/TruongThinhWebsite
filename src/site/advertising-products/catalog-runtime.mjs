@@ -57,6 +57,8 @@ const ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS = 30_000;
 const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/advertising-products(?:\/((?:[^/]+\/){0,2}))?$/;
 // Trang card (media-seo R1): detail có URL /<locale>/advertising-products/p/<card-id>/; ?photo= cũ vẫn đọc được.
 const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([^/]+)\/$/;
+// Màu sinh lúc build theo tên file ảnh: [màu chủ đạo card, 4 màu Flow sáng tới tối].
+const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 const advertisingPhotoId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
@@ -981,7 +983,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
   // Màu chủ đạo của ảnh lấp khung khi ảnh chưa nhận byte nào; ảnh mờ rồi nét phủ lên trên (progressive-loading R9).
-  const color = MEDIA_COLORS[record.media.src.split("/").pop().replace(/\.webp$/, "")];
+  const color = mediaColors(record.media.src)?.[0];
   if (color) media.style.backgroundColor = color;
   const image = createPhotoMedia(record, locale, { native: related });
   media.append(image);
@@ -2166,7 +2168,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const key = skeletonKey(frame);
     let assignment = skeletonAssignmentByKey.get(key);
     if (!assignment) {
-      assignment = drawSkeletonFlowAssignment({ neighbors: skeletonNeighbors(frame, rects) });
+      assignment = drawSkeletonFlowAssignment({ neighbors: skeletonNeighbors(frame, rects),
+        colors: frame.dataset.advertisingFlowColors?.split(" ") });
       skeletonAssignmentByKey.set(key, assignment);
       skeletonPhaseBySlot.delete(key);
     }
@@ -2474,9 +2477,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   };
   // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
-  const attachLoadingSkeleton = (host, mediaId, before = null) => {
+  const attachLoadingSkeleton = (host, mediaId, before = null, colors = null) => {
     const frame = createSkeletonFrame();
     frame.dataset.advertisingLoadingSkeleton = mediaId;
+    // Flow chờ ảnh primary mang 4 màu của chính ảnh (advertising-skeleton R3).
+    if (colors) frame.dataset.advertisingFlowColors = colors.join(" ");
     if (skeletonAssignmentByKey.has(skeletonKey(frame))) assignSkeleton(frame);
     frame.setAttribute("aria-hidden", "true");
     host.insertBefore(frame, before);
@@ -3785,7 +3790,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (changed) {
       // Ảnh có sẵn hay chưa đều chạy motion card tải chậm (loading-glass-and-page-entry R4): ảnh và nền cũ ẩn ngay,
       // skeleton phủ khung tới khi ảnh mới decode xong; ảnh có sẵn chỉ làm skeleton đứng ngắn hơn.
-      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling), animations: [], glass: null };
+      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
+        mediaColors(video ? item.posterSrc : item.src)?.slice(1)), animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.advertisingPhotoLoading = "true";
