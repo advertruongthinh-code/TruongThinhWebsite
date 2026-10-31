@@ -22,7 +22,7 @@
   "skills": {
     "agent-skills-count": 25,
     "caveman-count": 22,
-    "impeccable-skill": "4.6.0",
+    "impeccable-skill": "4.8.0",
     "ponytail-count": 6,
     "ponytail-skill": "5.3.2",
     "global-total": 59
@@ -35,7 +35,7 @@
   },
   "node": {
     "global": {
-      "impeccable": "4.6.0",
+      "impeccable": "4.8.0",
       "chrome-devtools-mcp": "1.12.0"
     },
     "project": {
@@ -56,11 +56,11 @@
     }
   },
   "repositories": {
-    "Graphify-Labs/graphify": "86c57be8204673c2a1b9849a3292a7dd3ab373d8",
+    "Graphify-Labs/graphify": "0a8cd4e1e342235fe53e881fb5d591bf0460071f",
     "ayghri/i-have-adhd": "1ecea1993b7fce257ffbd686c070948b5e07eda6",
     "addyosmani/agent-skills": "aeac41d4d005999432bb7312f7ff06383a91d59d",
-    "juliusbrussee/caveman": "a5705b01a5d877c34d44c4961f14816b21bfb72a",
-    "pbakaus/impeccable": "8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7",
+    "juliusbrussee/caveman": "f5837c46f8a38915ebc8dd1e6250598fb7482863",
+    "pbakaus/impeccable": "414603bf14c7a344edb466bb1f85690c77ce8b7d",
     "microsoft/playwright": "cfe490d941f992655948eee8fd4fd94e1c4234bf",
     "dietrichgebert/ponytail": "16352ac229eb08a9598dcae48fe9f2b342567d86",
     "vercel-labs/skills": "92a9a34ac3bf88e695e468b90c7bf32f163d32c8"

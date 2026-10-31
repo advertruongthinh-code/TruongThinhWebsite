@@ -29,9 +29,9 @@ fetch() { # <owner/repo> <sha>: checkout nông (shallow) của một commit đã
 }
 
 fetch addyosmani/agent-skills aeac41d4d005999432bb7312f7ff06383a91d59d &
-fetch juliusbrussee/caveman a5705b01a5d877c34d44c4961f14816b21bfb72a &
+fetch juliusbrussee/caveman f5837c46f8a38915ebc8dd1e6250598fb7482863 &
 fetch dietrichgebert/ponytail 16352ac229eb08a9598dcae48fe9f2b342567d86 &
-fetch pbakaus/impeccable 8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7 &
+fetch pbakaus/impeccable 414603bf14c7a344edb466bb1f85690c77ce8b7d &
 fetch ayghri/i-have-adhd 1ecea1993b7fce257ffbd686c070948b5e07eda6 &
 fetch vercel-labs/skills 92a9a34ac3bf88e695e468b90c7bf32f163d32c8 &
 {
@@ -39,7 +39,7 @@ fetch vercel-labs/skills 92a9a34ac3bf88e695e468b90c7bf32f163d32c8 &
   uv tool install -q --python 3.13 "serena-agent==2.1.0"
 } &
 npm install -g --silent --no-audit --no-fund \
-  @caveman-ai/cli@4.0.1 impeccable@4.6.0 chrome-devtools-mcp@1.12.0 &
+  @caveman-ai/cli@4.0.1 impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
 wait
 
 # Skill kie.ai không có repo Git: tải tarball, kiểm SHA-256 ghim rồi mới bung.
@@ -57,7 +57,7 @@ ln -sfnT "$T/src/skills/skills/find-skills" "$CFG/skills/find-skills"
 # chúng đổi hướng ANTHROPIC_BASE_URL qua proxy local và làm hỏng cloud session.
 caveman telemetry off >/dev/null
 caveman setup --install </dev/null
-# Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.15).
+# Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.18).
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
 
 # Global rules: bản sao của block codex:global-stack trong scripts/tooling/bootstrap.ps1

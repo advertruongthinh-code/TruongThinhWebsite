@@ -109,7 +109,7 @@ reproduce được zero-AST case.
 
 Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
 ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/86c57be8204673c2a1b9849a3292a7dd3ab373d8>.
+<https://github.com/Graphify-Labs/graphify/tree/0a8cd4e1e342235fe53e881fb5d591bf0460071f>.
 
 ## Chú thích thuật ngữ
 

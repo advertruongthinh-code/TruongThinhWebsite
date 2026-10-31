@@ -14,7 +14,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 | Scope | Nội dung đã cài (2026-10-17) |
 | --- | --- |
-| User global | Graphify 0.9.97, Serena 2.1.0, chrome-devtools-mcp 1.12.0, uv 0.13.1, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 59 direct skill và native persona |
+| User global | Graphify 0.9.97, Serena 2.1.0, chrome-devtools-mcp 1.12.0, uv 0.13.1, Impeccable CLI 4.8.0/skill 4.8.0, jq 1.8.2, 59 direct skill và native persona |
 | Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.graphifyignore`, Git hook, watcher và policy |
 | Encode ảnh | `cjxl`, `djxl` libjxl 0.11.1 Linux x86_64 (`scripts/tooling/install-jxl.sh` cài vào `.tooling/libjxl/`, kiểm SHA-256 ghim; chỉ cần khi sinh JXL) |
 
@@ -95,7 +95,7 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | agent-skills | Plugin: 25 skill, 9 command, 4 agent, references |
 | caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; CLI 4.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
 | ponytail | Plugin: 6 skill (bản 5 bỏ MCP `ponytail`) |
-| impeccable | Plugin: skill, 4 agent; engine 0.1.15 cache, CLI npm 4.6.0 |
+| impeccable | Plugin: skill, 4 agent; engine 0.1.18 cache, CLI npm 4.8.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |
 | graphify | `graphifyy[all]` 0.9.97, skill global, MCP `graphify` |
 | serena | `serena-agent` 2.1.0, MCP `serena`, context `claude-code` |
