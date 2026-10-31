@@ -282,6 +282,8 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   ([Brand](../../design-system/brand.md#logo)) chờ owner nghiệm thu visual.
 - iPhone thật chưa kiểm: bàn phím, safe area, layout mọi scope, toàn shell trên Safari; chữ và icon trong nút lệch giữa
   iPhone và Android chưa có spec. Owner và máy PC.
+- Ma trận layout 660 ca (`mobile-layout-parity`, `manual`) chưa chạy lại trên main hiện tại; V-A owner chấp nhận sai lệch
+  snapshot. Máy PC.
 - Main: chưa kiểm trình duyệt không hỗ trợ `svh`, test paint và hit-test thứ tự lớp R1.
 
 ## Chú thích thuật ngữ
