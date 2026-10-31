@@ -55,7 +55,8 @@ A04s 384 (máy đo chuẩn của repo) và ô bề rộng tự do 320 đến 256
 scale` (ghi cỡ và phần trăm), đổi cỡ panel không tải lại. Đổi bề rộng thì tải lại iframe: runtime site (Locomotive,
 breakpoint, tách chữ) chỉ dựng đúng lúc tải trang, đổi cỡ tại chỗ khi đang cuộn có thể để trang trắng; placeholder đang
 chọn được cuộn lại sau khi tải. Nút "Tiếng Việt"/"English" đổi bản xem trước theo locale; "Chế độ sửa"/"Chế độ xem"
-bật tắt overlay (chế độ xem cho bấm link, kéo gallery như khách); "Tải lại"; "Mở tab mới" mở route thật không overlay.
+bật tắt overlay (chế độ xem tương tác như khách: menu, kéo gallery, video; link chuyển trang bị chặn kèm thông báo vì
+iframe rời bản xem trước là mất nháp và overlay); "Tải lại" đặt lại `src` về bản xem trước; "Mở tab mới" mở route thật.
 
 ```gherkin
 Given đang sửa Nhà ở ở cỡ 1440
@@ -99,10 +100,10 @@ các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm porta
 
 | Trang | Container | Item | Nhãn |
 | --- | --- | --- | --- |
-| Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero |
+| Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Trang chủ | `.project-track` | `.project-card` | Rail công trình |
 | Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`) | `.client-logo-slot` | Logo khách hàng |
-| Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero |
+| Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Nhà ở, Kinh doanh | `.detail-gallery__slides` | `.detail-gallery__item` | Gallery công trình |
 | Giới thiệu | `.about-timeline` | `.about-timeline__item` | Dòng thời gian |
 | Giới thiệu | `.about-commitments` | `.about-commitment` | Cam kết |
@@ -110,8 +111,9 @@ các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm porta
 
 Chọn một placeholder trong danh sách thì Thuộc tính ghi "Thuộc ... · mục x/y" và nút "Mở danh sách": mỗi dòng có ảnh
 nhỏ, nhãn (ưu tiên chữ trong tiêu đề của item), nút lên, xuống, xóa, kéo thả để sắp. "Thêm mục" clone item cuối với
-khóa con `<khóa>@<id mới>`, chữ và ảnh trống (viền đỏ, ảnh "Chọn ảnh"), rồi mở Media để chọn ảnh nếu item có ảnh. Slide
-hero đứng đầu luôn là slide hiện.
+khóa con `<khóa>@<id mới>`, chữ và ảnh trống (viền đỏ, ảnh "Chọn ảnh"), rồi mở Media để chọn ảnh nếu item có ảnh. Xóa
+mục bỏ luôn sửa đổi bên trong mục đó. Hero được script module của trang xáo mỗi lần tải ([page-home R3](page-home.md#r3-hero-slideshow-và-nút-dừng)),
+nên danh sách hero (`data-cms-shuffled`) không có nút sắp xếp, chỉ thêm và xóa.
 
 ```gherkin
 Given đang sửa Nhà ở, chọn một ảnh trong gallery rồi bấm "Mở danh sách"
@@ -174,7 +176,7 @@ mỗi thao tác; nháp rỗng thì xóa khóa. Bản xem trước áp nháp lúc
 trên ghi "Không có thay đổi" hoặc "Chưa lưu · n thay đổi". Panel Nháp liệt kê từng thay đổi (Bỏ từng mục, bỏ toàn bộ
 nháp trang) và trang khác đang có nháp. Hoàn tác theo từng thao tác trong phiên, gõ liên tục cùng một ô gộp một mốc.
 Lưu gửi `PUT /api/admin/content/<page>` với nháp; chưa nối lưu trữ thì Worker trả 501 (preview tĩnh trả 404) và editor
-giữ nháp, hiện "Chưa nối lưu trữ, nháp vẫn ở máy này.". Xuất JSON tải `tt-cms-<page>.json`. Không có bước duyệt: lưu
+giữ nháp, hiện "Chưa nối lưu trữ, nháp vẫn ở máy này."; lỗi khác hiện "Lưu chưa được (mã n)" hoặc "(mất kết nối)". Xuất JSON tải `tt-cms-<page>.json`. Không có bước duyệt: lưu
 thành công là nội dung lên web (owner 2026-10-31).
 
 ```gherkin
@@ -235,6 +237,8 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
   Slice 3 cần `data-cms` trong HTML tĩnh hoặc kiểm khóa khi lưu ([CMS](cms.md#điều-kiện-mở-cms-phase)).
 - Motion trong bản xem trước: giữ nguyên (owner duyệt plan 2026-10-31), nháp áp lúc parse; sửa chữ tại chỗ dùng
   revert/rebuild tách dòng của site.
+- Hero Trang chủ, Nhà ở, Kinh doanh có danh sách slide viết sẵn trong script `<head>` để preload ảnh đầu: slice 3 lưu
+  thêm hoặc xóa slide phải sinh lại danh sách đó, không thì preload ảnh đã xóa và slide mới không bao giờ đứng đầu.
 - Upload ảnh từ máy, biến thể ảnh, video, lưu D1, phân quyền: ngoài phạm vi, theo [CMS gate](cms.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ

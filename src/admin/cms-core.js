@@ -1,15 +1,16 @@
 // Lõi CMS dùng chung cho editor và bản xem trước (cms-editor R3, R4, R8). Script classic, không module: bản xem trước
 // nạp nó đồng bộ cuối <body>, lúc DOM còn đúng thứ tự nguồn, trước module xáo hero và script defer của site.
 (() => {
-  // Danh sách thêm, xóa, sắp lại được theo trang (R4): [container, item, nhãn].
+  // Danh sách thêm, xóa, sắp lại được theo trang (R4): [container, item, nhãn, xáo]. Danh sách xáo (hero, page-home
+  // R3) đổi thứ tự mỗi lần tải nên chỉ thêm, xóa.
   const LISTS = {
     home: [
-      [".hero-slides", ".hero-slide", "Ảnh hero"],
+      [".hero-slides", ".hero-slide", "Ảnh hero", true],
       [".project-track", ".project-card", "Rail công trình"],
       [".client-logo-marquee__group:not([aria-hidden])", ".client-logo-slot", "Logo khách hàng"],
     ],
     residential: [
-      [".hero-slides", ".hero-slide", "Ảnh hero"],
+      [".hero-slides", ".hero-slide", "Ảnh hero", true],
       [".detail-gallery__slides", ".detail-gallery__item", "Gallery công trình"],
     ],
     about: [
@@ -42,11 +43,12 @@
       if (node.tagName === "IMG") node.dataset.cmsKey = `i${i++}`;
       else if (isText(node)) node.dataset.cmsKey = `t${t++}`;
     });
-    (LISTS[page] || []).forEach(([container, item, label], index) => {
+    (LISTS[page] || []).forEach(([container, item, label, shuffled], index) => {
       const box = main.querySelector(container);
       if (!box) return;
       box.dataset.cmsList = `l${index}`;
       box.dataset.cmsLabel = label;
+      if (shuffled) box.dataset.cmsShuffled = "";
       [...box.children].filter((child) => child.matches(item)).forEach((child, n) => (child.dataset.cmsItem = String(n)));
     });
   }

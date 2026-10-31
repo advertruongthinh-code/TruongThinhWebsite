@@ -79,7 +79,7 @@ function commit(mutate, { reload = false, render = true, group = "" } = {}) {
   state.lastGroup = group;
   mutate(state.draft);
   persist();
-  if (reload) reloadPreview();
+  if (reload) loadFrame();
   if (render) renderProps();
 }
 
@@ -89,7 +89,7 @@ function undo() {
   state.draft = JSON.parse(previous);
   state.lastGroup = "";
   persist();
-  reloadPreview();
+  loadFrame();
   renderProps();
 }
 
@@ -100,14 +100,18 @@ async function save() {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(state.draft),
   }).catch(() => null);
-  toast(response?.ok ? "Đã lưu." : "Chưa nối lưu trữ, nháp vẫn ở máy này.");
+  // 501 (Worker tới slice 3) và 404 (preview tĩnh) là chưa có lưu trữ; lỗi khác phải hiện mã để không che lỗi thật.
+  if (response?.ok) return toast("Đã lưu.");
+  toast([501, 404].includes(response?.status) ? "Chưa nối lưu trữ, nháp vẫn ở máy này."
+    : `Lưu chưa được (${response ? `mã ${response.status}` : "mất kết nối"}), nháp vẫn ở máy này.`);
 }
 
 function exportDraft() {
   const blob = new Blob([JSON.stringify(state.draft, null, 2)], { type: "application/json" });
   const link = h("a", { href: URL.createObjectURL(blob), download: `tt-cms-${state.draft.page}.json` });
   link.click();
-  URL.revokeObjectURL(link.href);
+  // Firefox, Safari có thể hủy tải nếu thu hồi URL ngay trong cùng lượt.
+  setTimeout(() => URL.revokeObjectURL(link.href), 0);
 }
 
 // ---------- Nội dung gốc của trang: đọc bản xem trước tiếng Việt, gắn khóa như trong iframe ----------
@@ -139,8 +143,10 @@ async function loadBase(page) {
   doc.querySelectorAll("[data-cms-list]").forEach((box) => {
     base.lists[box.dataset.cmsList] = {
       label: box.dataset.cmsLabel,
+      shuffled: box.hasAttribute("data-cms-shuffled"),
       items: [...box.children].filter((child) => child.dataset.cmsItem != null).map((item) => ({
         id: item.dataset.cmsItem,
+        keys: [...item.querySelectorAll("[data-cms-key]")].map((node) => node.dataset.cmsKey),
         image: item.querySelector("img")?.dataset.cmsKey ?? null,
         // Nhãn mục: ưu tiên chữ trong tiêu đề (số thứ tự "01" không giúp nhận ra mục).
         text: (item.querySelector("h2 [data-cms-key], h3 [data-cms-key], h4 [data-cms-key], h2[data-cms-key], h3[data-cms-key], h4[data-cms-key]")
@@ -202,7 +208,7 @@ function buildPreview() {
   preview.open = h("a", { className: "chip", target: "_blank", rel: "noopener", textContent: "Mở tab mới" });
   preview.scale = h("span", { className: "scale" });
   bar.append(...preview.sizes, preview.width, h("span", { className: "preview-bar__gap" }), preview.locale, preview.mode,
-    h("button", { type: "button", className: "chip", onclick: () => reloadPreview() }, "Tải lại"), preview.open, preview.scale);
+    h("button", { type: "button", className: "chip", onclick: () => loadFrame() }, "Tải lại"), preview.open, preview.scale);
   preview.frame = h("iframe", { title: "Xem trước trang" });
   preview.frame.setAttribute("data-cms-preview", "");
   preview.sizer = h("div", { className: "sizer" }, preview.frame);
@@ -242,7 +248,7 @@ function setViewport(viewport) {
   if (viewport.height) preview.width.value = "";
   renderPreviewBar();
   fit();
-  if (reload) reloadPreview();
+  if (reload) loadFrame();
 }
 
 function setLocale(locale) {
@@ -258,17 +264,13 @@ function setMode(edit) {
   renderPreviewBar();
 }
 
+// Tải hoặc tải lại luôn bằng cách đặt src về bản xem trước của trang đang mở, không dùng location.reload().
 function loadFrame() {
   if (!state.page) return;
   state.overlay = null;
   preview.frame.src = state.page.editable ? state.page.preview[state.locale] : state.page[state.locale];
 }
 
-function reloadPreview() {
-  state.overlay = null;
-  if (preview.frame.contentWindow?.location.href.startsWith(location.origin)) preview.frame.contentWindow.location.reload();
-  else loadFrame();
-}
 
 // ---------- Panel Thuộc tính (R3, R4) ----------
 
@@ -356,6 +358,7 @@ const restoreButton = (changed, onclick) => (changed && !isNew(state.selected?.k
 
 function listEditor(listKey) {
   const order = listOrder(listKey);
+  const { label: title, shuffled } = state.base.lists[listKey];
   const move = (from, to) => {
     if (to < 0 || to >= order.length || from === to) return;
     const next = [...order];
@@ -365,15 +368,16 @@ function listEditor(listKey) {
   const rows = order.map((id, index) => {
     const item = itemInfo(listKey, id);
     const label = item.text ? textValue(item.text).vi : "";
-    const row = h("li", { className: "list-row", draggable: true },
-      h("span", { className: "handle", title: "Kéo để sắp xếp", textContent: "⋮⋮" }),
+    const row = h("li", { className: `list-row${shuffled ? " list-row--fixed" : ""}`, draggable: !shuffled },
+      shuffled ? null : h("span", { className: "handle", title: "Kéo để sắp xếp", textContent: "⋮⋮" }),
       item.image ? h("img", { src: imageValue(item.image).src || PLACEHOLDER, alt: "", loading: "lazy" }) : null,
       h("button", { type: "button", className: "list-row__label", onclick: () => select({
         kind: item.image ? "image" : "text", key: item.image ?? item.text, list: listKey, item: id }) },
       short(label || fileName(item.image && imageValue(item.image).src) || `Mục ${index + 1}`)),
-      h("button", { type: "button", className: "icon", title: "Lên", onclick: () => move(index, index - 1) }, "↑"),
-      h("button", { type: "button", className: "icon", title: "Xuống", onclick: () => move(index, index + 1) }, "↓"),
+      shuffled ? null : h("button", { type: "button", className: "icon", title: "Lên", onclick: () => move(index, index - 1) }, "↑"),
+      shuffled ? null : h("button", { type: "button", className: "icon", title: "Xuống", onclick: () => move(index, index + 1) }, "↓"),
       h("button", { type: "button", className: "icon", title: "Xóa mục", onclick: () => removeItem(listKey, id) }, "×"));
+    if (shuffled) return row;
     row.addEventListener("dragstart", (event) => event.dataTransfer.setData("text/plain", String(index)));
     row.addEventListener("dragover", (event) => event.preventDefault());
     row.addEventListener("drop", (event) => {
@@ -383,8 +387,10 @@ function listEditor(listKey) {
     return row;
   });
   return [
-    h("h2", {}, state.base.lists[listKey].label),
-    h("p", { className: "meta" }, `${order.length} mục. Kéo hoặc dùng mũi tên để sắp xếp.`),
+    h("h2", {}, title),
+    h("p", { className: "meta" }, shuffled
+      ? `${order.length} mục. Site xáo thứ tự mỗi lần tải trang nên chỉ thêm hoặc xóa.`
+      : `${order.length} mục. Kéo hoặc dùng mũi tên để sắp xếp.`),
     h("ol", { className: "list" }, rows),
     h("button", { type: "button", className: "is-primary", onclick: () => addItem(listKey) }, "Thêm mục"),
   ];
@@ -415,9 +421,12 @@ function addItem(listKey) {
 function removeItem(listKey, id) {
   commit((draft) => {
     draft.list[listKey] = listOrder(listKey).filter((entry) => entry !== id);
-    if (!draft.clone[id]) return;
+    // Bỏ cả sửa đổi bên trong mục đã xóa (khóa @id của mục mới, khóa gốc của mục có sẵn); hoàn tác vẫn trả lại.
+    const own = draft.clone[id] ? null : state.base.lists[listKey].items.find((entry) => entry.id === id)?.keys ?? [];
     delete draft.clone[id];
-    [draft.text, draft.image].forEach((map) => Object.keys(map).filter((key) => key.endsWith(`@${id}`)).forEach((key) => delete map[key]));
+    [draft.text, draft.image].forEach((map) => Object.keys(map)
+      .filter((key) => (own ? own.includes(key) : key.endsWith(`@${id}`)))
+      .forEach((key) => delete map[key]));
   }, { reload: true });
 }
 
@@ -548,6 +557,7 @@ async function openPage(page) {
 
 // API cho overlay trong iframe (cùng origin).
 window.TTEditor = {
+  toast,
   onSelect: (selection) => {
     if (state.pick) state.pick = null;
     select(selection);
@@ -585,8 +595,10 @@ function defaultLayout() {
   dock.getPanel("props").api.setActive();
 }
 
+// Mở lại panel đã đóng cạnh một panel chính còn mở; không còn panel nào thì Dockview tự đặt.
 function focusPanel(id) {
-  const panel = dock.getPanel(id) ?? addPanel(id, { referencePanel: "preview", direction: "right" });
+  const ref = ["preview", "props", "pages"].find((other) => other !== id && dock.getPanel(other));
+  const panel = dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction: "right" });
   panel.api.setActive();
 }
 

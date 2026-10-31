@@ -83,9 +83,44 @@ try {
   assert.match(await page.textContent("#draft-status"), /Chưa lưu · 4 thay đổi/);
   assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
 
+  // Danh sách hero bị site xáo mỗi lần tải: chỉ thêm, xóa, không có nút sắp xếp.
+  await frame().evaluate(() => {
+    const img = document.querySelector('[data-cms-shuffled] img[data-cms-key]');
+    const list = img.closest("[data-cms-list]").dataset.cmsList;
+    window.parent.TTEditor.onSelect({ key: img.dataset.cmsKey, kind: "image", list, item: img.closest("[data-cms-item]").dataset.cmsItem });
+  });
+  await props.getByRole("button", { name: "Mở danh sách" }).click();
+  assert.ok((await props.locator(".list-row").count()) > 1);
+  assert.equal(await props.getByTitle("Lên").count(), 0);
+
+  // Chế độ xem không cho link đưa iframe rời bản xem trước; Tải lại vẫn về đúng bản xem trước.
+  await page.getByRole("button", { name: "Chế độ sửa" }).click();
+  await frame().evaluate(() => document.querySelector('a[href="/vi/commercial/"]').click());
+  await page.waitForSelector("#toast:not([hidden])");
+  await page.waitForTimeout(500);
+  assert.match(frame().url(), /\/admin\/preview\/vi\/residential/);
+  await page.getByRole("button", { name: "Chế độ xem" }).click();
+  await page.getByRole("button", { name: "Tải lại" }).click();
+  await previewReady("/vi/residential");
+
+  // Đóng Xem trước rồi mở lại từ menu Bảng; mở lại Media đã đóng qua "Đổi ảnh".
+  await page.locator(".dv-tab", { hasText: "Xem trước" }).locator(".dv-default-tab-action").click();
+  await page.locator(".dv-tab", { hasText: "Media" }).locator(".dv-default-tab-action").click();
+  await page.locator(".topbar__menu > summary").click();
+  await page.locator("#panel-menu").getByRole("button", { name: "Xem trước" }).click();
+  await previewReady("/vi/residential");
+  await frame().locator(`[data-cms-key="${key}"]`).click();
+  await frame().evaluate(() => {
+    const img = document.querySelector("main img[data-cms-key]");
+    window.parent.TTEditor.onSelect({ key: img.dataset.cmsKey, kind: "image", list: null, item: null });
+  });
+  await props.getByRole("button", { name: "Đổi ảnh" }).click();
+  await page.locator(".pick").waitFor();
+  await page.keyboard.press("Escape");
+
   // Lưu khi chưa nối lưu trữ: báo rõ, nháp giữ nguyên.
   await page.click("#save");
-  await page.waitForSelector("#toast:not([hidden])");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Chưa nối"));
   assert.equal(await page.textContent("#toast"), "Chưa nối lưu trữ, nháp vẫn ở máy này.");
   assert.ok(await draft());
 

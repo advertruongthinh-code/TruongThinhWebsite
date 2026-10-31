@@ -106,8 +106,17 @@
   addEventListener("mousemove", (event) => {
     hoverNode = editMode ? pick(event.clientX, event.clientY) : null;
   }, { passive: true });
+  // Chế độ xem vẫn không chuyển trang (link, Barba): iframe rời bản xem trước thì mất nháp và overlay.
+  const stayOnPreview = (event) => {
+    const href = event.target.closest?.("a[href]")?.getAttribute("href");
+    if (!href || href.startsWith("#")) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    editor.toast("Chế độ xem không chuyển trang. Mở trang khác từ bảng Trang hoặc nút Mở tab mới.");
+  };
   addEventListener("click", (event) => {
-    if (!editMode || inline?.contains(event.target)) return;
+    if (!editMode) return stayOnPreview(event);
+    if (inline?.contains(event.target)) return;
     block(event);
     const node = pick(event.clientX, event.clientY);
     selectedKey = node?.dataset.cmsKey ?? null;

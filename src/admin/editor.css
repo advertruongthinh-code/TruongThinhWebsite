@@ -83,6 +83,7 @@ button { cursor: pointer; }
 .list { display: grid; gap: 4px; margin: 0 0 10px; padding: 0; list-style: none; }
 .list-row { display: grid; grid-template-columns: 20px 44px 1fr auto auto auto; align-items: center; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
 .list-row:not(:has(img)) { grid-template-columns: 20px 1fr auto auto auto; }
+.list-row--fixed { grid-template-columns: 44px 1fr auto; }
 .list-row img { width: 44px; height: 32px; object-fit: cover; border-radius: 3px; }
 .list-row__label { overflow: hidden; padding: 0; border: 0; background: none; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 .handle { color: var(--muted); letter-spacing: -0.3em; cursor: grab; }
