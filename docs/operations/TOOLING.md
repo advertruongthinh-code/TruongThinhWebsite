@@ -174,8 +174,8 @@ Chrome DevTools MCP đã gỡ (owner 2026-10-19) để giảm token MCP; symbol 
 QA browser dùng Playwright và CDP script.
 Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`
 (pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ phần cờ nếu Chromium mới đã bật JXL sẵn.
-Patch cũng mặc định `serviceWorkers: "block"` vì `/sw.js` ([tải theo nấc R3](../specs/progressive-loading.md#r3-hiện-ảnh-khi-đủ-ngưỡng))
-chặn `page.route` và CDP Fetch; test cần Service Worker truyền `serviceWorkers: "allow"`. Phần này giữ khi nâng Playwright.
+Patch cũng mặc định `serviceWorkers: "block"`: Service Worker chặn `page.route` và CDP Fetch; site không còn đăng ký
+([tải theo nấc R3](../specs/progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong)) nhưng phần này giữ khi nâng Playwright.
 
 ## Stack AI và media
 

@@ -392,17 +392,14 @@ export function createAdvertisingPhotoViewer({
     expandedImage.hidden = false;
     media = expandedImage;
   };
-  // Bản gốc ẩn tới khi đủ ngưỡng (progressive-loading R3): viewer hiện ảnh primary đang có, tải bản gốc riêng, đủ ngưỡng
-  // hoặc load xong mới đổi src; request đang chạy được dùng lại nên ảnh nét dần tiếp từ đó.
+  // Bản gốc chỉ hiện khi tải xong (progressive-loading R3): viewer hiện ảnh primary đang có, tải bản gốc riêng, load
+  // xong mới đổi src.
   const mediaBase = (url) => new URL(url, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
   const swapOriginal = () => {
     if (!pendingOriginal) return;
     expandedImage.src = pendingOriginal.src;
     pendingOriginal = null;
   };
-  navigator.serviceWorker?.addEventListener("message", ({ data }) => {
-    if (pendingOriginal && data?.url === new URL(pendingOriginal.src).pathname) swapOriginal();
-  }, { signal: controller.signal });
   const showImage = () => {
     const original = responsiveSource(record.media.src);
     const current = heroImage?.currentSrc;
