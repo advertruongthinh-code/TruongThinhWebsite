@@ -4,7 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { cp } from "node:fs/promises";
 
-const CONFIG = "wrangler.cms-local.toml";
+const CONFIG = "scripts/cms/wrangler.local.toml";
 const PORT = process.env.CMS_PORT || "8788";
 
 function run(args) {

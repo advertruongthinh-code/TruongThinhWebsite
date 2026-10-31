@@ -6,7 +6,6 @@ source:
   - src/admin/**
   - src/db/migrations/**
   - wrangler.toml
-  - wrangler.cms-local.toml
   - scripts/cms/**
 tests:
   - tests/worker/worker-contract.cjs
@@ -22,8 +21,7 @@ updated: 2026-10-21
 
 Phase CMS để owner tự đăng nội dung VI/EN (chữ, ảnh, video) qua layout đã duyệt; website tĩnh luôn là fallback và
 đường rollback. Spec mô tả code dormant đang có: Worker route, SEO, API, admin, schema D1, upload R2. Chưa phần nào
-chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant).
-Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở". AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
+chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant). Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở". AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
 
 ## Hành vi
 
@@ -32,13 +30,7 @@ Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate cò
 `wrangler.toml` khai Worker `truong-thinh-website`, `main = "src/worker/index.js"`, binding `ASSETS` trỏ `.site-output`
 (`force-trailing-slash`, `404-page`), `run_worker_first` cho `/`, `/vi/*`, `/en/*`, path legacy, `/api/*`, `/media/*`,
 `/robots.txt`, `/sitemap.xml` (không có `/admin/*`). Không khai binding D1 (`DB`), R2 (`MEDIA`) hay biến, nên Worker
-theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng
-`wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`.
-
-Chạy local: `pnpm cms:dev` (`scripts/cms/dev-local.mjs`) chạy `prepare:site`, chép `src/admin/` vào
-`.site-output/admin/`, áp migration lên D1 local rồi `wrangler dev` cổng 8788 theo `wrangler.cms-local.toml`
-(D1 `DB`, R2 `MEDIA` giả lập trong `.wrangler/`, biến `CMS_LOCAL_ADMIN_EMAIL`); `--setup-only` dừng sau migration.
-File này không deploy; `prepare:site` xóa output nên bản demo không chứa admin.
+theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng `wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`. Chạy local: `pnpm cms:dev` (`scripts/cms/dev-local.mjs`) chạy `prepare:site`, chép `src/admin/` vào `.site-output/admin/`, áp migration lên D1 local rồi `wrangler dev` cổng 8788 theo `scripts/cms/wrangler.local.toml` (D1 `DB`, R2 `MEDIA` giả lập trong `.wrangler/`, biến `CMS_LOCAL_ADMIN_EMAIL`), `--setup-only` dừng sau migration; file đó không deploy, `prepare:site` xóa output nên bản demo không chứa admin.
 
 ```gherkin
 Given wrangler.toml hiện tại
@@ -115,9 +107,7 @@ Mọi `/api/admin/*` qua `requireAdmin()`: `Cf-Access-Jwt-Assertion` là JWT RS2
 `ACCESS_TEAM_DOMAIN` (https, đuôi `.cloudflareaccess.com`, path `/`); `aud` thuộc `ACCESS_AUD`; `exp` chưa qua, `nbf`
 không quá 60 giây tới; chữ ký khớp key từ `<team>/cdn-cgi/access/certs` (cache 1 giờ); `email` trùng
 `Cf-Access-Authenticated-User-Email` và nằm trong `ADMIN_EMAILS`, không phân biệt hoa thường. Sai điều nào: 403.
-Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` đúng origin public, không thì 403. Ngoại lệ local:
-`CMS_LOCAL_ADMIN_EMAIL` có giá trị và host request là `127.0.0.1`, `localhost` hoặc `[::1]` thì email đó là admin,
-không cần JWT; host khác vẫn qua Access dù biến bị đặt.
+Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` đúng origin public, không thì 403. Ngoại lệ local: `CMS_LOCAL_ADMIN_EMAIL` có giá trị và host request là `127.0.0.1`, `localhost` hoặc `[::1]` thì email đó là admin, không cần JWT; host khác vẫn qua Access dù biến bị đặt.
 
 ```gherkin
 Given env có ACCESS_TEAM_DOMAIN, ACCESS_AUD, ADMIN_EMAILS

@@ -1,11 +1,11 @@
 # CMS chạy local: chỉ dùng với `pnpm cms:dev`, không deploy file này.
 # D1 và R2 là bản giả lập trong `.wrangler/`, không có tài nguyên Cloudflare thật.
 name = "truong-thinh-cms-local"
-main = "src/worker/index.js"
+main = "../../src/worker/index.js"
 compatibility_date = "2026-07-31"
 
 [assets]
-directory = ".site-output"
+directory = "../../.site-output"
 binding = "ASSETS"
 html_handling = "force-trailing-slash"
 not_found_handling = "404-page"
@@ -35,7 +35,7 @@ run_worker_first = [
 binding = "DB"
 database_name = "truong-thinh-cms-local"
 database_id = "00000000-0000-0000-0000-000000000000"
-migrations_dir = "src/db/migrations"
+migrations_dir = "../../src/db/migrations"
 
 [[r2_buckets]]
 binding = "MEDIA"
