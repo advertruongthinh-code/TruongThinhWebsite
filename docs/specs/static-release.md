@@ -277,13 +277,12 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 
 ## Gate còn mở
 
-Owner chốt 2026-10-06: một phone Android thật là máy đo chuẩn (lúc đó Galaxy A05s; từ 2026-10-18 là phone Android nối adb debug, không còn A05s), bỏ gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
+Owner chốt: một phone Android thật nối adb là máy đo chuẩn, không có gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
 phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
 
 - LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP
   tới cuối animation (4,2 đến 5,5 s), nếu không khoảng 3,25 s. Owner chọn: tách title hero khỏi lô `prepareBatch` trong
-  `detail.js`, không cắt motion; đạt khi median LCP mobile không quá 3,25 s, p90 không quá 3,5 s, phần tử LCP là ảnh
-  hero, timing fade lệch không quá 50 ms. Cần plan duyệt trước khi code.
+  `detail.js`, không cắt motion; đạt khi median LCP mobile không quá 3,25 s, p90 không quá 3,5 s, phần tử LCP là ảnh hero, fade lệch không quá 50 ms. Cần plan duyệt trước khi code.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]
