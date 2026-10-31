@@ -52,7 +52,6 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 - Chống stale với MCP `graphify`: gọi `graph_stats` trước. Chỉ tin khi báo `matches HEAD` và working tree sạch; còn lại query qua wrapper. Cloud clone mới chưa có `graph.json`, query đầu tiên phải qua wrapper.
 - Chống stale với `graphify-cloud`: so `graph_stats.freshness.commit` với `git rev-parse HEAD`; lệch hoặc có sửa chưa commit thì dùng local.
 - Graph chỉ định hướng. Kết luận về code hiện tại phải kiểm lại trên working tree bằng Serena hoặc đọc file.
-- Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
 - Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
 
 ## Serena
