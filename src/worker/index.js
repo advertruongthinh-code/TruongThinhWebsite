@@ -945,6 +945,8 @@ function hasAllowedOrigin(request, env, url) {
 }
 
 async function requireAdmin(request, env) {
+  const localAdmin = localDevAdmin(request, env);
+  if (localAdmin) return localAdmin;
   const claims = await verifyAccessJwt(request, env);
   const actor = typeof claims?.email === "string" ? claims.email.trim().toLowerCase() : "";
   const assertedEmail = request.headers.get("Cf-Access-Authenticated-User-Email")?.trim().toLowerCase();
@@ -955,6 +957,14 @@ async function requireAdmin(request, env) {
       .filter(Boolean),
   );
   return actor && assertedEmail === actor && allowed.has(actor) ? actor : null;
+}
+
+// Đăng nhập dev cho `pnpm cms:dev`: cần biến CMS_LOCAL_ADMIN_EMAIL và host loopback.
+// Production không đặt biến này và không nhận request host loopback, nên vẫn chỉ qua Access.
+function localDevAdmin(request, env) {
+  const email = String(env.CMS_LOCAL_ADMIN_EMAIL || "").trim().toLowerCase();
+  const host = new URL(request.url).hostname;
+  return email && (host === "127.0.0.1" || host === "localhost" || host === "[::1]") ? email : null;
 }
 
 async function verifyAccessJwt(request, env) {
