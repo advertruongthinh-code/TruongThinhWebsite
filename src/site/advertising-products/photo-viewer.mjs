@@ -356,8 +356,11 @@ export function createAdvertisingPhotoViewer({
       scroll?.setLogicalScroll?.(scroll.getLogicalScroll() + bounds.top + bounds.height / 2 - top - height / 2);
     }
   };
+  // Image đang tải bản gốc cho viewer (showImage); null khi không chờ.
+  let pendingOriginal = null;
   const close = ({ restoreFocus = true, animate = restoreFocus } = {}) => {
     if (!dialog.open) return;
+    pendingOriginal = null;
     if (!animate || reducedMotion.matches) {
       finishClose(restoreFocus);
       return;
@@ -373,6 +376,7 @@ export function createAdvertisingPhotoViewer({
   };
   // Mượn chính video và player của primary, chuyển liền trong một task nên video không dừng; detach trả về đúng chỗ.
   const attachVideo = () => {
+    pendingOriginal = null;
     homeParent = video.parentNode;
     home = player.nextSibling;
     videoHost.append(video, player);
@@ -388,8 +392,29 @@ export function createAdvertisingPhotoViewer({
     expandedImage.hidden = false;
     media = expandedImage;
   };
+  // Bản gốc ẩn tới khi đủ ngưỡng (progressive-loading R3): viewer hiện ảnh primary đang có, tải bản gốc riêng, đủ ngưỡng
+  // hoặc load xong mới đổi src; request đang chạy được dùng lại nên ảnh nét dần tiếp từ đó.
+  const mediaBase = (url) => new URL(url, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
+  const swapOriginal = () => {
+    if (!pendingOriginal) return;
+    expandedImage.src = pendingOriginal.src;
+    pendingOriginal = null;
+  };
+  navigator.serviceWorker?.addEventListener("message", ({ data }) => {
+    if (pendingOriginal && data?.url === new URL(pendingOriginal.src).pathname) swapOriginal();
+  }, { signal: controller.signal });
   const showImage = () => {
-    expandedImage.src = responsiveSource(record.media.src);
+    const original = responsiveSource(record.media.src);
+    const current = heroImage?.currentSrc;
+    pendingOriginal = null;
+    if (current && current !== new URL(original, location.href).href && mediaBase(current) === mediaBase(original)) {
+      expandedImage.src = current;
+      const loader = pendingOriginal = new Image();
+      loader.addEventListener("load", () => pendingOriginal === loader && swapOriginal());
+      loader.src = original;
+    } else {
+      expandedImage.src = original;
+    }
     expandedImage.alt = document.documentElement.lang === "en" ? record.media.altEn : record.media.altVi;
     expandedImage.width = record.media.width;
     expandedImage.height = record.media.height;
