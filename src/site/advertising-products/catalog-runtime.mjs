@@ -1744,6 +1744,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let gridPixelHeight = 0;
   let announcedPageHeight = -1;
   let ctaGeometryHash = "";
+  let ctaBottom = 0;
   let lastCtaViewportHeight = 0;
   let ctaCopyKey = "";
   let ctaCopyMetrics = { baseline: 0, below: 0 };
@@ -1781,7 +1782,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const syncCtaParallax = () => {
     if (!gridCtaCopy || !siteFooter) return;
     // CTA chỉ cao bằng copy (text 200%, landscape) không còn chỗ phía trên, và clip của nó sẽ cắt heading.
-    const offset = reduced || activePhotoId ? 0
+    const offset = reduced || (activePhotoId && !ctaInDetail()) ? 0
       : Math.max((siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1, -gridCtaCopy.offsetTop);
     gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
   };
@@ -2678,18 +2679,41 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
   }));
   const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
+  // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
+  // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
+  const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
+  const moveCtaNodes = (host) => {
+    if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
+    if (host === "detail" && photoCanvas) photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
+    else {
+      grid.prepend(ctaSkeleton);
+      gridSectionStyleTarget?.append(...[gridCta, arcGlass].filter(Boolean));
+    }
+    ctaSkeleton.dataset.advertisingCtaHost = host;
+  };
+  const setCtaHostHeight = (height) => {
+    if (ctaInDetail()) photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
+    else {
+      gridPixelHeight = height;
+      grid.style.height = `${height}px`;
+    }
+  };
   const renderCtaSkeleton = ({ slide = false } = {}) => {
-    if (!ctaSkeleton || !geometry || activePhotoId) {
-      gridPixelHeight = geometry?.totalPixelHeight || 0;
+    const detailHost = ctaInDetail();
+    const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
+    if (!ctaSkeleton || !hostGeometry) {
+      if (!detailHost) gridPixelHeight = geometry?.totalPixelHeight || 0;
       clearCtaSkeleton();
       return;
     }
     // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
     const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
     cancelCtaSlides(slideOrigins?.keys() || []);
-    const gap = geometry.interCardGap;
-    const ctaTop = geometry.totalPixelHeight + gap;
-    gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
+    const gap = hostGeometry.interCardGap;
+    const ctaTop = hostGeometry.totalPixelHeight + gap;
+    (detailHost ? photoCanvas : gridSectionStyleTarget)?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
+    // Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry; canvas detail cần cùng biến cho chữ CTA.
+    if (detailHost) photoCanvas.style.setProperty("--advertising-gap", `${gap}px`);
     const viewportHeight = getLayoutViewportHeight();
     lastCtaViewportHeight = viewportHeight;
     const footerHeight = siteFooter?.offsetHeight || 0;
@@ -2705,21 +2729,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Baseline cuối nằm D phía trên đáy batch; cửa sổ quá thấp thì nút giữ cách nó một gap.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
-    const tailHeight = Math.max(Math.ceil(geometry.cardWidth * 0.25) + 1,
+    const tailHeight = Math.max(Math.ceil(hostGeometry.cardWidth * 0.25) + 1,
       viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
-    const nextCtaGeometryHash = `${geometry.coordinateHash}:${tailHeight.toFixed(3)}`;
-    if (ctaGeometryHash === nextCtaGeometryHash) return;
+    const nextCtaGeometryHash = `${detailHost ? "detail" : "grid"}:${hostGeometry.coordinateHash}:${tailHeight.toFixed(3)}`;
+    // Cùng hình học: layoutRelated vừa ghi lại chiều cao canvas bằng related, nên đặt lại đáy CTA.
+    if (ctaGeometryHash === nextCtaGeometryHash) {
+      if (detailHost) setCtaHostHeight(ctaBottom);
+      return;
+    }
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
     const gridBottom = ctaTop + ctaHeight;
+    ctaBottom = gridBottom;
     // Batch kết thúc ngay trên footer.
     const skeletonBoundaryBottom = gridBottom;
     const fragment = document.createDocumentFragment();
     const frameLayout = createSkeletonFlowFrameLayout({
-      columnBottoms: geometry.columnBottoms,
-      columns: geometry.columns,
-      cardWidth: geometry.cardWidth,
-      gap: geometry.interCardGap,
+      columnBottoms: hostGeometry.columnBottoms,
+      columns: hostGeometry.columns,
+      cardWidth: hostGeometry.cardWidth,
+      gap: hostGeometry.interCardGap,
       boundaryBottom: skeletonBoundaryBottom,
       seed: browseHistory.current.seed,
       bandAssignments: skeletonRatioBandBySlot,
@@ -2753,20 +2782,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         frame.dataset.advertisingCtaDepth = String(depth);
         frame.dataset.advertisingCtaRatioBand = band;
         frame.dataset.advertisingCtaSlot = slot;
-        frame.style.left = `${column * (geometry.cardWidth + geometry.interCardGap)}px`;
+        frame.style.left = `${column * (hostGeometry.cardWidth + hostGeometry.interCardGap)}px`;
         frame.style.top = `${top}px`;
-        frame.style.width = `${geometry.cardWidth}px`;
+        frame.style.width = `${hostGeometry.cardWidth}px`;
         frame.style.height = `${height}px`;
         frame.style.setProperty("--advertising-cta-frame-opacity", "1");
     });
-    gridPixelHeight = gridBottom;
     ctaGeometryHash = nextCtaGeometryHash;
     ctaSkeleton.append(fragment);
     ctaSkeleton.hidden = false;
-    ctaSkeleton.dataset.advertisingCtaColumns = String(geometry.columns);
+    ctaSkeleton.dataset.advertisingCtaColumns = String(hostGeometry.columns);
     ctaSkeleton.dataset.advertisingCtaReady = "true";
-    ctaSkeleton.dataset.advertisingCtaRealBottom = String(geometry.totalPixelHeight);
-    ctaSkeleton.dataset.advertisingCtaSignature = `${ctaGeometryHash}:${gridPixelHeight.toFixed(3)}`;
+    ctaSkeleton.dataset.advertisingCtaRealBottom = String(hostGeometry.totalPixelHeight);
+    ctaSkeleton.dataset.advertisingCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
     if (arcGlass) {
       // Cụm CTA (từ đầu heading đến cuối link) tại giới hạn cuộn, nơi parallax bằng 0.
       const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
@@ -2775,14 +2803,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       layoutArcGlass(arcGlass, arcGlassGeometry({
         width: arcGlass.clientWidth,
         batchBottom: skeletonBoundaryBottom,
-        realBottom: geometry.totalPixelHeight,
-        cardWidth: geometry.cardWidth,
+        realBottom: hostGeometry.totalPixelHeight,
+        cardWidth: hostGeometry.cardWidth,
         clusterTop: clusterBottom - ctaCopyMetrics.baseline - ctaCopyMetrics.below,
         clusterBottom,
       }));
     }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
-    grid.style.height = `${gridPixelHeight}px`;
+    setCtaHostHeight(gridBottom);
     ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
       if (skeletonObserver) skeletonObserver.observe(frame);
       else visibleSkeletonFrames.add(frame);
@@ -3215,8 +3243,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return [id, { x: position.left - rect.left, y: position.top - rect.top, w: position.width, h: position.height }];
       }));
   };
-  // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (R3).
-    const cancelRelatedDetours = () => {
+  // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (advertising-cta-center-parallax R10).
+  const cancelRelatedDetours = () => {
     for (const node of [...relatedRendered.values(), suggestionNode]) {
       node?.getAnimations().forEach((animation) => animation.id === "related-detour" && animation.cancel());
     }
@@ -3277,7 +3305,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         relatedRendered.delete(id);
       }
     }
-    // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R3).
+    // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R10).
     const detours = new Map();
     const primaryZone = { width: relatedLayout.primary.width, height: relatedLayout.primary.height };
     const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
@@ -3508,6 +3536,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
     }
+    renderCtaSkeleton({ slide: Boolean(origins) && !reduced });
     renderRelatedWindow({ animate: true, origins });
   };
   // Primary đổi bên trong frame của chính nó (loading-glass-and-page-entry R4, R5): photo đang tải
@@ -4135,6 +4164,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelMotion();
     activePhotoId = record.id;
     clearCtaSkeleton();
+    moveCtaNodes("detail");
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;
     photoImage.dataset.advertisingPhotoId = record.id;
@@ -4267,6 +4297,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         relatedLayoutKey = "";
         layoutRelated(browseHistory.current);
       } else {
+        renderCtaSkeleton();
         renderRelatedWindow({ animate: true, origins });
         // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
         // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
@@ -4293,6 +4324,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     closePrimaryStrip();
     photoVideo?.pause();
     clearRelatedCards();
+    clearCtaSkeleton();
+    moveCtaNodes("grid");
     syncLocaleLinks(browse);
     if (photoView) delete photoView.dataset.advertisingPhotoId;
     if (photoView) delete photoView.dataset.advertisingPhotoLayout;
@@ -4531,6 +4564,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           && relatedMeasuredGeometry.viewportWidth === viewportWidth
           && relatedMeasuredGeometry.typographyKey === relatedTypographyKey();
         if (geometryAlreadyMeasured) {
+          if (!ctaGeometryHash) renderCtaSkeleton();
+          syncCtaParallax();
           renderRelatedWindow();
           return;
         }

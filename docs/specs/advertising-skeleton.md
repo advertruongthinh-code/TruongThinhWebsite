@@ -38,7 +38,7 @@ seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đ
 đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
 là thứ tự khung nối tiếp masonry (`0`, `1`, ...), không phải ô cột và độ sâu: đổi số cột thì khung thứ k vẫn là item
 k của cùng lưới, nên resize trượt cả card và khung như một masonry (owner 10/10). Band gắn với slot, dựng lại giữ band
-cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch chỉ có khi masonry đang hiện, không có khi mở detail.
+cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch có ở masonry và ở cuối related của detail ([CTA R9](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)).
 
 ```gherkin
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột

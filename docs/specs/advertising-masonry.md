@@ -218,7 +218,7 @@ Then masonry ẩn, container có data-advertising-fallback="failed", không còn
 
 Dưới card thật cuối là batch skeleton ([skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)), CTA và
 [Kính](glass-surface.md) dạng cung; chữ CTA, parallax, footer theo [CTA giữa viewport](advertising-cta-center-parallax.md).
-Masonry chỉ cung cấp đáy từng cột, bề rộng card, khoảng giữa, hash tọa độ; mở detail gỡ batch, đóng thì dựng lại.
+Masonry chỉ cung cấp đáy từng cột, bề rộng card, khoảng giữa, hash tọa độ; mở detail chuyển batch sang cuối related ([CTA R9](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)), đóng thì dựng lại ở grid.
 Renderer Flow mount cả khi đang cuộn, trừ loại máy bị hoãn theo [skeleton R5](advertising-skeleton.md#r5-webgl-context).
 
 ```gherkin
