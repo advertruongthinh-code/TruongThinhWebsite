@@ -30,7 +30,7 @@ WebGL context ở [skeleton](advertising-skeleton.md); cách Kính hiện, tan �
 Card của masonry chính và related (cả card nhiều media) vào viewport mà media đang hiện chưa tải xong thì ngay lúc đó,
 không chờ mốc thời gian, kể cả khi đang cuộn hay giữ thanh cuộn, media hiện ở opacity cuối dưới `filter: blur(24px)` của
 chính nó (inline style, `CARD_LOADING_BLUR`), không animate vào, để trình duyệt vẽ dần
-([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)]).
+([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
 Khung media (`.advertising-card-media`) mang inline `background-color` là màu chủ đạo của ảnh bìa, nên ảnh chưa nhận byte
 nào vẫn hiện màu thay vì ô trắng. Card không có Kính, khung skeleton, Flow hay WebGL context: Kính `backdrop-filter` ba bậc trên 15 đến 18 card làm kéo
 thanh cuộn tụt còn 14 FPS. Skeleton Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)). Card mount
