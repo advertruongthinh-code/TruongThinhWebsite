@@ -19,7 +19,7 @@ BIN="$HOME/.local/bin"
 mkdir -p "$T/src" "$CFG/skills"
 # Redirect file thường: với `exec > >(tee ...)`, lệnh `wait` trần cũng chờ tee và bị deadlock.
 exec >"$T/setup.log" 2>&1 </dev/null
-export DO_NOT_TRACK=1 CAVEMAN_TELEMETRY=0 GIT_TERMINAL_PROMPT=0
+export DO_NOT_TRACK=1 GIT_TERMINAL_PROMPT=0
 
 fetch() { # <owner/repo> <sha>: checkout nông (shallow) của một commit đã pin
   local d="$T/src/${1#*/}"
@@ -39,7 +39,7 @@ fetch vercel-labs/skills 92a9a34ac3bf88e695e468b90c7bf32f163d32c8 &
   uv tool install -q --python 3.13 "serena-agent==2.1.0"
 } &
 npm install -g --silent --no-audit --no-fund \
-  @caveman-ai/cli@4.0.1 impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
+  impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
 wait
 
 # Skill kie.ai không có repo Git: tải tarball, kiểm SHA-256 ghim rồi mới bung.
@@ -53,10 +53,6 @@ kie kie-models f6247b734033fad6ba75e0875bc105e2307c9b7e7790317a26c1b68838209f22
 kie kie-chat-agents f1cbf185af32ff7162dd67d9d257cd527e79846d94cae804e2bb83e08a47e8b0
 ln -sfnT "$T/src/skills/skills/find-skills" "$CFG/skills/find-skills"
 
-# Binary đi kèm và runtime cache. Không bao giờ chạy `caveman enable`/`caveman claude`:
-# chúng đổi hướng ANTHROPIC_BASE_URL qua proxy local và làm hỏng cloud session.
-caveman telemetry off >/dev/null
-caveman setup --install </dev/null
 # Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.18).
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
 
@@ -79,7 +75,7 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 EOF
 "$BIN/graphify" install </dev/null  # skill cùng block đăng ký được nối vào CLAUDE.md
 
-# Một Chromium cho impeccable và caveman-browse; root cần --no-sandbox.
+# Một Chromium cho impeccable và chrome-devtools; root cần --no-sandbox.
 cat > /usr/local/bin/chromium <<'EOF'
 #!/bin/sh
 exec /opt/pw-browsers/chromium --no-sandbox "$@"
@@ -129,7 +125,7 @@ chmod +x "$T/graphify-mcp-live"
 P="$T/cloud-stack"
 mkdir -p "$P/.claude-plugin"
 cat > "$P/.claude-plugin/plugin.json" <<'EOF'
-{"name": "cloud-stack", "version": "1.2.0",
+{"name": "cloud-stack", "version": "1.3.0",
  "description": "MCP servers for the owner's agent stack in cloud sessions"}
 EOF
 cat > "$P/.mcp.json" <<EOF
@@ -140,10 +136,7 @@ cat > "$P/.mcp.json" <<EOF
     "--enable-web-dashboard", "false", "--open-web-dashboard", "false"]},
   "chrome-devtools": {"command": "$(command -v chrome-devtools-mcp)", "args": ["--headless", "--isolated",
     "--executablePath", "/usr/local/bin/chromium", "--no-usage-statistics",
-    "--no-performance-crux", "--redact-network-headers"]},
-  "caveman": {"command": "$HOME/.caveman/bin/caveman-mcp"},
-  "caveman-browse": {"command": "$HOME/.caveman/bin/caveman-browse"},
-  "cavemem": {"command": "$HOME/.caveman/bin/cavemem"}
+    "--no-performance-crux", "--redact-network-headers"]}
 }}
 EOF
 ln -sfnT "$P" "$CFG/skills/cloud-stack"
@@ -151,11 +144,10 @@ ln -sfnT "$P" "$CFG/skills/cloud-stack"
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
   "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
   "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
-  "$HOME"/.caveman/bin/{caveman-mcp,caveman-browse,cavemem} \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
 done
-for c in caveman impeccable chrome-devtools-mcp; do
+for c in impeccable chrome-devtools-mcp; do
   command -v "$c" >/dev/null && echo "OK   $c" || echo "FAIL $c"
 done
 grep -l '"hooks"' "$CFG"/skills/*/.claude-plugin/plugin.json && echo "FAIL hooks in a manifest"
