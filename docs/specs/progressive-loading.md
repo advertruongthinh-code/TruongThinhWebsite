@@ -3,6 +3,7 @@ title: Ảnh JPEG XL progressive và thứ tự tải
 status: planned
 source:
   - src/site/sw.js
+  - src/site/advertising-products/media-colors.mjs
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-reveal-complete.e2e.mjs
@@ -203,14 +204,13 @@ Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 ### R9. Ảnh tự mờ thay skeleton Flow trên card chờ ảnh
 
 Card masonry chính và related đang chờ ảnh không dùng skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh chưa tải
-xong thì ảnh hiện ngay ở opacity cuối dưới `filter: blur(24px)` của chính nó (không animate vào, vì card có thể chỉ lướt
-qua); trình duyệt vẽ dần các lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Ảnh tải xong và `decode()` xong
-(R3) thì blur tan về 0 trong `0.6s`, rồi gỡ. Chi tiết ở
-[skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ).
+xong thì ảnh hiện ngay ở opacity cuối dưới `filter: blur(24px)` của chính nó (không animate vào); trình duyệt vẽ dần các
+lượt JXL qua lớp mờ. Khung tô màu chủ đạo của ảnh (`MEDIA_COLORS`, `sharp` `stats().dominant`) nên ảnh chưa có byte không
+thành ô trắng (A04s 400 kbit/s: ô trắng 2 đến 4s; owner chọn 2026-10-31 11:09). Tải và `decode()` xong (R3) thì blur tan
+về 0 trong `0.6s` rồi gỡ ([skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)).
 
-Bản đầu dùng Kính ba bậc (`backdrop-filter`) phủ trên ảnh. Owner kéo thanh cuộn cực đoan khi tắt cache, mạng 3G thấy FPS
-không hơn Flow (2026-10-31 09:59). Trace Chromium 1920px cùng kịch bản: có Kính 14 đến 15 FPS, bỏ Kính 42, blur trên ảnh
-41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s): có Kính 8,6 đến 10,6 FPS, blur trên ảnh 74 đến 82. Owner chọn blur trên ảnh.
+Bản đầu dùng Kính ba bậc (`backdrop-filter`) trên ảnh; owner kéo thanh cuộn cực đoan (tắt cache, 3G) thấy FPS không hơn
+Flow (2026-10-31 09:59). Trace 1920px: có Kính 14 đến 15 FPS, blur trên ảnh 41 (JXL hay WebP như nhau); A04s 400 kbit/s: có Kính 8,6 đến 10,6, blur trên ảnh 74 đến 82.
 
 - Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
   blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
@@ -277,7 +277,7 @@ sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này kh
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
-| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
+| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, card chờ ảnh có màu chủ đạo, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
 | R10 | `image-upgrade.e2e.mjs` (hero và card trong màn hình lên bản gốc, card ngoài màn hình giữ bản vừa khung, không đổi khi đang cuộn, một request) |
 
 ## Gate còn mở

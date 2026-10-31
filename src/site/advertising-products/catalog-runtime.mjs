@@ -31,6 +31,7 @@ import {
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
+import { MEDIA_COLORS } from "./media-colors.mjs";
 
 let activeInstance;
 
@@ -979,6 +980,9 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   link.href = advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
+  // Màu chủ đạo của ảnh lấp khung khi ảnh chưa nhận byte nào; ảnh mờ rồi nét phủ lên trên (progressive-loading R9).
+  const color = MEDIA_COLORS[record.media.src.split("/").pop().replace(/\.webp$/, "")];
+  if (color) media.style.backgroundColor = color;
   const image = createPhotoMedia(record, locale, { native: related });
   media.append(image);
   link.append(media);
