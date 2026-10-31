@@ -8,7 +8,8 @@
   ([quản trị Git–Notion](../decisions/git-notion-governance.md)).
 - Dùng Notion connector của host agent: Claude Code dùng claude.ai Notion
   connector (đã kết nối); Codex dùng Notion plugin. Connector unavailable:
-  không giả lập update, ghi Git trước, báo blocker.
+  không giả lập update, ghi Git trước, báo blocker; dừng nhận việc từ board,
+  chỉ làm việc owner giao trực tiếp trong chat tới khi Notion đọc ghi lại được.
 - Có NOW/Kanban card: dùng card đó. Chưa có: đọc `docs/STATE.md` và accepted
   Git document liên quan.
 - Verify xong: update Git document/evidence trước, rồi card. Chỉ Done khi
@@ -19,7 +20,11 @@
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
 - Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
-  merge (`Done`, hoặc ghi việc còn mở). Card giữ tên, status, thứ tự, mục
+  merge (`Done`, hoặc ghi việc còn mở). Card `In progress` hoặc `Blocked` luôn
+  có `Agent` (thread hoặc agent đang giữ) và `Next action` (bước kế tiếp cụ
+  thể); sửa `Next action` mỗi khi bước đổi. Kẹt chờ owner, thiết bị, PR khác:
+  chuyển `Blocked`, `Next action` ghi đang chờ gì và ai gỡ; gỡ xong về
+  `In progress`. Card giữ tên, status, thứ tự, mục
   tiêu một dòng, link spec và PR, và sổ việc (dưới); không chép spec, state,
   evidence hay log vào card.
 - Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
@@ -30,11 +35,24 @@
 
 ## Sổ việc trên card
 
-Plan và việc owner giao nằm trong thân card dưới dạng to-do (ô tick), một dòng
-một việc, nêu đủ nội dung để làm mà không cần đọc lại chat. Spec vẫn chỉ ở Git.
+Card là một plan thật, không phải danh sách việc rời. Thân card theo thứ tự:
+
+- Đầu card: **Mục tiêu** (một dòng), **Spec/Nguồn** (link Git), **Mức plan**
+  (0, 1, 2; với 1 hoặc 2 ghi các câu hỏi trả lời yes hoặc lý do).
+- `## Plan`: mỗi bước là một ô tick, khớp một task con trong `Sub-items`; tick
+  khi task con `Done`. Sau đó dòng **Plan đã duyệt:** (ngày, hoặc "chưa").
+- `## Quyết định`: quyết định owner, chữ thường kèm ngày.
+- `## Ghi chú`: số đo, lịch sử, link phụ.
+
+Task con là card cùng database, `Parent item` trỏ về card cha, cùng `Project`;
+có `Status`, `Next action`, `Evidence` (PR) như card thường. Task con chờ owner
+hoặc thiết bị thì `Blocked` kèm `Next action`. Card cha điền `Plan level`,
+`Next action` của bước đang làm và `Evidence` là PR mới nhất. Spec vẫn chỉ ở
+Git.
 
 1. Ghi ngay: owner giao việc, giao thêm giữa chừng, hoặc phỏng vấn chốt quyết
-   định thì thêm dòng trước khi làm. Plan đã duyệt chép thành các dòng task.
+   định thì thêm bước (ô tick và task con) hoặc dòng Quyết định trước khi làm.
+   Plan đã duyệt chép thành các bước.
 2. Không làm rơi: tick khi xong; dòng chưa tick chỉ bỏ khi owner nói bỏ (gạch
    dòng, ghi lý do). Checklist tiến độ của thread khi đổi bảng mới phải liệt kê
    mọi dòng chưa tick.
@@ -57,10 +75,14 @@ của spec link tới card.
 ## Database Tasks
 
 Fetch schema trước mỗi mutation phụ thuộc schema. Schema đã thấy: `Name`
-(title), `Status` (`Not started`, `Up next`, `In progress`, `Done`), `Project`
-(relation), `Due date`, `Thứ tự Up next` (number). Không gửi status `Approved`
-hoặc `Blocked`. Field workflow còn thiếu (`Git spec`, `PR`, `Blocker`,
-`Priority`) ghi một dòng trong body; không tự phá schema dùng chung.
+(title), `Status` (`Not started`, `Up next`, `In progress`, `Blocked`, `Done`),
+`Agent` (text), `Next action` (text), `Priority` (`P0`, `P1`, `P2`),
+`Evidence` (URL PR hoặc commit trên `main`, điền khi `Done`), `Project`
+(relation), `Plan level` (`0`, `1`, `2`), `Parent item` và `Sub-items`
+(relation tới chính database, cho task con), `Due date`, `Thứ tự Up next` (number). Không gửi status
+`Approved`. Card mới luôn gắn `Project` = Truong Thinh Website. Field còn
+thiếu (`Git spec`) ghi một dòng trong body; schema dùng chung chỉ thêm, không
+xóa hay đổi tên.
 
 `Thứ tự Up next` là thứ tự owner yêu cầu; board `By status` sort tăng dần theo
 field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status, ngày tạo
@@ -69,10 +91,10 @@ field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status,
 
 ## Record project hiện tại
 
-- [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record, relation Docs/Tasks.
+- [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record trong database Projects (cùng chỗ với PrintWork); trang có link nguồn chuẩn, quy ước và board Tasks lọc theo project.
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành; quy tắc category cũ không ghi đè [docs routing](../index.md).
 - [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): card In progress cho phần việc còn mở.
-- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị ghi dòng `Chờ` đầu body vì schema không có status chờ.
+- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị để status `Blocked` (thay dòng `Chờ` đầu body trước đây).
 
 Link là mutable reference; page đổi thì verify record mới rồi cập nhật mục
 này.
@@ -82,6 +104,7 @@ này.
 - **Accepted knowledge**: tài liệu và evidence Git đã chấp nhận làm cơ sở quyết định.
 - **Connector**: tích hợp host agent dùng để đọc/ghi Notion.
 - **Work item**: card công việc có status, evidence và next action.
+- **Next action**: field ghi bước kế tiếp cụ thể của card đang làm hoặc đang kẹt.
 - **Thin slice**: lát cắt nhỏ chạy được và verify được từ đầu đến cuối.
 - **Frontmatter**: metadata ở đầu file Markdown.
 - **LOC**: số dòng source/test thay đổi để estimate độ lớn task.

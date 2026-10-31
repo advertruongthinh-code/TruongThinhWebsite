@@ -23,9 +23,10 @@
 
 Board Tasks là backlog chung của owner, điều phối và mọi worker; Git `main` giữ contract và
 trạng thái repo, card chỉ trỏ tới đó. Việc owner giao chưa có card thì worker nhận việc tạo card
-trước khi làm. Worker cập nhật card ở ba mốc: nhận việc, mở PR, merge. Không xóa vĩnh viễn card.
-Plan và mọi việc owner giao (kể cả giao thêm giữa chừng, quyết định chốt khi phỏng vấn) là ô tick
-trong thân card; không bỏ dòng chưa tick khi chưa có owner nói bỏ, đối chiếu card trước khi chuyển hay chốt việc
+trước khi làm. Worker cập nhật card ở ba mốc: nhận việc, mở PR, merge. Card đang làm hoặc `Blocked` có `Agent` và
+`Next action`; Notion lỗi thì chỉ làm việc owner giao trực tiếp. Không xóa vĩnh viễn card.
+Card là plan: mỗi bước là ô tick khớp một task con (`Sub-items`), kèm `Plan level`, mục Quyết định;
+mọi việc owner giao (kể cả giao thêm giữa chừng) thành bước; không bỏ dòng chưa tick khi chưa có owner nói bỏ, đối chiếu card trước khi chuyển hay chốt việc
 ([sổ việc](docs/operations/notion.md#sổ-việc-trên-card)).
 Quy tắc đầy đủ (nội dung card, gộp/đổi tên, schema, link board): [Notion và Git](docs/operations/notion.md#rule).
 
