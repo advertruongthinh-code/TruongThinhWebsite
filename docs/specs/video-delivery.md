@@ -3,7 +3,6 @@ title: Video thích ứng mạng (adaptive bitrate)
 status: live
 source:
   - scripts/site/build-video-ladder.mjs
-  - src/site/assets/**/*.m3u8
   - src/site/advertising-products/video-source.mjs
 tests:
   - tests/site/video-ladder.test.mjs
@@ -11,7 +10,7 @@ tests:
   - tests/site/video-delivery.e2e.mjs
   - tests/site/video-delivery-measure.mjs
 notion: https://app.notion.com/p/404332849a0e81aa9718f91db2d05e51
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Video thích ứng mạng (adaptive bitrate)

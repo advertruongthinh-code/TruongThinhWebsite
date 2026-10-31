@@ -1,6 +1,6 @@
 ---
 title: Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
-status: planned
+status: live
 source:
   - src/site/advertising-products/taxonomy.mjs
 tests:
@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-19
+updated: 2026-10-31
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -18,10 +18,9 @@ updated: 2026-10-19
 
 Trang Advertising lọc theo sáu cụm khái niệm và các sản phẩm cụ thể trong từng cụm, mỗi cụm và sản phẩm có
 URL riêng để Google index. Phân loại là dữ liệu sửa được, không hard-code trong code render; phase CMS cho
-người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Spec planned: intent
-owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; đã có dữ liệu
-và validator R2; filter cụm, sản phẩm đã chạy ([masonry R2, R3](advertising-masonry.md#r3-filter)),
-đã có rail hai tầng R3, trang R4 và related R7 theo tag; chưa có vector R6.
+người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Dữ liệu và validator R2, filter cụm và sản phẩm
+([masonry R2, R3](advertising-masonry.md#r3-filter)), rail hai tầng R3, trang R4, ngưỡng chip R5 và related R7 theo tag
+đã chạy; vector R6 chưa có (Gate còn mở).
 
 ## Hành vi
 
@@ -280,8 +279,7 @@ Không đổi typography hay layout ngoài rail.
 - Cách tính vector lúc upload ở phase CMS (trình duyệt hay PC): chốt ở phase CMS.
 - Map 84 URL site cũ sang trang mới: thuộc [SEO](seo.md); danh sách 84 URL đã thu lại ngày 2026-10-12 (Library
   `advertising-taxonomy/seo/goi-y-tim-kiem-va-site-cu.md`).
-- Sửa theo spec này khi code: [detail R5, R7](advertising-detail.md#r5-suggestion), [phát hành tĩnh R2, R7](static-release.md#r7-sáu-trang-tương-thích-advertising),
-  [Ảnh Advertising](../../design-system/advertising-images.md); menu năm trang còn `?category=<slug cũ>` tới khi có path R4.
+- R6 embedding EmbeddingGemma 2 chưa làm: chưa có vector, related và gợi ý loại vẫn theo tag.
 
 ## Chú thích thuật ngữ
 

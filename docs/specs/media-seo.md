@@ -7,7 +7,7 @@ tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-19
+updated: 2026-10-31
 ---
 
 # SEO cho media của card
@@ -23,7 +23,7 @@ pin. Phạm vi chỉ card Advertising; SEO toàn site, từ khóa, khu vực, bo
 
 ### R1. Mỗi card có trang riêng
 
-Build sinh trang tĩnh `/<locale>/advertising-products/p/<card-id>/` cho mọi card, VI và EN (254 card thành 508 trang).
+Build sinh trang tĩnh `/<locale>/advertising-products/p/<card-id>/` cho mọi card, VI và EN (285 card thành 570 trang, tính từ catalog).
 Trang có `title` là tên card, `meta description` là mô tả card, `canonical` tuyệt đối, `hreflang` vi, en, x-default.
 Detail đổi URL sang path này: bấm card masonry hoặc related ghi path bằng `pushState` thay cho `?photo=<id>`; URL cũ
 `?photo=<id>` vào thẳng thì runtime `replaceState` sang path. Mở thẳng path thì runtime mở detail của card như vào
@@ -85,9 +85,9 @@ Build sinh `sitemap-advertising.xml`: mỗi trang R1 (VI và EN) một `<url>`, 
 Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
 
 ```gherkin
-Given catalog 254 card, 254 media
+Given catalog 285 card, 285 media
 When chạy pnpm prepare:site
-Then sitemap-advertising.xml có 508 url và mỗi url có số image:loc bằng số media của card
+Then sitemap-advertising.xml có 570 url và mỗi url có số image:loc bằng số media của card
 ```
 
 ### R6. URL tuyệt đối theo truongthinhads.vn

@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Masonry Advertising
@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 254 card, đang ở đầu trang
+Given masonry All 285 card (tính từ catalog), đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```

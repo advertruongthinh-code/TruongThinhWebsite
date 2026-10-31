@@ -16,7 +16,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Trang chủ
@@ -249,7 +249,6 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
 | Data | `src/site/content/client-logos.json`, `content/project-reel.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); build và test đọc |
 | Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7), `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
-| Script | `scripts/site/sanitize-client-logos.ps1` | Làm sạch SVG logo khách hàng trước khi đưa vào `assets/content/client-logos/` |
 
 ## UI
 

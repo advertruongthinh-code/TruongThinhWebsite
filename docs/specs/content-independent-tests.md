@@ -1,14 +1,12 @@
 ---
 title: Test không phụ thuộc nội dung
-status: planned
+status: live
 source:
   - scripts/ci/content-contract.mjs
-  - tests/fixtures/**
 tests:
   - tests/tooling/content-contract.test.mjs
-  - tests/tooling/content-literal-guard.test.mjs
 notion: https://app.notion.com/p/402332849a0e81f0a455f750f1142504
-updated: 2026-10-23
+updated: 2026-10-31
 ---
 
 # Test không phụ thuộc nội dung
@@ -121,12 +119,13 @@ Không có; spec chỉ đổi test và tooling.
 | R2 | `tests/tooling/content-contract.test.mjs`: mỗi luật có một dữ liệu hỏng làm đỏ đúng luật |
 | R3 | Test layout chạy golden trên fixture; đổi tỷ lệ một ảnh thật không đổi hash fixture |
 | R4 | Mỗi e2e đã chuyển xanh trên catalog thật và trên catalog thêm, bớt card |
-| R5 | `tests/tooling/content-literal-guard.test.mjs` |
+| R5 | chưa có test; xem Gate còn mở |
 | R6 | Chưa có test; dormant tới phase CMS |
 
 ## Gate còn mở
 
-- Owner duyệt spec, rồi duyệt plan chia lát.
+- R3, R4, R5 chưa làm: chưa có `tests/fixtures/`, test layout vẫn chạy golden trên catalog thật, chưa có
+  `content-literal-guard.test.mjs`; mỗi việc một PR, owner duyệt plan chia lát.
 - R2 mục 5: 17 ảnh hiện không có consumer trên trang public; owner chọn xóa hay đưa vào ngoại lệ trước khi bật luật.
 - Lỗi nhấp nháy P13 adv-viewer và `advertising-suggestion-layout`
   ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)) xử lý riêng, không thuộc spec này.

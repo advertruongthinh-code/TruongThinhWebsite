@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/first-load-parity.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81eda926d2c089fa4d5a
-updated: 2026-10-18
+updated: 2026-10-31
 ---
 
 # Mở trực tiếp giống chuyển trang, phần nhẹ hiện trước
@@ -99,8 +99,7 @@ Không cheat: không tua nhanh, rút ngắn hay bỏ motion để đạt số; k
 ### R4. Ngoài phạm vi
 
 Không đổi nội dung, font, màu, motion mới, layout masonry, nhịp slide hero hay ảnh. Typography hero và khoảng cách
-dòng thuộc [hero-typography](hero-typography.md). [Reveal hero và LCP](hero-motion-reveal.md) (phương án A, tách
-title hero khỏi lô chuẩn bị chữ) làm chung code với R2, nên plan gộp hai việc để không sửa `detail.js` hai lần.
+dòng thuộc [hero-typography](hero-typography.md).
 
 ## Kiểm tra
 
@@ -114,7 +113,8 @@ title hero khỏi lô chuẩn bị chữ) làm chung code với R2, nên plan g�
 - R1 và R3 chạy trên demo, cần phiên PC và phone nối adb. R2 mới đo trên Chromium cloud, localhost.
 - Ngưỡng 100 ms của R2 rộng hơn 50 ms dự kiến: Chromium headless trên cloud có frame dài 80 đến 120 ms đúng lúc từ
   đầu bắt đầu fade ở cả hai đường. Đo lại trên demo bằng PC và phone.
-- Phương án A của [Reveal hero và LCP](hero-motion-reveal.md) chưa làm, chờ số đo LCP R1 của spec đó.
+- Tách title hero khỏi lô chuẩn bị chữ để LCP không chờ hết animation: chưa làm, gate ở
+  [phát hành tĩnh](static-release.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ
 
