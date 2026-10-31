@@ -205,7 +205,8 @@
         "node tests/site/advertising-suggestion-wave.e2e.mjs",
         "node tests/site/advertising-slideshow-p75.e2e.mjs",
         "node tests/site/advertising-return-p74.e2e.mjs",
-        "node tests/site/advertising-viewer-touch.e2e.mjs"
+        "node tests/site/advertising-viewer-touch.e2e.mjs",
+        "node tests/site/advertising-related-detour.e2e.mjs"
       ]
     },
     "adv-viewer": {

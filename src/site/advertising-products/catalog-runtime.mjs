@@ -30,6 +30,7 @@ import {
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { planDetourPath } from "./detour-path.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
 
@@ -3211,14 +3212,22 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return new Map(nodes.filter(([, node]) => !node.hidden)
       .map(([id, node]) => {
         const position = node.getBoundingClientRect();
-        return [id, { x: position.left - rect.left, y: position.top - rect.top }];
+        return [id, { x: position.left - rect.left, y: position.top - rect.top, w: position.width, h: position.height }];
       }));
+  };
+  // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (R3).
+  const isDetourSlide = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.translate);
+  const cancelRelatedDetours = () => {
+    for (const node of [...relatedRendered.values(), suggestionNode]) {
+      node?.getAnimations().forEach((animation) => isDetourSlide(animation) && animation.cancel());
+    }
   };
   const cancelRelatedMotion = () => {
     if (relatedMotionFrame) cancelAnimationFrame(relatedMotionFrame);
     if (relatedMotionTimer) clearTimeout(relatedMotionTimer);
     relatedMotionFrame = 0;
     relatedMotionTimer = 0;
+    cancelRelatedDetours();
     cancelMasonryTransitions(relatedMasonry || null);
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
@@ -3269,12 +3278,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         relatedRendered.delete(id);
       }
     }
+    // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R3).
+    const detours = new Map();
+    const primaryZone = { width: relatedLayout.primary.width, height: relatedLayout.primary.height };
+    const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
+    const planDetour = (id, node, origin, destination) => {
+      const placement = placementById?.get(id);
+      let from = origins?.get(id);
+      if (!from || !placement || (from.x === destination.x && from.y === destination.y)) return origin;
+      const size = { width: Math.max(from.w || 0, placement.pixelWidth), height: Math.max(from.h || 0, placement.pixelHeight) };
+      // Resize làm primary lớn lên đè chỗ cũ của card: card xuất phát ngay dưới primary mới, không từ sau nó.
+      if (from.x > -size.width && from.x < primaryZone.width && from.y > -size.height && from.y < primaryZone.height) {
+        from = { ...from, y: primaryZone.height + relatedLayout.primary.gap };
+      }
+      const plan = planDetourPath({ from, to: destination, size, zone: primaryZone });
+      if (!plan) return from;
+      detours.set(node, { from, to: destination, plan });
+      return destination;
+    };
     for (const [id, node] of relatedRendered) {
       const destination = relatedPositions.get(id);
       if (!destination || node.hidden) continue;
       const columnHead = destination.x < relatedLayout.primary.width
         ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
-      const origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
+      let origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
+      if (motion) origin = planDetour(id, node, origin, destination);
       // Chỉ ghi khi đổi: cuộn related ghi lại mọi card đang mount ở mỗi lần cửa sổ đổi.
       const left = `${origin.x}px`;
       const top = `${origin.y}px`;
@@ -3284,7 +3312,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     if (keepSuggestion && suggestionNode) {
       const destination = relatedPositions.get(suggestionId);
-      const origin = motion ? origins?.get(suggestionId) || destination : destination;
+      let origin = motion ? origins?.get(suggestionId) || destination : destination;
+      if (motion) origin = planDetour(suggestionId, suggestionNode, origin, destination);
       suggestionNode.style.left = `${origin.x}px`;
       suggestionNode.style.top = `${origin.y}px`;
       suggestionNode.style.transform = "none";
@@ -3306,10 +3335,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedMasonry.options.layoutInstant = false;
       relatedMasonry.options.transitionDuration = "0.4s";
       relatedMasonry.reloadItems();
-      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden; });
+      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || detours.has(item.element); });
       relatedMasonry.layout();
+      for (const [node, { from, to, plan }] of detours) {
+        node.animate([
+          { translate: `${from.x - to.x}px ${from.y - to.y}px` },
+          { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset },
+          { translate: "0px 0px" },
+        ], { duration: 400, easing: "ease" });
+      }
       relatedMotionTimer = setTimeout(() => {
         relatedMotionTimer = 0;
+        cancelRelatedDetours();
         cancelMasonryTransitions(relatedMasonry);
         renderRelatedWindow();
       }, 400);
