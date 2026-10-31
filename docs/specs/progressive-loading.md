@@ -210,8 +210,7 @@ qua); trình duyệt vẽ dần các lượt JXL nên người xem thấy màu v
 
 Bản đầu dùng Kính ba bậc (`backdrop-filter`) phủ trên ảnh. Owner kéo thanh cuộn cực đoan khi tắt cache, mạng 3G thấy FPS
 không hơn Flow (2026-10-31 09:59). Trace Chromium 1920px cùng kịch bản: có Kính 14 đến 15 FPS, bỏ Kính 42, blur trên ảnh
-41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s) có Kính 8,6 đến 10,6 FPS, ảnh đã tải hết không Kính 60. Owner
-chọn blur trên ảnh.
+41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s): có Kính 8,6 đến 10,6 FPS, blur trên ảnh 74 đến 82. Owner chọn blur trên ảnh.
 
 - Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
   blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
@@ -235,7 +234,8 @@ And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị g
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
   Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
-- Card còn blur (R9) hoặc đang chạy reveal thì để lượt sau; ảnh có `filter` từ stylesheet (nền mờ primary) không lên.
+- Card còn blur (R9), đang chạy reveal hoặc ảnh đang ẩn (slide hero chưa tới lượt) thì để lượt sau; ảnh có `filter` từ
+  stylesheet (nền mờ primary) không lên.
 - Ảnh đã là bản gốc, đã ra khỏi màn hình hoặc bị gỡ thì bỏ. Code ở script `<head>` (`head-inline.js`), một chỗ cho mọi trang.
 
 ```gherkin

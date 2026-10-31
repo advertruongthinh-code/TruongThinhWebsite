@@ -194,6 +194,10 @@ try {
           // Ẩn ảnh nền để ảnh chụp chỉ còn chữ, không phụ thuộc slide.
           await page.addStyleTag({ content: ".hero-slides, .hero-shade, [data-motion-hero-media], .legacy-closer img, .legacy-shade, .scroll-cue { visibility: hidden !important; }" });
           await page.waitForTimeout(500);
+          // Slide active vẫn hiện dưới lớp ẩn (con visibility visible) và lên bản gốc khi trang rảnh (progressive-loading
+          // R10), làm đổi nền sau chữ: chờ đổi xong rồi mới chụp.
+          await page.waitForFunction(() => [...document.querySelectorAll(".hero-slide.is-active img")]
+            .every((image) => image.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc)), null, { timeout: 20_000 });
           for (const spec of titles.filter((t) => t.route === route)) {
             const where = `${locale} /${path} ${spec.selector} @${width}`;
             await page.locator(spec.selector).scrollIntoViewIfNeeded();

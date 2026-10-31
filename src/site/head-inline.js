@@ -56,13 +56,14 @@ document.documentElement.classList.add("media-gate");
     if (wait) return scheduleUpgrade(wait);
     let image;
     for (const node of inView) {
-      // Filter từ stylesheet là mờ cố định (nền primary): bỏ hẳn. Filter inline là blur card chờ ảnh: đợi lượt sau.
+      // Filter từ stylesheet là mờ cố định (nền primary): bỏ hẳn. Filter inline là blur card chờ ảnh, ảnh đang ẩn
+      // (slide hero chưa tới lượt, opacity 0): đợi lượt sau để không tải 4K cho ảnh người xem không thấy.
       if (getComputedStyle(node).filter !== "none") {
         if (!node.style.filter) {
           upgradeObserver.unobserve(node);
           inView.delete(node);
         }
-      } else if (!node.getAnimations().length) {
+      } else if (!node.getAnimations().length && (node.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true)) {
         image = node;
         break;
       }
