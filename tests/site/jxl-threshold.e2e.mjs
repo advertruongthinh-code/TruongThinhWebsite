@@ -72,6 +72,29 @@ try {
   await page.waitForFunction(() => window.__glassTrace.length >= 3, null, { timeout: 30_000 });
   const glass = await page.evaluate(() => window.__glassTrace);
   assert.ok(glass.some(({ complete }) => !complete), `card Kính starts dissolving before the photo finishes ${JSON.stringify(glass.slice(0, 5))}`);
+
+  // Viewer: hiện ảnh primary đang có, đổi sang bản gốc khi tin ngưỡng tới, trước khi bản gốc tải xong.
+  // Card có bản gốc rộng hơn 1600 nên primary ở 1440px lấy cỡ 1600, viewer phải đổi sang bản gốc.
+  await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")]
+    .find((card) => card.querySelector("img")?.srcset.includes("-1600.jxl")).querySelector("a").click());
+  await page.waitForFunction(() => {
+    const image = document.querySelector("[data-advertising-photo-image]");
+    return image?.complete && image.naturalWidth && !document.querySelector("[data-advertising-photo-loading=true]");
+  }, null, { timeout: 60_000 });
+  const primary = await page.evaluate(() => new URL(document.querySelector("[data-advertising-photo-image]").currentSrc).pathname);
+  await page.evaluate(() => {
+    const image = document.querySelector("[data-advertising-photo-expanded-image]");
+    window.__viewerTrace = [];
+    new MutationObserver(() => window.__viewerTrace.push({ src: new URL(image.src).pathname, complete: image.complete }))
+      .observe(image, { attributes: true, attributeFilter: ["src"] });
+    document.querySelector("[data-advertising-photo-expand]").click();
+  });
+  await page.waitForFunction(() => window.__viewerTrace.length >= 2, null, { timeout: 60_000 });
+  const viewer = await page.evaluate(() => window.__viewerTrace);
+  assert.equal(viewer[0].src, primary, `viewer opens on the primary image ${JSON.stringify({ primary, viewer })}`);
+  assert.ok(viewer[1].src === primary.replace(/-1600\.jxl$/, ".jxl") && !viewer[1].complete,
+    `viewer swaps to the original on the threshold, before it finishes ${JSON.stringify({ primary, viewer })}`);
+  assert.equal(jxlRequests.get(viewer[1].src), 1, `original requested once ${JSON.stringify([...jxlRequests])}`);
   await context.close();
   console.log("PASS jxl threshold");
 } finally {

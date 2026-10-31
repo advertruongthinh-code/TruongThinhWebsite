@@ -89,7 +89,8 @@ byte hay header, đếm byte, và khi đạt `thresholdBytes` thì gửi `{ url 
   (vệt gỡ, ảnh hiện), không chờ `decode()`. Sau đó trình duyệt tự vẽ nét dần tới hết file.
 - Advertising: card và primary chạy Kính của [skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md) lúc nhận tin thay vì lúc
   `decode()` xong.
-- Viewer: bản gốc nằm trên ảnh đang có, ẩn tới khi đủ ngưỡng thì hiện, rồi nét dần.
+- Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn), tải bản gốc riêng; đủ ngưỡng (hoặc `load` xong) thì đổi
+  sang bản gốc, request đang chạy được dùng lại nên ảnh nét dần tiếp.
 - Không nhận được tin thì giữ cách cũ, settle khi `load` và `decode()` xong: lần mở đầu tiên trước khi Service Worker điều
   khiển tab, trình duyệt không vẽ JXL dần (chỉ trình duyệt Chromium được tính là có vẽ dần), ảnh lấy từ cache.
 - Đã settle thì không có vệt, skeleton hay Kính lần nữa cho ảnh đó. Ảnh lỗi theo [tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media).
@@ -258,8 +259,8 @@ gõ `republish`.
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
 | R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
-| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải); viewer chưa có test |
-| R4 | `first-load-parity.e2e.mjs`, thêm ca hero trễ 3s và font trễ 1s (chưa có test) |
+| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải; viewer đổi sang bản gốc lúc ngưỡng, một request) |
+| R4 | `first-load-parity.e2e.mjs`: font trễ 1s thì veil mở sau khi font về, ảnh hero trễ 3s thì veil không chờ |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
@@ -267,7 +268,6 @@ gõ `republish`.
 
 ## Gate còn mở
 
-- Viewer (R3) chưa cài lớp bản gốc ẩn tới ngưỡng; hiện vẫn thay `src` rồi chờ `decode()`. Main.
 - A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.

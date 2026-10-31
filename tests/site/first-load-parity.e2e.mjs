@@ -1,4 +1,5 @@
 // first-load-parity R2: mở trực tiếp chạy motion chữ hero giống chuyển mềm, không lộ chữ trước motion.
+// progressive-loading R4: veil chờ font, không chờ ảnh hero.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -83,6 +84,24 @@ const record = async (viewport, route, from) => {
   }
 };
 
+// progressive-loading R4: veil mở khi mount và font xong, không chờ ảnh hero.
+const recordDelayed = async (viewport, route, pattern, delay) => {
+  const context = await browser.newContext({ viewport });
+  await context.addInitScript(recorder);
+  await context.route(pattern, async (request) => {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    await request.continue().catch(() => {});
+  });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${origin}${route}`, { waitUntil: "commit" });
+    await page.waitForFunction(() => window.__heroFrames?.length > 400, null, { timeout: 30_000 });
+    return summarize(await page.evaluate(() => window.__heroFrames));
+  } finally {
+    await context.close();
+  }
+};
+
 const cases = [
   { route: "/vi/", from: "/vi/about/" },
   { route: "/vi/residential/", from: "/vi/" },
@@ -113,6 +132,13 @@ try {
       }
     }
   }
+  const desktop = viewports[0];
+  const lateFont = await recordDelayed(desktop, "/vi/residential/", "**/*.woff2", 1000);
+  console.log("late font", JSON.stringify(lateFont));
+  if (!(lateFont.reveal >= 1000)) failures.push(`font trễ 1s: veil mở lúc ${lateFont.reveal}ms, trước khi font về`);
+  const lateHero = await recordDelayed(desktop, "/vi/residential/", "**/assets/content/**", 3000);
+  console.log("late hero", JSON.stringify(lateHero));
+  if (!(lateHero.reveal < 3000)) failures.push(`ảnh hero trễ 3s: veil mở lúc ${lateHero.reveal}ms, đang chờ ảnh`);
 } finally {
   await browser.close();
 }
