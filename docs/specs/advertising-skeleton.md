@@ -4,13 +4,16 @@ status: live
 source:
   - src/site/advertising-products/skeleton-flow.mjs
   - src/site/advertising-products/skeleton-flow-worker.mjs
+  - scripts/site/image-palette.mjs
 tests:
   - tests/site/advertising-skeleton-flow.test.mjs
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
+  - tests/site/media-colors.test.mjs
+  - tests/site/advertising-primary-flow-colors.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Skeleton cuối masonry Advertising
@@ -61,7 +64,7 @@ Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 
 ### R3. Assignment ngẫu nhiên và giữ màu
 
-Mọi khung Flow (batch và skeleton chờ ảnh của card, primary) bốc assignment lúc khung vào vùng nhìn thấy lần đầu trong
+Mọi khung Flow (batch và skeleton chờ ảnh primary) bốc assignment lúc khung vào vùng nhìn thấy lần đầu trong
 một trạng thái trang: preset ngẫu nhiên trong 12, một hoán vị anchor trong 24, chiều chảy ngẫu nhiên, pha liên tục ngẫu
 nhiên trên cả vòng (không chia mức cố định) và tốc độ lệch ngẫu nhiên tối đa 10% quanh `speed` của preset. Khi bốc, tránh
 preset của khung kề đang có assignment (trên, dưới cùng cột, hoặc chồng chiều dọc ở cột bên cạnh); hết preset để tránh
@@ -74,6 +77,22 @@ media id. Đổi kích thước chỉ bỏ slot nằm ngoài đáy batch mới; 
 Given batch đang hiện trên điện thoại dọc
 When thanh địa chỉ thu, mở làm chiều cao vùng nhìn thấy đổi qua lại
 Then mọi khung đang thấy giữ node, assignment và không chạy lại hiệu ứng vào
+```
+
+Flow chờ ảnh primary lấy màu từ chính ảnh đang chờ (owner 2026-10-31): bốn màu của preset bốc được thay bằng bốn màu
+nổi bật của ảnh đó, sắp từ sáng tới tối như preset; field, anchor, chiều chảy, pha, tốc độ vẫn bốc như trên. Lúc build,
+`build-image-variants.mjs` trích bốn màu bằng k-means (k = 4, khởi đầu k-means++ seed cố định) trên bản thu 64px và ghi vào `MEDIA_COLORS` cùng màu chủ
+đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)); `--check` báo ảnh thiếu.
+Media không có bốn màu (video không poster, ảnh mới chưa build) dùng màu preset. Batch dưới CTA giữ 12 preset.
+Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi. Thêm ảnh: chép
+WebP vào thư mục Advertising rồi chạy build. Thay ảnh cùng tên: xóa variant cũ của ảnh đó (`-240` tới `-2048`, `.avif`,
+`.jxl`) rồi chạy build; build tính lại màu mỗi khi dựng lại variant của ảnh (owner 2026-10-31).
+
+```gherkin
+Given trang detail mở media có bốn màu trong MEDIA_COLORS
+When primary chờ ảnh và Flow hiện
+Then bốn màu uniform của Flow là bốn màu của chính media đó, sắp từ sáng tới tối
+And khung batch dưới CTA vẫn mang màu của một trong 12 preset
 ```
 
 ### R4. Vào viewport và vòng lặp
@@ -211,7 +230,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | --- | --- |
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
-| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
+| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |

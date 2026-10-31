@@ -7,8 +7,8 @@ const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const VARIANT = /-(?:240|480|960|1600|2048)\.(?:jxl|webp)$/;
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
-const open = async () => {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const open = async (options = { viewport: { width: 1440, height: 900 } }) => {
+  const page = await browser.newPage(options);
   const originals = [];
   page.on("request", (request) => {
     const { pathname } = new URL(request.url());
@@ -67,25 +67,48 @@ try {
     await page.close();
   }
 
-  // Advertising: card trong màn hình đổi sang bản gốc sau khi blur tan; card ngoài màn hình giữ bản vừa khung.
+  // Advertising: card masonry là khung nhỏ nên giữ bản vừa khung; ảnh lớn của detail (khung lớn) lên bản gốc.
   {
-    const { page } = await open();
+    const { page, originals } = await open();
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-card] img").length > 8);
-    const cards = () => page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
-      .filter((image) => image.currentSrc).map((image) => {
-        const { top, bottom } = image.getBoundingClientRect();
-        return { visible: bottom > 0 && top < innerHeight, original: !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc) };
-      }));
-    await page.waitForFunction(() => {
-      const shown = [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")].filter((image) => {
-        const { top, bottom } = image.getBoundingClientRect();
-        return image.currentSrc && bottom > 0 && top < innerHeight;
-      });
-      return shown.length && shown.every((image) => !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc));
-    }, null, { timeout: 60_000 }).catch(async () => assert.fail(`visible cards stay on their variant ${JSON.stringify(await cards())}`));
-    const state = await cards();
-    assert.ok(state.some(({ visible, original }) => !visible && !original), `cards out of view keep their variant ${JSON.stringify(state)}`);
+    await page.waitForTimeout(5000);
+    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
+      .filter((image) => image.currentSrc).map((image) => new URL(image.currentSrc).pathname));
+    assert.ok(cards.length && cards.every((pathname) => VARIANT.test(pathname)), `masonry cards stay on their variant ${JSON.stringify(cards)}`);
+    assert.deepEqual(originals.filter(({ pathname }) => cards.some((card) => card.replace(VARIANT, "") === pathname.replace(/\.\w+$/, ""))), [],
+      "no masonry card requests its original");
+    // Mở detail bằng click (route mềm) để primary dùng lại cùng img khi mở media sau.
+    await page.locator("[data-advertising-card] > a").first().click();
+    const primary = "[data-advertising-photo-image]";
+    await page.waitForFunction((selector) => {
+      const image = document.querySelector(selector);
+      return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
+    }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
+    // Primary dùng lại một img: mở media khác thì ảnh hiện phải là media đó, không phải bản gốc của media trước.
+    await page.goBack();
+    await page.locator("[data-advertising-card] > a").nth(1).click();
+    await page.waitForTimeout(2000);
+    const shown = await page.evaluate((selector) => {
+      const image = document.querySelector(selector);
+      const base = (url) => new URL(url, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
+      return { current: base(image.currentSrc), src: base(image.src) };
+    }, primary);
+    assert.equal(shown.current, shown.src, "the primary shows the media it was given");
+    await page.close();
+  }
+  // Phone trang chủ: 9 slide hoãn tải variant lớn nhất 2048, không tải bản gốc (media-delivery R2, owner 2026-10-31);
+  // slide gốc nhỏ hơn 2048 không có variant 2048 nên bản gốc là ứng viên lớn nhất.
+  {
+    const { page } = await open({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true });
+    await page.goto(`${base}/vi/`, { waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelectorAll(".hero-slide:not(.is-active) img[srcset]").length >= 9, null, { timeout: 10_000 });
+    await page.waitForTimeout(1500);
+    const hidden = await page.evaluate(() => [...document.querySelectorAll(".hero-slide:not(.is-active) img")].map((image) => ({
+      src: new URL(image.currentSrc, location.href).pathname,
+      has2048: (image.previousElementSibling?.srcset ?? image.srcset).includes("-2048."),
+    })));
+    assert.deepEqual(hidden.filter(({ src, has2048 }) => has2048 && !VARIANT.test(src)), [], "hidden slides stay on a variant");
     await page.close();
   }
   console.log("PASS image upgrade");
