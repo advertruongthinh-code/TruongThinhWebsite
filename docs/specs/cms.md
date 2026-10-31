@@ -3,10 +3,8 @@ title: CMS Worker, admin và D1
 status: dormant
 source:
   - src/worker/**
-  - src/admin/**
   - src/db/migrations/**
   - wrangler.toml
-  - scripts/cms/**
 tests:
   - tests/worker/worker-contract.cjs
   - tests/worker/worker-static-contract.cjs
@@ -162,7 +160,7 @@ And upload một WebP hợp lệ trả 201 và ghi đúng một object
 
 ### R8. Giao diện admin
 
-`src/admin/index.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
+Giao diện mới theo [editor placeholder](cms-editor.md) (planned); bản hiện có: `src/admin/index.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
 danh sách bản ghi, form theo resource gửi POST (mới) hoặc PUT (đã có) rồi tải lại. Xoá hỏi `confirm`, ẩn với page;
 page chỉ chọn trong năm id, không tạo mới. Nội dung VI, EN nhập theo field; `sections` mỗi dòng `tiêu đề | nội dung`,
 chỉ chữ. Project chọn template, category, nhóm và thứ tự menu; product nhập tên VI, EN và media ID. Form media nhận

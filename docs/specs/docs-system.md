@@ -78,7 +78,8 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
 | video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
-| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
+| cms | `cms.md` | `src/worker/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
+| cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: editor placeholder, overlay, thư viện media (planned) |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
 | ci-suites | `ci-test-suites.md` | bộ test CI theo phần website, chọn bộ theo file PR sửa (planned) |
 | design-system | `design-system.md` | `design-system/`, preview, `DESIGN.md`, publish claude.ai |
