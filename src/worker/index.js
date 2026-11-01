@@ -172,6 +172,13 @@ export default {
 
 async function handleRequest(request, env) {
   const url = new URL(request.url);
+  // CMS chỉ mở trên subdomain admin.* (production: admin.truongthinhads.vn) hoặc host loopback khi chạy local.
+  const adminHost = url.hostname.startsWith("admin.");
+  if (adminHost && url.pathname === "/") return redirectWithQuery(url, "/admin/");
+  if (/^\/(?:api\/)?admin(?:\/|$)/.test(url.pathname) && !adminHost && !LOOPBACK.has(url.hostname)) {
+    return new Response("Not Found", { status: 404 });
+  }
+
   const redirect = routeRedirect(url);
   if (redirect) return Response.redirect(redirect, 308);
 
@@ -844,7 +851,7 @@ async function handleApi(request, env, url) {
   if (url.pathname.startsWith("/api/admin/")) {
     const actor = await requireAdmin(request, env);
     if (!actor) return json({ error: "Forbidden" }, 403);
-    if (isWriteMethod(request.method) && !hasAllowedOrigin(request, env, url)) {
+    if (isWriteMethod(request.method) && !hasAllowedOrigin(request, url)) {
       return json({ error: "Forbidden" }, 403);
     }
     return handleAdminApi(request, env, url, actor);
@@ -1120,11 +1127,12 @@ function isWriteMethod(method) {
   return method === "POST" || method === "PUT" || method === "DELETE" || method === "PATCH";
 }
 
-function hasAllowedOrigin(request, env, url) {
+function hasAllowedOrigin(request, url) {
   const origin = request.headers.get("origin");
   if (!origin) return false;
   try {
-    return new URL(origin).origin === publicOrigin(env, url);
+    // So với origin của chính request: CMS ở admin.* khác PUBLIC_ORIGIN (www).
+    return new URL(origin).origin === url.origin;
   } catch {
     return false;
   }
@@ -1147,10 +1155,12 @@ async function requireAdmin(request, env) {
 
 // Đăng nhập dev cho `pnpm cms:dev`: cần biến CMS_LOCAL_ADMIN_EMAIL và host loopback.
 // Production không đặt biến này và không nhận request host loopback, nên vẫn chỉ qua Access.
+const LOOPBACK = new Set(["127.0.0.1", "localhost", "[::1]"]);
+
 function localDevAdmin(request, env) {
   const email = String(env.CMS_LOCAL_ADMIN_EMAIL || "").trim().toLowerCase();
   const host = new URL(request.url).hostname;
-  return email && (host === "127.0.0.1" || host === "localhost" || host === "[::1]") ? email : null;
+  return email && (LOOPBACK.has(host) || host === "admin.localhost") ? email : null;
 }
 
 async function verifyAccessJwt(request, env) {

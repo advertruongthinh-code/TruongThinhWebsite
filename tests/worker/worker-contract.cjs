@@ -95,7 +95,7 @@ async function runSecurityContract() {
     const headers = {
       "Cf-Access-Jwt-Assertion": token,
       "Cf-Access-Authenticated-User-Email": "admin@example.test",
-      Origin: "https://site.example",
+      Origin: "https://admin.site.example",
     };
     const protectedEndpoints = [
       ["GET", "/api/admin/pages"],
@@ -145,12 +145,12 @@ async function runSecurityContract() {
     ];
     for (const [label, rejectedToken, assertedEmail] of rejectedTokens) {
       for (const [method, path] of protectedEndpoints) {
-        const response = await worker.default.fetch(new Request(`https://site.example${path}`, {
+        const response = await worker.default.fetch(new Request(`https://admin.site.example${path}`, {
           method,
           headers: {
             ...(rejectedToken ? { "Cf-Access-Jwt-Assertion": rejectedToken } : {}),
             "Cf-Access-Authenticated-User-Email": assertedEmail,
-            Origin: "https://site.example",
+            Origin: "https://admin.site.example",
           },
         }), env);
         assert(response.status === 403, `${label} token reached ${method} ${path} with ${response.status}`);
@@ -160,19 +160,27 @@ async function runSecurityContract() {
     // Đăng nhập dev chỉ nhận host loopback; host public vẫn cần Access dù biến bị đặt nhầm.
     const devEnv = { ...env, CMS_LOCAL_ADMIN_EMAIL: "admin@localhost" };
     for (const [method, path] of protectedEndpoints) {
-      const response = await worker.default.fetch(new Request(`https://site.example${path}`, { method, headers: { Origin: "https://site.example" } }), devEnv);
+      const response = await worker.default.fetch(new Request(`https://admin.site.example${path}`, { method, headers: { Origin: "https://admin.site.example" } }), devEnv);
       assert(response.status === 403, `dev admin reached public host ${method} ${path} with ${response.status}`);
     }
+    // Host www không mở CMS (cả UI lẫn API), kể cả khi có vé Access hợp lệ.
+    for (const path of ["/admin/", "/api/admin/settings"]) {
+      assert.equal((await worker.default.fetch(new Request(`https://site.example${path}`, { headers }), env)).status, 404, `public host served ${path}`);
+    }
+    const adminRoot = await worker.default.fetch(new Request("https://admin.site.example/"), env);
+    assert.equal(adminRoot.headers.get("location"), "https://admin.site.example/admin/", "admin host root must open the CMS");
     const devList = await worker.default.fetch(new Request("http://127.0.0.1:8788/api/admin/settings"), {
       ...devEnv,
       DB: { prepare: () => ({ all: async () => ({ results: [] }) }) },
     });
     assert.equal(devList.status, 200, "dev admin must reach admin API on loopback");
+    const devSubdomain = await worker.default.fetch(new Request("http://admin.localhost:8788/api/admin/settings"), { ...devEnv, DB: { prepare: () => ({ all: async () => ({ results: [] }) }) } });
+    assert.equal(devSubdomain.status, 200, "dev admin must reach admin API on admin.localhost");
 
     const invalidWebp = new FormData();
     invalidWebp.append("kind", "image");
     invalidWebp.append("file", new Blob(["not a WebP"], { type: "image/webp" }), "invalid.webp");
-    const invalidUpload = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: invalidWebp }), env);
+    const invalidUpload = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: invalidWebp }), env);
     assert(invalidUpload.status === 400, `invalid WebP fixture returned ${invalidUpload.status}`);
 
     const zeroPayloadVp8x = new FormData();
@@ -182,13 +190,13 @@ async function runSecurityContract() {
       new Blob([zeroPayloadVp8xWebp()], { type: "image/webp" }),
       "zero-vp8x.webp",
     );
-    const invalidVp8x = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: zeroPayloadVp8x }), env);
+    const invalidVp8x = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: zeroPayloadVp8x }), env);
     assert(invalidVp8x.status === 400, `zero-payload VP8X fixture returned ${invalidVp8x.status}`);
 
     const unsafeSvg = new FormData();
     unsafeSvg.append("kind", "logo");
     unsafeSvg.append("file", new Blob(["<svg><script>alert(1)</script></svg>"], { type: "image/svg+xml" }), "unsafe.svg");
-    const invalidSvg = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: unsafeSvg }), env);
+    const invalidSvg = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: unsafeSvg }), env);
     assert(invalidSvg.status === 400, `unsafe SVG fixture returned ${invalidSvg.status}`);
 
     for (const svg of ["<svg/onload=alert(1)></svg>", '<svg><path/ONCLICK="alert(1)" /></svg>',
@@ -198,7 +206,7 @@ async function runSecurityContract() {
       const form = new FormData();
       form.append("kind", "logo");
       form.append("file", new Blob([svg], { type: "image/svg+xml" }), "event.svg");
-      const result = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: form }), env);
+      const result = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: form }), env);
       assert.equal(result.status, 400, "SVG event handlers must be rejected before storage");
     }
 
@@ -241,16 +249,16 @@ async function runSecurityContract() {
       new Blob([fs.readFileSync("src/site/assets/content/projects/commercial-space.webp")], { type: "image/webp" }),
       "known-good.webp",
     );
-    const acceptedUpload = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validWebp }), validUploadEnv);
+    const acceptedUpload = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: validWebp }), validUploadEnv);
     assert(acceptedUpload.status === 201 && uploaded.length === 1, `known-good WebP fixture returned ${acceptedUpload.status}`);
 
     const validLogo = new FormData();
     validLogo.append("kind", "logo");
     validLogo.append("file", new Blob([fs.readFileSync("src/site/assets/brand/truong-thinh-lockup.svg")], { type: "image/svg+xml" }), "logo.svg");
-    const acceptedLogo = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validLogo }), validUploadEnv);
+    const acceptedLogo = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers, body: validLogo }), validUploadEnv);
     assert.equal(acceptedLogo.status, 201, "vector logos must remain uploadable");
 
-    const csrf = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers: { ...headers, Origin: "https://attacker.example" }, body: invalidWebp }), env);
+    const csrf = await worker.default.fetch(new Request("https://admin.site.example/api/admin/media", { method: "POST", headers: { ...headers, Origin: "https://attacker.example" }, body: invalidWebp }), env);
     assert(csrf.status === 403, `cross-origin admin write returned ${csrf.status}`);
   } finally {
     globalThis.fetch = originalFetch;
