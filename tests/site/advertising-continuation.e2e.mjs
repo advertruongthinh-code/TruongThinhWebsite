@@ -665,9 +665,9 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      // Phần core và ba bước band; các bước inner nằm giữa chúng đổi theo thiết bị (glass-surface.mjs).
+      // Context không cảm ứng là PC: core 100px và chín bậc (glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
-      assert.deepEqual([blurs[0], ...blurs.slice(-3)], ["28", "4.5", "11.12", "25.3"],
+      assert.deepEqual([blurs[0], blurs[1], ...blurs.slice(-3)], ["100", "4.5", "33.83", "49.85", "73.44"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
       // Primary photo tự mang blur của step đầy; Kính đều của nó chỉ giữ tint và grain.
       assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);

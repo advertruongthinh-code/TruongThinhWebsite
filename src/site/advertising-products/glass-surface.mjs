@@ -1,22 +1,28 @@
 // Kính: một component glass dùng chung cho mọi glass surface (docs/specs/glass-surface.md).
 // Các bước blur (increment trong detail.css), rồi tint trắng và grain. Surface mờ dần từng bước (spec R6)
 // có ba bước (level 16.07, 57.14, 100px: trần 100px, owner 06/10; ba bước owner chọn 2026-10-24); band của arc
-// có ba (4.5, 12, 28px; owner, 05/10, cho phone Android).
+// trên phone có ba (4.5, 12, 28px; owner, 05/10, cho phone Android), trên PC có chín (ARC_DESKTOP_LEVELS, owner 2026-11-01).
 const ARC_STEPS = 3;
 // Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
 // trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.55 trên arc (owner 10/10, trước 0.35).
 const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.55 });
-// Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
-// qua tối đa INNER_MAX inner step (PC dùng 1, phone 0) (owner 06/10, số lớp theo máy từ 10/10).
+// Phone: core 28px (ARC_LEVEL) và một band step trong cùng. PC (owner 2026-11-01): chín bậc nhòe tăng cấp số nhân từ 4.5px
+// tới trần 100px (4.5 x (100 / 4.5)^(i / 8)), đi từ mép ngoài dải qua biên cung và lấn vào trong ARC_DESKTOP_BITE bề rộng dải;
+// trong cung, core nhòe đều 100px (CEILING).
 const ARC_LEVEL = 28;
 const CEILING = 100;
-const INNER_MAX = 1;
-// Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 5 lớp (core 28px, 1 inner lên 100px, 3 band); phone 2 lớp
-// (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
+export const ARC_DESKTOP_LEVELS = Object.freeze([4.5, 6.63, 9.77, 14.4, 21.21, 31.26, 46.06, 67.87, 100]);
+const ARC_DESKTOP_BITE = 1 / 9;
+// Bậc kề chồng mép nhau (đơn vị: một bậc) để không thấy ranh giới hay bóng ma hai lớp.
+const ARC_DESKTOP_OVERLAP = 0.3;
+// Lớp trắng phía ngoài cung về 0 ở phần này của bề rộng dải (owner 2026-11-01, trước đây ở mép dải).
+const ARC_WHITE_REACH = 0.85;
+// Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 10 lớp (core 100px, 9 band); phone 2 lớp
+// (core 28px và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
 // thứ hai (30% frame chậm, vòng 29) đều trượt gate trên phone Android. Phone nhận biết như skeleton (catalog-runtime).
 // Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s cũ vuốt 7-9% frame chậm (vòng 34).
-const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, centre: 0.35 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: 1, centre: ARC.centre });
+const PHONE_LAYERS = Object.freeze({ band: 1, centre: 0.35 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_DESKTOP_LEVELS.length, centre: ARC.centre });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -75,7 +81,7 @@ function makeGrain() {
 
 // Surface tĩnh đều trông giống nhau qua một step đầy đủ hay ba step xếp chồng, với chi phí thấp hơn;
 // surface mờ vào/ra từng step (spec R6) cần cả ba.
-export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 1) {
+export function createGlassSurface(shape, steps = shape === "arc" ? Math.max(ARC_STEPS, arcLayers().band) : 1) {
   if (grain === undefined) makeGrain();
   const glass = document.createElement("div");
   glass.className = "glass-surface";
@@ -84,12 +90,9 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
   if (grain) setGrain(glass);
   else waitingForGrain.push(glass);
   const layers = steps === 1 ? ["glass-surface__step glass-surface__step--full"] : Array(steps).fill("glass-surface__step");
-  // Core vẽ trước, nên các step blend lên nó và không bao giờ đưa nó blur lần hai. Inner step theo sau core;
-  // band step ở cuối, nên rule nth-last-child của chúng trong detail.css vẫn đúng.
-  if (shape === "arc") {
-    layers.unshift("glass-surface__step glass-surface__step--full",
-      ...Array(INNER_MAX).fill("glass-surface__step glass-surface__step--inner"));
-  }
+  // Core vẽ trước, nên các step blend lên nó và không bao giờ đưa nó blur lần hai; band step ở cuối,
+  // nên rule nth-last-child của ba bậc cuối trong detail.css (phone) vẫn đúng.
+  if (shape === "arc") layers.unshift("glass-surface__step glass-surface__step--full");
   glass.append(
     ...layers.map((className) => Object.assign(document.createElement("i"), { className })),
     Object.assign(document.createElement("i"), { className: "glass-surface__tint" }),
@@ -170,47 +173,58 @@ const setMask = (node, value) => {
   node.style.setProperty("mask-image", value);
 };
 
+// PC: chín bậc theo mức ARC_DESKTOP_LEVELS. Quãng từ mép ngoài dải tới cuối đoạn lấn (P) chia chín phần bằng nhau, bậc i đạt
+// mức của nó ở cuối phần i. Backdrop blur chồng cộng dồn theo quadrature, nên mỗi bậc chỉ mang phần tăng sqrt(L_i^2 - L_(i-1)^2).
+// `off` là bán kính bắt đầu trong suốt (phía ngoài), `on` là bán kính từ đó vào trong bậc đặc hoàn toàn.
+export function desktopArcSteps({ radius, band }) {
+  const count = ARC_DESKTOP_LEVELS.length;
+  const reach = band * (1 + ARC_DESKTOP_BITE);
+  return ARC_DESKTOP_LEVELS.map((level, index) => {
+    const blur = Math.sqrt(level ** 2 - (ARC_DESKTOP_LEVELS[index - 1] ?? 0) ** 2);
+    const uOff = Math.max(0, (index - ARC_DESKTOP_OVERLAP) / count);
+    const uOn = Math.min(1, (index + 1 + ARC_DESKTOP_OVERLAP) / count);
+    return { blur, off: radius + band - uOff * reach, on: radius + band - uOn * reach };
+  });
+}
+
 export function layoutArcGlass(glass, geometry) {
   const { width, batchBottom, band, radius, cy, dFull } = geometry;
   geometries.set(glass, geometry);
   // Hai pixel chạy dưới footer để làm tròn subpixel không bao giờ lộ mép frame.
   const place = (node, top, bottom = batchBottom + 2) => Object.assign(node.style, { top: `${top}px`, height: `${bottom - top}px` });
   const circle = (top) => `circle at ${width / 2}px ${cy - top}px`;
-  const core = radius - FADE;
+  const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
+  // Số bậc trong DOM quyết định nhánh: PC có chín bậc, phone ba (hai bậc ngoài ẩn).
+  const desktop = steps.length > ARC_STEPS;
+  // PC: core lùi vào trong biên cung đúng đoạn lấn của chín bậc.
+  const edge = desktop ? radius - band * ARC_DESKTOP_BITE : radius;
+  const core = edge - FADE;
   // Vòng fade trong thấp nhất ở hai bên box.
   const seam = cy - Math.sqrt(core * core - width * width / 4);
   const top = cy - radius - band;
-  const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
-  const inner = rest.slice(0, INNER_MAX);
-  const steps = rest.slice(INNER_MAX);
-  const { band: bandSteps, inner: count } = arcLayers();
-  const coreTop = Math.max(top, cy - radius - ARC_LEVEL);
+  const coreTop = Math.max(top, cy - edge - (desktop ? CEILING : ARC_LEVEL));
+  if (desktop) coreStep.style.setProperty("--glass-full-blur", `${CEILING}px`);
   place(coreStep, coreTop);
-  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
-  steps.forEach((step, index) => {
-    step.hidden = index < ARC_STEPS - bandSteps;
-    const outer = radius + RAMPS[index][1] * band;
-    place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
-    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
-      + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
-  });
-  // Inner step: level n trên N là ARC_LEVEL + (CEILING - ARC_LEVEL) n / N, mỗi step thêm increment cầu phương của nó và
-  // vào dần trong phần của nó trên đường từ arc đến vòng tròn trắng tinh; các step lân cận chồng nhau như RAMPS.
-  const span = Math.max(1, radius - dFull);
-  const level = (n) => ARC_LEVEL + (CEILING - ARC_LEVEL) * n / count;
-  inner.forEach((step, index) => {
-    step.hidden = index >= count;
-    if (step.hidden) return;
-    const increment = Math.sqrt(level(index + 1) ** 2 - level(index) ** 2);
-    const from = radius - span * Math.max(0, index / count - 0.1);
-    const to = radius - span * Math.min(1, (index + 1) / count + 0.1);
-    const stepTop = Math.max(top, cy - from - Math.ceil(increment));
-    step.style.setProperty("--glass-step-blur", `${increment.toFixed(2)}px`);
-    place(step, stepTop);
-    // Vào dần theo smoothstep, không tuyến tính: độ dốc 0 tại cung nên không lộ đường ranh trong và ngoài cung.
-    const stops = [0, 0.25, 0.5, 0.75, 1].map((x) => `rgba(0, 0, 0, ${smooth(1 - x).toFixed(3)}) ${(to + (from - to) * x).toFixed(1)}px`);
-    setMask(step, `radial-gradient(${circle(stepTop)}, ${stops.join(", ")})`);
-  });
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${edge - FADE / 2}px, transparent ${edge}px)`);
+  if (desktop) {
+    desktopArcSteps({ radius, band }).forEach(({ blur, on, off }, index) => {
+      const step = steps[index];
+      const stepTop = cy - off;
+      step.hidden = false;
+      step.style.setProperty("--glass-step-blur", `${blur.toFixed(2)}px`);
+      place(step, stepTop, Math.min(batchBottom + 2, seam + Math.ceil(blur)));
+      setMask(step, `radial-gradient(${circle(stepTop)}, transparent ${core}px, #000 ${edge - FADE / 2}px, #000 ${on}px, transparent ${off}px)`);
+    });
+  } else {
+    const { band: bandSteps } = arcLayers();
+    steps.forEach((step, index) => {
+      step.hidden = index < ARC_STEPS - bandSteps;
+      const outer = radius + RAMPS[index][1] * band;
+      place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
+      setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
+        + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
+    });
+  }
   // Trắng theo cùng các vòng tròn: tinh từ vòng góc, tint trên arc, không có ở mép band.
   // Grain (mask m bên dưới) thêm trung bình GRAIN_WHITE * m, nên tint giữ lại phần đó.
   const white = (alpha, m) => Math.max(0, (alpha - GRAIN_WHITE * m) / (1 - GRAIN_WHITE * m)).toFixed(4);
@@ -221,7 +235,7 @@ export function layoutArcGlass(glass, geometry) {
   }
   for (let index = 1; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${white(ARC.tint * smooth(1 - x), 1 - x)}) ${(radius + band * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${white(ARC.tint * smooth(1 - x), 1 - x)}) ${(radius + ARC_WHITE_REACH * band * x).toFixed(1)}px`);
   }
   const tint = glass.querySelector(".glass-surface__tint");
   place(tint, top);
@@ -230,5 +244,5 @@ export function layoutArcGlass(glass, geometry) {
   place(grain, top);
   // Grain mờ dần về phía vòng tròn trắng tinh, nên trắng tinh không có grain.
   setMask(grain, `radial-gradient(${circle(top)}, transparent ${dFull.toFixed(1)}px, #000 ${((dFull + radius) / 2).toFixed(1)}px, `
-    + `#000 ${radius}px, transparent ${radius + band}px)`);
+    + `#000 ${radius}px, transparent ${radius + ARC_WHITE_REACH * band}px)`);
 }

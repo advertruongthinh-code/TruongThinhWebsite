@@ -18,7 +18,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const arcState = () => {
   const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
   const box = glass.getBoundingClientRect();
-  const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full):not(.glass-surface__step--inner)")];
+  const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full)")];
   const top = (node) => Number.parseFloat(node.style.top);
   const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
@@ -33,7 +33,8 @@ const arcState = () => {
   return {
     hidden: glass.hidden, width: box.width, owners,
     box: { opacity: boxStyle.opacity, mask: boxStyle.maskImage, filter: boxStyle.filter },
-    s0: top(steps[0]), sLast: top(steps.at(-1)),
+    s0: top(steps[0]), sLast: top(steps.at(-1)), visibleSteps: steps.filter((node) => getComputedStyle(node).display !== "none").length,
+    tintStops: [...tint.style.background.matchAll(/rgba\(255, 255, 255, ([\d.]+)\) ([\d.]+)px/g)].map(([, alpha, px]) => [Number(alpha), Number(px)]),
     centreX: Number.parseFloat(steps[0].style.maskImage.match(/circle at ([\d.]+)px/)[1]),
     centreY: top(steps[0]) + Number.parseFloat(steps[0].style.maskImage.match(/circle at [\d.]+px ([\d.]+)px/)[1]),
     clusterTop: copy.querySelector("h2").getBoundingClientRect().top - box.top - parallax,
@@ -74,13 +75,15 @@ try {
       const state = await page.evaluate(arcState);
       check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
       check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
-      // Các band step, core của cung và các inner step của nó.
-      check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full", "glass-surface__step glass-surface__step--inner"]),
+      // Các band step và core của cung.
+      check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full"]),
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
-      // Step 0 bắt đầu ở biên band, step cuối trong ba ở 1/3 + 0.1 band, cả hai trên apex yIn.
-      const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
+      // PC (nhánh không cảm ứng): chín bậc; bậc 0 bắt đầu ở mép ngoài dải, bậc 8 ở radius + 4 band / 81 (off_8 theo plan S5),
+      // nên sLast - s0 = 77 band / 81, cả hai trên apex yIn.
+      check(state.visibleSteps === 9, `${label}: R2 desktop arc shows ${state.visibleSteps} band steps, not 9`);
+      const band = (state.sLast - state.s0) * 81 / 77;
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
       // R2: apex ở -15% cụm CTA (trên mép tiêu đề), phone giữ +35%; chỉ nâng để giữ hai ramp trắng thuần
@@ -95,6 +98,12 @@ try {
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
       check(Math.abs(state.centreY - yIn - 3.5 * width) <= 1 || state.centreY - yIn > 3.5 * width,
         `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 3.5 viewport widths`);
+      // R3: trắng về 0 ở 0.85 bề rộng dải ngoài cung, còn tint (trừ phần grain) ở biên cung.
+      const radius = state.centreY - yIn;
+      const [lastAlpha, lastPx] = state.tintStops.at(-1);
+      const atArc = state.tintStops.find(([, px]) => Math.abs(px - radius) < 0.5)?.[0];
+      check(lastAlpha === 0 && Math.abs(lastPx - (radius + 0.85 * band)) <= 1, `${label}: R3 white does not reach 0 at 0.85 band (${lastAlpha} at ${lastPx}, radius ${radius})`);
+      check(atArc > 0.5 && atArc < 0.55, `${label}: R3 tint at the arc is ${atArc}, not about 0.55`);
       // R4: grain của cung là white noise blend bình thường (layer blend làm mất blur của các step trong Chromium).
       check(state.grain.every((url) => url.startsWith("url(blob:")) && state.grainBlend === "normal", `${label}: R4 grain missing`);
       // R3, R4: hàng cuối trên đáy batch (các góc nằm trên vòng tròn trắng thuần) vẫn trắng
