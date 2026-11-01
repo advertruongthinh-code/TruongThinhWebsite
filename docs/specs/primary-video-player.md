@@ -86,7 +86,7 @@ Then khoảng cách giữa hai keyframe liền nhau, và từ keyframe cuối t�
 
 ### R4. Bóng đen hai lớp cho nút gợi ý và UI player (ngoại lệ Design System)
 
-Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũi tên trên card masonry) dưới quầng `0 0 12px` đen
+Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` dưới quầng `0 0 12px` đen
 `0.4`, dùng cho player và cho nút gợi ý.
 
 - Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow` hai lớp; nút đang chọn (chữ `ink` trên nền giấy) không có bóng.
@@ -94,7 +94,7 @@ Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũ
   chốt `0.5` và không đổi khi hover.
 - Player PC và cảm ứng: icon trên thanh dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo), mỗi nút icon là
   lớp riêng (`will-change: transform`) để bóng chỉ vẽ một lần, không vẽ lại khi thanh tua hay giờ đổi; mũi tên card và icon
-  phát trên thumbnail video cũng vậy (A04s hết rơi frame); thanh tua dùng
+  phát trên thumbnail video cũng vậy: `drop-shadow` hai lớp như icon thanh, mỗi nút là lớp riêng (A04s hết rơi frame; owner 2026-11-01 đổi từ một lớp); thanh tua dùng
   `box-shadow` hai lớp ở đường tua và núm, không filter (`drop-shadow` tính lại
   mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0). Số chỉnh để nhìn như `drop-shadow` cũ: đường tua `0 0 4px` đen `0.12`, `0 0 24px` đen `0.22`, dưới gradient trắng thêm
   lớp đen `0.19` phần đã phát, `0.08` phần chưa phát (bóng cũ lộ qua đường tua trong mờ); núm `0 0 4px` đen `0.5`,
