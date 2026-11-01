@@ -4314,7 +4314,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         relatedLayoutKey = "";
         layoutRelated(browseHistory.current);
       } else {
-        renderCtaSkeleton();
         renderRelatedWindow({ animate: true, origins });
         // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
         // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
@@ -4322,6 +4321,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           window.dispatchEvent(new CustomEvent("site:layout"));
           if (generation === detailRenderGeneration && photoView) photoView.dataset.advertisingDetailReady = "true";
         }, 400);
+        // Batch CTA cuối related dựng ở task riêng: chung task mount related thì 111ms trên A04s (CTA R9, gate 50ms).
+        await nextTask();
+        if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+        renderCtaSkeleton();
       }
     }
     if (!deferRelated && photoView) photoView.dataset.advertisingDetailReady = "true";
