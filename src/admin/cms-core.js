@@ -129,6 +129,16 @@
     });
   }
 
+  // Dấu chỗ gốc của một khóa (R10): danh sách là số mục, ảnh là đường dẫn, chữ là chữ gộp khoảng trắng. Editor (DOMParser)
+  // ghi dấu lúc sửa, Worker (linkedom) so với HTML nguồn lúc lưu và lúc phục vụ; khóa trỏ sang chỗ khác thì dấu lệch.
+  function anchorOf(doc, key) {
+    if (/^l\d/.test(key)) return doc.querySelectorAll(`[data-cms-list="${key}"] > [data-cms-item]`).length || undefined;
+    const node = doc.querySelector(`[data-cms-key="${key}"]`);
+    if (!node) return undefined;
+    if (node.tagName === "IMG") return node.getAttribute("data-src") || node.getAttribute("src") || "";
+    return (node.tagName === "META" ? node.getAttribute("content") || "" : node.textContent).replace(/\s+/g, " ").trim();
+  }
+
   // Áp nháp lên document: danh sách trước để khóa của mục mới tồn tại, rồi chữ, ảnh, bản sao marquee.
   function apply(doc, draft, locale) {
     if (!draft) return;
@@ -141,17 +151,17 @@
   // Vá catalog Sản phẩm Quảng cáo theo sửa đổi card (R7). Runtime nhận Promise qua hook có sẵn
   // window.__TT_ADVERTISING_ARTIFACT__; hàm tự chứa (không dùng biến ngoài) vì Worker chèn nguyên mã nguồn của nó vào
   // trang public (R10). Đổi sản phẩm chính là đổi cụm: card nhận sourceOrder cuối cụm mới, hạng xếp lại theo runtime.
+  // Không nạp catalog-detail.mjs (nặng): runtime vẫn nạp lười và chỉ gắn trường card còn thiếu (related của card đã sửa).
   async function patchCatalog(edits) {
     const dir = "/advertising-products/";
-    const [{ default: base }, { default: detail }, { scheduleAdvertisingRank }] = await Promise.all(
-      ["catalog-artifact", "catalog-detail", "layout-core"].map((name) => import(`${dir}${name}.mjs`)),
+    const [{ default: base }, { scheduleAdvertisingRank }] = await Promise.all(
+      ["catalog-artifact", "layout-core"].map((name) => import(`${dir}${name}.mjs`)),
     );
     const clusterOf = new Map(base.products.map((product) => [product.id, product.cluster]));
     const nextOrder = new Map();
     base.cards.forEach((card) => nextOrder.set(card.category, Math.max(nextOrder.get(card.category) ?? 0, card.sourceOrder + 1)));
     let moved = false;
-    const cards = base.cards.map((source) => {
-      const card = { ...source, ...detail[source.id] };
+    const cards = base.cards.map((card) => {
       const edit = edits?.[card.id];
       if (!edit) return card;
       const media = edit.mediaItems.find((item) => item.id === edit.coverMediaId) ?? edit.mediaItems[0];
@@ -194,7 +204,7 @@
   const readSaved = (page) => read(savedKey(page));
 
   // globalThis: Worker (không có window) nạp cùng file để áp nội dung đã lưu y như bản xem trước (R10).
-  globalThis.TTCms = { LISTS, PLACEHOLDER, stamp, apply, setText, mirror, patchCatalog, draftKey, savedKey, readDraft, readSaved };
+  globalThis.TTCms = { LISTS, PLACEHOLDER, stamp, apply, setText, mirror, anchorOf, patchCatalog, draftKey, savedKey, readDraft, readSaved };
 
   // Bản xem trước trong iframe của /admin/: gắn khóa, áp nháp, rồi nạp overlay. Ngoài iframe admin thì không làm gì.
   if (typeof document === "undefined") return;

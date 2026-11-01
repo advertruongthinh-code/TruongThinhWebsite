@@ -1,7 +1,7 @@
 // Editor CMS: dashboard Dockview gồm cây trang, xem trước theo cỡ, thuộc tính, media, nháp (cms-editor R1, R2, R4 đến
 // R8). Nháp lưu trong localStorage cùng origin nên bản xem trước (cms-core.js trong iframe) đọc được ngay.
 const { createDockview, themeLight } = window.dockview;
-const { stamp, draftKey, savedKey, readDraft, PLACEHOLDER } = window.TTCms;
+const { stamp, anchorOf, draftKey, savedKey, readDraft, PLACEHOLDER } = window.TTCms;
 
 const PANELS = { pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp" };
 const VIEWPORTS = [
@@ -36,7 +36,7 @@ const cardSelection = (card) => ({ kind: "card", card, key: `card:${card}` });
 const state = {
   pages: [], media: [], page: null, base: null, draft: null, history: [], lastGroup: "",
   locale: "vi", viewport: VIEWPORTS[0], edit: true, selected: null, pick: null, overlay: null,
-  saved: {}, bases: {}, catalog: null, cat: null, conflict: false,
+  saved: {}, bases: {}, catalog: null, cat: null, conflict: false, drift: [],
 };
 const panels = Object.fromEntries(Object.keys(PANELS).map((id) => [id, h("section", { className: `panel panel--${id}` })]));
 
@@ -80,6 +80,13 @@ function prune(draft) {
   }));
 }
 
+// Dấu chỗ gốc của khóa lúc bắt đầu sửa (R10): lưu gửi kèm, Worker từ chối nếu trang đã đổi bản sau lúc đó.
+function track(draft, base) {
+  if (!base || draft.page === "advertising") return;
+  const keys = [...Object.keys(draft.text), ...Object.keys(draft.image)].map(baseKey).concat(Object.keys(draft.list));
+  draft.anchors = Object.fromEntries(keys.map((key) => [key, draft.anchors?.[key] ?? base.anchor[key]]));
+}
+
 function store(draft) {
   draft.updatedAt = new Date().toISOString();
   prune(draft);
@@ -98,6 +105,7 @@ function commit(mutate, { reload = false, render = true, group = "" } = {}) {
   if (!group || group !== state.lastGroup) state.history.push(JSON.stringify(state.draft));
   state.lastGroup = group;
   mutate(state.draft);
+  track(state.draft, state.base);
   persist();
   if (reload) {
     loadFrame();
@@ -107,17 +115,19 @@ function commit(mutate, { reload = false, render = true, group = "" } = {}) {
 }
 
 // Sửa nháp của trang khác (ghi alt cho mọi nơi dùng một media, R6): trang đang mở thì qua commit để hoàn tác được.
-function withDraft(id, mutate) {
+function withDraft(id, mutate, base) {
   if (state.draft?.page === id) return commit(mutate, { reload: true });
   const draft = working(id);
   mutate(draft);
+  track(draft, base);
   store(draft);
 }
 
 function undo() {
   const previous = state.history.pop();
   if (!previous) return toast("Không còn thao tác để hoàn tác.");
-  state.draft = JSON.parse(previous);
+  // Giữ phiên bản đã lưu hiện tại: hoàn tác về mốc trước lúc Lưu không được làm lần lưu sau nhận 409.
+  state.draft = { ...JSON.parse(previous), base: state.draft.base };
   state.lastGroup = "";
   persist();
   loadFrame();
@@ -127,7 +137,13 @@ function undo() {
 
 async function loadSaved(id) {
   const response = await fetch(`/api/admin/content/${id}`).catch(() => null);
-  const body = response?.ok ? await response.json().catch(() => null) : null;
+  // 404 (preview tĩnh), 501 (Worker không có D1) là chưa có lưu trữ. Lỗi khác: không biết bản đã lưu, khóa Lưu trang đó
+  // để không ghi đè bản trên web bằng nháp dựng từ bản gốc.
+  if (!response || (!response.ok && ![404, 501].includes(response.status))) {
+    state.saved[id] = { error: true };
+    return;
+  }
+  const body = response.ok ? await response.json().catch(() => null) : null;
   state.saved[id] = body;
   // Cache cho bản xem trước: không có nháp thì iframe áp bản đã lưu (cms-core.js).
   if (body?.edits) localStorage.setItem(savedKey(id), JSON.stringify(body.edits));
@@ -151,6 +167,7 @@ function emptyCount() {
 
 async function save() {
   if (!draftIdOf(state.page)) return;
+  if (state.saved[state.draft.page]?.error) return toast("Chưa đọc được bản đã lưu của trang này: tải lại editor rồi lưu.");
   if (!pending(state.draft).length) return toast("Không có thay đổi để lưu.");
   const empty = emptyCount();
   if (empty) return toast(`Còn ${empty} ô trống (viền đỏ): nhập đủ chữ hai ngôn ngữ, chọn ảnh rồi mới lưu.`);
@@ -160,10 +177,11 @@ async function save() {
 async function put(baseUpdatedAt) {
   const draft = state.draft;
   const edits = editsOf(draft);
+  track(draft, state.base);
   const response = await fetch(`/api/admin/content/${draft.page}`, {
     method: "PUT",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ edits, baseUpdatedAt }),
+    body: JSON.stringify({ edits, baseUpdatedAt, anchors: draft.anchors ?? {} }),
   }).catch(() => null);
   const result = (await response?.json().catch(() => null)) ?? {};
   if (response?.ok) {
@@ -201,9 +219,10 @@ async function loadBase(page) {
   const html = await fetch(page.preview.vi).then((response) => response.text());
   const doc = new DOMParser().parseFromString(html, "text/html");
   stamp(doc, page.id);
-  const base = { text: {}, image: {}, meta: {}, lists: {} };
+  const base = { text: {}, image: {}, meta: {}, lists: {}, anchor: {} };
   doc.querySelectorAll("[data-cms-key]").forEach((node) => {
     const key = node.dataset.cmsKey;
+    base.anchor[key] = anchorOf(doc, key);
     const section = node.closest("section[id]")?.id;
     const where = section ? ` · #${section}` : "";
     const list = node.closest("[data-cms-list]");
@@ -226,6 +245,7 @@ async function loadBase(page) {
     base.text[key] = { vi, en, label: `${TAGS[tag] ?? "Chữ"}${where}` };
   });
   doc.querySelectorAll("[data-cms-list]").forEach((box) => {
+    base.anchor[box.dataset.cmsList] = anchorOf(doc, box.dataset.cmsList);
     base.lists[box.dataset.cmsList] = {
       label: box.dataset.cmsLabel,
       shuffled: box.hasAttribute("data-cms-shuffled"),
@@ -787,7 +807,7 @@ async function writeAlt(item, altVi, altEn, uses) {
         const card = cardOf(draft, use.card);
         setCard(draft, use.card, { ...card, mediaItems: card.mediaItems.map((entry) => (entry.src === item.src ? { ...entry, altVi, altEn } : entry)) });
       } else draft.image[use.key] = { ...imageOf(base, draft, use.key), altVi, altEn };
-    }));
+    }), base);
   }
   Object.assign(item, { altVi, altEn });
   refreshMedia();
@@ -864,7 +884,10 @@ function renderDrafts() {
     .map((id) => state.pages.find((page) => draftIdOf(page) === id)).filter(Boolean);
   fill(root,
     h("h2", {}, `Nháp: ${draft.page === "advertising" ? "Card Sản phẩm Quảng cáo" : state.page.label}`),
-    h("p", { className: "meta" }, saved?.updatedAt ? `Bản đã lưu: ${time(saved.updatedAt)} bởi ${saved.updatedBy}.` : "Trang chưa lưu lần nào."),
+    h("p", { className: "meta" }, saved?.error ? "Chưa đọc được bản đã lưu: Lưu bị khóa tới khi tải lại editor."
+      : saved?.updatedAt ? `Bản đã lưu: ${time(saved.updatedAt)} bởi ${saved.updatedBy}.` : "Trang chưa lưu lần nào."),
+    state.drift.length ? h("p", { className: "warn" },
+      `Trang vừa cập nhật bản mới: ${state.drift.length} sửa đổi trong nháp không còn khớp chỗ cũ nên đã bỏ (${state.drift.join(", ")}). Kiểm lại rồi sửa lại nếu cần.`) : null,
     state.conflict ? h("p", { className: "warn" }, "Bản đã lưu đã đổi sau lúc bạn bắt đầu sửa. Lưu sẽ hỏi trước khi ghi đè.") : null,
     saved?.stale?.length ? h("p", { className: "warn" },
       `${saved.stale.length} sửa đổi đã lưu không còn khớp trang (HTML nguồn đã đổi): web đang bỏ qua, lưu lại sẽ xóa hẳn (${saved.stale.join(", ")}).`) : null,
@@ -900,6 +923,7 @@ async function openPage(page) {
   state.history = [];
   state.lastGroup = "";
   state.base = null;
+  state.drift = [];
   state.draft = id ? working(id) : null;
   state.conflict = Boolean(stored) && stored.base !== (state.saved[id]?.updatedAt ?? null);
   localStorage.setItem("tt-cms-page", page.id);
@@ -915,8 +939,23 @@ async function openPage(page) {
   const base = await baseOf(page);
   if (state.page !== page) return;
   state.base = base;
+  dropDrift(state.draft, base);
   renderProps();
   renderDrafts();
+}
+
+// Nháp sửa trên bản build cũ: khóa có dấu khác trang hiện tại có thể trỏ sang chỗ khác, bỏ thay vì đăng nhầm chỗ (R10).
+function dropDrift(draft, base) {
+  const drift = Object.entries(draft.anchors ?? {}).filter(([key, value]) => value !== base.anchor[key]).map(([key]) => key);
+  if (!drift.length) return;
+  drift.forEach((key) => {
+    delete draft.anchors[key];
+    delete draft.list[key];
+    [draft.text, draft.image].forEach((map) => Object.keys(map).filter((entry) => baseKey(entry) === key).forEach((entry) => delete map[entry]));
+  });
+  state.drift = drift;
+  persist();
+  loadFrame();
 }
 
 // API cho overlay trong iframe (cùng origin).

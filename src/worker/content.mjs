@@ -5,7 +5,7 @@ import { parseHTML } from "linkedom/worker";
 import { ADVERTISING_PRODUCTS } from "../site/advertising-products/taxonomy.mjs";
 import "../admin/cms-core.js";
 
-const { stamp, apply, patchCatalog } = globalThis.TTCms;
+const { stamp, apply, anchorOf, patchCatalog } = globalThis.TTCms;
 
 export const CONTENT_PAGES = new Set(["home", "residential", "commercial", "about", "advertising"]);
 const PRODUCT_IDS = new Set(ADVERTISING_PRODUCTS.map(({ id }) => id));
@@ -22,6 +22,9 @@ const EDITOR_ATTRIBUTES = ["data-cms-key", "data-cms-list", "data-cms-label", "d
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const filled = (value, max) => typeof value === "string" && value.trim() !== "" && value.length <= max;
+// linkedom không thoát "&" trong thuộc tính (data-vi, data-en): chữ dạng mã HTML như "&amp;" sẽ hiện thành "&" trên web.
+const ENTITY = /&(?:#\d+|#x[\da-f]+|[a-z][a-z\d]*);/i;
+const plain = (value) => !ENTITY.test(value);
 const size = (value) => Number.isInteger(value) && value > 0 && value <= 20000;
 const validImage = (image) => isObject(image) && MEDIA_SRC.test(image.src ?? "") && !image.src.includes("..")
   && size(image.width) && size(image.height)
@@ -30,7 +33,7 @@ const validImage = (image) => isObject(image) && MEDIA_SRC.test(image.src ?? "")
 // Trả lỗi đầu tiên (chuỗi) hoặc null. Chữ, ảnh trống bị chặn: lưu là lên web nên không đăng placeholder rỗng.
 export function validateEdits(page, edits) {
   if (!isObject(edits)) return "edits phải là object.";
-  if (JSON.stringify(edits).length > MAX_EDITS_BYTES) return "Nháp quá lớn.";
+  if (new TextEncoder().encode(JSON.stringify(edits)).length > MAX_EDITS_BYTES) return "Nháp quá lớn.";
   if (page === "advertising") {
     if (Object.keys(edits).some((key) => key !== "cards") || !isObject(edits.cards)) return "Trang Sản phẩm Quảng cáo chỉ nhận cards.";
     for (const [id, card] of Object.entries(edits.cards)) {
@@ -53,6 +56,7 @@ export function validateEdits(page, edits) {
   if (![text, image, list, clone].every(isObject)) return "text, image, list, clone phải là object.";
   for (const [key, value] of Object.entries(text)) {
     if (!TEXT_KEY.test(key) || !isObject(value) || !filled(value.vi, 4000) || !filled(value.en, 4000)) return `Chữ ${key}: cần đủ tiếng Việt và tiếng Anh.`;
+    if (!plain(value.vi) || !plain(value.en)) return `Chữ ${key}: không gõ mã HTML dạng &amp;, gõ thẳng ký tự.`;
   }
   for (const [key, value] of Object.entries(image)) {
     if (!IMAGE_KEY.test(key) || !validImage(value)) return `Ảnh ${key}: cần ảnh trong thư viện.`;
@@ -73,13 +77,10 @@ export function validateEdits(page, edits) {
   return null;
 }
 
-// Dấu của chỗ gốc: chữ tiếng Việt (gộp khoảng trắng) hoặc đường dẫn ảnh; danh sách là số mục gốc.
-const fingerprint = (node) => (node.tagName === "IMG"
-  ? node.getAttribute("data-src") || node.getAttribute("src") || ""
-  : (node.tagName === "META" ? node.getAttribute("content") || "" : node.textContent).replace(/\s+/g, " ").trim());
 const baseKey = (key) => key.split("@")[0];
-const keyed = (document, key) => document.querySelector(`[data-cms-key="${key}"]`);
-const itemCount = (document, key) => document.querySelectorAll(`[data-cms-list="${key}"] > [data-cms-item]`).length;
+// Khóa gốc của mọi sửa đổi: chữ, ảnh (bỏ hậu tố @id của mục mới) và danh sách.
+const editedKeys = (edits) => [...new Set([...Object.keys(edits.text ?? {}), ...Object.keys(edits.image ?? {})].map(baseKey)),
+  ...Object.keys(edits.list ?? {})];
 
 function stamped(html, page) {
   const { document } = parseHTML(html);
@@ -87,18 +88,24 @@ function stamped(html, page) {
   return document;
 }
 
-// Lúc lưu: ghi dấu chỗ gốc của mọi khóa được sửa. Khóa không có trên trang nghĩa là editor đọc bản build khác.
-export function anchorsFor(html, page, edits) {
+// Lúc lưu: ghi dấu chỗ gốc của mọi khóa được sửa. Editor gửi kèm dấu nó thấy lúc sửa (seen): khác nguồn hiện tại nghĩa là
+// trang đã đổi bản sau lúc sửa, khóa có thể trỏ sang chỗ khác nên không lưu. Mục mới phải đủ chữ, ảnh (không đăng ô trống).
+export function anchorsFor(html, page, edits, seen = {}) {
   const document = stamped(html, page);
   const anchors = {};
-  for (const key of [...Object.keys(edits.text ?? {}), ...Object.keys(edits.image ?? {})].map(baseKey)) {
-    const node = keyed(document, key);
-    if (!node) return { error: `Chỗ ${key} không còn trên trang, tải lại editor.` };
-    anchors[key] = fingerprint(node);
+  for (const key of editedKeys(edits)) {
+    anchors[key] = anchorOf(document, key);
+    if (anchors[key] === undefined) return { error: `Chỗ ${key} không còn trên trang, tải lại editor.` };
+    if (seen[key] !== undefined && seen[key] !== anchors[key]) return { error: `Trang vừa cập nhật, chỗ ${key} đã đổi: tải lại editor rồi kiểm lại.` };
   }
-  for (const key of Object.keys(edits.list ?? {})) {
-    if (!itemCount(document, key)) return { error: `Danh sách ${key} không còn trên trang, tải lại editor.` };
-    anchors[key] = itemCount(document, key);
+  for (const [listKey, order] of Object.entries(edits.list ?? {})) {
+    for (const id of order.filter((entry) => edits.clone?.[entry])) {
+      const template = document.querySelector(`[data-cms-list="${listKey}"] > [data-cms-item="${edits.clone[id]}"]`);
+      if (!template) return { error: `Mục mới ${id} không có mẫu.` };
+      const missing = [...template.querySelectorAll("[data-cms-key]")].map((node) => `${node.dataset.cmsKey}@${id}`)
+        .filter((key) => !(key in (edits.text ?? {})) && !(key in (edits.image ?? {})));
+      if (missing.length) return { error: `Mục mới ${id} còn ô trống: ${missing.join(", ")}.` };
+    }
   }
   return { anchors };
 }
@@ -108,7 +115,7 @@ function freshOf(document, edits, anchors) {
   const fresh = { text: {}, image: {}, list: {}, clone: {} };
   const stale = [];
   for (const [key, order] of Object.entries(edits.list ?? {})) {
-    if (itemCount(document, key) === anchors[key]) fresh.list[key] = order;
+    if (anchorOf(document, key) === anchors[key]) fresh.list[key] = order;
     else stale.push(key);
   }
   const clones = new Set(Object.values(fresh.list).flat().filter((id) => edits.clone?.[id]));
@@ -116,8 +123,7 @@ function freshOf(document, edits, anchors) {
   for (const map of ["text", "image"]) {
     for (const [key, value] of Object.entries(edits[map] ?? {})) {
       const id = key.split("@")[1];
-      const node = keyed(document, baseKey(key));
-      if ((!id || clones.has(id)) && node && fingerprint(node) === anchors[baseKey(key)]) fresh[map][key] = value;
+      if ((!id || clones.has(id)) && anchorOf(document, baseKey(key)) === anchors[baseKey(key)]) fresh[map][key] = value;
       else stale.push(key);
     }
   }
@@ -132,7 +138,11 @@ export function freshEdits(html, page, edits, anchors) {
 export function renderPage(html, page, edits, anchors) {
   const document = stamped(html, page);
   const { fresh, stale } = freshOf(document, edits, anchors);
-  apply(document, fresh, "vi");
+  // <title> là thẻ chữ thô: linkedom ghi textContent của nó nguyên văn, không thoát "<". Title của editor do HTMLRewriter
+  // của index.js ghi (có thoát), không đi qua đây.
+  const text = { ...fresh.text };
+  delete text.title;
+  apply(document, { ...fresh, text }, "vi");
   // Chỗ editor đã sửa thắng field CMS cũ cùng phần tử (CmsField của index.js đọc data-cms).
   Object.keys(fresh.text).forEach((key) => document.querySelectorAll(`[data-cms-key="${key}"]`).forEach((node) => node.removeAttribute("data-cms")));
   // Hero đã sửa: danh sách preload viết sẵn trong <head> không còn khớp slide (cms-editor gate); bỏ preload, đánh lại

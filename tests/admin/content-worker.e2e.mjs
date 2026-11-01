@@ -42,6 +42,18 @@ try {
   assert.match(await html("/en/residential/"), /Saved home/);
   assert.doesNotMatch(await html("/vi/residential/"), /data-cms-key/);
 
+  // Title của editor ghi bằng HTMLRewriter (có thoát): chữ đóng thẻ title không thành script trên trang public.
+  const homeBase = (await api("home")).body.updatedAt;
+  const attack = "</title><script>window.pwned=1</script>";
+  assert.equal((await api("home", "PUT", { edits: { text: { title: { vi: attack, en: "Safe title" } } }, baseUpdatedAt: homeBase })).status, 200);
+  assert.match(await html("/vi/"), />&lt;\/title&gt;&lt;script&gt;window\.pwned=1&lt;\/script&gt;<\/title>/);
+  assert.match(await html("/en/"), />Safe title<\/title>/);
+  await page.goto(`${baseUrl}/vi/`);
+  assert.equal(await page.evaluate(() => [window.pwned, document.title]).then(([pwned, title]) => pwned === undefined && title), attack);
+  await page.goto(`${baseUrl}/admin/`);
+  await reset("home", {});
+  assert.notEqual(await page.evaluate(() => fetch("/vi/").then((response) => response.headers.get("etag"))), null, "nháp rỗng: giữ ETag file tĩnh");
+
   // Ghi có điều kiện: PUT dựa trên phiên bản cũ nhận 409, D1 giữ bản đã lưu.
   const stale = await api("residential", "PUT", { edits: {}, baseUpdatedAt: "2000-01-01T00:00:00.000Z" });
   assert.equal(stale.status, 409);

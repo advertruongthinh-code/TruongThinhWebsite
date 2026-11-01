@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-01
 ---
 
 # Masonry Advertising
@@ -245,7 +245,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `[data-project-grid]`, `[data-advertising-card]`, `[data-advertising-filter]`, `body.is-advertising-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
-| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail) |
+| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới) |
 | Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs`, lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
 | Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |

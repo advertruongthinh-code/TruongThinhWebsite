@@ -8,6 +8,7 @@ tests:
   - tests/admin/cms-core.test.mjs
   - tests/admin/editor.e2e.mjs
   - tests/admin/content.test.mjs
+  - tests/admin/content-api.test.mjs
   - tests/admin/content-worker.e2e.mjs
 notion: https://app.notion.com/p/40a332849a0e81308d7aed22eac0a4f7
 updated: 2026-11-01
@@ -146,12 +147,11 @@ Then chỉ hiện ảnh có "cnc" trong tên file hoặc alt, mỗi ảnh ghi t�
 Panel Media là trang quản lý media (owner 2026-10-31): lưới mọi media trong `media-index.json`, ô tìm theo tên file và
 alt, lọc theo thư mục và theo nơi dùng (Mọi media, Đang dùng, Chưa dùng); mỗi ô ghi số chỗ dùng. Nơi dùng tính trong
 editor: ảnh của bốn trang (bản gốc trừ mục đã xóa, cộng mục mới, src theo nháp hoặc bản đã lưu) và media của card (R7).
-Bấm một media mở chi tiết đầu panel: ảnh lớn, cỡ gốc, thư mục, biến thể có sẵn (`variants` do `build-admin.mjs` ghi,
-như `jxl`, `240 webp`), alt VI/EN với nút "Ghi alt vào n chỗ dùng (nháp)" (ghi nháp mọi trang, card đang dùng ảnh, mỗi
-trang một mốc hoàn tác), nơi dùng dạng link mở đúng trang và chọn đúng placeholder hoặc card. Kéo một ô thả vào Xem
-trước (kiểu `application/x-tt-media`, overlay nhận `drop`): thả vào danh sách R4 là thêm mục với ảnh đó trong một mốc
-hoàn tác, vào ảnh lẻ là đổi ảnh, vào card là thêm media. Tải lên, đổi tên, xóa file: nút mờ kèm "cần kho media R2 thật"
-([CMS gate](cms.md#gate-còn-mở)).
+Bấm một media mở chi tiết đầu panel: ảnh lớn, cỡ gốc, thư mục, biến thể có sẵn (`variants` do `build-admin.mjs` ghi, như
+`jxl`, `240 webp`), alt VI/EN với nút "Ghi alt vào n chỗ dùng (nháp)" (mỗi trang một mốc hoàn tác), nơi dùng dạng link
+mở đúng trang và chọn đúng placeholder hoặc card. Kéo một ô thả vào Xem trước (`application/x-tt-media`): thả vào danh
+sách R4 là thêm mục với ảnh đó, vào ảnh lẻ là đổi ảnh, vào card là thêm media. Tải lên, đổi tên, xóa file: nút mờ kèm
+"cần kho media R2 thật" ([CMS gate](cms.md#gate-còn-mở)).
 
 ```gherkin
 Given panel Media mở, lọc "Chưa dùng"
@@ -164,14 +164,14 @@ Then gallery có thêm figure với ảnh đó, lọc "Đang dùng" có ảnh đ
 Trang gốc, cụm, sản phẩm và trang card `p/<id>` dùng một bản xem trước `advertising.html?path=<route>`: script đầu
 `<head>` đổi URL sang route thật (`history.replaceState`, runtime định tuyến theo path); `cms-core.js` (boot
 `advertising`) gán `window.__TT_ADVERTISING_ARTIFACT__` là Promise catalog đã vá, hook có sẵn của `loadArtifact` trong
-`catalog-runtime.mjs`. `patchCatalog` nạp `catalog-artifact.mjs`, `catalog-detail.mjs`, `layout-core.mjs`, gộp mô tả,
-áp sửa đổi: `clusterIds`, `tagIds` theo sản phẩm mới, `media` là ảnh bìa; đổi sản phẩm chính sang cụm khác thì card nhận
-`sourceOrder` cuối cụm mới và hạng xếp lại bằng `scheduleAdvertisingRank` cho đúng contract validate của runtime.
-Overlay chọn card trên lưới, gợi ý, hoặc ảnh chính của trang chi tiết (id lấy từ path); chế độ xem cho bấm link `p/` vì
-runtime mở chi tiết tại chỗ. Thuộc tính sửa: tên, mô tả VI/EN (rời ô thì tải lại xem trước), sản phẩm (thêm theo cụm
+`catalog-runtime.mjs`. `patchCatalog` nạp `catalog-artifact.mjs`, `layout-core.mjs` (không nạp `catalog-detail.mjs`:
+runtime gắn lười từng trường còn thiếu, card sửa nhận `related`), áp sửa đổi: `clusterIds`, `tagIds` theo sản phẩm mới,
+`media` là ảnh bìa; đổi sản phẩm chính sang cụm khác thì card nhận `sourceOrder` cuối cụm mới và hạng xếp lại bằng
+`scheduleAdvertisingRank`. Overlay chọn card trên lưới, gợi ý, hoặc ảnh chính của trang chi tiết; chế độ xem cho bấm
+link `p/` vì runtime mở chi tiết tại chỗ. Thuộc tính sửa: tên, mô tả VI/EN (rời ô thì tải lại), sản phẩm (thêm theo cụm
 của taxonomy, bỏ, đặt sản phẩm chính; cụm theo sản phẩm chính), media (thêm từ thư viện, xóa, lên xuống, ảnh bìa, alt
 VI/EN), "Khôi phục card gốc". Nháp chung `advertising`: `cards: { id: { titleVi, titleEn, descriptionVi, descriptionEn,
-productIds, mediaItems, coverMediaId } }`, giống gốc thì bỏ. Giữ theo build: `related`, tag khung hình, số đếm chip.
+productIds, mediaItems, coverMediaId } }`, giống gốc thì bỏ. Giữ theo build: tag khung hình, số đếm chip.
 
 ```gherkin
 Given đang sửa card signage-raised-letters-01 trên masonry
@@ -181,19 +181,19 @@ Then card trên preview đổi ảnh, bản nháp ghi mediaItems mới, cover m�
 
 ### R8. Bản nháp, lưu và xuất
 
-Sửa đổi ghi vào nháp `{ page, base, updatedAt, text: { key: { vi, en } }, image: { key: { src, width, height, altVi,
-altEn } }, list: { listKey: [id] }, clone: { idMới: idGốc }, cards }`. Bản đang sửa là nháp trên máy nếu có, không thì
-bản đã lưu (`GET /api/admin/content/<page>` lúc mở editor, cache `tt-cms-saved:<page>` để bản xem trước áp khi không có
-nháp); `base` là `updatedAt` bản đã lưu nó dựa vào. Nháp chỉ nằm trong `localStorage` `tt-cms-draft:<page>` khi khác bản
-đã lưu. Bản xem trước áp nháp lúc parse, trước runtime site, nên motion giữ nguyên. Thanh trên ghi "Không có thay đổi",
-"Đã lưu <giờ>" hoặc "Chưa lưu · n thay đổi" (mục khác bản đã lưu). Panel Nháp: thay đổi chưa lưu (Bỏ là về bản đã lưu),
-giờ và người lưu gần nhất, cảnh báo khi bản đã lưu đổi sau lúc bắt đầu sửa hoặc có sửa đổi lệch (R10), "Bỏ toàn bộ nháp"
-về bản đã lưu, trang khác có nháp. Hoàn tác theo từng thao tác trong phiên, gõ liên tục cùng một ô gộp một mốc. Lưu
-chặn khi còn ô trống ("Còn n ô trống": chữ thiếu VI hoặc EN, ảnh chưa chọn, ô của mục mới chưa nhập, card thiếu tên,
-mô tả, sản phẩm, media), rồi gửi `PUT /api/admin/content/<page>` `{ edits, baseUpdatedAt }`: 200 thì bỏ nháp, cập nhật
-bản đã lưu; 409 (người khác vừa lưu) hỏi ghi đè; 400 hiện lỗi; 501 (Worker không có D1) và 404 (preview tĩnh) "Chưa
-nối lưu trữ, nháp vẫn ở máy này."; lỗi khác "(mã n)" hoặc "(mất kết nối)". Xuất JSON tải `tt-cms-<page>.json`. Không có
-bước duyệt: lưu thành công là nội dung lên web (owner 2026-10-31).
+Sửa đổi ghi vào nháp `{ page, base, anchors, text: { key: { vi, en } }, image: { key: { src, width, height, altVi, altEn
+} }, list: { listKey: [id] }, clone: { idMới: idGốc }, cards }`. Bản đang sửa là nháp trên máy nếu có, không thì bản đã
+lưu (`GET /api/admin/content/<page>` lúc mở editor, cache `tt-cms-saved:<page>` cho bản xem trước); `base` là
+`updatedAt` bản đã lưu nó dựa vào (hoàn tác giữ `base` hiện tại), `anchors` là dấu chỗ gốc (R10) của khóa lúc bắt đầu
+sửa. Nháp chỉ nằm trong `localStorage` `tt-cms-draft:<page>` khi khác bản đã lưu; mở trang mà dấu khác trang hiện tại
+(trang đổi bản build) thì bỏ sửa đổi ở khóa đó và báo. GET lỗi (khác 404, 501) thì khóa Lưu trang đó. Bản xem trước áp
+nháp lúc parse, trước runtime site, nên motion giữ nguyên. Thanh trên ghi "Không có thay đổi", "Đã lưu <giờ>" hoặc "Chưa
+lưu · n thay đổi". Panel Nháp: thay đổi chưa lưu (Bỏ là về bản đã lưu), giờ và người lưu gần nhất, cảnh báo bản đã lưu
+đổi sau lúc bắt đầu sửa và sửa đổi lệch, "Bỏ toàn bộ nháp", trang khác có nháp. Hoàn tác theo từng thao tác, gõ liên tục
+một ô gộp một mốc. Lưu chặn khi còn ô trống ("Còn n ô trống": chữ thiếu VI hoặc EN, ảnh trống, card thiếu trường), rồi
+gửi `PUT` `{ edits, baseUpdatedAt, anchors }`: 200 bỏ nháp; 409 (người khác vừa lưu) hỏi ghi đè; 400 hiện lỗi; 501, 404
+"Chưa nối lưu trữ, nháp vẫn ở máy này."; lỗi khác "(mã n)" hoặc "(mất kết nối)". Xuất JSON tải `tt-cms-<page>.json`.
+Không có bước duyệt: lưu thành công là lên web (owner 2026-10-31).
 
 ```gherkin
 Given pnpm cms:dev đang chạy, đã sửa h1 Nhà ở
@@ -220,23 +220,24 @@ Then 200; GET /vi/ không có cms-core.js
 ### R10. Worker áp nội dung đã lưu
 
 `0005_page_edits.sql`: bảng `page_edits` (`page` là `home`, `residential`, `commercial`, `about` hoặc `advertising`;
-`edits_json`, `anchors_json`, `updated_at`, `updated_by`). `GET /api/admin/content/<page>` (admin, [CMS R5](cms.md#r5-xác-thực-admin))
-trả `{ edits, stale, updatedAt, updatedBy }`. `PUT` kiểm nháp (`validateEdits` của `src/worker/content.mjs`: khóa đúng
-mẫu, chữ đủ VI/EN, ảnh chỉ trong `/assets/content/`, mục mới nằm trong danh sách, sản phẩm card có trong taxonomy, ảnh
-bìa thuộc media, tối đa 256 KB), ghi có điều kiện theo `baseUpdatedAt` (khác thì 409 kèm người, giờ lưu), ghi
-`audit_log` `content.save`. Lúc lưu Worker ghi dấu chỗ gốc mỗi khóa được sửa (chữ VI gộp khoảng trắng, đường dẫn ảnh,
-số mục danh sách); khóa không có trên trang thì 400.
+`edits_json`, `anchors_json`, `updated_at`, `updated_by`); áp migration trước khi deploy Worker đọc bảng. `GET
+/api/admin/content/<page>` (admin, [CMS R5](cms.md#r5-xác-thực-admin)) trả `{ edits, stale, updatedAt, updatedBy }`.
+`PUT` (body tối đa 512 KB, nháp 256 KB UTF-8) kiểm nháp bằng `validateEdits` của `src/worker/content.mjs` (khóa đúng
+mẫu, chữ đủ VI/EN và không có mã HTML dạng `&amp;`, ảnh chỉ trong `/assets/content/`, sản phẩm card có trong taxonomy,
+ảnh bìa thuộc media), ghi có điều kiện theo `baseUpdatedAt` (khác thì 409 kèm người, giờ lưu), ghi `audit_log`
+`content.save` (khóa, bản trước; lỗi audit chỉ ghi log). Dấu chỗ gốc (`anchorOf` của `cms-core.js`: chữ VI gộp khoảng
+trắng, đường dẫn ảnh, số mục danh sách) tính trên HTML nguồn lúc lưu; 400 khi khóa không có trên trang, dấu editor gửi
+khác dấu nguồn, hoặc mục mới còn ô trống; card phải có trang tĩnh `p/<id>`.
 
-Phục vụ bốn trang `/vi|en/`: có dòng `page_edits` thì Worker parse HTML nguồn bằng `linkedom`, chạy đúng `stamp`,
-`apply` của `cms-core.js`, bỏ sửa đổi có dấu không khớp nguồn hiện tại (khóa lệch: HTML nguồn đổi sau lúc lưu; GET trả
-chúng trong `stale`), xóa thuộc tính `data-cms-*` của editor, rồi pipeline locale và SEO của [CMS
-R3](cms.md#r3-render-trang-locale-và-nội-dung-d1) chạy tiếp. Chỗ editor đã sửa thắng field CMS cũ (bỏ `data-cms` ở đó;
-title, description thay SEO trong `pages`). Hero đã sửa thì bỏ script preload ở `<head>` và đánh lại `data-slide`. Bản
-render giữ trong bộ nhớ isolate theo `updated_at` và ETag nguồn; module nạp lười, chỉ tải khi có nội dung đã lưu. Trang
-dưới `/vi|en/advertising-products/` (cả trang tĩnh) khi có card đã sửa: chèn đầu `<head>` script gán
-`window.__TT_ADVERTISING_ARTIFACT__` bằng mã nguồn `patchCatalog` (JSON thoát `<`); trang `p/<id>` của card sửa còn đổi
-title, description, `og:image`, JSON-LD, khối tĩnh cho bot. Có nội dung editor thì bỏ ETag file tĩnh (tránh 304 giữ bản
-cũ).
+Phục vụ bốn trang `/vi|en/`: dòng `page_edits` có sửa đổi thì Worker parse HTML nguồn bằng `linkedom`, chạy `stamp`,
+`apply` của `cms-core.js`, bỏ sửa đổi có dấu không khớp nguồn hiện tại (khóa lệch, GET trả trong `stale`), xóa thuộc
+tính `data-cms-*` của editor, rồi pipeline locale và SEO của [CMS R3](cms.md#r3-render-trang-locale-và-nội-dung-d1) chạy
+tiếp. Chỗ editor đã sửa thắng field CMS cũ (bỏ `data-cms` ở đó; title, description thay SEO trong `pages`); title ghi
+bằng HTMLRewriter (có thoát, linkedom thì không). Hero đã sửa thì bỏ script preload ở `<head>` và đánh lại `data-slide`.
+Bản render giữ trong isolate theo `updated_at` và ETag nguồn, module nạp lười. Trang dưới `/vi|en/advertising-products/`
+(GET, HEAD trả 200 hoặc 304) khi có card đã sửa: chèn đầu `<head>` script gán `window.__TT_ADVERTISING_ARTIFACT__` bằng
+mã `patchCatalog` (JSON thoát `<`); trang `p/<id>` của card sửa còn đổi title, description, `og:image`, JSON-LD, khối
+tĩnh cho bot. Trang đã áp bỏ ETag, `content-length` của file tĩnh (304 thì lấy lại bản đủ).
 
 ```gherkin
 Given residential đã lưu h1 mới, sau đó HTML nguồn đổi chữ của h1 đó
@@ -271,19 +272,18 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 | R | Test hoặc command |
 | --- | --- |
 | R1, R2, R4 đến R8 | `tests/admin/editor.e2e.mjs` |
-| R3, R4, R8, R10 | `tests/admin/cms-core.test.mjs` (khóa linkedom trùng DOMParser trên bốn trang thật), `tests/admin/content.test.mjs` |
+| R3, R4, R8, R10 | `tests/admin/cms-core.test.mjs` (khóa, dấu linkedom trùng DOMParser trên bốn trang thật), `content.test.mjs`, `content-api.test.mjs` (API, 409, ETag với D1 giả) |
 | R8, R10 | `tests/admin/content-worker.e2e.mjs` khi `pnpm cms:dev` chạy (wrangler, D1 local; không thuộc CI) |
 | R9 | `node scripts/cms/build-admin.mjs`; `pnpm qa:worker:security` (GET, PUT content cần admin); output public không có admin vì `prepare:site` xóa `.site-output` |
 
 ## Gate còn mở
 
-- Khóa tự sinh theo thứ tự nguồn: sửa HTML nguồn trước một chỗ làm lệch khóa. Slice 3 dùng dấu chỗ gốc nên khóa lệch bị
-  bỏ thay vì áp nhầm và editor báo, nhưng sửa đổi đó mất trên web tới khi nhân viên làm lại; bền hơn cần `data-cms` cố
-  định trong HTML nguồn ([CMS](cms.md#điều-kiện-mở-cms-phase)).
+- Khóa tự sinh theo thứ tự nguồn: sửa HTML nguồn trước một chỗ làm lệch khóa; dấu chỗ gốc bỏ sửa đổi lệch thay vì áp
+  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS](cms.md#điều-kiện-mở-cms-phase)).
 - Motion trong bản xem trước giữ nguyên (owner 2026-10-31): nháp áp lúc parse, sửa chữ tại chỗ dùng revert/rebuild.
 - Hero đã sửa mất preload ảnh đầu (LCP chậm hơn); sinh lại preload cần ảnh mới có đủ biến thể.
-- Render bằng linkedom tốn 6 đến 18 ms mỗi trang mỗi isolate (đo Node 22, 2026-11-01): trước khi mở thật cần đo CPU
-  Worker; card sửa chưa đổi `related`, tag khung hình, đếm chip, sitemap ảnh (sinh lúc build).
+- linkedom tốn 6 đến 21 ms mỗi lần render (Node 22, 2026-11-01), Workers Free giới hạn 10 ms CPU: chốt gói, đo CPU Worker
+  trước khi mở thật. Card sửa chưa đổi `related`, tag khung hình, đếm chip, sitemap ảnh (sinh lúc build).
 - Upload ảnh từ máy (cần đủ biến thể), video, phân quyền, D1 và R2 thật: ngoài phạm vi ([CMS gate](cms.md#gate-còn-mở)).
 
 ## Chú thích thuật ngữ

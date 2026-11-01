@@ -135,6 +135,31 @@ try {
   assert.equal(await page.textContent("#toast"), "Chưa nối lưu trữ, nháp vẫn ở máy này.");
   assert.ok(await draft());
 
+  // Phản hồi của Worker (R8) giả bằng page.route: 400 hiện lỗi, mất kết nối, 409 hỏi trước khi ghi đè (từ chối thì giữ
+  // nháp). PUT gửi kèm dấu chỗ gốc của khóa đã sửa (R10).
+  const toastStarts = (prefix) => page.waitForFunction((text) => document.querySelector("#toast").textContent.startsWith(text), prefix);
+  const putBodies = [];
+  const respond = async (route, reply) => {
+    putBodies.push(route.request().postDataJSON());
+    await page.evaluate(() => (document.querySelector("#toast").textContent = ""));
+    return reply(route);
+  };
+  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.fulfill({ status: 400, json: { error: "Trang vừa cập nhật" } })));
+  await page.click("#save");
+  await toastStarts("Lưu chưa được: Trang vừa cập nhật");
+  assert.ok(Object.keys(putBodies[0].anchors).includes(gallery.list), "dấu danh sách gallery");
+  await page.unroute("**/api/admin/content/residential");
+  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.abort()));
+  await page.click("#save");
+  await toastStarts("Lưu chưa được (mất kết nối)");
+  await page.unroute("**/api/admin/content/residential");
+  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.fulfill({ status: 409, json: { updatedAt: "2026-11-01T00:00:00.000Z", updatedBy: "nv@truongthinh.vn" } })));
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page.click("#save");
+  await toastStarts("Chưa lưu. Xuất JSON");
+  await page.unroute("**/api/admin/content/residential");
+  assert.ok(await draft());
+
   // R6: lọc "Chưa dùng", xem chi tiết, kéo thả ảnh vào gallery trong xem trước: thêm mục, ảnh thành "đang dùng".
   await page.locator(".dv-tab", { hasText: "Media" }).click();
   await page.locator(".panel--media select").nth(1).selectOption("unused");
@@ -195,6 +220,21 @@ try {
   await previewReady(`/p/${cardId}`);
   await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
   assert.equal(await props.getByLabel("Tên tiếng Việt").inputValue(), "Card thử CMS");
+
+  // Lưu thành công (200 giả): bỏ nháp, thanh trên "Đã lưu". Hoàn tác về trước lúc Lưu rồi lưu lại vẫn dựa phiên bản vừa
+  // lưu (không tự gây 409).
+  await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS lần hai");
+  await props.getByLabel("Tên tiếng Việt").blur();
+  await page.route("**/api/admin/content/advertising", (route) => respond(route, (entry) => entry.fulfill({ status: 200, json: { updatedAt: "2026-11-01T01:00:00.000Z", updatedBy: "admin@localhost" } })));
+  await page.click("#save");
+  await toastStarts("Đã lưu");
+  assert.match(await page.textContent("#draft-status"), /^Đã lưu/);
+  assert.equal(await page.evaluate(() => localStorage.getItem("tt-cms-draft:advertising")), null);
+  for (let step = 0; step < 4 && !/Chưa lưu/.test(await page.textContent("#draft-status")); step += 1) await page.click("#undo");
+  assert.match(await page.textContent("#draft-status"), /Chưa lưu/);
+  await page.click("#save");
+  await toastStarts("Đã lưu");
+  assert.equal(putBodies.at(-1).baseUpdatedAt, "2026-11-01T01:00:00.000Z");
 
   assert.deepEqual(errors, []);
   console.log("[editor.e2e] PASS");

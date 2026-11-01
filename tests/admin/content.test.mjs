@@ -41,6 +41,28 @@ test("validateEdits nhận nháp đúng, chặn chữ trống, ảnh ngoài thư
   assert.match(validateEdits("advertising", { cards: { "c-01": { ...card, productIds: ["nope/x"] } } }), /taxonomy/);
   assert.match(validateEdits("advertising", { cards: { "c-01": { ...card, coverMediaId: "other" } } }), /bìa/);
   assert.match(validateEdits("advertising", { text: {} }), /cards/);
+  assert.match(validateEdits("residential", { text: { t0: { vi: "A &amp; B", en: "A" } } }), /mã HTML/);
+  assert.equal(validateEdits("residential", { text: { t0: { vi: "R&D & co", en: "R&D" } } }), null);
+  // Giới hạn tính theo byte UTF-8: chữ Việt có dấu tốn nhiều byte hơn số ký tự.
+  const big = { text: Object.fromEntries(Array.from({ length: 40 }, (_, index) => [`t${index}`, { vi: "ệ".repeat(2500), en: "e" }])) };
+  assert.ok(JSON.stringify(big).length < 256 * 1024);
+  assert.match(validateEdits("residential", big), /quá lớn/);
+});
+
+test("title của editor không đi qua linkedom: chữ đóng thẻ title không thành script", () => {
+  const edits = { text: { title: { vi: "</title><script>window.pwned=1</script>", en: "x" } } };
+  const { anchors } = anchorsFor(SOURCE, "residential", edits);
+  const { html, fresh } = renderPage(SOURCE, "residential", edits, anchors);
+  assert.doesNotMatch(html, /pwned/);
+  assert.match(html, /<title>Gốc<\/title>/);
+  assert.equal(fresh.text.title.vi, edits.text.title.vi, "index.js ghi title bằng HTMLRewriter (có thoát)");
+});
+
+test("anchorsFor: mục mới phải đủ chữ, ảnh; dấu editor thấy lệch nguồn thì từ chối", () => {
+  const gap = { list: { l1: ["0", "1", "nab"] }, clone: { nab: "0" }, image: { "i2@nab": image("/assets/content/g8.webp") } };
+  assert.match(anchorsFor(SOURCE, "residential", gap).error, /nab còn ô trống: t1@nab/);
+  assert.match(anchorsFor(SOURCE, "residential", { text: { t0: { vi: "a", en: "b" } } }, { t0: "Chữ cũ" }).error, /t0 đã đổi/);
+  assert.ok(anchorsFor(SOURCE, "residential", { text: { t0: { vi: "a", en: "b" } } }, { t0: "Xin chào" }).anchors);
 });
 
 test("renderPage áp chữ, ảnh, danh sách, bỏ khóa editor và field CMS cũ ở chỗ đã sửa", () => {
@@ -65,6 +87,11 @@ test("khóa lệch: HTML nguồn đổi sau lúc lưu thì bỏ sửa đổi ở
   assert.deepEqual(stale.sort(), ["i2@nab", "l1", "t0", "t1@nab", "i3"].sort());
   assert.deepEqual(fresh, { text: {}, image: {}, list: {}, clone: {} });
   assert.match(anchorsFor(SOURCE, "residential", { text: { t99: { vi: "a", en: "b" } } }).error, /t99/);
+  // Chỉ chữ h1 đổi: riêng t0 lệch, gallery giữ nguyên.
+  const partial = freshEdits(SOURCE.replace(">Xin chào</span>", ">Chào bạn</span>"), "residential", EDITS, anchors);
+  assert.deepEqual(partial.stale, ["t0"]);
+  assert.deepEqual(Object.keys(partial.fresh.text), ["t1@nab"]);
+  assert.deepEqual(partial.fresh.list, EDITS.list);
 });
 
 test("sửa hero: bỏ danh sách preload viết sẵn, đánh lại data-slide liên tục", () => {

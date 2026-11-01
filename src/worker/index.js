@@ -186,9 +186,9 @@ async function handleRequest(request, env) {
   if (route) {
     const canonicalPath = canonicalRoutePath(route);
     if (url.pathname !== canonicalPath) return redirectWithQuery(url, canonicalPath);
-    return withCardEdits(await renderRoute(request, env, url, route), env, url);
+    return withCardEdits(await renderRoute(request, env, url, route), request, env, url);
   }
-  return withCardEdits(await env.ASSETS.fetch(request), env, url);
+  return withCardEdits(await env.ASSETS.fetch(request), request, env, url);
 }
 
 function routeRedirect(url) {
@@ -320,7 +320,10 @@ async function renderRoute(request, env, url, route) {
 
   // Attribute tiếng Anh tĩnh làm shell fallback khi không có SSR. Áp field D1
   // sau đó để route locale canonical không bị chúng đảo ngược.
-  if (content && !editorText.title) {
+  // Title của editor ghi bằng HTMLRewriter (có thoát chữ), không qua linkedom: <title> là thẻ chữ thô (R10).
+  if (editorText.title) {
+    rewriter = rewriter.on("title", new LocalizedText(seo.title, editorText.title.vi, editorText.title.en));
+  } else if (content) {
     rewriter = rewriter.on(
       "title",
       new LocalizedText(seo.title, localizedContent.vi?.seo?.title, localizedContent.en?.seo?.title),
@@ -355,7 +358,10 @@ async function renderRoute(request, env, url, route) {
 
 const EDITOR_PAGES = new Set(["home", "residential", "commercial", "about"]);
 const ADVERTISING_HTML_PATH = /^\/(?:vi|en)\/advertising-products\//;
-const ADVERTISING_CARD_PATH = /^\/(vi|en)\/advertising-products\/p\/([^/]+)\/$/;
+const ADVERTISING_CARD_PATH = /^\/(vi|en)\/advertising-products\/p\/([a-z0-9][a-z0-9-]{0,99})\/$/;
+const MAX_CONTENT_BODY = 512 * 1024;
+// Nháp rỗng (lưu sau khi bỏ hết sửa đổi) coi như chưa có nội dung: phục vụ HTML tĩnh, không nạp linkedom.
+const hasEdits = (edits) => Object.values(edits).some((value) => value && Object.keys(value).length);
 const loadContent = () => import("./content.mjs");
 
 async function pageEdits(env, page) {
@@ -371,7 +377,7 @@ async function pageEdits(env, page) {
 
 async function savedPage(env, page, source) {
   const row = await pageEdits(env, page);
-  return row ? (await loadContent()).renderSaved(page, row, source) : null;
+  return row && hasEdits(JSON.parse(row.edits_json)) ? (await loadContent()).renderSaved(page, row, source) : null;
 }
 
 function sourceHtml(env, url, page) {
@@ -394,6 +400,7 @@ async function handleContent(request, env, url, actor) {
     return json({ ...result, edits: fresh, stale });
   }
   if (request.method !== "PUT") return json({ error: "Method Not Allowed" }, 405);
+  if (Number(request.headers.get("content-length")) > MAX_CONTENT_BODY) return json({ error: "Nháp quá lớn." }, 413);
   let body;
   try {
     body = await readJson(request);
@@ -408,9 +415,18 @@ async function handleContent(request, env, url, actor) {
   }
   let anchors = {};
   if (page !== "advertising") {
-    const result = content.anchorsFor(await sourceHtml(env, url, page), page, body.edits);
+    const seen = body.anchors && typeof body.anchors === "object" && !Array.isArray(body.anchors) ? body.anchors : {};
+    const result = content.anchorsFor(await sourceHtml(env, url, page), page, body.edits, seen);
     if (result.error) return json({ error: result.error }, 400);
     anchors = result.anchors;
+  } else {
+    // Card phải có trang tĩnh p/<id>: id lạ không được chèn vào <head> mọi trang Sản phẩm Quảng cáo. Chỉ kiểm card mới
+    // so với bản đã lưu (card cũ đã kiểm lúc lưu trước) để số subrequest không tăng theo tổng số card.
+    const known = new Set(Object.keys(row ? JSON.parse(row.edits_json).cards ?? {} : {}));
+    for (const id of Object.keys(body.edits.cards).filter((entry) => !known.has(entry))) {
+      const card = await env.ASSETS.fetch(new Request(new URL(`/vi/advertising-products/p/${id}/`, url.origin), { method: "HEAD" }));
+      if (!card.ok) return json({ error: `Card ${id} không có trong catalog.` }, 400);
+    }
   }
   const updatedAt = new Date().toISOString();
   const values = [JSON.stringify(body.edits), JSON.stringify(anchors), updatedAt, actor];
@@ -425,30 +441,38 @@ async function handleContent(request, env, url, actor) {
     const current = await pageEdits(env, page);
     return json({ error: "Conflict", updatedAt: current?.updated_at ?? null, updatedBy: current?.updated_by ?? null }, 409);
   }
-  await logAudit(env, actor, "content.save", "page_edits", page, { bytes: values[0].length });
+  // Nội dung đã lên web: audit lỗi thì ghi log, không trả 500 (editor sẽ giữ nháp rồi nhận 409 với chính bản mình).
+  const keys = page === "advertising" ? Object.keys(body.edits.cards) : Object.keys(anchors);
+  await logAudit(env, actor, "content.save", "page_edits", page, { bytes: values[0].length, keys, previous: row?.updated_at ?? null })
+    .catch((error) => console.error("content.save audit failed", error));
   return json({ page, updatedAt, updatedBy: actor });
 }
 
 // Trang Sản phẩm Quảng cáo có card đã sửa: chèn script vá catalog đầu <head>; trang card p/<id> sửa luôn khối tĩnh
 // (tên, mô tả, ảnh cho bot không chạy JS), title, description, og:image.
-async function withCardEdits(response, env, url) {
+let cardsCache = { updatedAt: null, cards: null };
+async function withCardEdits(response, request, env, url) {
   const isHtml = (entry) => entry.headers.get("content-type")?.includes("text/html");
-  if (!env.DB || !ADVERTISING_HTML_PATH.test(url.pathname) || (response.status !== 304 && !isHtml(response))) return response;
+  if (!env.DB || !["GET", "HEAD"].includes(request.method) || !ADVERTISING_HTML_PATH.test(url.pathname)) return response;
+  if (response.status !== 304 && !(response.status === 200 && isHtml(response))) return response;
   const row = await pageEdits(env, "advertising").catch(() => null);
-  const cards = row ? JSON.parse(row.edits_json).cards : null;
+  if (row && cardsCache.updatedAt !== row.updated_at) cardsCache = { updatedAt: row.updated_at, cards: JSON.parse(row.edits_json).cards };
+  const cards = row ? cardsCache.cards : null;
   if (!cards || !Object.keys(cards).length) return response;
   // ETag của file tĩnh không đổi khi lưu card: trình duyệt hỏi lại bằng ETag cũ nhận 304 và giữ bản cũ. Lấy lại bản đầy
   // đủ rồi bỏ ETag ở bản đã vá.
-  if (response.status === 304) response = await env.ASSETS.fetch(new Request(url, { method: "GET" }));
-  if (!isHtml(response)) return response;
-  response = new Response(response.body, response);
-  response.headers.delete("etag");
+  let page = response;
+  if (response.status === 304) page = await env.ASSETS.fetch(new Request(url, { method: request.method }));
+  if (page.status !== 200 || !isHtml(page)) return response;
+  page = new Response(page.body, page);
+  page.headers.delete("etag");
+  page.headers.delete("content-length");
   const { catalogScript } = await loadContent();
   let rewriter = new HTMLRewriter().on("head", { element: (head) => head.prepend(catalogScript(cards), { html: true }) });
   const [, locale, id] = url.pathname.match(ADVERTISING_CARD_PATH) ?? [];
-  const card = id && cards[safeDecode(id)];
-  if (card) rewriter = cardPageRewriter(rewriter, card, safeDecode(id), locale === "en" ? "En" : "Vi", publicOrigin(env, url));
-  return rewriter.transform(response);
+  const card = id && Object.hasOwn(cards, id) ? cards[id] : null;
+  if (card) rewriter = cardPageRewriter(rewriter, card, id, locale === "en" ? "En" : "Vi", publicOrigin(env, url));
+  return rewriter.transform(page);
 }
 
 function safeDecode(value) {
