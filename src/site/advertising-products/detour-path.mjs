@@ -1,4 +1,4 @@
-// Đường đi của card khi chuyển vị trí, không đi qua hộp primary (advertising-related-cta-motion R3).
+// Đường đi của card khi chuyển vị trí, không đi qua hộp primary (advertising-cta-center-parallax R10).
 // Tọa độ là góc trên trái trong related grid; primary chiếm [0, zone.width] x [0, zone.height].
 
 // Đoạn a -> b có đi vào hộp mở (minX, maxX) x (minY, maxY) không; chạm mép không tính (slab test).

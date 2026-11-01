@@ -2136,10 +2136,12 @@ try {
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     await page.locator(`[data-advertising-card="${A}"] > a`).click();
     await ready(page, A);
+    // Detail dùng lại batch cho cuối related (CTA R9): batch rời grid, nằm trong canvas detail.
     assert.deepEqual(await page.evaluate(() => {
       const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-      return { hidden: skeleton?.hidden, frames: skeleton?.childElementCount };
-    }), { hidden: true, frames: 0 }, "detail retained grid CTA skeleton");
+      return { host: skeleton?.dataset.advertisingCtaHost, inGrid: Boolean(skeleton?.closest("[data-project-grid]")),
+        inCanvas: Boolean(skeleton?.closest("[data-advertising-photo-canvas]")) };
+    }), { host: "detail", inGrid: false, inCanvas: true }, "detail retained grid CTA skeleton");
     await page.goBack();
     await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
     const restored = await readCta();

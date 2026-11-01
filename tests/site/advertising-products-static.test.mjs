@@ -65,7 +65,7 @@ assert.match(advertisingCss, /@media \(min-width: 1201px\)[\s\S]*?--advertising-
 assert.match(runtime, /advertisingSpacing\(layoutViewportWidth\)[\s\S]*?--advertising-outer[\s\S]*?--advertising-gap[\s\S]*?grid\.clientWidth/, "runtime resolves spacing from document client width before measuring the grid");
 assert.match(index, /data-project-grid[\s\S]*?<div[^>]+data-advertising-cta-skeleton[^>]+aria-hidden="true"[\s\S]*?<\/div>\s*<\/div>\s*<section\s+class="detail-cta"/, "the CTA overlays the continuation in the same project section outside the product list");
 assert.doesNotMatch(index, /class="detail-cta__skeleton"/, "legacy three-column decoration is removed");
-assert.match(runtime, /geometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
+assert.match(runtime, /[gG]eometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
 assert.doesNotMatch(runtime + advertisingCss, /skeleton-dev|skeleton-flow-devtools|createSkeletonFlowDevtools/, "temporary skeleton editor must not ship");
 assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-flow-devtools.mjs", import.meta.url)), false, "temporary editor module is removed, not merely disabled");
 assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");

@@ -76,7 +76,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
 | adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
-| adv-detail | `advertising-detail.md` | `suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-related-cta-motion.md` (planned, sẽ gộp với `advertising-cta-center-parallax.md`) |
+| adv-detail | `advertising-detail.md` | `suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
 | adv-viewer | `advertising-viewer-touch-zoom.md` | `photo-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
 | glass | `glass-surface.md` | `glass-surface.mjs` | |

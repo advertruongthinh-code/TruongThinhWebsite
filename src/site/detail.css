@@ -1868,7 +1868,7 @@ body.is-advertising-browse .site-footer {
   --advertising-safe-bottom: env(safe-area-inset-bottom, 0px);
   width: calc(100% - (2 * var(--gutter)));
   margin: 0 auto;
-  padding: var(--advertising-photo-top, 8rem) 0 7rem;
+  padding: var(--advertising-photo-top, 8rem) 0 0;
 }
 
 .advertising-photo-view[hidden],
@@ -3135,7 +3135,7 @@ body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
 
 /* Batch lấp khoảng trống trên footer. Đặt biến trên footer, không trên body: biến kế thừa đổi trên body làm
    mở detail và Back restyle cả trang (decision phone-frame-budget). */
-body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
+body.is-advertising-browse .site-footer {
   --footer-top-gap: 0px;
 }
 
@@ -3329,7 +3329,6 @@ body.is-advertising-browse .floating-cta {
 
 body.is-advertising-photo .detail-index-hero,
 body.is-advertising-photo .project-index,
-body.is-advertising-photo .detail-cta[data-advertising-grid-cta],
 body.is-advertising-photo .detail-process {
   display: none;
 }
