@@ -50,6 +50,9 @@ const measureEnd = (page) => page.evaluate(async () => {
     parallax: new DOMMatrixReadOnly(getComputedStyle(cta.querySelector(".detail-cta__copy")).transform).m42,
     gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-advertising-photo-view]")).getPropertyValue("--advertising-photo-gap")),
     relatedCards: document.querySelectorAll("[data-advertising-related-card]:not([hidden])").length,
+    arc: (() => { const glass = document.querySelector('.glass-surface[data-glass-shape="arc"]');
+      return glass && !glass.hidden ? glass.getBoundingClientRect().width : 0; })(),
+    viewportWidth: document.documentElement.clientWidth,
   };
 });
 
@@ -126,6 +129,7 @@ try {
     assert.ok(end.inCanvas, `${label}: CTA không nằm trong canvas detail`);
     assert.ok(end.frames > 0, `${label}: batch không có khung`);
     assert.ok(end.infoCta, `${label}: mất nút CTA trong info primary`);
+    assert.ok(Math.abs(end.arc - end.viewportWidth) <= 1, `${label}: Kính cung không trải hết viewport ${end.arc}/${end.viewportWidth}`);
     assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${label}: đáy batch không sát footer ${JSON.stringify(end)}`);
     assert.ok(Math.abs(end.batchBottom - end.ctaBottom) <= 1.5, `${label}: đáy batch khác đáy CTA ${JSON.stringify(end)}`);
     assert.ok(Math.abs(end.parallax) <= 0.5, `${label}: parallax chưa về 0 ở cuối trang`);
