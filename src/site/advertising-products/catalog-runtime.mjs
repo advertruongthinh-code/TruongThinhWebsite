@@ -5004,6 +5004,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await prewarmGeometry(filter);
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
+    // Đo grid ẩn (geometry lấy từ cache Worker) ở task riêng, không dồn vào task Back (A04s chậm hơn main ở Back).
+    await nextTask();
+    if (controller.signal.aborted) return cleanup;
+    if (!geometry) measure();
   } else {
     // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
     document.body.classList.remove("is-advertising-photo");
