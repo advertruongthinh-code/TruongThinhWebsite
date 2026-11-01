@@ -4,8 +4,8 @@ Trạng thái chờ của khung ảnh nội dung trên mọi trang và của nú
 [Suggestion](../Suggestion/README.md) "Có thể bạn thích" chưa bật, tới khi ảnh
 tải và giải mã xong ([tải ảnh R6](../../../docs/specs/media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)).
 Owner duyệt 2026-10-07, thay vòng xoay và thanh tải ở đáy nút. Style ở
-`src/site/style.css` và `src/site/detail.css`, không có markup riêng. Masonry
-Advertising dùng [Skeleton](../Skeleton/README.md), không dùng vệt.
+`src/site/style.css` và `src/site/detail.css`, không có markup riêng. Card masonry
+Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../MediaCard/README.md)), không dùng vệt.
 
 ## Hành vi
 
