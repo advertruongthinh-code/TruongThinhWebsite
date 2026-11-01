@@ -12,7 +12,7 @@ const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0
 const ARC_LEVEL = 28;
 const CEILING = 100;
 export const ARC_DESKTOP_LEVELS = Object.freeze([4.5, 6.63, 9.77, 14.4, 21.21, 31.26, 46.06, 67.87, 100]);
-const ARC_DESKTOP_BITE = 1 / 9;
+export const ARC_DESKTOP_BITE = 1 / 3;
 // Bậc kề chồng mép nhau (đơn vị: một bậc) để không thấy ranh giới hay bóng ma hai lớp.
 const ARC_DESKTOP_OVERLAP = 0.3;
 // Lớp trắng phía ngoài cung về 0 ở phần này của bề rộng dải (owner 2026-11-01, trước đây ở mép dải).
@@ -194,7 +194,8 @@ export function layoutArcGlass(glass, geometry) {
   const place = (node, top, bottom = batchBottom + 2) => Object.assign(node.style, { top: `${top}px`, height: `${bottom - top}px` });
   const circle = (top) => `circle at ${width / 2}px ${cy - top}px`;
   const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
-  // Số bậc trong DOM quyết định nhánh: PC có chín bậc, phone ba (hai bậc ngoài ẩn).
+  // Số bậc trong DOM quyết định nhánh: PC có chín bậc, phone ba (hai bậc ngoài ẩn). Cố định lúc tạo, còn arcGlassGeometry đọc
+  // arcLayers() mỗi lần: loại pointer đổi sau khi tạo (DevTools emulation) thì PC dùng đỉnh phone 0.35 tới khi dựng lại.
   const desktop = steps.length > ARC_STEPS;
   // PC: core lùi vào trong biên cung đúng đoạn lấn của chín bậc.
   const edge = desktop ? radius - band * ARC_DESKTOP_BITE : radius;

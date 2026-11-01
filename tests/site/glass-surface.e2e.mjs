@@ -80,10 +80,10 @@ try {
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
-      // PC (nhánh không cảm ứng): chín bậc; bậc 0 bắt đầu ở mép ngoài dải, bậc 8 ở radius + 4 band / 81 (off_8 theo plan S5),
-      // nên sLast - s0 = 77 band / 81, cả hai trên apex yIn.
+      // PC (nhánh không cảm ứng): chín bậc; bậc 0 bắt đầu ở mép ngoài dải, bậc 8 ở off_8 = radius + band - (7.7 / 9)(4 / 3) band (đoạn lấn 1/3 dải, owner 2026-11-01),
+      // nên sLast - s0 = (7.7 / 9)(4 / 3) band, cả hai trên apex yIn.
       check(state.visibleSteps === 9, `${label}: R2 desktop arc shows ${state.visibleSteps} band steps, not 9`);
-      const band = (state.sLast - state.s0) * 81 / 77;
+      const band = (state.sLast - state.s0) / ((7.7 / 9) * (4 / 3));
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
       // R2: apex ở -15% cụm CTA (trên mép tiêu đề), phone giữ +35%; chỉ nâng để giữ hai ramp trắng thuần
@@ -139,6 +139,36 @@ try {
       check(!errors.length, `${label}: page errors ${errors.join(" | ")}`);
     } finally {
       await page.close();
+    }
+  }
+
+  // Phone (cảm ứng, spec S5): vẫn hai lớp, lõi 28px của CSS (không inline 100px), một bậc band hiện với phần tăng 25.3px.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${origin}/vi/advertising-products/`, { waitUntil: "networkidle" });
+      await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+      for (let pass = 0, last = -1; pass < 8; pass += 1) {
+        const end = await page.evaluate(() => document.documentElement.scrollHeight);
+        if (end === last) break;
+        last = end;
+        await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), end);
+        await page.waitForTimeout(800);
+      }
+      await page.waitForTimeout(1200);
+      const phone = await page.evaluate(() => {
+        const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
+        const [core, ...steps] = [...glass.querySelectorAll(".glass-surface__step")];
+        const visible = steps.filter((node) => getComputedStyle(node).display !== "none");
+        const blur = (node) => getComputedStyle(node).backdropFilter.match(/blur\(([\d.]+)px\)/)?.[1];
+        return { total: steps.length, visible: visible.length, coreInline: core.style.getPropertyValue("--glass-full-blur"),
+          coreBlur: blur(core), stepBlur: visible.map(blur) };
+      });
+      check(JSON.stringify(phone) === JSON.stringify({ total: 3, visible: 1, coreInline: "", coreBlur: "28", stepBlur: ["25.3"] }),
+        `phone arc Kính is not two layers (core 28px and one 25.3px band step) ${JSON.stringify(phone)}`);
+    } finally {
+      await context.close();
     }
   }
 

@@ -55,7 +55,7 @@ Biên kính là một cung tròn, tâm ở giữa theo chiều ngang và nằm d
 lúc cuộn hay dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn.
 
 - **PC** (owner 2026-11-01): chín bậc nhòe tăng dần đi từ mép ngoài dải (cách cung `1.75` chiều cao cụm CTA), qua biên cung, lấn
-  vào trong cung một đoạn bằng `1/9` bề rộng dải. Mức tăng theo cấp số nhân từ `4.5px` tới trần `100px`: `4.5`, `6.63`, `9.77`,
+  vào trong cung một đoạn bằng `1/3` bề rộng dải (owner 2026-11-01 chọn lấn sâu để vùng lõi 100px nhỏ lại, trước là `1/9`). Mức tăng theo cấp số nhân từ `4.5px` tới trần `100px`: `4.5`, `6.63`, `9.77`,
   `14.4`, `21.21`, `31.26`, `46.06`, `67.87`, `100px` (`4.5 × (100 / 4.5)^(i / 8)`). Quãng từ mép ngoài tới cuối đoạn lấn
   chia chín phần bằng nhau, bậc `i` đạt mức của nó ở cuối phần `i`; bậc kề chồng mép `0.3` phần để mắt không thấy ranh giới hay
   bóng ma hai lớp. Từ cuối đoạn lấn vào trong, cả vùng trong cung (lõi, gồm vùng trắng tuyệt đối R3) nhòe đều `100px`.
@@ -73,7 +73,7 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 | --- | --- |
 | Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi); phone giữ `+0.35` (đỉnh cao hơn làm phone vuốt 7-9% frame chậm) |
 | Bán kính | `3.5` × bề rộng viewport |
-| Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA; PC thêm đoạn lấn `1/9` bề rộng dải vào trong cung |
+| Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA; PC thêm đoạn lấn `1/3` bề rộng dải vào trong cung |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |
 | Trần nhòe | `100px`: PC đạt ở cuối đoạn lấn và đều tới vòng trắng tuyệt đối; phone đạt ở vòng trắng tuyệt đối không có lớp riêng |
 
@@ -87,7 +87,7 @@ tuyệt đối (R3).
 Given trang Advertising cuộn tới cuối masonry
 When người xem nhìn từ card skeleton phía trên xuống cụm CTA
 Then card skeleton phía trên cụm còn nét và chuyển động
-And PC: độ nhòe tăng liên tục qua chín bậc từ mép ngoài dải, đạt 100px ở 1/9 bề rộng dải bên trong cung rồi đều 100px, không thấy ranh giới hay bóng ma hai lớp
+And PC: độ nhòe tăng liên tục qua chín bậc từ mép ngoài dải, đạt 100px ở 1/3 bề rộng dải bên trong cung rồi đều 100px, không thấy ranh giới hay bóng ma hai lớp
 And phone vẫn 2 lớp
 And khi bật chuyển động, mép card dưới lõi cung nhòe như khi giảm chuyển động
 And ảnh thật không bị phủ

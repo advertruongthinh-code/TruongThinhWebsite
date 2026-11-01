@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
+import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
@@ -77,7 +77,7 @@ for (const [radius, band] of [[5040, 280], [1365, 8], [3.5 * 390, 120]]) {
   const steps = desktopArcSteps({ radius, band });
   assert(Math.abs(Math.sqrt(steps.reduce((sum, { blur }) => sum + blur * blur, 0)) - 100) < 0.01, "R2: stacked blur sums to 100px");
   assert(Math.abs(steps[0].off - (radius + band)) < 1e-9, "R2: the first step starts at the outer band edge");
-  assert(Math.abs(steps.at(-1).on - (radius - band / 9)) < 1e-9, "R2: the last step is solid from 1/9 of the band inside the arc");
+  assert(Math.abs(steps.at(-1).on - (radius - band * ARC_DESKTOP_BITE)) < 1e-9, "R2: the last step is solid from 1/3 of the band inside the arc");
   assert(steps.every(({ on, off }, index) => on < off && (!index || off < steps[index - 1].off && on < steps[index - 1].on)),
     "R2: steps are ordered outside in and overlap their neighbours");
 }
