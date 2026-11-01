@@ -37,7 +37,7 @@ thanh cuộn tụt còn 14 FPS. Skeleton Flow chỉ còn ở batch cuối masonr
 sẵn ngoài viewport chưa mờ.
 
 Card đang mờ thì media thở (owner 2026-11-01): runtime gắn `data-advertising-media-loading` lên card cùng lúc đặt blur,
-CSS cho media chạy `@keyframes media-breathe` (opacity `1 → 0.45 → 1`, chu kỳ `2s`, `ease-in-out`, lặp; keyframe của
+CSS cho media đang mờ chạy `@keyframes media-breathe` (opacity `1 → 0.45 → 1`, chu kỳ `2s`, `ease-in-out`, lặp; keyframe của
 [Vệt sáng giảm chuyển động](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)). Blur `24px` và màu chủ đạo giữ nguyên, nên lúc
 tối nhất ảnh nhạt về màu chủ đạo, không về trắng. Thở bắt đầu đúng lúc card mờ, không trễ. Primary, skeleton Flow và viewer
 không thở.

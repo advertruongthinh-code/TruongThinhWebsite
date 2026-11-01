@@ -1698,8 +1698,9 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Card chờ ảnh thở bằng chính keyframe media-breathe của Vệt sáng (style.css); runtime gắn
-   data-advertising-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). */
-[data-advertising-media-loading] .advertising-tile__foreground {
+   data-advertising-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). Chỉ layer đang mờ thở: layer tạo theo
+   nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
+[data-advertising-media-loading] .advertising-tile__foreground[style*="blur("] {
   animation: media-breathe 2s ease-in-out infinite;
 }
 
