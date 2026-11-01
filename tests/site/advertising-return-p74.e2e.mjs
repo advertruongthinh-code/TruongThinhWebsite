@@ -139,6 +139,45 @@ try {
     console.log(`PASS ${width}: CTA/footer fit, stable reload position, white skeleton edge`);
     await page.close();
   }
+  // Back khi Worker còn tính geometry grid sau lần vào thẳng ?photo=, rồi resize: grid theo bề rộng mới như lần tải mới.
+  {
+    const columns = () => {
+      const grid = document.querySelector("[data-project-grid]").getBoundingClientRect();
+      const cards = [...document.querySelectorAll("[data-advertising-card]:not([hidden])")]
+        .map((node) => node.getBoundingClientRect()).filter((rect) => rect.width);
+      return { columns: new Set(cards.map((rect) => Math.round(rect.left))).size, gridWidth: grid.width };
+    };
+    const page = await browser.newPage({ viewport: { width: 1329, height: 912 } });
+    await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    const hero = await page.$eval("[data-advertising-card]", (node) => node.dataset.advertisingCard);
+    // Hoãn mọi message gửi Worker 3 s: lượt prewarm grid sau detail còn chạy lúc bấm navbar.
+    await page.addInitScript(() => {
+      const post = Worker.prototype.postMessage;
+      Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
+    });
+    await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true",
+      null, { timeout: 30000 });
+    await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
+    await page.waitForTimeout(300);
+    await page.setViewportSize({ width: 800, height: 900 });
+    const fresh = await browser.newPage({ viewport: { width: 800, height: 900 } });
+    await fresh.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    await fresh.waitForTimeout(900);
+    const expected = await fresh.evaluate(columns);
+    // Card trượt 0.4s tới layout mới (chậm hơn khi máy bận); bản lỗi kẹt layout cũ cả sau khi Worker trả kết quả.
+    let returned;
+    for (const until = Date.now() + 5000; Date.now() < until;) {
+      returned = await page.evaluate(columns);
+      if (returned.columns === expected.columns) break;
+      await page.waitForTimeout(150);
+    }
+    assert.equal(returned.columns, expected.columns, `resize sau Back khi Worker còn tính: ${JSON.stringify({ returned, expected })}`);
+    // shortcut: chưa kiểm bề rộng từng card; ca này có lúc để một card giữ bề rộng cũ, cả trên main (đã báo điều phối),
+    // thêm khi bug đó được sửa.
+    console.log(`PASS direct photo, Back while grid Worker pending, resize: ${returned.columns} columns`);
+    await Promise.all([page.close(), fresh.close()]);
+  }
 } finally {
   await browser.close();
 }

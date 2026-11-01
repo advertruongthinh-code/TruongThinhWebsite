@@ -2701,8 +2701,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
   const moveCtaNodes = (host) => {
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
-    if (host === "detail" && photoCanvas) photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
-    else {
+    if (host === "detail" && photoCanvas) {
+      photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
+      // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
+      gridCta?.style.setProperty("visibility", "hidden");
+    } else {
+      gridCta?.style.removeProperty("visibility");
       grid.append(ctaSkeleton);
       gridSectionStyleTarget?.append(...[gridCta, arcGlass].filter(Boolean));
       // Biến detail đặt thẳng trên cụm CTA; ở grid cụm kế thừa từ .project-index.
@@ -2748,10 +2752,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry.
     const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
     setStyleVar(ctaVarHost, "--advertising-cta-top", `${ctaTop}px`);
-    if (detailHost) setStyleVar(gridCta, "--advertising-gap", `${gap}px`);
+    if (detailHost) {
+      setStyleVar(gridCta, "--advertising-gap", `${gap}px`);
+      gridCta?.style.removeProperty("visibility");
+    }
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
+      // Cỡ copy sau fit là cỡ ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai. Đọc khi layout
+      // còn sạch sau lần đo của fit, trước các lần ghi biến dưới.
+      const copyRect = gridCtaCopy.getBoundingClientRect();
+      observedCopySize = `${copyRect.width}x${copyRect.height}`;
       // CSS đặt copy theo dynamic viewport, nên thanh địa chỉ không bao giờ dựng lại batch.
       gridCta.style.setProperty("--advertising-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
@@ -4612,8 +4623,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         window.dispatchEvent(new CustomEvent("site:layout"));
         return;
       }
-      // Mount còn chờ geometry từ Worker và sẽ tự measure.
-      if (geometryPending) return;
+      // Mount còn chờ geometry từ Worker và sẽ tự measure. Back trong lúc chờ đã measure đồng bộ: resize phải chạy.
+      if (geometryPending && !geometry) return;
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
         // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
@@ -4884,8 +4895,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ. Grid ẩn khi mở
     // detail rồi hiện lại cùng cỡ thì giữ số đo, để task Back không fit lại heading (decision phone-frame-budget).
     const copyEntry = entries.find((entry) => entry.target === gridCtaCopy);
-    // Chỉ bề rộng: chiều cao copy đổi do chính lần fit heading của renderCtaSkeleton, coi là đổi thì dựng CTA lần hai.
-    const copySize = copyEntry && `${copyEntry.contentRect.width}`;
+    const copySize = copyEntry && `${copyEntry.contentRect.width}x${copyEntry.contentRect.height}`;
     if (copyEntry?.contentRect.width && copySize !== observedCopySize) {
       observedCopySize = copySize;
       ctaCopyKey = "";
