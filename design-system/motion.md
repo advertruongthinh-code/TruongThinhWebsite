@@ -210,8 +210,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 (mục trên) và ảnh hiện (mục này).
 
 - Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
-  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải.
-  Tải và `decode()` xong thì blur về `none` trong `0.6s`
+  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
+  (opacity `1 → 0.45 → 1`, `2s ease-in-out`, lặp; reduced motion không thở). Tải và `decode()` xong thì thở dừng,
+  blur về `none` và opacity về 1 trong `0.6s`
   `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
@@ -253,7 +254,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
-  dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
+  dấu card vừa xem bằng lớp phủ tối (chỉ hiện khi media sẵn sàng) và nhãn `Vừa xem` / `Just viewed` có bóng D.
 - Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
   chưa giải mã xong sau `100ms` thì khung primary mang skeleton như card rồi
   crossfade dưới kính cùng nhịp `0.6s` như card (owner 19/10). Ảnh có sẵn: ảnh đang xem và nền blur
