@@ -17,18 +17,51 @@
   };
   const hoverBox = box("hover");
   const selectedBox = box("selected");
-  const byKey = (key) => key && document.querySelector(`[data-cms-key="${key}"]`);
   const visible = (node) => node.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true;
-  // Phần tử trên cùng tại điểm bấm có khóa và đang hiện (slide hero ẩn có opacity 0 nên bị bỏ qua).
-  const pick = (x, y) => document.elementsFromPoint(x, y)
-    .map((node) => node.closest("[data-cms-key]"))
-    .find((node) => node && visible(node));
+  // Trang Sản phẩm Quảng cáo (R7): chọn cả card (ô lưới, gợi ý, khung ảnh chính của trang chi tiết), khóa "card:<id>".
+  const cardsMode = window.TTCms.page === "advertising";
+  const cardPath = () => decodeURIComponent(location.pathname.match(/\/advertising-products\/p\/([^/]+)\/$/)?.[1] ?? "");
+  const cardOf = (node) => {
+    const tile = node.closest("[data-advertising-card], [data-advertising-related-card]");
+    if (tile) return tile.dataset.advertisingCard ?? tile.dataset.advertisingRelatedCard;
+    return node.closest("[data-advertising-photo-primary]") ? cardPath() || null : null;
+  };
+  const byKey = (key) => {
+    if (!key?.startsWith("card:")) return key && document.querySelector(`[data-cms-key="${key}"]`);
+    const id = key.slice(5);
+    return [document.querySelector(`[data-advertising-card="${CSS.escape(id)}"]`),
+      cardPath() === id ? document.querySelector("[data-advertising-photo-primary]") : null].find((node) => node && visible(node));
+  };
   const info = (node) => ({
     key: node.dataset.cmsKey,
     kind: node.tagName === "IMG" ? "image" : "text",
     list: node.closest("[data-cms-list]")?.dataset.cmsList ?? null,
     item: node.closest("[data-cms-item]")?.dataset.cmsItem ?? null,
   });
+  // Phần tử trên cùng tại điểm bấm có khóa (hoặc card) và đang hiện (slide hero ẩn có opacity 0 nên bị bỏ qua).
+  const pick = (x, y) => {
+    for (const node of document.elementsFromPoint(x, y)) {
+      if (cardsMode) {
+        const id = cardOf(node);
+        if (id) return { node: byKey(`card:${id}`) ?? node, selection: { kind: "card", card: id, key: `card:${id}` } };
+        continue;
+      }
+      const keyed = node.closest("[data-cms-key]");
+      if (keyed && visible(keyed)) return { node: keyed, selection: info(keyed) };
+    }
+    return null;
+  };
+  // Thả media từ panel Media (R6): vào danh sách là thêm mục, vào ảnh lẻ là đổi ảnh, vào card là thêm media cho card.
+  const MEDIA_TYPE = "application/x-tt-media";
+  const dropTarget = (x, y) => {
+    if (cardsMode) return pick(x, y);
+    for (const node of document.elementsFromPoint(x, y)) {
+      const list = node.closest("[data-cms-list]");
+      if (list) return { node: list, selection: { kind: "list", list: list.dataset.cmsList } };
+      if (node.tagName === "IMG" && node.dataset.cmsKey && visible(node)) return { node, selection: info(node) };
+    }
+    return null;
+  };
 
   const place = (frame, node) => {
     const rect = node?.isConnected ? node.getBoundingClientRect() : null;
@@ -104,12 +137,28 @@
   };
   ["pointerdown", "mousedown", "auxclick", "submit"].forEach((type) => addEventListener(type, block, { capture: true }));
   addEventListener("mousemove", (event) => {
-    hoverNode = editMode ? pick(event.clientX, event.clientY) : null;
+    hoverNode = editMode ? pick(event.clientX, event.clientY)?.node ?? null : null;
   }, { passive: true });
-  // Chế độ xem vẫn không chuyển trang (link, Barba): iframe rời bản xem trước thì mất nháp và overlay.
+  addEventListener("dragover", (event) => {
+    if (!event.dataTransfer?.types.includes(MEDIA_TYPE)) return;
+    const target = dropTarget(event.clientX, event.clientY);
+    hoverNode = target?.node ?? null;
+    if (target) event.preventDefault();
+  }, true);
+  addEventListener("drop", (event) => {
+    const src = event.dataTransfer?.getData(MEDIA_TYPE);
+    const target = src && dropTarget(event.clientX, event.clientY);
+    hoverNode = null;
+    if (!target) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    editor.onDropMedia(src, target.selection);
+  }, true);
+  // Chế độ xem vẫn không chuyển trang (link, Barba): iframe rời bản xem trước thì mất nháp và overlay. Riêng link mở
+  // trang chi tiết card do runtime Sản phẩm Quảng cáo xử lý tại chỗ (đổi path, không tải trang) nên vẫn cho bấm.
   const stayOnPreview = (event) => {
     const href = event.target.closest?.("a[href]")?.getAttribute("href");
-    if (!href || href.startsWith("#")) return;
+    if (!href || href.startsWith("#") || (cardsMode && /\/advertising-products\/p\//.test(href))) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     editor.toast("Chế độ xem không chuyển trang. Mở trang khác từ bảng Trang hoặc nút Mở tab mới.");
@@ -118,14 +167,14 @@
     if (!editMode) return stayOnPreview(event);
     if (inline?.contains(event.target)) return;
     block(event);
-    const node = pick(event.clientX, event.clientY);
-    selectedKey = node?.dataset.cmsKey ?? null;
-    editor.onSelect(node ? info(node) : null);
+    const hit = pick(event.clientX, event.clientY);
+    selectedKey = hit?.selection.key ?? null;
+    editor.onSelect(hit?.selection ?? null);
   }, true);
   addEventListener("dblclick", (event) => {
     if (!editMode) return;
-    const node = pick(event.clientX, event.clientY);
-    if (node && node.tagName !== "IMG") startInline(node);
+    const hit = pick(event.clientX, event.clientY);
+    if (hit?.selection.kind === "text") startInline(hit.node);
   }, true);
   addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !inline) {

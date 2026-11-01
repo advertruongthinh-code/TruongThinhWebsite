@@ -138,23 +138,77 @@
     mirror(doc);
   }
 
+  // Vá catalog Sản phẩm Quảng cáo theo sửa đổi card (R7). Runtime nhận Promise qua hook có sẵn
+  // window.__TT_ADVERTISING_ARTIFACT__; hàm tự chứa (không dùng biến ngoài) vì Worker chèn nguyên mã nguồn của nó vào
+  // trang public (R10). Đổi sản phẩm chính là đổi cụm: card nhận sourceOrder cuối cụm mới, hạng xếp lại theo runtime.
+  async function patchCatalog(edits) {
+    const dir = "/advertising-products/";
+    const [{ default: base }, { default: detail }, { scheduleAdvertisingRank }] = await Promise.all(
+      ["catalog-artifact", "catalog-detail", "layout-core"].map((name) => import(`${dir}${name}.mjs`)),
+    );
+    const clusterOf = new Map(base.products.map((product) => [product.id, product.cluster]));
+    const nextOrder = new Map();
+    base.cards.forEach((card) => nextOrder.set(card.category, Math.max(nextOrder.get(card.category) ?? 0, card.sourceOrder + 1)));
+    let moved = false;
+    const cards = base.cards.map((source) => {
+      const card = { ...source, ...detail[source.id] };
+      const edit = edits?.[card.id];
+      if (!edit) return card;
+      const media = edit.mediaItems.find((item) => item.id === edit.coverMediaId) ?? edit.mediaItems[0];
+      const category = clusterOf.get(edit.productIds[0]) ?? card.category;
+      const next = {
+        ...card,
+        titleVi: edit.titleVi,
+        titleEn: edit.titleEn,
+        descriptionVi: edit.descriptionVi,
+        descriptionEn: edit.descriptionEn,
+        productIds: edit.productIds,
+        clusterIds: edit.productIds.map((id) => clusterOf.get(id)),
+        tagIds: [...edit.productIds, ...(card.tagIds || []).filter((id) => !card.productIds?.includes(id))],
+        mediaItems: edit.mediaItems,
+        coverMediaId: media.id,
+        media,
+        category,
+      };
+      if (category !== card.category) {
+        moved = true;
+        next.sourceOrder = nextOrder.get(category) ?? 0;
+        nextOrder.set(category, next.sourceOrder + 1);
+      }
+      return next;
+    });
+    return { ...base, cards: moved ? scheduleAdvertisingRank(cards, base.categories.map((entry) => entry.slug)) : cards };
+  }
+
+  // Nháp (chưa lưu) và bản đã lưu (cache của GET /api/admin/content, R8): bản xem trước áp nháp, không có thì bản đã lưu.
   const draftKey = (page) => `tt-cms-draft:${page}`;
-  const readDraft = (page) => {
+  const savedKey = (page) => `tt-cms-saved:${page}`;
+  const read = (key) => {
     try {
-      return JSON.parse(localStorage.getItem(draftKey(page)) || "null");
+      return JSON.parse(localStorage.getItem(key) || "null");
     } catch {
       return null;
     }
   };
+  const readDraft = (page) => read(draftKey(page));
+  const readSaved = (page) => read(savedKey(page));
 
-  window.TTCms = { LISTS, PLACEHOLDER, stamp, apply, setText, mirror, draftKey, readDraft };
+  // globalThis: Worker (không có window) nạp cùng file để áp nội dung đã lưu y như bản xem trước (R10).
+  globalThis.TTCms = { LISTS, PLACEHOLDER, stamp, apply, setText, mirror, patchCatalog, draftKey, savedKey, readDraft, readSaved };
 
   // Bản xem trước trong iframe của /admin/: gắn khóa, áp nháp, rồi nạp overlay. Ngoài iframe admin thì không làm gì.
+  if (typeof document === "undefined") return;
   const boot = document.currentScript?.dataset.cmsBoot;
   if (!boot || !window.frameElement?.hasAttribute("data-cms-preview")) return;
   const locale = document.documentElement.dataset.routeLocale === "en" ? "en" : "vi";
-  stamp(document, boot);
-  apply(document, readDraft(boot), locale);
+  const edits = readDraft(boot) ?? readSaved(boot);
+  globalThis.TTCms.page = boot;
+  // Trang Sản phẩm Quảng cáo: chỉ sửa card (R7), runtime dựng card từ catalog đã vá; trang khác gắn khóa và áp nháp.
+  if (boot === "advertising") window.__TT_ADVERTISING_ARTIFACT__ = patchCatalog(edits?.cards);
+  else {
+    stamp(document, boot);
+    apply(document, edits, locale);
+  }
   // Giữ instance Locomotive để overlay cuộn tới chỗ đang sửa sau khi tải lại (smooth scroll bỏ qua scrollIntoView).
   let Loco;
   Object.defineProperty(window, "LocomotiveScroll", {

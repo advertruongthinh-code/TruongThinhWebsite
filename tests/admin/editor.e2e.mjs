@@ -3,7 +3,8 @@ import path from "node:path";
 import process from "node:process";
 
 // Luồng chính của editor placeholder (cms-editor R1 đến R8) trên preview tĩnh sau `node scripts/cms/build-admin.mjs`:
-// chọn chữ, sửa VI, đổi cỡ, thêm mục gallery bằng ảnh từ Media, nháp còn sau khi tải lại, Lưu báo chưa nối lưu trữ.
+// chọn chữ, sửa VI, đổi cỡ, thêm mục gallery bằng ảnh từ Media, nháp còn sau khi tải lại, Lưu chặn ô trống rồi báo chưa
+// nối lưu trữ; panel Media lọc, chi tiết, thả ảnh vào gallery, ghi alt (R6); sửa card Sản phẩm Quảng cáo (R7).
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -15,7 +16,8 @@ page.on("pageerror", (error) => errors.push(String(error)));
 page.on("console", (message) => message.type() === "error" && !message.location().url?.includes("/api/admin/")
   && errors.push(`${message.text()} ${message.location().url ?? ""}`));
 
-const frame = () => page.frames().find((entry) => entry.url().includes("/admin/preview/"));
+// Bản xem trước Sản phẩm Quảng cáo đổi URL sang path thật (replaceState): tìm iframe theo cấp, không theo URL.
+const frame = () => page.frames().find((entry) => entry.parentFrame() === page.mainFrame());
 const draft = () => page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:residential") || "null"));
 // Bản xem trước sẵn sàng: overlay đã nạp và runtime site đã chạy (cuộn, tách chữ). Worker local chuyển
 // `x.html` sang `x/` (html_handling), static server giữ `.html`: so tên trang không kèm đuôi.
@@ -118,11 +120,81 @@ try {
   await page.locator(".pick").waitFor();
   await page.keyboard.press("Escape");
 
-  // Lưu khi chưa nối lưu trữ: báo rõ, nháp giữ nguyên.
+  // Lưu khi mục mới còn chú thích trống: chặn và báo số ô trống; nhập đủ rồi Lưu khi chưa nối lưu trữ: báo rõ, nháp giữ nguyên.
+  await page.click("#save");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Còn 1 ô trống"));
+  await frame().evaluate((list) => {
+    const item = [...document.querySelectorAll(`[data-cms-list="${list}"] > [data-cms-item]`)].at(-1);
+    const node = item.querySelector("[data-cms-key]:not(img)");
+    window.parent.TTEditor.onSelect({ kind: "text", key: node.dataset.cmsKey, list, item: item.dataset.cmsItem });
+  }, gallery.list);
+  await props.locator("textarea").nth(0).fill("Chú thích mới");
+  await props.locator("textarea").nth(1).fill("New caption");
   await page.click("#save");
   await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Chưa nối"));
   assert.equal(await page.textContent("#toast"), "Chưa nối lưu trữ, nháp vẫn ở máy này.");
   assert.ok(await draft());
+
+  // R6: lọc "Chưa dùng", xem chi tiết, kéo thả ảnh vào gallery trong xem trước: thêm mục, ảnh thành "đang dùng".
+  await page.locator(".dv-tab", { hasText: "Media" }).click();
+  await page.locator(".panel--media select").nth(1).selectOption("unused");
+  const unused = page.locator(".media-tile", { hasText: "Chưa dùng" }).first();
+  const unusedSrc = (await unused.getAttribute("title")).split("\n")[0];
+  await unused.click();
+  await page.locator(".media-detail", { hasText: "Chưa dùng ở đâu" }).waitFor();
+  const target = await frame().evaluate((list) => {
+    const img = document.querySelector(`[data-cms-list="${list}"] img[data-cms-key]`);
+    window.TTCmsOverlay.select(img.dataset.cmsKey);
+    return img.dataset.cmsKey;
+  }, gallery.list);
+  await page.waitForTimeout(400);
+  const before = (await draft()).list[gallery.list].length;
+  await frame().evaluate(({ key, src }) => {
+    const rect = document.querySelector(`[data-cms-key="${key}"]`).getBoundingClientRect();
+    const data = new DataTransfer();
+    data.setData("application/x-tt-media", src);
+    const point = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+    document.elementFromPoint(point.clientX, point.clientY).dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: data, ...point }));
+  }, { key: target, src: unusedSrc });
+  await previewReady("/vi/residential");
+  const dropped = await draft();
+  assert.equal(dropped.list[gallery.list].length, before + 1);
+  assert.ok(Object.entries(dropped.image).some(([entry, value]) => entry.includes("@") && value.src === unusedSrc), "dropped media lands in a new gallery item");
+  await page.locator(".panel--media select").nth(1).selectOption("used");
+  await page.locator(".media-tile", { hasText: unusedSrc.split("/").pop() }).first().click();
+  await page.locator(".media-detail .uses button", { hasText: "Nhà ở" }).first().waitFor();
+  // Alt sửa ở Media ghi vào nháp của mọi chỗ dùng ảnh đó.
+  await page.locator(".media-detail").getByLabel("Alt tiếng Việt").fill("Alt thử từ Media");
+  await page.locator(".media-detail").getByRole("button", { name: /Ghi alt vào 1 chỗ dùng/ }).click();
+  assert.ok(Object.values((await draft()).image).some((value) => value.src === unusedSrc && value.altVi === "Alt thử từ Media"));
+
+  // R7: trang Sản phẩm Quảng cáo, bấm card trong xem trước, đổi tên (xem trước dựng lại từ catalog đã vá), thêm media.
+  await page.locator(".panel--pages .search").fill("advertising-products");
+  await page.locator(".tree__item", { hasText: "Sản phẩm quảng cáo" }).first().click();
+  await previewReady("/vi/advertising-products");
+  const tileLocator = frame().locator("[data-advertising-card]").first();
+  await tileLocator.waitFor();
+  const cardId = await tileLocator.getAttribute("data-advertising-card");
+  await tileLocator.click();
+  await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
+  await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS");
+  await props.getByLabel("Tên tiếng Việt").blur();
+  await previewReady("/vi/advertising-products");
+  const patched = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).titleVi, cardId);
+  assert.equal(patched, "Card thử CMS");
+  await props.getByRole("button", { name: "Thêm media" }).click();
+  await page.locator(".pick").waitFor();
+  await page.locator(".media-tile").first().click();
+  const cardDraft = await page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:advertising")));
+  assert.equal(cardDraft.cards[cardId].titleVi, "Card thử CMS");
+  assert.equal(cardDraft.cards[cardId].mediaItems.length, 2);
+  assert.match(await page.textContent("#draft-status"), /Chưa lưu · 1 thay đổi/);
+  // Trang card p/<id>: mở là chọn sẵn card đó.
+  await page.locator(".panel--pages .search").fill(`p/${cardId}`);
+  await page.locator(".tree__item", { hasText: cardId }).click();
+  await previewReady(`/p/${cardId}`);
+  await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
+  assert.equal(await props.getByLabel("Tên tiếng Việt").inputValue(), "Card thử CMS");
 
   assert.deepEqual(errors, []);
   console.log("[editor.e2e] PASS");

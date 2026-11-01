@@ -108,6 +108,7 @@ async function runSecurityContract() {
       ["POST", "/api/admin/media"],
       ["PUT", "/api/admin/media/test-media"],
       ["GET", "/api/admin/audit-log"],
+      ["GET", "/api/admin/content/home"],
       ["PUT", "/api/admin/content/home"],
     ];
     const tokenParts = token.split(".");
