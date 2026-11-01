@@ -106,6 +106,8 @@ try {
     const after = getComputedStyle(link, "::after");
     return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
   });
+  // Lớp tối chờ ảnh nền settle (spec chờ ảnh S3): đọc sau khi nút đã is-media-settled.
+  await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
   const inactiveNormal = await inactiveOverlay();
   assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "settled inactive suggestion shows the 0.5 overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
@@ -143,10 +145,15 @@ try {
   await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
   const inactiveSweep = await sweep(inactiveLink);
   // Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): chưa settle thì ::after trong suốt.
-  // Chờ hết transition opacity 250ms của lớp tối rồi mới đọc giá trị đích.
-  await page.waitForTimeout(300);
-  assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link, "::after").opacity), "0",
-    "unsettled suggestion shows only the sweep, no overlay");
+  // Kết thúc transition opacity 250ms của lớp tối rồi mới đọc giá trị đích, không dựa mốc thời gian.
+  // Gỡ class lại trong cùng evaluate: ảnh slide khác load có thể gắn lại is-media-settled giữa hai lần đọc.
+  const unsettledOverlay = await inactiveLink.evaluate((link) => {
+    link.classList.remove("is-media-settled");
+    document.getAnimations().filter((animation) => animation.effect?.target === link && animation.effect.pseudoElement === "::after")
+      .forEach((animation) => animation.finish());
+    return { settled: link.classList.contains("is-media-settled"), opacity: getComputedStyle(link, "::after").opacity };
+  });
+  assert.deepEqual(unsettledOverlay, { settled: false, opacity: "0" }, "unsettled suggestion shows only the sweep, no overlay");
   await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
   assert.deepEqual(inactiveSweep, { animation: "media-sweep", zIndex: "1", image: 0 },
     "inactive suggestion sweeps under its label and hides the photo until it decodes");
