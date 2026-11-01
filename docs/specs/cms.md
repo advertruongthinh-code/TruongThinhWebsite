@@ -39,7 +39,8 @@ And không script nào trong package.json trỏ tới wrangler.toml
 
 ### R2. Redirect, route locale, robots và sitemap
 
-`handleRequest()` xét theo thứ tự: redirect, `/robots.txt`, `/sitemap.xml`, `/api/`, `/media/`, `/admin` (308 sang
+`handleRequest()` xét theo thứ tự: host `admin.*` thì `/` 308 sang `/admin/`; `/admin*`, `/api/admin*` trên host không phải
+`admin.*` hay loopback trả 404 (CMS ở `admin.truongthinhads.vn`, web ở www); redirect, `/robots.txt`, `/sitemap.xml`, `/api/`, `/media/`, `/admin` (308 sang
 `/admin/`), `/admin/*` (trả thẳng `ASSETS`, Worker không kiểm quyền), route locale, còn lại `ASSETS`. `routeRedirect()`
 trả 308, giữ query: `/`, `/index.html` sang `/vi/`; `LEGACY_ROUTES` (`/nha-o`, `/kinh-doanh`, `/quang-cao`,
 `/gioi-thieu`) và `SOURCE_ROUTE_REDIRECTS` (path không locale, `projects-products` ở mọi locale) sang trang tương ứng;
@@ -106,7 +107,7 @@ Mọi `/api/admin/*` qua `requireAdmin()`: `Cf-Access-Jwt-Assertion` là JWT RS2
 `ACCESS_TEAM_DOMAIN` (https, đuôi `.cloudflareaccess.com`, path `/`); `aud` thuộc `ACCESS_AUD`; `exp` chưa qua, `nbf`
 không quá 60 giây tới; chữ ký khớp key từ `<team>/cdn-cgi/access/certs` (cache 1 giờ); `email` trùng
 `Cf-Access-Authenticated-User-Email` và nằm trong `ADMIN_EMAILS`, không phân biệt hoa thường. Sai điều nào: 403.
-Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` đúng origin public, không thì 403. Ngoại lệ local: `CMS_LOCAL_ADMIN_EMAIL` có giá trị và host request là `127.0.0.1`, `localhost` hoặc `[::1]` thì email đó là admin, không cần JWT; host khác vẫn qua Access dù biến bị đặt.
+Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` bằng origin của chính request (không dùng `PUBLIC_ORIGIN`, vì CMS ở subdomain khác), không thì 403. Ngoại lệ local: `CMS_LOCAL_ADMIN_EMAIL` có giá trị và host request là `127.0.0.1`, `localhost`, `[::1]` hoặc `admin.localhost` thì email đó là admin, không cần JWT; host khác vẫn qua Access dù biến bị đặt.
 
 ```gherkin
 Given env có ACCESS_TEAM_DOMAIN, ACCESS_AUD, ADMIN_EMAILS
