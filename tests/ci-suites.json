@@ -7,6 +7,8 @@
     "tests/tooling/**",
     "src/worker/**",
     "src/admin/**",
+    "scripts/cms/**",
+    "tests/admin/**",
     "src/db/**",
     "wrangler.toml",
     ".github/workflows/docs.yml",
@@ -35,7 +37,7 @@
   ],
   "suites": {
     "fast": {
-      "specs": ["static-release", "cms"],
+      "specs": ["static-release", "cms", "cms-editor"],
       "tests": [
         "pnpm qa:static",
         "node --test tests/tooling/*.test.mjs",
@@ -46,7 +48,9 @@
         "node scripts/tooling/serve-static-parity.mjs --self-test",
         "node --test tests/site/*.test.mjs",
         "pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium",
-        "TT_E2E_STATIC_ONLY=1 node tests/site/site.e2e.cjs"
+        "TT_E2E_STATIC_ONLY=1 node tests/site/site.e2e.cjs",
+        "node --test tests/admin/*.test.mjs",
+        "node scripts/cms/build-admin.mjs && node tests/admin/editor.e2e.mjs"
       ]
     },
     "shell": {

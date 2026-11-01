@@ -108,6 +108,7 @@ async function runSecurityContract() {
       ["POST", "/api/admin/media"],
       ["PUT", "/api/admin/media/test-media"],
       ["GET", "/api/admin/audit-log"],
+      ["PUT", "/api/admin/content/home"],
     ];
     const tokenParts = token.split(".");
     const signatureIndex = Math.floor(tokenParts[2].length / 2);
@@ -154,6 +155,18 @@ async function runSecurityContract() {
         assert(response.status === 403, `${label} token reached ${method} ${path} with ${response.status}`);
       }
     }
+
+    // Đăng nhập dev chỉ nhận host loopback; host public vẫn cần Access dù biến bị đặt nhầm.
+    const devEnv = { ...env, CMS_LOCAL_ADMIN_EMAIL: "admin@localhost" };
+    for (const [method, path] of protectedEndpoints) {
+      const response = await worker.default.fetch(new Request(`https://site.example${path}`, { method, headers: { Origin: "https://site.example" } }), devEnv);
+      assert(response.status === 403, `dev admin reached public host ${method} ${path} with ${response.status}`);
+    }
+    const devList = await worker.default.fetch(new Request("http://127.0.0.1:8788/api/admin/settings"), {
+      ...devEnv,
+      DB: { prepare: () => ({ all: async () => ({ results: [] }) }) },
+    });
+    assert.equal(devList.status, 200, "dev admin must reach admin API on loopback");
 
     const invalidWebp = new FormData();
     invalidWebp.append("kind", "image");

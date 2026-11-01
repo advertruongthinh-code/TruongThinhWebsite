@@ -678,6 +678,8 @@ async function handleAdminApi(request, env, url, actor) {
   if (url.pathname === "/api/admin/audit-log" && request.method === "GET") {
     return listAuditLog(env);
   }
+  // shortcut: editor placeholder lưu nháp ở slice 3 (cms-editor R8); tới đó báo chưa nối lưu trữ.
+  if (url.pathname.startsWith("/api/admin/content/")) return json({ error: "Content storage not connected." }, 501);
   if (url.pathname.startsWith("/api/admin/")) return handleAdminResource(request, env, url, actor);
   return json({ error: "Not Found" }, 404);
 }
@@ -945,6 +947,8 @@ function hasAllowedOrigin(request, env, url) {
 }
 
 async function requireAdmin(request, env) {
+  const localAdmin = localDevAdmin(request, env);
+  if (localAdmin) return localAdmin;
   const claims = await verifyAccessJwt(request, env);
   const actor = typeof claims?.email === "string" ? claims.email.trim().toLowerCase() : "";
   const assertedEmail = request.headers.get("Cf-Access-Authenticated-User-Email")?.trim().toLowerCase();
@@ -955,6 +959,14 @@ async function requireAdmin(request, env) {
       .filter(Boolean),
   );
   return actor && assertedEmail === actor && allowed.has(actor) ? actor : null;
+}
+
+// Đăng nhập dev cho `pnpm cms:dev`: cần biến CMS_LOCAL_ADMIN_EMAIL và host loopback.
+// Production không đặt biến này và không nhận request host loopback, nên vẫn chỉ qua Access.
+function localDevAdmin(request, env) {
+  const email = String(env.CMS_LOCAL_ADMIN_EMAIL || "").trim().toLowerCase();
+  const host = new URL(request.url).hostname;
+  return email && (host === "127.0.0.1" || host === "localhost" || host === "[::1]") ? email : null;
 }
 
 async function verifyAccessJwt(request, env) {

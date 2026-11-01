@@ -88,7 +88,8 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | content-tests | `content-independent-tests.md` | `content-contract.mjs` | |
 | design-system | `design-system.md` | `scripts/docs/build-*`, `capture-*`, `stage-*` | |
 | docs | `docs-system.md` | `check-docs.mjs`, PR template, `docs.yml` | |
-| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) | |
+| cms | `cms.md` | `src/worker/`, `src/db/migrations/`, `wrangler.toml` (dormant) | |
+| cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: editor placeholder, overlay, thư viện media (planned, slice 1 local) | |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) | |
 
 Mỗi spec theo `docs/specs/_template.md` mới:

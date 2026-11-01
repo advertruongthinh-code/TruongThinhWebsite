@@ -175,6 +175,9 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: 5.3.0
         version: 5.3.0
+      dockview:
+        specifier: 8.8.0
+        version: 8.8.0
       gsap:
         specifier: 3.15.0
         version: 3.15.0
@@ -540,6 +543,12 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
+  dockview-core@8.8.3:
+    resolution: {integrity: sha512-B9v+ibiXnZ5qgFJ7VEqMcNxpG0S5Y7Yx7uuGqqSyEFSC3bRZktUoXWo3HCrFp+QTdFmA1dJD1ye/gI4yL3hU2g==}
+
+  dockview@8.8.0:
+    resolution: {integrity: sha512-1qey+qO1O1xzp5IR5E+5bNs0sdkf6icfaV3XcBeF96/o69ZxXxSS4ladnGnrkoeUTc80PV90vh3WX4Z3Rq1KmA==}
+
   esbuild@0.25.5:
     resolution: {integrity: sha512-P8OtKZRv/5J5hhz0cUAdu/cLuPIKXpQl1R9pZtvmHWQvrAUVd0UNIPT4IB4W3rNOqVO0rlqHmCIbSwxh/c9yUQ==}
     engines: {node: '>=18'}
@@ -827,6 +836,12 @@ snapshots:
   desandro-matches-selector@2.0.2: {}
 
   detect-libc@2.1.2: {}
+
+  dockview-core@8.8.3: {}
+
+  dockview@8.8.0:
+    dependencies:
+      dockview-core: 8.8.3
 
   esbuild@0.25.5:
     optionalDependencies:

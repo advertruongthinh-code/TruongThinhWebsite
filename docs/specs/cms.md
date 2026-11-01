@@ -3,7 +3,6 @@ title: CMS Worker, admin và D1
 status: dormant
 source:
   - src/worker/**
-  - src/admin/**
   - src/db/migrations/**
   - wrangler.toml
 tests:
@@ -20,8 +19,7 @@ updated: 2026-10-21
 
 Phase CMS để owner tự đăng nội dung VI/EN (chữ, ảnh, video) qua layout đã duyệt; website tĩnh luôn là fallback và
 đường rollback. Spec mô tả code dormant đang có: Worker route, SEO, API, admin, schema D1, upload R2. Chưa phần nào
-chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant).
-Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở". AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
+chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant). Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở". AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
 
 ## Hành vi
 
@@ -30,8 +28,7 @@ Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate cò
 `wrangler.toml` khai Worker `truong-thinh-website`, `main = "src/worker/index.js"`, binding `ASSETS` trỏ `.site-output`
 (`force-trailing-slash`, `404-page`), `run_worker_first` cho `/`, `/vi/*`, `/en/*`, path legacy, `/api/*`, `/media/*`,
 `/robots.txt`, `/sitemap.xml` (không có `/admin/*`). Không khai binding D1 (`DB`), R2 (`MEDIA`) hay biến, nên Worker
-theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng
-`wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`.
+theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng `wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`. Chạy local: `pnpm cms:dev` (`scripts/cms/dev-local.mjs`) chạy `prepare:site`, dựng admin vào `.site-output/admin/` ([editor R9](cms-editor.md#r9-chạy-local-và-ci)), áp migration lên D1 local rồi `wrangler dev` cổng 8788 theo `scripts/cms/wrangler.local.toml` (D1 `DB`, R2 `MEDIA` giả lập trong `.wrangler/`, biến `CMS_LOCAL_ADMIN_EMAIL`), `--setup-only` dừng sau migration; file đó không deploy, `prepare:site` xóa output nên bản demo không chứa admin.
 
 ```gherkin
 Given wrangler.toml hiện tại
@@ -108,7 +105,7 @@ Mọi `/api/admin/*` qua `requireAdmin()`: `Cf-Access-Jwt-Assertion` là JWT RS2
 `ACCESS_TEAM_DOMAIN` (https, đuôi `.cloudflareaccess.com`, path `/`); `aud` thuộc `ACCESS_AUD`; `exp` chưa qua, `nbf`
 không quá 60 giây tới; chữ ký khớp key từ `<team>/cdn-cgi/access/certs` (cache 1 giờ); `email` trùng
 `Cf-Access-Authenticated-User-Email` và nằm trong `ADMIN_EMAILS`, không phân biệt hoa thường. Sai điều nào: 403.
-Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` đúng origin public, không thì 403.
+Request ghi (POST, PUT, DELETE, PATCH) còn cần `Origin` đúng origin public, không thì 403. Ngoại lệ local: `CMS_LOCAL_ADMIN_EMAIL` có giá trị và host request là `127.0.0.1`, `localhost` hoặc `[::1]` thì email đó là admin, không cần JWT; host khác vẫn qua Access dù biến bị đặt.
 
 ```gherkin
 Given env có ACCESS_TEAM_DOMAIN, ACCESS_AUD, ADMIN_EMAILS
@@ -163,14 +160,14 @@ And upload một WebP hợp lệ trả 201 và ghi đúng một object
 
 ### R8. Giao diện admin
 
-`src/admin/index.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
+`/admin/` là [editor placeholder](cms-editor.md); form cũ ở `src/admin/forms.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
 danh sách bản ghi, form theo resource gửi POST (mới) hoặc PUT (đã có) rồi tải lại. Xoá hỏi `confirm`, ẩn với page;
 page chỉ chọn trong năm id, không tạo mới. Nội dung VI, EN nhập theo field; `sections` mỗi dòng `tiêu đề | nội dung`,
 chỉ chữ. Project chọn template, category, nhóm và thứ tự menu; product nhập tên VI, EN và media ID. Form media nhận
 WebP hoặc logo SVG kèm alt VI, EN; mỗi media có nút "Xuất bản + duyệt" hoặc "Ẩn". Không form nào có trường span.
 
 ```gherkin
-Given admin mở /admin/ sau khi qua Access
+Given admin mở /admin/forms.html sau khi qua Access
 When chọn Trang, chọn home, sửa SEO title tiếng Việt rồi bấm Lưu
 Then admin gửi PUT /api/admin/pages/home với nội dung VI và EN
 And trạng thái hiện "Đã lưu." rồi danh sách tải lại
@@ -214,11 +211,11 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | chưa có test; đọc `wrangler.toml`, `package.json` |
+| R1 | chưa có test; đọc `wrangler.toml`, `package.json`; local: `node scripts/cms/dev-local.mjs --setup-only` |
 | R2 | `tests/worker/worker-static-contract.cjs` (cần Worker chạy); `tests/site/advertising-products-detail-routes.test.mjs` kiểm sáu slug |
 | R3 | `node tests/worker/advertising-detail-route.test.mjs`; `pnpm qa:worker:security` (thiếu page published trả 404); `worker-static-contract.cjs`; ca D1 `/en/about/` của "SSR CMS survives hydration" trong `site.e2e.cjs` chỉ chạy với `TT_E2E_D1=1` và `BASE_URL` là Worker có D1 seed (bản tĩnh kiểm chữ tĩnh giữ nguyên) |
 | R4 | phần public `tests/worker/worker-contract.cjs` (menu feed, catalog; cần Worker chạy) |
-| R5 | `pnpm qa:worker:security` (CI) |
+| R5 | `pnpm qa:worker:security` (CI), gồm ca đăng nhập dev trên host public và loopback |
 | R6 | chưa có test |
 | R7 | `pnpm qa:worker:security` (upload, logo canonical, SVG GET/HEAD và CSP) |
 | R8 | chưa có test |
@@ -250,7 +247,7 @@ fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback
   thay CSRF token không; rate limit ở Worker hay Cloudflare?]
 - [CẦN LÀM RÕ: `src/admin/` không có trong `.site-output/`, `/admin/*` không chạy Worker trước; admin phục vụ từ đâu,
   Access bảo vệ path nào?] Agent đề xuất ở slice Contract.
-- [CẦN LÀM RÕ: vai trò biên tập, có bước submit, review không; `template` có là `layoutKey` không, preset nào launch
+- [CẦN LÀM RÕ: vai trò biên tập (không có bước duyệt, owner 2026-10-31); `template` có là `layoutKey` không, preset nào launch
   trước; giới hạn cỡ, loại file và danh sách cỡ biến thể media?]
 - [CẦN LÀM RÕ: khi có `DB`, trang trả 404, 503 như R3 (theo [D1 SSR ưu tiên](../decisions/d1-ssr-static-fallback.md))
   hay phục vụ bản tĩnh như invariant fallback dưới?]
