@@ -147,6 +147,32 @@ try {
       + JSON.stringify(await cardStates(page, "[data-advertising-related-card]"))));
     await context.close();
   }
+  // PC Slow 4G tắt cache, mở detail từ masonry (owner 2026-11-01): card related giữ chỗ trước, batch CTA nối sau,
+  // như masonry; không có frame nào batch đã hiện trong canvas detail mà chưa có card related.
+  {
+    const { context, page, slow } = await open({ viewport: { width: 1440, height: 900 } });
+    slow.on = false;
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+    await cdp.send("Network.emulateNetworkConditions",
+      { offline: false, latency: 562.5, downloadThroughput: 180_000, uploadThroughput: 84_375 });
+    await page.evaluate(() => {
+      window.__batchBeforeRelated = 0;
+      const tick = () => {
+        const canvas = document.querySelector("[data-advertising-photo-canvas]");
+        const batch = canvas?.querySelector("[data-advertising-cta-frame]");
+        if (batch && !batch.closest("[hidden]") && !canvas.querySelector("[data-advertising-related-card]")) window.__batchBeforeRelated++;
+        if (!canvas?.querySelector("[data-advertising-related-card]")) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.locator("[data-project-grid] [data-advertising-card] > a").first().click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-canvas] [data-advertising-related-card]"),
+      null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__batchBeforeRelated), 0, "desktop detail: batch shows before related cards");
+    await context.close();
+  }
   console.log("PASS advertising skeleton slow network");
 } finally {
   await browser.close();
