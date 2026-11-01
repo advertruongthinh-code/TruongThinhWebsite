@@ -208,8 +208,8 @@ Tọa độ related grid; primary chiếm `[0, pw] × [0, ph]`. Hộp `w × h` g
 cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai đoạn qua góc vuông `C = (x điểm bên cạnh, y điểm phía dưới)`
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
-chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related và suggestion; giảm
-chuyển động đặt thẳng.
+chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related, suggestion và khung
+batch (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
 
 ```gherkin
 Given detail 1569x912 layout split, card ở cột 4 cạnh primary

@@ -2673,7 +2673,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ? `${before.width / after.width} ${before.height / after.height}` : "1 1";
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && scale === "1 1") return;
     // Ở detail khung batch cũng đi vòng primary như card related (R10); tọa độ tính từ góc trên trái primary.
-    const box = ctaInDetail() && photoPrimary?.getBoundingClientRect();
+    // Cụm CTA và Kính cung rộng cả lưới, luôn dưới primary: trượt thẳng, không đọc rect primary.
+    const box = node.dataset.advertisingCtaFrame && ctaInDetail() && photoPrimary?.getBoundingClientRect();
     let corner = null;
     if (box?.width) {
       const zone = { width: box.width, height: box.height };
@@ -2701,7 +2702,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
     if (host === "detail" && photoCanvas) photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
     else {
-      grid.prepend(ctaSkeleton);
+      grid.append(ctaSkeleton);
       gridSectionStyleTarget?.append(...[gridCta, arcGlass].filter(Boolean));
     }
     ctaSkeleton.dataset.advertisingCtaHost = host;
@@ -4178,7 +4179,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const generation = ++detailRenderGeneration;
     cancelMotion();
     activePhotoId = record.id;
-    clearCtaSkeleton();
+    // Đổi tag trong cùng ảnh giữ khung batch để chúng trượt hoặc đi vòng primary (CTA R9, R10); đổi ảnh thì dựng lại.
+    if (previousPhotoId !== record.id || !ctaInDetail()) clearCtaSkeleton();
     moveCtaNodes("detail");
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;

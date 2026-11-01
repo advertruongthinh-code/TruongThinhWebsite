@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
+const { planDetourPath } = await import("../../src/site/advertising-products/detour-path.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const ready = (page) => page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"
@@ -52,6 +53,60 @@ const measureEnd = (page) => page.evaluate(async () => {
   };
 });
 
+// Đưa tag lên viewport, bấm, lấy mẫu mỗi frame 900ms. Trả khung giao primary, số khung có animation translate,
+// số khung đi vòng (3 keyframe), đường đi của từng khung, và số card related còn lại.
+const toggleTag = async (page, tag) => {
+  await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo(0, 0));
+  await page.waitForTimeout(800);
+  await page.evaluate(() => new Promise((started) => {
+    const primary = document.querySelector("[data-advertising-photo-primary]");
+    const frames = () => [...document.querySelectorAll("[data-advertising-cta-frame]")];
+    const box = (node) => node.getBoundingClientRect();
+    const p0 = box(primary);
+    const before = new Map(frames().map((frame) => [frame, box(frame)]));
+    const state = { overlaps: [], slid: new Set(), detoured: new Set(), done: false };
+    window.__ctaSample = state;
+    const begin = performance.now();
+    let first = true;
+    const tick = () => {
+      const p = box(primary);
+      for (const frame of frames()) {
+        const r = box(frame);
+        const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
+        const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
+        if (x > 0.5 && y > 0.5) state.overlaps.push({ slot: frame.dataset.advertisingCtaFrame, x, y });
+        for (const animation of frame.getAnimations()) {
+          const keyframes = animation.effect?.getKeyframes?.() || [];
+          if (!keyframes[0]?.translate) continue;
+          state.slid.add(frame);
+          if (keyframes.length === 3) state.detoured.add(frame);
+        }
+      }
+      if (first) { first = false; started(); }
+      if (performance.now() - begin < 900) requestAnimationFrame(tick);
+      else {
+        const p1 = box(primary);
+        // Đường đi của từng khung, tính từ góc primary, để Node kiểm bằng slab test xem khung nào phải đi vòng.
+        state.moves = [...before].filter(([frame]) => frame.isConnected).map(([frame, r]) => {
+          const a = box(frame);
+          return { from: { x: r.left - p0.left, y: r.top - p0.top }, to: { x: a.left - p1.left, y: a.top - p1.top },
+            size: { width: Math.max(r.width, a.width), height: Math.max(r.height, a.height) },
+            zone: { width: p1.width, height: p1.height }, detoured: state.detoured.has(frame) };
+        });
+        state.overlaps = state.overlaps.slice(0, 5);
+        state.slid = state.slid.size;
+        state.detoured = state.detoured.size;
+        state.related = document.querySelectorAll("[data-advertising-related-card]:not([hidden])").length;
+        state.done = true;
+      }
+    };
+    requestAnimationFrame(tick);
+  }));
+  await page.locator(`[data-advertising-suggestion-tag="${tag}"]`).dispatchEvent("click");
+  await page.waitForFunction(() => window.__ctaSample?.done, null, { timeout: 5000 });
+  return page.evaluate(() => window.__ctaSample);
+};
+
 const browser = await chromium.launch({ headless: true });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
@@ -78,37 +133,16 @@ try {
     assert.ok(shortWindow || Math.abs(end.baseline - end.viewportHeight / 2) <= 1, `${label}: chân chữ lệch giữa viewport ${JSON.stringify(end)}`);
     assert.ok(end.ctaTop >= end.primaryBottom - 1, `${label}: CTA chồng primary`);
 
-    // Bật tag: CTA trượt cùng related.
+    // Bật tag: khung batch trượt cùng related, không khung nào giao primary (R9, R10).
     const tag = await page.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
     if (tag) {
-      await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo(0, 0));
-      await page.waitForTimeout(800);
-      // Lấy mẫu khung batch mỗi frame trong 700ms: không khung nào giao primary (R10).
-      const sampled = page.evaluate(() => new Promise((resolve) => {
-        const primary = document.querySelector("[data-advertising-photo-primary]");
-        const overlaps = [];
-        let sliding = 0;
-        const start = performance.now();
-        const tick = () => {
-          const p = primary.getBoundingClientRect();
-          sliding = Math.max(sliding, document.querySelector("[data-advertising-grid-cta]").getAnimations().length);
-          for (const frame of document.querySelectorAll("[data-advertising-cta-frame]")) {
-            const r = frame.getBoundingClientRect();
-            const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
-            const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
-            if (x > 0.5 && y > 0.5) overlaps.push({ slot: frame.dataset.advertisingCtaFrame, x, y });
-          }
-          if (performance.now() - start < 700) requestAnimationFrame(tick);
-          else resolve({ overlaps, sliding });
-        };
-        requestAnimationFrame(tick);
-      }));
-      await page.locator(`[data-advertising-suggestion-tag="${tag}"]`).dispatchEvent("click");
-      const { overlaps, sliding } = await sampled;
-      assert.deepEqual(overlaps, [], `${label}: khung batch giao primary khi đổi tag`);
+      const sample = await toggleTag(page, tag);
+      assert.deepEqual(sample.overlaps, [], `${label}: khung batch giao primary khi đổi tag`);
+      assert.ok(sample.slid > 0, `${label}: đổi tag mà không khung batch nào trượt ${JSON.stringify(sample)}`);
       const after = await measureEnd(page);
       assert.ok(Math.abs(after.batchBottom - after.footerTop) <= 1.5, `${label}: sau đổi tag đáy batch lệch footer`);
-      console.log(`${label}: tag ${tag}, CTA animation lúc đổi: ${sliding}`);
+      assert.ok(Math.abs(after.batchBottom - after.ctaBottom) <= 1.5, `${label}: sau đổi tag chiều cao canvas lệch CTA`);
+      console.log(`${label}: tag ${tag}, ${sample.slid} khung trượt, ${sample.detoured} khung đi vòng`);
     }
 
     // Back về masonry: CTA về grid.
@@ -142,6 +176,57 @@ try {
   });
   assert.ok(gridHeight <= 1.5, "Back: chiều cao grid khác đáy CTA");
   await page.close();
+
+  // Tìm ca khung batch có đường thẳng cắt primary: phải đi vòng (R10). Gặp related rỗng thì CTA ngay dưới primary.
+  const heroes = await (async () => {
+    const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
+    await list.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await list.waitForSelector("[data-advertising-card]");
+    const ids = await list.$$eval("[data-advertising-card]", (nodes) => nodes.map((node) => node.dataset.advertisingCard));
+    await list.close();
+    return ids.slice(0, Number(process.env.CTA_DETOUR_HEROES || 10));
+  })();
+  let detourCase = null;
+  let emptyCase = null;
+  for (const hero of heroes) {
+    if (detourCase && emptyCase) break;
+    const search = await browser.newPage({ viewport: { width: 1569, height: 912 } });
+    search.on("pageerror", (error) => errors.push(`${hero}: ${error.message}`));
+    await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await ready(search);
+    const tags = await search.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
+    for (const searchTag of tags.slice(0, 4)) {
+      for (let pass = 0; pass < 2; pass++) {
+        const sample = await toggleTag(search, searchTag);
+        assert.deepEqual(sample.overlaps, [], `${hero} tag ${searchTag}: khung batch giao primary`);
+        const needs = sample.moves.filter((move) => planDetourPath(move));
+        assert.deepEqual(needs.filter((move) => !move.detoured), [], `${hero} tag ${searchTag}: khung cắt primary mà không đi vòng`);
+        if (needs.length && !detourCase) detourCase = `${hero} ${searchTag}`;
+        if (!sample.related && !emptyCase) {
+          const end = await measureEnd(search);
+          assert.ok(end.frames > 0 && end.ctaTop >= end.primaryBottom - 1, `${hero} tag ${searchTag}: related rỗng mà CTA sai chỗ`);
+          assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${hero} tag ${searchTag}: related rỗng, đáy batch lệch footer`);
+          emptyCase = `${hero} ${searchTag}`;
+        }
+      }
+    }
+    await search.close();
+  }
+  assert.ok(detourCase, `không ca nào trong ${heroes.length} hero có khung batch cần đi vòng primary`);
+  console.log(`khung batch đi vòng: ${detourCase}; related rỗng: ${emptyCase || "không gặp"}`);
+
+  // Giảm chuyển động: đổi tag đặt khung thẳng, CTA vẫn sát footer.
+  const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
+  await reduced.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+  await ready(reduced);
+  const reducedTag = await reduced.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
+  if (reducedTag) {
+    const sample = await toggleTag(reduced, reducedTag);
+    assert.equal(sample.slid, 0, "reduced motion vẫn trượt khung batch");
+    const end = await measureEnd(reduced);
+    assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, "reduced motion: đáy batch lệch footer");
+  }
+  await reduced.close();
   assert.deepEqual(errors, []);
   console.log("related CTA: detail và masonry dùng chung một CTA");
 } finally {
