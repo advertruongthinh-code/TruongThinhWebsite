@@ -1864,6 +1864,8 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-view {
+  /* Arc Kính của CTA cuối related trải ra mép viewport như ở masonry (CTA R9): lề ngoài của detail là gutter. */
+  --advertising-outer: var(--gutter);
   --advertising-safe-top: env(safe-area-inset-top, 0px);
   --advertising-safe-bottom: env(safe-area-inset-bottom, 0px);
   width: calc(100% - (2 * var(--gutter)));
