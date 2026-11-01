@@ -190,8 +190,8 @@ tiếp các cột related, cột chỉ có primary bắt đầu một khoảng g
 `split`) bắt đầu từ đầu cột. R1-R8 áp dụng nguyên: `--advertising-cta-top` ghi lên canvas, canvas cao bằng đáy CTA
 (`--advertising-photo-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
 chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-view` không đệm dưới. CTA trong info primary
-vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. CTA dựng ở task gắn related (pha cuối
-của [detail R7](advertising-detail.md#r7-related)) và mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
+vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
+(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s), và mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
 cụm và Kính trượt `0.4s` như masonry.
 
 ```gherkin

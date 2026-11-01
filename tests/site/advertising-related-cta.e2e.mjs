@@ -188,7 +188,7 @@ try {
     await list.waitForSelector("[data-advertising-card]");
     const ids = await list.$$eval("[data-advertising-card]", (nodes) => nodes.map((node) => node.dataset.advertisingCard));
     await list.close();
-    return ids.slice(0, Number(process.env.CTA_DETOUR_HEROES || 10));
+    return ids.slice(0, Number(process.env.CTA_DETOUR_HEROES || 20));
   })();
   let detourCase = null;
   let emptyCase = null;
@@ -199,7 +199,9 @@ try {
     await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(search);
     const tags = await search.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
-    for (const searchTag of tags.slice(0, 4)) {
+    // Mọi tag của hero: ca cần đi vòng thường đến từ tag thu hẹp related mạnh (cột cạnh primary trống ra).
+    for (const searchTag of tags) {
+      if (detourCase && emptyCase) break;
       for (let pass = 0; pass < 2; pass++) {
         const sample = await toggleTag(search, searchTag);
         assert.deepEqual(sample.overlaps, [], `${hero} tag ${searchTag}: khung batch giao primary`);
