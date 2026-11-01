@@ -186,9 +186,9 @@ async function handleRequest(request, env) {
   if (route) {
     const canonicalPath = canonicalRoutePath(route);
     if (url.pathname !== canonicalPath) return redirectWithQuery(url, canonicalPath);
-    return renderRoute(request, env, url, route);
+    return withCardEdits(await renderRoute(request, env, url, route), request, env, url);
   }
-  return env.ASSETS.fetch(request);
+  return withCardEdits(await env.ASSETS.fetch(request), request, env, url);
 }
 
 function routeRedirect(url) {
@@ -270,7 +270,20 @@ async function renderRoute(request, env, url, route) {
   const localizedContent = record ? parseLocalizedContent(record.content_json) : null;
   const content = localizedContent?.[route.locale] || null;
   if (record && !content) return new Response("Not Found", { status: 404 });
-  const seo = content?.seo || DEFAULT_SEO[route.locale];
+  // Nội dung editor đã lưu (cms-editor R10) áp trước pipeline locale; title, description của editor thắng SEO cũ.
+  let saved = null;
+  try {
+    if (env.DB && EDITOR_PAGES.has(route.pageId)) saved = await savedPage(env, route.pageId, source);
+  } catch (error) {
+    if (error instanceof CmsUnavailableError) return new Response("Service Unavailable", { status: 503 });
+    throw error;
+  }
+  const editorText = saved?.text ?? {};
+  const seo = {
+    ...(content?.seo || DEFAULT_SEO[route.locale]),
+    ...(editorText.title && { title: editorText.title[route.locale] }),
+    ...(editorText.description && { description: editorText.description[route.locale] }),
+  };
   const canonicalPath = canonicalRoutePath(route);
   const canonical = new URL(canonicalPath, origin).toString();
   const alternateLocale = route.locale === "vi" ? "en" : "vi";
@@ -280,6 +293,8 @@ async function renderRoute(request, env, url, route) {
   ).toString();
   const headers = new Headers(source.headers);
   headers.delete("content-length");
+  // Thân trang khác file tĩnh khi có nội dung editor: bỏ ETag của file để trình duyệt không giữ bản cũ qua 304.
+  if (saved) headers.delete("etag");
   headers.set("content-type", "text/html; charset=UTF-8");
   headers.set("content-language", route.locale);
   headers.set("vary", "Accept-Language");
@@ -305,21 +320,25 @@ async function renderRoute(request, env, url, route) {
 
   // Attribute tiếng Anh tĩnh làm shell fallback khi không có SSR. Áp field D1
   // sau đó để route locale canonical không bị chúng đảo ngược.
-  if (content) {
-    rewriter = rewriter
-      .on(
-        "title",
-        new LocalizedText(seo.title, localizedContent.vi?.seo?.title, localizedContent.en?.seo?.title),
-      )
-      .on(
-        'meta[name="description"]',
-        new LocalizedAttribute(
-          "content",
-          seo.description,
-          localizedContent.vi?.seo?.description,
-          localizedContent.en?.seo?.description,
-        ),
-      );
+  // Title của editor ghi bằng HTMLRewriter (có thoát chữ), không qua linkedom: <title> là thẻ chữ thô (R10).
+  if (editorText.title) {
+    rewriter = rewriter.on("title", new LocalizedText(seo.title, editorText.title.vi, editorText.title.en));
+  } else if (content) {
+    rewriter = rewriter.on(
+      "title",
+      new LocalizedText(seo.title, localizedContent.vi?.seo?.title, localizedContent.en?.seo?.title),
+    );
+  }
+  if (content && !editorText.description) {
+    rewriter = rewriter.on(
+      'meta[name="description"]',
+      new LocalizedAttribute(
+        "content",
+        seo.description,
+        localizedContent.vi?.seo?.description,
+        localizedContent.en?.seo?.description,
+      ),
+    );
   }
   rewriter = rewriter.on(
     "head",
@@ -332,7 +351,173 @@ async function renderRoute(request, env, url, route) {
     );
   }
 
-  return rewriter.transform(new Response(source.body, { headers }));
+  return rewriter.transform(new Response(saved ? saved.html : source.body, { headers }));
+}
+
+// ---------- Nội dung editor CMS (cms-editor R8, R10) ----------
+
+const EDITOR_PAGES = new Set(["home", "residential", "commercial", "about"]);
+const ADVERTISING_HTML_PATH = /^\/(?:vi|en)\/advertising-products\//;
+const ADVERTISING_CARD_PATH = /^\/(vi|en)\/advertising-products\/p\/([a-z0-9][a-z0-9-]{0,99})\/$/;
+const MAX_CONTENT_BODY = 512 * 1024;
+// Nháp rỗng (lưu sau khi bỏ hết sửa đổi) coi như chưa có nội dung: phục vụ HTML tĩnh, không nạp linkedom.
+const hasEdits = (edits) => Object.values(edits).some((value) => value && Object.keys(value).length);
+const loadContent = () => import("./content.mjs");
+
+async function pageEdits(env, page) {
+  try {
+    return await env.DB
+      .prepare("SELECT edits_json, anchors_json, updated_at, updated_by FROM page_edits WHERE page = ?")
+      .bind(page)
+      .first();
+  } catch {
+    throw new CmsUnavailableError("D1 read failed");
+  }
+}
+
+async function savedPage(env, page, source) {
+  const row = await pageEdits(env, page);
+  return row && hasEdits(JSON.parse(row.edits_json)) ? (await loadContent()).renderSaved(page, row, source) : null;
+}
+
+function sourceHtml(env, url, page) {
+  return env.ASSETS.fetch(new Request(new URL(SOURCE_ROUTES[page], url.origin), { method: "GET" })).then((response) => response.text());
+}
+
+async function handleContent(request, env, url, actor) {
+  if (!env.DB) return json({ error: "Content storage not connected." }, 501);
+  const content = await loadContent();
+  const page = safeDecode(url.pathname.slice("/api/admin/content/".length));
+  if (!content.CONTENT_PAGES.has(page)) return json({ error: "Not Found" }, 404);
+  const row = await pageEdits(env, page);
+  if (request.method === "GET") {
+    const result = { page, edits: null, stale: [], updatedAt: row?.updated_at ?? null, updatedBy: row?.updated_by ?? null };
+    if (!row) return json(result);
+    const edits = JSON.parse(row.edits_json);
+    // Trang thường: trả phần còn khớp HTML nguồn hiện tại, khóa lệch vào stale để editor báo (R10).
+    if (page === "advertising") return json({ ...result, edits });
+    const { fresh, stale } = content.freshEdits(await sourceHtml(env, url, page), page, edits, JSON.parse(row.anchors_json));
+    return json({ ...result, edits: fresh, stale });
+  }
+  if (request.method !== "PUT") return json({ error: "Method Not Allowed" }, 405);
+  if (Number(request.headers.get("content-length")) > MAX_CONTENT_BODY) return json({ error: "Nháp quá lớn." }, 413);
+  let body;
+  try {
+    body = await readJson(request);
+  } catch {
+    return json({ error: "Expected application/json." }, 400);
+  }
+  const error = content.validateEdits(page, body?.edits);
+  if (error) return json({ error }, 400);
+  const baseUpdatedAt = typeof body.baseUpdatedAt === "string" ? body.baseUpdatedAt : null;
+  if (baseUpdatedAt !== (row?.updated_at ?? null)) {
+    return json({ error: "Conflict", updatedAt: row?.updated_at ?? null, updatedBy: row?.updated_by ?? null }, 409);
+  }
+  let anchors = {};
+  if (page !== "advertising") {
+    const seen = body.anchors && typeof body.anchors === "object" && !Array.isArray(body.anchors) ? body.anchors : {};
+    const result = content.anchorsFor(await sourceHtml(env, url, page), page, body.edits, seen);
+    if (result.error) return json({ error: result.error }, 400);
+    anchors = result.anchors;
+  } else {
+    // Card phải có trang tĩnh p/<id>: id lạ không được chèn vào <head> mọi trang Sản phẩm Quảng cáo. Chỉ kiểm card mới
+    // so với bản đã lưu (card cũ đã kiểm lúc lưu trước) để số subrequest không tăng theo tổng số card.
+    const known = new Set(Object.keys(row ? JSON.parse(row.edits_json).cards ?? {} : {}));
+    for (const id of Object.keys(body.edits.cards).filter((entry) => !known.has(entry))) {
+      const card = await env.ASSETS.fetch(new Request(new URL(`/vi/advertising-products/p/${id}/`, url.origin), { method: "HEAD" }));
+      if (!card.ok) return json({ error: `Card ${id} không có trong catalog.` }, 400);
+    }
+  }
+  const updatedAt = new Date().toISOString();
+  const values = [JSON.stringify(body.edits), JSON.stringify(anchors), updatedAt, actor];
+  // Ghi có điều kiện theo phiên bản editor đã dựa vào: hai người lưu cùng lúc thì người sau nhận 409, không ghi đè ngầm.
+  const write = baseUpdatedAt
+    ? env.DB.prepare("UPDATE page_edits SET edits_json = ?, anchors_json = ?, updated_at = ?, updated_by = ? WHERE page = ? AND updated_at = ?")
+      .bind(...values, page, baseUpdatedAt)
+    : env.DB.prepare("INSERT INTO page_edits (edits_json, anchors_json, updated_at, updated_by, page) VALUES (?, ?, ?, ?, ?) ON CONFLICT(page) DO NOTHING")
+      .bind(...values, page);
+  const { meta } = await write.run();
+  if (!meta?.changes) {
+    const current = await pageEdits(env, page);
+    return json({ error: "Conflict", updatedAt: current?.updated_at ?? null, updatedBy: current?.updated_by ?? null }, 409);
+  }
+  // Nội dung đã lên web: audit lỗi thì ghi log, không trả 500 (editor sẽ giữ nháp rồi nhận 409 với chính bản mình).
+  const keys = page === "advertising" ? Object.keys(body.edits.cards) : Object.keys(anchors);
+  await logAudit(env, actor, "content.save", "page_edits", page, { bytes: values[0].length, keys, previous: row?.updated_at ?? null })
+    .catch((error) => console.error("content.save audit failed", error));
+  return json({ page, updatedAt, updatedBy: actor });
+}
+
+// Trang Sản phẩm Quảng cáo có card đã sửa: chèn script vá catalog đầu <head>; trang card p/<id> sửa luôn khối tĩnh
+// (tên, mô tả, ảnh cho bot không chạy JS), title, description, og:image.
+let cardsCache = { updatedAt: null, cards: null };
+async function withCardEdits(response, request, env, url) {
+  const isHtml = (entry) => entry.headers.get("content-type")?.includes("text/html");
+  if (!env.DB || !["GET", "HEAD"].includes(request.method) || !ADVERTISING_HTML_PATH.test(url.pathname)) return response;
+  if (response.status !== 304 && !(response.status === 200 && isHtml(response))) return response;
+  const row = await pageEdits(env, "advertising").catch(() => null);
+  if (row && cardsCache.updatedAt !== row.updated_at) cardsCache = { updatedAt: row.updated_at, cards: JSON.parse(row.edits_json).cards };
+  const cards = row ? cardsCache.cards : null;
+  if (!cards || !Object.keys(cards).length) return response;
+  // ETag của file tĩnh không đổi khi lưu card: trình duyệt hỏi lại bằng ETag cũ nhận 304 và giữ bản cũ. Lấy lại bản đầy
+  // đủ rồi bỏ ETag ở bản đã vá.
+  let page = response;
+  if (response.status === 304) page = await env.ASSETS.fetch(new Request(url, { method: request.method }));
+  if (page.status !== 200 || !isHtml(page)) return response;
+  page = new Response(page.body, page);
+  page.headers.delete("etag");
+  page.headers.delete("content-length");
+  const { catalogScript } = await loadContent();
+  let rewriter = new HTMLRewriter().on("head", { element: (head) => head.prepend(catalogScript(cards), { html: true }) });
+  const [, locale, id] = url.pathname.match(ADVERTISING_CARD_PATH) ?? [];
+  const card = id && Object.hasOwn(cards, id) ? cards[id] : null;
+  if (card) rewriter = cardPageRewriter(rewriter, card, id, locale === "en" ? "En" : "Vi", publicOrigin(env, url));
+  return rewriter.transform(page);
+}
+
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return "";
+  }
+}
+
+// File p/<id> đã dịch sẵn theo locale lúc build: ghi chữ đúng locale, cập nhật luôn data-vi, data-en đã nhúng.
+function cardPageRewriter(rewriter, card, id, lang, origin) {
+  const cover = card.mediaItems.find((item) => item.id === card.coverMediaId) ?? card.mediaItems[0];
+  const figures = card.mediaItems.map((item) => `<figure><img src="${escapeAttribute(item.src)}" width="${item.width}" height="${item.height}" loading="lazy" decoding="async" alt="${escapeAttribute(item[`alt${lang}`])}" data-en-alt="${escapeAttribute(item.altEn)}" /></figure>`).join("");
+  const owner = { "@type": "Organization", name: "Trường Thịnh", url: `${origin}/` };
+  const page = `${origin}/vi/advertising-products/p/${encodeURIComponent(id)}/`;
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "WebPage", "@id": page, url: page, primaryImageOfPage: { "@id": `${origin}${cover.src}` } },
+      ...card.mediaItems.map((item) => ({ "@type": "ImageObject", "@id": `${origin}${item.src}`, contentUrl: `${origin}${item.src}`, creator: owner, creditText: "Trường Thịnh" })),
+    ],
+  }).replace(/</g, "\\u003c");
+  const localized = (vi, en, after) => ({
+    element(element) {
+      element.setInnerContent(lang === "En" ? en : vi);
+      if (element.hasAttribute("data-vi")) element.setAttribute("data-vi", vi);
+      if (element.hasAttribute("data-en")) element.setAttribute("data-en", en);
+      if (after) element.after(after, { html: true });
+    },
+  });
+  return rewriter
+    .on("title", localized(`${card.titleVi} — Trường Thịnh`, `${card.titleEn} — Trường Thịnh`))
+    .on('meta[name="description"]', {
+      element(element) {
+        element.setAttribute("content", card[`description${lang}`]);
+        if (element.hasAttribute("data-vi-content")) element.setAttribute("data-vi-content", card.descriptionVi);
+        if (element.hasAttribute("data-en-content")) element.setAttribute("data-en-content", card.descriptionEn);
+      },
+    })
+    .on('meta[property="og:image"]', { element: (element) => element.setAttribute("content", `${origin}${cover.src}`) })
+    .on('script[type="application/ld+json"]', { element: (element) => element.setInnerContent(jsonLd, { html: true }) })
+    .on("[data-advertising-card-static] > h1", localized(card.titleVi, card.titleEn))
+    .on("[data-advertising-card-static] > p:first-of-type", localized(card.descriptionVi, card.descriptionEn, figures))
+    .on("[data-advertising-card-static] > figure", { element: (element) => element.remove() });
 }
 
 function publicOrigin(env, url) {
@@ -678,8 +863,7 @@ async function handleAdminApi(request, env, url, actor) {
   if (url.pathname === "/api/admin/audit-log" && request.method === "GET") {
     return listAuditLog(env);
   }
-  // shortcut: editor placeholder lưu nháp ở slice 3 (cms-editor R8); tới đó báo chưa nối lưu trữ.
-  if (url.pathname.startsWith("/api/admin/content/")) return json({ error: "Content storage not connected." }, 501);
+  if (url.pathname.startsWith("/api/admin/content/")) return handleContent(request, env, url, actor);
   if (url.pathname.startsWith("/api/admin/")) return handleAdminResource(request, env, url, actor);
   return json({ error: "Not Found" }, 404);
 }

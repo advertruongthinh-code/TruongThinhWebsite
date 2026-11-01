@@ -10,7 +10,7 @@ tests:
   - tests/worker/worker-static-contract.cjs
   - tests/worker/advertising-detail-route.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
-updated: 2026-10-21
+updated: 2026-11-01
 ---
 
 # CMS Worker, admin và D1
@@ -71,7 +71,8 @@ lỗi thì 503. `<title>`, meta description lấy `seo` của locale; phần t�
 dạng text. HTML tĩnh chỉ có `data-cms="hero.kicker"` ở residential, commercial, advertising-products, about
 ([hook](detail-pages.md#r4-nội-dung-vien-và-hook)). `/<locale>/projects/<slug>/` dùng `publishedProject()` (slug
 kebab-case, project `published` thuộc category `kind = 'project'`), khung `advertising-products/index.html`, cùng quy
-tắc 404, 503. Field `template` không đổi cách render.
+tắc 404, 503. Field `template` không đổi cách render. Bốn trang editor và Sản phẩm Quảng cáo có nội dung editor đã lưu
+thì Worker áp trước pipeline này, chỗ editor sửa thắng `data-cms` và SEO ([editor R10](cms-editor.md#r10-worker-áp-nội-dung-đã-lưu)).
 
 ```gherkin
 Given Worker không có binding DB
@@ -175,13 +176,14 @@ And trạng thái hiện "Đã lưu." rồi danh sách tải lại
 
 ### R9. Schema D1 và migration
 
-Bốn file SQL forward-only trong `src/db/migrations/`, không có migration lùi; `wrangler.toml` chưa khai D1 nên chưa có
+Năm file SQL forward-only trong `src/db/migrations/`, không có migration lùi; `wrangler.toml` chưa khai D1 nên chưa có
 lệnh áp. `0001_cms.sql`: bảng `pages`, `project_categories`, `projects`, `products`, `settings`, `media`, `audit_log`;
 CHECK cho `status`, `template`, `content_type` (`image/webp`, `image/svg+xml`), `kind` media, `json_valid` cột JSON;
 bốn index; seed sáu category sản phẩm, năm page `published`, 36 product. `0003`: thêm `kind` (`project`, `product`,
 mặc định `product`), `updated_at` cho category, `menu_group`, `menu_order` cho project, index menu; seed sáu category
 project (`position` 101 đến 106); chuyển project đang gắn category sản phẩm sang category project gần nhất. `0002` và
 `0004` đổi chữ hero, SEO của page `projects-products`; tên public cuối là "Sản phẩm Quảng cáo" / "Advertising products".
+`0005`: bảng `page_edits` cho nội dung editor đã lưu ([editor R10](cms-editor.md#r10-worker-áp-nội-dung-đã-lưu)).
 
 ```gherkin
 Given D1 trống

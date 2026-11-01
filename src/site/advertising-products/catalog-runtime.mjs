@@ -753,13 +753,14 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
   : import("./catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
 // Mô tả và related của card nằm riêng trong catalog-detail.mjs (artifact chỉ giữ phần grid cần). Artifact đã đủ trường
-// (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn trường còn thiếu vào card theo id.
+// (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn từng trường còn thiếu vào card theo id (card CMS đã sửa có sẵn
+// mô tả mới, chỉ nhận related).
 let detailPromise;
 const loadCardDetail = () => detailPromise ||= import("./catalog-detail.mjs").then(({ default: detail }) => detail);
 const attachCardDetail = (cards) => {
   if (cards.every((card) => card.descriptionVi !== undefined)) return Promise.resolve();
   return loadCardDetail().then((detail) => {
-    for (const card of cards) if (card.descriptionVi === undefined && detail[card.id]) Object.assign(card, detail[card.id]);
+    for (const card of cards) Object.entries(detail[card.id] ?? {}).forEach(([key, value]) => (card[key] ??= value));
   });
 };
 

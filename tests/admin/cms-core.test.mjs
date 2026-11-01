@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { after, before, test } from "node:test";
@@ -106,4 +107,49 @@ test("apply danh sách: sắp lại, mục mới clone với khóa @id và place
     { id: "0", keys: ["i2", "t1"], caption: "Một", empty: false },
   ]);
   assert.ok(result.placeholder);
+});
+
+// Worker áp nội dung đã lưu trên DOM linkedom (R10): khóa phải trùng khóa editor đọc bằng DOMParser trên trang thật.
+const BUILT = [["home", "index.html"], ["residential", "residential/index.html"], ["commercial", "commercial/index.html"], ["about", "about/index.html"]];
+test("linkedom gắn khóa y như DOMParser trên bốn trang đã build", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
+  const { parseHTML } = await import("linkedom");
+  await import("../../src/admin/cms-core.js");
+  const signature = (doc) => [...doc.querySelectorAll("[data-cms-key], [data-cms-list], [data-cms-item]")]
+    .map((node) => `${node.tagName}:${node.dataset.cmsKey ?? ""}:${node.dataset.cmsList ?? ""}:${node.dataset.cmsItem ?? ""}`);
+  for (const [id, file] of BUILT) {
+    const html = readFileSync(path.join(".site-output", file), "utf8");
+    const { document } = parseHTML(html);
+    globalThis.TTCms.stamp(document, id);
+    const browserSide = await run(([source, page]) => {
+      const doc = new DOMParser().parseFromString(source, "text/html");
+      window.TTCms.stamp(doc, page);
+      return [...doc.querySelectorAll("[data-cms-key], [data-cms-list], [data-cms-item]")]
+        .map((node) => `${node.tagName}:${node.dataset.cmsKey ?? ""}:${node.dataset.cmsList ?? ""}:${node.dataset.cmsItem ?? ""}`);
+    }, [html, id]);
+    assert.deepEqual(signature(document), browserSide, id);
+  }
+});
+
+// Dấu chỗ gốc (R10): editor tính trên bản xem trước VI (localeHtml) bằng DOMParser, Worker tính trên HTML nguồn bằng
+// linkedom; lệch ở bất kỳ khóa nào thì lưu chỗ đó luôn bị từ chối. Hero sửa bỏ preload theo chuỗi trong <head>: chuỗi
+// đó đổi trong HTML nguồn thì test này báo, không gãy âm thầm.
+test("dấu chỗ gốc trùng giữa bản xem trước (DOMParser) và HTML nguồn (linkedom)", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
+  const { parseHTML } = await import("linkedom");
+  const { localeHtml } = await import("../../scripts/tooling/serve-static-parity.mjs");
+  await import("../../src/admin/cms-core.js");
+  for (const [id, file] of BUILT) {
+    const html = readFileSync(path.join(".site-output", file), "utf8");
+    const { document } = parseHTML(html);
+    globalThis.TTCms.stamp(document, id);
+    const keys = [...document.querySelectorAll("[data-cms-key]")].map((node) => node.dataset.cmsKey)
+      .concat([...document.querySelectorAll("[data-cms-list]")].map((node) => node.dataset.cmsList));
+    const workerSide = keys.map((key) => [key, globalThis.TTCms.anchorOf(document, key)]);
+    const editorSide = await run(([source, page, list]) => {
+      const doc = new DOMParser().parseFromString(source, "text/html");
+      window.TTCms.stamp(doc, page);
+      return list.map((key) => [key, window.TTCms.anchorOf(doc, key)]);
+    }, [localeHtml(html, "vi"), id, keys]);
+    assert.deepEqual(workerSide, editorSide, id);
+    if (document.querySelector(".hero-slides[data-cms-list]")) assert.match(html, /dataset\.heroFirst = first/, `${id}: script preload hero`);
+  }
 });
