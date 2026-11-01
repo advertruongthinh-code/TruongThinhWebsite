@@ -1521,8 +1521,11 @@ body.is-advertising-browse .advertising-grid {
   font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
+  text-shadow: var(--text-shadow-d);
   pointer-events: none;
-  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+  /* Lớp đen chỉ hiện khi media sẵn sàng, cùng nhịp 0.6s của blur tan (spec chờ ảnh S3). */
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing),
+    background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
@@ -1692,6 +1695,16 @@ body.is-advertising-browse .advertising-grid {
 
 .advertising-tile img.is-advertising-media-ready {
   opacity: 1;
+}
+
+/* Card chờ ảnh thở bằng chính keyframe media-breathe của Vệt sáng (style.css); runtime gắn
+   data-advertising-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). */
+[data-advertising-media-loading] .advertising-tile__foreground {
+  animation: media-breathe 2s ease-in-out infinite;
+}
+
+[data-advertising-media-loading] .advertising-card-media__just-viewed {
+  background-color: transparent;
 }
 
 .advertising-tile > a:focus-visible {
@@ -2059,7 +2072,7 @@ body.is-advertising-browse .site-footer {
 .advertising-tile > .advertising-photo-view__media-step svg {
   width: 16px;
   height: 16px;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
 @media (hover: hover) {
@@ -2593,7 +2606,7 @@ body.is-advertising-browse .site-footer {
   width: 20px;
   height: 20px;
   fill: #fff;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
   transform: translate(-50%, -50%);
 }
 
