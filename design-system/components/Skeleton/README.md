@@ -26,11 +26,12 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 - [Kính](../Glass/README.md) dạng cung phủ batch làm nền cho CTA: card phía trên
   vẫn nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối.
 
-Cùng khung này phủ kín [media card](../MediaCard/README.md) và ảnh
-[primary](../Primary/README.md) đang chờ ảnh: một khung mỗi ảnh, cùng cách bốc
-màu, đủ độ đậm (không nhạt dần), gỡ sau khi ảnh hiện. Flow chạy cả khi đang
+Cùng khung này phủ kín ảnh [primary](../Primary/README.md) đang chờ ảnh, đủ độ
+đậm (không nhạt dần), gỡ sau khi ảnh hiện; bốn màu Flow lấy từ chính ảnh đó
+(build trích bằng k-means), batch giữ 12 preset. [Media card](../MediaCard/README.md)
+chờ ảnh bằng blur trên màu chủ đạo, không dùng khung này. Flow chạy cả khi đang
 cuộn. Mọi khung của batch vẽ trên một canvas WebGL chung ở nửa độ phân giải,
-nằm trên khung và dưới Kính, CTA; khung chờ ảnh dùng tối đa 12 context riêng.
+nằm trên khung và dưới Kính, CTA; khung chờ ảnh primary dùng context riêng.
 Khung chưa chạy hoặc mất context hiện một khung hình Flow đứng yên của chính
 assignment.
 

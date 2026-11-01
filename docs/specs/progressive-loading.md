@@ -263,7 +263,7 @@ Khi cài, sửa các spec sở hữu trong cùng PR và chuyển spec này sang 
 Không đổi hình vệt sáng, skeleton, Kính: [Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [Skeleton](../../design-system/components/Skeleton/README.md),
 [Kính hiện và tan](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải). Card chờ ảnh đổi từ Kính
-sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này khi cài, cần owner duyệt và gõ `republish`.
+sang blur trên ảnh (R9); README Kính, MediaCard, Skeleton, Vệt sáng và Motion đã ghi lại (owner gõ `republish` 2026-11-01).
 
 ## Kiểm tra
 
