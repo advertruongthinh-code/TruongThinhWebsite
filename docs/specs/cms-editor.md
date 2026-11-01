@@ -249,7 +249,7 @@ Then trang hiện h1 theo nguồn mới, không áp nhầm; API trả khóa h1 t
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| File | `src/admin/index.html`, `editor.css`, `editor.js` | shell editor, dock Dockview, panel (R1, R2, R4 đến R8) |
+| File | `src/admin/index.html`, `editor.css`, `editor.js`, `dock-tools.js` | shell editor, dock Dockview, panel (R1, R2, R4 đến R8); ghim tab, mép tự ẩn, lịch sử bố cục ([CMS dock](cms-dock.md)) |
 | File | `src/admin/cms-core.js` | `TTCms`: `LISTS`, `stamp`, `apply`, `setText`, `mirror`, `patchCatalog`, `readDraft`, `readSaved`; boot bản xem trước (R3, R4, R7, R8); Worker nạp cùng file (R10) |
 | File | `src/worker/content.mjs`, `src/db/migrations/0005_page_edits.sql` | kiểm nháp, dấu chỗ gốc, render linkedom, script vá catalog; bảng `page_edits` (R10) |
 | File | `src/admin/overlay.js`, `overlay.css` | chọn, sửa tại chỗ trong iframe (R3) |
