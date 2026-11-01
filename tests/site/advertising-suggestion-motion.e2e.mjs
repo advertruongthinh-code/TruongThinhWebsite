@@ -107,7 +107,7 @@ try {
     return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
   });
   const inactiveNormal = await inactiveOverlay();
-  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "inactive suggestion always shows the 0.5 overlay");
+  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "settled inactive suggestion shows the 0.5 overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion has no visible black border");
   const activeStyle = await activeLink.evaluate((link) => {
@@ -142,6 +142,11 @@ try {
   await page.waitForFunction((link) => !link.querySelector('[data-advertising-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
   await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
   const inactiveSweep = await sweep(inactiveLink);
+  // Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): chưa settle thì ::after trong suốt.
+  // Chờ hết transition opacity 250ms của lớp tối rồi mới đọc giá trị đích.
+  await page.waitForTimeout(300);
+  assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link, "::after").opacity), "0",
+    "unsettled suggestion shows only the sweep, no overlay");
   await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
   assert.deepEqual(inactiveSweep, { animation: "media-sweep", zIndex: "1", image: 0 },
     "inactive suggestion sweeps under its label and hides the photo until it decodes");
