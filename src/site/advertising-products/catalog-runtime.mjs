@@ -2729,9 +2729,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const renderCtaSkeleton = ({ slide = false } = {}) => {
     const detailHost = ctaInDetail();
-    // Related card giữ chỗ trước, batch nối sau như masonry (owner 2026-11-01): khi các pha dựng related chưa xong,
-    // relatedLayout chỉ có primary nên batch sẽ hiện ngay dưới primary rồi bị card related đẩy đi.
-    if (detailHost && directEntryPhase) return;
     const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
     if (!ctaSkeleton || !hostGeometry) {
       if (!detailHost) gridPixelHeight = geometry?.totalPixelHeight || 0;
