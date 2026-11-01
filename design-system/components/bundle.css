@@ -4988,7 +4988,8 @@ body.is-advertising-browse .advertising-grid {
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
-   100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
+   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do glass-surface.mjs
+   đặt inline qua --glass-step-blur, thắng các rule này); saturate() và brightness() nhân nhau, nên mỗi step
    mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
    chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
    Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
@@ -5012,7 +5013,7 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-/* Inner step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
+/* Band step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -5046,8 +5047,8 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.06;
 }
 
-/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
-   28px của band; inner step của nó mang blur tiếp tới trần 100px. */
+/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
+   trên PC runtime đặt inline --glass-full-blur: 100px cho core (chín bậc của dải đã mang blur tới trần 100px). */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
   --glass-brightness: 1;
