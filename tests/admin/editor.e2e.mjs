@@ -236,6 +236,43 @@ try {
   await toastStarts("Đã lưu");
   assert.equal(putBodies.at(-1).baseUpdatedAt, "2026-11-01T01:00:00.000Z");
 
+  // R11: ghim tab, kéo panel ra mép thành dải tự ẩn, bấm tab ở dải để trượt ra, ghim mở hẳn, hoàn tác bố cục.
+  await page.click(".topbar__menu summary");
+  await page.locator("#panel-menu button", { hasText: "Bố cục mặc định" }).click();
+  await page.waitForTimeout(600);
+  const tab = (name) => page.locator(".dv-tab", { hasText: name }).first();
+  const groupTabs = () => page.evaluate(() => [...document.querySelectorAll(".dv-groupview")].map((group) => (group.classList.contains("dv-edge-collapsed") ? "[dải]" : "")
+    + [...group.querySelectorAll(".dv-tab")].map((item) => item.textContent + (item.querySelector(".is-pinned") ? "*" : "")).join(",")));
+  await tab("Nháp").click({ button: "right" });
+  await page.locator(".dock-menu button", { hasText: "Ghim tab" }).click();
+  await page.waitForTimeout(600);
+  assert.ok((await groupTabs()).includes("Nháp*,Media"), "tab ghim đứng đầu nhóm");
+  const from = await tab("Media").boundingBox();
+  await page.mouse.move(from.x + 10, from.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 40, from.y + 40, { steps: 5 });
+  await page.waitForTimeout(100);
+  await page.mouse.move(8, 450, { steps: 10 });
+  await page.waitForTimeout(100);
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+  assert.ok((await groupTabs()).includes("[dải]Media"), "kéo ra mép tạo dải thu gọn");
+  await tab("Media").click();
+  await page.locator(".dock-peek .panel--media").waitFor();
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator(".dock-peek").isHidden(), true);
+  await tab("Media").click();
+  await page.locator(".dock-peek__button", { hasText: "Ghim" }).click();
+  await page.waitForTimeout(600);
+  assert.ok((await groupTabs()).includes("Media"), "ghim mở hẳn nhóm mép");
+  for (let step = 0; step < 3; step += 1) {
+    await page.keyboard.press("Control+Alt+z");
+    await page.waitForTimeout(200);
+  }
+  await page.waitForTimeout(600);
+  assert.ok((await groupTabs()).includes("Media,Nháp"), "hoàn tác về bố cục mặc định");
+  assert.equal(await page.locator(".dv-edge-group").count(), 0);
+
   assert.deepEqual(errors, []);
   console.log("[editor.e2e] PASS");
 } finally {
