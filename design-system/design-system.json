@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-31T21:50:00Z",
+    "at": "2026-11-01T05:05:12Z",
     "via": "Claude Code (Remote Control)",
-    "note": "Đợt #648, #651, #652: thay ảnh xem trước preview-media theo ảnh site bản 3072, không đổi token, font, component hay quy tắc"
+    "note": "Đợt #663, #664: bundle CTA related, README MediaCard, Kính, Skeleton, Vệt sáng và motion.md theo tải ảnh JXL và blur trên màu chủ đạo"
   }
 }
