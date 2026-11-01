@@ -108,6 +108,8 @@ try {
   });
   // Lớp tối chờ ảnh nền settle (spec chờ ảnh S3): đọc sau khi nút đã is-media-settled.
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
+  // Chờ animation media-fade-in 0.45s của lớp tối chạy xong: đọc sớm thì opacity chưa đúng 1.
+  await page.waitForFunction((link) => getComputedStyle(link, "::after").opacity === "1", await inactiveLink.elementHandle());
   const inactiveNormal = await inactiveOverlay();
   assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "settled inactive suggestion shows the 0.5 overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
@@ -129,7 +131,9 @@ try {
     labelColor: "rgb(32, 33, 32)",
   }, "active suggestion is white with black text and border");
   // Vệt sáng chờ ảnh (media-delivery R6): ::before của nút, dưới nhãn.
-  const sweep = (link) => link.evaluate((node) => {
+  // unsettle: gỡ is-media-settled trong cùng evaluate với lần đọc, vì ảnh slide khác load có thể gắn lại class giữa hai lần.
+  const sweep = (link, unsettle = false) => link.evaluate((node, unsettle) => {
+    if (unsettle) node.classList.remove("is-media-settled");
     const style = getComputedStyle(node, "::before");
     // Tắt transition opacity của ảnh để đọc giá trị đích thay vì frame đang chạy.
     const image = node.querySelector("img");
@@ -137,13 +141,12 @@ try {
     const opacity = Number(getComputedStyle(image).opacity);
     image.style.removeProperty("transition");
     return { animation: style.animationName, zIndex: style.zIndex, image: opacity };
-  });
+  }, unsettle);
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
   assert.equal((await sweep(inactiveLink)).animation, "none", "loaded suggestion stops the sweep");
   // Đọc lúc không có cú đẩy: animation đẩy ảnh cũ ghi đè opacity CSS trong 0.9s chuyển ảnh.
   await page.waitForFunction((link) => !link.querySelector('[data-advertising-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
-  await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
-  const inactiveSweep = await sweep(inactiveLink);
+  const inactiveSweep = await sweep(inactiveLink, true);
   // Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): chưa settle thì ::after trong suốt.
   // Kết thúc transition opacity 250ms của lớp tối rồi mới đọc giá trị đích, không dựa mốc thời gian.
   // Gỡ class lại trong cùng evaluate: ảnh slide khác load có thể gắn lại is-media-settled giữa hai lần đọc.
