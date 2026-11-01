@@ -209,17 +209,14 @@ nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opa
 Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị trí
 (mục trên) và ảnh hiện (mục này).
 
-- Ảnh chưa giải mã khi card vào viewport: khung media mang ngay
-  [skeleton](components/Skeleton/README.md) cuối masonry (Flow chạy cả khi
-  đang cuộn). Ảnh về thì hiện dưới
-  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) ba bậc nhịp
-  `0.6s`, chỉ opacity: kính hiện `0` đến `0.26s`
-  `cubic-bezier(0, 0, 0.26, 1)`; skeleton mờ đi, ảnh hiện lên `0.13s` đến
-  `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`; kính tan `0.26s` đến `0.6s`
-  `cubic-bezier(0.86, 0, 0.07, 1)`. Khung card, link luôn hiện.
+- Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
+  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải.
+  Tải và `decode()` xong thì blur về `none` trong `0.6s`
+  `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
+  mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
-- Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong, không kính.
+- Reduced motion: ảnh vẫn mờ khi chờ, tải xong thì nét ngay, không tan.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
   tâm `16%` mép mờ dần theo cosine, nghiêng 60 độ lướt `1.6s` linear, chỉ `transform`; ảnh hiện sau load và `decode()`, opacity `0.45s`

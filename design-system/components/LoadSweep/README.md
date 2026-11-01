@@ -15,8 +15,13 @@ Advertising dùng [Skeleton](../Skeleton/README.md), không dùng vệt.
   về 0 qua 17 điểm màu theo đường cosine nên mép mờ dần (owner 2026-10-10).
 - Vệt vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục, mỗi lượt `1.6s`
   linear. Chỉ animate `transform`; khung ra ngoài viewport thì vệt dừng.
-- Ảnh load và `decode()` xong: khung có `.is-media-settled`, vệt gỡ, ảnh
-  `opacity` `0` sang `1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`.
+- Ảnh (JXL, trình duyệt chưa đọc JXL thì WebP) tải xong toàn bộ file và
+  `decode()` xong mới hiện, không hiện bản tải dở: khung có `.is-media-settled`,
+  vệt gỡ, ảnh `opacity` `0` sang `1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
+  ([tải theo nấc R3](../../../docs/specs/progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong)).
+- Khung lớn (hero, ảnh lớn detail) hiện xong rồi mới tải bản gốc khi trang ngừng
+  cuộn; giải mã xong thì đổi thẳng, không vệt lần nữa
+  ([R10](../../../docs/specs/progressive-loading.md#r10-lên-bản-gốc-sau-khi-hiện)).
 - Nút suggestion đang bật nền trắng, không có vệt; nhãn luôn nằm trên vệt.
 - Reduced motion: không lướt; cả lớp sáng tối nhẹ chu kỳ `2s`.
 - Không JavaScript: không có class `media-gate` trên root, ảnh hiện như thường.

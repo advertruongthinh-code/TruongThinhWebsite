@@ -9,7 +9,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 | --- | --- |
 | Cung (`data-glass-shape="arc"`) | Kính cuối masonry, nền cho cụm CTA trên batch [skeleton](../Skeleton/README.md) |
 | Phủ đều (`data-glass-shape="even"`) | Vùng dư quanh ảnh [primary](../Primary/README.md) khi ảnh contain còn chỗ trống |
-| Phủ đều, ba bậc (`data-glass-reveal`) | Ảnh [card](../MediaCard/README.md) và [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
+| Phủ đều, ba bậc (`data-glass-reveal`) | Ảnh [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
 
 ## Hành vi
 
@@ -68,11 +68,12 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
 - Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
-  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card và primary hiện từ
-  skeleton, primary đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10). Ảnh card đã có sẵn
-  (cache, vào lại viewport) hiện ngay, không kính.
+  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Primary hiện từ skeleton
+  hay đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10).
+- Card masonry không còn Kính: ảnh card chờ tải tự mờ trên màu chủ đạo rồi blur
+  tan ([Media card](../MediaCard/README.md), owner 2026-10-31).
 - Giảm chuyển động: không kính.
-- Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.
+- Hiện xong thì gỡ kính khỏi DOM; primary rời đi giữa chừng cũng gỡ.
 
 Thời gian ở [Motion](../../motion.md#ảnh-trong-card).
 

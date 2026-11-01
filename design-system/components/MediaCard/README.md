@@ -10,17 +10,20 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   rộng đúng một cột, không crop, không caption, không tiêu đề (chỉ alt VI/EN).
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
-- Vào viewport khi ảnh chưa tải thì khung media mang ngay
-  [skeleton](../Skeleton/README.md) cuối masonry, ảnh về thì hiện qua Kính
-  `0.6s`; ảnh đã có sẵn hiện ngay, không motion ([Motion](../../motion.md#ảnh-trong-card)).
+- Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
+  ảnh hiện ngay dưới `blur(24px)` của chính nó và nét dần khi tải; tải và giải
+  mã xong thì blur tan `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
+  ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
   2026-10-18); chuột thật hover phủ lớp đen 30% lên canvas (owner 2026-10-26); focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
 
-Ảnh vừa tải hiện dưới [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
-phủ đều, rồi kính tan.
+Bản đầu cho ảnh vừa tải hiện dưới Kính ba bậc; kéo thanh cuộn nhanh khi mạng
+chậm còn 14 đến 15 FPS trên PC, 8,6 đến 10,6 FPS trên A04s, blur trên ảnh đạt 41 và 74
+đến 82 FPS, nên owner chọn blur (2026-10-31,
+[tải theo nấc R9](../../../docs/specs/progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
 
 ## Nhiều media trong card
 
