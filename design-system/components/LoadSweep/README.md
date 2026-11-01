@@ -10,7 +10,7 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
 ## Hành vi
 
 - Khung nền `media-loading-surface` `#2b2c2b`, ảnh `opacity: 0`.
-- Một dải sáng đối xứng, trắng `16%` ở tâm, nghiêng 60 độ (cùng góc dải mark),
+- Một dải sáng đối xứng, trắng `20%` ở tâm, nghiêng 60 độ (cùng góc dải mark),
   rộng khoảng hai phần năm khung, vẽ bằng `::before` của khung. Độ sáng giảm
   về 0 qua 17 điểm màu theo đường cosine nên mép mờ dần (owner 2026-10-10).
 - Vệt vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục, mỗi lượt `1.6s`
@@ -23,7 +23,7 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
   cuộn; giải mã xong thì đổi thẳng, không vệt lần nữa
   ([R10](../../../docs/specs/progressive-loading.md#r10-lên-bản-gốc-sau-khi-hiện)).
 - Nút suggestion đang bật nền trắng, không có vệt; nhãn luôn nằm trên vệt.
-- Reduced motion: không lướt; cả lớp sáng tối nhẹ chu kỳ `2s`.
+- Reduced motion: không lướt; cả lớp sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
 - Không JavaScript: không có class `media-gate` trên root, ảnh hiện như thường.
 
 Preview dựng một khung ảnh chưa tải và ba nút không có ảnh; nút thứ ba ở trạng

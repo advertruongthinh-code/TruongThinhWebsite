@@ -162,7 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
-| Nút Suggestion | Lớp tối `0.5` luôn hiện, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
+| Nút Suggestion | Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
 
@@ -219,8 +219,8 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Reduced motion: ảnh vẫn mờ khi chờ, tải xong thì nét ngay, không tan.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
-  tâm `16%` mép mờ dần theo cosine, nghiêng 60 độ lướt `1.6s` linear, chỉ `transform`; ảnh hiện sau load và `decode()`, opacity `0.45s`
-  `cubic-bezier(0.16, 1, 0.3, 1)`. Reduced motion: sáng tối nhẹ `2s`.
+  tâm `20%` mép mờ dần theo cosine, nghiêng 60 độ lướt `1.6s` linear, chỉ `transform`; ảnh hiện sau load và `decode()`, opacity `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)`. Reduced motion: sáng tối nhẹ (`10%`) `2s`.
 
 ### Skeleton tiếp nối
 
@@ -250,7 +250,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
   bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
-  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` luôn hiện; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
+  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
