@@ -2702,15 +2702,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
   const moveCtaNodes = (host) => {
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
-    if (host === "detail" && photoCanvas) photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
-    else {
+    if (host === "detail" && photoCanvas) {
+      photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
+      // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
+      gridCta?.style.setProperty("visibility", "hidden");
+    } else {
+      gridCta?.style.removeProperty("visibility");
       grid.append(ctaSkeleton);
       gridSectionStyleTarget?.append(...[gridCta, arcGlass].filter(Boolean));
+      // Biến detail đặt thẳng trên cụm CTA; ở grid cụm kế thừa từ .project-index.
+      gridCta?.style.removeProperty("--advertising-cta-top");
+      gridCta?.style.removeProperty("--advertising-gap");
     }
     ctaSkeleton.dataset.advertisingCtaHost = host;
   };
+  // Chỉ ghi khi đổi: ghi lại cùng giá trị biến kế thừa vẫn có thể làm bẩn style cả cây con.
+  const setStyleVar = (node, name, value) => {
+    if (node && node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
+  };
   const setCtaHostHeight = (height) => {
-    if (ctaInDetail()) photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
+    if (ctaInDetail()) setStyleVar(photoCanvas, "--advertising-photo-canvas-height", `${height}px`);
     else {
       gridPixelHeight = height;
       grid.style.height = `${height}px`;
@@ -2727,22 +2738,35 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       clearCtaSkeleton();
       return;
     }
+    // Mỗi lần dựng tốn 15-115ms trên CPU chậm, nên lượt mở detail chỉ dựng một lần, ở task sau task gắn related (R9):
+    // pha primary, warm, related chưa đặt related, pha cta chờ task riêng; đang ở photo thì grid không dựng (batch sang detail ngay).
+    if (detailHost ? directEntryPhase : browseHistory.current?.photo) return;
     // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
     const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
     cancelCtaSlides(slideOrigins?.keys() || []);
     const gap = hostGeometry.interCardGap;
     const ctaTop = hostGeometry.totalPixelHeight + gap;
-    (detailHost ? photoCanvas : gridSectionStyleTarget)?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
-    // Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry; canvas detail cần cùng biến cho chữ CTA.
-    if (detailHost) photoCanvas.style.setProperty("--advertising-gap", `${gap}px`);
+    // Đọc trước mọi lần ghi: đọc sau khi ghi biến ép trình duyệt tính lại style giữa task (A04s 60-140ms mỗi lần dựng).
     const viewportHeight = getLayoutViewportHeight();
     lastCtaViewportHeight = viewportHeight;
     const footerHeight = siteFooter?.offsetHeight || 0;
     const room = viewportHeight / 2 - footerHeight - gap;
     const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
+    // Ở detail biến đặt thẳng trên cụm CTA (nơi duy nhất dùng chúng), không trên canvas: biến kế thừa đổi trên canvas
+    // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry.
+    const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
+    setStyleVar(ctaVarHost, "--advertising-cta-top", `${ctaTop}px`);
+    if (detailHost) {
+      setStyleVar(gridCta, "--advertising-gap", `${gap}px`);
+      gridCta?.style.removeProperty("visibility");
+    }
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
+      // Cỡ copy sau fit là cỡ ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai. Đọc khi layout
+      // còn sạch sau lần đo của fit, trước các lần ghi biến dưới.
+      const copyRect = gridCtaCopy.getBoundingClientRect();
+      observedCopySize = `${copyRect.width}x${copyRect.height}`;
       // CSS đặt copy theo dynamic viewport, nên thanh địa chỉ không bao giờ dựng lại batch.
       gridCta.style.setProperty("--advertising-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
@@ -2760,6 +2784,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
+    // Chiều cao vừa đo là chiều cao ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai.
+    observedCtaHeight = ctaHeight;
     const gridBottom = ctaTop + ctaHeight;
     ctaBottom = gridBottom;
     // Batch kết thúc ngay trên footer.
@@ -4327,8 +4353,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           if (generation === detailRenderGeneration && photoView) photoView.dataset.advertisingDetailReady = "true";
         }, 400);
         // Batch CTA cuối related dựng ở task riêng: chung task mount related thì 111ms trên A04s (CTA R9, gate 50ms).
+        // Pha "cta" giữ resize frame xen giữa không dựng batch chung frame với Masonry và LazySizes.
+        directEntryPhase = "cta";
         await nextTask();
         if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+        directEntryPhase = "";
         renderCtaSkeleton();
       }
     }
@@ -4598,8 +4627,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         window.dispatchEvent(new CustomEvent("site:layout"));
         return;
       }
-      // Mount còn chờ geometry từ Worker và sẽ tự measure.
-      if (geometryPending) return;
+      // Mount còn chờ geometry từ Worker và sẽ tự measure. Back trong lúc chờ đã measure đồng bộ: resize phải chạy.
+      if (geometryPending && !geometry) return;
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
         // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
@@ -4951,7 +4980,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }
   activeInstance = { adapter, browseHistory, container, cleanup, photoViewer, syncSkeletonMotion };
   if (browseHistory.current.photo) {
-    // Grid ở trạng thái ẩn dưới photo; ensurePhoto đo nó khi quay lại.
+    // Grid ở trạng thái ẩn dưới photo; ensurePhoto đo nó khi quay lại. Không giải masonry ở main thread khi mở detail
+    // (ResizeObserver đo grid ẩn, 238ms trên A04s): geometry tính trên Worker sau khi detail xong, Back lấy từ cache.
+    geometryPending = true;
     retainedPhotoIds.add(browseHistory.current.photo);
     // Mỗi bước dưới đây là một task riêng để không bước nào chặn input quá 50ms trên phone Android (R7, showPhoto).
     await nextTask();
@@ -4974,6 +5005,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
+    await prewarmGeometry(filter);
+    geometryPending = false;
+    if (controller.signal.aborted) return cleanup;
+    // Đo grid ẩn (geometry lấy từ cache Worker) ở task riêng, không dồn vào task Back (A04s chậm hơn main ở Back).
+    await nextTask();
+    if (controller.signal.aborted) return cleanup;
+    if (!geometry) measure();
   } else {
     // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
     document.body.classList.remove("is-advertising-photo");
