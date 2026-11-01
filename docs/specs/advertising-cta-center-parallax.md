@@ -265,7 +265,9 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 ## Gate còn mở
 
 - Owner chưa xem CTA giữa viewport, parallax và footer gọn trên demo. Owner.
-- A04s: pha gắn related cộng CTA dưới gate 50ms (R9), chưa đo.
+- A04s: task gắn related dưới gate 50ms từ #668; long task còn lại của lượt mở detail do thread hiệu năng riêng xử lý.
+- Mở rộng (owner 2026-11-01): chữ CTA cuối related đổi linh hoạt theo sản phẩm trong "Có thể bạn thích". Chưa có
+  hành vi, cần phỏng vấn owner trước khi làm. Owner.
 
 ## Chú thích thuật ngữ
 
