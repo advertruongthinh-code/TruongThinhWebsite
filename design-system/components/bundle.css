@@ -29,6 +29,8 @@
   /* Bóng chữ hai lớp D trên ảnh có chữ trắng (hero-typography R6); reach là bán kính quầng ngoài để nới mask. */
   --text-shadow-d: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.4);
   --text-shadow-reach: 12px;
+  /* Vệt sáng tâm trắng 20%, 17 điểm màu raised cosine; khung ảnh và nút suggestion dùng chung (media-delivery R6). */
+  --media-sweep-gradient: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.76%) 45.625%, rgb(255 255 255 / 2.93%) 46.25%, rgb(255 255 255 / 6.17%) 46.875%, rgb(255 255 255 / 10%) 47.5%, rgb(255 255 255 / 13.83%) 48.125%, rgb(255 255 255 / 17.07%) 48.75%, rgb(255 255 255 / 19.24%) 49.375%, rgb(255 255 255 / 20%) 50%, rgb(255 255 255 / 19.24%) 50.625%, rgb(255 255 255 / 17.07%) 51.25%, rgb(255 255 255 / 13.83%) 51.875%, rgb(255 255 255 / 10%) 52.5%, rgb(255 255 255 / 6.17%) 53.125%, rgb(255 255 255 / 2.93%) 53.75%, rgb(255 255 255 / 0.76%) 54.375%, transparent 55%);
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
   --word-spacing-montage: 0.1em;
@@ -1035,8 +1037,10 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
-/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero không bóng (owner 2026-10-26); CTA lưới
+/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero có bóng (owner 2026-11-01; nút CUỘN là button nên cần rule riêng, UA đặt text-shadow none cho form control); CTA lưới
    trang Sản phẩm quảng cáo (chữ ink trên nền giấy) không áp. */
+.hero:not(.detail-index-hero),
+.hero:not(.detail-index-hero) .scroll-cue,
 .portal-copy,
 .legacy-copy,
 .detail-cta:not([data-advertising-grid-cta]) {
@@ -2155,13 +2159,13 @@ em {
 }
 
 /* Dải rộng 400% khung trượt -75% tới 0 nên vệt vào từ ngoài mép trái và ra hẳn mép phải; chỉ animate transform.
-   Dải trắng tâm 16% rộng như bản gốc, 17 điểm màu theo raised cosine nên mép mờ dần, không gãy (docs/specs/media-delivery.md R6). */
+   Dải trắng tâm 20% rộng như bản gốc, 17 điểm màu theo raised cosine nên mép mờ dần, không gãy (docs/specs/media-delivery.md R6). */
 .media-gate .media-frame:not(.is-media-settled)::before {
   position: absolute;
   inset: 0 auto 0 0;
   width: 400%;
   content: "";
-  background: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.61%) 45.625%, rgb(255 255 255 / 2.34%) 46.25%, rgb(255 255 255 / 4.94%) 46.875%, rgb(255 255 255 / 8%) 47.5%, rgb(255 255 255 / 11.06%) 48.125%, rgb(255 255 255 / 13.66%) 48.75%, rgb(255 255 255 / 15.39%) 49.375%, rgb(255 255 255 / 16%) 50%, rgb(255 255 255 / 15.39%) 50.625%, rgb(255 255 255 / 13.66%) 51.25%, rgb(255 255 255 / 11.06%) 51.875%, rgb(255 255 255 / 8%) 52.5%, rgb(255 255 255 / 4.94%) 53.125%, rgb(255 255 255 / 2.34%) 53.75%, rgb(255 255 255 / 0.61%) 54.375%, transparent 55%);
+  background: var(--media-sweep-gradient);
   animation: media-sweep 1.6s linear infinite;
   pointer-events: none;
 }
@@ -2202,7 +2206,7 @@ em {
   .media-gate .media-frame:not(.is-media-settled)::before {
     inset: 0;
     width: auto;
-    background: rgb(255 255 255 / 8%);
+    background: rgb(255 255 255 / 10%);
     /* !important để thắng reset animation toàn cục của reduced motion bên dưới. */
     animation: media-breathe 2s ease-in-out infinite !important;
   }
@@ -4784,8 +4788,11 @@ body.is-advertising-browse .advertising-grid {
   font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
+  text-shadow: var(--text-shadow-d);
   pointer-events: none;
-  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+  /* Lớp đen chỉ hiện khi media sẵn sàng, cùng nhịp 0.6s của blur tan (spec chờ ảnh S3). */
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing),
+    background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
@@ -4957,6 +4964,17 @@ body.is-advertising-browse .advertising-grid {
   opacity: 1;
 }
 
+/* Card chờ ảnh thở bằng chính keyframe media-breathe của Vệt sáng (style.css); runtime gắn
+   data-advertising-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). Chỉ layer đang mờ thở: layer tạo theo
+   nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
+[data-advertising-media-loading] .advertising-tile__foreground[style*="blur("] {
+  animation: media-breathe 2s ease-in-out infinite;
+}
+
+[data-advertising-media-loading] .advertising-card-media__just-viewed {
+  background-color: transparent;
+}
+
 .advertising-tile > a:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 4px;
@@ -4984,7 +5002,8 @@ body.is-advertising-browse .advertising-grid {
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
-   100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
+   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do glass-surface.mjs
+   đặt inline qua --glass-step-blur, thắng các rule này); saturate() và brightness() nhân nhau, nên mỗi step
    mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
    chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
    Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
@@ -5008,7 +5027,7 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-/* Inner step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
+/* Band step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -5042,8 +5061,8 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.06;
 }
 
-/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
-   28px của band; inner step của nó mang blur tiếp tới trần 100px. */
+/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
+   trên PC runtime đặt inline --glass-full-blur: 100px cho core (chín bậc của dải đã mang blur tới trần 100px). */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
   --glass-brightness: 1;
@@ -5322,7 +5341,7 @@ body.is-advertising-browse .site-footer {
 .advertising-tile > .advertising-photo-view__media-step svg {
   width: 16px;
   height: 16px;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
 @media (hover: hover) {
@@ -5856,7 +5875,7 @@ body.is-advertising-browse .site-footer {
   width: 20px;
   height: 20px;
   fill: #fff;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
   transform: translate(-50%, -50%);
 }
 
@@ -6053,7 +6072,7 @@ body.is-advertising-browse .site-footer {
   inset: 0 auto 0 0;
   width: 400%;
   content: "";
-  background: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.61%) 45.625%, rgb(255 255 255 / 2.34%) 46.25%, rgb(255 255 255 / 4.94%) 46.875%, rgb(255 255 255 / 8%) 47.5%, rgb(255 255 255 / 11.06%) 48.125%, rgb(255 255 255 / 13.66%) 48.75%, rgb(255 255 255 / 15.39%) 49.375%, rgb(255 255 255 / 16%) 50%, rgb(255 255 255 / 15.39%) 50.625%, rgb(255 255 255 / 13.66%) 51.25%, rgb(255 255 255 / 11.06%) 51.875%, rgb(255 255 255 / 8%) 52.5%, rgb(255 255 255 / 4.94%) 53.125%, rgb(255 255 255 / 2.34%) 53.75%, rgb(255 255 255 / 0.61%) 54.375%, transparent 55%);
+  background: var(--media-sweep-gradient);
   animation: media-sweep 1.6s linear infinite;
   pointer-events: none;
 }
@@ -6066,7 +6085,7 @@ body.is-advertising-browse .site-footer {
   .media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
     inset: 0;
     width: auto;
-    background: rgb(255 255 255 / 8%);
+    background: rgb(255 255 255 / 10%);
     /* !important để thắng reset animation toàn cục của reduced motion. */
     animation: media-breathe 2s ease-in-out infinite !important;
   }
@@ -6082,7 +6101,7 @@ body.is-advertising-browse .site-footer {
   outline-offset: 2px;
 }
 
-/* Lớp tối 0,5 luôn hiện, hover không đổi (owner 2026-10-26, giữa hai mức 0,4 và 0,6 của Pinterest). Nút gợi ý cũng mang class
+/* Lớp tối 0,5 hiện khi ảnh nền đã giải mã, hover không đổi (owner 2026-10-26, giữa hai mức 0,4 và 0,6 của Pinterest). Nút gợi ý cũng mang class
    advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
 .advertising-photo-view__suggestion-link::after {
   position: absolute;
@@ -6096,6 +6115,15 @@ body.is-advertising-browse .site-footer {
 
 .advertising-photo-view__suggestion-link[aria-pressed="true"]::after {
   opacity: 0;
+}
+
+/* Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): lúc chờ chỉ có vệt sáng, nhãn trắng mang bóng D. */
+.media-gate .advertising-photo-view__suggestion-link:not(.is-media-settled)::after {
+  opacity: 0;
+}
+
+.media-gate .advertising-photo-view__suggestion-link.is-media-settled:not([aria-pressed="true"])::after {
+  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .advertising-photo-view__suggestion-link[aria-pressed="true"] img {

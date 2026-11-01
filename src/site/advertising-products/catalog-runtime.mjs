@@ -2560,6 +2560,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Ảnh hiện ngay dưới blur của chính nó để trình duyệt vẽ dần; filter trên ảnh không đọc lại nền mỗi frame như Kính
     // backdrop-filter nên kéo thanh cuộn không rớt FPS (progressive-loading R9).
     mediaLayers(node).forEach((media) => { media.style.filter = CARD_LOADING_BLUR; });
+    // Card mờ chờ ảnh thì thở (detail.css, spec chờ ảnh S2); dropCardSkeleton gỡ cùng lúc gỡ blur.
+    node.dataset.advertisingMediaLoading = "";
     showMedia(node);
     cardSkeletons.set(node, { blur: true, revealing: false, animations: [] });
   };
@@ -2567,6 +2569,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const entry = cardSkeletons.get(node);
     if (!entry) return;
     cardSkeletons.delete(node);
+    delete node.dataset.advertisingMediaLoading;
     entry.animations.forEach((animation) => animation.cancel());
     mediaLayers(node).forEach((media) => {
       media.style.removeProperty("transition");
@@ -2622,8 +2625,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       const layers = mediaLayers(node);
       if (entry.blur) {
-        // Blur tan về 0 trong 0.6s (progressive-loading R9).
-        entry.animations = layers.map((media) => media.animate([{ filter: CARD_LOADING_BLUR }, { filter: "none" }],
+        // Blur tan về 0 trong 0.6s (progressive-loading R9). Thở dừng đúng lúc đó: opacity đi từ giá trị đang thở về 1 cùng
+        // nhịp, không nháy; đọc trước khi gỡ attribute vì gỡ rồi CSS animation dừng và giá trị đọc được luôn là 1.
+        const from = layers.map((media) => getComputedStyle(media).opacity);
+        delete node.dataset.advertisingMediaLoading;
+        entry.animations = layers.map((media, index) => media.animate(
+          [{ filter: CARD_LOADING_BLUR, opacity: from[index] }, { filter: "none", opacity: 1 }],
           { duration: CARD_REVEAL_MS, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }));
       } else {
         layers.forEach((media) => {

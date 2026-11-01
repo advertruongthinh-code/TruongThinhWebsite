@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { arcGlassGeometry, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
+import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
@@ -16,9 +16,9 @@ assert.deepEqual([...new Set(owners)].sort(),
 // Surface một step blur qua tích của các step (các check tone bên dưới).
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
   "R2, R5: one full step equals the steps");
-// R2: một step đầy là trần 100px; core của cung giữ 28px của band và các inner step tăng từ đó.
+// R2: một step đầy là trần 100px; core của cung giữ 28px của band trên phone (PC đặt inline 100px, chín bậc ở dải).
 assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
-assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the arc's core holds 28px");
+assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the phone arc's core holds 28px");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // Primary photo tự mang blur của step đầy: backdrop-filter ở đó in tile seam vào thumbnail tab của Chrome.
@@ -68,6 +68,18 @@ for (let seed = 1; seed < 400; seed += 1) {
   const clusterTop = clusterBottom - 60 - 200 * random(4);
   const arc = arcGlassGeometry({ width, batchBottom, realBottom: clusterTop - 400 * random(5), cardWidth, clusterTop, clusterBottom });
   assert(arc.dFull <= arc.radius - 0.35 * cardWidth + 1e-6, `R3: batch corners stay pure white (seed ${seed})`);
+}
+// R2: chín bậc của cung PC: mức tăng dần từ 4.5 tới 100px, mỗi bậc chỉ mang phần tăng nên cộng quadrature đúng 100px.
+assert.equal(ARC_DESKTOP_LEVELS.length, 9, "R2: nine desktop band steps");
+assert(ARC_DESKTOP_LEVELS[0] === 4.5 && ARC_DESKTOP_LEVELS.at(-1) === 100
+  && ARC_DESKTOP_LEVELS.every((level, index) => !index || level > ARC_DESKTOP_LEVELS[index - 1]), "R2: levels rise from 4.5 to 100px");
+for (const [radius, band] of [[5040, 280], [1365, 8], [3.5 * 390, 120]]) {
+  const steps = desktopArcSteps({ radius, band });
+  assert(Math.abs(Math.sqrt(steps.reduce((sum, { blur }) => sum + blur * blur, 0)) - 100) < 0.01, "R2: stacked blur sums to 100px");
+  assert(Math.abs(steps[0].off - (radius + band)) < 1e-9, "R2: the first step starts at the outer band edge");
+  assert(Math.abs(steps.at(-1).on - (radius - band * ARC_DESKTOP_BITE)) < 1e-9, "R2: the last step is solid from 1/3 of the band inside the arc");
+  assert(steps.every(({ on, off }, index) => on < off && (!index || off < steps[index - 1].off && on < steps[index - 1].on)),
+    "R2: steps are ordered outside in and overlap their neighbours");
 }
 // R6: reveal surface có đủ ba step; level tăng đến full ở 0.6 trên 1.4s rồi giảm về none.
 assert.match(runtime, /createGlassSurface\("even", 3\)/, "R6: the reveal Kính has three steps");

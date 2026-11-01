@@ -172,7 +172,7 @@ try {
     const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
     // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
     const monotonic = row.every((value, x) => x === 0 || (x <= center ? value >= row[x - 1] - 1 : value <= row[x - 1] + 1));
-    assert.ok(peak >= 75 && peak <= 79 && Math.min(...row) === 43, `sweep peak ${peak} within 75-79 on #2b2c2b`);
+    assert.ok(peak >= 84 && peak <= 87 && Math.min(...row) === 43, `sweep peak ${peak} within 84-87 on #2b2c2b`);
     assert.ok(monotonic && maxStep <= 1, `sweep rises then falls without hard edges (max step ${maxStep})`);
     assert.ok(maxSlopeJump <= 0.1, `sweep has no brightness kink (max slope jump ${maxSlopeJump})`);
     results.push({ case: "r6-sweep-smooth", peak, maxStep, maxSlopeJump });
@@ -328,10 +328,14 @@ try {
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur('].lazyloading"));
     const loading = await page.evaluate(() => {
       const image = document.querySelector("[data-project-grid] img[style*='blur('].lazyloading");
-      const { filter, opacity } = getComputedStyle(image);
-      return { blur: filter.startsWith("blur("), opacity };
+      const { filter, opacity, animationName } = getComputedStyle(image);
+      return { blur: filter.startsWith("blur("), animationName, opacity: Number(opacity),
+        marked: image.closest("[data-advertising-card]").hasAttribute("data-advertising-media-loading") };
     });
-    assert.deepEqual(loading, { blur: true, opacity: "1" }, `${viewport.width}px: loading card blurs its own image as it enters view`);
+    // Ảnh chờ thở bằng media-breathe (opacity 1 → 0.45 → 1) cùng lúc mờ (spec chờ ảnh S2).
+    assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
+      { blur: true, animationName: "media-breathe", opacity: true, marked: true },
+      `${viewport.width}px: loading card blurs its own image and breathes as it enters view`);
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -347,6 +351,11 @@ try {
     // Blur tan trong 0.6 s sau khi ảnh cuối tải xong, rồi bị gỡ.
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur`));
+    // Tải xong thì thở dừng: không còn attribute, animation hay opacity dở dang (spec chờ ảnh S2).
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+      .filter((card) => card.hasAttribute("data-advertising-media-loading")
+        || [...card.querySelectorAll("img")].some((image) => getComputedStyle(image).animationName !== "none")).length), 0,
+      `${viewport.width}px: loaded cards stop breathing`);
     assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);

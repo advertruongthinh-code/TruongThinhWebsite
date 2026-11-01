@@ -18,22 +18,27 @@
       {
         "name": "ease",
         "value": "cubic-bezier(0, 0, 0.26, 1)",
-        "purpose": "Timing chi tiết: design-system/motion.md"
+        "purpose": "Motion: Design System không có family motion; xem mục Motion trong README."
       },
       {
         "name": "media-hover-duration",
         "value": "600ms",
-        "purpose": "Timing chi tiết: design-system/motion.md"
+        "purpose": "Motion: xem mục Motion trong README."
       },
       {
         "name": "media-hover-easing",
         "value": "ease-out",
-        "purpose": "Timing chi tiết: design-system/motion.md"
+        "purpose": "Motion: xem mục Motion trong README."
+      },
+      {
+        "name": "media-sweep-gradient",
+        "value": "linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.76%) 45.625%, rgb(255 255 255 / 2.93%) 46.25%, rgb(255 255 255 / 6.17%) 46.875%, rgb(255 255 255 / 10%) 47.5%, rgb(255 255 255 / 13.83%) 48.125%, rgb(255 255 255 / 17.07%) 48.75%, rgb(255 255 255 / 19.24%) 49.375%, rgb(255 255 255 / 20%) 50%, rgb(255 255 255 / 19.24%) 50.625%, rgb(255 255 255 / 17.07%) 51.25%, rgb(255 255 255 / 13.83%) 51.875%, rgb(255 255 255 / 10%) 52.5%, rgb(255 255 255 / 6.17%) 53.125%, rgb(255 255 255 / 2.93%) 53.75%, rgb(255 255 255 / 0.76%) 54.375%, transparent 55%)",
+        "purpose": "Vệt sáng 20% dùng chung khung ảnh và nút suggestion: xem LoadSweep."
       },
       {
         "name": "media-hover-transform",
         "value": "transform var(--media-hover-duration) var(--media-hover-easing)",
-        "purpose": "Timing chi tiết: design-system/motion.md"
+        "purpose": "Composite transition ghép từ hai biến motion trên."
       }
     ],
     "breakpoints": [

@@ -15,26 +15,26 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 
 - **Nhòe tăng dần thật:** trần nhòe `100px` cho mọi bề mặt (owner, 06/10). Kính
   hiện và tan có ba bậc `16.07`, `57.14`, `100px` (owner chọn 24/10, thay năm bậc); blur xếp chồng
-  cộng dồn nên mỗi lớp chỉ thêm phần tăng `16.07`, `54.84`, `82.07px`. Dạng cung có ba bậc `4.5`, `12`, `28px` (phần tăng
-  `4.5`, `11.12`, `25.3px`) để vuốt trên điện thoại tầm trung đủ mượt. Mỗi bậc
+  cộng dồn nên mỗi lớp chỉ thêm phần tăng `16.07`, `54.84`, `82.07px`. Dạng cung trên điện thoại có hai lớp: lõi `28px` và một bậc dải `25.3px` (phần tăng) để vuốt trên điện thoại
+  tầm trung đủ mượt. Trên PC có 9 bậc dải tăng cấp số nhân `4.5`, `6.6`, `9.8`, `14.4`, `21.2`, `31.3`, `46.1`, `67.9`, `100px`
+  (mỗi bậc chỉ thêm phần tăng căn bậc hai của hiệu bình phương hai mức kề). Mỗi bậc
   chồng mép lên bậc kế, không thấy bậc hay bóng ma hai lớp.
   Kính nền primary (phủ đều, đứng yên) không có bậc nhòe, chỉ tint và hạt
   nhiễu; ảnh nền phía dưới tự nhòe bằng `filter: blur(100px) saturate(1.7)
   brightness(1.04)`, vì `backdrop-filter` trên ảnh tĩnh để lại đường nối ô
   raster khi Chrome vẽ lại (rê chuột lên tab).
-  Dạng cung cũng dùng một bậc đủ làm lõi bên trong cung, ba bậc chỉ phủ dải;
-  lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối:
+  Dạng cung cũng dùng một lớp làm lõi bên trong cung (PC `100px`, điện thoại `28px`), các bậc chỉ phủ dải;
+  lõi chuyển sang các bậc qua `48px` bên trong cung nên không thấy đường nối:
   lõi hiện đủ ở nửa ngoài trước khi các bậc tắt ở nửa trong, nên trang nét không lọt qua.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
-  batch. Nhòe tăng liên tục từ 0 ở mép dải, `28px` ở cung, tới trần `100px` ở
-  vòng trắng tuyệt đối. Số lớp cố định theo máy, không đo fps: PC 5 lớp (lõi, 1
-  bậc trong cung, 3 bậc dải); điện thoại 2 lớp (lõi `28px` và bậc dải trong
-  cùng). Đỉnh cung cao hơn mép trên tiêu đề
+  batch. Nhòe tăng liên tục từ 0 ở mép dải qua 9 bậc (PC), đạt trần `100px` sau khi lấn vào trong cung
+  một đoạn bằng `1/3` bề rộng dải (owner 2026-11-01), từ đó vào trong đều `100px`. Số lớp cố định theo máy, không đo fps: PC lõi
+  và 9 bậc dải; điện thoại 2 lớp (lõi `28px` và bậc dải trong cùng). Đỉnh cung cao hơn mép trên tiêu đề
   `15%` chiều cao cụm CTA (chữ nằm trong lõi; điện thoại giữ `35%` dưới mép tiêu đề), bán kính `3.5` × bề rộng màn, dải giảm nhòe
   `1.75` × chiều cao cụm, vùng trắng tuyệt đối `0.35` × bề rộng card. Dải không
   lên quá ảnh thật; bán kính tăng nếu cần để hai góc đáy batch trắng tuyệt đối.
-- **Trắng theo cùng cung:** ngoài dải không có trắng, tới cung đạt tint, vào
+- **Trắng theo cùng cung:** trắng về 0 ở `0.85` bề rộng dải (thu hẹp, owner 2026-11-01; hạt nhiễu thu theo), tới cung đạt tint, vào
   trong tăng tới trắng tuyệt đối ở vòng qua hai góc đáy batch.
 - **Hạt nhiễu:** đơn sắc, tĩnh, đậm `3%` trên tông giữa, hòa trộn `overlay`, một
   hạt một pixel thiết bị; ở dạng cung, hạt mờ dần tới vòng trắng tuyệt đối nên

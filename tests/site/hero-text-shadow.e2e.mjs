@@ -1,5 +1,5 @@
-// hero-typography R6: chữ trắng trên ảnh có bóng hai lớp D, nới mask cho quầng 12px; hero (owner 2026-10-26) và chữ ink trên giấy
-// (Sản phẩm quảng cáo) không bóng.
+// hero-typography R6: chữ trắng trên ảnh có bóng hai lớp D, nới mask cho quầng 12px (hero có bóng từ owner 2026-11-01); chữ ink
+// trên giấy (hero Sản phẩm quảng cáo) không bóng.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -10,16 +10,12 @@ const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const SHADOW_D = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
 const withShadow = [
-  { route: "", selectors: [".portal-copy strong", ".legacy-copy h2", ".legacy-copy > p"] },
-  { route: "residential/", selectors: [".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
-  { route: "commercial/", selectors: [".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
-  { route: "about/", selectors: [".detail-cta h2", ".detail-cta p"] },
+  { route: "", selectors: [".hero h1", ".hero [data-scroll-cue]", ".portal-copy strong", ".legacy-copy h2", ".legacy-copy > p"] },
+  { route: "residential/", selectors: [".hero h1", ".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
+  { route: "commercial/", selectors: [".hero h1", ".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
+  { route: "about/", selectors: [".hero h1", ".detail-cta h2", ".detail-cta p"] },
 ];
 const withoutShadow = [
-  { route: "", selectors: [".hero h1", ".hero [data-scroll-cue]"] },
-  { route: "residential/", selectors: [".hero h1"] },
-  { route: "commercial/", selectors: [".hero h1"] },
-  { route: "about/", selectors: [".hero h1"] },
   { route: "advertising-products/", selectors: [".hero h1", ".detail-cta[data-advertising-grid-cta] h2"] },
 ];
 
