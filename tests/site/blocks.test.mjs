@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { BLOCK_TYPES, renderBlocks, validateBlockPage } from "../../scripts/site/blocks.mjs";
+import { BLOCK_TYPES, duplicatePageFields, renderBlocks, validateBlockPage } from "../../scripts/site/blocks.mjs";
 
 const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
 const photo = { src: "/assets/content/projects/home-commercial-cafe.webp", width: 2304, height: 3072, altVi: "Quán cà phê nhà phố", altEn: "Shophouse café" };
@@ -75,4 +75,12 @@ test("image size must match the real file", async () => {
   const page = fixture();
   page.cover = { ...photo, width: 100 };
   assert.ok((await validateBlockPage(page, ctx)).some((error) => /cover: width\/height phải là 2304x3072/.test(error)));
+});
+
+test("duplicate page id or slug in one file is reported", () => {
+  const page = fixture();
+  assert.deepEqual(duplicatePageFields([page, { ...page, slugEn: "other-en" }], "content/projects.json"), [
+    "content/projects.json: trùng id sample",
+    "content/projects.json: trùng slugVi can-ho-mau",
+  ]);
 });

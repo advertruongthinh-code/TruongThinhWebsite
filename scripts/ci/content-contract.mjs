@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateProjectReel } from "../site/project-reel.mjs";
-import { validateBlockPage } from "../site/blocks.mjs";
+import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 
 // Bỏ `$`: đường dẫn ghép trong script inline (`${name}`) không phải file.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -82,14 +82,7 @@ export async function checkSiteContent(siteRoot) {
   }
   const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
-    // Map giữ bản cuối khi trùng id, nên báo trùng id và slug trước.
-    for (const field of ["id", "slugVi", "slugEn"]) {
-      const seen = new Set();
-      for (const page of list) {
-        if (seen.has(page[field])) errors.push(`content/${kind}.json: trùng ${field} ${page[field]}`);
-        seen.add(page[field]);
-      }
-    }
+    errors.push(...duplicatePageFields(list, `content/${kind}.json`));
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   return errors;

@@ -236,5 +236,15 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
   return errors;
 }
 
+// Map tra cứu giữ bản cuối khi trùng, nên báo trùng id và slug trong một file trước.
+export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].flatMap((field) => {
+  const seen = new Set();
+  return pages.flatMap((page) => {
+    const duplicate = seen.has(page[field]);
+    seen.add(page[field]);
+    return duplicate ? [`${at}: trùng ${field} ${page[field]}`] : [];
+  });
+});
+
 // Chỉ gọi với dữ liệu đã qua validateBlockPage.
 export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx)).join("\n");
