@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateProjectReel } from "../site/project-reel.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { SECTORS } from "../site/block-pages.mjs";
 
 // Bỏ `$`: đường dẫn ghép trong script inline (`${name}`) không phải file.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -83,6 +84,7 @@ export async function checkSiteContent(siteRoot) {
   const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
+    if (kind === "projects") for (const page of list) if (!SECTORS.includes(page.sector)) errors.push(`content/projects.json:${page.id}: sector phải là ${SECTORS.join(", ")}`);
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   return errors;

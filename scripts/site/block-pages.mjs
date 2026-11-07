@@ -1,10 +1,13 @@
-// Trang công trình dựng từ khối (projects R3, layout-library R4): khung header, menu, footer lấy từ trang Nhà ở,
+// Trang công trình dựng từ khối (projects R3, layout-library R4): khung header, menu, footer lấy từ trang Nhà ở hoặc Kinh doanh theo sector,
 // thân <main> là chuỗi khối của src/site/content/projects.json. Route theo slug VI và EN.
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { renderBlocks } from "./blocks.mjs";
 
 export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
+// sector cũng là thư mục trang mảng dùng làm khung và namespace của nó.
+export const SECTORS = ["residential", "commercial"];
+const SECTOR_NAME = { residential: "Không gian nhà ở", commercial: "Không gian kinh doanh" };
 
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
@@ -20,7 +23,7 @@ export const projectRoutes = (projects) => projects.flatMap((project) => ["vi", 
 
 const jsonLd = (project) => {
   const url = `${PUBLIC_ORIGIN}${projectHref("vi", project)}`;
-  const section = { "@type": "ListItem", position: 2, name: "Công trình", item: `${PUBLIC_ORIGIN}/vi/residential/` };
+  const section = { "@type": "ListItem", position: 2, name: SECTOR_NAME[project.sector], item: `${PUBLIC_ORIGIN}/vi/${project.sector}/` };
   return JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
@@ -37,10 +40,10 @@ const jsonLd = (project) => {
   }).replace(/</g, "\\u003c");
 };
 
-// Mỗi điểm neo của khung trang Nhà ở phải khớp đúng một lần; khung đổi thì build dừng thay vì ra trang thiếu SEO.
+// Mỗi điểm neo của khung trang mảng phải khớp đúng một lần; khung đổi thì build dừng thay vì ra trang thiếu SEO.
 const replaceOnce = (html, pattern, replacement, name) => {
   const count = typeof pattern === "string" ? html.split(pattern).length - 1 : (html.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? []).length;
-  if (count !== 1) throw new Error(`residential template anchor "${name}" matched ${count} times`);
+  if (count !== 1) throw new Error(`sector template anchor "${name}" matched ${count} times`);
   return html.replace(pattern, replacement);
 };
 
@@ -57,13 +60,13 @@ export const renderProjectPage = (template, project, ctx) => {
     `<script type="application/ld+json">${jsonLd(project)}</script>`,
   ].join("\n    ");
   return [
-    // Bỏ script chọn slide hero của trang Nhà ở: trang công trình không có slideshow.
+    // Bỏ script chọn slide hero của trang mảng: trang công trình không có slideshow.
     [/<script>\s*\/\/ detail-pages R5:[\s\S]*?<\/script>\s*/, "", "hero slide script"],
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(project.description.vi)}${middle}${escapeHtml(project.description.en)}"`, "meta description"],
-    ['data-barba-namespace="residential"', 'data-barba-namespace="project"', "namespace"],
-    ['href="/vi/residential/" data-language-option="vi"', `href="${projectHref("vi", project)}" data-language-option="vi"`, "language vi"],
-    ['href="/en/residential/" data-language-option="en"', `href="${projectHref("en", project)}" data-language-option="en"`, "language en"],
+    [`data-barba-namespace="${project.sector}"`, 'data-barba-namespace="project"', "namespace"],
+    [`href="/vi/${project.sector}/" data-language-option="vi"`, `href="${projectHref("vi", project)}" data-language-option="vi"`, "language vi"],
+    [`href="/en/${project.sector}/" data-language-option="en"`, `href="${projectHref("en", project)}" data-language-option="en"`, "language en"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${renderBlocks(project, ctx)}\n      </main>`, "main"],
   ].reduce((html, [pattern, replacement, name]) => replaceOnce(html, pattern, replacement, name), template);
 };
