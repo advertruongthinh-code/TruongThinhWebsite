@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateProjectReel } from "../site/project-reel.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
-import { SECTORS } from "../site/block-pages.mjs";
+import { NEWS_GROUPS, SECTORS } from "../site/block-pages.mjs";
 
 // Bỏ `$`: đường dẫn ghép trong script inline (`${name}`) không phải file.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -85,6 +85,12 @@ export async function checkSiteContent(siteRoot) {
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
     if (kind === "projects") for (const page of list) if (!SECTORS.includes(page.sector)) errors.push(`content/projects.json:${page.id}: sector phải là ${SECTORS.join(", ")}`);
+    if (kind === "news") for (const page of list) {
+      if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`content/news.json:${page.id}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`content/news.json:${page.id}: published phải là YYYY-MM-DD`);
+      // Trang nhóm và trang phân trang nằm cùng thư mục /news/ với bài.
+      for (const slug of [page.slugVi, page.slugEn]) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug)) errors.push(`content/news.json:${page.id}: slug ${slug} trùng đường dẫn nhóm hoặc phân trang`);
+    }
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   return errors;

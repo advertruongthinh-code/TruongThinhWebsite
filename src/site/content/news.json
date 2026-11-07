@@ -1,0 +1,329 @@
+[
+  {
+    "id": "chon-tu-bep",
+    "group": "nha-o",
+    "published": "2026-11-07",
+    "slugVi": "chon-tu-bep-go-cong-nghiep",
+    "slugEn": "choosing-engineered-wood-kitchen-cabinets",
+    "title": {
+      "vi": "Chọn tủ bếp gỗ công nghiệp: năm điều nên hỏi trước khi đặt",
+      "en": "Engineered wood kitchen cabinets: five questions to ask before you order"
+    },
+    "description": {
+      "vi": "Lõi ván, bề mặt, dán cạnh, phụ kiện và cách đo: những điều quyết định tủ bếp dùng bền hay nhanh hỏng.",
+      "en": "Board core, surface, edge banding, hardware and measuring: what decides whether a kitchen lasts."
+    },
+    "cover": {
+      "src": "/assets/content/projects/gieng1-bep.webp",
+      "width": 2048,
+      "height": 3072,
+      "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
+      "altEn": "Single-run kitchen with white upper cabinets, walnut base units with recessed pulls, a pale grey stone counter and a glass wall to the planted light well"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ bếp là món nội thất dùng nhiều nhất trong nhà, lại chịu nước, nhiệt và va chạm mỗi ngày. Trước khi đặt, nên hỏi rõ năm điều dưới đây; câu trả lời cho biết tủ có bền hay không.",
+          "en": "The kitchen is the hardest-working piece of furniture in a home, facing water, heat and knocks every day. Before ordering, ask these five questions; the answers tell you whether it will last."
+        }
+      },
+      {
+        "id": "kitchen",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/gieng1-bep.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
+          "altEn": "Single-run kitchen with white upper cabinets, walnut base units with recessed pulls, a pale grey stone counter and a glass wall to the planted light well"
+        }
+      },
+      {
+        "id": "core",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một, lõi ván là gì. Khu chậu rửa và máy rửa chén nên dùng lõi chống ẩm; tủ trên khô ráo có thể dùng lõi thường.\n\nHai, bề mặt hoàn thiện. Melamine, laminate hay sơn có độ chịu trầy và cách vệ sinh khác nhau, nên xem mẫu thật dưới ánh sáng nhà mình.",
+          "en": "One: what is the board core. Around the sink and dishwasher, use a moisture-resistant core; dry upper cabinets can use a standard one.\n\nTwo: the surface finish. Melamine, laminate and paint differ in scratch resistance and cleaning, so look at real samples under your own light."
+        }
+      },
+      {
+        "id": "materials",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/shared/consultation-materials.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Tư vấn vật liệu hoàn thiện cho nhà ở",
+            "altEn": "Consulting on finish materials for a home"
+          },
+          {
+            "src": "/assets/content/shared/cnc.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Sản xuất chi tiết nội thất nhà ở trên máy CNC",
+            "altEn": "Producing residential interior components on a CNC machine"
+          }
+        ]
+      },
+      {
+        "id": "edges",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ba, cạnh ván được dán thế nào. Cạnh dán bằng máy, kín keo giữ nước không thấm vào lõi.\n\nBốn, bản lề, ray và tay nắm. Phụ kiện tốt giúp cánh đóng êm và không xệ sau vài năm.\n\nNăm, ai đo và lắp. Đo tại nhà và lắp bởi chính người làm tủ giúp khe cánh đều, tủ khít tường.",
+          "en": "Three: how are the edges banded. Machine-applied banding with a tight glue line keeps water out of the core.\n\nFour: hinges, runners and handles. Good hardware keeps doors closing softly and stops them sagging after a few years.\n\nFive: who measures and installs. When the maker measures on site and fits the kitchen, door gaps stay even and units sit tight to the wall."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần tư vấn tủ bếp?",
+          "en": "Need advice on a kitchen?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "mo-quan-ca-phe",
+          "nha-pho-giu-mat"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "mo-quan-ca-phe",
+    "group": "kinh-doanh",
+    "published": "2026-11-06",
+    "slugVi": "lam-noi-that-quan-ca-phe-nho",
+    "slugEn": "fitting-out-a-small-cafe",
+    "title": {
+      "vi": "Làm nội thất quán cà phê nhỏ: từ khảo sát tới ngày mở cửa",
+      "en": "Fitting out a small café: from site survey to opening day"
+    },
+    "description": {
+      "vi": "Các bước làm nội thất một quán cà phê nhỏ và những việc chủ quán nên chuẩn bị ở mỗi bước.",
+      "en": "The steps of fitting out a small café, and what the owner should prepare at each one."
+    },
+    "cover": {
+      "src": "/assets/content/projects/home-commercial-cafe.webp",
+      "width": 2304,
+      "height": 3072,
+      "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
+      "altEn": "Café with timber tables, armchairs and a lit bar counter at the back"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Với quán nhỏ, mỗi mét vuông phải vừa đẹp vừa làm việc được. Làm đúng thứ tự giúp tránh sửa đi sửa lại và mở cửa đúng hẹn.",
+          "en": "In a small café, every square metre has to look good and work hard. Doing things in the right order avoids rework and keeps the opening date."
+        }
+      },
+      {
+        "id": "cafe",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/home-commercial-cafe.webp",
+          "width": 2304,
+          "height": 3072,
+          "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
+          "altEn": "Café with timber tables, armchairs and a lit bar counter at the back"
+        }
+      },
+      {
+        "id": "steps",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khảo sát mặt bằng trước: đo đạc, điện nước, hướng nắng và lối đi của khách. Từ đó mới bố trí quầy pha chế, khu ngồi và kho.\n\nKhi bản vẽ chốt, xưởng sản xuất quầy, kệ, bàn trong lúc mặt bằng làm phần thô, nên tiết kiệm được thời gian.",
+          "en": "Survey the space first: measurements, power and water, sunlight and how customers will move. Only then lay out the bar, seating and storage.\n\nOnce drawings are signed off, the workshop builds the bar, shelving and tables while the shell works go on, which saves time."
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/shared/workshop-wide-v2.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Toàn cảnh xưởng Trường Thịnh với đội ngũ đang sản xuất",
+          "altEn": "Trường Thịnh workshop and production team"
+        }
+      },
+      {
+        "id": "install",
+        "type": "paragraph",
+        "text": {
+          "vi": "Lắp đặt gọn trong vài ngày cuối, kiểm tra từng cánh tủ, ổ điện và đèn trước khi bàn giao. Sau khi mở cửa vẫn nên có người ghé bảo trì định kỳ.",
+          "en": "Installation fits into the last few days, with every door, socket and light checked before handover. After opening, regular maintenance visits keep things working."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở quán?",
+          "en": "Opening a café soon?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "chon-tu-bep",
+          "nha-pho-giu-mat"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "nha-pho-giu-mat",
+    "group": "xu-huong",
+    "published": "2026-11-05",
+    "slugVi": "nha-pho-gieng-troi-go-toi-mau",
+    "slugEn": "light-wells-and-dark-timber-townhouses",
+    "title": {
+      "vi": "Giếng trời và gỗ tối màu: nhà phố vừa sáng vừa ấm",
+      "en": "Light wells and dark timber: townhouses that are bright and warm"
+    },
+    "description": {
+      "vi": "Cách phối giếng trời, cây xanh và gỗ tối màu để nhà phố hẹp vẫn đủ sáng mà không lạnh.",
+      "en": "How light wells, planting and dark timber keep a narrow townhouse bright without feeling cold."
+    },
+    "cover": {
+      "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+      "altEn": "Single-storey light-well house overview: a full-height walnut TV wall, a planted light well in the middle of the house, a timber staircase with a black steel handrail and the dining table beyond"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhà phố hẹp và sâu cần ánh sáng tự nhiên ở giữa nhà. Giếng trời đưa nắng xuống, còn gỗ tối màu như óc chó cân lại cho không gian không bị chói và lạnh.",
+          "en": "Narrow, deep townhouses need daylight in the middle. A light well brings the sun down, while dark timber such as walnut balances the space so it never feels glaring or cold."
+        }
+      },
+      {
+        "id": "gallery",
+        "type": "gallery-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+            "altEn": "Single-storey light-well house overview: a full-height walnut TV wall, a planted light well in the middle of the house, a timber staircase with a black steel handrail and the dining table beyond"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-loi-vao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Lối vào với hệ tủ giày gỗ óc chó kịch trần cánh phẳng, hốc kệ trắng và bậc ngồi gỗ treo, nhìn ra giếng trời có cây",
+            "altEn": "Entry with full-height flush walnut shoe cabinets, a white niche and a floating timber bench, looking out to the planted light well"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-tu-ao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Tủ áo gỗ tối màu kịch trần cạnh giường, một khoang mở thấy áo treo, ngăn kéo và kệ có đèn hắt",
+            "altEn": "Floor-to-ceiling dark timber wardrobe beside the bed, one bay open to hanging clothes, drawers and lit shelves"
+          }
+        ]
+      },
+      {
+        "id": "detail",
+        "type": "paragraph",
+        "text": {
+          "vi": "Mảng tủ lớn nên dùng cánh phẳng, tay nắm âm để gỗ tối không nặng mắt. Hốc kệ trắng có đèn hắt tạo điểm sáng xen kẽ.",
+          "en": "Large cabinet runs work best with flat doors and recessed pulls, so dark timber never looks heavy. White niches with cove light add points of brightness."
+        }
+      },
+      {
+        "id": "close-up",
+        "type": "image-pair",
+        "layout": "right-large",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng1-phong-tam.webp",
+            "width": 2304,
+            "height": 3072,
+            "altVi": "Phòng tắm với tủ lavabo treo gỗ óc chó hai ngăn kéo, chậu đặt bàn, gương không khung và tường đá mài xám",
+            "altEn": "Bathroom with a wall-hung two-drawer walnut vanity, a countertop basin, a frameless mirror and grey terrazzo walls"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-chi-tiet.webp",
+            "width": 3072,
+            "height": 2304,
+            "altVi": "Cận cảnh tủ thấp gỗ óc chó tay nắm âm và hốc kệ trắng, khe cánh đều, nắng giếng trời trên sàn đá mài",
+            "altEn": "Close-up of a low walnut cabinet with recessed pulls and a white niche, even door gaps and light-well sun on the terrazzo floor"
+          }
+        ]
+      },
+      {
+        "id": "quote",
+        "type": "quote",
+        "text": {
+          "vi": "Gỗ tối cần ánh sáng; ánh sáng cần một chất liệu đủ ấm để giữ lại.",
+          "en": "Dark timber needs light; light needs a material warm enough to hold it."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn nhà phố sáng hơn?",
+          "en": "Want a brighter townhouse?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "chon-tu-bep",
+          "mo-quan-ca-phe"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  }
+]

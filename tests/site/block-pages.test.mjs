@@ -30,3 +30,22 @@ for (const sector of SECTORS) test(`${sector} project page carries its own head,
 test("a changed template anchor stops the build instead of shipping a page without SEO", () => {
   assert.throws(() => renderProjectPage(template.replace(/<title\b/, "<titlex"), projects[0], ctx), /anchor "title" matched 0 times/);
 });
+
+test("News list: newest first, 12 per page, one page per group with posts", async () => {
+  const { newsListPages } = await import("../../scripts/site/block-pages.mjs");
+  const post = (index, group) => ({ id: `p${index}`, group, published: `2026-10-${String(index + 1).padStart(2, "0")}` });
+  const posts = [...Array.from({ length: 12 }, (_, index) => post(index, "nha-o")), post(12, "xu-huong")];
+  const pages = newsListPages(posts);
+  assert.deepEqual(pages.map((page) => page.path), ["/news/", "/news/page/2/", "/news/nha-o/", "/news/xu-huong/"]);
+  assert.equal(pages[0].posts[0].id, "p12");
+  assert.deepEqual(pages[0].groups, [null, "nha-o", "xu-huong"]);
+  assert.equal(pages[1].posts.length, 1);
+});
+
+test("every page links to News from the hamburger menu only", () => {
+  for (const file of ["index.html", "about/index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "404.html"]) {
+    const html = readFileSync(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
+    assert.equal((html.match(/href="\/vi\/news\/"/g) ?? []).length, 1, file);
+    assert.match(html, /<a class="menu-option" href="\/vi\/news\/" data-en="News">Tin tức<\/a>/, file);
+  }
+});

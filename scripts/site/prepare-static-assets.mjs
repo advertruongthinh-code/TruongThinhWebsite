@@ -10,7 +10,7 @@ import { matchesAdvertisingFilter } from "../../src/site/advertising-products/la
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
-import { SECTORS, loadBlockContent, projectSource, renderProjectPage } from "./block-pages.mjs";
+import { KINDS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderNewsListPage } from "./block-pages.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -307,10 +307,9 @@ for (const card of ADVERTISING_CARDS) {
     await writeFile(destination, html, "utf8");
   }
 }
-// Trang công trình dựng từ khối (projects R3): content-contract đã kiểm dữ liệu trong bộ fast.
+// Trang công trình và bài News dựng từ khối (projects R3, news R3): content-contract đã kiểm dữ liệu trong bộ fast.
 const blockContent = loadBlockContent(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
-const sectorTemplates = Object.fromEntries(await Promise.all(SECTORS.map(async (sector) => [sector, await readFile(path.join(sourceRoot, sector, "index.html"), "utf8")])));
 // Dải công trình cuối trang Nhà ở, Kinh doanh (projects R1): công trình cùng mảng, theo thứ tự trong projects.json.
 for (const sector of SECTORS) {
   const file = path.join(outputRoot, sector, "index.html");
@@ -320,10 +319,21 @@ for (const sector of SECTORS) {
   const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
 }
-for (const project of blockContent.projects) {
-  const destination = path.join(outputRoot, projectSource(project));
+const frameTemplates = new Map();
+for (const [kind, pages] of Object.entries(blockContent)) {
+  for (const page of pages) {
+    const frame = KINDS[kind].frame(page);
+    if (!frameTemplates.has(frame)) frameTemplates.set(frame, await readFile(path.join(sourceRoot, frame, "index.html"), "utf8"));
+    const destination = path.join(outputRoot, pageSource(kind, page));
+    await mkdir(path.dirname(destination), { recursive: true });
+    await writeFile(destination, renderBlockPage(kind, frameTemplates.get(frame), page, blockContext), "utf8");
+  }
+}
+if (!frameTemplates.has("about")) frameTemplates.set("about", await readFile(path.join(sourceRoot, "about", "index.html"), "utf8"));
+for (const listPage of newsListPages(blockContent.news)) {
+  const destination = path.join(outputRoot, newsListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, renderProjectPage(sectorTemplates[project.sector], project, blockContext), "utf8");
+  await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

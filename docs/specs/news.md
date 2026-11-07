@@ -1,10 +1,13 @@
 ---
 title: News
 status: planned
-source: []
-tests: []
+source:
+  - src/site/content/news.json
+tests:
+  - tests/site/block-pages.test.mjs
+  - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-10-26
+updated: 2026-11-07
 ---
 
 # News
@@ -30,6 +33,11 @@ Then báo lỗi Chặn "Chưa chọn nhóm News"
 ```
 
 ### R2. Trang danh sách News
+
+Dữ liệu: mỗi bài một mục trong `src/site/content/news.json` (`id`, `group` là một trong `nha-o`, `kinh-doanh`, `xu-huong`,
+`quang-cao`, `published` dạng YYYY-MM-DD, slug VI, EN, tên, mô tả, ảnh bìa, chuỗi khối). `scripts/site/block-pages.mjs` dựng bài
+và danh sách từ khung trang Giới thiệu, namespace `news`; trang nhóm `/<locale>/news/<group>/` chỉ có khi nhóm có bài. Bản 1
+bắt buộc đủ VI và EN; bài một ngôn ngữ (R5) làm khi có CMS. Mục "Tin tức" nằm trong nhóm Về chúng tôi của hamburger menu.
 
 Theo Espacio: tiêu đề mục, hàng lọc 4 nhóm cộng "Tất cả", lưới thẻ bài. Mỗi thẻ có ảnh, nhóm, tiêu đề, ngày đăng (khác
 Espacio, owner chọn hiện ngày). Bài mới nhất trước. Mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được, nút "Xem

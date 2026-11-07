@@ -3811,6 +3811,29 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-transform: uppercase;
 }
 
+.blk-article-head {
+  padding-top: calc(var(--header-row-height) + clamp(2rem, 6vw, 5rem));
+}
+
+.blk-article-head__meta {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-article-head__title {
+  max-width: 20ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
 .blk-title h2,
 .blk-contact__title {
   margin: 0;
@@ -4082,4 +4105,48 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   .blk-cta__arrow {
     width: 5rem;
   }
+}
+
+/* Danh sách News (news R2): hàng lọc nhóm, ngày và nhóm trên thẻ, thanh phân trang. */
+.blk-news-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2rem;
+}
+
+.blk-news-filter__chip,
+.blk-news-pager a {
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.blk-news-filter__chip[aria-current="true"],
+.blk-news-pager a[aria-current="page"] {
+  text-decoration: underline;
+  text-underline-offset: 0.35em;
+}
+
+.blk-news-card__meta {
+  display: block;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-news-card__meta + .blk-news-card__title {
+  margin-top: 0.5rem;
+}
+
+.blk-news-pager {
+  display: flex;
+  gap: 1rem;
+  margin-top: 3rem;
 }
