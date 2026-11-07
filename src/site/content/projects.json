@@ -569,5 +569,170 @@
         "hrefEn": "/en/commercial/"
       }
     ]
+  },
+  {
+    "id": "tiem-banh-ngot",
+    "sector": "commercial",
+    "slugVi": "tiem-banh-ngot",
+    "slugEn": "neighbourhood-bakery",
+    "title": {
+      "vi": "Tiệm bánh ngọt",
+      "en": "Neighbourhood bakery"
+    },
+    "description": {
+      "vi": "Tiệm bánh nhỏ với kệ bánh mì gỗ có đèn hắt, tủ bánh kem kính và góc ngồi cạnh cửa: Trường Thịnh thiết kế, sản xuất và lắp đặt.",
+      "en": "A small bakery with lit timber bread shelving, a glass cake case and a window seating corner: designed, built and installed by Trường Thịnh."
+    },
+    "cover": {
+      "src": "/assets/content/projects/bakery-bread-shelves.webp",
+      "width": 1122,
+      "height": 1402,
+      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
+      "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+    },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "titleLine1": {
+          "vi": "Tiệm bánh",
+          "en": "Neighbourhood"
+        },
+        "titleLine2": {
+          "vi": "ngọt",
+          "en": "bakery"
+        },
+        "subtitle": {
+          "vi": "Kinh doanh · F&B",
+          "en": "Commercial · F&B"
+        },
+        "image": {
+          "src": "/assets/content/projects/commercial-hero-bakery.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Tiệm bánh với tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh",
+          "altEn": "Bakery with a cake display case, timber bread shelves and a green arched wall"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Bánh là nhân vật chính",
+          "en": "The bread takes centre stage"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Mặt bằng nhỏ nên mọi kệ, quầy đều phải vừa trưng bày vừa chứa đồ. Kệ bánh mì gỗ có đèn hắt từng tầng để bánh nổi bật từ ngoài đường, tủ bánh kem đặt ngay lối vào cho khách chọn nhanh.\n\nVách vòm xanh và gỗ ấm giữ cho tiệm một nét riêng dễ nhớ.",
+          "en": "The floor is small, so every shelf and counter has to display and store at once. Each tier of the timber bread shelving is lit so the loaves stand out from the street, and the cake case sits right by the entrance for a quick choice.\n\nThe green arch and warm timber give the shop a look people remember."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "gallery-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/bakery-bread-shelves.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
+            "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+          },
+          {
+            "src": "/assets/content/projects/bakery-service-counter.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Quầy thu ngân và tủ bánh kem kính nhìn từ phía khách, kệ hộp bánh phía sau",
+            "altEn": "Service counter and glass cake case seen from the customer side, with shelves of cake boxes behind"
+          },
+          {
+            "src": "/assets/content/projects/gallery-bakery.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Tiệm bánh ngọt với tủ kính bánh kem, kệ bánh mì gỗ sáng đèn và bàn ngồi cạnh cửa",
+            "altEn": "Bakery with a cake display case, lit timber bread shelves and tables by the window"
+          }
+        ]
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Loại công trình",
+              "en": "Project type"
+            },
+            "text": {
+              "vi": "Tiệm bánh ngọt",
+              "en": "Bakery"
+            }
+          },
+          {
+            "label": {
+              "vi": "Phong cách",
+              "en": "Style"
+            },
+            "text": {
+              "vi": "Gỗ ấm, vòm xanh, đèn hắt",
+              "en": "Warm timber, green arch, cove light"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Thiết kế, sản xuất, lắp đặt quầy kệ",
+              "en": "Design, fabrication and installation of fixtures"
+            }
+          },
+          {
+            "label": {
+              "vi": "Không gian",
+              "en": "Areas"
+            },
+            "text": {
+              "vi": "Quầy, kệ bánh, tủ kính, góc ngồi",
+              "en": "Counter, bread shelving, display case, seating"
+            }
+          }
+        ]
+      },
+      {
+        "id": "corner",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/bakery-seating-corner.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh kính và vách vòm xanh phía sau",
+          "altEn": "Two-seat tables by the window, with the glass cake case and green arched wall behind"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở tiệm bánh?",
+          "en": "Opening a bakery?"
+        }
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem thêm không gian kinh doanh",
+          "en": "More commercial spaces"
+        },
+        "hrefVi": "/vi/commercial/",
+        "hrefEn": "/en/commercial/"
+      }
+    ]
   }
 ]

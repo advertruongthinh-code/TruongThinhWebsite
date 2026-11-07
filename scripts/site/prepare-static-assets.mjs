@@ -11,6 +11,7 @@ import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { SECTORS, loadBlockContent, projectSource, renderProjectPage } from "./block-pages.mjs";
+import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -310,6 +311,15 @@ for (const card of ADVERTISING_CARDS) {
 const blockContent = loadBlockContent(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
 const sectorTemplates = Object.fromEntries(await Promise.all(SECTORS.map(async (sector) => [sector, await readFile(path.join(sourceRoot, sector, "index.html"), "utf8")])));
+// Dải công trình cuối trang Nhà ở, Kinh doanh (projects R1): công trình cùng mảng, theo thứ tự trong projects.json.
+for (const sector of SECTORS) {
+  const file = path.join(outputRoot, sector, "index.html");
+  const html = await readFile(file, "utf8");
+  if (!html.includes("<!-- project-strip -->")) throw new Error(`${sector}/index.html lost <!-- project-strip -->`);
+  const projectIds = blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id);
+  const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }] }, blockContext) : "";
+  await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
+}
 for (const project of blockContent.projects) {
   const destination = path.join(outputRoot, projectSource(project));
   await mkdir(path.dirname(destination), { recursive: true });
