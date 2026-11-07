@@ -10743,7 +10743,7 @@ function assertBrandShellSourceContracts() {
     "Header brand bbox and independent Espacio row-height matrices drifted",
   );
   assert(
-    /const delay = index \* 70;/.test(motionSource) &&
+    /const delay = \(bands\.length - 1 - index\) \* 80;/.test(motionSource) &&
       !/\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill|is-brand-color-reset/.test(
         styleSource,
       ) &&
@@ -10771,7 +10771,7 @@ function assertBrandShellSourceContracts() {
         motionSource,
       ) &&
       !/killTweensOf\(logoTarget\)/.test(motionSource),
-    "Header/menu mark color must use the selected 1s sequence without dead variants while preserving 0.3s lockup scale",
+    "Header/menu mark color must use the selected band flip sequence without dead variants while preserving 0.3s lockup scale",
   );
 }
 
