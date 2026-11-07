@@ -5,6 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateProjectReel } from "../site/project-reel.mjs";
+import { validateBlockPage } from "../site/blocks.mjs";
 
 // Bỏ `$`: đường dẫn ghép trong script inline (`${name}`) không phải file.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -72,6 +73,16 @@ export async function checkSiteContent(siteRoot) {
   const reelFile = path.join(siteRoot, "content/project-reel.json");
   if (existsSync(reelFile)) {
     await validateProjectReel(JSON.parse(readFileSync(reelFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
+  }
+  // Trang công trình và News dựng từ khối (layout-library R4): khối, chữ VI/EN, ảnh, id liên kết.
+  const pages = {};
+  for (const kind of ["projects", "news"]) {
+    const file = path.join(siteRoot, `content/${kind}.json`);
+    pages[kind] = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
+  }
+  const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
+  for (const [kind, list] of Object.entries(pages)) {
+    for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   return errors;
 }

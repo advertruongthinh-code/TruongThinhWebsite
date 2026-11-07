@@ -1,10 +1,12 @@
 ---
 title: Thư viện layout trang và khối
 status: planned
-source: []
-tests: []
+source:
+  - scripts/site/blocks.mjs
+tests:
+  - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-10-26
+updated: 2026-11-07
 ---
 
 # Thư viện layout trang và khối
@@ -115,7 +117,9 @@ Then dừng lại và gửi owner bản thiết kế
 
 ### R4. Dữ liệu và render tĩnh
 
-Mỗi khối có schema dữ liệu có version: trường chữ VI/EN, media tham chiếu theo id, link nội bộ theo id trang. Chữ chỉ có
+Bộ dựng là `scripts/site/blocks.mjs` (`validateBlockPage`, `renderBlocks`, version 1); `content-contract` kiểm
+`src/site/content/projects.json` và `news.json`. Bản 1: chữ là đoạn thường tách bằng dòng trống, chưa có đậm, nghiêng, link
+trong đoạn; ảnh tham chiếu bằng đường dẫn `/assets/content/*.webp` kèm kích thước thật, chưa theo id thư viện media. Mỗi khối có schema dữ liệu có version: trường chữ VI/EN, media tham chiếu theo id, link nội bộ theo id trang. Chữ chỉ có
 đoạn, đậm, nghiêng, link; không nhận HTML, CSS hay script. Cùng dữ liệu luôn ra cùng HTML. Thiếu bản EN thì không xuất bản
 được bản EN, không đoán.
 
