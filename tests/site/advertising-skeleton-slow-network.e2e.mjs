@@ -101,6 +101,13 @@ try {
     assertNoBlank("desktop scrollbar drag", await cardStates(page));
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
+    // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận
+    // blur ở IntersectionObserver của frame kế.
+    await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+      const { top, bottom } = ghost.getBoundingClientRect();
+      return bottom > 0 && top < innerHeight;
+    }), null, { timeout: 5000 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assertNoBlank("desktop scrollbar settle", await cardStates(page));
     await context.close();
   }
