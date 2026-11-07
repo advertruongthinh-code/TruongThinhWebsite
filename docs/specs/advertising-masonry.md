@@ -6,6 +6,7 @@ source:
   - src/site/advertising-products/catalog.mjs
   - src/site/advertising-products/catalog-runtime.mjs
   - src/site/advertising-products/layout-core.mjs
+  - src/site/advertising-products/mount-budget.mjs
   - src/site/advertising-products/layout-worker.mjs
   - src/site/advertising-products/random-order.mjs
   - src/site/advertising-products/media-contract.mjs
@@ -14,6 +15,8 @@ source:
 tests:
   - tests/site/advertising-products-layout.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
+  - tests/site/advertising-mount-budget.test.mjs
+  - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-products-media.test.mjs
   - tests/site/advertising-products-random-order.test.mjs
   - tests/site/advertising-products-static.test.mjs
@@ -26,7 +29,7 @@ tests:
   - tests/site/advertising-resize-card-width.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-01
+updated: 2026-11-07
 ---
 
 # Masonry Advertising
@@ -160,9 +163,9 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 ### R7. Ảo hóa và bàn phím
 
 Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao
-vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được mount, cộng card đang giữ focus và card vừa mở detail.
-Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ
-tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
+vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra
+xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related. Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ
+tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)).
 
 ```gherkin
 Given masonry All 285 card (tính từ catalog), đang ở đầu trang

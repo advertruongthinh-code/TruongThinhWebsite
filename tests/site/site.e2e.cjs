@@ -5799,6 +5799,8 @@ async function runAdvertisingRapidFilterCheck() {
         const grid = document.querySelector("[data-project-grid]");
         return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-advertising-card="${id}"]`)?.style.transform;
       }, trackedId, { timeout: 2_000 }).catch(() => {});
+      // Cú cuộn xa chỉ giữ chỗ bằng card tạm trước, card thật dựng dần theo ngân sách frame (masonry R7).
+      await page.waitForFunction(() => !document.querySelector(".advertising-ghost"), null, { timeout: 3_000 }).catch(() => {});
       const settled = await capture();
       await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
         if (!grid.__blockRapidTransitionEnd) return;
@@ -6551,7 +6553,8 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       // ảo hóa mất giới hạn thì domCount vượt trần này xa (cả danh sách).
       let maxWindowCount = 0;
       for (let top = 0; top <= layout.totalPixelHeight; top += 4) {
-        maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900 }).items.length);
+        // Vùng giữ (gỡ khi ra xa hơn hai viewport) là trần số card đang mount (advertising-masonry R7).
+        maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900, releaseOverscan: 1800 }).retained.length);
       }
       const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
         const activeItem = document.activeElement?.closest("[data-advertising-card]");
@@ -6845,11 +6848,17 @@ async function runAdvertisingMediaEntranceChecks() {
           const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           const firstReady = visible.findIndex((sample) => sample.ready);
           const blankFrames = replay.samples.findIndex((sample) => sample.ready);
+          // Cú nhảy xa là vuốt nhanh: card thay chỗ card tạm nên ảnh hiện dần 0.45s bằng một animation opacity
+          // (loading-glass R10); ảnh cache chưa giải mã xong lúc card thật gắn vào luồng ảnh mờ, nên lớp mờ còn trong lúc dần.
+          // Ngoài đoạn dần đó vẫn không skeleton, Kính hay transition CSS.
+          const fading = (sample) => sample.animations === 1;
           assert(
             firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
-                sample.opacity >= 0.999) && sample.shellOpacity >= 0.999 && !sample.overlay &&
-                sample.animations === 0) &&
+                (sample.opacity >= 0.999 || fading(sample))) && sample.shellOpacity >= 0.999 && (!sample.overlay || (sample.ready && fading(sample))) &&
+                (sample.animations === 0 || fading(sample))) &&
+              // Runner không GPU có thể trễ frame dài hơn cửa sổ lấy mẫu: animation còn chạy là chưa hết dần, không phải kẹt.
+              (visible.at(-1).opacity >= 0.999 || fading(visible.at(-1))) &&
               replay.events.length === 0,
             `${locale} media re-entry cycle ${cycle} replayed its entrance instead of showing at once: ${JSON.stringify(replay)}`,
           );
@@ -7048,18 +7057,23 @@ async function runAdvertisingMediaFocusedChecks() {
   });
   const assertGridState = (state, layout, label) => {
     const localScroll = Math.max(0, state.scrollY - state.gridTop);
-    const expected = getVirtualWindow(layout, {
+    const windowed = getVirtualWindow(layout, {
       scrollTop: localScroll,
       viewportHeight: state.viewportHeight,
       overscan: state.viewportHeight,
-    }).items;
+      releaseOverscan: 2 * state.viewportHeight,
+    });
+    // Vùng dựng phải có mặt đủ; card đã dựng chỉ được còn lại trong vùng giữ (hai viewport), theo thứ tự layout (masonry R7).
+    const expected = windowed.retained;
     const expectedById = new Map(expected.map((placement) => [placement.card.id, placement]));
+    const domIds = state.tiles.map((tile) => tile.id);
+    const inLayoutOrder = domIds.every((id, index) => index === 0 || expected.findIndex((p) => p.card.id === id) > expected.findIndex((p) => p.card.id === domIds[index - 1]));
     const overlap = state.tiles.some((first, index) => state.tiles.slice(index + 1).some((second) =>
       Math.min(first.left + first.width, second.left + second.width) - Math.max(first.left, second.left) > 0.05 &&
       Math.min(first.top + first.height, second.top + second.height) - Math.max(first.top, second.top) > 0.05,
     ));
     const checks = {
-      order: JSON.stringify(state.tiles.map((tile) => tile.id)) === JSON.stringify(expected.map((placement) => placement.card.id)),
+      order: inLayoutOrder && windowed.items.every((placement) => domIds.includes(placement.card.id)),
       geometry: state.tiles.every((tile) => {
           const placement = expectedById.get(tile.id);
           return placement && Math.abs(tile.left - Reflect.get(placement, "x")) <= 0.05 &&

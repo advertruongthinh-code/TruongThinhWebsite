@@ -8,8 +8,9 @@ tests:
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-reveal-offscreen.e2e.mjs
   - tests/site/advertising-remount-no-cache.e2e.mjs
+  - tests/site/advertising-fast-fling.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -76,7 +77,7 @@ crossfade, không chờ trang ngừng cuộn. Card ảo hóa gắn lại tạo `
 được trống lúc giải mã (một tới ba frame) rồi hiện thẳng opacity cuối. Ảnh không về trong `150ms`
 (`REMOUNT_CACHE_WAIT_MS`: cache tắt hoặc bị xóa nên phải tải lại) thì ảnh mờ như R1 và nét lại qua R2, không để
 khung trắng tới khi tải xong. Áp cho masonry chính và masonry related;
-primary theo R4.
+primary theo R4. Card thay chỗ một card tạm của lượt vuốt nhanh theo [R10](#r10-card-tạm-khi-vuốt-nhanh).
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt
@@ -181,6 +182,29 @@ PR code báo owner kèm số đo trước khi đổi (Kính trên card bị thay
 Given phone Android, masonry đầy card đang chờ ảnh
 When vuốt nhanh từ đầu masonry tới footer
 Then trace Chrome đạt gate điện thoại của skeleton R8
+```
+
+### R10. Card tạm khi vuốt nhanh
+
+Áp cho masonry chính và related ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)). Mỗi frame chỉ dựng card thật
+trong ngân sách đo trên máy đó: `quota = max(1, floor(budget / cost))`, `cost` là trung bình trượt chi phí một card đo bằng khoảng frame dôi
+ra sau lần dựng (gồm style, layout, paint, không chỉ phần JS), `budget` là một phần ba nhịp frame nền (kẹp `8` tới `34ms`); giao viewport trước, gần giữa màn hình trước
+(`mountQuota`, `createMountBudget`); trần cứng `8` card mỗi frame (số đo trượt chậm theo máy, trần giữ frame đầu sau khi
+dừng vuốt không dựng dồn), và một frame chỉ dựng một lần dù renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, nền
+là màu chủ đạo của ảnh bìa, thở `media-breathe` `2s`, `aria-hidden`, không link, ảnh hay observer, nằm trong lớp riêng đầu
+grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhảy xa quá hai viewport, thì chỉ gắn card tạm; hết vuốt thì
+dựng dần mỗi frame (`requestAnimationFrame`). Mọi phần tử thở dùng chung pha (`animation-delay` âm theo giờ chung) nên
+card tạm đổi sang card mờ (R1) không nhảy độ sáng.
+
+Card tạm lên card thật: ảnh đã có hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
+(cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1 và card tạm gỡ ở frame kế; card tạm
+ngoài viewport gỡ không motion. Giảm chuyển động (R8): card tạm không thở, ảnh có sẵn hiện thẳng.
+
+```gherkin
+Given masonry All trên phone, CPU chậm 4 lần, ảnh đã có trong cache
+When vuốt cực nhanh qua 20 viewport trong 1 giây rồi dừng
+Then mỗi frame viewport được card thật hoặc card tạm phủ, mỗi frame dựng vài card thật
+And card tạm lên card thật thì ảnh hiện dần trong 0.45s, card chỉ bị gỡ khi ra xa hơn hai viewport
 ```
 
 ## Giao diện và dữ liệu

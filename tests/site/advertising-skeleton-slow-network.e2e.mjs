@@ -101,6 +101,13 @@ try {
     assertNoBlank("desktop scrollbar drag", await cardStates(page));
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
+    // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận
+    // blur ở IntersectionObserver của frame kế.
+    await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+      const { top, bottom } = ghost.getBoundingClientRect();
+      return bottom > 0 && top < innerHeight;
+    }), null, { timeout: 5000 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assertNoBlank("desktop scrollbar settle", await cardStates(page));
     await context.close();
   }
@@ -143,7 +150,8 @@ try {
       const tick = () => {
         for (const image of document.querySelectorAll("[data-project-grid] [data-advertising-card] img")) {
           const trace = window.__opacityTrace.get(image) || [];
-          trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter)]);
+          const rect = image.closest("[data-advertising-card]").getBoundingClientRect();
+          trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter), rect.bottom > 0 && rect.top < innerHeight]);
           window.__opacityTrace.set(image, trace);
         }
         if (performance.now() < 14000) requestAnimationFrame(tick);
@@ -157,7 +165,8 @@ try {
       .filter((trace) => trace.some(([, blurred]) => blurred) && trace.some(([, blurred], i) => !blurred && trace.slice(0, i).some(([, was]) => was)))
       // Bỏ các frame trước lúc ảnh bắt đầu mờ (opacity 0 chờ lazyload).
       .map((trace) => trace.slice(trace.findIndex(([, blurred]) => blurred)))
-      .map((trace) => trace.slice(1).reduce((max, [opacity], i) => Math.max(max, Math.abs(opacity - trace[i][0])), 0)));
+      // Card vừa ra khỏi viewport thì bỏ skeleton ngay (không ai thấy bước nhảy), nên chỉ tính cặp frame mà card còn trong viewport.
+      .map((trace) => trace.slice(1).reduce((max, [opacity, , visible], i) => (visible && trace[i][2] ? Math.max(max, Math.abs(opacity - trace[i][0])) : max), 0)));
     assert.ok(jumps.length, "opacity trace: some card went from blurred to sharp");
     assert.ok(jumps.every((jump) => jump <= 0.1), `opacity trace: no frame jumps over 0.1 when breathing stops ${JSON.stringify(jumps)}`);
     await context.close();

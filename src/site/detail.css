@@ -1702,6 +1702,31 @@ body.is-advertising-browse .advertising-grid {
    nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
 [data-advertising-media-loading] .advertising-tile__foreground[style*="blur("] {
   animation: media-breathe 2s ease-in-out infinite;
+  /* Pha chung với card tạm (runtime ghi --breathe-phase), nên đổi từ card tạm sang card mờ không nhảy độ sáng. */
+  animation-delay: var(--breathe-phase, 0s);
+}
+
+/* Card tạm giữ chỗ card chưa dựng kịp khi vuốt nhanh (advertising-masonry R7): màu chủ đạo của ảnh bìa, thở như card
+   chờ ảnh. Lớp nằm đầu grid, dưới mọi card, không nhận chạm. */
+.advertising-ghost-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Card tạm thêm, bớt mỗi frame cuộn; cô lập layout để grid và trang không tính lại theo (A04s: layout ép mỗi frame). */
+  contain: strict;
+}
+
+.advertising-ghost {
+  position: absolute;
+  contain: strict;
+  background: #e9e6df;
+  animation: media-breathe 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertising-ghost {
+    animation: none;
+  }
 }
 
 [data-advertising-media-loading] .advertising-card-media__just-viewed {

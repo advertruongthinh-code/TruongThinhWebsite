@@ -98,12 +98,13 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
+- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha card mờ, không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` ([Motion](../../motion.md#ảnh-trong-card)).
 - **Chờ tải:** card mờ thì thở; mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
   canvas, không phủ dải. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
-- **Reduced motion:** skeleton đứng yên, ảnh mờ không thở; ảnh hiện ngay, không transition,
+- **Reduced motion:** skeleton đứng yên, ảnh mờ và card tạm không thở; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ
