@@ -3387,12 +3387,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (node.style.top !== top) node.style.top = top;
       if (node.style.transform !== "none") node.style.transform = "none";
     }
+    // Suggestion ghim dưới primary, đi theo đáy primary trong cùng frame, không shuffle (advertising-detail R5).
     if (keepSuggestion && suggestionNode) {
       const destination = relatedPositions.get(suggestionId);
-      let origin = motion ? origins?.get(suggestionId) || destination : destination;
-      if (motion) origin = planDetour(suggestionId, suggestionNode, origin, destination);
-      suggestionNode.style.left = `${origin.x}px`;
-      suggestionNode.style.top = `${origin.y}px`;
+      suggestionNode.style.left = `${destination.x}px`;
+      suggestionNode.style.top = `${destination.y}px`;
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
@@ -3412,7 +3411,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedMasonry.options.layoutInstant = false;
       relatedMasonry.options.transitionDuration = "0.4s";
       relatedMasonry.reloadItems();
-      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || detours.has(item.element); });
+      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || item.element === suggestionNode || detours.has(item.element); });
       relatedMasonry.layout();
       for (const [node, { from, to, plan }] of detours) {
         node.animate([
