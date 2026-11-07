@@ -411,6 +411,8 @@ const embedVietnameseText = (html, filePath) => {
 // do runtime quản lý (runtime đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
 const WEBP_WIDTHS = [240, 480, 960];
 const JXL_WIDTHS = [240, 480, 960, 1600, 2048];
+// Cỡ tới 960 trong <source> JXL cũng là WebP: giải mã nhanh gấp 3 trên A04s (owner chọn 2026-11-07, responsive-image.mjs).
+const WEBP_UNTIL = 960;
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
     const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
@@ -418,8 +420,9 @@ const responsivePictures = (html) =>
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
     const set = (format, widths) => {
-      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.${format}`)));
-      return [...fit.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
+      const variant = (width) => `${src}-${width}.${width <= WEBP_UNTIL ? "webp" : format}`;
+      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, variant(width))));
+      return [...fit.map((width) => `${variant(width)} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
     };
     if (!Number.isFinite(intrinsic)) return `<picture><source type="image/jxl" ${srcset}="${src}.jxl">${tag}</picture>`;
     // Ảnh lazy để browser dùng width đã layout ("auto"); 100vw là fallback cho browser cũ.

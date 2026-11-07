@@ -57,9 +57,10 @@
         const path = `/assets/content/projects/${name}`;
         document.documentElement.dataset.heroFirst = first;
         // Preload đúng ứng viên <picture> sẽ chọn: JXL nếu trình duyệt giải mã được ảnh 1x1, không thì WebP của img.
+        // Cỡ tới 960 là WebP ở cả hai nhánh, như srcset của <source> (responsive-image.mjs).
         const preload = (format, widths) => document.head.append(Object.assign(document.createElement("link"), {
           rel: "preload", as: "image", type: `image/${format}`, href: `${path}.${format}`, imageSizes: "100vw",
-          imageSrcset: [...widths.filter((size) => size < width).map((size) => `${path}-${size}.${format} ${size}w`), `${path}.${format} ${width}w`].join(", "),
+          imageSrcset: [...widths.filter((size) => size < width).map((size) => `${path}-${size}.${size <= 960 ? "webp" : format} ${size}w`), `${path}.${format} ${width}w`].join(", "),
         }));
         const probe = new Image();
         probe.addEventListener("load", () => preload("jxl", [240, 480, 960, 1600, 2048]));
