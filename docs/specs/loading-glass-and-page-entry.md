@@ -189,7 +189,8 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 Áp cho masonry chính và related ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)). Mỗi frame chỉ dựng card thật
 trong ngân sách đo trên máy đó: `quota = max(1, floor(budget / cost))`, `cost` là trung bình trượt thời gian dựng và gắn một
 card, `budget` là một phần ba khoảng frame đo được (kẹp `8` tới `34ms`); giao viewport trước, gần giữa màn hình trước
-(`mountQuota`, `createMountBudget`). Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, nền
+(`mountQuota`, `createMountBudget`); số đo chỉ gồm phần JS nên trần cứng `8` card mỗi frame, và một frame chỉ dựng một lần dù
+renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, nền
 là màu chủ đạo của ảnh bìa, thở `media-breathe` `2s`, `aria-hidden`, không link, ảnh hay observer, nằm trong lớp riêng đầu
 grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhảy xa quá hai viewport, thì chỉ gắn card tạm; hết vuốt thì
 dựng dần mỗi frame (`requestAnimationFrame`). Mọi phần tử thở dùng chung pha (`animation-delay` âm theo giờ chung) nên
