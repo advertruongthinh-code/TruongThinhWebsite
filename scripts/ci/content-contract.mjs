@@ -82,6 +82,14 @@ export async function checkSiteContent(siteRoot) {
   }
   const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
+    // Map giữ bản cuối khi trùng id, nên báo trùng id và slug trước.
+    for (const field of ["id", "slugVi", "slugEn"]) {
+      const seen = new Set();
+      for (const page of list) {
+        if (seen.has(page[field])) errors.push(`content/${kind}.json: trùng ${field} ${page[field]}`);
+        seen.add(page[field]);
+      }
+    }
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   return errors;
