@@ -7283,8 +7283,10 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 .blk-projects__track {
   display: grid;
-  grid-auto-columns: minmax(16rem, 1fr);
+  /* Thẻ dọc cỡ như Espacio: 4 thẻ trên PC 1440, thẻ thấp lệch xuống so le. */
+  grid-auto-columns: clamp(15rem, 21vw, 19rem);
   grid-auto-flow: column;
+  justify-content: start;
   gap: clamp(1.5rem, 5vw, 4.5rem);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
