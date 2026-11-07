@@ -107,7 +107,7 @@ trên ảnh trước (sản phẩm đứng đầu), sau đó tag có ảnh cùng
 locale; bật, tắt tag không đổi vị trí nút. Mỗi nút một dòng, nhãn VI/EN, `aria-pressed`; nút đang bật nền trắng, chữ và viền
 đen, không ảnh. Bấm nút bật tag (bấm lại thì tắt) bằng `replaceTag`: `replaceState`, không thêm entry, giữ ảnh primary, đổi
 related; focus về nút. Không có tag nào thì ẩn khối. `N = 4` khối nằm cuối info; `N <= 3` (cả `pinterest` lẫn `split` màn ngang) là card đầu related (`rank 0`, cùng solver), luôn ở cột trái ngay dưới primary.
-Card này ghim theo đáy primary: primary đổi cao thì nó tới chỗ mới trong cùng frame, không motion shuffle hay đi vòng; card related khác giữ motion cũ (owner 2026-11-07). Resize qua hai layout chỉ chuyển cùng node, giữ focus và tag.
+Card này ghim theo đáy primary: primary đổi cao thì nó tới chỗ mới trong cùng frame, không motion shuffle hay đi vòng; card related khác giữ motion cũ nhưng đi vòng card này như vòng primary, không lòn dưới nó ([cta-center-parallax R10](advertising-cta-center-parallax.md#r10-card-related-không-đi-qua-primary), owner 2026-11-07). Resize qua hai layout chỉ chuyển cùng node, giữ focus và tag.
 
 ```gherkin
 Given detail kiosk-posm-07 ở 1440×900 với bốn nút suggestion

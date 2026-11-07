@@ -52,10 +52,10 @@ assert.match(css, new RegExp(`^${arc} > \\.glass-surface__grain \\{\\s*backgroun
 assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: the Kính box has no opacity, mask or filter");
 
 // R2, R3: số của owner và hai giới hạn.
-const desktop = arcGlassGeometry({ width: 1440, batchBottom: 900, realBottom: 50, cardWidth: 320, clusterTop: 400, clusterBottom: 560 });
-assert.equal(desktop.yIn, 376, "R2: apex 15% of the CTA cluster above the heading");
+const desktop = arcGlassGeometry({ width: 1440, batchBottom: 1100, realBottom: 50, cardWidth: 320, clusterTop: 600, clusterBottom: 760 });
+assert.equal(desktop.yIn, 576, "R2: apex 15% of the CTA cluster above the heading");
 assert.equal(desktop.radius, 3.5 * 1440, "R2: radius 3.5 viewport widths");
-assert.equal(desktop.band, 1.75 * 160, "R2: band 1.75 cluster heights");
+assert.equal(desktop.band, 2.5 * 160, "R2: desktop band 2.5 cluster heights");
 assert.equal(desktop.cy, desktop.yIn + desktop.radius, "R2: centre under the batch, middle of the screen");
 const short = arcGlassGeometry({ width: 390, batchBottom: 760, realBottom: 560, cardWidth: 172, clusterTop: 600, clusterBottom: 700 });
 assert.equal(short.yIn - short.band, 560, "R2: the band edge stops at the real photos");

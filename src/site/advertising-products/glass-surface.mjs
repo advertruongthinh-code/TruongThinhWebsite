@@ -21,8 +21,10 @@ const ARC_WHITE_REACH = 0.85;
 // (core 28px và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
 // thứ hai (30% frame chậm, vòng 29) đều trượt gate trên phone Android. Phone nhận biết như skeleton (catalog-runtime).
 // Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s cũ vuốt 7-9% frame chậm (vòng 34).
-const PHONE_LAYERS = Object.freeze({ band: 1, centre: 0.35 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_DESKTOP_LEVELS.length, centre: ARC.centre });
+// `width`: bề rộng dải theo chiều cao cụm. PC 2.5 (owner 2026-11-07 thấy chuyển kính gắt, trước 1.75); phone giữ 1.75 vì
+// box bậc band cao thêm là thêm hàng blur mỗi frame trên phone Android, phone làm dịu bằng cách trải bậc band hết dải.
+const PHONE_LAYERS = Object.freeze({ band: 1, centre: 0.35, width: ARC.band });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_DESKTOP_LEVELS.length, centre: ARC.centre, width: 2.5 });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -158,7 +160,7 @@ export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, cl
   const clusterHeight = clusterBottom - clusterTop;
   const yIn = Math.min(clusterTop + arcLayers().centre * clusterHeight, batchBottom - 2 * whiteRamp);
   // Mép band không bao giờ nhô lên trên các photo thật.
-  const band = Math.max(8, Math.min(ARC.band * clusterHeight, yIn - realBottom));
+  const band = Math.max(8, Math.min(arcLayers().width * clusterHeight, yIn - realBottom));
   const depth = batchBottom - yIn;
   // Bán kính nhỏ nhất giữ cả hai góc đáy whiteRamp bên trong arc, nên chúng vẫn trắng tinh.
   const minRadius = (depth * depth - whiteRamp * whiteRamp + width * width / 4) / (2 * (depth - whiteRamp));
@@ -168,6 +170,13 @@ export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, cl
 }
 
 const smooth = (x) => x * x * (3 - 2 * x);
+// Mép mask từ đặc (bán kính `solid`) tới trong suốt (`clear`) theo smoothstep thay vì một đoạn thẳng, nên độ nhòe vào
+// và ra êm, không thấy vạch nơi bậc bắt đầu hay đạt đủ (owner 2026-11-07: chuyển kính quá gắt).
+const RAMP_STOPS = 6;
+const easedEdge = (solid, clear) => Array.from({ length: RAMP_STOPS + 1 }, (_, index) => {
+  const x = index / RAMP_STOPS;
+  return `rgba(0, 0, 0, ${smooth(1 - x).toFixed(4)}) ${(solid + (clear - solid) * x).toFixed(1)}px`;
+}).join(", ");
 const setMask = (node, value) => {
   node.style.setProperty("-webkit-mask-image", value);
   node.style.setProperty("mask-image", value);
@@ -214,16 +223,18 @@ export function layoutArcGlass(glass, geometry) {
       step.hidden = false;
       step.style.setProperty("--glass-step-blur", `${blur.toFixed(2)}px`);
       place(step, stepTop, Math.min(batchBottom + 2, seam + Math.ceil(blur)));
-      setMask(step, `radial-gradient(${circle(stepTop)}, transparent ${core}px, #000 ${edge - FADE / 2}px, #000 ${on}px, transparent ${off}px)`);
+      setMask(step, `radial-gradient(${circle(stepTop)}, transparent ${core}px, #000 ${edge - FADE / 2}px, ${easedEdge(on, off)})`);
     });
   } else {
     const { band: bandSteps } = arcLayers();
     steps.forEach((step, index) => {
       step.hidden = index < ARC_STEPS - bandSteps;
-      const outer = radius + RAMPS[index][1] * band;
+      // Phone chỉ hiện bậc ngoài cùng: nó trải hết dải (trước tắt ở 0.43 dải) để nhòe giảm dần qua cả dải như PC.
+      const ramp = bandSteps === 1 ? [0, 1] : RAMPS[index];
+      const outer = radius + ramp[1] * band;
       place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
       setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
-        + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
+        + easedEdge(radius + ramp[0] * band, outer) + ")");
     });
   }
   // Trắng theo cùng các vòng tròn: tinh từ vòng góc, tint trên arc, không có ở mép band.

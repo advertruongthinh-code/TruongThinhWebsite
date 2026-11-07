@@ -70,3 +70,14 @@ test("điểm đầu trong vùng cấm hoặc from === to thì trả null, khôn
   assert.equal(planDetourPath({ from: { x: 400, y: 200 }, to: belowMid, size, zone }), null);
   assert.equal(planDetourPath({ from: besideTop, to: besideTop, size, zone }), null);
 });
+
+test("vùng cấm lệch gốc (suggestion ghim dưới primary): góc tính trong tọa độ grid", () => {
+  const origin = { x: 0, y: 500 };
+  const suggestion = { width: 170, height: 260 };
+  const card = { width: 170, height: 200 };
+  const beside = { x: 186, y: 500 };
+  const below = { x: 0, y: 776 };
+  const plan = planDetourPath({ from: beside, to: below, size: card, zone: suggestion, origin });
+  assert.deepEqual(plan.corner, { x: beside.x, y: below.y });
+  assert.equal(planDetourPath({ from: below, to: { x: 0, y: 1000 }, size: card, zone: suggestion, origin }), null);
+});

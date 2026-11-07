@@ -2777,7 +2777,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         from = { ...from, y: zone.height + (relatedLayout?.primary.gap || 0) };
       }
       const to = { x: after.left - box.left, y: after.top - box.top };
-      const plan = planDetourPath({ from, to, size, zone });
+      // Suggestion ghim dưới primary (detail R5) cũng là vùng cấm, như ở card related.
+      const pin = suggestionNode?.parentElement === relatedGrid && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
+      const plan = planDetourPath({ from, to, size, zone })
+        || (pin?.width ? planDetourPath({ from, to, size, zone: { width: pin.width, height: pin.height },
+          origin: { x: pin.left - box.left, y: pin.top - box.top } }) : null);
       corner = plan && { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset };
       [dx, dy] = [from.x - to.x, from.y - to.y];
     }
@@ -3575,6 +3579,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const detours = new Map();
     const primaryZone = { width: relatedLayout.primary.width, height: relatedLayout.primary.height };
     const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
+    const suggestionPosition = keepSuggestion && relatedPositions.get(suggestionId);
+    const suggestionPlacement = relatedLayout.suggestionPlacement;
+    const suggestionBox = suggestionPosition && suggestionPlacement ? {
+      x: suggestionPosition.x, y: suggestionPosition.y,
+      width: suggestionPlacement.pixelWidth, height: suggestionPlacement.pixelHeight,
+    } : null;
     const planDetour = (id, node, origin, destination) => {
       const placement = placementById?.get(id);
       let from = origins?.get(id);
@@ -3584,7 +3594,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (from.x > -size.width && from.x < primaryZone.width && from.y > -size.height && from.y < primaryZone.height) {
         from = { ...from, y: primaryZone.height + relatedLayout.primary.gap };
       }
-      const plan = planDetourPath({ from, to: destination, size, zone: primaryZone });
+      if (suggestionBox && from.x > suggestionBox.x - size.width && from.x < suggestionBox.x + suggestionBox.width
+        && from.y > suggestionBox.y - size.height && from.y < suggestionBox.y + suggestionBox.height) {
+        from = { ...from, y: suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap };
+      }
+      // Suggestion ghim thì card cũng đi vòng nó như primary, không trượt lòn dưới (owner 2026-11-07).
+      const plan = planDetourPath({ from, to: destination, size, zone: primaryZone })
+        || (suggestionBox && planDetourPath({ from, to: destination, size, zone: suggestionBox, origin: suggestionBox }));
       if (!plan) return from;
       detours.set(node, { from, to: destination, plan });
       return destination;
@@ -3592,8 +3608,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const [id, node] of relatedRendered) {
       const destination = relatedPositions.get(id);
       if (!destination || node.hidden) continue;
-      const columnHead = destination.x < relatedLayout.primary.width
-        ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
+      // Card mới vào từ đầu cột: dưới primary, hoặc dưới suggestion ở cột của nó.
+      const columnHead = suggestionBox && destination.x < suggestionBox.x + suggestionBox.width
+        ? suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap
+        : destination.x < relatedLayout.primary.width ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
       let origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
       if (motion) origin = planDetour(id, node, origin, destination);
       // Chỉ ghi khi đổi: cuộn related ghi lại mọi card đang mount ở mỗi lần cửa sổ đổi.
