@@ -203,6 +203,10 @@ nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opa
   cùng `400ms`; điểm xuất phát có từ prepaint.
 - Tọa độ không đổi thì không có motion. Card gắn lại do ảo hóa tại tọa độ cũ
   hiện ngay, không chạy lại motion.
+- Ở detail, card related, suggestion và khung batch không bao giờ trượt qua sau
+  ảnh primary: đường thẳng cắt primary thì card đi hai đoạn qua một góc vuông,
+  tổng vẫn `0.4s ease`; cụm CTA và Kính cung trượt thẳng
+  ([spec R10](../docs/specs/advertising-cta-center-parallax.md#r10-card-related-không-đi-qua-primary)).
 
 ### Ảnh trong card
 
@@ -227,6 +231,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Frame rỗng nối từ đáy ảnh thật mỗi cột, cùng gutter, xếp tới đáy batch ngay
   trên footer; CTA nằm trong batch.
+- Ở detail, batch, cụm CTA và Kính cung chuyển xuống cuối related: batch nối
+  tiếp các cột related, related rỗng thì nằm dưới primary
+  ([spec R9](../docs/specs/advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)).
 - Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
   bằng WebGL. Mỗi frame (batch và skeleton chờ ảnh) bốc preset trong 12, hoán
   vị anchor, chiều chảy, pha liên tục và tốc độ lệch tối đa 10% lúc vào
