@@ -6849,12 +6849,13 @@ async function runAdvertisingMediaEntranceChecks() {
           const firstReady = visible.findIndex((sample) => sample.ready);
           const blankFrames = replay.samples.findIndex((sample) => sample.ready);
           // Cú nhảy xa là vuốt nhanh: card thay chỗ card tạm nên ảnh hiện dần 0.45s bằng một animation opacity
-          // (loading-glass R10); ngoài đoạn dần đó vẫn không skeleton, Kính hay transition CSS.
+          // (loading-glass R10); ảnh cache chưa giải mã xong lúc card thật gắn vào luồng ảnh mờ, nên lớp mờ còn trong lúc dần.
+          // Ngoài đoạn dần đó vẫn không skeleton, Kính hay transition CSS.
           const fading = (sample) => sample.animations === 1;
           assert(
             firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
-                (sample.opacity >= 0.999 || fading(sample))) && sample.shellOpacity >= 0.999 && !sample.overlay &&
+                (sample.opacity >= 0.999 || fading(sample))) && sample.shellOpacity >= 0.999 && (!sample.overlay || (sample.ready && fading(sample))) &&
                 (sample.animations === 0 || fading(sample))) &&
               // Runner không GPU có thể trễ frame dài hơn cửa sổ lấy mẫu: animation còn chạy là chưa hết dần, không phải kẹt.
               (visible.at(-1).opacity >= 0.999 || fading(visible.at(-1))) &&

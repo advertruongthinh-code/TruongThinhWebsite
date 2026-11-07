@@ -97,7 +97,6 @@ try {
   // Vuốt cực nhanh: 20 viewport trong 1s, CPU chậm 4 lần.
   const cdp = await context.newCDPSession(page);
   const start = top * 0.1;
-  const steps = 60;
   await scrollTo(page, 0);
   await settle(1500);
   await scrollTo(page, start);
@@ -108,10 +107,17 @@ try {
     window.__probe.added = [];
     window.__probe.running = true;
   });
-  for (let step = 1; step <= steps; step += 1) {
-    await scrollTo(page, start + (20 * viewport * step) / steps);
-    await page.waitForTimeout(1000 / steps);
-  }
+  // Cuộn theo đồng hồ ngay trong trang (20 viewport/s, gấp đôi ngưỡng vuốt nhanh), không phụ thuộc độ trễ của Playwright.
+  await page.evaluate(([from, distance]) => new Promise((resolve) => {
+    const begin = performance.now();
+    const frame = (now) => {
+      const progress = Math.min(1, (now - begin) / 1000);
+      window.TruongThinhMotion.setLogicalScroll(from + distance * progress);
+      if (progress < 1) requestAnimationFrame(frame);
+      else resolve();
+    };
+    requestAnimationFrame(frame);
+  }), [start, 20 * viewport]);
   await page.evaluate(() => { window.__probe.running = false; });
   const fling = await page.evaluate(() => ({
     frames: window.__probe.frames, added: window.__probe.added, ghosts: [...window.__probe.ghosts.entries()],
@@ -123,6 +129,10 @@ try {
   assert.ok(fling.ghosts.length > 0, "ghost cards held the places of cards not yet mounted");
   const mostAdded = Math.max(...fling.added);
   assert.ok(mostAdded <= 8, `a frame mounts at most a handful of real cards, most ${mostAdded}`);
+  // Vuốt trên ngưỡng thì gần như chỉ có card tạm: card thật chỉ được dựng khi tốc độ cuộn nhìn thấy được tụt xuống dưới ngưỡng
+  // trong một frame (tối đa 8 card), nên tổng số card thật dựng khi vuốt chỉ là một phần nhỏ số card đi qua.
+  const mounted = fling.added.reduce((sum, value) => sum + value, 0);
+  assert.ok(mounted * 4 <= fling.ghosts.length, `swiping above the fast threshold mounts a small share of the cards that pass, ${mounted} real vs ${fling.ghosts.length} ghosts`);
 
   // Dừng: mọi card tạm trong vùng dựng thành card thật, màu đúng màu chủ đạo của card.
   await settle(5000);
