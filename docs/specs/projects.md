@@ -25,7 +25,7 @@ Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công tr�
 hàng ảnh dọc so le cao thấp, tên công trình dưới ảnh; phone là dải trượt ngang. Nhà ở theo hình 1 (chữ đậm), Kinh doanh
 theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Owner chọn công trình tiêu biểu và thứ tự; bấm
 ảnh mở trang chi tiết (R3). Dòng mũi tên dẫn tới trang toàn bộ công trình đã lọc khi trang đó có (R2); trước đó ẩn.
-Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT web
+Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT qua Codex CLI (owner 2026-11-07)
 theo [Tạo ảnh](../operations/agent-rule-ad-images.md#tạo-ảnh) (owner 2026-10-26).
 
 ```gherkin

@@ -101,7 +101,7 @@ Thiết kế danh sách, thẻ bài và trang bài qua Design System và Impecca
 ## Gate còn mở
 
 - Thứ tự (owner 2026-10-26): owner duyệt layout-library, dựng News lên site tĩnh với nội dung trong khối dữ liệu CMS sửa
-  được, rồi mới làm CMS; media thiếu tạo bằng ChatGPT web theo rule tạo ảnh.
+  được, rồi mới làm CMS; media thiếu tạo bằng ChatGPT qua Codex CLI theo rule tạo ảnh (owner 2026-11-07).
 - Code News làm ở một thread riêng, mở sau khi owner duyệt bộ layout, gate chấm ảnh và rule cho AI tạo ảnh (owner 2026-10-12);
   rule tạo, chấm ảnh hiện có ở [agent-rule-ad-images](../operations/agent-rule-ad-images.md), cần mở rộng cho ảnh bài viết.
 
