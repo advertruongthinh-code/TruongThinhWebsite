@@ -354,6 +354,35 @@ html.route-enter .site-header {
   fill: currentColor;
 }
 
+/* Lớp lật màu mark do motion.js chèn lúc đổi màu, gỡ khi lật xong (brand.md Motion). Mỗi mặt là lớp GPU riêng. */
+#header-logo {
+  position: relative;
+}
+
+.brand-lockup__mark-flip,
+.brand-lockup__mark-flip > span,
+.brand-lockup__mark-flip > span > span {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.brand-lockup__mark-flip {
+  inset: auto;
+}
+
+.brand-lockup__mark-flip > span > span {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.brand-lockup__mark-flip svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
 .site-header.is-brand-color .brand-lockup {
   --logo-mark-black: #2b2a29;
   --logo-mark-yellow: #ffed00;

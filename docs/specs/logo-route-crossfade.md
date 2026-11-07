@@ -4,9 +4,9 @@ status: live
 source: []
 tests:
   - tests/site/logo-route-crossfade.e2e.mjs
-  - tests/site/brand-mark-rise.e2e.mjs
+  - tests/site/brand-mark-flip.e2e.mjs
 notion: none
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Logo đổi màu khi chuyển trang
@@ -14,8 +14,8 @@ updated: 2026-10-31
 ## Mục đích
 
 Khi chuyển trang, mark của logo đổi màu như Espacio: lúc bấm, mark sang màu đậm `#2f2f2f` cùng chữ bằng một tween
-màu `0.3s`; lúc veil mở, mark về màu trang đích (trắng hoặc CMYK) cũng bằng tween màu. Không còn kiểu bốn dải mọc
-từ chân hay lớp crossfade trong lúc chuyển trang; cả cụm logo luôn hiện trên veil (R7).
+màu `0.3s`; lúc veil mở, mark về màu trang đích (trắng hoặc CMYK) cũng bằng tween màu. Không có kiểu lật dải
+hay lớp crossfade trong lúc chuyển trang; cả cụm logo luôn hiện trên veil (R7).
 Spec này mô tả phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
@@ -28,7 +28,7 @@ Espacio (kiểu b) thay mark CMYK, không có crossfade riêng của mark.
 
 Bấm link route mềm: từng dải của mark tween `fill` từ màu đang hiển thị (trắng hoặc CMYK) sang `#2f2f2f` ngay lúc
 bấm, trong `0.3s expo.out`, cùng lúc với chữ, nav, hamburger; veil phủ sau đó (`0.75s power4.inOut`). Hình bốn
-dải không đổi, không frame nào có dải mọc (`clip-path`), không có lớp chồng.
+dải không đổi, không frame nào có dải lật hay `clip-path`, không có lớp chồng.
 
 ```gherkin
 Given /vi/ ở đầu trang, mark trắng trên hero ảnh, 1440px hoặc 412×915
@@ -43,7 +43,7 @@ Mark giữ màu đậm suốt lúc veil phủ kín. Lúc veil bắt đầu mở,
 `0.3s expo.out`, cùng tween chữ: trắng nếu trang đích có hero ảnh (section đầu không có
 `data-header-tone="ink"`), CMYK nếu hero trắng. Mỗi lần chuyển trang có đúng hai tween màu: R1 rồi R2.
 Lúc gỡ veil, nếu tone trang đích đã đổi so với lúc veil bắt đầu mở (layout còn dịch), mark sửa bằng tween màu
-ngắn `0.3s power2.out`, không bao giờ mọc dải trong lúc chuyển trang.
+ngắn `0.3s power2.out`, không bao giờ lật dải trong lúc chuyển trang.
 
 ```gherkin
 Given /vi/ ở đầu trang
@@ -71,13 +71,13 @@ Then mark sang đậm lúc bấm, sang CMYK lúc veil bắt đầu mở, rồi g
 
 ### R5. Chuyển giữa chừng
 
-Bấm link lúc mark đang mọc dở (cuộn vừa đổi màu): dừng kiểu mọc, gỡ lớp cũ, từng dải tween từ màu đang có
+Bấm link lúc mark đang lật dở (cuộn vừa đổi màu): dừng kiểu lật, gỡ lớp lật, từng dải tween từ màu đang có
 của nó sang đậm theo R1. Bấm link khi tween màu trước còn chạy: tween mới đi tiếp từ màu hiện tại.
 
 ### R6. Giữ nguyên phần còn lại
 
-- Cuộn trong một trang (sticky, section trắng hoặc tối, về đầu trang) vẫn mọc từ chân theo Brand.
-- Tải trực tiếp, F5, Back không qua bfcache: lần vẽ đầu giữ như Brand (CMYK mọc trên lớp đen dưới veil).
+- Cuộn trong một trang (sticky, section trắng hoặc tối, về đầu trang) vẫn lật dải theo Brand.
+- Tải trực tiếp, F5, Back không qua bfcache: lần vẽ đầu giữ như Brand (CMYK lật lên từ lớp đen dưới veil).
 - Full menu, intro, FLIP scale, tone chữ header, thời lượng và easing của veil không đổi.
 - Reduced motion: không veil, mark đổi ngay sang trạng thái cuối
   ([Shell R13](site-shell.md#r13-reduced-motion)).
@@ -115,7 +115,7 @@ trong `src/site/motion.js`.
 | --- | --- |
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm tween màu (fill inline trên path), không clip-path; mỗi tween dưới 0.5s, sang đậm bắt đầu lúc bấm, sang màu trang đích bắt đầu khi veil phủ kín và trước khi mở xong |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
-| R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-rise.e2e.mjs` (lớp màu mọc từ chân lên theo thứ tự dải, cùng xong ở 1s) |
+| R6 | `TT_E2E_BRAND_COLOR_ONLY` (đổi màu khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-flip.e2e.mjs` (từng dải lật quanh trục riêng, cyan trước, chỉ transform và opacity, đổi hướng giữ mặt đang hiện) |
 | Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
 
 ## Gate còn mở

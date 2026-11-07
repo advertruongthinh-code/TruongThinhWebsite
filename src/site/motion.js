@@ -713,74 +713,138 @@
   const headerMark = header.querySelector(".brand-lockup__mark");
   const headerMarkPaths = [...(headerMark?.querySelectorAll("path") || [])];
   const markBlack = headerMarkPaths.map(() => "rgb(43, 42, 41)");
-  let headerMarkUnderlay;
-  let headerMarkSlots = [];
-  let headerMarkRise = 0;
-  // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
+  let headerMarkFlip;
+  // Trục lật của mỗi dải: điểm giữa đoạn chân dải, theo hệ tọa độ path. Đường qua điểm này song song cạnh trái
+  // tam giác cũng đi qua trung điểm cạnh phải của dải. Cache theo `d` vì snapBrandMark có thể dựng lại path.
+  const bandAxis = new Map();
+  const readBandAxis = (path) => {
+    const d = path.getAttribute("d");
+    if (!bandAxis.has(d)) {
+      const length = path.getTotalLength();
+      const points = Array.from({ length: 97 }, (_, step) => path.getPointAtLength((length * step) / 96));
+      const base = Math.max(...points.map((point) => point.y));
+      const foot = points.filter((point) => base - point.y < 0.5).map((point) => point.x);
+      bandAxis.set(d, [(Math.min(...foot) + Math.max(...foot)) / 2, base]);
+    }
+    return bandAxis.get(d);
+  };
+  // Màu đang hiển thị của từng dải khi lật dở: dải đã quay mặt mới ra thì lấy màu mới, chưa thì màu cũ.
+  const readFlipFaces = () => headerMarkFlip.bands.map(({ front, back }) => {
+    const timing = front.getAnimations()[0]?.effect.getComputedTiming();
+    return timing && timing.progress !== null && timing.progress < 1 ? front.dataset.fill : back.dataset.fill;
+  });
+  const stopHeaderMarkFlip = () => {
+    if (!headerMarkFlip) return;
+    headerMarkFlip.root.remove();
+    headerMark.style.removeProperty("visibility");
+    headerMarkFlip = undefined;
+  };
+  // Gỡ lớp lật khi mọi mặt chạy xong; quay ngược thì chờ lại từ đầu, lượt chờ cũ bỏ qua.
+  const settleHeaderMarkFlip = (flip) => {
+    const turn = (flip.turn || 0) + 1;
+    flip.turn = turn;
+    Promise.all(flip.animations.map((animation) => animation.finished)).then(() => {
+      if (headerMarkFlip === flip && flip.turn === turn) stopHeaderMarkFlip();
+    }, () => {});
+  };
+  // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
+  // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
   // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
   ) => {
-    // Đọc clip đang chạy trước khi hủy để giữ đúng phần lớp mới đã mọc khi đổi hướng giữa chừng.
-    const clips = headerMarkPaths.map((path) => getComputedStyle(path).clipPath);
+    const flipping = headerMarkFlip;
     header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
     header.classList.add(className);
+    // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
     if (hasGsap) gsap.killTweensOf(headerMarkPaths);
     headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+    const target = headerMarkPaths.map((path) => getComputedStyle(path).fill);
+    const same = (colors) => colors.every((color, index) => color === target[index]);
+    // Đang lật tới đúng màu này (header gọi lại cùng tone): để lớp lật chạy tiếp.
+    if (flipping && rise && !tween && same(flipping.to)) return;
+    // Đổi hướng lúc lật dở về đúng màu cũ: các dải quay ngược lại từ góc đang có, không dựng lớp mới.
+    if (flipping && rise && !tween && !reduceMotion && same(flipping.from)) {
+      [flipping.from, flipping.to] = [flipping.to, flipping.from];
+      flipping.animations.forEach((animation) => animation.reverse());
+      settleHeaderMarkFlip(flipping);
+      return;
+    }
+    // Lật dở sang màu khác: lớp cũ là mặt đang hiển thị của từng dải.
+    if (flipping) from = readFlipFaces();
+    stopHeaderMarkFlip();
     if (tween && hasGsap && !reduceMotion && headerMark) {
-      // Dừng kiểu mọc đang chạy; tween đi từ màu đang hiển thị của từng dải.
-      headerMarkUnderlay?.remove();
-      headerMarkUnderlay = undefined;
-      headerMarkSlots = [];
-      headerMarkRise += 1;
-      headerMarkPaths.forEach((path) => path.getAnimations().forEach((animation) => animation.cancel()));
-      const to = headerMarkPaths.map((path) => getComputedStyle(path).fill);
       gsap.fromTo(
         headerMarkPaths,
         { fill: (index) => from[index] },
-        { fill: (index) => to[index], ...tween, clearProps: "fill" },
+        { fill: (index) => target[index], ...tween, clearProps: "fill" },
       );
       return;
     }
-    if (!rise || reduceMotion || !headerMark) return;
-    if (!headerMarkUnderlay) {
-      headerMarkUnderlay = headerMark.cloneNode(false);
-      headerMarkUnderlay.removeAttribute("id");
-      headerMarkUnderlay.setAttribute("class", "brand-lockup__mark-underlay");
-      headerMark.before(headerMarkUnderlay);
-    }
-    const token = ++headerMarkRise;
-    Promise.all(headerMarkPaths.map((path, index) => {
-      // Mỗi dải có một slot chứa lớp cũ; slot lùi từ chân theo mép mọc nên mép trái, phải, đỉnh không chồng hai lớp.
-      // Đổi hướng giữa chừng: slot cũ đứng yên ở clip hiện tại và nằm trong slot mới cùng phần dải đã mọc.
-      const slot = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      const previous = headerMarkSlots[index];
-      if (previous) {
-        const clip = getComputedStyle(previous).clipPath;
-        previous.getAnimations().forEach((animation) => animation.cancel());
-        previous.style.clipPath = clip;
-        slot.append(previous);
-      }
-      const layer = path.cloneNode(false);
-      layer.setAttribute("fill", from[index]);
-      layer.style.clipPath = clips[index];
-      slot.append(layer);
-      headerMarkUnderlay.append(slot);
-      headerMarkSlots[index] = slot;
-      path.getAnimations().forEach((animation) => animation.cancel());
-      // Dải 1 đen tới 4 cyan bắt đầu lệch 0.07s, cả bốn cùng xong ở 1s.
-      const delay = index * 70;
-      const timing = { delay, duration: 1000 - delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
-      // Lớp cũ thừa 1px dưới mép mọc để không hở khe giữa hai lớp.
-      slot.animate({ clipPath: ["inset(0 0 -1px 0)", "inset(0 0 calc(100% - 1px) 0)"] }, { ...timing, fill: "both" });
-      return path.animate({ clipPath: ["inset(100% 0 0 0)", "inset(0)"] }, { ...timing, fill: "backwards" }).finished;
-    })).then(() => {
-      if (token !== headerMarkRise) return;
-      headerMarkUnderlay.remove();
-      headerMarkUnderlay = undefined;
-      headerMarkSlots = [];
-    }, () => {});
+    if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
+    // Khung lớp lật trùng khung mark, tính trong hệ tọa độ của #header-logo (bỏ scale FLIP đang chạy).
+    const logoRect = headerLogo.getBoundingClientRect();
+    const markRect = headerMark.getBoundingClientRect();
+    const scale = logoRect.width / headerLogo.offsetWidth || 1;
+    const box = headerMark.getBBox();
+    const width = markRect.width / scale;
+    const root = document.createElement("span");
+    root.className = "brand-lockup__mark-flip";
+    root.setAttribute("aria-hidden", "true");
+    Object.assign(root.style, {
+      left: `${(markRect.left - logoRect.left) / scale}px`,
+      top: `${(markRect.top - logoRect.top) / scale}px`,
+      width: `${width}px`,
+      height: `${markRect.height / scale}px`,
+    });
+    const face = (path, fill) => {
+      const layer = document.createElement("span");
+      layer.dataset.fill = fill;
+      layer.innerHTML = `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"><path fill="${fill}" d="${path.getAttribute("d")}"/></svg>`;
+      return layer;
+    };
+    const bands = headerMarkPaths.map((path, index) => {
+      const [axisX, axisY] = readBandAxis(path);
+      const origin = `${((axisX - box.x) / box.width) * 100}% ${((axisY - box.y) / box.height) * 100}%`;
+      const band = document.createElement("span");
+      // Phối cảnh đặt ngay trên trục từng dải, dải lật tại chỗ; cỡ phối cảnh theo cỡ mark.
+      band.style.perspective = `${width * 6}px`;
+      band.style.perspectiveOrigin = origin;
+      const front = face(path, from[index]);
+      const back = face(path, target[index]);
+      front.style.transformOrigin = back.style.transformOrigin = origin;
+      band.append(front, back);
+      root.append(band);
+      return { front, back };
+    });
+    // SVG không chứa được lớp HTML; lớp lật nằm trong #header-logo nên cùng chịu FLIP scale.
+    headerLogo.prepend(root);
+    headerMark.style.visibility = "hidden";
+    const flip = { root, bands, from, to: target, animations: [] };
+    headerMarkFlip = flip;
+    // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
+    const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
+    bands.forEach(({ front, back }, index) => {
+      const delay = (bands.length - 1 - index) * 80;
+      flip.animations.push(front.animate(
+        [
+          { transform: turn(0), opacity: 1 },
+          { transform: turn(90), opacity: 1, offset: 0.999 },
+          { transform: turn(90), opacity: 0 },
+        ],
+        { delay, duration: 200, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" },
+      ));
+      flip.animations.push(back.animate(
+        [
+          { transform: turn(-90), opacity: 0 },
+          { transform: turn(-90), opacity: 1, offset: 0.001 },
+          { transform: turn(0), opacity: 1 },
+        ],
+        { delay: delay + 200, duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+      ));
+    });
+    settleHeaderMarkFlip(flip);
   };
   function syncHeaderBrandSurface(whiteSurface, tween) {
     if (whiteSurface) {
@@ -2264,9 +2328,9 @@
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    // Lớp underlay do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    // Lớp lật do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
     const currentChildren = [...current.children].filter(
-      (child) => !child.classList.contains("brand-lockup__mark-underlay"),
+      (child) => !child.classList.contains("brand-lockup__mark-flip"),
     );
     const nextChildren = [...next.children];
     if (currentChildren.length !== nextChildren.length) return false;
