@@ -13,7 +13,7 @@ tests:
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/406332849a0e816ebc6af97487876c15
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Ảnh JPEG XL progressive và thứ tự tải
@@ -57,6 +57,7 @@ duyệt đọc được JXL chỉ tải JXL (owner chọn 2026-10-31). Logo khá
   chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
 - Mọi trình duyệt phải tải được ảnh (owner 2026-10-31, thay quyết định chỉ JXL ngày 2026-10-27): runtime Advertising dò
   ảnh JXL 1x1 trước lần dựng đầu; không giải mã được (Firefox, Chrome dưới 155) thì dùng WebP 240, 480, 960 và bản gốc.
+- Cỡ 240, 480, 960 là WebP cả khi đọc được JXL, cỡ lớn hơn là JXL (owner 2026-11-07): A04s giải mã 480 JXL 47ms, WebP 17ms, 960 là 87 so với 28ms; WebP 480 nặng hơn khoảng 50%. `srcset` của `<source>` JXL trộn hai định dạng được.
 - AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); og:image, JSON-LD, sitemap ảnh giữ WebP.
 
 Trung tâm vùng ưu tiên dùng giữa ảnh. Đặt tâm theo model Google Attention Center là việc sau, cần TensorFlow Lite.
@@ -189,10 +190,9 @@ Then chỉ có các hàm settle sẵn có, được gọi từ load và decode
 
 - Lúc ảnh đầu trong viewport hiện ở route có khung lớn không chậm hơn quá 5% so với AVIF trước đây (mục tiêu nhanh hơn
   30% dựa trên hiện từ ngưỡng, bỏ cùng R3 ngày 2026-10-31).
-- Lúc file ảnh về đủ không chậm hơn quá 5%; byte ảnh trước lúc nâng bản gốc (R10) không tăng (cùng dung lượng với AVIF).
-- Veil tan theo gate [mở trực tiếp R3](first-load-parity.md#r3-phần-nhẹ-hiện-trước-phần-nặng-không-chặn) (dưới 1s).
+- Lúc file ảnh về đủ không chậm hơn quá 5%; byte ảnh 1600 trở lên trước lúc nâng bản gốc (R10) không tăng; cỡ tới 960 là WebP (R1).
+- Veil tan theo gate [mở trực tiếp R3](first-load-parity.md#r3-phần-nhẹ-hiện-trước-phần-nặng-không-chặn) (dưới 1s). LCP không tăng quá 5%.
 - CLS tối đa 0,1; 0 request ảnh trùng URL; không frame nào thấy ảnh tải dở ngoài blur của card (R9).
-- LCP không tăng quá 5%.
 
 ```gherkin
 Given demo vừa deploy bản có spec này
@@ -230,7 +230,7 @@ And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị g
 Ảnh khung lớn (rộng từ 640px, hoặc rộng hay cao từ 60% viewport: hero, ảnh lớn detail) đã hiện ở bản vừa khung (R3) và đang trong
 màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang (owner chọn 14:01, thay "mọi ảnh" lúc 10:45). Card và ô nhỏ giữ
 bản vừa khung: card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC. Bản gốc tải riêng bằng
-`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện.
+`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện. Bản gốc là JXL khi trình duyệt giải mã được ảnh JXL 1x1 (R1), không thì WebP.
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
   Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.

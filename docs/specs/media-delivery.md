@@ -11,14 +11,14 @@ tests:
   - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Tải ảnh nội dung
 
 ## Mục đích
 
-Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể WebP, AVIF, JXL; site dùng JXL, WebP dự phòng, AVIF chỉ lưu trong repo; HTML tĩnh
+Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể WebP, AVIF, JXL; site dùng WebP tới cỡ 960 và JXL cho cỡ lớn hơn, WebP dự phòng, AVIF chỉ lưu trong repo; HTML tĩnh
 và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong, ảnh lỗi có dấu báo lỗi; một script đo tốc độ trên demo.
 Bọc `<picture>` lúc build, font, thư viện, cache header thuộc [phát hành tĩnh](static-release.md); skeleton chờ ảnh
 Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều ảnh và video ở [media-card](media-card.md).
@@ -45,7 +45,8 @@ And chạy lại với --check thì exit 0
 ### R2. HTML tĩnh chọn biến thể
 
 Build bọc `<img>` nội dung trong `<picture>` ([phát hành tĩnh R6](static-release.md#r6-ảnh-nội-dung-bọc-)). Khi có
-`width`: `<source type="image/jxl">` mang `srcset` các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ hơn `width`, `<img>` mang
+`width`: `<source type="image/jxl">` mang `srcset` các cỡ WebP 240, 480, 960 và JXL 1600, 2048 nhỏ hơn `width`
+([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)), `<img>` mang
 `srcset` WebP 240, 480, 960, cả hai cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"`
 nhận `auto, 100vw` (trình duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` thì `<source>` chỉ có `<tên>.jxl`.
 `<img>` WebP cho Google Images và trình duyệt chưa đọc JXL ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)), và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
@@ -76,13 +77,13 @@ And không ảnh nào bị request hai lần cùng URL
 ```gherkin
 Given <img src="/assets/content/projects/storefront.webp" width="1536" loading="lazy"> trong HTML nguồn
 When build xong
-Then source JXL có srcset storefront-240.jxl 240w, storefront-480.jxl 480w, storefront-960.jxl 960w, storefront.jxl 1536w, sizes "auto, 100vw"
-And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, không tải WebP
+Then source JXL có srcset storefront-240.webp 240w, storefront-480.webp 480w, storefront-960.webp 960w, storefront.jxl 1536w, sizes "auto, 100vw"
+And trình duyệt đọc được JXL tải đúng một file cho ảnh đó
 ```
 
 ### R3. Runtime Advertising chọn biến thể
 
-`responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
+`responsive-image.mjs` trỏ WebP ở cỡ tới 960 và JXL ở cỡ lớn hơn, trình duyệt không giải mã được JXL thì WebP ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
 `catalog-runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
 có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ nhỏ nhất không dưới `needed` pixel, không có
 `needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
@@ -100,7 +101,7 @@ có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `wi
 Given trình duyệt đọc được JXL, viewport 1440 DPR 1
 When mở detail kiosk-posm-07 rồi bấm "Xem lớn hơn"
 Then ảnh primary là <tên>-1600.jxl và ảnh viewer là <tên>.jxl cỡ gốc
-And card masonry dùng data-srcset JXL 240w, 480w, 960w, 1600w, 2048w và bản gốc
+And card masonry dùng data-srcset WebP 240w, 480w, 960w, JXL 1600w, 2048w và bản gốc JXL
 ```
 
 ### R4. Thứ tự ưu tiên tải
