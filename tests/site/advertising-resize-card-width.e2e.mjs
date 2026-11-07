@@ -1,6 +1,6 @@
 // Masonry R6: vào thẳng ?photo=, về grid bằng navbar rồi resize trong lúc geometry còn chờ Worker; card ẩn trong cohort
 // lộ lại phải lấy bề rộng cột mới. Lỗi cũ: card giữ bề rộng 4 cột (288.5px) ở layout 3 cột, tràn mép phải grid.
-// Thứ tự grid ngẫu nhiên theo seed nên lỗi chỉ hiện ở một phần hero; chạy nhiều hero để bắt.
+// Thứ tự grid ngẫu nhiên theo seed nên lỗi chỉ hiện ở một phần hero (main sau #670: 2/24); chạy 24 hero để bắt.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -11,7 +11,7 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-const heroCount = Number(process.env.HERO_COUNT || 12);
+const heroCount = Number(process.env.HERO_COUNT || 24);
 const browser = await chromium.launch({ headless: true });
 const failures = [];
 try {
