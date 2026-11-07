@@ -22,14 +22,30 @@ const MAX_MOUNTS_PER_FRAME = 8;
 export const breathePhase = (now = performance.now()) => `${-(now % BREATHE_MS)}ms`;
 
 // Chi phí một card và nhịp frame đo ngay trên máy; hàm thuần theo đồng hồ truyền vào để test.
+// Chi phí tính theo khoảng frame: phần JS dựng card chỉ là một phần nhỏ, style, layout và paint của card mới chạy sau
+// trong cùng frame và làm frame kế tới trễ (A04s: JS 0.5ms một card nhưng frame dài thêm vài ms một card).
 export function createMountBudget(clock = () => performance.now(), nextFrame = (callback) => requestAnimationFrame(callback)) {
   let costMs = INITIAL_COST_MS;
+  // Nhịp frame khi không dựng card: nền để tách chi phí dựng ra khỏi khoảng frame.
   let frameMs = 1000 / 60;
   let sample = null;
+  let lastMount = null;
   // Ngân sách tính theo frame: một lần dựng là hết phần của frame đó, lần xét thứ hai trong cùng frame (rAF card tạm rồi
   // tới cuộn, cách nhau vài ms vì lần đầu dựng tốn thời gian) không dựng thêm.
   let spent = false;
   const smooth = (previous, next) => previous + (next - previous) * 0.2;
+  const clampFrame = (ms) => Math.min(MAX_FRAME_MS, Math.max(MIN_FRAME_MS, ms));
+  // Khoảng tới frame này: có dựng card ở frame trước thì phần dôi ra so với nhịp nền là chi phí của chúng; không thì là nhịp nền.
+  const measure = (elapsed) => {
+    const mounted = lastMount;
+    lastMount = null;
+    // Quãng nghỉ dài là cuộn đã dừng, không nói gì về nhịp frame.
+    if (elapsed >= 100) return;
+    if (mounted) {
+      const perCard = Math.max(mounted.jsMs, elapsed - frameMs) / mounted.count;
+      costMs = smooth(costMs, Math.min(MAX_FRAME_MS, Math.max(0.05, perCard)));
+    } else frameMs = smooth(frameMs, clampFrame(elapsed));
+  };
   return {
     // Gọi mỗi lần cửa sổ được xét; trả về true khi đang vuốt rất nhanh.
     begin(y, viewportHeight) {
@@ -39,21 +55,23 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
         const elapsed = now - sample.time;
         // Gọi lần hai trong cùng một frame (rAF card tạm rồi tới cuộn): không có quãng đường để đo, giữ kết luận trước và mốc cũ.
         if (elapsed < 4) return sample.fast;
+        measure(elapsed);
         // Frame chạy lại vì còn card tạm (không cuộn thêm): đang vuốt nhanh thì vẫn nhanh, chỉ hết nhanh khi đứng yên đủ lâu.
-        if (y === sample.y) return sample.fast && elapsed < HOLD_FAST_MS;
-        // Quãng nghỉ dài là cuộn đã dừng.
-        if (elapsed < 100) frameMs = smooth(frameMs, Math.min(MAX_FRAME_MS, Math.max(MIN_FRAME_MS, elapsed)));
+        if (y === sample.y) {
+          sample.time = now;
+          return sample.fast && now - sample.movedAt < HOLD_FAST_MS;
+        }
         const distance = Math.abs(y - sample.y);
         // Một cú nhảy xa (kéo thanh cuộn, về chỗ cũ) cũng là vuốt nhanh dù sau quãng nghỉ dài: nội dung cũ không còn dùng.
-        fast = elapsed > 0 && (distance / elapsed * 1000 > viewportHeight * FAST_VIEWPORTS_PER_S || distance > viewportHeight * JUMP_VIEWPORTS);
+        fast = distance / elapsed * 1000 > viewportHeight * FAST_VIEWPORTS_PER_S || distance > viewportHeight * JUMP_VIEWPORTS;
       }
-      sample = { y, time: now, fast };
+      sample = { y, time: now, fast, movedAt: now };
       return fast;
     },
     quota: () => spent ? 0 : Math.min(MAX_MOUNTS_PER_FRAME, mountQuota({ budgetMs: frameMs * BUDGET_SHARE, costMs })),
-    record(count, elapsedMs) {
+    record(count, jsMs) {
       if (count > 0) {
-        costMs = smooth(costMs, elapsedMs / count);
+        lastMount = { count, jsMs };
         // Hết ngân sách tới đầu frame sau (callback này đăng ký trước mọi rAF dựng tiếp nên chạy trước chúng).
         if (!spent) nextFrame(() => { spent = false; });
         spent = true;

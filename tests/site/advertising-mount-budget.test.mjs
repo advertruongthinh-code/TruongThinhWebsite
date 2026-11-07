@@ -63,24 +63,33 @@ test("only one mount per frame: a second look in the same frame gets no quota", 
   assert.ok(budget.quota() >= 1, "next frame has its budget again");
 });
 
-test("quota follows the measured card cost and frame interval", () => {
+test("quota follows the card cost measured from the frame interval, not only the JS part", () => {
   const { state, read } = clock();
   const pending = [];
   const budget = createMountBudget(read, (callback) => pending.push(callback));
-  const nextFrame = () => pending.splice(0).forEach((callback) => callback());
+  // Một frame: xét cửa sổ, dựng `count` card tốn `jsMs` JS, frame kế tới sau `interval` ms (gồm style, layout, paint).
+  const frame = (count, jsMs, interval) => {
+    budget.begin(0, 700);
+    if (count) budget.record(count, jsMs);
+    pending.splice(0).forEach((callback) => callback());
+    state.now += interval;
+  };
   assert.equal(budget.quota(), 1, "default cost 3ms in a 60Hz frame (5.5ms budget)");
-  for (let index = 0; index < 30; index += 1) { budget.record(10, 5); nextFrame(); }
-  assert.ok(budget.quota() > 5, "cheap cards (0.5ms) fit many per frame");
-  for (let index = 0; index < 60; index += 1) { budget.record(10, 0.1); nextFrame(); }
+  for (let index = 0; index < 30; index += 1) frame(0, 0, 16.7);
+  for (let index = 0; index < 30; index += 1) frame(10, 5, 16.7 + 5);
+  assert.ok(budget.quota() > 5, "cheap cards (0.5ms each, frame barely longer) fit many per frame");
+  for (let index = 0; index < 60; index += 1) frame(10, 1, 16.7 + 1);
   assert.equal(budget.quota(), 8, "a hard ceiling of 8 per frame even when the measured cost is tiny");
-  for (let index = 0; index < 60; index += 1) { budget.record(1, 25); nextFrame(); }
-  assert.equal(budget.quota(), 1, "expensive cards (25ms) still mount one per frame");
-  budget.record(0, 100); nextFrame();
-  assert.equal(budget.quota(), 1, "recording zero cards changes nothing");
-  state.now += 16;
+  // A04s: JS chỉ 0.5ms một card nhưng 8 card làm frame dài thêm 32ms; chi phí thật là 4ms một card.
+  for (let index = 0; index < 60; index += 1) frame(8, 4, 16.7 + 32);
+  assert.equal(budget.quota(), 1, "cards whose style and layout stretch the frame mount one per frame");
+  for (let index = 0; index < 60; index += 1) frame(0, 0, 16.7);
+  assert.equal(budget.quota(), 1, "idle frames refresh the base interval, not the card cost");
+  frame(0, 0, 500);
+  assert.equal(budget.quota(), 1, "a long pause is ignored");
 });
 
-test("a long frame interval is clamped so a slow render does not widen its own budget", () => {
+test("the base frame interval is clamped so a slow render does not widen its own budget", () => {
   const { state, read } = clock();
   const budget = createMountBudget(read, (callback) => callback());
   budget.begin(0, 700);
@@ -88,8 +97,7 @@ test("a long frame interval is clamped so a slow render does not widen its own b
     state.now += 90;
     budget.begin(0, 700);
   }
-  for (let index = 0; index < 60; index += 1) budget.record(1, 3);
-  assert.ok(budget.quota() <= 4, "34ms cap gives at most an 11ms budget");
+  assert.ok(budget.quota() <= 4, "34ms cap gives at most an 11ms budget with the 3ms default cost");
 });
 
 test("breathing phase is shared by absolute time", () => {
