@@ -23,6 +23,11 @@ const localizedParagraphs = (text, attributes = "") => {
 };
 const image = (media, attributes = 'loading="lazy"') =>
   `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
+// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS.
+const IMAGE_POSITION = { wide: "blk-image--wide", "left-2-3": "blk-image--left-2-3", "right-2-3": "blk-image--right-2-3", "left-1-2": "blk-image--left-1-2", "right-1-2": "blk-image--right-1-2" };
+const PAIR_LAYOUT = { equal: "blk-pair--equal", "left-large": "blk-pair--left-large", "right-large": "blk-pair--right-large" };
+const FACTS_COLUMNS = { 2: "blk-facts--2", 3: "blk-facts--3", 4: "blk-facts--4" };
+const BANNER_COLUMNS = { 1: "blk-banners--1", 2: "blk-banners--2", 3: "blk-banners--3" };
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
 // Mỗi khối: các trường bắt buộc theo kiểu và hàm dựng HTML. ctx có danh sách công trình, bài News để khối tự lấy.
@@ -56,17 +61,17 @@ const BLOCKS = {
   "image-single": {
     media: ["image"],
     optionalText: ["caption"],
-    enums: { position: ["wide", "left-2-3", "right-2-3", "left-1-2", "right-1-2"] },
+    enums: { position: Object.keys(IMAGE_POSITION) },
     render: (block) => [
-      `<section class="blk blk-image blk-image--${block.position} section-gap" data-header-tone="ink">`,
+      `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
       `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
       "</section>",
     ].join("\n"),
   },
   "image-pair": {
     mediaList: { images: [2, 2] },
-    enums: { layout: ["equal", "left-large", "right-large"] },
-    render: (block) => `<section class="blk blk-pair blk-pair--${block.layout} section-gap" data-header-tone="ink">${block.images.map((media) => figure(media, "blk-pair__item")).join("")}</section>`,
+    enums: { layout: Object.keys(PAIR_LAYOUT) },
+    render: (block) => `<section class="blk blk-pair ${PAIR_LAYOUT[block.layout]} section-gap" data-header-tone="ink">${block.images.map((media) => figure(media, "blk-pair__item")).join("")}</section>`,
   },
   "video-single": {
     video: ["video"],
@@ -84,7 +89,7 @@ const BLOCKS = {
       '<section class="detail-gallery blk-gallery section-gap" data-gallery data-header-tone="ink">',
       '  <div class="detail-gallery__track" data-gallery-track>',
       '    <div class="detail-gallery__slides">',
-      ...block.images.map((media) => `      ${figure(media, "detail-gallery__item")}`),
+      ...block.images.map((media) => `      <figure class="detail-gallery__item"><div class="detail-gallery__media">${image(media, 'loading="lazy" data-motion-media')}</div></figure>`),
       "    </div>",
       "  </div>",
       '  <div class="detail-gallery__pagination" data-gallery-pagination></div>',
@@ -94,7 +99,7 @@ const BLOCKS = {
   "facts-grid": {
     list: { items: [2, 4], text: ["label", "text"] },
     render: (block) => [
-      `<section class="blk blk-facts blk-facts--${block.items.length} section-gap" data-header-tone="ink">`,
+      `<section class="blk blk-facts ${FACTS_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
       '  <ol class="blk-facts__list">',
       ...block.items.map((item) => `    <li class="blk-facts__item">${localized("h3", item.label, ' class="blk-facts__label"')}${localized("p", item.text, ' class="blk-facts__text"')}</li>`),
       "  </ol>",
@@ -159,7 +164,7 @@ const BLOCKS = {
   "banner-links": {
     list: { items: [1, 3], text: ["title"], media: ["image"], href: ["hrefVi", "hrefEn"] },
     render: (block) => [
-      `<section class="blk blk-banners blk-banners--${block.items.length} section-gap" data-header-tone="ink">`,
+      `<section class="blk blk-banners ${BANNER_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
       ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}" data-en-href="${item.hrefEn}">${image(item.image)}${localized("span", item.title, ' class="blk-banner__title"')}</a>`),
       "</section>",
     ].join("\n"),

@@ -10,6 +10,7 @@ import { matchesAdvertisingFilter } from "../../src/site/advertising-products/la
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
+import { loadBlockContent, projectSource, renderProjectPage } from "./block-pages.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -304,6 +305,15 @@ for (const card of ADVERTISING_CARDS) {
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, html, "utf8");
   }
+}
+// Trang công trình dựng từ khối (projects R3): content-contract đã kiểm dữ liệu trong bộ fast.
+const blockContent = loadBlockContent(sourceRoot);
+const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
+const residentialTemplate = await readFile(path.join(sourceRoot, "residential", "index.html"), "utf8");
+for (const project of blockContent.projects) {
+  const destination = path.join(outputRoot, projectSource(project));
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, renderProjectPage(residentialTemplate, project, blockContext), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

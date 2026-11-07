@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
+import { loadBlockContent, projectRoutes } from "../site/block-pages.mjs";
 
 export const ROUTES = new Map([
   ["/vi/", "index.html"],
@@ -18,6 +19,8 @@ export const ROUTES = new Map([
   ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
   // Trang card (media-seo R1).
   ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
+  // Trang công trình dựng từ khối (projects R3).
+  ...projectRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
   ["/vi/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
 ]);

@@ -1,0 +1,75 @@
+[
+  {
+    "id": "can-ho-go-soi",
+    "sector": "residential",
+    "slugVi": "can-ho-go-soi-am",
+    "slugEn": "warm-oak-apartment",
+    "title": { "vi": "Căn hộ gỗ sồi ấm", "en": "Warm oak apartment" },
+    "description": {
+      "vi": "Căn hộ hai phòng ngủ dùng gỗ sồi, sơn xanh rêu và đèn hắt: Trường Thịnh thiết kế, sản xuất tại xưởng và lắp đặt trọn gói.",
+      "en": "A two-bedroom apartment in oak, sage paint and soft cove lighting: designed, built in our workshop and installed by Trường Thịnh."
+    },
+    "cover": { "src": "/assets/content/projects/can-ho-hero.webp", "width": 3072, "height": 2048, "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố", "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony" },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "titleLine1": { "vi": "Căn hộ", "en": "Apartment" },
+        "titleLine2": { "vi": "gỗ sồi ấm", "en": "in warm oak" },
+        "subtitle": { "vi": "Nhà ở · Căn hộ hai phòng ngủ", "en": "Residential · Two-bedroom apartment" },
+        "image": { "src": "/assets/content/projects/can-ho-hero.webp", "width": 3072, "height": 2048, "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố", "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony" }
+      },
+      { "id": "overview-title", "type": "section-title", "text": { "vi": "Một căn hộ gọn, ấm và dễ ở", "en": "A compact, warm and easy home" } },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Gia chủ cần một căn hộ hai phòng ngủ đủ chỗ cất đồ cho cả nhà mà vẫn thoáng. Chúng tôi chọn gỗ sồi làm chất liệu chính, điểm thêm sơn xanh rêu và đèn hắt để không gian ấm vào buổi tối.\n\nMọi tủ, kệ được thiết kế theo số đo thực tế, cắt CNC tại xưởng rồi lắp đặt trong thời gian ngắn, ít bụi và ít làm phiền hàng xóm.",
+          "en": "The owners wanted a two-bedroom apartment with storage for the whole family that still felt open. We chose oak as the main material, with sage paint and cove lighting to keep the rooms warm in the evening.\n\nEvery cabinet and shelf was designed to measured dimensions, CNC-cut in our workshop and installed quickly, with little dust and little disruption for the neighbours."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "gallery-carousel",
+        "images": [
+          { "src": "/assets/content/projects/can-ho-loi-vao.webp", "width": 2048, "height": 3072, "altVi": "Hành lang lối vào có tủ giày cao kịch trần, hốc kệ đèn hắt và ghế ngồi thay giày, nhìn thẳng ra phòng khách", "altEn": "Entry hallway with a floor-to-ceiling shoe cabinet, a lit display niche and a bench for changing shoes, looking through to the living room" },
+          { "src": "/assets/content/projects/can-ho-bep.webp", "width": 2048, "height": 3072, "altVi": "Bếp tủ trên trắng, tủ dưới vân gỗ sồi, mặt đá sáng và quầy bán đảo với ghế gỗ", "altEn": "Kitchen with white upper cabinets, oak base units, pale stone worktops and a peninsula bar with timber stools" },
+          { "src": "/assets/content/projects/can-ho-phong-ngu-2.webp", "width": 2048, "height": 3072, "altVi": "Phòng trẻ em với giường có ngăn kéo, bàn học sát cửa sổ, vách pegboard xanh và tủ áo có hốc kệ bo cong", "altEn": "Child's room with a storage bed, a window desk, a green pegboard wall and a wardrobe with a curved shelf niche" },
+          { "src": "/assets/content/projects/can-ho-phong-tam.webp", "width": 2304, "height": 3072, "altVi": "Phòng tắm với tủ lavabo treo vân gỗ sồi, mặt đá, tủ gương hai cánh và vách kính tắm đứng", "altEn": "Bathroom with a wall-hung oak vanity, stone top, two-door mirror cabinet and a glass shower screen" }
+        ]
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          { "label": { "vi": "Loại công trình", "en": "Project type" }, "text": { "vi": "Căn hộ hai phòng ngủ", "en": "Two-bedroom apartment" } },
+          { "label": { "vi": "Phong cách", "en": "Style" }, "text": { "vi": "Tối giản ấm, gỗ sồi và xanh rêu", "en": "Warm minimal, oak and sage" } },
+          { "label": { "vi": "Hạng mục", "en": "Scope" }, "text": { "vi": "Thiết kế, sản xuất, lắp đặt nội thất", "en": "Interior design, fabrication and installation" } },
+          { "label": { "vi": "Bảo hành", "en": "Aftercare" }, "text": { "vi": "Bảo trì sau bàn giao", "en": "Maintenance after handover" } }
+        ]
+      },
+      {
+        "id": "bedroom",
+        "type": "image-single",
+        "position": "wide",
+        "image": { "src": "/assets/content/projects/can-ho-phong-ngu.webp", "width": 3072, "height": 2048, "altVi": "Phòng ngủ với giường gỗ sồi, vách đầu giường có đèn hắt, tủ đầu giường treo và tủ áo trắng kịch trần", "altEn": "Bedroom with an oak bed, a backlit headboard wall, floating bedside drawers and a floor-to-ceiling white wardrobe" }
+      },
+      {
+        "id": "detail-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ở phòng khách, cánh vân gỗ và cánh sơn xanh rêu được ghép khít mạch, tay nắm âm để mặt tủ liền một khối.",
+          "en": "In the living room, veneered and sage-painted doors meet with tight joints, and recessed pulls keep the cabinet front as one clean surface."
+        }
+      },
+      {
+        "id": "detail",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": { "src": "/assets/content/projects/can-ho-chi-tiet.webp", "width": 3072, "height": 2304, "altVi": "Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm", "altEn": "Close-up of an oak media unit: timber-veneer and sage-painted doors with tight joints and a recessed finger pull" }
+      },
+      { "id": "contact", "type": "contact-quick", "title": { "vi": "Muốn một căn hộ như thế này?", "en": "Want a home like this?" } },
+      { "id": "more", "type": "cta-arrow", "text": { "vi": "Xem thêm không gian nhà ở", "en": "More residential spaces" }, "hrefVi": "/vi/residential/", "hrefEn": "/en/residential/" }
+    ]
+  }
+]
