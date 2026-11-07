@@ -1100,11 +1100,23 @@ export function compileAdvertisingLayout(options = {}) {
   }
 }
 
-export function getVirtualWindow(layout, { scrollTop = 0, viewportHeight = 900, overscan = 900 } = {}) {
-  if (!layout?.placements || !Number.isFinite(scrollTop) || !Number.isFinite(viewportHeight) || viewportHeight < 0 || !Number.isFinite(overscan) || overscan < 0) {
+// `overscan` là vùng dựng card; `releaseOverscan` (mặc định bằng `overscan`) là vùng giữ: card trong vùng giữ nhưng
+// ngoài vùng dựng chỉ không bị gỡ, nên vuốt qua lại không dựng lại liên tục (advertising-masonry R7).
+export function getVirtualWindow(layout, { scrollTop = 0, viewportHeight = 900, overscan = 900, releaseOverscan = overscan } = {}) {
+  if (!layout?.placements || !Number.isFinite(scrollTop) || !Number.isFinite(viewportHeight) || viewportHeight < 0 || !Number.isFinite(overscan) || overscan < 0
+    || !Number.isFinite(releaseOverscan) || releaseOverscan < overscan) {
     throw new Error("Invalid advertising virtual window input");
   }
-  const start = Math.max(0, scrollTop - overscan);
-  const end = scrollTop + viewportHeight + overscan;
-  return { items: layout.placements.filter((item) => item.y + item.pixelHeight >= start && item.y <= end), totalHeight: layout.totalPixelHeight };
+  const within = (item, margin) => item.y + item.pixelHeight >= scrollTop - margin && item.y <= scrollTop + viewportHeight + margin;
+  const retained = releaseOverscan === overscan ? null : layout.placements.filter((item) => within(item, releaseOverscan));
+  const items = (retained ?? layout.placements).filter((item) => within(item, overscan));
+  return { items, retained: retained ?? items, totalHeight: layout.totalPixelHeight };
+}
+
+// Số card thật được dựng trong một frame: ngân sách chia chi phí đo được của một card, luôn được ít nhất một.
+export function mountQuota({ budgetMs, costMs }) {
+  if (!Number.isFinite(budgetMs) || !Number.isFinite(costMs) || budgetMs < 0 || costMs < 0) {
+    throw new Error("Invalid advertising mount quota input");
+  }
+  return Math.max(1, Math.floor(budgetMs / Math.max(costMs, 0.05)));
 }

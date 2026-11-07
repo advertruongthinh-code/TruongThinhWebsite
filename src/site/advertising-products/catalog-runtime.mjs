@@ -33,6 +33,7 @@ import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal }
 import { planDetourPath } from "./detour-path.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
+import { breathePhase, createGhostLayer, createMountBudget, GHOST_FADE_EASING, GHOST_FADE_MS } from "./mount-budget.mjs";
 
 let activeInstance;
 
@@ -1567,8 +1568,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const relatedMediaById = new Map();
   const positions = new Map();
   const retainedPhotoIds = new Set();
+  // Card tạm giữ chỗ card chưa dựng kịp trong frame (advertising-masonry R7); mount là ngân sách dựng mỗi frame.
+  const ghostLayer = createGhostLayer(grid);
+  const mountBudget = createMountBudget();
+  let ghostFrame = 0;
+  let relatedGhostFrame = 0;
   const relatedRendered = new Map();
   const relatedPositions = new Map();
+  const relatedGhostLayer = createGhostLayer(relatedGrid);
+  const relatedMountBudget = createMountBudget();
   let relatedMasonry;
   let relatedPixelHeight = 0;
   let relatedMotionFrame = 0;
@@ -1620,12 +1628,44 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ? `related:${node.dataset.advertisingRelatedCard}` : `grid:${node.dataset.advertisingCard}`;
   const mediaLayers = (node) => [...node.querySelectorAll(".advertising-tile__foreground")];
   // Hiện ngay ở opacity cuối, không qua transition opacity của CSS (R3): đọc style để chốt `none` trước khi trả lại.
-  const showMedia = (node) => mediaLayers(node).forEach((media) => {
-    media.style.setProperty("transition", "none", "important");
-    media.classList.add("is-advertising-media-ready");
-    getComputedStyle(media).opacity;
-    media.style.removeProperty("transition");
-  });
+  // Mọi media hiện trong cùng task dùng chung một lần ép style (đọc opacity một lần cho cả lô), thay vì mỗi media một lần.
+  const mediaToShow = [];
+  const removeGhost = (node) => {
+    const ghost = node.advertisingGhost;
+    if (!ghost) return;
+    node.advertisingGhost = null;
+    ghost.remove();
+  };
+  const flushShownMedia = () => {
+    const batch = mediaToShow.splice(0);
+    if (!batch.length) return;
+    getComputedStyle(batch[0].media).opacity;
+    const fading = new Map();
+    for (const { node, media } of batch) {
+      media.style.removeProperty("transition");
+      // Card thật thay card tạm: ảnh hiện dần từ màu chủ đạo của card tạm; giảm chuyển động thì hiện thẳng.
+      if (node.advertisingGhost && !reduced) {
+        const fades = fading.get(node) || [];
+        fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
+        fading.set(node, fades);
+      }
+    }
+    for (const { node } of batch) {
+      if (!node.advertisingGhost) continue;
+      const fades = fading.get(node);
+      if (fades) Promise.all(fades).then(() => removeGhost(node), () => removeGhost(node));
+      else removeGhost(node);
+    }
+  };
+  const showMedia = (node) => {
+    const queued = mediaToShow.length > 0;
+    mediaLayers(node).forEach((media) => {
+      media.style.setProperty("transition", "none", "important");
+      media.classList.add("is-advertising-media-ready");
+      mediaToShow.push({ node, media });
+    });
+    if (!queued && mediaToShow.length) queueMicrotask(flushShownMedia);
+  };
   const handleMediaLoaded = (node) => {
     loadedMediaKeys.add(mediaKey(node));
     if (cardSkeletons.has(node)) revealCard(node);
@@ -1744,6 +1784,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastGeometrySignature = "";
   let gridPixelHeight = 0;
   let announcedPageHeight = -1;
+  let announcedGridHeight = -1;
   let ctaGeometryHash = "";
   let ctaBottom = 0;
   let lastCtaViewportHeight = 0;
@@ -1891,30 +1932,37 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return layout;
   };
 
-  const virtualWindow = () => {
+  // `hysteresis`: card chỉ bị gỡ khi ra xa hơn hai viewport, dù chỉ được dựng khi cách tối đa một viewport (R7).
+  // `mount` là id cần có card thật; `keep` là id không được gỡ.
+  const virtualWindow = ({ hysteresis = false } = {}) => {
     const gridTop = grid.getBoundingClientRect().top + currentVisualY;
     const visible = getVisibleViewport();
+    const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
     const windowed = getVirtualWindow(geometry, {
-      scrollTop: Math.max(0, currentVisualY + visible.top - gridTop),
+      scrollTop,
       viewportHeight: visible.height,
       overscan: visible.height,
+      releaseOverscan: hysteresis ? visible.height * 2 : visible.height,
     });
     const visiblePlacements = [...windowed.items];
-    const keep = new Set(visiblePlacements.map((placement) => placement.card.id));
+    const mount = new Set(visiblePlacements.map((placement) => placement.card.id));
+    const keep = hysteresis ? new Set(windowed.retained.map((placement) => placement.card.id)) : new Set(mount);
     const focusedNode = [...rendered.values()].find((node) => node === document.activeElement || node.contains(document.activeElement));
-    if (focusedNode && !keep.has(focusedNode.dataset.advertisingCard)) {
+    if (focusedNode && !mount.has(focusedNode.dataset.advertisingCard)) {
       const focusedPlacement = geometry.placements.find((placement) => placement.card.id === focusedNode.dataset.advertisingCard);
       if (focusedPlacement) visiblePlacements.push(focusedPlacement);
       keep.add(focusedNode.dataset.advertisingCard);
+      mount.add(focusedNode.dataset.advertisingCard);
     }
     for (const id of retainedPhotoIds) {
-      if (keep.has(id)) continue;
+      if (mount.has(id)) continue;
       const retainedPlacement = geometry.placements.find((placement) => placement.card.id === id);
       if (!retainedPlacement) continue;
       visiblePlacements.push(retainedPlacement);
       keep.add(id);
+      mount.add(id);
     }
-    return { keep, visiblePlacements };
+    return { keep, mount, visiblePlacements, scrollTop, viewportHeight: visible.height };
   };
   const sameMembers = (left, right) => left.size === right.size && [...left].every((item) => right.has(item));
   const coordinateChanged = (nextPositions) => [...rendered.entries()].some(([id, node]) => {
@@ -1931,6 +1979,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       .sort(([leftId], [rightId]) => (placementIndex.get(leftId) ?? Number.MAX_SAFE_INTEGER) - (placementIndex.get(rightId) ?? Number.MAX_SAFE_INTEGER) || leftId.localeCompare(rightId))
       .map(([, node]) => node);
     let cursor = grid.firstElementChild;
+    // Lớp card tạm luôn đứng đầu grid, dưới mọi card.
+    if (cursor === ghostLayer.layer) cursor = cursor.nextElementSibling;
     for (const node of orderedNodes) {
       if (node === cursor) {
         cursor = cursor.nextElementSibling;
@@ -1953,6 +2003,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       node.remove();
       rendered.delete(id);
     }
+    ghostLayer.prune(keep);
     restoreCanonicalDomOrder();
   };
   // Card đổi cỡ cùng nhịp với vị trí: con của card co giãn từ cỡ cũ quanh góc trên trái của card, nên card lớn
@@ -2561,10 +2612,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaLayers(node).forEach((media) => { media.style.filter = CARD_LOADING_BLUR; });
     // Card mờ chờ ảnh thì thở (detail.css, spec chờ ảnh S2); dropCardSkeleton gỡ cùng lúc gỡ blur.
     node.dataset.advertisingMediaLoading = "";
+    node.style.setProperty("--breathe-phase", breathePhase());
+    // Card đã vẽ ảnh mờ trên màu chủ đạo, nên card tạm gỡ ở frame kế, không crossfade (R7).
+    if (node.advertisingGhost) {
+      const ghost = node.advertisingGhost;
+      node.advertisingGhost = null;
+      requestAnimationFrame(() => ghost.remove());
+    }
     showMedia(node);
     cardSkeletons.set(node, { blur: true, revealing: false, animations: [] });
   };
   const dropCardSkeleton = (node) => {
+    removeGhost(node);
     const entry = cardSkeletons.get(node);
     if (!entry) return;
     cardSkeletons.delete(node);
@@ -2890,10 +2949,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     slideOrigins?.forEach((before, node) => slideFrom(node, before));
   };
 
-  const renderWindow = ({ animate = false, origins: visualOrigins } = {}) => {
+  // `scrolling`: frame cuộn không đổi hình học, nên batch CTA đã dựng thì không đo lại (mỗi frame đo ép layout).
+  const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
-    renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
     // Grid đổi chiều cao làm trình duyệt kẹp scroll (đang ở cuối trang); card phải xuất phát từ chỗ đang thấy trên
     // màn, nếu không chúng bay lệch đúng bằng độ kẹp rồi giật về (đo trên PC, vòng 26).
     if (origins?.gridTop !== undefined) {
@@ -2905,9 +2965,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cancelAnimationFrame(layoutFrame);
       layoutFrame = 0;
     }
-    const { keep: normalKeep, visiblePlacements } = virtualWindow();
+    if (ghostFrame) {
+      cancelAnimationFrame(ghostFrame);
+      ghostFrame = 0;
+    }
+    // Cuộn thường được giữ card trong vùng trễ và dựng theo ngân sách frame; motion layout (animate) dựng và gỡ theo
+    // vùng dựng như cũ (R7).
+    const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight } = virtualWindow({ hysteresis: !animate });
+    const fastScroll = mountBudget.begin(currentVisualY, viewportHeight);
     const currentKeep = new Set(rendered.keys());
-    const membershipChanged = !sameMembers(currentKeep, normalKeep);
+    const membershipChanged = [...mount].some((id) => !currentKeep.has(id))
+      || [...currentKeep, ...ghostLayer.ids()].some((id) => !normalKeep.has(id));
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
     if (hasLaidOut && !membershipChanged && !geometryChanged) return;
@@ -2919,6 +2987,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const keep = retainCohort ? new Set([...currentKeep, ...normalKeep]) : normalKeep;
     const created = new Set();
     const seeded = new Set();
+    // Card thật được dựng mới trong frame này: card ép giữ (vừa mở detail) luôn được dựng, còn lại theo quota, giao
+    // viewport và gần giữa màn hình trước. Lần layout đầu và motion layout dựng hết. Phần còn lại là card tạm.
+    let allowed = null;
+    if (animate) ghostLayer.clear();
+    else if (hasLaidOut) {
+      const center = scrollTop + viewportHeight / 2;
+      const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
+      const missing = visiblePlacements.filter((placement) => !rendered.has(placement.card.id));
+      const forced = missing.filter((placement) => retainedPhotoIds.has(placement.card.id));
+      const queue = missing.filter((placement) => !retainedPhotoIds.has(placement.card.id)).sort((a, b) => distance(a) - distance(b));
+      allowed = new Set([...forced, ...queue.slice(0, fastScroll ? 0 : mountBudget.quota())].map((placement) => placement.card.id));
+    }
+    let mountMs = 0;
     if (origins && shouldAnimate && !reduced) {
       for (const [id, node] of rendered) {
         const origin = origins.get(id);
@@ -2940,11 +3021,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       node.remove();
       rendered.delete(id);
     }
+    ghostLayer.prune(keep);
     const fragment = document.createDocumentFragment();
     for (const placement of visiblePlacements) {
       let node = rendered.get(placement.card.id);
+      if (node) ghostLayer.drop(placement.card.id);
+      if (!node && allowed && !allowed.has(placement.card.id)) {
+        ghostLayer.show(placement.card.id, placement, mediaColors(placement.card.media.src)?.[0]);
+        continue;
+      }
       if (!node) {
         const id = placement.card.id;
+        const mountStart = performance.now();
         const initialMediaId = gridMediaById.get(id)
           || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
         node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
@@ -2952,6 +3040,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         rendered.set(placement.card.id, node);
         observeMediaCard(node);
         created.add(placement.card.id);
+        node.advertisingGhost = ghostLayer.take(id);
+        mountMs += performance.now() - mountStart;
         const origin = origins?.get(placement.card.id) || (shouldAnimate && !reduced ? { x: placement.x, y: 0 } : null);
         if (origin) {
           node.style.left = `${origin.x}px`;
@@ -2960,10 +3050,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         }
         fragment.append(node);
       }
-      sizeNode(node, placement, geometry.placements.length);
+      // Cùng hình học thì cỡ card không đổi: không ghi lại style và aria mỗi frame cuộn.
+      if (node.advertisingSizedBy !== geometry) {
+        sizeNode(node, placement, geometry.placements.length);
+        node.advertisingSizedBy = geometry;
+      }
       node.hidden = false;
     }
-    if (fragment.childNodes.length) grid.append(fragment);
+    if (fragment.childNodes.length) {
+      const appendStart = performance.now();
+      grid.append(fragment);
+      mountMs += performance.now() - appendStart;
+      mountBudget.record(created.size, mountMs);
+    }
+    // Còn card tạm chờ dựng thì hẹn frame sau, không dựng dồn trong một frame.
+    if (visiblePlacements.some((placement) => ghostLayer.has(placement.card.id))) {
+      ghostFrame ||= requestAnimationFrame(() => {
+        ghostFrame = 0;
+        renderWindow({ scrolling: true });
+      });
+    }
     for (const [id, node] of rendered) node.hidden = retainCohort && !normalKeep.has(id);
     if (!retainCohort) restoreCanonicalDomOrder();
     if (seeded.size) void grid.offsetHeight;
@@ -2989,13 +3095,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         if (motionTimer) clearTimeout(motionTimer);
         motionTimer = setTimeout(settleMotion, 400);
       }
-      window.lazySizes?.loader?.checkElems?.();
+      // Card mới cần LazySizes xét; card đã mount được IntersectionObserver lo.
+      if (created.size || geometryChanged || shouldAnimate) window.lazySizes?.loader?.checkElems?.();
       // site:layout chạy Locomotive update(), giữa lúc scroll làm trang nhảy tiến một bước; card bị hoán đổi do
-      // ảo hóa giữ nguyên chiều cao trang, nên chỉ khi chiều cao đổi mới báo layout (scroll-feel R1).
-      const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
-      if (pageHeight !== announcedPageHeight) {
-        announcedPageHeight = pageHeight;
-        window.dispatchEvent(new CustomEvent("site:layout"));
+      // ảo hóa giữ nguyên chiều cao trang, nên chỉ khi chiều cao đổi mới báo layout (scroll-feel R1). Đọc offsetHeight
+      // ép layout, nên chỉ đọc khi chiều cao grid hoặc hình học đổi.
+      if (geometryChanged || shouldAnimate || gridPixelHeight !== announcedGridHeight) {
+        announcedGridHeight = gridPixelHeight;
+        const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
+        if (pageHeight !== announcedPageHeight) {
+          announcedPageHeight = pageHeight;
+          window.dispatchEvent(new CustomEvent("site:layout"));
+        }
       }
     };
     if (seeded.size && animate && !reduced) {
@@ -3020,6 +3131,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       rendered.set(placement.card.id, node);
       observeMediaCard(node);
       grid.append(node);
+      ghostLayer.drop(id);
     }
     node.hidden = false;
     sizeNode(node, placement, geometry.placements.length);
@@ -3227,6 +3339,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       node.remove();
     });
     relatedRendered.clear();
+    relatedGhostLayer.clear();
     relatedPositions.clear();
     relatedLayoutKey = "";
     relatedMeasuredGeometry = null;
@@ -3273,6 +3386,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!relatedLayout || !relatedGrid) return;
     const focused = relatedGrid.contains(document.activeElement) ? document.activeElement : null;
     let cursor = relatedGrid.firstElementChild;
+    if (cursor === relatedGhostLayer.layer) cursor = cursor.nextElementSibling;
     for (const placement of relatedLayout.layout.placements) {
       const node = placement.card.kind === "suggestion" ? suggestionNode : relatedRendered.get(placement.card.id);
       if (!node) continue;
@@ -3313,11 +3427,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
+    const relatedScrollTop = Math.max(0, getLogicalScroll() + visible.top - gridTop);
+    // Như masonry chính (R7): dựng khi cách tối đa một viewport, gỡ khi ra xa hơn hai viewport (không áp cho motion layout).
     const windowed = getVirtualWindow(relatedLayout.layout, {
       overscan: visible.height,
-      scrollTop: Math.max(0, getLogicalScroll() + visible.top - gridTop),
+      releaseOverscan: animate ? visible.height : visible.height * 2,
+      scrollTop: relatedScrollTop,
       viewportHeight: visible.height,
     });
+    const relatedFast = relatedMountBudget.begin(relatedScrollTop, visible.height);
     const normalKeep = new Set(windowed.items.map((placement) => placement.card.id));
     const suggestionId = relatedLayout.suggestionPlacement?.card.id;
     if (suggestionId && suggestionNode?.contains(document.activeElement)) normalKeep.add(suggestionId);
@@ -3334,20 +3452,64 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (validPhotoIds.has(id)) normalKeep.add(id);
     }
     const normalPhotoKeep = new Set([...normalKeep].filter((id) => id !== suggestionId));
+    // Card trong vùng trễ (ngoài vùng dựng) chưa mount thì không dựng, đã mount thì giữ.
+    const retainedKeep = new Set([...normalPhotoKeep, ...windowed.retained.map((placement) => placement.card.id).filter((id) => validPhotoIds.has(id))]);
     if (!animate
-      && sameMembers(new Set(relatedRendered.keys()), normalPhotoKeep)
+      && [...normalPhotoKeep].every((id) => relatedRendered.has(id))
+      && [...relatedRendered.keys(), ...relatedGhostLayer.ids()].every((id) => retainedKeep.has(id))
       && (!suggestionId || suggestionNode?.hidden === !keepSuggestion)) return;
     const motion = animate && !reduced;
-    const keep = motion ? new Set([...relatedRendered.keys(), ...normalPhotoKeep]) : normalPhotoKeep;
+    const keep = motion ? new Set([...relatedRendered.keys(), ...normalPhotoKeep]) : retainedKeep;
     relatedPositions.clear();
     for (const placement of relatedLayout.layout.placements) relatedPositions.set(placement.card.id, { x: placement.x, y: placement.y });
-    normalPhotoKeep.forEach(ensureRelatedPhoto);
+    // Card chưa mount dựng theo quota, gần giữa màn hình trước; phần còn lại là card tạm (R7). Motion layout dựng hết.
+    if (animate) relatedGhostLayer.clear();
+    let relatedAllowed = null;
+    if (!animate) {
+      const center = relatedScrollTop + visible.height / 2;
+      const placementOf = new Map(relatedLayout.photoPlacements.map((placement) => [placement.card.id, placement]));
+      const distance = (id) => {
+        const placement = placementOf.get(id);
+        return placement ? Math.abs(placement.y + placement.pixelHeight / 2 - center) : Infinity;
+      };
+      const missing = [...normalPhotoKeep].filter((id) => !relatedRendered.has(id));
+      const mustMount = (id) => retainedPhotoIds.has(id) || id === anchorId;
+      relatedAllowed = new Set([
+        ...missing.filter(mustMount),
+        ...missing.filter((id) => !mustMount(id)).sort((a, b) => distance(a) - distance(b)).slice(0, relatedFast ? 0 : relatedMountBudget.quota()),
+      ]);
+    }
+    relatedGhostLayer.prune(keep);
+    let relatedMountMs = 0;
+    let relatedCreated = 0;
+    normalPhotoKeep.forEach((id) => {
+      if (relatedAllowed && !relatedRendered.has(id) && !relatedAllowed.has(id)) {
+        const placement = relatedLayout.photoPlacements.find((entry) => entry.card.id === id);
+        if (placement) relatedGhostLayer.show(id, placement, mediaColors(placement.card.media.src)?.[0]);
+        return;
+      }
+      const isNew = !relatedRendered.has(id);
+      if (!isNew) relatedGhostLayer.drop(id);
+      const start = performance.now();
+      const node = ensureRelatedPhoto(id);
+      if (!isNew || !node) return;
+      node.advertisingGhost = relatedGhostLayer.take(id);
+      relatedMountMs += performance.now() - start;
+      relatedCreated += 1;
+    });
+    relatedMountBudget.record(relatedCreated, relatedMountMs);
+    if ([...normalPhotoKeep].some((id) => relatedGhostLayer.has(id))) {
+      relatedGhostFrame ||= requestAnimationFrame(() => {
+        relatedGhostFrame = 0;
+        renderRelatedWindow();
+      });
+    }
     if (keepSuggestion) ensureSuggestionCard();
     // Chưa đặt trong related grid (pha primary của direct-entry) thì nó ẩn cho đến khi solver đặt.
     else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
     for (const [id, node] of relatedRendered) {
       if (keep.has(id)) {
-        node.hidden = !normalKeep.has(id);
+        node.hidden = motion && !normalKeep.has(id);
         if (!relatedPositions.has(id)) relatedPositions.set(id, origins?.get(id) || { x: 0, y: 0 });
       } else {
         releaseMediaCard(node);
@@ -4549,7 +4711,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         pendingScroll = true;
         return;
       }
-      renderWindow();
+      renderWindow({ scrolling: true });
       renderRelatedWindow();
       // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s cũ.
       // Chỉ khi pinch-zoom, vùng thấy (visual viewport) mới lệch khỏi vùng IntersectionObserver đo.
@@ -4958,6 +5120,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaObserver.disconnect();
     masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    if (ghostFrame) cancelAnimationFrame(ghostFrame);
+    if (relatedGhostFrame) cancelAnimationFrame(relatedGhostFrame);
+    ghostLayer.destroy();
+    relatedGhostLayer.destroy();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (motionTimer) clearTimeout(motionTimer);

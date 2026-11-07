@@ -13,6 +13,7 @@ import {
   compileAdvertisingProductLayout,
   computeAdvertisingPhotoGeometry,
   getVirtualWindow,
+  mountQuota,
   normalizeAdvertisingSettings,
   scheduleAdvertisingRank,
   scoreAdvertisingOrganicRhythm,
@@ -780,4 +781,26 @@ test("proves a feasible 3000-card fixture independently before benchmarking the 
   assert.ok(windowed.items.length < 120, "3000-card virtual window stays bounded");
   assert.ok(target.every(({ card }) => windowed.items.some((item) => item.card.id === card.id)), "virtual window retains placements 2800 to 2820");
   console.log(`[advertising-products-layout] 3000 feasible; oracle ${oracleMs.toFixed(1)}ms; solver ${solverMs.toFixed(1)}ms; operations ${layout.diagnostics.operations}`);
+});
+
+test("virtual window keeps a wider release zone than its mount zone", () => {
+  const placements = Array.from({ length: 40 }, (_, index) => ({ card: { id: `c${index}` }, y: index * 100, pixelHeight: 100 }));
+  const layout = { placements, totalPixelHeight: 4000 };
+  const view = { scrollTop: 1000, viewportHeight: 300 };
+  const plain = getVirtualWindow(layout, { ...view, overscan: 300 });
+  assert.deepEqual(plain.retained, plain.items, "no release overscan: release zone equals mount zone");
+  const wide = getVirtualWindow(layout, { ...view, overscan: 300, releaseOverscan: 600 });
+  assert.deepEqual(wide.items, plain.items, "mount zone unchanged by the release zone");
+  const ids = (list) => list.map((item) => item.card.id);
+  assert.ok(wide.retained.length > wide.items.length, "release zone holds cards beyond the mount zone");
+  assert.ok(ids(wide.items).every((id) => ids(wide.retained).includes(id)), "release zone contains the mount zone");
+  assert.throws(() => getVirtualWindow(layout, { ...view, overscan: 300, releaseOverscan: 100 }), /Invalid advertising virtual window input/);
+});
+
+test("mount quota fits the frame budget and always allows one card", () => {
+  assert.equal(mountQuota({ budgetMs: 5.5, costMs: 2.9 }), 1);
+  assert.equal(mountQuota({ budgetMs: 5.5, costMs: 0.5 }), 11);
+  assert.equal(mountQuota({ budgetMs: 1, costMs: 20 }), 1, "a slow device still mounts one card per frame");
+  assert.equal(mountQuota({ budgetMs: 4, costMs: 0 }), 80, "zero cost is floored, not divided by zero");
+  assert.throws(() => mountQuota({ budgetMs: Number.NaN, costMs: 1 }), /Invalid advertising mount quota input/);
 });
