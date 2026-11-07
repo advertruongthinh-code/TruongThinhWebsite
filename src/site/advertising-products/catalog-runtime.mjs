@@ -33,7 +33,9 @@ import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal }
 import { planDetourPath } from "./detour-path.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
-import { breathePhase, createGhostLayer, createMountBudget, GHOST_FADE_EASING, GHOST_FADE_MS } from "./mount-budget.mjs";
+import {
+  breathePhase, createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity, GHOST_FADE_EASING, GHOST_FADE_MS,
+} from "./mount-budget.mjs";
 
 let activeInstance;
 
@@ -1578,6 +1580,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const relatedPositions = new Map();
   const relatedGhostLayer = createGhostLayer(relatedGrid);
   const relatedMountBudget = createMountBudget();
+  // Card vừa gỡ mà ảnh còn giải mã nằm ở đây theo RAM máy; quay lại cửa sổ thì gắn lại đúng node (R7, V4).
+  const detachedCards = createDetachedCards(detachedCapacity(navigator.deviceMemory));
+  const relatedDetachedCards = createDetachedCards(detachedCapacity(navigator.deviceMemory));
   let relatedMasonry;
   let relatedPixelHeight = 0;
   let relatedMotionFrame = 0;
@@ -1712,6 +1717,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaObserver.unobserve(node);
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
+  };
+  // Gỡ card khỏi DOM: card đã hiện ảnh (không còn chờ, không lỗi) vào hàng chờ để quay lại thì gắn lại tức thì; card khác
+  // hủy như cũ (ảnh dở dang bỏ nguồn). Card video không vào hàng chờ: releaseVideoSource bỏ nguồn và nguồn chỉ gắn lại
+  // trong createPhotoCard, gắn lại node cũ sẽ chỉ còn poster.
+  const detachCard = (id, node, queue) => {
+    const keepable = !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
+      && mediaLayers(node).some((media) => media.classList.contains("is-advertising-media-ready"));
+    releaseMediaCard(node);
+    node.remove();
+    if (keepable) queue.put(id, node);
   };
   // Filter sản phẩm (id "<cụm>/<slug>") vẫn đánh dấu cụm của nó trên rail.
   const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
@@ -3004,13 +3019,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // viewport và gần giữa màn hình trước. Lần layout đầu và motion layout dựng hết. Phần còn lại là card tạm.
     let allowed = null;
     // Card tạm giữ tọa độ của hình học cũ: hình học đổi (đổi cỡ cửa sổ, filter) thì bỏ hết và dựng lại theo hình học mới.
-    if (animate || geometryChanged) ghostLayer.clear();
+    if (animate || geometryChanged) {
+      ghostLayer.clear();
+      detachedCards.clear();
+    }
     if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
       const missing = visiblePlacements.filter((placement) => !rendered.has(placement.card.id));
       const forced = missing.filter((placement) => retainedPhotoIds.has(placement.card.id));
-      const queue = missing.filter((placement) => !retainedPhotoIds.has(placement.card.id)).sort((a, b) => distance(a) - distance(b));
+      // Card trong hàng chờ gắn lại rẻ hơn dựng mới nên đứng trước.
+      const queue = missing.filter((placement) => !retainedPhotoIds.has(placement.card.id))
+        .sort((a, b) => (detachedCards.has(b.card.id) - detachedCards.has(a.card.id)) || distance(a) - distance(b));
       allowed = new Set([...forced, ...queue.slice(0, fastScroll ? 0 : mountBudget.quota())].map((placement) => placement.card.id));
     }
     let mountMs = 0;
@@ -3034,8 +3054,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
 
     for (const [id, node] of rendered) {
       if (keep.has(id) || node === document.activeElement || node.contains(document.activeElement)) continue;
-      releaseMediaCard(node);
-      node.remove();
+      detachCard(id, node, detachedCards);
       rendered.delete(id);
     }
     ghostLayer.prune(keep);
@@ -3052,12 +3071,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const mountStart = performance.now();
         const initialMediaId = gridMediaById.get(id)
           || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
-        node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
+        const reattached = detachedCards.take(id);
+        node = reattached || createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
           (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
         rendered.set(placement.card.id, node);
         observeMediaCard(node);
         created.add(placement.card.id);
-        node.advertisingGhost = ghostLayer.take(id);
+        // Card gắn lại đã có ảnh nên không cần card tạm để crossfade: bỏ card tạm của nó nếu có.
+        if (reattached) ghostLayer.drop(id);
+        else node.advertisingGhost = ghostLayer.take(id);
         mountMs += performance.now() - mountStart;
         const origin = origins?.get(placement.card.id) || (shouldAnimate && !reduced ? { x: placement.x, y: 0 } : null);
         if (origin) {
@@ -3154,7 +3176,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const id = placement.card.id;
       const initialMediaId = gridMediaById.get(id)
         || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
-      node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
+      node = detachedCards.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
         (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
       rendered.set(placement.card.id, node);
       observeMediaCard(node);
@@ -3367,6 +3389,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       node.remove();
     });
     relatedRendered.clear();
+    relatedDetachedCards.clear();
     relatedGhostLayer.clear();
     relatedPositions.clear();
     relatedLayoutKey = "";
@@ -3379,7 +3402,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!placement || !relatedGrid) return null;
     let node = relatedRendered.get(id);
     if (!node) {
-      node = createPhotoCard(placement.card, locale, handleMediaLoaded, true,
+      node = relatedDetachedCards.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, true,
         relatedMediaById.get(id), (mediaId) => relatedMediaById.set(id, mediaId), syncCardSkeleton);
       relatedRendered.set(id, node);
       observeMediaCard(node);
@@ -3504,7 +3527,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const mustMount = (id) => retainedPhotoIds.has(id) || id === anchorId;
       relatedAllowed = new Set([
         ...missing.filter(mustMount),
-        ...missing.filter((id) => !mustMount(id)).sort((a, b) => distance(a) - distance(b)).slice(0, relatedFast ? 0 : relatedMountBudget.quota()),
+        ...missing.filter((id) => !mustMount(id))
+          .sort((a, b) => (relatedDetachedCards.has(b) - relatedDetachedCards.has(a)) || distance(a) - distance(b))
+          .slice(0, relatedFast ? 0 : relatedMountBudget.quota()),
       ]);
     }
     relatedGhostLayer.prune(keep);
@@ -3518,10 +3543,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       const isNew = !relatedRendered.has(id);
       if (!isNew) relatedGhostLayer.drop(id);
+      const reattached = isNew && relatedDetachedCards.has(id);
       const start = performance.now();
       const node = ensureRelatedPhoto(id);
       if (!isNew || !node) return;
-      node.advertisingGhost = relatedGhostLayer.take(id);
+      if (reattached) relatedGhostLayer.drop(id);
+      else node.advertisingGhost = relatedGhostLayer.take(id);
       relatedMountMs += performance.now() - start;
       relatedCreated += 1;
     });
@@ -3540,8 +3567,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         node.hidden = motion && !normalKeep.has(id);
         if (!relatedPositions.has(id)) relatedPositions.set(id, origins?.get(id) || { x: 0, y: 0 });
       } else {
-        releaseMediaCard(node);
-        node.remove();
+        detachCard(id, node, relatedDetachedCards);
         relatedRendered.delete(id);
       }
     }
@@ -5076,6 +5102,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const nextLocale = currentLocale();
     if (pendingLocaleSeedHandoff?.locale === nextLocale) pendingLocaleSeedHandoff = null;
     locale = nextLocale;
+    detachedCards.clear();
+    relatedDetachedCards.clear();
     updateLocalizedContent();
     if (browseHistory.current.photo) renderPhoto(browseHistory.current, "locale");
   }, { signal: controller.signal });
@@ -5140,6 +5168,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     rendered.forEach((node) => node.querySelectorAll("video").forEach(releaseVideoSource));
     photoViewer.cleanup();
     clearRelatedCards();
+    detachedCards.clear();
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
     resizeObserver.disconnect();

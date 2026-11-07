@@ -38,6 +38,11 @@ const cardStates = (page, selector = "[data-project-grid] [data-advertising-card
       skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton], canvas")),
     };
   }), selector);
+// Số card tạm (loading-glass R10) đang giao viewport.
+const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll(".advertising-ghost")].filter((ghost) => {
+  const { top, bottom } = ghost.getBoundingClientRect();
+  return bottom > 0 && top < innerHeight;
+}).length);
 const assertNoBlank = (label, states) => {
   assert.ok(states.length, `${label}: cards in view`);
   assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
@@ -98,7 +103,10 @@ try {
     await page.mouse.move(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2);
     await page.mouse.down();
     for (const y of [700, 200, 850, 400]) await page.mouse.move(1437, y, { steps: 6 });
-    assertNoBlank("desktop scrollbar drag", await cardStates(page));
+    // Giữa lúc kéo nhanh, viewport có thể chỉ còn card tạm (loading-glass R10): card tạm phủ cũng là không trống.
+    const dragging = await cardStates(page);
+    if (dragging.length) assertNoBlank("desktop scrollbar drag", dragging);
+    else assert.ok(await ghostsInView(page), "desktop scrollbar drag: ghost cards cover the viewport");
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
     // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận

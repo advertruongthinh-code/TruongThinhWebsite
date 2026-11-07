@@ -138,3 +138,39 @@ export function createGhostLayer(host) {
     },
   };
 }
+
+// Sức chứa hàng chờ card vừa gỡ theo RAM máy (navigator.deviceMemory, GB; không có thì coi như 4): máy yếu giữ ít card.
+export const detachedCapacity = (deviceMemory = 4) => {
+  if (!(deviceMemory > 0)) return 24;
+  if (deviceMemory <= 2) return 8;
+  return deviceMemory >= 8 ? 48 : 24;
+};
+
+// Hàng chờ LRU các card vừa gỡ khỏi DOM mà ảnh còn giải mã: quay lại thì gắn đúng node cũ, không trống frame.
+export function createDetachedCards(capacity) {
+  const queue = new Map();
+  return {
+    get size() { return queue.size; },
+    has: (id) => queue.has(id),
+    // Vào hàng chờ (hoặc làm mới); trả các card bị đẩy ra vì quá sức chứa, cũ nhất trước.
+    put(id, node) {
+      queue.delete(id);
+      queue.set(id, node);
+      const evicted = [];
+      while (queue.size > capacity) {
+        const [oldest] = queue.keys();
+        evicted.push(queue.get(oldest));
+        queue.delete(oldest);
+      }
+      return evicted;
+    },
+    take(id) {
+      const node = queue.get(id);
+      queue.delete(id);
+      return node ?? null;
+    },
+    clear() {
+      queue.clear();
+    },
+  };
+}

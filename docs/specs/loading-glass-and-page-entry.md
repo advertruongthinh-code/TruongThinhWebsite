@@ -9,6 +9,7 @@ tests:
   - tests/site/advertising-reveal-offscreen.e2e.mjs
   - tests/site/advertising-remount-no-cache.e2e.mjs
   - tests/site/advertising-fast-fling.e2e.mjs
+  - tests/site/advertising-detached-cards.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
 updated: 2026-11-07
 ---
@@ -73,8 +74,9 @@ Then blur tan và opacity về 1 trong 0.6s, không frame nào nhảy opacity qu
 
 Card vào viewport khi media đã giải mã xong (cache, tải xong trước khi vào, hoặc vào lại sau khi ra hẳn viewport với
 `intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì media hiện ngay ở opacity cuối: không skeleton, không Kính, không
-crossfade, không chờ trang ngừng cuộn. Card ảo hóa gắn lại tạo `img` mới; ảnh lấy từ cache vẫn phải giải mã nên khung
-được trống lúc giải mã (một tới ba frame) rồi hiện thẳng opacity cuối. Ảnh không về trong `150ms`
+crossfade, không chờ trang ngừng cuộn. Card vừa gỡ còn trong hàng chờ ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím))
+thì gắn lại đúng node cũ: ảnh còn giải mã nên không trống frame, không motion. Card ngoài hàng chờ tạo `img` mới; ảnh lấy từ
+cache vẫn phải giải mã nên khung được trống lúc giải mã (một tới ba frame) rồi hiện thẳng opacity cuối. Ảnh không về trong `150ms`
 (`REMOUNT_CACHE_WAIT_MS`: cache tắt hoặc bị xóa nên phải tải lại) thì ảnh mờ như R1 và nét lại qua R2, không để
 khung trắng tới khi tải xong. Áp cho masonry chính và masonry related;
 primary theo R4. Card thay chỗ một card tạm của lượt vuốt nhanh theo [R10](#r10-card-tạm-khi-vuốt-nhanh).

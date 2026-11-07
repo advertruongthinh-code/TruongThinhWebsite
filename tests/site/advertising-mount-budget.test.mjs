@@ -1,7 +1,7 @@
 // Ngân sách dựng card theo frame (advertising-masonry R7): quota theo chi phí đo, vuốt cực nhanh chỉ giữ chỗ.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { breathePhase, createMountBudget } from "../../src/site/advertising-products/mount-budget.mjs";
+import { breathePhase, createDetachedCards, createMountBudget, detachedCapacity } from "../../src/site/advertising-products/mount-budget.mjs";
 
 const clock = () => {
   const state = { now: 1000 };
@@ -104,4 +104,29 @@ test("breathing phase is shared by absolute time", () => {
   assert.equal(breathePhase(4000), "0ms");
   assert.equal(breathePhase(4300), "-300ms");
   assert.equal(breathePhase(5300), "-1300ms", "same phase as 3300ms: shifted by one period");
+});
+
+test("detached capacity follows device memory, 4 GB when unknown", () => {
+  assert.equal(detachedCapacity(0.5), 8);
+  assert.equal(detachedCapacity(2), 8);
+  assert.equal(detachedCapacity(4), 24);
+  assert.equal(detachedCapacity(8), 48);
+  assert.equal(detachedCapacity(undefined), 24);
+  assert.equal(detachedCapacity(Number.NaN), 24);
+});
+
+test("the detached queue returns the same node and drops the oldest over capacity", () => {
+  const queue = createDetachedCards(2);
+  const [a, b, c] = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  assert.deepEqual(queue.put("a", a), []);
+  assert.deepEqual(queue.put("b", b), []);
+  assert.equal(queue.has("a"), true);
+  assert.deepEqual(queue.put("c", c), [a], "oldest is evicted");
+  assert.equal(queue.take("a"), null);
+  assert.equal(queue.take("b"), b, "the very same node comes back");
+  assert.equal(queue.take("b"), null, "taking removes it");
+  assert.deepEqual(queue.put("c", c), [], "putting again refreshes, no eviction");
+  assert.equal(queue.size, 1);
+  queue.clear();
+  assert.equal(queue.size, 0);
 });

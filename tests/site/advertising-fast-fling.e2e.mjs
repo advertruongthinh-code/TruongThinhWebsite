@@ -11,6 +11,8 @@ const scrollTo = (page, top) => page.evaluate((y) => window.TruongThinhMotion.se
 try {
   const context = await browser.newContext({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
+  // Máy 0.5 GB: hàng chờ card vừa gỡ chỉ 8 card, nên đoạn nhảy về chỗ cũ vẫn phần lớn là card tạm lên card thật.
+  await page.addInitScript(() => Object.defineProperty(navigator, "deviceMemory", { value: 0.5, configurable: true }));
   await page.addInitScript(() => {
     // Mỗi frame: phần viewport được card thật hoặc card tạm phủ (lấy mẫu lưới 12px), số card thêm vào, số card tạm.
     const probe = { frames: [], added: [], ghosts: new Map(), crossfades: 0, running: false };
