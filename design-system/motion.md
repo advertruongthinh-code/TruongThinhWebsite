@@ -217,6 +217,10 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
+- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở như ảnh
+  đang mờ và cùng pha. Card tạm lên card thật thì ảnh có sẵn hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)` (cùng nhịp ảnh nội dung ngoài masonry), chỉ opacity; ảnh chưa xong thì vào luồng ảnh mờ
+  ở trên. Reduced motion: card tạm không thở, ảnh hiện thẳng.
 - Reduced motion: ảnh vẫn mờ khi chờ, tải xong thì nét ngay, không tan.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
