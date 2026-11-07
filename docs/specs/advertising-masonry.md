@@ -23,6 +23,7 @@ tests:
   - tests/site/advertising-no-titles.e2e.mjs
   - tests/site/advertising-card-interactions.e2e.mjs
   - tests/site/advertising-route-footer-p75.e2e.mjs
+  - tests/site/advertising-resize-card-width.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
 updated: 2026-11-01
@@ -146,7 +147,7 @@ ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-advert
 nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter hoặc bề rộng: card bị loại ẩn ngay, card còn lại và card mới đi
 từ vị trí cũ tới vị trí mới bằng `masonry-layout` ([motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
 dựng đầu card đi từ đầu cột. Card và khung skeleton ([R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)) trượt,
-co giãn từ chỗ, cỡ cũ; CTA, Kính trượt cùng nhịp `0.4s ease`: cả trang là một masonry (owner 10/10); đang kéo cạnh cửa sổ thì đặt thẳng. Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
+co giãn từ chỗ, cỡ cũ; card ẩn giữa lúc trượt khi lộ lại lấy bề rộng cột mới; CTA, Kính trượt cùng nhịp `0.4s ease`: cả trang là một masonry (owner 10/10); đang kéo cạnh cửa sổ thì đặt thẳng. Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
 thành một lần cập nhật khi chuyển xong. `site:layout` chỉ phát khi chiều cao trang đổi
 ([scroll-feel R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)); thay card theo cửa sổ ảo mà giữ chiều cao thì không phát.
 

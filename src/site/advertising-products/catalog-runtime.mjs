@@ -1943,7 +1943,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const pruneMotionCohort = () => {
     if (!geometry) return;
-    const { keep } = virtualWindow();
+    const { keep, visiblePlacements } = virtualWindow();
+    // Card giữ ẩn trong cohort không qua sizeNode của layout mới; lộ lại phải lấy cỡ mới, nếu không giữ bề rộng cột cũ.
+    for (const placement of visiblePlacements) {
+      const node = rendered.get(placement.card.id);
+      if (node?.hidden) sizeNode(node, placement, geometry.placements.length);
+    }
     for (const [id, node] of rendered) {
       if (keep.has(id)) {
         node.hidden = false;
