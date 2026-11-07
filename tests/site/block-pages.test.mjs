@@ -3,16 +3,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { loadBlockContent, renderProjectPage } from "../../scripts/site/block-pages.mjs";
+import { SECTORS, loadBlockContent, renderProjectPage } from "../../scripts/site/block-pages.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
-const template = readFileSync(new URL("../../src/site/residential/index.html", import.meta.url), "utf8");
+const templateOf = (sector) => readFileSync(new URL(`../../src/site/${sector}/index.html`, import.meta.url), "utf8");
+const template = templateOf("residential");
 const { projects, news } = loadBlockContent(siteRoot);
 const ctx = { projects: new Map(projects.map((page) => [page.id, page])), news: new Map(news.map((page) => [page.id, page])) };
 
-test("project page carries its own head, language links and blocks", () => {
-  const project = projects[0];
-  const html = renderProjectPage(template, project, ctx);
+for (const sector of SECTORS) test(`${sector} project page carries its own head, language links and blocks`, () => {
+  const project = projects.find((page) => page.sector === sector);
+  assert.ok(project, `projects.json has a ${sector} project`);
+  const html = renderProjectPage(templateOf(sector), project, ctx);
   assert.match(html, new RegExp(`<title data-en="${project.title.en} — Trường Thịnh">${project.title.vi} — Trường Thịnh</title>`));
   assert.match(html, new RegExp(`<link rel="canonical" href="https://truongthinhads.vn/vi/projects/${project.slugVi}/" data-en-href="https://truongthinhads.vn/en/projects/${project.slugEn}/" />`));
   assert.match(html, /<link rel="alternate" hreflang="x-default"/);
