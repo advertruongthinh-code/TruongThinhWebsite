@@ -21,8 +21,14 @@ export function segmentCrossesBox(a, b, box) {
 }
 
 // null: đi thẳng. Ngược lại đi qua góc vuông `corner`; `cornerOffset` là tỷ lệ quãng đường tới góc (0..1).
-export function planDetourPath({ from, to, size, zone }) {
+// `origin`: góc trên trái của vùng cấm khi nó không nằm ở gốc tọa độ (suggestion ghim dưới primary, advertising-detail R5).
+export function planDetourPath({ from, to, size, zone, origin }) {
   if (!zone) return null;
+  if (origin && (origin.x || origin.y)) {
+    const shift = (point, sign) => ({ x: point.x + sign * origin.x, y: point.y + sign * origin.y });
+    const plan = planDetourPath({ from: shift(from, -1), to: shift(to, -1), size, zone });
+    return plan && { ...plan, corner: shift(plan.corner, 1) };
+  }
   const box = { minX: -size.width, maxX: zone.width, minY: -size.height, maxY: zone.height };
   if (!segmentCrossesBox(from, to, box)) return null;
   // Bên cạnh primary: x >= pw; phía dưới: y >= ph. Chỉ một điểm mỗi loại thì đường thẳng mới có thể cắt.

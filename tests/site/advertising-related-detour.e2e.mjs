@@ -1,4 +1,5 @@
-// Card related không đi qua primary khi xếp lại (advertising-cta-center-parallax R10).
+// Card related không đi qua primary, và không lòn dưới suggestion đang ghim, khi xếp lại (advertising-cta-center-parallax R10,
+// advertising-detail R5).
 // Lấy mẫu rect mỗi frame lúc bật, tắt tag suggestion và resize 1569 -> 820 -> 1569; hero chọn từ masonry lúc chạy.
 // Test phải gặp ít nhất một ca card từ cột cạnh primary xuống dưới primary có chạy đường vòng, không thì fail.
 import assert from "node:assert/strict";
@@ -19,7 +20,8 @@ const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promis
   const nodes = () => [...document.querySelectorAll(cards)].filter((node) => node.closest("[data-advertising-photo-related-grid]"));
   const box = (node) => { const r = node.getBoundingClientRect(); return { x: r.left, y: r.top, right: r.right, bottom: r.bottom }; };
   const snapshot = () => Object.fromEntries(nodes().map((node) => [node.dataset.advertisingRelatedItem || "suggestion", box(node)]));
-  const state = { primary: Boolean(primary && grid), overlaps: [], detours: 0, sampled: 0, before: primary ? snapshot() : {}, primaryBefore: primary && box(primary), done: false };
+  const pinned = () => { const node = grid?.querySelector("[data-advertising-photo-suggestion]"); return node && !node.hidden ? node : null; };
+  const state = { primary: Boolean(primary && grid), overlaps: [], pinnedOverlaps: [], detours: 0, sampled: 0, before: primary ? snapshot() : {}, primaryBefore: primary && box(primary), done: false };
   window.__detourSample = state;
   if (!state.primary) { state.done = true; started(); return; }
   const start = performance.now();
@@ -27,6 +29,8 @@ const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promis
   let still = 0;
   const tick = () => {
     const p = primary.getBoundingClientRect();
+    const pin = pinned();
+    const s = pin?.getBoundingClientRect();
     let moving = false;
     for (const node of nodes()) {
       state.sampled += 1;
@@ -37,6 +41,11 @@ const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promis
       const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
       const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
       if (x > 0.5 && y > 0.5) state.overlaps.push({ id: node.dataset.advertisingRelatedItem, x, y });
+      if (s && node !== pin && !pin.contains(node)) {
+        const sx = Math.min(r.right, s.right) - Math.max(r.left, s.left);
+        const sy = Math.min(r.bottom, s.bottom) - Math.max(r.top, s.top);
+        if (sx > 0.5 && sy > 0.5) state.pinnedOverlaps.push({ id: node.dataset.advertisingRelatedItem, x: sx, y: sy });
+      }
     }
     frames += 1;
     if (frames === 1) started();
@@ -126,16 +135,29 @@ try {
   }
   assert.ok(detourHeroes.length, `không hero nào trong ${heroes.length} hero có card từ cột cạnh primary xuống dưới primary chạy đường vòng`);
 
-  // Phone 384px: primary hết cột (pinterest), không có đường vòng nhưng vẫn không giao.
-  const phone = await browser.newPage({ viewport: { width: 384, height: 854 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-  await openDetail(phone, "vi", heroes[0]);
-  const tag = await phone.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
-  if (tag) {
-    await startSampler(phone, 1500);
-    await phone.locator(`[data-advertising-suggestion-tag="${tag}"]`).tap();
-    assert.deepEqual((await collect(phone)).overlaps, [], "phone: card giao primary");
+  // Phone 384px: primary hết cột (pinterest), suggestion ghim ở cột trái ngay dưới primary. Card không giao primary,
+  // không lòn dưới suggestion; phải gặp ít nhất một ca card đi vòng suggestion.
+  let phoneDetours = 0;
+  for (const hero of heroes.slice(0, 3)) {
+    const phone = await browser.newPage({ viewport: { width: 384, height: 854 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    phone.on("pageerror", (error) => errors.push(`phone ${hero}: ${error.message}`));
+    await openDetail(phone, "vi", hero);
+    const phoneTags = await phone.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
+    for (const tag of phoneTags.slice(0, 3)) {
+      for (let pass = 0; pass < 2; pass++) {
+        await startSampler(phone, 1500);
+        await phone.locator(`[data-advertising-suggestion-tag="${tag}"]`).tap();
+        const sample = await collect(phone);
+        const label = `phone ${hero} tag ${tag} lượt ${pass + 1}`;
+        assert.deepEqual(sample.overlaps, [], `${label}: card giao primary`);
+        assert.deepEqual(sample.pinnedOverlaps, [], `${label}: card lòn dưới suggestion`);
+        phoneDetours += sample.detours;
+        await assertSettled(phone, label);
+      }
+    }
+    await phone.close();
   }
-  await phone.close();
+  assert.ok(phoneDetours, "phone: không ca nào card đi vòng suggestion");
 
   // Giảm chuyển động: không có animation đi vòng.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });

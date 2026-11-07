@@ -54,13 +54,15 @@ Biên kính là một cung tròn, tâm ở giữa theo chiều ngang và nằm d
 Độ nhòe tăng liên tục từ mép dải vào trong, không có đoạn phẳng. Số lớp cố định theo loại máy, không đo fps, và
 lúc cuộn hay dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn.
 
-- **PC** (owner 2026-11-01): chín bậc nhòe tăng dần đi từ mép ngoài dải (cách cung `1.75` chiều cao cụm CTA), qua biên cung, lấn
+- **PC** (owner 2026-11-01): chín bậc nhòe tăng dần đi từ mép ngoài dải (cách cung `2.5` chiều cao cụm CTA; owner 2026-11-07 thấy chuyển gắt, trước `1.75`), qua biên cung, lấn
   vào trong cung một đoạn bằng `1/3` bề rộng dải (owner 2026-11-01 chọn lấn sâu để vùng lõi 100px nhỏ lại, trước là `1/9`). Mức tăng theo cấp số nhân từ `4.5px` tới trần `100px`: `4.5`, `6.63`, `9.77`,
   `14.4`, `21.21`, `31.26`, `46.06`, `67.87`, `100px` (`4.5 × (100 / 4.5)^(i / 8)`). Quãng từ mép ngoài tới cuối đoạn lấn
   chia chín phần bằng nhau, bậc `i` đạt mức của nó ở cuối phần `i`; bậc kề chồng mép `0.3` phần để mắt không thấy ranh giới hay
   bóng ma hai lớp. Từ cuối đoạn lấn vào trong, cả vùng trong cung (lõi, gồm vùng trắng tuyệt đối R3) nhòe đều `100px`.
 - **Phone** (`pointer: coarse` hoặc có touch) 2 lớp: lõi `28px` và bậc band trong cùng; từ cung ra ngoài độ nhòe giảm về 0 qua
   ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm để vuốt trên phone Android đạt gate R7). Phone thêm bậc hay bậc band thứ hai đều rơi gate R7.
+  Bậc band phone trải hết dải `1.75` (owner 2026-11-07 thấy chuyển gắt; trước tắt ở `0.43` dải).
+- Mép mask mỗi bậc (đặc tới trong suốt) đi theo smoothstep qua 7 điểm dừng thay một đoạn thẳng, nên không thấy vạch nơi bậc bắt đầu hay đủ.
 
 Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
 `sqrt(L² - L_trước²)`.
@@ -73,7 +75,7 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 | --- | --- |
 | Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi); phone giữ `+0.35` (đỉnh cao hơn làm phone vuốt 7-9% frame chậm) |
 | Bán kính | `3.5` × bề rộng viewport |
-| Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA; PC thêm đoạn lấn `1/3` bề rộng dải vào trong cung |
+| Dải giảm nhòe, đo từ cung ra ngoài | PC `2.5`, phone `1.75` × chiều cao cụm CTA; PC thêm đoạn lấn `1/3` bề rộng dải vào trong cung |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |
 | Trần nhòe | `100px`: PC đạt ở cuối đoạn lấn và đều tới vòng trắng tuyệt đối; phone đạt ở vòng trắng tuyệt đối không có lớp riêng |
 

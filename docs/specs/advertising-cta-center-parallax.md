@@ -210,7 +210,10 @@ cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
 chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related và khung
-batch (suggestion ghim dưới primary, không đi vòng: [detail R5](advertising-detail.md#r5-suggestion)) (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
+batch (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
+Suggestion ghim dưới primary ([detail R5](advertising-detail.md#r5-suggestion)) tự nó không đi vòng, nhưng là vùng cấm thứ hai
+(owner 2026-11-07, phone thấy card lòn dưới nó): cùng công thức với `Z` dời theo góc trên trái của suggestion (`origin` của
+`planDetourPath`); điểm đầu trong vùng đó xuất phát ngay dưới suggestion, card mới ở cột của nó vào từ đáy suggestion.
 
 ```gherkin
 Given detail 1569x912 layout split, card ở cột 4 cạnh primary
@@ -261,7 +264,7 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 | R7 | `advertising-continuation.e2e.mjs` (bật giảm chuyển động giữa trang thì độ lệch về 0) |
 | R8 | `advertising-continuation.e2e.mjs` (filter và đổi cỡ dựng lại batch); vị trí chân chữ sau đổi cỡ tại chỗ và thanh địa chỉ chưa có test |
 | R9 | `advertising-related-cta.e2e.mjs` (host detail, chân chữ, đáy batch trên footer, nút info, đổi tag, Back về grid) |
-| R10 | `advertising-detour-path.test.mjs` (fixture); `advertising-related-detour.e2e.mjs` (rect mỗi frame không giao primary) |
+| R10 | `advertising-detour-path.test.mjs` (fixture); `advertising-related-detour.e2e.mjs` (rect mỗi frame không giao primary, phone không giao suggestion ghim) |
 
 ## Gate còn mở
 
