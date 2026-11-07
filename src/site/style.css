@@ -285,7 +285,6 @@ html.route-enter .site-header {
   background: transparent;
   color: white;
   transition:
-    padding 0.3s ease-out,
     color 0.3s ease-out,
     border-color 0.3s ease-out,
     background-color 0.15s ease-out,
