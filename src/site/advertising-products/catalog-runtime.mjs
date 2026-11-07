@@ -1719,9 +1719,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     dropCardSkeleton(node);
   };
   // Gỡ card khỏi DOM: card đã hiện ảnh (không còn chờ, không lỗi) vào hàng chờ để quay lại thì gắn lại tức thì; card khác
-  // hủy như cũ (ảnh dở dang bỏ nguồn).
+  // hủy như cũ (ảnh dở dang bỏ nguồn). Card video không vào hàng chờ: releaseVideoSource bỏ nguồn và nguồn chỉ gắn lại
+  // trong createPhotoCard, gắn lại node cũ sẽ chỉ còn poster.
   const detachCard = (id, node, queue) => {
-    const keepable = !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error")
+    const keepable = !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
       && mediaLayers(node).some((media) => media.classList.contains("is-advertising-media-ready"));
     releaseMediaCard(node);
     node.remove();
