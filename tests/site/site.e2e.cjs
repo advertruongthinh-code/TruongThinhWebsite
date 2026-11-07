@@ -6763,7 +6763,8 @@ async function runAdvertisingMediaEntranceChecks() {
         assert(
           targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            (underBlur ? trace.filter((sample) => sample.blur).every((sample) => sample.imageOpacity >= 0.999)
+            // Dưới blur ảnh thở giữa 0.45 và 1 (spec chờ ảnh S2), không fade riêng ảnh.
+            (underBlur ? trace.filter((sample) => sample.blur).every((sample) => sample.imageOpacity >= 0.44)
               : fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
                 fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") &&
             trace.every((sample) => sample.shellOpacity >= 0.999),

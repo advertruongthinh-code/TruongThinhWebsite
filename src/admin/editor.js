@@ -1,6 +1,8 @@
 // Editor CMS: dashboard Dockview gồm cây trang, xem trước theo cỡ, thuộc tính, media, nháp (cms-editor R1, R2, R4 đến
 // R8). Nháp lưu trong localStorage cùng origin nên bản xem trước (cms-core.js trong iframe) đọc được ngay.
 const { createDockview, themeLight } = window.dockview;
+import { dockOptions, setupDockTools } from "./dock-tools.js";
+
 const { stamp, anchorOf, draftKey, savedKey, readDraft, PLACEHOLDER } = window.TTCms;
 
 const PANELS = { pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp" };
@@ -992,9 +994,19 @@ window.TTEditor = {
 
 // ---------- Dock (R1) ----------
 
+// Ghim tab, lịch sử bố cục, mép tự ẩn và kéo ra mép (R11) nằm ở dock-tools.js.
+let tools;
 const dock = createDockview($("#dock"), {
   theme: themeLight,
   createComponent: ({ name }) => ({ element: panels[name], init() {} }),
+  createRightHeaderActionComponent: (group) => tools.headerActions(group),
+  ...dockOptions(),
+});
+tools = setupDockTools(dock, $("#dock"), {
+  onHistoryChange: ({ canUndo, canRedo }) => {
+    $("#layout-undo").disabled = !canUndo;
+    $("#layout-redo").disabled = !canRedo;
+  },
 });
 
 function addPanel(id, position, size) {
@@ -1015,7 +1027,7 @@ function defaultLayout() {
 function focusPanel(id) {
   const ref = ["preview", "props", "pages"].find((other) => other !== id && dock.getPanel(other));
   const panel = dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction: "right" });
-  panel.api.setActive();
+  tools.reveal(panel);
 }
 
 const [pages, mediaIndex] = await Promise.all(["./pages.json", "./media-index.json"].map((url) => fetch(url).then((r) => r.json())));
@@ -1029,7 +1041,7 @@ try {
 } catch {
   defaultLayout();
 }
-dock.onDidLayoutChange(() => localStorage.setItem(LAYOUT_KEY, JSON.stringify(dock.toJSON())));
+tools.onLayoutChange(() => localStorage.setItem(LAYOUT_KEY, JSON.stringify(dock.toJSON())));
 
 // Chọn xong một mục thì đóng menu Bảng, không để nó che tab bên dưới.
 const closeMenu = (action) => () => {
@@ -1039,7 +1051,10 @@ const closeMenu = (action) => () => {
 $("#panel-menu").append(
   ...Object.entries(PANELS).map(([id, title]) => h("button", { type: "button", onclick: closeMenu(() => focusPanel(id)) }, title)),
   h("button", { type: "button", onclick: closeMenu(defaultLayout) }, "Bố cục mặc định"),
+  h("button", { type: "button", id: "layout-undo", title: "Ctrl+Alt+Z", disabled: true, onclick: closeMenu(tools.undo) }, "Hoàn tác bố cục"),
+  h("button", { type: "button", id: "layout-redo", title: "Ctrl+Alt+Y", disabled: true, onclick: closeMenu(tools.redo) }, "Làm lại bố cục"),
 );
+tools.start();
 $("#undo").addEventListener("click", undo);
 $("#save").addEventListener("click", save);
 $("#export").addEventListener("click", exportDraft);

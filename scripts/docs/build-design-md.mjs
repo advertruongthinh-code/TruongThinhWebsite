@@ -52,7 +52,7 @@ const body = [`# ${title}`, `Nguồn chuẩn là [design-system/](design-system/
 // Sidecar chỉ giữ thứ frontmatter không chứa được: shadow, biến motion của :root, breakpoint (Impeccable schemaVersion 2).
 const root = readFileSync('src/site/style.css', 'utf8').match(/:root\s*\{([^}]*)\}/)[1];
 const motion = Object.keys(tokens.meta.cssOnly).map((name) => ({
-  name, value: root.match(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`))[1].trim(), purpose: 'Timing chi tiết: design-system/motion.md',
+  name, value: root.match(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`))[1].trim(), purpose: tokens.meta.cssOnly[name],
 }));
 const breakpointLine = readme.match(/\*\*Breakpoint hay dùng:\*\* ([^.]+?) px/);
 if (!breakpointLine) throw new Error('design-system/README.md Layout missing "**Breakpoint hay dùng:** ... px"');

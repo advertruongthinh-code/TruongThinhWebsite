@@ -599,18 +599,24 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
         .map((rule) => [rule.selectorText, rule.style.boxShadow]));
       // Nút mang icon có drop-shadow là lớp riêng để bóng chỉ vẽ một lần (owner 2026-10-26 "Giữ bóng, tách lớp").
       const tileStep = rules.find((rule) => rule.selectorText === ".advertising-tile > .advertising-photo-view__media-step");
+      // Mũi tên card và icon play thumbnail dùng cùng drop-shadow hai lớp D (S4); chevron card đọc từ rule vì chỉ hiện khi hover.
+      const dropOf = (selector) => rules.find((rule) => rule.selectorText === selector)?.style.filter;
       const layers = [style(".advertising-video-player__button").willChange,
         getComputedStyle(document.querySelector(".advertising-photo-view__media-thumbs svg").parentElement).willChange,
         tileStep?.style.willChange];
       return { bar: style(".advertising-video-player__bar").backgroundImage, time: style(".advertising-video-player__time").textShadow,
         filters: [".advertising-video-player__button svg", ".advertising-video-player__progress"]
           .map((selector) => style(selector).filter), layers,
+        cardArrow: dropOf(".advertising-tile > .advertising-photo-view__media-step svg"),
+        thumbIcon: style(".advertising-photo-view__media-thumbs svg").filter,
         idle: label(false), pressed: label(true), thumbs, seek };
     });
     let state = await read();
     assert.equal(state.bar, "none", "the bar has no gradient band");
     assert.equal(state.time, two, "time carries the two-layer text shadow");
     assert.deepEqual(state.filters, [drop, "none"], "bar icons carry the two-layer drop shadow, the seek bar no filter");
+    assert.equal(state.cardArrow, drop, "card arrows carry the two-layer drop shadow");
+    assert.equal(state.thumbIcon, drop, "the thumbnail play icon carries the two-layer drop shadow");
     assert.deepEqual(state.layers, ["transform", "transform", "transform"],
       "player buttons, the thumb play icon and the card arrows are their own layers");
     assert.deepEqual(seekShadows.map((selector) => state.seek[selector]),
@@ -1454,3 +1460,33 @@ for (const [locale, videoCover] of [["en", false], ["vi", true]]) {
     });
   });
 }
+
+// "Vừa xem" (media-card): chữ có bóng D; lớp đen 0.7 chỉ hiện khi media của card sẵn sàng, nên card còn mờ chờ ảnh
+// (data-advertising-media-loading) có nền trong suốt, gỡ attribute thì về 0.7 (spec chờ ảnh S3).
+test("M02a Just viewed label keeps its text shadow and the black layer waits for the card media", async () => {
+  await withPage("vi", async (page) => {
+    await openFixture(page, "vi");
+    const state = await page.evaluate(async (id) => {
+      const card = document.querySelector(`[data-advertising-card="${id}"]`);
+      const media = card.querySelector(".advertising-card-media");
+      const marker = document.createElement("span");
+      marker.className = "advertising-card-media__just-viewed";
+      marker.dataset.advertisingJustViewed = "";
+      marker.textContent = "Vừa xem";
+      media.append(marker);
+      const read = () => ({ background: getComputedStyle(marker).backgroundColor, shadow: getComputedStyle(marker).textShadow });
+      const settle = () => Promise.all(marker.getAnimations().map(({ finished }) => finished)).then(() => new Promise((resolve) => setTimeout(resolve, 700)));
+      card.dataset.advertisingMediaLoading = "";
+      await settle();
+      const loading = read();
+      delete card.dataset.advertisingMediaLoading;
+      await settle();
+      return { loading, ready: read() };
+    }, cardId);
+    const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
+    assert.deepEqual(state, {
+      loading: { background: "rgba(0, 0, 0, 0)", shadow: two },
+      ready: { background: "rgba(0, 0, 0, 0.7)", shadow: two },
+    });
+  });
+});

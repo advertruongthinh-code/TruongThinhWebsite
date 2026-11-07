@@ -117,8 +117,10 @@ mép trái), thêm `text-shadow` hai lớp, cùng bóng với player và nút "C
 `0 0 2px` đen `0.5` dưới `0 0 12px` đen `0.4`. Một biến CSS `--text-shadow-d` trong `:root` giữ giá trị, `--text-shadow-reach`
 (12px) là bán kính quầng ngoài.
 
-- Áp cho chữ trắng trên ảnh: `.portal-copy` (kicker, title, tagline), `.legacy-copy` ("Giữ nghề") và `.detail-cta` có ảnh.
-- Không áp: chữ mọi hero, CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy),
+- Áp cho chữ trắng trên ảnh: `.portal-copy` (kicker, title, tagline), `.legacy-copy` ("Giữ nghề"), `.detail-cta` có ảnh và hero
+  trang chủ, Nhà ở, Kinh doanh, Giới thiệu (tiêu đề, kicker, chữ CUỘN; owner 2026-11-01 áp lại sau khi bỏ 2026-10-26;
+  nút CUỘN là `button` nên có selector riêng vì UA đặt `text-shadow: none` cho form control). Lớp tối hero giữ nguyên.
+- Không áp: hero Sản phẩm quảng cáo (`.detail-index-hero`, chữ `ink` trên giấy), CTA lưới của trang Sản phẩm quảng cáo,
   header khi tông `ink`.
 - Mask chữ (`.hero-line-mask`, `.line-mask`, `.portal-title-mask`, `.detail-line`, `.motion-line-mask`) nới `clip-path`
   thêm `--text-shadow-reach` mỗi cạnh để quầng không bị cắt.
@@ -149,8 +151,12 @@ Then không mask nào còn cắt vùng bóng dưới
 ```
 
 ```gherkin
-Given trang chủ, Nhà ở, Kinh doanh, Về chúng tôi, Sản phẩm quảng cáo
-When đọc text-shadow của title hero, và title CTA lưới trang Sản phẩm quảng cáo
+Given trang chủ, Nhà ở, Kinh doanh, Về chúng tôi, intro hero chạy xong
+When đọc text-shadow của title hero và chữ CUỘN trang chủ
+Then là "0 0 2px" đen 0.5 và "0 0 12px" đen 0.4
+
+Given trang Sản phẩm quảng cáo
+When đọc text-shadow của title hero và title CTA lưới
 Then đều là none
 ```
 
@@ -167,7 +173,7 @@ kết quả trên PC và phone và duyệt; sau đó republish theo
 | R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN; thêm ảnh có và không clip-path của chữ nối heritage ([page-home R7](page-home.md#r7-heritage-montage)) |
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
-| R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh; none ở mọi hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
+| R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh, hero bốn trang (tiêu đề, chữ CUỘN) cũng có bóng; none ở hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
 | R6 (dòng ẩn) | `tests/site/text-mask-hidden.e2e.mjs`: mọi dòng chưa reveal nằm dưới mép clip-path, mép dưới không nới lúc ẩn, reveal xong mở lại; 5 trang, 1440 và 390, VI và EN |
 
 ## Gate còn mở

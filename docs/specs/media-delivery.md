@@ -156,13 +156,11 @@ vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/
 `.client-logo-marquee`. Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
-- Một dải sáng đối xứng, trắng `16%` ở tâm, rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng
-  giảm về 0 qua 17 điểm màu theo đường cosine (raised cosine) nên mép mờ dần, không gãy (owner 2026-10-10, thay quầng
-  `13%` rộng nửa khung). Nghiêng 60 độ, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ
-  animate `transform`, không Paint mỗi frame. Vệt không nhận pointer hay focus; không số, không phần trăm, không
-  `aria-busy`.
-- Khung ngoài viewport thì vệt dừng.
-- Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
+- Một dải sáng đối xứng, trắng `20%` ở tâm (owner 2026-11-01, trước `16%`; một biến CSS `--media-sweep-gradient` trong `:root` giữ dải, khung ảnh và nút suggestion cùng dùng), rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng
+  giảm về 0 qua 17 điểm màu theo đường cosine (raised cosine) nên mép mờ dần, không gãy (owner 2026-10-10, thay quầng `13%` rộng nửa khung). Nghiêng 60 độ, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer hay focus; không số, không phần trăm, không `aria-busy`.
+- Khung ngoài viewport thì vệt dừng. Reduced motion: không lướt; khung sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
+- Luật chung: ảnh có motion chờ và lớp tối để chữ trắng nổi chỉ hiện lớp tối khi ảnh đang hiện đã settle; chưa xong thì chỉ
+  có motion chờ, chữ trắng vẫn hiện với bóng D ([hero-typography R6](hero-typography.md#r6-bóng-chữ-hai-lớp-trên-ảnh-ngoại-lệ-design-system)). Theo luật: [page-home R10](page-home.md#r10-ảnh-dưới-chữ-trắng), [detail R6](advertising-detail.md#r6-slideshow-suggestion), [media-card](media-card.md).
 
 Ảnh chỉ hiện sau `load` và `decode()` ([tải theo nấc R3](progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong)): khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
 `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (ảnh hero Residential, Commercial hiện cắt cứng, không fade, như
@@ -190,7 +188,7 @@ Then không ảnh chụp nào thấy ảnh tải dở, chỉ thấy vệt hoặc
 
 Given khung 1440×600 nền #2b2c2b, vệt dừng với tâm ở giữa khung
 When đọc độ sáng một hàng pixel ngang qua tâm
-Then độ sáng tăng dần từ nền tới tâm rồi giảm dần, tâm từ 75 đến 79 (nền 43), hai pixel kề lệch tối đa 1 mức
+Then độ sáng tăng dần từ nền tới tâm rồi giảm dần, tâm từ 84 đến 87 (nền 43), hai pixel kề lệch tối đa 1 mức
 And độ dốc trung bình trên cửa sổ 24px đổi tối đa 0,1 mức/px giữa hai cửa sổ kề (dải 5 điểm cùng tâm 0,33)
 
 Given trình duyệt tắt JavaScript

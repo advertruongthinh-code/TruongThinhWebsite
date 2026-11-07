@@ -508,7 +508,10 @@ async function installRelatedMediaProbe(page) {
           easing: style.transitionTimingFunction,
           // Như stuffing: fade opacity vẫn chạy khi main thread bận không lấy được frame giữa. Ảnh có skeleton
           // fade bằng crossfade WAAPI thay cho transition CSS.
+          blur: image.style.filter.startsWith("blur("),
+          // Thở của card chờ ảnh (CSS media-breathe) không phải fade riêng ảnh (spec chờ ảnh S2).
           fading: image.getAnimations().some((animation) => animation.playState === "running"
+            && animation.animationName !== "media-breathe"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
         // Card còn skeleton thì media chưa hiện: lấy mẫu tới khi fade xong, kể cả khi fixture giữ ảnh quá 3s.
@@ -1317,7 +1320,9 @@ try {
       return card?.querySelector("img")?.naturalWidth && !card.querySelector("img[style*='blur(']");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
-    assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => !frame.fading) && initialMedia.frames.at(-1).opacity >= 0.99,
+    // Dưới blur ảnh thở giữa 0.45 và 1; opacity chỉ được animate cùng blur lúc tan (spec chờ ảnh S2), không fade riêng.
+    assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => (!frame.fading || frame.blur) && (!frame.blur || frame.opacity >= 0.44))
+      && initialMedia.frames.at(-1).opacity >= 0.99,
       `related initial media fades instead of waiting under its blur ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
     // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });

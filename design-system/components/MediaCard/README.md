@@ -11,12 +11,12 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
-  ảnh hiện ngay dưới `blur(24px)` của chính nó và nét dần khi tải; tải và giải
-  mã xong thì blur tan `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
+  ảnh hiện ngay dưới `blur(24px)` của chính nó, thở (opacity `1 → 0.45 → 1`, `2s`,
+  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan và opacity về 1 cùng nhịp `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
   2026-10-18); chuột thật hover phủ lớp đen 30% lên canvas (owner 2026-10-26); focus chỉ có viền.
-- Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
+- Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed` (chữ có bóng D, lớp đen chờ media sẵn sàng).
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
 
@@ -98,12 +98,12 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Chờ tải:** item chưa sẵn sàng sau `150ms` thì canvas mang
+- **Chờ tải:** card mờ thì thở; mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
-- **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa, chỉ phủ
-  canvas, không phủ dải.
-- **Reduced motion:** skeleton đứng yên; ảnh hiện ngay, không transition,
+- **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
+  canvas, không phủ dải. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
+- **Reduced motion:** skeleton đứng yên, ảnh mờ không thở; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ

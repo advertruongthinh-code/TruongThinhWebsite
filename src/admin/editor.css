@@ -118,3 +118,34 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .media-row__fields input[type="text"] { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; }
 .media-row__cover { color: var(--muted); font-size: 13px; }
 .media-row__actions { display: grid; gap: 4px; }
+
+/* Bổ sung dock (cms-editor R11): tab ghim, dải kéo ra mép, panel trượt ra từ dải tự ẩn, menu tab. z-index vượt sash và
+   overlay của Dockview (tới 1001). */
+.dock .dv-default-tab.is-pinned .dv-default-tab-action { visibility: visible; color: var(--accent); }
+.dock .dv-default-tab-action svg { display: block; width: 12px; height: 12px; }
+.dock-edge-actions { display: flex; align-items: center; justify-content: center; height: 100%; padding: 4px; }
+.dock-edge-action { display: inline-flex; padding: 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); color: var(--muted); }
+.dock-edge-action svg { width: 14px; height: 14px; }
+.dock-edge-action[hidden] { display: none; }
+.dock-edge-action:hover { color: var(--ink); }
+.dock-band { position: absolute; z-index: 1600; background: rgb(26 95 208 / 0.08); }
+.dock-band--left { top: 0; bottom: 0; left: 0; width: 16px; border-left: 3px solid transparent; }
+.dock-band--right { top: 0; right: 0; bottom: 0; width: 16px; border-right: 3px solid transparent; }
+.dock-band--bottom { right: 0; bottom: 0; left: 0; height: 16px; border-bottom: 3px solid transparent; }
+.dock-band.is-over { background: rgb(26 95 208 / 0.2); border-color: var(--accent); }
+.dock-peek { position: absolute; z-index: 1500; display: flex; flex-direction: column; min-width: 0; min-height: 0; border: 1px solid var(--line); background: var(--card); box-shadow: 0 8px 28px rgb(0 0 0 / 0.18); animation: dock-peek-in 160ms ease-out; }
+.dock-peek[hidden] { display: none; }
+.dock-peek__bar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.dock-peek__title { flex: 1; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.dock-peek__button { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); font-size: 12px; }
+.dock-peek__button svg { width: 12px; height: 12px; }
+.dock-peek__body { flex: 1; min-height: 0; overflow: auto; }
+.dock-peek__body > * { height: 100%; }
+@keyframes dock-peek-in { from { opacity: 0; transform: translateX(var(--peek-from, 0)); } }
+.dock-peek[data-edge="left"] { --peek-from: -12px; }
+.dock-peek[data-edge="right"] { --peek-from: 12px; }
+@media (prefers-reduced-motion: reduce) { .dock-peek { animation: none; } }
+.dock-menu { position: fixed; z-index: 2000; display: grid; min-width: 160px; padding: 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); }
+.dock-menu[hidden] { display: none; }
+.dock-menu button { padding: 6px 10px; border: 0; border-radius: 4px; background: none; text-align: left; }
+.dock-menu button:hover, .dock-menu button:focus-visible { background: var(--paper); }
