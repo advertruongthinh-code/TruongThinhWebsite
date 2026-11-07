@@ -37,27 +37,33 @@ const jsonLd = (project) => {
   }).replace(/</g, "\\u003c");
 };
 
+// Mỗi điểm neo của khung trang Nhà ở phải khớp đúng một lần; khung đổi thì build dừng thay vì ra trang thiếu SEO.
+const replaceOnce = (html, pattern, replacement, name) => {
+  const count = typeof pattern === "string" ? html.split(pattern).length - 1 : (html.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? []).length;
+  if (count !== 1) throw new Error(`residential template anchor "${name}" matched ${count} times`);
+  return html.replace(pattern, replacement);
+};
+
 export const renderProjectPage = (template, project, ctx) => {
   const vi = `${PUBLIC_ORIGIN}${projectHref("vi", project)}`;
   const en = `${PUBLIC_ORIGIN}${projectHref("en", project)}`;
-  const page = template
+  const head = [
+    `<title data-en="${escapeHtml(project.title.en)} — Trường Thịnh">${escapeHtml(project.title.vi)} — Trường Thịnh</title>`,
+    `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
+    `<link rel="alternate" hreflang="vi" href="${vi}" />`,
+    `<link rel="alternate" hreflang="en" href="${en}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
+    `<meta property="og:image" content="${PUBLIC_ORIGIN}${project.cover.src}" />`,
+    `<script type="application/ld+json">${jsonLd(project)}</script>`,
+  ].join("\n    ");
+  return [
     // Bỏ script chọn slide hero của trang Nhà ở: trang công trình không có slideshow.
-    .replace(/<script>\s*\/\/ detail-pages R5:[\s\S]*?<\/script>\s*/, "")
-    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
-      `<title data-en="${escapeHtml(project.title.en)} — Trường Thịnh">${escapeHtml(project.title.vi)} — Trường Thịnh</title>`,
-      `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
-      `<link rel="alternate" hreflang="vi" href="${vi}" />`,
-      `<link rel="alternate" hreflang="en" href="${en}" />`,
-      `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
-      `<meta property="og:image" content="${PUBLIC_ORIGIN}${project.cover.src}" />`,
-      `<script type="application/ld+json">${jsonLd(project)}</script>`,
-    ].join("\n    "))
-    .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
-      (_match, before, middle) => `${before}${escapeHtml(project.description.vi)}${middle}${escapeHtml(project.description.en)}"`)
-    .replace('data-barba-namespace="residential"', 'data-barba-namespace="project"')
-    .replace('href="/vi/residential/" data-language-option="vi"', `href="${projectHref("vi", project)}" data-language-option="vi"`)
-    .replace('href="/en/residential/" data-language-option="en"', `href="${projectHref("en", project)}" data-language-option="en"`)
-    .replace(/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${renderBlocks(project, ctx)}\n      </main>`);
-  if (page === template || !page.includes('data-barba-namespace="project"')) throw new Error(`project ${project.id}: residential template anchors changed`);
-  return page;
+    [/<script>\s*\/\/ detail-pages R5:[\s\S]*?<\/script>\s*/, "", "hero slide script"],
+    [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
+    [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(project.description.vi)}${middle}${escapeHtml(project.description.en)}"`, "meta description"],
+    ['data-barba-namespace="residential"', 'data-barba-namespace="project"', "namespace"],
+    ['href="/vi/residential/" data-language-option="vi"', `href="${projectHref("vi", project)}" data-language-option="vi"`, "language vi"],
+    ['href="/en/residential/" data-language-option="en"', `href="${projectHref("en", project)}" data-language-option="en"`, "language en"],
+    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${renderBlocks(project, ctx)}\n      </main>`, "main"],
+  ].reduce((html, [pattern, replacement, name]) => replaceOnce(html, pattern, replacement, name), template);
 };

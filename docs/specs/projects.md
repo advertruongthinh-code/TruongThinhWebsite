@@ -7,6 +7,7 @@ source:
 tests:
   - tests/site/static-locales.test.mjs
   - tests/site/blocks.test.mjs
+  - tests/site/block-pages.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
 updated: 2026-11-07
 ---
