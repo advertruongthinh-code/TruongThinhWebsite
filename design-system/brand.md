@@ -136,39 +136,43 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
-| Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
+| Màu mark | Bốn dải lật quanh trục riêng, cyan trước, xong ở `0.68s` | Theo state machine dưới, trừ chuyển trang |
 | Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
-Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
-thời lớp cũ lùi lên đúng bằng phần lớp mới đã phủ; hình dải không đổi, mép lớp
-mới nằm ngang. Ở mọi frame, mỗi điểm của dải chỉ thuộc một lớp: lớp mới dưới
-mép mọc, lớp cũ trên mép mọc. Hai lớp chỉ chồng nhau trong dải ngang `1px`
-ngay dưới mép mọc để không hở khe; mép trái, phải, đỉnh và chân dải không bao
-giờ có hai lớp chồng nhau, nên không lộ viền mảnh của lớp cũ quanh dải. Hai
-chiều (vào và rời CMYK) giống hệt nhau về hướng, thứ tự và timing. Mỗi dải chạy trong chiều cao riêng
-của nó, chân chung ở đáy mark. Đường cong `cubic-bezier(0.16, 1, 0.3, 1)`;
-`delay + duration = 1s` ở mọi dải nên cả bốn cùng xong một lúc:
+Mỗi lần mark đổi màu, từng dải lật như tấm biển xoay: mặt màu cũ quay đi, mặt màu
+mới quay tới. Trục lật của mỗi dải là đường song song cạnh trái tam giác, đi qua
+trung điểm đoạn cạnh phải của dải (cũng là đường giữa dải, qua trung điểm chân
+dải); dải đen là tam giác nên trục qua trung điểm cạnh phải của nó. Mỗi dải có
+phối cảnh riêng đặt trên trục (`perspective` gấp 6 lần bề rộng mark) nên dải lật
+tại chỗ. Hai chiều (vào và rời CMYK) giống hệt nhau về trục, thứ tự và timing.
 
-| Dải | Delay / duration |
-| --- | --- |
-| 1 đen | `0` / `1s` |
-| 2 vàng | `0.07s` / `0.93s` |
-| 3 magenta | `0.14s` / `0.86s` |
-| 4 cyan | `0.21s` / `0.79s` |
+| Dải | Mặt cũ quay đi (`0` tới `90°`) | Mặt mới quay tới (`-90°` tới `0`) |
+| --- | --- | --- |
+| 4 cyan | `0` / `0.2s` | `0.2s` / `0.24s` |
+| 3 magenta | `0.08s` / `0.2s` | `0.28s` / `0.24s` |
+| 2 vàng | `0.16s` / `0.2s` | `0.36s` / `0.24s` |
+| 1 đen | `0.24s` / `0.2s` | `0.44s` / `0.24s` |
 
-Đổi hướng giữa chừng: phần đang hiển thị (kể cả dải mọc dở) giữ làm lớp cũ,
-lớp mới mọc lại từ chân và toàn bộ lớp cũ lùi theo cùng mép mọc như trên. Lớp
-cũ là bản sao bốn path trong `.brand-lockup__mark-underlay`, gỡ khi lớp mới
-mọc xong.
+Mặt cũ quay đi với `cubic-bezier(0.5, 0, 0.75, 0)`, mặt mới quay tới với
+`cubic-bezier(0.16, 1, 0.3, 1)`. Lớp lật là `.brand-lockup__mark-flip` trong
+`#header-logo`: mỗi dải một lớp HTML, mỗi mặt một lớp GPU riêng, chỉ animate
+`transform` và `opacity` nên chạy trên compositor; cuộn làm bận main thread
+không làm mark giật (đo A04s 2026-11-07: kiểu mọc `clip-path` cũ còn khoảng 20
+frame/giây và đứng hình khi main thread bận). Trong lúc lật, path inline của mark
+ẩn; lật xong gỡ lớp lật, mark inline hiện lại với màu cuối.
+
+Đổi hướng giữa chừng về đúng màu cũ: mọi dải quay ngược từ góc đang có trên cùng
+lớp lật, dải nào chưa bắt đầu lật thì đứng yên. Đổi sang màu khác (hiếm, ví dụ
+lần vẽ đầu từ đen): mặt đang hiển thị của từng dải thành mặt cũ, lật lại từ đầu.
 
 ```gherkin
 Given trang chủ ở đầu trang, mark trắng trên hero, trên điện thoại hoặc PC
-When cuộn thành sticky rồi cuộn về đầu trang, dừng ảnh ở 0.1s, 0.5s và 0.9s mỗi chiều
-Then trên và dưới mép mọc chỉ có một lớp, quanh mép trái, phải, đỉnh dải không có
-  điểm ảnh nào mang màu lớp cũ
-And kiểu mọc, thứ tự đen, vàng, magenta, cyan và mốc 1s giữ nguyên
+When cuộn thành sticky rồi cuộn về đầu trang
+Then mỗi dải lật quanh trục riêng qua trung điểm chân dải, song song cạnh trái
+And cyan lật trước, đen sau cùng, mọi mặt CMYK hiện ở 0.7s
+And lớp lật chỉ animate transform và opacity
 ```
 
 FLIP chạy song song với màu mark và không hủy nó. Giảm chuyển động: không
@@ -190,18 +194,18 @@ sẵn sàng.
 | Từ | Sự kiện | Tới | Cách chuyển |
 | --- | --- | --- | --- |
 | Chưa vẽ | Mở trang (direct, F5) trên nền ảnh | Trắng | Ngay, không transition |
-| Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
-| Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | CMYK mọc lên trên lớp trắng |
-| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Trắng mọc lên trên lớp CMYK |
+| Chưa vẽ | Mở trang trên nền trắng | CMYK | Lật từ đen `#2b2a29` sang CMYK |
+| Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | Lật từ trắng sang CMYK |
+| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Lật từ CMYK sang trắng |
 | Trắng, CMYK | Bấm link chuyển route | Đậm | Tween màu `0.3s` cùng chữ |
 | Đậm | Veil bắt đầu mở | Trắng hoặc CMYK theo trang đích | Tween màu `0.3s` cùng chữ |
-| Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
+| Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Các dải quay ngược từ góc đang có |
 
 - Chuyển route: khi bấm link, header ghim lại ở tone mực và mark tween sang
   `#2f2f2f` cùng chữ, như Espacio; logo luôn hiện trên veil, mark giữ màu đậm
   suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại mark), rồi tween theo
-  tone trang đích lúc veil bắt đầu mở. Bấm link lúc mark đang mọc dở thì kiểu
-  mọc dừng, từng dải tween từ màu đang có.
+  tone trang đích lúc veil bắt đầu mở. Bấm link lúc mark đang lật dở thì kiểu
+  lật dừng, từng dải tween từ màu đang có.
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 

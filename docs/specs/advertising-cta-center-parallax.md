@@ -191,7 +191,8 @@ tiếp các cột related, cột chỉ có primary bắt đầu một khoảng g
 (`--advertising-photo-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
 chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-view` không đệm dưới. CTA trong info primary
 vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
-(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s), và mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
+(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s); các pha trước, kể cả resize, không dựng batch,
+nên card related giữ chỗ trước rồi batch nối sau như masonry (owner 2026-11-01). Sau đó batch dựng lại mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
 cụm và Kính trượt `0.4s` như masonry.
 
 ```gherkin
@@ -208,8 +209,8 @@ Tọa độ related grid; primary chiếm `[0, pw] × [0, ph]`. Hộp `w × h` g
 cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai đoạn qua góc vuông `C = (x điểm bên cạnh, y điểm phía dưới)`
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
-chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related, suggestion và khung
-batch (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
+chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related và khung
+batch (suggestion ghim dưới primary, không đi vòng: [detail R5](advertising-detail.md#r5-suggestion)) (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
 
 ```gherkin
 Given detail 1569x912 layout split, card ở cột 4 cạnh primary

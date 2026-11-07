@@ -10,7 +10,7 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Ghi mỗi frame: animation clip-path (kiểu mọc) trên path của mark, tween fill inline, class màu header, opacity veil,
+// Ghi mỗi frame: animation clip-path (kiểu mọc cũ, phải luôn 0) trên path của mark, tween fill inline, class màu header, opacity veil,
 // opacity cụm logo, opacity riêng của mark, chữ, nav, hamburger.
 const startRecorder = (selector) => {
   const t0 = performance.now();
@@ -108,11 +108,11 @@ try {
     }
   }
 
-  // R5: bấm link lúc mark đang mọc dở; kiểu mọc dừng, từng dải tween màu từ màu đang hiển thị.
+  // R5: bấm link lúc mark đang lật dở; kiểu lật dừng, từng dải tween màu từ màu đang hiển thị.
   {
     const { context, page } = await open({ width: 1440, height: 900 }, "no-preference", "/vi/");
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
-    await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-underlay"));
+    await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.evaluate(() => {
       window.TruongThinhMotion.setLogicalScroll(0);
     });
@@ -120,13 +120,13 @@ try {
     await page.evaluate(() => document.querySelector('a[href="/vi/residential/"]').click());
     const state = await page.evaluate(() => ({
       running: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].some((item) => item.getAnimations().length),
-      underlay: Boolean(document.querySelector("#header-logo .brand-lockup__mark-underlay")),
+      flip: Boolean(document.querySelector("#header-logo .brand-lockup__mark-flip")),
       tweening: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].every((item) => item.style.fill),
     }));
-    assert.deepEqual({ running: state.running, underlay: state.underlay }, { running: false, underlay: false }, "mid-rise: rise stops at the click");
-    assert.ok(state.tweening, `mid-rise: every band tweens its colour ${JSON.stringify(state)}`);
+    assert.deepEqual({ running: state.running, flip: state.flip }, { running: false, flip: false }, "mid-flip: flip stops at the click");
+    assert.ok(state.tweening, `mid-flip: every band tweens its colour ${JSON.stringify(state)}`);
     await settle(page);
-    console.log("PASS mid-rise click: rise stops, bands tween colour");
+    console.log("PASS mid-flip click: flip stops, bands tween colour");
     await context.close();
   }
 

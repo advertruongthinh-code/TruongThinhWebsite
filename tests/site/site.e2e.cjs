@@ -555,9 +555,11 @@ function assertPersistentNavigationContracts() {
       /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
+      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
+      !/clipPath/.test(motionSource) &&
       /\.menu-brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?justify-self:\s*start;/.test(
         styleSource,
       ) &&
@@ -648,9 +650,11 @@ function assertPersistentNavigationContracts() {
       /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
         motionSource,
       ) &&
-      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
+      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
+      !/clipPath/.test(motionSource) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
       /const isExactCurrentUrl[\s\S]*?normalizePathname\(url\.pathname\)[\s\S]*?url\.search === window\.location\.search/.test(
         motionSource,
@@ -10752,7 +10756,7 @@ function assertBrandShellSourceContracts() {
     "Header brand bbox and independent Espacio row-height matrices drifted",
   );
   assert(
-    /const delay = index \* 70;/.test(motionSource) &&
+    /const delay = \(bands\.length - 1 - index\) \* 80;/.test(motionSource) &&
       !/\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill|is-brand-color-reset/.test(
         styleSource,
       ) &&
@@ -10780,7 +10784,7 @@ function assertBrandShellSourceContracts() {
         motionSource,
       ) &&
       !/killTweensOf\(logoTarget\)/.test(motionSource),
-    "Header/menu mark color must use the selected 1s sequence without dead variants while preserving 0.3s lockup scale",
+    "Header/menu mark color must use the selected band flip sequence without dead variants while preserving 0.3s lockup scale",
   );
 }
 
@@ -11416,20 +11420,30 @@ async function runBrandColorMotionCheck() {
               window.__ttWhiteSurfaceLogoTrace.samples.push({
                 elapsed,
                 fills: paths.map((path) => getComputedStyle(path).fill),
-                underlay: [
+                // Lớp lật: mỗi dải một mặt cũ (đen) và một mặt mới (CMYK).
+                front: [
                   ...document.querySelectorAll(
-                    "#header-logo .brand-lockup__mark-underlay path",
+                    "#header-logo .brand-lockup__mark-flip > span > span:first-child",
                   ),
-                ].map((path) => path.getAttribute("fill")),
-                totals: paths.map((path) => {
-                  const timing = path.getAnimations()[0]?.effect?.getTiming();
+                ].map((face) => face.dataset.fill),
+                back: [
+                  ...document.querySelectorAll(
+                    "#header-logo .brand-lockup__mark-flip > span > span:last-child",
+                  ),
+                ].map((face) => face.dataset.fill),
+                totals: [
+                  ...document.querySelectorAll(
+                    "#header-logo .brand-lockup__mark-flip > span > span:last-child",
+                  ),
+                ].map((face) => {
+                  const timing = face.getAnimations()[0]?.effect?.getTiming();
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Animation 1s bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp đen đã gỡ
+              // Lật bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp lật đã gỡ
               // (trần 2.5s) thay vì dừng cứng ở 1.15s.
-              const underlayGone = !document.querySelector("#header-logo .brand-lockup__mark-underlay path");
-              if (elapsed < 1_150 || (!underlayGone && elapsed < 2_500)) requestAnimationFrame(sample);
+              const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
+              if (elapsed < 1_150 || (!flipGone && elapsed < 2_500)) requestAnimationFrame(sample);
               else window.__ttWhiteSurfaceLogoTrace.done = true;
             };
             sample();
@@ -11461,20 +11475,21 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ. Lấy mẫu đã gắn animation: runner bận có
-        // frame đã đổi màu đích nhưng animation chưa gắn (totals 0).
-        const rising = trace.find(
-          ({ fills, underlay, totals }) =>
-            JSON.stringify(underlay) === JSON.stringify(black) &&
+        // Từng dải lật từ đen sang CMYK, cyan trước, đen xong cuối ở 0.68s rồi lớp lật bị gỡ. Lấy mẫu đã gắn
+        // animation: runner bận có frame đã dựng lớp lật nhưng animation chưa gắn (totals 0).
+        const flipping = trace.find(
+          ({ fills, front, back, totals }) =>
+            JSON.stringify(front) === JSON.stringify(black) &&
+            JSON.stringify(back) === JSON.stringify(cmyk) &&
             JSON.stringify(fills) === JSON.stringify(cmyk) &&
             totals.every((total) => total > 0),
         );
         const settled = trace.at(-1);
         assert(
-          rising?.totals.every((total) => total === 1000) &&
-            settled.underlay.length === 0 &&
+          JSON.stringify(flipping?.totals) === JSON.stringify([680, 600, 520, 440]) &&
+            settled.front.length === 0 &&
             JSON.stringify(settled.fills) === JSON.stringify(cmyk),
-          `Direct white-surface mark did not rise CMYK over black in 1s: ${JSON.stringify({ rising, settled })}`,
+          `Direct white-surface mark did not flip black to CMYK in 0.68s: ${JSON.stringify({ flipping, settled })}`,
         );
         assertDiagnostics(diagnostics);
       },
@@ -11771,14 +11786,12 @@ async function runBrandColorMotionCheck() {
             [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
               (path) => getComputedStyle(path).fill,
             ),
-            // Lớp cũ bên dưới cũng là màu đang hiển thị khi mark mọc.
+            // Mặt cũ của lớp lật cũng là màu đang hiển thị khi mark lật.
             [
               ...document.querySelectorAll(
-                "#header-logo .brand-lockup__mark-underlay path",
+                "#header-logo .brand-lockup__mark-flip > span > span:first-child",
               ),
-            ]
-              .slice(0, 4)
-              .map((path) => path.getAttribute("fill")),
+            ].map((face) => face.dataset.fill),
           );
           requestAnimationFrame(sample);
         };
@@ -11818,7 +11831,7 @@ async function runBrandColorMotionCheck() {
   );
 
   await runPageCase(
-    "interrupted mark rise keeps the visible layers and rises again from the foot",
+    "interrupted mark flip turns the bands back to CMYK",
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -11828,24 +11841,24 @@ async function runBrandColorMotionCheck() {
         "rgb(229, 9, 127)",
         "rgb(0, 160, 227)",
       ];
-      const white = cmyk.map(() => "rgb(255, 255, 255)");
       const readMark = () =>
-        page.evaluate(() => ({
-          fills: [
-            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-          ].map((path) => getComputedStyle(path).fill),
-          times: [
-            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-          ].map((path) => Number(path.getAnimations()[0]?.currentTime ?? -1)),
-          underlay: [
-            ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark-underlay path",
-            ),
-          ].map((path) => ({
-            fill: path.getAttribute("fill"),
-            clip: path.style.clipPath,
-          })),
-        }));
+        page.evaluate(() => {
+          const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+          return {
+            fills: [
+              ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+            ].map((path) => getComputedStyle(path).fill),
+            flip: Boolean(root),
+            same: Boolean(root) && root === window.__ttFlipRoot,
+            rates: [
+              ...new Set(
+                [...(root?.querySelectorAll("span") || [])]
+                  .flatMap((face) => face.getAnimations())
+                  .map((animation) => animation.playbackRate),
+              ),
+            ],
+          };
+        });
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
       await page.waitForFunction(
@@ -11853,7 +11866,7 @@ async function runBrandColorMotionCheck() {
           document
             .querySelector("[data-site-header]")
             ?.classList.contains("is-brand-color") &&
-          !document.querySelector(".brand-lockup__mark-underlay"),
+          !document.querySelector(".brand-lockup__mark-flip"),
         null,
         { timeout: 4_000 },
       );
@@ -11863,46 +11876,36 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
+      await page.evaluate(() => {
+        window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      });
       await page.waitForTimeout(120);
       await page.evaluate(() =>
         document
           .querySelector("#tay-nghe")
           ?.scrollIntoView({ block: "start", behavior: "instant" }),
       );
-      await page.waitForFunction(
-        () =>
-          document.querySelectorAll(
-            "#header-logo .brand-lockup__mark-underlay path",
-          ).length === 8,
+      await page.waitForFunction(() =>
+        document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-brand-color"),
       );
+      await page.waitForTimeout(30);
       const reversed = await readMark();
-      // Lớp cũ gồm CMYK đầy đủ bên dưới và lớp trắng đang mọc dở giữ nguyên clip lúc đổi hướng.
-      const partial = (clip) => {
-        const top = Number.parseFloat(clip.match(/inset\(([\d.]+)%/)?.[1]);
-        return top > 0 && top < 100;
-      };
-      // Underlay xếp theo từng path: lớp màu rồi lớp trắng của path đó.
-      const colorLayers = reversed.underlay.filter((_, index) => index % 2 === 0);
-      const whiteLayers = reversed.underlay.filter((_, index) => index % 2 === 1);
+      // Cùng lớp lật, mọi mặt quay ngược từ góc đang có.
       assert(
-        JSON.stringify(colorLayers.map(({ fill }) => fill)) === JSON.stringify(cmyk) &&
-          colorLayers.every(({ clip }) => clip === "none") &&
-          JSON.stringify(whiteLayers.map(({ fill }) => fill)) === JSON.stringify(white) &&
-          whiteLayers.some(({ clip }) => partial(clip)) &&
-          JSON.stringify(reversed.fills) === JSON.stringify(cmyk) &&
-          reversed.times.every((time) => time >= 0 && time < 400),
-        `Interrupted rise did not keep the visible layers or restart from the foot: ${JSON.stringify(reversed)}`,
+        reversed.same && JSON.stringify(reversed.rates) === "[-1]",
+        `Interrupted flip did not turn the bands back: ${JSON.stringify(reversed)}`,
       );
       await page.waitForFunction(
-        () => !document.querySelector(".brand-lockup__mark-underlay"),
+        () => !document.querySelector(".brand-lockup__mark-flip"),
         null,
         { timeout: 2_000 },
       );
       const settled = await readMark();
       assert(
-        JSON.stringify(settled.fills) === JSON.stringify(cmyk) &&
-          settled.times.every((time) => time === -1),
-        `Interrupted rise did not settle to CMYK: ${JSON.stringify(settled)}`,
+        JSON.stringify(settled.fills) === JSON.stringify(cmyk) && !settled.flip,
+        `Interrupted flip did not settle to CMYK: ${JSON.stringify(settled)}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -11985,7 +11988,7 @@ async function runBrandColorMotionCheck() {
       const state = await page.evaluate(() => ({
         classes: document.querySelector("[data-site-header]")?.className || "",
         transitions: window.__ttDirectDarkFillTransitions,
-        rising: document.querySelectorAll(".brand-lockup__mark-underlay").length,
+        rising: document.querySelectorAll(".brand-lockup__mark-flip").length,
         fills: [
           ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
         ].map((path) => getComputedStyle(path).fill),
@@ -12023,11 +12026,9 @@ async function runBrandColorMotionCheck() {
           ].map((path) => getComputedStyle(path).fill);
           const underlay = [
             ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark-underlay path",
+              "#header-logo .brand-lockup__mark-flip > span > span:first-child",
             ),
-          ]
-            .slice(0, 4)
-            .map((path) => path.getAttribute("fill"));
+          ].map((face) => face.dataset.fill);
           if (
             [fills, underlay].some(
               (layer) =>
@@ -12058,10 +12059,10 @@ async function runBrandColorMotionCheck() {
               "#header-logo .brand-lockup__mark path",
             ),
           ].map((path) => getComputedStyle(path).fill);
-          // Chờ lớp CMYK mọc xong để vị trí cuộn đã ổn định trước khi rời trang.
+          // Chờ lớp CMYK lật xong để vị trí cuộn đã ổn định trước khi rời trang.
           return (
             JSON.stringify(fills) === JSON.stringify(expected) &&
-            !document.querySelector(".brand-lockup__mark-underlay")
+            !document.querySelector(".brand-lockup__mark-flip")
           );
         },
         cmyk,

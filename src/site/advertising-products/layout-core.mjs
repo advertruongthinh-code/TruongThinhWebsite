@@ -298,8 +298,8 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
   const span = Math.min(3, columns);
   // Landscape giữ ảnh bên cạnh info; portrait với mọi cột đã dùng thì xếp chồng chúng.
   const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
-  // Related card nằm dưới primary full-width, nên nó không có hàng bên cạnh để peek.
-  const heightCap = viewportHeight - top - interCardGap - (span === columns ? 0 : belowPeek) - safeBottom;
+  // Mọi viewport chừa gap và 50px để related lộ dưới primary, kể cả primary chiếm hết cột (owner 2026-11-07).
+  const heightCap = viewportHeight - top - interCardGap - belowPeek - safeBottom;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
   }
@@ -328,14 +328,14 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
   } else {
     const availableHeight = viewportHeight - top - safeBottom;
     const descriptionCap = Math.min(viewportHeight * 0.28 - internalGap,
-      availableHeight - internalGap - 1);
+      heightCap - internalGap - 1);
     descriptionHeight = measuredDescriptionHeight > 0
       ? Math.min(measuredDescriptionHeight, descriptionCap)
       : descriptionCap;
     descriptionHeight = Math.max(descriptionHeight, minimumDescriptionHeight);
     imageZoneWidth = width;
     imageZoneHeight = Math.max(minimumImageZoneHeight,
-      Math.min(width / ratio, availableHeight - descriptionHeight - internalGap));
+      Math.min(width / ratio, heightCap - descriptionHeight - internalGap));
     descriptionWidth = width;
     height = imageZoneHeight + descriptionHeight + internalGap;
   }

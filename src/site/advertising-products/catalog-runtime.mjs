@@ -1473,12 +1473,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
   const photoViewerThumbs = photoDialog?.querySelector("[data-advertising-photo-viewer-thumbs]");
 
-  // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó, các lần sau mở Worker mới.
+  // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó. Mỗi lần lấy thì mở sẵn
+  // Worker kế tiếp: mở detail không phải chờ tải lại module Worker (Slow 4G tắt cache: 3,3s không có card related).
   let idleWorker = warmWorker || startLayoutWorker();
   warmWorker = undefined;
   const takeWorker = () => {
     const worker = idleWorker || startLayoutWorker();
-    idleWorker = undefined;
+    idleWorker = startLayoutWorker();
     return worker;
   };
   const [artifact] = await Promise.all([loadArtifact(), imageFormatReady()]);
@@ -1993,7 +1994,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const pruneMotionCohort = () => {
     if (!geometry) return;
-    const { keep } = virtualWindow();
+    const { keep, visiblePlacements } = virtualWindow();
+    // Card giữ ẩn trong cohort không qua sizeNode của layout mới; lộ lại phải lấy cỡ mới, nếu không giữ bề rộng cột cũ.
+    for (const placement of visiblePlacements) {
+      const node = rendered.get(placement.card.id);
+      if (node?.hidden) sizeNode(node, placement, geometry.placements.length);
+    }
     for (const [id, node] of rendered) {
       if (keep.has(id)) {
         node.hidden = false;
@@ -3550,12 +3556,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (node.style.top !== top) node.style.top = top;
       if (node.style.transform !== "none") node.style.transform = "none";
     }
+    // Suggestion ghim dưới primary, đi theo đáy primary trong cùng frame, không shuffle (advertising-detail R5).
     if (keepSuggestion && suggestionNode) {
       const destination = relatedPositions.get(suggestionId);
-      let origin = motion ? origins?.get(suggestionId) || destination : destination;
-      if (motion) origin = planDetour(suggestionId, suggestionNode, origin, destination);
-      suggestionNode.style.left = `${origin.x}px`;
-      suggestionNode.style.top = `${origin.y}px`;
+      suggestionNode.style.left = `${destination.x}px`;
+      suggestionNode.style.top = `${destination.y}px`;
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
@@ -3575,7 +3580,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedMasonry.options.layoutInstant = false;
       relatedMasonry.options.transitionDuration = "0.4s";
       relatedMasonry.reloadItems();
-      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || detours.has(item.element); });
+      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || item.element === suggestionNode || detours.has(item.element); });
       relatedMasonry.layout();
       for (const [node, { from, to, plan }] of detours) {
         node.animate([

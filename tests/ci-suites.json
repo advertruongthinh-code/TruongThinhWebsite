@@ -72,7 +72,7 @@
         "node tests/site/not-found-routes.e2e.mjs",
         "node tests/site/route-veil-header.e2e.mjs",
         "node tests/site/reduced-motion-live.e2e.mjs",
-        "node tests/site/brand-mark-rise.e2e.mjs"
+        "node tests/site/brand-mark-flip.e2e.mjs"
       ]
     },
     "header": {
@@ -181,7 +181,8 @@
         "TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-route-preload.e2e.mjs",
         "node tests/site/advertising-route-footer-p75.e2e.mjs",
-        "node tests/site/advertising-rail-two-tier.e2e.mjs"
+        "node tests/site/advertising-rail-two-tier.e2e.mjs",
+        "node tests/site/advertising-resize-card-width.e2e.mjs"
       ]
     },
     "adv-load": {
