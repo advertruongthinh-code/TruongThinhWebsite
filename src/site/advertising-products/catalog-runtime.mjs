@@ -2990,8 +2990,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Card thật được dựng mới trong frame này: card ép giữ (vừa mở detail) luôn được dựng, còn lại theo quota, giao
     // viewport và gần giữa màn hình trước. Lần layout đầu và motion layout dựng hết. Phần còn lại là card tạm.
     let allowed = null;
-    if (animate) ghostLayer.clear();
-    else if (hasLaidOut) {
+    // Card tạm giữ tọa độ của hình học cũ: hình học đổi (đổi cỡ cửa sổ, filter) thì bỏ hết và dựng lại theo hình học mới.
+    if (animate || geometryChanged) ghostLayer.clear();
+    if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
       const missing = visiblePlacements.filter((placement) => !rendered.has(placement.card.id));
