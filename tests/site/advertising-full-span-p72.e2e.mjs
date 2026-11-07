@@ -48,7 +48,8 @@ try {
         assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1, `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
-          assert(Math.abs(state.primaryBottom - 1000) <= 1, `${label}: tall image does not reach available viewport cap`);
+          // Trần chừa gap và 50px related lộ dưới primary (advertising-detail R4).
+          assert(Math.abs(state.primaryBottom - (1000 - state.gap - 50)) <= 1, `${label}: tall image does not reach available viewport cap`);
           assert(state.imageWidth < state.frameWidth - 1, `${label}: side overflow is absent`);
           assert(Math.abs(state.imageLeft - state.frameLeft - (state.frameWidth - state.imageWidth) / 2) <= 1,
             `${label}: image is not horizontally centered`);

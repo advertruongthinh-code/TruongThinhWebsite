@@ -108,8 +108,9 @@ test("full-span portrait primary caps height and leaves side overflow only", () 
     headerHeight: 72.59375, imageWidth: 400, imageHeight: 1000,
     descriptionHeight: 120,
   });
-  closeTo(geometry.height, 800 - geometry.top);
-  closeTo(geometry.imageZoneHeight, 800 - geometry.top - 120 - geometry.internalGap);
+  // Chừa gap và 50px để related lộ dưới primary (advertising-detail R4).
+  closeTo(geometry.height, 800 - geometry.top - geometry.gap - geometry.belowPeek);
+  closeTo(geometry.imageZoneHeight, 800 - geometry.top - geometry.gap - geometry.belowPeek - 120 - geometry.internalGap);
   closeTo(geometry.imageHeight, geometry.imageZoneHeight);
   assert(geometry.imageWidth < geometry.imageZoneWidth);
   assert.equal(geometry.hasContainOverflow, true);
@@ -182,18 +183,17 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // Primary full-span có related card bên dưới, không phải bên cạnh, nên không có peek.
-    const peek = geometry.span === geometry.columns ? 0 : sample.peek;
+    // Mọi viewport chừa peek, kể cả primary full-span (advertising-detail R4).
     closeTo(
       geometry.heightCap,
-      sample.height - geometry.top - sample.gap - peek - 7,
+      sample.height - geometry.top - sample.gap - sample.peek - 7,
     );
     assert.equal(geometry.mode, geometry.span === geometry.columns && sample.width <= sample.height ? "pinterest" : "split");
     if (geometry.mode === "split") {
       closeTo(geometry.height, Math.min(geometry.imageZoneWidth / 3, geometry.heightCap));
-      assert.ok(geometry.top + geometry.height + geometry.gap + peek + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height);
     } else {
-      assert.ok(geometry.top + geometry.height + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height + 1e-9);
       assert.ok(geometry.imageZoneHeight <= geometry.width / (3000 / base.imageHeight) + 1e-9);
       closeTo(geometry.imageZoneHeight + geometry.descriptionHeight + geometry.internalGap, geometry.height);
     }
