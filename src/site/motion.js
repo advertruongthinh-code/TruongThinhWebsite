@@ -580,6 +580,18 @@
     );
   }
 
+  const headerSlideTargets = () =>
+    [...header.querySelectorAll(".desktop-nav, [data-menu-open] svg")].filter((el) => el instanceof Element);
+
+  function playHeaderSlideMotion(before) {
+    if (reduceMotion || !hasGsap || !before) return;
+    before.forEach(([el, top]) => {
+      const dy = top - el.getBoundingClientRect().top;
+      if (Math.abs(dy) < 0.5) return;
+      gsap.fromTo(el, { y: dy }, { y: 0, duration: 0.3, ease: "expo.out", overwrite: "auto", clearProps: "y" });
+    });
+  }
+
   const updateToneRanges = () => {
     if (!pageState) {
       toneRanges = [];
@@ -623,6 +635,8 @@
       collapsedChanged && headerLogo instanceof HTMLElement
         ? headerLogo.getBoundingClientRect()
         : null;
+    // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
+    const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
     header.classList.toggle("is-ink", ink);
     header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-collapsed", collapsed);
@@ -633,6 +647,7 @@
     if (collapsedChanged) {
       headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
+      playHeaderSlideMotion(slideBefore);
     }
     lastHeaderCollapsed = collapsed;
 
