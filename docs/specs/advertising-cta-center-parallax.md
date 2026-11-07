@@ -191,7 +191,8 @@ tiếp các cột related, cột chỉ có primary bắt đầu một khoảng g
 (`--advertising-photo-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
 chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-view` không đệm dưới. CTA trong info primary
 vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
-(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s), và mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
+(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s); các pha trước, kể cả resize, không dựng batch,
+nên card related giữ chỗ trước rồi batch nối sau như masonry (owner 2026-11-01). Sau đó batch dựng lại mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
 cụm và Kính trượt `0.4s` như masonry.
 
 ```gherkin
