@@ -6,7 +6,7 @@ source:
 tests:
   - tests/tooling/content-contract.test.mjs
 notion: https://app.notion.com/p/402332849a0e81f0a455f750f1142504
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Test không phụ thuộc nội dung
@@ -54,6 +54,8 @@ catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs
 4. Hero slideshow: mảng `slides` trong head khớp thứ tự và số `figure.hero-slide`, `data-slide` liên tục từ 0.
 5. Mọi file trong `src/site/assets/content/` có ít nhất một consumer (trang, data, Design System preview) và mọi
    consumer trỏ tới file có thật. Kiểm này thay cho việc đếm số file WebP.
+6. Trang dựng từ khối `src/site/content/projects.json`, `news.json`: kiểu khối, chữ VI/EN, ảnh có thật đúng kích thước,
+   id liên kết trỏ trang có thật ([layout-library R4](layout-library.md#r4-dữ-liệu-và-render-tĩnh)).
 
 Lỗi nêu file, id và luật bị vi phạm, không dừng ở lỗi đầu tiên.
 
