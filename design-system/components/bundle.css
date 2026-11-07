@@ -5008,10 +5008,13 @@ body.is-advertising-browse .advertising-grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* Card tạm thêm, bớt mỗi frame cuộn; cô lập layout để grid và trang không tính lại theo (A04s: layout ép mỗi frame). */
+  contain: strict;
 }
 
 .advertising-ghost {
   position: absolute;
+  contain: strict;
   background: #e9e6df;
   animation: media-breathe 2s ease-in-out infinite;
 }

@@ -1783,6 +1783,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastMeasuredGridWidth = 0;
   let lastLayoutViewportWidth = 0;
   let lastGeometrySignature = "";
+  // Hình học mà positions đang phản ánh; thứ tự DOM còn đúng thứ tự placement hay không.
+  let positionsGeometry = null;
+  let domOrderDirty = true;
   let gridPixelHeight = 0;
   let announcedPageHeight = -1;
   let announcedGridHeight = -1;
@@ -1936,6 +1939,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // `hysteresis`: card chỉ bị gỡ khi ra xa hơn hai viewport, dù chỉ được dựng khi cách tối đa một viewport (R7).
   // `mount` là id cần có card thật; `keep` là id không được gỡ.
   const virtualWindow = ({ hysteresis = false } = {}) => {
+    // Đọc rect là một lần ép layout mỗi frame; thử cache theo currentVisualY thì lệch lúc kéo thanh cuộn (visual trễ logical),
+    // nên giữ đọc thật; lớp card tạm có contain nên layout dơ chỉ còn ở card thật mới.
     const gridTop = grid.getBoundingClientRect().top + currentVisualY;
     const visible = getVisibleViewport();
     const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
@@ -2985,8 +2990,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
     if (hasLaidOut && !membershipChanged && !geometryChanged) return;
-    const nextPositions = new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
-    const hasCoordinateDiff = coordinateChanged(nextPositions);
+    // Cùng hình học và không motion thì tọa độ đã nằm trong positions từ lần trước: không dựng lại map 285 card mỗi frame cuộn.
+    const samePositions = hasLaidOut && !geometryChanged && !animate && positionsGeometry === geometry;
+    const nextPositions = samePositions ? positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
+    const hasCoordinateDiff = samePositions ? false : coordinateChanged(nextPositions);
     if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return;
     const shouldAnimate = animate && (membershipChanged || hasCoordinateDiff || !hasLaidOut);
     const retainCohort = shouldAnimate && !reduced;
@@ -3016,10 +3023,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         node.style.transform = "none";
       }
     }
-    positions.clear();
-    nextPositions.forEach((position, id) => positions.set(id, position));
-    for (const [id] of rendered) {
-      if (!positions.has(id) && origins?.has(id)) positions.set(id, origins.get(id));
+    if (!samePositions) {
+      positions.clear();
+      nextPositions.forEach((position, id) => positions.set(id, position));
+      for (const [id] of rendered) {
+        if (!positions.has(id) && origins?.has(id)) positions.set(id, origins.get(id));
+      }
+      positionsGeometry = geometry;
     }
 
     for (const [id, node] of rendered) {
@@ -3072,13 +3082,24 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Còn card tạm chờ dựng thì hẹn frame sau, không dựng dồn trong một frame.
     if (visiblePlacements.some((placement) => ghostLayer.has(placement.card.id))) {
-      ghostFrame ||= requestAnimationFrame(() => {
+      const mountGhosts = () => {
         ghostFrame = 0;
+        // Frame này đã có rAF cuộn chạy ngay sau: một lần renderWindow là đủ, hẹn lại frame kế để không mất lượt.
+        if (scrollFrame) {
+          ghostFrame = requestAnimationFrame(mountGhosts);
+          return;
+        }
         renderWindow({ scrolling: true });
-      });
+      };
+      ghostFrame ||= requestAnimationFrame(mountGhosts);
     }
     for (const [id, node] of rendered) node.hidden = retainCohort && !normalKeep.has(id);
-    if (!retainCohort) restoreCanonicalDomOrder();
+    // Card mới gắn ở cuối grid (fragment) nên thứ tự DOM lệch; gỡ card không làm lệch. Cohort motion giữ thứ tự tạm.
+    if (retainCohort) domOrderDirty = true;
+    else if (domOrderDirty || created.size) {
+      restoreCanonicalDomOrder();
+      domOrderDirty = false;
+    }
     if (seeded.size) void grid.offsetHeight;
     grid.style.height = `${gridPixelHeight}px`;
     const applyLayout = () => {
