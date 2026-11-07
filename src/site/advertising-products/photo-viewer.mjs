@@ -401,7 +401,7 @@ export function createAdvertisingPhotoViewer({
     pendingOriginal = null;
   };
   const showImage = () => {
-    const original = responsiveSource(record.media.src);
+    const original = responsiveSource(record.media.src, record.media.width);
     const current = heroImage?.currentSrc;
     pendingOriginal = null;
     if (current && current !== new URL(original, location.href).href && mediaBase(current) === mediaBase(original)) {

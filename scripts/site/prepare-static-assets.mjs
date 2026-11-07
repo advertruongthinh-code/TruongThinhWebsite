@@ -411,25 +411,26 @@ const embedVietnameseText = (html, filePath) => {
 // do runtime quản lý (runtime đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
 const WEBP_WIDTHS = [240, 480, 960];
 const JXL_WIDTHS = [240, 480, 960, 1600, 2048];
-// Cỡ tới 960 trong <source> JXL cũng là WebP: giải mã nhanh gấp 3 trên A04s (owner chọn 2026-11-07, responsive-image.mjs).
-const WEBP_UNTIL = 960;
+// Phone chỉ WebP, trần 960, không bản gốc 4K (owner 2026-11-07); <source> này đứng đầu nên phone không xét JXL.
+const PHONE_MEDIA = "(hover: none) and (pointer: coarse)";
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
     const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
     if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.jxl`))) return tag;
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
-    const set = (format, widths) => {
-      const variant = (width) => `${src}-${width}.${width <= WEBP_UNTIL ? "webp" : format}`;
-      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, variant(width))));
-      return [...fit.map((width) => `${variant(width)} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
+    const set = (format, widths, original = true) => {
+      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.${format}`)));
+      return [...fit.map((width) => `${src}-${width}.${format} ${width}w`), ...(original ? [`${src}.${format} ${intrinsic}w`] : [])].join(", ");
     };
-    if (!Number.isFinite(intrinsic)) return `<picture><source type="image/jxl" ${srcset}="${src}.jxl">${tag}</picture>`;
+    const phone = (attributes) => `<source media="${PHONE_MEDIA}" ${attributes}>`;
+    if (!Number.isFinite(intrinsic)) return `<picture>${phone(`${srcset}="${src}.webp"`)}<source type="image/jxl" ${srcset}="${src}.jxl">${tag}</picture>`;
     // Ảnh lazy để browser dùng width đã layout ("auto"); 100vw là fallback cho browser cũ.
     const declared = tag.match(/\ssizes="([^"]+)"/)?.[1];
     const sizes = declared || (/\sloading="lazy"/.test(tag) ? "auto, 100vw" : "100vw");
     const img = tag.replace(/^<img\b/, `<img ${srcset}="${set("webp", WEBP_WIDTHS)}"${declared ? "" : ` sizes="${sizes}"`}`);
-    return `<picture><source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
+    const phoneSet = set("webp", WEBP_WIDTHS, intrinsic <= WEBP_WIDTHS.at(-1));
+    return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
 
 // Script <head> chung của mọi trang, một nguồn (progressive-loading R7).

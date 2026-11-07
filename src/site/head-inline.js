@@ -35,11 +35,6 @@ document.documentElement.classList.add("media-gate");
   // Chỉ khung lớn lên bản gốc: rộng từ 640px hoặc rộng, cao từ 60% viewport (hero, ảnh lớn detail kể cả ảnh dọc); card
   // masonry 4K làm A04s tụt 72 xuống 39-47 FPS mà trong ô nhỏ nhìn không khác (owner chọn 2026-10-31).
   const LARGE_FRAME_PX = 640;
-  // Cỡ tới 960 là WebP cả khi trình duyệt đọc được JXL (responsive-image.mjs); bản gốc thì lấy JXL nếu giải mã được.
-  let originalExtension = "$1";
-  Object.assign(new Image(), { src: "data:image/jxl;base64,/woAEBAJCAQBACwASxiLFcJJQR6A/gA=" }).decode()
-    .then(() => { originalExtension = ".jxl"; }, () => {});
-  const toOriginal = (src) => src.replace(VARIANT, originalExtension);
   const inView = new Set();
   let scrolledAt = 0;
   let upgrading = false;
@@ -79,7 +74,7 @@ document.documentElement.classList.add("media-gate");
     }
     if (!image) return pending && scheduleUpgrade();
     forget(image);
-    const original = toOriginal(image.currentSrc);
+    const original = image.currentSrc.replace(VARIANT, "$1");
     const loader = Object.assign(new Image(), { src: original });
     upgrading = true;
     const done = () => {
@@ -92,7 +87,7 @@ document.documentElement.classList.add("media-gate");
       if (wait) return setTimeout(swap, wait);
       // Ảnh vẫn đang hiện đúng media đó: primary Advertising dùng lại một img cho mọi media, đổi media giữa lúc tải bản gốc
       // thì bỏ, không thì bản gốc của media cũ đè lên media mới.
-      if (image.isConnected && toOriginal(image.currentSrc) === original) {
+      if (image.isConnected && image.currentSrc.replace(VARIANT, "$1") === original) {
         // Trong picture, đổi đúng source trình duyệt đang dùng (JXL); WebP nằm ở chính img. Img chỉ có src (primary
         // Advertising) thì đổi src: runtime gán src cho media sau, srcset gán ở đây sẽ đè mãi.
         const source = original.endsWith(".jxl") && image.parentElement?.querySelector('source[type="image/jxl"]');
@@ -117,8 +112,10 @@ document.documentElement.classList.add("media-gate");
     inView.delete(image);
   };
   // Card masonry giữ bản vừa khung dù card dọc cao quá 60% viewport (owner chọn 2026-10-31).
+  // Phone không lên bản gốc 4K (owner 2026-11-07, media query như <source> phone của build).
+  const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
   const watchUpgrade = (image) => {
-    if (!VARIANT.test(image.currentSrc) || image.closest("[data-advertising-card]")) return;
+    if (phone || !VARIANT.test(image.currentSrc) || image.closest("[data-advertising-card]")) return;
     upgradeObserver.observe(image);
     resized.observe(image);
   };
@@ -141,7 +138,7 @@ document.documentElement.classList.add("media-gate");
       Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width));
     const loaded = image.currentSrc.replace(/\.\w+$/, "");
     if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
-    [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
+    [image, ...image.parentElement.querySelectorAll(":scope > source")].forEach((node) => node.setAttribute("sizes", `${needed}px`));
   }));
   const fitted = 'picture > img[loading="lazy"], picture > img[data-srcset]';
   // Container Barba dựng ngoài document nên ảnh có thể load xong trước khi gắn vào, event load không tới document;
