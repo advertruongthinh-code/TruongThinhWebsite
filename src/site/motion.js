@@ -1172,7 +1172,7 @@
       .querySelectorAll(".hero-slide img[data-src]")
       .forEach((image) => {
         // Wrapper <picture> build-time mang variant hoãn dưới dạng data-srcset.
-        [image.previousElementSibling, image].forEach((node) => {
+        [...image.parentElement.querySelectorAll(":scope > source"), image].forEach((node) => {
           if (!node?.dataset.srcset) return;
           node.srcset = node.dataset.srcset;
           node.removeAttribute("data-srcset");
