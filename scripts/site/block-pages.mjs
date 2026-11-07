@@ -178,3 +178,13 @@ export const renderNewsListPage = (template, listPage) => {
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${main}\n      </main>`, "main"],
   ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), template);
 };
+
+// Trường riêng của từng loại: mảng công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
+export const kindFieldErrors = (kind, page, at) => {
+  if (kind === "projects") return SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`];
+  const errors = [];
+  if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
+  for (const slug of [page.slugVi, page.slugEn]) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug)) errors.push(`${at}: slug ${slug} trùng đường dẫn nhóm hoặc phân trang`);
+  return errors;
+};

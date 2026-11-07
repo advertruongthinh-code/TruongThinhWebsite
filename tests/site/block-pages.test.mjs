@@ -49,3 +49,15 @@ test("every page links to News from the hamburger menu only", () => {
     assert.match(html, /<a class="menu-option" href="\/vi\/news\/" data-en="News">Tin tức<\/a>/, file);
   }
 });
+
+test("kind fields: project sector, News group, date and reserved slugs", async () => {
+  const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
+  assert.deepEqual(kindFieldErrors("projects", { sector: "office" }, "p"), ["p: sector phải là residential, commercial"]);
+  assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
+  assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
+    "n: group phải là nha-o, kinh-doanh, xu-huong, quang-cao",
+    "n: published phải là YYYY-MM-DD",
+    "n: slug page trùng đường dẫn nhóm hoặc phân trang",
+    "n: slug xu-huong trùng đường dẫn nhóm hoặc phân trang",
+  ]);
+});
