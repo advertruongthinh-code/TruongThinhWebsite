@@ -1998,33 +1998,6 @@
     return pageState === state && !state.abort.signal.aborted && state.container.isConnected;
   };
 
-  const resetMenuVisuals = () => {
-    menuTimeline?.kill();
-    menuPageTween?.kill();
-    menuTimeline = undefined;
-    menuPageTween = undefined;
-    if (!hasGsap) return;
-    window.gsap.set(getPageChildren(), {
-      clearProps: "transform,transformOrigin",
-    });
-    window.gsap.set(dialog.querySelectorAll(".menu-shutters i"), {
-      clearProps: "height",
-    });
-    window.gsap.set(
-      [
-        dialog.querySelector(".menu-brand"),
-        dialog.querySelector(".menu-language"),
-        dialog.querySelector(".menu-appointment"),
-        dialog.querySelector(".menu-close__icon"),
-        dialog.querySelector(".menu-nav"),
-        ...dialog.querySelectorAll(
-          ".menu-group, .menu-group__number, .menu-group__title, .menu-option",
-        ),
-      ].filter(Boolean),
-      { clearProps: "transform,opacity,visibility" },
-    );
-  };
-
   const setReducedMenuState = (opened) => {
     if (!reduceMotion) return;
     const setMotion = (elements, opacity, transform) => {
@@ -2089,8 +2062,11 @@
     }
     if (reduceMotion) {
       setReducedMenuState(false);
-    } else if (!hasGsap) {
-      resetMenuVisuals();
+    } else if (hasGsap) {
+      menuPageTween?.kill();
+      menuPageTween = undefined;
+      window.gsap.set(getPageChildren(), { clearProps: "transform,transformOrigin,willChange" });
+    } else {
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
         shutter.style.height = "100vh";
       });
@@ -2130,6 +2106,51 @@
     return menuClosePromise;
   };
 
+  // Timeline mở menu dựng một lần (lúc rảnh sau tải trang, hoặc lần mở đầu) rồi chỉ play(0): dựng lại mỗi lần mở
+  // làm GSAP xóa rồi đọc lại style từng phần tử, long task 60-90ms trên A04s. fromTo trong timeline paused vẫn đặt
+  // ngay trạng thái đầu, nên reverse về 0 là trạng thái chờ mở lần sau. Menu nằm ngoài container Barba, giữ qua route.
+  const buildMenuTimeline = () => {
+    if (menuTimeline) return menuTimeline;
+    const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
+    const menuBrand = dialog.querySelector(".menu-brand");
+    const menuLanguage = dialog.querySelector(".menu-language");
+    const menuAppointment = dialog.querySelector(".menu-appointment");
+    const menuNav = dialog.querySelector(".menu-nav");
+    const menuGroups = [...menuNav.querySelectorAll(".menu-group")];
+    const menuLanguageItems = [
+      ...menuLanguage.querySelectorAll("[data-language-option]"),
+    ];
+    const menuAppointmentItems = [menuAppointment];
+    const menuCloseIcon = closeButton.querySelector(".menu-close__icon");
+    const menuDetailItems = [
+      ...menuNav.querySelectorAll(
+        ".menu-group__number, .menu-group__title, .menu-option",
+      ),
+    ];
+    menuTimeline = window.gsap
+      .timeline({
+        paused: true,
+        onComplete: () => closeButton.focus({ preventScroll: true }),
+      })
+      .fromTo(
+        shutters,
+        { height: 0 },
+        { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
+        0,
+      )
+      // Hết shutter, bắt đầu chữ menu; route đóng menu tại đây khi reverse (coverRouteFromMenu).
+      .addLabel("content")
+      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
+      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
+      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
+      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4)
+      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
+      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
+      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
+      .timeScale(1.15);
+    return menuTimeline;
+  };
+
   const openMenu = () => {
     if (dialog.open || routeInFlight) return;
     if (pageState) pageState.menuContextSection = getDominantSection();
@@ -2153,60 +2174,20 @@
       closeButton.focus();
       return;
     }
-    resetMenuVisuals();
-    const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
-    const menuBrand = dialog.querySelector(".menu-brand");
-    const menuLanguage = dialog.querySelector(".menu-language");
-    const menuAppointment = dialog.querySelector(".menu-appointment");
-    const menuNav = dialog.querySelector(".menu-nav");
-    const menuGroups = [...menuNav.querySelectorAll(".menu-group")];
-    const menuLanguageItems = [
-      ...menuLanguage.querySelectorAll("[data-language-option]"),
-    ];
-    const menuAppointmentItems = [menuAppointment];
-    const menuCloseIcon = closeButton.querySelector(".menu-close__icon");
-    const menuDetailItems = [
-      ...menuNav.querySelectorAll(
-        ".menu-group__number, .menu-group__title, .menu-option",
-      ),
-    ];
-    window.gsap.set(shutters, { height: 0 });
-    window.gsap.set(menuBrand, { y: -140, opacity: 0 });
-    window.gsap.set(menuLanguageItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuAppointmentItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuCloseIcon, { opacity: 0, rotation: 90 });
-    window.gsap.set(menuNav, { opacity: 0 });
-    window.gsap.set(menuGroups, { y: -140, yPercent: 0, opacity: 0 });
-    window.gsap.set(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 });
-    menuPageTween = window.gsap.to(getPageChildren(), {
+    menuPageTween?.kill();
+    buildMenuTimeline().timeScale(1.15).play(0);
+    // will-change giữ raster scale của trang sau cố định: không có nó, mỗi frame scale mới bắt GPU raster lại cả trang
+    // (A04s: GPU bận 1.1-1.45s trong 2s mở menu). Gỡ ở finishClose.
+    menuPageTween = window.gsap.fromTo(getPageChildren(), { scale: 1, willChange: "transform" }, {
       scale: 0.9,
       duration: 0.7,
       ease: "power2.out",
       transformOrigin: "50vw 50vh",
     });
-    menuTimeline = window.gsap
-      .timeline({
-        paused: true,
-        onComplete: () => closeButton.focus({ preventScroll: true }),
-      })
-      .fromTo(
-        shutters,
-        { height: 0 },
-        { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
-        0,
-      )
-      // Hết shutter, bắt đầu chữ menu; route đóng menu tại đây khi reverse (coverRouteFromMenu).
-      .addLabel("content")
-      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
-      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
-      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
-      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4)
-      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
-      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
-      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
-      .timeScale(1.15)
-      .play(0);
   };
+  if (hasGsap && !reduceMotion) {
+    (window.requestIdleCallback || window.setTimeout)(() => buildMenuTimeline());
+  }
 
   const setRouteVeil = (opacity) => {
     if (hasGsap) window.gsap.set(routeVeil, { opacity });
