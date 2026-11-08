@@ -3216,26 +3216,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     renderWindow({ animate, origins });
   };
 
-  // Title và kicker theo trang của filter (taxonomy R4); data-vi, data-en giữ cho lần đổi ngôn ngữ sau.
-  const syncPageHeading = ({ animate = false } = {}) => {
+  // Title theo trang của filter (taxonomy R4); data-vi, data-en giữ cho lần đổi ngôn ngữ sau.
+  // Kicker hero đứng yên khi lọc, giữ chữ của trang đã tải (owner 2026-11-08).
+  const syncPageHeading = () => {
     const page = pages.find((entry) => entry.filter === filter) || pages.find((entry) => entry.filter === "all");
-    if (!page) return;
-    const english = locale === "en";
-    for (const [node, vi, en] of [
-      [document.querySelector("title"), page.titleVi, page.titleEn],
-      [container.querySelector("[data-motion-hero-kicker]"), page.kickerVi ?? page.labelVi, page.kickerEn ?? page.labelEn],
-    ]) {
-      if (!node) continue;
-      node.dataset.vi = vi;
-      node.dataset.en = en;
-      const text = english ? en : vi;
-      const changed = node.textContent !== text;
-      node.textContent = text;
-      // Kicker đổi chữ vào lại như entrance Advertising: opacity 0 và x -60px, 0.6s --ease.
-      if (animate && changed && node.hasAttribute("data-motion-hero-kicker")) {
-        enterFrom([node], "translate3d(-60px, 0, 0)", { duration: 600, easing: "cubic-bezier(0, 0, 0.26, 1)" });
-      }
-    }
+    const node = document.querySelector("title");
+    if (!page || !node) return;
+    node.dataset.vi = page.titleVi;
+    node.dataset.en = page.titleEn;
+    node.textContent = locale === "en" ? page.titleEn : page.titleVi;
   };
   const setActiveFilter = (nextFilter, { animate = false } = {}) => {
     if (nextFilter === filter) return;
@@ -3248,7 +3237,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonRatioBandBySlot.clear();
     filter = nextFilter;
     syncRail({ animate });
-    syncPageHeading({ animate });
+    syncPageHeading();
     measure({ animate, origins });
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
