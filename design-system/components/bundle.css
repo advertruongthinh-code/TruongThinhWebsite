@@ -560,7 +560,7 @@ html.route-enter .site-header {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   overflow: visible;
 }
 
@@ -788,7 +788,8 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   opacity: 0;
   overflow-x: hidden;
   overflow-y: scroll;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Sáu nhóm: PC ba trên, ba dưới (site-shell R4). */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: minmax(min-content, 1fr);
   align-content: stretch;
   align-items: stretch;
@@ -873,7 +874,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   transition: transform 0.3s linear;
 }
 
-.menu-group:nth-child(4n)::after {
+.menu-group:nth-child(3n)::after {
   display: none;
 }
 
@@ -881,21 +882,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   transform: scaleY(1);
 }
 
-.menu-open .menu-group:nth-child(1)::after { transition-delay: 0.9s; }
-.menu-open .menu-group:nth-child(2)::after { transition-delay: 1.1s; }
-.menu-open .menu-group:nth-child(3)::after { transition-delay: 1.3s; }
-.menu-open .menu-group:nth-child(4)::after { transition-delay: 1.5s; }
+.menu-open .menu-group:nth-child(3n + 1)::after { transition-delay: 0.9s; }
+.menu-open .menu-group:nth-child(3n + 2)::after { transition-delay: 1.1s; }
+.menu-open .menu-group:nth-child(3n)::after { transition-delay: 1.3s; }
 
 .menu-group__number {
   font-size: 0.8rem;
   line-height: 1.4;
-}
-
-/* Tiêu đề nhỏ: loại nhóm cùng dòng số thứ tự, để tiêu đề lớn chỉ còn tên nhóm, gọn một dòng. */
-.menu-group__kind {
-  margin-left: 0.6em;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .menu-group__title {
@@ -949,6 +942,10 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   flex-direction: column;
   align-items: flex-start;
   gap: 15px;
+}
+
+.menu-option[aria-disabled="true"] {
+  pointer-events: none;
 }
 
 .menu-option {
@@ -2474,10 +2471,6 @@ em {
     column-gap: 44.4609375px;
   }
 
-  .menu-shutters {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .menu-head {
     padding: 25px;
     --brand-menu-height: 59.578125px;
@@ -2494,20 +2487,8 @@ em {
     gap: 25px;
   }
 
-  .menu-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .menu-group {
     padding: 25px 25px 0;
-  }
-
-  .menu-group:nth-child(4n)::after {
-    display: block;
-  }
-
-  .menu-group:nth-child(3n)::after {
-    display: none;
   }
 
   .editorial-strip,

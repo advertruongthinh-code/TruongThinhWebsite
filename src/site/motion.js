@@ -1998,33 +1998,6 @@
     return pageState === state && !state.abort.signal.aborted && state.container.isConnected;
   };
 
-  const resetMenuVisuals = () => {
-    menuTimeline?.kill();
-    menuPageTween?.kill();
-    menuTimeline = undefined;
-    menuPageTween = undefined;
-    if (!hasGsap) return;
-    window.gsap.set(getPageChildren(), {
-      clearProps: "transform,transformOrigin",
-    });
-    window.gsap.set(dialog.querySelectorAll(".menu-shutters i"), {
-      clearProps: "height",
-    });
-    window.gsap.set(
-      [
-        dialog.querySelector(".menu-brand"),
-        dialog.querySelector(".menu-language"),
-        dialog.querySelector(".menu-appointment"),
-        dialog.querySelector(".menu-close__icon"),
-        dialog.querySelector(".menu-nav"),
-        ...dialog.querySelectorAll(
-          ".menu-group, .menu-group__number, .menu-group__title, .menu-option",
-        ),
-      ].filter(Boolean),
-      { clearProps: "transform,opacity,visibility" },
-    );
-  };
-
   const setReducedMenuState = (opened) => {
     if (!reduceMotion) return;
     const setMotion = (elements, opacity, transform) => {
@@ -2090,10 +2063,13 @@
     if (reduceMotion) {
       setReducedMenuState(false);
     } else if (!hasGsap) {
-      resetMenuVisuals();
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
         shutter.style.height = "100vh";
       });
+    } else {
+      menuPageTween?.kill();
+      menuPageTween = undefined;
+      window.gsap.set(getPageChildren(), { clearProps: "transform,transformOrigin,willChange" });
     }
     const resolve = resolveMenuClose;
     resolveMenuClose = undefined;
@@ -2123,37 +2099,17 @@
       duration: 0.7,
       delay: 0.85,
       ease: "power2.out",
-      transformOrigin: "50vw 50vh",
       onComplete: () => finishClose(restoreFocus),
     });
     menuCloseTimer = window.setTimeout(() => finishClose(restoreFocus), 1750);
     return menuClosePromise;
   };
 
-  const openMenu = () => {
-    if (dialog.open || routeInFlight) return;
-    if (pageState) pageState.menuContextSection = getDominantSection();
-    dialog.showModal();
-    dialog.focus({ preventScroll: true });
-    document.body.classList.add("menu-open");
-    window.requestAnimationFrame(() => {
-      if (dialog.open && document.body.classList.contains("menu-open")) {
-        dialog.classList.add("is-active");
-      }
-    });
-    openButton.setAttribute("aria-expanded", "true");
-    showHeader();
-    pageState?.smoothScroll?.stop();
-    if (!hasGsap || reduceMotion) {
-      dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
-        shutter.style.height = "100vh";
-      });
-      dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
-      setReducedMenuState(true);
-      closeButton.focus();
-      return;
-    }
-    resetMenuVisuals();
+  // Timeline mở menu dựng một lần (lúc rảnh sau tải trang, hoặc lần mở đầu) rồi chỉ play(0): dựng lại mỗi lần mở
+  // làm GSAP xóa rồi đọc lại style từng phần tử, long task 60-90ms trên A04s. fromTo trong timeline paused vẫn đặt
+  // ngay trạng thái đầu, nên reverse về 0 là trạng thái chờ mở lần sau. Menu nằm ngoài container Barba, giữ qua route.
+  const buildMenuTimeline = () => {
+    if (menuTimeline) return menuTimeline;
     const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
     const menuBrand = dialog.querySelector(".menu-brand");
     const menuLanguage = dialog.querySelector(".menu-language");
@@ -2170,20 +2126,6 @@
         ".menu-group__number, .menu-group__title, .menu-option",
       ),
     ];
-    window.gsap.set(shutters, { height: 0 });
-    window.gsap.set(menuBrand, { y: -140, opacity: 0 });
-    window.gsap.set(menuLanguageItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuAppointmentItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuCloseIcon, { opacity: 0, rotation: 90 });
-    window.gsap.set(menuNav, { opacity: 0 });
-    window.gsap.set(menuGroups, { y: -140, yPercent: 0, opacity: 0 });
-    window.gsap.set(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 });
-    menuPageTween = window.gsap.to(getPageChildren(), {
-      scale: 0.9,
-      duration: 0.7,
-      ease: "power2.out",
-      transformOrigin: "50vw 50vh",
-    });
     menuTimeline = window.gsap
       .timeline({
         paused: true,
@@ -2204,9 +2146,54 @@
       .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
       .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
       .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
-      .timeScale(1.15)
-      .play(0);
+      .timeScale(1.15);
+    return menuTimeline;
   };
+
+  const openMenu = () => {
+    if (dialog.open || routeInFlight) return;
+    if (pageState) pageState.menuContextSection = getDominantSection();
+    // Tâm scale là giữa màn hình theo tọa độ từng child. "50vw 50vh" tính từ đỉnh child nên khi đã cuộn sâu tâm nằm
+    // xa phía trên màn hình, cả lưới bay lên như card bị trộn (A04s, scrollY 3677: card dịch 315-354px). Đo trước
+    // showModal, lúc layout còn sạch; đóng giữ nguyên origin này.
+    const pageOrigins = getPageChildren().map((child) => {
+      const rect = child.getBoundingClientRect();
+      return `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
+    });
+    dialog.showModal();
+    dialog.focus({ preventScroll: true });
+    document.body.classList.add("menu-open");
+    window.requestAnimationFrame(() => {
+      if (dialog.open && document.body.classList.contains("menu-open")) {
+        dialog.classList.add("is-active");
+      }
+    });
+    openButton.setAttribute("aria-expanded", "true");
+    showHeader();
+    pageState?.smoothScroll?.stop();
+    if (!hasGsap || reduceMotion) {
+      dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
+        shutter.style.height = "100vh";
+      });
+      dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
+      setReducedMenuState(true);
+      closeButton.focus();
+      return;
+    }
+    menuPageTween?.kill();
+    buildMenuTimeline().timeScale(1.15).play(0);
+    // will-change giữ raster scale của trang sau cố định: không có nó, mỗi frame scale mới bắt GPU raster lại cả trang
+    // (A04s: GPU bận 1.1-1.45s trong 2s mở menu). Gỡ ở finishClose.
+    menuPageTween = window.gsap.fromTo(getPageChildren(), { scale: 1, willChange: "transform" }, {
+      scale: 0.9,
+      duration: 0.7,
+      ease: "power2.out",
+      transformOrigin: (index) => pageOrigins[index],
+    });
+  };
+  if (hasGsap && !reduceMotion) {
+    (window.requestIdleCallback || window.setTimeout)(() => buildMenuTimeline());
+  }
 
   const setRouteVeil = (opacity) => {
     if (hasGsap) window.gsap.set(routeVeil, { opacity });

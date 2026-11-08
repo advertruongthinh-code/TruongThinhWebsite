@@ -99,20 +99,20 @@ mark ở [Brand guideline](brand.md#motion).
 
 ### Full menu
 
-Timeline GSAP mở trong `motion.js`. Cột thời điểm là vị trí trong timeline;
+Timeline GSAP mở trong `motion.js`, dựng một lần rồi chạy lại mỗi lần mở. Cột thời điểm là vị trí trong timeline;
 timeline chạy `timeScale 1.15` nên giây thật bằng vị trí chia 1.15 (shutter
 phủ xong khoảng 0.91s). Chữ chỉ hiện sau khi shutter phủ xong.
 
 | Phần | Thông số |
 | --- | --- |
-| Shutter | `height 0 → 100vh`, `0.6s power4.inOut`, stagger `0.15`; 4/3/2/1 cột ở mặc định, 1200, 960, 578px |
+| Shutter | `height 0 → 100vh`, `0.6s power4.inOut`, stagger `0.15`; 3/2/1 cột ở mặc định, 960, 578px |
 | Nav menu | opacity `0 → 1`, `0.6s`, tại `1.05s` |
 | Nhóm link | `y -140 → 0`, opacity `0 → 1`, `1s expo.out`, stagger `0.02`, tại `1.1s` |
 | Brand, locale, CTA hẹn | `y -140` (brand) hoặc `-20`, `0.6s expo.out`, tại `1.15s`; mark có màu CMYK ngay từ frame đầu |
 | Mục con | `y -20 → 0`, `0.6s expo.out`, stagger `0.03`, tại `1.35s` |
 | Nút đóng | opacity `0 → 1`, rotate `90° → 0`, `0.6s expo.out`, tại `1.4s` |
-| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin `50vw 50vh`, ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
-| Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3, 1.5s |
+| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin là giữa màn hình (đo theo vị trí từng child lúc mở, kể cả khi đã cuộn sâu), ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
+| Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3s theo cột |
 
 ## Text
 
