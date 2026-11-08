@@ -2,6 +2,7 @@
   {
     "id": "can-ho-go-soi",
     "sector": "residential",
+    "type": "can-ho",
     "slugVi": "can-ho-go-soi-am",
     "slugEn": "warm-oak-apartment",
     "title": {
@@ -194,6 +195,7 @@
   {
     "id": "nha-gieng-troi",
     "sector": "residential",
+    "type": "nha-pho",
     "slugVi": "nha-pho-gieng-troi",
     "slugEn": "light-well-townhouse",
     "title": {
@@ -388,6 +390,7 @@
   {
     "id": "van-phong-lam-viec-chung",
     "sector": "commercial",
+    "type": "van-phong",
     "slugVi": "van-phong-lam-viec-chung",
     "slugEn": "shared-workspace",
     "title": {
@@ -573,6 +576,7 @@
   {
     "id": "tiem-banh-ngot",
     "sector": "commercial",
+    "type": "cafe-nha-hang",
     "slugVi": "tiem-banh-ngot",
     "slugEn": "neighbourhood-bakery",
     "title": {

@@ -55,7 +55,8 @@ catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs
 5. Mọi file trong `src/site/assets/content/` có ít nhất một consumer (trang, data, Design System preview) và mọi
    consumer trỏ tới file có thật. Kiểm này thay cho việc đếm số file WebP.
 6. Trang dựng từ khối `src/site/content/projects.json`, `news.json`: kiểu khối, chữ VI/EN, ảnh có thật đúng kích thước,
-   id liên kết trỏ trang có thật ([layout-library R4](layout-library.md#r4-dữ-liệu-và-render-tĩnh)).
+   id liên kết trỏ trang có thật ([layout-library R4](layout-library.md#r4-dữ-liệu-và-render-tĩnh)); mảng và loại công trình
+   khớp nhau; `src/site/content/menu.json` chỉ trỏ công trình và nhóm Advertising có thật ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)).
 
 Lỗi nêu file, id và luật bị vi phạm, không dừng ở lỗi đầu tiên.
 

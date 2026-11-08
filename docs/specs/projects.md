@@ -4,13 +4,14 @@ status: planned
 source:
   - scripts/site/block-pages.mjs
   - src/site/content/projects.json
+  - src/site/content/menu.json
 tests:
   - tests/site/static-locales.test.mjs
   - tests/site/blocks.test.mjs
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # Công trình nhà ở và kinh doanh
@@ -47,8 +48,14 @@ loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), 
 tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-của-card), tên công trình, loại, địa điểm.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`, lưới so le theo tỷ lệ
-ảnh bìa (CSS columns), thẻ ghi mảng và tên; lọc loại con làm sau. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug
-công trình không được trùng slug lọc.
+ảnh bìa (CSS columns), thẻ ghi loại và tên. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
+trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;
+`showroom-cua-hang`, `cafe-nha-hang`, `van-phong` thuộc Kinh doanh; mỗi loại một trang lọc `/<locale>/projects/<loại>/`
+luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc chỉ hiện bộ lọc có công
+trình, cộng bộ lọc của trang đang xem. Mảng, loại, nhãn lấy từ `PROJECT_TYPES` của `scripts/site/block-pages.mjs`.
+Công trình tiêu biểu trên menu site đọc `src/site/content/menu.json` (`featuredProjects`, thứ tự hiển thị; CMS sửa được);
+cùng file giữ `featuredProductGroups` cho nhóm sản phẩm quảng cáo tiêu biểu, rỗng thì lấy nhóm nhiều thẻ nhất (`menuFeatured`).
+`scripts/ci/content-contract.mjs` báo id không tồn tại hoặc lặp.
 
 ```gherkin
 Given có 40 công trình, 25 nhà ở
@@ -62,7 +69,7 @@ Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md):
 carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
 ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác và dòng xem toàn bộ. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
-Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
+Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `type`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
 chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang Nhà ở (header, menu, footer), namespace `project`,
 route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
 hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
@@ -114,13 +121,14 @@ Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Desig
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 đến R5 | chưa có test; viết khi owner mở slice code |
+| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`) |
+| R4, R5 | chưa có test |
 
 ## Gate còn mở
 
 - Nghiên cứu SEO và từ khóa cho công trình, loại công trình, slug làm trước khi code, như trang sản phẩm quảng cáo (owner 2026-10-12).
 - Masonry công trình dùng chung hình học với [masonry Advertising](advertising-masonry.md) hay bản riêng; quyết khi viết plan.
-- Danh sách loại con và slug chốt theo Keyword Planner.
+- Slug loại con chốt theo Keyword Planner; đổi slug thì thêm redirect.
 
 ## Chú thích thuật ngữ
 
