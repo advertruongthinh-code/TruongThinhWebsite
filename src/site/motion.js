@@ -2062,14 +2062,14 @@
     }
     if (reduceMotion) {
       setReducedMenuState(false);
-    } else if (hasGsap) {
-      menuPageTween?.kill();
-      menuPageTween = undefined;
-      window.gsap.set(getPageChildren(), { clearProps: "transform,transformOrigin,willChange" });
-    } else {
+    } else if (!hasGsap) {
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
         shutter.style.height = "100vh";
       });
+    } else {
+      menuPageTween?.kill();
+      menuPageTween = undefined;
+      window.gsap.set(getPageChildren(), { clearProps: "transform,transformOrigin,willChange" });
     }
     const resolve = resolveMenuClose;
     resolveMenuClose = undefined;

@@ -33,10 +33,11 @@ const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en
 const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
 const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === sector);
 
-const group = (number, { title, href, options }) => [
+const group = (number, { title, aria, href, options }) => [
   '          <div class="menu-group">',
   `            <span class="menu-group__number">${String(number).padStart(2, "0")}</span>`,
-  `            <a class="menu-group__title" ${hrefAttrs(href.vi, href.en)}>`,
+  // aria-label giữ tên đầy đủ khi tiêu đề chỉ là tên nhóm ngắn.
+  `            <a class="menu-group__title" ${hrefAttrs(href.vi, href.en)}${aria ? ` aria-label="${escapeHtml(aria.vi)}" data-en-aria-label="${escapeHtml(aria.en)}"` : ""}>`,
   `              <span data-vi="${escapeHtml(title.vi)}" data-en="${escapeHtml(title.en)}">${escapeHtml(title.vi)}</span>`,
   "            </a>",
   '            <div class="menu-group__links">',
@@ -48,11 +49,11 @@ const group = (number, { title, href, options }) => [
 export const renderMenuNav = ({ projects, productGroups }) => {
   const groups = [
     {
-      title: { vi: "Nhà ở", en: "Residential" }, href: { vi: "/vi/residential/" },
+      title: { vi: "Nhà ở", en: "Residential" }, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/vi/residential/" },
       options: [option({ vi: "/vi/residential/", label: { vi: "Thiết kế không gian nhà ở", en: "Residential interior design" } }), ...typesOf("residential").map(typeOption)],
     },
     {
-      title: { vi: "Kinh doanh", en: "Commercial" }, href: { vi: "/vi/commercial/" },
+      title: { vi: "Kinh doanh", en: "Commercial" }, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/vi/commercial/" },
       options: [option({ vi: "/vi/commercial/", label: { vi: "Thiết kế không gian kinh doanh", en: "Commercial interior design" } }), ...typesOf("commercial").map(typeOption)],
     },
     {
@@ -63,7 +64,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
       ],
     },
     {
-      title: { vi: "Quảng cáo", en: "Advertising" }, href: { vi: "/vi/advertising-products/" },
+      title: { vi: "Quảng cáo", en: "Advertising" }, aria: { vi: "Sản phẩm Quảng cáo", en: "Advertising products" }, href: { vi: "/vi/advertising-products/" },
       options: [
         option({ vi: "/vi/advertising-products/", label: { vi: "Các sản phẩm của chúng tôi", en: "Our products" } }),
         ...productGroups.slice(0, FEATURED_PRODUCT_GROUPS).map((category) => option({

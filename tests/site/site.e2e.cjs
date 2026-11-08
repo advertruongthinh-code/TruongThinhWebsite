@@ -264,15 +264,15 @@ function assertPersistentNavigationContracts() {
         !/\blanguage-toggle\b|data-language-toggle/.test(headerSource) &&
         menuSource &&
         (menuSource.match(/data-language-option="(?:vi|en)"/g) || []).length === 2 &&
-        (menuSource.match(/class="menu-group"/g) || []).length === 4 &&
-        (menuSource.match(/class="menu-group__title"/g) || []).length === 4 &&
-        (menuSource.match(/class="menu-group__links"/g) || []).length === 4 &&
-        // 16 hoặc 18 link con, gồm "Tin tức" trong nhóm Về chúng tôi (news R4).
-        [16, 18].includes((menuSource.match(/class="menu-option"/g) || []).length) &&
+        (menuSource.match(/class="menu-group"/g) || []).length === 6 &&
+        (menuSource.match(/class="menu-group__title"/g) || []).length === 6 &&
+        (menuSource.match(/class="menu-group__links"/g) || []).length === 6 &&
+        // Sáu nhóm (site-shell R4); số công trình, nhóm quảng cáo tiêu biểu theo menu.json nên chỉ chặn dưới.
+        (menuSource.match(/class="menu-option"/g) || []).length >= 20 &&
         !/<a\b[^>]*href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
         /class="menu-appointment"[\s\S]*?data-menu-calendar viewBox="0 0 58\.09 57\.82"/.test(menuSource) &&
         !/class="menu-foot"/.test(menuSource),
-      `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
+      `${relativePath} must own locale, appointment, and six groups inside the full menu only`,
     );
     assert(
       // Header giữ nhãn đầy đủ; full menu tách tiêu đề nhỏ/lớn nên nhãn đầy đủ nằm ở aria-label.
@@ -679,10 +679,7 @@ function assertPersistentNavigationContracts() {
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
       styleSource,
     ) &&
-      /\.menu-nav\s*\{[\s\S]*?overflow-y:\s*scroll;[\s\S]*?grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/.test(
-        styleSource,
-      ) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?repeat\(3, minmax\(0, 1fr\)\)/.test(
+      /\.menu-nav\s*\{[\s\S]*?overflow-y:\s*scroll;[\s\S]*?grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/.test(
         styleSource,
       ) &&
       /@media \(max-width:\s*960px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/.test(
@@ -691,7 +688,7 @@ function assertPersistentNavigationContracts() {
       /@media \(max-width:\s*578px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?grid-template-columns:\s*1fr/.test(
         styleSource,
       ),
-    "Full menu does not match the audited 4/3/2/1 scroll-grid contract",
+    "Full menu does not match the 3/2/1 scroll-grid contract (site-shell R4)",
   );
   assert(
     /\.hero\s*\{(?=[^}]*position:\s*relative;)(?=[^}]*z-index:\s*1;)(?=[^}]*display:\s*grid;)(?=[^}]*overflow:\s*hidden;)[^}]*\}/.test(styleSource) &&
