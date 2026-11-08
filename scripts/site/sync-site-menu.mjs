@@ -76,7 +76,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
     {
       title: { vi: "Về chúng tôi", en: "About us" }, href: { vi: "/vi/about/" },
       options: [
-        ["heritage", "Di sản", "Heritage"], ["process", "Cách làm", "How we work"], ["commitment", "Cam kết", "Commitment"], ["contact", "Liên hệ", "Contact"],
+        ["heritage", "Di sản", "Heritage"], ["process", "Cách làm", "How we work"], ["commitment", "Cam kết", "Commitment"],
       ].map(([topic, vi, en]) => option({ vi: `/vi/about/?topic=${topic}`, label: { vi, en } })).concat(option({ vi: "/vi/news/", label: { vi: "Tin tức", en: "News" } })),
     },
     {
