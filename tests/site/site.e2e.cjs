@@ -452,7 +452,7 @@ function assertPersistentNavigationContracts() {
   assert(
     projectsHeroSection &&
       projectsHeroContent?.includes('class="hero-kicker"') &&
-      projectsHeroContent?.includes("Sản phẩm nổi bật của chúng tôi") &&
+      projectsHeroContent?.includes("Sản phẩm tiêu biểu") &&
       projectsHeroContent?.includes('data-en="Our featured products"') &&
       projectsHeroContent?.includes("để thương hiệu") &&
       projectsHeroContent?.includes("luôn trong tầm mắt") &&
@@ -6184,7 +6184,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           const expectedKicker =
             locale === "en"
               ? "Our featured products"
-              : "Sản phẩm nổi bật của chúng tôi";
+              : "Sản phẩm tiêu biểu";
           const expectedScroll = locale === "en" ? "SCROLL DOWN" : "CUỘN XUỐNG";
           assert(hero.tone === "ink" && hero.headerIsInk, `${locale} ${viewport.width}x${viewport.height}: header did not start in ink tone`);
           assert(hero.backgroundIsWhite && hero.headingColorIsInk, `${locale} ${viewport.width}x${viewport.height}: editorial hero is not white with ink content`);

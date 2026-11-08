@@ -26,7 +26,7 @@ chung chung và lưới bất động sản rập khuôn.
 
 | Route | Qualifier VI | Title VI | Title EN |
 | --- | --- | --- | --- |
-| Advertising | `Sản phẩm nổi bật của chúng tôi` | `để thương hiệu / luôn trong tầm mắt` | `Keep your brand / always in sight` |
+| Advertising | `Sản phẩm tiêu biểu` | `để thương hiệu / luôn trong tầm mắt` | `Keep your brand / always in sight` |
 | Commercial | `SHOP · F&B · SHOWROOM · VĂN PHÒNG` | `Thiết kế để bán tốt. / Thi công để vận hành bền.` | `Designed to sell. / Built to perform.` |
 | Residential | `NHÀ PHỐ · CĂN HỘ · HOMESTAY` | `Nơi tái tạo / năng lượng sống` | `A place to / recharge` |
 
