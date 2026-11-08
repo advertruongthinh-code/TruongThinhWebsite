@@ -928,6 +928,10 @@
     });
   };
 
+  // Locomotive phát "scroll" đồng bộ trong update()/scrollTo() với y cũ; header theo y đó thì đổi thu gọn rồi đổi lại
+  // trong cùng task và chạy FLIP logo dù trạng thái cuối không đổi (photo view về masonry bằng navbar, owner 2026-11-08).
+  // setPageScroll tự gọi updateHeader với y đích ở cuối.
+  let pageScrollSetting = false;
   const setPageScroll = (state, scrollY, { instant = false } = {}) => {
     const target = Math.max(0, Number(scrollY) || 0);
     // Về đầu trang không cần clamp: không đọc scrollHeight, nên không ép layout trong task gọi nó.
@@ -936,7 +940,8 @@
       Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
     );
     state.smoothScrollY = nextScroll;
-    if (state.smoothScroll) {
+    if (state.smoothScroll) try {
+      pageScrollSetting = true;
       // Không truyền behavior thì `html { scroll-behavior: smooth }` trượt native scroll lệch về 0 qua nhiều frame;
       // Chrome bỏ qua style inline mới đặt với scrollTo(0, 0) vì không cập nhật style cho tọa độ này.
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -949,6 +954,8 @@
       // Locomotive 4.1.4 có thể hoãn một scroll zero-duration thêm một frame.
       if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
+    } finally {
+      pageScrollSetting = false;
     } else {
       window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
@@ -1118,7 +1125,7 @@
       window.dispatchEvent(
         new CustomEvent("site:scroll", { detail: { y: scroll.y } }),
       );
-      updateHeader(scroll.y);
+      if (!pageScrollSetting) updateHeader(scroll.y);
     });
     state.smoothScroll.update();
     if (logicalScrollLock) state.smoothScroll.stop();
