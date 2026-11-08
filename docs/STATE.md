@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-27
+- Updated: 2026-11-08
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -8,13 +8,13 @@
   trên `main` ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)); owner kiểm nhận giao diện trên đó.
 
 ## Việc đang làm
-- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt; PR ảnh đỏ ở P13 adv-viewer ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)).
-- [Ảnh JPEG XL progressive](https://app.notion.com/p/406332849a0e816ebc6af97487876c15): ảnh JXL chỉ hiện khi tải xong, card tự mờ, khung lớn lên bản gốc; spec [progressive-loading](specs/progressive-loading.md) đã live; còn A05s, iPhone và các gate R8 trong spec.
-- [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): lỗi trên `main` đã merge; fix skeleton, swipe nằm trên nhánh thread `ap7oez`, `dxu1nj`; tail-packing chưa xác nhận.
-- PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
-  chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
-- Card nhiều media: runtime, player, viewer, video thích ứng đã vào `main` ([PR #434](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/434)), mỗi card vẫn một ảnh; gộp ảnh thành card nhiều media làm đợt khác khi toàn bộ media đã chuẩn, owner audit tay nhóm AI đề xuất ([card](https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc), [spec](specs/media-card.md)).
-- Từ khóa SEO tạm dừng tới khi site đủ feature ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
+- PR mở: [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls); đã merge tự lên demo, chờ owner kiểm nhận ([card](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
+- Nước rút tới CMS: trang Công trình, dải công trình và News dựng từ khối ([spec #691](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/691), #694, #701, sáu trang lọc theo loại #703); hero, kicker trang Công trình đang chỉnh. CMS editor, quyền, publish do thread CMS sở hữu ([CMS](specs/cms.md)).
+- Menu sáu nhóm có Công trình (#704, #705), navbar có Công trình (#708); lỗi chữ menu chồng trang ở lần mở đầu sau khi chuyển trang sửa ở #713.
+- Ảnh: phone chỉ WebP tới 960, PC JXL (WebP dự phòng) tới 4K ([progressive-loading](specs/progressive-loading.md), #690); vuốt nhanh masonry #687, #692. Còn gate R8 trong spec.
+- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt. SEO từ khóa tạm dừng ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
+- Card nhiều media: runtime, player, viewer đã vào `main` (#434), mỗi card vẫn một ảnh; gộp ảnh làm đợt khác ([card](https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc), [spec](specs/media-card.md)).
+- [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): nhánh `ap7oez` còn trên remote, trạng thái fix skeleton, swipe: unknown.
 
 ## Blocker đã verify
 
@@ -23,8 +23,8 @@
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: gộp nhãn trùng giữa
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
-- Nợ phone và GPU: đã đo bù 2026-10-18 trên Galaxy A04s SM-A047F (máy đo chuẩn, nối adb debug,
-  [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Còn lại:
+- Máy đo chuẩn: Galaxy A04s SM-A047F qua adb ([Android thật](operations/android-real-device-debugging.md)); A05s là máy cũ.
+  Nợ phone và GPU ([card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)), số đo cũ 2026-10-18, chưa đo lại:
   - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
   - Thread sở hữu: long task khi mở detail trên phone (gate 50ms, [số đo](specs/advertising-detail.md#gate-còn-mở)); ca Chromium flaky `m02b-grid-detail-no-clone-no-jump` của `advertising-photo-transitions` (P13 sửa ở PR #511);
