@@ -3883,6 +3883,33 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-indent: 4.5em;
 }
 
+/* Dàn chữ trang công trình, News theo Espacio (owner 2026-11-08, đo 75 trang): đoạn văn 24px PC, 20,8px phone, giãn dòng 1,4,
+   cột 600px, thụt dòng đầu 100px PC, 50px phone; phone khối cách nhau 30px, lề 15px. Chỉ trong main của hai namespace. */
+.blk-paragraph p {
+  max-width: 37.5rem;
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.blk-paragraph p:first-child {
+  text-indent: 100px;
+}
+
+@media (max-width: 680px) {
+  :is([data-barba-namespace="project"], [data-barba-namespace="news"]) #noi-dung {
+    --section-gap: 30px;
+    --gutter: 15px;
+  }
+
+  .blk-paragraph p {
+    font-size: 1.3rem;
+  }
+
+  .blk-paragraph p:first-child {
+    text-indent: 50px;
+  }
+}
+
 .blk-paragraph--columns {
   columns: 2 22rem;
   column-gap: clamp(2rem, 5vw, 5rem);
