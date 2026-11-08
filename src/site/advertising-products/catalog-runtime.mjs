@@ -1596,6 +1596,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
+  // Tag, cỡ cửa sổ hoặc cỡ chữ của related đổi: bỏ hàng chờ và lượt dựng kế tiếp không đưa card cũ vào lại (R7).
+  let relatedQueueScope = "";
+  let relatedQueueStale = false;
   let relatedCompile = compileAdvertisingProductLayout;
   // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
   // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
@@ -1721,9 +1724,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Gỡ card khỏi DOM: card đã hiện ảnh (không còn chờ, không lỗi) vào hàng chờ để quay lại thì gắn lại tức thì; card khác
   // hủy như cũ (ảnh dở dang bỏ nguồn). Card video không vào hàng chờ: releaseVideoSource bỏ nguồn và nguồn chỉ gắn lại
   // trong createPhotoCard, gắn lại node cũ sẽ chỉ còn poster.
+  // queue null: hàng chờ vừa bỏ (đổi filter, tag, layout), card gỡ trong lượt đó cũng không vào lại (masonry R7).
+  // Card còn img chưa tải xong (lớp kề do preloadNeighbors) không vào hàng chờ: releaseMediaCard bỏ nguồn img đó,
+  // gắn lại thì layerFor dùng lại lớp không nguồn và card kẹt trạng thái chờ.
   const detachCard = (id, node, queue) => {
-    const keepable = !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
-      && mediaLayers(node).some((media) => media.classList.contains("is-advertising-media-ready"));
+    const keepable = queue && !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
+      && mediaLayers(node).some((media) => media.classList.contains("is-advertising-media-ready"))
+      && [...node.querySelectorAll("img")].every((image) => image.complete);
     releaseMediaCard(node);
     node.remove();
     if (keepable) queue.put(id, node);
@@ -3058,7 +3065,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
 
     for (const [id, node] of rendered) {
       if (keep.has(id) || node === document.activeElement || node.contains(document.activeElement)) continue;
-      detachCard(id, node, detachedCards);
+      detachCard(id, node, animate || geometryChanged ? null : detachedCards);
       rendered.delete(id);
     }
     ghostLayer.prune(keep);
@@ -3571,10 +3578,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         node.hidden = motion && !normalKeep.has(id);
         if (!relatedPositions.has(id)) relatedPositions.set(id, origins?.get(id) || { x: 0, y: 0 });
       } else {
-        detachCard(id, node, relatedDetachedCards);
+        detachCard(id, node, relatedQueueStale ? null : relatedDetachedCards);
         relatedRendered.delete(id);
       }
     }
+    relatedQueueStale = false;
     // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R10).
     const detours = new Map();
     const primaryZone = { width: relatedLayout.primary.width, height: relatedLayout.primary.height };
@@ -3673,6 +3681,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (nextLayoutKey === relatedLayoutKey) {
       renderRelatedWindow();
       return;
+    }
+    const queueScope = `${browse.tag || "all"}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
+    if (queueScope !== relatedQueueScope) {
+      if (relatedQueueScope) {
+        relatedDetachedCards.clear();
+        relatedQueueStale = true;
+      }
+      relatedQueueScope = queueScope;
     }
     const origins = relatedLayoutKey && directEntryPhase !== "primary" ? relatedVisualCoordinates() : undefined;
     cancelRelatedMotion();
