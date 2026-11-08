@@ -2319,11 +2319,14 @@
   };
 
   const syncAttributes = (current, next) => {
+    // style trong menu là trạng thái đầu GSAP của timeline mở dựng một lần (buildMenuTimeline): xóa nó khi chuyển
+    // trang thì lần mở sau chữ menu hiện ngay trên trang trước khi shutter phủ.
+    const keep = (name) => name === "open" || (name === "style" && dialog.contains(current));
     [...current.attributes].forEach(({ name }) => {
-      if (name !== "open" && !next.hasAttribute(name)) current.removeAttribute(name);
+      if (!keep(name) && !next.hasAttribute(name)) current.removeAttribute(name);
     });
     [...next.attributes].forEach(({ name, value }) => {
-      if (name !== "open") current.setAttribute(name, value);
+      if (!keep(name)) current.setAttribute(name, value);
     });
   };
 
