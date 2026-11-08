@@ -101,7 +101,7 @@ test("taxonomy R4: trang gốc trong artifact.pages khớp title và kicker củ
   const html = await readFile(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
   const root = artifact.pages.find(({ filter }) => filter === "all");
   assert.match(html, new RegExp(`<title data-en="${root.titleEn}">\\s*${root.titleVi}\\s*</title>`));
-  assert.match(html, new RegExp(`data-en="${root.labelEn}"\\s*>\\s*${root.labelVi}\\s*</p>`, "i"));
+  assert.match(html, new RegExp(`data-en="${root.kickerEn}"\\s*>\\s*${root.kickerVi}\\s*</p>`, "i"));
 });
 
 test("taxonomy R7: related của ảnh Kỷ niệm chương đặt card Kỷ niệm chương trước card khác cùng cụm; nút gợi ý có sản phẩm", () => {

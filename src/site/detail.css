@@ -93,6 +93,11 @@
   font-style: italic;
 }
 
+/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08). */
+.detail-index-hero h1 .detail-title__strong {
+  font-style: italic;
+}
+
 .detail-intro,
 .detail-lead,
 .detail-note,

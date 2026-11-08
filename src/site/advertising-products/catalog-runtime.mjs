@@ -3223,7 +3223,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const english = locale === "en";
     for (const [node, vi, en] of [
       [document.querySelector("title"), page.titleVi, page.titleEn],
-      [container.querySelector("[data-motion-hero-kicker]"), page.labelVi, page.labelEn],
+      [container.querySelector("[data-motion-hero-kicker]"), page.kickerVi ?? page.labelVi, page.kickerEn ?? page.labelEn],
     ]) {
       if (!node) continue;
       node.dataset.vi = vi;
