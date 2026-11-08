@@ -10,6 +10,10 @@ Design System: <README component đã cập nhật>, hoặc `Design System: khô
 
 Kiểm: <command và kết quả>
 
+Skill: <skill agent-skills đã dùng, mỗi skill một dòng lý do>
+
+Ảnh QA (UI): <ảnh 384 A04s và 1440, trước/sau; chuỗi route/mở lại đã test>
+
 <!--
 Chú thích thuật ngữ
 - Spec: file trong docs/specs/ sở hữu source bị đổi, theo docs/specs/docs-system.md R4.

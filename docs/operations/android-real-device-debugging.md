@@ -2,12 +2,16 @@
 title: Debug Chrome trên Android thật qua USB
 type: operations
 status: connection-verified
-updated: 2026-09-27
+updated: 2026-11-08
 related_specs:
   - ../specs/site-shell.md
 ---
 
 # Debug Android thật qua USB
+
+Máy đo chuẩn hiện tại: **Galaxy A04s `SM-A047F`** (Chrome 156, Android 14, viewport 384x724 CSS px,
+DPR 1,875), nối adb qua PC owner. Mọi số đo, PR, reply ghi đúng tên này; Galaxy A05s `SM-A057F`
+(411px) là máy cũ, chỉ còn trong lịch sử dưới đây, không dùng để đo mới.
 
 Owner xác nhận thiết bị là Android, browser Chrome, máy host Windows chạy
 Codex. Trang chạy trên điện thoại thật; viewport desktop emulation không thay
