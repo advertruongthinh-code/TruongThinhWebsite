@@ -51,7 +51,7 @@ hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](ad
 shell ([R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), [R10](site-shell.md#r10-floating-cta-và-footer)).
 Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products — Trường Thịnh"; mục Advertising trên navbar có
 `aria-current="page"`. `body.detail-page[data-detail-hero-profile="words-06"]`, container
-`data-barba-namespace="advertising-products"`. `main#noi-dung` gồm: hero `.detail-index-hero#top` (kicker "Sản phẩm nổi bật của chúng tôi" / "Our featured products",
+`data-barba-namespace="advertising-products"`. `main#noi-dung` gồm: hero `.detail-index-hero#top` (kicker "Sản phẩm tiêu biểu" / "Our featured products",
 `h1` hai dòng "để thương hiệu / luôn trong tầm mắt" / "Keep your brand / always in sight", dòng 2 đậm 700 nghiêng ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), rail filter
 R3, scroll cue cách đáy như [Hero](../../design-system/components/Hero/README.md); trên 1024px dòng 2 neo mép phải
 khung); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
