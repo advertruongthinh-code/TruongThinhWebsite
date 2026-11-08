@@ -12,7 +12,7 @@ import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderNewsListPage } from "./block-pages.mjs";
-import { projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
+import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -349,10 +349,11 @@ const coverColors = Object.fromEntries(await Promise.all(blockContent.projects.m
   const { data } = await sharp(path.join(sourceRoot, project.cover.src)).resize(1, 1).raw().toBuffer({ resolveWithObject: true });
   return [project.id, `rgb(${data[0]} ${data[1]} ${data[2]})`];
 })));
+const projectArtifact = buildProjectArtifact(blockContent.projects, coverColors);
 for (const listPage of projectListPages(blockContent.projects)) {
   const destination = path.join(outputRoot, projectListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, renderProjectListPage(advertisingFrame, listPage, coverColors), "utf8");
+  await writeFile(destination, renderProjectListPage(advertisingFrame, listPage, projectArtifact), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

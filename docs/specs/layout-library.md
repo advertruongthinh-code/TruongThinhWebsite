@@ -6,7 +6,7 @@ source:
 tests:
   - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # Thư viện layout trang và khối
@@ -97,6 +97,9 @@ của mẫu; khối bắt buộc không bỏ được.
 | About, Liên hệ | `/en/about-us`, `/en/contact` | `hero-fullscreen` hoặc `section-title` | theo khảo sát |
 
 Trang chủ, About và Advertising giữ layout hiện tại trong bản đầu (owner 2026-10-26); dòng mẫu của chúng ở bảng trên chỉ để tham khảo sau.
+
+Dàn chữ trang công trình và News theo số đo Espacio (owner 2026-11-08, 75 trang): đoạn văn 24px trên PC, 20,8px trên phone, giãn
+dòng 1,4, cột rộng tối đa 600px ở nửa phải, thụt dòng đầu 100px trên PC, 50px trên phone; phone khối cách nhau 30px, lề 15px.
 
 ```gherkin
 Given bài News đang soạn

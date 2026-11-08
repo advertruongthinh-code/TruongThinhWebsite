@@ -11,7 +11,7 @@
     delete cleanedState.ttAdvertisingHistoryFallback;
     try { window.history.replaceState(cleanedState, "", window.location.href); } catch {}
   }
-  if (directContainer?.dataset.barbaNamespace === "advertising-products"
+  if (["advertising-products", "projects"].includes(directContainer?.dataset.barbaNamespace)
     && (navigationType === "back_forward" || historyFallback)) {
     window.__ttAdvertisingBrowseStartupHistory = {
       navigationType,
@@ -20,6 +20,8 @@
     };
   }
 
+  // Trang chạy runtime masonry quảng cáo: Sản phẩm quảng cáo và Công trình (projects R2, cùng hero, motion, lưới).
+  const isCatalogNamespace = (namespace) => namespace === "advertising-products" || namespace === "projects";
   let activePage;
   let advertisingCarouselModulesPromise;
   let advertisingCarouselStylePromise;
@@ -255,7 +257,7 @@
     if (!container || activePage?.container === container) return activePage?.catalogReady;
     unmount();
 
-    const advertisingHeroSettled = container.dataset.barbaNamespace === "advertising-products"
+    const advertisingHeroSettled = isCatalogNamespace(container.dataset.barbaNamespace)
       && advertisingHeroPlayed.has(container);
 
     const reduceMotion = window.matchMedia(
@@ -263,7 +265,7 @@
     ).matches;
     const gsap = window.gsap;
     if (
-      container.dataset.barbaNamespace === "advertising-products"
+      isCatalogNamespace(container.dataset.barbaNamespace)
       && (settled || reduceMotion || (gsap && window.SplitText))
     ) advertisingHeroPlayed.add(container);
     const abort = new AbortController();
@@ -299,12 +301,43 @@
         });
     }
 
-    // Trang Công trình: lưới masonry cùng hình học Advertising (projects R2); Masonry vendor là optional, thiếu thì đặt tức thì.
-    if (container.dataset.barbaNamespace === "projects" && container.querySelector("[data-project-masonry]")) {
-      // Route mềm vào trang không tự tải vendor: nạp Masonry (motion đổi lọc) như trang quảng cáo, lỗi thì vẫn đặt card tức thì.
-      state.catalogReady = ensureAdvertisingDependencies().catch(() => {}).then(() => import("/projects-grid.mjs"))
-        .then(({ mountProjectGrid }) => { if (!abort.signal.aborted) mountProjectGrid(container, { signal: abort.signal }); })
-        .catch((error) => console.error("[projects] grid mount failed", error));
+    // Trang Công trình (projects R2): chính runtime masonry quảng cáo với artifact công trình nhúng trong trang, không
+    // detail view; không tải catalog-artifact, catalog-detail của trang quảng cáo.
+    const projectArtifact = container.dataset.barbaNamespace === "projects"
+      && container.querySelector("script[data-project-artifact]");
+    if (projectArtifact) {
+      // Parse trong chuỗi promise: JSON hỏng đi vào nhánh lỗi (thẻ tĩnh), không lan lên shell rồi tải lại trang mãi.
+      const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent));
+      // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
+      const emptyLine = container.querySelector(".projects-empty");
+      const rail = container.querySelector(".project-filters");
+      state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/advertising-products/catalog-runtime.mjs")])
+        .then(([artifact, , { mountAdvertisingCatalog }]) => {
+          if (emptyLine && rail) {
+            const syncEmpty = () => {
+              const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
+              emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
+            };
+            const railObserver = new MutationObserver(syncEmpty);
+            railObserver.observe(rail, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
+            observers.push(railObserver);
+          }
+          if (!abort.signal.aborted) {
+            return mountAdvertisingCatalog(container, {
+              signal: abort.signal,
+              scroll: window.TruongThinhMotion,
+              softNavigation,
+              artifact,
+              viewer: false,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("[projects] catalog mount failed", error);
+          const grid = container.querySelector("[data-project-grid]");
+          const fallback = grid?.querySelector("noscript");
+          if (fallback && !grid.querySelector(".project-tile")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
+        });
     }
 
     const selectAll = (selector) => [...container.querySelectorAll(selector)];
@@ -380,7 +413,7 @@
         const isGroupSettled = (group) => settled || (
           isHeroGroup(group) && (
             advertisingHeroSettled || (
-              container.dataset.barbaNamespace === "advertising-products" && advertisingHeroTextStarted
+              isCatalogNamespace(container.dataset.barbaNamespace) && advertisingHeroTextStarted
             )
           )
         );
@@ -672,18 +705,18 @@
           if (!section) return false;
           const sectionTextGroups = [...lineGroups, ...wordGroups].filter((group) =>
             isInside(section, group) &&
-              !(container.dataset.barbaNamespace === "advertising-products" && isHeroGroup(group)),
+              !(isCatalogNamespace(container.dataset.barbaNamespace) && isHeroGroup(group)),
           );
           const sectionMotionItems = motionItems.filter((item) =>
             isInside(section, item) &&
-              !(container.dataset.barbaNamespace === "advertising-products" && item.closest(".detail-index-hero")),
+              !(isCatalogNamespace(container.dataset.barbaNamespace) && item.closest(".detail-index-hero")),
           );
           const sectionHeroItems = [
             heroKicker,
             heroWrapperZoom,
             heroMediaZoom,
           ].filter((item) =>
-            isInside(section, item) && container.dataset.barbaNamespace !== "advertising-products",
+            isInside(section, item) && !isCatalogNamespace(container.dataset.barbaNamespace),
           );
 
           sectionTextGroups.forEach((group) => {

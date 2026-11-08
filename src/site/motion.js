@@ -1366,6 +1366,7 @@
       const scrollCueLabel = scrollCue?.querySelector("[data-scroll-cue-label]");
       const splitCueRoute = new Set([
         "advertising-products",
+        "projects",
         "residential",
         "commercial",
       ]).has(state.container.dataset.barbaNamespace);
@@ -3180,7 +3181,7 @@
                   hardNavigate(fallbackUrl.href);
                   return;
                 }
-                if (data.next.container.dataset.barbaNamespace === "advertising-products") {
+                if (["advertising-products", "projects"].includes(data.next.container.dataset.barbaNamespace)) {
                   try {
                     await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
                   } catch (error) {

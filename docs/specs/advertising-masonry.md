@@ -30,7 +30,7 @@ tests:
   - tests/site/advertising-resize-card-width.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # Masonry Advertising
@@ -46,7 +46,7 @@ hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](ad
 
 ### R1. Trang và cấu trúc
 
-`src/site/advertising-products/index.html` là bản VI; bản EN sinh lúc build
+Runtime cũng chạy trang Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) với mount `artifact`, `viewer: false`. `src/site/advertising-products/index.html` là bản VI; bản EN sinh lúc build
 ([phát hành tĩnh R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)). Head, veil, header, menu, footer thuộc
 shell ([R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), [R10](site-shell.md#r10-floating-cta-và-footer)).
 Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products — Trường Thịnh"; mục Advertising trên navbar có

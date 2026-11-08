@@ -25,13 +25,13 @@ const cases = ["vi", "en"].flatMap((locale) => [
   { route: `/${locale}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
   // Trang loại của công trình đầu và một trang loại trống (nếu có): menu site dẫn tới đủ sáu loại.
   ...projectListPages(projects).filter((listPage) => listPage.filter.type === projects[0].type || (listPage.filter.type && !listPage.projects.length)).slice(0, 2)
-    .map((listPage) => ({ route: `/${locale}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined })),
+    .map((listPage) => ({ route: `/${locale}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined, empty: !listPage.projects.length })),
 ]);
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
 try {
-  for (const options of viewports) for (const { route, locale, link, switched } of cases) {
+  for (const options of viewports) for (const { route, locale, link, switched, empty } of cases) {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     const errors = [];
@@ -42,7 +42,7 @@ try {
       const response = await page.goto(`${origin}${route}`, { waitUntil: "load" });
       assert.ok(response?.ok(), `${at}: HTTP ${response?.status()}`);
       // Runtime lưới Công trình mount sau import động; chờ nó đặt card (tối đa 8s) rồi mới đo.
-      await page.waitForFunction(() => document.querySelector("[data-project-masonry]")?.classList.contains("is-laid-out") ?? true, null, { timeout: 8000 }).catch(() => {});
+      await page.waitForFunction(() => !document.querySelector("script[data-project-artifact]") || document.querySelector("[data-project-grid].advertising-grid"), null, { timeout: 8000 }).catch(() => {});
       const state = await page.evaluate(() => ({
         h1: document.querySelectorAll("main h1").length,
         lang: document.documentElement.lang,
@@ -51,16 +51,26 @@ try {
         overflow: [...document.querySelectorAll("main .blk, main .blk *, main .blk-hero *")].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1 && !element.closest("[data-gallery-track], .blk-projects__track"))
           .slice(0, 3).map((element) => `${element.tagName}.${[...element.classList].join(".")}`).join(", "),
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
-        // Trang Công trình: runtime đã đặt card theo hình học masonry Advertising.
-        masonry: document.querySelector("[data-project-masonry]")?.classList.contains("is-laid-out") ?? true,
+        // Trang Công trình: runtime masonry quảng cáo đã mount (loại chưa có công trình thì lưới rỗng).
+        masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].advertising-grid")),
+        // Chip loại chưa có công trình mang hidden thì phải không hiển thị (CSS rail không được đè).
+        hiddenChipsShown: [...document.querySelectorAll("[data-advertising-filter][hidden]")].filter((chip) => getComputedStyle(chip).display !== "none").length,
+        emptyLine: document.querySelector(".projects-empty") ? getComputedStyle(document.querySelector(".projects-empty")).display !== "none" : false,
       }));
       assert.equal(state.h1, 1, `${at}: một h1`);
       assert.equal(state.lang, locale, `${at}: lang`);
       assert.equal(state.overflow, "", `${at}: tràn ngang`);
       assert.ok(state.masonry, `${at}: masonry chưa dựng`);
+      assert.equal(state.hiddenChipsShown, 0, `${at}: chip loại trống vẫn hiện`);
+      assert.equal(state.emptyLine, Boolean(empty), `${at}: dòng "đang cập nhật" chỉ ở loại chưa có công trình`);
       // Đổi ngôn ngữ dẫn tới chính trang này ở ngôn ngữ kia, không về trang khung.
       assert.ok(state.switchTo.includes(route), `${at}: link ngôn ngữ ${state.switchTo.join(", ")}`);
       if (link) {
+        // Lưới Công trình chỉ dựng thẻ gần viewport (ảo hóa như trang quảng cáo): cuộn tới lưới rồi chờ thẻ.
+        if (await page.locator("[data-project-grid]").count()) {
+          await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
+          await page.waitForSelector(`main a[href="${link}"]`, { state: "attached", timeout: 5000 }).catch(() => {});
+        }
         const anchor = page.locator(`main a[href="${link}"]`).first();
         assert.equal(await page.locator(`main a[href="${link}"]`).count() > 0, true, `${at}: có link ${link}`);
         const target = await anchor.getAttribute("href");
