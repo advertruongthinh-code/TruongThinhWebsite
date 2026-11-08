@@ -8,6 +8,7 @@ export const nonPublicSourceAssets = [
   "content/project-reel.json",
   "content/projects.json",
   "content/news.json",
+  "content/menu.json",
   "head-inline.js",
   "assets/brand/truong-thinh-lockup.svg",
   "assets/content/projects/advertising-kiosk-posm-cover.jpg",

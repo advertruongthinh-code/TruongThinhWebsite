@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateProjectReel } from "../site/project-reel.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
-import { kindFieldErrors } from "../site/block-pages.mjs";
+import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
 // Bỏ `$`: đường dẫn ghép trong script inline (`${name}`) không phải file.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -86,6 +86,12 @@ export async function checkSiteContent(siteRoot) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
     for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
+  }
+  // Mục tiêu biểu của menu site: id công trình và slug nhóm Advertising phải tồn tại.
+  const menuFile = path.join(siteRoot, "content/menu.json");
+  if (existsSync(menuFile)) {
+    const { ADVERTISING_CATEGORIES } = await import("../../src/site/advertising-products/catalog.mjs");
+    errors.push(...menuErrors(JSON.parse(readFileSync(menuFile, "utf8")), { projects: pages.projects, categories: ADVERTISING_CATEGORIES }, "content/menu.json"));
   }
   return errors;
 }

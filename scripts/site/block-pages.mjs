@@ -140,7 +140,7 @@ const newsCard = (post) => {
 };
 
 // Khung trang danh sách (News, Công trình) dựng trên trang Giới thiệu: head SEO, namespace, link đổi ngôn ngữ, h1 và hàng lọc.
-const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body }) => {
+const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body, noindex = false }) => {
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
   const en = `${PUBLIC_ORIGIN}/en${listPath}`;
   const head = [
@@ -149,6 +149,7 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
     `<link rel="alternate" hreflang="vi" href="${vi}" />`,
     `<link rel="alternate" hreflang="en" href="${en}" />`,
     `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
+    ...(noindex ? ['<meta name="robots" content="noindex" />'] : []),
   ].join("\n    ");
   const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
   const main = [
@@ -187,11 +188,12 @@ export const renderNewsListPage = (template, listPage) => {
   });
 };
 
-// Trường riêng của từng loại: mảng công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
+// Trường riêng của từng loại: mảng và loại công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
 export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
-    ...[page.slugVi, page.slugEn].filter((slug) => Object.values(PROJECT_FILTERS).includes(slug)).map((slug) => `${at}: slug ${slug} trùng đường dẫn lọc công trình`),
+    ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
+    ...[page.slugVi, page.slugEn].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: slug ${slug} trùng đường dẫn lọc công trình`),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
@@ -201,33 +203,67 @@ export const kindFieldErrors = (kind, page, at) => {
 };
 
 // Trang toàn bộ công trình (projects R2): lưới so le như Sản phẩm quảng cáo, bấm thẻ mở trang công trình.
-// Lọc theo mảng bằng trang riêng có đường dẫn crawl được; slug lọc không được trùng slug công trình.
+// Lọc theo mảng hoặc loại bằng trang riêng có đường dẫn crawl được; slug lọc không được trùng slug công trình.
 export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" };
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
-export const projectListPages = (projects) => [null, ...SECTORS.filter((sector) => projects.some((project) => project.sector === sector))]
-  .map((sector, _index, sectors) => ({
-    sector, sectors,
-    path: sector ? `/projects/${PROJECT_FILTERS[sector]}/` : "/projects/",
-    projects: sector ? projects.filter((project) => project.sector === sector) : projects,
+// Loại công trình (projects R2): key là slug trang lọc; menu site dẫn tới đủ sáu trang dù loại chưa có công trình.
+export const PROJECT_TYPES = {
+  "nha-pho": { sector: "residential", label: { vi: "Nhà phố", en: "Townhouses" } },
+  "can-ho": { sector: "residential", label: { vi: "Căn hộ", en: "Apartments" } },
+  "homestay-hotel": { sector: "residential", label: { vi: "Homestay & hotel", en: "Homestays & hotels" } },
+  "showroom-cua-hang": { sector: "commercial", label: { vi: "Showroom & cửa hàng", en: "Showrooms & stores" } },
+  "cafe-nha-hang": { sector: "commercial", label: { vi: "Cafe & nhà hàng", en: "Cafes & restaurants" } },
+  "van-phong": { sector: "commercial", label: { vi: "Văn phòng & khu làm việc", en: "Offices & workspaces" } },
+};
+export const projectTypeHref = (type, locale) => `/${locale}/projects/${type}/`;
+const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
+
+// Trang "Tất cả", trang mảng có công trình, trang loại luôn có (loại trống thì noindex). Hàng lọc chỉ hiện bộ lọc
+// có công trình, cộng bộ lọc của chính trang đang xem.
+export const projectListPages = (projects) => {
+  const filters = [
+    { slug: null, label: { vi: "Tất cả", en: "All" }, name: { vi: "Công trình", en: "Projects" }, match: () => true },
+    ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], label: SECTOR_LABEL[sector], name: { vi: `Công trình ${SECTOR_LABEL[sector].vi.toLowerCase()}`, en: `${SECTOR_LABEL[sector].en} projects` }, match: (project) => project.sector === sector })),
+    ...Object.entries(PROJECT_TYPES).map(([type, { label }]) => ({ slug: type, type, label, name: { vi: `Công trình ${label.vi.toLowerCase()}`, en: `${label.en} projects` }, match: (project) => project.type === type })),
+  ].map((filter) => ({ ...filter, projects: projects.filter(filter.match) }));
+  return filters.filter((filter) => filter.type || filter.projects.length).map((filter) => ({
+    filter, path: filter.slug ? `/projects/${filter.slug}/` : "/projects/", projects: filter.projects,
+    chips: filters.filter((chip) => chip.projects.length || chip === filter),
   }));
+};
 export const projectListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
 export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, projectListSource(listPage)]));
 
+// Thẻ ghi loại công trình, cụ thể hơn mảng.
 const projectTile = (project) => [
   `<a class="blk-project-tile" href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}">`,
   `<img src="${project.cover.src}" width="${project.cover.width}" height="${project.cover.height}" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" loading="lazy" />`,
-  `<span class="blk-project-tile__meta" data-en="${escapeHtml(SECTOR_LABEL[project.sector].en)}">${escapeHtml(SECTOR_LABEL[project.sector].vi)}</span>`,
+  `<span class="blk-project-tile__meta" data-en="${escapeHtml(PROJECT_TYPES[project.type].label.en)}">${escapeHtml(PROJECT_TYPES[project.type].label.vi)}</span>`,
   `<span class="blk-project-tile__title" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span>`,
   "</a>",
 ].join("");
 
-export const renderProjectListPage = (template, listPage) => {
-  const name = listPage.sector ? { vi: `Công trình ${SECTOR_LABEL[listPage.sector].vi.toLowerCase()}`, en: `${SECTOR_LABEL[listPage.sector].en} projects` } : { vi: "Công trình", en: "Projects" };
-  return renderListFrame(template, {
-    path: listPage.path, title: name, h1: name, namespace: "projects",
-    description: { vi: `${name.vi} do Trường Thịnh thiết kế, sản xuất và lắp đặt.`, en: `${name.en} designed, built and installed by Trường Thịnh.` },
-    filterLabel: { vi: "Lọc công trình", en: "Filter projects" },
-    chips: listPage.sectors.map((sector) => ({ href: `/vi/projects/${sector ? `${PROJECT_FILTERS[sector]}/` : ""}`, label: sector ? SECTOR_LABEL[sector] : { vi: "Tất cả", en: "All" }, current: sector === listPage.sector })),
-    body: `<section class="blk blk-project-grid section-gap" data-header-tone="ink">${listPage.projects.map(projectTile).join("")}</section>`,
-  });
+export const renderProjectListPage = (template, { filter, path: listPath, projects, chips }) => renderListFrame(template, {
+  path: listPath, title: filter.name, h1: filter.name, namespace: "projects", noindex: !projects.length,
+  description: { vi: `${filter.name.vi} do Trường Thịnh thiết kế, sản xuất và lắp đặt.`, en: `${filter.name.en} designed, built and installed by Trường Thịnh.` },
+  filterLabel: { vi: "Lọc công trình", en: "Filter projects" },
+  chips: chips.map((chip) => ({ href: `/vi/projects/${chip.slug ? `${chip.slug}/` : ""}`, label: chip.label, current: chip === filter })),
+  body: projects.length
+    ? `<section class="blk blk-project-grid section-gap" data-header-tone="ink">${projects.map(projectTile).join("")}</section>`
+    : '<section class="blk blk-paragraph section-gap" data-header-tone="ink"><p data-en="Projects in this category are coming soon.">Công trình loại này đang cập nhật.</p></section>',
+});
+
+// Mục tiêu biểu của menu site (content/menu.json, CMS sửa được): công trình theo thứ tự đã chọn; nhóm sản phẩm
+// quảng cáo theo danh sách đã chọn, danh sách rỗng thì lấy nhóm nhiều thẻ nhất (hòa thì giữ thứ tự catalog).
+export const menuFeatured = (menu, { projects, categories, cards }) => {
+  const count = (slug) => cards.filter((card) => card.category === slug).length;
+  const groups = menu.featuredProductGroups.length ? menu.featuredProductGroups : categories.map((category) => category.slug).toSorted((left, right) => count(right) - count(left));
+  return {
+    projects: menu.featuredProjects.map((id) => projects.find((project) => project.id === id)),
+    productGroups: groups.map((slug) => categories.find((category) => category.slug === slug)),
+  };
 };
+export const menuErrors = (menu, { projects, categories }, at) => [
+  ...menu.featuredProjects.filter((id, index, ids) => !projects.some((project) => project.id === id) || ids.indexOf(id) !== index).map((id) => `${at}: featuredProjects ${id} không có trong projects.json hoặc bị lặp`),
+  ...menu.featuredProductGroups.filter((slug, index, slugs) => !categories.some((category) => category.slug === slug) || slugs.indexOf(slug) !== index).map((slug) => `${at}: featuredProductGroups ${slug} không phải nhóm Advertising hoặc bị lặp`),
+];
