@@ -4201,7 +4201,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   columns: auto;
 }
 
-.project-card {
+.project-masonry__card {
   position: relative;
   margin: 0 0 var(--project-gap);
   overflow: hidden;
@@ -4209,28 +4209,28 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   background: #e9e6df;
 }
 
-.project-card[hidden] {
+.project-masonry__card[hidden] {
   display: none;
 }
 
-.is-laid-out .project-card {
+.is-laid-out .project-masonry__card {
   position: absolute;
   margin: 0;
 }
 
-.project-card > a {
+.project-masonry__card > a {
   display: block;
   height: 100%;
   color: var(--white);
   text-decoration: none;
 }
 
-.project-card > a:focus-visible {
+.project-masonry__card > a:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 4px;
 }
 
-.project-card img {
+.project-masonry__card img {
   display: block;
   width: 100%;
   height: 100%;
@@ -4239,7 +4239,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 }
 
 /* Tên công trình: phone luôn hiện ở chân ảnh; chuột thì hiện khi rê, như ảnh quảng cáo chỉ có ảnh lúc nghỉ. */
-.project-card__label {
+.project-masonry__card-label {
   position: absolute;
   inset: auto 0 0;
   display: grid;
@@ -4249,33 +4249,33 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-shadow: var(--text-shadow-d);
 }
 
-.project-card__type {
+.project-masonry__card-type {
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.project-card__name {
+.project-masonry__card-name {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.25;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .project-card__label {
+  .project-masonry__card-label {
     opacity: 0;
     transform: translateY(0.5rem);
     transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
-  .project-card:hover .project-card__label,
-  .project-card > a:focus-visible .project-card__label {
+  .project-masonry__card:hover .project-masonry__card-label,
+  .project-masonry__card > a:focus-visible .project-masonry__card-label {
     opacity: 1;
     transform: none;
   }
 
-  .project-card:hover img {
+  .project-masonry__card:hover img {
     transform: scale(1.03);
   }
 }
@@ -4285,4 +4285,16 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   padding-block: 2rem;
   text-align: center;
   color: var(--muted);
+}
+
+/* CTA cuối lưới mượn kiểu CTA nền trắng của trang quảng cáo; trang Công trình không có runtime đo chiều cao đuôi,
+   nên khối cao theo nội dung với khoảng đệm cố định. */
+.projects-cta[data-advertising-grid-cta] {
+  height: auto;
+  padding-block: clamp(6rem, 18vh, 10rem);
+  place-items: center;
+}
+
+.projects-cta[data-advertising-grid-cta] .detail-cta__copy {
+  margin-bottom: 0;
 }
