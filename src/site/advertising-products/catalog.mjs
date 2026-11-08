@@ -233,7 +233,7 @@ export const ADVERTISING_ROOT_PAGE = deepFreeze({
   filter: "all", vi: "", en: "", labelVi: "Sản phẩm quảng cáo", labelEn: "Advertising products",
   titleVi: "Sản phẩm Quảng cáo — Trường Thịnh", titleEn: "Advertising products — Trường Thịnh",
   // Kicker hero của trang gốc khác tên trang (owner 2026-11-08); trang cụm, trang sản phẩm vẫn lấy kicker từ labelVi, labelEn.
-  kickerVi: "Sản phẩm nổi bật của chúng tôi", kickerEn: "Our featured products",
+  kickerVi: "Sản phẩm tiêu biểu", kickerEn: "Our featured products",
 });
 // Trang tĩnh cụm và sản phẩm (taxonomy R4); sản phẩm dưới ngưỡng trang mỏng không có trang (R5).
 // vi, en là path sau /<locale>/advertising-products/; filter là id cụm hoặc id sản phẩm.

@@ -93,8 +93,9 @@
   font-style: italic;
 }
 
-/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08). */
-.detail-index-hero h1 .detail-title__strong {
+/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08).
+   Trang cụm, sản phẩm đổi khẩu hiệu thành <p id="page-title"> nên chọn theo id, không theo h1. */
+.detail-index-hero #page-title .detail-title__strong {
   font-style: italic;
 }
 
@@ -3389,6 +3390,12 @@ body.is-advertising-photo .detail-process {
   display: none;
 }
 
+/* Vào thẳng detail: main rỗng tới khi runtime lộ photo view, margin của footer lọt qua làm trang lệch 64px rồi
+   footer trượt khỏi màn hình (CLS 0,44, issue #649). Giữ footer dưới mép viewport ngay từ lần vẽ đầu. */
+body.is-advertising-photo .page-shell > main {
+  min-height: 100vh;
+}
+
 body.is-advertising-photo .desktop-nav a[aria-current="page"],
 body.is-advertising-photo #site-menu[open] a[aria-current="page"] {
   pointer-events: auto;
@@ -3764,11 +3771,13 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   margin-inline: auto;
 }
 
+/* Nền tối như hero trang tĩnh: màu chờ ảnh của .hero và lớp phủ .hero-shade dùng chung (style.css). */
 .blk-hero {
   position: relative;
   height: var(--site-layout-viewport-height);
   min-height: 32rem;
   overflow: hidden;
+  background: var(--media-loading-surface);
   color: var(--white);
 }
 
@@ -3786,6 +3795,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 .blk-hero__copy {
   position: absolute;
+  z-index: 2;
   inset: auto var(--gutter) clamp(2.5rem, 7vw, 6rem);
   text-shadow: var(--text-shadow-d);
 }
@@ -4173,9 +4183,10 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   --advertising-gap: 15px;
 }
 
-/* Dòng hai khẩu hiệu hero trang Công trình: đậm như trang quảng cáo, thêm nghiêng (owner 2026-11-08). */
-.projects-title__accent {
+/* Khẩu hiệu hero trang Công trình: chỉ chữ nhấn (em) đậm 700 nghiêng, phần còn lại 500 như dòng một (owner 2026-11-08). */
+.projects-title__accent em {
   font-style: italic;
+  font-weight: 700;
 }
 
 .project-masonry {

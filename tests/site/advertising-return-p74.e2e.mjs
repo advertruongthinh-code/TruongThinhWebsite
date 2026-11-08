@@ -34,9 +34,21 @@ try {
         await related.click();
         await page.waitForTimeout(900);
       }
+      // Header đã thu gọn ở detail và vẫn thu gọn ở masonry: không được chạy FLIP logo (owner 2026-11-08). Locomotive
+      // phát scroll với y cũ trong setPageScroll từng làm header mở rồi thu lại trong cùng task.
+      await page.evaluate(() => {
+        const logo = document.querySelector("#header-logo");
+        window.__logoMoved = false;
+        const watch = (end) => {
+          if (getComputedStyle(logo).transform !== "none") window.__logoMoved = true;
+          if (performance.now() < end) requestAnimationFrame(() => watch(end));
+        };
+        requestAnimationFrame(() => watch(performance.now() + 700));
+      });
       if (via === "back") await page.goBack();
       else await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
       await page.waitForTimeout(900);
+      assert.equal(await page.evaluate(() => window.__logoMoved), false, `${width} ${via}: collapsed header replayed the logo FLIP`);
       const after = await page.evaluate(read);
       if (via === "back") {
         assert.equal(after.url, before.url);

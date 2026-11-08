@@ -39,6 +39,8 @@ const BLOCKS = {
     render: (block) => [
       '<section class="blk-hero" data-header-tone="light">',
       `  <figure class="blk-hero__media">${image(block.image, 'fetchpriority="high"')}</figure>`,
+      // Lớp phủ tối dùng chung với hero các trang tĩnh (style.css .hero-shade, owner 2026-11-08).
+      '  <div class="hero-shade" aria-hidden="true"></div>',
       '  <div class="blk-hero__copy">',
       `    <h1 class="blk-hero__title">${localized("span", block.titleLine1)} ${localized("span", block.titleLine2, ' class="blk-hero__line2"')}</h1>`,
       block.subtitle ? `    ${localized("p", block.subtitle, ' class="blk-hero__subtitle"')}` : "",

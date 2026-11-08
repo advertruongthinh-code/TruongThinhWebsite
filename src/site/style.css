@@ -316,9 +316,10 @@ html.route-enter .site-header {
   transform: translateY(-100%);
 }
 
-/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
+/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3).
+   Danh sách property khớp thứ tự duration của rule gốc: màu, viền 0.3s, nền 0.15s; padding đổi ngay. */
 .site-header.is-follow {
-  transition-property: padding, color, border-color, background-color;
+  transition-property: color, border-color, background-color;
 }
 
 .site-header.is-route-pinned {

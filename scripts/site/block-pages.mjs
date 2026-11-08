@@ -192,7 +192,8 @@ export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
     ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
-    ...[page.slugVi, page.slugEn].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: slug ${slug} trùng đường dẫn lọc công trình`),
+    // id cũng là thư mục file nguồn (projects/<id>/index.html), trùng slug lọc thì ghi đè trang lọc.
+    ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);

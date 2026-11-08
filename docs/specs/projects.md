@@ -51,9 +51,10 @@ tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
-khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), dòng hai đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry tràn bề ngang cùng lề, gutter, số cột với
+khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), chỉ chữ nhấn "cảm hứng" ("inspire") đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry tràn bề ngang cùng lề, gutter, số cột với
 [masonry Advertising](advertising-masonry.md) (`src/site/projects-grid.mjs` dùng `layout-core.mjs`), đổi lọc tại chỗ bằng
-`masonry-layout` 0.4s và đổi URL sang trang lọc. Trang lọc: tên bộ lọc là h1, khẩu hiệu là p như trang cụm quảng cáo.
+`masonry-layout` 0.4s và đổi URL sang trang lọc. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
+mô tả và URL.
 Thẻ chỉ có ảnh; tên và loại hiện khi rê chuột, trên phone luôn hiện ở chân ảnh. Đuôi lưới như trang quảng cáo: các cột nối tiếp bằng khối màu chủ đạo của ảnh
 bìa (build tính bằng sharp), mờ và tan ra trắng sau CTA "Không gian tiếp theo dành cho bạn"; cuộn tới cuối thì chữ CTA ở giữa màn hình. Không JavaScript thì CSS columns xếp so le. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;
@@ -72,7 +73,8 @@ Then còn 25 thẻ và trang chi tiết công trình đó mở ra
 
 ### R3. Trang chi tiết công trình
 
-Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, đoạn giới thiệu,
+Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, nền tối
+và lớp phủ .hero-shade như hero các trang tĩnh (owner 2026-11-08), đoạn giới thiệu,
 carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
 ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác và dòng xem toàn bộ. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
@@ -94,6 +96,19 @@ hiệu chỉnh, hoặc do AI tạo; mọi ảnh qua gate chấm ảnh và ngư�
 chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. Thẻ và trang công trình có nhiều media theo
 [card nhiều media](media-card.md) (mọi media cùng tỷ lệ cover, alt VI/EN riêng, không trùng) và SEO như
 [SEO media](media-seo.md): HTML đọc được khi không chạy JavaScript, JSON-LD, ảnh vào image sitemap.
+
+Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
+dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
+luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
+`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh.
+
+| Số ảnh | Chuỗi khối ([layout-library](layout-library.md)) |
+| --- | --- |
+| 4-5 | `hero-project`, `section-title`, `paragraph`, `facts-grid`, `image-single`, `paragraph`, `image-single`, `paragraph`, `image-pair` |
+| 6-7 | `hero-project`, `section-title`, `paragraph`, `gallery-carousel` (3), `facts-grid`, `paragraph`, `image-single`, `paragraph`, `image-single` |
+| 8-9 | như 6-7, `gallery-carousel` 5 ảnh, thêm `paragraph`, `image-pair` |
+| 10-12 | như 8-9, thêm `paragraph`, `image-single` |
+| 13+ | `gallery-carousel` (5), `facts-grid`, hai cặp `paragraph`, `image-pair`, `gallery-carousel` thứ hai (3-4), `paragraph`, `image-single` |
 
 ```gherkin
 Given bản nháp công trình mới có ảnh AI tạo chưa qua gate

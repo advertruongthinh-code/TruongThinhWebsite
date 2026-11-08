@@ -102,12 +102,15 @@
     const hiddenByBreakpoint = getComputedStyle(desktopNavList).display === "none";
     const items = [...desktopNavList.children];
     const listRect = desktopNavList.getBoundingClientRect();
-    const logoRect = headerLogo?.getBoundingClientRect();
+    // Logo đo theo box layout, bỏ transform: lúc intro scale(0) rect rộng 0 nên nav đè logo mà không bị ẩn.
+    const logoParent = headerLogo?.offsetParent;
+    const logoRight = logoParent
+      && logoParent.getBoundingClientRect().left + logoParent.clientLeft + headerLogo.offsetLeft + headerLogo.offsetWidth;
     const menuRect = openButton.getBoundingClientRect();
     const wraps = items.length > 0
       && items.some((item) => Math.abs(item.offsetTop - items[0].offsetTop) > 1);
     const clips = desktopNavList.scrollWidth > desktopNavList.clientWidth + 1;
-    const overlaps = logoRect && (listRect.left < logoRect.right - 1 || listRect.right > menuRect.left + 1);
+    const overlaps = Boolean(logoRight) && (listRect.left < logoRight - 1 || listRect.right > menuRect.left + 1);
     const hidden = hiddenByBreakpoint || items.length === 0 || wraps || clips || overlaps;
     desktopNav.classList.toggle("is-space-hidden", hidden);
     desktopNav.inert = hidden;
@@ -925,6 +928,10 @@
     });
   };
 
+  // Locomotive phát "scroll" đồng bộ trong update()/scrollTo() với y cũ; header theo y đó thì đổi thu gọn rồi đổi lại
+  // trong cùng task và chạy FLIP logo dù trạng thái cuối không đổi (photo view về masonry bằng navbar, owner 2026-11-08).
+  // setPageScroll tự gọi updateHeader với y đích ở cuối.
+  let pageScrollSetting = false;
   const setPageScroll = (state, scrollY, { instant = false } = {}) => {
     const target = Math.max(0, Number(scrollY) || 0);
     // Về đầu trang không cần clamp: không đọc scrollHeight, nên không ép layout trong task gọi nó.
@@ -933,7 +940,8 @@
       Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
     );
     state.smoothScrollY = nextScroll;
-    if (state.smoothScroll) {
+    if (state.smoothScroll) try {
+      pageScrollSetting = true;
       // Không truyền behavior thì `html { scroll-behavior: smooth }` trượt native scroll lệch về 0 qua nhiều frame;
       // Chrome bỏ qua style inline mới đặt với scrollTo(0, 0) vì không cập nhật style cho tọa độ này.
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -946,6 +954,8 @@
       // Locomotive 4.1.4 có thể hoãn một scroll zero-duration thêm một frame.
       if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
+    } finally {
+      pageScrollSetting = false;
     } else {
       window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
@@ -1115,7 +1125,7 @@
       window.dispatchEvent(
         new CustomEvent("site:scroll", { detail: { y: scroll.y } }),
       );
-      updateHeader(scroll.y);
+      if (!pageScrollSetting) updateHeader(scroll.y);
     });
     state.smoothScroll.update();
     if (logicalScrollLock) state.smoothScroll.stop();
@@ -2602,7 +2612,11 @@
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
       // Trang cụm, sản phẩm Advertising: link ngôn ngữ đã mang path đúng slug của locale đích.
-      const option = isAdvertisingPath(url.pathname)
+      // Trang chi tiết công trình, News có slug VI, EN khác nhau: dùng link khi link locale hiện tại
+      // trỏ đúng trang đang xem (lọc tại chỗ chưa cập nhật link thì giữ cách đổi tiền tố).
+      const pathOf = (link) => link && new URL(link.href).pathname;
+      const linksMatchPage = pathOf(document.querySelector(`[data-language-option="${currentLanguage}"][href]`)) === url.pathname;
+      const option = (isAdvertisingPath(url.pathname) || linksMatchPage)
         && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
       url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
       url.hash = "";

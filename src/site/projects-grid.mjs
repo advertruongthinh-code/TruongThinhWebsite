@@ -3,7 +3,6 @@
 import { advertisingSpacing, columnsForWidth } from "./advertising-products/layout-core.mjs";
 
 const TRANSITION = "0.4s";
-const BLEED = 80;
 
 // Vị trí card: card hiện đặt lần lượt vào cột thấp nhất, rộng một cột, cao theo tỷ lệ ảnh.
 export function placeProjectCards(cards, viewportWidth) {
@@ -43,9 +42,9 @@ export function mountProjectGrid(container, { signal } = {}) {
   if (!grid) return;
   const nodes = [...grid.querySelectorAll("[data-project-card]")];
   const filters = [...container.querySelectorAll("[data-project-filter]")];
-  const kicker = container.querySelector("[data-project-kicker]");
   const ghostLayer = container.querySelector("[data-project-ghosts]");
   const cta = container.querySelector("[data-project-cta]");
+  const empty = container.querySelector("[data-project-empty]");
   let current = filters.find((link) => link.getAttribute("aria-current") === "true")?.dataset.projectFilter || "all";
   let positions = new Map();
   let height = 0;
@@ -70,17 +69,20 @@ export function mountProjectGrid(container, { signal } = {}) {
     }
     grid.style.height = `${height}px`;
     grid.classList.add("is-laid-out");
+    // Dòng "đang cập nhật" theo bộ lọc hiện tại, không theo trang đã render.
+    if (empty) empty.hidden = visible.length > 0;
     if (ghostLayer && cta) {
       // Như trang quảng cáo: cuộn tới cuối trang thì cụm chữ CTA nằm giữa màn hình (đáy CTA chừa phần còn lại trên footer).
       const footer = document.querySelector(".site-footer");
       const copy = cta.querySelector(".detail-cta__copy");
       cta.style.setProperty("--projects-cta-pad", `${Math.max(plan.gap, window.innerHeight / 2 - (footer?.offsetHeight ?? 0) - (copy?.offsetHeight ?? 0) / 2)}px`);
       const end = cta.offsetTop + cta.offsetHeight - grid.offsetTop;
-      // Lớp mờ rộng hơn lưới một khoảng BLEED để blur không bị cắt thành mép thẳng ở hai bên.
-      Object.assign(ghostLayer.style, { top: `${grid.offsetTop}px`, left: `${grid.offsetLeft - BLEED}px`, width: `${grid.offsetWidth + 2 * BLEED}px`, height: `${end}px` });
+      // Lớp mờ rộng hơn lưới đúng bằng lề ngoài: blur không bị cắt thành mép thẳng mà lớp không vượt viewport (tránh kéo ngang trên iOS).
+      const bleed = grid.getBoundingClientRect().left;
+      Object.assign(ghostLayer.style, { top: `${grid.offsetTop}px`, left: `${grid.offsetLeft - bleed}px`, width: `${grid.offsetWidth + 2 * bleed}px`, height: `${end}px` });
       ghostLayer.replaceChildren(...planProjectGhosts(plan, visible.map((node) => node.dataset.color).filter(Boolean), visible.map((node) => Number(node.dataset.ratio)), end).map((ghost) => {
         const block = document.createElement("i");
-        Object.assign(block.style, { left: `${ghost.x + BLEED}px`, top: `${ghost.y}px`, width: `${ghost.width}px`, height: `${ghost.height}px`, background: ghost.color });
+        Object.assign(block.style, { left: `${ghost.x + bleed}px`, top: `${ghost.y}px`, width: `${ghost.width}px`, height: `${ghost.height}px`, background: ghost.color });
         return block;
       }));
     }
@@ -107,7 +109,6 @@ export function mountProjectGrid(container, { signal } = {}) {
     if (!link || filter === current) return;
     current = filter;
     for (const item of filters) item.setAttribute("aria-current", String(item === link));
-    if (kicker) kicker.textContent = (document.documentElement.lang === "en" ? link.dataset.kickerEn : link.dataset.kickerVi) || kicker.textContent;
     document.title = (document.documentElement.lang === "en" ? link.dataset.titleEn : link.dataset.titleVi) || document.title;
     if (push) history.pushState({ ttProjectFilter: filter }, "", link.href);
     layout(true);

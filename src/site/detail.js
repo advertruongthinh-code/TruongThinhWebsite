@@ -301,7 +301,8 @@
 
     // Trang Công trình: lưới masonry cùng hình học Advertising (projects R2); Masonry vendor là optional, thiếu thì đặt tức thì.
     if (container.dataset.barbaNamespace === "projects" && container.querySelector("[data-project-masonry]")) {
-      state.catalogReady = import("/projects-grid.mjs")
+      // Route mềm vào trang không tự tải vendor: nạp Masonry (motion đổi lọc) như trang quảng cáo, lỗi thì vẫn đặt card tức thì.
+      state.catalogReady = ensureAdvertisingDependencies().catch(() => {}).then(() => import("/projects-grid.mjs"))
         .then(({ mountProjectGrid }) => { if (!abort.signal.aborted) mountProjectGrid(container, { signal: abort.signal }); })
         .catch((error) => console.error("[projects] grid mount failed", error));
     }
