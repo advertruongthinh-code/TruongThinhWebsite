@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "../../src/site/advertising-products/taxonomy.mjs";
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
@@ -31,9 +31,9 @@ test("taxonomy R4: trang sản phẩm EN có title, meta, canonical, hreflang, h
   const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1];
   assert.match(noscript, /<p[^>]*>Business cards, flyers, brochures, catalogues/);
   for (const page of ADVERTISING_PAGES) assert.match(noscript, new RegExp(`href="/en/advertising-products/${page.en}/"`), page.filter);
-  const page = ADVERTISING_PAGES.find(({ filter }) => filter === "printing-decals/office-printing");
-  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [page.labelEn], "h1 duy nhất là tên sản phẩm");
-  assert.match(html, /<h1\s+class="hero-kicker"[^>]*data-vi="In ấn văn phòng"/);
+  // Kicker giữ chữ cố định của trang gốc ở mọi trang cụm, trang sản phẩm (taxonomy R5, owner 2026-11-08).
+  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [ADVERTISING_ROOT_PAGE.kickerEn], "h1 duy nhất là kicker cố định");
+  assert.match(html, new RegExp(`<h1\\s+class="hero-kicker"[^>]*data-vi="${ADVERTISING_ROOT_PAGE.kickerVi}"`));
   assert.match(html, /<p id="page-title" class="hero-title"/);
   assert.match(html, /data-advertising-filter="printing-decals" aria-current="true"/);
   assert.match(html, /data-advertising-filter="all" aria-current="false"/);
