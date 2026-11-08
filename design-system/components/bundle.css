@@ -7446,6 +7446,48 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   margin-top: 3rem;
 }
 
+/* Trang toàn bộ công trình (projects R2): lưới so le theo tỷ lệ ảnh bìa, như lưới Sản phẩm quảng cáo. */
+.blk-project-grid {
+  columns: 3 18rem;
+  column-gap: clamp(1rem, 2.5vw, 2rem);
+}
+
+.blk-project-tile {
+  display: block;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  color: var(--ink);
+  text-decoration: none;
+  break-inside: avoid;
+}
+
+.blk-project-tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: var(--media-hover-transform);
+}
+
+.blk-project-tile:hover img {
+  transform: scale(1.03);
+}
+
+.blk-project-tile__meta {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-project-tile__title {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
 /**
  * Swiper 14.2.0
  * Most modern mobile touch slider and framework with hardware accelerated transitions

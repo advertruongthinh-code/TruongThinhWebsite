@@ -146,6 +146,10 @@
         "node tests/site/cta-title-punctuation.e2e.mjs"
       ]
     },
+    "block-pages": {
+      "specs": ["layout-library", "projects", "news"],
+      "tests": ["node tests/site/block-pages.e2e.mjs"]
+    },
     "entry": {
       "specs": ["detail-pages", "site-shell"],
       "tests": [

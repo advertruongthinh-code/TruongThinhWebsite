@@ -5,6 +5,7 @@ source:
   - src/site/content/news.json
 tests:
   - tests/site/block-pages.test.mjs
+  - tests/site/block-pages.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
 updated: 2026-11-07

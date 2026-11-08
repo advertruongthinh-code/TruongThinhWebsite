@@ -61,3 +61,10 @@ test("kind fields: project sector, News group, date and reserved slugs", async (
     "n: slug xu-huong trùng đường dẫn nhóm hoặc phân trang",
   ]);
 });
+
+test("Projects list: all, then one filter page per sector with projects; filter slugs are reserved", async () => {
+  const { kindFieldErrors, projectListPages } = await import("../../scripts/site/block-pages.mjs");
+  const pages = projectListPages([{ id: "a", sector: "commercial" }, { id: "b", sector: "commercial" }]);
+  assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [["/projects/", 2], ["/projects/kinh-doanh/", 2]]);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", slugVi: "nha-o", slugEn: "home" }, "p"), ["p: slug nha-o trùng đường dẫn lọc công trình"]);
+});

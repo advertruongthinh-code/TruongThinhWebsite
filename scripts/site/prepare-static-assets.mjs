@@ -10,7 +10,7 @@ import { matchesAdvertisingFilter } from "../../src/site/advertising-products/la
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
-import { KINDS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, projectListPages, projectListSource, renderBlockPage, renderNewsListPage, renderProjectListPage } from "./block-pages.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -316,7 +316,10 @@ for (const sector of SECTORS) {
   const html = await readFile(file, "utf8");
   if (!html.includes("<!-- project-strip -->")) throw new Error(`${sector}/index.html lost <!-- project-strip -->`);
   const projectIds = blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id);
-  const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }] }, blockContext) : "";
+  // Dòng mũi tên dưới dải dẫn tới trang công trình đã lọc theo mảng (projects R1, R2).
+  const more = sector === "residential" ? { vi: "Xem các công trình nhà ở", en: "See our residential projects" } : { vi: "Xem các công trình kinh doanh", en: "See our commercial projects" };
+  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi/projects/${PROJECT_FILTERS[sector]}/`, hrefEn: `/en/projects/${PROJECT_FILTERS[sector]}/` };
+  const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }, cta] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
 }
 const frameTemplates = new Map();
@@ -334,6 +337,11 @@ for (const listPage of newsListPages(blockContent.news)) {
   const destination = path.join(outputRoot, newsListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
+}
+for (const listPage of projectListPages(blockContent.projects)) {
+  const destination = path.join(outputRoot, projectListSource(listPage));
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, renderProjectListPage(frameTemplates.get("about"), listPage), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

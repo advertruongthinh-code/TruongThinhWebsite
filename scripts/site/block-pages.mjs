@@ -139,52 +139,95 @@ const newsCard = (post) => {
   ].join("");
 };
 
-export const renderNewsListPage = (template, listPage) => {
-  const vi = `${PUBLIC_ORIGIN}/vi${listPage.path}`;
-  const en = `${PUBLIC_ORIGIN}/en${listPage.path}`;
-  const groupName = listPage.group ? NEWS_GROUPS[listPage.group] : { vi: "Tin tức", en: "News" };
-  const suffix = listPage.number > 1 ? { vi: ` — trang ${listPage.number}`, en: ` — page ${listPage.number}` } : { vi: "", en: "" };
+// Khung trang danh sách (News, Công trình) dựng trên trang Giới thiệu: head SEO, namespace, link đổi ngôn ngữ, h1 và hàng lọc.
+const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body }) => {
+  const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
+  const en = `${PUBLIC_ORIGIN}/en${listPath}`;
   const head = [
-    `<title data-en="${escapeHtml(groupName.en + suffix.en)} — Trường Thịnh">${escapeHtml(groupName.vi + suffix.vi)} — Trường Thịnh</title>`,
+    `<title data-en="${escapeHtml(title.en)} — Trường Thịnh">${escapeHtml(title.vi)} — Trường Thịnh</title>`,
     `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
     `<link rel="alternate" hreflang="vi" href="${vi}" />`,
     `<link rel="alternate" hreflang="en" href="${en}" />`,
     `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
   ].join("\n    ");
-  const chips = listPage.groups.map((group) => {
-    const label = group ? NEWS_GROUPS[group] : { vi: "Tất cả", en: "All" };
-    const current = group === listPage.group ? ' aria-current="true"' : "";
-    return `<a class="blk-news-filter__chip" href="/vi/news/${group ? `${group}/` : ""}"${current} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
-  }).join("");
-  const pager = listPage.count > 1 ? `<nav class="blk-news-pager" aria-label="Trang" data-en-aria-label="Pages">${Array.from({ length: listPage.count }, (_, index) => {
-    const path = index ? `${listPage.base}page/${index + 1}/` : listPage.base;
-    return `<a href="/vi${path}"${index + 1 === listPage.number ? ' aria-current="page"' : ""}>${index + 1}</a>`;
-  }).join("")}</nav>` : "";
+  const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
   const main = [
     '<header class="blk blk-article-head section-gap" data-header-tone="ink">',
-    `  <h1 class="blk-article-head__title" data-en="${escapeHtml(groupName.en)}">${escapeHtml(groupName.vi)}</h1>`,
-    `  <nav class="blk-news-filter" aria-label="Nhóm bài viết" data-en-aria-label="Article groups">${chips}</nav>`,
+    `  <h1 class="blk-article-head__title" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
+    `  <nav class="blk-news-filter" aria-label="${escapeHtml(filterLabel.vi)}" data-en-aria-label="${escapeHtml(filterLabel.en)}">${chipLinks}</nav>`,
     "</header>",
-    `<section class="blk blk-news-list section-gap" data-header-tone="ink"><div class="blk-news-cards__grid">${listPage.posts.map(newsCard).join("")}</div>${pager}</section>`,
+    body,
   ].join("\n");
   return [
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
-    [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(`Bài viết tư vấn về ${groupName.vi.toLowerCase()} từ Trường Thịnh.`)}${middle}${escapeHtml(`Advice articles on ${groupName.en.toLowerCase()} from Trường Thịnh.`)}"`, "meta description"],
-    ['data-barba-namespace="about"', 'data-barba-namespace="news"', "namespace"],
-    ['href="/vi/about/" data-language-option="vi"', `href="/vi${listPage.path}" data-language-option="vi"`, "language vi"],
-    ['href="/en/about/" data-language-option="en"', `href="/en${listPage.path}" data-language-option="en"`, "language en"],
+    [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(description.vi)}${middle}${escapeHtml(description.en)}"`, "meta description"],
+    ['data-barba-namespace="about"', `data-barba-namespace="${namespace}"`, "namespace"],
+    ['href="/vi/about/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
+    ['href="/en/about/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
     // Bỏ aria-current của menu trước khi chèn thân trang, vì thanh phân trang cũng dùng aria-current="page".
     [' aria-current="page"', "", "menu current page"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${main}\n      </main>`, "main"],
   ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), template);
 };
 
+export const renderNewsListPage = (template, listPage) => {
+  const name = listPage.group ? NEWS_GROUPS[listPage.group] : { vi: "Tin tức", en: "News" };
+  const suffix = listPage.number > 1 ? { vi: ` — trang ${listPage.number}`, en: ` — page ${listPage.number}` } : { vi: "", en: "" };
+  const pager = listPage.count > 1 ? `<nav class="blk-news-pager" aria-label="Trang" data-en-aria-label="Pages">${Array.from({ length: listPage.count }, (_, index) => {
+    const pagePath = index ? `${listPage.base}page/${index + 1}/` : listPage.base;
+    return `<a href="/vi${pagePath}"${index + 1 === listPage.number ? ' aria-current="page"' : ""}>${index + 1}</a>`;
+  }).join("")}</nav>` : "";
+  return renderListFrame(template, {
+    path: listPage.path, h1: name, namespace: "news",
+    title: { vi: name.vi + suffix.vi, en: name.en + suffix.en },
+    description: { vi: `Bài viết tư vấn về ${name.vi.toLowerCase()} từ Trường Thịnh.`, en: `Advice articles on ${name.en.toLowerCase()} from Trường Thịnh.` },
+    filterLabel: { vi: "Nhóm bài viết", en: "Article groups" },
+    chips: listPage.groups.map((group) => ({ href: `/vi/news/${group ? `${group}/` : ""}`, label: group ? NEWS_GROUPS[group] : { vi: "Tất cả", en: "All" }, current: group === listPage.group })),
+    body: `<section class="blk blk-news-list section-gap" data-header-tone="ink"><div class="blk-news-cards__grid">${listPage.posts.map(newsCard).join("")}</div>${pager}</section>`,
+  });
+};
+
 // Trường riêng của từng loại: mảng công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
 export const kindFieldErrors = (kind, page, at) => {
-  if (kind === "projects") return SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`];
+  if (kind === "projects") return [
+    ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
+    ...[page.slugVi, page.slugEn].filter((slug) => Object.values(PROJECT_FILTERS).includes(slug)).map((slug) => `${at}: slug ${slug} trùng đường dẫn lọc công trình`),
+  ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
   for (const slug of [page.slugVi, page.slugEn]) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug)) errors.push(`${at}: slug ${slug} trùng đường dẫn nhóm hoặc phân trang`);
   return errors;
+};
+
+// Trang toàn bộ công trình (projects R2): lưới so le như Sản phẩm quảng cáo, bấm thẻ mở trang công trình.
+// Lọc theo mảng bằng trang riêng có đường dẫn crawl được; slug lọc không được trùng slug công trình.
+export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" };
+const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
+export const projectListPages = (projects) => [null, ...SECTORS.filter((sector) => projects.some((project) => project.sector === sector))]
+  .map((sector, _index, sectors) => ({
+    sector, sectors,
+    path: sector ? `/projects/${PROJECT_FILTERS[sector]}/` : "/projects/",
+    projects: sector ? projects.filter((project) => project.sector === sector) : projects,
+  }));
+export const projectListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
+export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, projectListSource(listPage)]));
+
+const projectTile = (project) => [
+  `<a class="blk-project-tile" href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}">`,
+  `<img src="${project.cover.src}" width="${project.cover.width}" height="${project.cover.height}" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" loading="lazy" />`,
+  `<span class="blk-project-tile__meta" data-en="${escapeHtml(SECTOR_LABEL[project.sector].en)}">${escapeHtml(SECTOR_LABEL[project.sector].vi)}</span>`,
+  `<span class="blk-project-tile__title" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span>`,
+  "</a>",
+].join("");
+
+export const renderProjectListPage = (template, listPage) => {
+  const name = listPage.sector ? { vi: `Công trình ${SECTOR_LABEL[listPage.sector].vi.toLowerCase()}`, en: `${SECTOR_LABEL[listPage.sector].en} projects` } : { vi: "Công trình", en: "Projects" };
+  return renderListFrame(template, {
+    path: listPage.path, title: name, h1: name, namespace: "projects",
+    description: { vi: `${name.vi} do Trường Thịnh thiết kế, sản xuất và lắp đặt.`, en: `${name.en} designed, built and installed by Trường Thịnh.` },
+    filterLabel: { vi: "Lọc công trình", en: "Filter projects" },
+    chips: listPage.sectors.map((sector) => ({ href: `/vi/projects/${sector ? `${PROJECT_FILTERS[sector]}/` : ""}`, label: sector ? SECTOR_LABEL[sector] : { vi: "Tất cả", en: "All" }, current: sector === listPage.sector })),
+    body: `<section class="blk blk-project-grid section-gap" data-header-tone="ink">${listPage.projects.map(projectTile).join("")}</section>`,
+  });
 };

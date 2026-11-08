@@ -8,6 +8,7 @@ tests:
   - tests/site/static-locales.test.mjs
   - tests/site/blocks.test.mjs
   - tests/site/block-pages.test.mjs
+  - tests/site/block-pages.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
 updated: 2026-11-07
 ---
@@ -29,7 +30,7 @@ Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công tr�
 (`cta-arrow`) như Espacio `/en/interior-design` và `/en/kitchens` (owner chọn 2026-11-07, xem ảnh chụp trong thread): PC là
 hàng ảnh dọc so le cao thấp, tên công trình dưới ảnh; phone là dải trượt ngang. Nhà ở theo hình 1 (chữ đậm), Kinh doanh
 theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Owner chọn công trình tiêu biểu và thứ tự; bấm
-ảnh mở trang chi tiết (R3). Dòng mũi tên dẫn tới trang toàn bộ công trình đã lọc khi trang đó có (R2); trước đó ẩn.
+ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2).
 Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT qua Codex CLI (owner 2026-11-07)
 theo [Tạo ảnh](../operations/agent-rule-ad-images.md#tạo-ảnh) (owner 2026-10-26).
 
@@ -39,12 +40,15 @@ When lần dựng xong
 Then cuối trang Nhà ở hiện đúng 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
 ```
 
-### R2. Trang toàn bộ công trình (sau đợt nước rút)
+### R2. Trang toàn bộ công trình
 
 Dạng masonry như trang Advertising (owner 2026-10-12), hero tiêu đề hai dòng như `/en/projects`. Bộ lọc: Nhà ở, Kinh doanh và
 loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ có ảnh đại diện (cover) theo
 tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-của-card), tên công trình, loại, địa điểm.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
+Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`, lưới so le theo tỷ lệ
+ảnh bìa (CSS columns), thẻ ghi mảng và tên; lọc loại con làm sau. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug
+công trình không được trùng slug lọc.
 
 ```gherkin
 Given có 40 công trình, 25 nhà ở
@@ -114,7 +118,6 @@ Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Desig
 
 ## Gate còn mở
 
-- Đợt nước rút tới CMS (owner 2026-11-07): R1, R3, R4, R5; trang toàn bộ công trình (R2) làm sau.
 - Nghiên cứu SEO và từ khóa cho công trình, loại công trình, slug làm trước khi code, như trang sản phẩm quảng cáo (owner 2026-10-12).
 - Masonry công trình dùng chung hình học với [masonry Advertising](advertising-masonry.md) hay bản riêng; quyết khi viết plan.
 - Danh sách loại con và slug chốt theo Keyword Planner.
