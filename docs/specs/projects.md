@@ -73,7 +73,8 @@ Then còn 25 thẻ và trang chi tiết công trình đó mở ra
 
 ### R3. Trang chi tiết công trình
 
-Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, đoạn giới thiệu,
+Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, nền tối
+và lớp phủ .hero-shade như hero các trang tĩnh (owner 2026-11-08), đoạn giới thiệu,
 carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
 ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác và dòng xem toàn bộ. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
