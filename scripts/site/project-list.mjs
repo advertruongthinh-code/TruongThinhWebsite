@@ -108,8 +108,11 @@ export const renderProjectListPage = (template, listPage) => {
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(description.vi)}${middle}${escapeHtml(description.en)}"`, "meta description"],
     [/<script>\s*\/\/ Vào thẳng detail[\s\S]*?<\/script>\s*/, "", "advertising photo script"],
     ['data-barba-namespace="advertising-products"', 'data-barba-namespace="projects"', "namespace"],
+    // Khung Sản phẩm quảng cáo: chuyển mục hiện tại của navbar và menu sang Công trình.
     [' aria-current="page"', "", "menu current page", 2],
     ['<li class="selected">', "<li>", "nav selected"],
+    ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
+    ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
     ['href="/vi/advertising-products/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/advertising-products/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage), "main"],

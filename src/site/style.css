@@ -2599,6 +2599,7 @@ em {
     grid-template-columns:
       max-content minmax(0, 44.4609375px)
       max-content minmax(0, 44.4609375px)
+      max-content minmax(0, 44.4609375px)
       max-content;
     column-gap: 0;
   }
@@ -2613,6 +2614,10 @@ em {
 
   .desktop-nav li:nth-child(3) {
     grid-column: 5;
+  }
+
+  .desktop-nav li:nth-child(4) {
+    grid-column: 7;
   }
 }
 
