@@ -262,9 +262,10 @@ html.route-enter .site-header {
   transform: translateY(-100%);
 }
 
-/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
+/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3).
+   Danh sách property khớp thứ tự duration của rule gốc: màu, viền 0.3s, nền 0.15s; padding đổi ngay. */
 .site-header.is-follow {
-  transition-property: padding, color, border-color, background-color;
+  transition-property: color, border-color, background-color;
 }
 
 .site-header.is-route-pinned {
@@ -3374,8 +3375,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   font-style: italic;
 }
 
-/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08). */
-.detail-index-hero h1 .detail-title__strong {
+/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08).
+   Trang cụm, sản phẩm đổi khẩu hiệu thành <p id="page-title"> nên chọn theo id, không theo h1. */
+.detail-index-hero #page-title .detail-title__strong {
   font-style: italic;
 }
 
