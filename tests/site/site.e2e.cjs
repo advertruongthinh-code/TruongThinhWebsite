@@ -452,8 +452,8 @@ function assertPersistentNavigationContracts() {
   assert(
     projectsHeroSection &&
       projectsHeroContent?.includes('class="hero-kicker"') &&
-      projectsHeroContent?.includes("Sản phẩm quảng cáo") &&
-      projectsHeroContent?.includes('data-en="Advertising products"') &&
+      projectsHeroContent?.includes("Sản phẩm nổi bật của chúng tôi") &&
+      projectsHeroContent?.includes('data-en="Our featured products"') &&
       projectsHeroContent?.includes("để thương hiệu") &&
       projectsHeroContent?.includes("luôn trong tầm mắt") &&
       projectsHeroContent?.includes('data-en="Keep your brand"') &&
@@ -6116,6 +6116,11 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               headingColorIsInk: isInk(getComputedStyle(heading).color),
               headingFits: heading.scrollWidth <= heading.clientWidth + 1 && headingRect.left >= -1 && headingRect.right <= window.innerWidth + 1 && lineRects.every((line) => line.left >= -1 && line.right <= window.innerWidth + 1),
               headingFontSize: Number.parseFloat(getComputedStyle(heading).fontSize),
+              strongLineStyle: (() => {
+                const strong = heading.querySelector(".detail-title__strong");
+                const style = strong && getComputedStyle(strong);
+                return style ? { fontStyle: style.fontStyle, fontWeight: style.fontWeight } : null;
+              })(),
               headingLineCount: lineRects.length,
               headingText: normalize(heading.textContent),
               kickerText: normalize(kicker.textContent),
@@ -6177,7 +6182,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               ? "Keep your brand always in sight"
               : "để thương hiệu luôn trong tầm mắt";
           const expectedKicker =
-            locale === "en" ? "Advertising products" : "Sản phẩm quảng cáo";
+            locale === "en"
+              ? "Our featured products"
+              : "Sản phẩm nổi bật của chúng tôi";
           const expectedScroll = locale === "en" ? "SCROLL DOWN" : "CUỘN XUỐNG";
           assert(hero.tone === "ink" && hero.headerIsInk, `${locale} ${viewport.width}x${viewport.height}: header did not start in ink tone`);
           assert(hero.backgroundIsWhite && hero.headingColorIsInk, `${locale} ${viewport.width}x${viewport.height}: editorial hero is not white with ink content`);
@@ -6187,6 +6194,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
           assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment ${JSON.stringify({ text: hero.headingText, lines: hero.headingLineCount, fits: hero.headingFits, aligned: hero.titleAlignment })}`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
+          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "700", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
