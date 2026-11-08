@@ -213,6 +213,22 @@ assert.equal(
   ),
   false,
 );
+// Trang Công trình (projects R2) dùng chung runtime: khác gốc là chuyển trang, slug lạ dưới /projects/ là trang chi tiết.
+const projectPages = [{ filter: "all", vi: "", en: "" }, { filter: "kinh-doanh", vi: "kinh-doanh", en: "kinh-doanh" }];
+assert.equal(isAdvertisingQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/advertising-products/", projectPages), false, "Projects to Advertising is a page change");
+assert.equal(isAdvertisingQueryOnlyNavigation("https://example.test/vi/advertising-products/", "https://example.test/vi/projects/"), false, "Advertising to Projects is a page change");
+assert.equal(isAdvertisingQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/projects/kinh-doanh/", projectPages), true, "a Projects filter path is in place");
+assert.equal(isAdvertisingQueryOnlyNavigation("https://example.test/vi/projects/kinh-doanh/", "https://example.test/vi/projects/can-ho-go-soi-am/", projectPages), false, "a project detail path is a page change");
+assert.deepEqual(
+  parseAdvertisingBrowseLocation("https://example.test/vi/projects/kinh-doanh/?photo=photo-a", { ...browseFixture, pages: projectPages, photos: false }),
+  { category: "kinh-doanh", photo: null, tag: null },
+  "without a viewer ?photo= is ignored and the filter comes from the path",
+);
+assert.equal(
+  serializeAdvertisingBrowseLocation("https://example.test/en/projects/", { category: "kinh-doanh" }, [], projectPages).pathname,
+  "/en/projects/kinh-doanh/",
+  "Projects filter URLs keep the /projects/ root",
+);
 assert.equal(
   isAdvertisingQueryOnlyNavigation(
     "https://example.test/vi/residential/",

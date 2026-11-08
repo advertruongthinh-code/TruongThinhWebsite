@@ -7492,6 +7492,14 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   font-weight: 700;
 }
 
+/* Trang loại chưa có công trình (projects R2): dòng "đang cập nhật"; build và detail.js bật tắt hidden theo bộ lọc. */
+.projects-empty {
+  margin: 0;
+  padding-block: 2rem;
+  text-align: center;
+  color: var(--muted);
+}
+
 /**
  * Swiper 14.2.0
  * Most modern mobile touch slider and framework with hardware accelerated transitions

@@ -306,6 +306,19 @@
     const projectArtifact = container.dataset.barbaNamespace === "projects"
       && container.querySelector("script[data-project-artifact]");
     if (projectArtifact) {
+      const artifact = JSON.parse(projectArtifact.textContent);
+      // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
+      const emptyLine = container.querySelector(".projects-empty");
+      const rail = container.querySelector(".project-filters");
+      if (emptyLine && rail) {
+        const syncEmpty = () => {
+          const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
+          emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
+        };
+        const railObserver = new MutationObserver(syncEmpty);
+        railObserver.observe(rail, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
+        observers.push(railObserver);
+      }
       state.catalogReady = Promise.all([ensureAdvertisingDependencies(), import("/advertising-products/catalog-runtime.mjs")])
         .then(([, { mountAdvertisingCatalog }]) => {
           if (!abort.signal.aborted) {
@@ -313,10 +326,16 @@
               signal: abort.signal,
               scroll: window.TruongThinhMotion,
               softNavigation,
-              artifact: JSON.parse(projectArtifact.textContent),
+              artifact,
               viewer: false,
             });
           }
+        })
+        .catch((error) => {
+          console.error("[projects] catalog mount failed", error);
+          const grid = container.querySelector("[data-project-grid]");
+          const fallback = grid?.querySelector("noscript");
+          if (fallback && !grid.querySelector(".project-tile")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
         });
     }
 

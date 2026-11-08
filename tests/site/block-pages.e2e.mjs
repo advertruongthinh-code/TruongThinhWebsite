@@ -25,13 +25,13 @@ const cases = ["vi", "en"].flatMap((locale) => [
   { route: `/${locale}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
   // Trang loại của công trình đầu và một trang loại trống (nếu có): menu site dẫn tới đủ sáu loại.
   ...projectListPages(projects).filter((listPage) => listPage.filter.type === projects[0].type || (listPage.filter.type && !listPage.projects.length)).slice(0, 2)
-    .map((listPage) => ({ route: `/${locale}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined })),
+    .map((listPage) => ({ route: `/${locale}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined, empty: !listPage.projects.length })),
 ]);
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
 try {
-  for (const options of viewports) for (const { route, locale, link, switched } of cases) {
+  for (const options of viewports) for (const { route, locale, link, switched, empty } of cases) {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     const errors = [];
@@ -53,11 +53,13 @@ try {
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
         // Trang Công trình: runtime masonry quảng cáo đã mount (loại chưa có công trình thì lưới rỗng).
         masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].advertising-grid")),
+        emptyLine: document.querySelector(".projects-empty") ? getComputedStyle(document.querySelector(".projects-empty")).display !== "none" : false,
       }));
       assert.equal(state.h1, 1, `${at}: một h1`);
       assert.equal(state.lang, locale, `${at}: lang`);
       assert.equal(state.overflow, "", `${at}: tràn ngang`);
       assert.ok(state.masonry, `${at}: masonry chưa dựng`);
+      assert.equal(state.emptyLine, Boolean(empty), `${at}: dòng "đang cập nhật" chỉ ở loại chưa có công trình`);
       // Đổi ngôn ngữ dẫn tới chính trang này ở ngôn ngữ kia, không về trang khung.
       assert.ok(state.switchTo.includes(route), `${at}: link ngôn ngữ ${state.switchTo.join(", ")}`);
       if (link) {

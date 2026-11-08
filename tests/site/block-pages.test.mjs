@@ -103,3 +103,20 @@ test("menu featured: chosen projects in order; product groups chosen or by card 
     "m: featuredProductGroups w không phải nhóm Advertising hoặc bị lặp",
   ]);
 });
+
+test("Projects page: artifact JSON cannot close its script; empty type chips hidden except on their own page", async () => {
+  const { buildProjectArtifact, projectListPages, renderProjectListPage } = await import("../../scripts/site/project-list.mjs");
+  const template = readFileSync(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
+  const projects = [{ id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A </script><b>", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" } }];
+  const artifact = buildProjectArtifact(projects);
+  const pages = projectListPages(projects);
+  const html = (slug) => renderProjectListPage(template, pages.find((page) => (page.filter.slug ?? null) === slug), artifact);
+  const script = html(null).match(/<script type="application\/json" data-project-artifact>([\s\S]*?)<\/script>/)[1];
+  assert.ok(!script.includes("</"), "no </ inside the artifact script");
+  assert.equal(JSON.parse(script).cards[0].titleVi, "A </script><b>");
+  const chip = (page, filter) => page.match(new RegExp(`<a class="project-filter"[^>]*data-advertising-filter="${filter}"[^>]*>`))[0];
+  assert.match(chip(html(null), "can-ho"), / hidden/, "an empty type has no chip on the root page");
+  assert.doesNotMatch(chip(html(null), "van-phong"), / hidden/, "a type with projects keeps its chip");
+  assert.doesNotMatch(chip(html("can-ho"), "can-ho"), / hidden/, "an empty type keeps its own chip on its page");
+  assert.match(html("can-ho"), /class="projects-empty"/, "the empty line is in the page; CSS shows it when the grid has no card");
+});

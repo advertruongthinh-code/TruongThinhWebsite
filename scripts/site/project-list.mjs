@@ -77,7 +77,7 @@ const line = (text, className) => `<span class="detail-hero-line-mask"><span cla
 const main = ({ filter, projects }, artifact, photoView) => {
   // Mọi trang: kicker cố định là p, khẩu hiệu là h1; bộ lọc chỉ khác title, mô tả và URL. Hàng lọc, lưới, batch skeleton,
   // CTA đuôi theo contract DOM của catalog-runtime (giống trang quảng cáo, bỏ viewer và chip sản phẩm).
-  const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-advertising-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}" data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
+  const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-advertising-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
           <div class="hero-content" data-motion-hero-wrapper-zoom>
@@ -98,6 +98,7 @@ const main = ({ filter, projects }, artifact, photoView) => {
             <noscript>${projects.map(noscriptCard).join("")}</noscript>
             <div class="advertising-grid__cta-skeleton" data-advertising-cta-skeleton aria-hidden="true"></div>
           </div>
+          <p class="projects-empty" data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>
           <section class="detail-cta" data-advertising-grid-cta aria-labelledby="cta-title" data-header-tone="ink">
             <div class="detail-cta__copy">
               <h2 id="cta-title" data-motion-lines>${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}</h2>
@@ -106,7 +107,7 @@ const main = ({ filter, projects }, artifact, photoView) => {
           </section>
         </section>
         ${photoView}
-        <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\u003c")}</script>
+        <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>
       </main>`;
 };
 

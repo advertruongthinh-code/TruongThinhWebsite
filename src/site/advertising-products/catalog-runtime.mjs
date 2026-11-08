@@ -225,8 +225,10 @@ export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref, pages =
     return false;
   }
   // Đổi filter giờ đổi cả path cụm, sản phẩm; cùng locale thì vẫn là điều hướng tại chỗ.
-  const previousLocale = previous.pathname.match(ADVERTISING_PATH_PATTERN)?.[1];
+  const [, previousLocale, previousBase] = previous.pathname.match(ADVERTISING_PATH_PATTERN) || [];
   const [, , nextBase, nextRest] = next.pathname.match(ADVERTISING_PATH_PATTERN) || [];
+  // Trang quảng cáo và trang Công trình dùng chung mẫu path nhưng là hai trang: khác gốc thì không phải đổi lọc tại chỗ.
+  if (previousBase !== nextBase) return false;
   if (nextBase === "projects" && nextRest && !pages?.some((page) => `${page[previousLocale]}/` === nextRest)) return false;
   return previous.origin === next.origin
     && Boolean(previousLocale)
