@@ -7449,6 +7449,11 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   --advertising-gap: 15px;
 }
 
+/* Dòng hai khẩu hiệu hero trang Công trình: đậm như trang quảng cáo, thêm nghiêng (owner 2026-11-08). */
+.projects-title__accent {
+  font-style: italic;
+}
+
 .project-masonry {
   position: relative;
   columns: 2;
