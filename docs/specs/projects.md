@@ -97,6 +97,19 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 [card nhiều media](media-card.md) (mọi media cùng tỷ lệ cover, alt VI/EN riêng, không trùng) và SEO như
 [SEO media](media-seo.md): HTML đọc được khi không chạy JavaScript, JSON-LD, ảnh vào image sitemap.
 
+Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
+dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
+luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
+`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh.
+
+| Số ảnh | Chuỗi khối ([layout-library](layout-library.md)) |
+| --- | --- |
+| 4-5 | `hero-project`, `section-title`, `paragraph`, `facts-grid`, `image-single`, `paragraph`, `image-single`, `paragraph`, `image-pair` |
+| 6-7 | `hero-project`, `section-title`, `paragraph`, `gallery-carousel` (3), `facts-grid`, `paragraph`, `image-single`, `paragraph`, `image-single` |
+| 8-9 | như 6-7, `gallery-carousel` 5 ảnh, thêm `paragraph`, `image-pair` |
+| 10-12 | như 8-9, thêm `paragraph`, `image-single` |
+| 13+ | `gallery-carousel` (5), `facts-grid`, hai cặp `paragraph`, `image-pair`, `gallery-carousel` thứ hai (3-4), `paragraph`, `image-single` |
+
 ```gherkin
 Given bản nháp công trình mới có ảnh AI tạo chưa qua gate
 When owner bấm xuất bản
