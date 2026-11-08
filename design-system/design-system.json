@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-08T02:48:26Z",
+    "at": "2026-11-08T21:23:12Z",
     "via": "Claude Code",
-    "note": "Khối trang công trình và News (#694), trang Công trình (#701): CSS blk-* và lưới blk-project-grid trong bundle; FullMenu thêm link Tin tức"
+    "note": "Trang Công trình chạy runtime masonry quảng cáo (#727), hero tối trang loại và chi tiết công trình (#706, #718), đầu bài News nền tối, dàn chữ khối đoạn theo Espacio; Header, FullMenu, motion, content theo main"
   }
 }
