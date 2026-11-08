@@ -53,12 +53,15 @@ try {
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
         // Trang Công trình: runtime masonry quảng cáo đã mount (loại chưa có công trình thì lưới rỗng).
         masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].advertising-grid")),
+        // Chip loại chưa có công trình mang hidden thì phải không hiển thị (CSS rail không được đè).
+        hiddenChipsShown: [...document.querySelectorAll("[data-advertising-filter][hidden]")].filter((chip) => getComputedStyle(chip).display !== "none").length,
         emptyLine: document.querySelector(".projects-empty") ? getComputedStyle(document.querySelector(".projects-empty")).display !== "none" : false,
       }));
       assert.equal(state.h1, 1, `${at}: một h1`);
       assert.equal(state.lang, locale, `${at}: lang`);
       assert.equal(state.overflow, "", `${at}: tràn ngang`);
       assert.ok(state.masonry, `${at}: masonry chưa dựng`);
+      assert.equal(state.hiddenChipsShown, 0, `${at}: chip loại trống vẫn hiện`);
       assert.equal(state.emptyLine, Boolean(empty), `${at}: dòng "đang cập nhật" chỉ ở loại chưa có công trình`);
       // Đổi ngôn ngữ dẫn tới chính trang này ở ngôn ngữ kia, không về trang khung.
       assert.ok(state.switchTo.includes(route), `${at}: link ngôn ngữ ${state.switchTo.join(", ")}`);

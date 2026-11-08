@@ -306,21 +306,22 @@
     const projectArtifact = container.dataset.barbaNamespace === "projects"
       && container.querySelector("script[data-project-artifact]");
     if (projectArtifact) {
-      const artifact = JSON.parse(projectArtifact.textContent);
+      // Parse trong chuỗi promise: JSON hỏng đi vào nhánh lỗi (thẻ tĩnh), không lan lên shell rồi tải lại trang mãi.
+      const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent));
       // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");
-      if (emptyLine && rail) {
-        const syncEmpty = () => {
-          const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
-          emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
-        };
-        const railObserver = new MutationObserver(syncEmpty);
-        railObserver.observe(rail, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
-        observers.push(railObserver);
-      }
-      state.catalogReady = Promise.all([ensureAdvertisingDependencies(), import("/advertising-products/catalog-runtime.mjs")])
-        .then(([, { mountAdvertisingCatalog }]) => {
+      state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/advertising-products/catalog-runtime.mjs")])
+        .then(([artifact, , { mountAdvertisingCatalog }]) => {
+          if (emptyLine && rail) {
+            const syncEmpty = () => {
+              const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
+              emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
+            };
+            const railObserver = new MutationObserver(syncEmpty);
+            railObserver.observe(rail, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
+            observers.push(railObserver);
+          }
           if (!abort.signal.aborted) {
             return mountAdvertisingCatalog(container, {
               signal: abort.signal,

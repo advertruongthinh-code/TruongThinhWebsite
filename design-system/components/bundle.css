@@ -3924,6 +3924,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   z-index: 3;
 }
 
+/* Chip ẩn (loại chưa có công trình, projects R2) thắng display của rail. */
+.detail-index-hero .project-filter[hidden] {
+  display: none;
+}
+
 .detail-index-hero .project-filter {
   display: inline-block;
   padding: 0;
