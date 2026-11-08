@@ -1,5 +1,7 @@
 # Banner CTA
 
+Nguồn: CSS `.legacy-closer`, `.legacy-copy`, `.detail-cta`; spec [Ba trang con](../../../docs/specs/detail-pages.md).
+
 Khối "Giữ nghề. Không ngừng làm mới." cuối trang chủ, cả khối dẫn sang About.
 Rule chữ CTA chung (tiêu đề, nhãn nút, hover) dùng cho cả `.detail-cta` của Nhà ở,
 Kinh doanh, Giới thiệu và CTA Advertising ([trang con R10](../../../docs/specs/detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)).

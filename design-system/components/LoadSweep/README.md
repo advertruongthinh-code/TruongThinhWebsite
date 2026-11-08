@@ -1,5 +1,7 @@
 # Vệt sáng
 
+Nguồn: CSS `.media-gate`; spec [Tải ảnh](../../../docs/specs/media-delivery.md).
+
 Trạng thái chờ của khung ảnh nội dung trên mọi trang và của nút
 [Suggestion](../Suggestion/README.md) "Có thể bạn thích" chưa bật, tới khi ảnh
 tải và giải mã xong ([tải ảnh R6](../../../docs/specs/media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)).

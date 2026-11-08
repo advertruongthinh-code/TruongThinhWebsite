@@ -1,5 +1,7 @@
 # Project reel
 
+Nguồn: `scripts/site/project-reel.mjs`; CSS `.project-reel`; spec [Trang chủ](../../../docs/specs/page-home.md).
+
 Dải card công trình xếp so le trên trang chủ (3 tới 6 card, hiện 6). Markup
 `section.project-reel` trong `src/site/index.html`; card sinh lúc build từ
 `src/site/content/project-reel.json` ([trang chủ R8](../../../docs/specs/page-home.md#r8-rail-công-trình)).

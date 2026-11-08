@@ -1,5 +1,7 @@
 # Footer
 
+Nguồn: CSS `.site-footer`, `.site-invitation`; spec [Shell](../../../docs/specs/site-shell.md).
+
 Cuối mọi trang: lưới thông tin liên hệ `footer.site-footer`. Trang chủ thêm
 lời mời liên hệ và câu tuyên bố display `div.site-invitation` ngay trên footer;
 Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã mời.

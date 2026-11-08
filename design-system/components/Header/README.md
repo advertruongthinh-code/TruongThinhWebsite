@@ -1,5 +1,7 @@
 # Header
 
+Nguồn: CSS `.site-header`, `.desktop-nav`, `.menu-button`; spec [Shell](../../../docs/specs/site-shell.md), [Header trên điện thoại](../../../docs/specs/phone-header-scroll.md).
+
 Thanh điều hướng cố định đầu trang: brand lockup, nav ba route dịch vụ và nút
 mở full menu. Markup ở mọi trang (`<header class="site-header">`), style ở
 `src/site/style.css`, trạng thái do `src/site/motion.js` gắn.
