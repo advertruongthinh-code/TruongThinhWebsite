@@ -78,7 +78,8 @@ try {
   // Viewer: hiện ảnh primary đang có, chỉ đổi sang bản gốc khi bản gốc đã tải xong.
   // Card có bản gốc rộng hơn 1600 nên primary ở 1440px lấy cỡ 1600, viewer phải đổi sang bản gốc.
   await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")]
-    .find((card) => card.querySelector("img")?.srcset.includes("-1600.jxl")).querySelector("a").click());
+    // data-srcset có từ build; srcset chỉ có sau lazysizes, proxy chậm thì card đầu chưa chắc có (không phụ thuộc thứ tự nội dung).
+    .find((card) => card.querySelector("img")?.getAttribute("data-srcset")?.includes("-1600.jxl")).querySelector("a").click());
   await page.waitForFunction(() => {
     const image = document.querySelector("[data-advertising-photo-image]");
     return image?.complete && image.naturalWidth && !document.querySelector("[data-advertising-photo-loading=true]");

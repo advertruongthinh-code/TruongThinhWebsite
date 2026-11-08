@@ -194,7 +194,9 @@ try {
       const { width, height } = img.getBoundingClientRect();
       const shown = Math.max(width, height * img.getAttribute("width") / img.getAttribute("height")) * devicePixelRatio;
       const variant = Number(img.currentSrc.match(/-(\d+)\.\w+$/)?.[1]);
-      return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= 0.9 * shown };
+      // Phone chỉ tải WebP tới cỡ 960 (owner 2026-11-07, media-delivery): đủ nét là đạt 0.9x hoặc đã ở cỡ trần 960.
+      const cap = matchMedia("(hover: none) and (pointer: coarse)").matches ? 960 : Infinity;
+      return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= Math.min(0.9 * shown, cap) };
     }), selector);
     assert.ok(images.length, `${label}: ${selector} images loaded`);
     assert.deepEqual(images.filter(image => !image.sharp), [], `${label}: each image loads a variant of at least 0.9x its cropped visible width`);
