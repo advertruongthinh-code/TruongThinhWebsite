@@ -2587,13 +2587,16 @@ em {
   }
 }
 
-@media (min-width: 961px) and (max-width: 1200px) {
+/* Tới 1400px, 4 nhãn tiếng Việt không đủ chỗ cho kiểu lệch trái -10% của màn rộng: canh giữa, khe co lại như
+   Espacio dưới 1200px, để navbar không bị ẩn trên laptop 1280/1366. */
+@media (min-width: 961px) and (max-width: 1400px) {
   .desktop-nav {
     width: calc(100% + 30px);
     min-width: 0;
   }
 
   .desktop-nav ul {
+    left: auto;
     width: fit-content;
     max-width: 100%;
     margin-inline: auto;
@@ -2619,6 +2622,13 @@ em {
 
   .desktop-nav li:nth-child(4) {
     grid-column: 7;
+  }
+}
+
+/* Trên 1200px khe cột header là 70px: cho nav lấn 50px mỗi bên, chừa 20px tới logo và nút menu. */
+@media (min-width: 1201px) and (max-width: 1400px) {
+  .desktop-nav {
+    width: calc(100% + 100px);
   }
 }
 
