@@ -50,9 +50,11 @@ test("every page links to News from the hamburger menu only", () => {
   }
 });
 
-test("kind fields: project sector, News group, date and reserved slugs", async () => {
+test("kind fields: project sector and type, News group, date and reserved slugs", async () => {
   const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
-  assert.deepEqual(kindFieldErrors("projects", { sector: "office" }, "p"), ["p: sector phải là residential, commercial"]);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b" }, "p"), []);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-hotel"]);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
   assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
     "n: group phải là nha-o, kinh-doanh, xu-huong, quang-cao",
@@ -62,9 +64,34 @@ test("kind fields: project sector, News group, date and reserved slugs", async (
   ]);
 });
 
-test("Projects list: all, then one filter page per sector with projects; filter slugs are reserved", async () => {
-  const { kindFieldErrors, projectListPages } = await import("../../scripts/site/block-pages.mjs");
-  const pages = projectListPages([{ id: "a", sector: "commercial" }, { id: "b", sector: "commercial" }]);
-  assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [["/projects/", 2], ["/projects/kinh-doanh/", 2]]);
-  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", slugVi: "nha-o", slugEn: "home" }, "p"), ["p: slug nha-o trùng đường dẫn lọc công trình"]);
+test("Projects list: all, sectors with projects, every type; chips only for filters with projects; filter slugs are reserved", async () => {
+  const { kindFieldErrors, projectListPages, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
+  assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
+    ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-hotel/", 0],
+    ["/projects/showroom-cua-hang/", 0], ["/projects/cafe-nha-hang/", 1], ["/projects/van-phong/", 1],
+  ]);
+  const chipSlugs = (page) => page.chips.map((chip) => chip.slug);
+  assert.deepEqual(chipSlugs(pages[0]), [null, "kinh-doanh", "cafe-nha-hang", "van-phong"]);
+  assert.deepEqual(chipSlugs(pages[2]), [null, "kinh-doanh", "nha-pho", "cafe-nha-hang", "van-phong"]);
+  assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
+  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: slug nha-o trùng đường dẫn lọc công trình", "p: slug can-ho trùng đường dẫn lọc công trình"]);
+});
+
+test("menu featured: chosen projects in order; product groups chosen or by card count; unknown ids reported", async () => {
+  const { menuErrors, menuFeatured } = await import("../../scripts/site/block-pages.mjs");
+  const data = {
+    projects: [{ id: "a" }, { id: "b" }],
+    categories: [{ slug: "x" }, { slug: "y" }, { slug: "z" }],
+    cards: [{ category: "y" }, { category: "y" }, { category: "z" }],
+  };
+  const auto = menuFeatured({ featuredProjects: ["b", "a"], featuredProductGroups: [] }, data);
+  assert.deepEqual(auto.projects.map((project) => project.id), ["b", "a"]);
+  assert.deepEqual(auto.productGroups.map((group) => group.slug), ["y", "z", "x"]);
+  assert.deepEqual(menuFeatured({ featuredProjects: [], featuredProductGroups: ["x"] }, data).productGroups.map((group) => group.slug), ["x"]);
+  assert.deepEqual(menuErrors({ featuredProjects: ["a", "a", "c"], featuredProductGroups: ["w"] }, data, "m"), [
+    "m: featuredProjects a không có trong projects.json hoặc bị lặp",
+    "m: featuredProjects c không có trong projects.json hoặc bị lặp",
+    "m: featuredProductGroups w không phải nhóm Advertising hoặc bị lặp",
+  ]);
 });
