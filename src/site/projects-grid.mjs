@@ -1,6 +1,6 @@
 // Lưới trang Công trình (projects R2): cùng hình học masonry Advertising (layout-core: lề, gutter, số cột) và cùng engine
 // chuyển vị trí masonry-layout 0.4s. Bấm lọc thì card đổi chỗ tại trang, URL đổi sang trang lọc tương ứng (crawl được).
-import { advertisingSpacing, columnsForWidth } from "/advertising-products/layout-core.mjs";
+import { advertisingSpacing, columnsForWidth } from "./advertising-products/layout-core.mjs";
 
 const TRANSITION = "0.4s";
 

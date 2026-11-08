@@ -4171,7 +4171,9 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   column-gap: var(--project-gap);
 }
 
-@media (min-width: 751px) {
+/* Mốc cột theo columnsForWidth của layout-core (720 và 1005px), mốc gutter theo advertisingSpacing (961 và 1201px), nên
+   lúc runtime dựng xong số cột không nhảy. */
+@media (min-width: 720px) {
   .project-masonry {
     columns: 3;
   }
@@ -4180,6 +4182,11 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 @media (min-width: 961px) {
   .project-masonry {
     --project-gap: 25px;
+  }
+}
+
+@media (min-width: 1005px) {
+  .project-masonry {
     columns: 4;
   }
 }
