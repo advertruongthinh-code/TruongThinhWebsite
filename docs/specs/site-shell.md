@@ -169,7 +169,7 @@ Then trang chủ hiện lại ở 1500px; đi link mới thì trang đích bắt
 
 ### R9. Scrollbar
 
-Khi Locomotive chạy: một scrollbar overlay `.c-scrollbar`, document không có gutter; thumb ẩn lúc
+Khi Locomotive chạy: một scrollbar overlay `.c-scrollbar`, document không có gutter, kể cả giữa hai trang lúc route mềm (scrollbar native không lóe); thumb ẩn lúc
 nghỉ, hiện khi hover sát mép phải hoặc khi cuộn. Kéo thumb tới mép dưới chạm đúng giới hạn cuộn,
 lên mép trên về 0; menu mở giữa lúc kéo thì dừng kéo, giữ vị trí; cuộn bị khóa thì thumb không nhận
 kéo. Mỗi route, ngôn ngữ, Back chỉ có một `.c-scrollbar`. Dưới 981px, reduced motion, fallback:

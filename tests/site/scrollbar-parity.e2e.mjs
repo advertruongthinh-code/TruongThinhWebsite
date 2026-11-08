@@ -124,6 +124,23 @@ try {
   near((await measure(page)).y,locked.y,'menu restores scroll');
   assert.ok(await page.locator('[data-menu-open]').evaluate(e => e===document.activeElement),'menu restores focus');
   record('menu lock/release',await measure(page));
+  // Route mềm giữ document không gutter suốt lúc đổi trang: scrollbar native không được lóe lên rồi ẩn (giật ngang).
+  // Đọc class ở mỗi lần đổi (microtask) thay vì chờ frame, vì khoảng hở giữa gỡ trang cũ và mount trang mới có khi lọt
+  // giữa hai frame.
+  await page.goto(`${base}/vi/`); await ready(page);
+  await page.evaluate(() => {
+    window.__routeGutters = new Set();
+    const html = document.documentElement;
+    const check = () => window.__routeGutters.add(html.classList.contains('has-scroll-smooth') ? 'overlay' : 'native');
+    window.__routeObserver = new MutationObserver(check);
+    window.__routeObserver.observe(html, { attributes: true, attributeFilter: ['class'] });
+    check();
+  });
+  await page.click('.desktop-nav a[href="/vi/residential/"]');
+  await page.waitForFunction(() => location.pathname === '/vi/residential/' && !document.body.classList.contains('is-transitioning') && !document.documentElement.classList.contains('route-enter'));
+  const routeGutters = await page.evaluate(() => { window.__routeObserver.disconnect(); return [...window.__routeGutters]; });
+  assert.deepEqual(routeGutters,['overlay'],`route never drops to native scrollbar (saw ${routeGutters.join(', ')})`);
+  record('route no native flash',await measure(page));
   await page.setViewportSize({width:1440,height:900});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(() => !document.documentElement.classList.contains('has-scroll-smooth'));

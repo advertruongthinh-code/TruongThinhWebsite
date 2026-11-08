@@ -754,7 +754,7 @@ function assertPersistentNavigationContracts() {
     "The approved 0.75s cover / 1s reveal veil timing changed",
   );
   assert(
-    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
+    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\{ keepNativeHidden: true \}\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
       motionSource,
     ),
     "The outgoing Barba container is not removed from flow while fully covered",
