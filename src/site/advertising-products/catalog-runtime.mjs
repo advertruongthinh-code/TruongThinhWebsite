@@ -3414,12 +3414,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     node.setAttribute("aria-setsize", String(relatedLayout.layout.placements.length));
     return node;
   };
+  // Nút gợi ý rộng bằng ô suggestion (lưới một cột): ghim sizes theo solver thay cho "auto". Chrome chọn lại ảnh
+  // khi bề rộng "auto" đổi lúc request đang chạy, hủy rồi tải lại cùng URL (issue #655).
+  const pinSuggestionSizes = (width) => {
+    suggestionNode.querySelectorAll("img[srcset]").forEach((image) => {
+      const sizes = `${Math.ceil(width)}px`;
+      if (image.sizes !== sizes) image.sizes = sizes;
+    });
+  };
   const ensureSuggestionCard = () => {
     const placement = relatedLayout?.suggestionPlacement;
     if (!placement || !suggestionNode) return null;
     suggestionNode.hidden = false;
     suggestionNode.style.width = `${placement.pixelWidth}px`;
     suggestionNode.style.height = `${placement.pixelHeight}px`;
+    pinSuggestionSizes(placement.pixelWidth);
     suggestionNode.dataset.advertisingPlacementIndex = String(placement.index);
     suggestionNode.setAttribute("role", "listitem");
     suggestionNode.setAttribute("aria-posinset", String(placement.index + 1));

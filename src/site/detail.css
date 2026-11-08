@@ -3389,6 +3389,12 @@ body.is-advertising-photo .detail-process {
   display: none;
 }
 
+/* Vào thẳng detail: main rỗng tới khi runtime lộ photo view, margin của footer lọt qua làm trang lệch 64px rồi
+   footer trượt khỏi màn hình (CLS 0,44, issue #649). Giữ footer dưới mép viewport ngay từ lần vẽ đầu. */
+body.is-advertising-photo .page-shell > main {
+  min-height: 100vh;
+}
+
 body.is-advertising-photo .desktop-nav a[aria-current="page"],
 body.is-advertising-photo #site-menu[open] a[aria-current="page"] {
   pointer-events: auto;
