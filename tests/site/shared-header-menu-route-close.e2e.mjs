@@ -40,7 +40,15 @@ try {
   assert.ok(closed.ms < 1_300, `menu closed ${Math.round(closed.ms)}ms after tap`);
   assert.ok(closed.veil >= 0.999, `menu closed before the veil covered (opacity ${closed.veil})`);
   await page.waitForURL(`${origin}/vi/residential/`);
-  console.log(`[shared-header-menu-route-close] closed ${Math.round(closed.ms)}ms after tap, veil ${closed.veil}`);
+  // Mở lại menu sau route: chữ menu phải còn ẩn tới khi shutter phủ. syncDocumentState từng xóa style GSAP của menu
+  // nên cả 6 nhóm hiện ngay trên trang mới (owner 2026-11-08, PC).
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
+  const hiddenAtOpen = await page.evaluate(() => new Promise((resolve) => {
+    document.querySelector("[data-menu-open]").click();
+    requestAnimationFrame(() => resolve([...document.querySelectorAll("#site-menu .menu-group")].map((group) => Number(getComputedStyle(group).opacity))));
+  }));
+  assert.ok(hiddenAtOpen.every((opacity) => opacity === 0), `menu groups visible at open after route: ${hiddenAtOpen}`);
+  console.log(`[shared-header-menu-route-close] closed ${Math.round(closed.ms)}ms after tap, veil ${closed.veil}; reopen hidden`);
 } finally {
   await browser.close();
 }
