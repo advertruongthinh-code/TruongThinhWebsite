@@ -267,7 +267,8 @@ function assertPersistentNavigationContracts() {
         (menuSource.match(/class="menu-group"/g) || []).length === 4 &&
         (menuSource.match(/class="menu-group__title"/g) || []).length === 4 &&
         (menuSource.match(/class="menu-group__links"/g) || []).length === 4 &&
-        [15, 17].includes((menuSource.match(/class="menu-option"/g) || []).length) &&
+        // 16 hoặc 18 link con, gồm "Tin tức" trong nhóm Về chúng tôi (news R4).
+        [16, 18].includes((menuSource.match(/class="menu-option"/g) || []).length) &&
         !/<a\b[^>]*href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
         /class="menu-appointment"[\s\S]*?data-menu-calendar viewBox="0 0 58\.09 57\.82"/.test(menuSource) &&
         !/class="menu-foot"/.test(menuSource),

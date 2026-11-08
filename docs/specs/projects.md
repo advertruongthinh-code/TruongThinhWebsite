@@ -1,10 +1,15 @@
 ---
 title: Công trình nhà ở và kinh doanh
 status: planned
-source: []
-tests: []
+source:
+  - scripts/site/block-pages.mjs
+  - src/site/content/projects.json
+tests:
+  - tests/site/static-locales.test.mjs
+  - tests/site/blocks.test.mjs
+  - tests/site/block-pages.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-10-26
+updated: 2026-11-07
 ---
 
 # Công trình nhà ở và kinh doanh
@@ -53,6 +58,10 @@ Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md):
 carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
 ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác và dòng xem toàn bộ. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
+Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
+chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang Nhà ở (header, menu, footer), namespace `project`,
+route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
+hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
 
 ```gherkin
 Given công trình chưa có xác nhận khách đồng ý nêu tên

@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Trang Residential, Commercial và About
@@ -50,9 +50,8 @@ Then html có lang="en", title "Commercial spaces — Trường Thịnh", hero p
 
 ### R2. Residential và Commercial: section và nội dung
 
-`main#noi-dung` có một `h1`, mười một khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
-footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã
-mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
+`main#noi-dung` có một `h1`, mười hai khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
+footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
@@ -67,11 +66,12 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
+| 12 | `.blk-projects` | Dải công trình nhà ở như Espacio `/en/interior-design`, sinh từ `content/projects.json` ([projects R1](projects.md#r1-dải-công-trình-trên-trang-nhà-ở-và-kinh-doanh)) | Dải công trình kinh doanh như `/en/kitchens` | ink |
 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
+Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
 ```
 
 ### R3. About: section và nội dung
