@@ -66,6 +66,8 @@ cache hay untracked worktree.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
   publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
   Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
+  Đổi file hoặc selector trong dòng `Nguồn:` của README component thì sửa README đó, hoặc ghi
+  `Design System: không đổi - <lý do>` trong mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
