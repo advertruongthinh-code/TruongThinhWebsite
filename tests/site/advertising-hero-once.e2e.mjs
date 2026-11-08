@@ -306,37 +306,6 @@ async function runRouteReturnCase(browser, locale) {
   }
 }
 
-async function runLocaleDuringHeroCase(browser) {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await page.locator("[data-menu-open]").click();
-    await page.waitForFunction(() => {
-      const words = [...document.querySelectorAll(".detail-index-hero [data-motion-hero-title] .motion-word")];
-      return words.length > 0 && window.gsap?.isTweening(words);
-    });
-    await page.evaluate(() => {
-      const words = [...document.querySelectorAll(".detail-index-hero [data-motion-hero-title] .motion-word")];
-      window.gsap.getTweensOf(words).forEach((tween) => tween.timeScale(0.1));
-    });
-    await installHeroOnceProbe(page);
-    await page.evaluate(() => {
-      const original = window.TruongThinhDetail.revertSplitText;
-      window.TruongThinhDetail.revertSplitText = function (...args) {
-        const words = [...document.querySelectorAll(".detail-index-hero [data-motion-hero-title] .motion-word")];
-        window.__ttHeroOnceProbe.midMotionLocaleRebuild = window.gsap.isTweening(words);
-        return Reflect.apply(original, this, args);
-      };
-    });
-    await page.locator('#site-menu [data-language-option="en"]').click();
-    await page.waitForURL(`${baseUrl}/en/advertising-products/`);
-    await waitForHeroSettled(page);
-    return await readProbe(page);
-  } finally {
-    await page.close();
-  }
-}
-
 async function runFailedAdapterFallbackCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.route("**/advertising-products/catalog-runtime.mjs", (route) => route.abort("failed"));
@@ -396,10 +365,9 @@ try {
   const routeEntry = await runRouteEntryCase(browser);
   const routeReturn = await runRouteReturnCase(browser, "vi");
   const englishRouteReturn = await runRouteReturnCase(browser, "en");
-  const localeDuringHero = await runLocaleDuringHeroCase(browser);
   const fallback = await runFailedAdapterFallbackCase(browser);
   const pendingFailure = await runPendingAdapterFailureCase(browser);
-  console.log(JSON.stringify({ delayed, englishRouteReturn, fallback, localeDuringHero, pendingFailure, ready, routeEntry, routeReturn }, null, 2));
+  console.log(JSON.stringify({ delayed, englishRouteReturn, fallback, pendingFailure, ready, routeEntry, routeReturn }, null, 2));
 
   assert.deepEqual(delayed.queryTraffic, [],
     "pre-adapter plain filter click escaped to Barba/document query navigation");
@@ -448,13 +416,6 @@ try {
   for (const result of [routeReturn, englishRouteReturn]) {
     assert.deepEqual(result.heroWordStaggers, [0.2], "route return must reveal words once; filter must not replay them");
   }
-
-  assert.equal(localeDuringHero.sameDocument, true, "locale switch during hero motion created a new document");
-  assert.equal(localeDuringHero.midMotionLocaleRebuild, true, "locale fixture rebuilt after the hero tween ended");
-  assert.equal(localeDuringHero.heroTweenCalls, 0, "locale switch created a second Advertising hero tween");
-  assert.equal(localeDuringHero.heroHiddenSets, 0, "locale switch hid Advertising hero text during rebuild");
-  assert.deepEqual(localeDuringHero.heroClassDrops, [], "locale switch restarted hero CSS motion classes");
-  assert.deepEqual(localeDuringHero.heroTransitionRuns, [], "locale switch restarted hero CSS transitions");
 
   console.log("[advertising-hero-once] delayed-adapter queue and ten ready filter activations passed");
 } finally {

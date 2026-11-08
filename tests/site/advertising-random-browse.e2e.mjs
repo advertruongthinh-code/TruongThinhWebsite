@@ -104,9 +104,9 @@ try {
   await page.locator('[data-language-option="en"]').first().click();
   await page.waitForFunction(() => document.documentElement.lang === "en");
   await ready(page);
-  assert.equal((await read(page)).browse.seed, direct.browse.seed, "soft locale retains the current visit");
+  assert.equal((await read(page)).browse.seed, direct.browse.seed, "locale reload retains the current visit (handoff)");
   assert.deepEqual((await read(page)).filters.map(([slug]) => slug), filterOrder, "English keeps the filter order");
-  results.push({ case: "soft-locale", seed: direct.browse.seed });
+  results.push({ case: "locale-reload", seed: direct.browse.seed });
   const beforeReload = await read(page);
   await page.reload({ waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, beforeReload.browse.seed);
