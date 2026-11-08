@@ -37,10 +37,10 @@ const srcset = ({ src, width }) => {
 const projectCard = (project, visible) => {
   const type = PROJECT_TYPES[project.type].label;
   return [
-    `<figure class="project-card" role="listitem" data-project-card="${escapeHtml(project.id)}" data-project-filters="${PROJECT_FILTERS[project.sector]} ${project.type}" data-ratio="${(project.cover.height / project.cover.width).toFixed(4)}"${visible ? "" : " hidden"}>`,
+    `<figure class="project-masonry__card" role="listitem" data-project-card="${escapeHtml(project.id)}" data-project-filters="${PROJECT_FILTERS[project.sector]} ${project.type}" data-ratio="${(project.cover.height / project.cover.width).toFixed(4)}"${visible ? "" : " hidden"}>`,
     `<a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}">`,
     `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" loading="lazy" decoding="async" />`,
-    `<figcaption class="project-card__label"><span class="project-card__type" data-en="${escapeHtml(type.en)}">${escapeHtml(type.vi)}</span><span class="project-card__name" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span></figcaption>`,
+    `<figcaption class="project-masonry__card-label"><span class="project-masonry__card-type" data-en="${escapeHtml(type.en)}">${escapeHtml(type.vi)}</span><span class="project-masonry__card-name" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span></figcaption>`,
     "</a></figure>",
   ].join("");
 };
@@ -73,7 +73,7 @@ const main = ({ filter, projects, allProjects, chips }) => {
         <section class="project-index" id="du-an" aria-label="Ảnh công trình" data-en-aria-label="Project photos" data-header-tone="ink">
           <div class="project-masonry" data-project-masonry role="list">${allProjects.map((project) => projectCard(project, projects.includes(project))).join("")}</div>
           ${projects.length ? "" : '<p class="project-masonry__empty" data-en="Projects in this category are coming soon.">Công trình loại này đang cập nhật.</p>'}
-          <section class="detail-cta" aria-labelledby="cta-title" data-header-tone="ink">
+          <section class="detail-cta projects-cta" data-advertising-grid-cta aria-labelledby="cta-title" data-header-tone="ink">
             <div class="detail-cta__copy">
               <h2 id="cta-title" data-motion-lines>${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}</h2>
               <a class="legacy-link" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer" data-motion-fade data-motion-delay="0.3"><span class="portal-subtitle" data-en="Discuss an idea">Trao đổi ý tưởng</span></a>
