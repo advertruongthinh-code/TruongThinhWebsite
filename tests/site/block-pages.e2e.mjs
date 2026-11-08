@@ -15,9 +15,11 @@ const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/sit
 const viewports = [{ viewport: { width: 1440, height: 900 } }, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }];
 
 // Mỗi loại trang một mẫu: trang đầu trong dữ liệu; link cần bấm thử là link tới trang chi tiết đầu tiên.
+const otherLocale = (locale) => (locale === "vi" ? "en" : "vi");
 const cases = ["vi", "en"].flatMap((locale) => [
-  { route: pageHref("projects", locale, projects[0]), locale },
-  { route: pageHref("news", locale, news[0]), locale },
+  // switched: trang chi tiết có slug khác nhau giữa hai ngôn ngữ, bấm đổi ngôn ngữ phải tới đúng slug kia.
+  { route: pageHref("projects", locale, projects[0]), locale, switched: pageHref("projects", otherLocale(locale), projects[0]) },
+  { route: pageHref("news", locale, news[0]), locale, switched: pageHref("news", otherLocale(locale), news[0]) },
   { route: `/${locale}/news/`, locale, link: pageHref("news", locale, news.toSorted((a, b) => b.published.localeCompare(a.published) || a.id.localeCompare(b.id))[0]) },
   { route: `/${locale}${projectListPages(projects)[0].path}`, locale, link: pageHref("projects", locale, projects[0]) },
   { route: `/${locale}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
@@ -29,7 +31,7 @@ const cases = ["vi", "en"].flatMap((locale) => [
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
 try {
-  for (const options of viewports) for (const { route, locale, link } of cases) {
+  for (const options of viewports) for (const { route, locale, link, switched } of cases) {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     const errors = [];
@@ -64,6 +66,14 @@ try {
         const target = await anchor.getAttribute("href");
         const reached = await page.request.get(`${origin}${target}`);
         assert.ok(reached.ok(), `${at}: ${target} HTTP ${reached.status()}`);
+      }
+      if (switched && options.viewport.width > 960) {
+        await page.click("[data-menu-open]");
+        await page.locator(`.menu-language [data-language-option="${otherLocale(locale)}"]`).click();
+        await page.waitForURL((url) => url.pathname !== route, { timeout: 8000 }).catch(() => {});
+        const pathname = new URL(page.url()).pathname;
+        assert.equal(pathname, switched, `${at}: đổi ngôn ngữ tới ${pathname}`);
+        assert.ok((await page.request.get(`${origin}${pathname}`)).ok(), `${at}: ${pathname} không tồn tại`);
       }
       assert.deepEqual(errors, [], `${at}: lỗi console`);
     } catch (error) {

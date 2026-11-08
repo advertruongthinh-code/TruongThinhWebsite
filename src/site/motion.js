@@ -102,12 +102,15 @@
     const hiddenByBreakpoint = getComputedStyle(desktopNavList).display === "none";
     const items = [...desktopNavList.children];
     const listRect = desktopNavList.getBoundingClientRect();
-    const logoRect = headerLogo?.getBoundingClientRect();
+    // Logo đo theo box layout, bỏ transform: lúc intro scale(0) rect rộng 0 nên nav đè logo mà không bị ẩn.
+    const logoParent = headerLogo?.offsetParent;
+    const logoRight = logoParent
+      && logoParent.getBoundingClientRect().left + logoParent.clientLeft + headerLogo.offsetLeft + headerLogo.offsetWidth;
     const menuRect = openButton.getBoundingClientRect();
     const wraps = items.length > 0
       && items.some((item) => Math.abs(item.offsetTop - items[0].offsetTop) > 1);
     const clips = desktopNavList.scrollWidth > desktopNavList.clientWidth + 1;
-    const overlaps = logoRect && (listRect.left < logoRect.right - 1 || listRect.right > menuRect.left + 1);
+    const overlaps = Boolean(logoRight) && (listRect.left < logoRight - 1 || listRect.right > menuRect.left + 1);
     const hidden = hiddenByBreakpoint || items.length === 0 || wraps || clips || overlaps;
     desktopNav.classList.toggle("is-space-hidden", hidden);
     desktopNav.inert = hidden;
@@ -2602,7 +2605,11 @@
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
       // Trang cụm, sản phẩm Advertising: link ngôn ngữ đã mang path đúng slug của locale đích.
-      const option = isAdvertisingPath(url.pathname)
+      // Trang chi tiết công trình, News có slug VI, EN khác nhau: dùng link khi link locale hiện tại
+      // trỏ đúng trang đang xem (lọc tại chỗ chưa cập nhật link thì giữ cách đổi tiền tố).
+      const pathOf = (link) => link && new URL(link.href).pathname;
+      const linksMatchPage = pathOf(document.querySelector(`[data-language-option="${currentLanguage}"][href]`)) === url.pathname;
+      const option = (isAdvertisingPath(url.pathname) || linksMatchPage)
         && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
       url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
       url.hash = "";
