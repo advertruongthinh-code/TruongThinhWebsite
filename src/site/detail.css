@@ -3811,13 +3811,24 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-transform: uppercase;
 }
 
+/* Đầu trang bài News và trang danh sách: dải tối tràn mép như hero các trang tĩnh (nền --media-loading-surface,
+   chữ trắng, header inverse); nội dung giữ cùng cột với các khối .blk bên dưới. */
 .blk-article-head {
-  padding-top: calc(var(--header-row-height) + clamp(2rem, 6vw, 5rem));
+  width: auto;
+  /* Bỏ margin-top của .section-gap: dải tối sát mép trên như hero; khối kế tiếp vẫn cách bằng .section-gap của nó. */
+  margin: 0;
+  padding: calc(var(--header-row-height) + clamp(2rem, 6vw, 5rem)) max(var(--gutter), calc((100% - 1370px) / 2)) clamp(2.5rem, 6vw, 5rem);
+  background: var(--media-loading-surface);
+  color: var(--white);
+}
+
+.blk-article-head .blk-news-filter__chip {
+  color: inherit;
 }
 
 .blk-article-head__meta {
   margin: 0 0 1.25rem;
-  color: var(--muted);
+  color: rgb(255 255 255 / 0.72);
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;

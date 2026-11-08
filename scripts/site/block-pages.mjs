@@ -72,7 +72,7 @@ const articleHead = (page) => {
   const group = NEWS_GROUPS[page.group];
   const [year, month, day] = page.published.split("-");
   return [
-    '<header class="blk blk-article-head section-gap" data-header-tone="ink">',
+    '<header class="blk blk-article-head section-gap" data-header-tone="inverse">',
     `  <p class="blk-article-head__meta"><span data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span> · <time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
     `  <h1 class="blk-article-head__title" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
     "</header>\n",
@@ -153,7 +153,7 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
   ].join("\n    ");
   const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
   const main = [
-    '<header class="blk blk-article-head section-gap" data-header-tone="ink">',
+    '<header class="blk blk-article-head section-gap" data-header-tone="inverse">',
     `  <h1 class="blk-article-head__title" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
     `  <nav class="blk-news-filter" aria-label="${escapeHtml(filterLabel.vi)}" data-en-aria-label="${escapeHtml(filterLabel.en)}">${chipLinks}</nav>`,
     "</header>",
