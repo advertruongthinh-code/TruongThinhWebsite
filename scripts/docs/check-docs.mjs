@@ -105,12 +105,53 @@ if (process.env.DOCS_BASE) {
   const res = PR_NUMBER && await fetch(`${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}`, { headers: { authorization: `Bearer ${GH_TOKEN}` } });
   if (res && !res.ok) throw new Error(`sync: cannot read PR body, HTTP ${res.status}`);
   const body = res ? (await res.json()).body ?? '' : process.env.PR_BODY ?? '';
-  const changed = git('diff', '--name-only', `${process.env.DOCS_BASE}...HEAD`).split('\n').filter(Boolean);
+  const base = `${process.env.DOCS_BASE}...HEAD`;
+  const changed = git('diff', '--name-only', base).split('\n').filter(Boolean);
   const waived = /^Spec: không đổi - \S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
       errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add this line, alone and unformatted, to the PR body: Spec: không đổi - <lý do>`);
+    }
+  }
+  // Gate component (design-system.md R6): dòng `Nguồn:` đầu README component liệt kê file và selector CSS; PR đổi
+  // chúng mà không sửa README đó thì cần dòng `Design System: không đổi - <lý do>` trong mô tả PR.
+  // Selector của rule bao mỗi dòng CSS đổi: đi ngược tới `{` mở rule (bỏ qua khối con đã đóng).
+  const ruleHeads = new Map();
+  for (const file of changed.filter((f) => /^src\/site\/.*\.css$/.test(f) && existsSync(f))) {
+    const lines = readFileSync(file, 'utf8').split('\n');
+    const heads = new Set();
+    for (const [, start, count] of git('diff', '-U0', base, '--', file).matchAll(/^@@ -\S+ \+(\d+)(?:,(\d+))? @@/gm)) {
+      const first = Number(start);
+      const last = first + Math.max(Number(count ?? 1), 1) - 1;
+      for (let n = first; n <= last; n += 1) {
+        let depth = 0;
+        for (let i = Math.min(n, lines.length) - 1; i >= 0; i -= 1) {
+          depth += (lines[i].match(/\}/g) ?? []).length - (lines[i].match(/\{/g) ?? []).length;
+          if (lines[i].includes('{') && depth < 0) {
+            let k = i;
+            while (k > 0 && /,\s*$/.test(lines[k - 1])) k -= 1;
+            heads.add(lines.slice(k, i + 1).join(' '));
+            depth += 1;
+            if (!/^\s*@/.test(lines[i])) break;
+          }
+        }
+      }
+    }
+    ruleHeads.set(file, [...heads].join('\n'));
+  }
+  const dsWaived = /^Design System: không đổi - \S/m.test(body);
+  for (const readme of git('ls-files', 'design-system/components/*/README.md').split('\n').filter(Boolean)) {
+    const line = readFileSync(readme, 'utf8').match(/^Nguồn: (.*)$/m)?.[1] ?? '';
+    const refs = [...line.matchAll(/`([^`]+)`/g)].map(([, ref]) => ref);
+    const files = refs.filter((ref) => /^(src|scripts)\//.test(ref));
+    const selectors = refs.filter((ref) => ref.startsWith('.'));
+    const hit = [
+      ...files.filter((f) => changed.includes(f)),
+      ...selectors.filter((sel) => [...ruleHeads.values()].some((heads) => new RegExp(`${sel.replace(/[.]/g, '\\.')}(?![\\w-])`).test(heads))),
+    ];
+    if (hit.length && !changed.includes(readme) && !dsWaived) {
+      errors.push(`design-system sync: ${hit.join(', ')} changed but ${readme} did not; update it or add this line, alone and unformatted, to the PR body: Design System: không đổi - <lý do>`);
     }
   }
 }
@@ -126,6 +167,26 @@ for (const [name, raw] of rootVars) {
   const value = raw.replace(/^var\(--([\w-]+)\)$/, (whole, ref) => rootVars.get(ref) ?? whole);
   if (!tokenValues.has(name)) errors.push(`design drift: --${name} in :root of src/site/style.css has no token in design-system/tokens.json`);
   else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} is ${value} in CSS but the token says ${tokenValues.get(name)}`);
+}
+
+// Kiểu chữ (design-system.md R1.2): mỗi biểu thức hàm trong "CSS thật:" của type token có nguyên văn trong CSS site.
+const siteCss = ['src/site/style.css', 'src/site/detail.css'].map((f) => readFileSync(f, 'utf8')).join('\n').replace(/\s+/g, ' ');
+// Biểu thức hàm cân ngoặc bắt đầu tại vị trí i (min, max, clamp, calc, var).
+const balanced = (text, i) => {
+  let depth = 0;
+  for (let j = text.indexOf('(', i); j < text.length; j += 1) {
+    if (text[j] === '(') depth += 1;
+    if (text[j] === ')' && --depth === 0) return text.slice(i, j + 1);
+  }
+  return text.slice(i);
+};
+for (const style of (tokens.type?.groups ?? []).flatMap((group) => group.styles)) {
+  const real = style.usage?.split('CSS thật:')[1];
+  if (!real) continue;
+  for (const m of real.matchAll(/(?<![\w-])(?:clamp|min|max|calc|var)\(/g)) {
+    const expr = balanced(real, m.index).replace(/\s+/g, ' ');
+    if (!siteCss.includes(expr)) errors.push(`design drift: type token ${style.name} says CSS thật ${expr}, not found in src/site/style.css or detail.css`);
+  }
 }
 
 // File generated: preview, bundle.css và ảnh khớp source site (design-system.md R3); DESIGN.md và sidecar khớp design-system/ (R4).

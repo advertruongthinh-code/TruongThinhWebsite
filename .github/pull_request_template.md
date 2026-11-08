@@ -6,6 +6,8 @@ How:
 
 Spec: <spec đã cập nhật>, hoặc `Spec: không đổi - <lý do>`
 
+Design System: <README component đã cập nhật>, hoặc `Design System: không đổi - <lý do>` khi đổi file hoặc selector trong dòng `Nguồn:`
+
 Kiểm: <command và kết quả>
 
 <!--

@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-10-31
+updated: 2026-11-08
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -130,7 +130,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 
 ### R4. Đổi code là đổi spec
 
-`pnpm qa:docs` (thêm vào CI) chạy bốn check:
+`pnpm qa:docs` (thêm vào CI) chạy bốn check (check riêng của Design System ở [design-system R1, R6](design-system.md#r6-dòng-nguồn-và-gate-component)):
 
 | Check | Fail khi |
 | --- | --- |
