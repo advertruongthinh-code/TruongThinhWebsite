@@ -84,8 +84,9 @@ const filesWithExtension = (directory, extension) =>
     .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:240|480|960)\.[a-z]+$/.test(entry.name))
     .map((entry) => entry.name);
 
-assert.equal(filesWithExtension(projectDirectory, ".webp").length, 134, "Expected 134 project WebP assets");
-assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 21, "Expected 21 shared WebP assets");
+// Không đếm cứng số ảnh (content-independent-tests R1): content-contract R2 mục 5 kiểm mỗi file có consumer.
+assert.ok(filesWithExtension(projectDirectory, ".webp").length > 0, "Expected project WebP assets");
+assert.ok(filesWithExtension(sharedDirectory, ".webp").length > 0, "Expected shared WebP assets");
 
 const legacyDirectory = path.join(site, "assets/site");
 const legacyFiles = fs.existsSync(legacyDirectory)
