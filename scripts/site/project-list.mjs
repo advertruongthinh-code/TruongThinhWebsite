@@ -73,7 +73,7 @@ const main = ({ filter, projects, allProjects, chips }, colors) => {
         <section class="project-index projects-index" id="du-an" aria-label="Ảnh công trình" data-en-aria-label="Project photos" data-header-tone="ink">
           <div class="project-masonry" data-project-masonry role="list">${allProjects.map((project) => projectCard(project, projects.includes(project), colors[project.id])).join("")}</div>
           <div class="project-masonry__ghosts" data-project-ghosts aria-hidden="true"></div>
-          ${projects.length ? "" : '<p class="project-masonry__empty" data-en="Projects in this category are coming soon.">Công trình loại này đang cập nhật.</p>'}
+          <p class="project-masonry__empty" data-project-empty data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>
           <section class="detail-cta projects-cta" data-advertising-grid-cta data-project-cta aria-labelledby="cta-title" data-header-tone="ink">
             <div class="detail-cta__copy">
               <h2 id="cta-title" data-motion-lines>${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}</h2>

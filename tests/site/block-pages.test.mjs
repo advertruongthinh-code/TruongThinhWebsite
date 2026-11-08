@@ -76,7 +76,7 @@ test("Projects list: all, sectors with projects, every type; chips only for filt
   assert.deepEqual(chipSlugs(pages[0]), [null, "kinh-doanh", "cafe-nha-hang", "van-phong"]);
   assert.deepEqual(chipSlugs(pages[2]), [null, "kinh-doanh", "nha-pho", "cafe-nha-hang", "van-phong"]);
   assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
-  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: slug nha-o trùng đường dẫn lọc công trình", "p: slug can-ho trùng đường dẫn lọc công trình"]);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: id hoặc slug nha-o trùng đường dẫn lọc công trình", "p: id hoặc slug can-ho trùng đường dẫn lọc công trình"]);
 });
 
 test("menu featured: chosen projects in order; product groups chosen or by card count; unknown ids reported", async () => {
