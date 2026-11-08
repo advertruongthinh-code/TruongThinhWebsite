@@ -51,9 +51,10 @@ tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
-khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), dòng hai đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry tràn bề ngang cùng lề, gutter, số cột với
+khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), chỉ chữ nhấn "cảm hứng" ("inspire") đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry tràn bề ngang cùng lề, gutter, số cột với
 [masonry Advertising](advertising-masonry.md) (`src/site/projects-grid.mjs` dùng `layout-core.mjs`), đổi lọc tại chỗ bằng
-`masonry-layout` 0.4s và đổi URL sang trang lọc. Trang lọc: tên bộ lọc là h1, khẩu hiệu là p như trang cụm quảng cáo.
+`masonry-layout` 0.4s và đổi URL sang trang lọc. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
+mô tả và URL.
 Thẻ chỉ có ảnh; tên và loại hiện khi rê chuột, trên phone luôn hiện ở chân ảnh. Đuôi lưới như trang quảng cáo: các cột nối tiếp bằng khối màu chủ đạo của ảnh
 bìa (build tính bằng sharp), mờ và tan ra trắng sau CTA "Không gian tiếp theo dành cho bạn"; cuộn tới cuối thì chữ CTA ở giữa màn hình. Không JavaScript thì CSS columns xếp so le. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;

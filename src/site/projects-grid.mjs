@@ -43,7 +43,6 @@ export function mountProjectGrid(container, { signal } = {}) {
   if (!grid) return;
   const nodes = [...grid.querySelectorAll("[data-project-card]")];
   const filters = [...container.querySelectorAll("[data-project-filter]")];
-  const kicker = container.querySelector("[data-project-kicker]");
   const ghostLayer = container.querySelector("[data-project-ghosts]");
   const cta = container.querySelector("[data-project-cta]");
   let current = filters.find((link) => link.getAttribute("aria-current") === "true")?.dataset.projectFilter || "all";
@@ -107,7 +106,6 @@ export function mountProjectGrid(container, { signal } = {}) {
     if (!link || filter === current) return;
     current = filter;
     for (const item of filters) item.setAttribute("aria-current", String(item === link));
-    if (kicker) kicker.textContent = (document.documentElement.lang === "en" ? link.dataset.kickerEn : link.dataset.kickerVi) || kicker.textContent;
     document.title = (document.documentElement.lang === "en" ? link.dataset.titleEn : link.dataset.titleVi) || document.title;
     if (push) history.pushState({ ttProjectFilter: filter }, "", link.href);
     layout(true);
