@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
+import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Evidence thô dưới source-assets/ và research/ nằm trên PC của owner theo thiết kế (docs/index.md).
@@ -107,7 +108,7 @@ if (process.env.DOCS_BASE) {
   const body = res ? (await res.json()).body ?? '' : process.env.PR_BODY ?? '';
   const base = `${process.env.DOCS_BASE}...HEAD`;
   const changed = git('diff', '--name-only', base).split('\n').filter(Boolean);
-  const waived = /^Spec: không đổi - \S/m.test(body);
+  const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
@@ -116,31 +117,17 @@ if (process.env.DOCS_BASE) {
   }
   // Gate component (design-system.md R6): dòng `Nguồn:` đầu README component liệt kê file và selector CSS; PR đổi
   // chúng mà không sửa README đó thì cần dòng `Design System: không đổi - <lý do>` trong mô tả PR.
-  // Selector của rule bao mỗi dòng CSS đổi: đi ngược tới `{` mở rule (bỏ qua khối con đã đóng).
+  // Selector của rule bao mỗi dòng CSS đổi, cả dòng thêm (file mới) và dòng xóa (file base): xóa hoặc đổi tên rule
+  // cũng là đổi selector.
+  const mergeBase = git('merge-base', process.env.DOCS_BASE, 'HEAD').trim();
   const ruleHeads = new Map();
-  for (const file of changed.filter((f) => /^src\/site\/.*\.css$/.test(f) && existsSync(f))) {
-    const lines = readFileSync(file, 'utf8').split('\n');
-    const heads = new Set();
-    for (const [, start, count] of git('diff', '-U0', base, '--', file).matchAll(/^@@ -\S+ \+(\d+)(?:,(\d+))? @@/gm)) {
-      const first = Number(start);
-      const last = first + Math.max(Number(count ?? 1), 1) - 1;
-      for (let n = first; n <= last; n += 1) {
-        let depth = 0;
-        for (let i = Math.min(n, lines.length) - 1; i >= 0; i -= 1) {
-          depth += (lines[i].match(/\}/g) ?? []).length - (lines[i].match(/\{/g) ?? []).length;
-          if (lines[i].includes('{') && depth < 0) {
-            let k = i;
-            while (k > 0 && /,\s*$/.test(lines[k - 1])) k -= 1;
-            heads.add(lines.slice(k, i + 1).join(' '));
-            depth += 1;
-            if (!/^\s*@/.test(lines[i])) break;
-          }
-        }
-      }
-    }
-    ruleHeads.set(file, [...heads].join('\n'));
+  for (const file of changed.filter((f) => /^src\/site\/.*\.css$/.test(f))) {
+    const { added, removed } = changedLineNumbers(git('diff', '-U0', base, '--', file));
+    const before = removed.length ? git('show', `${mergeBase}:${file}`).split('\n') : [];
+    const after = existsSync(file) ? readFileSync(file, 'utf8').split('\n') : [];
+    ruleHeads.set(file, [...cssRuleHeads(after, added), ...cssRuleHeads(before, removed)].join('\n'));
   }
-  const dsWaived = /^Design System: không đổi - \S/m.test(body);
+  const dsWaived = /^Design System: không đổi - (?!<)\S/m.test(body);
   for (const readme of git('ls-files', 'design-system/components/*/README.md').split('\n').filter(Boolean)) {
     const line = readFileSync(readme, 'utf8').match(/^Nguồn: (.*)$/m)?.[1] ?? '';
     const refs = [...line.matchAll(/`([^`]+)`/g)].map(([, ref]) => ref);
