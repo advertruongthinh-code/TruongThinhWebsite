@@ -90,7 +90,7 @@ smooth scroll, chạy timeline mở (dựng một lần lúc rảnh, mỗi lần
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
 ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), sáu nhóm link (số, tiêu đề lớn một dòng, mục con), cột 3/2/1 (PC ba trên, ba dưới), vùng link cuộn riêng.
-Nav dựng lúc build (`sync-site-menu.mjs`) vào mọi trang nguồn: 01 Nhà ở, 02 Kinh doanh (trang mảng, rồi Công trình lọc theo `PROJECT_TYPES`), 03 Công trình (rồi công trình trong `content/menu.json`), 04 Quảng cáo (rồi 5 nhóm theo `menuFeatured`), 05 Về chúng tôi, 06 Liên hệ (mạng xã hội; chưa có link thì `aria-disabled` như footer). Click link thường: menu reverse
+Nav dựng lúc build (`sync-site-menu.mjs`) vào mọi trang nguồn: 01 Nhà ở, 02 Kinh doanh (trang mảng, rồi Công trình lọc theo `PROJECT_TYPES`), 03 Công trình (rồi công trình trong `content/menu.json`), 04 Quảng cáo (rồi 5 nhóm theo `menuFeatured`), 05 Về chúng tôi (không có Liên hệ), 06 Liên hệ (mạng xã hội; chưa có link thì `aria-disabled` như footer). Click link thường: menu reverse
 cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
