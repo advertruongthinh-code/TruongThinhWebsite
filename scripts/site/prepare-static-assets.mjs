@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import "./sync-brand-lockup.mjs";
+import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, projectListPages, projectListSource, renderBlockPage, renderNewsListPage, renderProjectListPage } from "./block-pages.mjs";
