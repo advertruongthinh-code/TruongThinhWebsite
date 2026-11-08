@@ -5,9 +5,9 @@ import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const ROOT_NAME = { vi: "Công trình", en: "Projects" };
-// Kicker trang gốc và khẩu hiệu hero, dòng hai đậm nghiêng (owner 2026-11-08).
+// Kicker trang gốc và khẩu hiệu hero; chỉ chữ nhấn của dòng hai đậm nghiêng (owner 2026-11-08), như em của hero Kinh doanh.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
-const SLOGAN = [{ vi: "Những công trình", en: "Projects" }, { vi: "truyền cảm hứng", en: "that inspire" }];
+const SLOGAN = { first: { vi: "Những công trình", en: "Projects" }, lead: { vi: "truyền", en: "that" }, accent: { vi: "cảm hứng", en: "inspire" } };
 const CTA = [{ vi: "Không gian tiếp theo", en: "The next space" }, { vi: "dành cho bạn", en: "is yours" }];
 const IMAGE_WIDTHS = [240, 480, 960];
 
@@ -60,7 +60,7 @@ const main = ({ filter, projects, allProjects, chips }, colors) => {
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
           <div class="hero-content" data-motion-hero-wrapper-zoom>
             <${kickerTag} class="hero-kicker" data-project-kicker data-motion-hero-kicker data-en="${escapeHtml((filter.kicker ?? filter.name).en)}">${escapeHtml((filter.kicker ?? filter.name).vi)}</${kickerTag}>
-            ${sloganOpen} data-motion-words data-motion-hero-title>${line(SLOGAN[0], "detail-title__quiet")}${line(SLOGAN[1], "detail-title__strong projects-title__accent")}${sloganClose}
+            ${sloganOpen} data-motion-words data-motion-hero-title>${line(SLOGAN.first, "detail-title__quiet")}<span class="detail-hero-line-mask"><span class="detail-title__quiet projects-title__accent" data-motion-word-source><span data-en="${SLOGAN.lead.en}">${SLOGAN.lead.vi}</span> <em data-en="${SLOGAN.accent.en}">${SLOGAN.accent.vi}</em></span></span>${sloganClose}
           </div>
           <div class="hero-browse">
             <div class="project-filters" role="group" aria-label="Lọc công trình" data-en-aria-label="Filter projects">
