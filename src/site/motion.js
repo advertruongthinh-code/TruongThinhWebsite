@@ -1034,6 +1034,7 @@
       document.body.classList.contains("menu-open") ||
       typeof window.LocomotiveScroll === "undefined"
     ) {
+      document.documentElement.classList.remove("has-scroll-smooth");
       window.scrollTo({ top: scrollY, behavior: "instant" });
       return;
     }
@@ -1131,13 +1132,15 @@
     if (logicalScrollLock) state.smoothScroll.stop();
   };
 
-  const clearSmoothScrollStyles = (state, scrollY) => {
+  const clearSmoothScrollStyles = (state, scrollY, keepNativeHidden = false) => {
     document.documentElement.classList.remove(
       "has-scroll-init",
-      "has-scroll-smooth",
       "has-scroll-scrolling",
       "has-scroll-dragging",
     );
+    // Giữa hai trang (route), giữ overflow hidden của has-scroll-smooth tới khi trang mới init lại:
+    // nếu bỏ, scrollbar native hiện vài frame rồi ẩn, layout giật một bề rộng scrollbar.
+    document.documentElement.classList.toggle("has-scroll-smooth", keepNativeHidden);
     state.container.style.removeProperty("transform");
     state.container.style.removeProperty("will-change");
     state.container.querySelectorAll("[data-scroll]").forEach((element) => {
@@ -1150,14 +1153,15 @@
     window.scrollTo({ top: scrollY, behavior: "instant" });
   };
 
-  const destroySmoothScroll = (state) => {
+  const destroySmoothScroll = (state, { keepNativeHidden = false } = {}) => {
     const scrollY = state.smoothScrollY;
+    keepNativeHidden &&= Boolean(state.smoothScroll);
     if (state.smoothScroll) {
       state.smoothScroll.stop();
       state.smoothScroll.destroy();
       state.smoothScroll = undefined;
     }
-    clearSmoothScrollStyles(state, scrollY);
+    clearSmoothScrollStyles(state, scrollY, keepNativeHidden);
 
     let cleanupFrames = 2;
     const finishNativeCleanup = () => {
@@ -1168,7 +1172,7 @@
       ) {
         return;
       }
-      clearSmoothScrollStyles(state, scrollY);
+      clearSmoothScrollStyles(state, scrollY, keepNativeHidden);
       cleanupFrames -= 1;
       if (cleanupFrames > 0) {
         window.requestAnimationFrame(finishNativeCleanup);
@@ -1910,7 +1914,7 @@
 
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
 
-  const unmountPage = () => {
+  const unmountPage = ({ keepNativeHidden = false } = {}) => {
     if (!pageState) return;
     const state = pageState;
     state.abort.abort();
@@ -1920,7 +1924,7 @@
       window.cancelIdleCallback(state.idleCallback);
     }
     if (state.heroTimer) window.clearTimeout(state.heroTimer);
-    destroySmoothScroll(state);
+    destroySmoothScroll(state, { keepNativeHidden });
     pageState = undefined;
     toneRanges = [];
   };
@@ -3160,7 +3164,8 @@
                 await advertisingCatalogLoad;
                 // Unmount chạy ngoài frame vừa kết thúc veil.
                 await nextTask();
-                unmountPage();
+                // Trang mới mount lại smooth scroll ngay sau; giữ scrollbar native ẩn qua khoảng hở (site-shell R9).
+                unmountPage({ keepNativeHidden: true });
                 data.current.container.hidden = true;
               },
               async beforeEnter(data) {
