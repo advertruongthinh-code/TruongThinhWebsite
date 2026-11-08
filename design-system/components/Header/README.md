@@ -29,6 +29,8 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 - Lockup sticky `191.88 × 49.64` mọi width.
 - Nav ẩn tới 750px; bốn link một hàng, chữ hoa 700 16/22.4, chỉ hiện khi
   đủ chỗ (từ khoảng 1040px; hẹp hơn thì `is-space-hidden`, còn nút menu).
+  Tới 1400px nav canh giữa, khe giữa các link co lại (tối đa 44.46px); trên
+  1400px khe 39.46px, lệch trái 10% như Espacio.
 - Hamburger `35 × 19`, nét 3px; hover hoặc focus thì dòng trên và dưới co
   một nửa, dòng giữa giãn gấp đôi; nhấn thì nút `scale(.8)`.
 - Underline nav cao 3px, cách chữ 4px; nghỉ `scaleX(0)` neo phải, hover hoặc

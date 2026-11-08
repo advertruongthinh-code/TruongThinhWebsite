@@ -45,7 +45,7 @@ const VIEWPORTS = [
 const HEADER_VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
-  ...[749, 750, 751, 760, 768, 820, 950, 960, 961, 1024, 1200, 1201, 1440].map((width) => ({
+  ...[749, 750, 751, 760, 768, 820, 950, 960, 961, 1024, 1200, 1201, 1280, 1366, 1440].map((width) => ({
     width,
     height: 900,
   })),
@@ -529,7 +529,7 @@ function assertPersistentNavigationContracts() {
       /@media \(min-width:\s*751px\) and \(max-width:\s*960px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*min\(435\.875px, 100%\);/.test(
         styleSource,
       ) &&
-      /@media \(min-width:\s*961px\) and \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*calc\(100% \+ 30px\);[\s\S]*?min-width:\s*0;[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;[\s\S]*?margin-inline:\s*auto;[\s\S]*?grid-template-columns:[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content;[\s\S]*?column-gap:\s*0;/.test(
+      /@media \(min-width:\s*961px\) and \(max-width:\s*1400px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*calc\(100% \+ 30px\);[\s\S]*?min-width:\s*0;[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?left:\s*auto;[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;[\s\S]*?margin-inline:\s*auto;[\s\S]*?grid-template-columns:[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content;[\s\S]*?column-gap:\s*0;/.test(
         styleSource,
       ) &&
       /\.desktop-nav\.is-space-hidden\s*\{[^}]*visibility:\s*hidden;[^}]*pointer-events:\s*none;/.test(styleSource) &&
@@ -2019,11 +2019,17 @@ async function runHeaderParityChecks() {
               expanded.navListMargin.every((value) => Math.abs(value - 16) <= 0.1) &&
               Math.abs(
                 expanded.navListLeft -
-                  (viewport.width > 1200 ? expanded.nav.width * -0.1 : 0),
+                  // Lệch trái -10% chỉ trên 1400px; tới 1400 nav canh giữa để 4 nhãn VI không bị ẩn.
+                  (viewport.width > 1400 ? expanded.nav.width * -0.1 : 0),
               ) <= 1,
             `Header vertical or x rhythm drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
           );
         }
+        // Laptop 1280/1366 phải thấy đủ 4 mục navbar (trước đây bị ẩn từ 1201 tới ~1340px).
+        assert(
+          viewport.width <= 1200 || !expanded.navHidden,
+          `Navbar is hidden at ${viewport.width}`,
+        );
         const expectedBrandWidth = expectedBrandHeaderWidth(viewport.width);
         const expectedBrandHeight = expectedBrandHeaderHeight(viewport.width);
         // Logo bám mép trên vùng padding, cùng khoảng với mép trái.
