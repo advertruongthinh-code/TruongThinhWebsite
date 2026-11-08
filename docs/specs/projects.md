@@ -3,6 +3,8 @@ title: Công trình nhà ở và kinh doanh
 status: planned
 source:
   - scripts/site/block-pages.mjs
+  - scripts/site/project-list.mjs
+  - src/site/projects-grid.mjs
   - src/site/content/projects.json
   - src/site/content/menu.json
 tests:
@@ -47,8 +49,12 @@ Dạng masonry như trang Advertising (owner 2026-10-12), hero tiêu đề hai d
 loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ có ảnh đại diện (cover) theo
 tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-của-card), tên công trình, loại, địa điểm.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
-Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`, lưới so le theo tỷ lệ
-ảnh bìa (CSS columns), thẻ ghi loại và tên. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
+Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
+Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker và
+khẩu hiệu hai dòng, hàng lọc canh giữa, dòng "Cuộn xuống", masonry tràn bề ngang cùng lề, gutter, số cột với
+[masonry Advertising](advertising-masonry.md) (`src/site/projects-grid.mjs` dùng `layout-core.mjs`), đổi lọc tại chỗ bằng
+`masonry-layout` 0.4s và đổi URL sang trang lọc. Trang lọc: tên bộ lọc là h1, khẩu hiệu là p như trang cụm quảng cáo.
+Thẻ chỉ có ảnh; tên và loại hiện khi rê chuột, trên phone luôn hiện ở chân ảnh. Không JavaScript thì CSS columns xếp so le. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;
 `showroom-cua-hang`, `cafe-nha-hang`, `van-phong` thuộc Kinh doanh; mỗi loại một trang lọc `/<locale>/projects/<loại>/`
 luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc chỉ hiện bộ lọc có công

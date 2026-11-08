@@ -65,7 +65,8 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
 });
 
 test("Projects list: all, sectors with projects, every type; chips only for filters with projects; filter slugs are reserved", async () => {
-  const { kindFieldErrors, projectListPages, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const { kindFieldErrors, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const { projectListPages } = await import("../../scripts/site/project-list.mjs");
   const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
   assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
     ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-hotel/", 0],

@@ -4,7 +4,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
-import { loadBlockContent, newsListPages, projectListPages } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.mjs";
+import { projectListPages } from "../../scripts/site/project-list.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
   // 22 route cố định (EN mobile-retail thành trang cụm) cộng hai locale của mỗi trang cụm, sản phẩm, card, công trình, bài News và trang danh sách News.

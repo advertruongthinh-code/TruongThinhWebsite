@@ -4162,44 +4162,120 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   margin-top: 3rem;
 }
 
-/* Trang toàn bộ công trình (projects R2): lưới so le theo tỷ lệ ảnh bìa, như lưới Sản phẩm quảng cáo. */
-.blk-project-grid {
-  columns: 3 18rem;
-  column-gap: clamp(1rem, 2.5vw, 2rem);
+/* Trang Công trình (projects R2): cùng lề, gutter, số cột với masonry Advertising. Không JavaScript thì CSS columns xếp
+   so le; src/site/projects-grid.mjs gắn .is-laid-out rồi đặt card tuyệt đối và trượt card khi đổi lọc. */
+.project-masonry {
+  --project-gap: 15px;
+  position: relative;
+  columns: 2;
+  column-gap: var(--project-gap);
 }
 
-.blk-project-tile {
-  display: block;
-  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
-  color: var(--ink);
-  text-decoration: none;
+@media (min-width: 751px) {
+  .project-masonry {
+    columns: 3;
+  }
+}
+
+@media (min-width: 961px) {
+  .project-masonry {
+    --project-gap: 25px;
+    columns: 4;
+  }
+}
+
+@media (min-width: 1201px) {
+  .project-masonry {
+    --project-gap: 35px;
+  }
+}
+
+.project-masonry.is-laid-out {
+  columns: auto;
+}
+
+.project-card {
+  position: relative;
+  margin: 0 0 var(--project-gap);
+  overflow: hidden;
   break-inside: avoid;
+  background: #e9e6df;
 }
 
-.blk-project-tile img {
+.project-card[hidden] {
+  display: none;
+}
+
+.is-laid-out .project-card {
+  position: absolute;
+  margin: 0;
+}
+
+.project-card > a {
+  display: block;
+  height: 100%;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.project-card > a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.project-card img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   transition: var(--media-hover-transform);
 }
 
-.blk-project-tile:hover img {
-  transform: scale(1.03);
+/* Tên công trình: phone luôn hiện ở chân ảnh; chuột thì hiện khi rê, như ảnh quảng cáo chỉ có ảnh lúc nghỉ. */
+.project-card__label {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.2rem;
+  padding: 2.5rem 1rem 0.9rem;
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.55));
+  text-shadow: var(--text-shadow-d);
 }
 
-.blk-project-tile__meta {
-  display: block;
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-size: 0.75rem;
+.project-card__type {
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.blk-project-tile__title {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 1.125rem;
-  line-height: 1.35;
+.project-card__name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .project-card__label {
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .project-card:hover .project-card__label,
+  .project-card > a:focus-visible .project-card__label {
+    opacity: 1;
+    transform: none;
+  }
+
+  .project-card:hover img {
+    transform: scale(1.03);
+  }
+}
+
+.project-masonry__empty {
+  margin: 0;
+  padding-block: 2rem;
+  text-align: center;
+  color: var(--muted);
 }
