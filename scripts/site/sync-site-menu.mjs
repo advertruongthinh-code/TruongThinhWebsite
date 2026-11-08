@@ -9,6 +9,14 @@ import { PROJECT_TYPES, menuFeatured, pageHref, projectTypeHref } from "./block-
 const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "src", "site");
 const consumers = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navPattern = /( *)<nav\s+class="menu-nav"[\s\S]*?<\/nav>/;
+const desktopListPattern = /(class="desktop-nav"[\s\S]*?\n)( *)<ul>[\s\S]*?<\/ul>/;
+// Navbar (site-shell R4): bốn mục chính theo đúng thứ tự nhóm 01-04 của menu.
+const DESKTOP_LINKS = [
+  { href: "/vi/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
+  { href: "/vi/commercial/", vi: "Không gian Kinh doanh", en: "Commercial spaces" },
+  { href: "/vi/projects/", vi: "Công trình", en: "Projects" },
+  { href: "/vi/advertising-products/", vi: "Sản phẩm Quảng cáo", en: "Advertising products" },
+];
 const FEATURED_PRODUCT_GROUPS = 5;
 // Nhãn menu dài hơn nhãn rail của taxonomy; nhóm mới chưa có nhãn menu thì dùng nhãn rail.
 const PRODUCT_GROUP_LABELS = {
@@ -94,15 +102,25 @@ export const renderMenuNav = ({ projects, productGroups }) => {
 };
 
 const [menu, projects] = await Promise.all(["menu.json", "projects.json"].map(async (file) => JSON.parse(await readFile(path.join(siteRoot, "content", file), "utf8"))));
+export const renderDesktopList = (indent) => [
+  "<ul>",
+  ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),
+  `${indent}</ul>`,
+].join("\n");
+
 const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING_CATEGORIES, cards: ADVERTISING_CARDS }));
 for (const relativePath of consumers) {
   const target = path.join(siteRoot, relativePath);
   const source = await readFile(target, "utf8");
   if (!navPattern.test(source)) throw new Error(`${relativePath} mất <nav class="menu-nav">`);
+  if (!desktopListPattern.test(source)) throw new Error(`${relativePath} mất <ul> của navbar`);
   // Tiêu đề nhóm của chính trang mang aria-current tĩnh (trang dựng từ khối gỡ nó trong block-pages).
   const section = relativePath.split("/")[1] ? relativePath.split("/")[0] : null;
   const current = section ? nav.replace(`class="menu-group__title" href="/vi/${section}/"`, `class="menu-group__title" href="/vi/${section}/" aria-current="page"`) : nav;
-  const next = source.replace(navPattern, (_match, indent) => `${indent}${current}`);
+  const markCurrent = (list) => section ? list.replace(`<li><a href="/vi/${section}/"`, `<li class="selected"><a href="/vi/${section}/" aria-current="page"`) : list;
+  const next = source
+    .replace(navPattern, (_match, indent) => `${indent}${current}`)
+    .replace(desktopListPattern, (_match, head, indent) => `${head}${indent}${markCurrent(renderDesktopList(indent))}`);
   if (next !== source) await writeFile(target, next, "utf8");
 }
 console.log(`[site-menu] synchronized ${consumers.length} menu consumers`);

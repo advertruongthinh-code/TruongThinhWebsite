@@ -289,7 +289,8 @@ function assertPersistentNavigationContracts() {
         /<nav\b(?=[^>]*\bid="header-menu-items")(?=[^>]*\bclass="[^"]*\bdesktop-nav\b)[^>]*>\s*<ul>[\s\S]*<li[\s\S]*<\/ul>/.test(
           headerSource,
         ) &&
-        (headerSource.match(/<li(?:\s[^>]*)?>\s*<a\b/g) || []).length === 3 &&
+        (headerSource.match(/<li(?:\s[^>]*)?>\s*<a\b/g) || []).length === 4 &&
+        headerSource.includes('<a href="/vi/projects/"') &&
         /<button\b(?=[^>]*\bid="header-menu-toggle")(?=[^>]*\bclass="[^"]*\bmenu-button\b)/.test(
           headerSource,
         ) &&
