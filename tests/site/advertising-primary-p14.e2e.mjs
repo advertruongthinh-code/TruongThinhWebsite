@@ -153,6 +153,9 @@ async function settle(page) {
   }, null, { timeout: 8_000 });
   await page.waitForFunction(() => ![...document.querySelectorAll("[data-advertising-related-card]")]
     .some((node) => node.getAnimations().some((animation) => animation.playState === "running")), null, { timeout: 8_000 });
+  // Veil vào trang phủ và chặn pointer tới khi clearRouteEntry gỡ html.route-enter và body.is-transitioning.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+    && !document.body.classList.contains("is-transitioning"), null, { timeout: 8_000 });
 }
 
 async function evidence(page) {
@@ -227,8 +230,9 @@ async function evidence(page) {
     ];
     const frameRect = frame?.getBoundingClientRect();
     const foregroundRect = foreground?.getBoundingClientRect();
+    // Chỉ item related thật; lớp ghost của card ảo (mount-budget.mjs) cũng là con của grid.
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
-      .filter((node) => node.getBoundingClientRect().width > 0);
+      .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
     const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionBox
       && !node.hidden && styles(node).display !== "none");
     const infoGap = Number.parseFloat(infoStyle?.rowGap) || 0;
@@ -387,7 +391,9 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       assert(actual.desktopNav.visibility === "hidden" && actual.desktopNav.inert,
         `${label}: links that do not fit must leave the header and keyboard order`);
     } else if (actual.viewport.windowWidth > 1200) {
-      assert(actual.desktopNav.visibility === "visible" && actual.desktopNav.visibleLinks === 3,
+      // Navbar 4 mục từ menu sáu nhóm (#704, #726): mọi link desktop đều hiện.
+      assert(actual.desktopNav.visibility === "visible" && actual.desktopNav.visibleLinks === 4
+        && actual.desktopNav.links.length === 4,
         `${label}: wide desktop links must be visible`);
     }
   }
@@ -436,7 +442,9 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   closeTo(actual.foreground.naturalWidth / actual.foreground.naturalHeight,
     actual.foreground.widthAttribute / actual.foreground.heightAttribute, `${label}: foreground identity ratio`, 0.005);
   assert(actual.background, `${label}: decorative background is missing`);
-  assert.equal(actual.background.currentSrc, actual.foreground.currentSrc, `${label}: background and foreground use different photos`);
+  // Cùng ảnh, có thể khác bản: foreground lên bản gốc, nền mờ có filter giữ bản vừa khung (progressive-loading R10).
+  const photoKey = (src) => new URL(src).pathname.replace(/(?:-\d+)?\.[a-z0-9]+$/i, "");
+  assert.equal(photoKey(actual.background.currentSrc), photoKey(actual.foreground.currentSrc), `${label}: background and foreground use different photos`);
   assert.equal(actual.background.alt, "", `${label}: background alt must be empty`);
   assert(!actual.background.ariaLabel && !actual.background.title, `${label}: background has an accessible name`);
   assert(actual.background.tabIndex < 0, `${label}: background is keyboard focusable`);
@@ -902,7 +910,8 @@ async function runP7PinterestContract(browser, locale) {
       const frameRect = frame?.getBoundingClientRect();
       const imageRect = image?.getBoundingClientRect();
       const glass = frame?.querySelector(":scope > .glass-surface");
-      const items = [...(relatedGrid?.children || [])].filter((node) => node.getBoundingClientRect().width > 0);
+      const items = [...(relatedGrid?.children || [])]
+        .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
       return {
         viewportHeight: visualViewport?.height || innerHeight, viewportWidth: innerWidth,
         columns: Number(relatedGrid?.dataset.advertisingRelatedColumns),
@@ -1012,7 +1021,8 @@ async function runP7SuggestionCellContract(browser, locale) {
       const suggestion = document.querySelector("[data-advertising-suggestion-card]");
       const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
       const rect = suggestion?.getBoundingClientRect().toJSON();
-      const items = [...(relatedGrid?.children || [])].filter((node) => node.getBoundingClientRect().width > 0);
+      const items = [...(relatedGrid?.children || [])]
+        .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
       return suggestion ? {
         first: items[0] === suggestion, rect, scrollHeight: suggestion.scrollHeight,
         inInfo: Boolean(suggestion.closest("[data-advertising-photo-info]")),
