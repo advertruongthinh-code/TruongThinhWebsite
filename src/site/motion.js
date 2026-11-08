@@ -185,27 +185,6 @@
       : window.scrollY;
   const getPageChildren = () =>
     pageState ? [...pageState.container.children] : [];
-  const getDominantSection = () => {
-    const candidates = pageState
-      ? [
-          ...pageState.container.querySelectorAll(
-            "main > section, main > figure, :scope > footer",
-          ),
-        ]
-      : [];
-    const visibleArea = (element) => {
-      const rect = element.getBoundingClientRect();
-      return Math.max(
-        0,
-        Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0),
-      );
-    };
-    return candidates.reduce(
-      (best, candidate) =>
-        !best || visibleArea(candidate) > visibleArea(best) ? candidate : best,
-      undefined,
-    );
-  };
 
   // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
   // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
@@ -1722,150 +1701,6 @@
         userPaused = !userPaused;
         syncMotionState();
       };
-      const isInside = (section, element) =>
-        Boolean(section && element && (section === element || section.contains(element)));
-      state.replayMotion = (section) => {
-        if (!section) return false;
-        const sectionReveals = revealItems.filter((item) => isInside(section, item));
-        const sectionGroups = revealGroups.filter((group) => isInside(section, group));
-        const sectionLegacyLabels = legacyLabels.filter((label) =>
-          isInside(section, label),
-        );
-        const sectionHeritageLines = heritageLines.filter((line) =>
-          isInside(section, line),
-        );
-        const sectionHeritageImages = heritageImages.filter((image) =>
-          isInside(section, image),
-        );
-        const sectionPortalTitles = portalTitles.filter(({ card }) =>
-          isInside(section, card),
-        );
-        const sectionPortalSubtitles = portalSubtitles.filter(({ card }) =>
-          isInside(section, card),
-        );
-        const sectionHeroWords = heroWords.filter((word) => isInside(section, word));
-        const sectionProjectTrack = isInside(section, projectTrack)
-          ? projectTrack
-          : null;
-        const hasSectionMotion = Boolean(
-          sectionReveals.length ||
-            sectionGroups.length ||
-            sectionLegacyLabels.length ||
-            sectionHeritageLines.length ||
-            sectionHeritageImages.length ||
-            sectionPortalTitles.length ||
-            sectionPortalSubtitles.length ||
-            sectionHeroWords.length ||
-            sectionProjectTrack ||
-            isInside(section, state.hero),
-        );
-        if (!hasSectionMotion) return false;
-        const tweenTargets = [
-          ...sectionReveals,
-          ...sectionGroups.flatMap((group) => [
-            ...group.querySelectorAll(".line-mask > span"),
-          ]),
-          ...sectionHeritageLines,
-          ...sectionPortalTitles.flatMap(({ card, lines }) => [
-            ...(lines.length
-              ? lines
-              : card.querySelectorAll(".portal-copy strong")),
-          ]),
-          ...sectionHeroWords,
-        ];
-        gsap.killTweensOf(tweenTargets);
-        if (sectionReveals.length) {
-          gsap.set(sectionReveals, { opacity: 0, y: 60 });
-        }
-        sectionGroups.forEach((group) =>
-          gsap.set(group.querySelectorAll(".line-mask > span"), { y: maskHiddenY }),
-        );
-        sectionLegacyLabels.forEach((label) => label.classList.remove("is-inview"));
-        if (sectionHeritageLines.length) {
-          gsap.set(sectionHeritageLines, { y: maskHiddenY });
-        }
-        sectionPortalTitles.forEach(({ card, lines }) =>
-          gsap.set(
-            lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-            { y: maskHiddenY },
-          ),
-        );
-        if (sectionHeroWords.length) gsap.set(sectionHeroWords, { opacity: 0 });
-        sectionHeritageImages.forEach((image) => image.classList.remove("is-inview"));
-        sectionPortalSubtitles.forEach(({ card }) =>
-          card.classList.remove("is-subtitle-inview"),
-        );
-        sectionProjectTrack?.classList.remove("is-inview");
-
-        window.requestAnimationFrame(() => {
-          if (sectionReveals.length) {
-            gsap.to(sectionReveals, {
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power3.out",
-            });
-          }
-          sectionGroups.forEach((group) =>
-            gsap.to(group.querySelectorAll(".line-mask > span"), {
-              y: "-0.1em",
-              duration: 1.9,
-              onComplete: openTextMasks,
-              ease: "power4.out",
-              stagger: 0.1,
-            }),
-          );
-          sectionLegacyLabels.forEach((label) => label.classList.add("is-inview"));
-          sectionHeritageLines.forEach((line) =>
-            gsap.to(line, {
-              y: "-0.1em",
-              duration: 1.9,
-              onComplete: openTextMasks,
-              delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
-              ease: "power4.out",
-            }),
-          );
-          sectionPortalTitles.forEach(({ card, index, lines }) =>
-            gsap.to(
-              lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-              {
-                y: "-0.1em",
-                duration: 1.9,
-                onComplete: openTextMasks,
-                delay: (index % 3) * 0.3,
-                ease: "power4.out",
-              },
-            ),
-          );
-          if (sectionHeroWords.length) {
-            gsap.to(sectionHeroWords, {
-              opacity: 1,
-              duration: 1,
-              stagger: 0.2,
-              ease: "expo.out",
-              clearProps: "opacity",
-            });
-          }
-          sectionHeritageImages.forEach((image) => image.classList.add("is-inview"));
-          sectionPortalSubtitles.forEach(({ card }) =>
-            card.classList.add("is-subtitle-inview"),
-          );
-          sectionProjectTrack?.classList.add("is-inview");
-          if (carouselEnabled && isInside(section, state.hero)) {
-            heroTimelines.forEach((timeline) => {
-              timeline.kill();
-              timelines.delete(timeline);
-            });
-            heroTimelines.clear();
-            if (slides.length) gsap.set(slides, { autoAlpha: 0 });
-            if (slides[0]) gsap.set(slides[0], { autoAlpha: 1 });
-            holdSettledSlide = false;
-            startSlide(0);
-            syncMotionState();
-          }
-        });
-        return hasSectionMotion;
-      };
       const heroObserver = state.hero
         ? new IntersectionObserver(([entry]) => {
             heroInView = entry.isIntersecting;
@@ -1904,7 +1739,6 @@
     }, state.container);
 
     return () => {
-      state.replayMotion = undefined;
       state.stopCarousel?.();
       observers.forEach((observer) => observer.disconnect());
       timelines.forEach((timeline) => timeline.kill());
@@ -2167,7 +2001,6 @@
 
   const openMenu = () => {
     if (dialog.open || routeInFlight) return;
-    if (pageState) pageState.menuContextSection = getDominantSection();
     // Tâm scale là giữa màn hình theo tọa độ từng child. "50vw 50vh" tính từ đỉnh child nên khi đã cuộn sâu tâm nằm
     // xa phía trên màn hình, cả lưới bay lên như card bị trộn (A04s, scrollY 3677: card dịch 315-354px). Đo trước
     // showModal, lúc layout còn sạch; đóng giữ nguyên origin này.
@@ -2538,66 +2371,8 @@
     );
   };
 
-  const updateLocaleLinks = (language) => {
-    document.querySelectorAll("a[href]").forEach((link) => {
-      const href = link.getAttribute("href");
-      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
-      const optionLanguage = link.dataset.languageOption;
-      const targetLanguage = optionLanguage === "en" ? "en" : optionLanguage === "vi" ? "vi" : language;
-      const url = new URL(href, window.location.href);
-      const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
-      url.pathname = `/${targetLanguage}${suffix}`;
-      link.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
-    });
-  };
 
-  const updateLocaleHead = (url, language) => {
-    const canonical = new URL(url.href);
-    canonical.search = "";
-    canonical.hash = "";
-    document.querySelector('link[rel="canonical"]')?.setAttribute(
-      "href",
-      canonical.href,
-    );
-    document
-      .querySelectorAll('link[rel="alternate"][hreflang]')
-      .forEach((link) => {
-        const locale = link.hreflang === "x-default" ? "vi" : link.hreflang;
-        if (locale !== "vi" && locale !== "en") return;
-        const alternate = new URL(canonical.href);
-        alternate.pathname = alternate.pathname.replace(
-          /^\/(?:vi|en)(?=\/|$)/,
-          `/${locale}`,
-        );
-        link.href = alternate.href;
-      });
-    document
-      .querySelector('meta[property="og:locale"]')
-      ?.setAttribute("content", language === "en" ? "en_US" : "vi_VN");
-    document
-      .querySelector('meta[property="og:url"]')
-      ?.setAttribute("content", canonical.href);
-  };
 
-  const nextFrame = () =>
-    new Promise((resolve) => window.requestAnimationFrame(resolve));
-
-  const replayVisibleSection = async (section) => {
-    const pageReplayed = Boolean(pageState?.replayMotion?.(section));
-    const detailReplayed = Boolean(
-      window.TruongThinhDetail?.replaySection?.(section),
-    );
-    const replayed = pageReplayed || detailReplayed;
-    await nextFrame();
-    await nextFrame();
-    return {
-      detailReplayed,
-      pageReplayed,
-      reducedMotion: reduceMotion,
-      replayed: Boolean(replayed),
-      section,
-    };
-  };
 
   const switchLocaleRoute = (language) => {
     const routeLocale = getRouteLocale();
@@ -2605,13 +2380,12 @@
     if (localeSwitchPromise) return localeSwitchPromise;
     const nextLanguage = language === "en" ? "en" : "vi";
     localeSwitchPromise = (async () => {
-      const section = pageState?.menuContextSection || getDominantSection();
-      const scrollY = Math.max(0, getPageScroll());
       if (nextLanguage === currentLanguage) {
         await closeMenu(false);
         return true;
       }
-      // Đổi ngôn ngữ dùng cùng veil với route mềm: phủ, đổi chữ dưới veil, rồi mở; reduced motion không veil.
+      // Owner 2026-11-08: đổi ngôn ngữ chạy lại toàn bộ motion như F5. Veil phủ rồi tải trang đích từ đầu
+      // (route-enter của head-inline mở veil, intro chạy lại, cuộn về đầu); replace để không thêm entry history.
       await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
@@ -2625,47 +2399,13 @@
         && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
       url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
       url.hash = "";
-      if (window.barba?.history?.update && window.barba.history.store) {
-        window.barba.history.update({
-          scroll: { x: window.scrollX, y: scrollY },
-          url: url.href,
-        });
-        window.barba.history.store({});
-        window.history.replaceState(window.history.state, "", url.href);
-      } else {
-        window.history.replaceState(window.history.state, "", url.href);
-      }
-      document.documentElement.dataset.routeLocale = nextLanguage;
-      const previousOverflowAnchor = document.documentElement.style.overflowAnchor;
-      document.documentElement.style.overflowAnchor = "none";
-      let replay;
-      let reveal;
       try {
-        await applyLanguage(nextLanguage);
-        updateLocaleLinks(nextLanguage);
-        updateLocaleHead(url, nextLanguage);
-        await nextFrame();
-        await nextFrame();
-        if (!reduceMotion) reveal = playRouteEnter();
-        replay = await replayVisibleSection(section);
-        pageState?.smoothScroll?.update();
-        setPageScroll(pageState, scrollY);
-        await nextFrame();
-        await nextFrame();
-      } finally {
-        document.documentElement.style.overflowAnchor = previousOverflowAnchor;
-        // Lỗi trước khi mở veil thì gỡ veil ngay để trang không kẹt dưới lớp trắng.
-        if (!reveal && !reduceMotion) clearRouteEntry();
-      }
-      setPageScroll(pageState, scrollY);
-      requestLayoutUpdate();
-      window.dispatchEvent(
-        new CustomEvent("site:section-replay", { detail: replay }),
-      );
-      await reveal;
+        window.localStorage.setItem("tt-lang", nextLanguage);
+      } catch {}
+      hardFallbackPending = true;
+      window.location.replace(url.href);
       return true;
     })().finally(() => {
-      if (pageState) pageState.menuContextSection = undefined;
       localeSwitchPromise = undefined;
     });
     return localeSwitchPromise;

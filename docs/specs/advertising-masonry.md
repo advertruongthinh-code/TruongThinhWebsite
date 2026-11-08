@@ -117,8 +117,8 @@ Mỗi lượt duyệt có một seed (`createAdvertisingSeed`). Pool của mỗi
 `>= 1.15`) và 2 ảnh thấp (`<= 0.9`), solver organic có thể đổi thứ tự trình bày để 12 card đầu có cả hai loại, không
 quá 4 ảnh cùng loại liền nhau; không cải thiện được thì giữ thứ tự seed và ghi lý do. Seed mới khi F5, mở URL trực tiếp,
 vào trang bằng link hoặc route mềm mới. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
-state, kể cả khi Back lúc route mềm đang chạy làm trình duyệt tải hẳn trang), đổi ngôn ngữ (route mềm giữ document; tải
-hẳn dùng handoff `sessionStorage` một lần, hết hạn sau 30s, chỉ nhận khi `navigate` đúng URL đích).
+state, kể cả khi Back lúc route mềm đang chạy làm trình duyệt tải hẳn trang), đổi ngôn ngữ (tải lại trang như F5, dùng handoff
+`sessionStorage` một lần, hết hạn sau 30s, chỉ nhận khi `navigate` đúng URL đích).
 
 ```gherkin
 Given lượt duyệt đang ở "In nhanh & decal"

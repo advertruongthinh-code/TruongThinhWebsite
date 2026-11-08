@@ -4198,226 +4198,73 @@ async function runLanguagePersistenceCheck() {
 async function runLanguageScrollRetentionCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
-    "locale switch stays in-place, keeps reading position, and replays only the visible section",
+    "locale switch reloads the target page like F5: top, full intro, no history entry",
     { route: "/vi/residential/?qa=scroll", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
+      // Owner 2026-11-08 (site-shell R5): đổi ngôn ngữ chạy lại toàn bộ motion như F5, tức tải lại trang đích.
       const switchLocale = async (expectedUrl) => {
         const expectedLanguage = expectedUrl.startsWith("/en/") ? "en" : "vi";
-        const before = await page.evaluate(() => {
-          const container = document.querySelector('[data-barba="container"]');
-          const candidates = [
-            ...container.querySelectorAll(
-              "main > section, main > figure, :scope > footer",
-            ),
-          ];
-          const visibleArea = (element) => {
-            const rect = element.getBoundingClientRect();
-            return Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
-          };
-          const section = candidates.reduce(
-            (best, candidate) =>
-              visibleArea(candidate) > visibleArea(best) ? candidate : best,
-            candidates[0],
-          );
-          const target = section?.matches("[data-motion-media]")
-            ? section
-            : section?.querySelector("[data-motion-media], [data-motion-up], [data-motion-fade]");
-          window.__ttLocaleSwitchProbe = {
-            container,
-            historyLength: history.length,
-            languageEvents: [],
-            replayEvents: [],
-            target,
-            targetClassChanges: [],
-            timeOrigin: performance.timeOrigin,
-          };
-          if (target) {
-            new MutationObserver(() => {
-              window.__ttLocaleSwitchProbe.targetClassChanges.push(
-                target.classList.contains("is-motion-inview"),
-              );
-            }).observe(target, { attributes: true, attributeFilter: ["class"] });
-          }
-          window.addEventListener(
-            "languagechange",
-            () => {
-              window.__ttLocaleSwitchProbe.languageEvents.push({
-                dialogOpen: document.querySelector("#site-menu")?.open,
-                language: document.documentElement.lang,
-              });
-            },
-            { once: true },
-          );
-          window.addEventListener(
-            "site:section-replay",
-            (event) => {
-              window.__ttLocaleSwitchProbe.replayEvents.push({
-                detailReplayed: event.detail?.detailReplayed,
-                pageReplayed: event.detail?.pageReplayed,
-                replayed: event.detail?.replayed,
-                sectionMatches: event.detail?.section === section,
-                targetMatches: target ? section?.contains(target) || section === target : true,
-              });
-            },
-            { once: true },
-          );
-          // Đổi ngôn ngữ phủ veil như route mềm (site-shell R5); ghi opacity cao nhất của veil.
-          const veil = document.querySelector(".route-veil");
-          window.__ttLocaleSwitchProbe.veilPeak = 0;
-          const sampleVeil = () => {
-            window.__ttLocaleSwitchProbe.veilPeak = Math.max(
-              window.__ttLocaleSwitchProbe.veilPeak,
-              Number(getComputedStyle(veil).opacity),
-            );
-            window.requestAnimationFrame(sampleVeil);
-          };
-          sampleVeil();
-          return {
-            historyLength: history.length,
-            sectionClass: section?.className,
-            sectionTag: section?.tagName,
-            scrollY: window.scrollY,
-            targetPresent: Boolean(target),
-            // Nhóm line và word replay qua GSAP không đổi class (detail-pages R5, home R11).
-            textPresent: Boolean(section?.querySelector("[data-motion-lines], [data-motion-words]")),
-            timeOrigin: performance.timeOrigin,
-          };
-        });
+        const before = await page.evaluate(() => ({
+          historyLength: history.length,
+          scrollY: window.scrollY,
+          timeOrigin: performance.timeOrigin,
+        }));
         await page.evaluate(() => {
           document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
         await waitForMenuVisualState(page);
-        await page
-          .locator(`#site-menu [data-language-option="${expectedLanguage}"]`)
-          .evaluate((button) => button.click());
-        await page.waitForURL(
-          (url) =>
-            `${url.pathname}${url.search}` === expectedUrl && url.hash === "",
-          { timeout: 6_000 },
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page
+            .locator(`#site-menu [data-language-option="${expectedLanguage}"]`)
+            .evaluate((button) => button.click()),
+        ]);
+        assert(
+          (await page.evaluate(() => `${location.pathname}${location.search}${location.hash}`)) === expectedUrl,
+          `Locale switch landed on the wrong URL (expected ${expectedUrl})`,
         );
         await page.waitForFunction(
-          (language) =>
-            document.documentElement.lang === language &&
-            !document.querySelector("#site-menu")?.open &&
-            window.__ttLocaleSwitchProbe?.replayEvents.length === 1,
-          expectedLanguage,
-          { timeout: 6_000 },
-        );
-        await page.evaluate(() => document.fonts?.ready);
-        await page.waitForFunction(
-          () => !document.body.classList.contains("is-transitioning"),
+          () =>
+            window.TruongThinhMotion &&
+            !document.documentElement.classList.contains("route-enter") &&
+            !document.body.classList.contains("is-transitioning"),
           null,
-          { timeout: 6_000 },
+          { timeout: 8_000 },
         );
         const after = await page.evaluate(() => ({
-          containerIdentity:
-            window.__ttLocaleSwitchProbe.container ===
-            document.querySelector('[data-barba="container"]'),
           historyLength: history.length,
-          languageEvents: window.__ttLocaleSwitchProbe.languageEvents,
-          replayEvents: window.__ttLocaleSwitchProbe.replayEvents,
-          scrollY: window.scrollY,
-          targetClassChanges: window.__ttLocaleSwitchProbe.targetClassChanges,
+          language: document.documentElement.lang,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          stored: localStorage.getItem("tt-lang"),
           timeOrigin: performance.timeOrigin,
-          transitioning: document.body.classList.contains("is-transitioning"),
-          veilPeak: window.__ttLocaleSwitchProbe.veilPeak,
         }));
         assert(
-          after.containerIdentity &&
-            after.timeOrigin === before.timeOrigin &&
+          after.timeOrigin !== before.timeOrigin &&
             after.historyLength === before.historyLength &&
-            !after.transitioning &&
-            after.veilPeak === 1,
-          `Locale switch replaced the document or skipped the route veil: ${JSON.stringify({ before, after })}`,
-        );
-        assert(
-          after.languageEvents.length === 1 &&
-            after.languageEvents[0].language === expectedLanguage &&
-            after.languageEvents[0].dialogOpen === false,
-          `Language changed before the menu finished closing: ${JSON.stringify(after.languageEvents)}`,
-        );
-        assert(
-          after.replayEvents[0]?.sectionMatches &&
-            after.replayEvents[0]?.targetMatches &&
-            (before.targetPresent
-              ? after.replayEvents[0]?.replayed &&
-                after.targetClassChanges.includes(false) &&
-                after.targetClassChanges.includes(true)
-              : before.textPresent
-                ? after.replayEvents[0]?.replayed === true
-                : after.replayEvents[0]?.replayed === false &&
-                  after.targetClassChanges.length === 0),
-          `The dominant section did not restart its motion: ${JSON.stringify({ before, after })}`,
-        );
-        assert(
-          Math.abs(after.scrollY - before.scrollY) <= 2,
-          `Locale switch moved the reading position: ${JSON.stringify({ before: before.scrollY, after: after.scrollY })}`,
+            after.language === expectedLanguage &&
+            after.stored === expectedLanguage &&
+            after.scrollY <= 1 &&
+            before.scrollY > 100,
+          `Locale switch did not reload the page from the top like F5: ${JSON.stringify({ before, after })}`,
         );
       };
-      const expectScroll = async (expected, label) => {
-        const actual = await page.evaluate(() => window.scrollY);
-        assert(
-          Math.abs(actual - expected) <= 2,
-          `${label}: expected ${expected}px, received ${actual}px`,
-        );
+      const scrollDown = async () => {
+        await page.evaluate(() => {
+          document.documentElement.style.scrollBehavior = "auto";
+          window.scrollTo(0, Math.min(1_700, document.documentElement.scrollHeight - innerHeight));
+        });
+        await page.waitForFunction(() => window.scrollY > 100);
       };
 
       await gotoRoute(page, "/vi/residential/?qa=scroll");
-      const expectedScroll = await page.evaluate(() => {
-        history.replaceState(
-          history.state,
-          "",
-          "/vi/residential/?qa=scroll",
-        );
-        document.documentElement.style.scrollBehavior = "auto";
-        const target = Math.min(1_700, document.documentElement.scrollHeight - innerHeight);
-        window.scrollTo(0, target);
-        return target;
-      });
-      await page.waitForFunction(
-        (target) => Math.abs(window.scrollY - target) <= 2,
-        expectedScroll,
-      );
-
+      await scrollDown();
       await switchLocale("/en/residential/?qa=scroll");
-      await expectScroll(expectedScroll, "VI to EN");
-
+      await scrollDown();
       await switchLocale("/vi/residential/?qa=scroll");
-      await expectScroll(expectedScroll, "EN to VI");
 
-      await gotoRoute(page, "/en/residential/?qa=direct-en");
-      await page.locator(".detail-media").scrollIntoViewIfNeeded();
-      await page.waitForFunction(
-        () =>
-          document
-            .querySelector(".detail-media [data-motion-media]")
-            ?.classList.contains("is-motion-inview"),
-        null,
-        { timeout: 3_000 },
-      );
-      const directEnglishScroll = await page.evaluate(() => {
-        const target = document.querySelector(".detail-media");
-        const rect = target.getBoundingClientRect();
-        const top = Math.max(0, rect.top + window.scrollY - (innerHeight - rect.height) / 2);
-        window.scrollTo(0, top);
-        return window.scrollY;
-      }).then(() => page.evaluate(async () => {
-        // Bước nhảy reveal các line group phía trên; SplitText reflow rồi dịch scrollY qua scroll
-        // anchoring. Lấy baseline khi vị trí đã giữ 30 frame.
-        await document.fonts?.ready;
-        let last = window.scrollY;
-        for (let stable = 0; stable < 30;) {
-          await new Promise((resolve) => requestAnimationFrame(resolve));
-          stable = window.scrollY === last ? stable + 1 : 0;
-          last = window.scrollY;
-        }
-        return last;
-      }));
-      await switchLocale("/vi/residential/?qa=direct-en");
-      await expectScroll(directEnglishScroll, "direct EN to VI");
       const routeTimeOrigin = await page.evaluate(() => performance.timeOrigin);
       const routeLink = await findRouteLink(
         page,
@@ -4431,7 +4278,7 @@ async function runLanguageScrollRetentionCheck() {
       assert(
         (await page.evaluate(() => performance.timeOrigin)) === routeTimeOrigin &&
           (await page.evaluate(() => document.documentElement.lang)) === "vi",
-        "Locale replaceState broke the next Barba route navigation",
+        "Locale reload broke the next Barba route navigation",
       );
       assertDiagnostics(diagnostics);
     },
@@ -4452,7 +4299,7 @@ async function runLocaleResponsivePreferenceChecks() {
     },
   ]) {
     await runPageCase(
-      `in-place locale switch ${testCase.label}`,
+      `locale switch reloads like F5 ${testCase.label}`,
       {
         route: "/vi/residential/?qa=locale-mode",
         viewport: testCase.viewport,
@@ -4472,69 +4319,47 @@ async function runLocaleResponsivePreferenceChecks() {
           await page.evaluate(() => window.scrollTo(0, 1_200));
           await page.waitForTimeout(120);
         }
-        const before = await page.evaluate(() => {
-          window.__ttLocaleModeProbe = {
-            container: document.querySelector('[data-barba="container"]'),
-            replay: null,
-          };
-          window.addEventListener(
-            "site:section-replay",
-            (event) => {
-              window.__ttLocaleModeProbe.replay = {
-                reducedMotion: event.detail?.reducedMotion,
-                replayed: event.detail?.replayed,
-              };
-            },
-            { once: true },
-          );
-          return {
-            historyLength: history.length,
-            scrollY: window.scrollY,
-            timeOrigin: performance.timeOrigin,
-          };
-        });
+        const before = await page.evaluate(() => ({
+          historyLength: history.length,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          timeOrigin: performance.timeOrigin,
+        }));
         await page.evaluate(() => {
           document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
-        await page
-          .locator('#site-menu [data-language-option="en"]')
-          .evaluate((link) => link.click());
+        // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): về đầu trang, intro chạy lại.
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page
+            .locator('#site-menu [data-language-option="en"]')
+            .evaluate((link) => link.click()),
+        ]);
         await page.waitForFunction(
           () =>
+            window.TruongThinhMotion &&
             location.pathname === "/en/residential/" &&
             document.documentElement.lang === "en" &&
-            !document.querySelector("#site-menu")?.open &&
-            window.__ttLocaleModeProbe?.replay &&
+            !document.documentElement.classList.contains("route-enter") &&
             !document.body.classList.contains("is-transitioning"),
           null,
-          { timeout: 6_000 },
+          { timeout: 8_000 },
         );
         const after = await page.evaluate(() => ({
-          containerIdentity:
-            window.__ttLocaleModeProbe.container ===
-            document.querySelector('[data-barba="container"]'),
           historyLength: history.length,
-          replay: window.__ttLocaleModeProbe.replay,
-          scrollY: window.scrollY,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          search: location.search,
           timeOrigin: performance.timeOrigin,
-          transitioning: document.body.classList.contains("is-transitioning"),
         }));
         assert(
-          after.containerIdentity &&
+          after.timeOrigin !== before.timeOrigin &&
             after.historyLength === before.historyLength &&
-            after.timeOrigin === before.timeOrigin &&
-            Math.abs(after.scrollY - before.scrollY) <= 2 &&
-            !after.transitioning,
-          `${testCase.label} replaced the document or moved scroll: ${JSON.stringify({ before, after })}`,
+            after.search === "?qa=locale-mode" &&
+            before.scrollY > 20 &&
+            after.scrollY <= 1,
+          `${testCase.label} did not reload from the top like F5: ${JSON.stringify({ before, after })}`,
         );
-        if (testCase.reducedMotion === "reduce") {
-          assert(
-            after.replay.reducedMotion === true && after.replay.replayed === false,
-            `Reduced motion replayed entrance motion: ${JSON.stringify(after.replay)}`,
-          );
-        }
         assertDiagnostics(diagnostics);
       },
     );
@@ -7637,7 +7462,6 @@ async function runAdvertisingLocaleLifecycleChecks() {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
       }, artifact);
       await gotoRoute(page, "/vi/advertising-products/");
-      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const snapshot = () => page.evaluate(() => {
         const title = document.querySelector("#page-title");
         const lines = [...document.querySelectorAll("[data-motion-lines] .motion-line")];
@@ -7649,47 +7473,30 @@ async function runAdvertisingLocaleLifecycleChecks() {
           duplicateLines: document.querySelectorAll("[data-motion-lines] .motion-line .motion-line").length > 0,
         };
       });
+      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5); artifact tiêm lại qua addInitScript.
       const switchLanguage = async (language) => {
-        await page.evaluate(() => {
-          window.__ttAdvertisingLocaleSettled = false;
-          window.addEventListener(
-            "site:section-replay",
-            () => {
-              window.__ttAdvertisingLocaleSettled = true;
-            },
-            { once: true },
-          );
-        });
+        const before = await page.evaluate(() => performance.timeOrigin);
         await openMenu(page);
-        await page.locator(`#site-menu [data-language-option="${language}"]`).click();
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page.locator(`#site-menu [data-language-option="${language}"]`).click(),
+        ]);
         await page
           .waitForFunction(
-            (expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open,
+            (expected) => document.documentElement.lang === expected &&
+              location.pathname.startsWith(`/${expected}/advertising-products/`) &&
+              window.TruongThinhAdvertising?.getBrowseState &&
+              // Trang vừa tải: rail filter hiện xong (entrance) trước khi test cuộn xuống grid.
+              [...document.querySelectorAll("[data-advertising-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
+              !document.documentElement.classList.contains("route-enter") &&
+              !document.body.classList.contains("is-transitioning"),
             language,
-            { timeout: 6_000 },
+            { timeout: 15_000 },
           )
           .catch((error) => {
-            throw new Error(`language ${language} did not settle in place: ${error.message}`);
+            throw new Error(`language ${language} did not finish loading: ${error.message}`);
           });
-        await page
-          .waitForFunction((expected) => location.pathname.startsWith(`/${expected}/advertising-products/`), language)
-          .catch((error) => {
-            throw new Error(`language ${language} did not update the route: ${error.message}`);
-          });
-        await page
-          // Replay phát trước khi veil mở xong; menu không mở khi route còn chạy (site-shell R4), nên chờ cả hai.
-          .waitForFunction(() => window.__ttAdvertisingLocaleSettled === true && !document.body.classList.contains("is-transitioning"))
-          .catch(async (error) => {
-            const state = await page.evaluate(() => ({
-              language: document.documentElement.lang,
-              menuOpen: Boolean(document.querySelector("#site-menu")?.open),
-              pathname: location.pathname,
-              replayed: window.__ttAdvertisingLocaleSettled,
-              transitioning: document.body.classList.contains("is-transitioning"),
-            }));
-            throw new Error(`language ${language} did not complete its production replay: ${error.message}; ${JSON.stringify({ state, diagnostics })}`);
-          });
-        assert(await page.evaluate(() => performance.timeOrigin) === timeOrigin, "locale switch must stay in the current document");
+        assert(await page.evaluate(() => performance.timeOrigin) !== before, "locale switch must reload the page like F5");
       };
       const virtualizeKiosk = async () => {
         // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
@@ -7774,7 +7581,8 @@ async function runAdvertisingLocaleLifecycleChecks() {
       });
       assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
-      await page.locator(".advertising-tile a").first().focus();
+      // Focus một tile bị filter loại (kiosk thuộc displays-booths); sau khi tải lại, tile đầu trong DOM tùy vị trí cuộn.
+      await page.locator('[data-advertising-card="kiosk-posm-01"] a').focus();
       await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
       await page.waitForTimeout(250);
       const filterFocus = await page.evaluate(() => {

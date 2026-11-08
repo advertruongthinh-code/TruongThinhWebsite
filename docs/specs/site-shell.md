@@ -102,17 +102,17 @@ Then nền không cuộn theo, Tab chỉ đi trong menu; đóng xong vị trí c
 
 ### R5. Đổi ngôn ngữ và ghi nhớ
 
-Click thường vào `[data-language-option]`: đóng menu, veil phủ và mở như R6, không tải lại;
-`history.replaceState` sang `/<locale>/...` (không thêm entry), đặt `lang`, `data-route-locale`, đổi chữ
-`data-en`/`data-vi` và `aria-label`, `alt`, `content`, dựng lại SplitText, đổi link nội bộ, canonical,
-alternate, `og:locale`, `og:url`, giữ vị trí cuộn, lưu `localStorage['tt-lang']`, phát `languagechange`.
-Khi tải, locale theo `data-route-locale`, thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng
-`location.assign`, lưu vị trí cuộn vào `sessionStorage`, khôi phục khi tải.
+Click thường vào `[data-language-option]`: đóng menu, veil phủ như R6, lưu `localStorage['tt-lang']` rồi
+`location.replace` sang `/<locale>/...` giữ query, bỏ hash (không thêm entry). Trang đích tải lại từ đầu như F5
+(owner 2026-11-08): cuộn về đầu, veil mở, intro và mọi motion chạy lại. Trang cụm, sản phẩm Advertising, chi
+tiết công trình, News dùng link ngôn ngữ để đúng slug của locale đích. Khi tải, locale theo `data-route-locale`,
+thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng `location.assign`, lưu vị trí cuộn vào
+`sessionStorage`, khôi phục khi tải.
 
 ```gherkin
 Given /vi/residential/ đã cuộn 1200px
 When mở menu và chọn EN
-Then URL thành /en/residential/, history không thêm entry, vị trí cuộn giữ, reload vẫn là EN
+Then URL thành /en/residential/, history không thêm entry, trang tải lại ở đầu với intro như F5, reload vẫn là EN
 ```
 
 ### R6. Route mềm và click trong shell

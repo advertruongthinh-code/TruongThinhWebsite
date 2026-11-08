@@ -81,7 +81,6 @@ const scenarios = [
   { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', tweens: ["is-brand-ink", "is-brand-inverse"], final: "is-brand-inverse" },
   { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', tweens: ["is-brand-ink", "is-brand-color"], final: "is-brand-color" },
   { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', tweens: ["is-brand-ink", "is-brand-inverse"], final: "is-brand-inverse" },
-  { name: "locale switch on home", from: "/vi/", link: '[data-language-option="en"]', tweens: ["is-brand-ink", "is-brand-inverse"], final: "is-brand-inverse" },
 ];
 
 try {

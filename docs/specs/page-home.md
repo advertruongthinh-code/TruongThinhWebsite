@@ -214,17 +214,15 @@ When ảnh tải xong
 Then ảnh có is-overlay-media-ready, ảnh và shade hiện
 ```
 
-### R11. Đổi ngôn ngữ phát lại section đang xem
+### R11. Đổi ngôn ngữ chạy lại trang
 
-Đổi ngôn ngữ tại chỗ thì section chiếm nhiều diện tích nhất trong viewport (hoặc section lúc mở
-menu) phát lại entrance: tiêu đề portal và phụ đề, dòng heritage và ảnh, closer, rail, word fade
-hero; nếu là hero thì slideshow chạy lại từ slide đầu của lần tải đó. Section khác giữ trạng thái. Runtime phát
-`site:section-replay` kèm section đã phát lại.
+Đổi ngôn ngữ tải lại trang đích như F5 ([site-shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ)): về đầu
+trang, hero và mọi entrance chạy lại như lần tải đầu (owner 2026-11-08).
 
 ```gherkin
 Given /vi/ đang xem #nang-luc
 When mở menu và chọn EN
-Then tiêu đề ba portal năng lực trượt lên lại bằng chữ EN, section khác không reveal lại
+Then /en/ tải lại ở đầu trang, hero chạy intro như F5
 ```
 
 ### R12. Reduced motion, fallback, không JavaScript
@@ -250,7 +248,7 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.project-track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
 | Data | `src/site/content/client-logos.json`, `content/project-reel.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); build và test đọc |
-| Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7), `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
+| Hàm | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7) trong `motion.js` | Nội bộ, không export |
 
 ## UI
 
@@ -276,7 +274,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | R8 | `project-reel.test.mjs` (validate, số card, caption, ảnh VI/EN), `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
 | R9 | `pnpm qa:client-assets`, `client-logo-marquee.e2e.cjs` |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (hero, hero reduced, portal, closer), `image-loading-frame.e2e.mjs` |
-| R11 | chưa có test trên trang chủ (`TT_E2E_LOCALE_SCROLL_ONLY` kiểm Residential) |
+| R11 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY` (kiểm trên Residential) |
 | R12 | `TT_E2E_REDUCED_ONLY`, `TT_E2E_HERO_INTRO_ONLY` (ca reduced), `client-logo-marquee.e2e.cjs` (reduced) |
 
 ## Gate còn mở

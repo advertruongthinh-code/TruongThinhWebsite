@@ -88,7 +88,7 @@ Mỗi lần chuyển trang theo R1 tới R4, cả cụm logo trên header (mark,
 · QUẢNG CÁO") giữ `opacity 1` và nằm trên veil (header `z-index 1000`, veil `999`), nên lúc veil phủ kín vẫn
 thấy logo: chữ và mark cùng `#2f2f2f`. Mark và chữ đổi màu cùng lúc, cùng `0.3s expo.out` (R1, R2), như Espacio
 (logo, nav, hamburger đổi màu chung một tween ngay lúc bấm, logo không mờ). Áp dụng cho PC và điện thoại, mọi
-route mềm, đổi ngôn ngữ, route từ full menu, kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
+route mềm, route từ full menu (đổi ngôn ngữ chỉ có pha phủ, rồi tải lại trang), kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
 
 ```gherkin
 Given /vi/ ở đầu trang, 1440px hoặc 412×915

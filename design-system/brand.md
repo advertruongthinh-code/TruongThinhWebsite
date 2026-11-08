@@ -137,7 +137,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
 | Màu mark | Bốn dải lật quanh trục riêng, cyan trước, xong ở `0.68s` | Theo state machine dưới, trừ chuyển trang |
-| Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm; đổi ngôn ngữ chỉ pha sang đậm rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 

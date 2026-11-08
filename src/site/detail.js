@@ -699,53 +699,6 @@
           }
         });
 
-        const isInside = (section, element) =>
-          Boolean(section && element && (section === element || section.contains(element)));
-        state.replaySection = (section) => {
-          if (!section) return false;
-          const sectionTextGroups = [...lineGroups, ...wordGroups].filter((group) =>
-            isInside(section, group) &&
-              !(isCatalogNamespace(container.dataset.barbaNamespace) && isHeroGroup(group)),
-          );
-          const sectionMotionItems = motionItems.filter((item) =>
-            isInside(section, item) &&
-              !(isCatalogNamespace(container.dataset.barbaNamespace) && item.closest(".detail-index-hero")),
-          );
-          const sectionHeroItems = [
-            heroKicker,
-            heroWrapperZoom,
-            heroMediaZoom,
-          ].filter((item) =>
-            isInside(section, item) && !isCatalogNamespace(container.dataset.barbaNamespace),
-          );
-
-          sectionTextGroups.forEach((group) => {
-            const parts = prepareTextGroup(group);
-            gsap.killTweensOf(parts);
-            gsap.set(
-              parts,
-              group.hasAttribute("data-motion-lines")
-                ? { y: hiddenY }
-                : { opacity: 0 },
-            );
-          });
-          [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
-            item.classList.remove("is-motion-inview"),
-          );
-
-          scheduleFrame(() => {
-            sectionTextGroups.forEach((group) => revealTextGroup(group, 0));
-            [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
-              item.classList.add("is-motion-inview"),
-            );
-          });
-          return Boolean(
-            sectionTextGroups.length ||
-              sectionMotionItems.length ||
-              sectionHeroItems.length,
-          );
-        };
-
         if (heroKicker && heroSettled) {
           settleHeroItem(heroKicker);
         } else if (heroKicker) {
@@ -884,11 +837,10 @@
     return state.catalogReady;
   };
 
-  const replaySection = (section) => activePage?.replaySection?.(section) || false;
   const revertSplitText = () => activePage?.revertSplitText?.();
   const rebuildSplitText = () => activePage?.rebuildSplitText?.();
 
-  window.TruongThinhDetail = { mount, replaySection, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
+  window.TruongThinhDetail = { mount, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
   if (document.documentElement.classList.contains("motion-fallback")) {
     mount(undefined, { settled: true });
   }

@@ -156,8 +156,8 @@ Then skeleton gỡ, khung hiện icon ảnh hỏng và chữ "Không tải đư�
 
 Mở từ card (masonry hoặc related), primary bắt đầu ở media đang xem của card, video phát tiếp từ đúng giây card đang
 phát; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Back, Forward khôi phục media của entry, Back về masonry
-từ detail của chính card đó thì card đứng ở media vừa xem trong detail, video ở đúng giây; đổi ngôn ngữ giữ media và
-giây đang xem. URL không có tham số media. Card có hơn một item,
+từ detail của chính card đó thì card đứng ở media vừa xem trong detail, video ở đúng giây; đổi ngôn ngữ tải lại trang
+như F5 nên về cover (owner 2026-11-08). URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
 i trên N: <alt>", thumbnail 60px góc vuông, đang xem `aria-current` có viền đôi, video có biểu tượng phát; dãy một dòng chỉ hiện thumbnail nguyên, thừa thì cuộn ngang, thumbnail cuối trong khung mờ về trắng (đã cuộn thì thumbnail đầu cũng mờ), đổi media thì dãy tự cuộn đưa thumbnail đang xem ra giữa. Khung media
 theo dải trượt của pin Pinterest nhiều media: khung giữ tỷ lệ cover nên đổi media không đổi kích thước
@@ -244,7 +244,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -268,7 +268,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   khi item thành active với `preload="auto"` (R4). Ngân sách byte, lề preload, buffer chưa khóa, cần clip thật và trace
   thiết bị.
 - Không lưu GIF public; video là thang H.264 HLS theo [video-delivery R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video) (thay quyết định AV1/WebM kèm MP4 H.264 cũ), poster WebP. Chưa có clip thật.
-- Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
+- Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry), không ghi vào history state:
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Ngưỡng vuốt (10px chốt hướng,
   nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.

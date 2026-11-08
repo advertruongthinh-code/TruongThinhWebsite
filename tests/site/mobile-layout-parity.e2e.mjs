@@ -503,7 +503,9 @@ async function runStates(browser,engine) {
       const locale=route.startsWith('/vi/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
       await page.waitForURL(url=>url.pathname===route.replace(/^\/(vi|en)\//,`/${locale}/`));await recordState(page,engine,`history locale ${route}`);
       assert.equal(new URL(page.url()).search,original.search,'locale preserves search');assert.equal(new URL(page.url()).hash,'','locale clears hash');assert.equal(await page.evaluate(()=>document.documentElement.lang),locale,'DOM locale updates');
-      assert.deepEqual(await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin,index:window.barba?.history?.current?.index??window.barba?.history?.i??null})),historyBefore,'locale replaces current history entry in same document');
+      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): document mới, không thêm entry history.
+      const historyAfter=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin}));
+      assert.equal(historyAfter.length,historyBefore.length,'locale replaces the current history entry');assert.notEqual(historyAfter.timeOrigin,historyBefore.timeOrigin,'locale reloads the page like F5');
       await page.waitForFunction(()=>!document.querySelector('#site-menu').open);
       const localized=page.url(),destination=`/${locale}/${route.includes('/residential/')?'commercial':'residential'}/`;
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
