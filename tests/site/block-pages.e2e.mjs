@@ -42,7 +42,7 @@ try {
       const response = await page.goto(`${origin}${route}`, { waitUntil: "load" });
       assert.ok(response?.ok(), `${at}: HTTP ${response?.status()}`);
       // Runtime lưới Công trình mount sau import động; chờ nó đặt card (tối đa 8s) rồi mới đo.
-      await page.waitForFunction(() => document.querySelector("[data-project-masonry]")?.classList.contains("is-laid-out") ?? true, null, { timeout: 8000 }).catch(() => {});
+      await page.waitForFunction(() => !document.querySelector("script[data-project-artifact]") || document.querySelector("[data-project-grid].advertising-grid"), null, { timeout: 8000 }).catch(() => {});
       const state = await page.evaluate(() => ({
         h1: document.querySelectorAll("main h1").length,
         lang: document.documentElement.lang,
@@ -51,8 +51,8 @@ try {
         overflow: [...document.querySelectorAll("main .blk, main .blk *, main .blk-hero *")].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1 && !element.closest("[data-gallery-track], .blk-projects__track"))
           .slice(0, 3).map((element) => `${element.tagName}.${[...element.classList].join(".")}`).join(", "),
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
-        // Trang Công trình: runtime đã đặt card theo hình học masonry Advertising.
-        masonry: document.querySelector("[data-project-masonry]")?.classList.contains("is-laid-out") ?? true,
+        // Trang Công trình: runtime masonry quảng cáo đã mount (loại chưa có công trình thì lưới rỗng).
+        masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].advertising-grid")),
       }));
       assert.equal(state.h1, 1, `${at}: một h1`);
       assert.equal(state.lang, locale, `${at}: lang`);
@@ -61,6 +61,11 @@ try {
       // Đổi ngôn ngữ dẫn tới chính trang này ở ngôn ngữ kia, không về trang khung.
       assert.ok(state.switchTo.includes(route), `${at}: link ngôn ngữ ${state.switchTo.join(", ")}`);
       if (link) {
+        // Lưới Công trình chỉ dựng thẻ gần viewport (ảo hóa như trang quảng cáo): cuộn tới lưới rồi chờ thẻ.
+        if (await page.locator("[data-project-grid]").count()) {
+          await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
+          await page.waitForSelector(`main a[href="${link}"]`, { state: "attached", timeout: 5000 }).catch(() => {});
+        }
         const anchor = page.locator(`main a[href="${link}"]`).first();
         assert.equal(await page.locator(`main a[href="${link}"]`).count() > 0, true, `${at}: có link ${link}`);
         const target = await anchor.getAttribute("href");

@@ -64,7 +64,7 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   ]);
 });
 
-test("Projects list: all, sectors with projects, every type; chips only for filters with projects; filter slugs are reserved", async () => {
+test("Projects list: all, sectors with projects, every type; filter slugs are reserved; artifact passes the advertising card contract", async () => {
   const { kindFieldErrors, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
   const { projectListPages } = await import("../../scripts/site/project-list.mjs");
   const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
@@ -72,9 +72,16 @@ test("Projects list: all, sectors with projects, every type; chips only for filt
     ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-hotel/", 0],
     ["/projects/showroom-cua-hang/", 0], ["/projects/cafe-nha-hang/", 1], ["/projects/van-phong/", 1],
   ]);
-  const chipSlugs = (page) => page.chips.map((chip) => chip.slug);
-  assert.deepEqual(chipSlugs(pages[0]), [null, "kinh-doanh", "cafe-nha-hang", "van-phong"]);
-  assert.deepEqual(chipSlugs(pages[2]), [null, "kinh-doanh", "nha-pho", "cafe-nha-hang", "van-phong"]);
+  const { buildProjectArtifact } = await import("../../scripts/site/project-list.mjs");
+  const { validateAdvertisingCards } = await import("../../src/site/advertising-products/layout-core.mjs");
+  const projects = [
+    { id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" } },
+    { id: "b", sector: "residential", type: "can-ho", slugVi: "b", slugEn: "b-en", title: { vi: "B", en: "B" }, cover: { src: "/b.webp", width: 200, height: 300, altVi: "b", altEn: "b" } },
+  ];
+  const artifact = buildProjectArtifact(projects, { a: "rgb(1 2 3)" });
+  assert.doesNotThrow(() => validateAdvertisingCards(artifact.cards, { categoryOrder: artifact.categories.map((entry) => entry.slug), requireNonEmpty: true }));
+  assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/vi/projects/a/", en: "/en/projects/a-en/" });
+  assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-hotel", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
   assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: id hoặc slug nha-o trùng đường dẫn lọc công trình", "p: id hoặc slug can-ho trùng đường dẫn lọc công trình"]);
 });
@@ -95,29 +102,4 @@ test("menu featured: chosen projects in order; product groups chosen or by card 
     "m: featuredProjects c không có trong projects.json hoặc bị lặp",
     "m: featuredProductGroups w không phải nhóm Advertising hoặc bị lặp",
   ]);
-});
-
-test("Projects masonry: same columns as Advertising, shortest column first, no overlap", async () => {
-  const { placeProjectCards } = await import("../../src/site/projects-grid.mjs");
-  const { columnsForWidth } = await import("../../src/site/advertising-products/layout-core.mjs");
-  for (const viewport of [390, 719, 720, 1004, 1005, 1440]) {
-    const cards = [0.75, 1.25, 0.66, 1, 1.5, 0.8].map((ratio, index) => ({ id: String(index), ratio }));
-    const { positions } = placeProjectCards(cards, viewport);
-    const boxes = [...positions.values()];
-    assert.equal(new Set(boxes.map((box) => box.x)).size, Math.min(cards.length, columnsForWidth(viewport)), `${viewport}px: số cột`);
-    for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) {
-      assert.ok(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y, `${viewport}px: card chồng nhau`);
-    }
-  }
-});
-
-test("Projects masonry tail: each column continues with color blocks down to the CTA end", async () => {
-  const { planProjectGhosts } = await import("../../src/site/projects-grid.mjs");
-  const ghosts = planProjectGhosts({ heights: [100, 300], width: 200, gap: 20 }, ["red", "blue"], [1, 0.5], 600);
-  for (const column of [0, 1]) {
-    const blocks = ghosts.filter((ghost) => ghost.x === column * 220);
-    assert.equal(blocks[0].y, [100, 300][column], "bắt đầu ngay dưới cột");
-    assert.ok(blocks.at(-1).y < 600 && blocks.at(-1).y + blocks.at(-1).height >= 600 - 20, "phủ tới cuối CTA");
-  }
-  assert.deepEqual(planProjectGhosts({ heights: [0], width: 100, gap: 10 }, [], [1], 500), []);
 });
