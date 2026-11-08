@@ -72,16 +72,16 @@ function expectedPhotoGeometry(evidence) {
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
   const available = evidence.windowHeight - top - evidence.safeBottom;
-  // Split chừa gap, và related peek 50px khi primary chưa chiếm hết cột; pinterest vừa phần dưới header.
-  const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
+  // Detail spec R2 (owner 2026-11-07): mọi layout chừa gap và 50px để related lộ dưới primary.
+  const heightCap = available - gap - 50;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
-  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
+  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, heightCap - gap - 1);
   // Split: vùng ảnh cao theo media tới heightCap (primary-video-player R6); info cao bằng vùng ảnh, trừ khi nhãn cụm dài
   // làm sàn info cao hơn (runtime giữ sàn đó).
   const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
   const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? splitImageZoneHeight
-    : Math.min(width / ratio, available - descriptionHeight - gap);
+    : Math.min(width / ratio, heightCap - descriptionHeight - gap);
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
   const imageHeight = imageWidth / ratio;
@@ -583,8 +583,12 @@ async function assertDescriptionKeyboardScroll(page, label) {
 async function openDialog(page, { touch = false, label, settlements } = {}) {
   const expand = page.locator("[data-advertising-photo-expand]");
   await assertVisible(expand, "expand button");
-  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng.
-  await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
+  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng. Vào thẳng trang thì
+  // playRouteEnter chờ font rồi mới gắn is-transitioning; html.route-enter còn tới khi veil mở xong (clearRouteEntry).
+  // Reduced motion: mountPageMotion gắn motion-paused sau khi veil mở; chờ trạng thái ổn định đó.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+    && !document.body.classList.contains("is-transitioning")
+    && (!matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("motion-paused")));
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
