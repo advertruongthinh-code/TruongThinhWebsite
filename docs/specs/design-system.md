@@ -67,9 +67,10 @@ And README dài tối đa 150 dòng
 
 ### R3. Preview component đứng yên, đúng hình
 
-1. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand lockup, floating CTA, hero, project reel,
-   gallery ngang, banner CTA, filter, media card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion,
-   viewer, kính.
+1. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand lockup, floating CTA, hero, portal, project
+   reel, gallery ngang, khối trang con, quy trình, dòng thời gian About, marquee, banner CTA, trang 404, filter, media
+   card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion, viewer, kính. Preview tĩnh lấy một hoặc nhiều
+   khối từ HTML trang (`also`), kể cả trang khác; trang 404 kèm khối `<style>` riêng của trang.
 2. Preview dùng chính CSS website: `components/bundle.css` sinh từ `style.css`, `detail.css`, bỏ `@font-face` tự
    host (preview nạp font từ Google). `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card
    rail công trình chèn từ dữ liệu như build) hoặc từ bản chụp, sinh `bundle.css`, `bundle.js` rỗng và ảnh
@@ -92,7 +93,9 @@ And README dài tối đa 150 dòng
     để claude.ai dựng ở khổ đó rồi thu nhỏ. `qa:docs` fail khi preview dùng class không còn trong `src/site/` hay
     `scripts/site/`. Capture không tự chạy; chạy lại khi bố cục hoặc copy đổi, rồi build. Catalog public chưa có
     card nhiều media nên capture MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
-    như test e2e; video chỉ giữ poster.
+    như test e2e; video chỉ giữ poster. Grid ảo chỉ giữ card gần viewport, nên capture chọn bốn card hàng đầu của
+    lần mở thử cùng seed thay vì id cố định. Ảnh JPEG XL, SVG và URL tuyệt đối của site đổi về bản WebP hoặc file
+    gốc trong `preview-media/`.
 
 ```gherkin
 Given owner mở mục Components trên claude.ai
