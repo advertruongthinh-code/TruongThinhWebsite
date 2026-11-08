@@ -23,24 +23,24 @@ colors:
   logo-mark-magenta: "#e5097f"
   logo-mark-cyan: "#00a0e3"
 typography:
-  display:
+  hero-line:
     fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
-    fontSize: "clamp(5rem, 9vw, 10rem)"
-    fontWeight: 600
-    lineHeight: 0.86
-    letterSpacing: "0.001px"
-  detail-hero:
-    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
-    fontSize: "clamp(3.25rem, 8vw, 8.5rem)"
+    fontSize: "7rem"
     fontWeight: 500
-    lineHeight: 0.9
-    letterSpacing: "0.001px"
-  detail-statement:
-    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
-    fontSize: "clamp(2.7rem, 4.2vw, 4rem)"
-    fontWeight: 600
     lineHeight: 1.4
-    letterSpacing: "normal"
+    letterSpacing: "0.001px"
+  section-heading:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "clamp(3rem, 5.8vw, 6.8rem)"
+    fontWeight: 600
+    lineHeight: 1.1
+    letterSpacing: "0.001px"
+  footer-statement:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "clamp(2.8rem, 4.5vw, 5.4rem)"
+    fontWeight: 600
+    lineHeight: 1.1
+    letterSpacing: "0.001px"
   gallery-title:
     fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
     fontSize: "clamp(2.5rem, 4.45vw, 4rem)"
@@ -145,7 +145,8 @@ Chi tiết: [design-system/README.md](design-system/README.md#layout).
 
 Phẳng, phân lớp bằng tông: `paper`, `ink`, `line`, `media-loading-surface`. Không có box-shadow cho container.
 Text-shadow chỉ có một ngoại lệ: chữ trắng trên ảnh ngoài hero (portal, "Giữ nghề", CTA) dùng `text-shadow-d` (hai lớp, vành `0 0 2px` đen `0.5` dưới
-quầng `0 0 12px` đen `0.4`) cạnh lớp tối sẵn có; chữ `ink` trên giấy không có bóng. Kính ([Glass](design-system/components/Glass/README.md)) là lớp mờ trên ảnh, không phải bóng. Focus ring
+quầng `0 0 12px` đen `0.4`) cạnh lớp tối sẵn có; chữ `ink` trên giấy không có bóng. Icon trắng trên ảnh (mũi tên, play, thanh tua video) dùng cùng bóng D
+dạng `drop-shadow` hoặc `box-shadow` của riêng đường tua và núm ([Media card](design-system/components/MediaCard/README.md)). Kính ([Glass](design-system/components/Glass/README.md)) là lớp mờ trên ảnh, không phải bóng. Focus ring
 là tín hiệu tương tác, không phải elevation.
 
 Chi tiết: [design-system/README.md](design-system/README.md#elevation--depth).

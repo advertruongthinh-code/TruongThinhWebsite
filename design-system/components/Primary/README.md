@@ -1,5 +1,7 @@
 # Primary ảnh Advertising
 
+Nguồn: `src/site/advertising-products/detour-path.mjs`; CSS `.advertising-photo-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
+
 Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, mô tả, CTA trao
 đổi và suggestion. Markup khung tĩnh trong `advertising-products/index.html`
 (`.advertising-photo-view__primary`), runtime điền nội dung.

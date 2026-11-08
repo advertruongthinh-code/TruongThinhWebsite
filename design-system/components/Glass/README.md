@@ -1,5 +1,7 @@
 # Kính
 
+Nguồn: `src/site/advertising-products/glass-surface.mjs`; CSS `.glass-surface`; spec [Kính](../../../docs/specs/glass-surface.md).
+
 Một component cho mọi bề mặt glass của trang Advertising. Runtime
 `glass-surface.mjs` dựng `div.glass-surface` gồm các lớp bậc nhòe, một lớp
 tint trắng và một lớp hạt nhiễu; style ở mục Kính của `src/site/detail.css`.

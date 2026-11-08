@@ -1,5 +1,7 @@
 # Hero
 
+Nguồn: CSS `.hero`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
+
 Khối mở đầu mỗi trang, dựng như một title card: vài chữ rất lớn chiếm màn
 hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 `section.hero` ở mọi trang, style ở `style.css` (trang chủ) và `detail.css`

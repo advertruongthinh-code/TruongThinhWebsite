@@ -6,9 +6,10 @@
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
    Cần kiến thức ngoài module (tech stack, runtime, spec, decision): mở [docs index](docs/index.md), chọn đúng file `docs/*.md` rồi đọc; tech stack ở [Architecture](docs/architecture.md#tech-stack).
-4. Mọi task đọc [Skill, MCP và vận hành tool](docs/operations/agent-rule-workflow-tools.md) trước action chuyên môn đầu tiên.
-5. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
-6. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
+4. Hỏi về hình thức, token, số đo, motion, component: đọc [Design System](design-system/README.md) rồi README component trước Graphify, Serena; dòng `Nguồn:` ở đầu README chỉ file code và spec. Design System mô tả code đang chạy: lệch thì code thắng, sửa Design System trong cùng PR.
+5. Mọi task đọc [Skill, MCP và vận hành tool](docs/operations/agent-rule-workflow-tools.md) trước action chuyên môn đầu tiên.
+6. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
+7. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
 
 ## Ranh giới
 

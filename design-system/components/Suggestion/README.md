@@ -1,5 +1,7 @@
 # Suggestion "Có thể bạn thích"
 
+Nguồn: `src/site/advertising-products/suggestion-slideshow.mjs`; CSS `.advertising-photo-view__suggestion`; spec [Detail](../../../docs/specs/advertising-detail.md).
+
 Danh sách tối đa bốn nút gợi ý nhóm sản phẩm cùng loại, nằm trong cột mô tả
 của [Primary](../Primary/README.md). Runtime `catalog-runtime.mjs`
 (`selectAdvertisingSuggestions`) chọn tag, `suggestion-slideshow.mjs` chạy

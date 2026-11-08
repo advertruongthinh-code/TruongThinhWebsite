@@ -1,5 +1,7 @@
 # Gallery ngang
 
+Nguồn: CSS `.detail-gallery`; spec [Ba trang con](../../../docs/specs/detail-pages.md).
+
 Dải ảnh cuộn ngang trên trang Residential và Commercial, theo khối "The
 balance within the spaces" của Espacio interior-design. Markup
 `section.detail-gallery` với `[data-gallery]`, style ở `src/site/detail.css`.

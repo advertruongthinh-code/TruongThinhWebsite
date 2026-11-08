@@ -1,5 +1,7 @@
 # Full menu
 
+Nguồn: CSS `.site-menu`, `.menu-group`, `.menu-shutters`; spec [Shell](../../../docs/specs/site-shell.md).
+
 Menu toàn màn hình mở từ nút menu của header: bốn nhóm route với 17 mục con,
 chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở bằng
 `motion.js` (thuộc tính `open`, lớp `is-active`, lớp `menu-open` trên root).

@@ -40,9 +40,11 @@ Không đổi font.
 
 | Style | Dùng cho | Ghi chú |
 | --- | --- | --- |
-| `display` | Hero, headline lớn | `clamp(5rem, 9vw, 10rem)`, 600, line-height 0.86 |
-| `detail-hero` | Tiêu đề trang detail | `clamp(3.25rem, 8vw, 8.5rem)`, 500, 0.9 |
-| `detail-statement` | Statement trong detail | `clamp(2.7rem, 4.2vw, 4rem)`, 600 |
+| `hero-line` | Tiêu đề hero mọi trang | `min(7rem, bề rộng khung / 12,5)`, chữ hoa 500 xen 700, 1.4 ([Hero](components/Hero/README.md)) |
+| `cta-title` | Tiêu đề "Giữ nghề", CTA trang con | `clamp(3.2rem, 6vw, 7rem)`, 600, 0.98 |
+| `section-heading` | Tiêu đề khối trang con, About | `clamp(3rem, 5.8vw, 6.8rem)`, 600, 1.1 |
+| `footer-statement` | Câu tuyên bố trên footer | `clamp(2.8rem, 4.5vw, 5.4rem)`, 600 |
+| `portal-*` | Kicker, title, tagline portal | `min(4rem, 12cqw)` 600; kicker, tagline 700 |
 | `gallery-title` | Tiêu đề [Gallery ngang](components/Gallery/README.md) | `clamp(2.5rem, 4.45vw, 4rem)`, 300, 1.1, phần cuối nghiêng |
 | `menu-title` | Nhóm link trong full menu | 1.8rem, 600, title dài wrap |
 | `body` | Đoạn văn, metadata | 16px, 500, 1.4, word-spacing 0.1em |
@@ -59,12 +61,11 @@ chữ dòng trên.
 ## Layout
 
 - **Gutter:** `gutter` 35px, 25px ở max-width 1200px, 20px ở max-width 680px.
-- **Nhịp section:** `section-gap` 90px, 70px ở max-width 1200px, 64px ở max-width 680px; `footer-top-gap` 64px,
-  48px ở max-width 750px.
+- **Nhịp section:** `section-gap` 90px, 70px ở max-width 1200px, 64px ở max-width 680px (khối bằng chứng trang chủ
+  90, 60 ở 980px, 30 ở 680px); `footer-top-gap` 64px, 48px ở max-width 750px.
 - **Breakpoint hay dùng:** 1200, 1024, 980/981, 960/961, 750/751, 680, 578/579 px. Kiểm layout ở 320, 390, 768,
   1024, 1440px.
-- **Header:** ba track độc lập cho brand, nav và nút menu
-  ([Header](components/Header/README.md#hình-học)).
+- **Header:** ba track độc lập cho brand, nav và nút menu ([Header](components/Header/README.md#hình-học)).
 - **Detail:** project grid tối đa 1500px, bốn cột desktop, gap theo gutter.
 - **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
   ([Masonry](components/Masonry/README.md#hình-học)).
@@ -82,7 +83,8 @@ lấp chỗ trống.
 
 Phẳng, phân lớp bằng tông: `paper`, `ink`, `line`, `media-loading-surface`. Không có box-shadow cho container.
 Text-shadow chỉ có một ngoại lệ: chữ trắng trên ảnh ngoài hero (portal, "Giữ nghề", CTA) dùng `text-shadow-d` (hai lớp, vành `0 0 2px` đen `0.5` dưới
-quầng `0 0 12px` đen `0.4`) cạnh lớp tối sẵn có; chữ `ink` trên giấy không có bóng. Kính ([Glass](components/Glass/README.md)) là lớp mờ trên ảnh, không phải bóng. Focus ring
+quầng `0 0 12px` đen `0.4`) cạnh lớp tối sẵn có; chữ `ink` trên giấy không có bóng. Icon trắng trên ảnh (mũi tên, play, thanh tua video) dùng cùng bóng D
+dạng `drop-shadow` hoặc `box-shadow` của riêng đường tua và núm ([Media card](components/MediaCard/README.md)). Kính ([Glass](components/Glass/README.md)) là lớp mờ trên ảnh, không phải bóng. Focus ring
 là tín hiệu tương tác, không phải elevation.
 
 ## Shapes
