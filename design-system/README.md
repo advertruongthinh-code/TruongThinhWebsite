@@ -108,11 +108,8 @@ và preview dựng từ chính CSS website.
 | Nhóm | Component |
 | --- | --- |
 | Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
-| Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md), [Banner CTA](components/BannerCta/README.md), [Vệt sáng](components/LoadSweep/README.md) |
+| Trang | [Hero](components/Hero/README.md), [Portal](components/Portal/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md), [Khối trang con](components/DetailBlocks/README.md), [Quy trình](components/Process/README.md), [Dòng thời gian About](components/AboutTimeline/README.md), [Marquee](components/Marquee/README.md), [Banner CTA](components/BannerCta/README.md), [Vệt sáng](components/LoadSweep/README.md), [Trang 404](components/NotFound/README.md) |
 | Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Kính](components/Glass/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md) |
-
-Project tile chưa có preview riêng: media tỷ lệ 3/4, feature 3/2, landscape 4/3; caption `label`; ảnh zoom khi
-hover; không shadow, không radius.
 
 ## Do's and Don'ts
 

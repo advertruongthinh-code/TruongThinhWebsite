@@ -24,12 +24,25 @@ const COMPONENTS = [
   { name: 'BrandLockup', group: 'Shell', height: 120, file: 'src/site/index.html', start: /<svg class="brand-lockup"/ },
   { name: 'FullMenu', group: 'Shell', height: 720, file: 'src/site/index.html', start: /<dialog class="site-menu"/, open: true, htmlClass: 'menu-open',
     endStyle: '.site-menu .menu-nav { opacity: 1; }' },
-  { name: 'Footer', group: 'Shell', height: 560, file: 'src/site/index.html', start: /<div class="site-invitation/, also: /<footer class="site-footer"/ },
+  { name: 'Footer', group: 'Shell', height: 560, file: 'src/site/index.html', start: /<div class="site-invitation/, also: [/<footer class="site-footer"/] },
   { name: 'FloatingCta', group: 'Shell', height: 120, file: 'src/site/index.html', start: /<a\s+class="floating-cta"/,
     frames: [{ cls: 'show', height: 120 }] },
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
   { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
+  // also: thêm các khối khác, cùng file hoặc [file, regex].
+  { name: 'Portal', group: 'Page', height: 720, file: 'src/site/residential/index.html', start: /<section\s+class="portal-stage/ },
+  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/residential/index.html', start: /<section\s+class="capability-marquee/,
+    also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
+  { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
+    also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
+  { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
+    also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
+  { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-timeline/,
+    also: [/<section\s+class="about-commitments/] },
+  // Trang 404 có CSS riêng trong <style> của chính trang; preview chép khối đó cùng section.
+  { name: 'NotFound', group: 'Page', height: 520, file: 'src/site/404.html', start: /<section class="not-found"/,
+    before: (html) => html.match(/<style>[\s\S]*?<\/style>/)[0] },
   // Markup dựng lúc runtime (Advertising, dải chấm Gallery); capture-design-system.mjs chụp snapshot vào scripts/docs/captures/.
   // pad: khoảng trống giữ phía trên element focus trong frame; size: độ rộng image variant.
   ...[['Gallery', 1100, 0, 960, 'Page'], ['Filter', 240, 40], ['MediaCard', 580, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480],
@@ -69,7 +82,7 @@ const photos = new Map();
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
-    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:240|480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, attr, path, ext) => {
+    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:240|480|960|1600|2048))?\.(webp|avif|jxl|jpe?g|png|svg)"/g, (whole, attr, path, ext) => {
       const source = [`${path}-${size}.webp`, `${path}.webp`, `${path}.${ext}`]
         .map((candidate) => `src/site/assets/content/${candidate}`).find(existsSync);
       if (!source) throw new Error(`image not found: ${whole}`);
@@ -108,7 +121,8 @@ for (const c of COMPONENTS) {
     continue;
   }
   if (!c.start.test(html)) throw new Error(`${c.start} not found in ${c.file}`);
-  let markup = c.markup ?? extract(html, c.start) + (c.also ? '\n' + extract(html, c.also) : '');
+  let markup = c.markup ?? [extract(html, c.start), ...(c.also ?? []).map((a) => (Array.isArray(a) ? extract(readFileSync(a[0], 'utf8'), a[1]) : extract(html, a)))].join('\n');
+  if (c.before) markup = c.before(html) + '\n' + markup;
   if (c.open) markup = markup.replace(/^<dialog class="([^"]*)"/, '<dialog open class="$1 is-active"');
   // Preview không chạy script trang: bỏ script inline; chỉ giữ slide hero active, slide đó nhận src để hiện ảnh (page-home R3).
   markup = markup.replace(/\s*<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/\s*<figure class="hero-slide" [^>]*>[\s\S]*?<\/figure>/g, '')

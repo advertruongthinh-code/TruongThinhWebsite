@@ -1,6 +1,6 @@
 # Hero
 
-Nguồn: CSS `.hero`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
+Nguồn: CSS `.hero`, `.motion-toggle`, `.scroll-cue`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
 
 Khối mở đầu mỗi trang, dựng như một title card: vài chữ rất lớn chiếm màn
 hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
@@ -54,6 +54,14 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
 - **Không JS:** về cỡ chung 12,5em, hai dòng sát hai mép khung.
 - Scroll cue chữ hoa 12.8/17.92, cách đáy hero 45px (`> 1200`), 30px
   (`<= 1200`), 60px (`<= 750`); không nhận click khi đã ẩn.
+
+## Control trên hero
+
+- **Nút dừng slideshow** `button.motion-toggle` (trang chủ, Residential, Commercial): tròn `44 × 44`, nền đen alpha
+  0.4, viền 1px trắng alpha 0.58, icon `16 × 16` đổi giữa pause và play; góc phải dưới, cách đáy 98px ở 1440,
+  96px ở 390 ([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
+- **Scroll cue** `button.scroll-cue`: nhãn "CUỘN XUỐNG" `label` 12.8px 700 trắng, khung `128 × 33.9`, giữa đáy hero
+  (cách đáy 45px ở 1440, 24px ở 390); bấm thì cuộn tới section kế. Có cả trên About.
 
 ## Motion
 
