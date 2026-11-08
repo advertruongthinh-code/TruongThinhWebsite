@@ -8,7 +8,7 @@ tests:
   - tests/site/block-pages.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-07
+updated: 2026-11-08
 ---
 
 # News
@@ -44,6 +44,8 @@ Theo Espacio: tiêu đề mục, hàng lọc 4 nhóm cộng "Tất cả", lướ
 Espacio, owner chọn hiện ngày). Bài mới nhất trước. Mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được, nút "Xem
 thêm" tải trang kế mà không đổi kiểu cuộn. Mỗi nhóm có trang lọc riêng có đường dẫn, title, mô tả. Bài chỉ có một ngôn ngữ
 chỉ hiện ở danh sách của ngôn ngữ đó.
+Đầu trang danh sách và trang bài (tiêu đề, hàng lọc hoặc nhóm và ngày) là dải tối tràn mép như hero các trang tĩnh, chữ trắng,
+header dạng inverse (owner 2026-11-08); trang Công trình (projects R2) dùng chung đầu trang này.
 
 ```gherkin
 Given có 30 bài tiếng Việt
