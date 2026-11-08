@@ -181,10 +181,68 @@ export const renderNewsListPage = (template, listPage) => {
 
 // Trường riêng của từng loại: mảng công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
 export const kindFieldErrors = (kind, page, at) => {
-  if (kind === "projects") return SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`];
+  if (kind === "projects") return [
+    ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
+    ...[page.slugVi, page.slugEn].filter((slug) => Object.values(PROJECT_FILTERS).includes(slug)).map((slug) => `${at}: slug ${slug} trùng đường dẫn lọc công trình`),
+  ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
   for (const slug of [page.slugVi, page.slugEn]) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug)) errors.push(`${at}: slug ${slug} trùng đường dẫn nhóm hoặc phân trang`);
   return errors;
+};
+
+// Trang toàn bộ công trình (projects R2): lưới so le như Sản phẩm quảng cáo, bấm thẻ mở trang công trình.
+// Lọc theo mảng bằng trang riêng có đường dẫn crawl được; slug lọc không được trùng slug công trình.
+export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" };
+const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
+export const projectListPages = (projects) => [null, ...SECTORS.filter((sector) => projects.some((project) => project.sector === sector))]
+  .map((sector, _index, sectors) => ({
+    sector, sectors,
+    path: sector ? `/projects/${PROJECT_FILTERS[sector]}/` : "/projects/",
+    projects: sector ? projects.filter((project) => project.sector === sector) : projects,
+  }));
+export const projectListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
+export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, projectListSource(listPage)]));
+
+const projectTile = (project) => [
+  `<a class="blk-project-tile" href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}">`,
+  `<img src="${project.cover.src}" width="${project.cover.width}" height="${project.cover.height}" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" loading="lazy" />`,
+  `<span class="blk-project-tile__meta" data-en="${escapeHtml(SECTOR_LABEL[project.sector].en)}">${escapeHtml(SECTOR_LABEL[project.sector].vi)}</span>`,
+  `<span class="blk-project-tile__title" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span>`,
+  "</a>",
+].join("");
+
+export const renderProjectListPage = (template, listPage) => {
+  const vi = `${PUBLIC_ORIGIN}/vi${listPage.path}`;
+  const en = `${PUBLIC_ORIGIN}/en${listPage.path}`;
+  const name = listPage.sector ? { vi: `Công trình ${SECTOR_LABEL[listPage.sector].vi.toLowerCase()}`, en: `${SECTOR_LABEL[listPage.sector].en} projects` } : { vi: "Công trình", en: "Projects" };
+  const head = [
+    `<title data-en="${escapeHtml(name.en)} — Trường Thịnh">${escapeHtml(name.vi)} — Trường Thịnh</title>`,
+    `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
+    `<link rel="alternate" hreflang="vi" href="${vi}" />`,
+    `<link rel="alternate" hreflang="en" href="${en}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
+  ].join("\n    ");
+  const chips = listPage.sectors.map((sector) => {
+    const label = sector ? SECTOR_LABEL[sector] : { vi: "Tất cả", en: "All" };
+    const current = sector === listPage.sector ? ' aria-current="true"' : "";
+    return `<a class="blk-news-filter__chip" href="/vi/projects/${sector ? `${PROJECT_FILTERS[sector]}/` : ""}"${current} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
+  }).join("");
+  const main = [
+    '<header class="blk blk-article-head section-gap" data-header-tone="ink">',
+    `  <h1 class="blk-article-head__title" data-en="${escapeHtml(name.en)}">${escapeHtml(name.vi)}</h1>`,
+    `  <nav class="blk-news-filter" aria-label="Lọc công trình" data-en-aria-label="Filter projects">${chips}</nav>`,
+    "</header>",
+    `<section class="blk blk-project-grid section-gap" data-header-tone="ink">${listPage.projects.map(projectTile).join("")}</section>`,
+  ].join("\n");
+  return [
+    [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
+    [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(`${name.vi} do Trường Thịnh thiết kế, sản xuất và lắp đặt.`)}${middle}${escapeHtml(`${name.en} designed, built and installed by Trường Thịnh.`)}"`, "meta description"],
+    ['data-barba-namespace="about"', 'data-barba-namespace="projects"', "namespace"],
+    ['href="/vi/about/" data-language-option="vi"', `href="/vi${listPage.path}" data-language-option="vi"`, "language vi"],
+    ['href="/en/about/" data-language-option="en"', `href="/en${listPage.path}" data-language-option="en"`, "language en"],
+    [' aria-current="page"', "", "menu current page"],
+    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${main}\n      </main>`, "main"],
+  ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), template);
 };

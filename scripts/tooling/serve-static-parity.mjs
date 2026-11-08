@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
-import { blockRoutes, loadBlockContent, newsListRoutes } from "../site/block-pages.mjs";
+import { blockRoutes, loadBlockContent, newsListRoutes, projectListRoutes } from "../site/block-pages.mjs";
 
 export const ROUTES = new Map([
   ["/vi/", "index.html"],
@@ -21,6 +21,8 @@ export const ROUTES = new Map([
   ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
   // Trang công trình và bài News dựng từ khối (projects R3, news R3).
   ...blockRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))),
+  // Trang toàn bộ công trình và trang lọc theo mảng (projects R2).
+  ...projectListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
   // Trang danh sách News, trang nhóm và trang phân trang (news R2).
   ...newsListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).news),
   ["/vi/about/", "about/index.html"],
