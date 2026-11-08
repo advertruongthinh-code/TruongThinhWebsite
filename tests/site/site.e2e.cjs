@@ -22,8 +22,19 @@ const CANONICAL_ROUTES = [
   // Trang card (media-seo R1) mà link card trên masonry trỏ tới.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
     .map((card) => `/vi/advertising-products/p/${card.id}/`),
+  // Trang công trình, tin tức và trang lọc của chúng: cùng nguồn với serve-static-parity.
+  ...(() => {
+    const blocks = require("../../scripts/site/block-pages.mjs");
+    const { projectListRoutes } = require("../../scripts/site/project-list.mjs");
+    const content = blocks.loadBlockContent(path.join(__dirname, "../../src/site/"));
+    return [
+      ...blocks.blockRoutes(content),
+      ...projectListRoutes(content.projects),
+      ...blocks.newsListRoutes(content.news),
+    ].map(([route]) => route).filter((route) => route.startsWith("/vi/"));
+  })(),
 ];
-const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
+const HEADER_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/projects/", "/vi/advertising-products/"];
 const VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
@@ -1072,17 +1083,18 @@ async function assertDirectRouteContracts(page) {
       menuPrimary: inspect(
         "#site-menu .menu-group:not(:last-child) > a.menu-group__title",
       ),
-      menuAbout: inspect("#site-menu .menu-group:last-child a[href]"),
+      menuAbout: inspect("#site-menu .menu-group:nth-last-child(-n+2) a[href]"),
     };
   });
-  const expectedHeader = ["/vi/", ...DIRECT_SERVICE_ROUTES].sort();
-  const expectedMenu = [...DIRECT_SERVICE_ROUTES].sort();
+  const expectedHeader = ["/vi/", ...HEADER_ROUTES].sort();
+  const expectedMenu = [...HEADER_ROUTES, "/vi/about/"].sort();
   const expectedAbout = [
     "/vi/about/",
     "/vi/about/?topic=commitment",
     "/vi/about/?topic=contact",
     "/vi/about/?topic=heritage",
     "/vi/about/?topic=process",
+    "/vi/news/",
   ].sort();
   const headerHrefs = unique(contracts.header.hrefs).sort();
   const menuHrefs = unique(contracts.menuPrimary.hrefs).sort();
@@ -1987,6 +1999,7 @@ async function runHeaderParityChecks() {
               JSON.stringify([
                 "Không gian Nhà ở",
                 "Không gian Kinh doanh",
+                "Công trình",
                 "Sản phẩm Quảng cáo",
               ]) &&
             expanded.lockupPathCount === 4 &&
@@ -2287,7 +2300,8 @@ async function runHeaderParityChecks() {
 
   await runPageCase(
     "header scroll direction pointer and interaction motion",
-    // 961 tới 980px: nav còn hiện (dưới 961px nav ẩn theo R2) và cuộn native (Locomotive từ 981px).
+    // 961 tới 980px: cuộn native (Locomotive từ 981px). Navbar bốn mục (#708) chỉ hiện từ khoảng 1040px nên phần
+    // hover và link đang chọn đổi viewport sang 1100px.
     { route: "/vi/residential/", viewport: { width: 970, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -2380,6 +2394,8 @@ async function runHeaderParityChecks() {
         "A 150px upward direction change did not show the header",
       );
 
+      await page.setViewportSize({ width: 1100, height: 900 });
+      await page.waitForTimeout(600);
       const activeLink = page.locator('.desktop-nav a[aria-current="page"]');
       const hoverLink = page.locator(".desktop-nav a").nth(1);
       const underline = await activeLink.evaluate((element) => {
@@ -4788,24 +4804,26 @@ async function runMenuChecks() {
           `${viewport.width}x${viewport.height}: header or full-menu lockup differs from live Espacio geometry ${JSON.stringify(menuContract.brandParity)}`,
         );
         assert(
-          menuContract.childGroupCount === 4 &&
-            menuContract.childItemCount === 17 &&
+          // Sáu nhóm (site-shell R4); công trình, nhóm quảng cáo tiêu biểu theo menu.json nên mục con chỉ chặn dưới.
+          menuContract.childGroupCount === 6 &&
+            menuContract.childItemCount >= 20 &&
             menuContract.fragmentLinkCount === 0 &&
             JSON.stringify(menuContract.titles) === JSON.stringify([
               "/vi/residential/",
               "/vi/commercial/",
+              "/vi/projects/",
               "/vi/advertising-products/",
               "/vi/about/",
+              "/vi/about/?topic=contact",
             ]),
           `${viewport.width}x${viewport.height}: menu groups or non-fragment child routes do not match the contract`,
         );
-        const dividerIndexes = viewport.width >= 1201
-          ? [0, 1, 2]
-          : viewport.width >= 961
-            ? [0, 1, 3]
-            : viewport.width >= 579
-              ? [0, 2]
-              : [];
+        // Cột 3/2/1 (site-shell R4): nhóm cuối mỗi hàng không có vạch.
+        const dividerIndexes = viewport.width >= 961
+          ? [0, 1, 3, 4]
+          : viewport.width >= 579
+            ? [0, 2, 4]
+            : [];
         assert(
           menuContract.dividers.every(({ height, dividerHeight, dividerDisplay }, index) =>
             dividerIndexes.includes(index)
@@ -4823,7 +4841,7 @@ async function runMenuChecks() {
           `${viewport.width}x${viewport.height}: settled menu links overlap ${menuContract.overlaps.join(",")}`,
         );
         assert(
-          menuContract.titleFontSizes.length === 4 &&
+          menuContract.titleFontSizes.length === 6 &&
             menuContract.titleFontSizes.every((size) => Math.abs(size - 28.8) <= 0.1),
           `${viewport.width}x${viewport.height}: menu title size drifted from 28.8px (1.8rem) ${JSON.stringify(menuContract.titleFontSizes)}`,
         );
@@ -12920,7 +12938,8 @@ async function runReducedMotionChecks() {
 }
 
 async function runP13NavbarChecks() {
-  const viewport = { width: 1329, height: 912 };
+  // Navbar bốn mục (#708) ẩn ở 1201 tới khoảng 1320px vì đè logo (#719), nên đo ở 1440px.
+  const viewport = { width: 1440, height: 912 };
   const parentRoutes = ["residential", "commercial", "advertising-products"];
   const setLogicalScroll = async (page, value) => {
     const expected = await page.evaluate((scrollY) => {
@@ -13129,18 +13148,19 @@ async function runP13NavbarChecks() {
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
       // Menu trỏ thẳng trang cụm (taxonomy R4).
+      // Nhóm trong menu là 5 nhóm nhiều sản phẩm nhất theo menu.json (#703), không cố định mobile-retail.
       const link = page.locator(
-        '#site-menu .menu-option[href="/vi/advertising-products/xe-ban-hang-luu-dong/"]',
+        '#site-menu .menu-option[href="/vi/advertising-products/in-an-decal/"]',
       ).first();
-      assert(await link.count(), "Advertising menu has no mobile-retail option");
+      assert(await link.count(), "Advertising menu has no printing-decals option");
       await link.click();
       await page.waitForFunction(
-        () => location.pathname === "/vi/advertising-products/xe-ban-hang-luu-dong/",
+        () => location.pathname === "/vi/advertising-products/in-an-decal/",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({
         activeFilter: document
-          .querySelector('[data-advertising-filter="mobile-retail"]')
+          .querySelector('[data-advertising-filter="printing-decals"]')
           ?.getAttribute("aria-current"),
         historyLength: history.length,
         url: location.href,
