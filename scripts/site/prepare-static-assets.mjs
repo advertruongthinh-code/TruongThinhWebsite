@@ -11,7 +11,8 @@ import "./sync-brand-lockup.mjs";
 import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, projectListPages, projectListSource, renderBlockPage, renderNewsListPage, renderProjectListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderNewsListPage } from "./block-pages.mjs";
+import { projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -339,10 +340,12 @@ for (const listPage of newsListPages(blockContent.news)) {
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
 }
+// Trang Công trình dựng trên khung src của trang Sản phẩm quảng cáo (projects R2).
+const advertisingFrame = await readFile(path.join(sourceRoot, "advertising-products", "index.html"), "utf8");
 for (const listPage of projectListPages(blockContent.projects)) {
   const destination = path.join(outputRoot, projectListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, renderProjectListPage(frameTemplates.get("about"), listPage), "utf8");
+  await writeFile(destination, renderProjectListPage(advertisingFrame, listPage), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

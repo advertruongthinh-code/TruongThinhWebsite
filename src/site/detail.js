@@ -299,6 +299,13 @@
         });
     }
 
+    // Trang Công trình: lưới masonry cùng hình học Advertising (projects R2); Masonry vendor là optional, thiếu thì đặt tức thì.
+    if (container.dataset.barbaNamespace === "projects" && container.querySelector("[data-project-masonry]")) {
+      state.catalogReady = import("/projects-grid.mjs")
+        .then(({ mountProjectGrid }) => { if (!abort.signal.aborted) mountProjectGrid(container, { signal: abort.signal }); })
+        .catch((error) => console.error("[projects] grid mount failed", error));
+    }
+
     const selectAll = (selector) => [...container.querySelectorAll(selector)];
     const scheduleFrame = (callback) => {
       const frame = window.requestAnimationFrame(() => {
@@ -337,6 +344,7 @@
         // Không có SplitText thì chữ giữ nguyên và hiện đủ; media và hero motion vẫn chạy.
         const splitRoute = Boolean(SplitText) && new Set([
           "advertising-products",
+          "projects",
           "residential",
           "commercial",
         ]).has(container.dataset.barbaNamespace);

@@ -65,7 +65,8 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
 });
 
 test("Projects list: all, sectors with projects, every type; chips only for filters with projects; filter slugs are reserved", async () => {
-  const { kindFieldErrors, projectListPages, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const { kindFieldErrors, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const { projectListPages } = await import("../../scripts/site/project-list.mjs");
   const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
   assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
     ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-hotel/", 0],
@@ -94,4 +95,18 @@ test("menu featured: chosen projects in order; product groups chosen or by card 
     "m: featuredProjects c không có trong projects.json hoặc bị lặp",
     "m: featuredProductGroups w không phải nhóm Advertising hoặc bị lặp",
   ]);
+});
+
+test("Projects masonry: same columns as Advertising, shortest column first, no overlap", async () => {
+  const { placeProjectCards } = await import("../../src/site/projects-grid.mjs");
+  const { columnsForWidth } = await import("../../src/site/advertising-products/layout-core.mjs");
+  for (const viewport of [390, 719, 720, 1004, 1005, 1440]) {
+    const cards = [0.75, 1.25, 0.66, 1, 1.5, 0.8].map((ratio, index) => ({ id: String(index), ratio }));
+    const { positions } = placeProjectCards(cards, viewport);
+    const boxes = [...positions.values()];
+    assert.equal(new Set(boxes.map((box) => box.x)).size, Math.min(cards.length, columnsForWidth(viewport)), `${viewport}px: số cột`);
+    for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) {
+      assert.ok(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y, `${viewport}px: card chồng nhau`);
+    }
+  }
 });
