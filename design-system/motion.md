@@ -111,7 +111,7 @@ phủ xong khoảng 0.91s). Chữ chỉ hiện sau khi shutter phủ xong.
 | Brand, locale, CTA hẹn | `y -140` (brand) hoặc `-20`, `0.6s expo.out`, tại `1.15s`; mark có màu CMYK ngay từ frame đầu |
 | Mục con | `y -20 → 0`, `0.6s expo.out`, stagger `0.03`, tại `1.35s` |
 | Nút đóng | opacity `0 → 1`, rotate `90° → 0`, `0.6s expo.out`, tại `1.4s` |
-| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin `50vw 50vh`, ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
+| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin là giữa màn hình (đo theo vị trí từng child lúc mở, kể cả khi đã cuộn sâu), ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
 | Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3s theo cột |
 
 ## Text

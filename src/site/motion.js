@@ -2099,7 +2099,6 @@
       duration: 0.7,
       delay: 0.85,
       ease: "power2.out",
-      transformOrigin: "50vw 50vh",
       onComplete: () => finishClose(restoreFocus),
     });
     menuCloseTimer = window.setTimeout(() => finishClose(restoreFocus), 1750);
@@ -2154,6 +2153,13 @@
   const openMenu = () => {
     if (dialog.open || routeInFlight) return;
     if (pageState) pageState.menuContextSection = getDominantSection();
+    // Tâm scale là giữa màn hình theo tọa độ từng child. "50vw 50vh" tính từ đỉnh child nên khi đã cuộn sâu tâm nằm
+    // xa phía trên màn hình, cả lưới bay lên như card bị trộn (A04s, scrollY 3677: card dịch 315-354px). Đo trước
+    // showModal, lúc layout còn sạch; đóng giữ nguyên origin này.
+    const pageOrigins = getPageChildren().map((child) => {
+      const rect = child.getBoundingClientRect();
+      return `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
+    });
     dialog.showModal();
     dialog.focus({ preventScroll: true });
     document.body.classList.add("menu-open");
@@ -2182,7 +2188,7 @@
       scale: 0.9,
       duration: 0.7,
       ease: "power2.out",
-      transformOrigin: "50vw 50vh",
+      transformOrigin: (index) => pageOrigins[index],
     });
   };
   if (hasGsap && !reduceMotion) {
