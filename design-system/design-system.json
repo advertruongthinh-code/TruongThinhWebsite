@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-08T01:05:00Z",
+    "at": "2026-11-08T01:30:00Z",
     "via": "Claude Code",
-    "note": "Đợt #686, #688, #689, #687, #692, #695: ảnh homestay mới, navbar fade, motion vuốt nhanh và LRU card, README MediaCard, Kính cung chuyển êm hơn (PC dải 2.5, phone trải hết dải)"
+    "note": "Đồng bộ với site thật (#697, #698, #699): sửa 7 chỗ lệch kiểu chữ, layout, elevation; dòng Nguồn mỗi component; chụp lại preview Advertising; thêm Portal, Marquee, DetailBlocks, Process, AboutTimeline, NotFound, control trên Hero"
   }
 }
