@@ -64,7 +64,7 @@ của Claude, owner duyệt từng dòng `[CẦN LÀM RÕ: owner đánh dấu gi
 | `facts-grid` | `layout-bloque-facts` 2, 3, 4 cột | Ô đánh số: nhãn, mô tả | Thông tin công trình, quy trình 6 bước | Giữ |
 | `banner-links` | `layout-bloque-banners` 1, 2, 3 cột | Ảnh, tiêu đề, link | Dẫn sang ba mảng dịch vụ | Giữ |
 | `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm | Trang chủ, cuối bài, trang dịch vụ | Giữ |
-| `project-slider` | `layout-slider-proyectos` | Công trình tiêu biểu tự lấy theo nhóm | Residential, Commercial, cuối trang công trình | Giữ |
+| `project-slider` | `layout-slider-proyectos` | Tất cả công trình cùng nhóm, tự lấy | Residential, Commercial, cuối trang công trình | Giữ |
 | `cta-arrow` | `layout-ctas` | Một dòng chữ, link, mũi tên | Xem toàn bộ công trình, xem tất cả News | Giữ |
 | `quote` | `layout-quote` | Trích dẫn, người nói | Bài News | Giữ |
 | `statement` | `layout-bloque-compromiso` | Câu tuyên bố chữ lớn, ảnh | Trang chủ, About | Giữ |

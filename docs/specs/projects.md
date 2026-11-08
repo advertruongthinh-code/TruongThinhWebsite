@@ -20,7 +20,7 @@ updated: 2026-11-08
 ## Mục đích
 
 Bằng chứng công trình thật cho hai mảng thiết kế thi công không gian nhà ở và không gian kinh doanh: trang mảng (Residential,
-Commercial) có công trình tiêu biểu, trang toàn bộ công trình dạng masonry, và trang chi tiết từng công trình. Module
+Commercial) có dải công trình cùng mảng, trang toàn bộ công trình dạng masonry, và trang chi tiết từng công trình. Module
 `projects` trong capability map CMS phase 2. Bố cục theo Espacio (`/en/interior-design`, `/en/kitchens`, `/en/projects`, 47
 trang chi tiết trong [khảo sát](https://claude.ai/artifact/RFPAHbDHRa4tXa7pS1AoEy)), chỉnh qua [layout-library](layout-library.md).
 
@@ -28,18 +28,18 @@ trang chi tiết trong [khảo sát](https://claude.ai/artifact/RFPAHbDHRa4tXa7p
 
 ### R1. Dải công trình trên trang Nhà ở và Kinh doanh
 
-Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công trình tiêu biểu (`project-slider`) và một dòng chữ có mũi tên
+Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công trình (`project-slider`) và một dòng chữ có mũi tên
 (`cta-arrow`) như Espacio `/en/interior-design` và `/en/kitchens` (owner chọn 2026-11-07, xem ảnh chụp trong thread): PC là
 hàng ảnh dọc so le cao thấp, tên công trình dưới ảnh; phone là dải trượt ngang. Nhà ở theo hình 1 (chữ đậm), Kinh doanh
-theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Owner chọn công trình tiêu biểu và thứ tự; bấm
-ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2).
+theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Dải tự lấy tất cả công trình cùng mảng, theo thứ tự
+trong dữ liệu (owner 2026-11-08); bấm ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2).
 Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT qua Codex CLI (owner 2026-11-07)
 theo [Tạo ảnh](../operations/agent-rule-ad-images.md#tạo-ảnh) (owner 2026-10-26).
 
 ```gherkin
-Given owner đánh dấu 5 công trình nhà ở là tiêu biểu
+Given dữ liệu có 5 công trình mảng nhà ở
 When lần dựng xong
-Then cuối trang Nhà ở hiện đúng 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
+Then cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
 ```
 
 ### R2. Trang toàn bộ công trình
@@ -132,7 +132,7 @@ Then thấy bài đó trong phần bài liên quan
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Data | công trình: mảng, loại, địa điểm, diện tích, năm, hạng mục, tiêu biểu, thứ tự, đồng ý nêu tên, khối, SEO | R1 đến R5 |
+| Data | công trình: mảng, loại, địa điểm, diện tích, năm, hạng mục, thứ tự, đồng ý nêu tên, khối, SEO | R1 đến R5 |
 | Route | `/<locale>/projects/`, bộ lọc, `/<locale>/projects/<slug>/` | R2, R3, R5 |
 | Khối | `hero-project`, `project-slider`, `project-masonry`, `facts-grid`, `contact-quick`, `cta-arrow` | [layout-library](layout-library.md) |
 
@@ -155,6 +155,5 @@ Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Desig
 
 ## Chú thích thuật ngữ
 
-- **Công trình tiêu biểu**: công trình owner chọn hiện trên trang mảng.
 - **Masonry**: lưới thẻ so le theo chiều cao ảnh.
 - **Ô thông số**: khối đánh số ghi thông tin chính của công trình.
