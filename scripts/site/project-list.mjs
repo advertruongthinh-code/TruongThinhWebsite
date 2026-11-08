@@ -5,8 +5,9 @@ import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const ROOT_NAME = { vi: "Công trình", en: "Projects" };
-// Khẩu hiệu hero, như "để thương hiệu / luôn trong tầm mắt" của trang quảng cáo.
-const SLOGAN = [{ vi: "thiết kế, sản xuất", en: "Designed, built" }, { vi: "và lắp đặt trọn gói", en: "and installed in full" }];
+// Kicker trang gốc và khẩu hiệu hero, dòng hai đậm nghiêng (owner 2026-11-08).
+const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
+const SLOGAN = [{ vi: "Những công trình", en: "Projects" }, { vi: "truyền cảm hứng", en: "that inspire" }];
 const CTA = [{ vi: "Không gian tiếp theo", en: "The next space" }, { vi: "dành cho bạn", en: "is yours" }];
 const IMAGE_WIDTHS = [240, 480, 960];
 
@@ -17,7 +18,7 @@ const filterHref = (filter) => `/vi/projects/${filter.slug ? `${filter.slug}/` :
 // có công trình, cộng bộ lọc của chính trang đang xem.
 export const projectListPages = (projects) => {
   const filters = [
-    { slug: null, label: { vi: "Tất cả", en: "All" }, name: ROOT_NAME, match: () => true },
+    { slug: null, label: { vi: "Tất cả", en: "All" }, name: ROOT_NAME, kicker: ROOT_KICKER, match: () => true },
     ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], label: SECTOR_LABEL[sector], name: { vi: `Công trình ${SECTOR_LABEL[sector].vi.toLowerCase()}`, en: `${SECTOR_LABEL[sector].en} projects` }, match: (project) => project.sector === sector })),
     ...Object.entries(PROJECT_TYPES).map(([type, { label }]) => ({ slug: type, type, label, name: { vi: `Công trình ${label.vi.toLowerCase()}`, en: `${label.en} projects` }, match: (project) => project.type === type })),
   ].map((filter) => ({ ...filter, projects: projects.filter(filter.match) }));
@@ -52,14 +53,14 @@ const main = ({ filter, projects, allProjects, chips }, colors) => {
   const [kickerTag, sloganOpen, sloganClose] = filter.slug ? ["h1", '<p id="page-title" class="hero-title"', "</p>"] : ["p", '<h1 id="page-title"', "</h1>"];
   const chipLinks = chips.map((chip) => [
     `<a class="project-filter" href="${filterHref(chip)}" data-project-filter="${chip.slug ?? "all"}"`,
-    ` data-kicker-vi="${escapeHtml(chip.name.vi)}" data-kicker-en="${escapeHtml(chip.name.en)}" data-title-vi="${escapeHtml(chip.name.vi)} — Trường Thịnh" data-title-en="${escapeHtml(chip.name.en)} — Trường Thịnh"`,
+    ` data-kicker-vi="${escapeHtml((chip.kicker ?? chip.name).vi)}" data-kicker-en="${escapeHtml((chip.kicker ?? chip.name).en)}" data-title-vi="${escapeHtml(chip.name.vi)} — Trường Thịnh" data-title-en="${escapeHtml(chip.name.en)} — Trường Thịnh"`,
     ` aria-current="${chip === filter}" data-en="${escapeHtml(chip.label.en)}">${escapeHtml(chip.label.vi)}</a>`,
   ].join("")).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
           <div class="hero-content" data-motion-hero-wrapper-zoom>
-            <${kickerTag} class="hero-kicker" data-project-kicker data-motion-hero-kicker data-en="${escapeHtml(filter.name.en)}">${escapeHtml(filter.name.vi)}</${kickerTag}>
-            ${sloganOpen} data-motion-words data-motion-hero-title>${line(SLOGAN[0], "detail-title__quiet")}${line(SLOGAN[1], "detail-title__strong")}${sloganClose}
+            <${kickerTag} class="hero-kicker" data-project-kicker data-motion-hero-kicker data-en="${escapeHtml((filter.kicker ?? filter.name).en)}">${escapeHtml((filter.kicker ?? filter.name).vi)}</${kickerTag}>
+            ${sloganOpen} data-motion-words data-motion-hero-title>${line(SLOGAN[0], "detail-title__quiet")}${line(SLOGAN[1], "detail-title__strong projects-title__accent")}${sloganClose}
           </div>
           <div class="hero-browse">
             <div class="project-filters" role="group" aria-label="Lọc công trình" data-en-aria-label="Filter projects">
