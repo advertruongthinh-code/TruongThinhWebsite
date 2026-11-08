@@ -110,3 +110,14 @@ test("Projects masonry: same columns as Advertising, shortest column first, no o
     }
   }
 });
+
+test("Projects masonry tail: each column continues with color blocks down to the CTA end", async () => {
+  const { planProjectGhosts } = await import("../../src/site/projects-grid.mjs");
+  const ghosts = planProjectGhosts({ heights: [100, 300], width: 200, gap: 20 }, ["red", "blue"], [1, 0.5], 600);
+  for (const column of [0, 1]) {
+    const blocks = ghosts.filter((ghost) => ghost.x === column * 220);
+    assert.equal(blocks[0].y, [100, 300][column], "bắt đầu ngay dưới cột");
+    assert.ok(blocks.at(-1).y < 600 && blocks.at(-1).y + blocks.at(-1).height >= 600 - 20, "phủ tới cuối CTA");
+  }
+  assert.deepEqual(planProjectGhosts({ heights: [0], width: 100, gap: 10 }, [], [1], 500), []);
+});

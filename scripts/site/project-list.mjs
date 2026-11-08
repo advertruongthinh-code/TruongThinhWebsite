@@ -34,10 +34,10 @@ const srcset = ({ src, width }) => {
   return [...IMAGE_WIDTHS.filter((size) => size < width).map((size) => `${stem}-${size}.webp ${size}w`), `${src} ${width}w`].join(", ");
 };
 
-const projectCard = (project, visible) => {
+const projectCard = (project, visible, color) => {
   const type = PROJECT_TYPES[project.type].label;
   return [
-    `<figure class="project-masonry__card" role="listitem" data-project-card="${escapeHtml(project.id)}" data-project-filters="${PROJECT_FILTERS[project.sector]} ${project.type}" data-ratio="${(project.cover.height / project.cover.width).toFixed(4)}"${visible ? "" : " hidden"}>`,
+    `<figure class="project-masonry__card" role="listitem" data-project-card="${escapeHtml(project.id)}" data-project-filters="${PROJECT_FILTERS[project.sector]} ${project.type}" data-ratio="${(project.cover.height / project.cover.width).toFixed(4)}"${color ? ` data-color="${color}"` : ""}${visible ? "" : " hidden"}>`,
     `<a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}">`,
     `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" loading="lazy" decoding="async" />`,
     `<figcaption class="project-masonry__card-label"><span class="project-masonry__card-type" data-en="${escapeHtml(type.en)}">${escapeHtml(type.vi)}</span><span class="project-masonry__card-name" data-en="${escapeHtml(project.title.en)}">${escapeHtml(project.title.vi)}</span></figcaption>`,
@@ -47,7 +47,7 @@ const projectCard = (project, visible) => {
 
 const line = (text, className) => `<span class="detail-hero-line-mask"><span class="${className}" data-motion-word-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span></span>`;
 
-const main = ({ filter, projects, allProjects, chips }) => {
+const main = ({ filter, projects, allProjects, chips }, colors) => {
   // Trang gốc: kicker là p, khẩu hiệu là h1; trang lọc: tên bộ lọc thành h1, khẩu hiệu thành p.hero-title (như trang cụm quảng cáo).
   const [kickerTag, sloganOpen, sloganClose] = filter.slug ? ["h1", '<p id="page-title" class="hero-title"', "</p>"] : ["p", '<h1 id="page-title"', "</h1>"];
   const chipLinks = chips.map((chip) => [
@@ -70,10 +70,11 @@ const main = ({ filter, projects, allProjects, chips }) => {
             <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
           </button>
         </section>
-        <section class="project-index" id="du-an" aria-label="Ảnh công trình" data-en-aria-label="Project photos" data-header-tone="ink">
-          <div class="project-masonry" data-project-masonry role="list">${allProjects.map((project) => projectCard(project, projects.includes(project))).join("")}</div>
+        <section class="project-index projects-index" id="du-an" aria-label="Ảnh công trình" data-en-aria-label="Project photos" data-header-tone="ink">
+          <div class="project-masonry" data-project-masonry role="list">${allProjects.map((project) => projectCard(project, projects.includes(project), colors[project.id])).join("")}</div>
+          <div class="project-masonry__ghosts" data-project-ghosts aria-hidden="true"></div>
           ${projects.length ? "" : '<p class="project-masonry__empty" data-en="Projects in this category are coming soon.">Công trình loại này đang cập nhật.</p>'}
-          <section class="detail-cta projects-cta" data-advertising-grid-cta aria-labelledby="cta-title" data-header-tone="ink">
+          <section class="detail-cta projects-cta" data-advertising-grid-cta data-project-cta aria-labelledby="cta-title" data-header-tone="ink">
             <div class="detail-cta__copy">
               <h2 id="cta-title" data-motion-lines>${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}</h2>
               <a class="legacy-link" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer" data-motion-fade data-motion-delay="0.3"><span class="portal-subtitle" data-en="Discuss an idea">Trao đổi ý tưởng</span></a>
@@ -90,7 +91,8 @@ const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
   return typeof pattern === "string" ? html.split(pattern).join(typeof replacement === "function" ? replacement() : replacement) : html.replace(new RegExp(pattern.source, `${pattern.flags}g`), replacement);
 };
 
-export const renderProjectListPage = (template, listPage) => {
+// colors: màu chủ đạo ảnh bìa theo id công trình (build tính bằng sharp), tô đuôi lưới dưới CTA.
+export const renderProjectListPage = (template, listPage, colors = {}) => {
   const { filter, path: listPath, projects } = listPage;
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
   const en = `${PUBLIC_ORIGIN}/en${listPath}`;
@@ -115,6 +117,6 @@ export const renderProjectListPage = (template, listPage) => {
     ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
     ['href="/vi/advertising-products/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/advertising-products/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
-    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage), "main"],
+    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, colors), "main"],
   ].reduce((html, [pattern, replacement, name, expected]) => replaceCounted(html, pattern, replacement, name, expected), template);
 };
