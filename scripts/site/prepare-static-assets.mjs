@@ -342,10 +342,16 @@ for (const listPage of newsListPages(blockContent.news)) {
 }
 // Trang Công trình dựng trên khung src của trang Sản phẩm quảng cáo (projects R2).
 const advertisingFrame = await readFile(path.join(sourceRoot, "advertising-products", "index.html"), "utf8");
+// Màu chủ đạo ảnh bìa (trung bình 1x1 của bản 240) cho đuôi lưới dưới CTA.
+const { default: sharp } = await import("sharp");
+const coverColors = Object.fromEntries(await Promise.all(blockContent.projects.map(async (project) => {
+  const { data } = await sharp(path.join(sourceRoot, project.cover.src)).resize(1, 1).raw().toBuffer({ resolveWithObject: true });
+  return [project.id, `rgb(${data[0]} ${data[1]} ${data[2]})`];
+})));
 for (const listPage of projectListPages(blockContent.projects)) {
   const destination = path.join(outputRoot, projectListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, renderProjectListPage(advertisingFrame, listPage), "utf8");
+  await writeFile(destination, renderProjectListPage(advertisingFrame, listPage, coverColors), "utf8");
 }
 // Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

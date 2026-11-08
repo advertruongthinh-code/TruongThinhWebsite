@@ -3,6 +3,7 @@
 import { advertisingSpacing, columnsForWidth } from "./advertising-products/layout-core.mjs";
 
 const TRANSITION = "0.4s";
+const BLEED = 80;
 
 // Vị trí card: card hiện đặt lần lượt vào cột thấp nhất, rộng một cột, cao theo tỷ lệ ảnh.
 export function placeProjectCards(cards, viewportWidth) {
@@ -17,7 +18,22 @@ export function placeProjectCards(cards, viewportWidth) {
     positions.set(card.id, { x: Math.round(column * (width + gap)), y: heights[column], width: Math.round(width), height });
     heights[column] += height + gap;
   }
-  return { positions, height: Math.max(0, Math.max(...heights) - gap) };
+  return { positions, height: Math.max(0, Math.max(...heights) - gap), heights, width, gap };
+}
+
+// Đuôi lưới như batch skeleton trang quảng cáo: mỗi cột nối tiếp bằng khối màu chủ đạo của ảnh (data-color) tới hết
+// vùng CTA; CSS làm mờ và tan dần ra nền trắng. Thuần, để unit test được.
+export function planProjectGhosts({ heights, width, gap }, colors, ratios, end) {
+  const ghosts = [];
+  if (!colors.length || !ratios.length) return ghosts;
+  heights.forEach((top, column) => {
+    for (let y = top, index = 0; y < end; index += 1) {
+      const height = Math.round(width * ratios[(column + index) % ratios.length]);
+      ghosts.push({ x: Math.round(column * (width + gap)), y, width: Math.round(width), height, color: colors[(column * 3 + index) % colors.length] });
+      y += height + gap;
+    }
+  });
+  return ghosts;
 }
 
 const matches = (node, filter) => filter === "all" || node.dataset.projectFilters.split(" ").includes(filter);
@@ -28,6 +44,8 @@ export function mountProjectGrid(container, { signal } = {}) {
   const nodes = [...grid.querySelectorAll("[data-project-card]")];
   const filters = [...container.querySelectorAll("[data-project-filter]")];
   const kicker = container.querySelector("[data-project-kicker]");
+  const ghostLayer = container.querySelector("[data-project-ghosts]");
+  const cta = container.querySelector("[data-project-cta]");
   let current = filters.find((link) => link.getAttribute("aria-current") === "true")?.dataset.projectFilter || "all";
   let positions = new Map();
   let height = 0;
@@ -35,7 +53,8 @@ export function mountProjectGrid(container, { signal } = {}) {
 
   const layout = (animate) => {
     const visible = nodes.filter((node) => matches(node, current));
-    ({ positions, height } = placeProjectCards(visible.map((node) => ({ id: node.dataset.projectCard, ratio: Number(node.dataset.ratio) })), document.documentElement.clientWidth));
+    let plan;
+    ({ positions, height } = plan = placeProjectCards(visible.map((node) => ({ id: node.dataset.projectCard, ratio: Number(node.dataset.ratio) })), document.documentElement.clientWidth));
     for (const node of nodes) {
       const place = positions.get(node.dataset.projectCard);
       const wasHidden = node.hidden;
@@ -51,6 +70,20 @@ export function mountProjectGrid(container, { signal } = {}) {
     }
     grid.style.height = `${height}px`;
     grid.classList.add("is-laid-out");
+    if (ghostLayer && cta) {
+      // Như trang quảng cáo: cuộn tới cuối trang thì cụm chữ CTA nằm giữa màn hình (đáy CTA chừa phần còn lại trên footer).
+      const footer = document.querySelector(".site-footer");
+      const copy = cta.querySelector(".detail-cta__copy");
+      cta.style.setProperty("--projects-cta-pad", `${Math.max(plan.gap, window.innerHeight / 2 - (footer?.offsetHeight ?? 0) - (copy?.offsetHeight ?? 0) / 2)}px`);
+      const end = cta.offsetTop + cta.offsetHeight - grid.offsetTop;
+      // Lớp mờ rộng hơn lưới một khoảng BLEED để blur không bị cắt thành mép thẳng ở hai bên.
+      Object.assign(ghostLayer.style, { top: `${grid.offsetTop}px`, left: `${grid.offsetLeft - BLEED}px`, width: `${grid.offsetWidth + 2 * BLEED}px`, height: `${end}px` });
+      ghostLayer.replaceChildren(...planProjectGhosts(plan, visible.map((node) => node.dataset.color).filter(Boolean), visible.map((node) => Number(node.dataset.ratio)), end).map((ghost) => {
+        const block = document.createElement("i");
+        Object.assign(block.style, { left: `${ghost.x + BLEED}px`, top: `${ghost.y}px`, width: `${ghost.width}px`, height: `${ghost.height}px`, background: ghost.color });
+        return block;
+      }));
+    }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (animate && !reduced && typeof window.Masonry === "function") {
       masonry ??= Object.assign(new window.Masonry(grid, { itemSelector: "[data-project-card]", initLayout: false, resize: false, transitionDuration: TRANSITION, stagger: 0 }), {
