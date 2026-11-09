@@ -2932,12 +2932,13 @@ async function runEspacioRouteLogoTimingChecks() {
           ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
         )}`,
       );
-      // logo-route-crossfade R2: tới Residential (hero ảnh) mark đậm dưới veil rồi sang trắng, không qua CMYK.
+      // logo-route-crossfade R1, R2: tới Residential (hero ảnh) mark CMYK chỉ khi veil phủ kín, rồi về trắng.
       assert(
-        !ordinaryTrace.some(
-          (sample) => sample.transitioning && sample.brandColor,
-        ),
-        "Residential route painted the CMYK mark during the transition",
+        ordinaryTrace.every((sample) => !sample.transitioning || !sample.brandColor || sample.veil >= 0.99) &&
+          !ordinaryTrace.at(-1)?.brandColor,
+        `Residential route showed the CMYK mark outside the full veil: ${JSON.stringify(
+          ordinaryTrace.filter((sample) => sample.brandColor && sample.veil < 0.99).slice(0, 4),
+        )}`,
       );
 
       await page.evaluate(() => {
@@ -2986,51 +2987,20 @@ async function runEspacioRouteLogoTimingChecks() {
       const advertisingStart = advertisingTrace.findIndex(
         (sample) => sample.namespace === "advertising-products",
       );
-      const startsBlack = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= advertisingStart &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) =>
-            fill.every((channel) => channel >= 30 && channel <= 70),
-          ),
-      );
-      const endsCmyk = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= startsBlack &&
-          sample.colorState &&
-          sample.fills[1]?.[0] >= 245 &&
-          sample.fills[1]?.[1] >= 225 &&
-          sample.fills[2]?.[0] >= 220 &&
-          sample.fills[2]?.[2] >= 100 &&
-          sample.fills[3]?.[1] >= 145 &&
-          sample.fills[3]?.[2] >= 210,
-      );
-      // Tween bắt đầu lúc veil mở, tức mẫu đen cuối trước khi đủ CMYK; mẫu đen đầu tiên còn tính cả lúc chờ veil,
-      // runner bận làm khoảng chờ đó dài ra.
-      const tweenStart = advertisingTrace.findLastIndex(
-        (sample, index) =>
-          index < endsCmyk &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) => fill.every((channel) => channel >= 30 && channel <= 70)),
-      );
-      const colorDuration =
-        startsBlack >= 0 && endsCmyk >= 0
-          ? advertisingTrace[endsCmyk].time - advertisingTrace[tweenStart].time
-          : Number.NaN;
+      // logo-route-crossfade R1, R3: trang đích mount dưới veil đã phủ kín nên mark đã CMYK, rồi giữ CMYK khi veil mở.
+      const cmykMark = (sample) =>
+        sample.colorState &&
+        sample.fills[1]?.[0] >= 245 &&
+        sample.fills[1]?.[1] >= 225 &&
+        sample.fills[2]?.[0] >= 220 &&
+        sample.fills[2]?.[2] >= 100 &&
+        sample.fills[3]?.[1] >= 145 &&
+        sample.fills[3]?.[2] >= 210;
       assert(
-        advertisingStart >= 0 && startsBlack >= advertisingStart,
-        `Advertising mark did not begin monochrome black: ${JSON.stringify(
+        advertisingStart >= 0 && advertisingTrace.slice(advertisingStart).every(cmykMark),
+        `Advertising mark was not CMYK from mount under the veil: ${JSON.stringify(
           advertisingTrace.slice(Math.max(0, advertisingStart - 2), advertisingStart + 12),
         )}`,
-      );
-      // logo-route-crossfade R2, R3: lúc veil mở, từng dải tween từ đậm sang CMYK trong 0.3s expo.out (GSAP, không transition CSS).
-      assert(
-        endsCmyk > startsBlack && colorDuration <= 450,
-        `Advertising mark did not complete black-to-CMYK in 0.3s: ${JSON.stringify({
-          colorDuration,
-          startsBlack,
-          endsCmyk,
-        })}`,
       );
       assert(
         advertisingTrace
