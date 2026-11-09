@@ -652,17 +652,16 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      /const colorTargets = \[[\s\S]*?headerLogo,[\s\S]*?\.desktop-nav a/.test(
+      // Chữ logo, nav, hamburger đổi màu ngay, không tween, cả lúc cuộn lẫn chuyển trang (owner 2026-11-09).
+      /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
+      !/const colorHeader = \(color\) => \{(?:(?!\n  \};)[\s\S])*gsap/.test(motionSource) &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
       /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
       ) &&
       /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
-      /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
-        motionSource,
-      ) &&
       // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
       /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
@@ -685,7 +684,7 @@ function assertPersistentNavigationContracts() {
       /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header text/hamburger color or the deliberately slower mark-color transition drifted",
+    "Header text/hamburger instant color or the mark flip drifted",
   );
   assert(
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
@@ -9957,7 +9956,7 @@ async function runHomeMotionRegressionCheck() {
     "The route request failure fallback changed",
   );
   assert(
-    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|/.test(
+    /const ink =\s*\(routeTransitionActive && \(routeMarkHeld \? routeVeilInk : !routeDestinationReady\)\) \|\|/.test(
       motionSource,
     ),
     "Route transitions do not force the header to an ink tone over the white veil",

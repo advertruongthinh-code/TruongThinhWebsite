@@ -13,55 +13,55 @@ updated: 2026-11-09
 
 ## Mục đích
 
-Khi chuyển trang, mark của logo đổi màu như Espacio: lúc bấm, mark sang màu đậm `#2f2f2f` cùng chữ bằng một tween
-màu `0.3s`; lúc veil mở, mark về màu trang đích (trắng hoặc CMYK) cũng bằng tween màu. Không có kiểu lật dải
-hay lớp crossfade trong lúc chuyển trang; cả cụm logo luôn hiện trên veil (R7).
+Khi chuyển trang, logo trên header đổi màu theo veil trắng (owner 2026-11-09). Lúc bấm, chữ và mark giữ màu đang
+có. Khi veil phủ kín, chữ đổi ngay sang `#2f2f2f`, không motion, và mark lật sang CMYK từ đúng lúc đó (đang CMYK
+thì giữ). Khi veil bắt đầu mở, chữ đổi ngay sang tone trang đích và mark lật sang màu trang đích. Không có tween
+màu nào trong lúc chuyển trang; cả cụm logo luôn hiện trên veil (R7).
 Spec này mô tả phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
-([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Veil dùng mark đậm theo
-Espacio (kiểu b) thay mark CMYK, không có crossfade riêng của mark.
+([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)).
 
 ## Hành vi
 
-### R1. Sang màu đậm lúc bấm
+### R1. Veil phủ kín: chữ đậm, mark CMYK
 
-Bấm link route mềm: từng dải của mark tween `fill` từ màu đang hiển thị (trắng hoặc CMYK) sang `#2f2f2f` ngay lúc
-bấm, trong `0.3s expo.out`, cùng lúc với chữ, nav, hamburger; veil bắt đầu phủ cùng lúc (`0.75s power4.inOut`). Hình bốn
-dải không đổi, không frame nào có dải lật hay `clip-path`, không có lớp chồng.
+Bấm link route mềm: header ghim lại, chữ, nav, hamburger và mark giữ màu đang có; veil phủ trong
+`0.75s power4.inOut`. Đúng frame veil phủ kín, chữ, nav và hamburger đổi ngay sang `#2f2f2f`, không có màu trung
+gian. Mark đang trắng thì lật sang CMYK ngay từ frame đó, không chờ nhịp header (kiểu lật của
+[Brand](../../design-system/brand.md#motion), `0.68s`, cyan trước); mark đang CMYK thì giữ, không lật.
 
 ```gherkin
-Given /vi/ ở đầu trang, mark trắng trên hero ảnh, 1440px hoặc 412×915
+Given /vi/ ở đầu trang, mark và chữ trắng trên hero ảnh, 1440px hoặc 412×915
 When click Residential
-Then fill của mark và chữ cùng chuyển sang #2f2f2f, bắt đầu ngay lúc bấm và xong trong khoảng 0.3s
-And không path nào của mark có animation clip-path
+Then chữ giữ trắng tới khi veil phủ kín, rồi đổi ngay sang #2f2f2f, không màu trung gian
+And mark bắt đầu lật sang CMYK khi veil phủ kín, không có tween fill
 ```
 
-### R2. Về màu trang đích lúc veil mở
+### R2. Veil bắt đầu mở: tone trang đích
 
-Mark giữ màu đậm suốt lúc veil phủ kín. Lúc veil bắt đầu mở, từng dải tween sang màu trang đích trong
-`0.3s expo.out`, cùng tween chữ: trắng nếu trang đích có hero ảnh (section đầu không có
-`data-header-tone="ink"`), CMYK nếu hero trắng. Mỗi lần chuyển trang có đúng hai tween màu: R1 rồi R2.
-Lúc gỡ veil, nếu tone trang đích đã đổi so với lúc veil bắt đầu mở (layout còn dịch), mark sửa bằng tween màu
-ngắn `0.3s power2.out`, không bao giờ lật dải trong lúc chuyển trang.
+Lúc veil bắt đầu mở, chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích: trắng nếu trang đích có hero
+ảnh (section đầu không có `data-header-tone="ink"`, lật lùi, đen trước), CMYK nếu hero trắng (đã CMYK thì không
+lật). Lượt lật CMYK của R1 chưa xong thì tua ngược từ chỗ đang dừng. Lúc gỡ veil, nếu tone trang đích đã đổi so
+với lúc veil bắt đầu mở (layout còn dịch), mark lật sang đúng màu.
 
 ```gherkin
 Given /vi/ ở đầu trang
 When click Residential, chờ veil mở xong
-Then mark có đúng hai tween màu: sang đậm lúc bấm, sang trắng lúc veil bắt đầu mở
-And lúc veil phủ kín mark là #2f2f2f
+Then chữ có đúng ba màu: trắng, #2f2f2f lúc veil phủ kín, trắng lúc veil bắt đầu mở
+And mark kết thúc ở trắng (is-brand-inverse)
 ```
 
 ### R3. Trang hero trắng
 
-Trang đích hero trắng (hiện là Advertising `/vi/advertising-products/`, `/en/advertising-products/`): mark sang
-đậm lúc bấm (R1), rồi từng dải về CMYK của nó lúc veil mở (R2). Mark đang CMYK lúc bấm vẫn sang đậm, vì mark
-luôn cùng màu chữ trên veil (kiểu b).
+Trang đích hero trắng (hiện là Advertising `/vi/advertising-products/`, `/en/advertising-products/`): mark lật sang
+CMYK lúc veil phủ kín (R1), rồi giữ CMYK lúc veil mở. Đi từ trang hero trắng: mark CMYK suốt lúc veil phủ, chỉ lật
+lúc veil mở nếu trang đích có hero ảnh.
 
 ```gherkin
 Given /vi/ ở đầu trang, mark trắng
 When click Advertising, chờ veil mở xong
-Then mark sang đậm lúc bấm, sang CMYK lúc veil bắt đầu mở, rồi giữ CMYK
+Then mark lật sang CMYK khi veil phủ kín, rồi giữ CMYK
 ```
 
 ### R4. Đổi ngôn ngữ
@@ -72,24 +72,25 @@ trực tiếp, header dưới veil, intro chạy lại và mark vẽ lần đầ
 
 ### R5. Chuyển giữa chừng
 
-Bấm link lúc mark đang lật dở (cuộn vừa đổi màu): dừng kiểu lật, gỡ lớp lật, từng dải tween từ màu đang có
-của nó sang đậm theo R1. Bấm link khi tween màu trước còn chạy: tween mới đi tiếp từ màu hiện tại.
+Bấm link lúc mark đang lật dở (cuộn vừa đổi màu): lúc bấm mark giữ nguyên, nên lượt lật chạy tiếp; khi veil phủ
+kín, mark chạy tới hoặc tua ngược về CMYK theo [Brand](../../design-system/brand.md#motion).
 
 ### R6. Giữ nguyên phần còn lại
 
-- Cuộn trong một trang (sticky, section trắng hoặc tối, về đầu trang) vẫn lật dải theo Brand.
+- Cuộn trong một trang (sticky, section trắng hoặc tối, về đầu trang) vẫn lật dải theo Brand, chữ đổi ngay.
 - Tải trực tiếp, F5, Back không qua bfcache: lần vẽ đầu giữ như Brand (CMYK lật lên từ lớp đen dưới veil).
-- Full menu, intro, FLIP scale, tone chữ header, thời lượng và easing của veil không đổi.
+- Full menu, intro, FLIP scale, thời lượng và easing của veil không đổi.
 - Reduced motion: không veil, mark đổi ngay sang trạng thái cuối
   ([Shell R13](site-shell.md#r13-reduced-motion)).
+- Trang tải nhanh thì veil mở khoảng `0.1s` sau khi phủ kín, nên lượt lật CMYK của R1 mới bắt đầu đã tua ngược
+  về trắng (R2).
 
 ### R7. Cụm logo luôn hiện trên veil
 
 Mỗi lần chuyển trang theo R1 tới R4, cả cụm logo trên header (mark, chữ "TRƯỜNG THỊNH" và dòng phụ "NỘI THẤT
 · QUẢNG CÁO") giữ `opacity 1` và nằm trên veil (header `z-index 1000`, veil `999`), nên lúc veil phủ kín vẫn
-thấy logo: chữ và mark cùng `#2f2f2f`. Mark và chữ đổi màu cùng lúc, cùng `0.3s expo.out` (R1, R2), như Espacio
-(logo, nav, hamburger đổi màu chung một tween ngay lúc bấm, logo không mờ). Áp dụng cho PC và điện thoại, mọi
-route mềm, route từ full menu (đổi ngôn ngữ chỉ có pha phủ, rồi tải lại trang), kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
+thấy logo: chữ `#2f2f2f`, mark CMYK. Áp dụng cho PC và điện thoại, mọi route mềm, route từ full menu (đổi ngôn
+ngữ chỉ có pha phủ, rồi tải lại trang), kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
 
 ```gherkin
 Given /vi/ ở đầu trang, 1440px hoặc 412×915
@@ -100,24 +101,25 @@ And mark, chữ, mục menu và hamburger không có opacity riêng
 
 ## Hiệu năng
 
-Tween màu chỉ ghi `fill` của bốn path, không đọc layout mỗi frame, không thêm lớp DOM. Giữ [gate phone Android](../decisions/phone-frame-budget.md)
-(fps trung bình từ 60) trong lúc chuyển trang.
+Đổi màu chữ là một lần ghi `color` inline, không tween. Lật mark là lớp lật của Brand, chỉ chạy transform và
+opacity. Giữ [gate phone Android](../decisions/phone-frame-budget.md) (fps trung bình từ 60) trong lúc chuyển trang.
 
 ## UI
 
 Logo: [BrandLockup](../../design-system/components/BrandLockup/README.md), [Brand motion](../../design-system/brand.md#motion).
-Code: `paintHeaderMark` (tùy chọn `tween`, class `is-brand-ink`), `pinHeaderForRoute`, `playRouteEnter`,
-`clearRouteEntry`, `colorHeader`, `syncDocumentState` (giữ class `is-brand-*`)
-trong `src/site/motion.js`.
+Code: `pinHeaderForRoute`, `inkRouteHeader` (gọi lúc veil phủ kín trong `coverRoute`), `playRouteEnter`,
+`clearRouteEntry`, `colorHeader`, `paintHeaderMark`, `leadHeaderMark` (không chờ nhịp khi `headerMarkLeadFor` là
+`0`), `updateHeader` (`routeVeilInk`) trong `src/site/motion.js`.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm tween màu (fill inline trên path), không clip-path; mỗi tween dưới 0.5s, sang đậm bắt đầu lúc bấm, sang màu trang đích bắt đầu khi veil phủ kín và trước khi mở xong |
+| R1–R3 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, `/vi/` sang Residential, Advertising, Advertising sang `/vi/`; ghi mỗi frame màu chữ, lớp lật, opacity veil; không tween fill, không clip-path; chữ chỉ có đúng các màu đích, đổi sang đậm từ lúc veil phủ kín, sang tone trang đích lúc veil bắt đầu mở; lượt lật đầu bắt đầu từ lúc veil phủ kín, đúng màu và chiều |
+| R5 | `tests/site/logo-route-crossfade.e2e.mjs`: bấm link lúc đang lật, lượt lật chạy tiếp, không tween fill |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (đổi màu khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-flip.e2e.mjs` (từng dải lật quanh trục riêng, cyan trước, chỉ transform và opacity, đổi hướng giữ mặt đang hiện) |
-| Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
+| Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (lớp lật đã đo ở Brand, không đo lại) |
 
 ## Gate còn mở
 
@@ -126,7 +128,8 @@ trong `src/site/motion.js`.
 ## Chú thích thuật ngữ
 
 - **Mark**: phần hình tam giác bốn dải của logo.
-- **Tween màu**: đổi dần giá trị màu (`fill`, `color`) từ màu đầu tới màu cuối trong một khoảng thời gian.
+- **Tween màu**: đổi dần giá trị màu (`fill`, `color`) từ màu đầu tới màu cuối trong một khoảng thời gian; chuyển trang không dùng.
+- **Lật mark**: từng dải của mark xoay quanh trục riêng để đổi màu ([Brand](../../design-system/brand.md#motion)).
 - **Veil**: lớp trắng phủ toàn màn hình khi chuyển trang.
 - **Route mềm**: đổi trang bằng Barba, giữ document và phần tử shell.
 - **Hero**: section đầu trang.
