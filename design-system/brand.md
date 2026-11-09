@@ -134,8 +134,8 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | --- | --- | --- |
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
-| Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ở `0.3s` cùng nền, khi mở ra thì đổi ngay cùng nền | Mỗi lần header đổi tone |
-| Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cao cũ rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: nền tắt, chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật sang trắng cùng lúc (owner 2026-11-09) | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
+| Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ngay lúc bắt đầu nhịp cùng nền, khi mở ra thì đổi ở `0.3s` cùng nền | Mỗi lần header đổi tone |
+| Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cao cũ rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: mark lật sang trắng ngay lúc bắt đầu; nền trắng, viền và chữ đậm giữ, nền bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng, không fade (owner 2026-11-09) | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
 | Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s`, bắt đầu ngay (thu gọn, mở ra, veil phủ kín, veil bắt đầu mở) hoặc từ `0.1s` (đổi tone theo section) | Theo state machine dưới |
 | Màu mark khi chuyển trang | Lúc bấm giữ nguyên. Veil phủ kín: chữ đổi ngay sang `#2f2f2f`, mark đang trắng lật sang CMYK ngay lúc đó (đang CMYK thì giữ). Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Chữ không có motion (owner 2026-11-09) | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
@@ -175,16 +175,15 @@ không có bóng, mắt chỉ thấy dải hẹp lại rồi nở ra, bốn dả
 một vệt quét; bóng cho thấy mặt đang nghiêng. Trên nền trắng, mặt trắng nghiêng
 hiện thành xám thoáng qua.
 
-Khi thu gọn, nền, chữ và mark chỉ đổi khi logo và navbar đã chạy xong (owner 2026-11-09):
-sau mốc cuộn `100px` Locomotive (`lerp 0.085`) còn trôi khoảng `0.4`–`0.55s`,
-nên nhịp 1 chạy lúc trang còn trôi và lượt đổi rơi vào lúc trang chậm lại. Nền
-và chữ đổi cùng một frame nên chữ luôn đọc được: chữ đen chỉ hiện trên nền
-trắng, chữ trắng chỉ hiện trên ảnh. Mark lật từ đúng frame đó nên không có lúc
-mark trắng chìm trên nền trắng, và không pha xám trước (pha xám khiến mark đổi
-màu hai lần). Khi mở ra (kéo lên), nền trong và chữ trắng đổi ngay lúc navbar
-bắt đầu chuyển, không chờ (owner 2026-11-09); mark lật từ `0.1s`, cùng nhịp
-stagger nav lúc intro. Đổi tone theo section (không thu gọn, nền không đổi) mark
-cũng lật từ `0.1s`.
+Khi thu gọn, nền trắng, viền và chữ đậm hiện ngay lúc logo và navbar bắt đầu
+chạy, không fade; nền bắt đầu ở cao cũ rồi co cùng logo và navbar trong `0.3s`
+(owner 2026-11-09). Khi mở ra (kéo lên), nền trắng, viền và chữ đậm giữ, nền
+bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi một lần sang
+nền trong, chữ trắng, không fade (owner 2026-11-09). Nền và chữ đổi cùng một
+frame nên chữ luôn đọc được: chữ đen chỉ hiện trên nền trắng, chữ trắng chỉ hiện
+trên ảnh. Cả hai chiều mark lật ngay lúc bắt đầu nhịp, không pha xám (pha xám
+khiến mark đổi màu hai lần). Đổi tone theo section (không thu gọn, nền không
+đổi) mark lật từ `0.1s`, cùng nhịp stagger nav lúc intro.
 
 Đổi hướng trong nhịp 1 (lớp lật chưa dựng) về đúng màu lúc vào nhịp: mark giữ
 nguyên, không lật. Đổi hướng lúc đang lật: tua ngược ngay từ chỗ đang dừng, như
@@ -197,9 +196,9 @@ hết lượt chờ của lần đổi thì lật tiếp từ màu vừa tới.
 Given trang chủ ở đầu trang, mark trắng trên hero, trên điện thoại hoặc PC
 When cuộn thành sticky rồi cuộn về đầu trang
 Then mỗi dải lật quanh trục riêng qua trung điểm chân dải, song song cạnh trái
-And khi thu gọn, nền, viền, chữ và mark giữ trạng thái cũ tới 0.3s, rồi nền và chữ đổi ngay
-And mark bắt đầu lật đúng lúc nền đổi, không pha xám
-And khi mở ra, nền trong và chữ trắng đổi ngay, mark lật từ 0.1s
+And khi thu gọn, nền, viền và chữ đổi ngay lúc bắt đầu, nền co cùng logo trong 0.3s
+And khi mở ra, nền trắng và chữ đậm giữ, nền giãn cùng logo, hết 0.3s mới đổi sang nền trong, chữ trắng
+And cả hai chiều mark bắt đầu lật ngay, không pha xám
 And sang CMYK cyan lật trước, đen sau cùng, mọi mặt CMYK hiện ở 0.7s tính từ lúc lật
 And về trắng đen lật trước, cyan sau cùng
 And đổi hướng lúc đang lật thì tua ngược từ chỗ đang dừng
@@ -226,7 +225,7 @@ thẳng trang: tới khi trang đích sẵn sàng).
 | Chưa vẽ | Mở trang (direct, F5) trên nền ảnh | Trắng | Ngay, không transition |
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | Lật từ đen `#2b2a29` sang CMYK |
 | Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | Sticky: lật ngay cùng lúc nền trắng hiện; section: giữ trắng, từ `0.1s` lật sang CMYK |
-| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Về đầu trang: lật ngay cùng lúc nền tắt; section: giữ CMYK, từ `0.1s` lật sang trắng; đen trước |
+| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Về đầu trang: lật ngay lúc header bắt đầu mở ra, nền tắt ở `0.3s`; section: giữ CMYK, từ `0.1s` lật sang trắng; đen trước |
 | Trắng | Veil chuyển route phủ kín | CMYK | Lật ngay, không chờ nhịp; chữ đổi ngay sang đậm |
 | CMYK | Veil bắt đầu mở, trang đích hero ảnh | Trắng | Lật ngay, đen trước; chữ đổi ngay sang trắng |
 | Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Tua ngược từ chỗ đang dừng |

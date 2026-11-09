@@ -1,8 +1,8 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
 // trắng sang CMYK cyan trước, CMYK sang trắng chạy lùi đúng lượt đó nên đen trước; chỉ transform, opacity để GPU chạy;
 // đổi hướng giữa chừng thì tua ngược từ chỗ đang dừng (owner 2026-11-09).
-// Thu gọn và mở ra: logo, navbar, nền chạy chung 0.3s expo.out; nền, viền, chữ đổi ngay lúc bắt đầu, không fade; thu
-// gọn thì nền co cùng logo; mark lật cùng lúc (owner 2026-11-09).
+// Thu gọn và mở ra: logo, navbar, nền chạy chung 0.3s expo.out, mark lật ngay lúc bắt đầu. Thu gọn: nền, viền, chữ đổi
+// ngay rồi nền co cùng logo. Mở ra: nền trắng, chữ đậm giữ và giãn cùng logo, hết 0.3s mới đổi; không fade (owner 2026-11-09).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -158,12 +158,14 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    // Mở ra: nền trong, chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật cùng lúc (owner 2026-11-09).
+    // Mở ra (owner 2026-11-09): mark lật ngay; nền trắng, viền, chữ đậm giữ và giãn theo logo, navbar 0.3s, hết nhịp
+    // mới đổi một lần sang nền trong, chữ trắng, không fade.
     await page.waitForFunction(() => window.__phases.lead.length >= 2);
     const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
-    assert.deepEqual([expandSample.background, expandSample.text], ["rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: clear background and white text switch at once on the way up`);
+    assert.deepEqual([expandSample.background, expandSample.text], ["rgb(255, 255, 255)", "rgb(47, 47, 47)"], `${label}: white background and ink text hold while the header grows`);
+    assert.ok(expandSample.shift < 0, `${label}: background grows with the logo (${expandSample.shift}px)`);
     assert.ok(expandLead >= -1 && expandLead < 20, `${label}: flip back to white starts with the expand (${expandLead.toFixed(0)}ms)`);
-    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "none", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
+    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgb(211, 211, 211)", text: "rgb(47, 47, 47)" }, `${label}: surface still white when the flip back starts`);
     // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
     const back = await page.evaluate(async () => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
@@ -203,6 +205,11 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
+    const expanded = await page.evaluate(() => {
+      const header = document.querySelector("[data-site-header]");
+      return [getComputedStyle(header, "::before").backgroundColor, getComputedStyle(header.querySelector(".menu-button")).color];
+    });
+    assert.deepEqual(expanded, ["rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: background clears and text turns white once the 0.3s beat ends`);
     const flipsBefore = await page.evaluate(() => window.__phases.flip.length);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForTimeout(40);
