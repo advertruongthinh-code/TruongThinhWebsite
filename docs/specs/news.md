@@ -40,17 +40,20 @@ Dữ liệu: mỗi bài một mục trong `src/site/content/news.json` (`id`, `g
 và danh sách từ khung trang Giới thiệu, namespace `news`; trang nhóm `/<locale>/news/<group>/` chỉ có khi nhóm có bài. Bản 1
 bắt buộc đủ VI và EN; bài một ngôn ngữ (R5) làm khi có CMS. Mục "Tin tức" nằm trong nhóm Về chúng tôi của hamburger menu.
 
-Theo Espacio: tiêu đề mục, hàng lọc 4 nhóm cộng "Tất cả", lưới thẻ bài. Mỗi thẻ có ảnh, nhóm, tiêu đề, ngày đăng (khác
-Espacio, owner chọn hiện ngày). Bài mới nhất trước. Mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được, nút "Xem
-thêm" tải trang kế mà không đổi kiểu cuộn. Mỗi nhóm có trang lọc riêng có đường dẫn, title, mô tả. Bài chỉ có một ngôn ngữ
-chỉ hiện ở danh sách của ngôn ngữ đó.
+News là kênh bài tư vấn và xu hướng viết để lên Google, người đọc thấy rõ bài trước sau (owner 2026-11-09). Bố cục theo
+Espacio `/en/news`: thẻ lớn bài mới nhất dính ở cột trái, cột phải lưới 2x2 rồi các thẻ hàng ngang; phone, tablet một cột.
+Mỗi thẻ một ảnh bìa 3:2, nhóm, ngày đăng, tiêu đề; rê chuột thì gạch chân tiêu đề như navbar, không phóng to ảnh. Bài mới nhất
+trước, mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được. Hàng lọc chỉ có "Tất cả" và các năm có bài
+(`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô tả cho SEO nhưng không hiện thành nút lọc,
+người đọc vào qua nhãn nhóm ở đầu bài. Slug bài không được là số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
 Đầu trang danh sách và trang bài (tiêu đề, hàng lọc hoặc nhóm và ngày) là dải tối tràn mép như hero các trang tĩnh, chữ trắng,
 header dạng inverse (owner 2026-11-08); trang Công trình (projects R2) dùng chung đầu trang này.
 
 ```gherkin
 Given có 30 bài tiếng Việt
 When mở trang News tiếng Việt
-Then thấy 12 bài mới nhất, có link tới trang 2 trong HTML, và nút Xem thêm
+Then thấy 12 bài mới nhất, bài đầu là thẻ lớn, có link tới trang 2 trong HTML
+And hàng lọc chỉ có "Tất cả" và các năm, trang năm có noindex
 ```
 
 ### R3. Trang bài

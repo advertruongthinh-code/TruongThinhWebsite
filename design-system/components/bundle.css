@@ -7147,6 +7147,11 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-transform: uppercase;
 }
 
+.blk-article-head__group {
+  color: inherit;
+  text-underline-offset: 0.3em;
+}
+
 .blk-article-head__title {
   max-width: 20ch;
   margin: 0;
@@ -7499,6 +7504,114 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   display: flex;
   gap: 1rem;
   margin-top: 3rem;
+}
+
+/* Bố cục danh sách theo Espacio /en/news (owner 2026-11-09): hai cột; thẻ lớn bài mới nhất dính ở cột trái, cột phải là lưới
+   2x2 rồi các thẻ hàng ngang (ảnh 1/3, chữ 2/3); ảnh bìa 3:2. Rê chuột thì gạch chân tiêu đề chạy như navbar, không phóng to ảnh. */
+.blk-news-list__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  align-items: start;
+}
+
+.blk-news-list__main {
+  position: sticky;
+  top: calc(var(--header-collapsed-row-height, 61px) + 40px);
+}
+
+.blk-news-list__side,
+.blk-news-list__quad {
+  display: grid;
+  gap: 35px;
+}
+
+.blk-news-list__quad {
+  grid-template-columns: 1fr 1fr;
+}
+
+.blk-news-list .blk-news-card img {
+  aspect-ratio: 3 / 2;
+}
+
+.blk-news-list .blk-news-card__title {
+  position: relative;
+  font-size: 1.3rem;
+  line-height: 1.3;
+}
+
+.blk-news-list .blk-news-card--main .blk-news-card__title {
+  font-size: clamp(2rem, 3.33vw, 3rem);
+}
+
+.blk-news-list .blk-news-card__title::after {
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  left: 0;
+  height: 3px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: currentColor;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+}
+
+.blk-news-list .blk-news-card:hover .blk-news-card__title::after,
+.blk-news-list .blk-news-card:focus-visible .blk-news-card__title::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.blk-news-card--row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  column-gap: 35px;
+  align-content: start;
+}
+
+.blk-news-card--row img {
+  grid-row: span 2;
+}
+
+.blk-news-card--row .blk-news-card__meta {
+  margin-top: 0;
+}
+
+@media (max-width: 960px) {
+  .blk-news-list__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blk-news-list__main {
+    position: static;
+  }
+}
+
+@media (max-width: 578px) {
+  .blk-news-list__quad {
+    grid-template-columns: 1fr;
+  }
+
+  .blk-news-list__quad .blk-news-card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    column-gap: 15px;
+    align-content: start;
+  }
+
+  .blk-news-list__quad .blk-news-card img {
+    grid-row: span 2;
+  }
+
+  .blk-news-list__quad .blk-news-card__meta,
+  .blk-news-card--row .blk-news-card__meta {
+    margin-top: 0;
+  }
+
+  .blk-news-card--row {
+    column-gap: 15px;
+  }
 }
 
 /* Khẩu hiệu hero trang Công trình: chỉ chữ nhấn (em) đậm 700 nghiêng, phần còn lại 500 như dòng một (owner 2026-11-08). */
