@@ -133,16 +133,19 @@ export const newsListSource = (listPage) => `${listPage.path.slice(1)}index.html
 export const newsListRoutes = (news) => newsListPages(news).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, newsListSource(listPage)]));
 
 // Thẻ News theo Espacio /en/news: một ảnh bìa, nhóm và ngày, tiêu đề; kiểu lớn (bài đầu), thường, hàng ngang.
-// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS.
+// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS. Thẻ lớn nằm trên màn hình đầu nên ảnh
+// tải ngay (LCP); các thẻ còn lại lazy. Chữ tiêu đề bọc span inline để gạch chân rê chuột chạy theo bề rộng chữ.
 const NEWS_CARD_VARIANT = { main: " blk-news-card--main", row: " blk-news-card--row" };
 const newsCard = (post, variant = "") => {
   const group = NEWS_GROUPS[post.group];
   const [year, month, day] = post.published.split("-");
+  // Ảnh thẻ lớn là LCP: tải sớm, sizes đúng nửa trang trên PC để không kéo bản quá lớn.
+  const loading = variant === "main" ? 'loading="eager" fetchpriority="high" sizes="(max-width: 960px) 100vw, 50vw"' : 'loading="lazy"';
   return [
     `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
-    `<img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" loading="lazy" />`,
+    `<img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" ${loading} />`,
     `<span class="blk-news-card__meta"><span data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span> · <time datetime="${post.published}">${day}/${month}/${year}</time></span>`,
-    `<span class="blk-news-card__title" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span>`,
+    `<span class="blk-news-card__title"><span class="blk-news-card__text" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span></span>`,
     "</a>",
   ].join("");
 };
@@ -236,7 +239,8 @@ export const kindFieldErrors = (kind, page, at) => {
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
-  for (const slug of [page.slugVi, page.slugEn]) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug) || /^\d{4}$/.test(slug ?? "")) errors.push(`${at}: slug ${slug} trùng đường dẫn nhóm hoặc phân trang`);
+  // id cũng là thư mục file nguồn (news/<id>/index.html), trùng trang nhóm, năm hoặc phân trang thì ghi đè trang danh sách.
+  for (const slug of new Set([page.id, page.slugVi, page.slugEn])) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug) || /^\d{4}$/.test(slug ?? "")) errors.push(`${at}: id hoặc slug ${slug} trùng đường dẫn nhóm, năm hoặc phân trang`);
   return errors;
 };
 

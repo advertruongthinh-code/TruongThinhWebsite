@@ -165,6 +165,64 @@ try {
       await context.close();
     }
   }
+  // News R2: thẻ lớn dính cột trái khi cuộn bằng wheel thật, ở mốc header + 40px, vừa màn hình, nhả ra ở đáy lưới.
+  // 1440 và 1366x650 chạy smooth scroll (Locomotive dời container bằng transform), 970 cuộn native với CSS sticky.
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1366, height: 650 }, { width: 970, height: 900 }]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    const at = `/vi/news/ sticky ${viewport.width}x${viewport.height}`;
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+    try {
+      await page.goto(`${origin}/vi/news/`, { waitUntil: "load" });
+      const smooth = viewport.width >= 981;
+      if (smooth) await page.waitForSelector("html.has-scroll-init", { state: "attached", timeout: 8000 });
+      const measure = () => page.evaluate(() => {
+        const main = document.querySelector(".blk-news-list__main");
+        const grid = main.parentElement.getBoundingClientRect();
+        const box = main.getBoundingClientRect();
+        return { stickyTop: Number.parseFloat(getComputedStyle(main).top), gridTop: grid.top, gridBottom: grid.bottom, top: box.top, bottom: box.bottom, height: box.height, innerHeight };
+      });
+      // Smooth scroll trượt dần (lerp): chờ tới khi vị trí lưới đứng yên.
+      const settle = async () => {
+        let last = await measure();
+        for (let step = 0; step < 40; step += 1) {
+          await page.waitForTimeout(100);
+          const next = await measure();
+          if (Math.abs(next.gridTop - last.gridTop) < 0.5) return next;
+          last = next;
+        }
+        return last;
+      };
+      const start = await measure();
+      const range = start.gridBottom - start.gridTop - start.height;
+      assert.ok(range > 100, `${at}: lưới phải cao hơn thẻ lớn để có quãng dính: ${JSON.stringify(start)}`);
+      // Thẻ hàng ngang: chữ nhóm và ngày nằm sát trên tiêu đề (cách 0.5rem), không bị ảnh cao kéo giãn hàng.
+      const rowGaps = await page.$$eval(".blk-news-card--row", (cards) => cards.map((card) => card.querySelector(".blk-news-card__title").getBoundingClientRect().top - card.querySelector(".blk-news-card__meta time").getBoundingClientRect().bottom));
+      assert.ok(rowGaps.length && rowGaps.every((gap) => gap >= 0 && gap <= 10), `${at}: khoảng nhóm và tiêu đề thẻ hàng ngang ${rowGaps.join(", ")}`);
+      await page.mouse.move(viewport.width / 2, viewport.height / 2);
+      // Lăn từng nấc, chờ đứng yên, tới giữa quãng dính: đỉnh lưới đã qua mốc dính khoảng nửa quãng.
+      let mid = start;
+      for (let step = 0; step < 40 && mid.gridTop > start.stickyTop - range / 2; step += 1) {
+        await page.mouse.wheel(0, 100);
+        mid = await settle();
+      }
+      assert.ok(mid.gridTop < mid.stickyTop - 20 && mid.gridBottom - mid.stickyTop > mid.height + 20, `${at}: chưa vào giữa quãng dính: ${JSON.stringify(mid)}`);
+      assert.ok(Math.abs(mid.top - mid.stickyTop) <= 1, `${at}: thẻ lớn phải dính ở ${mid.stickyTop}px: ${JSON.stringify(mid)}`);
+      assert.ok(mid.bottom <= mid.innerHeight, `${at}: thẻ lớn lúc dính phải vừa màn hình: ${JSON.stringify(mid)}`);
+      for (let step = 0; step < 40; step += 1) await page.mouse.wheel(0, 400);
+      const end = await settle();
+      // Cuối trang: đáy lưới đã lên trên đáy thẻ lúc dính thì thẻ nhả ra, đáy thẻ trùng đáy lưới, không đè phần dưới.
+      if (smooth) assert.ok(end.gridBottom < end.stickyTop + end.height - 20, `${at}: chưa cuộn qua đáy lưới: ${JSON.stringify(end)}`);
+      assert.ok(Math.abs(end.bottom - Math.min(end.gridBottom, end.stickyTop + end.height)) <= 1, `${at}: thẻ lớn phải nhả ra ở đáy lưới: ${JSON.stringify(end)}`);
+      assert.deepEqual(errors, [], `${at}: lỗi console`);
+    } catch (error) {
+      failures.push(error.message);
+    } finally {
+      await context.close();
+    }
+  }
 } finally {
   await browser.close();
 }
@@ -172,4 +230,4 @@ if (failures.length) {
   console.error(`block-pages e2e FAIL: ${failures.length}\n${failures.join("\n")}`);
   process.exit(1);
 }
-console.log(`block-pages e2e PASS: ${cases.length * viewports.length} trang`);
+console.log(`block-pages e2e PASS: ${cases.length * viewports.length} trang, 3 viewport thẻ News dính`);

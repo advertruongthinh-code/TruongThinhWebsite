@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { SECTORS, loadBlockContent, renderProjectPage } from "../../scripts/site/block-pages.mjs";
+import { SECTORS, loadBlockContent, renderBlockPage, renderProjectPage } from "../../scripts/site/block-pages.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
 const templateOf = (sector) => readFileSync(new URL(`../../src/site/${sector}/index.html`, import.meta.url), "utf8");
@@ -49,6 +49,22 @@ test("News list: newest first, 12 per page, year filter pages, group pages kept 
   assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
   const chips = [...renderNewsListPage(frame, pages[5]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(chips, ["/vi/news/", "/vi/news/2026/", "/vi/news/2025/"]);
+  // Bố cục Espacio: bài đầu là thẻ lớn (ảnh tải ngay cho LCP), 4 bài kế là lưới 2x2, còn lại là thẻ hàng ngang (lazy).
+  const list = renderNewsListPage(frame, pages[0]);
+  const main = list.match(/<div class="blk-news-list__main">([\s\S]*?)<\/div>/)[1];
+  const quad = list.match(/<div class="blk-news-list__quad">([\s\S]*?)<\/div>/)[1];
+  assert.deepEqual([...main.matchAll(/<a class="blk-news-card([^"]*)" href="([^"]+)"/g)].map((match) => [match[1], match[2]]), [[" blk-news-card--main", "/vi/news/p12/"]]);
+  assert.match(main, /loading="eager" fetchpriority="high" sizes="\(max-width: 960px\) 100vw, 50vw"/);
+  assert.deepEqual([...quad.matchAll(/<a class="blk-news-card" href="([^"]+)"/g)].map((match) => match[1]), ["/vi/news/p11/", "/vi/news/p10/", "/vi/news/p9/", "/vi/news/p8/"]);
+  assert.equal((list.match(/class="blk-news-card blk-news-card--row"/g) ?? []).length, 7);
+  const side = list.match(/<div class="blk-news-list__side">([\s\S]*)<\/div>\s*<\/div>/)[1];
+  assert.equal((side.match(/loading="lazy"/g) ?? []).length, 11);
+});
+
+test("News article head: group label links to its group page in both languages", () => {
+  const post = news[0];
+  const html = renderBlockPage("news", readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8"), post, ctx);
+  assert.ok(html.includes(`<a class="blk-article-head__group" href="/vi/news/${post.group}/" data-en-href="/en/news/${post.group}/"`), "group link VI and EN");
 });
 
 test("every page links to News from the hamburger menu only", () => {
@@ -65,13 +81,15 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-hotel"]);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
-  assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: slug 2026 trùng đường dẫn nhóm hoặc phân trang"]);
+  assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: id hoặc slug 2026 trùng đường dẫn nhóm, năm hoặc phân trang"]);
   assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
     "n: group phải là nha-o, kinh-doanh, xu-huong, quang-cao",
     "n: published phải là YYYY-MM-DD",
-    "n: slug page trùng đường dẫn nhóm hoặc phân trang",
-    "n: slug xu-huong trùng đường dẫn nhóm hoặc phân trang",
+    "n: id hoặc slug page trùng đường dẫn nhóm, năm hoặc phân trang",
+    "n: id hoặc slug xu-huong trùng đường dẫn nhóm, năm hoặc phân trang",
   ]);
+  // id là thư mục file nguồn news/<id>/index.html: trùng trang nhóm, năm hoặc phân trang thì ghi đè trang danh sách.
+  for (const id of ["page", "kinh-doanh", "2025"]) assert.deepEqual(kindFieldErrors("news", { id, group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), [`n: id hoặc slug ${id} trùng đường dẫn nhóm, năm hoặc phân trang`]);
 });
 
 test("Projects list: all, sectors with projects, every type; filter slugs are reserved; artifact passes the advertising card contract", async () => {

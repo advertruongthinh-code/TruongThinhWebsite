@@ -6,6 +6,8 @@
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
+  // Id riêng mỗi lần mount: lúc Barba chuyển trang, container cũ (ẩn) còn trong DOM cùng lưới News.
+  let newsGridCount = 0;
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
@@ -1116,6 +1118,12 @@
       return;
     }
     window.scrollTo({ top: 0, behavior: "instant" });
+    // News R2: mốc dính đọc lúc bật smooth (luôn từ 981px) để không lệch khi header đổi cao theo breakpoint.
+    const newsMain = state.container.querySelector(".blk-news-list__main[data-scroll-sticky]");
+    if (newsMain) {
+      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(newsMain).top) || 0);
+      newsMain.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
+    }
     state.smoothScroll = new window.LocomotiveScroll({
       el: state.container,
       smooth: true,
@@ -1909,6 +1917,16 @@
       projectTrack.setAttribute("data-scroll", "");
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
+    }
+    // News R2: thẻ lớn dính cột trái. Smooth scroll dời container bằng transform nên CSS sticky không chạy; dùng sticky
+    // của Locomotive, nhả ra ở đáy lưới; mốc dính (data-scroll-offset) đặt trong initSmoothScroll. Native scroll vẫn dùng CSS.
+    const newsMain = container.querySelector(".blk-news-list__main");
+    if (newsMain) {
+      const grid = newsMain.parentElement;
+      grid.id ||= `news-grid-${++newsGridCount}`;
+      newsMain.setAttribute("data-scroll", "");
+      newsMain.setAttribute("data-scroll-sticky", "");
+      newsMain.setAttribute("data-scroll-target", `#${grid.id}`);
     }
 
     watchWhiteOverlayMedia(state);
