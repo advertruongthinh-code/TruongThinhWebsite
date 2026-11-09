@@ -6157,7 +6157,8 @@ async function runAdvertisingGridFocusedChecks() {
             tiles,
             outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--advertising-outer")),
             gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--advertising-gap")),
-            captionCount: grid.querySelectorAll("figcaption").length,
+            // Tên card chỉ hiện khi hover chuột thật (owner 2026-11-09), không chiếm chỗ; ngoài nó không còn caption.
+            captionCount: grid.querySelectorAll("figcaption:not(.advertising-tile__title)").length,
           };
         });
         const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
@@ -7568,9 +7569,9 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
         const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+      assert(localizedCard.filter === "All" && localizedCard.title === "Exhibition booths" && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or hover title did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
@@ -7578,9 +7579,9 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
         const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       // Focus một tile bị filter loại (kiosk thuộc displays-booths); sau khi tải lại, tile đầu trong DOM tùy vị trí cuộn.
       await page.locator('[data-advertising-card="kiosk-posm-01"] a').focus();

@@ -1,6 +1,6 @@
 # Media card
 
-Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/advertising-products/media-colors.mjs`, `src/site/advertising-products/video-source.mjs`; CSS `.advertising-tile`; spec [Card nhiều media](../../../docs/specs/media-card.md).
+Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/advertising-products/media-colors.mjs`, `src/site/advertising-products/video-source.mjs`; CSS `.advertising-tile`, `.advertising-tile__title`; spec [Card nhiều media](../../../docs/specs/media-card.md).
 
 Một ô sản phẩm trong masonry Advertising (masonry chính và related). Runtime
 `catalog-runtime.mjs` dựng `figure.project-tile.advertising-tile` từ
@@ -9,7 +9,12 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 ## Cấu trúc
 
 - Link phủ cả card tới `?category=<slug>&photo=<id>`; ảnh giữ trọn tỷ lệ gốc,
-  rộng đúng một cột, không crop, không caption, không tiêu đề (chỉ alt VI/EN).
+  rộng đúng một cột, không crop, không caption chiếm chỗ; alt VI/EN là tên card.
+- Card masonry chính có `figcaption.advertising-tile__title` (`aria-hidden`, tên
+  VI/EN theo ngôn ngữ). Advertising: chỉ chuột thật hover mới hiện, chữ trắng
+  `0.8rem` 700 chữ hoa có bóng D giữa canvas (chỗ "Vừa xem"), chừa 40px hai mép
+  cho mũi tên; cảm ứng không có. Công trình: luôn hiện dưới media
+  ([Masonry](../Masonry/README.md#tên-card-công-trình)). Related không có tên.
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
@@ -17,7 +22,10 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan và opacity về 1 cùng nhịp `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
-  2026-10-18); chuột thật hover phủ lớp đen 30% lên canvas (owner 2026-10-26); focus chỉ có viền.
+  2026-10-18); chuột thật hover phủ lớp tối lên canvas: masonry chính
+  `media-hover-overlay` (0.353, bằng độ tối trung bình `.hero-shade`, owner
+  2026-11-09) dưới tên card, related lớp đen 30% (owner 2026-10-26), card Công
+  trình không có lớp tối; focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed` (chữ có bóng D, lớp đen chờ media sẵn sàng).
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).

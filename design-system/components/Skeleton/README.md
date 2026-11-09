@@ -11,7 +11,8 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 
 - Khung xếp tới đáy batch, cùng gutter với ảnh (2 đến 5 khung mỗi cột tùy
   chiều cao); cao bằng bề rộng card nhân một trong ba band ngang `0.72`, vuông
-  `1`, đứng `1.32`, hai khung liền nhau trong cột khác band; mặt trong là
+  `1`, đứng `1.32`, hai khung liền nhau trong cột khác band; lưới có tên dưới
+  card (trang Công trình) chừa thêm chiều cao tên dưới mỗi khung như card thật; mặt trong là
   gradient Flow nhiều màu chảy chậm (WebGL, 12 preset). Mỗi khung bốc preset,
   pha, chiều chảy và tốc độ ngẫu nhiên lúc vào viewport, tránh preset của khung
   kề; trùng preset thì pha lệch xa. Giữ màu tới khi trang ổn định lại.

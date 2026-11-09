@@ -218,6 +218,7 @@ export function createSkeletonFlowFrameLayout({
   columns,
   cardWidth,
   gap,
+  captionHeight = 0,
   boundaryBottom,
   maxFrames = Number.MAX_SAFE_INTEGER,
   seed,
@@ -226,7 +227,7 @@ export function createSkeletonFlowFrameLayout({
   if (!Array.isArray(columnBottoms) || !Number.isInteger(columns) || columns < 1
     || columnBottoms.length < columns || columnBottoms.slice(0, columns).some((bottom) => !Number.isFinite(bottom))
     || !Number.isFinite(cardWidth) || cardWidth <= 0
-    || !Number.isFinite(gap) || gap < 0 || !Number.isFinite(boundaryBottom)
+    || !Number.isFinite(gap) || gap < 0 || !Number.isFinite(captionHeight) || captionHeight < 0 || !Number.isFinite(boundaryBottom)
     || !Number.isInteger(maxFrames) || maxFrames < columns) {
     throw new TypeError("Skeleton frame layout requires valid column geometry");
   }
@@ -268,7 +269,8 @@ export function createSkeletonFlowFrameLayout({
       if (!rowBands.has(depth)) rowBands.set(depth, new Set());
       rowBands.get(depth).add(source.id);
       depths[column] += 1;
-      bottoms[column] = top + height;
+      // Lưới có tên dưới card (projects R2): khung là phần media, chừa chỗ tên bên dưới như card thật.
+      bottoms[column] = top + height + captionHeight;
     }
     return frames;
   };

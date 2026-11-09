@@ -41,7 +41,8 @@ qua suggestion hoặc CTA.
 locale và đường quay lại luôn rõ.
 
 **FORM:** Một layout engine (`layout-core.mjs`), không solver thứ hai; card
-không caption, ảnh giữ trọn tỷ lệ.
+không caption chiếm chỗ (tên chỉ hiện khi chuột thật hover, trên lớp
+`media-hover-overlay`), ảnh giữ trọn tỷ lệ.
 
 **FINISH:** unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 

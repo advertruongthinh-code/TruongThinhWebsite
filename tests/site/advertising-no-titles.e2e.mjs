@@ -21,7 +21,13 @@ try {
       await page.goto(browseUrl, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-advertising-card]");
       const evidence = await page.evaluate(() => ({
-        captions: document.querySelectorAll(".advertising-grid figcaption, [data-advertising-related-card] figcaption").length,
+        // Owner 2026-11-09: mỗi card masonry có một tên ẩn (aria-hidden), chỉ hiện khi hover chuột thật, không chiếm chỗ.
+        captions: [...document.querySelectorAll(".advertising-grid figcaption")].map((caption) => ({
+          title: caption.matches(".advertising-tile__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
+          position: getComputedStyle(caption).position,
+        })),
+        cardCount: document.querySelectorAll(".advertising-grid [data-advertising-card]").length,
+        relatedCaptions: document.querySelectorAll("[data-advertising-related-card] figcaption").length,
         photoTitles: document.querySelectorAll("[data-advertising-photo-title]").length,
         gridTitle: document.querySelectorAll("#du-an-title").length,
         currentFilter: document.querySelector("[data-advertising-filter][aria-current=\"true\"]")?.getAttribute("data-advertising-filter"),
@@ -32,8 +38,10 @@ try {
           imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
         })),
       }));
-      assert.equal(evidence.captions, 0, `${locale} ${viewport.width}px: grid has no image captions`);
+      assert.ok(evidence.captions.length === evidence.cardCount && evidence.captions.every((caption) => caption.title && caption.opacity === "0" && caption.position === "absolute"),
+        `${locale} ${viewport.width}px: grid cards carry only a hidden hover title: ${JSON.stringify(evidence.captions.slice(0, 3))}`);
       assert.equal(evidence.photoTitles, 0, `${locale} ${viewport.width}px: detail has no image title node`);
+      assert.equal(evidence.relatedCaptions, 0, `${locale} ${viewport.width}px: related cards have no caption`);
       assert.equal(evidence.gridTitle, 0, `${locale} ${viewport.width}px: browse has no grid title node`);
       assert.equal(evidence.currentFilter, categoryLabel, `${locale} ${viewport.width}px: current filter is preserved`);
       assert.ok(evidence.imageAlts.length > 0 && evidence.imageAlts.every(Boolean), `${locale} ${viewport.width}px: grid image alternatives remain readable`);

@@ -13,7 +13,7 @@ tests:
   - tests/site/media-colors.test.mjs
   - tests/site/advertising-primary-flow-colors.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-10
 ---
 
 # Skeleton cuối masonry Advertising
@@ -33,7 +33,8 @@ Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[d
 (`aria-hidden`), không focus, không hover, không viền. Mỗi khung rộng một cột, bắt đầu một khoảng giữa dưới card thật
 của cột; batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng card nhân một trong ba band: ngang `0.72`, vuông `1`, đứng
-`1.32`. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
+`1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
+chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
 đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
 là thứ tự khung nối tiếp masonry (`0`, `1`, ...), không phải ô cột và độ sâu: đổi số cột thì khung thứ k vẫn là item

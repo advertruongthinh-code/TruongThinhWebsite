@@ -165,7 +165,7 @@ async function recordState(page, engine, label, options = {}) {
   return record;
 }
 async function checkBody(page,engine,label,options={}) {
-  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only')),explicitHidden:Boolean(e.closest('[hidden]')),
+  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.advertising-tile__title')),explicitHidden:Boolean(e.closest('[hidden]')),
     inactivePhoto:Boolean(e.closest('.advertising-photo-view')&&!document.body.classList.contains('is-advertising-photo')),
     inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-advertising-grid-cta],.detail-process')&&document.body.classList.contains('is-advertising-photo')),
     silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
