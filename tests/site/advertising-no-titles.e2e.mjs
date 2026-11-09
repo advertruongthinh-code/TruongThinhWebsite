@@ -27,7 +27,6 @@ try {
           position: getComputedStyle(caption).position,
         })),
         cardCount: document.querySelectorAll(".advertising-grid [data-advertising-card]").length,
-        relatedCaptions: document.querySelectorAll("[data-advertising-related-card] figcaption").length,
         photoTitles: document.querySelectorAll("[data-advertising-photo-title]").length,
         gridTitle: document.querySelectorAll("#du-an-title").length,
         currentFilter: document.querySelector("[data-advertising-filter][aria-current=\"true\"]")?.getAttribute("data-advertising-filter"),
@@ -41,7 +40,6 @@ try {
       assert.ok(evidence.captions.length === evidence.cardCount && evidence.captions.every((caption) => caption.title && caption.opacity === "0" && caption.position === "absolute"),
         `${locale} ${viewport.width}px: grid cards carry only a hidden hover title: ${JSON.stringify(evidence.captions.slice(0, 3))}`);
       assert.equal(evidence.photoTitles, 0, `${locale} ${viewport.width}px: detail has no image title node`);
-      assert.equal(evidence.relatedCaptions, 0, `${locale} ${viewport.width}px: related cards have no caption`);
       assert.equal(evidence.gridTitle, 0, `${locale} ${viewport.width}px: browse has no grid title node`);
       assert.equal(evidence.currentFilter, categoryLabel, `${locale} ${viewport.width}px: current filter is preserved`);
       assert.ok(evidence.imageAlts.length > 0 && evidence.imageAlts.every(Boolean), `${locale} ${viewport.width}px: grid image alternatives remain readable`);
@@ -57,7 +55,13 @@ try {
         imageAlt: document.querySelector("[data-advertising-photo-image]")?.getAttribute("alt") || "",
         infoLabel: document.querySelector("[data-advertising-photo-info]")?.getAttribute("aria-label") || "",
         relatedCardCount: document.querySelectorAll("[data-advertising-related-card]").length,
-        relatedCaptionCount: document.querySelectorAll("[data-advertising-related-card] figcaption").length,
+        // Owner 2026-11-09: card related có tên ẩn như masonry chính; id có tiền tố riêng nên không trùng card cùng id ở lưới chính.
+        relatedCaptions: [...document.querySelectorAll("[data-advertising-related-card] figcaption")].map((caption) => ({
+          title: caption.matches(".advertising-tile__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
+          position: getComputedStyle(caption).position, id: caption.id,
+          labelled: caption.closest("[data-advertising-related-card]").querySelector("a")?.getAttribute("aria-labelledby") === caption.id,
+          unique: document.querySelectorAll(`[id="${caption.id}"]`).length === 1,
+        })),
         relatedTiles: [...document.querySelectorAll("[data-advertising-related-card]")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
           imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
@@ -68,7 +72,9 @@ try {
       assert.ok(detail.imageAlt, `${locale} ${viewport.width}px: detail image alternative remains readable`);
       assert.ok(detail.infoLabel.trim(), `${locale} ${viewport.width}px: detail region remains meaningfully named`);
       assert.ok(detail.relatedCardCount > 0, `${locale} ${viewport.width}px: active detail renders no related cards`);
-      assert.equal(detail.relatedCaptionCount, 0, `${locale} ${viewport.width}px: related cards retain image captions`);
+      assert.ok(detail.relatedCaptions.length === detail.relatedCardCount && detail.relatedCaptions.every((caption) => caption.title && caption.opacity === "0"
+        && caption.position === "absolute" && caption.id.startsWith("advertising-related-title-") && caption.labelled && caption.unique),
+        `${locale} ${viewport.width}px: related cards carry one hidden hover title with a unique related id: ${JSON.stringify(detail.relatedCaptions.slice(0, 3))}`);
       assert.ok(detail.relatedTiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: related tile reserves caption height`);
 
       await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });

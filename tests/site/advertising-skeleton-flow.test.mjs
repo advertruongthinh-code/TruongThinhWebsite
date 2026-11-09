@@ -12,6 +12,7 @@ import {
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
 } from "../../src/site/advertising-products/skeleton-flow.mjs";
+import { compileAdvertisingProductLayout, isAdvertisingWideMedia } from "../../src/site/advertising-products/layout-core.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
@@ -217,6 +218,30 @@ for (const frame of captionedFrames) {
 }
 assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
   "a negative caption height is rejected");
+// Masonry R5: card cuối 2:1 trải cột 0-1 ở 1440px; batch nối tiếp ngay dưới nó ở cả hai cột, cùng chỗ tên như card
+// thật. Band khung (h/w 0.72, 1, 1.32) đều dưới tỷ lệ vàng nên theo cùng luật mọi khung rộng một cột.
+const wideTail = [[1, 1], [3, 4], [1, 1], [4, 5], [2, 1]].map(([width, height], index) => ({
+  id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
+  media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
+}));
+const wideTailLayout = compileAdvertisingProductLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
+  layoutViewportWidth: 1440, captionPixelHeight: 34.92, presentationOrder: wideTail.map(({ id }) => id) });
+const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
+assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
+const wideTailFrames = createSkeletonFlowFrameLayout({
+  columnBottoms: wideTailLayout.columnBottoms, columns: wideTailLayout.columns, cardWidth: wideTailLayout.cardWidth,
+  gap: wideTailLayout.interCardGap, captionHeight: 34.92, boundaryBottom: 2_400,
+});
+for (const column of [0, 1]) {
+  assert.equal(wideTailFrames.find((frame) => frame.column === column).top,
+    wideTailCard.y + wideTailCard.pixelHeight + wideTailLayout.interCardGap,
+    `column ${column}: the batch starts one gap below the spanning card and its caption`);
+}
+for (const frame of wideTailFrames) {
+  if (frame === wideTailFrames.findLast(({ column }) => column === frame.column)) continue;
+  assert.equal(isAdvertisingWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
+    "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
+}
 const mobileFrameLayout = createSkeletonFlowFrameLayout({
   columnBottoms: [100, 114], columns: 2, cardWidth: 220, gap: 15,
   boundaryBottom: 700,

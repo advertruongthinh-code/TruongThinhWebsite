@@ -162,7 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
-| Card masonry Advertising | Không zoom; chuột thật: lớp `media-hover-overlay` (0.353) và tên card trắng hiện `600ms ease-out` (`--media-hover-*`); related lớp đen 30%, không tên; card Công trình không lớp tối ([Media card](components/MediaCard/README.md)) |
+| Card masonry Advertising | Không zoom; chuột thật: lớp `media-hover-overlay` (0.353) và tên card trắng hiện `600ms ease-out` (`--media-hover-*`), cả related; card Công trình không lớp tối ([Media card](components/MediaCard/README.md)) |
 | Nút Suggestion | Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |

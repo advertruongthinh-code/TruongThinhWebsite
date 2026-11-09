@@ -6067,7 +6067,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout, isAdvertisingWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
@@ -6152,7 +6152,7 @@ async function runAdvertisingGridFocusedChecks() {
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
-        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1), `${width}px v6 compiler lost 2..4 columns or one-column photos`);
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isAdvertisingWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
         const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
           Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
           Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
@@ -6164,7 +6164,8 @@ async function runAdvertisingGridFocusedChecks() {
         assert(Math.abs(measured.width - expectedGridWidth) <= 0.05, `${width}px grid width expected ${expectedGridWidth}, got ${measured.width}`);
         assert(expectedColumns >= 2 && expectedColumns <= 4, `${width}px expected column contract escaped 2..4: ${expectedColumns}`);
         assert(expectedLayout.columns === expectedColumns, `${width}px compiler columns expected ${expectedColumns}, got ${expectedLayout.columns}`);
-        assert(measured.tiles.every((tile) => Math.abs(tile.width - expectedCardWidth) <= 0.05), `${width}px one-column card width drift: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
+        // Card tỷ lệ vàng trải 2 cột ở lưới từ 3 cột (R5); bề rộng từng card so với placement ở phép kiểm dưới.
+        assert(measured.tiles.every((tile) => [1, 2].some((span) => Math.abs(tile.width - (span * expectedCardWidth + (span - 1) * expectedGap)) <= 0.05)), `${width}px card width is neither one nor two columns: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
         assert(measured.gapToken === expectedGap, `${width}px gap token expected ${expectedGap}, got ${measured.gapToken}`);
         assert(measured.overflow <= 1 && withinGrid, `${width}px horizontal overflow or out-of-grid tile: ${JSON.stringify({ overflow: measured.overflow, withinGrid })}`);
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
@@ -6814,8 +6815,11 @@ async function runAdvertisingMediaFocusedChecks() {
       cards.length === expectedCounts[category.slug] &&
         cards.every((card, index) => card.sourceOrder === index) &&
         layout.placements.length === pool.length &&
-        layout.placements.every((placement, index) => placement.card.id === pool[index].id),
-      `${category.slug} count or FIFO source order drifted`,
+        // Thứ tự xếp là FIFO theo nguồn; thứ tự nhìn (theo top) có thể lệch khi card hai cột hạ xuống đáy cao hơn (R5).
+        layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id) &&
+        new Set(layout.placements.map(({ card }) => card.id)).size === pool.length &&
+        pool.every(({ id }) => layout.placements.some(({ card }) => card.id === id)),
+      `${category.slug} count or pool order drifted`,
     );
   }
   const rankedLayout = compileAdvertisingLayout({
