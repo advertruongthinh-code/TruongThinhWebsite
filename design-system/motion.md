@@ -215,9 +215,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 (mục trên) và ảnh hiện (mục này).
 
 - Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
-  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
+  ngay ở opacity cuối dưới `blur(24px)`, phóng tràn khung 24px mỗi phía, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
   (opacity `1 → 0.45 → 1`, `2s ease-in-out`, lặp; reduced motion không thở). Tải và `decode()` xong thì thở dừng,
-  blur về `none` và opacity về 1 trong `0.6s`
+  blur về `none`, scale và opacity về 1 trong `0.6s`
   `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
