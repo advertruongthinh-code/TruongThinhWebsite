@@ -9,7 +9,8 @@ dùng file ảnh.
 ## Hình học
 
 Hình dựng tỷ lệ (H, Y = H/6, khối chữ 4Y), dạng màu, motion và state machine
-màu theo [Brand guideline](../../brand.md#logo). Kích thước header: `brand-header-width` ×
+màu theo [Brand guideline](../../brand.md#logo); chuyển trang: chữ đổi ngay, mark lật theo veil
+([logo đổi màu](../../../docs/specs/logo-route-crossfade.md)). Kích thước header: `brand-header-width` ×
 `brand-header-height`.
 
 ## Số SVG và kích thước

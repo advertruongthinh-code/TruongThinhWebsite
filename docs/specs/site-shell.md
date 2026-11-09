@@ -53,8 +53,8 @@ Then lúc mở menu phủ header, scrollbar và CTA; sau khi đóng thumb scroll
 
 ### R2. Header: tone, thu gọn, lockup và nav desktop
 
-Cuộn quá 100px thì header `is-collapsed`; nền trắng, viền (`is-surface`) và tone chữ đổi sau nhịp FLIP `0.3s`; mở ra thì đổi ngay. Header ink khi thu gọn, khi đang
-chuyển route, hoặc khi section dưới điểm dò `scrollY + min(80px, 12% chiều cao cửa sổ)` có
+Cuộn quá 100px thì header `is-collapsed`; nền trắng, viền (`is-surface`) và tone chữ đổi sau nhịp FLIP `0.3s`; mở ra thì đổi ngay. Header ink khi thu gọn, khi veil
+chuyển route đang phủ kín, hoặc khi section dưới điểm dò `scrollY + min(80px, 12% chiều cao cửa sổ)` có
 `data-header-tone="ink"`; còn lại trắng. Màu chữ, hamburger đổi ngay, không tween. Đổi trạng thái thu gọn thì lockup chạy FLIP scale; màu mark theo
 [state machine](../../design-system/brand.md#state-machine-màu) (class `is-brand-*`). Nav desktop
 ẩn (`is-space-hidden`, `inert`, `aria-hidden`) khi breakpoint ẩn danh sách (≤750px), khi xuống
@@ -118,8 +118,8 @@ Then URL thành /en/residential/, history không thêm entry, trang tải lại 
 
 Barba (transition `persistent-shell`, timeout 15s) xử lý link nội bộ. Điều hướng native khi: chọn ngôn
 ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, có `target`, `download`,
-phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
-mark tween sang màu đậm cùng chữ theo [logo đổi màu](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
+phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (hiện, chữ và mark giữ màu; veil phủ kín thì chữ đổi ngay sang ink, mark lật sang CMYK theo
+[logo đổi màu](logo-route-crossfade.md)); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
 alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ lớp lật và class `is-brand-*` của mark), CTA, menu;
 lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header.
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại

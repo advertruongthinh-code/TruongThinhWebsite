@@ -100,7 +100,6 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 | Bốn màu CMYK | Bốn màu dưới | `#2f2f2f` ở header, `ink` ở menu | Header trên nền trắng hoặc sticky; full menu |
 | Đơn màu trắng | `#fff` | `#fff` | Header trên ảnh hero hoặc nền tối |
 | Đơn màu đen | `#2b2a29` | `#2f2f2f` | Trạng thái tạm một frame trước CMYK (xem dưới) |
-| Đơn màu đậm | `#2f2f2f` | `#2f2f2f` | Header trên veil khi chuyển trang, như Espacio |
 | Favicon | `#000000` hoặc `#ffffff` | Không có chữ | OS sáng dùng bản đen, OS tối dùng bản trắng |
 
 | Path | Màu | Token | Hex |
@@ -136,9 +135,9 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ở `0.3s` cùng nền, khi mở ra thì đổi ngay cùng nền | Mỗi lần header đổi tone |
-| Nhịp header | FLIP scale và navbar chạy chung `0.3s expo.out`. Thu gọn: nền, viền, chữ và mark giữ trạng thái cũ hết nhịp, ở `0.3s` nền trắng, viền và chữ đậm đổi ngay, không fade, mark lật sang CMYK từ đó, xong ở `0.98s`. Mở ra: nền trong và chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật sang trắng từ `0.1s`, xong ở `0.78s` (owner 2026-11-09) | Mỗi lần mark đổi màu theo state machine dưới, trừ chuyển trang |
-| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s` từ `0.3s` (thu gọn) hoặc `0.1s` (mở ra, đổi tone theo section) | Theo state machine dưới, trừ chuyển trang |
-| Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm; đổi ngôn ngữ chỉ pha sang đậm rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Nhịp header | FLIP scale và navbar chạy chung `0.3s expo.out`. Thu gọn: nền, viền, chữ và mark giữ trạng thái cũ hết nhịp, ở `0.3s` nền trắng, viền và chữ đậm đổi ngay, không fade, mark lật sang CMYK từ đó, xong ở `0.98s`. Mở ra: nền trong và chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật sang trắng từ `0.1s`, xong ở `0.78s` (owner 2026-11-09) | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
+| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s` từ `0.3s` (thu gọn), `0.1s` (mở ra, đổi tone theo section) hoặc ngay (veil phủ kín, veil bắt đầu mở) | Theo state machine dưới |
+| Màu mark khi chuyển trang | Lúc bấm giữ nguyên. Veil phủ kín: chữ đổi ngay sang `#2f2f2f`, mark đang trắng lật sang CMYK ngay lúc đó (đang CMYK thì giữ). Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Chữ không có motion (owner 2026-11-09) | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
@@ -212,16 +211,15 @@ intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
 ### State machine màu
 
-Header có một trong ba trạng thái màu mark. Header ở tone mực (nền trắng) khi
+Header có một trong hai trạng thái màu mark. Header ở tone mực (nền trắng) khi
 một trong ba điều kiện đúng: đã cuộn quá `100px` (sticky), section đang dưới
-header có `data-header-tone="ink"`, hoặc đang chuyển route mà trang đích chưa
-sẵn sàng.
+header có `data-header-tone="ink"`, hoặc veil chuyển route đang phủ kín (vào
+thẳng trang: tới khi trang đích sẵn sàng).
 
 | Trạng thái | Lớp header | Mark |
 | --- | --- | --- |
 | Trắng | `is-brand-inverse` | Bốn path trắng |
 | CMYK | `is-brand-color` | Bốn màu |
-| Đậm | `is-brand-ink` | Bốn path `#2f2f2f`, chỉ khi chuyển route |
 
 | Từ | Sự kiện | Tới | Cách chuyển |
 | --- | --- | --- | --- |
@@ -229,15 +227,15 @@ sẵn sàng.
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | Lật từ đen `#2b2a29` sang CMYK |
 | Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | Nhịp 1 giữ trắng, từ `0.3s` (section: `0.1s`) lật từ trắng sang CMYK |
 | CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Giữ CMYK, từ `0.1s` lật từ CMYK sang trắng, đen trước |
-| Trắng, CMYK | Bấm link chuyển route | Đậm | Tween màu `0.3s` cùng chữ |
-| Đậm | Veil bắt đầu mở | Trắng hoặc CMYK theo trang đích | Tween màu `0.3s` cùng chữ |
+| Trắng | Veil chuyển route phủ kín | CMYK | Lật ngay, không chờ nhịp; chữ đổi ngay sang đậm |
+| CMYK | Veil bắt đầu mở, trang đích hero ảnh | Trắng | Lật ngay, đen trước; chữ đổi ngay sang trắng |
 | Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Tua ngược từ chỗ đang dừng |
 
-- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark tween sang
-  `#2f2f2f` cùng chữ, như Espacio; logo luôn hiện trên veil, mark giữ màu đậm
-  suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại mark), rồi tween theo
-  tone trang đích lúc veil bắt đầu mở. Bấm link lúc mark đang lật dở thì kiểu
-  lật dừng, từng dải tween từ màu đang có.
+- Chuyển route: lúc bấm link header ghim lại, chữ và mark giữ màu đang có.
+  Veil phủ kín thì chữ đổi ngay sang đậm và mark lật sang CMYK (đang CMYK thì
+  giữ); logo luôn hiện trên veil, HTML trang đích mount dưới veil không làm vẽ
+  lại mark. Veil bắt đầu mở thì chữ đổi ngay sang tone trang đích và mark lật
+  theo. Bấm link lúc mark đang lật dở thì lượt lật chạy tiếp (owner 2026-11-09).
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 
