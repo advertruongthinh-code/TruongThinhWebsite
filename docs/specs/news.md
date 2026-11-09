@@ -8,7 +8,7 @@ tests:
   - tests/site/block-pages.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-08
+updated: 2026-11-10
 ---
 
 # News
@@ -41,11 +41,14 @@ và danh sách từ khung trang Giới thiệu, namespace `news`; trang nhóm `/
 bắt buộc đủ VI và EN; bài một ngôn ngữ (R5) làm khi có CMS. Mục "Tin tức" nằm trong nhóm Về chúng tôi của hamburger menu.
 
 News là kênh bài tư vấn và xu hướng viết để lên Google, người đọc thấy rõ bài trước sau (owner 2026-11-09). Bố cục theo
-Espacio `/en/news`: thẻ lớn bài mới nhất dính ở cột trái, cột phải lưới 2x2 rồi các thẻ hàng ngang; phone, tablet một cột.
-Mỗi thẻ một ảnh bìa 3:2, nhóm, ngày đăng, tiêu đề; rê chuột thì gạch chân tiêu đề như navbar, không phóng to ảnh. Bài mới nhất
-trước, mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được. Hàng lọc chỉ có "Tất cả" và các năm có bài
-(`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô tả cho SEO nhưng không hiện thành nút lọc,
-người đọc vào qua nhãn nhóm ở đầu bài. Slug bài không được là số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
+Espacio `/en/news`: thẻ lớn bài mới nhất dính ở cột trái cách header 40px, cả khi cuộn mượt (sticky của Locomotive) lẫn cuộn
+native (CSS sticky), nhả ra ở đáy lưới; ảnh thẻ lớn co chiều cao (cắt cover) để thẻ vừa màn hình laptop thấp; cột phải lưới 2x2
+rồi các thẻ hàng ngang, nhóm và ngày sát trên tiêu đề; phone, tablet một cột. Mỗi thẻ một ảnh bìa 3:2, nhóm, ngày đăng, tiêu đề;
+ảnh thẻ lớn tải ngay (LCP), thẻ khác lazy. Rê chuột hoặc focus bàn phím thì gạch chân chạy theo bề rộng chữ tiêu đề, kể cả nhiều
+dòng, như navbar; không phóng to ảnh. Bài mới nhất trước, mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được.
+Hàng lọc chỉ có "Tất cả" và các năm có bài (`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô
+tả cho SEO nhưng không hiện thành nút lọc, người đọc vào qua nhãn nhóm ở đầu bài. Id và slug bài không được là `page`, slug
+nhóm hay số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
 Đầu trang danh sách và trang bài (tiêu đề, hàng lọc hoặc nhóm và ngày) là dải tối tràn mép như hero các trang tĩnh, chữ trắng,
 header dạng inverse (owner 2026-11-08); trang Công trình (projects R2) dùng chung đầu trang này.
 
@@ -99,7 +102,7 @@ Then chuyển 301 sang đường dẫn mới
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Data | bài News: nhóm, slug, ngôn ngữ, khối, SEO, ngày đăng, ngày sửa, tác giả | R1 đến R5 |
-| Route | `/<locale>/news/`, `/<locale>/news/page/<n>/`, `/<locale>/news/<nhóm>/`, `/<locale>/news/<slug>/` | R2, R3, R5 |
+| Route | `/<locale>/news/`, `/<locale>/news/page/<n>/`, `/<locale>/news/<năm>/`, `/<locale>/news/<năm>/page/<n>/`, `/<locale>/news/<nhóm>/`, `/<locale>/news/<nhóm>/page/<n>/`, `/<locale>/news/<slug>/` | R2, R3, R5 |
 | Khối | `news-list`, `news-cards`, `cta-arrow` | [layout-library](layout-library.md) |
 
 ## UI
@@ -110,7 +113,8 @@ Thiết kế danh sách, thẻ bài và trang bài qua Design System và Impecca
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 đến R5 | chưa có test; viết khi owner mở slice code |
+| R2, R3 | `node --test tests/site/block-pages.test.mjs`; `node scripts/ci/suites.mjs block-pages` (thẻ lớn dính khi lăn wheel) |
+| R1, R4, R5 | chưa có test; viết khi owner mở slice code |
 
 ## Gate còn mở
 
