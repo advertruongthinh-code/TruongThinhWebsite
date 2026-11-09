@@ -37,7 +37,9 @@ chính nó (inline style, `CARD_LOADING_BLUR`), không animate vào, để trìn
 inline `scale` để tràn khỏi khung `24px` mỗi phía (`CARD_LOADING_BLEED_PX`, bằng 1 sigma của blur, mép khung còn khoảng 16% màu nền): blur nhạt dần ở mép ảnh,
 không phóng thì dải nhạt đó lộ màu chủ đạo thành viền tối quanh card (owner 2026-11-09). R2 đưa `scale` về 1 cùng nhịp blur tan.
 Ảnh đã tải phủ đúng khung (`height: 100%`, khung đã đúng tỷ lệ gốc nên chỉ giãn dưới 0,5px), không theo tỷ lệ pixel làm tròn của file đang tải, nên đáy
-card không lộ một hàng pixel màu chủ đạo.
+card không lộ một hàng pixel màu chủ đạo. Lớp chặn thứ hai: khung vẽ vòng `1px` màu giấy (`box-shadow: inset`, trên nền, dưới
+media), nên chỗ media hụt khung dưới một pixel vì layer composite lệch subpixel hay mép khử răng cưa chỉ lộ màu giấy. Khi media chưa
+phủ kín (chưa nhận byte, lúc thở) màu chủ đạo vì thế lùi vào `1px`, nhìn như card nhỏ đi dưới một pixel, không thành lằn.
 Khung media (`.advertising-card-media`) mang inline `background-color` là màu chủ đạo của ảnh bìa, nên ảnh chưa nhận byte
 nào vẫn hiện màu thay vì ô trắng. Card không có Kính, khung skeleton, Flow hay WebGL context: Kính `backdrop-filter` ba bậc trên 15 đến 18 card làm kéo
 thanh cuộn tụt còn 14 FPS. Skeleton Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)). Card mount
@@ -275,3 +277,5 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 - **Preset Flow**: bộ bốn màu và điểm neo của skeleton.
 - **Giải mã**: trình duyệt chuyển file ảnh thành điểm ảnh sẵn để vẽ (`decode()`).
 - **Trace**: bản ghi hiệu năng từng frame của trình duyệt.
+- **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.
+- **Layer composite**: lớp GPU trình duyệt vẽ riêng rồi ghép; có thể đặt lệch subpixel so với khung.

@@ -587,13 +587,16 @@ test("M01b synthetic video cover starts muted with poster", async () => {
         legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
         legacyRect: { width: oldRect.width, height: oldRect.height },
         videoReadyState: active.readyState,
+        // Media đang mờ chờ tải cố ý tràn khung 24px mỗi phía (loading-glass R1, khung cắt phần tràn).
+        bleed: active.style.filter.startsWith("blur(") ? 24 : 0,
         frame: { left: frame.left, top: frame.top, right: frame.right, bottom: frame.bottom },
         videoRect: { left: activeRect.left, top: activeRect.top, right: activeRect.right, bottom: activeRect.bottom } };
     });
-    const withinFrame = beforeVideoReady.videoRect.left >= beforeVideoReady.frame.left - 1
-      && beforeVideoReady.videoRect.top >= beforeVideoReady.frame.top - 1
-      && beforeVideoReady.videoRect.right <= beforeVideoReady.frame.right + 1
-      && beforeVideoReady.videoRect.bottom <= beforeVideoReady.frame.bottom + 1;
+    const slack = 1 + beforeVideoReady.bleed;
+    const withinFrame = beforeVideoReady.videoRect.left >= beforeVideoReady.frame.left - slack
+      && beforeVideoReady.videoRect.top >= beforeVideoReady.frame.top - slack
+      && beforeVideoReady.videoRect.right <= beforeVideoReady.frame.right + slack
+      && beforeVideoReady.videoRect.bottom <= beforeVideoReady.frame.bottom + slack;
     assert(beforeVideoReady.legacyHidden && beforeVideoReady.legacyDisplay === "none"
       && beforeVideoReady.legacyRect.width === 0 && beforeVideoReady.legacyRect.height === 0
       && withinFrame && beforeVideoReady.videoReadyState < 2 && beforeVideoReady.mediaLoaded !== "true",

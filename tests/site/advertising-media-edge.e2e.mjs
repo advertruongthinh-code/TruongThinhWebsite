@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
+const { default: sharp } = await import("sharp");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const BLEED = 24;
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
@@ -36,6 +37,27 @@ try {
     }));
     assert.ok(edges.length > 8, `${viewport.width}px: enough loaded cards measured (${edges.length})`);
     assert.deepEqual(edges.filter(({ gap }) => gap > 0.01), [], `${viewport.width}px: loaded media leaves the frame colour visible at an edge`);
+    // Lớp chặn thứ hai: ép media hụt khung 0,6px; hàng pixel đáy của card nền tối phải là màu giấy, không phải màu chủ đạo.
+    await page.addStyleTag({ content: ".advertising-tile img { height: calc(100% - 0.6px) !important; }" });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Khung nền tối đặt tay (rgb 20) trên card đã hiện ảnh, không phụ thuộc màu chủ đạo của catalog.
+    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .advertising-tile .project-tile__media")].filter((media) => {
+      const box = media.getBoundingClientRect();
+      return media.querySelector("img.is-advertising-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
+    }).slice(0, 4).map((media) => {
+      media.style.backgroundColor = "rgb(20, 20, 20)";
+      const box = media.getBoundingClientRect();
+      return { x: box.left + 8, y: Math.ceil(box.bottom) - 1, width: box.width - 16, luminance: 20 };
+    }));
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.ok(darkCards.length >= 2, `${viewport.width}px: enough settled cards for the sub-pixel check (${darkCards.length})`);
+    for (const card of darkCards) {
+      const { data, info } = await sharp(await page.screenshot({ clip: { x: card.x, y: card.y, width: card.width, height: 1 } })).raw().toBuffer({ resolveWithObject: true });
+      let sum = 0;
+      for (let i = 0; i < info.width * info.channels; i += info.channels) sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      const bottom = sum / info.width;
+      assert.ok(bottom > card.luminance + 60, `${viewport.width}px: sub-pixel gap shows the frame colour (${bottom.toFixed(0)} vs frame ${card.luminance.toFixed(0)})`);
+    }
     await page.close();
   }
 
