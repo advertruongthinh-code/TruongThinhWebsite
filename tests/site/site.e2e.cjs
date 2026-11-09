@@ -11678,7 +11678,7 @@ async function runBrandColorMotionCheck() {
   );
 
   await runPageCase(
-    "interrupted mark flip turns the bands back to CMYK",
+    "interrupted mark flip restarts left to right back to CMYK",
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -11745,20 +11745,27 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-color"),
       );
-      // Các dải đứng chờ hết nhịp header rồi mới quay ngược; đợi theo trạng thái trong trang thay vì mốc giờ cứng.
+      // Đổi hướng lúc lật dở: lượt đang chạy lật cho xong, rồi lượt mới lật tiếp sang CMYK, cyan trước (owner 2026-11-09:
+      // quay ngược làm đen lật trước, chạy từ phải sang trái). Đợi lớp lật mới theo trạng thái trong trang.
       await page.waitForFunction(
-        () =>
-          [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip span")]
-            .flatMap((face) => face.getAnimations())
-            .some((animation) => animation.playbackRate < 0),
+        () => {
+          const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+          return root && root !== window.__ttFlipRoot;
+        },
         null,
         { timeout: 1_500 },
       ).catch(() => {});
       const reversed = await readMark();
-      // Cùng lớp lật, mọi mặt quay ngược từ góc đang có.
+      const firstBand = await page.evaluate(() => {
+        const bands = [...(document.querySelector("#header-logo .brand-lockup__mark-flip")?.children || [])];
+        const delays = bands.map((band) => band.children[0].getAnimations()[0]?.effect.getTiming().delay);
+        const moving = delays.map((delay, index) => [delay, index]).filter(([delay]) => delay !== undefined);
+        return { delays, first: moving.sort((a, b) => a[0] - b[0])[0] };
+      });
       assert(
-        reversed.same && JSON.stringify(reversed.rates) === "[-1]",
-        `Interrupted flip did not turn the bands back: ${JSON.stringify(reversed)}`,
+        reversed.flip && !reversed.same && JSON.stringify(reversed.rates) === "[1]" &&
+          firstBand.first?.[0] === 0 && firstBand.first[1] === Math.max(...firstBand.delays.map((delay, index) => delay === undefined ? -1 : index)),
+        `Interrupted flip did not restart left to right: ${JSON.stringify({ reversed, firstBand })}`,
       );
       await page.waitForFunction(
         () => !document.querySelector(".brand-lockup__mark-flip"),

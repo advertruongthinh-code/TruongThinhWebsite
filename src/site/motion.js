@@ -768,12 +768,25 @@
     headerMarkFlip = undefined;
   };
   // Gỡ lớp lật khi mọi mặt chạy xong; quay ngược thì chờ lại từ đầu, lượt chờ cũ bỏ qua.
+  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích đã đổi (`flip.next`) thì lật tiếp từ màu vừa tới, sau khi
+  // hết nhịp header của lần đổi đó.
+  const advanceHeaderMarkFlip = (flip) => {
+    if (headerMarkFlip !== flip) return;
+    const next = flip.next;
+    if (!next) {
+      stopHeaderMarkFlip();
+      return;
+    }
+    const wait = next.at - performance.now();
+    if (wait > 0 && hasGsap) {
+      gsap.delayedCall(wait / 1000, () => advanceHeaderMarkFlip(flip));
+      return;
+    }
+    stopHeaderMarkFlip();
+    flipHeaderMark(flip.to, next.target);
+  };
   const settleHeaderMarkFlip = (flip) => {
-    const turn = (flip.turn || 0) + 1;
-    flip.turn = turn;
-    Promise.all(flip.animations.map((animation) => animation.finished)).then(() => {
-      if (headerMarkFlip === flip && flip.turn === turn) stopHeaderMarkFlip();
-    }, () => {});
+    Promise.all(flip.animations.map((animation) => animation.finished)).then(() => advanceHeaderMarkFlip(flip), () => {});
   };
   // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
   const headerFlipShade = "#000";
@@ -895,22 +908,19 @@
       if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
       else from = leading.from;
     }
-    // Đang lật tới đúng màu này (header gọi lại cùng tone, hoặc quay lại hướng cũ khi các dải đang đứng chờ): lật tiếp.
+    // Đang lật tới đúng màu này (header gọi lại cùng tone, hoặc đổi hướng rồi quay lại): lật tiếp, bỏ lượt lật nối.
     if (flipping && rise && !tween && same(flipping.to)) {
-      flipping.animations.forEach((animation) => animation.play());
+      flipping.next = undefined;
       return;
     }
-    // Đổi hướng lúc lật dở về đúng màu cũ: các dải đứng yên hết nhịp header, rồi quay ngược từ góc đang có trên cùng lớp.
-    if (flipping && rise && !tween && !reduceMotion && same(flipping.from)) {
-      flipping.animations.forEach((animation) => animation.pause());
-      leadHeaderMark(className, () => {
-        [flipping.from, flipping.to] = [flipping.to, flipping.from];
-        flipping.animations.forEach((animation) => animation.reverse());
-        settleHeaderMarkFlip(flipping);
-      });
+    // Đang lật mà màu đích đổi (đổi hướng giữa chừng, sang màu khác): lượt đang chạy lật cho xong, không quay ngược, rồi
+    // lượt mới lật tiếp sang màu đích, cyan trước, sau nhịp header của lần đổi này (owner 2026-11-09: quay ngược các dải
+    // làm đen lật trước, chạy từ phải sang trái).
+    if (flipping && rise && !tween && !reduceMotion) {
+      flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000 };
       return;
     }
-    // Lật dở sang màu khác: lớp cũ là mặt đang hiển thị của từng dải.
+    // Chuyển trang hoặc vẽ ngay khi đang lật: lớp cũ là mặt đang hiển thị của từng dải.
     if (flipping) from = readFlipFaces();
     stopHeaderMarkFlip();
     if (tween && hasGsap && !reduceMotion && headerMark) {

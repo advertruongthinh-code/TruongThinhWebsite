@@ -1,5 +1,5 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
-// cyan trước đen sau; chỉ transform, opacity để GPU chạy; đổi hướng giữa chừng quay ngược các dải.
+// cyan trước đen sau; chỉ transform, opacity để GPU chạy; đổi hướng giữa chừng lật nốt rồi lật tiếp, cyan trước.
 // Thu gọn: logo, navbar chạy 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay và mark lật. Mở ra: nền, chữ đổi
 // ngay lúc navbar bắt đầu chuyển, mark lật sau 0.1s (owner 2026-11-09).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
@@ -165,34 +165,45 @@ try {
     const back = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span")]
       .map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]));
     assert.deepEqual(back, cmyk.map((color, index) => [color, white[index]]), `${label}: CMYK to white flips the same way`);
-    // Đổi hướng sau khoảng 0.15s như lúc cuộn thật.
+    // Đổi hướng lúc lật dở (owner 2026-11-09): lượt đang chạy lật cho xong, không quay ngược; rồi lượt mới lật tiếp
+    // sang CMYK, cyan trước. Trước đây các dải quay ngược nên đen lật trước, chạy từ phải sang trái.
     await page.evaluate(() => { window.__flipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip"); });
     await page.waitForTimeout(150);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("[data-site-header]").classList.contains("is-brand-color"));
     await page.waitForTimeout(30);
-    // Nhịp 1 của lần đổi hướng: các dải đứng yên ở góc đang có tới khi header chạy xong.
-    const held = await page.evaluate(() => {
+    const carrying = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
       const animations = [...(root?.querySelectorAll("span") || [])].flatMap((face) => face.getAnimations());
-      return { same: root === window.__flipRoot, states: [...new Set(animations.map((animation) => animation.playState))] };
+      // Mặt đầu của cyan có thể đã xong trên runner chậm; không mặt nào dừng hay chạy ngược.
+      return {
+        same: root === window.__flipRoot,
+        running: animations.some((animation) => animation.playState === "running"),
+        paused: animations.some((animation) => animation.playState === "paused"),
+        rates: [...new Set(animations.map((animation) => animation.playbackRate))],
+      };
     });
-    assert.deepEqual(held, { same: true, states: ["paused"] }, `${label}: bands hold while the header moves`);
-    // Hết nhịp header thì các dải quay ngược; đợi theo trạng thái trong trang thay vì mốc giờ cứng.
-    await page.waitForFunction(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip span")]
-      .flatMap((face) => face.getAnimations()).some((animation) => animation.playbackRate < 0), null, { timeout: 1500 });
+    assert.deepEqual(carrying, { same: true, running: true, paused: false, rates: [1] }, `${label}: the running flip finishes forward`);
+    await page.waitForFunction(() => {
+      const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      return root && root !== window.__flipRoot;
+    }, null, { timeout: 1500 });
     const holdFor = await page.evaluate(() => performance.now() - window.__phases.collapse.at(-1));
-    assert.ok(holdFor >= 250, `${label}: bands turn back only after the header beat settles (${holdFor.toFixed(0)}ms)`);
-    const reversed = await page.evaluate(() => {
+    assert.ok(holdFor >= 250, `${label}: the follow-up flip waits for the header beat (${holdFor.toFixed(0)}ms)`);
+    const restarted = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-      const animations = [...(root?.querySelectorAll("span") || [])].flatMap((face) => face.getAnimations());
-      // Lớp lật dựng lúc header mở, header thu gọn giữa chừng: lớp phải co theo mark, không giữ cỡ cũ tràn khỏi header.
-      const flipBox = root?.getBoundingClientRect();
+      const bands = [...root.children];
+      const flipBox = root.getBoundingClientRect();
       const markBox = document.querySelector("#header-logo .brand-lockup__mark").getBoundingClientRect();
-      const fits = Boolean(flipBox) && ["left", "top", "width", "height"].every((key) => Math.abs(flipBox[key] - markBox[key]) < 1);
-      return { same: root === window.__flipRoot, rates: [...new Set(animations.map((animation) => animation.playbackRate))], fits };
+      return {
+        delays: bands.map((band) => band.children[0].getAnimations()[0]?.effect.getTiming().delay ?? null),
+        front: bands.map((band) => band.children[0].dataset.fill),
+        back: bands.map((band) => band.children[1].dataset.fill),
+        fits: ["left", "top", "width", "height"].every((key) => Math.abs(flipBox[key] - markBox[key]) < 1),
+      };
     });
-    assert.deepEqual(reversed, { same: true, rates: [-1], fits: true }, `${label}: mid-flip reversal turns the bands back on the collapsed mark box`);
+    // DOM: đen, vàng, magenta, cyan.
+    assert.deepEqual(restarted, { delays: [240, 160, 80, 0], front: white, back: cmyk, fits: true }, `${label}: follow-up flip runs white to CMYK, cyan first, on the collapsed mark box`);
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
     const final = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark path")]
       .map((item) => getComputedStyle(item).fill));
@@ -212,7 +223,7 @@ try {
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }));
     assert.deepEqual(cancelled, { flips: flipsBefore, fills: white }, `${label}: turning back inside the header beat tweens the mark home without a flip`);
-    console.log(`PASS ${label}: per-band axes, cyan first, compositor only, reversal turns bands back`);
+    console.log(`PASS ${label}: per-band axes, cyan first, compositor only, interrupted flip finishes, then flips on cyan first`);
     await context.close();
   }
 } finally {

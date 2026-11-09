@@ -183,10 +183,12 @@ stagger nav lúc intro. Đổi tone theo section (không thu gọn, nền không
 cũng lật từ `0.1s`.
 
 Đổi hướng trong nhịp 1 (lớp lật chưa dựng) về đúng màu lúc vào nhịp: mark giữ
-nguyên, không lật. Đổi hướng lúc lật dở về đúng màu cũ: mọi dải đứng yên ở góc
-đang có hết lượt chờ (`0.3s` khi thu gọn, `0.1s` khi mở ra), rồi quay ngược trên cùng lớp lật,
-dải nào chưa bắt đầu lật thì đứng yên. Đổi sang màu khác (hiếm, ví dụ lần vẽ đầu
-từ đen): mặt đang hiển thị của từng dải thành mặt cũ, lật lại sau nhịp 1.
+nguyên, không lật. Màu đích đổi lúc đang lật (đổi hướng giữa chừng hay sang màu
+khác): lượt đang chạy lật cho xong, không dừng, không quay ngược; xong lượt đó và
+hết lượt chờ của lần đổi (`0.3s` khi thu gọn, `0.1s` khi mở ra) thì lượt mới lật
+tiếp từ màu vừa tới sang màu đích, cyan trước như mọi lượt (owner 2026-11-09:
+quay ngược các dải làm đen lật trước, mark chạy từ phải sang trái). Đổi hướng
+lần nữa về đúng màu lượt đang chạy tới thì bỏ lượt nối.
 
 ```gherkin
 Given trang chủ ở đầu trang, mark trắng trên hero, trên điện thoại hoặc PC
@@ -223,7 +225,7 @@ sẵn sàng.
 | CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Giữ CMYK, từ `0.1s` lật từ CMYK sang trắng |
 | Trắng, CMYK | Bấm link chuyển route | Đậm | Tween màu `0.3s` cùng chữ |
 | Đậm | Veil bắt đầu mở | Trắng hoặc CMYK theo trang đích | Tween màu `0.3s` cùng chữ |
-| Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Các dải quay ngược từ góc đang có |
+| Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Lật nốt lượt đang chạy, rồi lật tiếp sang màu mới, cyan trước |
 
 - Chuyển route: khi bấm link, header ghim lại ở tone mực và mark tween sang
   `#2f2f2f` cùng chữ, như Espacio; logo luôn hiện trên veil, mark giữ màu đậm
