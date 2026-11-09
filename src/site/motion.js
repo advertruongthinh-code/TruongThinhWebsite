@@ -810,8 +810,8 @@
     });
     settleHeaderMarkFlip(flip);
   };
-  // Nhịp header (brand.md Motion): nền, viền, chữ, logo FLIP và navbar chạy chung 0.3s expo.out. Expo.out đi gần hết
-  // quãng sớm: ở 0.1s nền và logo đã đi khoảng 90%, nên mark lật từ 0.1s (owner 2026-11-09), không còn khoảng đứng im
+  // Nhịp header (brand.md Motion): nền, viền đổi ngay; chữ, logo FLIP và navbar chạy chung 0.3s expo.out. Expo.out đi
+  // gần hết quãng sớm: ở 0.1s logo đã đi khoảng 90%, nên mark lật từ 0.1s (owner 2026-11-09), không còn khoảng đứng im
   // và mark trắng chìm trên nền trắng ngắn nhất; 0.1s cũng là nhịp stagger nav lúc intro.
   const headerBeat = 0.3;
   const headerSettle = 0.1;

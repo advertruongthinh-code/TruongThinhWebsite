@@ -136,7 +136,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
-| Nhịp header | Nhịp 1 `0.3s expo.out`: nền, viền, chữ, FLIP scale, navbar chạy chung, mark giữ màu cũ. Ở `0.1s` nền và logo đã đi khoảng 90% quãng, nên nhịp 2 bắt đầu từ `0.1s`: mark lật thẳng sang màu đích, xong ở `0.78s` | Mỗi lần mark đổi màu theo state machine dưới, trừ chuyển trang |
+| Nhịp header | Nền trắng, nền trong và viền đổi ngay, không fade. Nhịp 1 `0.3s expo.out`: chữ, FLIP scale, navbar chạy chung, mark giữ màu cũ. Ở `0.1s` logo đã đi khoảng 90% quãng, nên nhịp 2 bắt đầu từ `0.1s`: mark lật thẳng sang màu đích, xong ở `0.78s` | Mỗi lần mark đổi màu theo state machine dưới, trừ chuyển trang |
 | Màu mark | Bốn dải lật quanh trục riêng, cyan trước, chạy `0.68s` từ `0.1s` | Theo state machine dưới, trừ chuyển trang |
 | Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm; đổi ngôn ngữ chỉ pha sang đậm rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
@@ -164,7 +164,7 @@ không làm mark giật (đo A04s 2026-11-07: kiểu mọc `clip-path` cũ còn 
 frame/giây và đứng hình khi main thread bận). Trong lúc lật, path inline của mark
 ẩn; lật xong gỡ lớp lật, mark inline hiện lại với màu cuối.
 
-Mark chỉ lật khi nền, viền, chữ, logo và navbar đã xong về mắt (owner
+Mark chỉ lật khi chữ, logo và navbar đã xong về mắt (owner
 2026-11-09): sau mốc cuộn `100px` Locomotive (`lerp 0.085`) còn trôi khoảng
 `0.4`–`0.55s`, nên nhịp 1 chạy lúc trang còn trôi và lượt lật rơi vào lúc trang
 chậm lại. Lật từ `0.1s` (owner chọn, cùng nhịp stagger nav lúc intro), không chờ

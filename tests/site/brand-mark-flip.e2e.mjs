@@ -23,6 +23,8 @@ const watchPhases = () => {
     phases.collapse.push(performance.now());
     // Mẫu giữa nhịp 1, đo trong trang để không lệch theo độ trễ của Playwright.
     setTimeout(() => phases.lead.push({
+      background: getComputedStyle(header).backgroundColor,
+      border: getComputedStyle(header).borderBottomColor,
       flip: Boolean(document.querySelector(".brand-lockup__mark-flip")),
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }), 40);
@@ -108,6 +110,8 @@ try {
     const lead = await page.evaluate(() => window.__phases.lead[0]);
     assert.equal(lead.flip, false, `${label}: mark waits while background, text, logo and navbar move`);
     assert.deepEqual(lead.fills, white, `${label}: mark holds white, no grey step`);
+    // Nền trắng và viền đổi ngay, không fade (owner 2026-11-09).
+    assert.deepEqual([lead.background, lead.border], ["rgb(255, 255, 255)", "rgb(211, 211, 211)"], `${label}: white background and border switch at once`);
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const collapseLead = await page.evaluate(flipLead);
     assert.ok(collapseLead >= 50 && collapseLead < 125, `${label}: flip starts once the header beat has settled (${collapseLead.toFixed(0)}ms)`);
