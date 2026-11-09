@@ -50,7 +50,7 @@ zoom, pan, vuốt đóng ([Viewer](components/Viewer/README.md)); trượt vào 
 | Chuyển động | Thông số |
 | --- | --- |
 | Header intro | Chỉ khi tải trực tiếp: lockup `scale 0 → 1` `1.5s power4.out`; mục nav `y -150 → 0` `1.5s power4.out`, stagger 0.1, tại 0.3s; hamburger `scaleX 0 → 1` `1s power4.out` tại 1.5s. Vào bằng route mềm thì không chạy lại |
-| Header collapse | Khi `scrollY > 100`. Transform `1s cubic-bezier(0, 0, .1, .99)`; viền, màu `0.3s ease-out`; nền `0.15s ease-out`. Padding đổi ngay (không transition layout); lockup FLIP scale, nav và icon menu trượt bằng `translateY` `0.3s expo.out` |
+| Header collapse | Khi `scrollY > 100`. Hai nhịp ([Brand Motion](brand.md#motion)): nhịp 1 nền, viền, màu `0.3s expo.out` (`cubic-bezier(.16, 1, .3, 1)`), lockup FLIP scale, nav và icon menu trượt bằng `translateY` `0.3s expo.out`, mark trắng sang đậm cùng chữ; nhịp 2 từ `0.3s` mark lật `0.68s`. Padding đổi ngay (không transition layout). Transform ẩn/hiện `1s cubic-bezier(0, 0, .1, .99)` |
 | Đổi tone header | Chữ nav và nét hamburger đổi màu cùng lúc `0.3s expo.out` theo `data-header-tone` của section dưới header |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay. Điện thoại cảm ứng (cạnh ngắn tối đa 750px): header lệch đúng bằng quãng cuộn, không transition, dừng thì giữ nguyên ([spec](../docs/specs/phone-header-scroll.md)) |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |

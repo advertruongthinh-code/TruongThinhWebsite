@@ -744,42 +744,8 @@
       if (headerMarkFlip === flip && flip.turn === turn) stopHeaderMarkFlip();
     }, () => {});
   };
-  // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
-  // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
-  // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
-  const paintHeaderMark = (
-    className,
-    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
-  ) => {
-    const flipping = headerMarkFlip;
-    header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
-    header.classList.add(className);
-    // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
-    if (hasGsap) gsap.killTweensOf(headerMarkPaths);
-    headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
-    const target = headerMarkPaths.map((path) => getComputedStyle(path).fill);
-    const same = (colors) => colors.every((color, index) => color === target[index]);
-    // Đang lật tới đúng màu này (header gọi lại cùng tone): để lớp lật chạy tiếp.
-    if (flipping && rise && !tween && same(flipping.to)) return;
-    // Đổi hướng lúc lật dở về đúng màu cũ: các dải quay ngược lại từ góc đang có, không dựng lớp mới.
-    if (flipping && rise && !tween && !reduceMotion && same(flipping.from)) {
-      [flipping.from, flipping.to] = [flipping.to, flipping.from];
-      flipping.animations.forEach((animation) => animation.reverse());
-      settleHeaderMarkFlip(flipping);
-      return;
-    }
-    // Lật dở sang màu khác: lớp cũ là mặt đang hiển thị của từng dải.
-    if (flipping) from = readFlipFaces();
-    stopHeaderMarkFlip();
-    if (tween && hasGsap && !reduceMotion && headerMark) {
-      gsap.fromTo(
-        headerMarkPaths,
-        { fill: (index) => from[index] },
-        { fill: (index) => target[index], ...tween, clearProps: "fill" },
-      );
-      return;
-    }
-    if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
+  // Dựng lớp lật và lật từng dải từ `from` sang `target`.
+  const flipHeaderMark = (from, target) => {
     // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
     // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
     const logoRect = headerLogo.getBoundingClientRect();
@@ -843,6 +809,89 @@
       ));
     });
     settleHeaderMarkFlip(flip);
+  };
+  // Nhịp header (brand.md Motion): nền, viền, chữ, logo FLIP và navbar chạy chung 0.3s expo.out; mark lật sau nhịp này.
+  const headerBeat = 0.3;
+  const markInk = headerMarkPaths.map(() => "rgb(47, 47, 47)");
+  let headerMarkLead;
+  // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
+  // đứng yên ở góc hiện tại trong lúc chờ.
+  const leadHeaderMark = (className, run, from) => {
+    if (!hasGsap) {
+      run();
+      return;
+    }
+    const call = gsap.delayedCall(headerBeat, () => {
+      if (headerMarkLead?.call === call) headerMarkLead = undefined;
+      run();
+    });
+    headerMarkLead = { className, call, from };
+  };
+  // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
+  // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
+  // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
+  const paintHeaderMark = (
+    className,
+    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
+  ) => {
+    const flipping = headerMarkFlip;
+    const leading = headerMarkLead;
+    // Đang chờ hết nhịp header để lật tới đúng màu này: chờ tiếp.
+    if (leading && rise && !tween && leading.className === className) return;
+    if (leading) {
+      leading.call.kill();
+      headerMarkLead = undefined;
+    }
+    header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
+    header.classList.add(className);
+    // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
+    if (hasGsap) gsap.killTweensOf(headerMarkPaths);
+    headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+    const target = headerMarkPaths.map((path) => getComputedStyle(path).fill);
+    const same = (colors) => colors.every((color, index) => color === target[index]);
+    if (leading?.from && rise && !tween && !reduceMotion) {
+      // Đổi hướng trong nhịp 1, lớp lật chưa dựng: về đúng màu lúc vào nhịp thì mark chỉ tween về cùng chữ, không lật;
+      // sang màu khác thì coi như nhịp 1 chưa chạy, lật từ màu cũ.
+      if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
+      else from = leading.from;
+    }
+    // Đang lật tới đúng màu này (header gọi lại cùng tone, hoặc quay lại hướng cũ khi các dải đang đứng chờ): lật tiếp.
+    if (flipping && rise && !tween && same(flipping.to)) {
+      flipping.animations.forEach((animation) => animation.play());
+      return;
+    }
+    // Đổi hướng lúc lật dở về đúng màu cũ: các dải đứng yên hết nhịp header, rồi quay ngược từ góc đang có trên cùng lớp.
+    if (flipping && rise && !tween && !reduceMotion && same(flipping.from)) {
+      flipping.animations.forEach((animation) => animation.pause());
+      leadHeaderMark(className, () => {
+        [flipping.from, flipping.to] = [flipping.to, flipping.from];
+        flipping.animations.forEach((animation) => animation.reverse());
+        settleHeaderMarkFlip(flipping);
+      });
+      return;
+    }
+    // Lật dở sang màu khác: lớp cũ là mặt đang hiển thị của từng dải.
+    if (flipping) from = readFlipFaces();
+    stopHeaderMarkFlip();
+    if (tween && hasGsap && !reduceMotion && headerMark) {
+      gsap.fromTo(
+        headerMarkPaths,
+        { fill: (index) => from[index] },
+        { fill: (index) => target[index], ...tween, clearProps: "fill" },
+      );
+      return;
+    }
+    if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
+    // Nhịp 1: mark trắng sang đậm cùng chữ để không chìm trên nền trắng đang hiện; màu khác đứng yên.
+    const white = "rgb(255, 255, 255)";
+    const via = from.every((color) => color === white) && !same(from) ? markInk : from;
+    if (hasGsap) gsap.fromTo(headerMarkPaths, { fill: (index) => from[index] }, { fill: (index) => via[index], duration: headerBeat, ease: "expo.out" });
+    // Nhịp 2: header đã đứng yên, các dải lật sang màu đích.
+    leadHeaderMark(className, () => {
+      if (hasGsap) gsap.killTweensOf(headerMarkPaths);
+      headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+      flipHeaderMark(via, target);
+    }, from);
   };
   function syncHeaderBrandSurface(whiteSurface, tween) {
     if (whiteSurface) {
