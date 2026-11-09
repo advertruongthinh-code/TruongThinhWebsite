@@ -42,3 +42,22 @@ export function planDetourPath({ from, to, size, zone, origin }) {
   const second = Math.hypot(to.x - corner.x, to.y - corner.y);
   return { corner, cornerOffset: first + second > 0 ? first / (first + second) : 0 };
 }
+
+// Item ghim (primary, suggestion ghim dưới primary) là vùng cấm chung của card related và khung batch CTA
+// (masonry-reuse bước 6): một danh sách hộp `{ x, y, width, height }` cùng hệ tọa độ với `from`, `to`.
+// Điểm đầu nằm trong vùng của một hộp thì dời xuống ngay dưới hộp đó (resize làm primary lớn lên đè chỗ cũ); đường
+// thẳng cắt hộp nào thì đi vòng hộp đầu tiên cắt, theo thứ tự danh sách.
+export function planAroundPinned({ from, to, size, pinned = [], gap = 0 }) {
+  let start = from;
+  for (const box of pinned) {
+    if (start.x > box.x - size.width && start.x < box.x + box.width
+      && start.y > box.y - size.height && start.y < box.y + box.height) {
+      start = { ...start, y: box.y + box.height + gap };
+    }
+  }
+  for (const box of pinned) {
+    const plan = planDetourPath({ from: start, to, size, zone: { width: box.width, height: box.height }, origin: box });
+    if (plan) return { from: start, plan };
+  }
+  return { from: start, plan: null };
+}
