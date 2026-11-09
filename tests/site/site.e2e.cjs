@@ -652,17 +652,16 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      /const colorTargets = \[[\s\S]*?headerLogo,[\s\S]*?\.desktop-nav a/.test(
+      // Chữ logo, nav, hamburger đổi màu ngay, không tween, cả lúc cuộn lẫn chuyển trang (owner 2026-11-09).
+      /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
+      !/const colorHeader = \(color\) => \{(?:(?!\n  \};)[\s\S])*gsap/.test(motionSource) &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
       /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
       ) &&
       /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
-      /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
-        motionSource,
-      ) &&
       // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
       /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
@@ -685,7 +684,7 @@ function assertPersistentNavigationContracts() {
       /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header text/hamburger color or the deliberately slower mark-color transition drifted",
+    "Header text/hamburger instant color or the mark flip drifted",
   );
   assert(
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
@@ -9959,7 +9958,7 @@ async function runHomeMotionRegressionCheck() {
     "The route request failure fallback changed",
   );
   assert(
-    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|/.test(
+    /const ink =\s*\(routeTransitionActive && \(routeMarkHeld \? routeVeilInk : !routeDestinationReady\)\) \|\|/.test(
       motionSource,
     ),
     "Route transitions do not force the header to an ink tone over the white veil",
@@ -11681,7 +11680,7 @@ async function runBrandColorMotionCheck() {
   );
 
   await runPageCase(
-    "interrupted mark flip restarts left to right back to CMYK",
+    "interrupted mark flip rewinds in place back to CMYK",
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -11748,27 +11747,13 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-color"),
       );
-      // Đổi hướng lúc lật dở: lượt đang chạy lật cho xong, rồi lượt mới lật tiếp sang CMYK, cyan trước (owner 2026-11-09:
-      // quay ngược làm đen lật trước, chạy từ phải sang trái). Đợi lớp lật mới theo trạng thái trong trang.
-      await page.waitForFunction(
-        () => {
-          const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-          return root && root !== window.__ttFlipRoot;
-        },
-        null,
-        { timeout: 1_500 },
-      ).catch(() => {});
+      // Đổi hướng lúc lật dở (owner 2026-11-09): lượt về trắng là lượt sang CMYK chạy lùi, nên đổi hướng chỉ tua ngược
+      // từ chỗ đang dừng, cùng lớp lật, mọi animation chạy tới lại.
+      await page.waitForTimeout(30);
       const reversed = await readMark();
-      const firstBand = await page.evaluate(() => {
-        const bands = [...(document.querySelector("#header-logo .brand-lockup__mark-flip")?.children || [])];
-        const delays = bands.map((band) => band.children[0].getAnimations()[0]?.effect.getTiming().delay);
-        const moving = delays.map((delay, index) => [delay, index]).filter(([delay]) => delay !== undefined);
-        return { delays, first: moving.sort((a, b) => a[0] - b[0])[0] };
-      });
       assert(
-        reversed.flip && !reversed.same && JSON.stringify(reversed.rates) === "[1]" &&
-          firstBand.first?.[0] === 0 && firstBand.first[1] === Math.max(...firstBand.delays.map((delay, index) => delay === undefined ? -1 : index)),
-        `Interrupted flip did not restart left to right: ${JSON.stringify({ reversed, firstBand })}`,
+        reversed.flip && reversed.same && JSON.stringify(reversed.rates) === "[1]",
+        `Interrupted flip did not rewind in place: ${JSON.stringify(reversed)}`,
       );
       await page.waitForFunction(
         () => !document.querySelector(".brand-lockup__mark-flip"),

@@ -1,5 +1,5 @@
-// Mark tween màu 0.3s sang đậm cùng chữ lúc bấm, về màu trang đích lúc veil mở; cụm logo luôn hiện trên veil
-// (docs/specs/logo-route-crossfade.md R1-R7).
+// Veil phủ kín: chữ đổi ngay sang đậm, mark lật sang CMYK; veil mở: chữ đổi ngay, mark lật về màu trang đích; cụm logo
+// luôn hiện trên veil (docs/specs/logo-route-crossfade.md R1-R7).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/logo-route-crossfade.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -10,8 +10,8 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Ghi mỗi frame: animation clip-path (kiểu mọc cũ, phải luôn 0) trên path của mark, tween fill inline, class màu header, opacity veil,
-// opacity cụm logo, opacity riêng của mark, chữ, nav, hamburger.
+// Ghi mỗi frame: animation clip-path (kiểu mọc cũ, phải luôn 0) và tween fill inline trên path của mark (phải 0), màu chữ
+// logo, lớp lật mark mới, opacity veil, opacity cụm logo, opacity riêng của mark, chữ, nav, hamburger.
 const startRecorder = (selector) => {
   const t0 = performance.now();
   const header = document.querySelector("[data-site-header]");
@@ -19,34 +19,36 @@ const startRecorder = (selector) => {
   const logo = document.querySelector("#header-logo");
   const parts = [...logo.querySelectorAll(".brand-lockup, .brand-lockup__mark, .brand-lockup__title, .brand-lockup__subtitle"),
     ...header.querySelectorAll(".desktop-nav, .menu-button")];
-  const record = { rises: 0, tweens: [], veilClosed: undefined, veilOpen: undefined, logoMin: 1, partsBelowOne: 0 };
+  const record = { rises: 0, tweens: 0, texts: [], flips: [], veilClosed: undefined, veilOpening: undefined, logoMin: 1, partsBelowOne: 0 };
   const seen = new WeakSet();
-  let tween, last = 0;
+  let root;
   const tick = () => {
     const now = Math.round(performance.now() - t0);
-    document.querySelectorAll("#header-logo .brand-lockup__mark path").forEach((item) =>
+    const paths = [...document.querySelectorAll("#header-logo .brand-lockup__mark path")];
+    paths.forEach((item) =>
       item.getAnimations().forEach((animation) => {
         if (seen.has(animation)) return;
         seen.add(animation);
         if ("clipPath" in animation.effect.getKeyframes()[0]) record.rises += 1;
       }));
-    // Tween màu chạy khi path có fill inline; đổi class giữa chừng là tween mới.
-    const to = document.querySelector("#header-logo .brand-lockup__mark path").style.fill
-      ? [...header.classList].find((name) => name.startsWith("is-brand-"))
-      : undefined;
-    if (to !== tween?.to) {
-      if (tween) tween.end = now;
-      // prev: frame trước đó chưa có tween, nên tween bắt đầu trong khoảng (prev, start].
-      tween = to ? { start: now, prev: last, to } : undefined;
-      if (tween) record.tweens.push(tween);
+    if (paths.some((item) => item.style.fill)) record.tweens += 1;
+    const text = getComputedStyle(logo).color;
+    if (text !== record.texts.at(-1)?.color) record.texts.push({ at: now, color: text });
+    const nextRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
+    // reverse() lúc animation còn pending chỉ đổi playbackRate khi animation hết pending: đọc chiều chạy lúc đó.
+    const last = record.flips.at(-1);
+    const running = nextRoot === root && root?.lastElementChild.children[0].getAnimations()[0];
+    if (last && last.rate === undefined && running && !running.pending) last.rate = running.playbackRate;
+    if (nextRoot && nextRoot !== root) {
+      const band = nextRoot.lastElementChild;
+      record.flips.push({ at: now, front: band.children[0].dataset.fill, back: band.children[1].dataset.fill, rate: undefined });
     }
+    root = nextRoot;
     const opacity = Number(getComputedStyle(veil).opacity);
-    const logoOpacity = Number(getComputedStyle(logo).opacity);
-    record.logoMin = Math.min(record.logoMin, logoOpacity);
+    record.logoMin = Math.min(record.logoMin, Number(getComputedStyle(logo).opacity));
     record.partsBelowOne += parts.filter((part) => Number(getComputedStyle(part).opacity) < 1).length;
     if (opacity === 1 && record.veilClosed === undefined) record.veilClosed = now;
-    if (opacity === 0 && record.veilClosed !== undefined && record.veilOpen === undefined) record.veilOpen = now;
-    last = now;
+    if (opacity < 1 && record.veilClosed !== undefined && record.veilOpening === undefined) record.veilOpening = now;
     if (now < 5000) requestAnimationFrame(tick);
   };
   tick();
@@ -77,11 +79,18 @@ const go = async (page, selector) => {
   return readRecord(page);
 };
 
+const white = "rgb(255, 255, 255)";
+const ink = "rgb(47, 47, 47)";
+const cyan = "rgb(0, 160, 227)";
+// Trên veil (owner 2026-11-09): lúc bấm chữ và mark giữ màu; veil phủ kín thì chữ đổi ngay sang đậm, mark đang trắng thì
+// lật sang CMYK; veil bắt đầu mở thì chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Không tween màu.
 const scenarios = [
-  { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', tweens: ["is-brand-ink", "is-brand-inverse"], final: "is-brand-inverse" },
-  { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', tweens: ["is-brand-ink", "is-brand-color"], final: "is-brand-color" },
-  { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', tweens: ["is-brand-ink", "is-brand-inverse"], final: "is-brand-inverse" },
+  { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', texts: [white, ink, white], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-inverse" },
+  { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', texts: [white, ink], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-color" },
+  { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', texts: [ink, white], flip: { front: white, back: cyan, rate: -1 }, final: "is-brand-inverse" },
 ];
+// Một frame: callback GSAP lúc veil phủ kín có thể chạy trước hoặc sau lần đọc của recorder trong cùng frame.
+const frame = 40;
 
 try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 412, height: 915 }]) {
@@ -89,43 +98,49 @@ try {
       const label = `${viewport.width}px ${scenario.name}`;
       const { context, page } = await open(viewport, "no-preference", scenario.from);
       const record = await go(page, scenario.link);
-      assert.equal(record.rises, 0, `${label}: no rising bands during the route ${JSON.stringify(record)}`);
-      assert.deepEqual(record.tweens.map((tween) => tween.to), scenario.tweens, `${label}: colour tweens ${JSON.stringify(record)}`);
+      const dump = JSON.stringify(record);
+      assert.equal(record.rises, 0, `${label}: no rising bands during the route ${dump}`);
+      assert.equal(record.tweens, 0, `${label}: mark never tweens its fill ${dump}`);
       assert.equal(record.final, scenario.final, `${label}: final mark colour`);
-      // R1, R2: tween màu 0.3s cùng tween màu chữ; sang đậm ngay lúc bấm, về màu trang đích lúc veil phủ kín rồi bắt đầu mở.
-      for (const tween of record.tweens) {
-        assert.ok(tween.end - tween.start < 500, `${label}: colour tween lasts about 0.3s ${JSON.stringify(record)}`);
-        // Đo theo frame: frame dài lúc CPU bận chỉ làm trễ lần thấy, nên so frame cuối chưa có tween với lúc click.
-        if (tween.to === "is-brand-ink") assert.ok(tween.prev - record.click < 100, `${label}: ink tween starts at the click ${JSON.stringify(record)}`);
-        else assert.ok(tween.start >= record.veilClosed && tween.start < record.veilOpen, `${label}: destination tween starts under the full veil ${JSON.stringify(record)}`);
+      // Chữ đổi ngay, không tween: chỉ có đúng các màu này, không màu trung gian.
+      assert.deepEqual(record.texts.map(({ color }) => color), scenario.texts, `${label}: text switches without a tween ${dump}`);
+      const toInk = record.texts.find(({ color }) => color === ink);
+      if (scenario.texts[0] !== ink) assert.ok(toInk.at >= record.veilClosed - frame, `${label}: text turns ink once the veil covers ${dump}`);
+      const toDestination = record.texts.find(({ color }, index) => index && color !== ink);
+      if (toDestination) {
+        assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
       }
+      // Mark lật (không tween) từ lúc veil phủ kín hoặc lúc veil bắt đầu mở, không phải lúc bấm.
+      assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
+      const { at, ...flip } = record.flips[0];
+      assert.deepEqual(flip, scenario.flip, `${label}: first flip ${dump}`);
+      assert.ok(at >= record.veilClosed - frame, `${label}: first flip waits for the full veil ${dump}`);
       // R7: cụm logo luôn hiện trên veil; mark, chữ, nav, hamburger không có opacity riêng.
-      assert.equal(record.logoMin, 1, `${label}: logo never fades ${JSON.stringify(record)}`);
+      assert.equal(record.logoMin, 1, `${label}: logo never fades ${dump}`);
       assert.equal(record.partsBelowOne, 0, `${label}: mark, text, nav, hamburger keep their own opacity`);
-      console.log(`PASS ${label}: ${record.tweens.length} colour tween(s), 0 rises, logo stays over the veil`);
+      console.log(`PASS ${label}: text switches on the full veil, mark flips, no colour tween`);
       await context.close();
     }
   }
 
-  // R5: bấm link lúc mark đang lật dở; kiểu lật dừng, từng dải tween màu từ màu đang hiển thị.
+  // R5: bấm link lúc mark đang lật dở (cuộn vừa đổi màu); lúc bấm mark giữ nguyên nên lần lật đang chạy chạy tiếp.
   {
     const { context, page } = await open({ width: 1440, height: 900 }, "no-preference", "/vi/");
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
-    await page.evaluate(() => {
-      window.TruongThinhMotion.setLogicalScroll(0);
+    const state = await page.evaluate(() => {
+      const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      document.querySelector('a[href="/vi/residential/"]').click();
+      const after = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      return {
+        same: after === root,
+        running: Boolean(after?.getAnimations({ subtree: true }).some((animation) => animation.playState === "running")),
+        tweening: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].some((item) => item.style.fill),
+      };
     });
-    await page.waitForFunction(() => document.querySelector("[data-site-header]").classList.contains("is-brand-inverse"));
-    await page.evaluate(() => document.querySelector('a[href="/vi/residential/"]').click());
-    const state = await page.evaluate(() => ({
-      running: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].some((item) => item.getAnimations().length),
-      flip: Boolean(document.querySelector("#header-logo .brand-lockup__mark-flip")),
-      tweening: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].every((item) => item.style.fill),
-    }));
-    assert.deepEqual({ running: state.running, flip: state.flip }, { running: false, flip: false }, "mid-flip: flip stops at the click");
-    assert.ok(state.tweening, `mid-flip: every band tweens its colour ${JSON.stringify(state)}`);
+    assert.deepEqual(state, { same: true, running: true, tweening: false }, "mid-flip: the running flip keeps going at the click");
     await settle(page);
-    console.log("PASS mid-flip click: flip stops, bands tween colour");
+    console.log("PASS mid-flip click: flip keeps running, no colour tween");
     await context.close();
   }
 
@@ -133,7 +148,7 @@ try {
   {
     const { context, page } = await open({ width: 412, height: 915 }, "reduce", "/vi/");
     const record = await go(page, 'a[href="/vi/residential/"]');
-    assert.deepEqual({ rises: record.rises, tweens: record.tweens.length, final: record.final }, { rises: 0, tweens: 0, final: "is-brand-inverse" }, "reduced motion");
+    assert.deepEqual({ rises: record.rises, tweens: record.tweens, final: record.final }, { rises: 0, tweens: 0, final: "is-brand-inverse" }, "reduced motion");
     assert.equal(record.logoMin, 1, "reduced motion: logo never fades");
     console.log("PASS reduced motion: colour changes at once, logo stays");
     await context.close();

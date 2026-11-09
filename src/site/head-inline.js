@@ -111,11 +111,13 @@ document.documentElement.classList.add("media-gate");
     resized.unobserve(image);
     inView.delete(image);
   };
-  // Card masonry giữ bản vừa khung dù card dọc cao quá 60% viewport (owner chọn 2026-10-31).
+  // Card masonry, kể cả card related và card gợi ý ở detail, giữ bản vừa khung dù card dọc cao quá 60% viewport (owner
+  // chọn 2026-10-31): card related lên bản gốc làm PC đứng 200-480ms mỗi lần giải mã JXL 4K giữa hai lần lướt (đo 2026-11-09).
   // Phone không lên bản gốc 4K (owner 2026-11-07, media query như <source> phone của build).
   const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
   const watchUpgrade = (image) => {
-    if (phone || !VARIANT.test(image.currentSrc) || image.closest("[data-advertising-card]")) return;
+    if (phone || !VARIANT.test(image.currentSrc)
+      || image.closest("[data-advertising-card], [data-advertising-related-card], [data-advertising-suggestion-card]")) return;
     upgradeObserver.observe(image);
     resized.observe(image);
   };

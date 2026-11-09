@@ -193,13 +193,16 @@ chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-vie
 vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
 (pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s); các pha trước, kể cả resize, không dựng batch,
 nên card related giữ chỗ trước rồi batch nối sau như masonry (owner 2026-11-01). Sau đó batch dựng lại mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
-cụm và Kính trượt `0.4s` như masonry.
+cụm và Kính trượt `0.4s` như masonry. Cụm vào layout mới (sang detail, đổi ảnh detail): sau lần dựng batch kế tiếp tiêu đề, nút về chưa hiện (`TruongThinhDetail.rearmMotion`)
+rồi reveal khi vào viewport như lần đầu ở masonry; không vậy thì observer nổ lúc cụm còn ở đầu canvas (owner 2026-11-09).
 
 ```gherkin
 Given detail ở 1569x912 hoặc 390x844, cuộn tới cuối trang
 Then chân chữ dòng cuối của tiêu đề CTA nằm trên đường giữa viewport, sai số 1px
 And batch nối tiếp các cột related, đáy batch là đáy CTA ngay trên footer
 And data-advertising-cta-host là "detail", info primary vẫn có nút của nó
+When mở detail từ masonry rồi cuộn tới CTA
+Then tiêu đề CTA chạy line reveal, nút fade vào như lần đầu ở masonry
 ```
 
 ### R10. Card related không đi qua primary

@@ -42,7 +42,7 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | --- | --- | --- |
 | mặc định | Trên hero ảnh | Nền trong, chữ trắng |
 | `is-brand-inverse` | Nền tối | Lockup trắng |
-| `is-ink` | Trang nền trắng | Chữ `ink` |
+| `is-ink` | Trang nền trắng, hoặc veil chuyển trang phủ kín | Chữ `ink`, đổi ngay không tween |
 | `is-collapsed` | `scrollY > 100` | Nền `white`, viền dưới 1px `#d3d3d3`, chữ `#2f2f2f` |
 | `is-brand-color` | Sticky hoặc nền trắng | Mark CMYK ([state machine](../../brand.md#state-machine-màu)) |
 | `is-hidden` | Cuộn xuống giữa trang | `translateY(-100%)`; `:focus-within` luôn hiện |

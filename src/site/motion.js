@@ -169,6 +169,9 @@
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
+  // Route mềm: header ở tone veil (chữ đậm, mark CMYK) từ lúc veil phủ kín tới lúc veil bắt đầu mở, kể cả khi trang
+  // đích mount dưới veil (logo-route-crossfade R1, R2).
+  let routeVeilInk = false;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
   let menuTimeline;
@@ -488,36 +491,11 @@
     applyLanguage(currentLanguage, false, !translatedByServer);
   };
 
-  const colorHeader = (color, immediate = false) => {
-    if (currentHeaderColor === color && !immediate) return;
-    const isInitialColor = currentHeaderColor === "";
+  // Chữ logo, nav, hamburger đổi màu ngay, không motion (owner 2026-11-09), cả lúc cuộn lẫn lúc chuyển trang.
+  const colorHeader = (color) => {
     currentHeaderColor = color;
-    const colorTargets = [
-      headerLogo,
-      ...header.querySelectorAll(".desktop-nav a"),
-      header.querySelector(".menu-button"),
-    ].filter((target) => target instanceof HTMLElement);
-    const strokeTargets = [
-      ...header.querySelectorAll(".menu-button line"),
-    ].filter((target) => target instanceof SVGElement);
-    const targets = [...colorTargets, ...strokeTargets];
-    if (
-      immediate ||
-      isInitialColor ||
-      !hasGsap ||
-      reduceMotion
-    ) {
-      // Chỉ dừng tween màu: #header-logo còn tween FLIP scale đang chạy.
-      if (hasGsap) gsap.killTweensOf(targets, "color,stroke");
-      colorTargets.forEach((target) => target.style.setProperty("color", color));
-      strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
-      return;
-    }
-    gsap.killTweensOf(targets);
-    gsap
-      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: true } })
-      .to(colorTargets, { color }, 0)
-      .to(strokeTargets, { stroke: color }, 0);
+    header.querySelectorAll("#header-logo, .desktop-nav a, .menu-button").forEach((target) => target.style.setProperty("color", color));
+    header.querySelectorAll(".menu-button line").forEach((target) => target.style.setProperty("stroke", color));
   };
 
   /**
@@ -615,7 +593,7 @@
     header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-surface", collapsed);
     const color = ink ? "#2f2f2f" : "#ffffff";
-    if (color !== currentHeaderColor) colorHeader(color, true);
+    if (color !== currentHeaderColor) colorHeader(color);
   };
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =
@@ -629,7 +607,8 @@
     const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
     // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
-    const ink = (routeTransitionActive && !routeDestinationReady) || pageHeaderInk;
+    // Route mềm (routeMarkHeld): tone veil chỉ trong lúc veil phủ kín; vào thẳng trang: tới khi trang đích sẵn sàng.
+    const ink = (routeTransitionActive && (routeMarkHeld ? routeVeilInk : !routeDestinationReady)) || pageHeaderInk;
     const collapsedChanged =
       lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
     const logoBeforeRect =
@@ -769,9 +748,9 @@
     headerMark.style.removeProperty("visibility");
     headerMarkFlip = undefined;
   };
-  // Gỡ lớp lật khi mọi mặt chạy xong; quay ngược thì chờ lại từ đầu, lượt chờ cũ bỏ qua.
-  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích đã đổi (`flip.next`) thì lật tiếp từ màu vừa tới, sau khi
-  // hết nhịp header của lần đổi đó.
+  // Gỡ lớp lật khi mọi mặt chạy xong. Mỗi lần tua ngược thì `gen` tăng, lượt chờ cũ bỏ qua.
+  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích sang màu thứ ba (`flip.next`) thì lật tiếp từ màu vừa tới,
+  // sau khi hết nhịp header của lần đổi đó.
   const advanceHeaderMarkFlip = (flip) => {
     if (headerMarkFlip !== flip) return;
     const next = flip.next;
@@ -785,16 +764,33 @@
       return;
     }
     stopHeaderMarkFlip();
-    flipHeaderMark(flip.to, next.target);
+    flipHeaderMark(flip.dest, next.target, next.backward);
   };
   const settleHeaderMarkFlip = (flip) => {
-    Promise.all(flip.animations.map((animation) => animation.finished)).then(() => advanceHeaderMarkFlip(flip), () => {});
+    const gen = flip.gen;
+    Promise.all(flip.animations.map((animation) => animation.finished)).then(
+      () => flip.gen === gen && advanceHeaderMarkFlip(flip),
+      () => {},
+    );
+  };
+  // Lượt lật là một đoạn motion chạy tới (`front` sang `back`, cyan trước) hoặc chạy lùi (`back` về `front`, đen trước).
+  // Đổi đích về đầu kia lúc đang lật: tua ngược ngay từ chỗ đang dừng, như tua băng (owner 2026-11-09).
+  const runHeaderMarkFlip = (flip, rate) => {
+    flip.next = undefined;
+    flip.dest = rate > 0 ? flip.back : flip.front;
+    if (flip.animations[0].playbackRate === rate) return;
+    flip.animations.forEach((animation) => animation.reverse());
+    flip.gen += 1;
+    settleHeaderMarkFlip(flip);
   };
   // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
   const headerFlipShade = "#000";
   const headerFlipShadeMax = 0.5;
-  // Dựng lớp lật và lật từng dải từ `from` sang `target`.
-  const flipHeaderMark = (from, target) => {
+  // Dựng lớp lật và lật từng dải từ `from` sang `target`. `backward` (về trắng): dựng lượt lật từ `target` sang `from`
+  // rồi chạy lùi từ cuối, nên đen lật trước, cyan sau cùng, đúng là trắng sang CMYK tua ngược (owner 2026-11-09).
+  const flipHeaderMark = (from, target, backward) => {
+    const front = backward ? target : from;
+    const back = backward ? from : target;
     // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
     // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
     const logoRect = headerLogo.getBoundingClientRect();
@@ -828,25 +824,29 @@
       // Phối cảnh đặt ngay trên trục từng dải, dải lật tại chỗ; cỡ phối cảnh theo cỡ mark.
       band.style.perspective = `${width * 6}px`;
       band.style.perspectiveOrigin = origin;
-      const front = face(path, from[index]);
-      const back = face(path, target[index]);
-      front.style.transformOrigin = back.style.transformOrigin = origin;
-      band.append(front, back);
+      const frontFace = face(path, front[index]);
+      const backFace = face(path, back[index]);
+      frontFace.style.transformOrigin = backFace.style.transformOrigin = origin;
+      band.append(frontFace, backFace);
       root.append(band);
-      return { front, back };
+      return { front: frontFace, back: backFace };
     });
     // SVG không chứa được lớp HTML; lớp lật nằm trong #header-logo nên cùng chịu FLIP scale.
     headerLogo.prepend(root);
     headerMark.style.visibility = "hidden";
-    const flip = { root, bands, from, to: target, animations: [] };
+    const flip = { root, bands, front, back, dest: target, gen: 0, animations: [] };
     headerMarkFlip = flip;
     // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
+    // Mọi mặt cùng kết thúc ở mốc cuối của lượt (endDelay), nên chạy lùi từ cuối hay tua ngược giữa chừng thì các dải
+    // vẫn giữ đúng lệch 80ms, theo thứ tự ngược lại.
+    const total = (bands.length - 1) * 80 + 440;
     const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
     const shade = (layer, keyframes, timing) => flip.animations.push(layer.lastElementChild.animate(keyframes, timing));
     bands.forEach(({ front, back }, index) => {
       const delay = (bands.length - 1 - index) * 80;
-      const frontTiming = { delay, duration: 200, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
-      const backTiming = { delay: delay + 200, duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" };
+      // Mặt sau dùng đúng đường cong đối xứng của mặt trước, cùng 220ms: chạy lùi trông như chạy tới, không khựng đầu lượt.
+      const frontTiming = { delay, duration: 220, endDelay: total - delay - 220, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
+      const backTiming = { delay: delay + 220, duration: 220, endDelay: total - delay - 440, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "both" };
       shade(front, [{ opacity: 0 }, { opacity: headerFlipShadeMax }], frontTiming);
       shade(back, [{ opacity: headerFlipShadeMax }, { opacity: 0 }], backTiming);
       flip.animations.push(front.animate(
@@ -866,13 +866,15 @@
         backTiming,
       ));
     });
+    if (backward) flip.animations.forEach((animation) => animation.reverse());
     settleHeaderMarkFlip(flip);
   };
   let headerMarkLead;
   // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
   // đứng yên ở góc hiện tại trong lúc chờ.
   const leadHeaderMark = (className, run, from) => {
-    if (!hasGsap) {
+    // Không chờ nhịp (veil phủ kín hoặc bắt đầu mở): lật ngay trong frame này.
+    if (!hasGsap || !headerMarkLeadFor) {
       run();
       return;
     }
@@ -884,7 +886,7 @@
   };
   // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
   // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
-  // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
+  // `tween`: từng dải tween màu thay vì lật (đổi hướng cuộn trong nhịp 1). Chuyển trang luôn lật (logo-route-crossfade).
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
@@ -897,7 +899,7 @@
       leading.call.kill();
       headerMarkLead = undefined;
     }
-    header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
+    header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add(className);
     // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
     if (hasGsap) gsap.killTweensOf(headerMarkPaths);
@@ -910,22 +912,22 @@
       if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
       else from = leading.from;
     }
-    // Đang lật tới đúng màu này (header gọi lại cùng tone, hoặc đổi hướng rồi quay lại): lật tiếp, bỏ lượt lật nối.
-    if (flipping && rise && !tween && same(flipping.to)) {
-      flipping.next = undefined;
-      return;
-    }
-    // Đang lật mà màu đích đổi (đổi hướng giữa chừng, sang màu khác): lượt đang chạy lật cho xong, không quay ngược, rồi
-    // lượt mới lật tiếp sang màu đích, cyan trước, sau nhịp header của lần đổi này (owner 2026-11-09: quay ngược các dải
-    // làm đen lật trước, chạy từ phải sang trái).
+    // Về trắng thì chạy lùi, đen lật trước (owner 2026-11-09); sang màu khác thì chạy tới, cyan trước.
+    const backward = className === "is-brand-inverse";
+    // Đang lật mà đích là một đầu của lượt lật: chạy tới hoặc tua ngược từ chỗ đang dừng (đích đang tới thì lật tiếp).
+    // Sang màu thứ ba: lượt đang chạy lật cho xong, rồi lật tiếp sang màu đó sau nhịp header của lần đổi này.
     if (flipping && rise && !tween && !reduceMotion) {
-      flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000 };
+      const rate = same(flipping.back) ? 1 : same(flipping.front) ? -1 : 0;
+      if (rate) runHeaderMarkFlip(flipping, rate);
+      else flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000, backward };
       return;
     }
     // Chuyển trang hoặc vẽ ngay khi đang lật: lớp cũ là mặt đang hiển thị của từng dải.
     if (flipping) from = readFlipFaces();
     stopHeaderMarkFlip();
     if (tween && hasGsap && !reduceMotion && headerMark) {
+      // Cùng màu thì không có motion. Tween fill tuyến tính giữa hai màu đặc cùng hình chính là crossfade hai lớp.
+      if (same(from)) return;
       gsap.fromTo(
         headerMarkPaths,
         { fill: (index) => from[index] },
@@ -934,30 +936,32 @@
       return;
     }
     if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
+    // Mark đã đúng màu (ví dụ CMYK lúc bấm link trên nền trắng): không lật.
+    if (same(from)) return;
     // Nhịp 1: mark giữ màu cũ; nhịp 2: header đã xong về mắt, các dải lật thẳng sang màu đích.
     headerMarkPaths.forEach((path, index) => path.style.setProperty("fill", from[index]));
     leadHeaderMark(className, () => {
       headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
-      flipHeaderMark(from, target);
+      flipHeaderMark(from, target, backward);
     }, from);
   };
-  function syncHeaderBrandSurface(whiteSurface, tween) {
+  function syncHeaderBrandSurface(whiteSurface) {
     if (whiteSurface) {
-      if (lastHeaderWhiteSurface === undefined && !tween) {
+      if (lastHeaderWhiteSurface === undefined) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
         lastHeaderWhiteSurface !== true ||
         !header.classList.contains("is-brand-color")
       ) {
-        paintHeaderMark("is-brand-color", { tween });
+        paintHeaderMark("is-brand-color");
       }
     } else if (
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
       // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
-      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined, tween });
+      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined });
     }
     lastHeaderWhiteSurface = whiteSurface;
   };
@@ -965,7 +969,7 @@
     routeDestinationReady = true;
     const destinationWhiteSurface =
       container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
-    // Route mềm giữ mark đậm dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
+    // Route mềm giữ mark CMYK dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
     if (!routeMarkHeld) syncHeaderBrandSurface(destinationWhiteSurface);
     return destinationWhiteSurface;
   };
@@ -984,12 +988,11 @@
     header.classList.remove("is-hidden");
     headerSurfaceCall?.kill();
     headerSurfaceCall = undefined;
-    header.classList.add("is-route-pinned", "is-ink");
+    header.classList.add("is-route-pinned");
     routeDestinationReady = false;
-    colorHeader("#2f2f2f");
+    // Lúc bấm, chữ và mark giữ màu; đổi khi veil phủ kín (inkRouteHeader).
     routeMarkHeld = true;
-    // Mark đậm cùng chữ lúc bấm, như Espacio (logo-route-crossfade R1).
-    paintHeaderMark("is-brand-ink", { rise: false, tween: { duration: 0.3, ease: "expo.out" } });
+    routeVeilInk = false;
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -2184,14 +2187,25 @@
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
-    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng tween màu, không mọc
-    // (logo-route-crossfade R2).
-    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
+    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; mark lật sang đúng màu (logo-route-crossfade R2).
+    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk);
     routeMarkHeld = false;
+    routeVeilInk = false;
     setRouteVeil(0);
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
+  };
+
+  // Veil phủ kín (owner 2026-11-09): chữ, nav, hamburger đổi ngay sang đậm, không motion; mark đang trắng thì lật sang
+  // CMYK từ đúng lúc đó, đang CMYK thì giữ (logo-route-crossfade R1).
+  const inkRouteHeader = () => {
+    if (!routeMarkHeld) return;
+    routeVeilInk = true;
+    updateHeader();
+    headerMarkLeadFor = 0;
+    syncHeaderBrandSurface(true);
+    headerMarkLeadFor = headerSettle;
   };
 
   const coverRoute = () => {
@@ -2203,6 +2217,7 @@
     const fade = new Promise((resolve) => {
       if (!hasGsap || reduceMotion) {
         setRouteVeil(1);
+        inkRouteHeader();
         resolve();
         return;
       }
@@ -2211,7 +2226,10 @@
         opacity: 1,
         duration: 0.75,
         ease: "power4.inOut",
-        onComplete: resolve,
+        onComplete: () => {
+          inkRouteHeader();
+          resolve();
+        },
       });
     });
     return fade;
@@ -2252,11 +2270,14 @@
     startRouteReveal();
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
-      // Mark tween màu theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
-      // vẫn giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
+      // Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích từ đó (logo-route-crossfade R2);
+      // routeMarkHeld giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
+      routeVeilInk = false;
       updateToneRanges();
       updateHeader();
-      syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "expo.out" });
+      headerMarkLeadFor = 0;
+      syncHeaderBrandSurface(pageHeaderInk);
+      headerMarkLeadFor = headerSettle;
     }
     return new Promise((resolve) => {
       routeTimeline = window.gsap.to(routeVeil, {
@@ -2405,7 +2426,7 @@
       ),
     );
     header.classList.add(...brandClasses);
-    if (currentHeaderColor) colorHeader(currentHeaderColor, true);
+    if (currentHeaderColor) colorHeader(currentHeaderColor);
     if (!persistentReady) return false;
     // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
     brandLockups.forEach(snapBrandMark);
