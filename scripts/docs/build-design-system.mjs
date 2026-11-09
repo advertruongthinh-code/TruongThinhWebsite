@@ -20,7 +20,7 @@ const frame = (markup, { cls = '', bg = 'var(--paper)', height }) =>
 // boot: false bỏ motion-fallback ở chỗ nó sẽ ghi đè state class (header tone).
 const COMPONENTS = [
   { name: 'Header', group: 'Shell', height: 420, file: 'src/site/index.html', start: /<header class="site-header"/, boot: false,
-    frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-brand-color', height: 140 }] },
+    frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-surface is-ink is-brand-color', height: 140 }] },
   { name: 'BrandLockup', group: 'Shell', height: 120, file: 'src/site/index.html', start: /<svg class="brand-lockup"/ },
   { name: 'FullMenu', group: 'Shell', height: 720, file: 'src/site/index.html', start: /<dialog class="site-menu"/, open: true, htmlClass: 'menu-open',
     endStyle: '.site-menu .menu-nav { opacity: 1; }' },

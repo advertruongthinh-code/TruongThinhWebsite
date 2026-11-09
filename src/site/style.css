@@ -284,11 +284,9 @@ html.route-enter .site-header {
   border-bottom: 0 solid transparent;
   background: transparent;
   color: white;
-  /* Nhịp header: chữ 0.3s expo.out cùng logo FLIP và navbar; nền trắng, nền trong và viền đổi ngay, không fade
-     (owner 2026-11-09); mark lật sau nhịp này (brand.md Motion). */
-  transition:
-    color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1s cubic-bezier(0, 0, 0.1, 0.99);
+  /* Nhịp header: logo FLIP và navbar 0.3s; xong nhịp thì nền, viền, chữ (.is-surface, .is-ink) đổi ngay, không fade
+     (owner 2026-11-09), mark lật từ đó (brand.md Motion). */
+  transition: transform 1s cubic-bezier(0, 0, 0.1, 0.99);
 }
 
 .site-header.is-ink {
@@ -299,9 +297,12 @@ html.route-enter .site-header {
   padding-top: 10px;
   padding-bottom: 10px;
   grid-template-rows: var(--header-collapsed-row-height);
-  border-bottom: 1px solid #d3d3d3;
+  border-bottom-width: 1px;
+}
+
+.site-header.is-surface {
+  border-bottom-color: #d3d3d3;
   background: var(--white);
-  color: #2f2f2f;
 }
 
 .site-header.is-collapsed .brand-lockup {
@@ -316,10 +317,9 @@ html.route-enter .site-header {
   transform: translateY(-100%);
 }
 
-/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3).
-   Danh sách property khớp thứ tự duration của rule gốc: màu, viền 0.3s, nền 0.15s; padding đổi ngay. */
+/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
 .site-header.is-follow {
-  transition-property: color, border-color, background-color;
+  transition: none;
 }
 
 .site-header.is-route-pinned {
