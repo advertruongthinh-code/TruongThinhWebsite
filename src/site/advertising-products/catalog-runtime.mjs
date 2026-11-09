@@ -92,7 +92,7 @@ const CARD_REVEAL_MS = 600;
 // Blur trên chính ảnh card đang tải (progressive-loading R9); filter không đọc lại nền mỗi frame như backdrop-filter.
 const CARD_LOADING_BLUR = "blur(24px)";
 // Blur lấy pixel trong suốt ngoài mép ảnh nên mép mờ nhạt dần lộ nền màu chủ đạo thành viền tối (owner 2026-11-09).
-// Ảnh mờ phóng thêm chừng này mỗi phía (bằng bán kính blur) để dải nhạt nằm ngoài khung bị cắt.
+// Ảnh mờ phóng thêm chừng này mỗi phía (1 sigma của blur: mép khung còn khoảng 16% màu nền) để dải nhạt nằm ngoài khung bị cắt.
 const CARD_LOADING_BLEED_PX = 24;
 const cardLoadingScale = (node) => {
   const width = Number.parseFloat(node.style.width);

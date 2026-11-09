@@ -27,9 +27,11 @@ try {
       const media = tile.querySelector(".project-tile__media");
       const image = media?.querySelector("img.is-advertising-media-ready:not([hidden])");
       if (!image?.naturalWidth || image.style.filter) return [];
+      // Hết blur thì không còn scale tràn khung: scale sót lại làm ảnh lớn hơn khung (gap âm).
+      if (image.style.scale) return [{ id: tile.dataset.advertisingCard, gap: Infinity, scale: image.style.scale }];
       const box = media.getBoundingClientRect();
       const rect = image.getBoundingClientRect();
-      const gap = Math.max(rect.top - box.top, box.bottom - rect.bottom, rect.left - box.left, box.right - rect.right);
+      const gap = Math.max(...[rect.top - box.top, box.bottom - rect.bottom, rect.left - box.left, box.right - rect.right].map(Math.abs));
       return [{ id: tile.dataset.advertisingCard, gap, natural: `${image.naturalWidth}x${image.naturalHeight}` }];
     }));
     assert.ok(edges.length > 8, `${viewport.width}px: enough loaded cards measured (${edges.length})`);
@@ -57,6 +59,7 @@ try {
     }));
     assert.ok(bleeds.length > 2, `${viewport.width}px: blurred cards measured (${bleeds.length})`);
     assert.deepEqual(bleeds.filter(({ bleed }) => bleed < BLEED - 0.5), [], `${viewport.width}px: blurred media must overflow the frame by the blur radius`);
+    await page.unrouteAll({ behavior: "ignoreErrors" });
     await context.close();
   }
   console.log("advertising-media-edge: ok");
