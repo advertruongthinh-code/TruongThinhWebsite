@@ -32,7 +32,7 @@ import {
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
-import { planDetourPath } from "./detour-path.mjs";
+import { planAroundPinned } from "./detour-path.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
 import {
@@ -2813,18 +2813,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const box = node.dataset.advertisingCtaFrame && ctaInDetail() && photoPrimary?.getBoundingClientRect();
     let corner = null;
     if (box?.width) {
-      const zone = { width: box.width, height: box.height };
       const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
-      let from = { x: before.left - box.left, y: before.top - box.top };
-      if (from.x > -size.width && from.x < zone.width && from.y > -size.height && from.y < zone.height) {
-        from = { ...from, y: zone.height + (relatedLayout?.primary.gap || 0) };
-      }
-      const to = { x: after.left - box.left, y: after.top - box.top };
-      // Suggestion ghim dưới primary (detail R5) cũng là vùng cấm, như ở card related.
+      // Item ghim như ở card related: primary, rồi suggestion ghim dưới nó (detail R5).
       const pin = suggestionNode?.parentElement === relatedGrid && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
-      const plan = planDetourPath({ from, to, size, zone })
-        || (pin?.width ? planDetourPath({ from, to, size, zone: { width: pin.width, height: pin.height },
-          origin: { x: pin.left - box.left, y: pin.top - box.top } }) : null);
+      const pinned = [{ x: 0, y: 0, width: box.width, height: box.height },
+        ...(pin?.width ? [{ x: pin.left - box.left, y: pin.top - box.top, width: pin.width, height: pin.height }] : [])];
+      const to = { x: after.left - box.left, y: after.top - box.top };
+      const { from, plan } = planAroundPinned({ from: { x: before.left - box.left, y: before.top - box.top }, to, size,
+        pinned, gap: relatedLayout?.primary.gap || 0 });
       corner = plan && { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset };
       [dx, dy] = [from.x - to.x, from.y - to.y];
     }
@@ -3613,7 +3609,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedQueueStale = false;
     // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R10).
     const detours = new Map();
-    const primaryZone = { width: relatedLayout.primary.width, height: relatedLayout.primary.height };
     const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
     const suggestionPosition = keepSuggestion && relatedPositions.get(suggestionId);
     const suggestionPlacement = relatedLayout.suggestionPlacement;
@@ -3621,22 +3616,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       x: suggestionPosition.x, y: suggestionPosition.y,
       width: suggestionPlacement.pixelWidth, height: suggestionPlacement.pixelHeight,
     } : null;
+    // Item ghim: primary, rồi suggestion ghim dưới nó; card đi vòng cả hai, không trượt lòn dưới (owner 2026-11-07).
+    const pinned = [{ x: 0, y: 0, width: relatedLayout.primary.width, height: relatedLayout.primary.height },
+      ...(suggestionBox ? [suggestionBox] : [])];
     const planDetour = (id, node, origin, destination) => {
       const placement = placementById?.get(id);
-      let from = origins?.get(id);
-      if (!from || !placement || (from.x === destination.x && from.y === destination.y)) return origin;
-      const size = { width: Math.max(from.w || 0, placement.pixelWidth), height: Math.max(from.h || 0, placement.pixelHeight) };
-      // Resize làm primary lớn lên đè chỗ cũ của card: card xuất phát ngay dưới primary mới, không từ sau nó.
-      if (from.x > -size.width && from.x < primaryZone.width && from.y > -size.height && from.y < primaryZone.height) {
-        from = { ...from, y: primaryZone.height + relatedLayout.primary.gap };
-      }
-      if (suggestionBox && from.x > suggestionBox.x - size.width && from.x < suggestionBox.x + suggestionBox.width
-        && from.y > suggestionBox.y - size.height && from.y < suggestionBox.y + suggestionBox.height) {
-        from = { ...from, y: suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap };
-      }
-      // Suggestion ghim thì card cũng đi vòng nó như primary, không trượt lòn dưới (owner 2026-11-07).
-      const plan = planDetourPath({ from, to: destination, size, zone: primaryZone })
-        || (suggestionBox && planDetourPath({ from, to: destination, size, zone: suggestionBox, origin: suggestionBox }));
+      const start = origins?.get(id);
+      if (!start || !placement || (start.x === destination.x && start.y === destination.y)) return origin;
+      const size = { width: Math.max(start.w || 0, placement.pixelWidth), height: Math.max(start.h || 0, placement.pixelHeight) };
+      const { from, plan } = planAroundPinned({ from: start, to: destination, size, pinned, gap: relatedLayout.primary.gap });
       if (!plan) return from;
       detours.set(node, { from, to: destination, plan });
       return destination;

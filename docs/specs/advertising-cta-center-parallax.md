@@ -238,7 +238,7 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 | CSS | `.detail-cta[data-advertising-grid-cta]`, `.detail-cta__copy`, `h2` (`detail.css`) | Vị trí cụm, cỡ chữ theo breakpoint, đệm, `margin-bottom` âm (R1, R3, R6) |
 | CSS | `body.is-advertising-browse .site-footer` (`detail.css`) | `--footer-top-gap: 0px` (R2, R9) |
 | Module | `createCtaBatch` (`cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `revealGlass`, `clear`; ghi `data-advertising-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
-| Module | `planDetourPath`, `segmentCrossesBox` (`detour-path.mjs`) | Đường đi card related (R10) |
+| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
 | CSS | `.site-footer` trong `@media (max-width: 750px), (max-height: 640px)` và `(max-width: 750px) and (orientation: portrait)` (`style.css`) | Footer gọn (R4) |
 
 Spec không sở hữu file: code nằm trong `catalog-runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
