@@ -1,5 +1,6 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
-// cyan trước đen sau; chỉ transform, opacity để GPU chạy; đổi hướng giữa chừng lật nốt rồi lật tiếp, cyan trước.
+// trắng sang CMYK cyan trước, CMYK sang trắng chạy lùi đúng lượt đó nên đen trước; chỉ transform, opacity để GPU chạy;
+// đổi hướng giữa chừng thì tua ngược từ chỗ đang dừng (owner 2026-11-09).
 // Thu gọn: logo, navbar chạy 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay và mark lật. Mở ra: nền, chữ đổi
 // ngay lúc navbar bắt đầu chuyển, mark lật sau 0.1s (owner 2026-11-09).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
@@ -64,6 +65,7 @@ const readFlip = (at) => {
     back: bands.map((band) => band.children[1].dataset.fill),
     frontTurned: bands.map((band) => turned(band.children[0])),
     backShown: bands.map((band) => Number(getComputedStyle(band.children[1]).opacity) > 0),
+    backTurned: bands.map((band) => turned(band.children[1])),
     props: [...root.querySelectorAll("span")].flatMap((face) => face.getAnimations())
       .flatMap((animation) => animation.effect.getKeyframes().flatMap((frame) => Object.keys(frame)))
       .filter((key) => !["offset", "easing", "composite", "computedOffset"].includes(key)),
@@ -153,7 +155,7 @@ try {
     }));
     assert.deepEqual(after, { hidden: "visible", fills: cmyk }, `${label}: flip layer leaves the CMYK mark`);
 
-    // Chiều về rồi đổi hướng giữa chừng: các dải quay ngược từ góc đang có, cùng lớp lật, rồi về CMYK.
+    // Chiều về: chạy lùi lượt lật, đen trước; rồi đổi hướng giữa chừng thì tua ngược về CMYK.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
@@ -162,52 +164,38 @@ try {
     assert.deepEqual([expandSample.background, expandSample.text], ["rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: clear background and white text switch at once on the way up`);
     assert.ok(expandLead >= 50 && expandLead < 125, `${label}: flip back to white starts 0.1s after the header expands (${expandLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "rgba(0, 0, 0, 0)", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
-    const back = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span")]
-      .map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]));
-    assert.deepEqual(back, cmyk.map((color, index) => [color, white[index]]), `${label}: CMYK to white flips the same way`);
-    // Đổi hướng lúc lật dở (owner 2026-11-09): lượt đang chạy lật cho xong, không quay ngược; rồi lượt mới lật tiếp
-    // sang CMYK, cyan trước. Trước đây các dải quay ngược nên đen lật trước, chạy từ phải sang trái.
+    // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
+    const back = await page.evaluate(() => {
+      const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      return {
+        faces: [...root.children].map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]),
+        rates: [...new Set([...root.querySelectorAll("span")].flatMap((face) => face.getAnimations()).map((animation) => animation.playbackRate))],
+      };
+    });
+    assert.deepEqual(back, { faces: white.map((color, index) => [color, cmyk[index]]), rates: [-1] }, `${label}: CMYK to white plays the same flip backwards`);
+    // Đổi hướng lúc lật dở (owner 2026-11-09): tua ngược ngay từ chỗ đang dừng, cùng lớp lật, không dựng lượt mới.
     await page.evaluate(() => { window.__flipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip"); });
     await page.waitForTimeout(150);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("[data-site-header]").classList.contains("is-brand-color"));
     await page.waitForTimeout(30);
-    const carrying = await page.evaluate(() => {
+    const rewinding = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
       const animations = [...(root?.querySelectorAll("span") || [])].flatMap((face) => face.getAnimations());
-      // Mặt đầu của cyan có thể đã xong trên runner chậm; không mặt nào dừng hay chạy ngược.
       return {
         same: root === window.__flipRoot,
-        running: animations.some((animation) => animation.playState === "running"),
         paused: animations.some((animation) => animation.playState === "paused"),
         rates: [...new Set(animations.map((animation) => animation.playbackRate))],
       };
     });
-    assert.deepEqual(carrying, { same: true, running: true, paused: false, rates: [1] }, `${label}: the running flip finishes forward`);
-    await page.waitForFunction(() => {
-      const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-      return root && root !== window.__flipRoot;
-    }, null, { timeout: 1500 });
-    const holdFor = await page.evaluate(() => performance.now() - window.__phases.collapse.at(-1));
-    assert.ok(holdFor >= 250, `${label}: the follow-up flip waits for the header beat (${holdFor.toFixed(0)}ms)`);
-    const restarted = await page.evaluate(() => {
-      const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-      const bands = [...root.children];
-      const flipBox = root.getBoundingClientRect();
-      const markBox = document.querySelector("#header-logo .brand-lockup__mark").getBoundingClientRect();
-      return {
-        delays: bands.map((band) => band.children[0].getAnimations()[0]?.effect.getTiming().delay ?? null),
-        front: bands.map((band) => band.children[0].dataset.fill),
-        back: bands.map((band) => band.children[1].dataset.fill),
-        fits: ["left", "top", "width", "height"].every((key) => Math.abs(flipBox[key] - markBox[key]) < 1),
-      };
-    });
-    // DOM: đen, vàng, magenta, cyan.
-    assert.deepEqual(restarted, { delays: [240, 160, 80, 0], front: white, back: cmyk, fits: true }, `${label}: follow-up flip runs white to CMYK, cyan first, on the collapsed mark box`);
-    await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
-    const final = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark path")]
-      .map((item) => getComputedStyle(item).fill));
-    assert.deepEqual(final, cmyk, `${label}: reversal settles on CMYK`);
+    assert.deepEqual(rewinding, { same: true, paused: false, rates: [1] }, `${label}: the running flip rewinds to CMYK from where it is`);
+    await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 1000 });
+    const final = await page.evaluate(() => ({
+      flips: window.__phases.flip.length,
+      fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
+    }));
+    assert.deepEqual(final.fills, cmyk, `${label}: reversal settles on CMYK`);
+    assert.equal(final.flips, 2, `${label}: rewinding builds no second flip layer`);
 
     // Đổi hướng trong nhịp 1, lớp lật chưa dựng: mark tween về màu cũ cùng chữ, không lật.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
@@ -223,7 +211,15 @@ try {
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }));
     assert.deepEqual(cancelled, { flips: flipsBefore, fills: white }, `${label}: turning back inside the header beat tweens the mark home without a flip`);
-    console.log(`PASS ${label}: per-band axes, cyan first, compositor only, interrupted flip finishes, then flips on cyan first`);
+    // Về trắng đen lật trước: 150ms sau khi chạy lùi (mốc 680 - 150), đen và vàng đã rời mặt CMYK, cyan chưa.
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
+    await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
+    await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+    await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
+    const leaving = await page.evaluate(readFlip, 530);
+    assert.deepEqual(leaving.backTurned, [true, true, false, false], `${label}: black leaves CMYK first on the way to white ${JSON.stringify(leaving)}`);
+    console.log(`PASS ${label}: per-band axes, cyan first to CMYK, black first to white, compositor only, interrupted flip rewinds`);
     await context.close();
   }
 } finally {
