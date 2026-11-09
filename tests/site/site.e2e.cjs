@@ -7011,7 +7011,7 @@ async function runAdvertisingMediaFocusedChecks() {
       // Rời chuột khỏi lưới: card gắn lại dưới con trỏ chạy lớp tối hover (R3), không phải hiệu ứng vào của ảnh.
       await page.mouse.move(0, 0);
       const initialTileIds = initial.tiles.map((tile) => tile.id);
-      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+      let timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const initialRequests = new Set(mediaRequestPaths);
       const initialSources = new Set(initial.tiles.map((tile) => originalPath(tile.source)));
       assert(
@@ -7035,11 +7035,15 @@ async function runAdvertisingMediaFocusedChecks() {
         );
         await page.waitForTimeout(500);
         const localized = await settledGridState(page, pageLayout, `${language} locale round-trip`);
+        // Đổi ngôn ngữ tải lại trang như F5 (site-shell R5, #735) nhưng giữ seed qua handoff (advertising-masonry):
+        // trang mới, cùng thứ tự card.
+        const reloadedOrigin = await page.evaluate(() => performance.timeOrigin);
         assert(
           JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
-            (await page.evaluate(() => performance.timeOrigin)) === timeOrigin,
-          `${language} locale round-trip replaced the ${expectedCardCount}-card runtime window`,
+            reloadedOrigin !== timeOrigin,
+          `${language} locale round-trip must reload like F5 and keep the ${expectedCardCount}-card order`,
         );
+        timeOrigin = reloadedOrigin;
       }
 
       for (const category of artifact.categories) {
