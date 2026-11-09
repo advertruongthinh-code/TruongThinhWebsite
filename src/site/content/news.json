@@ -90,7 +90,7 @@
         "id": "related",
         "type": "news-cards",
         "newsIds": [
-          "mo-quan-ca-phe",
+          "tu-ao-am-tuong",
           "nha-pho-giu-mat"
         ]
       },
@@ -188,8 +188,8 @@
         "id": "related",
         "type": "news-cards",
         "newsIds": [
-          "chon-tu-bep",
-          "nha-pho-giu-mat"
+          "quay-ke-cua-hang",
+          "chon-tu-bep"
         ]
       },
       {
@@ -310,8 +310,8 @@
         "id": "related",
         "type": "news-cards",
         "newsIds": [
-          "chon-tu-bep",
-          "mo-quan-ca-phe"
+          "bo-goc-noi-that",
+          "chon-tu-bep"
         ]
       },
       {
