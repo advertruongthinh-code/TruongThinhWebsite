@@ -780,20 +780,21 @@
       return;
     }
     if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
-    // Khung lớp lật trùng khung mark, tính trong hệ tọa độ của #header-logo (bỏ scale FLIP đang chạy).
+    // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
+    // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
     const logoRect = headerLogo.getBoundingClientRect();
     const markRect = headerMark.getBoundingClientRect();
-    const scale = logoRect.width / headerLogo.offsetWidth || 1;
     const box = headerMark.getBBox();
-    const width = markRect.width / scale;
+    const width = (markRect.width / logoRect.width) * headerLogo.offsetWidth;
+    const percent = (value, whole) => `${(value / whole) * 100}%`;
     const root = document.createElement("span");
     root.className = "brand-lockup__mark-flip";
     root.setAttribute("aria-hidden", "true");
     Object.assign(root.style, {
-      left: `${(markRect.left - logoRect.left) / scale}px`,
-      top: `${(markRect.top - logoRect.top) / scale}px`,
-      width: `${width}px`,
-      height: `${markRect.height / scale}px`,
+      left: percent(markRect.left - logoRect.left, logoRect.width),
+      top: percent(markRect.top - logoRect.top, logoRect.height),
+      width: percent(markRect.width, logoRect.width),
+      height: percent(markRect.height, logoRect.height),
     });
     const face = (path, fill) => {
       const layer = document.createElement("span");
