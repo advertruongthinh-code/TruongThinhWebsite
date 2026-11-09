@@ -762,6 +762,22 @@ test("organic order preserves a hard-safe requested layout when only its full bu
   assert.deepEqual(layout.diagnostics.placementOrder, baseline.diagnostics.placementOrder);
 });
 
+test("organic order keeps a golden-ratio cover spanning two columns within the production budget", () => {
+  // Production chạy organicOrder (catalog-runtime); pool có card 2:1 vẫn giải được và card đó trải 2 cột ở lưới 4 cột.
+  const cards = fixture([
+    ...Array.from({ length: 5 }, () => [100, 150]),
+    [200, 100],
+    ...Array.from({ length: 3 }, () => [100, 62]),
+  ], "organic-wide");
+  const layout = compileAdvertisingProductLayout({
+    cards, categoryOrder: ["organic-wide"], columns: 4,
+    layoutViewportWidth: 1024, presentationOrder: cards.map(({ id }) => id), organicOrder: true,
+  });
+  assertGrid(layout, "organic wide cover", cards.length);
+  assert.equal(layout.placements.find(({ card }) => card.id === "organic-wide-0005").width, 2);
+  assert.ok(layout.diagnostics.operations <= 300000);
+});
+
 test("organic order keeps the 19-card pool hard-safe at the production operation budget", () => {
   const options = organicTightBudgetOptions();
   const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });

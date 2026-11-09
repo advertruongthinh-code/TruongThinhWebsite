@@ -164,6 +164,19 @@ test("public grid follows the golden-ratio span rule for all groups and ignores 
   }
 });
 
+test("related compiles when golden-ratio covers take the two-column placement first", () => {
+  // Card ngang được chọn trải 2 cột trước, không lùi về một cột (layout-core R5); related kèm photo-peek vẫn phải giải được.
+  const heroId = "mobile-retail-04";
+  const wide = (media) => ({ ...media, width: 2000, height: 1000 });
+  const cards = ADVERTISING_CARDS.map((card) => card.id === heroId ? card : {
+    ...card, media: wide(card.media), ...(card.mediaItems ? { mediaItems: card.mediaItems.map(wide) } : {}),
+  });
+  const result = compileAdvertisingRelatedLayout({ cards, categoryOrder, heroId, tag: "use-sampling", ...viewportForWidth(1024) });
+  assert.equal(result.layout.columns, 4);
+  assert.ok(result.photoPlacements.some((placement) => placement.width === 2), "a 2:1 related card spans two columns");
+  assertRelated(result, "wide related layout");
+});
+
 test("related keeps fixed columns and measures its primary description once", () => {
   const measuredWidths = [];
   const options = { cards: ADVERTISING_CARDS, categoryOrder, heroId: "mobile-retail-04", tag: "use-sampling", ...viewportForWidth(1024) };

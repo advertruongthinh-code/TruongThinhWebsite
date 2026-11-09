@@ -6846,8 +6846,10 @@ async function runAdvertisingMediaFocusedChecks() {
         cards.every((card, index) => card.sourceOrder === index) &&
         layout.placements.length === pool.length &&
         // Thứ tự xếp là FIFO theo nguồn; thứ tự nhìn (theo top) có thể lệch khi card hai cột hạ xuống đáy cao hơn (R5).
-        layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id),
-      `${category.slug} count or FIFO source order drifted`,
+        layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id) &&
+        new Set(layout.placements.map(({ card }) => card.id)).size === pool.length &&
+        pool.every(({ id }) => layout.placements.some(({ card }) => card.id === id)),
+      `${category.slug} count or pool order drifted`,
     );
   }
   const rankedLayout = compileAdvertisingLayout({

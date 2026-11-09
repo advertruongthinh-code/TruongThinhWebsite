@@ -6,13 +6,13 @@ const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 const ADVERTISING_MIN_COLUMNS = 2;
 const ADVERTISING_MAX_COLUMNS = 4;
 // Card trải 2 cột (masonry R5, owner 2026-11-09): chỉ khi lưới có từ 3 cột; điện thoại 2 cột giữ mọi card một cột.
-export const ADVERTISING_WIDE_MIN_COLUMNS = 3;
+const ADVERTISING_WIDE_MIN_COLUMNS = 3;
 // Lỗ lớn: card 2 cột phải hạ xuống đáy cao hơn của cặp cột, chừa khoảng trống dưới nó ở cột thấp hơn. Trống quá nửa
 // bề rộng một cột (158px ở 1440px) thì card giữ một cột. Nửa cột là ngưỡng bridge sẵn có của kernel cũ và oracle hình
 // học, bằng chiều cao card 2:1 ở một cột (ảnh ngang nhất catalog), nên lỗ không cao hơn card thấp nhất và không đọc
 // thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
 // vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
-export const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
+const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
 
 // Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
 // nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
@@ -967,6 +967,8 @@ function compileAdvertisingLayoutPhase(options = {}) {
       const wide = candidates
         .filter(({ placement }) => placement.width === 2 && (placement.left === column || placement.left === column - 1))
         .sort((a, b) => a.placement.y - b.placement.y || a.placement.left - b.placement.left)[0];
+      // Card đủ điều kiện luôn lấy chỗ 2 cột, không đưa bản một cột làm phương án lùi khi search backtrack: lùi sẽ
+      // âm thầm thu card về một cột và đổi hash. Catalog thật vốn đi pha fallback (35/35 layout, đo 2026-11-10).
       return [wide || natural];
     }
     return candidates.sort((a, b) => a.staggerViolations - b.staggerViolations || a.score - b.score || bySource(a.placement.card, b.placement.card) || a.placement.left - b.placement.left).slice(0, SEARCH_CANDIDATE_LIMIT);
