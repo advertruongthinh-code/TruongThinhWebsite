@@ -114,9 +114,13 @@ try {
     const reversed = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
       const animations = [...(root?.querySelectorAll("span") || [])].flatMap((face) => face.getAnimations());
-      return { same: root === window.__flipRoot, rates: [...new Set(animations.map((animation) => animation.playbackRate))] };
+      // Lớp lật dựng lúc header mở, header thu gọn giữa chừng: lớp phải co theo mark, không giữ cỡ cũ tràn khỏi header.
+      const flipBox = root?.getBoundingClientRect();
+      const markBox = document.querySelector("#header-logo .brand-lockup__mark").getBoundingClientRect();
+      const fits = Boolean(flipBox) && ["left", "top", "width", "height"].every((key) => Math.abs(flipBox[key] - markBox[key]) < 1);
+      return { same: root === window.__flipRoot, rates: [...new Set(animations.map((animation) => animation.playbackRate))], fits };
     });
-    assert.deepEqual(reversed, { same: true, rates: [-1] }, `${label}: mid-flip reversal turns the bands back`);
+    assert.deepEqual(reversed, { same: true, rates: [-1], fits: true }, `${label}: mid-flip reversal turns the bands back on the collapsed mark box`);
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
     const final = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark path")]
       .map((item) => getComputedStyle(item).fill));
