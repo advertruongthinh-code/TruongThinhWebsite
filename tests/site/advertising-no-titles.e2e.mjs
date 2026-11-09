@@ -60,7 +60,7 @@ try {
         relatedCaptionCount: document.querySelectorAll("[data-advertising-related-card] figcaption").length,
         relatedTiles: [...document.querySelectorAll("[data-advertising-related-card]")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
-          imageHeight: tile.querySelector("img")?.getBoundingClientRect().height || 0,
+          imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
         })),
       }));
       assert.equal(detail.titleCount, 0, `${locale} ${viewport.width}px: active detail has no image title`);
