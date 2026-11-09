@@ -170,6 +170,17 @@ try {
   await page.locator("[data-advertising-card] a").first().click();
   await ready(page);
   assert.equal(await page.getAttribute("[data-advertising-cta-skeleton]", "data-advertising-cta-host"), "detail");
+  // Cụm CTA chuyển sang detail chờ lần vào view như lần đầu ở masonry: chưa hiện khi còn dưới màn, hiện khi cuộn tới (R9).
+  const ctaReveal = () => page.evaluate(() => {
+    const cta = document.querySelector("[data-advertising-grid-cta]");
+    return { link: cta.querySelector("[data-motion-fade]").classList.contains("is-motion-inview"),
+      lineY: new DOMMatrixReadOnly(getComputedStyle(cta.querySelector("h2 .motion-line")).transform).m42,
+      below: cta.getBoundingClientRect().top > innerHeight };
+  });
+  const armed = await ctaReveal();
+  assert.ok(armed.below && !armed.link && armed.lineY > 0, `detail: CTA đã hiện trước khi vào view ${JSON.stringify(armed)}`);
+  const revealed = await measureEnd(page).then(ctaReveal);
+  assert.ok(revealed.link && revealed.lineY < 0, `detail: CTA không hiện khi vào view ${JSON.stringify(revealed)}`);
   await page.goBack();
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaHost === "grid"
     && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 10000 });

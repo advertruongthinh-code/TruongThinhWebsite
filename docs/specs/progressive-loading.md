@@ -229,7 +229,7 @@ And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị g
 
 Ảnh khung lớn (rộng từ 640px, hoặc rộng hay cao từ 60% viewport: hero, ảnh lớn detail) đã hiện ở bản vừa khung (R3) và đang trong
 màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang (owner chọn 14:01, thay "mọi ảnh" lúc 10:45). Card và ô nhỏ giữ
-bản vừa khung: card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC. Bản gốc tải riêng bằng
+bản vừa khung, kể cả card related và gợi ý ở detail: card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC (card related: PC owner đứng 200-480ms, 2026-11-09). Bản gốc tải riêng bằng
 `Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện. Phone không lên bản gốc (R1).
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.

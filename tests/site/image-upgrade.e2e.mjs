@@ -97,6 +97,21 @@ try {
     assert.equal(shown.current, shown.src, "the primary shows the media it was given");
     await page.close();
   }
+  // Card related và card gợi ý ở detail là card masonry: giữ bản vừa khung dù card dọc cao quá 60% viewport (PC owner
+  // 1920x940: card related 436px lên bản gốc làm đứng 200-480ms mỗi lần giải mã, 2026-11-09).
+  {
+    const { page } = await open({ viewport: { width: 1920, height: 940 } });
+    await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+    await page.locator("[data-advertising-card] > a").first().click();
+    await page.waitForTimeout(6000);
+    // Ảnh gốc nhỏ (không có variant lớn hơn khung) vẫn là ứng viên đúng; chỉ bản gốc lớn hơn nhiều so với khung là nâng sai.
+    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card] img, [data-advertising-suggestion-card] img")]
+      .filter((image) => image.currentSrc).map((image) => ({ pathname: new URL(image.currentSrc).pathname,
+        oversized: image.naturalWidth > 1.5 * image.clientWidth * devicePixelRatio })));
+    const upgraded = cards.filter(({ pathname, oversized }) => !VARIANT.test(pathname) && oversized).map(({ pathname }) => pathname);
+    assert.ok(cards.length && !upgraded.length, `related cards stay on their variant ${JSON.stringify(upgraded)}`);
+    await page.close();
+  }
   // Phone trang chủ: 9 slide hoãn tải variant lớn nhất 2048, không tải bản gốc (media-delivery R2, owner 2026-10-31);
   // slide gốc nhỏ hơn 2048 không có variant 2048 nên bản gốc là ứng viên lớn nhất.
   {

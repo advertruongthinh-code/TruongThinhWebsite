@@ -825,6 +825,9 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
   }
 }
 
+// Bề rộng nguồn của nền blur primary (filter blur 100px): chi tiết nhỏ hơn bán kính blur không còn thấy.
+const BACKGROUND_SOURCE_WIDTH = 240;
+
 function createPhotoMedia(record, locale, { suggestion = false, native = false } = {}) {
   // Giữ vòng đời preload/class LazySizes đã cam kết cho các card ảo hóa.
   // Native loading riêng có ngưỡng viewport khác (design-system/motion.md).
@@ -2814,8 +2817,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
   // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
   const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
+  // Cụm CTA vừa vào layout mới (đổi host, đổi ảnh detail): chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp.
+  // Chờ tới lúc đó vì trước khi dựng batch cụm nằm đầu canvas, trong viewport, nên observer vào view nổ sớm (R9).
+  let ctaRevealPending = false;
   const moveCtaNodes = (host) => {
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
+    ctaRevealPending = true;
     if (host === "detail" && photoCanvas) {
       photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
       // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
@@ -2969,6 +2976,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     setCtaHostHeight(gridBottom);
+    if (ctaRevealPending && gridCta) {
+      ctaRevealPending = false;
+      window.TruongThinhDetail?.rearmMotion?.(gridCta);
+    }
     ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
       if (skeletonObserver) skeletonObserver.observe(frame);
       else visibleSkeletonFrames.add(frame);
@@ -3900,10 +3911,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng viewport (cố định trong phiên, nên file không
-  // đổi giữa các lần render): primary không rộng hơn viewport; viewer "Xem lớn hơn" vẫn lấy bản gốc.
+  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng vùng ảnh primary (cùng cỡ cửa sổ thì như nhau
+  // giữa các ảnh, nên file không đổi giữa các lần render); chưa có layout related thì theo viewport. Cỡ theo viewport
+  // (2048, bản gốc ở 1920px) giải mã JXL 200-430ms, làm đứng frame mỗi lần mở card related trên PC (đo 2026-11-09).
+  // Viewer "Xem lớn hơn" vẫn lấy bản gốc.
   const primarySource = (item) => item.kind === "video" ? item.posterSrc
-    : responsiveSource(item.src, item.width, Math.ceil(innerWidth * devicePixelRatio));
+    : responsiveSource(item.src, item.width,
+      Math.ceil(Math.min(innerWidth, relatedLayout?.primary.imageZoneWidth || innerWidth) * devicePixelRatio));
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -4157,7 +4171,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncVideoTime();
     if (photoBackground) {
       // Markup để lazy để placeholder không tải khi detail ẩn; gán nguồn thật rồi mới eager, như ảnh chính.
-      photoBackground.src = video ? item.posterSrc : source;
+      // Nền bị blur 100px nên cỡ 240 đủ: bản cỡ primary (tới 2048, bản gốc) là một lần giải mã JXL lớn thứ hai, 200-430ms
+      // trên PC owner, làm đứng frame mỗi lần mở card related (đo 2026-11-09).
+      photoBackground.src = video ? item.posterSrc : responsiveSource(item.src, item.width, BACKGROUND_SOURCE_WIDTH);
       photoBackground.loading = "eager";
       photoBackground.dataset.advertisingPhotoId = record.id;
     }
@@ -4473,7 +4489,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelMotion();
     activePhotoId = record.id;
     // Đổi tag trong cùng ảnh giữ khung batch để chúng trượt hoặc đi vòng primary (CTA R9, R10); đổi ảnh thì dựng lại.
-    if (previousPhotoId !== record.id || !ctaInDetail()) clearCtaSkeleton();
+    if (previousPhotoId !== record.id || !ctaInDetail()) {
+      clearCtaSkeleton();
+      ctaRevealPending = true;
+    }
     moveCtaNodes("detail");
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;
