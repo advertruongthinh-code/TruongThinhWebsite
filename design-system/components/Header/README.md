@@ -48,7 +48,7 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | `is-hidden` | Cuộn xuống giữa trang | `translateY(-100%)`; `:focus-within` luôn hiện |
 
 Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell). Collapse chạy hai nhịp: nền, viền,
-chữ `0.3s expo.out` cùng FLIP lockup và navbar, mark lật từ `0.15s` khi nhịp này đã xong về mắt ([Brand Motion](../../brand.md#motion)).
+chữ `0.3s expo.out` cùng FLIP lockup và navbar, mark lật từ `0.1s` khi nhịp này đã xong về mắt ([Brand Motion](../../brand.md#motion)).
 
 ## Chú thích thuật ngữ
 

@@ -1,6 +1,6 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
 // cyan trước đen sau; chỉ transform, opacity để GPU chạy; đổi hướng giữa chừng quay ngược các dải.
-// Hai nhịp: nền, chữ, logo, navbar chạy 0.3s expo.out, xong về mắt ở 0.15s thì mark mới lật; nhịp 1 mark giữ màu cũ.
+// Hai nhịp: nền, chữ, logo, navbar chạy 0.3s expo.out, xong về mắt ở 0.1s thì mark mới lật; nhịp 1 mark giữ màu cũ.
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -25,7 +25,7 @@ const watchPhases = () => {
     setTimeout(() => phases.lead.push({
       flip: Boolean(document.querySelector(".brand-lockup__mark-flip")),
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
-    }), 60);
+    }), 40);
   }).observe(header, { attributes: true, attributeFilter: ["class"] });
   new MutationObserver((records) => {
     if (records.some((record) => [...record.addedNodes].some((node) => node.classList?.contains("brand-lockup__mark-flip")))) {
@@ -34,7 +34,7 @@ const watchPhases = () => {
   }).observe(logo, { childList: true });
   window.__phases = phases;
 };
-// Lật bắt đầu ở 0.15s theo tick GSAP. Tick GSAP tính từ frame trước lúc đổi class, nên trên runner chậm (frame tới
+// Lật bắt đầu ở 0.1s theo tick GSAP (owner 2026-11-09). Tick GSAP tính từ frame trước lúc đổi class, nên trên runner chậm (frame tới
 // khoảng 70ms) có thể sớm hơn mốc đổi class đo bằng MutationObserver một frame; code cũ lật ở 0ms.
 const flipLead = () => {
   const { collapse, flip } = window.__phases;
@@ -110,7 +110,7 @@ try {
     assert.deepEqual(lead.fills, white, `${label}: mark holds white, no grey step`);
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const collapseLead = await page.evaluate(flipLead);
-    assert.ok(collapseLead >= 80, `${label}: flip starts once the header beat has settled (${collapseLead.toFixed(0)}ms)`);
+    assert.ok(collapseLead >= 50 && collapseLead < 125, `${label}: flip starts once the header beat has settled (${collapseLead.toFixed(0)}ms)`);
     const axes = await page.evaluate(readAxes);
     axes.forEach(({ axis, origin, perspective }, index) => {
       [origin, perspective].forEach((value) => assert.ok(Math.hypot(value[0] - axis[0], value[1] - axis[1]) < 0.75,
@@ -141,7 +141,7 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    assert.ok(expandLead >= 80, `${label}: flip back to white also waits for the header beat (${expandLead.toFixed(0)}ms)`);
+    assert.ok(expandLead >= 50 && expandLead < 125, `${label}: flip back to white also waits for the header beat (${expandLead.toFixed(0)}ms)`);
     const back = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span")]
       .map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]));
     assert.deepEqual(back, cmyk.map((color, index) => [color, white[index]]), `${label}: CMYK to white flips the same way`);
@@ -162,7 +162,7 @@ try {
     await page.waitForFunction(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip span")]
       .flatMap((face) => face.getAnimations()).some((animation) => animation.playbackRate < 0), null, { timeout: 1500 });
     const holdFor = await page.evaluate(() => performance.now() - window.__phases.collapse.at(-1));
-    assert.ok(holdFor >= 80, `${label}: bands turn back only after the header beat settles (${holdFor.toFixed(0)}ms)`);
+    assert.ok(holdFor >= 50, `${label}: bands turn back only after the header beat settles (${holdFor.toFixed(0)}ms)`);
     const reversed = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
       const animations = [...(root?.querySelectorAll("span") || [])].flatMap((face) => face.getAnimations());
@@ -184,7 +184,7 @@ try {
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
     const flipsBefore = await page.evaluate(() => window.__phases.flip.length);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(40);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(800);
     const cancelled = await page.evaluate(() => ({

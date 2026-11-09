@@ -11280,7 +11280,7 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Lật bắt đầu sau nhịp header (0.15s) kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
+              // Lật bắt đầu sau nhịp header (0.1s) kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
               // đã dựng rồi gỡ (trần 2.5s) thay vì dừng cứng ở 1.15s.
               const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
               const trace = window.__ttWhiteSurfaceLogoTrace;
@@ -11724,7 +11724,7 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
-      // Lớp lật dựng sau nhịp header 0.15s (brand.md Motion).
+      // Lớp lật dựng sau nhịp header 0.1s (brand.md Motion).
       await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
       await page.evaluate(() => {
         window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
