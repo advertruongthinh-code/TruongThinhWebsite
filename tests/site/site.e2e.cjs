@@ -3023,7 +3023,8 @@ async function runEspacioRouteLogoTimingChecks() {
       await gotoRoute(page, "/vi/");
       // Ảnh tải theo biến thể srcset AVIF/WebP (media-delivery R3).
       await page.route(/residential-detail-x1(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
-        await new Promise((resolve) => setTimeout(resolve, 1_800));
+        // Ảnh chậm hơn cả lượt route: veil phủ 0.75s, giữ phủ kín tối thiểu 1s (logo-route-crossfade R2), rồi mở.
+        await new Promise((resolve) => setTimeout(resolve, 3_200));
         delayedHeroReleased = true;
         await requestRoute.continue();
       });
@@ -3045,7 +3046,7 @@ async function runEspacioRouteLogoTimingChecks() {
           );
         },
         null,
-        { timeout: 2_500 },
+        { timeout: 3_000 },
       );
       const state = await page.evaluate(() => {
         const image = document.querySelector(

@@ -114,8 +114,8 @@ try {
       if (toDestination) {
         assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
       }
-      // Veil phủ kín ít nhất 0.68s (một lượt lật mark) dù trang đích tải ngay, navbar không chớp.
-      assert.ok(record.veilOpening - record.veilClosed >= 680 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
+      // Veil phủ kín ít nhất 1s (owner 2026-11-09) dù trang đích tải ngay, navbar không chớp.
+      assert.ok(record.veilOpening - record.veilClosed >= 1000 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
       // Mark lật (không tween) từ lúc veil phủ kín hoặc lúc veil bắt đầu mở, không phải lúc bấm.
       assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
       const { at, ...flip } = record.flips[0];

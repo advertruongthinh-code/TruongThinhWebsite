@@ -172,9 +172,9 @@
   // Route mềm: header ở tone veil (chữ đậm, mark CMYK) từ lúc veil phủ kín tới lúc veil bắt đầu mở, kể cả khi trang
   // đích mount dưới veil (logo-route-crossfade R1, R2).
   let routeVeilInk = false;
-  // Veil phủ kín ít nhất bằng một lượt lật mark (0.68s), kể cả khi trang đích có sẵn trong cache: chữ đậm và mark CMYK
+  // Veil phủ kín ít nhất 1s (owner 2026-11-09), dài hơn một lượt lật mark, kể cả khi trang đích có sẵn trong cache: chữ đậm và mark CMYK
   // hiện đủ lâu trên veil, navbar không chớp (owner 2026-11-09, logo-route-crossfade R2).
-  const routeVeilHold = 680;
+  const routeVeilHold = 1000;
   let routeVeilCoveredAt;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
