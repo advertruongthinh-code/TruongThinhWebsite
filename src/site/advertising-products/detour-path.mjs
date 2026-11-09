@@ -44,7 +44,8 @@ export function planDetourPath({ from, to, size, zone, origin }) {
 }
 
 // Item ghim (primary, suggestion ghim dưới primary) là vùng cấm chung của card related và khung batch CTA
-// (masonry-reuse bước 6): một danh sách hộp `{ x, y, width, height }` cùng hệ tọa độ với `from`, `to`.
+// (masonry-reuse bước 6): một danh sách hộp `{ x, y, width, height }` cùng hệ tọa độ với `from`, `to`, xếp từ trên
+// xuống (dời một lượt theo thứ tự, nên hộp dưới không đẩy điểm ngược lên hộp trên).
 // Điểm đầu nằm trong vùng của một hộp thì dời xuống ngay dưới hộp đó (resize làm primary lớn lên đè chỗ cũ); đường
 // thẳng cắt hộp nào thì đi vòng hộp đầu tiên cắt, theo thứ tự danh sách.
 export function planAroundPinned({ from, to, size, pinned = [], gap = 0 }) {
