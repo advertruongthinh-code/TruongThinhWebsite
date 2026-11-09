@@ -288,13 +288,14 @@ html.route-enter .site-header {
   border-bottom: 0 solid transparent;
   background: transparent;
   color: white;
-  /* Nhịp header: logo FLIP, navbar và nền 0.3s; nền, viền, chữ (.is-surface, .is-ink) đổi ngay lúc bắt đầu nhịp, không
-     fade, mark lật cùng lúc (owner 2026-11-09, brand.md Motion). */
+  /* Nhịp header: logo FLIP, navbar và nền 0.3s; nền, viền, chữ (.is-surface, .is-ink) đổi một lần, không fade: thu gọn
+     thì ngay lúc bắt đầu nhịp, mở ra thì hết nhịp; mark lật ngay lúc bắt đầu (owner 2026-11-09, brand.md Motion). */
   transition: transform 1s cubic-bezier(0, 0, 0.1, 0.99);
 }
 
-/* Nền và viền header: lớp ::before kéo lên khỏi màn hình, đáy trùng đáy header. Thu gọn: motion.js đặt
-   --header-surface-shift bằng phần header vừa co rồi về 0 trong 0.3s, nền co cùng logo và navbar; chỉ transform. */
+/* Nền và viền header: lớp ::before kéo lên khỏi màn hình, đáy trùng đáy header. Thu gọn hoặc mở ra: motion.js đặt
+   --header-surface-shift bằng phần header vừa đổi cao rồi về 0 trong 0.3s, nền co hoặc giãn cùng logo và navbar;
+   mở ra thì nền giữ tới hết nhịp mới tắt; chỉ transform. */
 .site-header::before {
   position: absolute;
   z-index: -1;

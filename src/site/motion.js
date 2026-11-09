@@ -559,14 +559,18 @@
     });
   }
 
-  // Nền và viền header vẽ ở ::before (style.css). Thu gọn: ::before bắt đầu dài thêm đúng phần header vừa co, rồi co về
-  // cùng nhịp FLIP 0.3s expo.out; chỉ chạy transform. Mở ra: nền tắt ngay nên không có motion.
+  // Nền và viền header vẽ ở ::before (style.css), chạy chung nhịp FLIP 0.3s expo.out, chỉ transform. Thu gọn: ::before
+  // bắt đầu dài thêm đúng phần header vừa co rồi co về. Mở ra: nền trắng và chữ ink giữ nguyên (headerSurfaceHeld),
+  // ::before bắt đầu ở cao cũ rồi giãn theo header; hết 0.3s nền tắt và chữ đổi ngay, không fade (owner 2026-11-09).
   function playHeaderSurfaceMotion(heightBefore) {
     if (!hasGsap) return;
     gsap.killTweensOf(header, "--header-surface-shift");
     header.style.removeProperty("--header-surface-shift");
     const shift = heightBefore - header.offsetHeight;
-    if (reduceMotion || shift < 0.5) return;
+    if (reduceMotion || Math.abs(shift) < 0.5) {
+      releaseHeaderSurface();
+      return;
+    }
     gsap.fromTo(
       header,
       { "--header-surface-shift": `${shift}px` },
@@ -574,7 +578,10 @@
         "--header-surface-shift": "0px",
         duration: headerBeat,
         ease: "expo.out",
-        onComplete: () => header.style.removeProperty("--header-surface-shift"),
+        onComplete: () => {
+          header.style.removeProperty("--header-surface-shift");
+          releaseHeaderSurface();
+        },
       },
     );
   }
@@ -610,13 +617,23 @@
   const headerSettle = 0.1;
   // Header thu gọn hoặc mở ra: mark lật ngay (updateHeader đặt 0).
   let headerMarkLeadFor = headerSettle;
+  // Mở ra: nền trắng, viền, chữ ink giữ tới hết nhịp 0.3s (playHeaderSurfaceMotion nhả).
+  let headerSurfaceHeld = false;
+  let headerSurfaceLast = [false, false];
   const paintHeaderSurface = (ink, collapsed) => {
-    header.classList.toggle("is-ink", ink);
+    headerSurfaceLast = [ink, collapsed];
+    const surface = collapsed || headerSurfaceHeld;
+    header.classList.toggle("is-ink", ink || headerSurfaceHeld);
     header.classList.toggle("is-logo-ink", collapsed);
-    header.classList.toggle("is-surface", collapsed);
-    const color = ink ? "#2f2f2f" : "#ffffff";
+    header.classList.toggle("is-surface", surface);
+    const color = ink || headerSurfaceHeld ? "#2f2f2f" : "#ffffff";
     if (color !== currentHeaderColor) colorHeader(color);
   };
+  function releaseHeaderSurface() {
+    if (!headerSurfaceHeld) return;
+    headerSurfaceHeld = false;
+    paintHeaderSurface(...headerSurfaceLast);
+  }
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =
       document.body.classList.contains("is-transitioning") ||
@@ -641,8 +658,10 @@
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
     const heightBefore = collapsedChanged ? header.offsetHeight : 0;
     header.classList.toggle("is-collapsed", collapsed);
-    // Thu gọn hoặc mở ra (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy,
-    // không fade; thu gọn thì nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion); mark lật cùng lúc.
+    // Thu gọn (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy, không fade;
+    // nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion). Mở ra: nền trắng, chữ ink giữ và giãn
+    // theo navbar 0.3s, hết nhịp mới tắt. Cả hai chiều mark lật ngay lúc bắt đầu.
+    if (collapsedChanged) headerSurfaceHeld = !collapsed && hasGsap && !reduceMotion && header.classList.contains("is-surface");
     paintHeaderSurface(ink, collapsed);
     if (collapsedChanged) headerMarkLeadFor = 0;
     if (!routeMarkHeld && (activeSection || routeTransitionActive || collapsed)) {
