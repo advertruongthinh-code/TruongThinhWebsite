@@ -22,14 +22,15 @@
   const cardsMode = window.TTCms.page === "advertising";
   const cardPath = () => decodeURIComponent(location.pathname.match(/\/advertising-products\/p\/([^/]+)\/$/)?.[1] ?? "");
   const cardOf = (node) => {
-    const tile = node.closest("[data-advertising-card], [data-advertising-related-card]");
-    if (tile) return tile.dataset.advertisingCard ?? tile.dataset.advertisingRelatedCard;
+    // Card gợi ý là item masonry nhưng không phải một card: không có khóa card:<id>.
+    const tile = node.closest("[data-masonry-item]:not([data-masonry-kind=\"suggestion\"])");
+    if (tile) return tile.dataset.masonryItem;
     return node.closest("[data-advertising-photo-primary]") ? cardPath() || null : null;
   };
   const byKey = (key) => {
     if (!key?.startsWith("card:")) return key && document.querySelector(`[data-cms-key="${key}"]`);
     const id = key.slice(5);
-    return [document.querySelector(`[data-advertising-card="${CSS.escape(id)}"]`),
+    return [...document.querySelectorAll(`[data-masonry-item="${CSS.escape(id)}"]`),
       cardPath() === id ? document.querySelector("[data-advertising-photo-primary]") : null].find((node) => node && visible(node));
   };
   const info = (node) => ({

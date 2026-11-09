@@ -1020,6 +1020,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.append(link);
   const items = record.mediaItems;
   const hasCarousel = Array.isArray(items) && items.length > 1;
+  // Đánh dấu chung của mọi item masonry (masonry-reuse bước 3): head-inline, CMS overlay, test đọc đánh dấu này thay
+  // cho liệt kê từng loại card.
+  figure.dataset.masonryItem = record.id;
+  figure.dataset.masonryKind = hasCarousel ? "multi" : items?.[0]?.kind === "video" ? "video" : "photo";
   const hasSingletonOverride = Array.isArray(items) && items.length === 1
     && (items[0].kind !== "image" || items[0].src !== record.media.src);
   if (hasCarousel || hasSingletonOverride) {
