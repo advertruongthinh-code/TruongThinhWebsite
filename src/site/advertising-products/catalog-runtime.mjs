@@ -825,6 +825,9 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
   }
 }
 
+// Bề rộng nguồn của nền blur primary (filter blur 100px): chi tiết nhỏ hơn bán kính blur không còn thấy.
+const BACKGROUND_SOURCE_WIDTH = 240;
+
 function createPhotoMedia(record, locale, { suggestion = false, native = false } = {}) {
   // Giữ vòng đời preload/class LazySizes đã cam kết cho các card ảo hóa.
   // Native loading riêng có ngưỡng viewport khác (design-system/motion.md).
@@ -2830,8 +2833,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
   // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
   const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
+  // Cụm CTA vừa vào layout mới (sang detail, đổi ảnh detail): chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp.
+  // Chờ tới lúc đó vì trước khi dựng batch cụm nằm đầu canvas, trong viewport, nên observer vào view nổ sớm (R9).
+  let ctaRevealPending = false;
   const moveCtaNodes = (host) => {
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
+    // Về masonry giữ trạng thái đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại.
+    if (host === "detail") ctaRevealPending = true;
     if (host === "detail" && photoCanvas) {
       photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
       // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
@@ -2986,6 +2994,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     setCtaHostHeight(gridBottom);
+    if (ctaRevealPending && gridCta) {
+      ctaRevealPending = false;
+      window.TruongThinhDetail?.rearmMotion?.(gridCta);
+    }
     ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
       if (skeletonObserver) skeletonObserver.observe(frame);
       else visibleSkeletonFrames.add(frame);
@@ -4174,7 +4186,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncVideoTime();
     if (photoBackground) {
       // Markup để lazy để placeholder không tải khi detail ẩn; gán nguồn thật rồi mới eager, như ảnh chính.
-      photoBackground.src = video ? item.posterSrc : source;
+      // Nền bị blur 100px nên cỡ 240 đủ: bản cỡ primary (tới 2048, bản gốc) là một lần giải mã JXL lớn thứ hai, 200-430ms
+      // trên PC owner, làm đứng frame mỗi lần mở card related (đo 2026-11-09).
+      photoBackground.src = video ? item.posterSrc : responsiveSource(item.src, item.width, BACKGROUND_SOURCE_WIDTH);
       photoBackground.loading = "eager";
       photoBackground.dataset.advertisingPhotoId = record.id;
     }
@@ -4187,7 +4201,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.advertisingPhotoLoading = "true";
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      photoImage.decode().then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
+      // Nền dùng file 240 riêng: chờ cả nền để nền không hiện sau reveal khi cache lạnh; nền lỗi không chặn reveal.
+      Promise.all([photoImage.decode(), photoBackground?.decode().catch(() => {})])
+        .then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
         () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord({ ...record, media: item });
@@ -4490,7 +4506,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelMotion();
     activePhotoId = record.id;
     // Đổi tag trong cùng ảnh giữ khung batch để chúng trượt hoặc đi vòng primary (CTA R9, R10); đổi ảnh thì dựng lại.
-    if (previousPhotoId !== record.id || !ctaInDetail()) clearCtaSkeleton();
+    if (previousPhotoId !== record.id || !ctaInDetail()) {
+      clearCtaSkeleton();
+      ctaRevealPending = true;
+    }
     moveCtaNodes("detail");
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;

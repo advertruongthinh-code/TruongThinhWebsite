@@ -690,6 +690,25 @@
         motionItems.forEach((item) => {
           item.style.setProperty("--motion-delay", `${getDelay(item)}s`);
         });
+        // Một khối được đặt vào layout mới (cụm CTA chuyển giữa masonry và detail, đổi ảnh detail): chữ và nút về
+        // trạng thái chưa hiện rồi chờ lần vào view kế tiếp, như lần đầu ở masonry (advertising-cta-center-parallax R9).
+        state.rearmMotion = (root) => {
+          if (settled || !root) return;
+          [...lineGroups, ...wordGroups].filter((group) => root.contains(group)).forEach((group) => {
+            textObserver.unobserve(group);
+            observedTextGroups.delete(group);
+            completedTextGroups.delete(group);
+            lineStates.delete(group);
+            lineTweens.get(group)?.kill();
+            lineTweens.delete(group);
+            prepareTextGroup(group);
+          });
+          motionItems.filter((item) => root.contains(item)).forEach((item) => {
+            item.classList.remove("is-motion-inview");
+            itemObserver.unobserve(item);
+            itemObserver.observe(item);
+          });
+        };
         mediaItems.forEach((item) => {
           const markReady = () => item.classList.add("is-motion-ready");
           if (item.complete) markReady();
@@ -840,8 +859,9 @@
 
   const revertSplitText = () => activePage?.revertSplitText?.();
   const rebuildSplitText = () => activePage?.rebuildSplitText?.();
+  const rearmMotion = (root) => activePage?.rearmMotion?.(root);
 
-  window.TruongThinhDetail = { mount, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
+  window.TruongThinhDetail = { mount, revertSplitText, rebuildSplitText, rearmMotion, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
   if (document.documentElement.classList.contains("motion-fallback")) {
     mount(undefined, { settled: true });
   }
