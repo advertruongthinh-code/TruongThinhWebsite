@@ -137,7 +137,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ở `0.3s` cùng nền, khi mở ra thì đổi ngay cùng nền | Mỗi lần header đổi tone |
 | Nhịp header | FLIP scale và navbar chạy chung `0.3s expo.out`. Thu gọn: nền, viền, chữ và mark giữ trạng thái cũ hết nhịp, ở `0.3s` nền trắng, viền và chữ đậm đổi ngay, không fade, mark lật sang CMYK từ đó, xong ở `0.98s`. Mở ra: nền trong và chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật sang trắng từ `0.1s`, xong ở `0.78s` (owner 2026-11-09) | Mỗi lần mark đổi màu theo state machine dưới, trừ chuyển trang |
-| Màu mark | Bốn dải lật quanh trục riêng, cyan trước, chạy `0.68s` từ `0.3s` (thu gọn) hoặc `0.1s` (mở ra, đổi tone theo section) | Theo state machine dưới, trừ chuyển trang |
+| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, cyan trước, chạy `0.68s` từ `0.3s` (thu gọn) hoặc `0.1s` (mở ra, đổi tone theo section) | Theo state machine dưới, trừ chuyển trang |
 | Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm; đổi ngôn ngữ chỉ pha sang đậm rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
@@ -163,6 +163,13 @@ Mặt cũ quay đi với `cubic-bezier(0.5, 0, 0.75, 0)`, mặt mới quay tới
 không làm mark giật (đo A04s 2026-11-07: kiểu mọc `clip-path` cũ còn khoảng 20
 frame/giây và đứng hình khi main thread bận). Trong lúc lật, path inline của mark
 ẩn; lật xong gỡ lớp lật, mark inline hiện lại với màu cuối.
+
+Mỗi mặt có thêm một lớp bóng đen cùng hình dải, opacity `0` tới `0.5` khi mặt cũ
+quay ra cạnh và `0.5` về `0` khi mặt mới quay tới, cùng delay, thời lượng và
+easing với mặt đó (owner 2026-11-09). Dải mảnh xoay quanh trục dọc dải nên nếu
+không có bóng, mắt chỉ thấy dải hẹp lại rồi nở ra, bốn dải lệch nhau trông như
+một vệt quét; bóng cho thấy mặt đang nghiêng. Trên nền trắng, mặt trắng nghiêng
+hiện thành xám thoáng qua.
 
 Khi thu gọn, nền, chữ và mark chỉ đổi khi logo và navbar đã chạy xong (owner 2026-11-09):
 sau mốc cuộn `100px` Locomotive (`lerp 0.085`) còn trôi khoảng `0.4`–`0.55s`,

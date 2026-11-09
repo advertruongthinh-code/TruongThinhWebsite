@@ -134,6 +134,10 @@ try {
     assert.deepEqual(start.front, white, `${label}: white face shows first`);
     assert.deepEqual(start.back, cmyk, `${label}: CMYK face comes in`);
     assert.ok(start.markHidden, `${label}: inline mark hides while the flip layer runs`);
+    // Bóng mặt dải (owner 2026-11-09): mỗi mặt một lớp bóng, tối nhất lúc mặt xoay ra cạnh, chỉ chạy opacity.
+    const shades = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span > span > span")]
+      .map((layer) => layer.getAnimations()[0]?.effect.getKeyframes().map((frame) => frame.opacity)));
+    assert.deepEqual(shades, Array.from({ length: 4 }, () => [["0", "0.5"], ["0.5", "0"]]).flat(), `${label}: every face darkens as it turns edge-on`);
     assert.deepEqual([...new Set(start.props)].sort(), ["opacity", "transform"], `${label}: only compositor properties animate`);
     // Cyan lật ở 0ms, magenta 80ms, vàng 160ms, đen 240ms.
     const early = await page.evaluate(readFlip, 150);
