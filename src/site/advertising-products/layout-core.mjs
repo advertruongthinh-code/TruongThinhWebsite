@@ -17,6 +17,28 @@ const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
 // Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
 // nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
 export const isAdvertisingWideMedia = (media) => media.width * 1000 >= media.height * 1618;
+// Luật span một chỗ (masonry-reuse bước 5): card thật, card related và khung batch skeleton cùng hỏi hai hàm này.
+export const canSpanTwoColumns = (columns, media) => columns >= ADVERTISING_WIDE_MIN_COLUMNS && isAdvertisingWideMedia(media);
+// Chỗ đặt item rộng `width` cột trên các đáy cột: `y` là đỉnh, `cavity` là lỗ chừa dưới item ở cột thấp hơn. Item 2 cột
+// chỉ đặt trên hai cột cùng trống hoặc cùng có card, lỗ không quá nửa cột. `start`: đỉnh của cột trống.
+export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start = 0) {
+  const slots = [];
+  for (let left = 0; left <= columns - width; left += 1) {
+    const occupied = columnBottoms.slice(left, left + width);
+    if (width === 1) {
+      slots.push({ left, y: occupied[0] ? occupied[0] + gap : start, cavity: 0 });
+      continue;
+    }
+    const empty = occupied.map((bottom) => bottom === 0);
+    if (empty.every(Boolean)) slots.push({ left, y: start, cavity: 0 });
+    else if (!empty.some(Boolean)) {
+      const y = Math.max(...occupied) + gap;
+      const cavity = y - Math.min(...occupied) - gap;
+      if (cavity <= ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) slots.push({ left, y, cavity });
+    }
+  }
+  return slots;
+}
 
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
@@ -710,7 +732,7 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
   const literalSpan = card?.layoutSpan;
   // Lưới public: bề ngang do tỷ lệ cover quyết định (R5), không theo layoutSpan; khối gợi ý luôn một cột.
   const widths = state.productLayout
-    ? (columns >= ADVERTISING_WIDE_MIN_COLUMNS && card?.kind !== "suggestion" && isAdvertisingWideMedia(layoutMedia(card)) ? [1, 2] : [1])
+    ? (card?.kind !== "suggestion" && canSpanTwoColumns(columns, layoutMedia(card)) ? [1, 2] : [1])
     : literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
   const controlStripHeight = mediaControlStripHeight(card);
   const candidates = [];
@@ -719,22 +741,8 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
     const media = layoutMedia(card);
     const mediaPixelHeight = mediaPixelWidth * media.height / media.width;
     const pixelHeight = mediaPixelHeight + controlStripHeight + captionPixelHeight;
-    for (let left = 0; left <= columns - width; left += 1) {
-      const occupied = state.columnBottoms.slice(left, left + width);
-      if (width === 1) {
-        const y = occupied[0] ? occupied[0] + gap : 0;
-        candidates.push({ left, y, cavity: 0, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
-        continue;
-      }
-      const empty = occupied.map((bottom) => bottom === 0);
-      if (empty.every(Boolean)) candidates.push({ left, y: 0, cavity: 0, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
-      else if (!empty.some(Boolean)) {
-        const high = Math.max(...occupied);
-        const low = Math.min(...occupied);
-        const y = high + gap;
-        const cavity = y - low - gap;
-        if (cavity <= ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) candidates.push({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
-      }
+    for (const { left, y, cavity } of spanSlots(state.columnBottoms, columns, width, gap, cardWidth)) {
+      candidates.push({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
     }
   }
   const placements = candidates.map(({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight }) => ({
