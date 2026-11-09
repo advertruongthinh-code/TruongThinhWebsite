@@ -47,7 +47,8 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | `is-brand-color` | Sticky hoặc nền trắng | Mark CMYK ([state machine](../../brand.md#state-machine-màu)) |
 | `is-hidden` | Cuộn xuống giữa trang | `translateY(-100%)`; `:focus-within` luôn hiện |
 
-Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell).
+Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell). Collapse chạy hai nhịp: nền, viền,
+chữ `0.3s expo.out` cùng FLIP lockup và navbar, mark chỉ lật sau nhịp này ([Brand Motion](../../brand.md#motion)).
 
 ## Chú thích thuật ngữ
 
