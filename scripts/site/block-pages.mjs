@@ -188,12 +188,26 @@ export const renderNewsListPage = (template, listPage) => {
 };
 
 // Trường riêng của từng loại: mảng và loại công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
+// Thẻ công trình (projects R2, owner 2026-11-09): người soạn đặt khung thẻ (width, height) rồi chọn ảnh cho thẻ; mọi ảnh
+// khít đúng tỷ lệ khung, không vùng dư. Không có `card` thì thẻ chỉ có ảnh bìa.
+const isSize = (value) => Number.isSafeInteger(value) && value > 0;
+const cardErrors = (card, at) => {
+  if (card === undefined) return [];
+  if (!isSize(card?.width) || !isSize(card?.height)) return [`${at}: card.width, card.height phải là số nguyên dương`];
+  if (!Array.isArray(card.media) || !card.media.length) return [`${at}: card.media phải có ít nhất một ảnh`];
+  return card.media.flatMap((media, index) => [
+    ...(media?.src && media.altVi && media.altEn ? [] : [`${at}: card.media[${index}] thiếu src, altVi hoặc altEn`]),
+    ...(isSize(media?.width) && isSize(media?.height) && BigInt(media.width) * BigInt(card.height) === BigInt(media.height) * BigInt(card.width)
+      ? [] : [`${at}: card.media[${index}] khác tỷ lệ khung thẻ ${card.width}x${card.height}`]),
+  ]);
+};
 export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
     ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
     // id cũng là thư mục file nguồn (projects/<id>/index.html), trùng slug lọc thì ghi đè trang lọc.
     ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
+    ...cardErrors(page.card, at),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);

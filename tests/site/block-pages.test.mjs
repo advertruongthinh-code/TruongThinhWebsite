@@ -76,16 +76,17 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   const { validateAdvertisingCards } = await import("../../src/site/advertising-products/layout-core.mjs");
   const projects = [
     { id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" },
-      // Thẻ nhiều media: ảnh cùng tỷ lệ bìa vào thẻ theo thứ tự trang; ảnh dọc và ảnh trùng bìa bị bỏ.
-      blocks: [{ type: "hero-project", image: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" } },
-        { type: "gallery-carousel", images: [{ src: "/a2.webp", width: 3072, height: 2048, altVi: "a2", altEn: "a2" }, { src: "/a3.webp", width: 200, height: 300, altVi: "a3", altEn: "a3" }] },
-        { type: "image-single", image: { src: "/a4.webp", width: 1536, height: 1024, altVi: "a4", altEn: "a4" } }] },
+      // Thẻ nhiều media: ảnh người soạn chọn cho thẻ (card.media), theo thứ tự đã chọn.
+      card: { width: 3, height: 2, media: [{ src: "/a4.webp", width: 1536, height: 1024, altVi: "a4", altEn: "a4" }, { src: "/a2.webp", width: 3072, height: 2048, altVi: "a2", altEn: "a2" }] } },
     { id: "b", sector: "residential", type: "can-ho", slugVi: "b", slugEn: "b-en", title: { vi: "B", en: "B" }, cover: { src: "/b.webp", width: 200, height: 300, altVi: "b", altEn: "b" } },
   ];
   const artifact = buildProjectArtifact(projects, { a: "rgb(1 2 3)" });
   assert.doesNotThrow(() => validateAdvertisingCards(artifact.cards, { categoryOrder: artifact.categories.map((entry) => entry.slug), requireNonEmpty: true }));
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/vi/projects/a/", en: "/en/projects/a-en/" });
-  assert.deepEqual(artifact.cards.find((card) => card.id === "a").mediaItems.map((item) => item.src), ["/a.webp", "/a2.webp", "/a4.webp"]);
+  assert.deepEqual(artifact.cards.find((card) => card.id === "a").mediaItems.map((item) => item.src), ["/a4.webp", "/a2.webp"]);
+  assert.equal(artifact.cards.find((card) => card.id === "a").media.src, "/a4.webp");
+  // Ảnh có vùng dư so với khung thẻ (khác tỷ lệ) bị chặn.
+  assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", id: "x", slugVi: "x", slugEn: "x", card: { width: 3, height: 2, media: [{ src: "/x.webp", width: 200, height: 300, altVi: "x", altEn: "x" }] } }, "p"), ["p: card.media[0] khác tỷ lệ khung thẻ 3x2"]);
   assert.equal(artifact.cards.find((card) => card.id === "b").mediaItems.length, 1);
   assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-hotel", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
   assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
