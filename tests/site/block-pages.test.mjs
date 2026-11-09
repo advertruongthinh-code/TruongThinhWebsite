@@ -31,15 +31,24 @@ test("a changed template anchor stops the build instead of shipping a page witho
   assert.throws(() => renderProjectPage(template.replace(/<title\b/, "<titlex"), projects[0], ctx), /anchor "title" matched 0 times/);
 });
 
-test("News list: newest first, 12 per page, one page per group with posts", async () => {
+test("News list: newest first, 12 per page, year filter pages, group pages kept without chips", async () => {
   const { newsListPages } = await import("../../scripts/site/block-pages.mjs");
-  const post = (index, group) => ({ id: `p${index}`, group, published: `2026-10-${String(index + 1).padStart(2, "0")}` });
-  const posts = [...Array.from({ length: 12 }, (_, index) => post(index, "nha-o")), post(12, "xu-huong")];
+  const fields = (id) => ({ slugVi: id, slugEn: id, title: { vi: id, en: id }, cover: { src: `/${id}.webp`, width: 3, height: 2, altVi: id, altEn: id } });
+  const post = (index, group) => ({ id: `p${index}`, group, published: `2026-10-${String(index + 1).padStart(2, "0")}`, ...fields(`p${index}`) });
+  const posts = [...Array.from({ length: 12 }, (_, index) => post(index, "nha-o")), post(12, "xu-huong"), { id: "old", group: "nha-o", published: "2025-12-31", ...fields("old") }];
   const pages = newsListPages(posts);
-  assert.deepEqual(pages.map((page) => page.path), ["/news/", "/news/page/2/", "/news/nha-o/", "/news/xu-huong/"]);
+  assert.deepEqual(pages.map((page) => page.path), ["/news/", "/news/page/2/", "/news/2026/", "/news/2026/page/2/", "/news/2025/", "/news/nha-o/", "/news/nha-o/page/2/", "/news/xu-huong/"]);
   assert.equal(pages[0].posts[0].id, "p12");
-  assert.deepEqual(pages[0].groups, [null, "nha-o", "xu-huong"]);
-  assert.equal(pages[1].posts.length, 1);
+  assert.deepEqual(pages[0].years, ["2026", "2025"]);
+  assert.equal(pages[1].posts.length, 2);
+  // Trang năm không cho lập chỉ mục; hàng lọc chỉ có Tất cả và các năm, không có nhóm.
+  const { renderNewsListPage } = await import("../../scripts/site/block-pages.mjs");
+  const frame = readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8");
+  const yearHtml = renderNewsListPage(frame, pages[4]);
+  assert.ok(yearHtml.includes('<meta name="robots" content="noindex, follow" />'));
+  assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
+  const chips = [...renderNewsListPage(frame, pages[5]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(chips, ["/vi/news/", "/vi/news/2026/", "/vi/news/2025/"]);
 });
 
 test("every page links to News from the hamburger menu only", () => {
@@ -56,6 +65,7 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-hotel"]);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
+  assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: slug 2026 trùng đường dẫn nhóm hoặc phân trang"]);
   assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
     "n: group phải là nha-o, kinh-doanh, xu-huong, quang-cao",
     "n: published phải là YYYY-MM-DD",
