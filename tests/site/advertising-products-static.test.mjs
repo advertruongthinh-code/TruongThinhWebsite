@@ -108,7 +108,15 @@ assert.match(css, /\.advertising-grid__cta-frame[\s\S]*?opacity:\s*var\(--advert
 assert.match(css, /\.advertising-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
 assert.doesNotMatch(advertisingCss, /grid-template-columns|column-count/, "product CSS does not create a second column algorithm");
 assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no image captions");
-assert.doesNotMatch(runtime, /createElement\("figcaption"\)/, "related cards have no image captions");
+// Owner 2026-11-09: card masonry chính có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình); related không có.
+assert.match(runtime, /if \(!related\) \{\s*const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);[\s\S]{0,400}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "only main-grid cards get a title; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
+assert.match(siteCss, /--media-hover-overlay:\s*rgba\(0, 0, 0, 0\.353\);/, "hover overlay token matches the hero-shade average darkness");
+assert.match(advertisingCss, /\.advertising-grid \.advertising-card-media::after \{\s*background: var\(--media-hover-overlay\);/, "main masonry hover overlay uses the shared token");
+assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-card-media::after \{\s*content: none;/, "project cards have no hover overlay");
+assert.match(advertisingCss, /\.advertising-tile__title \{\s*display: none;\s*\}\s*@media \(hover: hover\) and \(pointer: fine\)/, "advertising title only exists for a real mouse");
+assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title \{[^}]*height: var\(--advertising-caption-height\);[^}]*white-space: nowrap;/, "project caption fills the reserved one-line height");
+assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title::after \{[^}]*height: 3px;[^}]*transform: scaleX\(0\);[^}]*transform-origin: right center;[^}]*transition: transform 0\.3s cubic-bezier\(0\.4, 0, 0, 1\);/, "project caption underline matches the navbar link underline");
+assert.match(sharedScripts, /viewer: false,\s*captions: true,/, "projects masonry mounts with captions");
 assert.doesNotMatch(runtime, /data-advertising-photo-title/, "photo runtime does not render an image title");
 assert.doesNotMatch(index, /data-advertising-photo-title|id="du-an-title"/, "Advertising markup has no image or grid title");
 assert.match(index, /data-advertising-photo-info[^>]*aria-label="Thông tin ảnh sản phẩm quảng cáo"/, "photo information retains an accessible region label");

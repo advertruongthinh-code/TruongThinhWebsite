@@ -354,6 +354,25 @@ test("product layouts reserve no caption height after image titles are removed",
   assert.ok(layout.placements.every((placement) => placement.pixelHeight === placement.mediaPixelHeight));
 });
 
+test("projects layouts reserve the caption height under every card (projects R2)", () => {
+  const cards = fixture([[4, 3], [3, 4], [1, 1], [16, 9]], "captioned");
+  const layout = compileAdvertisingProductLayout({
+    cards,
+    categoryOrder: ["captioned"],
+    columns: 2,
+    layoutViewportWidth: 390,
+    captionPixelHeight: 34.92,
+  });
+  const bottoms = [0, 0];
+  for (const placement of layout.placements.toSorted((a, b) => a.y - b.y)) {
+    assert.equal(placement.captionPixelHeight, 34.92);
+    assert.ok(Math.abs(placement.pixelHeight - placement.mediaPixelHeight - 34.92) < 1e-9, "card height is media plus caption");
+    assert.equal(placement.y, bottoms[placement.left] ? bottoms[placement.left] + layout.interCardGap : 0, "next card starts one gap below the caption");
+    bottoms[placement.left] = placement.y + placement.pixelHeight;
+  }
+  assert.deepEqual(layout.columnBottoms, bottoms);
+});
+
 test("R15 selects Pinterest geometry from full span at every responsive boundary", () => {
   // Viewport dọc: ngang vẫn giữ layout split kể cả full span.
   const viewportHeight = 1100;

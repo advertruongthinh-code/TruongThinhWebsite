@@ -203,6 +203,20 @@ for (const frame of frameLayout) {
 }
 assert(Math.min(...continuationBottoms.map((bottom) => bottom + frameLayoutInput.gap)) >= frameLayoutInput.boundaryBottom,
   "the adaptive batch must reach its visual boundary");
+// Lưới Công trình (projects R2): khung giữ band cho phần media và chừa chỗ tên bên dưới như card thật.
+const captionedFrames = createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: 34.92 });
+const captionedBottoms = frameLayoutInput.columnBottoms.slice();
+for (const frame of captionedFrames) {
+  assert.equal(frame.top, captionedBottoms[frame.column] + frameLayoutInput.gap,
+    "a captioned skeleton starts one gap below the previous card or frame including its caption");
+  if (frame !== captionedFrames.findLast(({ column }) => column === frame.column)) {
+    assert.ok([0.72, 1, 1.32].some((ratio) => Math.abs(frame.height - ratio * frameLayoutInput.cardWidth) < 1e-9),
+      "a captioned skeleton paints only the media band");
+  }
+  captionedBottoms[frame.column] = frame.top + frame.height + 34.92;
+}
+assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
+  "a negative caption height is rejected");
 const mobileFrameLayout = createSkeletonFlowFrameLayout({
   columnBottoms: [100, 114], columns: 2, cardWidth: 220, gap: 15,
   boundaryBottom: 700,

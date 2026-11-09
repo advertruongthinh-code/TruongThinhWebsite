@@ -1346,6 +1346,17 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
     && (related || !document.body.classList.contains("is-advertising-photo")));
+  // Tên card trên masonry chính (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới media ở
+  // lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên link),
+  // figcaption aria-hidden để trình đọc màn hình không đọc lặp. Related giữ nguyên, không có tên.
+  if (!related) {
+    const title = figure.appendChild(document.createElement("figcaption"));
+    title.className = "advertising-tile__title";
+    title.id = `advertising-title-${record.id}`;
+    title.setAttribute("aria-hidden", "true");
+    title.textContent = locale === "en" ? record.titleEn : record.titleVi;
+    figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
+  }
   return figure;
 }
 
@@ -1425,7 +1436,7 @@ function createMasonry(grid, positions, getHeight, { itemSelector = ".advertisin
   return masonry;
 }
 
-export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true } = {}) {
+export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true, captions = false } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
   const startupHistory = window.__ttAdvertisingBrowseStartupHistory;
@@ -1577,6 +1588,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
   const geometries = new Map();
+  // Tên dưới card (projects R2): 10px trên chữ, một dòng 0.8rem × line-height 1.4, 7px dưới cho gạch chân, khớp
+  // .advertising-grid--captioned trong detail.css; tính theo cỡ chữ gốc để chữ phóng to vẫn vừa chỗ chừa.
+  const captionPixelHeight = captions ? 17 + 1.12 * (Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) : 0;
   let geometryPending = false;
   const rendered = new Map();
   const gridMediaById = new Map();
@@ -1912,6 +1926,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   ctaSkeleton?.replaceChildren();
   grid.replaceChildren(...(ctaSkeleton ? [ctaSkeleton] : []));
   grid.classList.add("advertising-grid");
+  grid.classList.toggle("advertising-grid--captioned", captions);
   grid.setAttribute("role", "list");
   relatedGrid?.setAttribute("role", "list");
 
@@ -1932,6 +1947,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settings,
       presentationOrder,
       organicOrder: true,
+      captionPixelHeight,
     };
     const key = [
       artifactCacheIdentity.datasetVersion,
@@ -2907,6 +2923,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       columns: hostGeometry.columns,
       cardWidth: hostGeometry.cardWidth,
       gap: hostGeometry.interCardGap,
+      captionHeight: detailHost ? 0 : captionPixelHeight,
       boundaryBottom: skeletonBoundaryBottom,
       seed: browseHistory.current.seed,
       bandAssignments: skeletonRatioBandBySlot,

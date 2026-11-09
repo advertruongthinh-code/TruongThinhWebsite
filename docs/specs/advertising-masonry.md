@@ -30,7 +30,7 @@ tests:
   - tests/site/advertising-resize-card-width.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-08
+updated: 2026-11-10
 ---
 
 # Masonry Advertising
@@ -46,7 +46,7 @@ hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](ad
 
 ### R1. Trang và cấu trúc
 
-Runtime cũng chạy trang Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) với mount `artifact`, `viewer: false`. `src/site/advertising-products/index.html` là bản VI; bản EN sinh lúc build
+Runtime cũng chạy trang Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) với mount `artifact`, `viewer: false`, `captions: true`. `src/site/advertising-products/index.html` là bản VI; bản EN sinh lúc build
 ([phát hành tĩnh R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)). Head, veil, header, menu, footer thuộc
 shell ([R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), [R10](site-shell.md#r10-floating-cta-và-footer)).
 Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products — Trường Thịnh"; mục Advertising trên navbar có
@@ -132,7 +132,7 @@ Bề rộng tính từ `documentElement.clientWidth` (không gồm thanh cuộn)
 `<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề,
 không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng
 giữa. Mọi card rộng đúng một cột; cao bằng ảnh theo tỷ lệ gốc, không caption (card nhiều media thêm dải control 44px
-theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
+theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)); mount `captions: true` (trang Công trình) cộng chỗ tên dưới mỗi card và mỗi khung skeleton (`captionPixelHeight`, [media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
 
 ```gherkin
 Given viewport 768px, masonry đang ở All
@@ -175,11 +175,11 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 ### R8. Card và ảnh trong card
 
-Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không tên,
-không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
+Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không caption chiếm chỗ: tên card
+(`figcaption.advertising-tile__title`, `aria-hidden`) chỉ hiện khi hover chuột thật ([media-card R3](media-card.md#r3-đổi-media-trên-card)), alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes` ghi bằng bề rộng card từ solver, không `auto` để khỏi đo từng ảnh). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì ảnh hiện mờ trên nền màu chủ đạo, ảnh về thì nét lại trong `0.6s`; ảnh đã có (cache, tải trước,
-vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh; hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
+vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh; hover chuột phủ lớp tối bằng hero kèm tên card và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
 focus có viền; card nhiều media có mũi tên khi hover ([media-card R3](media-card.md#r3-đổi-media-trên-card)). Click chính mở detail tại chỗ (history push,
 [detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem (lớp đen `0.7` phủ canvas, owner 2026-10-26).
 
@@ -251,7 +251,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
 | Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới) |
 | Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs` (mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
-| Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation})` | `detail.js` gọi; trả cleanup |
+| Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation, artifact, viewer, captions})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
 | Event | `site:layout` | Phát cho shell khi chiều cao trang đổi (R6) |

@@ -21,7 +21,7 @@ const cases = ["vi", "en"].flatMap((locale) => [
   { route: pageHref("projects", locale, projects[0]), locale, switched: pageHref("projects", otherLocale(locale), projects[0]) },
   { route: pageHref("news", locale, news[0]), locale, switched: pageHref("news", otherLocale(locale), news[0]) },
   { route: `/${locale}/news/`, locale, link: pageHref("news", locale, news.toSorted((a, b) => b.published.localeCompare(a.published) || a.id.localeCompare(b.id))[0]) },
-  { route: `/${locale}${projectListPages(projects)[0].path}`, locale, link: pageHref("projects", locale, projects[0]) },
+  { route: `/${locale}${projectListPages(projects)[0].path}`, locale, link: pageHref("projects", locale, projects[0]), captions: true },
   { route: `/${locale}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
   // Trang loại của công trình đầu và một trang loại trống (nếu có): menu site dẫn tới đủ sáu loại.
   ...projectListPages(projects).filter((listPage) => listPage.filter.type === projects[0].type || (listPage.filter.type && !listPage.projects.length)).slice(0, 2)
@@ -31,7 +31,7 @@ const cases = ["vi", "en"].flatMap((locale) => [
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
 try {
-  for (const options of viewports) for (const { route, locale, link, switched, empty } of cases) {
+  for (const options of viewports) for (const { route, locale, link, switched, empty, captions } of cases) {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     const errors = [];
@@ -70,12 +70,85 @@ try {
         if (await page.locator("[data-project-grid]").count()) {
           await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
           await page.waitForSelector(`main a[href="${link}"]`, { state: "attached", timeout: 5000 }).catch(() => {});
+          // Thẻ xếp ngẫu nhiên và cao thêm phần tên: thẻ cần tìm có thể nằm dưới cửa sổ dựng, cuộn tiếp từng nửa màn hình.
+          for (let step = 0; step < 16 && !(await page.locator(`main a[href="${link}"]`).count()); step += 1) {
+            await page.evaluate(() => window.scrollBy(0, innerHeight / 2));
+            await page.waitForTimeout(250);
+          }
         }
         const anchor = page.locator(`main a[href="${link}"]`).first();
         assert.equal(await page.locator(`main a[href="${link}"]`).count() > 0, true, `${at}: có link ${link}`);
         const target = await anchor.getAttribute("href");
         const reached = await page.request.get(`${origin}${target}`);
         assert.ok(reached.ok(), `${at}: ${target} HTTP ${reached.status()}`);
+      }
+      if (captions) {
+        // projects R2 (owner 2026-11-09): tên luôn hiện dưới media ở mọi viewport, chỗ của nó đã chừa trong hình học card
+        // và batch skeleton; không lớp tối, không zoom; gạch chân 3px chỉ khi hover chuột thật hoặc focus bàn phím.
+        await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
+        await page.waitForSelector("[data-advertising-card] .advertising-tile__title", { timeout: 5000 });
+        const titles = Object.fromEntries(projects.map((project) => [project.id, project.title[locale]]));
+        const grid = await page.evaluate(() => {
+          const host = document.querySelector("[data-project-grid]");
+          const frames = [...host.querySelectorAll("[data-advertising-cta-frame]")].map((frame) => ({
+            column: frame.dataset.advertisingCtaColumn, top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
+          }));
+          return {
+            captionHeight: 17 + 1.12 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize),
+            gap: Number.parseFloat(getComputedStyle(host).getPropertyValue("--advertising-gap")),
+            strides: frames.flatMap((frame, index) => {
+              const next = frames.slice(index + 1).find((other) => other.column === frame.column);
+              return next ? [next.top - frame.top - frame.height] : [];
+            }),
+            cards: [...host.querySelectorAll("[data-advertising-card]")].map((tile) => {
+              const title = tile.querySelector(".advertising-tile__title");
+              const media = tile.querySelector(".advertising-card-media");
+              const strip = tile.querySelector(".advertising-card-media__indicator:not([hidden])");
+              const box = tile.getBoundingClientRect();
+              const titleBox = title.getBoundingClientRect();
+              const style = getComputedStyle(title);
+              return {
+                id: tile.dataset.advertisingCard, text: title.textContent, hidden: title.getAttribute("aria-hidden"),
+                shown: style.display !== "none" && style.opacity === "1" && style.visibility === "visible", nowrap: style.whiteSpace,
+                titleHeight: titleBox.height, belowMedia: titleBox.top - (strip ?? media).getBoundingClientRect().bottom, belowTitle: box.bottom - titleBox.bottom,
+                overlay: getComputedStyle(media, "::after").content,
+                // Chiều cao chữ thật (padding CSS + một dòng) phải vừa chỗ chừa, không bị cắt; label của link là tên thẻ.
+                fits: title.scrollHeight <= title.clientHeight, label: tile.querySelector(".advertising-card-interactive")?.getAttribute("aria-labelledby") === title.id,
+              };
+            }),
+          };
+        });
+        assert.ok(grid.cards.length > 0, `${at}: chưa có thẻ công trình`);
+        for (const card of grid.cards) {
+          assert.equal(card.text, titles[card.id], `${at}: tên thẻ ${card.id} theo ngôn ngữ`);
+          assert.ok(card.shown && card.nowrap === "nowrap" && card.hidden === "true", `${at}: tên ${card.id} luôn hiện, một dòng: ${JSON.stringify(card)}`);
+          assert.ok(Math.abs(card.titleHeight - grid.captionHeight) <= 0.5 && Math.abs(card.belowMedia) <= 0.5 && Math.abs(card.belowTitle) <= 0.5,
+            `${at}: tên ${card.id} nằm đúng chỗ chừa dưới media: ${JSON.stringify(card)}`);
+          assert.equal(card.overlay, "none", `${at}: thẻ ${card.id} không có lớp tối`);
+          assert.ok(card.fits && card.label, `${at}: tên ${card.id} vừa chỗ chừa và là tên link: ${JSON.stringify(card)}`);
+        }
+        assert.ok(grid.strides.every((stride) => Math.abs(stride - grid.gap - grid.captionHeight) <= 0.5),
+          `${at}: batch skeleton chừa chỗ tên như thẻ thật: ${JSON.stringify(grid)}`);
+        const card = page.locator("[data-advertising-card]").first();
+        const hoverState = () => card.evaluate((tile) => ({
+          underline: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector(".advertising-tile__title"), "::after").transform).a,
+          zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a,
+          overlay: getComputedStyle(tile.querySelector(".advertising-card-media"), "::after").content,
+        }));
+        if (options.viewport.width > 960) {
+          await card.hover();
+          await page.waitForTimeout(700);
+          assert.deepEqual(await hoverState(), { underline: 1, zoom: 1, overlay: "none" }, `${at}: hover chỉ chạy gạch chân`);
+          await page.mouse.move(0, 0);
+          await page.waitForTimeout(700);
+          assert.equal((await hoverState()).underline, 0, `${at}: rời chuột thì gạch chân thu lại`);
+          await page.keyboard.press("Tab");
+          await card.locator("a").focus();
+          await page.waitForTimeout(700);
+          assert.equal((await hoverState()).underline, 1, `${at}: focus bàn phím chạy gạch chân`);
+        } else {
+          assert.deepEqual(await hoverState(), { underline: 0, zoom: 1, overlay: "none" }, `${at}: cảm ứng không có gạch chân`);
+        }
       }
       if (switched && options.viewport.width > 960) {
         await page.click("[data-menu-open]");

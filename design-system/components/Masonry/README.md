@@ -1,6 +1,6 @@
 # Masonry Advertising
 
-Nguồn: `src/site/advertising-products/layout-core.mjs`, `src/site/advertising-products/layout-worker.mjs`, `src/site/advertising-products/mount-budget.mjs`; CSS `.advertising-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md).
+Nguồn: `src/site/advertising-products/layout-core.mjs`, `src/site/advertising-products/layout-worker.mjs`, `src/site/advertising-products/mount-budget.mjs`; CSS `.advertising-grid`, `.advertising-grid--captioned`; spec [Masonry](../../../docs/specs/advertising-masonry.md).
 
 Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 `layout-core.mjs` tính (thuần, không đọc DOM), `catalog-runtime.mjs` mount và
@@ -28,6 +28,21 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 - Chỉ mount card gần viewport; list có `aria-posinset`, `aria-setsize`; Tab
   vẫn đi qua được phần chưa mount.
 - Không có JavaScript: sáu card tĩnh trong HTML vẫn hiện.
+
+## Tên card Công trình
+
+Trang Công trình mount cùng masonry với `captions: true` (lưới
+`.advertising-grid--captioned`, owner 2026-11-09), theo `/en/projects` của Espacio:
+
+- Tên dưới media (dưới dải chấm nếu có), luôn hiện ở mọi viewport: chữ hoa
+  `0.8rem` 700, line-height 1.4, màu `ink`, cách media 10px, canh trái, một dòng
+  cắt "…".
+- Chỗ tên nằm trong hình học: card cao thêm `10px + 1.12rem + 7px` (34,92px khi
+  chữ gốc 16px); khung skeleton chừa cùng chiều cao dưới mỗi khung; card tạm chỉ
+  phủ phần media.
+- Chuột thật hover hoặc focus bàn phím: gạch chân 3px cách chữ 4px như link
+  navbar ([gạch chân chạy](../../motion.md#motion-theo-bề-mặt-ui)). Không lớp tối,
+  không zoom.
 
 Chuyển vị trí ở [Motion](../../motion.md#vị-trí-card-masonry). Preview chụp
 viewport 1440px với seed cố định.

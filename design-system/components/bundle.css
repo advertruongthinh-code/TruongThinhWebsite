@@ -10,6 +10,10 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
+  /* Lớp tối đều khi hover card masonry Advertising (owner 2026-11-09), tối bằng .hero-shade trung bình theo chiều cao:
+     lớp mép trên tích phân 0,1125, lớp mép dưới 0,375 × 0,42 / 2 = 0,0788 (không chồng nhau), phủ đều 0,2, nên
+     độ sáng còn lại trung bình 0,8 × (1 - 0,1125 - 0,0788) = 0,647 và alpha đều 1 - 0,647 = 0,353. */
+  --media-hover-overlay: rgba(0, 0, 0, 0.353);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -4124,35 +4128,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   object-position: 58% 50%;
 }
 
-.project-tile figcaption {
-  position: relative;
-  padding: 0.75rem 0 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.project-tile figcaption::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right;
-  background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
-}
-
 @media (hover: hover) and (pointer: fine) {
   .project-tile:not(.advertising-tile):hover img {
     transform: scale(1.15);
-  }
-
-  .project-tile:hover figcaption::after {
-    transform: scaleX(1);
-    transform-origin: left;
   }
 }
 
@@ -4840,7 +4818,8 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. */
+   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính dùng lớp tối bằng hero
+   (--media-hover-overlay, owner 2026-11-09), related giữ 30%; lưới Công trình không có lớp tối. */
 .advertising-card-media::after {
   position: absolute;
   z-index: 1;
@@ -4852,6 +4831,20 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
+.advertising-grid .advertising-card-media::after {
+  background: var(--media-hover-overlay);
+}
+
+.advertising-grid--captioned .advertising-card-media::after {
+  content: none;
+}
+
+/* Tên card (owner 2026-11-09). Advertising: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ "Vừa xem"
+   (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
+.advertising-tile__title {
+  display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .advertising-tile:hover .advertising-card-media::after {
     opacity: 1;
@@ -4859,6 +4852,80 @@ body.is-advertising-browse .advertising-grid {
 
   .advertising-tile:hover .advertising-card-media__just-viewed {
     opacity: 0;
+  }
+
+  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: grid;
+    height: var(--advertising-media-height);
+    box-sizing: border-box;
+    padding: 0.5rem 40px;
+    place-items: center;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: var(--text-shadow-d);
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+  }
+
+  .advertising-tile:hover .advertising-tile__title {
+    opacity: 1;
+  }
+}
+
+/* Công trình (projects R2): tên luôn hiện dưới media như /en/projects của Espacio, một dòng cắt "…" để hình học
+   card cố định; runtime chừa --advertising-caption-height (10px trên chữ, 7px dưới cho gạch chân). Hover chuột thật
+   hoặc focus bàn phím chạy gạch chân 3px như link navbar (.desktop-nav a::after). */
+.advertising-grid--captioned .advertising-tile__title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: block;
+  max-width: 100%;
+  height: var(--advertising-caption-height);
+  box-sizing: border-box;
+  padding: 10px 0 7px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.advertising-grid--captioned .advertising-tile__title::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: currentColor;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+}
+
+.advertising-grid--captioned .advertising-tile > a:focus-visible ~ .advertising-tile__title::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .advertising-grid--captioned .advertising-tile:hover .advertising-tile__title::after {
+    transform: scaleX(1);
+    transform-origin: left center;
   }
 }
 
@@ -4926,7 +4993,7 @@ body.is-advertising-browse .advertising-grid {
 
 .advertising-card-media__indicator {
   position: absolute;
-  bottom: 0;
+  bottom: var(--advertising-caption-height, 0px);
   left: 0;
   z-index: 3;
   display: flex;
@@ -5392,7 +5459,7 @@ body.is-advertising-browse .site-footer {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px);
+  height: calc(100% - 44px - var(--advertising-caption-height, 0px));
   border-radius: 0;
   background: transparent;
   color: #fff;

@@ -13,6 +13,7 @@ colors:
   orange-accent: "#d85d2b"
   media-loading-surface: "#2b2c2b"
   media-label-overlay: "rgba(0, 0, 0, 0.5)"
+  media-hover-overlay: "rgba(0, 0, 0, 0.353)"
   media-control-hover: "#ddd"
   media-control-active: "#c6c6c6"
   control-disabled-surface: "#f3f3f1"
