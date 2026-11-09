@@ -544,7 +544,7 @@ function assertPersistentNavigationContracts() {
       /\.site-header\s*\{[\s\S]*?border-bottom:\s*0 solid transparent;/.test(
         styleSource,
       ) &&
-      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom-width:\s*1px;[\s\S]*?\.site-header\.is-surface\s*\{[\s\S]*?border-bottom-color:\s*#d3d3d3;/.test(
+      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom-width:\s*1px;[\s\S]*?\.site-header\.is-surface::before\s*\{[\s\S]*?border-bottom:\s*1px solid #d3d3d3;/.test(
         styleSource,
       ),
     "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
@@ -2093,7 +2093,8 @@ async function runHeaderParityChecks() {
               style.paddingBottom,
               style.paddingLeft,
             ].map(Number.parseFloat),
-            background: style.backgroundColor,
+            // Nền header vẽ ở ::before để co cùng nhịp FLIP (owner 2026-11-09).
+            background: getComputedStyle(header, "::before").backgroundColor,
             border: Number.parseFloat(style.borderBottomWidth),
             overflow:
               document.documentElement.scrollWidth -
@@ -2292,12 +2293,13 @@ async function runHeaderParityChecks() {
         (frame) =>
           frame.values.every((value) => value === "rgb(47, 47, 47)"),
       );
-      // Owner 2026-11-09: mark, chữ, nav, hamburger đổi màu cùng một frame, không tween, sau nhịp FLIP 0.3s.
+      // Owner 2026-11-09: lockup, chữ, nav, hamburger đổi màu cùng một frame, không tween, ngay lúc nhịp FLIP 0.3s bắt
+      // đầu (frame đầu sau khi cuộn), cùng nền trắng.
       assert(
         firstChanged >= 0 &&
           Math.max(...changed) === firstChanged &&
           settled === firstChanged &&
-          trace[firstChanged].time >= 250,
+          trace[firstChanged].time < 100,
         `Header tone tween drifted: ${JSON.stringify({ changed, settled, at: trace[firstChanged]?.time })}`,
       );
       assertDiagnostics(diagnostics);

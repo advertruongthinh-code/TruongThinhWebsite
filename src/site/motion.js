@@ -559,6 +559,26 @@
     });
   }
 
+  // Nền và viền header vẽ ở ::before (style.css). Thu gọn: ::before bắt đầu dài thêm đúng phần header vừa co, rồi co về
+  // cùng nhịp FLIP 0.3s expo.out; chỉ chạy transform. Mở ra: nền tắt ngay nên không có motion.
+  function playHeaderSurfaceMotion(heightBefore) {
+    if (!hasGsap) return;
+    gsap.killTweensOf(header, "--header-surface-shift");
+    header.style.removeProperty("--header-surface-shift");
+    const shift = heightBefore - header.offsetHeight;
+    if (reduceMotion || shift < 0.5) return;
+    gsap.fromTo(
+      header,
+      { "--header-surface-shift": `${shift}px` },
+      {
+        "--header-surface-shift": "0px",
+        duration: headerBeat,
+        ease: "expo.out",
+        onComplete: () => header.style.removeProperty("--header-surface-shift"),
+      },
+    );
+  }
+
   const updateToneRanges = () => {
     if (!pageState) {
       toneRanges = [];
@@ -583,15 +603,13 @@
     header.style.removeProperty("transform");
   };
 
-  // Nhịp header (brand.md Motion): logo FLIP và navbar chạy chung 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay
-  // không motion (owner 2026-11-09) và mark lật từ đó. Đổi tone không thu gọn (section nền trắng): mark lật sau 0.1s,
+  // Nhịp header (brand.md Motion): logo FLIP, navbar và nền chạy chung 0.3s expo.out; nền, viền, chữ đổi ngay lúc bắt
+  // đầu nhịp và mark lật cùng lúc (owner 2026-11-09). Đổi tone không thu gọn (section nền trắng): mark lật sau 0.1s,
   // 0.1s cũng là nhịp stagger nav lúc intro.
   const headerBeat = 0.3;
   const headerSettle = 0.1;
-  // Header thu gọn hoặc mở ra: mark chờ cả nhịp 0.3s, lật cùng lúc nền đổi (updateHeader).
+  // Header thu gọn hoặc mở ra: mark lật ngay (updateHeader đặt 0).
   let headerMarkLeadFor = headerSettle;
-  let headerSurfaceCall;
-  let headerSurfaceNext;
   const paintHeaderSurface = (ink, collapsed) => {
     header.classList.toggle("is-ink", ink);
     header.classList.toggle("is-logo-ink", collapsed);
@@ -621,23 +639,12 @@
         : null;
     // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
+    const heightBefore = collapsedChanged ? header.offsetHeight : 0;
     header.classList.toggle("is-collapsed", collapsed);
-    // Nền, viền và màu chữ đổi một lần, không motion (owner 2026-11-09). Thu gọn: đổi khi logo FLIP và navbar chạy xong
-    // nhịp 0.3s, mark giữ màu cũ tới lúc đó rồi mới lật (leadHeaderMark). Mở ra: nền trong và chữ trắng đổi ngay lúc
-    // navbar bắt đầu chuyển, mark lật sau 0.1s.
-    headerSurfaceNext = [ink, collapsed];
-    if (collapsedChanged) {
-      headerSurfaceCall?.kill();
-      headerSurfaceCall = undefined;
-    }
-    if (collapsedChanged && collapsed && hasGsap && !reduceMotion) {
-      headerSurfaceCall = gsap.delayedCall(headerBeat, () => {
-        headerSurfaceCall = undefined;
-        paintHeaderSurface(...headerSurfaceNext);
-      });
-      headerMarkLeadFor = headerBeat;
-    }
-    if (!headerSurfaceCall) paintHeaderSurface(ink, collapsed);
+    // Thu gọn hoặc mở ra (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy,
+    // không fade; thu gọn thì nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion); mark lật cùng lúc.
+    paintHeaderSurface(ink, collapsed);
+    if (collapsedChanged) headerMarkLeadFor = 0;
     if (!routeMarkHeld && (activeSection || routeTransitionActive || collapsed)) {
       syncHeaderBrandSurface(ink);
     }
@@ -646,6 +653,7 @@
       headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
       playHeaderSlideMotion(slideBefore);
+      playHeaderSurfaceMotion(heightBefore);
     }
     lastHeaderCollapsed = collapsed;
 
@@ -990,8 +998,6 @@
   const pinHeaderForRoute = () => {
     header.style.transitionDuration = "0s";
     header.classList.remove("is-hidden");
-    headerSurfaceCall?.kill();
-    headerSurfaceCall = undefined;
     header.classList.add("is-route-pinned");
     routeDestinationReady = false;
     // Lúc bấm, chữ và mark giữ màu; đổi khi veil phủ kín (inkRouteHeader).

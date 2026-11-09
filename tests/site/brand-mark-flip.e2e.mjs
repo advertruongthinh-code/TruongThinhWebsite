@@ -1,8 +1,8 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
 // trắng sang CMYK cyan trước, CMYK sang trắng chạy lùi đúng lượt đó nên đen trước; chỉ transform, opacity để GPU chạy;
 // đổi hướng giữa chừng thì tua ngược từ chỗ đang dừng (owner 2026-11-09).
-// Thu gọn: logo, navbar chạy 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay và mark lật. Mở ra: nền, chữ đổi
-// ngay lúc navbar bắt đầu chuyển, mark lật sau 0.1s (owner 2026-11-09).
+// Thu gọn và mở ra: logo, navbar, nền chạy chung 0.3s expo.out; nền, viền, chữ đổi ngay lúc bắt đầu, không fade; thu
+// gọn thì nền co cùng logo; mark lật cùng lúc (owner 2026-11-09).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -18,9 +18,10 @@ const watchPhases = () => {
   const header = document.querySelector("[data-site-header]");
   const logo = document.querySelector("#header-logo");
   const phases = { collapse: [], flip: [], lead: [], surface: [] };
+  // Nền và viền vẽ ở ::before để co cùng nhịp FLIP.
   const readSurface = () => ({
-    background: getComputedStyle(header).backgroundColor,
-    border: getComputedStyle(header).borderBottomColor,
+    background: getComputedStyle(header, "::before").backgroundColor,
+    border: getComputedStyle(header, "::before").borderBottomStyle === "none" ? "none" : getComputedStyle(header, "::before").borderBottomColor,
     text: getComputedStyle(header.querySelector(".menu-button")).color,
   });
   let collapsed = header.classList.contains("is-collapsed");
@@ -32,6 +33,8 @@ const watchPhases = () => {
     setTimeout(() => phases.lead.push({
       ...readSurface(),
       flip: Boolean(document.querySelector(".brand-lockup__mark-flip")),
+      // Nền đang co cùng logo: ::before còn dài thêm một đoạn (px) giữa nhịp.
+      shift: Number.parseFloat(getComputedStyle(header).getPropertyValue("--header-surface-shift")) || 0,
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }), 40);
   }).observe(header, { attributes: true, attributeFilter: ["class"] });
@@ -43,8 +46,7 @@ const watchPhases = () => {
   }).observe(logo, { childList: true });
   window.__phases = phases;
 };
-// Thu gọn: lật bắt đầu ở 0.3s theo tick GSAP, cùng frame nền đổi; mở ra: 0.1s (owner 2026-11-09). Tick GSAP tính từ frame trước lúc đổi
-// class, nên trên runner chậm (frame tới khoảng 70ms) có thể sớm hơn mốc đổi class đo bằng MutationObserver một frame.
+// Thu gọn và mở ra: lật bắt đầu ngay, cùng frame header đổi class và nền đổi (owner 2026-11-09).
 const flipLead = () => {
   const { collapse, flip } = window.__phases;
   return flip.at(-1) - collapse.at(-1);
@@ -113,17 +115,14 @@ try {
       await context.close();
       continue;
     }
-    // Nhịp 1: chưa có lớp lật, mark giữ màu cũ, không pha xám.
+    // Đầu nhịp: nền trắng, viền, chữ đậm đổi cùng frame header thu gọn, mark lật ngay, không fade.
     await page.waitForFunction(() => window.__phases.lead.length);
     const lead = await page.evaluate(() => window.__phases.lead[0]);
-    assert.equal(lead.flip, false, `${label}: mark waits while logo and navbar move`);
-    assert.deepEqual(lead.fills, white, `${label}: mark holds white, no grey step`);
-    // Nhịp 1: nền trong, viền trong, chữ trắng; đọc được trên ảnh.
-    assert.deepEqual([lead.background, lead.border, lead.text], ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: surface and text hold during the header beat`);
-    await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
+    assert.equal(lead.flip, true, `${label}: mark flips while logo and navbar move`);
+    assert.deepEqual([lead.background, lead.border, lead.text], ["rgb(255, 255, 255)", "rgb(211, 211, 211)", "rgb(47, 47, 47)"], `${label}: surface and text switch as the header beat starts`);
+    assert.ok(lead.shift > 0, `${label}: background shrinks with the logo and navbar ${JSON.stringify(lead)}`);
     const collapseLead = await page.evaluate(flipLead);
-    assert.ok(collapseLead >= 250 && collapseLead < 330, `${label}: flip starts once the header beat ends (${collapseLead.toFixed(0)}ms)`);
-    // Hết nhịp: nền trắng, viền, chữ đậm đổi cùng frame mark bắt đầu lật, không fade.
+    assert.ok(collapseLead >= -1 && collapseLead < 20, `${label}: flip starts with the collapse (${collapseLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgb(211, 211, 211)", text: "rgb(47, 47, 47)" }, `${label}: background, border and text switch at once with the flip`);
     const axes = await page.evaluate(readAxes);
     axes.forEach(({ axis, origin, perspective }, index) => {
@@ -159,11 +158,12 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    // Mở ra: nền trong, chữ trắng đổi ngay lúc navbar bắt đầu chuyển (owner 2026-11-09), mark lật sau 0.1s.
+    // Mở ra: nền trong, chữ trắng đổi ngay lúc navbar bắt đầu chuyển, mark lật cùng lúc (owner 2026-11-09).
+    await page.waitForFunction(() => window.__phases.lead.length >= 2);
     const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
     assert.deepEqual([expandSample.background, expandSample.text], ["rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: clear background and white text switch at once on the way up`);
-    assert.ok(expandLead >= 50 && expandLead < 125, `${label}: flip back to white starts 0.1s after the header expands (${expandLead.toFixed(0)}ms)`);
-    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "rgba(0, 0, 0, 0)", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
+    assert.ok(expandLead >= -1 && expandLead < 20, `${label}: flip back to white starts with the expand (${expandLead.toFixed(0)}ms)`);
+    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "none", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
     // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
     const back = await page.evaluate(async () => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
@@ -199,7 +199,7 @@ try {
     assert.deepEqual(final.fills, cmyk, `${label}: reversal settles on CMYK`);
     assert.equal(final.flips, 2, `${label}: rewinding builds no second flip layer`);
 
-    // Đổi hướng trong nhịp 1, lớp lật chưa dựng: mark tween về màu cũ cùng chữ, không lật.
+    // Đổi hướng ngay sau khi thu gọn: lượt lật vừa bắt đầu tua ngược về trắng, không dựng lượt mới.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
@@ -212,7 +212,7 @@ try {
       flips: window.__phases.flip.length,
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }));
-    assert.deepEqual(cancelled, { flips: flipsBefore, fills: white }, `${label}: turning back inside the header beat tweens the mark home without a flip`);
+    assert.deepEqual(cancelled, { flips: flipsBefore + 1, fills: white }, `${label}: turning back right after collapsing rewinds the one flip home`);
     // Về trắng đen lật trước: 150ms sau khi chạy lùi (mốc 680 - 150), đen và vàng đã rời mặt CMYK, cyan chưa.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
