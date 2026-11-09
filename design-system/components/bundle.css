@@ -322,6 +322,14 @@ html.route-enter .site-header {
   backface-visibility: hidden;
 }
 
+/* Lớp bóng của từng mặt: cùng hình dải, chỉ chạy opacity (brand.md Motion). */
+.brand-lockup__mark-flip > span > span > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
 .brand-lockup__mark-flip svg {
   display: block;
   width: 100%;

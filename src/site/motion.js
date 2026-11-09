@@ -775,6 +775,9 @@
       if (headerMarkFlip === flip && flip.turn === turn) stopHeaderMarkFlip();
     }, () => {});
   };
+  // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
+  const headerFlipShade = "#000";
+  const headerFlipShadeMax = 0.5;
   // Dựng lớp lật và lật từng dải từ `from` sang `target`.
   const flipHeaderMark = (from, target) => {
     // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
@@ -793,10 +796,14 @@
       width: percent(markRect.width, logoRect.width),
       height: percent(markRect.height, logoRect.height),
     });
+    // Mỗi mặt có thêm lớp bóng cùng hình dải: tối dần khi mặt xoay ra cạnh, sáng lại khi quay tới (owner 2026-11-09:
+    // dải mảnh xoay quanh trục dọc dải trông như quét, bóng cho mắt thấy chiều sâu). Bóng chỉ chạy opacity.
+    const svg = (fill, d) => `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"><path fill="${fill}" d="${d}"/></svg>`;
     const face = (path, fill) => {
       const layer = document.createElement("span");
       layer.dataset.fill = fill;
-      layer.innerHTML = `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"><path fill="${fill}" d="${path.getAttribute("d")}"/></svg>`;
+      const d = path.getAttribute("d");
+      layer.innerHTML = `${svg(fill, d)}<span>${svg(headerFlipShade, d)}</span>`;
       return layer;
     };
     const bands = headerMarkPaths.map((path, index) => {
@@ -820,15 +827,20 @@
     headerMarkFlip = flip;
     // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
     const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
+    const shade = (layer, keyframes, timing) => flip.animations.push(layer.lastElementChild.animate(keyframes, timing));
     bands.forEach(({ front, back }, index) => {
       const delay = (bands.length - 1 - index) * 80;
+      const frontTiming = { delay, duration: 200, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
+      const backTiming = { delay: delay + 200, duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" };
+      shade(front, [{ opacity: 0 }, { opacity: headerFlipShadeMax }], frontTiming);
+      shade(back, [{ opacity: headerFlipShadeMax }, { opacity: 0 }], backTiming);
       flip.animations.push(front.animate(
         [
           { transform: turn(0), opacity: 1 },
           { transform: turn(90), opacity: 1, offset: 0.999 },
           { transform: turn(90), opacity: 0 },
         ],
-        { delay, duration: 200, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" },
+        frontTiming,
       ));
       flip.animations.push(back.animate(
         [
@@ -836,7 +848,7 @@
           { transform: turn(-90), opacity: 1, offset: 0.001 },
           { transform: turn(0), opacity: 1 },
         ],
-        { delay: delay + 200, duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+        backTiming,
       ));
     });
     settleHeaderMarkFlip(flip);
