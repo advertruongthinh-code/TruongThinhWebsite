@@ -559,23 +559,33 @@
     });
   }
 
-  // Nền và viền header vẽ ở ::before (style.css), chạy chung nhịp FLIP 0.3s expo.out, chỉ transform. Thu gọn: ::before
-  // bắt đầu dài thêm đúng phần header vừa co rồi co về. Mở ra: nền trắng và chữ ink giữ nguyên (headerSurfaceHeld),
-  // ::before bắt đầu ở cao cũ rồi giãn theo header; hết 0.3s nền tắt và chữ đổi ngay, không fade (owner 2026-11-09).
-  function playHeaderSurfaceMotion(heightBefore) {
+  // Nền và viền header vẽ ở ::before (style.css), chạy chung nhịp FLIP 0.3s expo.out, chỉ transform. Cỡ lớn nhất của
+  // nền: logo lớn nhất cách đều cạnh trên và cạnh dưới (owner 2026-11-09), nên lúc header mở, đáy nền thấp hơn đáy
+  // header đúng phần surfaceExtra. Thu gọn: nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar. Mở ra: nền trắng và
+  // chữ ink giữ (headerSurfaceHeld), nền giãn từ cao cũ tới cỡ lớn nhất; hết 0.3s nền tắt và chữ đổi ngay, không fade.
+  const surfaceExtra = () => {
+    const top = Number.parseFloat(getComputedStyle(header).paddingTop) || 0;
+    return headerLogo instanceof HTMLElement ? Math.max(0, 2 * top + headerLogo.offsetHeight - header.offsetHeight) : 0;
+  };
+  // killTweensOf(header, "--header-surface-shift") không bắt được tween biến CSS: giữ tham chiếu để dừng tween cũ,
+  // nếu không onComplete của nhịp trước nhả nền giữa nhịp mới.
+  let headerSurfaceTween;
+  function playHeaderSurfaceMotion(heightBefore, extraBefore) {
     if (!hasGsap) return;
-    gsap.killTweensOf(header, "--header-surface-shift");
+    headerSurfaceTween?.kill();
+    headerSurfaceTween = undefined;
     header.style.removeProperty("--header-surface-shift");
-    const shift = heightBefore - header.offsetHeight;
-    if (reduceMotion || Math.abs(shift) < 0.5) {
+    const from = heightBefore + extraBefore - header.offsetHeight;
+    const to = header.classList.contains("is-collapsed") ? 0 : surfaceExtra();
+    if (reduceMotion || Math.abs(from - to) < 0.5) {
       releaseHeaderSurface();
       return;
     }
-    gsap.fromTo(
+    headerSurfaceTween = gsap.fromTo(
       header,
-      { "--header-surface-shift": `${shift}px` },
+      { "--header-surface-shift": `${from}px` },
       {
-        "--header-surface-shift": "0px",
+        "--header-surface-shift": `${to}px`,
         duration: headerBeat,
         ease: "expo.out",
         onComplete: () => {
@@ -657,6 +667,7 @@
     // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
     const heightBefore = collapsedChanged ? header.offsetHeight : 0;
+    const extraBefore = collapsedChanged ? surfaceExtra() : 0;
     header.classList.toggle("is-collapsed", collapsed);
     // Thu gọn (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy, không fade;
     // nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion). Mở ra: nền trắng, chữ ink giữ và giãn
@@ -672,7 +683,7 @@
       headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
       playHeaderSlideMotion(slideBefore);
-      playHeaderSurfaceMotion(heightBefore);
+      playHeaderSurfaceMotion(heightBefore, extraBefore);
     }
     lastHeaderCollapsed = collapsed;
 

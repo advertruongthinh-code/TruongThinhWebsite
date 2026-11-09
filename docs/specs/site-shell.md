@@ -53,7 +53,7 @@ Then lúc mở menu phủ header, scrollbar và CTA; sau khi đóng thumb scroll
 
 ### R2. Header: tone, thu gọn, lockup và nav desktop
 
-Cuộn quá 100px thì header `is-collapsed`; nền trắng, viền (`is-surface`, vẽ ở `::before`) và tone chữ đổi ngay lúc FLIP `0.3s` bắt đầu, nền co cùng logo và navbar; mở ra thì nền trắng, viền và chữ đậm giữ, nền giãn cùng logo và navbar `0.3s`, hết nhịp mới đổi ngay sang nền trong, chữ trắng; mark lật ngay lúc bắt đầu cả hai chiều (owner 2026-11-09). Header ink khi thu gọn, khi veil
+Cuộn quá 100px thì header `is-collapsed`; nền trắng, viền (`is-surface`, vẽ ở `::before`) và tone chữ đổi ngay lúc FLIP `0.3s` bắt đầu, nền co cùng logo và navbar; mở ra thì nền trắng, viền và chữ đậm giữ, nền giãn cùng logo và navbar `0.3s`, hết nhịp mới đổi ngay sang nền trong, chữ trắng; mark lật ngay lúc bắt đầu cả hai chiều (owner 2026-11-09). Cỡ lớn nhất của nền là lúc logo lớn nhất cách đều cạnh trên và cạnh dưới nền (đáy nền thấp hơn đáy header mở); thu gọn bắt đầu từ cỡ này, mở ra giãn tới cỡ này. Header ink khi thu gọn, khi veil
 chuyển route đang phủ kín, hoặc khi section dưới điểm dò `scrollY + min(80px, 12% chiều cao cửa sổ)` có
 `data-header-tone="ink"`; còn lại trắng. Màu chữ, hamburger đổi ngay, không tween. Đổi trạng thái thu gọn thì lockup chạy FLIP scale; màu mark theo
 [state machine](../../design-system/brand.md#state-machine-màu) (class `is-brand-*`). Nav desktop

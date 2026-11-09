@@ -17,7 +17,7 @@ const white = cmyk.map(() => "rgb(255, 255, 255)");
 const watchPhases = () => {
   const header = document.querySelector("[data-site-header]");
   const logo = document.querySelector("#header-logo");
-  const phases = { collapse: [], flip: [], lead: [], surface: [] };
+  const phases = { collapse: [], flip: [], lead: [], late: [], surface: [] };
   // Nền và viền vẽ ở ::before để co cùng nhịp FLIP.
   const readSurface = () => ({
     background: getComputedStyle(header, "::before").backgroundColor,
@@ -37,6 +37,14 @@ const watchPhases = () => {
       shift: Number.parseFloat(getComputedStyle(header).getPropertyValue("--header-surface-shift")) || 0,
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }), 40);
+    // Gần cuối nhịp 0.3s: khoảng hở trên logo và dưới logo tới đáy nền (kể cả viền 1px).
+    setTimeout(() => {
+      const box = header.getBoundingClientRect();
+      const logoBox = logo.getBoundingClientRect();
+      const before = getComputedStyle(header, "::before");
+      const bottom = box.bottom - Number.parseFloat(before.bottom) + new DOMMatrixReadOnly(before.transform).m42;
+      phases.late.push({ ...readSurface(), gaps: [logoBox.top - box.top, bottom - logoBox.bottom] });
+    }, 200);
   }).observe(header, { attributes: true, attributeFilter: ["class"] });
   new MutationObserver((records) => {
     if (records.some((record) => [...record.addedNodes].some((node) => node.classList?.contains("brand-lockup__mark-flip")))) {
@@ -163,7 +171,6 @@ try {
     await page.waitForFunction(() => window.__phases.lead.length >= 2);
     const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
     assert.deepEqual([expandSample.background, expandSample.text], ["rgb(255, 255, 255)", "rgb(47, 47, 47)"], `${label}: white background and ink text hold while the header grows`);
-    assert.ok(expandSample.shift < 0, `${label}: background grows with the logo (${expandSample.shift}px)`);
     assert.ok(expandLead >= -1 && expandLead < 20, `${label}: flip back to white starts with the expand (${expandLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgb(211, 211, 211)", text: "rgb(47, 47, 47)" }, `${label}: surface still white when the flip back starts`);
     // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
@@ -205,6 +212,10 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
+    // Cỡ lớn nhất của nền (owner 2026-11-09): logo lớn nhất cách đều cạnh trên và cạnh dưới nền, lệch tối đa viền 1px.
+    const late = await page.evaluate(() => window.__phases.late.at(-1));
+    assert.equal(late.background, "rgb(255, 255, 255)", `${label}: background still white near the end of the expand`);
+    assert.ok(Math.abs(late.gaps[0] - late.gaps[1]) <= 1.5, `${label}: largest logo sits evenly between the background edges ${JSON.stringify(late.gaps)}`);
     const expanded = await page.evaluate(() => {
       const header = document.querySelector("[data-site-header]");
       return [getComputedStyle(header, "::before").backgroundColor, getComputedStyle(header.querySelector(".menu-button")).color];
