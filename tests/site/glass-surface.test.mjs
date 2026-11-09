@@ -7,6 +7,7 @@ import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
 const runtime = await read("advertising-products/catalog-runtime.mjs");
+const ctaBatch = await read("advertising-products/cta-batch.mjs");
 
 // R1: chỉ các glass step và nền viewer sở hữu backdrop-filter (nền viewer blur trên mọi máy từ owner 2026-10-26).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
@@ -19,7 +20,7 @@ assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var
 // R2: một step đầy là trần 100px; core của cung giữ 28px của band trên phone (PC đặt inline 100px, chín bậc ở dải).
 assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
 assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the phone arc's core holds 28px");
-assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
+assert.match(ctaBatch, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // Primary photo tự mang blur của step đầy: backdrop-filter ở đó in tile seam vào thumbnail tab của Chrome.
 assert.match(css, /\[data-advertising-photo-background\] \{\s*filter: blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/,

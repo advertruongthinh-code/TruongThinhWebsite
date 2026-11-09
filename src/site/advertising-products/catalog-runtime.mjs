@@ -30,6 +30,7 @@ import {
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { createCtaBatch } from "./cta-batch.mjs";
 import { planDetourPath } from "./detour-path.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
@@ -1468,7 +1469,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".project-index");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
-  const arcGlass = gridSectionStyleTarget?.appendChild(Object.assign(createGlassSurface("arc"), { hidden: true }));
   const photoView = container.querySelector("[data-advertising-photo-view]");
   // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
   // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision phone-frame-budget).
@@ -1565,6 +1565,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
+  const ctaBatch = createCtaBatch({ skeleton: ctaSkeleton, cluster: gridCta, arcHome: gridSectionStyleTarget,
+    signal: controller.signal, rearm: (root) => window.TruongThinhDetail?.rearmMotion?.(root) });
+  const arcGlass = ctaBatch.arc;
   // Detail (mô tả, related) tải ngay khi ảnh 8 card đầu xong (tối đa 6 s) để không tranh băng thông với chúng; showPhoto chờ nếu chưa xong.
   let detailLoaded = false;
   let detailReady;
@@ -2490,7 +2493,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
       if (frame.dataset.advertisingCtaFrame) {
-        pending.glass = cardRevealGlass(frame);
+        pending.glass = ctaBatch.revealGlass(revealGlass, frame);
         pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
           ...(pending.glass ? playGlassReveal(pending.glass, CARD_REVEAL_MS) : [])];
         Promise.all(pending.animations.map(({ finished }) => finished)).then(settle, () => {});
@@ -2655,19 +2658,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     host?.append(glass);
     return glass;
   };
-  // Kính reveal bất kỳ còn trong DOM khi cung đang thấy làm Chrome bỏ blur các bậc của cung (skeleton R4):
-  // cung vào viewport thì gỡ Kính reveal của frame CTA, frame chỉ còn crossfade. Tìm trong batch chứ không trong grid:
-  // ở detail batch nằm ở canvas cuối related (R9), Kính reveal sót làm lòng cung mất rồi hiện lại lần đầu sau F5.
-  let arcInView = false;
-  const arcTint = arcGlass?.querySelector(".glass-surface__tint");
-  const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
-    arcInView = entry.isIntersecting;
-    if (!arcInView) return;
-    ctaSkeleton?.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
-  });
-  arcObserver?.observe(arcTint);
-  controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
-  const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
   // Nền realtime của vùng dư vẽ vào canvas 1/8 khung với blur của bậc cuối rồi phóng 8 lần (detail.css): CSS filter trên
   // ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
   const BAKED_SCALE = 8;
@@ -2801,14 +2791,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       releaseSkeletonRenderer(frame);
     }
     skeletonFrameBySlot.clear();
-    if (!ctaSkeleton) return;
-    ctaSkeleton.hidden = true;
-    ctaSkeleton.replaceChildren();
-    gridCta?.style.removeProperty("--advertising-cta-tail-height");
-    if (arcGlass) arcGlass.hidden = true;
-    delete ctaSkeleton.dataset.advertisingCtaColumns;
-    delete ctaSkeleton.dataset.advertisingCtaReady;
-    delete ctaSkeleton.dataset.advertisingCtaSignature;
+    ctaBatch.clear();
   };
   // Khung batch, cụm CTA và Kính cung trượt từ vị trí cũ cùng nhịp transform 0.4s ease của card masonry, nên cả
   // trang đọc như một masonry khi resize hay đổi filter (owner 10/10). Dùng `translate` để không đè transform
@@ -2851,28 +2834,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
   // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
   // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
-  const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
-  // Cụm CTA vừa vào layout mới (sang detail, đổi ảnh detail): chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp.
-  // Chờ tới lúc đó vì trước khi dựng batch cụm nằm đầu canvas, trong viewport, nên observer vào view nổ sớm (R9).
-  let ctaRevealPending = false;
-  const moveCtaNodes = (host) => {
-    if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
-    // Về masonry giữ trạng thái đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại.
-    if (host === "detail") ctaRevealPending = true;
-    if (host === "detail" && photoCanvas) {
-      photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
-      // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
-      gridCta?.style.setProperty("visibility", "hidden");
-    } else {
-      gridCta?.style.removeProperty("visibility");
-      grid.append(ctaSkeleton);
-      gridSectionStyleTarget?.append(...[gridCta, arcGlass].filter(Boolean));
-      // Biến detail đặt thẳng trên cụm CTA; ở grid cụm kế thừa từ .project-index.
-      gridCta?.style.removeProperty("--advertising-cta-top");
-      gridCta?.style.removeProperty("--advertising-gap");
-    }
-    ctaSkeleton.dataset.advertisingCtaHost = host;
-  };
+  const ctaInDetail = () => ctaBatch.host === "detail";
+  // Sân của batch. Sang detail: chạy lại motion vào view sau lần đặt chỗ ở canvas (R9). Về masonry giữ trạng thái
+  // đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại. Ở grid cụm kế thừa biến từ .project-index.
+  const moveCtaNodes = (host) => ctaBatch.attach(host, host === "detail" && photoCanvas
+    ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, rearm: true }
+    : { skeletonParent: grid, clusterParent: gridSectionStyleTarget });
   // Chỉ ghi khi đổi: ghi lại cùng giá trị biến kế thừa vẫn có thể làm bẩn style cả cây con.
   const setStyleVar = (node, name, value) => {
     if (node && node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
@@ -3013,10 +2980,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     setCtaHostHeight(gridBottom);
-    if (ctaRevealPending && gridCta) {
-      ctaRevealPending = false;
-      window.TruongThinhDetail?.rearmMotion?.(gridCta);
-    }
+    ctaBatch.placed();
     ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
       if (skeletonObserver) skeletonObserver.observe(frame);
       else visibleSkeletonFrames.add(frame);
@@ -4528,7 +4492,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Đổi tag trong cùng ảnh giữ khung batch để chúng trượt hoặc đi vòng primary (CTA R9, R10); đổi ảnh thì dựng lại.
     if (previousPhotoId !== record.id || !ctaInDetail()) {
       clearCtaSkeleton();
-      ctaRevealPending = true;
+      ctaBatch.rearmOnPlace();
     }
     moveCtaNodes("detail");
     syncLocaleLinks(browse);
@@ -5291,7 +5255,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [...cardSkeletons.keys()].forEach(dropCardSkeleton);
     cancelAnimationFrame(skeletonSyncFrame);
     clearCtaSkeleton();
-    arcGlass?.remove();
     photoGlass.remove();
     document.body.classList.remove("is-advertising-browse", "is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;
