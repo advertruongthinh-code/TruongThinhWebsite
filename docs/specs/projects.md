@@ -45,8 +45,8 @@ Then cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm m
 ### R2. Trang toàn bộ công trình
 
 Dạng masonry như trang Advertising (owner 2026-10-12), hero tiêu đề hai dòng như `/en/projects`. Bộ lọc: Nhà ở, Kinh doanh và
-loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ có ảnh đại diện (cover) theo
-tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-của-card), tên công trình, loại, địa điểm.
+loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ là [card nhiều media](media-card.md#r1-dữ-liệu-media-của-card)
+(owner 2026-11-09): ảnh bìa trước, rồi mọi ảnh trong trang cùng đúng tỷ lệ bìa theo thứ tự trang; ảnh khác tỷ lệ không vào thẻ.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và

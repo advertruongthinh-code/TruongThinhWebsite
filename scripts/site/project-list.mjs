@@ -43,11 +43,16 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     const sourceOrder = nextSourceOrder.get(category) ?? 0;
     nextSourceOrder.set(category, sourceOrder + 1);
     const media = { src: project.cover.src, width: project.cover.width, height: project.cover.height, altVi: project.cover.altVi, altEn: project.cover.altEn };
+    // Thẻ nhiều media (owner 2026-11-09, media-card R1): bìa trước, rồi mọi ảnh trong trang cùng đúng tỷ lệ bìa, theo thứ tự trang.
+    const sameRatio = (image) => BigInt(image.width) * BigInt(media.height) === BigInt(image.height) * BigInt(media.width);
+    const images = (project.blocks ?? []).flatMap((block) => [block.image, ...(block.images ?? [])]).filter((image) => image?.src && sameRatio(image));
+    const mediaItems = [media, ...images.filter((image) => image.altVi !== media.altVi)]
+      .map((image, index) => ({ id: index ? `${project.id}-${index}` : project.id, kind: "image", src: image.src, width: image.width, height: image.height, altVi: image.altVi, altEn: image.altEn }));
     return {
       id: project.id, category, sourceOrder, clusterIds: [project.type], titleVi: project.title.vi, titleEn: project.title.en,
       href: { vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project) },
       ...(colors[project.id] ? { color: colors[project.id] } : {}),
-      media, mediaItems: [{ id: project.id, kind: "image", ...media }], coverMediaId: project.id,
+      media, mediaItems, coverMediaId: project.id,
     };
   }), categories.map((entry) => entry.slug));
   const pages = projectListPages(projects).map(({ filter }) => ({
