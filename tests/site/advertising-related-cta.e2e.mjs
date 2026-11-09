@@ -243,7 +243,7 @@ try {
         const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
         const state = window.__ttArcOverlap;
         const now = performance.now();
-        state.since = arcInView && document.querySelector(".glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
+        state.since = arcInView && document.querySelector("[data-advertising-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
         state.max = Math.max(state.max, state.since == null ? 0 : now - state.since);
         requestAnimationFrame(tick);
       };
