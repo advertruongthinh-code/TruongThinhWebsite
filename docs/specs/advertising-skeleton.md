@@ -30,13 +30,18 @@ chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-load
 ### R1. Batch nối tiếp masonry
 
 Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[data-advertising-cta-skeleton]`
-(`aria-hidden`), không focus, không hover, không viền. Mỗi khung rộng một cột, bắt đầu một khoảng giữa dưới card thật
-của cột (dưới card hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)): band khung (w/h tối đa 1.39) đều dưới tỷ lệ vàng nên theo cùng luật hai cột mọi khung giữ một cột; card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
-Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng card nhân một trong ba band: ngang `0.72`, vuông `1`, đứng
-`1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
+(`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
+hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
+thật (`canSpanTwoColumns`, `spanSlots` ở `layout-core.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
+khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; band mặc định (w/h tối đa 1.39) đều giữ một
+cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
+(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
+Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
+`1`, đứng `1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
 chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
-đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
+đầu. Khung cuối mỗi cột kéo tới đáy batch (khung hai cột chỉ kéo khi là khung cuối của cả hai cột); phần còn lại ngắn
+hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
 là thứ tự khung nối tiếp masonry (`0`, `1`, ...), không phải ô cột và độ sâu: đổi số cột thì khung thứ k vẫn là item
 k của cùng lưới, nên resize trượt cả card và khung như một masonry (owner 10/10). Band gắn với slot, dựng lại giữ band
 cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch có ở masonry và ở cuối related của detail ([CTA R9](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)).
@@ -210,7 +215,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-advertising-cta-skeleton]` (`data-advertising-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
-| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
+| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
 | Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
@@ -225,7 +230,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
+| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |

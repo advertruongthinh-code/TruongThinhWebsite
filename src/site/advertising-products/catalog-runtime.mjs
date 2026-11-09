@@ -21,6 +21,7 @@ import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion
 import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
+  readSkeletonBatchConfig,
   createSkeletonFlowRenderer,
   createSkeletonFlowWorkerRenderer,
   createSharedSkeletonFlowLayer,
@@ -1568,6 +1569,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ctaBatch = createCtaBatch({ skeleton: ctaSkeleton, cluster: gridCta, arcHome: gridSectionStyleTarget,
     signal: controller.signal, rearm: (root) => window.TruongThinhDetail?.rearmMotion?.(root) });
   const arcGlass = ctaBatch.arc;
+  // Số khung và tỷ lệ khung batch theo attribute của trang (skeleton R1), không sửa code.
+  const skeletonBatchConfig = readSkeletonBatchConfig(ctaSkeleton?.dataset);
   // Detail (mô tả, related) tải ngay khi ảnh 8 card đầu xong (tối đa 6 s) để không tranh băng thông với chúng; showPhoto chờ nếu chưa xong.
   let detailLoaded = false;
   let detailReady;
@@ -2919,6 +2922,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       gap: hostGeometry.interCardGap,
       captionHeight: detailHost ? 0 : captionPixelHeight,
       boundaryBottom: skeletonBoundaryBottom,
+      ...skeletonBatchConfig,
       seed: browseHistory.current.seed,
       bandAssignments: skeletonRatioBandBySlot,
     });
@@ -2935,7 +2939,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealedSkeletonSlots.delete(slot);
       frame.remove();
     }
-    frameLayout.forEach(({ slot, column, depth, band, top, height }) => {
+    frameLayout.forEach(({ slot, column, span, depth, band, top, height }) => {
         let frame = skeletonFrameBySlot.get(slot);
         if (!frame) {
           frame = createSkeletonFrame();
@@ -2948,12 +2952,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         }
         frame.dataset.advertisingCtaFrame = "true";
         frame.dataset.advertisingCtaColumn = String(column);
+        frame.dataset.advertisingCtaSpan = String(span);
         frame.dataset.advertisingCtaDepth = String(depth);
         frame.dataset.advertisingCtaRatioBand = band;
         frame.dataset.advertisingCtaSlot = slot;
         frame.style.left = `${column * (hostGeometry.cardWidth + hostGeometry.interCardGap)}px`;
         frame.style.top = `${top}px`;
-        frame.style.width = `${hostGeometry.cardWidth}px`;
+        frame.style.width = `${span * hostGeometry.cardWidth + (span - 1) * hostGeometry.interCardGap}px`;
         frame.style.height = `${height}px`;
         frame.style.setProperty("--advertising-cta-frame-opacity", "1");
     });
