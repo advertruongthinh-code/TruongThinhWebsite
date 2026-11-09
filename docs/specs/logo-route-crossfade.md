@@ -6,7 +6,7 @@ tests:
   - tests/site/logo-route-crossfade.e2e.mjs
   - tests/site/brand-mark-flip.e2e.mjs
 notion: none
-updated: 2026-11-07
+updated: 2026-11-09
 ---
 
 # Logo đổi màu khi chuyển trang
@@ -27,7 +27,7 @@ Espacio (kiểu b) thay mark CMYK, không có crossfade riêng của mark.
 ### R1. Sang màu đậm lúc bấm
 
 Bấm link route mềm: từng dải của mark tween `fill` từ màu đang hiển thị (trắng hoặc CMYK) sang `#2f2f2f` ngay lúc
-bấm, trong `0.3s expo.out`, cùng lúc với chữ, nav, hamburger; veil phủ sau đó (`0.75s power4.inOut`). Hình bốn
+bấm, trong `0.3s expo.out`, cùng lúc với chữ, nav, hamburger; veil bắt đầu phủ cùng lúc (`0.75s power4.inOut`). Hình bốn
 dải không đổi, không frame nào có dải lật hay `clip-path`, không có lớp chồng.
 
 ```gherkin
@@ -66,8 +66,9 @@ Then mark sang đậm lúc bấm, sang CMYK lúc veil bắt đầu mở, rồi g
 
 ### R4. Đổi ngôn ngữ
 
-Đổi ngôn ngữ dùng cùng veil ([Shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ)) nên theo R1 tới R3
-(owner duyệt).
+Đổi ngôn ngữ dùng cùng pha phủ (R1, veil phủ `0.75s`), rồi tải lại trang đích như F5
+([Shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ), owner 2026-11-08). Không có R2: trang mới vào như tải
+trực tiếp, header dưới veil, intro chạy lại và mark vẽ lần đầu theo [Brand](../../design-system/brand.md#motion).
 
 ### R5. Chuyển giữa chừng
 
