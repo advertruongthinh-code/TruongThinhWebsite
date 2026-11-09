@@ -50,7 +50,7 @@ thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`),
 dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
 đúng item đó. Nhãn thời lượng video ở góc trên trái canvas. Đổi media, tải chậm hay lỗi không
 đổi khung card, canvas hay dải (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
-[masonry R5](advertising-masonry.md#r5-hình-học-masonry). Masonry Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình))
+[masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột theo R5 đó, canvas, dải và tên rộng theo hai cột. Masonry Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình))
 thêm tên card ở đáy, dưới dải: `figcaption.advertising-tile__title` cao `captionPixelHeight` = 10px trên chữ + một dòng
 `0.8rem × 1.4` + 7px cho gạch chân (34,92px khi chữ gốc 16px, tính theo cỡ chữ gốc lúc mount), có trong hình học ngay lần
 xếp đầu và trong batch skeleton; card tạm chỉ phủ phần media.
@@ -76,11 +76,11 @@ về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọ
 ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
 ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Hover theo Pinterest, chỉ
 chuột thật, mọi card masonry Advertising và related kể cả card một media: lớp tối phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
-hover của site. Masonry chính (owner 2026-11-09) dùng lớp đen đều `--media-hover-overlay` `0.353`, tối bằng trung bình theo
+hover của site. Masonry chính và related (owner 2026-11-09) dùng lớp đen đều `--media-hover-overlay` `0.353`, tối bằng trung bình theo
 chiều cao của `.hero-shade`: lớp mép trên tích phân `0,1125`, lớp mép dưới `0,375 × 0,42 / 2 = 0,0788` (hai lớp không chồng
 nhau), phủ đều `0,2`, nên `1 - 0,8 × (1 - 0,1125 - 0,0788) = 0,353`; trên lớp tối hiện tên card (`titleVi`/`titleEn`) chữ
 trắng `0.8rem` 700 chữ hoa có bóng D, giữa canvas đúng chỗ "Vừa xem", chừa 40px hai mép cho mũi tên, `aria-hidden` vì
-alt đã là tên; cảm ứng không có tên. Related giữ lớp đen 30%, không tên. Masonry Công trình không lớp tối, tên dưới media (R2); card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Chữ "Vừa xem" có bóng D
+alt đã là tên; cảm ứng không có tên. Link card lấy tên từ đó qua `aria-labelledby`; id tên ở related có tiền tố `advertising-related-title-` (lưới chính `advertising-title-`) nên không trùng khi một card hiện ở cả hai. Nút gợi ý trong detail giữ lớp đen 30%. Masonry Công trình không lớp tối, tên dưới media (R2); card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Chữ "Vừa xem" có bóng D
 (`--text-shadow-d`) và hiện ngay; lớp đen `0.7` chỉ hiện khi media đang hiện của card đã sẵn sàng (không còn
 `data-advertising-media-loading`), cùng nhịp `0.6s` của blur tan (owner 2026-11-01). Video
 vẫn chạy dưới lớp tối; mũi tên, chấm, nhãn thời lượng nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
@@ -248,7 +248,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | --- | --- |
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (dải 44px, chỗ tên Công trình); `advertising-skeleton-flow.test.mjs` (skeleton chừa tên); `block-pages.e2e.mjs` (tên Công trình luôn hiện, đúng chỗ chừa); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
-| R3 | `advertising-card-interactions.e2e.mjs` (lớp tối `--media-hover-overlay` và tên chỉ khi chuột thật, related 30%); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
+| R3 | `advertising-card-interactions.e2e.mjs` (lớp tối `--media-hover-overlay` và tên chỉ khi chuột thật, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |

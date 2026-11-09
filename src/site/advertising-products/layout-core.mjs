@@ -1,10 +1,22 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v14";
+export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v15";
 const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 const ADVERTISING_MIN_COLUMNS = 2;
 const ADVERTISING_MAX_COLUMNS = 4;
+// Card trải 2 cột (masonry R5, owner 2026-11-09): chỉ khi lưới có từ 3 cột; điện thoại 2 cột giữ mọi card một cột.
+export const ADVERTISING_WIDE_MIN_COLUMNS = 3;
+// Lỗ lớn: card 2 cột phải hạ xuống đáy cao hơn của cặp cột, chừa khoảng trống dưới nó ở cột thấp hơn. Trống quá nửa
+// bề rộng một cột (158px ở 1440px) thì card giữ một cột. Nửa cột là ngưỡng bridge sẵn có của kernel cũ và oracle hình
+// học, bằng chiều cao card 2:1 ở một cột (ảnh ngang nhất catalog), nên lỗ không cao hơn card thấp nhất và không đọc
+// thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
+// vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
+export const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
+
+// Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
+// nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
+export const isAdvertisingWideMedia = (media) => media.width * 1000 >= media.height * 1618;
 
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
@@ -696,7 +708,10 @@ function undoRhythms(logs) {
 
 function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHeight, settings) {
   const literalSpan = card?.layoutSpan;
-  const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
+  // Lưới public: bề ngang do tỷ lệ cover quyết định (R5), không theo layoutSpan; khối gợi ý luôn một cột.
+  const widths = state.productLayout
+    ? (columns >= ADVERTISING_WIDE_MIN_COLUMNS && card?.kind !== "suggestion" && isAdvertisingWideMedia(layoutMedia(card)) ? [1, 2] : [1])
+    : literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
   const controlStripHeight = mediaControlStripHeight(card);
   const candidates = [];
   for (const width of widths) {
@@ -718,7 +733,7 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
         const low = Math.min(...occupied);
         const y = high + gap;
         const cavity = y - low - gap;
-        if (cavity <= 0.5 * cardWidth + 0.05) candidates.push({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
+        if (cavity <= ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) candidates.push({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
       }
     }
   }
@@ -729,7 +744,7 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
   return placements;
 }
 
-// Photo public có span cố định; control legacy không thể ảnh hưởng geometry hoặc cache identity.
+// Span public do tỷ lệ cover quyết định (candidatePlacement); control layoutSpan cũ không ảnh hưởng geometry hay cache identity.
 export function compileAdvertisingProductLayout(options = {}) {
   const cards = Array.isArray(options.cards)
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
@@ -941,11 +956,18 @@ function compileAdvertisingLayoutPhase(options = {}) {
       }
     }
     if (productLayout && candidates.length) {
-      const minimumY = Math.min(...candidates.map(({ placement }) => placement.y));
-      return candidates
+      const single = candidates.filter(({ placement }) => placement.width === 1);
+      const minimumY = Math.min(...single.map(({ placement }) => placement.y));
+      const natural = single
         .filter(({ placement }) => Math.abs(placement.y - minimumY) <= 1e-9)
-        .sort((a, b) => a.placement.left - b.placement.left || a.staggerViolations - b.staggerViolations)
-        .slice(0, 1);
+        .sort((a, b) => a.placement.left - b.placement.left || a.staggerViolations - b.staggerViolations)[0];
+      // Card ngang tỷ lệ vàng trải sang cột kề của cột thấp nhất; candidate 2 cột đã lọc lỗ quá ngưỡng. Hai cột kề
+      // cùng đạt thì chọn top thấp hơn (lỗ nhỏ hơn), hòa thì cột trái.
+      const column = natural.placement.left;
+      const wide = candidates
+        .filter(({ placement }) => placement.width === 2 && (placement.left === column || placement.left === column - 1))
+        .sort((a, b) => a.placement.y - b.placement.y || a.placement.left - b.placement.left)[0];
+      return [wide || natural];
     }
     return candidates.sort((a, b) => a.staggerViolations - b.staggerViolations || a.score - b.score || bySource(a.placement.card, b.placement.card) || a.placement.left - b.placement.left).slice(0, SEARCH_CANDIDATE_LIMIT);
   };

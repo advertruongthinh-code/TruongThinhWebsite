@@ -1417,11 +1417,16 @@ function assertOneColumnGrid(evidence, label, { parent = false, related = false 
   const widths = evidence.cards.map((card) => card.inlineWidth);
   assert(widths.every((width) => width > 0), `${label}: a rendered card has no placement width`);
   for (const card of evidence.cards) {
-    assert(Math.abs(card.inlineWidth - expectedWidth) <= 1, `${label}: ${card.id} placement width ${card.inlineWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.cssWidth - expectedWidth) <= 1, `${label}: ${card.id} CSS render width ${card.cssWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.computedWidth - expectedWidth) <= 1, `${label}: ${card.id} computed width ${card.computedWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.rect.width - expectedWidth) <= 1, `${label}: ${card.id} visual width ${card.rect.width}px differs from independent W ${expectedWidth}px after return motion settled`);
-    if (parent) assert.equal(card.span, "1", `${label}: ${card.id} exposes non-one span ${card.span}`);
+    // Masonry R5: card có cover w/h >= 1.618 trải hai cột ở lưới từ 3 cột (chính và related); card khác đúng một cột.
+    const span = card.span === "2" ? 2 : 1;
+    if (span === 2) assert(columns >= 3 && card.image && card.image.naturalWidth * 1000 >= card.image.naturalHeight * 1618,
+      `${label}: ${card.id} spans two columns without a golden-ratio cover on a 3+ column grid`);
+    const cardWidth = span * expectedWidth + (span - 1) * evidence.gap;
+    assert(Math.abs(card.inlineWidth - cardWidth) <= 1, `${label}: ${card.id} placement width ${card.inlineWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.cssWidth - cardWidth) <= 1, `${label}: ${card.id} CSS render width ${card.cssWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.computedWidth - cardWidth) <= 1, `${label}: ${card.id} computed width ${card.computedWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.rect.width - cardWidth) <= 1, `${label}: ${card.id} visual width ${card.rect.width}px differs from independent ${span}-column width ${cardWidth}px after return motion settled`);
+    if (parent) assert(["1", "2"].includes(card.span), `${label}: ${card.id} exposes span ${card.span}`);
     if (!card.image) continue;
     assert(card.image.naturalWidth > 0 && card.image.naturalHeight > 0, `${label}: ${card.id} media is not hydrated`);
     const renderedRatio = card.image.width / card.image.height;

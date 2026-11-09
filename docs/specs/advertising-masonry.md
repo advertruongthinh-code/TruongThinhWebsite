@@ -129,21 +129,21 @@ Then trước F5 thứ tự card không đổi; sau F5 seed mới, pool giữ đ
 ### R5. Hình học masonry
 
 Bề rộng tính từ `documentElement.clientWidth` (không gồm thanh cuộn). Lề ngoài 15/25/35px khi viewport `<= 750`,
-`<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề,
-không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng
-giữa. Mọi card rộng đúng một cột; cao bằng ảnh theo tỷ lệ gốc, không caption (card nhiều media thêm dải control 44px
-theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)); mount `captions: true` (trang Công trình) cộng chỗ tên dưới mỗi card và mỗi khung skeleton (`captionPixelHeight`, [media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
+`<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề, không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng giữa.
+Card rộng một cột (trừ card hai cột dưới), cao bằng ảnh theo tỷ lệ gốc, không caption (card nhiều media thêm dải control 44px theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)); mount `captions: true` (trang Công trình) cộng chỗ tên dưới mỗi card và mỗi khung skeleton (`captionPixelHeight`, [media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
+Card hai cột (owner 2026-11-09, mọi masonry: lưới chính, filter, related, Công trình): ảnh bìa (`layoutMedia`) ngang có `w/h >= 1.618` (`isAdvertisingWideMedia`: `w × 1000 >= h × 1618`, không phép chia nên không lệch do làm tròn) rộng hai cột cộng một khoảng giữa khi `C >= 3`; `C = 2` (điện thoại), ảnh dưới tỷ lệ vàng và khối gợi ý của related luôn một cột, `layoutSpan` cũ không có tác dụng. Card ở cột thấp nhất (R6) trải sang cột kề có top thấp hơn (hòa thì cột trái), top bằng đáy cao hơn của cặp cộng khoảng giữa; lỗ dưới card ở cột thấp hơn quá `0.5 ×` bề rộng cột (`ADVERTISING_WIDE_MAX_HOLE_RATIO`), hoặc một cột của cặp còn trống, thì card giữ một cột. Nửa cột là ngưỡng bridge sẵn có của oracle hình học và bằng chiều cao card 2:1 ở một cột (ảnh ngang nhất catalog), nên lỗ không đọc thành chỗ thiếu card; đo catalog thật (7 filter, 10 seed, 768–1920px): 61–68% card tỷ lệ vàng trải hai cột, lỗ trung vị 0.18–0.22 bề rộng cột (ngưỡng `0.75` cho 82–88% nhưng lỗ tới 0.75 cột).
 
 ```gherkin
 Given viewport 768px, masonry đang ở All
 When đo card
-Then có 3 cột, lề 25px, khoảng giữa 15px, mỗi card rộng đúng một cột
+Then có 3 cột, lề 25px, khoảng giữa 15px; card ảnh bìa từ tỷ lệ vàng rộng hai cột trừ khi để lỗ quá nửa cột, card khác rộng một cột
+And ở 390px (2 cột) mọi card rộng một cột
 ```
 
 ### R6. Đặt card và chuyển vị trí
 
 Card đi theo thứ tự trình bày R4; mỗi card vào cột có đáy thấp nhất (hòa thì cột trái), top bằng đáy cột cộng khoảng
-giữa, card đầu mỗi cột ở top 0. Pha ưu tiên đòi: mép dưới ảnh gần nhất ở hai cột kề lệch ít nhất 10% chiều cao ảnh cao
+giữa, card đầu mỗi cột ở top 0; card hai cột phủ thêm cột kề theo R5. Pha ưu tiên đòi: mép dưới ảnh gần nhất ở hai cột kề lệch ít nhất 10% chiều cao ảnh cao
 hơn; mép ảnh và mép card không lặp nhịp gạch (lượng tử lệch theo `0.125 × bề rộng card`, cấm `ABABAB` và ba mức giống
 nhau liền nhau). Hết nửa ngân sách 300.000 phép thử thì pha dự phòng cho phép thẳng hàng, không bao giờ chồng card.
 Cùng dataset, filter, bề rộng và thứ tự cho cùng tọa độ (`coordinateHash`). Lỗi đầu vào (`invalid-input`) hoặc hết
@@ -206,7 +206,7 @@ Then hero không chạy lại, container giữ nguyên
 
 `detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), Masonry 4.2.2, LazySizes
 5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `catalog-runtime.mjs`.
-Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `advertising-grid-v14`, nhóm không rỗng, card hợp lệ), cần Masonry.
+Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `advertising-grid-v15`, nhóm không rỗng, card hợp lệ), cần Masonry.
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-advertising-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
@@ -250,7 +250,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
 | Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới) |
-| Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs` (mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
+| Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow`, `isAdvertisingWideMedia` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs` (mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
 | Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation, artifact, viewer, captions})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
@@ -272,7 +272,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 | R2 | `advertising-products-media.test.mjs` (pool, provenance); `advertising-products-layout.test.mjs` (rank); `pnpm prepare:site` (preflight) |
 | R3 | `advertising-random-browse.e2e.mjs` (thứ tự, vị trí nút, EN, slug cũ và mới); `advertising-products-media.test.mjs` (cụm, sản phẩm, slug); `advertising-hero-once.e2e.mjs` (click trước runtime, mười vòng); `TT_E2E_ADVERTISING_RAPID_FILTER_ONLY`, `_HISTORY_ONLY` |
 | R4 | `advertising-products-random-order.test.mjs` (seed, history, handoff, reload); `advertising-random-browse.e2e.mjs`; `advertising-route-footer-p75.e2e.mjs` (route mới, F5) |
-| R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px); `advertising-products-static.test.mjs` (CSS) |
+| R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px; hai cột: biên 1.618, lưới 2 cột, lỗ nửa cột, gợi ý, dải và tên, card tạm); `advertising-one-column.test.mjs` (dựng lại luật cột ở lưới chính và related); `advertising-skeleton-flow.test.mjs` (batch dưới card hai cột); `advertising-products-static.test.mjs` (CSS) |
 | R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY` |
 | R7 | `advertising-products-layout.test.mjs` (`getVirtualWindow`, 3.000 card); `TT_E2E_ADVERTISING_KEYBOARD_ONLY`, `_3K_ONLY` |
 | R8 | `advertising-card-interactions.e2e.mjs`; `advertising-no-titles.e2e.mjs`; `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` |
@@ -283,7 +283,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 
 ## Gate còn mở
 
-- Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
+- Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter, card hai cột (ngưỡng lỗ nửa cột); VI/EN, desktop và điện thoại. Owner.
 - WebKit headless Linux vẽ `backdrop-filter` của Kính bằng phần mềm nên rAF dừng sau Back; `advertising-random-browse.e2e.mjs`
   tắt nó ở WebKit, CI `adv-browse` chạy WebKit. Safari iPhone thật chưa kiểm ([glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)).
 - Thư viện ảnh: V6 sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash ([QA ảnh](../operations/agent-rule-ad-images.md)). Owner.

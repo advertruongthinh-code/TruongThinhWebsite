@@ -31,7 +31,7 @@ chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-load
 
 Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[data-advertising-cta-skeleton]`
 (`aria-hidden`), không focus, không hover, không viền. Mỗi khung rộng một cột, bắt đầu một khoảng giữa dưới card thật
-của cột; batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
+của cột (dưới card hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)): band khung (w/h tối đa 1.39) đều dưới tỷ lệ vàng nên theo cùng luật hai cột mọi khung giữ một cột; card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng card nhân một trong ba band: ngang `0.72`, vuông `1`, đứng
 `1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
 chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
@@ -225,7 +225,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
+| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |

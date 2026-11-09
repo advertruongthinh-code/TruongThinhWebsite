@@ -13,6 +13,7 @@ import {
   compileAdvertisingProductLayout,
   computeAdvertisingPhotoGeometry,
   getVirtualWindow,
+  isAdvertisingWideMedia,
   mountQuota,
   normalizeAdvertisingSettings,
   scheduleAdvertisingRank,
@@ -23,6 +24,7 @@ import {
 } from "../../src/site/advertising-products/layout-core.mjs";
 import { ANTI_BRICK_EVENT_DEFINITION, inspectAdvertisingGrid, inspectAdvertisingRhythmEdges } from "./advertising-grid-oracle.mjs";
 import { ADVERTISING_MEDIA_CATEGORY_COUNTS } from "../../src/site/advertising-products/media-contract.mjs";
+import { createGhostLayer } from "../../src/site/advertising-products/mount-budget.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
 
 const previousWindow = globalThis.window;
@@ -174,7 +176,7 @@ function goldenCatalogFixture() {
 test("M01d fixture layout retains golden coordinate hash, order and no filler", () => {
   const cards = goldenCatalogFixture();
   const order = cards.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash] of [[390, "6e535537"], [1440, "699646cd"]]) {
+  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "7d503988", 0], [1440, "77774588", 8]]) {
     const layout = compileAdvertisingProductLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -183,6 +185,9 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
     assert.deepEqual(layout.diagnostics.placementOrder, order);
     assert.equal(layout.placements.length, cards.length);
     assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
+    // 12 card 16:9 trong fixture; layoutSpan cũ (mỗi card thứ 11) không còn tác dụng.
+    assert.equal(layout.placements.filter(({ width }) => width === 2).length, expectedWide, `${layoutViewportWidth}px wide spans`);
+    assertGrid(layout, `golden fixture ${layoutViewportWidth}px`, cards.length);
   }
 });
 
@@ -201,8 +206,10 @@ test("M01d real catalog keeps order, count, no filler and passes the geometry or
   }
 });
 
+// Fixture ngân sách organic giữ ảnh thấp dưới tỷ lệ vàng (100x62, 200x124): ngân sách tính theo card một cột,
+// card trải 2 cột có bộ test riêng (masonry R5).
 function organicTightBudgetOptions() {
-  const heights = [130, 60, 180, 150, 60, 130, 220, 150, 75, 150, 220, 180, 150, 180, 220, 60, 220, 150, 220];
+  const heights = [130, 62, 180, 150, 62, 130, 220, 150, 75, 150, 220, 180, 150, 180, 220, 62, 220, 150, 220];
   const cards = fixture(heights.map((height) => [100, height]), "organic-tight");
   const presentationOrder = [17, 5, 11, 2, 16, 6, 9, 3, 13, 1, 18, 4, 15, 7, 8, 14, 12, 0, 10]
     .map((index) => cards[index].id);
@@ -290,7 +297,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v14");
+  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v15");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
@@ -371,6 +378,79 @@ test("projects layouts reserve the caption height under every card (projects R2)
     bottoms[placement.left] = placement.y + placement.pixelHeight;
   }
   assert.deepEqual(layout.columnBottoms, bottoms);
+});
+
+// R5: cover ngang w/h >= 1.618 trải 2 cột ở lưới từ 3 cột, trừ khi lỗ dưới card quá nửa cột.
+const productLayoutOf = (cards, layoutViewportWidth, extra = {}) => compileAdvertisingProductLayout({
+  cards, categoryOrder: [cards[0].category], layoutViewportWidth, presentationOrder: cards.map(({ id }) => id), ...extra,
+});
+const widthById = (layout) => Object.fromEntries(layout.placements.map((placement) => [placement.card.id, placement.width]));
+
+test("R5 golden-ratio covers span two columns from 3 columns and stay one column on 2-column grids", () => {
+  assert.equal(isAdvertisingWideMedia({ width: 1618, height: 1000 }), true, "exactly 1.618 is eligible");
+  assert.equal(isAdvertisingWideMedia({ width: 1617, height: 1000 }), false, "1.617 is not");
+  assert.equal(isAdvertisingWideMedia({ width: 3072, height: 1898 }), true);
+  assert.equal(isAdvertisingWideMedia({ width: 3072, height: 1899 }), false);
+  const cards = fixture([[1618, 1000], [1617, 1000], [1000, 1000], [3, 4]], "wide-rule");
+  for (const [layoutViewportWidth, columns] of [[390, 2], [768, 3], [1024, 4], [1440, 4]]) {
+    const layout = productLayoutOf(cards, layoutViewportWidth);
+    assert.equal(layout.columns, columns);
+    assert.deepEqual(widthById(layout), {
+      "wide-rule-0000": columns >= 3 ? 2 : 1, "wide-rule-0001": 1, "wide-rule-0002": 1, "wide-rule-0003": 1,
+    }, `${layoutViewportWidth}px spans only the golden-ratio cover, only from 3 columns`);
+    const wide = layout.placements.find(({ card }) => card.id === "wide-rule-0000");
+    assert.equal(wide.pixelWidth, wide.width * layout.cardWidth + (wide.width - 1) * layout.interCardGap);
+    assert.ok(Math.abs(wide.mediaPixelHeight - wide.pixelWidth * 1000 / 1618) < 1e-9, "spanning card keeps its natural ratio");
+    assertGrid(layout, `wide rule ${layoutViewportWidth}px`, cards.length);
+  }
+  const suggestion = [{ ...fixture([[400, 100]], "wide-suggestion")[0], kind: "suggestion" }];
+  assert.equal(productLayoutOf(suggestion, 1440).placements[0].width, 1, "the related suggestion block never spans");
+});
+
+test("R5 a golden-ratio cover stays one column when spanning would leave a hole over half a column", () => {
+  // 768px: 3 cột rộng 229.33px, gap 15px. Ba card đầu nằm ở hàng đầu, card ngang 2:1 tới cột thấp nhất.
+  const cardWidth = (768 - 2 * 25 - 2 * 15) / 3;
+  const layoutFor = (heights) => {
+    const cards = fixture([...heights.map((height) => [cardWidth, height]), [2, 1]], "wide-hole");
+    return productLayoutOf(cards, 768).placements.find(({ card }) => card.id === "wide-hole-0003");
+  };
+  const atLimit = layoutFor([200, 200 + 0.5 * cardWidth, 600]);
+  assert.deepEqual([atLimit.left, atLimit.width], [0, 2], "a hole of exactly half a column still spans");
+  assert.ok(Math.abs(atLimit.y - (200 + 0.5 * cardWidth + 15)) < 1e-6, "the wide card drops to the taller bottom");
+  const overLimit = layoutFor([200, 200 + 0.5 * cardWidth + 1, 600]);
+  assert.deepEqual([overLimit.left, overLimit.width], [0, 1], "a larger hole keeps one column");
+  assert.ok(Math.abs(overLimit.y - 215) < 1e-6, "the one-column card sits at the shortest bottom");
+  const bothNeighbours = layoutFor([300, 200, 250]);
+  assert.deepEqual([bothNeighbours.left, bothNeighbours.width], [1, 2], "the neighbour with the lower top wins");
+  assert.ok(Math.abs(bothNeighbours.y - 265) < 1e-6);
+  const sideOnly = layoutFor([200, 600, 210]);
+  assert.deepEqual([sideOnly.left, sideOnly.width], [0, 1], "a small gap to a non-adjacent column does not count");
+});
+
+test("R5 a spanning multi-media card keeps the control strip and caption in its height", () => {
+  const card = { ...wideMediaCount(2), rank: 0, sourceOrder: 0 };
+  const layout = productLayoutOf([card], 1440, { captionPixelHeight: 34.92 });
+  const [placement] = layout.placements;
+  assert.equal(placement.width, 2);
+  assert.equal(placement.pixelWidth, 2 * layout.cardWidth + layout.interCardGap);
+  assert.ok(Math.abs(placement.mediaPixelHeight - placement.pixelWidth * 9 / 16) < 1e-9);
+  assert.ok(Math.abs(placement.pixelHeight - placement.mediaPixelHeight - 44 - 34.92) < 1e-9, "strip and caption below the canvas");
+  assert.deepEqual(layout.columnBottoms, [placement.pixelHeight, placement.pixelHeight, 0, 0]);
+  // Card tạm chờ dựng (loading glass R10) phủ đúng khung card thật: rộng 2 cột, cao canvas cộng dải, chừa tên.
+  const previousDocument = globalThis.document;
+  const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, remove() {} });
+  globalThis.document = { createElement: element };
+  try {
+    const host = { prepend(layer) { layer.parentNode = host; } };
+    const ghosts = createGhostLayer(host);
+    ghosts.show(card.id, placement, "rgb(1 2 3)");
+    const ghost = ghosts.take(card.id);
+    assert.deepEqual([ghost.style.left, ghost.style.top, ghost.style.width], [`${placement.x}px`, `${placement.y}px`, `${placement.pixelWidth}px`]);
+    assert.ok(Math.abs(Number.parseFloat(ghost.style.height) - placement.mediaPixelHeight - 44) < 1e-6, "ghost covers canvas and strip, not the caption");
+  } finally {
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+  }
 });
 
 test("R15 selects Pinterest geometry from full span at every responsive boundary", () => {
@@ -666,7 +746,7 @@ test("D9 reports a shared tiny phase budget without claiming infeasibility", () 
 test("organic order preserves a hard-safe requested layout when only its full budget succeeds", () => {
   const cards = fixture([
     ...Array.from({ length: 5 }, () => [100, 150]),
-    ...Array.from({ length: 3 }, () => [100, 60]),
+    ...Array.from({ length: 3 }, () => [100, 62]),
   ], "organic-budget");
   const options = {
     cards, categoryOrder: ["organic-budget"], columns: 4,
@@ -708,7 +788,7 @@ test("organic order diagnoses a deliberately insufficient 19-card budget without
 test("organic order prefers a hard-safe layout with better rendered rhythm", () => {
   const cards = fixture([
     ...Array.from({ length: 4 }, () => [100, 200]),
-    ...Array.from({ length: 4 }, () => [200, 100]),
+    ...Array.from({ length: 4 }, () => [200, 124]),
   ], "organic-quality");
   const options = {
     cards, categoryOrder: ["organic-quality"], columns: 4,
@@ -725,7 +805,7 @@ test("organic order prefers a hard-safe layout with better rendered rhythm", () 
 test("organic order solves only the eligible filter pool when the catalog contains other categories", () => {
   const photos = fixture([
     ...Array.from({ length: 5 }, () => [100, 150]),
-    ...Array.from({ length: 3 }, () => [100, 60]),
+    ...Array.from({ length: 3 }, () => [100, 62]),
   ], "organic-filter");
   const others = fixture([[100, 100], [100, 100]], "other-filter");
   const cards = scheduleAdvertisingRank([...photos, ...others].map((card) => ({ ...card, layoutSpan: 1 })), ["organic-filter", "other-filter"]);

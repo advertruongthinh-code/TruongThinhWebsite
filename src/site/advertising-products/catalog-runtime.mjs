@@ -1346,17 +1346,16 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
     && (related || !document.body.classList.contains("is-advertising-photo")));
-  // Tên card trên masonry chính (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới media ở
-  // lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên link),
-  // figcaption aria-hidden để trình đọc màn hình không đọc lặp. Related giữ nguyên, không có tên.
-  if (!related) {
-    const title = figure.appendChild(document.createElement("figcaption"));
-    title.className = "advertising-tile__title";
-    title.id = `advertising-title-${record.id}`;
-    title.setAttribute("aria-hidden", "true");
-    title.textContent = locale === "en" ? record.titleEn : record.titleVi;
-    figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
-  }
+  // Tên card trên masonry chính và related (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới
+  // media ở lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên
+  // link), figcaption aria-hidden để trình đọc màn hình không đọc lặp. Một card có thể cùng lúc ở lưới chính và
+  // related, nên id của related có tiền tố riêng.
+  const title = figure.appendChild(document.createElement("figcaption"));
+  title.className = "advertising-tile__title";
+  title.id = `${related ? "advertising-related-title" : "advertising-title"}-${record.id}`;
+  title.setAttribute("aria-hidden", "true");
+  title.textContent = locale === "en" ? record.titleEn : record.titleVi;
+  figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
   return figure;
 }
 
@@ -3444,6 +3443,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     sizeLazyImage(node, placement);
     node.style.height = `${placement.pixelHeight}px`;
     node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
+    node.dataset.advertisingSpan = String(placement.width);
     node.dataset.advertisingPlacementIndex = String(placement.index);
     node.setAttribute("role", "listitem");
     node.setAttribute("aria-posinset", String(placement.index + 1));
