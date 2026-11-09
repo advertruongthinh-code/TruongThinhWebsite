@@ -505,7 +505,8 @@
       !hasGsap ||
       reduceMotion
     ) {
-      if (hasGsap) gsap.killTweensOf(targets);
+      // Chỉ dừng tween màu: #header-logo còn tween FLIP scale đang chạy.
+      if (hasGsap) gsap.killTweensOf(targets, "color,stroke");
       colorTargets.forEach((target) => target.style.setProperty("color", color));
       strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
       return;
@@ -611,7 +612,8 @@
     header.classList.toggle("is-ink", ink);
     header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-surface", collapsed);
-    colorHeader(ink ? "#2f2f2f" : "#ffffff", true);
+    const color = ink ? "#2f2f2f" : "#ffffff";
+    if (color !== currentHeaderColor) colorHeader(color, true);
   };
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =

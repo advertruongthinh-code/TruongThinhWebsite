@@ -2293,12 +2293,13 @@ async function runHeaderParityChecks() {
         (frame) =>
           frame.values.every((value) => value === "rgb(47, 47, 47)"),
       );
+      // Owner 2026-11-09: mark, chữ, nav, hamburger đổi màu cùng một frame, không tween, sau nhịp FLIP 0.3s.
       assert(
         firstChanged >= 0 &&
-          Math.max(...changed) - firstChanged <= 1 &&
-          settled > firstChanged &&
-          trace[settled].time - trace[firstChanged].time <= 380,
-        `Header tone tween drifted: ${JSON.stringify({ changed, settled })}`,
+          Math.max(...changed) === firstChanged &&
+          settled === firstChanged &&
+          trace[firstChanged].time >= 250,
+        `Header tone tween drifted: ${JSON.stringify({ changed, settled, at: trace[firstChanged]?.time })}`,
       );
       assertDiagnostics(diagnostics);
     },
