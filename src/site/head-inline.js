@@ -117,7 +117,7 @@ document.documentElement.classList.add("media-gate");
   const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
   const watchUpgrade = (image) => {
     if (phone || !VARIANT.test(image.currentSrc)
-      || image.closest("[data-advertising-card], [data-advertising-related-card], [data-advertising-suggestion-card]")) return;
+      || image.closest("[data-masonry-item]")) return;
     upgradeObserver.observe(image);
     resized.observe(image);
   };

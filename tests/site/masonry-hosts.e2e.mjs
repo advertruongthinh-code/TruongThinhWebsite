@@ -14,14 +14,14 @@ const detailReady = (page) => page.waitForFunction(() => document.querySelector(
 const gridReady = (page) => page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
   && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 20000 });
 
-// Mỗi nơi: cách mở, gốc lưới, selector card thật. Bước 3 của kế hoạch đổi selector card sang đánh dấu chung.
+// Mỗi nơi: cách mở, gốc lưới; mọi item masonry mang đánh dấu chung data-masonry-item (masonry-reuse bước 3).
 const HOSTS = {
-  advertising: { root: "[data-project-grid]", card: "[data-advertising-card]",
+  advertising: { root: "[data-project-grid]", card: "[data-masonry-item]",
     open: async (page) => { await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
-  projects: { root: "[data-project-grid]", card: "[data-advertising-card]",
+  projects: { root: "[data-project-grid]", card: "[data-masonry-item]",
     open: async (page) => { await page.goto(`${base}/vi/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   // Như owner dùng: bấm card trên masonry (route mềm, CTA chuyển sang detail). Bước 5 tải lại trang, tức vào thẳng.
-  related: { root: "[data-advertising-photo-related-grid]", card: "[data-advertising-related-card], [data-advertising-suggestion-card]",
+  related: { root: "[data-advertising-photo-related-grid]", card: "[data-masonry-item]",
     open: async (page) => {
       await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
       await gridReady(page);

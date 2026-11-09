@@ -240,7 +240,7 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 | --- | --- | --- |
 | DOM hook | `[data-advertising-photo-view]` với `data-advertising-photo-id`, `-photo-layout` (`split`/`pinterest`), `data-advertising-primary-span`, `-photo-glass`; body `is-advertising-photo`, `data-advertising-photo-active` | Runtime ghi (R1, R2); CSS, test đọc |
 | DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-box\|description-scroll\|description\|description-bar\|cta\|player]` | Markup `index.html`, runtime điền (R2–R4) |
-| DOM hook | `[data-advertising-photo-suggestion]`, `[data-advertising-suggestion-tag]` (`aria-pressed`), `[data-advertising-suggestion-image-layer]`; `[data-advertising-photo-related-grid]`, `[data-advertising-related-card]` | Suggestion, slideshow, related (R5–R7) |
+| DOM hook | `[data-advertising-photo-suggestion]`, `[data-advertising-suggestion-tag]` (`aria-pressed`), `[data-advertising-suggestion-image-layer]`; `[data-advertising-photo-related-grid]`, `[data-advertising-related-card]`; mọi item masonry thêm `[data-masonry-item]` (id card, gợi ý là `suggestion`) và `[data-masonry-kind]` (`photo`, `video`, `multi`, `suggestion`) | Suggestion, slideshow, related (R5–R7) |
 | DOM hook | `dialog#advertising-photo-dialog`, `data-advertising-viewer-state` (`opening`/`closing`) | Viewer (R9) |
 | CSS var | `--advertising-photo-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |
 | URL | `?category=&photo=&tag=` (`serializeAdvertisingBrowseLocation`) | URL chuẩn (R1) |
