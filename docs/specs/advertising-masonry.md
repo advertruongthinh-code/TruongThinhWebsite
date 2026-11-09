@@ -18,6 +18,7 @@ tests:
   - tests/site/advertising-mount-budget.test.mjs
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
+  - tests/site/masonry-hosts.e2e.mjs
   - tests/site/advertising-products-media.test.mjs
   - tests/site/advertising-products-random-order.test.mjs
   - tests/site/advertising-products-static.test.mjs
