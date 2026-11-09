@@ -165,8 +165,10 @@ try {
     assert.ok(expandLead >= 50 && expandLead < 125, `${label}: flip back to white starts 0.1s after the header expands (${expandLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "rgba(0, 0, 0, 0)", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
     // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
-    const back = await page.evaluate(() => {
+    const back = await page.evaluate(async () => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      // reverse() lúc animation còn pending chỉ đổi playbackRate khi animation sẵn sàng; máy bận thì đọc sớm ra rate 1.
+      await Promise.all([...root.querySelectorAll("span")].flatMap((face) => face.getAnimations()).map((animation) => animation.ready));
       return {
         faces: [...root.children].map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]),
         rates: [...new Set([...root.querySelectorAll("span")].flatMap((face) => face.getAnimations()).map((animation) => animation.playbackRate))],
