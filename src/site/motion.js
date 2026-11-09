@@ -1100,6 +1100,13 @@
         });
       };
       window.addEventListener("mousemove", core.moveScrollBar);
+      // Vendor thả thumb là dừng vòng lerp dù chưa tới đích: trang đứng giữa chừng, nấc lăn kế tiếp trượt nốt cả
+      // quãng còn lại thành cú nhảy. Listener đăng ký sau releaseScrollBar của vendor nên chạy sau nó; trượt tiếp tới đích.
+      const glideAfterThumbRelease = () => {
+        if (core.stop || core.isScrolling || core.isDraggingScrollbar) return;
+        if (Math.abs(core.instance.delta.y - core.instance.scroll.y) >= 0.5) core.startScrolling();
+      };
+      window.addEventListener("mouseup", glideAfterThumbRelease);
       const checkScroll = core.checkScroll.bind(core);
       const updateDelta = core.updateDelta.bind(core);
       core.updateDelta = (event) => {
@@ -1143,6 +1150,7 @@
       const destroy = smooth.destroy.bind(smooth);
       smooth.destroy = () => {
         cancelThumbMove();
+        window.removeEventListener("mouseup", glideAfterThumbRelease);
         core.scrollbarThumb.removeEventListener("mousedown", blockLockedThumb, true);
         destroy();
       };
