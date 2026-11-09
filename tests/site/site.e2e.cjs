@@ -11280,10 +11280,12 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Lật bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp lật đã gỡ
-              // (trần 2.5s) thay vì dừng cứng ở 1.15s.
+              // Lật bắt đầu sau nhịp header 0.3s kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
+              // đã dựng rồi gỡ (trần 2.5s) thay vì dừng cứng ở 1.15s.
               const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
-              if (elapsed < 1_150 || (!flipGone && elapsed < 2_500)) requestAnimationFrame(sample);
+              const trace = window.__ttWhiteSurfaceLogoTrace;
+              trace.seen ||= !flipGone;
+              if (elapsed < 1_150 || (!(trace.seen && flipGone) && elapsed < 2_500)) requestAnimationFrame(sample);
               else window.__ttWhiteSurfaceLogoTrace.done = true;
             };
             sample();
@@ -11701,13 +11703,19 @@ async function runBrandColorMotionCheck() {
         });
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+      // Chờ lượt lật sang CMYK chạy xong hẳn: trong nhịp header 0.3s chưa có lớp lật nhưng mark còn đang sang đậm.
       await page.waitForFunction(
-        () =>
+        (expected) =>
           document
             .querySelector("[data-site-header]")
             ?.classList.contains("is-brand-color") &&
-          !document.querySelector(".brand-lockup__mark-flip"),
-        null,
+          !document.querySelector(".brand-lockup__mark-flip") &&
+          JSON.stringify(
+            [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
+              (path) => getComputedStyle(path).fill,
+            ),
+          ) === JSON.stringify(expected),
+        cmyk,
         { timeout: 4_000 },
       );
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
@@ -11716,6 +11724,8 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
+      // Lớp lật dựng sau nhịp header 0.3s (brand.md Motion).
+      await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
       await page.evaluate(() => {
         window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
       });
@@ -11730,7 +11740,8 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-color"),
       );
-      await page.waitForTimeout(30);
+      // Các dải đứng chờ hết nhịp header rồi mới quay ngược.
+      await page.waitForTimeout(330);
       const reversed = await readMark();
       // Cùng lớp lật, mọi mặt quay ngược từ góc đang có.
       assert(
