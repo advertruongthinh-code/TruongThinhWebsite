@@ -2838,7 +2838,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Sân của batch. Sang detail: chạy lại motion vào view sau lần đặt chỗ ở canvas (R9). Về masonry giữ trạng thái
   // đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại. Ở grid cụm kế thừa biến từ .project-index.
   const moveCtaNodes = (host) => ctaBatch.attach(host, host === "detail" && photoCanvas
-    ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, rearm: true }
+    ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, replay: true }
     : { skeletonParent: grid, clusterParent: gridSectionStyleTarget });
   // Chỉ ghi khi đổi: ghi lại cùng giá trị biến kế thừa vẫn có thể làm bẩn style cả cây con.
   const setStyleVar = (node, name, value) => {

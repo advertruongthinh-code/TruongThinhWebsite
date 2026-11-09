@@ -26,18 +26,19 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
     get host() { return skeleton?.dataset.advertisingCtaHost; },
     // Kính reveal cho khung batch, trừ khi cung đang thấy.
     revealGlass: (make, frame) => (arcInView ? null : make(frame)),
-    // Gắn bộ node vào sân mới. `rearm`: chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp, vì trước đó cụm
-    // nằm đầu sân, trong viewport, nên observer vào view nổ sớm. Không rearm thì giữ trạng thái đã hiện.
-    attach(host, { skeletonParent, clusterParent, rearm: rearmOnPlace = false }) {
+    // Gắn bộ node vào sân mới. `replay`: chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp, vì trước đó cụm
+    // nằm đầu sân, trong viewport, nên observer vào view nổ sớm. Không replay thì giữ trạng thái đã hiện, kể cả khi
+    // rời sân cũ trước lúc batch kịp đặt chỗ ở đó.
+    attach(host, { skeletonParent, clusterParent, replay = false }) {
       if (!skeleton || batch.host === host) return;
-      if (rearmOnPlace) rearmPending = true;
+      rearmPending = replay;
       skeletonParent.append(skeleton);
       clusterParent?.append(...[cluster, arc].filter(Boolean));
       // Biến đặt thẳng trên cụm thuộc sân cũ; sân mới đặt lại khi dựng batch.
       cluster?.style.removeProperty("--advertising-cta-top");
       cluster?.style.removeProperty("--advertising-gap");
       // Cụm chưa có top cho tới lần dựng batch kế tiếp: ẩn để không hiện ở đầu sân.
-      if (rearmOnPlace) cluster?.style.setProperty("visibility", "hidden");
+      if (replay) cluster?.style.setProperty("visibility", "hidden");
       else cluster?.style.removeProperty("visibility");
       skeleton.dataset.advertisingCtaHost = host;
     },
@@ -45,7 +46,6 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
     rearmOnPlace() { rearmPending = true; },
     // Batch vừa đặt xong ở chỗ thật.
     placed() {
-      cluster?.style.removeProperty("visibility");
       if (!rearmPending || !cluster) return;
       rearmPending = false;
       rearm?.(cluster);

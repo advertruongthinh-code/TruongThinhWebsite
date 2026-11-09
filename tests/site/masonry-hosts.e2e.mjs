@@ -62,10 +62,11 @@ const firstEntryProbe = () => {
     }
     state.shown = shown;
     if (state.running) {
-      // Phần vùng card trong viewport (từ đầu gốc lưới tới đầu cụm CTA) được card thật, card tạm hoặc primary phủ
-      // (lưới mẫu 16px). Frame trống hoàn toàn tính là 0, không bỏ qua.
+      // Phần vùng card trong viewport (từ đầu gốc lưới tới đầu cụm CTA) được card thật, card tạm, primary hoặc khung
+      // batch phủ (lưới mẫu 16px). Khung batch lấp đáy so le của lưới: thứ tự card ngẫu nhiên có lúc để một cột dài hơn
+      // các cột khác 600px. Frame trống hoàn toàn tính là 0, không bỏ qua.
       const root = document.querySelector(state.root)?.getBoundingClientRect();
-      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .advertising-ghost, [data-advertising-photo-primary]`)]
+      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .advertising-ghost, [data-advertising-photo-primary], [data-advertising-cta-frame]`)]
         .map((node) => node.getBoundingClientRect()).filter((rect) => rect.bottom > 0 && rect.top < innerHeight && rect.height > 0);
       const zoneBottom = state.zoneBottom - (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
       const bottom = Math.min(innerHeight, root.bottom, zoneBottom);
