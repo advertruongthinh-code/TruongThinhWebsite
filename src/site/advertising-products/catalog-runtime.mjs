@@ -2817,12 +2817,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
   // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
   const ctaInDetail = () => ctaSkeleton?.dataset.advertisingCtaHost === "detail";
-  // Cụm CTA vừa vào layout mới (đổi host, đổi ảnh detail): chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp.
+  // Cụm CTA vừa vào layout mới (sang detail, đổi ảnh detail): chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp.
   // Chờ tới lúc đó vì trước khi dựng batch cụm nằm đầu canvas, trong viewport, nên observer vào view nổ sớm (R9).
   let ctaRevealPending = false;
   const moveCtaNodes = (host) => {
     if (!ctaSkeleton || ctaSkeleton.dataset.advertisingCtaHost === host) return;
-    ctaRevealPending = true;
+    // Về masonry giữ trạng thái đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại.
+    if (host === "detail") ctaRevealPending = true;
     if (host === "detail" && photoCanvas) {
       photoCanvas.append(...[ctaSkeleton, gridCta, arcGlass].filter(Boolean));
       // Cụm chưa có top cho tới lần dựng batch ở detail (pha cta): ẩn để không hiện ở đầu canvas đè primary.
@@ -3911,13 +3912,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng vùng ảnh primary (cùng cỡ cửa sổ thì như nhau
-  // giữa các ảnh, nên file không đổi giữa các lần render); chưa có layout related thì theo viewport. Cỡ theo viewport
-  // (2048, bản gốc ở 1920px) giải mã JXL 200-430ms, làm đứng frame mỗi lần mở card related trên PC (đo 2026-11-09).
-  // Viewer "Xem lớn hơn" vẫn lấy bản gốc.
+  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng viewport (cố định trong phiên, nên file không
+  // đổi giữa các lần render): primary không rộng hơn viewport; viewer "Xem lớn hơn" vẫn lấy bản gốc.
   const primarySource = (item) => item.kind === "video" ? item.posterSrc
-    : responsiveSource(item.src, item.width,
-      Math.ceil(Math.min(innerWidth, relatedLayout?.primary.imageZoneWidth || innerWidth) * devicePixelRatio));
+    : responsiveSource(item.src, item.width, Math.ceil(innerWidth * devicePixelRatio));
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -4186,7 +4184,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.advertisingPhotoLoading = "true";
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      photoImage.decode().then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
+      // Nền dùng file 240 riêng: chờ cả nền để nền không hiện sau reveal khi cache lạnh; nền lỗi không chặn reveal.
+      Promise.all([photoImage.decode(), photoBackground?.decode().catch(() => {})])
+        .then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
         () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord({ ...record, media: item });

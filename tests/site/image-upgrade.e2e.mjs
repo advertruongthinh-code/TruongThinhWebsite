@@ -106,7 +106,7 @@ try {
     await page.waitForTimeout(6000);
     // Ảnh gốc nhỏ (không có variant lớn hơn khung) vẫn là ứng viên đúng; chỉ bản gốc lớn hơn nhiều so với khung là nâng sai.
     const cards = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card] img, [data-advertising-suggestion-card] img")]
-      .filter((image) => image.currentSrc).map((image) => ({ pathname: new URL(image.currentSrc).pathname,
+      .filter((image) => image.currentSrc && image.clientWidth > 0).map((image) => ({ pathname: new URL(image.currentSrc).pathname,
         oversized: image.naturalWidth > 1.5 * image.clientWidth * devicePixelRatio })));
     const upgraded = cards.filter(({ pathname, oversized }) => !VARIANT.test(pathname) && oversized).map(({ pathname }) => pathname);
     assert.ok(cards.length && !upgraded.length, `related cards stay on their variant ${JSON.stringify(upgraded)}`);

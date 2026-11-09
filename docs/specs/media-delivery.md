@@ -95,7 +95,7 @@ có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `wi
 | Nút suggestion | native lazy, `srcset`, `sizes="auto, 50vw"`; ảnh kế của slideshow eager, `sizes` ghim bằng bề rộng nút |
 | Item khác trên card nhiều media | native lazy, `sizes="auto, 50vw"` ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
 | Thumbnail primary | lazy, `sizes="auto, 25vw"`; video dùng poster |
-| Ảnh primary | `responsiveSource` với `needed` = bề rộng vùng ảnh primary (`imageZoneWidth`, chưa có layout related thì viewport) × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư (blur 100px) lấy cỡ 240 |
+| Ảnh primary | `responsiveSource` với `needed` = bề rộng viewport × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư (blur 100px) lấy cỡ 240 |
 | Viewer | `responsiveSource` gán lúc mở, `fetchPriority="high"` |
 
 ```gherkin
