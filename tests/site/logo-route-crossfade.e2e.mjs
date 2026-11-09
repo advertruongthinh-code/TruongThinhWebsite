@@ -19,7 +19,7 @@ const startRecorder = (selector) => {
   const logo = document.querySelector("#header-logo");
   const parts = [...logo.querySelectorAll(".brand-lockup, .brand-lockup__mark, .brand-lockup__title, .brand-lockup__subtitle"),
     ...header.querySelectorAll(".desktop-nav, .menu-button")];
-  const record = { rises: 0, tweens: 0, texts: [], flips: [], veilClosed: undefined, veilOpening: undefined, logoMin: 1, partsBelowOne: 0 };
+  const record = { markUnderFlip: 0, rises: 0, tweens: 0, texts: [], flips: [], veilClosed: undefined, veilOpening: undefined, logoMin: 1, partsBelowOne: 0 };
   const seen = new WeakSet();
   let root;
   const tick = () => {
@@ -44,6 +44,9 @@ const startRecorder = (selector) => {
       record.flips.push({ at: now, front: band.children[0].dataset.fill, back: band.children[1].dataset.fill, rate: undefined });
     }
     root = nextRoot;
+    // Lớp lật chạy thì mark gốc phải ẩn; HTML trang đích mount dưới veil không được xóa style ẩn của nó, nếu không
+    // mark CMYK gốc lộ viền màu mờ quanh mặt trắng (owner 2026-11-09).
+    if (root && getComputedStyle(logo.querySelector(".brand-lockup__mark")).visibility !== "hidden") record.markUnderFlip += 1;
     const opacity = Number(getComputedStyle(veil).opacity);
     record.logoMin = Math.min(record.logoMin, Number(getComputedStyle(logo).opacity));
     record.partsBelowOne += parts.filter((part) => Number(getComputedStyle(part).opacity) < 1).length;
@@ -101,6 +104,7 @@ try {
       const dump = JSON.stringify(record);
       assert.equal(record.rises, 0, `${label}: no rising bands during the route ${dump}`);
       assert.equal(record.tweens, 0, `${label}: mark never tweens its fill ${dump}`);
+      assert.equal(record.markUnderFlip, 0, `${label}: original mark stays hidden under the flip layer ${dump}`);
       assert.equal(record.final, scenario.final, `${label}: final mark colour`);
       // Chữ đổi ngay, không tween: chỉ có đúng các màu này, không màu trung gian.
       assert.deepEqual(record.texts.map(({ color }) => color), scenario.texts, `${label}: text switches without a tween ${dump}`);
@@ -110,6 +114,8 @@ try {
       if (toDestination) {
         assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
       }
+      // Veil phủ kín ít nhất 0.68s (một lượt lật mark) dù trang đích tải ngay, navbar không chớp.
+      assert.ok(record.veilOpening - record.veilClosed >= 680 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
       // Mark lật (không tween) từ lúc veil phủ kín hoặc lúc veil bắt đầu mở, không phải lúc bấm.
       assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
       const { at, ...flip } = record.flips[0];
