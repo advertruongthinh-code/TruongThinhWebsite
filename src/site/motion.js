@@ -811,9 +811,10 @@
     settleHeaderMarkFlip(flip);
   };
   // Nhịp header (brand.md Motion): nền, viền, chữ, logo FLIP và navbar chạy chung 0.3s expo.out. Expo.out đi gần hết
-  // quãng ở nửa nhịp, nên mark lật từ 0.15s: header đã xong về mắt, không còn khoảng đứng im trước lượt lật.
+  // quãng sớm: ở 0.1s nền và logo đã đi khoảng 90%, nên mark lật từ 0.1s (owner 2026-11-09), không còn khoảng đứng im
+  // và mark trắng chìm trên nền trắng ngắn nhất; 0.1s cũng là nhịp stagger nav lúc intro.
   const headerBeat = 0.3;
-  const headerSettle = 0.15;
+  const headerSettle = 0.1;
   let headerMarkLead;
   // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
   // đứng yên ở góc hiện tại trong lúc chờ.
