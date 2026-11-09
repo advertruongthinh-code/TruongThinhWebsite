@@ -11280,7 +11280,7 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Lật bắt đầu sau nhịp header 0.3s kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
+              // Lật bắt đầu sau nhịp header (0.15s) kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
               // đã dựng rồi gỡ (trần 2.5s) thay vì dừng cứng ở 1.15s.
               const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
               const trace = window.__ttWhiteSurfaceLogoTrace;
@@ -11703,7 +11703,7 @@ async function runBrandColorMotionCheck() {
         });
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
-      // Chờ lượt lật sang CMYK chạy xong hẳn: trong nhịp header 0.3s chưa có lớp lật nhưng mark còn đang sang đậm.
+      // Chờ lượt lật sang CMYK chạy xong hẳn: trong nhịp header chưa có lớp lật nhưng mark còn giữ màu cũ.
       await page.waitForFunction(
         (expected) =>
           document
@@ -11724,7 +11724,7 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
-      // Lớp lật dựng sau nhịp header 0.3s (brand.md Motion).
+      // Lớp lật dựng sau nhịp header 0.15s (brand.md Motion).
       await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
       await page.evaluate(() => {
         window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
@@ -11740,8 +11740,15 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-color"),
       );
-      // Các dải đứng chờ hết nhịp header rồi mới quay ngược.
-      await page.waitForTimeout(330);
+      // Các dải đứng chờ hết nhịp header rồi mới quay ngược; đợi theo trạng thái trong trang thay vì mốc giờ cứng.
+      await page.waitForFunction(
+        () =>
+          [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip span")]
+            .flatMap((face) => face.getAnimations())
+            .some((animation) => animation.playbackRate < 0),
+        null,
+        { timeout: 1_500 },
+      ).catch(() => {});
       const reversed = await readMark();
       // Cùng lớp lật, mọi mặt quay ngược từ góc đang có.
       assert(

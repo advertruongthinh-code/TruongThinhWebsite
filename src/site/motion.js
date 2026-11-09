@@ -810,9 +810,10 @@
     });
     settleHeaderMarkFlip(flip);
   };
-  // Nhịp header (brand.md Motion): nền, viền, chữ, logo FLIP và navbar chạy chung 0.3s expo.out; mark lật sau nhịp này.
+  // Nhịp header (brand.md Motion): nền, viền, chữ, logo FLIP và navbar chạy chung 0.3s expo.out. Expo.out đi gần hết
+  // quãng ở nửa nhịp, nên mark lật từ 0.15s: header đã xong về mắt, không còn khoảng đứng im trước lượt lật.
   const headerBeat = 0.3;
-  const markInk = headerMarkPaths.map(() => "rgb(47, 47, 47)");
+  const headerSettle = 0.15;
   let headerMarkLead;
   // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
   // đứng yên ở góc hiện tại trong lúc chờ.
@@ -821,7 +822,7 @@
       run();
       return;
     }
-    const call = gsap.delayedCall(headerBeat, () => {
+    const call = gsap.delayedCall(headerSettle, () => {
       if (headerMarkLead?.call === call) headerMarkLead = undefined;
       run();
     });
@@ -882,15 +883,11 @@
       return;
     }
     if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
-    // Nhịp 1: mark trắng sang đậm cùng chữ để không chìm trên nền trắng đang hiện; màu khác đứng yên.
-    const white = "rgb(255, 255, 255)";
-    const via = from.every((color) => color === white) && !same(from) ? markInk : from;
-    if (hasGsap) gsap.fromTo(headerMarkPaths, { fill: (index) => from[index] }, { fill: (index) => via[index], duration: headerBeat, ease: "expo.out" });
-    // Nhịp 2: header đã đứng yên, các dải lật sang màu đích.
+    // Nhịp 1: mark giữ màu cũ; nhịp 2: header đã xong về mắt, các dải lật thẳng sang màu đích.
+    headerMarkPaths.forEach((path, index) => path.style.setProperty("fill", from[index]));
     leadHeaderMark(className, () => {
-      if (hasGsap) gsap.killTweensOf(headerMarkPaths);
       headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
-      flipHeaderMark(via, target);
+      flipHeaderMark(from, target);
     }, from);
   };
   function syncHeaderBrandSurface(whiteSurface, tween) {
