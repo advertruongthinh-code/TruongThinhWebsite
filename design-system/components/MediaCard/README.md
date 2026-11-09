@@ -9,23 +9,28 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 ## Cấu trúc
 
 - Link phủ cả card tới `?category=<slug>&photo=<id>`; ảnh giữ trọn tỷ lệ gốc,
-  rộng đúng một cột, không crop, không caption chiếm chỗ; alt VI/EN là tên card.
-- Card masonry chính có `figcaption.advertising-tile__title` (`aria-hidden`, tên
-  VI/EN theo ngôn ngữ). Advertising: chỉ chuột thật hover mới hiện, chữ trắng
-  `0.8rem` 700 chữ hoa có bóng D giữa canvas (chỗ "Vừa xem"), chừa 40px hai mép
-  cho mũi tên; cảm ứng không có. Công trình: luôn hiện dưới media
-  ([Masonry](../Masonry/README.md#tên-card-công-trình)). Related không có tên.
+  rộng một cột (ảnh bìa từ tỷ lệ vàng rộng hai cột ở lưới từ 3 cột,
+  [Masonry](../Masonry/README.md#hình-học)), không crop, không caption chiếm chỗ;
+  alt VI/EN là tên card.
+- Card masonry chính và related có `figcaption.advertising-tile__title`
+  (`aria-hidden`, tên VI/EN theo ngôn ngữ, link lấy tên qua `aria-labelledby`;
+  id related có tiền tố `advertising-related-title-`). Advertising và related:
+  chỉ chuột thật hover mới hiện, chữ trắng `0.8rem` 700 chữ hoa có bóng D giữa
+  canvas (chỗ "Vừa xem"), chừa 40px hai mép cho mũi tên; cảm ứng không có.
+  Công trình: luôn hiện dưới media
+  ([Masonry](../Masonry/README.md#tên-card-công-trình)).
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
-  ảnh hiện ngay dưới `blur(24px)` của chính nó, thở (opacity `1 → 0.45 → 1`, `2s`,
-  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan và opacity về 1 cùng nhịp `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
+  ảnh hiện ngay dưới `blur(24px)` của chính nó, phóng tràn khung 24px mỗi phía để
+  mép mờ không thành viền tối (owner 2026-11-09), thở (opacity `1 → 0.45 → 1`, `2s`,
+  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
-  2026-10-18); chuột thật hover phủ lớp tối lên canvas: masonry chính
-  `media-hover-overlay` (0.353, bằng độ tối trung bình `.hero-shade`, owner
-  2026-11-09) dưới tên card, related lớp đen 30% (owner 2026-10-26), card Công
-  trình không có lớp tối; focus chỉ có viền.
+  2026-10-18); chuột thật hover phủ lớp tối lên canvas: masonry chính và
+  related `media-hover-overlay` (0.353, bằng độ tối trung bình `.hero-shade`,
+  owner 2026-11-09) dưới tên card, card Công trình không có lớp tối; focus chỉ
+  có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed` (chữ có bóng D, lớp đen chờ media sẵn sàng).
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -37,7 +42,8 @@ chậm còn 14 đến 15 FPS trên PC, 8,6 đến 10,6 FPS trên A04s, blur trê
 
 ## Nhiều media trong card
 
-Card có từ hai media (ảnh hoặc video) thành carousel trong khung một cột.
+Card có từ hai media (ảnh hoặc video) thành carousel trong khung của card (một
+cột, hoặc hai cột khi cover từ tỷ lệ vàng).
 Contract runtime, history và test ở
 [spec media-card](../../../docs/specs/media-card.md).
 
@@ -124,3 +130,4 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Canvas**: khung media của card, cao theo tỷ lệ item cover.
 - **Dải**: vùng điều khiển 44px dưới canvas, chứa chấm hoặc bộ đếm.
 - **Cover**: item được `coverMediaId` chọn làm mặt trước của card.
+- **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.

@@ -47,12 +47,14 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 after(() => server.close());
 const hlsSrc = `http://127.0.0.1:${server.address().port}/master.m3u8`;
 
-// Mọi card thành một video để luôn có card video trong màn, không phụ thuộc seed của grid.
+// Mọi card thành một video để luôn có card video trong màn, không phụ thuộc seed của grid. Khung card 640x396 (w/h 1.616,
+// ngay dưới tỷ lệ vàng) giữ mọi card một cột như lưới trước luật hai cột (masonry R5): clip 16:9 thì card nào cũng trải
+// hai cột, số video cùng tải đổi và pha phát của video R4 chọn đổi theo; test này đo thang bậc, không đo hình học.
 function fixtureArtifact(hls) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
     card.mediaItems = [{
-      ...card.mediaItems[0], id: `${card.id}-ladder`, kind: "video", width: 640, height: 360,
+      ...card.mediaItems[0], id: `${card.id}-ladder`, kind: "video", width: 640, height: 396,
       src: `${filePrefix}clip.mp4`, cardSrc: `${filePrefix}card.mp4`, hlsSrc: hls ? hlsSrc : undefined,
       source: "M00b sealed synthetic fixture", provenance: "Synthetic test-only fixture, not public media.",
       sourceId: "video-delivery:test-only:clip", sha256: "853e4939e6a4627cc7777665283b2affab189132243974a4777f5a955338e827",

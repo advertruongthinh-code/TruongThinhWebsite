@@ -2932,12 +2932,13 @@ async function runEspacioRouteLogoTimingChecks() {
           ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
         )}`,
       );
-      // logo-route-crossfade R2: tới Residential (hero ảnh) mark đậm dưới veil rồi sang trắng, không qua CMYK.
+      // logo-route-crossfade R1, R2: tới Residential (hero ảnh) mark CMYK chỉ khi veil phủ kín, rồi về trắng.
       assert(
-        !ordinaryTrace.some(
-          (sample) => sample.transitioning && sample.brandColor,
-        ),
-        "Residential route painted the CMYK mark during the transition",
+        ordinaryTrace.every((sample) => !sample.transitioning || !sample.brandColor || sample.veil >= 0.99) &&
+          !ordinaryTrace.at(-1)?.brandColor,
+        `Residential route showed the CMYK mark outside the full veil: ${JSON.stringify(
+          ordinaryTrace.filter((sample) => sample.brandColor && sample.veil < 0.99).slice(0, 4),
+        )}`,
       );
 
       await page.evaluate(() => {
@@ -2986,51 +2987,20 @@ async function runEspacioRouteLogoTimingChecks() {
       const advertisingStart = advertisingTrace.findIndex(
         (sample) => sample.namespace === "advertising-products",
       );
-      const startsBlack = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= advertisingStart &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) =>
-            fill.every((channel) => channel >= 30 && channel <= 70),
-          ),
-      );
-      const endsCmyk = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= startsBlack &&
-          sample.colorState &&
-          sample.fills[1]?.[0] >= 245 &&
-          sample.fills[1]?.[1] >= 225 &&
-          sample.fills[2]?.[0] >= 220 &&
-          sample.fills[2]?.[2] >= 100 &&
-          sample.fills[3]?.[1] >= 145 &&
-          sample.fills[3]?.[2] >= 210,
-      );
-      // Tween bắt đầu lúc veil mở, tức mẫu đen cuối trước khi đủ CMYK; mẫu đen đầu tiên còn tính cả lúc chờ veil,
-      // runner bận làm khoảng chờ đó dài ra.
-      const tweenStart = advertisingTrace.findLastIndex(
-        (sample, index) =>
-          index < endsCmyk &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) => fill.every((channel) => channel >= 30 && channel <= 70)),
-      );
-      const colorDuration =
-        startsBlack >= 0 && endsCmyk >= 0
-          ? advertisingTrace[endsCmyk].time - advertisingTrace[tweenStart].time
-          : Number.NaN;
+      // logo-route-crossfade R1, R3: trang đích mount dưới veil đã phủ kín nên mark đã CMYK, rồi giữ CMYK khi veil mở.
+      const cmykMark = (sample) =>
+        sample.colorState &&
+        sample.fills[1]?.[0] >= 245 &&
+        sample.fills[1]?.[1] >= 225 &&
+        sample.fills[2]?.[0] >= 220 &&
+        sample.fills[2]?.[2] >= 100 &&
+        sample.fills[3]?.[1] >= 145 &&
+        sample.fills[3]?.[2] >= 210;
       assert(
-        advertisingStart >= 0 && startsBlack >= advertisingStart,
-        `Advertising mark did not begin monochrome black: ${JSON.stringify(
+        advertisingStart >= 0 && advertisingTrace.slice(advertisingStart).every(cmykMark),
+        `Advertising mark was not CMYK from mount under the veil: ${JSON.stringify(
           advertisingTrace.slice(Math.max(0, advertisingStart - 2), advertisingStart + 12),
         )}`,
-      );
-      // logo-route-crossfade R2, R3: lúc veil mở, từng dải tween từ đậm sang CMYK trong 0.3s expo.out (GSAP, không transition CSS).
-      assert(
-        endsCmyk > startsBlack && colorDuration <= 450,
-        `Advertising mark did not complete black-to-CMYK in 0.3s: ${JSON.stringify({
-          colorDuration,
-          startsBlack,
-          endsCmyk,
-        })}`,
       );
       assert(
         advertisingTrace
@@ -6097,7 +6067,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout, isAdvertisingWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
@@ -6182,7 +6152,7 @@ async function runAdvertisingGridFocusedChecks() {
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
-        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1), `${width}px v6 compiler lost 2..4 columns or one-column photos`);
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isAdvertisingWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
         const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
           Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
           Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
@@ -6194,7 +6164,8 @@ async function runAdvertisingGridFocusedChecks() {
         assert(Math.abs(measured.width - expectedGridWidth) <= 0.05, `${width}px grid width expected ${expectedGridWidth}, got ${measured.width}`);
         assert(expectedColumns >= 2 && expectedColumns <= 4, `${width}px expected column contract escaped 2..4: ${expectedColumns}`);
         assert(expectedLayout.columns === expectedColumns, `${width}px compiler columns expected ${expectedColumns}, got ${expectedLayout.columns}`);
-        assert(measured.tiles.every((tile) => Math.abs(tile.width - expectedCardWidth) <= 0.05), `${width}px one-column card width drift: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
+        // Card tỷ lệ vàng trải 2 cột ở lưới từ 3 cột (R5); bề rộng từng card so với placement ở phép kiểm dưới.
+        assert(measured.tiles.every((tile) => [1, 2].some((span) => Math.abs(tile.width - (span * expectedCardWidth + (span - 1) * expectedGap)) <= 0.05)), `${width}px card width is neither one nor two columns: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
         assert(measured.gapToken === expectedGap, `${width}px gap token expected ${expectedGap}, got ${measured.gapToken}`);
         assert(measured.overflow <= 1 && withinGrid, `${width}px horizontal overflow or out-of-grid tile: ${JSON.stringify({ overflow: measured.overflow, withinGrid })}`);
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
@@ -6844,8 +6815,11 @@ async function runAdvertisingMediaFocusedChecks() {
       cards.length === expectedCounts[category.slug] &&
         cards.every((card, index) => card.sourceOrder === index) &&
         layout.placements.length === pool.length &&
-        layout.placements.every((placement, index) => placement.card.id === pool[index].id),
-      `${category.slug} count or FIFO source order drifted`,
+        // Thứ tự xếp là FIFO theo nguồn; thứ tự nhìn (theo top) có thể lệch khi card hai cột hạ xuống đáy cao hơn (R5).
+        layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id) &&
+        new Set(layout.placements.map(({ card }) => card.id)).size === pool.length &&
+        pool.every(({ id }) => layout.placements.some(({ card }) => card.id === id)),
+      `${category.slug} count or pool order drifted`,
     );
   }
   const rankedLayout = compileAdvertisingLayout({

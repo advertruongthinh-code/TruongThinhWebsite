@@ -40,7 +40,9 @@ And mark bắt đầu lật sang CMYK khi veil phủ kín, không có tween fill
 
 ### R2. Veil bắt đầu mở: tone trang đích
 
-Lúc veil bắt đầu mở, chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích: trắng nếu trang đích có hero
+Veil phủ kín ít nhất `0.68s` (đúng một lượt lật mark) rồi mới mở, kể cả khi trang đích có trong cache hoặc tải
+rất nhanh, để chữ đậm và mark CMYK hiện đủ lâu trên veil, navbar không chớp (owner 2026-11-09); trang tải lâu hơn
+thì veil mở khi trang sẵn sàng như trước. Lúc veil bắt đầu mở, chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích: trắng nếu trang đích có hero
 ảnh (section đầu không có `data-header-tone="ink"`, lật lùi, đen trước), CMYK nếu hero trắng (đã CMYK thì không
 lật). Lượt lật CMYK của R1 chưa xong thì tua ngược từ chỗ đang dừng. Lúc gỡ veil, nếu tone trang đích đã đổi so
 với lúc veil bắt đầu mở (layout còn dịch), mark lật sang đúng màu.
@@ -82,8 +84,6 @@ kín, mark chạy tới hoặc tua ngược về CMYK theo [Brand](../../design-
 - Full menu, intro, FLIP scale, thời lượng và easing của veil không đổi.
 - Reduced motion: không veil, mark đổi ngay sang trạng thái cuối
   ([Shell R13](site-shell.md#r13-reduced-motion)).
-- Trang tải nhanh thì veil mở khoảng `0.1s` sau khi phủ kín, nên lượt lật CMYK của R1 mới bắt đầu đã tua ngược
-  về trắng (R2).
 
 ### R7. Cụm logo luôn hiện trên veil
 
@@ -107,7 +107,8 @@ opacity. Giữ [gate phone Android](../decisions/phone-frame-budget.md) (fps tru
 ## UI
 
 Logo: [BrandLockup](../../design-system/components/BrandLockup/README.md), [Brand motion](../../design-system/brand.md#motion).
-Code: `pinHeaderForRoute`, `inkRouteHeader` (gọi lúc veil phủ kín trong `coverRoute`), `playRouteEnter`,
+Code: `pinHeaderForRoute`, `inkRouteHeader` (gọi lúc veil phủ kín trong `coverRoute`), `playRouteEnter` (chờ
+`routeVeilHold`),
 `clearRouteEntry`, `colorHeader`, `paintHeaderMark`, `leadHeaderMark` (không chờ nhịp khi `headerMarkLeadFor` là
 `0`), `updateHeader` (`routeVeilInk`) trong `src/site/motion.js`.
 
@@ -115,7 +116,7 @@ Code: `pinHeaderForRoute`, `inkRouteHeader` (gọi lúc veil phủ kín trong `c
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R3 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, `/vi/` sang Residential, Advertising, Advertising sang `/vi/`; ghi mỗi frame màu chữ, lớp lật, opacity veil; không tween fill, không clip-path; chữ chỉ có đúng các màu đích, đổi sang đậm từ lúc veil phủ kín, sang tone trang đích lúc veil bắt đầu mở; lượt lật đầu bắt đầu từ lúc veil phủ kín, đúng màu và chiều |
+| R1–R3 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, `/vi/` sang Residential, Advertising, Advertising sang `/vi/`; ghi mỗi frame màu chữ, lớp lật, opacity veil; không tween fill, không clip-path; chữ chỉ có đúng các màu đích, đổi sang đậm từ lúc veil phủ kín, sang tone trang đích lúc veil bắt đầu mở; lượt lật đầu bắt đầu từ lúc veil phủ kín, đúng màu và chiều; veil phủ kín ít nhất 0.68s |
 | R5 | `tests/site/logo-route-crossfade.e2e.mjs`: bấm link lúc đang lật, lượt lật chạy tiếp, không tween fill |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (đổi màu khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-flip.e2e.mjs` (từng dải lật quanh trục riêng, cyan trước, chỉ transform và opacity, đổi hướng giữ mặt đang hiện) |

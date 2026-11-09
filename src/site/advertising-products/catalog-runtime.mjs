@@ -91,6 +91,16 @@ const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = 600;
 // Blur trên chính ảnh card đang tải (progressive-loading R9); filter không đọc lại nền mỗi frame như backdrop-filter.
 const CARD_LOADING_BLUR = "blur(24px)";
+// Blur lấy pixel trong suốt ngoài mép ảnh nên mép mờ nhạt dần lộ nền màu chủ đạo thành viền tối (owner 2026-11-09).
+// Ảnh mờ phóng thêm chừng này mỗi phía (1 sigma của blur: mép khung còn khoảng 16% màu nền) để dải nhạt nằm ngoài khung bị cắt.
+const CARD_LOADING_BLEED_PX = 24;
+const cardLoadingScale = (node) => {
+  const width = Number.parseFloat(node.style.width);
+  const height = Number.parseFloat(node.style.getPropertyValue("--advertising-media-height"));
+  return width > 0 && height > 0
+    ? `${1 + (2 * CARD_LOADING_BLEED_PX) / width} ${1 + (2 * CARD_LOADING_BLEED_PX) / height}`
+    : "1";
+};
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
@@ -1349,17 +1359,16 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
     && (related || !document.body.classList.contains("is-advertising-photo")));
-  // Tên card trên masonry chính (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới media ở
-  // lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên link),
-  // figcaption aria-hidden để trình đọc màn hình không đọc lặp. Related giữ nguyên, không có tên.
-  if (!related) {
-    const title = figure.appendChild(document.createElement("figcaption"));
-    title.className = "advertising-tile__title";
-    title.id = `advertising-title-${record.id}`;
-    title.setAttribute("aria-hidden", "true");
-    title.textContent = locale === "en" ? record.titleEn : record.titleVi;
-    figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
-  }
+  // Tên card trên masonry chính và related (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới
+  // media ở lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên
+  // link), figcaption aria-hidden để trình đọc màn hình không đọc lặp. Một card có thể cùng lúc ở lưới chính và
+  // related, nên id của related có tiền tố riêng.
+  const title = figure.appendChild(document.createElement("figcaption"));
+  title.className = "advertising-tile__title";
+  title.id = `${related ? "advertising-related-title" : "advertising-title"}-${record.id}`;
+  title.setAttribute("aria-hidden", "true");
+  title.textContent = locale === "en" ? record.titleEn : record.titleVi;
+  figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
   return figure;
 }
 
@@ -2674,7 +2683,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Ảnh hiện ngay dưới blur của chính nó để trình duyệt vẽ dần; filter trên ảnh không đọc lại nền mỗi frame như Kính
     // backdrop-filter nên kéo thanh cuộn không rớt FPS (progressive-loading R9).
-    mediaLayers(node).forEach((media) => { media.style.filter = CARD_LOADING_BLUR; });
+    const scale = cardLoadingScale(node);
+    mediaLayers(node).forEach((media) => {
+      media.style.filter = CARD_LOADING_BLUR;
+      media.style.scale = scale;
+    });
     // Card mờ chờ ảnh thì thở (detail.css, spec chờ ảnh S2); dropCardSkeleton gỡ cùng lúc gỡ blur.
     node.dataset.advertisingMediaLoading = "";
     node.style.setProperty("--breathe-phase", breathePhase());
@@ -2697,6 +2710,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaLayers(node).forEach((media) => {
       media.style.removeProperty("transition");
       media.style.removeProperty("filter");
+      media.style.removeProperty("scale");
     });
   };
   const heldReveals = new Set();
@@ -2753,7 +2767,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const from = layers.map((media) => getComputedStyle(media).opacity);
         delete node.dataset.advertisingMediaLoading;
         entry.animations = layers.map((media, index) => media.animate(
-          [{ filter: CARD_LOADING_BLUR, opacity: from[index] }, { filter: "none", opacity: 1 }],
+          [{ filter: CARD_LOADING_BLUR, opacity: from[index], scale: media.style.scale || "1" }, { filter: "none", opacity: 1, scale: "1" }],
           { duration: CARD_REVEAL_MS, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }));
       } else {
         layers.forEach((media) => {
@@ -3457,6 +3471,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     sizeLazyImage(node, placement);
     node.style.height = `${placement.pixelHeight}px`;
     node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
+    node.dataset.advertisingSpan = String(placement.width);
     node.dataset.advertisingPlacementIndex = String(placement.index);
     node.setAttribute("role", "listitem");
     node.setAttribute("aria-posinset", String(placement.index + 1));

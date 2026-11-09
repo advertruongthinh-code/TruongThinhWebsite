@@ -4783,6 +4783,10 @@ body.is-advertising-browse .advertising-grid {
   aspect-ratio: auto;
   overflow: hidden;
   background: #e9e6df;
+  /* Vòng 1px màu giấy vẽ trên nền khung, dưới media: chỗ nào media hụt khung dưới một pixel (làm tròn tỷ lệ, layer
+     composite lệch subpixel, mép khử răng cưa) lộ màu giấy như rãnh giữa card, không lộ màu chủ đạo thành lằn tối
+     (owner 2026-11-09). Không đổi hình học. */
+  box-shadow: inset 0 0 0 1px var(--paper);
 }
 
 .advertising-card-media {
@@ -4810,8 +4814,8 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính dùng lớp tối bằng hero
-   (--media-hover-overlay, owner 2026-11-09), related giữ 30%; lưới Công trình không có lớp tối. */
+   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính và related dùng lớp tối
+   bằng hero (--media-hover-overlay, owner 2026-11-09), nút gợi ý giữ 30%; lưới Công trình không có lớp tối. */
 .advertising-card-media::after {
   position: absolute;
   z-index: 1;
@@ -4823,7 +4827,8 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
-.advertising-grid .advertising-card-media::after {
+.advertising-grid .advertising-card-media::after,
+[data-advertising-related-card] .advertising-card-media::after {
   background: var(--media-hover-overlay);
 }
 
@@ -4831,8 +4836,8 @@ body.is-advertising-browse .advertising-grid {
   content: none;
 }
 
-/* Tên card (owner 2026-11-09). Advertising: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ "Vừa xem"
-   (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
+/* Tên card (owner 2026-11-09). Advertising, cả related: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ
+   "Vừa xem" (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
 .advertising-tile__title {
   display: none;
 }
@@ -4846,7 +4851,8 @@ body.is-advertising-browse .advertising-grid {
     opacity: 0;
   }
 
-  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title {
+  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title,
+  [data-advertising-related-card] .advertising-tile__title {
     position: absolute;
     z-index: 2;
     top: 0;
@@ -5056,10 +5062,17 @@ body.is-advertising-browse .advertising-grid {
   background: transparent;
 }
 
-.advertising-tile img {
+/* Media phủ đúng khung: height auto lấy tỷ lệ từ số pixel làm tròn của file đang tải (480w: 437x245), thấp hơn khung
+   tới 0,5px, nên một hàng pixel nền màu chủ đạo lộ ra ở đáy thành lằn tối (owner 2026-11-09). Khung đã đúng tỷ lệ gốc nên
+   height 100% chỉ giãn dưới 0,5px, không cắt ảnh. */
+.advertising-tile img,
+.advertising-tile video.advertising-tile__foreground {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+}
+
+.advertising-tile img {
   opacity: 0;
 }
 

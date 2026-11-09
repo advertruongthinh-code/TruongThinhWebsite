@@ -56,7 +56,7 @@ khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Proj
 nhúng trong trang (`buildProjectArtifact`), nên lưới, batch skeleton, kính cung và CTA đuôi, motion thẻ, cuộn, lọc, tải ảnh, ảo hóa
 giống hệt; mảng là category, loại là cụm (`clusterIds`), thẻ xếp ngẫu nhiên mỗi lần vào. Khác trang quảng cáo: không detail view,
 related, gợi ý, chip sản phẩm (`viewer: false`); bấm thẻ đi thẳng tới trang chi tiết công trình. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
-mô tả và URL.
+mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09).
 Thẻ có tên công trình (`titleVi`/`titleEn`, đổi theo ngôn ngữ) luôn hiện dưới media ở mọi viewport (owner 2026-11-09), như
 `/en/projects` của Espacio: chữ hoa 700 `0.8rem` màu ink, cách media 10px, canh trái, một dòng cắt "…" để hình học thẻ cố
 định; masonry và batch skeleton chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Chuột thật

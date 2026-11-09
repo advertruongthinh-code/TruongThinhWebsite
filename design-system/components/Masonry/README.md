@@ -11,8 +11,13 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 - Lề ngoài 15/25/35px (viewport `<= 750`, `<= 1200`, lớn hơn); khoảng giữa
   cột 15/25/35px (`<= 960`, `<= 1200`, lớn hơn). Masonry rộng hết viewport trừ
   lề ngoài, không giới hạn bề rộng tối đa.
-- Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; mỗi ảnh
-  rộng đúng một cột, cao theo tỷ lệ gốc.
+- Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; ảnh rộng
+  một cột, cao theo tỷ lệ gốc.
+- Card hai cột (owner 2026-11-09, mọi masonry kể cả related và Công trình):
+  ảnh bìa ngang `w/h >= 1.618` (tỷ lệ vàng) rộng hai cột cộng một gutter khi
+  `C >= 3` (1440px: 667.5px). Card đứng ở cột thấp nhất, trải sang cột kề có
+  top thấp hơn; nếu phải chừa lỗ quá nửa cột (158px ở 1440) dưới card thì giữ
+  một cột. Điện thoại 2 cột: mọi card một cột.
 
 | Viewport | Lề ngoài | Cột | Gutter | Rộng card |
 | ---: | ---: | ---: | ---: | ---: |

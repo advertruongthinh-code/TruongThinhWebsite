@@ -54,7 +54,7 @@ zoom, pan, vuốt đóng ([Viewer](components/Viewer/README.md)); trượt vào 
 | Đổi tone header | Chữ logo, nav và nét hamburger đổi màu ngay, không motion, cùng frame nền header đổi, theo `data-header-tone` của section dưới header ([Brand Motion](brand.md#motion), owner 2026-11-09); chuyển trang cũng đổi ngay: sang đậm lúc veil phủ kín, sang tone trang đích lúc veil bắt đầu mở ([logo đổi màu](../docs/specs/logo-route-crossfade.md)) |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay. Điện thoại cảm ứng (cạnh ngắn tối đa 750px): header lệch đúng bằng quãng cuộn, không transition, dừng thì giữ nguyên ([spec](../docs/specs/phone-header-scroll.md)) |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
-| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000, trừ lúc vào thẳng trang). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; lúc bấm header hiện ngay (bỏ `is-hidden`, không transition) và ghim lại, chữ và mark giữ màu; trang đích mount dưới veil, header về trạng thái theo vị trí cuộn của trang đích (thường là mở ra) bằng FLIP `0.3s expo.out` như khi cuộn, chạy trên veil; cụm logo header luôn hiện trên veil; veil phủ kín thì chữ đổi ngay sang đậm, mark lật sang CMYK; veil bắt đầu mở thì chữ đổi ngay, mark lật sang màu trang đích ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); body có `is-transitioning` trong lúc chuyển |
+| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000, trừ lúc vào thẳng trang). Cover `0.75s power4.inOut`, giữ phủ kín ít nhất `0.68s` (một lượt lật mark, kể cả trang có trong cache), uncover `1s power4.inOut`; lúc bấm header hiện ngay (bỏ `is-hidden`, không transition) và ghim lại, chữ và mark giữ màu; trang đích mount dưới veil, header về trạng thái theo vị trí cuộn của trang đích (thường là mở ra) bằng FLIP `0.3s expo.out` như khi cuộn, chạy trên veil; cụm logo header luôn hiện trên veil; veil phủ kín thì chữ đổi ngay sang đậm, mark lật sang CMYK; veil bắt đầu mở thì chữ đổi ngay, mark lật sang màu trang đích ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); body có `is-transitioning` trong lúc chuyển |
 | Vào thẳng trang | F5, gõ link, mở link từ ứng dụng khác, Back/Forward không qua bfcache: veil phủ cả trang lẫn header từ khung hình đầu; trang dựng xong thì uncover `1s power4.inOut`, header intro chạy khi veil tan và kết thúc đúng trạng thái theo vị trí cuộn (quá 100px thì thu gọn), entrance của trang chạy tiếp. Mạng chậm giữ veil tới khi trang dựng xong; script motion lỗi thì gỡ veil ngay, không motion. Back từ bfcache và reduced motion không có veil |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; menu đóng khi veil phủ kín và chữ menu đã reverse xong, không chờ shutter (trùng màu veil) và page scale; URL chỉ commit khi cả hai xong |
 | Gạch chân nav, footer, menu | [Gạch chân chạy](#motion-theo-bề-mặt-ui); mục Advertising ở trang detail không gạch chân khi nghỉ |
@@ -162,7 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
-| Card masonry Advertising | Không zoom; chuột thật: lớp `media-hover-overlay` (0.353) và tên card trắng hiện `600ms ease-out` (`--media-hover-*`); related lớp đen 30%, không tên; card Công trình không lớp tối ([Media card](components/MediaCard/README.md)) |
+| Card masonry Advertising | Không zoom; chuột thật: lớp `media-hover-overlay` (0.353) và tên card trắng hiện `600ms ease-out` (`--media-hover-*`), cả related; card Công trình không lớp tối ([Media card](components/MediaCard/README.md)) |
 | Nút Suggestion | Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
@@ -215,9 +215,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 (mục trên) và ảnh hiện (mục này).
 
 - Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
-  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
+  ngay ở opacity cuối dưới `blur(24px)`, phóng tràn khung 24px mỗi phía, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
   (opacity `1 → 0.45 → 1`, `2s ease-in-out`, lặp; reduced motion không thở). Tải và `decode()` xong thì thở dừng,
-  blur về `none` và opacity về 1 trong `0.6s`
+  blur về `none`, scale và opacity về 1 trong `0.6s`
   `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với

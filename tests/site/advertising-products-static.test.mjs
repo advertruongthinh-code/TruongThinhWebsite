@@ -108,10 +108,12 @@ assert.match(css, /\.advertising-grid__cta-frame[\s\S]*?opacity:\s*var\(--advert
 assert.match(css, /\.advertising-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
 assert.doesNotMatch(advertisingCss, /grid-template-columns|column-count/, "product CSS does not create a second column algorithm");
 assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no image captions");
-// Owner 2026-11-09: card masonry chính có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình); related không có.
-assert.match(runtime, /if \(!related\) \{\s*const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);[\s\S]{0,400}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "only main-grid cards get a title; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
+// Owner 2026-11-09: card masonry chính và related có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình).
+assert.doesNotMatch(runtime, /if \(!related\) \{\s*const title = figure\.appendChild/, "related cards are no longer excluded from the title");
+assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "advertising-tile__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
 assert.match(siteCss, /--media-hover-overlay:\s*rgba\(0, 0, 0, 0\.353\);/, "hover overlay token matches the hero-shade average darkness");
-assert.match(advertisingCss, /\.advertising-grid \.advertising-card-media::after \{\s*background: var\(--media-hover-overlay\);/, "main masonry hover overlay uses the shared token");
+assert.match(advertisingCss, /\.advertising-grid \.advertising-card-media::after,\s*\[data-advertising-related-card\] \.advertising-card-media::after \{\s*background: var\(--media-hover-overlay\);/, "main and related masonry hover overlay use the shared token");
+assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.advertising-grid:not\(\.advertising-grid--captioned\) \.advertising-tile__title,\s*\[data-advertising-related-card\] \.advertising-tile__title \{[^}]*opacity: 0;/, "related cards show the same real-mouse title as the main grid");
 assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-card-media::after \{\s*content: none;/, "project cards have no hover overlay");
 assert.match(advertisingCss, /\.advertising-tile__title \{\s*display: none;\s*\}\s*@media \(hover: hover\) and \(pointer: fine\)/, "advertising title only exists for a real mouse");
 assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title \{[^}]*height: var\(--advertising-caption-height\);[^}]*white-space: nowrap;/, "project caption fills the reserved one-line height");
@@ -141,7 +143,8 @@ assert.doesNotMatch(advertisingCss, /advertising-grid \.advertising-tile figcapt
 assert.match(advertisingCss, /\.advertising-tile \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");
 assert.doesNotMatch(advertisingCss, /\.advertising-tile \{[^}]*contain:\s*layout paint;/s, "tile paint containment cannot clip the focus-visible outline");
 assert.match(advertisingCss, /advertising-tile__media--natural[\s\S]*?background: transparent;/, "natural media has no frame surface");
-assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: auto;/, "natural media keeps intrinsic ratio without crop or stretch");
+// Khung đã theo tỷ lệ gốc của media; ảnh phủ đúng khung thay vì height auto theo pixel làm tròn của file đang tải (lằn đáy 0,5px).
+assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
 assert.match(advertisingCss, /advertising-tile img\.is-advertising-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
 assert.match(siteCss, /\.media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom\s*\{[\s\S]*?transform: scale\(1\.15\);/, "inactive advertising media inherits the shared project-card hover zoom");
 assert.doesNotMatch(advertisingCss, /object-fit|advertising-tile__backplate|data-media-fit|media--canvas/, "Advertising browse media has no crop, canvas, fit, or backplate selectors");

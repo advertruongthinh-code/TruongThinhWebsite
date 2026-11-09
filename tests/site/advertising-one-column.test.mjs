@@ -62,15 +62,22 @@ test("reserved regions cannot hide visually uneven real-photo tails", () => {
   assert.equal(violation.allowed, 180.68);
 });
 
-function assertOneColumn(layout, label) {
-  assert.ok(layout.placements.every((p) => p.width === 1), `${label}: every item occupies one column`);
+// Cover ngang từ tỷ lệ vàng (masonry R5); viết lại độc lập với layout-core.
+const isWide = (card) => {
+  const media = card.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card.media;
+  return card.kind !== "suggestion" && media.width * 1000 >= media.height * 1618;
+};
+
+function assertSpanGeometry(layout, label) {
+  if (layout.columns < 3) assert.ok(layout.placements.every((p) => p.width === 1), `${label}: 2-column grids keep every item in one column`);
+  assert.ok(layout.placements.every((p) => p.width === 1 || isWide(p.card)), `${label}: only golden-ratio covers span two columns`);
   for (const p of layout.placements) {
-    assert.ok(Math.abs(p.pixelWidth - layout.cardWidth) < 0.05, `${label}: natural width`);
+    assert.ok(Math.abs(p.pixelWidth - (p.width * layout.cardWidth + (p.width - 1) * layout.interCardGap)) < 0.05, `${label}: natural width`);
     assert.ok(Math.abs(p.mediaPixelHeight - p.pixelWidth * p.card.media.height / p.card.media.width) < 0.05, `${label}: natural height`);
   }
   assert.ok(layout.diagnostics.operations <= 300000, `${label}: operation budget`);
   for (const p of layout.placements) {
-    const reservedBottom = layout.initialColumnBottoms[p.left];
+    const reservedBottom = Math.max(...layout.initialColumnBottoms.slice(p.left, p.left + p.width));
     if (reservedBottom > 0) assert.ok(p.y >= reservedBottom + layout.interCardGap - 0.05, `${label}: reserved primary area remains clear`);
   }
 }
@@ -100,17 +107,26 @@ function assertSourceOrderShortestFrontier(layout, cards, label) {
     assert.ok(placement, `${label}: missing ${card.id}`);
     const frontier = columnBottoms.map((bottom) => bottom ? bottom + layout.interCardGap : 0);
     const minimumY = Math.min(...frontier);
-    const expectedLeft = frontier.findIndex((y) => Math.abs(y - minimumY) <= 1e-9);
-    assert.ok(Math.abs(placement.y - minimumY) <= 0.05,
-      `${label}: ${card.id} y=${placement.y} skipped shortest y=${minimumY}`);
-    assert.equal(placement.left, expectedLeft,
-      `${label}: ${card.id} did not use the leftmost shortest column`);
-    columnBottoms[placement.left] = placement.y + placement.pixelHeight;
+    const column = frontier.findIndex((y) => Math.abs(y - minimumY) <= 1e-9);
+    // Card tỷ lệ vàng ở lưới từ 3 cột trải sang cột kề của cột thấp nhất khi lỗ dưới nó không quá nửa cột; cặp có
+    // một cột trống, một cột đã có card thì không trải.
+    const pair = layout.columns >= 3 && isWide(card) ? [column - 1, column]
+      .filter((left) => left >= 0 && left + 1 < layout.columns)
+      .filter((left) => (columnBottoms[left] === 0) === (columnBottoms[left + 1] === 0))
+      .map((left) => ({ left, y: Math.max(frontier[left], frontier[left + 1]), hole: Math.abs(frontier[left] - frontier[left + 1]) }))
+      .filter(({ hole }) => hole <= 0.5 * layout.cardWidth + 0.05)
+      .sort((a, b) => a.y - b.y || a.left - b.left)[0] : null;
+    const expected = pair ? { left: pair.left, y: pair.y, width: 2 } : { left: column, y: minimumY, width: 1 };
+    assert.ok(Math.abs(placement.y - expected.y) <= 0.05,
+      `${label}: ${card.id} y=${placement.y} expected ${expected.y}`);
+    assert.equal(placement.left, expected.left, `${label}: ${card.id} did not use the expected column`);
+    assert.equal(placement.width, expected.width, `${label}: ${card.id} span follows the golden-ratio rule`);
+    for (let offset = 0; offset < placement.width; offset += 1) columnBottoms[placement.left + offset] = placement.y + placement.pixelHeight;
   }
 }
 
 function assertRelated(result, label) {
-  assertOneColumn(result.layout, label);
+  assertSpanGeometry(result.layout, label);
   assert.equal(result.primary.columns, result.layout.columns, `${label}: primary recomputed for final columns`);
   assert.equal(result.layout.placements.length, result.cards.length, `${label}: solver contains only real photos`);
   assert.equal(result.photoPlacements.length, result.cards.length, `${label}: photo placements contain every related photo`);
@@ -131,12 +147,12 @@ function assertRelated(result, label) {
   assert.equal(result.layout.diagnostics.budget, 300000, `${label}: aggregate diagnostic keeps the total operation budget`);
 }
 
-test("public grid uses one column for all groups and ignores retired span controls", () => {
+test("public grid follows the golden-ratio span rule for all groups and ignores retired span controls", () => {
   for (const width of widths) for (const filter of ["all", ...categoryOrder]) {
     const options = { layoutViewportWidth: width, filter };
     const baseline = compileAdvertisingLayout(options);
     assert.equal(baseline.columns, columnsForWidth(width), "parent retains viewport column count");
-    assertOneColumn(baseline, `${filter} ${width}`);
+    assertSpanGeometry(baseline, `${filter} ${width}`);
     const filteredCards = ADVERTISING_CARDS
       .filter((c) => matchesAdvertisingFilter(c, filter))
       .sort((a, b) => a.sourceOrder - b.sourceOrder || a.id.localeCompare(b.id));
@@ -146,6 +162,19 @@ test("public grid uses one column for all groups and ignores retired span contro
     assert.equal(legacy.coordinateHash, baseline.coordinateHash, "retired controls cannot change geometry or its identity");
     assert.equal(compileAdvertisingLayout(options).coordinateHash, baseline.coordinateHash, "repeat is deterministic");
   }
+});
+
+test("related compiles when golden-ratio covers take the two-column placement first", () => {
+  // Card ngang được chọn trải 2 cột trước, không lùi về một cột (layout-core R5); related kèm photo-peek vẫn phải giải được.
+  const heroId = "mobile-retail-04";
+  const wide = (media) => ({ ...media, width: 2000, height: 1000 });
+  const cards = ADVERTISING_CARDS.map((card) => card.id === heroId ? card : {
+    ...card, media: wide(card.media), ...(card.mediaItems ? { mediaItems: card.mediaItems.map(wide) } : {}),
+  });
+  const result = compileAdvertisingRelatedLayout({ cards, categoryOrder, heroId, tag: "use-sampling", ...viewportForWidth(1024) });
+  assert.equal(result.layout.columns, 4);
+  assert.ok(result.photoPlacements.some((placement) => placement.width === 2), "a 2:1 related card spans two columns");
+  assertRelated(result, "wide related layout");
 });
 
 test("related keeps fixed columns and measures its primary description once", () => {
@@ -220,7 +249,7 @@ test("related keeps fixed columns and measures its primary description once", ()
 test("product solver preserves source order and fills the shortest frontier through the tail", () => {
   const cards = [278, 251, 116, 109].map((height, index) => ({ id: `tail-${index}`, category: "test", sourceOrder: index, rank: index, media: { width: 172.5, height, src: "fixture.webp" } }));
   const layout = compileAdvertisingProductLayout({ cards, categoryOrder: ["test"], columns: 2, layoutViewportWidth: 390 });
-  assertOneColumn(layout, "terminal branching");
+  assertSpanGeometry(layout, "terminal branching");
   assert.deepEqual(layout.placements.map(({ card }) => card.id), cards.map(({ id }) => id),
     "visual placement order remains the source order when the shortest frontier alternates columns");
   assert.deepEqual(layout.placements.map(({ left, y }) => [left, Math.round(y * 100) / 100]), [
@@ -455,7 +484,7 @@ test("D9 selects the preferred 10 percent stagger phase for a mixed pool", () =>
   assert.equal(layout.diagnostics.fallbackUsed, false);
   assert.ok(layout.diagnostics.preferredAttempts > 0);
   assert.ok(layout.diagnostics.operations <= 300000);
-  assertOneColumn(layout, "D9 mixed preferred stagger");
+  assertSpanGeometry(layout, "D9 mixed preferred stagger");
 });
 
 test("every authored hero and tag combination remains feasible and deterministic", () => {
