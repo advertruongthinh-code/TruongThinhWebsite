@@ -172,6 +172,10 @@
   // Route mềm: header ở tone veil (chữ đậm, mark CMYK) từ lúc veil phủ kín tới lúc veil bắt đầu mở, kể cả khi trang
   // đích mount dưới veil (logo-route-crossfade R1, R2).
   let routeVeilInk = false;
+  // Veil phủ kín ít nhất bằng một lượt lật mark (0.68s), kể cả khi trang đích có sẵn trong cache: chữ đậm và mark CMYK
+  // hiện đủ lâu trên veil, navbar không chớp (owner 2026-11-09, logo-route-crossfade R2).
+  const routeVeilHold = 680;
+  let routeVeilCoveredAt;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
   let menuTimeline;
@@ -2202,6 +2206,7 @@
   const inkRouteHeader = () => {
     if (!routeMarkHeld) return;
     routeVeilInk = true;
+    routeVeilCoveredAt = performance.now();
     updateHeader();
     headerMarkLeadFor = 0;
     syncHeaderBrandSurface(true);
@@ -2262,6 +2267,8 @@
     }
     // Veil chờ cả font để chữ hero không đổi font sau khi lộ; font lỗi vẫn làm ready xong (progressive-loading R4).
     await document.fonts.ready;
+    const hold = routeMarkHeld && routeVeilInk ? routeVeilCoveredAt + routeVeilHold - performance.now() : 0;
+    if (hold > 0) await new Promise((resolve) => setTimeout(resolve, hold));
     routeTimeline?.kill();
     showHeader();
     header.classList.add("is-route-pinned");
@@ -2313,8 +2320,10 @@
 
   const syncAttributes = (current, next) => {
     // style trong menu là trạng thái đầu GSAP của timeline mở dựng một lần (buildMenuTimeline): xóa nó khi chuyển
-    // trang thì lần mở sau chữ menu hiện ngay trên trang trước khi shutter phủ.
-    const keep = (name) => name === "open" || (name === "style" && dialog.contains(current));
+    // trang thì lần mở sau chữ menu hiện ngay trên trang trước khi shutter phủ. Header trong HTML không có style inline;
+    // style trong header là state runtime (màu chữ, FLIP, mark ẩn khi lớp lật chạy): xóa giữa lúc lật thì mark CMYK gốc
+    // hiện lại dưới mặt trắng, lộ viền màu mờ quanh từng dải trên veil trắng (owner 2026-11-09).
+    const keep = (name) => name === "open" || (name === "style" && (dialog.contains(current) || header.contains(current)));
     [...current.attributes].forEach(({ name }) => {
       if (!keep(name) && !next.hasAttribute(name)) current.removeAttribute(name);
     });
@@ -2416,8 +2425,8 @@
     if (nextProfile) document.body.dataset.detailHeroProfile = nextProfile;
     else delete document.body.dataset.detailHeroProfile;
 
-    // Class `is-*` của header (màu mark, tone, nền) và màu chữ inline là state runtime; HTML trang mới không có nên giữ
-    // lại, nếu không chữ logo nháy trắng một frame trên veil vì màu chữ đổi ngay, không tween (owner 2026-11-09).
+    // Class `is-*` của header (màu mark, tone, nền) là state runtime; HTML trang mới không có nên giữ lại, nếu không chữ
+    // logo nháy trắng một frame trên veil (owner 2026-11-09). Style inline trong header syncAttributes đã giữ.
     const brandClasses = [...header.classList].filter((name) => name.startsWith("is-"));
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
@@ -2426,7 +2435,6 @@
       ),
     );
     header.classList.add(...brandClasses);
-    if (currentHeaderColor) colorHeader(currentHeaderColor);
     if (!persistentReady) return false;
     // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
     brandLockups.forEach(snapBrandMark);
