@@ -4783,6 +4783,10 @@ body.is-advertising-browse .advertising-grid {
   aspect-ratio: auto;
   overflow: hidden;
   background: #e9e6df;
+  /* Vòng 1px màu giấy vẽ trên nền khung, dưới media: chỗ nào media hụt khung dưới một pixel (làm tròn tỷ lệ, layer
+     composite lệch subpixel, mép khử răng cưa) lộ màu giấy như rãnh giữa card, không lộ màu chủ đạo thành lằn tối
+     (owner 2026-11-09). Không đổi hình học. */
+  box-shadow: inset 0 0 0 1px var(--paper);
 }
 
 .advertising-card-media {

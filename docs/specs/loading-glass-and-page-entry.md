@@ -37,7 +37,8 @@ chính nó (inline style, `CARD_LOADING_BLUR`), không animate vào, để trìn
 inline `scale` để tràn khỏi khung `24px` mỗi phía (`CARD_LOADING_BLEED_PX`, bằng 1 sigma của blur, mép khung còn khoảng 16% màu nền): blur nhạt dần ở mép ảnh,
 không phóng thì dải nhạt đó lộ màu chủ đạo thành viền tối quanh card (owner 2026-11-09). R2 đưa `scale` về 1 cùng nhịp blur tan.
 Ảnh đã tải phủ đúng khung (`height: 100%`, khung đã đúng tỷ lệ gốc nên chỉ giãn dưới 0,5px), không theo tỷ lệ pixel làm tròn của file đang tải, nên đáy
-card không lộ một hàng pixel màu chủ đạo.
+card không lộ một hàng pixel màu chủ đạo. Lớp chặn thứ hai: khung vẽ vòng `1px` màu giấy (`box-shadow: inset`, trên nền, dưới
+media), nên chỗ media hụt khung dưới một pixel vì layer composite lệch subpixel hay mép khử răng cưa chỉ lộ màu giấy.
 Khung media (`.advertising-card-media`) mang inline `background-color` là màu chủ đạo của ảnh bìa, nên ảnh chưa nhận byte
 nào vẫn hiện màu thay vì ô trắng. Card không có Kính, khung skeleton, Flow hay WebGL context: Kính `backdrop-filter` ba bậc trên 15 đến 18 card làm kéo
 thanh cuộn tụt còn 14 FPS. Skeleton Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)). Card mount
