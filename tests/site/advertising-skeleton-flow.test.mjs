@@ -249,10 +249,10 @@ const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 squ
 assert.deepEqual(wideConfig.ratios.map(({ id }) => id), ["landscape", "square", "portrait", "wide"]);
 assert.equal(readSkeletonBatchConfig({ skeletonRatios: "wide:x" }).ratios.length, 3, "a bad ratio list keeps the default bands");
 assert.equal(readSkeletonBatchConfig({}).maxFrames, Number.MAX_SAFE_INTEGER, "without a count the batch fills to its bottom");
-for (const columns of [2, 4]) {
-  const bottoms = [120, 180, 150, 210].slice(0, columns);
+for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [4, undefined]]) {
+  const bottoms = [120, 180, 150, 210, 90].slice(0, columns);
   const frames = createSkeletonFlowFrameLayout({ columnBottoms: bottoms, columns, cardWidth: 240, gap: 20,
-    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed: "wide" });
+    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed });
   const wide = frames.filter(({ span }) => span === 2);
   if (columns === 2) assert.equal(wide.length, 0, "a two-column grid keeps every frame one column wide");
   else {
@@ -266,9 +266,17 @@ for (const columns of [2, 4]) {
     assert(!(al < br && bl < ar && at < bb && bt < ab), `frames ${a.slot} and ${b.slot} do not overlap`);
   }));
   for (let column = 0; column < columns; column += 1) {
-    const last = frames.findLast((frame) => column >= frame.column && column < frame.column + frame.span);
-    assert.equal(last.top + last.height, 1_800, `column ${column} ends on the batch bottom`);
+    const own = frames.filter((frame) => column >= frame.column && column < frame.column + frame.span);
+    assert.equal(own.at(-1).top + own.at(-1).height, 1_800, `column ${column} ends on the batch bottom`);
+    assert(own.slice(1).every((frame, index) => frame.band !== own[index].band),
+      `column ${column} has no two frames of one band in a row, counting two-column frames`);
   }
+}
+// Hai khung mỏng cuối cột không chặn nhau: cả hai cùng gộp vào khung phía trên (lỗi review #769).
+for (const boundaryBottom of [1_040, 1_200, 1_500]) {
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
+    boundaryBottom, ratios: wideConfig.ratios });
+  assert(frames.every(({ height }) => height >= 240 * 0.25), `no thin frame survives at batch bottom ${boundaryBottom}`);
 }
 const counted = createSkeletonFlowFrameLayout({ columnBottoms: [100, 100, 100, 100], columns: 4, cardWidth: 200, gap: 20,
   boundaryBottom: 5_000, ...readSkeletonBatchConfig({ skeletonCount: "6" }) });

@@ -2952,6 +2952,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         }
         frame.dataset.advertisingCtaFrame = "true";
         frame.dataset.advertisingCtaColumn = String(column);
+        frame.dataset.advertisingCtaSpan = String(span);
         frame.dataset.advertisingCtaDepth = String(depth);
         frame.dataset.advertisingCtaRatioBand = band;
         frame.dataset.advertisingCtaSlot = slot;

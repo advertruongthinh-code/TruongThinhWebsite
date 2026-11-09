@@ -35,7 +35,7 @@ hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-
 thật (`canSpanTwoColumns`, `spanSlots` ở `layout-core.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
 khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; band mặc định (w/h tối đa 1.39) đều giữ một
 cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
-(id:cao/rộng), `data-skeleton-count` (tối đa N khung; mặc định lấp tới đáy batch). Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
+(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
 `1`, đứng `1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
 chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
@@ -215,7 +215,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-advertising-cta-skeleton]` (`data-advertising-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
-| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
+| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
 | Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
