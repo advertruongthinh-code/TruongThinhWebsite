@@ -133,11 +133,13 @@ export const newsListSource = (listPage) => `${listPage.path.slice(1)}index.html
 export const newsListRoutes = (news) => newsListPages(news).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, newsListSource(listPage)]));
 
 // Thẻ News theo Espacio /en/news: một ảnh bìa, nhóm và ngày, tiêu đề; kiểu lớn (bài đầu), thường, hàng ngang.
+// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS.
+const NEWS_CARD_VARIANT = { main: " blk-news-card--main", row: " blk-news-card--row" };
 const newsCard = (post, variant = "") => {
   const group = NEWS_GROUPS[post.group];
   const [year, month, day] = post.published.split("-");
   return [
-    `<a class="blk-news-card${variant ? ` blk-news-card--${variant}` : ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
+    `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
     `<img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" loading="lazy" />`,
     `<span class="blk-news-card__meta"><span data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span> · <time datetime="${post.published}">${day}/${month}/${year}</time></span>`,
     `<span class="blk-news-card__title" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span>`,
