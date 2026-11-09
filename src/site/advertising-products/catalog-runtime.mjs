@@ -2643,13 +2643,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return glass;
   };
   // Kính reveal bất kỳ còn trong DOM khi cung đang thấy làm Chrome bỏ blur các bậc của cung (skeleton R4):
-  // cung vào viewport thì gỡ Kính reveal của frame CTA, frame chỉ còn crossfade.
+  // cung vào viewport thì gỡ Kính reveal của frame CTA, frame chỉ còn crossfade. Tìm trong batch chứ không trong grid:
+  // ở detail batch nằm ở canvas cuối related (R9), Kính reveal sót làm lòng cung mất rồi hiện lại lần đầu sau F5.
   let arcInView = false;
   const arcTint = arcGlass?.querySelector(".glass-surface__tint");
   const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
     arcInView = entry.isIntersecting;
     if (!arcInView) return;
-    grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+    ctaSkeleton?.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
   });
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });

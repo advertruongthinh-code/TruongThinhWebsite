@@ -110,7 +110,7 @@ const toggleTag = async (page, tag) => {
   return page.evaluate(() => window.__ctaSample);
 };
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
@@ -231,6 +231,41 @@ try {
   }
   assert.ok(detourCase, `không ca nào trong ${heroes.length} hero có khung batch cần đi vòng primary`);
   console.log(`khung batch đi vòng: ${detourCase}; related rỗng: ${emptyCase || "không gặp"}`);
+
+  // F5 thẳng vào detail rồi cuộn tới cuối: Kính reveal của khung batch hay card related còn trong DOM khi cung đang thấy
+  // làm Chrome bỏ blur các bậc của cung, lòng cung mất rồi hiện lại (owner 2026-11-09; skeleton R4 áp cho mọi masonry).
+  {
+    const context = await browser.newContext({ viewport: { width: 1569, height: 912 } });
+    await context.addInitScript(() => {
+      window.__ttArcOverlap = { since: null, max: 0 };
+      const tick = () => {
+        const tint = document.querySelector('.glass-surface[data-glass-shape="arc"]:not([hidden]) .glass-surface__tint')?.getBoundingClientRect();
+        const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
+        const state = window.__ttArcOverlap;
+        const now = performance.now();
+        state.since = arcInView && document.querySelector(".glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
+        state.max = Math.max(state.max, state.since == null ? 0 : now - state.since);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    const fresh = await context.newPage();
+    await fresh.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await ready(fresh);
+    await fresh.evaluate(async () => {
+      const motion = window.TruongThinhMotion;
+      for (let step = 1; step <= 10; step++) {
+        const top = (document.documentElement.scrollHeight - innerHeight) * step / 10;
+        if (!motion?.setLogicalScroll?.(top)) window.scrollTo(0, top);
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    });
+    const overlap = await fresh.evaluate(() => window.__ttArcOverlap.max);
+    // Chừa vài frame: observer của cung báo vào view sau frame cung lộ; reveal 0.6s thì lộ cả reveal.
+    assert.ok(overlap <= 100, `detail F5: Kính reveal còn trong DOM ${Math.round(overlap)}ms khi cung đang thấy`);
+    await context.close();
+  }
 
   // Giảm chuyển động: đổi tag đặt khung thẳng, CTA vẫn sát footer.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
