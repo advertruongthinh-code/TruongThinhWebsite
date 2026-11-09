@@ -1,7 +1,7 @@
 // Ma trận chung cho mọi nơi có masonry (masonry-reuse bước 2, owner duyệt 2026-11-09): cùng kịch bản chạy trên masonry
 // Advertising, masonry Công trình và related ở detail. Sửa ở một nơi mà nơi khác không hưởng thì ma trận đỏ ở nơi đó.
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/masonry-hosts.e2e.mjs
-// MASONRY_HOSTS=advertising,related và MASONRY_VIEWPORTS=1440x900 để chạy một phần.
+// MASONRY_HOSTS=advertising,related và MASONRY_VIEWPORTS=1920x940 để chạy một phần.
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -26,23 +26,28 @@ const HOSTS = {
       await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
       await gridReady(page);
       await page.waitForTimeout(800);
-      await page.locator("[data-advertising-card] > a").first().click();
+      await page.locator("[data-advertising-card]:not([hidden]) > a").first().click();
       await detailReady(page);
     } },
 };
 // 1920x940: màn PC của owner, nơi card dọc cao quá 60% viewport (ngưỡng lên bản gốc).
 const VIEWPORTS = { "1920x940": { width: 1920, height: 940 }, "384x724": { width: 384, height: 724, isMobile: true, hasTouch: true, deviceScaleFactor: 1.875 } };
-const pick = (env, all) => (process.env[env] ? process.env[env].split(",") : Object.keys(all));
+const pick = (env, all) => {
+  const ids = process.env[env] ? process.env[env].split(",") : Object.keys(all);
+  ids.forEach((id) => assert.ok(all[id], `${env}: không có ${id}`));
+  return ids;
+};
 
 // Đo trong trang từ lần tải đầu: thời gian Kính reveal của batch còn trong DOM khi cung đang thấy, và CTA hiện
 // trước khi vào view.
 const firstEntryProbe = () => {
-  window.__masonry = { arcOverlap: 0, since: null, ctaEarly: false, frames: [], running: false };
+  window.__masonry = { arcOverlap: 0, arcSeen: false, since: null, ctaEarly: false, frames: [], running: false };
   const state = window.__masonry;
   const tick = () => {
     const now = performance.now();
     const tint = document.querySelector('.glass-surface[data-glass-shape="arc"]:not([hidden]) .glass-surface__tint')?.getBoundingClientRect();
     const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
+    if (arcInView) state.arcSeen = true;
     state.since = arcInView && document.querySelector("[data-advertising-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
     state.arcOverlap = Math.max(state.arcOverlap, state.since == null ? 0 : now - state.since);
     const cta = document.querySelector("[data-advertising-grid-cta]");
@@ -50,16 +55,20 @@ const firstEntryProbe = () => {
     // Chỉ xét lúc nút vừa nhận lớp hiện; sau đó cuộn đi nơi khác thì nút đã hiện là đúng.
     const link = cta?.querySelector("[data-motion-fade]");
     const shown = Boolean(link?.classList.contains("is-motion-inview"));
+    // Cụm ẩn chờ dựng batch ở detail có thể nhận lớp hiện rồi được đặt lại sau lần dựng (R9), nên không xét lúc ẩn;
+    // lỗi #755 do ctaShownNow bắt ở thời điểm trước khi CTA vào view.
     if (shown && !state.shown && link.getBoundingClientRect().top > innerHeight) {
       state.ctaEarly = `${Math.round(link.getBoundingClientRect().top - innerHeight)}px (${state.phase || "load"})`;
     }
     state.shown = shown;
     if (state.running) {
-      // Phần gốc lưới trong viewport được card thật hoặc card tạm phủ (lưới mẫu 16px).
+      // Phần vùng card trong viewport (từ đầu gốc lưới tới đầu cụm CTA) được card thật, card tạm hoặc primary phủ
+      // (lưới mẫu 16px). Frame trống hoàn toàn tính là 0, không bỏ qua.
       const root = document.querySelector(state.root)?.getBoundingClientRect();
-      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .advertising-ghost`)]
+      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .advertising-ghost, [data-advertising-photo-primary]`)]
         .map((node) => node.getBoundingClientRect()).filter((rect) => rect.bottom > 0 && rect.top < innerHeight && rect.height > 0);
-      const bottom = Math.min(innerHeight, root.bottom, Math.max(0, ...rects.map((rect) => rect.bottom)));
+      const zoneBottom = state.zoneBottom - (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
+      const bottom = Math.min(innerHeight, root.bottom, zoneBottom);
       let covered = 0;
       let total = 0;
       for (let y = Math.max(0, root.top) + 8; y < bottom; y += 16) {
@@ -68,7 +77,7 @@ const firstEntryProbe = () => {
           if (rects.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)) covered += 1;
         }
       }
-      if (total > 20) state.frames.push(covered / total);
+      if (total > 0) state.frames.push(covered / total);
     }
     requestAnimationFrame(tick);
   };
@@ -92,7 +101,8 @@ try {
     for (const hostId of pick("MASONRY_HOSTS", HOSTS)) {
       const host = HOSTS[hostId];
       const label = `${hostId} ${viewportId}`;
-      const context = await browser.newContext({ viewport: VIEWPORTS[viewportId], ...VIEWPORTS[viewportId] });
+      const { width, height, ...device } = VIEWPORTS[viewportId];
+      const context = await browser.newContext({ viewport: { width, height }, ...device });
       await context.addInitScript(firstEntryProbe);
       const page = await context.newPage();
       const errors = [];
@@ -109,6 +119,7 @@ try {
         return { rootTop: rect.top + y, rootBottom: Math.min(rect.bottom, cta?.top ?? Infinity) + y, viewport: innerHeight };
       }, host.root);
 
+      await page.evaluate((zoneBottom) => { window.__masonry.zoneBottom = zoneBottom; }, rootBottom);
       const phase = (name) => page.evaluate((value) => { window.__masonry.phase = value; }, name);
       await phase("settled");
       // 1. Mức phủ khi đứng yên ở vài vị trí trong lưới: nền so sánh cho lúc vuốt.
@@ -120,6 +131,8 @@ try {
         settled.push(Math.min(...await coverage(page)));
       }
       const floor = Math.min(...settled) - 0.08;
+      // Nền tự hạ khi lưới có khoảng trống lúc đứng yên: chặn bằng một mức tối thiểu (đáy lưới so le còn khoảng 0.6).
+      check(label, Math.min(...settled) >= 0.5, `đứng yên đã có khoảng trống, phủ ${settled.map((value) => value.toFixed(2)).join("/")}`);
 
       await phase("fling");
       // 2. Vuốt cực nhanh qua cả lưới (20 viewport/s, CPU chậm 4 lần): mọi frame giữ được mức phủ như lúc đứng yên.
@@ -131,7 +144,7 @@ try {
       await page.evaluate(([from, distance, perSecond]) => new Promise((resolve) => {
         const begin = performance.now();
         const frame = (now) => {
-          const progress = Math.min(1, (now - begin) / Math.max(250, 1000 * distance / perSecond));
+          const progress = Math.min(1, (now - begin) / Math.max(1000, 1000 * distance / perSecond));
           window.TruongThinhMotion?.setLogicalScroll?.(from + distance * progress) || window.scrollTo(0, from + distance * progress);
           if (progress < 1) requestAnimationFrame(frame);
           else resolve();
@@ -140,8 +153,13 @@ try {
       }), [rootTop, span, 20 * viewport]);
       const fling = await page.evaluate(() => { window.__masonry.running = false; return window.__masonry.frames; });
       await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
-      if (span > viewport && fling.length > 5) {
-        check(label, Math.min(...fling) >= floor, `vuốt nhanh để lộ khoảng trống, tệ nhất ${Math.min(...fling).toFixed(3)} dưới ${floor.toFixed(3)}`);
+      // Lưới ngắn hơn hai viewport không có gì để vuốt: ghi rõ trong log, không lặng lẽ bỏ qua.
+      const flingRan = span > viewport;
+      if (flingRan) {
+        check(label, fling.length > 5, `vuốt nhanh chỉ đo được ${fling.length} frame`);
+        // Frame tệ thứ hai: một frame rơi lẻ trên runner bận không phải khoảng trống thật.
+        const worstTwo = [...fling].sort((a, b) => a - b)[1] ?? 0;
+        check(label, worstTwo >= floor, `vuốt nhanh để lộ khoảng trống, tệ nhì ${worstTwo.toFixed(3)} dưới ${floor.toFixed(3)}`);
       }
 
       // 3. Dừng lại: không card nào được giữ quá hai viewport (vùng giữ của cửa sổ cuộn).
@@ -162,6 +180,10 @@ try {
       // 5. Tải lại (F5) rồi kéo từ đầu tới cuối: khung batch vào view lần đầu trước cung (lỗi #757 chỉ lộ theo đường
       // này), Kính reveal của batch không chồng cung, CTA không hiện trước khi vào view.
       check(label, !await ctaShownNow(page), "CTA đã hiện trước khi vào view");
+      // Đường mở đầu tiên (route mềm với related) cũng phải sạch: F5 bên dưới khởi tạo lại bộ đo.
+      const opened = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, ctaEarly: window.__masonry.ctaEarly }));
+      check(label, opened.arcOverlap <= 100, `Kính reveal còn trong DOM ${Math.round(opened.arcOverlap)}ms khi cung đang thấy (trước F5)`);
+      check(label, !opened.ctaEarly, `CTA hiện sớm trước F5: ${opened.ctaEarly}`);
       check(label, !errors.length, `lỗi runtime ${JSON.stringify(errors)}`);
       errors.length = 0;
       await page.reload({ waitUntil: "domcontentloaded" });
@@ -170,24 +192,26 @@ try {
       await page.waitForTimeout(1500);
       check(label, !await ctaShownNow(page), "sau F5: CTA đã hiện trước khi vào view");
       await page.evaluate(async () => {
-        const end = document.documentElement.scrollHeight - innerHeight;
+        const end = () => document.documentElement.scrollHeight - innerHeight;
         let y = 0;
         if (!window.TruongThinhMotion?.setLogicalScroll?.(0)) window.scrollTo(0, 0);
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        while (y < end) {
-          y = Math.min(end, y + innerHeight / 2);
+        // Đáy tính lại mỗi bước: batch và related có thể làm trang dài thêm khi đang cuộn.
+        while (y < end()) {
+          y = Math.min(end(), y + innerHeight / 2);
           if (!window.TruongThinhMotion?.setLogicalScroll?.(y)) window.scrollTo(0, y);
           await new Promise((resolve) => setTimeout(resolve, 120));
         }
       });
       await page.waitForTimeout(2000);
-      const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, ctaEarly: window.__masonry.ctaEarly,
+      const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, arcSeen: window.__masonry.arcSeen, ctaEarly: window.__masonry.ctaEarly,
         ctaShown: Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
+      check(label, end.arcSeen, "cung Kính không vào view, kiểm Kính reveal không có nghĩa");
       check(label, end.arcOverlap <= 100, `Kính reveal còn trong DOM ${Math.round(end.arcOverlap)}ms khi cung đang thấy`);
       check(label, !end.ctaEarly, `CTA đã hiện khi nút còn dưới viewport ${end.ctaEarly}`);
       check(label, end.ctaShown, "CTA không hiện khi vào view");
       check(label, !errors.length, `lỗi runtime sau F5 ${JSON.stringify(errors)}`);
-      console.log(`${label}: phủ đứng yên ${settled.map((value) => value.toFixed(2)).join("/")}, vuốt tệ nhất ${fling.length ? Math.min(...fling).toFixed(2) : "-"} (${fling.length} frame), xa nhất ${Math.round(farthest)}px, Kính chồng cung ${Math.round(end.arcOverlap)}ms`);
+      console.log(`${label}: phủ đứng yên ${settled.map((value) => value.toFixed(2)).join("/")}, vuốt ${flingRan ? `tệ nhất ${Math.min(...fling).toFixed(2)} (${fling.length} frame)` : `bỏ qua, lưới chỉ ${((span + viewport) / viewport).toFixed(1)} viewport`}, xa nhất ${Math.round(farthest)}px, Kính chồng cung ${Math.round(end.arcOverlap)}ms`);
       await context.close();
     }
   }
