@@ -125,3 +125,4 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Canvas**: khung media của card, cao theo tỷ lệ item cover.
 - **Dải**: vùng điều khiển 44px dưới canvas, chứa chấm hoặc bộ đếm.
 - **Cover**: item được `coverMediaId` chọn làm mặt trước của card.
+- **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.

@@ -40,13 +40,18 @@ try {
     // Lớp chặn thứ hai: ép media hụt khung 0,6px; hàng pixel đáy của card nền tối phải là màu giấy, không phải màu chủ đạo.
     await page.addStyleTag({ content: ".advertising-tile img { height: calc(100% - 0.6px) !important; }" });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .advertising-tile .project-tile__media")].flatMap((media) => {
-      const [r, g, b] = (media.style.backgroundColor.match(/\d+/g) ?? []).map(Number);
+    // Khung nền tối đặt tay (rgb 20) trên card đã hiện ảnh, không phụ thuộc màu chủ đạo của catalog.
+    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .advertising-tile .project-tile__media")].filter((media) => {
       const box = media.getBoundingClientRect();
-      if (!(0.299 * r + 0.587 * g + 0.114 * b < 80) || box.top < 0 || box.bottom > innerHeight - 4 || box.width < 60) return [];
-      return [{ x: box.left + 8, y: Math.ceil(box.bottom) - 1, width: box.width - 16, luminance: 0.299 * r + 0.587 * g + 0.114 * b }];
+      return media.querySelector("img.is-advertising-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
+    }).slice(0, 4).map((media) => {
+      media.style.backgroundColor = "rgb(20, 20, 20)";
+      const box = media.getBoundingClientRect();
+      return { x: box.left + 8, y: Math.ceil(box.bottom) - 1, width: box.width - 16, luminance: 20 };
     }));
-    for (const card of darkCards.slice(0, 4)) {
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.ok(darkCards.length >= 2, `${viewport.width}px: enough settled cards for the sub-pixel check (${darkCards.length})`);
+    for (const card of darkCards) {
       const { data, info } = await sharp(await page.screenshot({ clip: { x: card.x, y: card.y, width: card.width, height: 1 } })).raw().toBuffer({ resolveWithObject: true });
       let sum = 0;
       for (let i = 0; i < info.width * info.channels; i += info.channels) sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
