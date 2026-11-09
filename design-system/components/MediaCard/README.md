@@ -18,8 +18,9 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
-  ảnh hiện ngay dưới `blur(24px)` của chính nó, thở (opacity `1 → 0.45 → 1`, `2s`,
-  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan và opacity về 1 cùng nhịp `0.6s`. Ảnh đã có sẵn hiện ngay, không motion
+  ảnh hiện ngay dưới `blur(24px)` của chính nó, phóng tràn khung 24px mỗi phía để
+  mép mờ không thành viền tối (owner 2026-11-09), thở (opacity `1 → 0.45 → 1`, `2s`,
+  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`). Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
   2026-10-18); chuột thật hover phủ lớp tối lên canvas: masonry chính

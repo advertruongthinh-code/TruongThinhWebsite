@@ -10,8 +10,9 @@ tests:
   - tests/site/advertising-remount-no-cache.e2e.mjs
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
+  - tests/site/advertising-media-edge.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-11-07
+updated: 2026-11-09
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -32,7 +33,11 @@ WebGL context ở [skeleton](advertising-skeleton.md); cách Kính hiện, tan �
 Card của masonry chính và related (cả card nhiều media) vào viewport mà media đang hiện chưa tải xong thì ngay lúc đó,
 không chờ mốc thời gian, kể cả khi đang cuộn hay giữ thanh cuộn, media hiện ở opacity cuối dưới `filter: blur(24px)` của
 chính nó (inline style, `CARD_LOADING_BLUR`), không animate vào, để trình duyệt vẽ dần
-([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
+([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Media mờ phóng bằng
+inline `scale` để tràn khỏi khung `24px` mỗi phía (`CARD_LOADING_BLEED_PX`, bằng 1 sigma của blur, mép khung còn khoảng 16% màu nền): blur nhạt dần ở mép ảnh,
+không phóng thì dải nhạt đó lộ màu chủ đạo thành viền tối quanh card (owner 2026-11-09). R2 đưa `scale` về 1 cùng nhịp blur tan.
+Ảnh đã tải phủ đúng khung (`height: 100%`, khung đã đúng tỷ lệ gốc nên chỉ giãn dưới 0,5px), không theo tỷ lệ pixel làm tròn của file đang tải, nên đáy
+card không lộ một hàng pixel màu chủ đạo.
 Khung media (`.advertising-card-media`) mang inline `background-color` là màu chủ đạo của ảnh bìa, nên ảnh chưa nhận byte
 nào vẫn hiện màu thay vì ô trắng. Card không có Kính, khung skeleton, Flow hay WebGL context: Kính `backdrop-filter` ba bậc trên 15 đến 18 card làm kéo
 thanh cuộn tụt còn 14 FPS. Skeleton Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)). Card mount
@@ -215,10 +220,10 @@ And card tạm lên card thật thì ảnh hiện dần trong 0.45s, card chỉ 
 | --- | --- | --- |
 | DOM hook | `.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` trong `.advertising-photo-view__hero-frame`; canvas `data-advertising-flow-batch="loading"` | Skeleton chờ ảnh của primary (R4); gỡ sau khi ảnh hiện hoặc khi rời đi, lỗi (R6, R7) |
 | DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính ba bậc của primary (R4) và frame CTA |
-| DOM hook | `style="filter: blur(24px)"` trên `.advertising-tile__foreground` | Ảnh card chờ tải mờ (R1), gỡ sau R2 |
+| DOM hook | `style="filter: blur(24px); scale: …"` trên `.advertising-tile__foreground` | Ảnh card chờ tải mờ, tràn khung 24px (R1), gỡ sau R2 |
 | DOM hook | `data-advertising-media-loading` trên card | Card đang mờ chờ ảnh thì thở (R1); gỡ lúc blur tan (R2), rời đi hoặc lỗi (R6, R7) |
 | DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh và nền vùng dư cũ ngay khi đổi `src`; primary đang chờ (R4, R5) |
-| Runtime | `attachCardSkeleton` (đặt blur), `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `playPrimaryReveal`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `CARD_LOADING_BLUR`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
+| Runtime | `attachCardSkeleton` (đặt blur), `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `playPrimaryReveal`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `CARD_LOADING_BLUR`, `CARD_LOADING_BLEED_PX`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
 | Hàm public | `createGlassSurface`, `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`); `createSkeletonFlowRenderer`, `staticBackground` (`skeleton-flow.mjs`) | Kính và renderer dùng lại nguyên |
 | Card | `figure.advertisingPendingMediaId()` | Media id đang chờ hoặc `null`; runtime hỏi trước khi gắn skeleton |
 
@@ -240,7 +245,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `image-loading-frame.e2e.mjs` (P9: ảnh card đang tải mờ và thở `media-breathe`, không Kính; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang ảnh card đầu mờ từ frame đầu, không animate vào; mọi card mờ mang `data-advertising-media-loading`; kéo thanh cuộn không card nào có Kính); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
+| R1 | `image-loading-frame.e2e.mjs` (P9: ảnh card đang tải mờ và thở `media-breathe`, không Kính; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang ảnh card đầu mờ từ frame đầu, không animate vào; mọi card mờ mang `data-advertising-media-loading`; kéo thanh cuộn không card nào có Kính); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng); `advertising-media-edge.e2e.mjs` (ảnh mờ tràn khung ít nhất 24px mỗi phía, ảnh đã tải phủ đúng khung ở 1920 và 390) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: blur gỡ sau khi tải, ảnh kết thúc `filter: none`, hết thở); `advertising-skeleton-slow-network.e2e.mjs` (opacity không nhảy quá 0.1 giữa hai frame khi thở dừng); `image-reveal-complete.e2e.mjs` (blur chỉ tan khi ảnh tải xong) |
 | R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không blur), `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` (card ảo hóa gắn lại); `advertising-remount-no-cache.e2e.mjs` (tắt cache, mạng chậm, cuộn nhảy: không card trắng quá `400ms`) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính ba bậc chỉ opacity, phone khớp PC); `glass-surface.e2e.mjs` (ghi từng frame khi related tải chậm và Back có sẵn: skeleton trước Kính, ảnh không đậm hơn Kính lúc Kính tăng; nhịp từng lớp giống nhau giữa lần mở, related và Back; card tải chậm không Kính); `node tests/site/glass-surface.test.mjs` (ba bậc, mức Kính theo thời gian); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle` |

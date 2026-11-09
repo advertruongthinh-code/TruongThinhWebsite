@@ -141,7 +141,8 @@ assert.doesNotMatch(advertisingCss, /advertising-grid \.advertising-tile figcapt
 assert.match(advertisingCss, /\.advertising-tile \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");
 assert.doesNotMatch(advertisingCss, /\.advertising-tile \{[^}]*contain:\s*layout paint;/s, "tile paint containment cannot clip the focus-visible outline");
 assert.match(advertisingCss, /advertising-tile__media--natural[\s\S]*?background: transparent;/, "natural media has no frame surface");
-assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: auto;/, "natural media keeps intrinsic ratio without crop or stretch");
+// Khung đã theo tỷ lệ gốc của media; ảnh phủ đúng khung thay vì height auto theo pixel làm tròn của file đang tải (lằn đáy 0,5px).
+assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
 assert.match(advertisingCss, /advertising-tile img\.is-advertising-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
 assert.match(siteCss, /\.media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom\s*\{[\s\S]*?transform: scale\(1\.15\);/, "inactive advertising media inherits the shared project-card hover zoom");
 assert.doesNotMatch(advertisingCss, /object-fit|advertising-tile__backplate|data-media-fit|media--canvas/, "Advertising browse media has no crop, canvas, fit, or backplate selectors");

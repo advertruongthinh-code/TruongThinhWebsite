@@ -5056,10 +5056,17 @@ body.is-advertising-browse .advertising-grid {
   background: transparent;
 }
 
-.advertising-tile img {
+/* Media phủ đúng khung: height auto lấy tỷ lệ từ số pixel làm tròn của file đang tải (480w: 437x245), thấp hơn khung
+   tới 0,5px, nên một hàng pixel nền màu chủ đạo lộ ra ở đáy thành lằn tối (owner 2026-11-09). Khung đã đúng tỷ lệ gốc nên
+   height 100% chỉ giãn dưới 0,5px, không cắt ảnh. */
+.advertising-tile img,
+.advertising-tile video.advertising-tile__foreground {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+}
+
+.advertising-tile img {
   opacity: 0;
 }
 
