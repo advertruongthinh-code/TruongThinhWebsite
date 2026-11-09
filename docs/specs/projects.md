@@ -45,8 +45,9 @@ Then cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm m
 ### R2. Trang toàn bộ công trình
 
 Dạng masonry như trang Advertising (owner 2026-10-12), hero tiêu đề hai dòng như `/en/projects`. Bộ lọc: Nhà ở, Kinh doanh và
-loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ có ảnh đại diện (cover) theo
-tỷ lệ cover theo [card nhiều media R1](media-card.md#r1-dữ-liệu-media-của-card), tên công trình, loại, địa điểm.
+loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), lọc nhiều điều kiện như admin. Thẻ là [card nhiều media](media-card.md#r1-dữ-liệu-media-của-card)
+(owner 2026-11-09): người soạn đặt khung thẻ (`card.width`, `card.height`) rồi chọn ảnh cho thẻ (`card.media`, theo
+thứ tự chọn); mọi ảnh khít đúng tỷ lệ khung, không vùng dư (`kindFieldErrors` chặn); không chọn thì thẻ chỉ có ảnh bìa. CMS theo đúng flow này.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
@@ -101,7 +102,9 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
 dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
 luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
-`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh.
+`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
+Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh chưa duyệt dùng ảnh giữ chỗ `placeholder-ngang`,
+`placeholder-doc` (owner 2026-11-09: dựng trang trước, thay ảnh khi owner Lấy).
 
 | Số ảnh | Chuỗi khối ([layout-library](layout-library.md)) |
 | --- | --- |
