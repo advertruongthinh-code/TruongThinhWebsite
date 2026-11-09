@@ -101,7 +101,7 @@ And khung batch dưới CTA vẫn mang màu của một trong 12 preset
 Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
 ([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
 Flow. Khi Kính cung đang giao viewport, khung chỉ crossfade, không Kính reveal; cung vừa vào viewport thì gỡ mọi Kính reveal
-đang chạy trong grid: bất kỳ Kính reveal nào còn trong DOM làm Chrome bỏ blur các bậc của cung (đo trên PC owner, 07/10). Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
+đang chạy trong batch, ở grid lẫn ở detail (lần đầu sau F5 detail, 09/11): bất kỳ Kính reveal nào còn trong DOM làm Chrome bỏ blur các bậc của cung (đo trên PC owner, 07/10). Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
 vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại dưới Kính cung trông như
 các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner thấy trên PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
@@ -228,7 +228,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
-| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
+| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |
