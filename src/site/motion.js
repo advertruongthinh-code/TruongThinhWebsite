@@ -767,9 +767,9 @@
     headerMark.style.removeProperty("visibility");
     headerMarkFlip = undefined;
   };
-  // Gỡ lớp lật khi mọi mặt chạy xong; quay ngược thì chờ lại từ đầu, lượt chờ cũ bỏ qua.
-  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích đã đổi (`flip.next`) thì lật tiếp từ màu vừa tới, sau khi
-  // hết nhịp header của lần đổi đó.
+  // Gỡ lớp lật khi mọi mặt chạy xong. Mỗi lần tua ngược thì `gen` tăng, lượt chờ cũ bỏ qua.
+  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích sang màu thứ ba (`flip.next`) thì lật tiếp từ màu vừa tới,
+  // sau khi hết nhịp header của lần đổi đó.
   const advanceHeaderMarkFlip = (flip) => {
     if (headerMarkFlip !== flip) return;
     const next = flip.next;
@@ -783,16 +783,33 @@
       return;
     }
     stopHeaderMarkFlip();
-    flipHeaderMark(flip.to, next.target);
+    flipHeaderMark(flip.dest, next.target, next.backward);
   };
   const settleHeaderMarkFlip = (flip) => {
-    Promise.all(flip.animations.map((animation) => animation.finished)).then(() => advanceHeaderMarkFlip(flip), () => {});
+    const gen = flip.gen;
+    Promise.all(flip.animations.map((animation) => animation.finished)).then(
+      () => flip.gen === gen && advanceHeaderMarkFlip(flip),
+      () => {},
+    );
+  };
+  // Lượt lật là một đoạn motion chạy tới (`front` sang `back`, cyan trước) hoặc chạy lùi (`back` về `front`, đen trước).
+  // Đổi đích về đầu kia lúc đang lật: tua ngược ngay từ chỗ đang dừng, như tua băng (owner 2026-11-09).
+  const runHeaderMarkFlip = (flip, rate) => {
+    flip.next = undefined;
+    flip.dest = rate > 0 ? flip.back : flip.front;
+    if (flip.animations[0].playbackRate === rate) return;
+    flip.animations.forEach((animation) => animation.reverse());
+    flip.gen += 1;
+    settleHeaderMarkFlip(flip);
   };
   // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
   const headerFlipShade = "#000";
   const headerFlipShadeMax = 0.5;
-  // Dựng lớp lật và lật từng dải từ `from` sang `target`.
-  const flipHeaderMark = (from, target) => {
+  // Dựng lớp lật và lật từng dải từ `from` sang `target`. `backward` (về trắng): dựng lượt lật từ `target` sang `from`
+  // rồi chạy lùi từ cuối, nên đen lật trước, cyan sau cùng, đúng là trắng sang CMYK tua ngược (owner 2026-11-09).
+  const flipHeaderMark = (from, target, backward) => {
+    const front = backward ? target : from;
+    const back = backward ? from : target;
     // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
     // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
     const logoRect = headerLogo.getBoundingClientRect();
@@ -826,25 +843,29 @@
       // Phối cảnh đặt ngay trên trục từng dải, dải lật tại chỗ; cỡ phối cảnh theo cỡ mark.
       band.style.perspective = `${width * 6}px`;
       band.style.perspectiveOrigin = origin;
-      const front = face(path, from[index]);
-      const back = face(path, target[index]);
-      front.style.transformOrigin = back.style.transformOrigin = origin;
-      band.append(front, back);
+      const frontFace = face(path, front[index]);
+      const backFace = face(path, back[index]);
+      frontFace.style.transformOrigin = backFace.style.transformOrigin = origin;
+      band.append(frontFace, backFace);
       root.append(band);
-      return { front, back };
+      return { front: frontFace, back: backFace };
     });
     // SVG không chứa được lớp HTML; lớp lật nằm trong #header-logo nên cùng chịu FLIP scale.
     headerLogo.prepend(root);
     headerMark.style.visibility = "hidden";
-    const flip = { root, bands, from, to: target, animations: [] };
+    const flip = { root, bands, front, back, dest: target, gen: 0, animations: [] };
     headerMarkFlip = flip;
     // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
+    // Mọi mặt cùng kết thúc ở mốc cuối của lượt (endDelay), nên chạy lùi từ cuối hay tua ngược giữa chừng thì các dải
+    // vẫn giữ đúng lệch 80ms, theo thứ tự ngược lại.
+    const total = (bands.length - 1) * 80 + 440;
     const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
     const shade = (layer, keyframes, timing) => flip.animations.push(layer.lastElementChild.animate(keyframes, timing));
     bands.forEach(({ front, back }, index) => {
       const delay = (bands.length - 1 - index) * 80;
-      const frontTiming = { delay, duration: 200, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
-      const backTiming = { delay: delay + 200, duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" };
+      // Mặt sau dùng đúng đường cong đối xứng của mặt trước, cùng 220ms: chạy lùi trông như chạy tới, không khựng đầu lượt.
+      const frontTiming = { delay, duration: 220, endDelay: total - delay - 220, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
+      const backTiming = { delay: delay + 220, duration: 220, endDelay: total - delay - 440, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "both" };
       shade(front, [{ opacity: 0 }, { opacity: headerFlipShadeMax }], frontTiming);
       shade(back, [{ opacity: headerFlipShadeMax }, { opacity: 0 }], backTiming);
       flip.animations.push(front.animate(
@@ -864,6 +885,7 @@
         backTiming,
       ));
     });
+    if (backward) flip.animations.forEach((animation) => animation.reverse());
     settleHeaderMarkFlip(flip);
   };
   let headerMarkLead;
@@ -908,16 +930,14 @@
       if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
       else from = leading.from;
     }
-    // Đang lật tới đúng màu này (header gọi lại cùng tone, hoặc đổi hướng rồi quay lại): lật tiếp, bỏ lượt lật nối.
-    if (flipping && rise && !tween && same(flipping.to)) {
-      flipping.next = undefined;
-      return;
-    }
-    // Đang lật mà màu đích đổi (đổi hướng giữa chừng, sang màu khác): lượt đang chạy lật cho xong, không quay ngược, rồi
-    // lượt mới lật tiếp sang màu đích, cyan trước, sau nhịp header của lần đổi này (owner 2026-11-09: quay ngược các dải
-    // làm đen lật trước, chạy từ phải sang trái).
+    // Về trắng thì chạy lùi, đen lật trước (owner 2026-11-09); sang màu khác thì chạy tới, cyan trước.
+    const backward = className === "is-brand-inverse";
+    // Đang lật mà đích là một đầu của lượt lật: chạy tới hoặc tua ngược từ chỗ đang dừng (đích đang tới thì lật tiếp).
+    // Sang màu thứ ba: lượt đang chạy lật cho xong, rồi lật tiếp sang màu đó sau nhịp header của lần đổi này.
     if (flipping && rise && !tween && !reduceMotion) {
-      flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000 };
+      const rate = same(flipping.back) ? 1 : same(flipping.front) ? -1 : 0;
+      if (rate) runHeaderMarkFlip(flipping, rate);
+      else flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000, backward };
       return;
     }
     // Chuyển trang hoặc vẽ ngay khi đang lật: lớp cũ là mặt đang hiển thị của từng dải.
@@ -936,7 +956,7 @@
     headerMarkPaths.forEach((path, index) => path.style.setProperty("fill", from[index]));
     leadHeaderMark(className, () => {
       headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
-      flipHeaderMark(from, target);
+      flipHeaderMark(from, target, backward);
     }, from);
   };
   function syncHeaderBrandSurface(whiteSurface, tween) {
