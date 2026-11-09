@@ -637,11 +637,15 @@
     // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
     header.classList.toggle("is-collapsed", collapsed);
-    // Nền, viền và màu chữ đổi một lần, không motion, khi logo FLIP và navbar chạy xong nhịp 0.3s (owner 2026-11-09);
-    // mark giữ màu cũ tới cùng lúc đó rồi mới lật (leadHeaderMark).
+    // Nền, viền và màu chữ đổi một lần, không motion (owner 2026-11-09). Thu gọn: đổi khi logo FLIP và navbar chạy xong
+    // nhịp 0.3s, mark giữ màu cũ tới lúc đó rồi mới lật (leadHeaderMark). Mở ra: nền trong và chữ trắng đổi ngay lúc
+    // navbar bắt đầu chuyển, mark lật sau 0.1s.
     headerSurfaceNext = [ink, collapsed];
-    if (collapsedChanged && hasGsap && !reduceMotion) {
+    if (collapsedChanged) {
       headerSurfaceCall?.kill();
+      headerSurfaceCall = undefined;
+    }
+    if (collapsedChanged && collapsed && hasGsap && !reduceMotion) {
       headerSurfaceCall = gsap.delayedCall(headerBeat, () => {
         headerSurfaceCall = undefined;
         paintHeaderSurface(...headerSurfaceNext);

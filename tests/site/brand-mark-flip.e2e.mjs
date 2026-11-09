@@ -1,6 +1,7 @@
 // brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
 // cyan trước đen sau; chỉ transform, opacity để GPU chạy; đổi hướng giữa chừng quay ngược các dải.
-// Hai nhịp: logo, navbar chạy 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay và mark lật (owner 2026-11-09).
+// Thu gọn: logo, navbar chạy 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay và mark lật. Mở ra: nền, chữ đổi
+// ngay lúc navbar bắt đầu chuyển, mark lật sau 0.1s (owner 2026-11-09).
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -41,7 +42,7 @@ const watchPhases = () => {
   }).observe(logo, { childList: true });
   window.__phases = phases;
 };
-// Thu gọn, mở ra: lật bắt đầu ở 0.3s theo tick GSAP, cùng frame nền đổi (owner 2026-11-09). Tick GSAP tính từ frame trước lúc đổi
+// Thu gọn: lật bắt đầu ở 0.3s theo tick GSAP, cùng frame nền đổi; mở ra: 0.1s (owner 2026-11-09). Tick GSAP tính từ frame trước lúc đổi
 // class, nên trên runner chậm (frame tới khoảng 70ms) có thể sớm hơn mốc đổi class đo bằng MutationObserver một frame.
 const flipLead = () => {
   const { collapse, flip } = window.__phases;
@@ -152,7 +153,10 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    assert.ok(expandLead >= 250 && expandLead < 330, `${label}: flip back to white also waits for the header beat (${expandLead.toFixed(0)}ms)`);
+    // Mở ra: nền trong, chữ trắng đổi ngay lúc navbar bắt đầu chuyển (owner 2026-11-09), mark lật sau 0.1s.
+    const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
+    assert.deepEqual([expandSample.background, expandSample.text], ["rgba(0, 0, 0, 0)", "rgb(255, 255, 255)"], `${label}: clear background and white text switch at once on the way up`);
+    assert.ok(expandLead >= 50 && expandLead < 125, `${label}: flip back to white starts 0.1s after the header expands (${expandLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgba(0, 0, 0, 0)", border: "rgba(0, 0, 0, 0)", text: "rgb(255, 255, 255)" }, `${label}: surface clears with the flip back`);
     const back = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span")]
       .map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]));
