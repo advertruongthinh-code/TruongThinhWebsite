@@ -544,7 +544,7 @@ function assertPersistentNavigationContracts() {
       /\.site-header\s*\{[\s\S]*?border-bottom:\s*0 solid transparent;/.test(
         styleSource,
       ) &&
-      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom:\s*1px solid #d3d3d3;/.test(
+      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom-width:\s*1px;[\s\S]*?\.site-header\.is-surface\s*\{[\s\S]*?border-bottom-color:\s*#d3d3d3;/.test(
         styleSource,
       ),
     "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
@@ -2293,12 +2293,13 @@ async function runHeaderParityChecks() {
         (frame) =>
           frame.values.every((value) => value === "rgb(47, 47, 47)"),
       );
+      // Owner 2026-11-09: mark, chữ, nav, hamburger đổi màu cùng một frame, không tween, sau nhịp FLIP 0.3s.
       assert(
         firstChanged >= 0 &&
-          Math.max(...changed) - firstChanged <= 1 &&
-          settled > firstChanged &&
-          trace[settled].time - trace[firstChanged].time <= 380,
-        `Header tone tween drifted: ${JSON.stringify({ changed, settled })}`,
+          Math.max(...changed) === firstChanged &&
+          settled === firstChanged &&
+          trace[firstChanged].time >= 250,
+        `Header tone tween drifted: ${JSON.stringify({ changed, settled, at: trace[firstChanged]?.time })}`,
       );
       assertDiagnostics(diagnostics);
     },

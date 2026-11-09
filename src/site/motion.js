@@ -505,7 +505,8 @@
       !hasGsap ||
       reduceMotion
     ) {
-      if (hasGsap) gsap.killTweensOf(targets);
+      // Chỉ dừng tween màu: #header-logo còn tween FLIP scale đang chạy.
+      if (hasGsap) gsap.killTweensOf(targets, "color,stroke");
       colorTargets.forEach((target) => target.style.setProperty("color", color));
       strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
       return;
@@ -598,6 +599,22 @@
     header.style.removeProperty("transform");
   };
 
+  // Nhịp header (brand.md Motion): logo FLIP và navbar chạy chung 0.3s expo.out; xong nhịp thì nền, viền, chữ đổi ngay
+  // không motion (owner 2026-11-09) và mark lật từ đó. Đổi tone không thu gọn (section nền trắng): mark lật sau 0.1s,
+  // 0.1s cũng là nhịp stagger nav lúc intro.
+  const headerBeat = 0.3;
+  const headerSettle = 0.1;
+  // Header thu gọn hoặc mở ra: mark chờ cả nhịp 0.3s, lật cùng lúc nền đổi (updateHeader).
+  let headerMarkLeadFor = headerSettle;
+  let headerSurfaceCall;
+  let headerSurfaceNext;
+  const paintHeaderSurface = (ink, collapsed) => {
+    header.classList.toggle("is-ink", ink);
+    header.classList.toggle("is-logo-ink", collapsed);
+    header.classList.toggle("is-surface", collapsed);
+    const color = ink ? "#2f2f2f" : "#ffffff";
+    if (color !== currentHeaderColor) colorHeader(color, true);
+  };
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =
       document.body.classList.contains("is-transitioning") ||
@@ -619,13 +636,23 @@
         : null;
     // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
-    header.classList.toggle("is-ink", ink);
-    header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-collapsed", collapsed);
-    colorHeader(ink ? "#2f2f2f" : "#ffffff");
+    // Nền, viền và màu chữ đổi một lần, không motion, khi logo FLIP và navbar chạy xong nhịp 0.3s (owner 2026-11-09);
+    // mark giữ màu cũ tới cùng lúc đó rồi mới lật (leadHeaderMark).
+    headerSurfaceNext = [ink, collapsed];
+    if (collapsedChanged && hasGsap && !reduceMotion) {
+      headerSurfaceCall?.kill();
+      headerSurfaceCall = gsap.delayedCall(headerBeat, () => {
+        headerSurfaceCall = undefined;
+        paintHeaderSurface(...headerSurfaceNext);
+      });
+      headerMarkLeadFor = headerBeat;
+    }
+    if (!headerSurfaceCall) paintHeaderSurface(ink, collapsed);
     if (!routeMarkHeld && (activeSection || routeTransitionActive || collapsed)) {
       syncHeaderBrandSurface(ink);
     }
+    headerMarkLeadFor = headerSettle;
     if (collapsedChanged) {
       headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
@@ -810,11 +837,6 @@
     });
     settleHeaderMarkFlip(flip);
   };
-  // Nhịp header (brand.md Motion): nền, viền đổi ngay; chữ, logo FLIP và navbar chạy chung 0.3s expo.out. Expo.out đi
-  // gần hết quãng sớm: ở 0.1s logo đã đi khoảng 90%, nên mark lật từ 0.1s (owner 2026-11-09), không còn khoảng đứng im
-  // và mark trắng chìm trên nền trắng ngắn nhất; 0.1s cũng là nhịp stagger nav lúc intro.
-  const headerBeat = 0.3;
-  const headerSettle = 0.1;
   let headerMarkLead;
   // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
   // đứng yên ở góc hiện tại trong lúc chờ.
@@ -823,7 +845,7 @@
       run();
       return;
     }
-    const call = gsap.delayedCall(headerSettle, () => {
+    const call = gsap.delayedCall(headerMarkLeadFor, () => {
       if (headerMarkLead?.call === call) headerMarkLead = undefined;
       run();
     });
@@ -932,6 +954,8 @@
   const pinHeaderForRoute = () => {
     header.style.transitionDuration = "0s";
     header.classList.remove("is-hidden");
+    headerSurfaceCall?.kill();
+    headerSurfaceCall = undefined;
     header.classList.add("is-route-pinned", "is-ink");
     routeDestinationReady = false;
     colorHeader("#2f2f2f");
