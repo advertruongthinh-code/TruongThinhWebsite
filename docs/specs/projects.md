@@ -101,7 +101,9 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
 dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
 luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
-`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh.
+`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
+Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh chưa duyệt dùng ảnh giữ chỗ `placeholder-ngang`,
+`placeholder-doc` (owner 2026-11-09: dựng trang trước, thay ảnh khi owner Lấy).
 
 | Số ảnh | Chuỗi khối ([layout-library](layout-library.md)) |
 | --- | --- |
