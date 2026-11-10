@@ -16,8 +16,9 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Mọi card masonry (chính, bộ lọc, related, Công trình) có
   `figcaption.advertising-tile__title` (`aria-hidden`, tên VI/EN theo ngôn ngữ,
   link lấy tên qua `aria-labelledby`; id related có tiền tố
-  `advertising-related-title-`) nằm trên trái trong canvas, cách mép 8px, chữ
-  trắng `0.8rem` 700 chữ hoa có bóng D, tối đa 2 dòng rồi dấu ba chấm
+  `advertising-related-title-`) nằm trên trái trong canvas như tên board của pin
+  Pinterest: chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px, cách mép trái
+  và phải 28px, chữ hoa có bóng D, một dòng rồi dấu ba chấm
   (owner 2026-11-10). Mọi UI của card nằm trong media nên card cao đúng bằng media.
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
@@ -58,10 +59,10 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 | Số item | Hàng pill trong canvas | Điều khiển |
 | --- | --- | --- |
 | 1 | Không | Không chỉ báo |
-| 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 16×44px |
-| Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
+| 2 tới 5 | 40px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 16×40px |
+| Từ 6 | Pill cộng 12px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
 
-- Hàng pill nằm sát đáy, trong canvas, lề 8px, không nền (owner 2026-11-10):
+- Hàng pill nằm sát đáy, trong canvas, không nền; pill cách đáy card 12px như hàng nút dưới của pin Pinterest (owner 2026-11-10):
   chấm hoặc bộ đếm ở giữa. Card không có nhãn thời lượng video.
 - Chấm hoặc bộ đếm nằm trong một pill học Pinterest (owner 2026-11-10): nền
   than `rgba(51, 51, 51, 0.8)`, bo 12px. Pill chấm gọn cao 16px, chấm 8px cách
@@ -126,6 +127,6 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Masonry**: lưới ảnh xếp so le theo chiều cao ảnh.
 - **Alt**: mô tả ảnh cho người không nhìn thấy.
 - **Canvas**: khung media của card, cao theo tỷ lệ item cover.
-- **Hàng pill**: hàng 44px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
+- **Hàng pill**: hàng 40px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
 - **Cover**: item được `coverMediaId` chọn làm mặt trước của card.
 - **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.

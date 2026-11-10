@@ -4849,25 +4849,26 @@ body.is-advertising-browse .advertising-grid {
   transition: none;
 }
 
-/* Card name: top left inside the 48px flat part of the shade, white, two lines then an ellipsis. Hidden until hover; it
-   stays the link's accessible name (aria-labelledby). */
+/* Card name as Pinterest's board name on pin hover (measured 2026-11-10): 16px bold on a 24px line, centred in the 48px flat
+   part of the shade (top 24px), 28px from the card edges, one line then an ellipsis. Hidden until hover; it stays the
+   link's accessible name (aria-labelledby). */
 .advertising-tile__title {
   position: absolute;
   z-index: 2;
-  top: 8px;
-  right: 8px;
-  left: 8px;
+  top: 24px;
+  right: 28px;
+  left: 28px;
   display: -webkit-box;
   overflow: hidden;
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.5;
   text-shadow: var(--text-shadow-d);
   text-transform: uppercase;
   opacity: 0;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   pointer-events: none;
 }
 
@@ -4938,15 +4939,26 @@ body.is-advertising-browse .advertising-grid {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 44px;
+  height: var(--card-pill-row);
   box-sizing: border-box;
   padding: 0 8px;
   pointer-events: none;
 }
 
+/* The pill sits 12px above the card edge, like the buttons along the bottom of a hovered Pinterest pin (measured
+   2026-11-10): the dots pill is centred in the 40px row, the taller counter pill rests on a 12px bottom inset. */
+.advertising-tile {
+  --card-pill-row: 40px;
+}
+
+.advertising-card-media__indicator:has(.advertising-card-media__count) {
+  height: auto;
+  padding-bottom: 12px;
+}
+
 /* Dots or the counter sit in a pill copied from Pinterest's "5/14" carousel counter (measured 2026-11-10): charcoal
    rgba(51, 51, 51, 0.8), radius 12px, white 12px regular text, padding 4px 8px. The dots pill is compact like Pinterest's
-   carousel dots: 8px dots every 16px, 16px tall; the 16x44px dot hit areas fill the row. */
+   carousel dots: 8px dots every 16px, 16px tall; the 16x40px dot hit areas fill the row. */
 .advertising-card-media__pill {
   display: flex;
   flex: none;
@@ -4970,7 +4982,7 @@ body.is-advertising-browse .advertising-grid {
   display: grid;
   flex: 0 0 16px;
   width: 16px;
-  height: 44px;
+  height: var(--card-pill-row);
   padding: 0;
   place-items: center;
   border: 0;
@@ -5407,14 +5419,14 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Multi-media masonry card arrows as on the Pinterest grid (measured 2026-10-18): 32px hit areas at the left and right edges,
-   from the top of the canvas down to the 44px pill row, thin white 16px chevron (centre 16px from the edge), no background,
+   from the top of the canvas down to the pill row, thin white 16px chevron (centre 16px from the edge), no background,
    above the hover layer; a light shadow keeps the chevron readable on bright media; the button is its own layer so the shadow
    paints once (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px);
+  height: calc(100% - var(--card-pill-row));
   border-radius: 0;
   background: transparent;
   color: #fff;

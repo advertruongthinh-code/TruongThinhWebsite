@@ -46,7 +46,7 @@ Then validateAdvertisingCardMedia ném lỗi "ratio must match the card", không
 ### R2. Canvas và hàng pill trong media
 
 Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `masonry/layout.mjs`), kể cả khi cover là video. Mọi UI của card nằm trong media (owner 2026-11-10): card cao đúng bằng media ở masonry, bộ lọc, related và Công trình; batch skeleton và card
-tạm cũng không chừa chỗ dưới media. Hàng pill cao 44px sát đáy, trong canvas: chấm hoặc bộ đếm ở giữa, cách mép 8px. Card không có nhãn thời lượng video
+tạm cũng không chừa chỗ dưới media. Hàng pill cao 40px sát đáy, trong canvas: chấm hoặc bộ đếm ở giữa, pill cách đáy card 12px như hàng nút dưới của pin Pinterest khi hover (owner 2026-11-10). Card không có nhãn thời lượng video
 (owner 2026-11-10). Card một item không có hàng pill; item đó là video hoặc ảnh khác `record.media` thì card hiện đúng
 item đó. Đổi media, tải chậm hay lỗi không đổi khung
 card, canvas hay hàng pill (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
@@ -63,7 +63,7 @@ And chuyển sang video chậm tải thì khung card, canvas, hàng pill lệch 
 
 ### R3. Đổi media trên card
 
-2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 16×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
+2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 16×40px tên "Xem media i trên N" / "Show media i of N", chấm đang
 xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item: dải chỉ có bộ đếm `i/N`
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải. Chấm hoặc bộ đếm nằm trong một pill
 giữa dải học Pinterest (owner 2026-11-10, đo bộ đếm "5/14" và chấm carousel trên pinterest.com): nền than
@@ -74,7 +74,7 @@ bị chặn. Vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi qu�
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
 về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
 ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
-ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Tên card (`titleVi`/`titleEn`, `figcaption.advertising-tile__title`) nằm trên trái trong media, cách mép 8px, chữ trắng `0.8rem` 700 chữ hoa có bóng D, tối đa 2 dòng rồi dấu ba chấm, `aria-hidden`
+ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Tên card (`titleVi`/`titleEn`, `figcaption.advertising-tile__title`) nằm trên trái trong media như tên board của pin Pinterest (owner 2026-11-10, đo trên pinterest.com): chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px (giữa phần phẳng 48px của lớp tối), cách mép trái và phải 28px, chữ hoa có bóng D, một dòng rồi dấu ba chấm, `aria-hidden`
 vì alt đã là tên; dưới tên là lớp tối học nguyên Pinterest (`--media-shade-card`: 48px trên phẳng `rgba(17,17,17,0.4)`,
 rồi nhạt tuyến tính về 0 ở đáy card; đo trên pin Pinterest 2026-11-10). Mọi card masonry (chính, bộ lọc, related, Công
 trình) như nhau (owner 2026-11-10, thay quy tắc cũ "Advertising không có tên card"). Chuột thật: tên và lớp tối chỉ hiện
@@ -279,7 +279,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Ngưỡng vuốt (10px chốt hướng,
   nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
 - Chấm 8px theo UI chấm Gallery, test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 8px như Gallery và chấm
-  carousel Pinterest, vùng bấm còn 16×44px (trước 20×44px) để pill gọn như owner muốn (2026-11-10).
+  carousel Pinterest, vùng bấm còn 16×40px (trước 20×44px) để pill gọn và gần đáy như owner muốn (2026-11-10).
 - Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
   dùng lại đúng dấu này ở thread riêng.
 - Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã
@@ -292,7 +292,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - **Media-card**: card có identity, một hoặc nhiều media và đích detail.
 - **Cover**: item `coverMediaId` chọn làm mặt trước và tỷ lệ canvas của card.
 - **Canvas**: vùng media giữ tỷ lệ cover; card cao đúng bằng canvas.
-- **Hàng pill**: hàng 44px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
+- **Hàng pill**: hàng 40px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
 - **Fixture synthetic**: dữ liệu và file giả chèn trong test, không phải media thật.
 - **Số nguyên an toàn**: số nguyên JavaScript biểu diễn chính xác (`Number.isSafeInteger`).
 - **Scroll settle**: lúc cuộn đã dừng đủ lâu để tính lại ứng viên.

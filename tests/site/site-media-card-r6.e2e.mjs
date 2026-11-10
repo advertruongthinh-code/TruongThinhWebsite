@@ -208,7 +208,7 @@ async function runCard(locale, count, surface, width) {
       `${label} card adds no strip below the media: ${JSON.stringify(initial)}`);
     assert(initial.indicator && inside(initial.indicator, initial.media)
       && Math.abs(initial.indicator.bottom - initial.media.bottom) <= 1
-      && Math.abs(initial.indicator.height - 44) <= 1,
+      && Math.abs(initial.indicator.height - (count >= 6 ? 39.2 : 40)) <= 1,
     `${label} pill row must sit at the bottom inside the media: ${JSON.stringify(initial)}`);
     assertPillRow(initial, label);
     // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
@@ -217,14 +217,16 @@ async function runCard(locale, count, surface, width) {
     // the dots pill is 16px tall, the counter pill 4px 8px around 12px text.
     assert(initial.pill?.background === "rgba(51, 51, 51, 0.8)" && initial.pill.radius === "12px"
       && Math.abs(initial.pill.height - (count >= 6 ? 27.2 : 16)) <= 0.5
+      // Pill 12px above the card edge, like the bottom buttons of a hovered Pinterest pin (owner 2026-11-10).
+      && Math.abs(initial.media.bottom - initial.pill.bottom - 12) <= 0.5
       && inside(initial.pill, initial.indicator), `${label} indicator sits in a pill: ${JSON.stringify(initial.pill)}`);
     if (count >= 6) {
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
       assert(inside(initial.count, initial.pill), `${label} numeric count sits inside the pill`);
     } else {
       assert(initial.controls.every((control) => Math.abs(control.box.width - 16) <= 0.5
-        && Math.abs(control.box.height - 44) <= 0.5),
-      `${label} dots need 16x44 pointer targets: ${JSON.stringify(initial.controls)}`);
+        && Math.abs(control.box.height - 40) <= 0.5),
+      `${label} dots need 16x40 pointer targets: ${JSON.stringify(initial.controls)}`);
       assert(Math.abs(initial.dotVisualSize.width - 8) <= 1 && Math.abs(initial.dotVisualSize.height - 8) <= 1,
         `${label} visible dot should be about 8px: ${JSON.stringify(initial.dotVisualSize)}`);
       assert(initial.controls.every((control) => Math.abs(control.box.top - initial.controls[0].box.top) <= 1),
