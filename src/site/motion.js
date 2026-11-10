@@ -2577,6 +2577,9 @@
       }
       // Owner 2026-11-08: đổi ngôn ngữ chạy lại toàn bộ motion như F5. Veil phủ rồi tải trang đích từ đầu
       // (route-enter của head-inline mở veil, intro chạy lại, cuộn về đầu); replace để không thêm entry history.
+      // Owner 2026-11-10: không cho thấy header ngôn ngữ cũ khi menu đóng lại trên veil; trang đích tải lại hiện header mới.
+      // replace() bỏ trang cũ khỏi history nên bfcache không trả lại header đang ẩn.
+      header.style.visibility = "hidden";
       await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
