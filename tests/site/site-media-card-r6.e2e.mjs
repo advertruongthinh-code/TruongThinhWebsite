@@ -213,16 +213,18 @@ async function runCard(locale, count, surface, width) {
     assertPillRow(initial, label);
     // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
     assert.equal(initial.controls.length, count >= 6 ? 0 : count);
-    // Owner 2026-10-26: chấm hoặc bộ đếm nằm trong pill than 0.9, bo 8px như nhãn thời lượng, giữa dải.
-    assert(initial.pill?.background === "rgba(32, 33, 32, 0.9)" && initial.pill.radius === "8px"
+    // Owner 2026-11-10: dots or the counter sit in a Pinterest counter pill (charcoal 0.8, radius 12px), centred in the row;
+    // the dots pill is 16px tall, the counter pill 4px 8px around 12px text.
+    assert(initial.pill?.background === "rgba(51, 51, 51, 0.8)" && initial.pill.radius === "12px"
+      && Math.abs(initial.pill.height - (count >= 6 ? 27.2 : 16)) <= 0.5
       && inside(initial.pill, initial.indicator), `${label} indicator sits in a pill: ${JSON.stringify(initial.pill)}`);
     if (count >= 6) {
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
       assert(inside(initial.count, initial.pill), `${label} numeric count sits inside the pill`);
     } else {
-      assert(initial.controls.every((control) => Math.abs(control.box.width - 20) <= 0.5
+      assert(initial.controls.every((control) => Math.abs(control.box.width - 16) <= 0.5
         && Math.abs(control.box.height - 44) <= 0.5),
-      `${label} dots need 20x44 pointer targets: ${JSON.stringify(initial.controls)}`);
+      `${label} dots need 16x44 pointer targets: ${JSON.stringify(initial.controls)}`);
       assert(Math.abs(initial.dotVisualSize.width - 8) <= 1 && Math.abs(initial.dotVisualSize.height - 8) <= 1,
         `${label} visible dot should be about 8px: ${JSON.stringify(initial.dotVisualSize)}`);
       assert(initial.controls.every((control) => Math.abs(control.box.top - initial.controls[0].box.top) <= 1),

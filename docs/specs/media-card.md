@@ -63,11 +63,12 @@ And chuyển sang video chậm tải thì khung card, canvas, hàng pill lệch 
 
 ### R3. Đổi media trên card
 
-2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
+2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 16×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
 xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item: dải chỉ có bộ đếm `i/N`
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải. Chấm hoặc bộ đếm nằm trong một pill
-giữa dải (cao 24px, bo 8px), màu than `rgba(32,33,32,0.9)` như bộ đếm "2/8" của Pinterest; chấm
-đảo màu (thường trắng 40%, đang xem trắng), bộ đếm chữ trắng 12px 500. Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
+giữa dải học Pinterest (owner 2026-11-10, đo bộ đếm "5/14" và chấm carousel trên pinterest.com): nền than
+`rgba(51,51,51,0.8)`, bo 12px; pill chấm gọn cao 16px, chấm 8px cách nhau 16px tâm tới tâm; pill bộ đếm padding 4px 8px,
+chữ trắng 12px thường, line-height 1.6 (cao khoảng 27px). Chấm đảo màu (thường trắng 40%, đang xem trắng). Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
@@ -277,8 +278,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Ngưỡng vuốt (10px chốt hướng,
   nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
-- Chấm 8px theo UI chấm Gallery, test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
-  của Gallery để giữ vùng bấm 20×44px.
+- Chấm 8px theo UI chấm Gallery, test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 8px như Gallery và chấm
+  carousel Pinterest, vùng bấm còn 16×44px (trước 20×44px) để pill gọn như owner muốn (2026-11-10).
 - Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
   dùng lại đúng dấu này ở thread riêng.
 - Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã

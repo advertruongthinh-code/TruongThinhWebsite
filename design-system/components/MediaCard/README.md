@@ -58,14 +58,15 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 | Số item | Hàng pill trong canvas | Điều khiển |
 | --- | --- | --- |
 | 1 | Không | Không chỉ báo |
-| 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 20×44px |
+| 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 16×44px |
 | Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
 
 - Hàng pill nằm sát đáy, trong canvas, lề 8px, không nền (owner 2026-11-10):
   chấm hoặc bộ đếm ở giữa. Card không có nhãn thời lượng video.
-- Chấm hoặc bộ đếm nằm trong một pill: cao
-  24px, bo 8px, nền than `rgba(32, 33, 32, 0.9)` như bộ đếm "2/8" của Pinterest
-  (owner 2026-10-26). Bộ đếm chữ trắng `0.75rem` đậm 500 `tabular-nums`.
+- Chấm hoặc bộ đếm nằm trong một pill học Pinterest (owner 2026-11-10): nền
+  than `rgba(51, 51, 51, 0.8)`, bo 12px. Pill chấm gọn cao 16px, chấm 8px cách
+  nhau 16px. Pill bộ đếm padding 4px 8px, chữ trắng `0.75rem` thường,
+  line-height 1.6, `tabular-nums`.
 - Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
 ### Video
