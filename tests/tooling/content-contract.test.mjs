@@ -1,4 +1,4 @@
-// Bộ kiểm nội dung (docs/specs/content-independent-tests.md R2): mỗi luật có một dữ liệu hỏng làm đỏ đúng luật.
+// Content checks (docs/specs/content-independent-tests.md R2): each rule has one broken fixture that fails exactly that rule.
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -19,19 +19,19 @@ async function site(html, css = "") {
   return root;
 }
 
-test("nội dung đúng luật không có lỗi, kể cả ảnh trang trí alt rỗng và đường dẫn ghép trong script", async () => {
+test("valid content has no errors, including decorative images with empty alt and paths concatenated in scripts", async () => {
   const html = `${VALID_IMG}<img data-src="${IMAGE}" width="40" height="30" alt="" />`
     + "<script>const path = `/assets/content/projects/${name}`;</script>";
   assert.deepEqual(await checkSiteContent(await site(html, `a { background: url("${IMAGE}"); }`)), []);
 });
 
-test("mỗi luật hỏng báo đúng file, ảnh và luật", async () => {
+test("each broken rule reports the right file, image and rule", async () => {
   const cases = [
-    [`<img src="/assets/content/projects/missing.webp" alt="" />`, "", /index\.html: \/assets\/content\/projects\/missing\.webp: file không tồn tại/],
-    ["", `a { background: url("/assets/content/projects/gone.webp"); }`, /style\.css: \/assets\/content\/projects\/gone\.webp: file không tồn tại/],
-    [VALID_IMG.replace('width="40"', 'width="41"'), "", /sample\.webp: khai 41x30, pixel thật 40x30/],
-    [VALID_IMG.replace(' alt="Phòng khách"', ""), "", /sample\.webp: thiếu alt/],
-    [VALID_IMG.replace(' data-en-alt="Living room"', ""), "", /sample\.webp: alt VI có nhưng thiếu data-en-alt/],
+    [`<img src="/assets/content/projects/missing.webp" alt="" />`, "", /index\.html: \/assets\/content\/projects\/missing\.webp: file does not exist/],
+    ["", `a { background: url("/assets/content/projects/gone.webp"); }`, /style\.css: \/assets\/content\/projects\/gone\.webp: file does not exist/],
+    [VALID_IMG.replace('width="40"', 'width="41"'), "", /sample\.webp: declared 41x30, actual pixels 40x30/],
+    [VALID_IMG.replace(' alt="Phòng khách"', ""), "", /sample\.webp: missing alt/],
+    [VALID_IMG.replace(' data-en-alt="Living room"', ""), "", /sample\.webp: VI alt present but data-en-alt missing/],
   ];
   for (const [html, css, expected] of cases) {
     const errors = await checkSiteContent(await site(html, css));
@@ -40,16 +40,16 @@ test("mỗi luật hỏng báo đúng file, ảnh và luật", async () => {
   }
 });
 
-test("hero: mảng slides khớp figure.hero-slide theo tên, độ rộng, thứ tự; data-slide liên tục", async () => {
+test("hero: slides array matches figure.hero-slide by name, width, order; data-slide is contiguous", async () => {
   const figure = (index, width = 40, active = "") => `<figure class="hero-slide${active}" data-slide="${index}">
     <img data-src="${IMAGE}" width="${width}" height="30" alt="" /></figure>`;
   const page = (slides, figures) => `<script>const slides = ${slides};</script><div class="hero-slides">${figures}</div>`;
   const good = page('[["sample",40],["sample",40]]', figure(0, 40, " is-active") + figure(1));
   assert.deepEqual(await checkSiteContent(await site(good)), []);
   const cases = [
-    [page('[["sample",40]]', figure(0) + figure(1)), /mảng slides \[sample 40\] khác figure\.hero-slide \[sample 40, sample 40\]/],
-    [page('[["sample",40],["other",40]]', figure(0) + figure(1)), /khác figure\.hero-slide/],
-    [page('[["sample",40],["sample",40]]', figure(0) + figure(2)), /hero-slide thứ 1 có data-slide="2"/],
+    [page('[["sample",40]]', figure(0) + figure(1)), /slides array \[sample 40\] differs from figure\.hero-slide \[sample 40, sample 40\]/],
+    [page('[["sample",40],["other",40]]', figure(0) + figure(1)), /differs from figure\.hero-slide/],
+    [page('[["sample",40],["sample",40]]', figure(0) + figure(2)), /hero-slide 1 has data-slide="2"/],
   ];
   for (const [html, expected] of cases) {
     const errors = await checkSiteContent(await site(html));
@@ -58,7 +58,7 @@ test("hero: mảng slides khớp figure.hero-slide theo tên, độ rộng, th�
   }
 });
 
-test("báo mọi lỗi, không dừng ở lỗi đầu", async () => {
+test("reports every error, not just the first", async () => {
   const html = VALID_IMG.replace(' data-en-alt="Living room"', "") + `<img src="/assets/content/projects/missing.webp" alt="" />`;
   assert.equal((await checkSiteContent(await site(html))).length, 2);
 });

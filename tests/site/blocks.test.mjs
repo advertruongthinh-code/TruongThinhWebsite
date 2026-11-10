@@ -66,7 +66,7 @@ test("validator reports every rule broken, not only the first", async () => {
   page.blocks[11].hrefVi = "javascript:alert(1)";
   page.blocks.push({ id: "odd", type: "marquee" });
   const errors = await validateBlockPage(page, ctx);
-  for (const rule of [/blocks\[1\]\.text: thiếu chữ EN/, /blocks\[2\]\.text: số đoạn/, /trùng id khối title/, /position: phải là/, /images: cần 2 đến 2/, /id missing không có/, /hrefVi: link không hợp lệ/, /kiểu khối lạ marquee/]) {
+  for (const rule of [/blocks\[1\]\.text: missing EN text/, /blocks\[2\]\.text: paragraph counts/, /duplicate block id title/, /position: must be/, /images: needs 2 to 2/, /id missing not found/, /hrefVi: invalid link/, /unknown block type marquee/]) {
     assert.ok(errors.some((error) => rule.test(error)), `missing ${rule}`);
   }
 });
@@ -74,13 +74,13 @@ test("validator reports every rule broken, not only the first", async () => {
 test("image size must match the real file", async () => {
   const page = fixture();
   page.cover = { ...photo, width: 100 };
-  assert.ok((await validateBlockPage(page, ctx)).some((error) => /cover: width\/height phải là 2304x3072/.test(error)));
+  assert.ok((await validateBlockPage(page, ctx)).some((error) => /cover: width\/height must be 2304x3072/.test(error)));
 });
 
 test("duplicate page id or slug in one file is reported", () => {
   const page = fixture();
   assert.deepEqual(duplicatePageFields([page, { ...page, slugEn: "other-en" }], "content/projects.json"), [
-    "content/projects.json: trùng id sample",
-    "content/projects.json: trùng slugVi can-ho-mau",
+    "content/projects.json: duplicate id sample",
+    "content/projects.json: duplicate slugVi can-ho-mau",
   ]);
 });
