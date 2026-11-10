@@ -11,10 +11,57 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
   return new Set([...forced, ...rest.slice(0, fast ? 0 : quota())]);
 }
 
+// Masonry 4.2.2 chỉ lo motion: vị trí lấy từ `positions` đã tính, không tự xếp, không tự layout khi resize.
+export function createMasonry(grid, positions, getHeight, { itemSelector = ".advertising-tile", getId = (node) => node.dataset.advertisingCard } = {}) {
+  const masonry = new window.Masonry(grid, {
+    itemSelector,
+    initLayout: false,
+    resize: false,
+    transitionDuration: "0.4s",
+    stagger: 0,
+  });
+  masonry._getItemLayoutPosition = (item) => positions.get(getId(item.element)) || { x: 0, y: 0 };
+  masonry._getContainerSize = () => ({ height: getHeight() });
+  // Outlayer đọc vị trí đầu bằng getComputedStyle rồi ghi transition cho từng card, nên mỗi card ép một lượt style
+  // (rAF Masonry 46-66ms trên A04s). Runtime đã ghi left/top inline bằng px; motion chỉ chạy trên transform nên
+  // inline trùng computed. Card chưa có vị trí inline vẫn đọc computed như cũ.
+  const itemize = masonry._itemize;
+  masonry._itemize = function (elements) {
+    const items = itemize.call(this, elements);
+    for (const item of items) {
+      const readComputed = item.getPosition;
+      item.getPosition = function () {
+        const { left, top } = this.element.style;
+        if (!left.endsWith("px") || !top.endsWith("px")) return readComputed.call(this);
+        this.position.x = parseFloat(left) - this.layout.size.paddingLeft;
+        this.position.y = parseFloat(top) - this.layout.size.paddingTop;
+      };
+    }
+    return items;
+  };
+  return masonry;
+}
+
+// Lượt co giãn cỡ card (morphSize) chạy trên con của card bằng `scale`.
+export const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
+
+// Dừng transition Masonry và lượt co giãn đang chạy, đặt card ngay ở chỗ đích.
+export function cancelMasonryTransitions(instance) {
+  instance?.items.forEach((item) => {
+    for (const child of item.element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
+    item.disableTransition();
+    item._transn.ingProperties = {};
+    item._transn.clean = {};
+    item._transn.onEnd = {};
+    item.element.style.transform = "";
+    item.layoutPosition();
+  });
+}
+
 // `create(placement)` dựng card mới; `attach(node, placement)` gắn observer và style chung khi card vào sân (mới hoặc từ
 // hàng chờ); `detach(id, node, queue)` gỡ card khỏi DOM, giữ vào `queue` nếu còn dùng lại được; `color(card)` là màu
-// card tạm.
-export function createMasonryHost(root, { create, attach = () => {}, detach, color = () => undefined,
+// card tạm; `masonry` là option Masonry riêng của sân (`itemSelector`, `getId`).
+export function createMasonryHost(root, { create, attach = () => {}, detach, color = () => undefined, masonry = {},
   deviceMemory = globalThis.navigator?.deviceMemory } = {}) {
   const host = {
     root,
@@ -28,6 +75,31 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
     // Card vừa gỡ mà ảnh còn giải mã, sức chứa theo RAM máy (R7, V4).
     detached: createDetachedCards(detachedCapacity(deviceMemory)),
     ghostFrame: 0,
+    // Chiều cao sân theo layout; Masonry đọc nó làm cỡ container.
+    pixelHeight: 0,
+    // Masonry chỉ chạy motion layout; tạo khi cần lần đầu. rAF trước lượt motion và hẹn kết thúc lượt.
+    masonry: null,
+    motionFrame: 0,
+    motionTimer: 0,
+    // Một lượt motion layout: card trượt từ chỗ đang đứng tới `positions` trong 0.4s; `instant(element)` đặt thẳng.
+    layoutMotion(instant) {
+      host.masonry ||= createMasonry(root, host.positions, () => host.pixelHeight, masonry);
+      // Thiếu option này Outlayer coi lần layout đầu là tức thì: lần dựng đầu mất motion từ đầu cột.
+      host.masonry.options.layoutInstant = false;
+      host.masonry.options.transitionDuration = "0.4s";
+      host.masonry.reloadItems();
+      host.masonry.items.forEach((item) => { item.isLayoutInstant = instant(item.element); });
+      host.masonry.layout();
+    },
+    cancelTransitions: () => cancelMasonryTransitions(host.masonry),
+    // Hủy lượt motion đã hẹn (rAF và hẹn kết thúc) rồi đặt card ngay ở đích.
+    stopMotion() {
+      if (host.motionFrame) cancelAnimationFrame(host.motionFrame);
+      if (host.motionTimer) clearTimeout(host.motionTimer);
+      host.motionFrame = 0;
+      host.motionTimer = 0;
+      host.cancelTransitions();
+    },
     // Còn card tạm chờ dựng: hẹn một lượt dựng ở frame sau, không dựng dồn trong một frame.
     scheduleGhosts(render) {
       host.ghostFrame ||= requestAnimationFrame(() => {

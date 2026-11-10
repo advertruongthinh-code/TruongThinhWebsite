@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const runtime = await readFile(new URL("../../src/site/advertising-products/catalog-runtime.mjs", import.meta.url), "utf8");
+const hostSource = await readFile(new URL("../../src/site/advertising-products/masonry-host.mjs", import.meta.url), "utf8");
 const detailSource = await readFile(new URL("../../src/site/detail.js", import.meta.url), "utf8");
 const motionSource = await readFile(new URL("../../src/site/motion.js", import.meta.url), "utf8");
 const viewerSource = await readFile(new URL("../../src/site/advertising-products/photo-viewer.mjs", import.meta.url), "utf8");
@@ -41,11 +42,11 @@ assert.ok(
     < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
-assert.match(runtime, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
-assert.match(runtime, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
-assert.match(runtime, /stagger: 0/, "Masonry has no stagger");
+assert.match(hostSource, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
+assert.match(hostSource, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
+assert.match(hostSource, /stagger: 0/, "Masonry has no stagger");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
-assert.match(runtime, /const cancelMasonryTransitions = \(instance = masonry\) => \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
+assert.match(hostSource, /export function cancelMasonryTransitions\(instance\) \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");
