@@ -42,8 +42,6 @@ export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start =
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
 export const MASONRY_SEARCH_BUDGET = 300000;
-const SEARCH_WINDOW_SIZE = 64;
-const SEARCH_CANDIDATE_LIMIT = 20;
 const SEARCH_BACKTRACK_DEPTH = 24;
 const ORGANIC_RHYTHM_WINDOW = 12;
 
@@ -463,22 +461,6 @@ function productStaggerViolations(state, placement, columns) {
   return violations;
 }
 
-function hasGeometryConflict(state, placement, columns, cardWidth) {
-  if (state.productLayout) return false;
-  const minimum = 0.25 * cardWidth;
-  const nextColumns = spanColumns(placement);
-  for (const column of nextColumns) {
-    for (const adjacent of [column - 1, column + 1]) {
-      if (adjacent < 0 || adjacent >= columns) continue;
-      const card = nearestDifferent(state.edges[adjacent].card, placement.y + placement.pixelHeight, placement.card.id);
-      const image = nearestDifferent(state.edges[adjacent].image, placement.y + placement.mediaPixelHeight, placement.card.id);
-      if (image && Math.abs(image.y - placement.y - placement.mediaPixelHeight) + 0.05 < minimum) return true;
-      if (card && Math.abs(card.y - placement.y - placement.pixelHeight) + 0.05 < minimum) return true;
-    }
-  }
-  return false;
-}
-
 function appendEdges(state, placement) {
   for (const column of spanColumns(placement)) {
     state.edges[column].image.push({ id: placement.card.id, y: placement.y + placement.mediaPixelHeight, imageHeight: placement.mediaPixelHeight });
@@ -723,18 +705,11 @@ function undoRhythms(logs) {
 }
 
 // Card UI sits inside the media (media-card R2), so a card is exactly as tall as its media.
-export function placementAt(card, left, width, y, cardWidth, gap, cavity = 0) {
+export function placementAt(card, left, width, y, cardWidth, gap) {
   const media = layoutMedia(card);
   const pixelWidth = width * cardWidth + (width - 1) * gap;
   const mediaPixelHeight = pixelWidth * media.height / media.width;
-  return { card, left, top: y, width, height: mediaPixelHeight, x: left * (cardWidth + gap), y, pixelWidth, mediaPixelHeight, pixelHeight: mediaPixelHeight, cavity };
-}
-
-function candidatePlacement(card, state, columns, cardWidth, gap) {
-  const literalSpan = card?.layoutSpan;
-  const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
-  return widths.flatMap((width) => spanSlots(state.columnBottoms, columns, width, gap, cardWidth)
-    .map(({ left, y, cavity }) => placementAt(card, left, width, y, cardWidth, gap, cavity)));
+  return { card, left, top: y, width, height: mediaPixelHeight, x: left * (cardWidth + gap), y, pixelWidth, mediaPixelHeight, pixelHeight: mediaPixelHeight };
 }
 
 // One coordinate string per layout, shared by the search (makeResult) and the cache replay (replay.mjs).
@@ -751,7 +726,7 @@ export function compileMasonryLayout(options = {}) {
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
     : options.cards;
   const settings = normalizeMasonrySettings(options.settings);
-  const compileOptions = { ...options, cards, settings, productLayout: true };
+  const compileOptions = { ...options, cards, settings };
   const requestedOrder = options.presentationOrder;
   const totalBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
   const canSolveOrganicOrder = options.organicOrder === true
@@ -813,7 +788,6 @@ export function compileMasonryLayout(options = {}) {
  * @param {any} [options]
  */
 function compileLayoutPhase(options = {}) {
-  const productLayout = options?.productLayout === true;
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
   let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
   let settings, columns, outer, interCardGap, initialColumnBottoms, operationBudget;
@@ -832,7 +806,7 @@ function compileLayoutPhase(options = {}) {
     if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > MASONRY_SEARCH_BUDGET) throw new Error("Invalid advertising operation budget");
     validateMasonryCards(cards, { categoryOrder });
     if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
-    if (!Number.isInteger(columns) || columns < (productLayout ? 1 : MASONRY_MIN_COLUMNS) || columns > MASONRY_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
+    if (!Number.isInteger(columns) || columns < 1 || columns > MASONRY_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
     terminalPhotoPeek = options.terminalPhotoPeek;
     continuousDetail = options.continuousDetail ?? false;
     if (typeof continuousDetail !== "boolean") throw new Error("Invalid continuous detail option");
@@ -876,7 +850,6 @@ function compileLayoutPhase(options = {}) {
     }
     pool = requestedPresentationOrder.map((id) => poolById.get(id));
   }
-  const realProductCount = pool.filter((card) => card.kind !== "suggestion").length;
   const mediaMinima = pool.map((card) => {
     const span = card.layoutSpan === 2 ? 2 : 1;
     const media = layoutMedia(card);
@@ -884,15 +857,13 @@ function compileLayoutPhase(options = {}) {
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
-    const placements = state.placements.slice().sort(comparePlacement)
-      .map(({ cavity, ...placement }, index) => ({ ...placement, index }));
+    const placements = state.placements.slice().sort(comparePlacement).map((placement, index) => ({ ...placement, index }));
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
     const coordinates = coordinateKey(placements);
     const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
-    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes: [], initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
+    return { columns, filter, settings, staggerBasis: "image-height", staggerMinimumRatio: 0.10, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes: [], initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
-    productLayout,
     placements: [],
     columnBottoms: initialColumnBottoms.slice(),
     edges: Array.from({ length: columns }, () => ({ image: [], card: [] })),
@@ -901,8 +872,7 @@ function compileLayoutPhase(options = {}) {
     interCardGap,
     minimumMediaHeight: mediaMinima[0]?.height ?? Infinity,
     staggerMinimumRatio: 0.10,
-    enforceStagger: productLayout && staggerMode === "preferred",
-    allowAlignedFallback: productLayout && staggerMode === "fallback",
+    allowAlignedFallback: staggerMode === "fallback",
     staggerViolations: 0,
   };
   if (!pool.length) return makeResult(state, { operations: 0 });
@@ -927,7 +897,7 @@ function compileLayoutPhase(options = {}) {
 
   // Related masonry (O5, plan T5): every card is one column wide at its own ratio, in order, into the lowest column
   // (leftmost on a tie). Two-column cards only exist in the main grids, placed from the build-time cache (replay.mjs).
-  const productCandidates = () => {
+  const candidatesAtDepth = () => {
     const card = remaining[0];
     if (!card) return [];
     consumeOperation();
@@ -938,26 +908,6 @@ function compileLayoutPhase(options = {}) {
     if (staggerViolations) alignedCandidateAttempts += 1;
     else preferredCandidateAttempts += 1;
     return [{ cardIndex: 0, placement, score: y, staggerViolations }];
-  };
-
-  const candidatesAtDepth = () => {
-    if (productLayout) return productCandidates();
-    const candidates = [];
-    const window = Math.min(remaining.length, SEARCH_WINDOW_SIZE);
-    for (let cardIndex = 0; cardIndex < window && candidates.length < SEARCH_CANDIDATE_LIMIT; cardIndex += 1) {
-      const card = remaining[cardIndex];
-      for (const placement of candidatePlacement(card, state, columns, cardWidth, interCardGap)) {
-        consumeOperation();
-        if (hasGeometryConflict(state, placement, columns, cardWidth)) continue;
-        preferredCandidateAttempts += 1;
-        const columnBottoms = state.columnBottoms.slice();
-        for (const column of spanColumns(placement)) columnBottoms[column] = placement.y + placement.pixelHeight;
-        const score = Math.max(...columnBottoms) + placement.cavity * 0.25 + (Math.max(...columnBottoms) - Math.min(...columnBottoms)) * 0.001;
-        candidates.push({ cardIndex, placement, score, staggerViolations: 0 });
-        if (candidates.length >= SEARCH_CANDIDATE_LIMIT) break;
-      }
-    }
-    return candidates.sort((a, b) => a.score - b.score || bySource(a.placement.card, b.placement.card) || a.placement.left - b.placement.left).slice(0, SEARCH_CANDIDATE_LIMIT);
   };
 
   const apply = (candidate) => {
@@ -1012,15 +962,6 @@ function compileLayoutPhase(options = {}) {
   while (true) {
     const depth = state.placements.length;
     if (depth === pool.length) {
-      const terminals = Array.from({ length: columns }, (_, column) => {
-        const placement = state.placements.findLast((item) => item.card.kind !== "suggestion" && spanColumns(item).includes(column));
-        return placement ? { placement, bottom: placement.y + placement.pixelHeight } : null;
-      }).filter(Boolean);
-      const tailSpread = terminals.length ? Math.max(...terminals.map((entry) => entry.bottom)) - Math.min(...terminals.map((entry) => entry.bottom)) : 0;
-      const tailsFilled = !productLayout || (
-        tailSpread <= Math.max(0, ...terminals.map((entry) => entry.placement.pixelHeight)) + interCardGap + 0.05 &&
-        (realProductCount < columns || terminals.length === columns)
-      );
       const hasPhotoPeek = terminalPhotoPeek === undefined || state.placements.some((placement) => {
         const imageTop = terminalPhotoPeek.primaryTop + placement.y;
         const visibleHeight = Math.min(
@@ -1032,9 +973,8 @@ function compileLayoutPhase(options = {}) {
           && visibleHeight >= terminalPhotoPeek.belowPeek - 0.05;
       });
       const photoPeekSatisfied = continuousDetail || hasPhotoPeek;
-      const packingSatisfied = productLayout || continuousDetail || tailsFilled;
       const staggerSatisfied = state.allowAlignedFallback || state.staggerViolations === 0;
-      if (packingSatisfied && photoPeekSatisfied && staggerSatisfied && (state.allowAlignedFallback || !hasBrickRhythm(state.edges, columns, cardWidth))) break;
+      if (photoPeekSatisfied && staggerSatisfied && (state.allowAlignedFallback || !hasBrickRhythm(state.edges, columns, cardWidth))) break;
       if (!hasPhotoPeek) terminalPhotoPeekRejects += 1;
       antiBrickLeafRejects += 1;
     }
@@ -1081,7 +1021,7 @@ function compileLayoutPhase(options = {}) {
 }
 
 export function compileLayoutSearch(options = {}) {
-  if (!options || typeof options !== "object" || Array.isArray(options) || options.productLayout !== true) return compileLayoutPhase(options);
+  if (!options || typeof options !== "object" || Array.isArray(options)) return compileLayoutPhase(options);
   const totalBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
   if (!Number.isInteger(totalBudget) || totalBudget < 1 || totalBudget > MASONRY_SEARCH_BUDGET) return compileLayoutPhase(options);
   const preferredBudget = Math.max(1, Math.ceil(totalBudget / 2));

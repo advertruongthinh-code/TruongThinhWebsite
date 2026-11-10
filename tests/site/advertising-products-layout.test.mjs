@@ -537,27 +537,6 @@ test("keeps canonical scheduling and rejects invalid card contracts", () => {
   assert.throws(() => validateMasonryCards([{ ...ranked[0], media: { ...ranked[0].media, width: 0 } }], { categoryOrder: ["one"], requireRanks: false }), /media dimensions/i);
 });
 
-test("lets equal-ratio Auto cards choose a span from the local cavity", () => {
-  const narrowCavity = fixture([
-    [1600, 900, "auto"],
-  ], "auto-narrow-cavity");
-  const bridgeCavity = fixture([
-    [1600, 900, "auto"],
-  ], "auto-bridge-cavity");
-
-  const narrow = compileLayoutSearch({ layoutViewportWidth: 1024, columns: 3, cards: narrowCavity, categoryOrder: ["auto-narrow-cavity"], initialColumnBottoms: [480, 0, 480] });
-  const bridge = compileLayoutSearch({ layoutViewportWidth: 1024, columns: 3, cards: bridgeCavity, categoryOrder: ["auto-bridge-cavity"], initialColumnBottoms: [480, 480, 1000] });
-  const narrowAuto = narrow.placements.find(({ card }) => card.id === "auto-narrow-cavity-0000");
-  const bridgeAuto = bridge.placements.find(({ card }) => card.id === "auto-bridge-cavity-0000");
-
-  assert.equal(narrowAuto.width, 1, "the same 16:9 Auto fills the narrow cavity as span 1");
-  assert.equal(bridgeAuto.width, 2, "the same 16:9 Auto bridges equal-height columns as span 2");
-  assert.equal(inspectAdvertisingGrid({ layout: narrow, placements: narrow.placements }).valid, true, "narrow-cavity fixture keeps independent geometry valid");
-  assert.equal(inspectAdvertisingGrid({ layout: bridge, placements: bridge.placements }).valid, true, "bridge-cavity fixture keeps independent geometry valid");
-  assert.ok(narrow.diagnostics.operations <= 300000);
-  assert.ok(bridge.diagnostics.operations <= 300000);
-});
-
 test("reserves initial column bottoms for a detail hero without a second solver", () => {
   const cards = fixture([[100, 160, 1], [100, 260, 1], [100, 360, 1]], "reserved-detail");
   const base = { layoutViewportWidth: 1440, columns: 4, cards, categoryOrder: ["reserved-detail"] };
@@ -574,53 +553,12 @@ test("reserves initial column bottoms for a detail hero without a second solver"
   assert.throws(() => compileLayoutSearch({ ...base, initialColumnBottoms: [480, -1, 0, 0] }), /initialColumnBottoms/i);
 });
 
-test("solves bridge, same-bottom, and input-order fixtures across 2 to 4 columns", () => {
-  const bridge = fixture([[745, 935, 1], [983, 809, 2], [531, 255, 1], [643, 593, 1], [741, 937, 1]]);
-  for (const columns of [2, 3, 4]) {
-    const options = { layoutViewportWidth: 1024, columns, cards: bridge, categoryOrder: ["fixture"] };
-    const layout = compileLayoutSearch(options);
-    assertGrid(layout, `bridge fixture ${columns} columns`, bridge.length);
-    assert.ok(layout.placements.some(({ width }) => width === 2), `${columns} columns keeps literal span 2`);
-    assert.equal(compileLayoutSearch({ ...options, cards: [...bridge].reverse() }).coordinateHash, layout.coordinateHash, `${columns} columns ignores input array order`);
-    const terminal = layout.placements.reduce((byColumn, placement) => {
-      for (let column = placement.left; column < placement.left + placement.width; column += 1) byColumn[column] = placement;
-      return byColumn;
-    }, Array(columns).fill(null));
-    for (let column = 0; column < columns - 1; column += 1) {
-      if (!terminal[column] || !terminal[column + 1] || terminal[column].card.id === terminal[column + 1].card.id) continue;
-      assert.ok(Math.abs(layout.columnBottoms[column] - layout.columnBottoms[column + 1]) + 0.05 >= 0.25 * layout.cardWidth, `${columns} columns keeps terminal stagger`);
-    }
-  }
-
-  const layout = compileLayoutSearch({ layoutViewportWidth: 1024, columns: 2, cards: bridge, categoryOrder: ["fixture"] });
-  const bridgePlacement = layout.placements.find((placement) => placement.width === 2 && placement.y > 0);
-  assert.ok(bridgePlacement, "fixture includes a non-initial B1 bridge");
-  const brokenPlacements = layout.placements.map((placement) => placement.card.id === bridgePlacement.card.id ? { ...placement, top: placement.top + layout.cardWidth, y: placement.y + layout.cardWidth } : placement);
-  const broken = inspectAdvertisingGrid({ layout, placements: brokenPlacements });
-  assert.ok(broken.violations.some(({ code }) => code === "bridge-cavity"), "oracle rejects a bridge beyond the 0.5W cavity allowance");
-});
-
-test("keeps a repairable anti-brick prefix and backtracks when a conflict becomes irreversible", () => {
+test("oracle: a future nearest edge repairs a mutable ABABAB prefix", () => {
   const edges = (side, values) => values.map((y, index) => ({ id: `${side}-${index}`, y }));
   const left = edges("left", [100, 250, 450, 650]);
   const right = edges("right", [150, 350, 550, 750]);
   assert.ok(inspectAdvertisingRhythmEdges({ leftEdges: left, rightEdges: right, cardWidth: 100 }).violations.some(({ code }) => code === "brick-ababab"));
   assert.equal(inspectAdvertisingRhythmEdges({ leftEdges: [...left, { id: "left-repair", y: 700 }], rightEdges: right, cardWidth: 100 }).valid, true, "a future nearest edge repairs the mutable ABABAB prefix");
-
-  const heightsAndSpans = [[225, 1], [225, 2], [75, 1], [175, 1], [225, 2], [75, 1], [35, 2], [175, 1], [175, 2]];
-  const cards = heightsAndSpans.map(([pixelHeight, span], index) => ({
-    id: `repair-${index}`,
-    category: "repair",
-    sourceOrder: index,
-    rank: index,
-    layoutSpan: span,
-    media: { src: `/repair-${index}.webp`, width: span === 2 ? 215 : 100, height: pixelHeight },
-  }));
-  const layout = compileLayoutSearch({ layoutViewportWidth: 245, columns: 2, cards, categoryOrder: ["repair"] });
-  assertGrid(layout, "repairable prefix fixture", cards.length);
-  assert.ok(layout.diagnostics.mutableBrickDeferrals > 0, "mutable brick candidates are deferred, not rejected");
-  assert.ok(layout.diagnostics.mutableBrickBranches > 0, "bounded search can enter a mutable brick branch for repair");
-  assert.ok(layout.diagnostics.antiBrickLeafRejects + layout.diagnostics.finalizedBrickRejects > 0, "irreversible conflicts backtrack instead of throwing after search");
 });
 
 test("prunes irreversible LED rhythm conflicts before permuting unrelated tail cards", () => {
@@ -679,13 +617,6 @@ test("returns empty and one-item layouts, and unifies invalid diagnostics", () =
   ]) {
     assert.throws(() => compileLayoutSearch(options), (error) => error.code === "invalid-input" && Boolean(error.diagnostic?.violation));
   }
-
-  const impossible = fixture(Array.from({ length: 6 }, () => [200, 100, 2]));
-  assert.throws(
-    () => compileLayoutSearch({ layoutViewportWidth: 320, cards: impossible, categoryOrder: ["fixture"] }),
-    (error) => error.code === "search-exhausted" && error.code !== "proven-infeasible",
-    "bounded search does not claim an infeasibility proof",
-  );
 });
 
 test("D9 reports a shared tiny phase budget without claiming infeasibility", () => {
