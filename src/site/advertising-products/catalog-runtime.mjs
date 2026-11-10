@@ -2618,7 +2618,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       host.append(glass);
     }
     const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
-    return { glass, animations, finished: Promise.all(animations.map(({ finished }) => finished)) };
+    const finished = Promise.all(animations.map(({ finished: done }) => done));
+    // Reveal bị hủy (card rời view, đổi filter, teardown) làm `finished` reject; nơi gọi không cần thì không báo lỗi.
+    finished.catch(() => {});
+    return { glass, animations, finished };
   };
   // Nền realtime của vùng dư vẽ vào canvas 1/8 khung với blur của bậc cuối rồi phóng 8 lần (detail.css): CSS filter trên
   // ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
