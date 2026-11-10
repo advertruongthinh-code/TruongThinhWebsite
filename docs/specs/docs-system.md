@@ -81,9 +81,9 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
 | glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
-| media | `media-delivery.md` | biến thể ảnh, `media/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
-| progressive | `progressive-loading.md` | `sw.js`, `media/colors.mjs` | |
-| video | `video-delivery.md` | `build-video-ladder.mjs`, `media/video-source.mjs` | |
+| media | `media-delivery.md` | biến thể ảnh, `media-lib/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
+| progressive | `progressive-loading.md` | `sw.js`, `media-lib/colors.mjs` | |
+| video | `video-delivery.md` | `build-video-ladder.mjs`, `media-lib/video-source.mjs` | |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, `_headers`, `404.html`, demo Cloudflare | |
 | ci-suites | `ci-test-suites.md` | `ci.yml`, `tests/ci-suites.json`, `scripts/ci/` | |
 | content-tests | `content-independent-tests.md` | `content-contract.mjs` | |

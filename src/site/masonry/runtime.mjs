@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { imageFormatReady, responsiveSource, responsiveSrcset } from "../media/responsive-image.mjs";
+import { imageFormatReady, responsiveSource, responsiveSrcset } from "../media-lib/responsive-image.mjs";
 import {
   MASONRY_LAYOUT_VERSION,
   MASONRY_SEARCH_BUDGET,
@@ -34,8 +34,8 @@ import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal }
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
 import { createMasonryHost, isSizeMorph } from "./host.mjs";
-import { loadHls, releaseVideoSource, setVideoSource } from "../media/video-source.mjs";
-import { MEDIA_COLORS } from "../media/colors.mjs";
+import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
+import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import {
   breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
 } from "./mount-budget.mjs";

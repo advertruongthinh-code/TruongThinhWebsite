@@ -1,6 +1,6 @@
 # Media card
 
-Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/media/colors.mjs`, `src/site/media/video-source.mjs`; CSS `.advertising-tile`, `.advertising-tile__title`; spec [Card nhiều media](../../../docs/specs/media-card.md).
+Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/media-lib/colors.mjs`, `src/site/media-lib/video-source.mjs`; CSS `.advertising-tile`, `.advertising-tile__title`; spec [Card nhiều media](../../../docs/specs/media-card.md).
 
 Một ô sản phẩm trong masonry Advertising (masonry chính và related). Runtime
 `masonry/runtime.mjs` dựng `figure.project-tile.advertising-tile` từ

@@ -68,6 +68,12 @@ assert.doesNotMatch(index, /class="detail-cta__skeleton"/, "legacy three-column 
 assert.match(runtime, /[gG]eometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
 assert.doesNotMatch(runtime + advertisingCss, /skeleton-dev|skeleton-flow-devtools|createSkeletonFlowDevtools/, "temporary skeleton editor must not ship");
 assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-flow-devtools.mjs", import.meta.url)), false, "temporary editor module is removed, not merely disabled");
+// Module folders must stay outside every Worker-first route (wrangler.toml), or the CMS Worker answers their URLs instead of static assets.
+const workerFirstPrefixes = [...(await read("wrangler.toml")).matchAll(/^\s*"(\/[^"*]+)\*?",?\s*$/gm)].map((match) => match[1]);
+for (const folder of ["masonry", "media-lib"]) {
+  assert.equal(existsSync(new URL(`../../src/site/${folder}/`, import.meta.url)), true, `${folder} module folder exists`);
+  assert.deepEqual(workerFirstPrefixes.filter((prefix) => `/${folder}/`.startsWith(prefix)), [], `/${folder}/ is served as a static asset, not by the Worker`);
+}
 assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "Masonry owns the complete photo and skeleton height");

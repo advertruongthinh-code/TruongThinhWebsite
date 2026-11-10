@@ -3,7 +3,7 @@ title: Ảnh JPEG XL progressive và thứ tự tải
 status: live
 source:
   - src/site/sw.js
-  - src/site/media/colors.mjs
+  - src/site/media-lib/colors.mjs
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-reveal-complete.e2e.mjs
@@ -172,7 +172,7 @@ Then slide 2 chỉ tải khi tới lượt hydrate, không tải trước
 - Hiện ảnh đi qua đường settle sẵn có: `settle()` của script `<head>` cho trang tĩnh, `revealCard`, `playPrimaryReveal` cho
   Advertising; không viết đường hiện ảnh thứ hai.
 - Một điều kiện mở veil trong `mountPage`, dùng cho mở trực tiếp và route mềm.
-- Chọn biến thể chỉ ở `responsivePictures` (build) và `media/responsive-image.mjs` (runtime); đổi đuôi sang `.jxl`, thang cỡ khai
+- Chọn biến thể chỉ ở `responsivePictures` (build) và `media-lib/responsive-image.mjs` (runtime); đổi đuôi sang `.jxl`, thang cỡ khai
   một lần mỗi nơi. Bước JXL nằm trong `build-image-variants.mjs`, không thêm script build mới.
 - Vệt sáng, skeleton, Kính, dấu báo lỗi giữ nguyên code. Đo bằng `image-delivery-measure.mjs`, thêm mốc "ảnh hiện".
 
@@ -254,7 +254,7 @@ And lúc trang đang cuộn không ảnh nào đổi sang bản gốc
 | Tool | `cjxl`, `djxl` v0.11.1 ghim trong `tooling-versions.json` | Encode, tính ngưỡng |
 
 Code nằm trong file của spec khác: `motion.js` ([shell](site-shell.md)), `prepare-static-assets.mjs`, `_headers`
-([phát hành tĩnh](static-release.md)), `build-image-variants.mjs`, `media/responsive-image.mjs` ([tải ảnh](media-delivery.md)),
+([phát hành tĩnh](static-release.md)), `build-image-variants.mjs`, `media-lib/responsive-image.mjs` ([tải ảnh](media-delivery.md)),
 `masonry/runtime.mjs`, `masonry/detail-viewer.mjs` ([masonry](advertising-masonry.md), [viewer](advertising-viewer-touch-zoom.md)).
 Khi cài, sửa các spec sở hữu trong cùng PR và chuyển spec này sang `live`.
 

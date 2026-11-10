@@ -1,4 +1,4 @@
-import { responsiveSource } from "../media/responsive-image.mjs";
+import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
