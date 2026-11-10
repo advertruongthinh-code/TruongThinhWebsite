@@ -2,7 +2,7 @@
 // (masonry/runtime.mjs) với bộ thẻ công trình, không có detail view. Mỗi bộ lọc có trang riêng crawl được; artifact
 // nhúng trong trang nên runtime đổi lọc tại chỗ.
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
-import { buildLayoutCache } from "../../src/site/masonry/packer.mjs";
+import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from "./block-pages.mjs";
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
@@ -61,7 +61,7 @@ export const buildProjectArtifact = (projects, colors = {}) => {
   }));
   const datasetVersion = `projects-${fnv1a32(JSON.stringify(cards))}`;
   // Few cards, so the masonry layout cache rides inside the page artifact instead of separate files (advertising-masonry R6).
-  const layouts = buildLayoutCache({ cards, filters: pages.map(({ filter }) => filter), datasetVersion, rankOf: filterRank, matches: matchesFilter });
+  const layouts = buildLayoutCacheMemo({ cards, filters: pages.map(({ filter }) => filter), datasetVersion, rankOf: filterRank, matches: matchesFilter });
   return {
     datasetVersion, layoutAlgorithmVersion: MASONRY_LAYOUT_VERSION,
     settings: {}, tagRegistry: [], categories, pages, cards, layouts,
