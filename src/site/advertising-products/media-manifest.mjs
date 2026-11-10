@@ -286,6 +286,11 @@ const MEDIA_ROWS = [
   ["kiosk-posm-71","kiosk-posm",70,"kiosk-posm-product-05","Kiosk bán hàng tại trung tâm thương mại","Shopping-centre retail kiosks","owner-approved:2026-10-26:chatgpt-6adf2d98","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-71-ke-trung-bay-20261026.webp",3072,2048],
   ["kiosk-posm-72","kiosk-posm",71,"kiosk-posm-product-03","Tủ trưng bày theo yêu cầu","Custom display cabinets","owner-approved:2026-10-26:chatgpt-6adf2bb9","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-72-ke-trung-bay-20261026.webp",3072,2048],
   ["kiosk-posm-73","kiosk-posm",72,"kiosk-posm-product-04","Kệ trang trí theo yêu cầu","Custom display shelving","owner-approved:2026-10-26:chatgpt-6adf10b0","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-73-ke-trung-bay-20261026.webp",2048,3072],
+  // PLACEHOLDER cards (owner 2026-11-10): keep three products at the 10-card minimum until real multi-media is generated.
+  // Find them by the sourceId prefix "placeholder:"; replace the row, files and photo-tags entries together (advertising-taxonomy R5).
+  ["kiosk-posm-74","kiosk-posm",73,"kiosk-posm-product-14","Backdrop sự kiện","Event backdrops","placeholder:2026-11-10:kiosk-posm-74","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-74-placeholder-20261110.webp",1200,800],
+  ["print-decals-37","print-decals",36,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","placeholder:2026-11-10:print-decals-37","/assets/content/projects/advertising/print-decals/print-decals-37-placeholder-20261110.webp",1000,1000],
+  ["office-signs-wayfinding-56","office-signs-wayfinding",55,"office-signs-wayfinding-product-13","Kỷ niệm chương","Award plaques","placeholder:2026-11-10:office-signs-wayfinding-56","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-56-placeholder-20261110.webp",800,1200],
 ];
 
 const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([

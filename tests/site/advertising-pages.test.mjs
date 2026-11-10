@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "../../src/site/advertising-products/taxonomy.mjs";
+import { ADVERTISING_PRODUCT_THRESHOLD } from "../../src/site/advertising-products/taxonomy.mjs";
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
 globalThis.window ??= {};
@@ -47,21 +47,24 @@ test("taxonomy R4: rail trang gốc link tới trang cụm theo slug của local
   }
 });
 
-test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có trang trỏ trang cụm kèm ?category=", async () => {
-  assert.deepEqual([ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD], [3, 9]);
+test("taxonomy R3, R5: mỗi sản phẩm từ 10 card có chip và trang riêng, sản phẩm dưới 10 card không có cả hai", async () => {
+  assert.equal(ADVERTISING_PRODUCT_THRESHOLD, 10);
   const html = await read("vi/advertising-products/index.html");
   const count = (id) => artifact.cards.filter((card) => card.productIds.includes(id)).length;
   const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-advertising-product="([^"]+)"/g)]
     .map(([, vi, en, id]) => ({ vi, en, id }));
-  assert.deepEqual(chips.map(({ id }) => id).sort(), artifact.products.filter(({ id }) => count(id) >= 3).map(({ id }) => id).sort(), "một chip mỗi sản phẩm từ 3 ảnh");
+  assert.deepEqual(chips.map(({ id }) => id).sort(), artifact.products.filter(({ id }) => count(id) >= 10).map(({ id }) => id).sort(), "một chip mỗi sản phẩm từ 10 card");
+  assert.equal(chips.length, artifact.products.length, "mọi sản phẩm hiện tại đủ 10 card");
   for (const { vi, en, id } of chips) {
     const page = ADVERTISING_PAGES.find(({ filter }) => filter === id);
-    assert.equal(Boolean(page), count(id) >= 9, `${id}: trang khi và chỉ khi đủ 9 ảnh`);
-    const cluster = ADVERTISING_PAGES.find(({ filter }) => filter === artifact.products.find((product) => product.id === id).cluster);
-    const query = page ? "" : `?category=${encodeURIComponent(id)}`;
-    assert.equal(vi, `/vi/advertising-products/${(page || cluster).vi}/${query}`, id);
-    assert.equal(en, `/en/advertising-products/${(page || cluster).en}/${query}`, id);
+    assert.ok(page, `${id}: chip nào cũng có trang riêng`);
+    assert.equal(vi, `/vi/advertising-products/${page.vi}/`, id);
+    assert.equal(en, `/en/advertising-products/${page.en}/`, id);
   }
+  // Card placeholder (sourceId "placeholder:") giữ ba sản phẩm ở đúng ngưỡng cho tới khi có ảnh thật.
+  const placeholders = artifact.cards.filter((card) => card.media.sourceId.startsWith("placeholder:"));
+  assert.deepEqual(placeholders.flatMap((card) => card.productIds).sort(),
+    ["displays-booths/backdrops", "office-signs/awards-plaques", "printing-decals/packaging-cards-tickets"]);
   const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
   assert.match(clusterPage, /<link rel="canonical" href="\/vi\/advertising-products\/in-an-decal\/"/);
   // noscript chỉ link trang đã sinh: sản phẩm chưa đủ ngưỡng không có link chết
@@ -74,26 +77,20 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
   assert.equal((page.match(/data-advertising-product="signage\/raised-letters" aria-current="true"/g) || []).length, 1);
 });
 
-test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path, không trang ghi ?category=", () => {
-  // Từ 2026-10-18 mọi sản phẩm đủ 9 ảnh; giả lập menus là sản phẩm chưa có trang như catalog.mjs dựng
-  const cluster = artifact.pages.find(({ filter }) => filter === "printing-decals");
-  const pages = [...artifact.pages.filter(({ filter }) => filter !== "printing-decals/menus"), { ...cluster, filter: "printing-decals/menus", query: true }];
-  const schema = { cards: artifact.cards, categories: artifact.categories, pages };
+test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path", () => {
+  const schema = { cards: artifact.cards, categories: artifact.categories, pages: artifact.pages };
   const parse = (href) => parseBrowseLocation(`https://local.test${href}`, schema).category;
   assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
   assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
   const serialize = (href, category) => {
-    const url = serializeBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
+    const url = serializeBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, artifact.pages);
     return `${url.pathname}${url.search}`;
   };
   assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
   assert.equal(serialize("/en/advertising-products/printing-decals/office-printing/?utm=a", "signage"), "/en/advertising-products/signage/?utm=a");
   assert.equal(serialize("/vi/advertising-products/?utm=a", "printing-decals/office-printing"), "/vi/advertising-products/in-an-decal/in-an-van-phong/?utm=a");
-  assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals/menus"), "/vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus");
-  assert.equal(serialize("/en/advertising-products/?utm=a", "printing-decals/menus"), "/en/advertising-products/printing-decals/?utm=a&category=printing-decals%2Fmenus");
-  assert.equal(parse("/vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus"), "printing-decals/menus");
   assert.equal(serialize("/en/advertising-products/signage/", "all"), "/en/advertising-products/");
 });
 

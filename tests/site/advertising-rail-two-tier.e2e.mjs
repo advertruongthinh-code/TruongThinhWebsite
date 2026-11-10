@@ -106,7 +106,7 @@ try {
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
-  // Menu đủ ngưỡng trang R5 (taxonomy) nên chip sang trang sản phẩm riêng; kicker vẫn đứng yên.
+  // Mọi sản phẩm có chip đều có trang riêng (taxonomy R5) nên chip sang trang sản phẩm riêng; kicker vẫn đứng yên.
   const menus = "printing-decals/menus";
   const menuUrl = "/vi/advertising-products/in-an-decal/menu/";
   const menuIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(menus)).map((card) => card.id));
@@ -116,7 +116,7 @@ try {
   await page.waitForFunction((target) => location.pathname === target, menuUrl);
   await page.waitForTimeout(800);
   const menuShown = await page.evaluate(() => [...document.querySelectorAll(".advertising-grid [data-advertising-card]")].map((node) => node.dataset.advertisingCard));
-  assert.ok(menuIds.size >= 9, "Menu đủ 9 ảnh");
+  assert.ok(menuIds.size >= 10, "Menu đủ 10 card");
   assert.deepEqual(menuShown.sort(), [...menuIds].sort(), "masonry chỉ còn card Menu");
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
   assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).trim(), "Sản phẩm tiêu biểu", "kicker không đổi khi lọc sản phẩm");
