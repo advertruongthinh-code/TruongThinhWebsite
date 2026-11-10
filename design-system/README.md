@@ -26,8 +26,8 @@ Một theme sáng; website không có dark theme.
 - **Text:** `ink` cho chữ chính, `muted` cho metadata, label phụ, filter chưa chọn. `line` cho đường phân cách nhẹ.
 - **Accent:** `orange` cho focus ring và điểm nhấn hành động; `orange-accent` chỉ cho hover hoặc chữ từ 24px
   (tương phản 3.6:1); `blue` cho nền `::selection` và indicator route.
-- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.5) phủ ảnh portal; `media-hover-overlay`
-  (0.353, tối bằng trung bình `.hero-shade`) phủ card masonry Advertising khi chuột thật hover; nút gợi ý chưa
+- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.5) phủ ảnh portal; `media-shade-card` là lớp
+  tối học Pinterest dưới tên card masonry, chỉ hiện khi chuột thật hover; nút gợi ý chưa
   active dùng lớp tối 0.5 riêng; bốn token `media-control-*`, `control-disabled-*` là trạng thái control viewer Advertising.
 - **CTA:** `cta-black` chỉ dùng cho floating CTA.
 - **Logo:** bốn token `logo-mark-*` chỉ dùng trong mark ([Brand](brand.md)).

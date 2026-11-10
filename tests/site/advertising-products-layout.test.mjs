@@ -85,24 +85,24 @@ function wideMediaCount(count) {
   return result;
 }
 
+// Card UI sits inside the media (media-card R2, owner 2026-11-10): no control strip, a card is exactly its canvas.
 for (const count of [2, 5, 6, 7]) {
-  test(`R6-R3 ${count} authored media reserve 44px control strip from first grid compile`, () => {
+  test(`R2 ${count} authored media add no strip below the canvas`, () => {
     const card = { ...wideMediaCount(count), rank: 0, sourceOrder: 0 };
     const options = { cards: [card], categoryOrder: [card.category], columns: 2,
       layoutViewportWidth: 320, presentationOrder: [card.id] };
     const first = compileMasonryLayout(options);
     const second = compileMasonryLayout(options);
     const placement = first.placements[0];
-    assert.equal(placement.mediaPixelHeight, placement.pixelWidth * 9 / 16, "cover ratio applies only to canvas");
-    assert.equal(placement.captionPixelHeight, 0);
-    assert.equal(placement.pixelHeight, placement.mediaPixelHeight + 44, "card includes 44px below canvas");
+    assert.equal(placement.mediaPixelHeight, placement.pixelWidth * 9 / 16, "cover ratio sets the canvas");
+    assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "card height equals media height");
     assert.equal(placement.height, placement.pixelHeight);
-    assert.equal(first.totalPixelHeight, placement.pixelHeight, "initial solver reserves the complete card");
+    assert.equal(first.totalPixelHeight, placement.pixelHeight);
     assert.equal(second.coordinateHash, first.coordinateHash, "repeat compile keeps geometry stable");
   });
 }
 
-test("R6-R3 related placement reserves the same 44px below 16:9 canvas", () => {
+test("R2 related placement adds no strip below a 16:9 canvas", () => {
   const card = wideMediaCount(7);
   const hero = ADVERTISING_CARDS.find((item) => item.id === "signage-raised-letters-02");
   assert(hero);
@@ -113,7 +113,7 @@ test("R6-R3 related placement reserves the same 44px below 16:9 canvas", () => {
   const placement = result.photoPlacements.find((item) => item.card.id === card.id);
   assert(placement);
   assert.equal(placement.mediaPixelHeight, placement.pixelWidth * 9 / 16);
-  assert.equal(placement.pixelHeight, placement.mediaPixelHeight + 44);
+  assert.equal(placement.pixelHeight, placement.mediaPixelHeight);
 });
 
 test("R6-R3 singleton and malformed authored lists retain existing boundaries", () => {
@@ -176,7 +176,9 @@ function goldenCatalogFixture() {
 test("M01d fixture layout retains golden coordinate hash, order and no filler", () => {
   const cards = goldenCatalogFixture();
   const order = cards.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "ab952cae", 0], [1440, "8f209679", 12]]) {
+  // 2026-11-10 (media-card R2): hashes changed only because the caption field and CAPTION_METRICS_VERSION left the layout
+  // identity; every placement's column, span, y and media height is identical to the previous hashes ab952cae/8f209679.
+  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "09e8f626", 0], [1440, "6bb197b9", 12]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -252,7 +254,6 @@ function knownFeasibleFixture(count = 3000) {
   const { outer, interCardGap } = masonrySpacing(viewport);
   const gridWidth = viewport - 2 * outer;
   const cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
-  const captionPixelHeight = 27.92;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
   const patterns = [[2, 3, 4], [3, 5, 2], [4, 2, 5], [5, 4, 3]];
@@ -272,7 +273,7 @@ function knownFeasibleFixture(count = 3000) {
     const previousBottom = row ? bottoms[index - columns] : 0;
     const top = row ? previousBottom + interCardGap : 0;
     const pixelHeight = bottom - top;
-    const mediaPixelHeight = pixelHeight - captionPixelHeight;
+    const mediaPixelHeight = pixelHeight;
     const card = {
       id: `benchmark-${String(index).padStart(4, "0")}`,
       category: "benchmark",
@@ -283,7 +284,7 @@ function knownFeasibleFixture(count = 3000) {
     };
     bottoms.push(bottom);
     cards.push(card);
-    placements.push({ index, card, left, top, width: 1, height: pixelHeight, x: left * (cardWidth + interCardGap), y: top, pixelWidth: cardWidth, mediaPixelHeight, captionPixelHeight, pixelHeight });
+    placements.push({ index, card, left, top, width: 1, height: pixelHeight, x: left * (cardWidth + interCardGap), y: top, pixelWidth: cardWidth, mediaPixelHeight, pixelHeight });
   }
 
   placements.sort((a, b) => a.y - b.y || a.x - b.x || a.card.id.localeCompare(b.card.id));
@@ -349,35 +350,14 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   }
 });
 
-test("product layouts reserve no caption height after image titles are removed", () => {
-  const cards = fixture([[4, 3], [3, 4]], "no-caption");
-  const layout = compileMasonryLayout({
-    cards,
-    categoryOrder: ["no-caption"],
-    columns: 2,
-    layoutViewportWidth: 390,
-  });
-  assert.ok(layout.placements.every((placement) => placement.captionPixelHeight === 0));
-  assert.ok(layout.placements.every((placement) => placement.pixelHeight === placement.mediaPixelHeight));
-});
-
-test("projects layouts reserve the caption height under every card (projects R2)", () => {
-  const cards = fixture([[4, 3], [3, 4], [1, 1], [16, 9]], "captioned");
-  const layout = compileMasonryLayout({
-    cards,
-    categoryOrder: ["captioned"],
-    columns: 2,
-    layoutViewportWidth: 390,
-    captionPixelHeight: 34.92,
-  });
-  const bottoms = [0, 0];
-  for (const placement of layout.placements.toSorted((a, b) => a.y - b.y)) {
-    assert.equal(placement.captionPixelHeight, 34.92);
-    assert.ok(Math.abs(placement.pixelHeight - placement.mediaPixelHeight - 34.92) < 1e-9, "card height is media plus caption");
-    assert.equal(placement.y, bottoms[placement.left] ? bottoms[placement.left] + layout.interCardGap : 0, "next card starts one gap below the caption");
-    bottoms[placement.left] = placement.y + placement.pixelHeight;
+test("every placement on the real catalog is exactly as tall as its media (card UI inside the media)", () => {
+  for (const layoutViewportWidth of [384, 768, 1024, 1440]) {
+    for (const filter of ["all", ...categoryOrder]) {
+      const layout = compileMasonryLayout({ cards: ADVERTISING_CARDS, categoryOrder, filter, layoutViewportWidth });
+      assert.ok(layout.placements.every((placement) => placement.pixelHeight === placement.mediaPixelHeight
+        && placement.height === placement.pixelHeight && !("captionPixelHeight" in placement)), `${filter} ${layoutViewportWidth}px`);
+    }
   }
-  assert.deepEqual(layout.columnBottoms, bottoms);
 });
 
 // R5: cover ngang w/h >= 1.618 trải 2 cột ở lưới từ 3 cột, trừ khi lỗ dưới card quá nửa cột.
@@ -440,16 +420,16 @@ test("R5 a golden-ratio cover spans only level columns mid-grid and falls to the
   assert.deepEqual([sideOnly.left, sideOnly.width], [0, 1], "a small gap to a non-adjacent column does not count");
 });
 
-test("R5 a spanning multi-media card keeps the control strip and caption in its height", () => {
+test("R5 a spanning multi-media card is exactly as tall as its two-column canvas", () => {
   const card = { ...wideMediaCount(2), rank: 0, sourceOrder: 0 };
-  const layout = productLayoutOf([card], 1440, { captionPixelHeight: 34.92 });
+  const layout = productLayoutOf([card], 1440);
   const [placement] = layout.placements;
   assert.equal(placement.width, 2);
   assert.equal(placement.pixelWidth, 2 * layout.cardWidth + layout.interCardGap);
   assert.ok(Math.abs(placement.mediaPixelHeight - placement.pixelWidth * 9 / 16) < 1e-9);
-  assert.ok(Math.abs(placement.pixelHeight - placement.mediaPixelHeight - 44 - 34.92) < 1e-9, "strip and caption below the canvas");
+  assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "no strip or caption below the canvas");
   assert.deepEqual(layout.columnBottoms, [placement.pixelHeight, placement.pixelHeight, 0, 0]);
-  // Card tạm chờ dựng (loading glass R10) phủ đúng khung card thật: rộng 2 cột, cao canvas cộng dải, chừa tên.
+  // The placeholder card (loading glass R10) covers the real card frame exactly: two columns wide, canvas tall.
   const previousDocument = globalThis.document;
   const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, remove() {} });
   globalThis.document = { createElement: element };
@@ -459,7 +439,7 @@ test("R5 a spanning multi-media card keeps the control strip and caption in its 
     ghosts.show(card.id, placement, "rgb(1 2 3)");
     const ghost = ghosts.take(card.id);
     assert.deepEqual([ghost.style.left, ghost.style.top, ghost.style.width], [`${placement.x}px`, `${placement.y}px`, `${placement.pixelWidth}px`]);
-    assert.ok(Math.abs(Number.parseFloat(ghost.style.height) - placement.mediaPixelHeight - 44) < 1e-6, "ghost covers canvas and strip, not the caption");
+    assert.ok(Math.abs(Number.parseFloat(ghost.style.height) - placement.mediaPixelHeight) < 1e-6, "ghost covers the canvas");
   } finally {
     if (previousDocument === undefined) delete globalThis.document;
     else globalThis.document = previousDocument;
@@ -667,7 +647,7 @@ test("keeps a repairable anti-brick prefix and backtracks when a conflict become
     sourceOrder: index,
     rank: index,
     layoutSpan: span,
-    media: { src: `/repair-${index}.webp`, width: span === 2 ? 215 : 100, height: pixelHeight - 25.68 },
+    media: { src: `/repair-${index}.webp`, width: span === 2 ? 215 : 100, height: pixelHeight },
   }));
   const layout = compileLayoutSearch({ layoutViewportWidth: 245, columns: 2, cards, categoryOrder: ["repair"] });
   assertGrid(layout, "repairable prefix fixture", cards.length);

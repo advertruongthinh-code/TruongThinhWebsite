@@ -10,10 +10,9 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
-  /* Lớp tối đều khi hover card masonry Advertising (owner 2026-11-09), tối bằng .hero-shade trung bình theo chiều cao:
-     lớp mép trên tích phân 0,1125, lớp mép dưới 0,375 × 0,42 / 2 = 0,0788 (không chồng nhau), phủ đều 0,2, nên
-     độ sáng còn lại trung bình 0,8 × (1 - 0,1125 - 0,0788) = 0,647 và alpha đều 1 - 0,647 = 0,353. */
-  --media-hover-overlay: rgba(0, 0, 0, 0.353);
+  /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
+     48px, then a linear fade to transparent at the bottom edge of the card. */
+  --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -4829,9 +4828,8 @@ body.is-advertising-browse .advertising-grid {
     background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính và related dùng lớp tối
-   bằng hero (--media-hover-overlay, owner 2026-11-09), nút gợi ý giữ 30%; lưới Công trình không có lớp tối. */
+/* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
+   above it and video keeps playing underneath. */
 .advertising-card-media::after {
   position: absolute;
   z-index: 1;
@@ -4843,103 +4841,45 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
-.advertising-grid .advertising-card-media::after,
-[data-advertising-related-card] .advertising-card-media::after {
-  background: var(--media-hover-overlay);
+/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. A real mouse shows the
+   Pinterest hover shade (--media-shade-card) and the card name on hover, at once and without motion. Touch shows neither:
+   the image stays clean apart from the pill row. */
+.advertising-tile .advertising-card-media::after {
+  background: var(--media-shade-card);
+  transition: none;
 }
 
-.advertising-grid--captioned .advertising-card-media::after {
-  content: none;
-}
-
-/* Tên card (owner 2026-11-09). Advertising, cả related: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ
-   "Vừa xem" (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
+/* Card name as Pinterest's board name on pin hover (measured 2026-11-10): 16px bold on a 24px line, centred in the 48px flat
+   part of the shade (top 24px), 28px from the card edges, one line then an ellipsis. Hidden until hover; it stays the
+   link's accessible name (aria-labelledby). */
 .advertising-tile__title {
-  display: none;
+  position: absolute;
+  z-index: 2;
+  top: 24px;
+  right: 28px;
+  left: 28px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-shadow: var(--text-shadow-d);
+  text-transform: uppercase;
+  opacity: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .advertising-tile:hover .advertising-card-media::after {
+  .advertising-tile:hover .advertising-card-media::after,
+  .advertising-tile:hover .advertising-tile__title {
     opacity: 1;
   }
 
   .advertising-tile:hover .advertising-card-media__just-viewed {
     opacity: 0;
-  }
-
-  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title,
-  [data-advertising-related-card] .advertising-tile__title {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 0;
-    left: 0;
-    display: grid;
-    height: var(--advertising-media-height);
-    box-sizing: border-box;
-    padding: 0.5rem 40px;
-    place-items: center;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center;
-    text-shadow: var(--text-shadow-d);
-    text-transform: uppercase;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--media-hover-duration) var(--media-hover-easing);
-  }
-
-  .advertising-tile:hover .advertising-tile__title {
-    opacity: 1;
-  }
-}
-
-/* Công trình (projects R2): tên luôn hiện dưới media như /en/projects của Espacio, một dòng cắt "…" để hình học
-   card cố định; runtime chừa --advertising-caption-height (10px trên chữ, 7px dưới cho gạch chân). Hover chuột thật
-   hoặc focus bàn phím chạy gạch chân 3px như link navbar (.desktop-nav a::after). */
-.advertising-grid--captioned .advertising-tile__title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  display: block;
-  max-width: 100%;
-  height: var(--advertising-caption-height);
-  box-sizing: border-box;
-  padding: 10px 0 7px;
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 0.8rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.advertising-grid--captioned .advertising-tile__title::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right center;
-  background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
-}
-
-.advertising-grid--captioned .advertising-tile > a:focus-visible ~ .advertising-tile__title::after {
-  transform: scaleX(1);
-  transform-origin: left center;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .advertising-grid--captioned .advertising-tile:hover .advertising-tile__title::after {
-    transform: scaleX(1);
-    transform-origin: left center;
   }
 }
 
@@ -4988,56 +4928,61 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
-/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
-.advertising-card-media__duration {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.9);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
-  pointer-events: none;
-}
-
+/* Pill row at the bottom inside the media (owner 2026-11-10): the dots or the n/N counter, centred. Cards show no video
+   duration pill. */
 .advertising-card-media__indicator {
   position: absolute;
-  bottom: var(--advertising-caption-height, 0px);
+  right: 0;
+  bottom: 0;
   left: 0;
   z-index: 3;
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 44px;
+  align-items: center;
+  height: var(--card-pill-row);
   box-sizing: border-box;
-  color: var(--ink);
-  background: var(--paper);
+  padding: 0 8px;
   pointer-events: none;
 }
 
-/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
-   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
+/* The pill sits 12px above the card edge, like the buttons along the bottom of a hovered Pinterest pin (measured
+   2026-11-10): the dots pill is centred in the 40px row, the taller counter pill rests on a 12px bottom inset. */
+.advertising-tile {
+  --card-pill-row: 40px;
+}
+
+.advertising-card-media__indicator:has(.advertising-card-media__count) {
+  height: auto;
+  padding-bottom: 12px;
+}
+
+/* Dots or the counter sit in a pill copied from Pinterest's "5/14" carousel counter (measured 2026-11-10): charcoal
+   rgba(51, 51, 51, 0.8), radius 12px, white 12px regular text, padding 4px 8px. The dots pill is compact like Pinterest's
+   carousel dots: 8px dots every 16px, 16px tall; the 16x40px dot hit areas fill the row. */
 .advertising-card-media__pill {
   display: flex;
+  flex: none;
   align-items: center;
-  height: 24px;
-  padding: 0 2px;
-  border-radius: 8px;
+  height: 16px;
+  border-radius: 12px;
   color: #fff;
-  background: rgba(32, 33, 32, 0.9);
+  background: rgba(51, 51, 51, 0.8);
+}
+
+.advertising-card-media__pill:has(.advertising-card-media__count) {
+  height: auto;
+  padding: 4px 8px;
+}
+
+.advertising-card-media__pill:empty {
+  display: none;
 }
 
 .advertising-card-media__dot {
   display: grid;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 44px;
+  flex: 0 0 16px;
+  width: 16px;
+  height: var(--card-pill-row);
   padding: 0;
   place-items: center;
   border: 0;
@@ -5060,13 +5005,12 @@ body.is-advertising-browse .advertising-grid {
   opacity: 1;
 }
 
-/* Chữ như nhãn thời lượng: 12px, 500, số đều. */
+/* Counter text as on Pinterest: 12px regular, 1.6 line height. Proportional figures: the tabular "1" of Plus Jakarta Sans
+   carries a foot serif that looks odd in "1/11" (owner 2026-11-10). */
 .advertising-card-media__count {
-  padding: 0 4px;
   font-size: 0.75rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .advertising-card-media__dot:focus-visible {
@@ -5474,14 +5418,15 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
+/* Multi-media masonry card arrows as on the Pinterest grid (measured 2026-10-18): 32px hit areas at the left and right edges,
+   from the top of the canvas down to the pill row, thin white 16px chevron (centre 16px from the edge), no background,
+   above the hover layer; a light shadow keeps the chevron readable on bright media; the button is its own layer so the shadow
+   paints once (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px - var(--advertising-caption-height, 0px));
+  height: calc(100% - var(--card-pill-row));
   border-radius: 0;
   background: transparent;
   color: #fff;

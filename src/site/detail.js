@@ -329,7 +329,6 @@
               softNavigation,
               artifact,
               viewer: false,
-              captions: true,
             });
           }
         })

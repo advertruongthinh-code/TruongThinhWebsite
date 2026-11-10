@@ -63,7 +63,7 @@ assert.match(runtime, /advertising-tile__media--natural/, "catalog cards use a n
 assert.match(runtime, /querySelectorAll\("\.advertising-tile__foreground"\)[\s\S]*is-advertising-media-ready/, "the single foreground keeps the replayable media entrance");
 assert.match(runtime, /data-advertising-span|dataset\.advertisingSpan/, "solver span is available for focused geometry QA");
 assert.doesNotMatch(runtime, /presentationCanvas|fitMode|mediaCandidates|advertising-tile__backplate|data-media-fit|media--canvas/, "legacy canvas, fit, and backplate consumers are removed");
-assert.match(runtime, /CAPTION_METRICS_VERSION|artifactDataHash|artifactCacheIdentity|settingsHash/, "geometry cache identity includes artifact data and caption settings");
+assert.match(runtime, /artifactDataHash|artifactCacheIdentity|settingsHash/, "geometry cache identity includes artifact data");
 assert.match(runtime, /diagnostics/, "invalid or incomplete compiler diagnostics are surfaced before mounting");
 assert.match(runtime, /diagnosticCode && diagnosticCode !== "needs-media"/, "needs-media remains a non-fatal layout diagnostic");
 assert.match(runtime, /advertisingLayoutStatus = diagnosticCode/, "runtime surfaces non-fatal diagnostics on the grid");

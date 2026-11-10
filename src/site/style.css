@@ -64,10 +64,9 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
-  /* Lớp tối đều khi hover card masonry Advertising (owner 2026-11-09), tối bằng .hero-shade trung bình theo chiều cao:
-     lớp mép trên tích phân 0,1125, lớp mép dưới 0,375 × 0,42 / 2 = 0,0788 (không chồng nhau), phủ đều 0,2, nên
-     độ sáng còn lại trung bình 0,8 × (1 - 0,1125 - 0,0788) = 0,647 và alpha đều 1 - 0,647 = 0,353. */
-  --media-hover-overlay: rgba(0, 0, 0, 0.353);
+  /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
+     48px, then a linear fade to transparent at the bottom edge of the card. */
+  --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;

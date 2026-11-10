@@ -208,7 +208,6 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       placement.y,
       placement.pixelWidth,
       placement.mediaPixelHeight,
-      placement.captionPixelHeight,
       placement.pixelHeight,
     ];
     if (numericFields.some((value) => !finite(value)) || placement.y < 0) {
@@ -256,11 +255,8 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     }
     if (
       placement.mediaPixelHeight <= 0 ||
-      placement.captionPixelHeight < 0 ||
-      placement.pixelHeight <= 0 ||
-      Math.abs(
-        placement.pixelHeight - (placement.mediaPixelHeight + placement.captionPixelHeight)
-      ) > EPSILON
+      // Card UI sits inside the media (media-card R2): the card is exactly as tall as its media.
+      Math.abs(placement.pixelHeight - placement.mediaPixelHeight) > EPSILON
     ) {
       add("vertical-bounds", { ids: [id], columns: cardColumns });
     }

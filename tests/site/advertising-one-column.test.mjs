@@ -13,27 +13,31 @@ else globalThis.window = previousWindow;
 const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
 const widths = [320, 390, 734, 735, 736, 749, 750, 751, 768, 820, 959, 960, 961, 1024, 1199, 1200, 1201, 1440, 1920, 2560];
 
-function oracleFixture(heights, { caption = 0, seeds = [0, 0] } = {}) {
+function oracleFixture(heights, { seeds = [0, 0] } = {}) {
   const cardWidth = 172.5;
   const interCardGap = 15;
   const placements = heights.map((height, left) => ({
     card: { id: `fixture-${left}`, media: { width: cardWidth, height } },
     left, width: 1, x: left * (cardWidth + interCardGap), y: seeds[left] ? seeds[left] + interCardGap : 0,
-    pixelWidth: cardWidth, mediaPixelHeight: height, captionPixelHeight: caption, pixelHeight: height + caption,
+    pixelWidth: cardWidth, mediaPixelHeight: height, pixelHeight: height,
   })).sort((a, b) => a.y - b.y || a.x - b.x);
   return { layout: { columns: 2, cardWidth, interCardGap, gridWidth: 360, initialColumnBottoms: seeds, staggerBasis: "image-height" }, placements };
 }
 
-test("stagger uses the larger image height and excludes caption height", () => {
-  for (const caption of [0, 1000]) {
-    const atThreshold = inspectAdvertisingGrid(oracleFixture([480, 600], { caption }));
-    assert.equal(atThreshold.valid, true, JSON.stringify(atThreshold.violations));
-    const belowThreshold = inspectAdvertisingGrid(oracleFixture([500, 600], { caption }));
-    const violation = belowThreshold.violations.find((v) => v.code === "stagger");
-    assert.ok(violation, JSON.stringify(belowThreshold.violations));
-    assert.equal(violation.required, 120);
-    assert.equal(violation.actual, 100);
-  }
+test("stagger uses the larger image height", () => {
+  const atThreshold = inspectAdvertisingGrid(oracleFixture([480, 600]));
+  assert.equal(atThreshold.valid, true, JSON.stringify(atThreshold.violations));
+  const belowThreshold = inspectAdvertisingGrid(oracleFixture([500, 600]));
+  const violation = belowThreshold.violations.find((v) => v.code === "stagger");
+  assert.ok(violation, JSON.stringify(belowThreshold.violations));
+  assert.equal(violation.required, 120);
+  assert.equal(violation.actual, 100);
+});
+
+test("a card taller than its media (UI outside the media) is a vertical-bounds violation", () => {
+  const fixture = oracleFixture([480, 600]);
+  fixture.placements[0] = { ...fixture.placements[0], pixelHeight: fixture.placements[0].pixelHeight + 44 };
+  assert.ok(inspectAdvertisingGrid(fixture).violations.some(({ code }) => code === "vertical-bounds"));
 });
 
 test("D9 keeps the 10 percent preferred threshold and rejects overlap in fallback", () => {
@@ -55,11 +59,11 @@ test("D9 keeps the 10 percent preferred threshold and rejects overlap in fallbac
 });
 
 test("reserved regions cannot hide visually uneven real-photo tails", () => {
-  const result = inspectAdvertisingGrid(oracleFixture([100, 140], { caption: 25.68, seeds: [1000, 0] }));
+  const result = inspectAdvertisingGrid(oracleFixture([100, 140], { seeds: [1000, 0] }));
   const violation = result.violations.find((v) => v.code === "terminal-fill");
   assert.ok(violation);
   assert.equal(violation.actual, 975);
-  assert.equal(violation.allowed, 180.68);
+  assert.equal(violation.allowed, 155); // tallest terminal card + gap; no caption strip since media-card R2 (2026-11-10)
 });
 
 // Cover ngang từ tỷ lệ vàng (masonry R5); viết lại độc lập với masonry/layout.mjs.

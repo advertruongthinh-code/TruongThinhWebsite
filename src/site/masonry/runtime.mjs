@@ -56,7 +56,6 @@ const compileInWorker = (options, worker) => new Promise((resolve) => {
 let lastClosedPhotoId = null;
 let artifactPromise;
 const GEOMETRY_CACHE_LIMIT = 24;
-const CAPTION_METRICS_VERSION = "advertising-caption-v2";
 const BROWSE_STATE_KEY = "advertisingBrowse";
 export const VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
 const VISIT_SEED_HANDOFF_TTL_MS = 30_000;
@@ -1059,14 +1058,14 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     // Frame skeleton là phần nhìn thấy; node này chỉ giữ trạng thái loading cho công nghệ hỗ trợ.
     const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
-    const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
-    loading.hidden = duration.hidden = true;
-    media.append(loading, duration);
+    loading.hidden = true;
+    media.append(loading);
 
+    // Pill row at the bottom inside the media (owner 2026-11-10): dots or counter centred; cards show no video duration.
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
-    // 2-5 media dùng chấm; từ 6 media bộ đếm i/N thay đúng chỗ hàng chấm (owner 2026-10-18), đổi media bằng mũi tên hover hoặc vuốt.
-    // Chấm hoặc bộ đếm nằm trong một pill giữa dải (owner 2026-10-26).
+    // 2-5 media use dots; from 6 media an i/N counter takes the dots' place (owner 2026-10-18); arrows on hover or a swipe
+    // change media. Dots or the counter sit in one pill (owner 2026-10-26).
     const numericIndicator = items.length >= 6;
     const pill = indicator.appendChild(el("span", "advertising-card-media__pill"));
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
@@ -1126,7 +1125,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
       media.classList.toggle("is-media-error", failed);
       indicator.hidden = failed;
-      if (failed) [...hoverSteps, duration].forEach((node) => { node.hidden = true; });
+      if (failed) hoverSteps.forEach((node) => { node.hidden = true; });
       loading.setAttribute("aria-label", failed ? english ? "Couldn't load media" : "Không tải được media"
         : english ? "Loading media" : "Đang tải media");
       loading.hidden = ready || loadedVideoPoster;
@@ -1242,8 +1241,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       layer.hidden = false;
       figure.dataset.advertisingActiveMediaId = item.id;
       updateIndicator(index);
-      duration.hidden = item.kind !== "video";
-      if (item.kind === "video") duration.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       updateLoading();
     };
     figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
@@ -1366,10 +1363,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
     && (related || !document.body.classList.contains("is-advertising-photo")));
-  // Tên card trên masonry chính và related (owner 2026-11-09): CSS hiện khi hover chuột thật, hoặc luôn hiện dưới
-  // media ở lưới --captioned. Link lấy tên từ figcaption qua aria-labelledby (WCAG 2.5.3: nhãn hiện thấy nằm trong tên
-  // link), figcaption aria-hidden để trình đọc màn hình không đọc lặp. Một card có thể cùng lúc ở lưới chính và
-  // related, nên id của related có tiền tố riêng.
+  // Card name inside the media, top left (media-card R3, owner 2026-11-10): CSS shows it only on real-mouse hover, never
+  // on touch. The link takes its name from the figcaption via aria-labelledby (WCAG 2.5.3: the visible label is part of
+  // the link name); the figcaption is aria-hidden so screen readers do not read it twice. One card can sit in the main
+  // grid and in related at once, so related ids carry their own prefix.
   const title = figure.appendChild(document.createElement("figcaption"));
   title.className = "advertising-tile__title";
   title.id = `${related ? "advertising-related-title" : "advertising-title"}-${record.id}`;
@@ -1418,14 +1415,13 @@ function sizeNode(node, placement, setSize) {
   sizeLazyImage(node, placement);
   node.style.height = `${placement.pixelHeight}px`;
   node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
-  node.style.setProperty("--advertising-caption-height", `${placement.captionPixelHeight}px`);
   node.dataset.advertisingSpan = String(placement.width);
   node.setAttribute("role", "listitem");
   node.setAttribute("aria-posinset", String(placement.index + 1));
   node.setAttribute("aria-setsize", String(setSize));
 }
 
-export async function mountMasonry(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true, captions = false } = {}) {
+export async function mountMasonry(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
   const startupHistory = window.__ttBrowseStartupHistory;
@@ -1581,9 +1577,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
   const geometries = new Map();
-  // Tên dưới card (projects R2): 10px trên chữ, một dòng 0.8rem × line-height 1.4, 7px dưới cho gạch chân, khớp
-  // .advertising-grid--captioned trong detail.css; tính theo cỡ chữ gốc để chữ phóng to vẫn vừa chỗ chừa.
-  const captionPixelHeight = captions ? 17 + 1.12 * (Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) : 0;
   let geometryPending = false;
   const retainedPhotoIds = new Set();
   // Sân masonry chính và related ở detail: cùng state dựng theo cửa sổ cuộn, ngân sách dựng, card tạm, hàng chờ LRU
@@ -1917,7 +1910,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   ctaSkeleton?.replaceChildren();
   grid.replaceChildren(...(ctaSkeleton ? [ctaSkeleton] : []));
   grid.classList.add("advertising-grid");
-  grid.classList.toggle("advertising-grid--captioned", captions);
   grid.setAttribute("role", "list");
   relatedGrid?.setAttribute("role", "list");
 
@@ -1938,12 +1930,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       settings,
       presentationOrder,
       organicOrder: true,
-      captionPixelHeight,
     };
     const key = [
       artifactCacheIdentity.datasetVersion,
       artifactCacheIdentity.layoutAlgorithmVersion,
-      CAPTION_METRICS_VERSION,
       targetFilter,
       compileOptions.layoutViewportWidth,
       presentationOrder.join(","),
@@ -2878,7 +2868,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       columns: hostGeometry.columns,
       cardWidth: hostGeometry.cardWidth,
       gap: hostGeometry.interCardGap,
-      captionHeight: detailHost ? 0 : captionPixelHeight,
       boundaryBottom: skeletonBoundaryBottom,
       ...skeletonBatchConfig,
       seed: browseHistory.current.seed,
