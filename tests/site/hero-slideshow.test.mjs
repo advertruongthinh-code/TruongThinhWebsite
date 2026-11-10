@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-// page-home R3, detail-pages R5: ba hero chạy cùng một code inline (motion.js chạy lại text đó khi route mềm), nên
-// bỏ comment và mảng slides thì script head và script xáo sau .hero-slides của ba trang phải giống hệt.
+// page-home R3, detail-pages R5: the three heroes run the same inline code (motion.js reruns that text on soft route changes), so
+// with comments and the slides array stripped, the head script and the shuffle script after .hero-slides must be identical across the three pages.
 test("home, residential and commercial share one hero slideshow script", async () => {
   const pages = ["index.html", "residential/index.html", "commercial/index.html"];
   const scripts = await Promise.all(pages.map(async (page) => {

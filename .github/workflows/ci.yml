@@ -2,30 +2,30 @@ name: CI
 
 on:
   pull_request:
-    # PR nháp chỉ chạy bộ fast; chuyển sang sẵn sàng (ready_for_review) thì chạy đủ bộ được chọn.
+    # Draft PRs run only the fast suite; moving to ready (ready_for_review) runs the full selected suites.
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
-  # Automerge dispatch CI trên main sau khi merge, vì merge bằng GITHUB_TOKEN không kích hoạt push.
-  # Dispatch tay với full: true chạy đủ bộ như lượt đêm.
+  # Automerge dispatches CI on main after merging, because a merge by GITHUB_TOKEN does not trigger push.
+  # A manual dispatch with full: true runs the full suites like the nightly run.
   workflow_dispatch:
     inputs:
       full:
         type: boolean
         default: false
-  # Đủ bộ chạy mỗi đêm 02:00 giờ Việt Nam; PR và push chỉ chạy fast (spec ci-test-suites R4).
+  # The full suites run nightly at 02:00 Vietnam time; PRs and pushes run only fast (spec ci-test-suites R4).
   schedule:
     - cron: "0 19 * * *"
 
 permissions:
   contents: read
 
-# Push mới hủy lượt cũ của cùng PR; trên main không hủy để lượt đã chạy dở vẫn tới Deploy demo khi merge dồn dập.
+# A new push cancels the older run of the same PR; on main nothing is cancelled so a run in progress still reaches Deploy demo when merges pile up.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# Bộ test theo phần website (docs/specs/ci-test-suites.md): chọn bộ, chạy song song, gom thành check static-release.
+# Test suites per website part (docs/specs/ci-test-suites.md): select suites, run in parallel, aggregate into the static-release check.
 jobs:
   select:
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
     outputs:
       suites: ${{ steps.select.outputs.suites }}
     steps:
-      # Checkout của PR là merge commit: HEAD^1 là main, nên diff HEAD^1...HEAD là đúng phần PR sửa.
+      # The PR checkout is a merge commit: HEAD^1 is main, so the diff HEAD^1...HEAD is exactly what the PR changed.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 2
@@ -71,13 +71,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Script e2e tự đặt browser path về .tooling/browsers khi env trống; trỏ mọi bước về cache của playwright install.
-      # Runner GitHub-hosted trắng mỗi job nên cài Chromium cùng system deps.
+      # E2E scripts set the browser path to .tooling/browsers themselves when the env is empty; point every step at the playwright install cache.
+      # GitHub-hosted runners are blank per job, so install Chromium with system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
-      # Bộ adv-browse chạy thêm WebKit (random-browse); các bộ khác chỉ Chromium.
-      # Runner ubuntu-latest đã có hầu hết thư viện hệ thống nên chỉ tải trình duyệt (CDN, vài giây);
-      # apt chỉ chạy khi trình duyệt không mở được. Đừng dùng --with-deps: apt-get update từ mirror Azure
-      # từng treo 11 phút (PR 581), và timeout chạy bằng user thường không kill được apt chạy bằng sudo.
+      # The adv-browse suite also runs WebKit (random-browse); the other suites run Chromium only.
+      # The ubuntu-latest runner already has most system libraries, so only download the browser (CDN, a few seconds);
+      # apt runs only when the browser cannot open. Do not use --with-deps: apt-get update from the Azure mirror
+      # once hung for 11 minutes (PR 581), and a timeout run as a normal user cannot kill apt run via sudo.
       - name: Install browsers
         env:
           BROWSERS: ${{ matrix.suite == 'adv-browse' && 'chromium webkit' || 'chromium' }}
@@ -89,10 +89,10 @@ jobs:
             probe
           }
 
-      # Script tự build, mở preview ở port trống riêng và dọn server.
+      # The script builds itself, opens a preview on its own free port and cleans up the server.
       - run: pnpm qa:suite ${{ matrix.suite }}
 
-      # Số đo từng lệnh (spec R10) để đóng gói job và xếp hạng test flaky; upload cả khi xanh.
+      # Per-command timings (spec R10) to pack jobs and rank flaky tests; upload even when green.
       - name: Upload timing
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: qa-failure-${{ matrix.suite }}
-          # Test e2e ghi report và screenshot vào .tmp/; thư mục ẩn cần include-hidden-files.
+          # E2E tests write reports and screenshots to .tmp/; hidden folders need include-hidden-files.
           path: |
             static-server.log
             test-results/
@@ -117,9 +117,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Automerge và Deploy demo đọc check này; bộ không được chọn (skipped) không tính là đỏ. Lượt PR nháp đổi tên
-  # check để Automerge không merge bằng kết quả chỉ có bộ fast. Cả lượt bị hủy (push mới, PR rời nháp) thì job skipped
-  # thay vì đỏ; Automerge chỉ nhận success nên skipped không merge được.
+  # Automerge and Deploy demo read this check; suites that are not selected (skipped) do not count as red. The draft PR run renames
+  # the check so Automerge does not merge on a result that covers only the fast suite. If the whole run is cancelled (new push, PR leaves draft) the job is skipped
+  # instead of red; Automerge accepts only success, so skipped cannot merge.
   static-release:
     name: ${{ github.event.pull_request.draft && 'static-release-draft' || 'static-release' }}
     needs: [select, suite]
@@ -132,7 +132,7 @@ jobs:
           [ "${{ needs.select.result }}" = success ] || exit 1
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
-  # Deploy demo chỉ chạy trên main (push hoặc dispatch của Automerge) khi static-release, tức bộ fast, xanh; lượt đêm không deploy.
+  # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
   deploy-demo:
     needs: static-release
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true

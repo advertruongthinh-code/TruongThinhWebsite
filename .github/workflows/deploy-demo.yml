@@ -1,8 +1,8 @@
 name: Deploy demo
 
-# Tự deploy demo khi CI xanh trên main (decision cloudflare-workers-static-demo.md).
-# Được ci.yml gọi (job deploy-demo) thay vì workflow_run: lượt CI do Automerge dispatch bằng
-# GITHUB_TOKEN không kích hoạt workflow_run, nên demo từng không cập nhật sau PR tự merge.
+# Auto-deploy the demo when CI is green on main (decision cloudflare-workers-static-demo.md).
+# Called by ci.yml (job deploy-demo) instead of workflow_run: a CI run dispatched by Automerge with
+# GITHUB_TOKEN does not trigger workflow_run, so the demo used to miss updates after auto-merged PRs.
 on:
   workflow_call:
 

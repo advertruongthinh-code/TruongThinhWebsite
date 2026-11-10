@@ -38,8 +38,8 @@ async function openMenu(page) {
   await page.locator("[data-menu-open]").click();
   await page.waitForFunction(() => {
     const dialog = document.querySelector("#site-menu");
-    // Shell R4: focus chuyển sang nút close khi trạng thái open đã chốt; transition reduced-motion
-    // vẫn cần frame cuối của chúng, mà software rendering chậm làm trễ.
+    // Shell R4: focus moves to the close button once the open state is settled; the reduced-motion transition
+    // still needs their final frame, which slow software rendering delays.
     return dialog?.open && dialog.classList.contains("is-active")
       && document.activeElement?.matches("[data-menu-close]")
       && dialog.getAnimations({ subtree: true }).every(animation => animation.playState === "finished");
@@ -190,7 +190,7 @@ try {
         const domFocusOrder = await focusOrder(page);
         const tabFocusOrder = await keyboardFocusOrder(page, expectedFocusOrder.length);
 
-        // Thiết kế menu đầy đủ: head có gutter riêng 25px (35px trên 1200px), không phải của header.
+        // Full menu design: the head has its own 25px gutter (35px above 1200px), not the header's.
         const menuGutter = width > 1200 ? 35 : 25;
         record(failures, `${locale}/${width} menu logo`, () =>
           assert(Math.abs(menuLogo.x - menuGutter) <= 1 && Math.abs(menuLogo.y - menuGutter) <= 1,
@@ -206,7 +206,7 @@ try {
           assert(Math.abs(width - close.right - (menuGutter - 10)) <= 1,
             `close=${width - close.right}px expected=${menuGutter - 10}px`);
         });
-        // Mobile đặt CTA ở hàng riêng dưới locale; head rộng hơn giữ nó bên trái close.
+        // Mobile puts the CTA on its own row under the locale; the wider head keeps it to the left of close.
         if (width >= 961) {
           record(failures, `${locale}/${width} CTA before close`, () => {
             assert(homeCta && close, "missing CTA or close bbox");
@@ -217,7 +217,7 @@ try {
 
         const resizeWidth = new Map([[390, 768], [768, 1024], [1024, 1440], [1440, 1922], [1922, 390]]).get(width);
         await page.setViewportSize({ width: resizeWidth, height });
-        // Headless Chromium có thể áp style media query mới sau resize một hai frame.
+        // Headless Chromium may apply new media query styles one or two frames after a resize.
         await page.waitForTimeout(100);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const resizedOpen = await page.locator("#site-menu").evaluate(dialog => dialog.open && dialog.classList.contains("is-active"));

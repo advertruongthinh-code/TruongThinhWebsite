@@ -1,6 +1,6 @@
-// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/design-system.md R5).
-// Ảnh preview publish thành file thường ở preview-media/; link rời design-system/ trỏ về GitHub.
-// Cách dùng: node scripts/docs/stage-design-system.mjs, rồi publish bằng Artifact tool như design-system/README.md hướng dẫn.
+// Stage design-system/ as claude.ai Design System file table under .tmp/design-system-publish/project/ (docs/specs/design-system.md R5).
+// Preview images are published as plain files in preview-media/; links leaving design-system/ point to GitHub.
+// Usage: node scripts/docs/stage-design-system.mjs, then publish with the Artifact tool as design-system/README.md instructs.
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 
@@ -9,7 +9,7 @@ const OUT = '.tmp/design-system-publish';
 const REPO = 'https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/main';
 
 const walk = (dir) => readdirSync(dir).flatMap((name) => {
-  // posix.join để rel luôn dùng '/' trên Windows; fs của Node nhận được cả hai dấu.
+  // posix.join so rel always uses '/' on Windows; Node's fs accepts both separators.
   const path = posix.join(dir, name);
   return statSync(path).isDirectory() ? walk(path) : [path];
 });
@@ -26,7 +26,7 @@ for (const path of walk(SRC)) {
       return target.startsWith(`${SRC}/`) ? whole : `](${REPO}/${target}${hash})`;
     }));
   } else {
-    // Chép nguyên byte: ảnh WebP hỏng nếu đọc qua utf8.
+    // Copy raw bytes: WebP images break if read as utf8.
     copyFileSync(path, out);
   }
   if (rel !== 'design-system.json') staged.push(`project/${rel}`);

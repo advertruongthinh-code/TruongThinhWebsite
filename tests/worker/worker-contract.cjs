@@ -89,7 +89,7 @@ async function runSecurityContract() {
       DB: { prepare: () => ({ bind: () => ({ first: async () => null }) }) },
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
-    // Runtime SSR được runPublicContract bao phủ trên Wrangler, vốn cung cấp HTMLRewriter.
+    // SSR runtime is covered by runPublicContract on Wrangler, which provides HTMLRewriter.
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {
@@ -157,13 +157,13 @@ async function runSecurityContract() {
       }
     }
 
-    // Đăng nhập dev chỉ nhận host loopback; host public vẫn cần Access dù biến bị đặt nhầm.
+    // Dev login accepts only loopback hosts; a public host still needs Access even if the variable is set by mistake.
     const devEnv = { ...env, CMS_LOCAL_ADMIN_EMAIL: "admin@localhost" };
     for (const [method, path] of protectedEndpoints) {
       const response = await worker.default.fetch(new Request(`https://admin.site.example${path}`, { method, headers: { Origin: "https://admin.site.example" } }), devEnv);
       assert(response.status === 403, `dev admin reached public host ${method} ${path} with ${response.status}`);
     }
-    // Host www không mở CMS (cả UI lẫn API), kể cả khi có vé Access hợp lệ.
+    // The www host does not open the CMS (UI or API), even with a valid Access ticket.
     for (const path of ["/admin/", "/api/admin/settings"]) {
       assert.equal((await worker.default.fetch(new Request(`https://site.example${path}`, { headers }), env)).status, 404, `public host served ${path}`);
     }

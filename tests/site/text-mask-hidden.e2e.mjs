@@ -1,5 +1,5 @@
-// hero-typography R6: dòng chữ chưa reveal phải nằm hẳn dưới mép clip-path của mask, kể cả chữ nhỏ (kicker portal);
-// lúc ẩn và lúc trồi lên mép dưới không nới vùng bóng, reveal xong mới mở lại.
+// hero-typography R6: a text line not yet revealed must sit fully below the mask's clip-path edge, including small text (kicker portal);
+// while hidden and while rising to the bottom edge the shadow region is not widened, and only reopens after the reveal finishes.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -23,14 +23,14 @@ try {
       for (const route of routes) {
         await page.goto(`${origin}/${locale}/${route}`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
-        // Chờ intro, SplitText và đo mask xong; không cuộn nên các khối dưới màn hình còn ở trạng thái ẩn.
+        // Wait for intro, SplitText and mask measurement to finish; no scrolling, so blocks below the screen stay hidden.
         await page.waitForTimeout(3000);
         const leaks = await page.evaluate((selector) => {
           return [...document.querySelectorAll(selector)].flatMap((mask) => {
             const line = mask.firstElementChild;
             if (!line || mask.getClientRects().length === 0) return [];
             const lineY = new DOMMatrixReadOnly(getComputedStyle(line).transform).m42;
-            // Chỉ xét dòng đang ẩn dưới mask (y dương); dòng đã reveal hoặc chưa có transform bỏ qua.
+            // Only consider lines hidden under the mask (positive y); lines already revealed or without a transform are skipped.
             if (lineY < 1 || !line.textContent.trim()) return [];
             const label = `${mask.className} "${line.textContent.trim().slice(0, 24)}"`;
             const maskStyle = getComputedStyle(mask);
@@ -49,7 +49,7 @@ try {
           });
         }, maskSelector);
         leaks.forEach((leak) => failures.push(`/${locale}/${route} ${viewport.width}px: ${leak}`));
-        // Cuộn hết trang cho mọi dòng reveal; dòng đã về chỗ phải mở lại vùng bóng (không còn is-text-masked).
+        // Scroll the whole page so every line reveals; lines back in place must reopen the shadow region (no more is-text-masked).
         await page.evaluate(async () => {
           for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight * 0.6) {
             window.scrollTo(0, y);
@@ -60,7 +60,7 @@ try {
         const closed = await page.evaluate((selector) =>
           [...document.querySelectorAll(selector)]
             .filter((mask) => mask.classList.contains("is-text-masked") && mask.firstElementChild)
-            // Tween reveal còn chạy (power4.out gần tới đích từ sớm) thì chưa tính.
+            // Skip while the reveal tween is still running (power4.out gets close to the end early).
             .filter((mask) => !window.gsap?.isTweening(mask.firstElementChild))
             .filter((mask) => new DOMMatrixReadOnly(getComputedStyle(mask.firstElementChild).transform).m42 < 1)
             .map((mask) => `${mask.className} "${mask.textContent.trim().slice(0, 24)}" reveal xong vẫn cắt vùng bóng`),

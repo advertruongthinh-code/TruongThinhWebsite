@@ -1,27 +1,27 @@
 #!/bin/bash
-# Setup script cho môi trường cloud của Claude Code ("Default" tại claude.ai/code).
-# Cài global agent stack của owner cho mọi cloud session và mọi repo:
+# Setup script for the Claude Code cloud environment ("Default" at claude.ai/code).
+# Installs the owner's global agent stack for every cloud session and every repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena,
 # chrome-devtools, find-skills, kie-models, kie-chat-agents.
-# Ponytail 5 bỏ ponytail-mcp; rule ultra nạp qua CLAUDE.md và skill.
+# Ponytail 5 drops ponytail-mcp; the ultra rule loads via CLAUDE.md and the skill.
 #
-# Rule của owner: chỉ skill, command, agent và MCP, không bao giờ dùng agent lifecycle hook.
-# Mỗi plugin nạp dưới dạng skills-directory plugin (~/.claude/skills/<name>/ cùng
-# .claude-plugin/plugin.json) liên kết tới checkout đã pin, đã gỡ hook.
-# MCP server nằm trong plugin local "cloud-stack". Pin khớp với tooling-versions.json.
-# Luôn exit 0 để cài lỗi không chặn session; xem
-# /opt/agent-tools/setup.log để biết kết quả từng mục.
+# Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
+# Each plugin loads as a skills-directory plugin (~/.claude/skills/<name>/ with
+# .claude-plugin/plugin.json) linked to a pinned checkout with hooks removed.
+# MCP servers live in the local plugin "cloud-stack". Pins match tooling-versions.json.
+# Always exits 0 so an install failure does not block the session; see
+# /opt/agent-tools/setup.log for per-item results.
 set -uo pipefail
 
 CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 T="${AGENT_TOOLS_DIR:-/opt/agent-tools}"
 BIN="$HOME/.local/bin"
 mkdir -p "$T/src" "$CFG/skills"
-# Redirect file thường: với `exec > >(tee ...)`, lệnh `wait` trần cũng chờ tee và bị deadlock.
+# Redirect to a regular file: with `exec > >(tee ...)`, a bare `wait` also waits for tee and deadlocks.
 exec >"$T/setup.log" 2>&1 </dev/null
 export DO_NOT_TRACK=1 GIT_TERMINAL_PROMPT=0
 
-fetch() { # <owner/repo> <sha>: checkout nông (shallow) của một commit đã pin
+fetch() { # <owner/repo> <sha>: shallow checkout of one pinned commit
   local d="$T/src/${1#*/}"
   rm -rf "$d" && git init -q "$d" &&
     git -C "$d" fetch -q --depth 1 "https://github.com/$1.git" "$2" &&
@@ -42,7 +42,7 @@ npm install -g --silent --no-audit --no-fund \
   impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
 wait
 
-# Skill kie.ai không có repo Git: tải tarball, kiểm SHA-256 ghim rồi mới bung.
+# The kie.ai skill has no Git repo: download the tarball, verify the pinned SHA-256, then extract.
 kie() { # <name> <sha256>
   local d="$CFG/skills/$1" a="$T/$1.tar.gz"
   curl -fsSL "https://kie.ai/.well-known/agent-skills/$1.tar.gz" -o "$a" &&
@@ -53,12 +53,12 @@ kie kie-models f6247b734033fad6ba75e0875bc105e2307c9b7e7790317a26c1b68838209f22
 kie kie-chat-agents f1cbf185af32ff7162dd67d9d257cd527e79846d94cae804e2bb83e08a47e8b0
 ln -sfnT "$T/src/skills/skills/find-skills" "$CFG/skills/find-skills"
 
-# Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.18).
+# Hide the npm CLI so the skill's launcher caches the pinned engine (engine 0.1.18).
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
 
-# Global rules: bản sao của block codex:global-stack trong scripts/tooling/bootstrap.ps1
+# Global rules: a copy of the codex:global-stack block in scripts/tooling/bootstrap.ps1
 # (Claude local import qua ~/.claude/CLAUDE.md). tests/tooling/global-rules-sync.test.mjs
-# làm CI fail khi hai bản lệch nhau hoặc check của doctor.ps1 không còn khớp.
+# makes CI fail when the two copies drift or the doctor.ps1 check no longer matches.
 cat > "$CFG/CLAUDE.md" <<'EOF'
 ## Global agent stack
 
@@ -73,18 +73,18 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 7. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
 8. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
 EOF
-"$BIN/graphify" install </dev/null  # skill cùng block đăng ký được nối vào CLAUDE.md
+"$BIN/graphify" install </dev/null  # the skill registered by the same block is appended to CLAUDE.md
 
-# Một Chromium cho impeccable và chrome-devtools; root cần --no-sandbox.
+# One Chromium for impeccable and chrome-devtools; root needs --no-sandbox.
 cat > /usr/local/bin/chromium <<'EOF'
 #!/bin/sh
 exec /opt/pw-browsers/chromium --no-sandbox "$@"
 EOF
 chmod +x /usr/local/bin/chromium
 
-# Gỡ hook tại chỗ: bỏ hooks/hooks.json mặc định và key `hooks` trong manifest.
-# Giữ nguyên phần còn lại của hooks/. Thư mục component là symlink bị
-# từ chối với lỗi "path escapes plugin directory", nên link chính root của checkout.
+# Remove hooks in place: drop the default hooks/hooks.json and the `hooks` key in the manifest.
+# Leave the rest of hooks/ untouched. A component directory that is a symlink is
+# rejected with "path escapes plugin directory", so link the checkout root itself.
 unhook() { # <checkout> <name>
   local m="$1/.claude-plugin/plugin.json"
   rm -f "$1/hooks/hooks.json"
@@ -96,16 +96,16 @@ unhook "$T/src/caveman" caveman
 unhook "$T/src/ponytail" ponytail
 unhook "$T/src/impeccable/plugin" impeccable
 unhook "$T/src/i-have-adhd" i-have-adhd
-# Owner chọn: i-have-adhd tự gọi (giống local-setup.ps1).
+# Owner choice: i-have-adhd self-invokes (same as local-setup.ps1).
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
   "$T/src/i-have-adhd/skills/i-have-adhd/SKILL.md"
-# Owner chọn: skill caveman chỉ chạy khi user gọi (giống local-setup.ps1).
+# Owner choice: the caveman skill runs only when the user invokes it (same as local-setup.ps1).
 for f in "$T"/src/caveman/skills/*/SKILL.md; do
   grep -q '^disable-model-invocation:' "$f" || sed -i '1a disable-model-invocation: true' "$f"
 done
 
-# Chống stale không cần lifecycle hook: một watcher cho mỗi repo, graphify-mcp tự nạp lại graph.json.
+# Stale protection without lifecycle hooks: one watcher per repo, graphify-mcp reloads graph.json itself.
 cat > "$T/graphify-mcp-live" <<EOF
 #!/bin/sh
 root="\$(git rev-parse --show-toplevel 2>/dev/null)" && cd "\$root"
@@ -121,7 +121,7 @@ exec "$BIN/graphify-mcp"
 EOF
 chmod +x "$T/graphify-mcp-live"
 
-# Plugin local chứa các MCP server.
+# Local plugin holding the MCP servers.
 P="$T/cloud-stack"
 mkdir -p "$P/.claude-plugin"
 cat > "$P/.claude-plugin/plugin.json" <<'EOF'

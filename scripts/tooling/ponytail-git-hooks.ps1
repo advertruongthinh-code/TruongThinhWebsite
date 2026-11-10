@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 if ($Action -eq "install") {
-  # Hook nằm trong thư mục Git chung, nên các worktree cài cùng hook dùng chung.
+  # Hooks live in the shared Git directory, so worktrees installing the same hook share it.
   $hooksDirectory = Join-Path (& git -C $PSScriptRoot rev-parse --path-format=absolute --git-common-dir).Trim() "hooks"
   $scriptPath = $PSCommandPath.Replace("\", "/")
   foreach ($name in @("pre-commit", "pre-push")) {
@@ -51,9 +51,9 @@ If there are findings, end with: net: -<N> lines possible.
 $result = (& claude -p $prompt --output-format text --no-session-persistence `
   --allowedTools "Read" "Grep" "Glob" "Skill" "Bash(git diff:*)" "Bash(git show:*)" "Bash(git log:*)" 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw "Claude ponytail-review failed with exit code $LASTEXITCODE.`n$result" }
-# Owner gate: chỉ chặn khi review có thể cắt hơn 20 dòng; output không parse được thì fail closed.
-# Nhận mọi dạng kết luận ponytail-review in ra ("Looks good. Ship.", "Verdict: Ship.", "Lean already. Ship.",
-# kèm dòng "Checked:"/"Not checked:" phía sau); bỏ * và ` của Markdown trước khi so.
+# Owner gate: block only when the review can cut more than 20 lines; unparsable output fails closed.
+# Accepts every verdict form ponytail-review prints ("Looks good. Ship.", "Verdict: Ship.", "Lean already. Ship.",
+# followed by "Checked:"/"Not checked:" lines); strip Markdown * and ` before comparing.
 $plain = $result -replace '[*`]', ''
 $net = [regex]::Match($plain, "(?im)^\s*(?:net|lean):\s*-(\d+) lines? possible")
 $ship = [regex]::IsMatch($plain, "(?im)^\s*(?:Looks good|Lean already|Verdict:)\s*\.?\s*Ship\.")

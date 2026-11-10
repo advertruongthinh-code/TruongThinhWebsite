@@ -1,4 +1,4 @@
-// Bộ khối trang công trình và News (layout-library R1, R4): node --test tests/site/blocks.test.mjs
+// Project and News page blocks (layout-library R1, R4): node --test tests/site/blocks.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
 import path from "node:path";
@@ -10,7 +10,7 @@ const photo = { src: "/assets/content/projects/home-commercial-cafe.webp", width
 const photo2 = { src: "/assets/content/projects/kiosk-active-v2.webp", width: 2048, height: 3072, altVi: "Xe cà phê", altEn: "Coffee cart" };
 const t = (vi, en) => ({ vi, en });
 
-// Fixture dùng đủ 15 khối; ảnh là ảnh thật đang có trong site.
+// The fixture uses all 15 blocks; images are real images already in the site.
 const other = { id: "other", slugVi: "khac", slugEn: "other", title: t("Khác", "Other"), cover: photo2 };
 const fixture = () => ({
   id: "sample",
