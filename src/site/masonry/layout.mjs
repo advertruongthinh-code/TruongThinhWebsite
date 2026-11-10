@@ -1,31 +1,25 @@
 //# allFunctionsCalledOnLoad
-// Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
-// (khoảng 20% task click khi mở detail; decision phone-frame-budget).
+// V8 compile hint: compile every function on a background thread at load, so the first card tap does not compile lazily on the main thread
+// (about 20% of the click task when opening detail; decision phone-frame-budget).
 export const MASONRY_LAYOUT_VERSION = "masonry-grid-v17";
 const MASONRY_IDEAL_SLOT_WIDTH = 220;
 const MASONRY_MIN_COLUMNS = 2;
 const MASONRY_MAX_COLUMNS = 4;
-// Card trải 2 cột (masonry R5, owner 2026-11-09): chỉ khi lưới có từ 3 cột; điện thoại 2 cột giữ mọi card một cột.
+// Two-column card (masonry R5, owner 2026-11-09): only on grids with 3 or more columns; 2-column phone grids keep every card one column.
 const WIDE_MIN_COLUMNS = 3;
-// Lỗ lớn: card 2 cột phải hạ xuống đáy cao hơn của cặp cột, chừa khoảng trống dưới nó ở cột thấp hơn. Trống quá nửa
-// bề rộng một cột (158px ở 1440px) thì card giữ một cột. Nửa cột là ngưỡng bridge sẵn có của kernel cũ và oracle hình
-// học, bằng chiều cao card 2:1 ở một cột (ảnh ngang nhất catalog), nên lỗ không cao hơn card thấp nhất và không đọc
-// thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
-// vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
+// Large hole: a two-column item must drop to the higher bottom of the column pair, leaving a gap under it in the lower column. A gap over half
+// a column width (158px at 1440px) keeps the item one column. Half a column is the bridge threshold of the old kernel and the geometry oracle,
+// equal to the height of a 2:1 card at one column (the widest catalog photo), so a hole is never taller than the shortest card and does not
+// read as a missing card. Used by spanSlots for skeleton batch frames (docs/specs/advertising-masonry.md R5).
 const WIDE_MAX_HOLE_RATIO = 0.5;
-// No holes (R5, owner 2026-11-10): two column bottoms may differ by at most 0.25 gap (9/6/4px at gap 35/25/15) and 5% of
-// the trimmed card's media height. A hole under a tail-band wide card must be at least a quarter column tall to fit a skeleton frame.
-const BLEED_GAP_RATIO = 0.25;
-const BLEED_MEDIA_RATIO = 0.05;
-const MIN_HOLE_FILL_RATIO = 0.25;
 
-// Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
-// nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
+// Landscape cover with w/h at or above the golden ratio 1.618. Compared by multiplication (w x 1000 >= h x 1618) instead of division, so integer
+// sizes never drift through rounding: 1618x1000 qualifies, 1617x1000 does not.
 export const isWideMedia = (media) => media.width * 1000 >= media.height * 1618;
-// Luật span một chỗ (masonry-reuse bước 5): card thật, card related và khung batch skeleton cùng hỏi hai hàm này.
+// One span rule (masonry-reuse step 5): the cache packer, replay and skeleton batch frames share isWideMedia and these helpers.
 export const canSpanTwoColumns = (columns, media) => columns >= WIDE_MIN_COLUMNS && isWideMedia(media);
-// Chỗ đặt item rộng `width` cột trên các đáy cột: `y` là đỉnh, `cavity` là lỗ chừa dưới item ở cột thấp hơn. Item 2 cột
-// chỉ đặt trên hai cột cùng trống hoặc cùng có card, lỗ không quá nửa cột. `start`: đỉnh của cột trống.
+// Slots for an item `width` columns wide over the column bottoms: `y` is the top, `cavity` the gap left under the item in the lower column.
+// A 2-column item only sits on two columns that are both empty or both occupied, with a gap of at most half a column. `start`: top of an empty column.
 export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start = 0) {
   const slots = [];
   for (let left = 0; left <= columns - width; left += 1) {
@@ -108,7 +102,7 @@ export function scoreOrganicRhythm(items, limit = ORGANIC_RHYTHM_WINDOW) {
   };
 }
 
-// pinFirst: related ở detail giữ ảnh đầu tiên đứng đầu để nó rơi vào cột 4 cạnh primary (detail R7).
+// pinFirst: related masonry in detail keeps the first photo first so it lands in column 4 beside primary (detail R7).
 export function solveOrganicOrder(cards, presentationOrderIds, { pinFirst = false } = {}) {
   if (!Array.isArray(cards) || !Array.isArray(presentationOrderIds)) return null;
   const cardById = new Map(cards.map((card) => [card.id, card]));
@@ -188,7 +182,7 @@ export function normalizeLegacyMasonrySettings(settings) {
 export function fnv1a32(value) {
   let hash = 0x811c9dc5;
   const bytes = new TextEncoder().encode(value);
-  // Vòng lặp theo chỉ số: dạng iterator tốn ~25ms mỗi mount trên A05s cũ cho artifact hash.
+  // Index loop: the iterator form cost ~25ms per mount on the old A05s for the artifact hash.
   for (let index = 0; index < bytes.length; index += 1) {
     hash ^= bytes[index];
     hash = Math.imul(hash, 0x01000193) >>> 0;
@@ -256,11 +250,11 @@ export function validateMasonryCards(cards, options = {}) {
   return cards;
 }
 
-// Filter là "all", id cụm (mọi cụm có sản phẩm gắn trên media, taxonomy R1) hoặc id sản phẩm.
+// A filter is "all", a cluster id (every cluster with a product on the media, taxonomy R1) or a product id.
 export const matchesFilter = (card, filter) =>
   filter === "all" || card?.category === filter || Boolean(card?.clusterIds?.includes(filter) || card?.productIds?.includes(filter));
 
-// Hạng của card trong filter: vị trí sản phẩm đầu tiên khớp filter (sản phẩm hoặc cụm), 0 là sản phẩm chính (taxonomy R1).
+// Rank of a card within a filter: position of the first product matching the filter (product or cluster), 0 is the main product (taxonomy R1).
 export const filterRank = (card, filter) =>
   [card?.productIds?.indexOf(filter) ?? -1, card?.clusterIds?.indexOf(filter) ?? -1].find((index) => index >= 0) ?? 0;
 
@@ -330,9 +324,9 @@ export function computeDetailGeometry(options = {}) {
   const top = headerHeight + outer + safeTop;
   const belowPeek = 50;
   const span = Math.min(3, columns);
-  // Landscape giữ ảnh bên cạnh info; portrait với mọi cột đã dùng thì xếp chồng chúng.
+  // Landscape keeps the image beside info; portrait with every column used stacks them.
   const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
-  // Mọi viewport chừa gap và 50px để related lộ dưới primary, kể cả primary chiếm hết cột (owner 2026-11-07).
+  // Every viewport leaves a gap and 50px so related peeks below primary, even when primary spans every column (owner 2026-11-07).
   const heightCap = viewportHeight - top - interCardGap - belowPeek - safeBottom;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
@@ -354,8 +348,8 @@ export function computeDetailGeometry(options = {}) {
     const imageColumns = Math.max(1, span - 1);
     imageZoneWidth = imageColumns * cardWidth + (imageColumns - 1) * interCardGap;
     descriptionWidth = cardWidth;
-    // Vùng ảnh cao theo media tới trần viewport (primary-video-player R6): media ngang không có vùng dư trên dưới.
-    // Info cần cao hơn thì primary cao theo info, vùng ảnh nằm trên cùng cột.
+    // The image zone follows the media height up to the viewport cap (primary-video-player R6): landscape media has no spare zone above or below.
+    // When info needs more height, primary follows info and the image zone sits at the top of the same column.
     imageZoneHeight = Math.max(minimumImageZoneHeight, Math.min(imageZoneWidth / ratio, heightCap));
     height = Math.max(imageZoneHeight, minimumDescriptionHeight);
     descriptionHeight = height;
@@ -625,7 +619,7 @@ function appendRhythmSide(tracker, side, index, edgeLists, log, changedIndices) 
     const oldDistance = oldEdge ? Math.abs(oldEdge.y - oppositeEdge.y) : Infinity;
     const better = newDistance < oldDistance ||
       (newDistance === oldDistance && (edge.y < oldEdge?.y || (edge.y === oldEdge?.y && edge.id.localeCompare(oldEdge?.id ?? "") < 0)));
-    // Edge append theo y tăng dần. Khi edge mới thua, nó không thể là gần nhất với một edge đối diện trước đó.
+    // Edges are appended in increasing y. Once the new edge loses, it cannot be the nearest to any earlier opposite edge.
     if (!better) break;
     log.push({ side: 1 - side, index: oppositeIndex, oldNearest: oldIndex });
     setRhythmNearest(tracker, 1 - side, oppositeIndex, index, edgeLists, changedIndices);
@@ -704,7 +698,7 @@ function appendRhythms(state, occupied, cardWidth, previousMutableBrick, allowAl
       if (occupied.includes(boundary)) appendRhythmSide(tracker, 0, edgeLists[0].length - 1, edgeLists, log, changedIndices);
       if (occupied.includes(boundary + 1)) appendRhythmSide(tracker, 1, edgeLists[1].length - 1, edgeLists, log, changedIndices);
       logs.push({ tracker, edgeLists, log, finalizedCount: tracker.finalizedCount });
-      // Ngay cả card tương lai thấp nhất cũng không thể đổi một edge gần nhất phía sau cận này.
+      // Not even the shortest future card can change a nearest edge behind this bound.
       const futureEdges = [boundary, boundary + 1].map((column) =>
         (state.columnBottoms[column] ? state.columnBottoms[column] + state.interCardGap : 0) + state.minimumMediaHeight,
       );
@@ -751,7 +745,7 @@ export function coordinateKey(placements) {
   }).join("|");
 }
 
-// Span public do tỷ lệ cover quyết định (candidatePlacement); control layoutSpan cũ không ảnh hưởng geometry hay cache identity.
+// The search places every card one column wide (related masonry, plan T5); the old layoutSpan control affects neither geometry nor cache identity.
 export function compileMasonryLayout(options = {}) {
   const cards = Array.isArray(options.cards)
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
@@ -890,20 +884,12 @@ function compileLayoutPhase(options = {}) {
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
-    // Edge trim (R5): the trimmed card loses exactly the difference from its media.
-    const bleeds = new Map(state.placements.filter(({ bleed }) => bleed).map(({ bleed }) => [bleed.id, bleed.amount]));
-    const holes = state.placements.filter(({ hole }) => hole).map(({ hole }) => ({ ...hole }));
     const placements = state.placements.slice().sort(comparePlacement)
-      .map(({ cavity, bleed, hole, ...placement }, index) => {
-        const amount = bleeds.get(placement.card.id);
-        return amount
-          ? { ...placement, height: placement.height - amount, mediaPixelHeight: placement.mediaPixelHeight - amount, pixelHeight: placement.pixelHeight - amount, mediaBleed: amount, index }
-          : { ...placement, index };
-      });
+      .map(({ cavity, ...placement }, index) => ({ ...placement, index }));
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
     const coordinates = coordinateKey(placements);
     const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
-    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
+    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes: [], initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
     productLayout,
@@ -939,80 +925,19 @@ function compileLayoutPhase(options = {}) {
     operations += 1;
   };
 
-  // Hole-free public grid (masonry R5, owner 2026-11-10): single-column cards go to the lowest column in order; a wide card spans
-  // only two adjacent columns whose bottoms differ by at most BLEED_GAP_RATIO gap and BLEED_MEDIA_RATIO of the trimmed media.
-  // The difference is closed by trimming the media of the longer column's last card (cover crops top and bottom evenly), so every
-  // spacing equals the gap. Without such a pair the wide card waits and later cards go on; once single-column cards run out the
-  // waiting wide cards form the tail band, and holes under them are recorded in `holes` for the skeleton batch to fill.
-  const lastIn = (column) => state.placements.findLast((item) => item.left <= column && column < item.left + item.width);
-  const productCandidate = (cardIndex, placement) => {
+  // Related masonry (O5, plan T5): every card is one column wide at its own ratio, in order, into the lowest column
+  // (leftmost on a tie). Two-column cards only exist in the main grids, placed from the build-time cache (replay.mjs).
+  const productCandidates = () => {
+    const card = remaining[0];
+    if (!card) return [];
     consumeOperation();
+    const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
+    const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
+    const placement = placementAt(card, column, 1, y, cardWidth, interCardGap);
     const staggerViolations = productStaggerViolations(state, placement, columns);
     if (staggerViolations) alignedCandidateAttempts += 1;
     else preferredCandidateAttempts += 1;
-    return { cardIndex, placement, score: placement.y, staggerViolations };
-  };
-  const levelPair = (left, allowStack) => {
-    const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
-    if (!a && !b) return { left, y: 0, bleed: null };
-    if (!a || !b) return null;
-    // Mid-grid, never stack a wide card directly on a wide card of the same column pair.
-    if (!allowStack && lastIn(left) && lastIn(left) === lastIn(left + 1)) return null;
-    const diff = Math.abs(a - b);
-    if (diff <= 0.05) return { left, y: Math.max(a, b) + interCardGap, bleed: null };
-    const target = lastIn(a > b ? left : left + 1);
-    // Never trim a suggestion card, a two-column card, or a bottom not made by a card (pinned primary in related).
-    if (!target || target.width !== 1 || target.card.kind === "suggestion" || Math.abs(target.y + target.pixelHeight - Math.max(a, b)) > 0.05) return null;
-    if (diff > Math.min(BLEED_GAP_RATIO * interCardGap, BLEED_MEDIA_RATIO * target.mediaPixelHeight) + 1e-9) return null;
-    return { left, y: Math.min(a, b) + interCardGap, bleed: { id: target.card.id, amount: diff } };
-  };
-  const firstBy = (slots) => slots.filter(Boolean).sort((a, b) => a.y - b.y || a.left - b.left)[0];
-  const widePlacement = (card, slot) => ({
-    ...placementAt(card, slot.left, 2, slot.y, cardWidth, interCardGap),
-    bleed: slot.bleed || null,
-    hole: slot.hole || null,
-  });
-  const productCandidates = () => {
-    const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
-    // The wide slot does not depend on the card: compute it once per depth; if the first wide card does not fit, all wide cards wait.
-    let wideSlot;
-    for (let cardIndex = 0; cardIndex < remaining.length; cardIndex += 1) {
-      const card = remaining[cardIndex];
-      if (card.kind !== "suggestion" && canSpanTwoColumns(columns, layoutMedia(card))) {
-        if (wideSlot === undefined) {
-          consumeOperation();
-          const slot = firstBy(pairs.map((left) => levelPair(left, false)));
-          // While the first row still has an empty column (column 4 beside primary in related), wide cards only enter the first row.
-          wideSlot = slot && (slot.y === 0 || state.columnBottoms.every(Boolean)) ? slot : null;
-        }
-        if (wideSlot) return [productCandidate(cardIndex, widePlacement(card, wideSlot))];
-        continue;
-      }
-      const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
-      const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
-      return [productCandidate(cardIndex, placementAt(card, column, 1, y, cardWidth, interCardGap))];
-    }
-    // Tail band: only wide cards remain. Use a level pair (stacking allowed) or a pair whose hole fits a skeleton frame (a hole
-    // thinner than the thinnest frame the batch keeps cannot be filled); otherwise the card stays single-column.
-    const card = remaining[0];
-    if (!card) return [];
-    const holed = (left) => {
-      const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
-      const cavity = Math.abs(a - b);
-      if (!a || !b || cavity - interCardGap < MIN_HOLE_FILL_RATIO * cardWidth || cavity > WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) return null;
-      const column = a < b ? left : left + 1;
-      return { left, y: Math.max(a, b) + interCardGap, hole: { column, top: Math.min(a, b) + interCardGap, height: cavity - interCardGap } };
-    };
-    // Prefer the pair containing the lowest column (most even tail), then lower top, then no hole, then leftmost.
-    const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
-    const touches = (slot) => Number(column !== slot.left && column !== slot.left + 1);
-    // Lowest column still empty while another has cards (column 4 beside primary in related): the card fills it single-column.
-    const emptyBeside = !state.columnBottoms[column] && state.columnBottoms.some(Boolean);
-    const slot = emptyBeside ? null : pairs.flatMap((left) => [levelPair(left, true), holed(left)]).filter(Boolean)
-      .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];
-    if (slot) return [productCandidate(0, widePlacement(card, slot))];
-    const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
-    return [productCandidate(0, placementAt(card, column, 1, y, cardWidth, interCardGap))];
+    return [{ cardIndex: 0, placement, score: y, staggerViolations }];
   };
 
   const candidatesAtDepth = () => {
@@ -1185,8 +1110,8 @@ export function compileLayoutSearch(options = {}) {
   }
 }
 
-// `overscan` là vùng dựng card; `releaseOverscan` (mặc định bằng `overscan`) là vùng giữ: card trong vùng giữ nhưng
-// ngoài vùng dựng chỉ không bị gỡ, nên vuốt qua lại không dựng lại liên tục (advertising-masonry R7).
+// `overscan` is the mount zone; `releaseOverscan` (defaults to `overscan`) is the keep zone: a card inside the keep zone but
+// outside the mount zone is just not removed, so scrolling back and forth does not remount continuously (advertising-masonry R7).
 export function getVirtualWindow(layout, { scrollTop = 0, viewportHeight = 900, overscan = 900, releaseOverscan = overscan } = {}) {
   if (!layout?.placements || !Number.isFinite(scrollTop) || !Number.isFinite(viewportHeight) || viewportHeight < 0 || !Number.isFinite(overscan) || overscan < 0
     || !Number.isFinite(releaseOverscan) || releaseOverscan < overscan) {
@@ -1198,7 +1123,7 @@ export function getVirtualWindow(layout, { scrollTop = 0, viewportHeight = 900, 
   return { items, retained: retained ?? items, totalHeight: layout.totalPixelHeight };
 }
 
-// Số card thật được dựng trong một frame: ngân sách chia chi phí đo được của một card, luôn được ít nhất một.
+// Real cards mounted in one frame: the budget divided by the measured cost of one card, always at least one.
 export function mountQuota({ budgetMs, costMs }) {
   if (!Number.isFinite(budgetMs) || !Number.isFinite(costMs) || budgetMs < 0 || costMs < 0) {
     throw new Error("Invalid advertising mount quota input");

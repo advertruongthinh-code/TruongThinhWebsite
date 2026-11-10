@@ -15,6 +15,7 @@ import {
   getVirtualWindow,
   isWideMedia,
   mountQuota,
+  placementAt,
   normalizeLegacyMasonrySettings,
   scheduleRank,
   scoreOrganicRhythm,
@@ -157,8 +158,8 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
     `related frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
 });
 
-// Golden: catalog mẫu cố định, không phụ thuộc ảnh thật ([R3 test không phụ thuộc nội dung](../../docs/specs/content-independent-tests.md#r3-golden-chỉ-trên-fixture)).
-// Chỉ đổi hash khi thuật toán layout đổi có chủ đích; đổi ảnh/tỷ lệ ảnh thật không đụng tới test này.
+// Golden: a fixed sample catalog, independent of real photos ([R3 content-independent tests](../../docs/specs/content-independent-tests.md#r3-golden-chỉ-trên-fixture)).
+// The hash changes only on a deliberate layout algorithm change; changing real photos or ratios never touches this test.
 function goldenCatalogFixture() {
   const ratios = [[4, 5], [1, 1], [3, 2], [16, 9], [2, 3], [9, 16], [5, 4], [3, 4]];
   const categories = ["golden-a", "golden-b", "golden-c"];
@@ -179,7 +180,9 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
   // 2026-11-10 (media-card R2): hashes changed only because the caption field and CAPTION_METRICS_VERSION left the layout
   // identity; every placement's column, span, y and media height is identical to the previous hashes ab952cae/8f209679.
   // 2026-11-10 (plan T4): 09e8f626/6bb197b9 -> 6eaee92f/d79391b8 only because MASONRY_LAYOUT_VERSION (v17) is in the hash.
-  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "6eaee92f", 0], [1440, "d79391b8", 12]]) {
+  // 2026-11-11 (plan T5): the solver serves only related masonry and lays every card one column wide, so the 4-column
+  // hash d79391b8 (12 two-column cards) became ec91bd55; the 2-column hash never had a wide card and is unchanged.
+  for (const [layoutViewportWidth, expectedHash] of [[390, "6eaee92f"], [1440, "ec91bd55"]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -188,13 +191,13 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
     assert.deepEqual(layout.diagnostics.placementOrder, order);
     assert.equal(layout.placements.length, cards.length);
     assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
-    // 12 card 16:9 trong fixture; layoutSpan cũ (mỗi card thứ 11) không còn tác dụng.
-    assert.equal(layout.placements.filter(({ width }) => width === 2).length, expectedWide, `${layoutViewportWidth}px wide spans`);
+    // The fixture has 12 16:9 cards and an old layoutSpan 2 on every 11th card: all stay one column wide.
+    assert.ok(layout.placements.every(({ width }) => width === 1), `${layoutViewportWidth}px keeps every card one column wide`);
     assertGrid(layout, `golden fixture ${layoutViewportWidth}px`, cards.length);
   }
 });
 
-// Bất biến trên catalog thật: giữ thứ tự, đủ card, không filler, không chồng lấn; không ghim hash tọa độ.
+// Invariants on the real catalog: order, count, no filler, no overlap; no pinned coordinate hash.
 test("M01d real catalog keeps order, count, no filler and passes the geometry oracle", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
   for (const layoutViewportWidth of [390, 1440]) {
@@ -209,8 +212,7 @@ test("M01d real catalog keeps order, count, no filler and passes the geometry or
   }
 });
 
-// Fixture ngân sách organic giữ ảnh thấp dưới tỷ lệ vàng (100x62, 200x124): ngân sách tính theo card một cột,
-// card trải 2 cột có bộ test riêng (masonry R5).
+// Organic budget fixture keeps short photos below the golden ratio (100x62, 200x124); the solver lays every card one column.
 function organicTightBudgetOptions() {
   const heights = [130, 62, 180, 150, 62, 130, 220, 150, 75, 150, 220, 180, 150, 180, 220, 62, 220, 150, 220];
   const cards = fixture(heights.map((height) => [100, height]), "organic-tight");
@@ -315,7 +317,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     const clusterCards = ADVERTISING_CARDS.filter((card) => card.category === slug);
     assert.deepEqual(clusterCards.map(({ sourceOrder }) => sourceOrder), Array.from({ length: clusterCards.length }, (_, index) => index), `${slug} keeps source order`);
   }
-  // Nhóm cũ còn trong manifest và trang tương thích; card đã chuyển sang cụm.
+  // Old groups remain in the manifest and compatibility pages; cards moved to clusters.
   for (const category of ADVERTISING_LEGACY_CATEGORIES) {
     const categoryCards = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
@@ -361,75 +363,39 @@ test("every placement on the real catalog is exactly as tall as its media (card 
   }
 });
 
-// R5: cover ngang w/h >= 1.618 trải 2 cột ở lưới từ 3 cột, trừ khi lỗ dưới card quá nửa cột.
+// Related masonry (plan T5): the solver keeps every card one column wide, golden-ratio covers included.
 const productLayoutOf = (cards, layoutViewportWidth, extra = {}) => compileMasonryLayout({
   cards, categoryOrder: [cards[0].category], layoutViewportWidth, presentationOrder: cards.map(({ id }) => id), ...extra,
 });
-const widthById = (layout) => Object.fromEntries(layout.placements.map((placement) => [placement.card.id, placement.width]));
 
-test("R5 golden-ratio covers span two columns from 3 columns and stay one column on 2-column grids", () => {
+test("golden-ratio threshold is exact and the solver keeps such covers one column wide at their natural ratio", () => {
   assert.equal(isWideMedia({ width: 1618, height: 1000 }), true, "exactly 1.618 is eligible");
   assert.equal(isWideMedia({ width: 1617, height: 1000 }), false, "1.617 is not");
   assert.equal(isWideMedia({ width: 3072, height: 1898 }), true);
   assert.equal(isWideMedia({ width: 3072, height: 1899 }), false);
-  const cards = fixture([[1618, 1000], [1617, 1000], [1000, 1000], [3, 4]], "wide-rule");
+  const cards = fixture([[1618, 1000], [1617, 1000], [1000, 1000], [3, 4], [2, 1]], "wide-rule");
   for (const [layoutViewportWidth, columns] of [[390, 2], [768, 3], [1024, 4], [1440, 4]]) {
     const layout = productLayoutOf(cards, layoutViewportWidth);
     assert.equal(layout.columns, columns);
-    assert.deepEqual(widthById(layout), {
-      "wide-rule-0000": columns >= 3 ? 2 : 1, "wide-rule-0001": 1, "wide-rule-0002": 1, "wide-rule-0003": 1,
-    }, `${layoutViewportWidth}px spans only the golden-ratio cover, only from 3 columns`);
-    const wide = layout.placements.find(({ card }) => card.id === "wide-rule-0000");
-    assert.equal(wide.pixelWidth, wide.width * layout.cardWidth + (wide.width - 1) * layout.interCardGap);
-    assert.ok(Math.abs(wide.mediaPixelHeight - wide.pixelWidth * 1000 / 1618) < 1e-9, "spanning card keeps its natural ratio");
+    assert.ok(layout.placements.every(({ width }) => width === 1), `${layoutViewportWidth}px keeps every card one column wide`);
+    for (const placement of layout.placements) {
+      const { media } = placement.card;
+      assert.equal(placement.mediaBleed, undefined, `${placement.card.id} is not trimmed`);
+      assert.ok(Math.abs(placement.mediaPixelHeight - layout.cardWidth * media.height / media.width) < 1e-9, `${placement.card.id} keeps its natural ratio`);
+    }
+    assert.deepEqual(layout.holes, []);
     assertGrid(layout, `wide rule ${layoutViewportWidth}px`, cards.length);
   }
-  const suggestion = [{ ...fixture([[400, 100]], "wide-suggestion")[0], kind: "suggestion" }];
-  assert.equal(productLayoutOf(suggestion, 1440).placements[0].width, 1, "the related suggestion block never spans");
-});
-
-test("R5 a golden-ratio cover spans only level columns mid-grid and falls to the tail band otherwise", () => {
-  // 768px: 3 columns 229.33px wide, gap 15px; edge trim at most 0.25 x 15 = 3.75px and 5% media.
-  const cardWidth = (768 - 2 * 25 - 2 * 15) / 3;
-  const layoutOf = (heights, after = []) => productLayoutOf(fixture([...heights.map((height) => [cardWidth, height]), [2, 1],
-    ...after.map((height) => [cardWidth, height])], "wide-hole"), 768);
-  const wideOf = (layout) => layout.placements.find(({ card }) => card.id === "wide-hole-0003");
-  const level = layoutOf([400, 200, 500], [185]);
-  assert.deepEqual([wideOf(level).left, wideOf(level).width], [0, 2], "the wide card waits until two adjacent bottoms meet");
-  assert.ok(Math.abs(wideOf(level).y - 415) < 1e-6);
-  assert.ok(level.placements.find(({ card }) => card.id === "wide-hole-0004").y < wideOf(level).y, "a later card fills first");
-  assert.deepEqual(level.holes, []);
-  assertGrid(level, "wide waits for level bottoms", 5);
-  const bleed = layoutOf([200, 203, 600]);
-  assert.deepEqual([wideOf(bleed).left, wideOf(bleed).width], [0, 2], "a 3px step is closed by cropping");
-  assert.ok(Math.abs(wideOf(bleed).y - 215) < 1e-6, "the wide card sits on the shorter bottom");
-  const cropped = bleed.placements.find(({ card }) => card.id === "wide-hole-0001");
-  assert.ok(Math.abs(cropped.mediaBleed - 3) < 1e-6 && Math.abs(cropped.mediaPixelHeight - 200) < 1e-6, "the taller card loses the step");
-  assertGrid(bleed, "bleed closes the step", 4);
-  const overBleed = wideOf(layoutOf([200, 204, 600]));
-  assert.deepEqual([overBleed.left, overBleed.width], [0, 1], "4px is over 0.25 gap and too small for a filler: one column");
-  const atLimit = layoutOf([200, 200 + 0.5 * cardWidth, 600]);
-  assert.deepEqual([wideOf(atLimit).left, wideOf(atLimit).width], [0, 2], "a tail hole of half a column still spans");
-  assert.ok(Math.abs(wideOf(atLimit).y - (200 + 0.5 * cardWidth + 15)) < 1e-6, "the wide card drops to the taller bottom");
-  assert.deepEqual(atLimit.holes.map(({ column, top, height }) => [column, top, Math.round(height * 1000) / 1000]),
-    [[0, 215, Math.round((0.5 * cardWidth - 15) * 1000) / 1000]], "the tail hole is handed to the skeleton batch");
-  assertGrid(atLimit, "tail hole", 4);
-  const overLimit = wideOf(layoutOf([200, 200 + 0.5 * cardWidth + 1, 600]));
-  assert.deepEqual([overLimit.left, overLimit.width], [0, 1], "a larger hole keeps one column");
-  assert.ok(Math.abs(overLimit.y - 215) < 1e-6, "the one-column card sits at the shortest bottom");
-  const sideOnly = wideOf(layoutOf([200, 600, 210]));
-  assert.deepEqual([sideOnly.left, sideOnly.width], [0, 1], "a small gap to a non-adjacent column does not count");
 });
 
 test("R5 a spanning multi-media card is exactly as tall as its two-column canvas", () => {
+  // Two-column cards come only from the main-grid cache (replay.mjs), which builds placements with placementAt.
   const card = { ...wideMediaCount(2), rank: 0, sourceOrder: 0 };
-  const layout = productLayoutOf([card], 1440);
-  const [placement] = layout.placements;
-  assert.equal(placement.width, 2);
-  assert.equal(placement.pixelWidth, 2 * layout.cardWidth + layout.interCardGap);
+  const { cardWidth, interCardGap } = productLayoutOf([card], 1440);
+  const placement = placementAt(card, 0, 2, 0, cardWidth, interCardGap);
+  assert.equal(placement.pixelWidth, 2 * cardWidth + interCardGap);
   assert.ok(Math.abs(placement.mediaPixelHeight - placement.pixelWidth * 9 / 16) < 1e-9);
   assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "no strip or caption below the canvas");
-  assert.deepEqual(layout.columnBottoms, [placement.pixelHeight, placement.pixelHeight, 0, 0]);
   // The placeholder card (loading glass R10) covers the real card frame exactly: two columns wide, canvas tall.
   const previousDocument = globalThis.document;
   const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, remove() {} });
@@ -448,7 +414,7 @@ test("R5 a spanning multi-media card is exactly as tall as its two-column canvas
 });
 
 test("R15 selects Pinterest geometry from full span at every responsive boundary", () => {
-  // Viewport dọc: ngang vẫn giữ layout split kể cả full span.
+  // Portrait viewport: landscape still keeps the split layout even at full span.
   const viewportHeight = 1100;
   for (const width of [719, 720, 1004, 1005]) {
     const columns = columnsForWidth(width);
@@ -754,22 +720,6 @@ test("organic order preserves a hard-safe requested layout when only its full bu
   assert.equal(layout.diagnostics.operations, 16);
   assert.ok(layout.diagnostics.operations <= layout.diagnostics.budget);
   assert.deepEqual(layout.diagnostics.placementOrder, baseline.diagnostics.placementOrder);
-});
-
-test("organic order keeps a golden-ratio cover spanning two columns within the production budget", () => {
-  // Production chạy organicOrder (catalog-runtime); pool có card 2:1 vẫn giải được và card đó trải 2 cột ở lưới 4 cột.
-  const cards = fixture([
-    ...Array.from({ length: 5 }, () => [100, 150]),
-    [200, 100],
-    ...Array.from({ length: 3 }, () => [100, 62]),
-  ], "organic-wide");
-  const layout = compileMasonryLayout({
-    cards, categoryOrder: ["organic-wide"], columns: 4,
-    layoutViewportWidth: 1024, presentationOrder: cards.map(({ id }) => id), organicOrder: true,
-  });
-  assertGrid(layout, "organic wide cover", cards.length);
-  assert.equal(layout.placements.find(({ card }) => card.id === "organic-wide-0005").width, 2);
-  assert.ok(layout.diagnostics.operations <= 300000);
 });
 
 test("organic order keeps the 19-card pool hard-safe at the production operation budget", () => {

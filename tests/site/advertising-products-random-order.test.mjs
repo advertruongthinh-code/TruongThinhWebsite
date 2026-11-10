@@ -155,11 +155,13 @@ test("solver follows supplied presentation order without rewriting canonical car
     }
   }
 
+  // Catalog filter pools as large solver inputs. The main grids no longer run this solver: they replay the build-time
+  // cache (variantIndex + replayLayout, masonry-replay tests); the solver only lays out related masonry.
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
     const eligible = ADVERTISING_CARDS.filter((card) => matchesFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
-      const presentationOrder = shuffleWithSeed(eligible, "public-grid-seed", "filter:" + filter)
+      const presentationOrder = shuffleWithSeed(eligible, "solver-pool-seed", "filter:" + filter)
         .map(({ id }) => id);
       const layout = compileMasonryLayout({
         cards: ADVERTISING_CARDS,
@@ -224,13 +226,14 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
   assert.ok(observedOrders.size >= 2, "20 reload seeds should produce at least two organic layouts");
 });
 
-test("organic solver keeps all six filter pools hard-safe across supported viewport widths", () => {
+test("organic solver keeps catalog-sized pools (one per filter) hard-safe across supported viewport widths", () => {
+  // Solver input sizes only: related masonry runs this solver; the main grids replay the build-time cache instead.
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
     const eligible = ADVERTISING_CARDS.filter((card) => matchesFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
       const presentationOrder = shuffleWithSeed(
-        eligible, "organic-matrix-seed", `filter:${filter}`,
+        eligible, "organic-pool-seed", `filter:${filter}`,
       ).map(({ id }) => id);
       const layout = compileMasonryLayout({
         cards: ADVERTISING_CARDS,
@@ -483,7 +486,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
     querySelector: () => current,
     insertBefore: next => inserted.push(next),
   };
-  // Slideshow dừng theo cả cụm (một IntersectionObserver trên root), không theo nút lẻ.
+  // The slideshow pauses per cluster (one IntersectionObserver on the root), not per button.
   const root = { hidden: false, querySelectorAll: () => [button] };
   let current;
   const globals = {

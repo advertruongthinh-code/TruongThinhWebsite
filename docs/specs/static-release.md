@@ -249,7 +249,7 @@ Then job fail và liệt kê file biến thể còn thiếu
 | Hàm public | `ROUTES`, `localeHtml(html, locale)` | Export từ `serve-static-parity.mjs`; build, preview, test dùng chung |
 | Data | `nonPublicSourceAssets` | Path không public (R3), export từ `non-public-source-assets.mjs` |
 | Data | `catalog-artifact.mjs` | Build sinh trong output, runtime Advertising import |
-| Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact`, `compileAdvertisingLayout` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
+| Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
 | DOM hook | `[data-advertising-compatibility-route]` | `main` của trang tương thích |
 | Attribute | `data-en`, `data-vi`, `data-en-*`, `data-vi-*`, `data-route-locale` | Build và runtime đổi ngôn ngữ |
 
