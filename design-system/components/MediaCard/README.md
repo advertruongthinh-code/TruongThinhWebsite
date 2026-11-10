@@ -10,7 +10,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 
 - Link phủ cả card tới `?category=<slug>&photo=<id>`; ảnh giữ trọn tỷ lệ gốc,
   rộng một cột (ảnh bìa từ tỷ lệ vàng rộng hai cột ở lưới từ 3 cột,
-  [Masonry](../Masonry/README.md#hình-học)), không crop, không caption chiếm chỗ;
+  [Masonry](../Masonry/README.md#hình-học)), không crop (trừ cắt khép mép tối đa 5%
+  dưới card hai cột, ảnh và video cover), không caption chiếm chỗ;
   alt VI/EN là tên card.
 - Card masonry chính và related có `figcaption.advertising-tile__title`
   (`aria-hidden`, tên VI/EN theo ngôn ngữ, link lấy tên qua `aria-labelledby`;

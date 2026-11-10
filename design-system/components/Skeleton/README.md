@@ -15,7 +15,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
   card (trang Công trình) chừa thêm chiều cao tên dưới mỗi khung như card thật.
   Khung luôn rộng một cột: band ngang nhất (w/h 1.39) dưới tỷ lệ vàng nên theo
   luật hai cột của [Masonry](../Masonry/README.md#hình-học) không khung nào trải;
-  dưới card hai cột, khung đầu của cả hai cột bắt đầu cách đáy card một gutter. Mặt trong là
+  dưới card hai cột, khung đầu của cả hai cột bắt đầu cách đáy card một gutter. Lỗ dải cuối
+  của masonry (dưới card hai cột ở cuối lưới) có một khung cắt đúng lỗ lấp; khung không
+  bao giờ để lỗ phía trên nó. Mặt trong là
   gradient Flow nhiều màu chảy chậm (WebGL, 12 preset). Mỗi khung bốc preset,
   pha, chiều chảy và tốc độ ngẫu nhiên lúc vào viewport, tránh preset của khung
   kề; trùng preset thì pha lệch xa. Giữ màu tới khi trang ổn định lại.
