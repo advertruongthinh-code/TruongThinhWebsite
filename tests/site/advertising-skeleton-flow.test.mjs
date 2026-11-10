@@ -13,7 +13,7 @@ import {
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
 } from "../../src/site/masonry/skeleton-flow.mjs";
-import { compileMasonryLayout, isWideMedia } from "../../src/site/masonry/layout.mjs";
+import { isWideMedia, placementAt } from "../../src/site/masonry/layout.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
@@ -42,7 +42,7 @@ assert.doesNotMatch(surfaceRule, /\banimation\b/i,
   "R6 forbids floating, scale, and hover-like skeleton surface motion");
 assert.doesNotMatch(flowRule, /\bfilter\s*:/i,
   "R6 forbids a local blur/filter on each skeleton card");
-// R8-R10 glass đã chuyển sang component Kính dùng chung: tests/site/glass-surface.test.mjs.
+// R8-R10 glass moved to the shared Kính component: tests/site/glass-surface.test.mjs.
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
@@ -105,10 +105,10 @@ if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
 assert.deepEqual(r10ContractFailures, [],
   "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
 
-// R3: mỗi frame draw assignment riêng khi lần đầu vào view.
+// R3: each frame draws its own assignment on first entering view.
 const draw = (seed, neighbors = []) => drawSkeletonFlowAssignment({ neighbors, random: seededRandom(seed) });
 assert.deepEqual(draw(20260921), draw(20260921), "a seeded draw must be deterministic");
-// R3: Flow chờ ảnh primary nhận 4 màu của ảnh thay màu preset; field, pha, chiều vẫn bốc như thường.
+// R3: Flow waits for the primary image to take its 4 colours instead of the preset colours; field, phase and direction are drawn as usual.
 const imageColors = ["#f0e0d0", "#a08060", "#605040", "#201810"];
 const tinted = drawSkeletonFlowAssignment({ colors: imageColors, random: seededRandom(20260921) });
 assert.deepEqual(tinted.preset.colors, imageColors, "image colours replace the preset colours");
@@ -205,16 +205,13 @@ for (const frame of frameLayout) {
 }
 assert(Math.min(...continuationBottoms.map((bottom) => bottom + frameLayoutInput.gap)) >= frameLayoutInput.boundaryBottom,
   "the adaptive batch must reach its visual boundary");
-// Masonry R5: the last 2:1 card spans level columns 0-1 at 1440px; the batch continues right below it in both columns. Frame
-// bands (h/w 0.72, 1, 1.32) are all below the golden ratio, so the same rule keeps every frame one column wide.
-const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], index) => ({
-  id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
-  media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
-}));
-const wideTailLayout = compileMasonryLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
-  layoutViewportWidth: 1440, presentationOrder: wideTail.map(({ id }) => id) });
-const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
-assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
+// Masonry R5: a 2:1 card from the main-grid cache spans level columns 0-1 at 1440px; the batch continues right below it in
+// both columns. Frame bands (h/w 0.72, 1, 1.32) are all below the golden ratio, so the same rule keeps every frame one column wide.
+const wideTailCardWidth = (1440 - 2 * 35 - 3 * 35) / 4;
+const wideTailCard = placementAt({ id: "wide-tail", media: { src: "/wide-tail.webp", width: 200, height: 100 } },
+  0, 2, 400, wideTailCardWidth, 35);
+const wideTailBottom = wideTailCard.y + wideTailCard.pixelHeight;
+const wideTailLayout = { columns: 4, cardWidth: wideTailCardWidth, interCardGap: 35, columnBottoms: [wideTailBottom, wideTailBottom, 700, 650] };
 const wideTailFrames = createSkeletonFlowFrameLayout({
   columnBottoms: wideTailLayout.columnBottoms, columns: wideTailLayout.columns, cardWidth: wideTailLayout.cardWidth,
   gap: wideTailLayout.interCardGap, boundaryBottom: 2_400,
@@ -229,8 +226,8 @@ for (const frame of wideTailFrames) {
   assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
-// R1: band ngang từ tỷ lệ vàng theo luật span của card thật (masonry-reuse bước 5): hai cột khi lưới >= 3 cột, không
-// chồng khung, khung cuối mỗi cột vẫn chạm đáy batch; lưới 2 cột giữ một cột. Số khung và band đọc từ attribute.
+// R1: landscape bands from the golden ratio follow the real-card span rule (masonry-reuse step 5): two columns on grids of 3+ columns, no
+// overlapping frames, the last frame of every column still reaches the batch bottom; 2-column grids keep one column. Frame count and bands come from attributes.
 const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 square:1 portrait:1.32 wide:0.5" });
 assert.deepEqual(wideConfig.ratios.map(({ id }) => id), ["landscape", "square", "portrait", "wide"]);
 assert.equal(readSkeletonBatchConfig({ skeletonRatios: "wide:x" }).ratios.length, 3, "a bad ratio list keeps the default bands");
@@ -292,7 +289,7 @@ for (let seed = 0; seed < 20; seed += 1) {
     boundaryBottom: 1_800, ratios: wideConfig.ratios, seed: `related-${seed}`, spanSkeleton: false });
   assert(frames.every(({ span, band }) => span === 1 && band !== "wide"), "a related batch has no two-column frame");
 }
-// Hai khung mỏng cuối cột không chặn nhau: cả hai cùng gộp vào khung phía trên (lỗi review #769).
+// Two thin frames at a column end do not block each other: both merge into the frame above (review #769).
 for (const boundaryBottom of [1_040, 1_200, 1_500]) {
   const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
     boundaryBottom, ratios: wideConfig.ratios });
@@ -347,7 +344,7 @@ for (let depth = 0; depth < 3; depth += 1) {
   assert(row.slice(1).every((frame, index) => frame.band !== row[index].band),
     `aligned skeleton row ${depth} must vary adjacent ratio bands across columns`);
 }
-// Slot là thứ tự khung nối tiếp masonry, nên resize đổi số cột vẫn giữ item k là khung k (owner 10/10).
+// Slots are the order of frames continuing the masonry, so a resize that changes the column count still keeps item k as frame k (owner 10/10).
 assert.ok(frameLayout.every(({ slot }, index) => index === 0 || Number(slot) > Number(frameLayout[index - 1].slot)),
   "skeleton slots increase in masonry order");
 const twoColumnLayout = createSkeletonFlowFrameLayout({
@@ -356,7 +353,7 @@ const twoColumnLayout = createSkeletonFlowFrameLayout({
   columns: 2,
   bandAssignments: new Map(frameLayout.map(({ slot, band }) => [slot, band])),
 });
-// Slot chung giữ band, trừ khi cột mới đặt nó ngay dưới khung cùng band (R1).
+// A shared slot keeps its band, unless the new column puts it right below a frame of the same band (R1).
 for (const frame of twoColumnLayout) {
   const old = frameLayout.find(({ slot }) => slot === frame.slot);
   const above = twoColumnLayout.filter(({ column, depth }) => column === frame.column && depth === frame.depth - 1)[0];
@@ -376,7 +373,7 @@ assert.equal(
   fourColumnResize.find(({ slot }) => slot === "0:1")?.band,
   "a persistent skeleton slot keeps its ratio band when the grid changes from four to three columns",
 );
-// R5: still khớp màu của frame live và chuyển theo phase.
+// R5: the still matches the colour of the live frame and follows the phase.
 const still = renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21);
 assert.equal(still.length, 48 * 32 * 4);
 assert.deepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21), "a still is deterministic");

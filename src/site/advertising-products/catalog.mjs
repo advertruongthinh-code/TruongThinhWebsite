@@ -1,6 +1,5 @@
 import {
   MASONRY_LAYOUT_VERSION,
-  compileMasonryLayout as compileLayout,
   scheduleRank,
 } from "../masonry/layout.mjs";
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
@@ -163,7 +162,7 @@ validateAdvertisingMediaPool(ADVERTISING_MEDIA_MANIFEST, {
 
 const clusterIdByProductId = new Map(ADVERTISING_PRODUCTS.map((product) => [product.id, product.cluster]));
 
-// Sáu nhóm cũ chỉ còn cho trang tương thích /advertising-products/<slug cũ>/ (phát hành tĩnh R7).
+// The six old groups remain only for compatibility pages /advertising-products/<old slug>/ (static release R7).
 export const ADVERTISING_LEGACY_CATEGORIES = deepFreeze(LEGACY_CATEGORY_TAXONOMY.map((entry) => {
   const [coverRecord, ...galleryRecords] = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === entry.slug);
   return {
@@ -175,12 +174,11 @@ export const ADVERTISING_LEGACY_CATEGORIES = deepFreeze(LEGACY_CATEGORY_TAXONOMY
   };
 }));
 
-// Filter và rail theo cụm (taxonomy R3): slug là id cụm, nhãn rail là tên ngắn railVi, railEn của taxonomy.mjs.
+// Filters and rail by cluster (taxonomy R3): slug is the cluster id, rail labels are the short railVi, railEn names from taxonomy.mjs.
 export const ADVERTISING_CATEGORIES = deepFreeze(ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn, legacySlug, railVi, railEn }) => ({
   slug: id, slugVi, slugEn, legacySlug, titleVi: railVi, titleEn: railEn,
 })));
 
-const CATEGORY_ORDER = ADVERTISING_CATEGORIES.map((entry) => entry.slug);
 const SOURCE_ADVERTISING_CARDS = ADVERTISING_MEDIA_MANIFEST;
 
 function selectCardMedia(record) {
@@ -195,10 +193,10 @@ function selectCardMedia(record) {
   const { mediaItems, coverMediaId } = validateAdvertisingCardMedia(record);
   return {
     ...card,
-    // Card thuộc cụm của sản phẩm chính (taxonomy R1); fixture test không có productIds thì giữ category.
+    // A card belongs to the cluster of its main product (taxonomy R1); test fixtures without productIds keep their category.
     category: card.productIds ? clusterIdByProductId.get(card.productIds[0]) : card.category,
-    // Sản phẩm của ảnh cũng là tag nhóm product, nên ?tag= và nút gợi ý chạy với sản phẩm mới (taxonomy R7).
-    // clusterIds: cụm của từng sản phẩm, cùng thứ tự productIds, để lọc và xếp hạng theo cụm (taxonomy R1).
+    // The photo's products are also product-group tags, so ?tag= and the suggestion button work with the new products (taxonomy R7).
+    // clusterIds: the cluster of each product, in productIds order, for filtering and ranking by cluster (taxonomy R1).
     ...(card.productIds ? {
       tagIds: [...card.productIds, ...card.tagIds],
       clusterIds: card.productIds.map((id) => clusterIdByProductId.get(id)),
@@ -211,7 +209,7 @@ function selectCardMedia(record) {
 
 function compileCards(cards, categories) {
   const categoryOrder = categories.map((entry) => entry.slug);
-  // sourceOrder của manifest đếm theo nhóm cũ; đánh lại theo cụm, giữ thứ tự manifest.
+  // The manifest sourceOrder counts per old group; renumber per cluster, keeping manifest order.
   const nextSourceOrder = new Map();
   return scheduleRank(cards.map(selectCardMedia).map((card) => {
     const sourceOrder = nextSourceOrder.get(card.category) ?? 0;
@@ -228,15 +226,15 @@ function deepFreeze(value) {
 
 export const ADVERTISING_CARDS = deepFreeze(compileCards(SOURCE_ADVERTISING_CARDS, ADVERTISING_CATEGORIES));
 
-// Khớp <title> và kicker của advertising-products/index.html (test advertising-pages giữ đồng bộ).
+// Matches <title> and the kicker of advertising-products/index.html (the advertising-pages test keeps them in sync).
 export const ADVERTISING_ROOT_PAGE = deepFreeze({
   filter: "all", vi: "", en: "", labelVi: "Sản phẩm quảng cáo", labelEn: "Advertising products",
   titleVi: "Sản phẩm Quảng cáo — Trường Thịnh", titleEn: "Advertising products — Trường Thịnh",
-  // Kicker hero của trang gốc khác tên trang (owner 2026-11-08); trang cụm, trang sản phẩm vẫn lấy kicker từ labelVi, labelEn.
+  // The root page hero kicker differs from the page name (owner 2026-11-08); cluster and product pages still take the kicker from labelVi, labelEn.
   kickerVi: "Sản phẩm tiêu biểu", kickerEn: "Our featured products",
 });
-// Trang tĩnh cụm và sản phẩm (taxonomy R4); sản phẩm dưới ngưỡng trang mỏng không có trang (R5).
-// vi, en là path sau /<locale>/advertising-products/; filter là id cụm hoặc id sản phẩm.
+// Static cluster and product pages (taxonomy R4); products under the thin-page threshold get no page (R5).
+// vi, en are the path after /<locale>/advertising-products/; filter is a cluster id or a product id.
 const clusterById = new Map(ADVERTISING_CLUSTERS.map((cluster) => [cluster.id, cluster]));
 const productCount = (id) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length;
 export const ADVERTISING_PAGES = deepFreeze([
@@ -251,11 +249,11 @@ export const ADVERTISING_PAGES = deepFreeze([
       };
     }),
 ]);
-// Sản phẩm chưa có trang lọc trên trang cụm (R5): URL là path cụm kèm ?category=, title và kicker của cụm.
+// Products without a filter page on the cluster page (R5): the URL is the cluster path plus ?category=, with the cluster title and kicker.
 const pageByFilter = new Map(ADVERTISING_PAGES.map((page) => [page.filter, page]));
 const QUERY_PAGES = ADVERTISING_PRODUCTS.filter(({ id }) => !pageByFilter.has(id))
   .map(({ id, cluster }) => ({ ...pageByFilter.get(cluster), filter: id, query: true }));
-// Chip sản phẩm của hàng chip (R3, R5): vi, en là phần URL sau /<locale>/advertising-products/.
+// Product chips of the chip row (R3, R5): vi, en are the URL part after /<locale>/advertising-products/.
 export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS
   .filter(({ id }) => productCount(id) >= ADVERTISING_CHIP_PRODUCT_THRESHOLD)
   .map(({ id, cluster, labelVi, labelEn }) => {
@@ -265,16 +263,7 @@ export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS
     return { filter: id, cluster, labelVi, labelEn, count: productCount(id), vi: `${target.vi}/${query}`, en: `${target.en}/${query}` };
   }));
 
-export function compileAdvertisingLayout(options = {}) {
-  return compileLayout({
-    cards: ADVERTISING_CARDS,
-    categoryOrder: CATEGORY_ORDER,
-    datasetVersion: ADVERTISING_DATASET_VERSION,
-    ...options,
-  });
-}
-
-// Tag nhóm product sinh từ taxonomy, đứng trước tag cũ trong artifact.
+// Product-group tags generated from the taxonomy, placed before the old tags in the artifact.
 const ARTIFACT_TAG_REGISTRY = [
   ...ADVERTISING_PRODUCTS.map(({ id, labelVi, labelEn }) => ({ id, group: "product", labelVi, labelEn })),
   ...ADVERTISING_TAG_REGISTRY,
@@ -282,9 +271,9 @@ const ARTIFACT_TAG_REGISTRY = [
 const RELATED_TAG_GROUPS = new Set(["product", "variant", "use", "service"]);
 const tagGroupById = new Map(ARTIFACT_TAG_REGISTRY.map((tag) => [tag.id, tag.group]));
 
-// Láng giềng related (taxonomy R7): card chứa sản phẩm chính của ảnh trước, rồi card cùng cụm; trong mỗi phần
-// điểm là số tag chung (bỏ tag khung hình). Ghi id card theo tầng điểm giảm dần; runtime chỉ xáo trong một tầng.
-// Tầng điểm 0 (cùng cụm, không tag chung) không ghi để artifact không phình theo n²; runtime tự nối vào cuối.
+// Related neighbours (taxonomy R7): cards holding the photo's main product first, then cards of the same cluster; within each part
+// the score is the number of shared tags (frame tags excluded). Card ids are written by descending score tier; runtime shuffles only within a tier.
+// Score tier 0 (same cluster, no shared tag) is not written so the artifact does not grow as n^2; runtime appends it at the end.
 function attachRelated(cards) {
   return cards.map((hero) => {
     const heroTags = new Set((hero.tagIds || []).filter((id) => RELATED_TAG_GROUPS.has(tagGroupById.get(id))));
@@ -293,7 +282,7 @@ function attachRelated(cards) {
     for (const card of cards) {
       const samePrimary = Boolean(primary && card.productIds?.includes(primary));
       if (card === hero || (!samePrimary && card.category !== hero.category)) continue;
-      // 1000 lớn hơn mọi số tag chung, nên card cùng sản phẩm chính luôn đứng trước.
+      // 1000 exceeds any shared-tag count, so cards with the same main product always come first.
       const score = (samePrimary ? 1000 : 0) + (card.tagIds || []).filter((id) => heroTags.has(id)).length;
       if (!score) continue;
       tiers.set(score, [...(tiers.get(score) || []), card.id]);
@@ -315,7 +304,7 @@ export function buildAdvertisingArtifact(options = {}) {
     categories,
     clusters: ADVERTISING_CLUSTERS,
     products: ADVERTISING_PRODUCTS,
-    // Trang gốc (filter "all", path rỗng) cùng trang cụm, sản phẩm: runtime đổi path, title và kicker theo filter.
+    // The root page (filter "all", empty path) plus cluster and product pages: runtime switches path, title and kicker by filter.
     pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES, ...QUERY_PAGES]
       .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn }) =>
         ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn })),

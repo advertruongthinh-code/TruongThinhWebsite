@@ -350,18 +350,9 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     const highBottom = Math.max(leftBottom, rightBottom);
     const lowBottom = Math.min(leftBottom, rightBottom);
     const expected = highBottom + interCardGap;
-    // Hole-free public grid (masonry R5): bottoms are level, except holes listed in layout.holes in the tail band (under wide cards
-    // with only wide cards below) that are tall enough for a skeleton frame.
+    // Hole-free grid (masonry R5): a two-column card sits on level bottoms (the cache trims the longer column first).
     if (imageHeightLayout && highBottom - lowBottom > EPSILON) {
-      const column = leftBottom < rightBottom ? card.left : card.left + 1;
-      const hole = (layout.holes || []).find((item) => item.column === column
-        && Math.abs(item.top - lowBottom - interCardGap) <= EPSILON
-        && Math.abs(item.height - (highBottom - lowBottom - interCardGap)) <= EPSILON);
-      const tail = bridgeColumns.every((bridgeColumn) => byColumn[bridgeColumn]
-        .slice(byColumn[bridgeColumn].indexOf(card) + 1).every((below) => below.span === 2));
-      if (!hole || !tail || hole.height + EPSILON < 0.25 * cardWidth) {
-        add("hole", { ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean), columns: bridgeColumns, actual: highBottom - lowBottom, listed: Boolean(hole), tail });
-      }
+      add("hole", { ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean), columns: bridgeColumns, actual: highBottom - lowBottom });
     }
     if (Math.abs(card.y - expected) > EPSILON) {
       add("bridge-top", {
@@ -430,7 +421,7 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       const card = sequence.at(-1);
       return card ? { ...card, contributionBottom: card.bottom } : null;
     }).filter(Boolean);
-    // A tail band with wide cards (masonry R5) may end uneven: the skeleton batch fills below every column.
+    // A grid whose last card in some column spans two columns may end uneven: the skeleton batch fills below every column.
     if (terminals.length > 1 && terminals.every((card) => card.span === 1)) {
       const spread = Math.max(...terminals.map((card) => card.contributionBottom)) - Math.min(...terminals.map((card) => card.contributionBottom));
       const allowed = Math.max(...terminals.map((card) => card.pixelHeight)) + interCardGap;

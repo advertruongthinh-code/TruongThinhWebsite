@@ -140,7 +140,7 @@ And nút đang bật giữ nguyên ảnh
 `selectRelated`: không tag thì pool và thứ tự theo tầng điểm của [taxonomy R7](advertising-taxonomy.md#r7-related-có-thể-bạn-thích); có tag thì
 card mang tag trong các tầng đó trước, rồi card mang tag còn lại theo thứ tự nhóm; pool rỗng thì related trống, không thông báo.
 `compileRelatedLayout` xáo trong từng tầng theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>:<tầng>`, xếp bằng
-solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn: `split` thử đặt
+solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn, mọi card related một cột đúng tỷ lệ gốc kể cả ảnh từ tỷ lệ vàng, không cắt ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): `split` thử đặt
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`, không card nào đi qua primary; cuối related là CTA cuối masonry ([CTA R9, R10](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)). Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail

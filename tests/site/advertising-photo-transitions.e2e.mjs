@@ -2095,10 +2095,10 @@ try {
       const before = lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42);
       const y = cta.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll() - 160;
       window.TruongThinhMotion.setLogicalScroll(y);
-      // Đợi tween tick frame đầu thay vì mốc 90ms cố định: WebKit headless vẽ phần mềm chỉ ~8fps
-      // trên trang này (cả khi tắt backdrop-filter), frame đầu có thể tới sau 90ms.
+      // Wait for the tween's first frame instead of a fixed 90ms: headless WebKit paints in software at only ~8fps
+      // on this page (even with backdrop-filter off), so the first frame can land after 90ms. GSAP targets may be non-Node objects.
       const findTween = () => window.gsap.globalTimeline.getChildren(true, true, false)
-        .find((item) => item.targets().some((node) => title.contains(node)));
+        .find((item) => item.targets().some((node) => node instanceof Node && title.contains(node)));
       const started = performance.now();
       while (!(findTween()?.time() > 0) && performance.now() - started < 1000) await new Promise(requestAnimationFrame);
       const tween = findTween();

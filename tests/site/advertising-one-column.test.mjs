@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
 import { columnsForWidth, computeDetailGeometry, compileMasonryLayout, matchesFilter, solveOrganicOrder } from "../../src/site/masonry/layout.mjs";
 
@@ -66,26 +66,18 @@ test("reserved regions cannot hide visually uneven real-photo tails", () => {
   assert.equal(violation.allowed, 155); // tallest terminal card + gap; no caption strip since media-card R2 (2026-11-10)
 });
 
-// Cover ngang từ tỷ lệ vàng (masonry R5); viết lại độc lập với masonry/layout.mjs.
-const isWide = (card) => {
-  const media = card.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card.media;
-  return card.kind !== "suggestion" && media.width * 1000 >= media.height * 1618;
-};
-
-function assertSpanGeometry(layout, label) {
-  if (layout.columns < 3) assert.ok(layout.placements.every((p) => p.width === 1), `${label}: 2-column grids keep every item in one column`);
-  assert.ok(layout.placements.every((p) => p.width === 1 || isWide(p.card)), `${label}: only golden-ratio covers span two columns`);
+// Related masonry is one column (plan T5, owner O5): every card keeps its natural ratio, nothing is trimmed, no holes.
+function assertOneColumnGeometry(layout, label) {
+  assert.ok(layout.placements.every((p) => p.width === 1), `${label}: every card is one column wide`);
   for (const p of layout.placements) {
-    assert.ok(Math.abs(p.pixelWidth - (p.width * layout.cardWidth + (p.width - 1) * layout.interCardGap)) < 0.05, `${label}: natural width`);
-    // Edge trim (masonry R5): a single-column card is shorter than its natural ratio by at most min(0.25 gap, 5% media).
-    const natural = p.pixelWidth * p.card.media.height / p.card.media.width;
-    const bleed = p.mediaBleed ?? 0;
-    assert.ok(!bleed || (p.width === 1 && bleed <= Math.min(0.25 * layout.interCardGap, 0.05 * natural) + 1e-9), `${label}: bleed limit`);
-    assert.ok(Math.abs(p.mediaPixelHeight + bleed - natural) < 0.05, `${label}: natural height`);
+    assert.ok(Math.abs(p.pixelWidth - layout.cardWidth) < 0.05, `${label}: natural width`);
+    assert.equal(p.mediaBleed, undefined, `${label}: ${p.card.id} is not trimmed`);
+    assert.ok(Math.abs(p.mediaPixelHeight - p.pixelWidth * p.card.media.height / p.card.media.width) < 0.05, `${label}: natural height`);
   }
+  assert.deepEqual(layout.holes, [], `${label}: no holes`);
   assert.ok(layout.diagnostics.operations <= 300000, `${label}: operation budget`);
   for (const p of layout.placements) {
-    const reservedBottom = Math.max(...layout.initialColumnBottoms.slice(p.left, p.left + p.width));
+    const reservedBottom = layout.initialColumnBottoms[p.left];
     if (reservedBottom > 0) assert.ok(p.y >= reservedBottom + layout.interCardGap - 0.05, `${label}: reserved primary area remains clear`);
   }
 }
@@ -102,80 +94,27 @@ function overlaps(a, b) {
     && Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 0.05;
 }
 
-// Masonry R5 no holes, reimplemented independently of masonry/layout.mjs: single-column cards go to the lowest column in order; wide cards wait
-// for two level adjacent columns (only the first row while it has an empty column), trimming the longer column's last card by at most min(0.25 gap, 5% media), never on a wide card of the same
-// pair; once single-column cards run out, waiting wide cards drop to the tail band: pair with the lowest column first, then lower top, then no
-// hole, then leftmost; a hole must be 0.25 to under 0.5 column tall; with no pair, or the lowest column empty beside an occupied one,
-// the card stays single-column.
+// Reimplemented independently of masonry/layout.mjs: cards go one column wide, in placement order, to the lowest column
+// (leftmost on a tie).
 function assertSourceOrderShortestFrontier(layout, cards, label) {
-  const cardsById = new Map(cards.map((card) => [card.id, card]));
-  const remaining = layout.diagnostics.placementOrder.map((id) => cardsById.get(id));
   const placementsById = new Map(layout.placements.map((placement) => [placement.card.id, placement]));
-  const { interCardGap: gap, cardWidth, columns } = layout;
+  const { interCardGap: gap } = layout;
   const bottoms = layout.initialColumnBottoms.slice();
-  const last = Array(columns).fill(null);
-  assert.ok(remaining.every(Boolean), `${label}: placement order references only result cards`);
   assert.deepEqual(new Set(layout.diagnostics.placementOrder), new Set(cards.map(({ id }) => id)),
     `${label}: placement order preserves every source card`);
-  const level = (left, allowStack) => {
-    const [a, b] = [bottoms[left], bottoms[left + 1]];
-    if (!a && !b) return { left, y: 0 };
-    if (!a || !b || (!allowStack && last[left] && last[left] === last[left + 1])) return null;
-    if (Math.abs(a - b) <= 0.05) return { left, y: Math.max(a, b) + gap };
-    const target = last[a > b ? left : left + 1];
-    if (!target || target.width !== 1 || Math.abs(target.y + target.natural - Math.max(a, b)) > 0.05) return null;
-    if (Math.abs(a - b) > Math.min(0.25 * gap, 0.05 * target.naturalMedia) + 1e-9) return null;
-    return { left, y: Math.min(a, b) + gap, bleed: { id: target.id, amount: Math.abs(a - b) } };
-  };
-  const lowest = () => bottoms.indexOf(Math.min(...bottoms));
-  const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
-  const bleeds = new Map();
-  while (remaining.length) {
-    const midSlot = () => {
-      const slot = pairs.map((left) => level(left, false)).filter(Boolean).sort((a, b) => a.y - b.y || a.left - b.left)[0];
-      return slot && (slot.y === 0 || bottoms.every(Boolean)) ? slot : null;
-    };
-    let index = remaining.findIndex((card) => !(columns >= 3 && isWide(card)) || midSlot());
-    let expected;
-    if (index >= 0 && columns >= 3 && isWide(remaining[index])) {
-      expected = { ...midSlot(), width: 2 };
-    } else if (index >= 0) {
-      const column = lowest();
-      expected = { left: column, y: bottoms[column] ? bottoms[column] + gap : 0, width: 1 };
-    } else {
-      index = 0;
-      const column = lowest();
-      const holed = (left) => {
-        const [a, b] = [bottoms[left], bottoms[left + 1]];
-        const cavity = Math.abs(a - b);
-        return a && b && cavity - gap >= 0.25 * cardWidth && cavity <= 0.5 * cardWidth + 0.05 ? { left, y: Math.max(a, b) + gap, hole: true } : null;
-      };
-      const touches = ({ left }) => Number(column !== left && column !== left + 1);
-      const slot = !bottoms[column] && bottoms.some(Boolean) ? null : pairs.flatMap((left) => [level(left, true), holed(left)]).filter(Boolean)
-        .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];
-      expected = slot ? { ...slot, width: 2 } : { left: column, y: bottoms[column] ? bottoms[column] + gap : 0, width: 1 };
-    }
-    const [card] = remaining.splice(index, 1);
-    const placement = placementsById.get(card.id);
-    assert.ok(placement, `${label}: missing ${card.id}`);
-    assert.ok(Math.abs(placement.y - expected.y) <= 0.05, `${label}: ${card.id} y=${placement.y} expected ${expected.y}`);
-    assert.equal(placement.left, expected.left, `${label}: ${card.id} did not use the expected column`);
-    assert.equal(placement.width, expected.width, `${label}: ${card.id} span follows the golden-ratio rule`);
-    if (expected.bleed) bleeds.set(expected.bleed.id, expected.bleed.amount);
-    const naturalMedia = placement.mediaPixelHeight + (placement.mediaBleed ?? 0);
-    const entry = { id: card.id, width: placement.width, y: placement.y, natural: placement.pixelHeight + (placement.mediaBleed ?? 0), naturalMedia };
-    for (let offset = 0; offset < placement.width; offset += 1) {
-      bottoms[placement.left + offset] = placement.y + entry.natural;
-      last[placement.left + offset] = entry;
-    }
-  }
-  for (const placement of layout.placements) {
-    assert.ok(Math.abs((placement.mediaBleed ?? 0) - (bleeds.get(placement.card.id) ?? 0)) <= 1e-6, `${label}: ${placement.card.id} bleed`);
+  for (const id of layout.diagnostics.placementOrder) {
+    const placement = placementsById.get(id);
+    assert.ok(placement, `${label}: missing ${id}`);
+    const column = bottoms.indexOf(Math.min(...bottoms));
+    const y = bottoms[column] ? bottoms[column] + gap : 0;
+    assert.equal(placement.left, column, `${label}: ${id} did not use the lowest column`);
+    assert.ok(Math.abs(placement.y - y) <= 0.05, `${label}: ${id} y=${placement.y} expected ${y}`);
+    bottoms[column] = placement.y + placement.pixelHeight;
   }
 }
 
 function assertRelated(result, label) {
-  assertSpanGeometry(result.layout, label);
+  assertOneColumnGeometry(result.layout, label);
   assert.equal(result.primary.columns, result.layout.columns, `${label}: primary recomputed for final columns`);
   assert.equal(result.layout.placements.length, result.cards.length, `${label}: solver contains only real photos`);
   assert.equal(result.photoPlacements.length, result.cards.length, `${label}: photo placements contain every related photo`);
@@ -196,25 +135,25 @@ function assertRelated(result, label) {
   assert.equal(result.layout.diagnostics.budget, 300000, `${label}: aggregate diagnostic keeps the total operation budget`);
 }
 
-test("public grid follows the golden-ratio span rule for all groups and ignores retired span controls", () => {
+test("solver lays every catalog pool one column wide and ignores retired span controls", () => {
   for (const width of widths) for (const filter of ["all", ...categoryOrder]) {
-    const options = { layoutViewportWidth: width, filter };
-    const baseline = compileAdvertisingLayout(options);
+    const options = { cards: ADVERTISING_CARDS, categoryOrder, layoutViewportWidth: width, filter };
+    const baseline = compileMasonryLayout(options);
     assert.equal(baseline.columns, columnsForWidth(width), "parent retains viewport column count");
-    assertSpanGeometry(baseline, `${filter} ${width}`);
+    assertOneColumnGeometry(baseline, `${filter} ${width}`);
     const filteredCards = ADVERTISING_CARDS
       .filter((c) => matchesFilter(c, filter))
       .sort((a, b) => a.sourceOrder - b.sourceOrder || a.id.localeCompare(b.id));
     assert.equal(baseline.placements.length, filteredCards.length);
     assertSourceOrderShortestFrontier(baseline, filteredCards, `${filter} ${width}`);
-    const legacy = compileAdvertisingLayout({ ...options, cards: ADVERTISING_CARDS.map((card, i) => ({ ...card, layoutSpan: ["auto", 1, 2][i % 3] })), settings: { landscapeThreshold: 3 } });
+    const legacy = compileMasonryLayout({ ...options, cards: ADVERTISING_CARDS.map((card, i) => ({ ...card, layoutSpan: ["auto", 1, 2][i % 3] })), settings: { landscapeThreshold: 3 } });
     assert.equal(legacy.coordinateHash, baseline.coordinateHash, "retired controls cannot change geometry or its identity");
-    assert.equal(compileAdvertisingLayout(options).coordinateHash, baseline.coordinateHash, "repeat is deterministic");
+    assert.equal(compileMasonryLayout(options).coordinateHash, baseline.coordinateHash, "repeat is deterministic");
   }
 });
 
-test("related compiles when golden-ratio covers take the two-column placement first", () => {
-  // Card ngang được chọn trải 2 cột trước, không lùi về một cột (masonry R5); related kèm photo-peek vẫn phải giải được.
+test("related keeps golden-ratio covers one column wide at their natural ratio", () => {
+  // Related masonry never spans two columns (plan T5); a related pool of 2:1 covers must still solve with the photo peek.
   const heroId = "mobile-retail-04";
   const wide = (media) => ({ ...media, width: 2000, height: 1000 });
   const cards = ADVERTISING_CARDS.map((card) => card.id === heroId ? card : {
@@ -222,7 +161,7 @@ test("related compiles when golden-ratio covers take the two-column placement fi
   });
   const result = compileRelatedLayout({ cards, categoryOrder, heroId, tag: "use-sampling", ...viewportForWidth(1024) });
   assert.equal(result.layout.columns, 4);
-  assert.ok(result.photoPlacements.some((placement) => placement.width === 2), "a 2:1 related card spans two columns");
+  assert.ok(result.photoPlacements.length > 0 && result.photoPlacements.every((placement) => placement.width === 1), "2:1 related cards stay one column");
   assertRelated(result, "wide related layout");
 });
 
@@ -298,7 +237,7 @@ test("related keeps fixed columns and measures its primary description once", ()
 test("product solver preserves source order and fills the shortest frontier through the tail", () => {
   const cards = [278, 251, 116, 109].map((height, index) => ({ id: `tail-${index}`, category: "test", sourceOrder: index, rank: index, media: { width: 172.5, height, src: "fixture.webp" } }));
   const layout = compileMasonryLayout({ cards, categoryOrder: ["test"], columns: 2, layoutViewportWidth: 390 });
-  assertSpanGeometry(layout, "terminal branching");
+  assertOneColumnGeometry(layout, "terminal branching");
   assert.deepEqual(layout.placements.map(({ card }) => card.id), cards.map(({ id }) => id),
     "visual placement order remains the source order when the shortest frontier alternates columns");
   assert.deepEqual(layout.placements.map(({ left, y }) => [left, Math.round(y * 100) / 100]), [
@@ -375,7 +314,7 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
     viewportHeight: 912,
     headerHeight: 102.515625,
   };
-  // Fixture giữ đúng hai ảnh related, độc lập với ảnh bổ sung vào catalog.
+  // The fixture keeps exactly two related photos, independent of photos added to the catalog.
   const sparseTwo = compileRelatedLayout({ ...options,
     cards: ADVERTISING_CARDS.filter(({ id }) => ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-14"].includes(id)),
     tag: "product-kiosk-posm-product-02" });
@@ -436,7 +375,7 @@ test("R11 keeps the use-sampling pool in one continuous coordinate space", () =>
   assert.equal(result.layout.diagnostics.attempts[0]?.mode, "alongside",
     "R11 diagnostics name the continuous solver branch");
 
-  // Geometry đọc media item cover (M01d), nên cũng giảm một nửa ở đó như ở field legacy.
+  // Geometry reads the cover media item (M01d), so halve it there as in the legacy field.
   const halve = (media) => ({ ...media, height: Math.max(1, Math.round(media.height / 2)) });
   const changedPinnedMedia = ADVERTISING_CARDS.map((card) => card.id === firstRelatedId ? {
     ...card,
@@ -457,8 +396,8 @@ test("R10 pins the first related photo when it is a medium ratio", () => {
 
 test("R10 fills column four for every nonempty authored hero and tag pool at N4", () => {
   let checked = 0;
-  // Tag product (taxonomy R7) không vào phép kiểm này: pool standees-backdrops-posm của kiosk-posm-11 hết ngân sách
-  // cột 4 và xếp dưới primary, như fallback solver đã có ở khoảng 8% lượt duyệt có seed.
+  // Product tags (taxonomy R7) stay out of this check: the standees-backdrops-posm pool of kiosk-posm-11 runs out of budget
+  // for column 4 and goes below primary, like the solver fallback seen in about 8% of seeded visits.
   for (const hero of ADVERTISING_CARDS) for (const tag of [null, ...hero.tagIds.filter((id) => !hero.productIds.includes(id))]) {
     const result = compileRelatedLayout({
       cards: ADVERTISING_CARDS,
@@ -502,7 +441,7 @@ test("D9 keeps homogeneous related pools at fixed N with an aligned fallback", (
     const result = compileRelatedLayout(options);
     assert.equal(result.layout.columns, 3, `${tag}: D9 keeps fixed N`);
     assert.ok(result.cards.length > 0, `${tag}: real related photos remain`);
-    // Bộ sampling đã duyệt dùng ảnh ngang đồng tỷ lệ, nên cũng chọn aligned fallback.
+    // The approved sampling set uses landscape photos of one ratio, so it also takes the aligned fallback.
     assert.equal(result.layout.diagnostics.staggerMode, "fallback", `${tag}: D9 selects the expected phase`);
     assert.equal(result.layout.diagnostics.fallbackUsed, true, `${tag}: fallback state is incorrect`);
     assert.ok(result.layout.diagnostics.operations <= 300000, `${tag}: phases exceeded the shared budget`);
@@ -533,7 +472,7 @@ test("D9 selects the preferred 10 percent stagger phase for a mixed pool", () =>
   assert.equal(layout.diagnostics.fallbackUsed, false);
   assert.ok(layout.diagnostics.preferredAttempts > 0);
   assert.ok(layout.diagnostics.operations <= 300000);
-  assertSpanGeometry(layout, "D9 mixed preferred stagger");
+  assertOneColumnGeometry(layout, "D9 mixed preferred stagger");
 });
 
 test("every authored hero and tag combination remains feasible and deterministic", () => {
