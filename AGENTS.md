@@ -78,7 +78,7 @@ cache hay untracked worktree.
 
 ## Viết và phản hồi
 
-- Code viết bằng tiếng Anh: identifier, chuỗi, tên file và hàm; text hiển thị trên UI, tên file và ID hiện có giữ nguyên. Code comment viết tiếng Việt, giữ technical term và các từ trong phụ lục `## Chú thích thuật ngữ` của docs. Áp dụng cho code mới và code sửa. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
+- Code viết hoàn toàn bằng tiếng Anh: identifier, chuỗi, tên file, hàm và mọi code comment (JS, CSS, HTML comment, shell, PowerShell, workflow YAML, test). Không thuộc code nên giữ nguyên: text hiển thị trên UI, chuỗi i18n, dữ liệu nội dung, slug và URL tiếng Việt, tên file và ID hiện có. Áp dụng cho code mới và code sửa; comment tiếng Việt gặp trong file đang sửa thì dịch luôn. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
 - Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, việc đang chờ (không đoán thời gian khi không có số đo), lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 
