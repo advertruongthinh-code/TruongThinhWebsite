@@ -1042,7 +1042,7 @@
     if (logicalScrollLock) state.smoothScroll.stop();
   };
 
-  const clearSmoothScrollStyles = (state, scrollY) => {
+  const clearSmoothScrollStyles = (state) => {
     document.documentElement.classList.remove(
       "has-scroll-init",
       "has-scroll-smooth",
@@ -1058,17 +1058,17 @@
     document.body.style.removeProperty("height");
     // html có scroll-behavior: smooth; khôi phục vị trí phải tức thì, nếu không scrollY trượt dần từ 0 và
     // lần đổi mode kế tiếp (resize nhanh qua mốc 981px) đọc nhầm vị trí giữa chừng.
-    window.scrollTo({ top: scrollY, behavior: "instant" });
+    // Đọc vị trí mới nhất mỗi lần gọi: các frame dọn dẹp chạy sau destroy, khi viewer có thể đã đặt lại scroll.
+    window.scrollTo({ top: state.smoothScrollY, behavior: "instant" });
   };
 
   const destroySmoothScroll = (state) => {
-    const scrollY = state.smoothScrollY;
     if (state.smoothScroll) {
       state.smoothScroll.stop();
       state.smoothScroll.destroy();
       state.smoothScroll = undefined;
     }
-    clearSmoothScrollStyles(state, scrollY);
+    clearSmoothScrollStyles(state);
 
     let cleanupFrames = 2;
     const finishNativeCleanup = () => {
@@ -1079,7 +1079,7 @@
       ) {
         return;
       }
-      clearSmoothScrollStyles(state, scrollY);
+      clearSmoothScrollStyles(state);
       cleanupFrames -= 1;
       if (cleanupFrames > 0) {
         window.requestAnimationFrame(finishNativeCleanup);
