@@ -4725,34 +4725,48 @@ async function runMenuChecks() {
   }
 }
 
+// Main-grid expectation on the runtime path (advertising-masonry R6): the built cache variant
+// variantIndex(seed, variants.length) placed by replayLayout; no cache, a pool signature mismatch or a failed replay
+// means stackLayout. `layouts` maps band -> { filters } like artifact.layouts; omitted, it reads the built band file
+// in .site-output; null means a cacheless artifact (injected test fixtures). Related masonry keeps compileMasonryLayout.
+async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed, layouts = artifact.layouts }) {
+  const { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+  const { filterRank, matchesFilter, normalizeMasonrySettings } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const band = bandKey(layoutViewportWidth);
+  const settings = normalizeMasonrySettings(artifact.settings);
+  const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+  const bandCache = layouts === undefined
+    ? (await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "layout-cache", `${band.replace(":", "-")}.mjs`)).href)).default
+    : layouts?.[band];
+  const entry = bandCache?.filters?.[filter];
+  const replayed = entry?.variants?.length && entry.sig === poolSignature(pool) && replayLayout({
+    entries: entry.variants[variantIndex(seed, entry.variants.length)], cards: artifact.cards, layoutViewportWidth, filter, settings,
+  });
+  return replayed || stackLayout({
+    order: shuffleWithSeed(pool, seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
+    layoutViewportWidth, filter, settings,
+  });
+}
+
 // Masonry R4/R7: cửa sổ runtime là layout organic đã seed cho lượt vào này.
 async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
 // `width` tính cửa sổ cho layout viewport mà trang chưa resize tới.
-function advertisingWindow(page, filter, width = null) {
-  return page.evaluate(async ({ filter, width }) => {
-    const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-    const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter, normalizeMasonrySettings } = await import("/masonry/layout.mjs");
-    const { shuffleWithSeed } = await import("/masonry/random-order.mjs");
-    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
-    const geometry = compileMasonryLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth: width ?? document.documentElement.clientWidth,
-      settings: normalizeMasonrySettings(artifact.settings),
-      presentationOrder: shuffleWithSeed(pool, window.TruongThinhMasonry.getBrowseState().seed, `grid:${filter}`)
-        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-    return getVirtualWindow(geometry, {
-      scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
-      viewportHeight: innerHeight, overscan: innerHeight,
-    }).items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
-  }, { filter, width });
+async function advertisingWindow(page, filter, width = null) {
+  const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "catalog-artifact.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const state = await page.evaluate(() => ({
+    seed: window.TruongThinhMasonry.getBrowseState().seed,
+    layoutViewportWidth: document.documentElement.clientWidth,
+    scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
+    viewportHeight: innerHeight,
+  }));
+  const geometry = await expectedGridLayout({ artifact, filter, layoutViewportWidth: width ?? state.layoutViewportWidth, seed: state.seed });
+  return getVirtualWindow(geometry, { scrollTop: state.scrollTop, viewportHeight: state.viewportHeight, overscan: state.viewportHeight })
+    .items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
 }
 
 // Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
@@ -5188,17 +5202,14 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     const { buildAdvertisingArtifact } = await import(
       pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
     );
-    const { compileMasonryLayout, getVirtualWindow } = await import(
-      pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
-    );
-    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+    const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
     const artifact = buildAdvertisingArtifact();
     if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
     assert(
       artifact.cards.length === expectedCardCount,
       `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
     );
-    runtimeContract = { artifact, compileMasonryLayout, getVirtualWindow, shuffleWithSeed };
+    runtimeContract = { artifact, getVirtualWindow };
   }
   const cases = [
     { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
@@ -5274,17 +5285,12 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           };
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
-          ? (() => {
-              const layout = runtimeContract.compileMasonryLayout({
-                cards: runtimeContract.artifact.cards,
-                categoryOrder: runtimeContract.artifact.categories.map((category) => category.slug),
-                datasetVersion: runtimeContract.artifact.datasetVersion,
-                filter: "all",
+          ? await (async () => {
+              // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): cùng seed, cùng cache với runtime.
+              const layout = await expectedGridLayout({
+                artifact: runtimeContract.artifact,
                 layoutViewportWidth: state.layoutViewportWidth,
-                // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): dựng lại cùng seed với runtime.
-                presentationOrder: runtimeContract.shuffleWithSeed(runtimeContract.artifact.cards, state.seed, "grid:all")
-                  .map(({ id }) => id),
-                organicOrder: true,
+                seed: state.seed,
               });
               const ids = runtimeContract.getVirtualWindow(layout, {
                 scrollTop: Math.max(0, state.scrollY - state.gridTop),
@@ -6070,11 +6076,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { MASONRY_LAYOUT_VERSION, compileMasonryLayout, isWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
-  const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const { MASONRY_LAYOUT_VERSION, isWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { verifyLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
   const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
   const contractBoundaryWidths = [750, 960, 1200];
   const columnBoundaryWidths = [500, 735, 990];
@@ -6142,16 +6146,7 @@ async function runAdvertisingGridFocusedChecks() {
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
         // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-        const expectedLayout = compileMasonryLayout({
-          cards: artifact.cards,
-          categoryOrder,
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: measured.viewportWidth,
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
-        });
+        const expectedLayout = await expectedGridLayout({ artifact, layoutViewportWidth: measured.viewportWidth, seed });
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
@@ -6174,18 +6169,21 @@ async function runAdvertisingGridFocusedChecks() {
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
         assert(noOverlap, `${width}px grid has overlapping runtime tiles`);
         assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
-        assert(measured.tiles.every((tile) => {
+        const drifted = measured.tiles.find((tile) => {
           const expected = expectedById.get(tile.id);
-          return expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
+          // Card cắt mép dưới (R6, tối đa CROP_CAP) giữ tỷ lệ ảnh gốc khi cộng lại phần cắt mediaBleed.
+          return !(expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
             Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
-            Math.abs(tile.mediaWidth / tile.mediaHeight - expected.card.media.width / expected.card.media.height) <= 0.01 &&
+            Math.abs(tile.mediaWidth / (tile.mediaHeight + (expected.mediaBleed ?? 0)) - expected.card.media.width / expected.card.media.height) <= 0.01 &&
             Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
             tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
-            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05;
-        }), `${width}px runtime geometry drifted from v6 shared layout`);
-        const oracle = inspectAdvertisingGrid({ layout: expectedLayout, placements: expectedLayout.placements });
-        assert(oracle.valid, `${width}px full v6 layout violates one-column stagger/anti-brick oracle: ${JSON.stringify(oracle.violations)}`);
+            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
+        });
+        assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
+        // So le giờ là điểm chấm lúc build, không phải luật cứng (advertising-masonry R6): kiểm không lỗ, khe đúng, cắt trong trần.
+        const verified = verifyLayout(expectedLayout);
+        assert(verified.ok, `${width}px replayed layout fails verifyLayout: ${JSON.stringify(verified.errors.slice(0, 5))}`);
 
         const firstPass = await page.locator("[data-project-grid]").evaluate((grid) =>
           [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
@@ -6332,30 +6330,11 @@ async function runAdvertisingGridFocusedChecks() {
   );
 }
 
-async function advertisingArtifactScrollTarget(page, artifact, id) {
-  const { compileMasonryLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
-  const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  const layout = compileMasonryLayout({
-    cards: artifact.cards,
-    categoryOrder: artifact.categories.map((category) => category.slug),
-    datasetVersion: artifact.datasetVersion,
-    filter: "all",
-    layoutViewportWidth,
-  });
-  const target = layout.placements.find((placement) => placement.card.id === id);
-  if (!target) throw new Error(`artifact placement missing: ${id}`);
-  const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
-  return gridTop + target.y;
-}
-
 async function runAdvertisingKeyboardVirtualizationCheck() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileMasonryLayout, getVirtualWindow } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const artifact = buildAdvertisingArtifact();
 
   await runPageCase(
@@ -6368,16 +6347,7 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
       // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
       const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-      const layout = compileMasonryLayout({
-        cards: artifact.cards,
-        categoryOrder: artifact.categories.map((category) => category.slug),
-        datasetVersion: artifact.datasetVersion,
-        settings: artifact.settings,
-        filter: "all",
-        layoutViewportWidth,
-        presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-        organicOrder: true,
-      });
+      const layout = await expectedGridLayout({ artifact, layoutViewportWidth, seed });
       const expected = layout.placements.map((placement) => placement.card);
       // Trần cửa sổ ảo: số card lớn nhất mà getVirtualWindow trả ở bất kỳ vị trí cuộn nào. Locomotive cuộn mượt (lerp) và
       // runtime nhận vị trí qua site:scroll lệch vài ms so với lúc test đọc gridTop, nên so với đoạn cuộn vừa đo sẽ flake;
@@ -6463,23 +6433,11 @@ async function runAdvertisingMediaEntranceChecks() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileMasonryLayout } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed với runtime.
+  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed, cùng cache với runtime.
   const deepestTarget = async (page) => {
     const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-    const layout = compileMasonryLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter: "all",
-      layoutViewportWidth: 1440,
-      presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-      organicOrder: true,
-    });
+    const layout = await expectedGridLayout({ artifact, layoutViewportWidth: 1440, seed });
     return layout.placements.reduce((deepest, placement) =>
       placement.y > deepest.y ? placement : deepest);
   };
@@ -6782,10 +6740,9 @@ async function runAdvertisingMediaFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(
+  const { compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(
     pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = artifact.categories.map((category) => category.slug);
   // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
@@ -6839,20 +6796,9 @@ async function runAdvertisingMediaFocusedChecks() {
     `All layout did not retain all ${expectedCardCount} ranked cards`,
   );
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
-    return compileMasonryLayout({
-      cards: artifact.cards,
-      categoryOrder,
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
 
   const readGridState = (page) => page.locator("[data-project-grid]").evaluate((grid) => {
     const bounds = grid.getBoundingClientRect();
@@ -7231,8 +7177,7 @@ async function runAdvertisingCompatibilityChecks() {
 // Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const { compileMasonryLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
@@ -7281,21 +7226,10 @@ async function runAdvertisingThreeThousandCardProbe() {
   const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
-    return compileMasonryLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      settings: artifact.settings,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
   const scrollTargetFor = async (page, layout, id) => {
     const target = layout.placements.find((placement) => placement.card.id === id);
     if (!target) throw new Error(`artifact placement missing: ${id}`);
@@ -7412,8 +7346,6 @@ async function runAdvertisingThreeThousandCardProbe() {
 
 async function runAdvertisingLocaleLifecycleChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileMasonryLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
     const kiosk = index < 3;
     const primaryKiosk = index === 0;
@@ -7482,15 +7414,9 @@ async function runAdvertisingLocaleLifecycleChecks() {
       const virtualizeKiosk = async () => {
         // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-        const layout = compileMasonryLayout({
-          cards: artifact.cards,
-          categoryOrder: artifact.categories.map((category) => category.slug),
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
+        // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+        const layout = await expectedGridLayout({
+          artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
         // Cuộn tới placement xa kiosk nhất để kiosk chắc chắn rời DOM ảo hóa.

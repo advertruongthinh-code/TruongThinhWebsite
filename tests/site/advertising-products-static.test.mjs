@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
 
@@ -45,8 +45,10 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
 assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
-assert.match(prepare, /compileAdvertisingLayout/, "prepare step uses the pure layout compiler for preflight");
-assert.match(prepare, /\[320, 390, 768, 1024, 1440, 1920, 2560\]/, "public preflight covers every required viewport width");
+assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/replay\.mjs"/, "the layout cache replay is preloaded with the runtime");
+assert.doesNotMatch(builtIndex, /packer\.mjs/, "public pages never load the build-side layout packer (advertising-masonry R6)");
+assert.match(prepare, /buildLayoutCache\(\{ cards: artifact\.cards, filters: PUBLIC_GRID_FILTERS/, "prepare step builds and self-checks the masonry layout cache for every public filter (static-release R2)");
+assert.ok(prepare.indexOf("buildLayoutCache({") < prepare.indexOf("await rm(outputRoot"), "layout cache self-check precedes destructive output cleanup");
 assert.ok(prepare.indexOf("const artifact = buildAdvertisingArtifact();") < prepare.indexOf("await rm(outputRoot"), "artifact validation precedes destructive output cleanup");
 assert.match(runtime, /catalog-artifact\.mjs/, "runtime reads generated artifact");
 assert.equal(artifact.layoutAlgorithmVersion, MASONRY_LAYOUT_VERSION);
@@ -386,5 +388,28 @@ assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loadin
 
 // Viewer "Xem lớn hơn" không có vệt sáng và fade-in 0,45s: markFrame của script head phải bỏ qua dialog (loading-glass R5).
 assert.match(index, /!frame\.closest\("[^"]*\[data-advertising-photo-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
+
+// Built layout cache (plan T4 step 3.1): 5 whole-band files and one file per filter and band, every one importable, on
+// this layout version, and each one-filter file equal to its slice of the band file.
+const cacheRoot = new URL("../../.site-output/advertising-products/layout-cache/", import.meta.url);
+const bandFiles = (await readdir(cacheRoot)).filter((name) => name.endsWith(".mjs")).sort();
+assert.deepEqual(bandFiles, ["2-15.mjs", "3-15.mjs", "3-25.mjs", "4-25.mjs", "4-35.mjs"], "one cache file per width band");
+let filterFileCount = 0;
+for (const bandFile of bandFiles) {
+  const band = (await import(new URL(bandFile, cacheRoot))).default;
+  assert.equal(band.version, MASONRY_LAYOUT_VERSION, `${bandFile} is built for the current layout version`);
+  const dir = new URL(`${bandFile.replace(".mjs", "")}/`, cacheRoot);
+  const filterFiles = (await readdir(dir, { recursive: true })).filter((name) => name.endsWith(".mjs"));
+  assert.deepEqual(filterFiles.map((name) => name.replace(".mjs", "")).sort(), Object.keys(band.filters).sort(), `${bandFile} has one file per filter`);
+  for (const name of filterFiles) {
+    const single = (await import(new URL(name, dir))).default;
+    const filter = name.replace(".mjs", "");
+    assert.equal(single.version, MASONRY_LAYOUT_VERSION);
+    assert.equal(single.band, band.band);
+    assert.deepEqual(single.filters, { [filter]: band.filters[filter] }, `${bandFile} ${filter} matches its band slice`);
+    filterFileCount += 1;
+  }
+}
+assert.equal(filterFileCount, 160, "160 one-filter cache files");
 
 console.log(`[advertising-products-static] ${MASONRY_LAYOUT_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

@@ -186,6 +186,7 @@
         "node tests/site/advertising-route-preload.e2e.mjs",
         "node tests/site/advertising-route-footer-p75.e2e.mjs",
         "node tests/site/advertising-rail-two-tier.e2e.mjs",
+        "node tests/site/advertising-layout-cache-pending.e2e.mjs",
         "node tests/site/advertising-resize-card-width.e2e.mjs"
       ]
     },

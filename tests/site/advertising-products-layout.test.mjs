@@ -178,7 +178,8 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
   const order = cards.map((card) => card.id);
   // 2026-11-10 (media-card R2): hashes changed only because the caption field and CAPTION_METRICS_VERSION left the layout
   // identity; every placement's column, span, y and media height is identical to the previous hashes ab952cae/8f209679.
-  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "09e8f626", 0], [1440, "6bb197b9", 12]]) {
+  // 2026-11-10 (plan T4): 09e8f626/6bb197b9 -> 6eaee92f/d79391b8 only because MASONRY_LAYOUT_VERSION (v17) is in the hash.
+  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "6eaee92f", 0], [1440, "d79391b8", 12]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -298,7 +299,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v16");
+  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v17");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);

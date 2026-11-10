@@ -90,6 +90,20 @@ async function runSecurityContract() {
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
     // SSR runtime is covered by runPublicContract on Wrangler, which provides HTMLRewriter.
+    // /advertising-products* is Worker-first: the masonry layout cache modules must still reach the static assets untouched.
+    const layoutCachePath = "/advertising-products/layout-cache/4-35/all.mjs";
+    const assetPaths = [];
+    const layoutCache = await worker.default.fetch(new Request(`https://site.example${layoutCachePath}`), {
+      PUBLIC_ORIGIN: "https://site.example",
+      ASSETS: { fetch: async (request) => {
+        assetPaths.push(new URL(request.url ?? request).pathname);
+        return new Response("export default {};", { headers: { "content-type": "text/javascript" } });
+      } },
+      DB: { prepare: () => ({ bind: () => ({ first: async () => null, all: async () => ({ results: [] }) }), all: async () => ({ results: [] }) }) },
+    });
+    assert(layoutCache.status === 200, `layout cache module returned ${layoutCache.status}`);
+    assert.deepEqual(assetPaths, [layoutCachePath], "layout cache module is served from static assets");
+    assert(await layoutCache.text() === "export default {};", "layout cache module body passes through unchanged");
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {
@@ -320,6 +334,9 @@ async function runPublicContract() {
     assert(result.status === 308, `${source} returned ${result.status}, expected 308`);
     assert(new URL(result.headers.get("location")).pathname + new URL(result.headers.get("location")).search === destination, `${source} redirected to ${result.headers.get("location")}`);
   }
+
+  const layoutCacheModule = await response("/advertising-products/layout-cache/4-35/all.mjs");
+  assert(layoutCacheModule.status === 200 && /javascript/.test(layoutCacheModule.headers.get("content-type") || ""), `layout cache module returned ${layoutCacheModule.status}`);
 
   const robots = await response("/robots.txt");
   const robotsText = await robots.text();
