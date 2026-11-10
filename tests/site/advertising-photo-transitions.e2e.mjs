@@ -1065,6 +1065,8 @@ try {
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-advertising-related-card="${id}"] > a`);
       // Thứ tự related được seed và virtualize; quét xuống rồi lên lại cho đến khi card đích mount.
+      // Mỗi bước 0.6 viewport trong hai frame là vuốt nhanh (advertising-masonry R7): runtime chỉ đặt card tạm. Chờ
+      // card tạm trong viewport được thay bằng card thật rồi mới xét, không thì card đích không bao giờ mount (đỏ ở 390, một cột dài).
       for (let step = 0, direction = 1; step < 120 && !(await link.count()); step += 1) {
         const moved = await page.evaluate((sign) => {
           const before = window.TruongThinhMotion.getLogicalScroll();
@@ -1072,6 +1074,10 @@ try {
           return before;
         }, direction);
         await page.evaluate(frame);
+        await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+          const rect = ghost.getBoundingClientRect();
+          return ghost.checkVisibility() && rect.bottom > 0 && rect.top < innerHeight;
+        }), null, { timeout: 5_000 });
         if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
       // Related còn xếp chỗ sau khi primary sẵn sàng (card đi từ đầu cột, solver đầy đủ ở task sau); WebKit
