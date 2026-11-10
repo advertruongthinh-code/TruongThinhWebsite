@@ -6,8 +6,6 @@ source:
   - src/site/advertising-products/catalog.mjs
   - src/site/advertising-products/catalog-runtime.mjs
   - src/site/advertising-products/layout-core.mjs
-  - src/site/advertising-products/mount-budget.mjs
-  - src/site/advertising-products/masonry-host.mjs
   - src/site/advertising-products/layout-worker.mjs
   - src/site/advertising-products/random-order.mjs
   - src/site/advertising-products/media-contract.mjs
@@ -16,8 +14,6 @@ source:
 tests:
   - tests/site/advertising-products-layout.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
-  - tests/site/advertising-mount-budget.test.mjs
-  - tests/site/masonry-host.test.mjs
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
   - tests/site/advertising-products-media.test.mjs
@@ -42,7 +38,7 @@ updated: 2026-11-10
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
 sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
 hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
-[detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md).
+[detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md). Phần chung với related và trang Công trình (sân, reveal, item) ở [masonry dùng chung](masonry.md).
 
 ## Hành vi
 
@@ -165,7 +161,7 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 
 ### R7. Ảo hóa và bàn phím
 
-Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một sân (`createMasonryHost`, `masonry-host.mjs`: card đang dựng, tọa độ, card tạm, ngân sách dựng, hàng chờ LRU, thứ tự chọn card dựng; một lượt dựng `mount`, gỡ `release`, dựng lẻ một card `ensure`; motion layout `layoutMotion`, `stopMotion` trên một Masonry mỗi sân). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ.
+Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một [sân masonry](masonry.md#r4-sân-masonry). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ.
 
 ```gherkin
 Given masonry All 285 card (tính từ catalog), đang ở đầu trang
