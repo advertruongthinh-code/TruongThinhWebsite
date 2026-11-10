@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
-import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import vm from "node:vm";
+import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
+import { bandKey } from "../../src/site/masonry/replay.mjs";
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
@@ -411,5 +413,39 @@ for (const bandFile of bandFiles) {
   }
 }
 assert.equal(filterFileCount, 160, "160 one-filter cache files");
+
+// Head preload of the one-filter cache file (plan T4b): every grid page starts it from an inline script before the deferred
+// vendor scripts; card pages and Projects pages start none.
+const preloadScripts = (html) => [...html.matchAll(/<script>(\(\(\)=>\{const w=document\.documentElement\.clientWidth;[\s\S]*?)<\/script>/g)].map(([, code]) => code);
+const preloadHref = (code, clientWidth) => {
+  let href = null;
+  const link = {};
+  vm.runInNewContext(code, {
+    document: { documentElement: { clientWidth }, head: { append: (node) => { href = node.href; } }, createElement: () => link },
+  });
+  return href;
+};
+const gridPages = [["advertising-products/index.html", "all"], ...["vi", "en"].flatMap((locale) => [[`${locale}/advertising-products/index.html`, "all"],
+  ...ADVERTISING_PAGES.map((page) => [`${locale}/advertising-products/${page[locale]}/index.html`, page.filter])])];
+for (const [file, filter] of gridPages) {
+  const html = await read(`.site-output/${file}`);
+  const scripts = preloadScripts(html);
+  assert.equal(scripts.length, 1, `${file} has exactly one cache preload script`);
+  assert.ok(html.indexOf(scripts[0]) < html.indexOf('<script defer src="/assets/vendor/'), `${file} preloads before the deferred scripts`);
+  assert.ok(html.indexOf(scripts[0]) < html.indexOf("<title"), `${file} preloads before the title`);
+  assert.ok(!html.includes("layout-cache-preload"), `${file} keeps no build marker`);
+  for (const width of [320, 384, 719, 720, 960, 961, 1004, 1005, 1200, 1201, 1440, 2560]) {
+    assert.equal(preloadHref(scripts[0], width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/${filter}.mjs`, `${file} ${width}px picks the band the runtime picks`);
+  }
+  assert.ok(existsSync(new URL(`../../.site-output${preloadHref(scripts[0], 1440)}`, import.meta.url)), `${file} preloads a file that exists`);
+}
+const everyWidth = preloadScripts(builtIndex)[0];
+for (let width = 320; width <= 2560; width += 1) {
+  assert.equal(preloadHref(everyWidth, width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/all.mjs`, `${width}px: preload band equals bandKey`);
+}
+assert.equal(preloadHref(everyWidth, 0), null, "an unmeasured viewport preloads nothing");
+const cardPage = await read(`.site-output/vi/advertising-products/p/${artifact.cards[0].id}/index.html`);
+assert.equal(preloadScripts(cardPage).length, 0, "a direct card page starts no grid cache preload");
+assert.equal(preloadScripts(await read(".site-output/vi/projects/index.html")).length, 0, "the Projects page embeds its layouts and starts no cache preload");
 
 console.log(`[advertising-products-static] ${MASONRY_LAYOUT_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

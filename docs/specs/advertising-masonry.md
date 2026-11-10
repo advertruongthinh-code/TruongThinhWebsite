@@ -10,6 +10,7 @@ source:
   - src/site/masonry/random-order.mjs
   - src/site/masonry/packer.mjs
   - src/site/masonry/replay.mjs
+  - scripts/site/layout-cache-preload.mjs
   - src/site/advertising-products/media-contract.mjs
   - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/photo-tags.mjs
@@ -38,8 +39,7 @@ updated: 2026-11-10
 ## Mục đích
 
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
-sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
-hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
+sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự, hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
 [detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md). Phần chung với related và trang Công trình (sân, reveal, item) ở [masonry dùng chung](masonry.md).
 
 ## Hành vi
@@ -249,7 +249,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `[data-project-grid]`, `[data-advertising-card]`, `[data-advertising-filter]`, `body.is-advertising-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
-| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới). Artifact mang `layoutCacheFilterUrl`, `layoutCacheBandUrl` tới cache bố cục (R6): `layout-cache/<dải>/<filter>.mjs` tải trước card đầu (`preloadMasonry`), `layout-cache/<dải>.mjs` (mọi filter của dải) tải cùng lúc file detail; trang Công trình nhúng `layouts` trong artifact |
+| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới). Artifact mang `layoutCacheFilterUrl`, `layoutCacheBandUrl` tới cache bố cục (R6): `layout-cache/<dải>/<filter>.mjs` tải trước card đầu: script inline trong `<head>` mỗi trang lưới (build sinh, ngưỡng dải lấy từ `LAYOUT_BANDS`; trang card `/p/` và trang Công trình không có) chèn `modulepreload` ngay khi trình duyệt đọc head, `preloadMasonry` dùng chung lượt import đó, `layout-cache/<dải>.mjs` (mọi filter của dải) tải cùng lúc file detail; trang Công trình nhúng `layouts` trong artifact |
 | Hàm public | `compileMasonryLayout`, `columnsForWidth`, `masonrySpacing`, `getVirtualWindow`, `isWideMedia` (`masonry/layout.mjs`); `createBrowseSeed`, `shuffleWithSeed` (`masonry/random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); `buildLayoutCache`, `LAYOUT_BANDS` (`masonry/packer.mjs`, chỉ build gọi, trang public không tải) và `replayLayout`, `stackLayout`, `bandKey`, `poolSignature` (`masonry/replay.mjs`) cho lưới chính; solver related khi mở detail chạy trong Worker `masonry/layout-worker.mjs` (mở lúc tải trước detail, trang card mở lúc preload; mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module; trang Công trình không mở), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
 | Hàm public | `mountMasonry(container, {signal, scroll, softNavigation, artifact, viewer})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhMasonry`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
@@ -273,7 +273,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 | R3 | `advertising-random-browse.e2e.mjs` (thứ tự, vị trí nút, EN, slug cũ và mới); `advertising-products-media.test.mjs` (cụm, sản phẩm, slug); `advertising-hero-once.e2e.mjs` (click trước runtime, mười vòng); `TT_E2E_ADVERTISING_RAPID_FILTER_ONLY`, `_HISTORY_ONLY` |
 | R4 | `advertising-products-random-order.test.mjs` (seed, history, handoff, reload); `advertising-random-browse.e2e.mjs`; `advertising-route-footer-p75.e2e.mjs` (route mới, F5) |
 | R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px; biên 1.618, solver related một cột, card tạm hai cột); `advertising-one-column.test.mjs` (dựng lại luật một cột của solver và related); `advertising-skeleton-flow.test.mjs` (batch dưới card hai cột); `advertising-products-static.test.mjs` (CSS) |
-| R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY`; `advertising-layout-cache-pending.e2e.mjs` (bấm filter khi cache đang tải: chờ rồi đặt một lần; bấm lại filter đang chọn, mở card huỷ lượt chờ) |
+| R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY`; `advertising-layout-cache-pending.e2e.mjs` (bấm filter khi cache đang tải: chờ rồi đặt một lần; bấm lại filter đang chọn, mở card huỷ lượt chờ); `advertising-layout-cache-preload.e2e.mjs`, `advertising-products-static.test.mjs` (preload từ head: một request, trước khi `detail.js` xong; script khớp `bandKey`) |
 | R7 | `advertising-products-layout.test.mjs` (`getVirtualWindow`, 3.000 card); `TT_E2E_ADVERTISING_KEYBOARD_ONLY`, `_3K_ONLY` |
 | R8 | `advertising-card-interactions.e2e.mjs`; `advertising-no-titles.e2e.mjs`; `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` |
 | R9 | `advertising-hero-once.e2e.mjs`; `TT_E2E_ADVERTISING_HERO_ONLY` |
