@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-11-08
+updated: 2026-11-10
 ---
 
 # Bộ test CI chia theo phần website
@@ -167,6 +167,8 @@ Then workflow đỏ, job summary nêu adv-viewer và Deploy demo không chạy
 
 `pnpm qa:suite <id>` chạy một bộ, `pnpm qa:suite --changed` chạy các bộ mà R3 chọn cho thay đổi hiện tại so với
 `origin/main`. CI gọi đúng lệnh này nên agent và runner chạy cùng một thứ. Lệnh tự build, tự mở preview và tự dọn.
+`--changed` chạy `pnpm qa:docs` trước tiên, nên thiếu dòng `Spec: không đổi` hiện ở máy agent trước khi push
+([docs-system R4](docs-system.md#r4-đổi-code-là-đổi-spec)).
 
 ```gherkin
 Given agent vừa sửa src/site/about/index.html
