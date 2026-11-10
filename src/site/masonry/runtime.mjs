@@ -1986,10 +1986,20 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Filter clicks and band changes keep the current layout until the cache arrives, then place cards once (no stack
   // layout in between). The latest request wins.
   let layoutWait = 0;
-  const whenLayoutReady = (targetFilter, run) => {
-    const ticket = ++layoutWait;
+  // The clicked chip shows its selected look (aria-busy) while the click waits, so a slow cache never reads as a dead click.
+  let busyControl = null;
+  const cancelLayoutWait = () => {
+    layoutWait += 1;
+    busyControl?.removeAttribute("aria-busy");
+    busyControl = null;
+  };
+  const whenLayoutReady = (targetFilter, run, control) => {
+    cancelLayoutWait();
+    const ticket = layoutWait;
     const pending = layoutCachePending(targetFilter);
     if (!pending) return run();
+    busyControl = control ?? null;
+    busyControl?.setAttribute("aria-busy", "true");
     void pending.then(() => {
       if (ticket === layoutWait && !controller.signal.aborted) run();
     });
@@ -2001,12 +2011,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (layoutCacheLoads.has(layoutCacheUrl(artifact.layoutCacheBandUrl, band))) urls.push(layoutCacheUrl(artifact.layoutCacheBandUrl, band));
     for (const url of urls) {
       void loadLayoutCache(url).then(() => {
+        // A card is open: the grid is hidden, so closing the card measures it (see staleStackGeometry).
         if (controller.signal.aborted || filter !== targetFilter || geometry?.diagnostics?.source !== "stack"
-          || bandKey(document.documentElement.clientWidth) !== band || !cachedLayoutEntry(band, targetFilter)) return;
+          || bandKey(document.documentElement.clientWidth) !== band || !cachedLayoutEntry(band, targetFilter)
+          || browseHistory.current.photo) return;
         measure();
       });
     }
   };
+  // The grid still holds a stack layout although its cache has landed (it landed while a card was open).
+  const staleStackGeometry = () => geometry?.diagnostics?.source === "stack"
+    && Boolean(cachedLayoutEntry(bandKey(document.documentElement.clientWidth), filter));
   const poolSignatures = new Map();
   const loggedMisses = new Set();
   const geometryRequest = (targetFilter) => {
@@ -3255,7 +3270,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.textContent = locale === "en" ? page.titleEn : page.titleVi;
   };
   const setActiveFilter = (nextFilter, { animate = false } = {}) => {
-    layoutWait += 1;
+    cancelLayoutWait();
     if (nextFilter === filter) return;
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const origins = animate ? cachedCoordinates(nextFilter, visualOrigins) : undefined;
@@ -4624,7 +4639,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     delete document.body.dataset.advertisingPhotoActive;
     const focusId = browse.grid.focusId;
     if (browse.category !== filter) setActiveFilter(browse.category);
-    if (!geometry) measure();
+    if (!geometry || staleStackGeometry()) measure();
     const node = focusId ? ensurePhoto(focusId) : null;
     const gridMediaId = viewedMediaId || browse.grid.mediaId;
     if (node && gridMediaId) {
@@ -4678,7 +4693,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     getLogicalScroll,
     onApply({ action, browse, reason }) {
       // Back/Forward, opening or closing a card: a filter click still waiting for its cache must not overwrite it.
-      if (reason !== "category") layoutWait += 1;
+      if (reason !== "category") cancelLayoutWait();
       clearTimeout(persistTimer);
       persistTimer = 0;
       if (action === "push") entryScroll.delete(entryIndex());
@@ -4938,14 +4953,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const nextFilter = control.dataset.advertisingFilter ?? control.dataset.advertisingProduct;
     // Clicking the active filter again cancels a click still waiting for its cache.
     if (nextFilter === filter) {
-      layoutWait += 1;
+      cancelLayoutWait();
       return;
     }
     if (grid.contains(document.activeElement)) control.focus();
     whenLayoutReady(nextFilter, () => {
       browseHistory.replaceCategory(nextFilter);
       setActiveFilter(nextFilter, { animate: true });
-    });
+    }, control);
   };
   filters.addEventListener("click", onRailClick, { signal: controller.signal });
   chipGroups.forEach((group) => group.addEventListener("click", onRailClick, { signal: controller.signal }));

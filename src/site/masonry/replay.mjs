@@ -122,7 +122,8 @@ export function stackLayout({ order, layoutViewportWidth, filter = "all", settin
 }
 
 // Build and test check, not called at runtime: no holes, exact gaps, trim within the cap, wide cards on adjacent columns.
-export function verifyLayout(layout) {
+// tolerance: px a column may drift; the DOM test passes 0.05 because inline styles carry two decimals.
+export function verifyLayout(layout, { tolerance = 0.01 } = {}) {
   const { columns, interCardGap: gap, placements } = layout;
   const errors = [];
   let maxCrop = 0;
@@ -136,7 +137,7 @@ export function verifyLayout(layout) {
   }
   byColumn.forEach((list, column) => list.sort((a, b) => a.y - b.y).forEach((p, i) => {
     const expected = i ? list[i - 1].y + list[i - 1].pixelHeight + gap : 0;
-    if (Math.abs(p.y - expected) > 0.01) errors.push(`${p.card.id}: column ${column} off by ${(p.y - expected).toFixed(3)}px`);
+    if (Math.abs(p.y - expected) > tolerance) errors.push(`${p.card.id}: column ${column} off by ${(p.y - expected).toFixed(3)}px`);
   }));
   return { ok: errors.length === 0, errors, maxCrop };
 }

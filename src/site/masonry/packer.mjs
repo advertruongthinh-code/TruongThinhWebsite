@@ -141,7 +141,7 @@ export function packBand(cards, band, { rankOf } = {}) {
 }
 
 // Bottom edges that line up with the nearest bottom in the right-hand column (within 10% of the taller card).
-function staggerViolations(layout) {
+export function staggerViolations(layout) {
   const edges = Array.from({ length: layout.columns }, () => []);
   for (const p of layout.placements) for (let column = p.left; column < p.left + p.width; column += 1) edges[column].push(p);
   let violations = 0;

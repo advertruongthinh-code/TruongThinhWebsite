@@ -17,6 +17,7 @@ runtime `masonry/runtime.mjs` cập nhật trạng thái.
   đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip); xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
   chân 2px dưới tên, chạy như cụm trên máy có hover. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
+- Bấm khi cache bố cục của filter chưa về: mục vừa bấm mang `aria-busy="true"` và hiện như mục đang chọn, mục cũ giữ `aria-current` tới khi lưới đổi.
 - Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
