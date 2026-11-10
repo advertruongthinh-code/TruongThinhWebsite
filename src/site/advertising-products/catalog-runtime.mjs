@@ -3809,6 +3809,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let liveStill = null;
   const drawLiveBackground = () => {
     cancelLive = null;
+    // Trang không có detail (Công trình, viewer tắt) không có khung primary để vẽ.
+    if (!photoView) return;
     // Viewer mở thì khung primary chỉ còn zoom blur đứng yên phủ kín, video là frame lúc mở (advertising-detail R9, owner
     // 2026-10-26): vẽ một lần cho mỗi media, kể cả khi media vừa khít khung (glass false). Mỗi lần vẽ lại bắt blur 50px của
     // backdrop tính lại. Đóng viewer thì `close` vẽ lại theo nhịp thường.
@@ -3895,7 +3897,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       strip.animations.forEach((animation) => animation.cancel());
       strip.nodes.forEach((node) => node.remove());
     }
-    delete heroFrame.dataset.advertisingPhotoSliding;
+    if (heroFrame) delete heroFrame.dataset.advertisingPhotoSliding;
     startLiveBackground();
   };
   // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.

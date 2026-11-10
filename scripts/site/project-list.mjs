@@ -78,7 +78,7 @@ const noscriptCard = (project) => [
 
 const line = (text, className) => `<span class="detail-hero-line-mask"><span class="${className}" data-motion-word-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span></span>`;
 
-const main = ({ filter, projects }, artifact, photoView) => {
+const main = ({ filter, projects }, artifact) => {
   // Mọi trang: kicker cố định là p, khẩu hiệu là h1; bộ lọc chỉ khác title, mô tả và URL. Hàng lọc, lưới, batch skeleton,
   // CTA đuôi theo contract DOM của catalog-runtime (giống trang quảng cáo, bỏ viewer và chip sản phẩm).
   const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-advertising-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
@@ -110,7 +110,6 @@ const main = ({ filter, projects }, artifact, photoView) => {
             </div>
           </section>
         </section>
-        ${photoView}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>
       </main>`;
 };
@@ -125,9 +124,6 @@ const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
 // artifact: buildProjectArtifact, giống nhau ở mọi trang lọc; runtime đổi lọc tại chỗ.
 export const renderProjectListPage = (template, listPage, artifact) => {
   const { filter, path: listPath, projects } = listPage;
-  // Khung viewer ẩn của trang quảng cáo giữ nguyên: runtime dùng chung đọc các node của nó dù viewer tắt.
-  const photoView = template.match(/<section\s+class="advertising-photo-view"[\s\S]*?(?=\s*<\/main>)/)?.[0];
-  if (!photoView) throw new Error('advertising frame anchor "photo view" matched 0 times');
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
   const en = `${PUBLIC_ORIGIN}/en${listPath}`;
   const head = [
@@ -151,6 +147,6 @@ export const renderProjectListPage = (template, listPage, artifact) => {
     ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
     ['href="/vi/advertising-products/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/advertising-products/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
-    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, artifact, photoView), "main"],
+    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, artifact), "main"],
   ].reduce((html, [pattern, replacement, name, expected]) => replaceCounted(html, pattern, replacement, name, expected), template);
 };
