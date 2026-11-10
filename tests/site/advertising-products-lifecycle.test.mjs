@@ -38,7 +38,7 @@ assert.match(runtime, /layoutViewportWidth/, "shared core receives the full view
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
 assert.ok(
   runtime.indexOf("if (hasLaidOut && !membershipChanged && !geometryChanged) return;")
-    < runtime.indexOf("const nextPositions = samePositions ? positions : new Map(geometry.placements.map"),
+    < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
 assert.match(runtime, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");

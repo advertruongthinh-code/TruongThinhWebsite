@@ -33,10 +33,11 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
+import { createMasonryHost } from "./masonry-host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
 import {
-  breathePhase, createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity, GHOST_FADE_EASING, GHOST_FADE_MS,
+  breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
 } from "./mount-budget.mjs";
 
 let activeInstance;
@@ -1614,23 +1615,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // .advertising-grid--captioned trong detail.css; tính theo cỡ chữ gốc để chữ phóng to vẫn vừa chỗ chừa.
   const captionPixelHeight = captions ? 17 + 1.12 * (Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) : 0;
   let geometryPending = false;
-  const rendered = new Map();
-  const gridMediaById = new Map();
-  const relatedMediaById = new Map();
-  const positions = new Map();
   const retainedPhotoIds = new Set();
-  // Card tạm giữ chỗ card chưa dựng kịp trong frame (advertising-masonry R7); mount là ngân sách dựng mỗi frame.
-  const ghostLayer = createGhostLayer(grid);
-  const mountBudget = createMountBudget();
-  let ghostFrame = 0;
-  let relatedGhostFrame = 0;
-  const relatedRendered = new Map();
-  const relatedPositions = new Map();
-  const relatedGhostLayer = createGhostLayer(relatedGrid);
-  const relatedMountBudget = createMountBudget();
-  // Card vừa gỡ mà ảnh còn giải mã nằm ở đây theo RAM máy; quay lại cửa sổ thì gắn lại đúng node (R7, V4).
-  const detachedCards = createDetachedCards(detachedCapacity(navigator.deviceMemory));
-  const relatedDetachedCards = createDetachedCards(detachedCapacity(navigator.deviceMemory));
+  // Sân masonry chính và related ở detail: cùng state dựng theo cửa sổ cuộn, ngân sách dựng, card tạm, hàng chờ LRU
+  // (advertising-masonry R7, masonry-reuse bước 7).
+  const gridHost = createMasonryHost(grid);
+  const relatedHost = createMasonryHost(relatedGrid);
   let relatedMasonry;
   let relatedPixelHeight = 0;
   let relatedMotionFrame = 0;
@@ -1928,7 +1917,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       control.textContent = locale === "en" ? entry.titleEn : entry.titleVi;
     });
     syncRail();
-    for (const cardMap of [rendered, relatedRendered]) {
+    for (const cardMap of [gridHost.rendered, relatedHost.rendered]) {
       cardMap.forEach((node, id) => {
         const record = cards.find((card) => card.id === id);
         if (!record) return;
@@ -1940,7 +1929,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         if (image) image.alt = english ? record.media.altEn : record.media.altVi;
         if (caption) caption.textContent = english ? record.titleEn : record.titleVi;
         syncJustViewedMarker(node, locale, lastClosedPhotoId === id
-          && (cardMap === relatedRendered ? Boolean(activePhotoId) : !activePhotoId));
+          && (cardMap === relatedHost.rendered ? Boolean(activePhotoId) : !activePhotoId));
       });
     }
   };
@@ -2025,7 +2014,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const visiblePlacements = [...windowed.items];
     const mount = new Set(visiblePlacements.map((placement) => placement.card.id));
     const keep = hysteresis ? new Set(windowed.retained.map((placement) => placement.card.id)) : new Set(mount);
-    const focusedNode = [...rendered.values()].find((node) => node === document.activeElement || node.contains(document.activeElement));
+    const focusedNode = [...gridHost.rendered.values()].find((node) => node === document.activeElement || node.contains(document.activeElement));
     if (focusedNode && !mount.has(focusedNode.dataset.advertisingCard)) {
       const focusedPlacement = geometry.placements.find((placement) => placement.card.id === focusedNode.dataset.advertisingCard);
       if (focusedPlacement) visiblePlacements.push(focusedPlacement);
@@ -2043,9 +2032,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return { keep, mount, visiblePlacements, scrollTop, viewportHeight: visible.height };
   };
   const sameMembers = (left, right) => left.size === right.size && [...left].every((item) => right.has(item));
-  const coordinateChanged = (nextPositions) => [...rendered.entries()].some(([id, node]) => {
+  const coordinateChanged = (nextPositions) => [...gridHost.rendered.entries()].some(([id, node]) => {
     if (node.hidden) return false;
-    const previous = positions.get(id);
+    const previous = gridHost.positions.get(id);
     const next = nextPositions.get(id);
     return previous && next && (previous.x !== next.x || previous.y !== next.y);
   });
@@ -2053,12 +2042,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!geometry) return;
     const placementIndex = new Map(geometry.placements.map((placement) => [placement.card.id, placement.index]));
     const activeElement = grid.contains(document.activeElement) ? document.activeElement : null;
-    const orderedNodes = [...rendered.entries()]
+    const orderedNodes = [...gridHost.rendered.entries()]
       .sort(([leftId], [rightId]) => (placementIndex.get(leftId) ?? Number.MAX_SAFE_INTEGER) - (placementIndex.get(rightId) ?? Number.MAX_SAFE_INTEGER) || leftId.localeCompare(rightId))
       .map(([, node]) => node);
     let cursor = grid.firstElementChild;
     // Lớp card tạm luôn đứng đầu grid, dưới mọi card.
-    if (cursor === ghostLayer.layer) cursor = cursor.nextElementSibling;
+    if (cursor === gridHost.ghosts.layer) cursor = cursor.nextElementSibling;
     for (const node of orderedNodes) {
       if (node === cursor) {
         cursor = cursor.nextElementSibling;
@@ -2074,19 +2063,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const { keep, visiblePlacements } = virtualWindow();
     // Card giữ ẩn trong cohort không qua sizeNode của layout mới; lộ lại phải lấy cỡ mới, nếu không giữ bề rộng cột cũ.
     for (const placement of visiblePlacements) {
-      const node = rendered.get(placement.card.id);
+      const node = gridHost.rendered.get(placement.card.id);
       if (node?.hidden) sizeNode(node, placement, geometry.placements.length);
     }
-    for (const [id, node] of rendered) {
+    for (const [id, node] of gridHost.rendered) {
       if (keep.has(id)) {
         node.hidden = false;
         continue;
       }
       releaseMediaCard(node);
       node.remove();
-      rendered.delete(id);
+      gridHost.rendered.delete(id);
     }
-    ghostLayer.prune(keep);
+    gridHost.ghosts.prune(keep);
     restoreCanonicalDomOrder();
   };
   // Card đổi cỡ cùng nhịp với vị trí: con của card co giãn từ cỡ cũ quanh góc trên trái của card, nên card lớn
@@ -2115,8 +2104,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
   // (getSize) trong frame cuộn và task Back (decision phone-frame-budget). Ghi left/top như Masonry: grid không padding.
   const placeRendered = () => {
-    for (const [id, node] of rendered) {
-      const position = positions.get(id);
+    for (const [id, node] of gridHost.rendered) {
+      const position = gridHost.positions.get(id);
       if (!position) continue;
       const left = `${position.x}px`;
       const top = `${position.y}px`;
@@ -2178,7 +2167,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const visualCoordinates = () => {
     const gridRect = grid.getBoundingClientRect();
     const coordinates = new Map();
-    for (const [id, node] of rendered) {
+    for (const [id, node] of gridHost.rendered) {
       if (node.hidden) continue;
       const rect = node.getBoundingClientRect();
       // Cỡ đang thấy, kể cả lượt co giãn đang chạy (morphSize).
@@ -3027,23 +3016,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cancelAnimationFrame(layoutFrame);
       layoutFrame = 0;
     }
-    if (ghostFrame) {
-      cancelAnimationFrame(ghostFrame);
-      ghostFrame = 0;
-    }
+    gridHost.cancelGhosts();
     // Cuộn thường được giữ card trong vùng trễ và dựng theo ngân sách frame; motion layout (animate) dựng và gỡ theo
     // vùng dựng như cũ (R7).
     const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight } = virtualWindow({ hysteresis: !animate });
-    const fastScroll = mountBudget.begin(currentVisualY, viewportHeight);
-    const currentKeep = new Set(rendered.keys());
+    const fastScroll = gridHost.budget.begin(currentVisualY, viewportHeight);
+    const currentKeep = new Set(gridHost.rendered.keys());
     const membershipChanged = [...mount].some((id) => !currentKeep.has(id))
-      || [...currentKeep, ...ghostLayer.ids()].some((id) => !normalKeep.has(id));
+      || [...currentKeep, ...gridHost.ghosts.ids()].some((id) => !normalKeep.has(id));
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
     if (hasLaidOut && !membershipChanged && !geometryChanged) return;
     // Cùng hình học và không motion thì tọa độ đã nằm trong positions từ lần trước: không dựng lại map 285 card mỗi frame cuộn.
     const samePositions = hasLaidOut && !geometryChanged && !animate && positionsGeometry === geometry;
-    const nextPositions = samePositions ? positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
+    const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
     const hasCoordinateDiff = samePositions ? false : coordinateChanged(nextPositions);
     if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return;
     const shouldAnimate = animate && (membershipChanged || hasCoordinateDiff || !hasLaidOut);
@@ -3056,22 +3042,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     let allowed = null;
     // Card tạm giữ tọa độ của hình học cũ: hình học đổi (đổi cỡ cửa sổ, filter) thì bỏ hết và dựng lại theo hình học mới.
     if (animate || geometryChanged) {
-      ghostLayer.clear();
-      detachedCards.clear();
+      gridHost.ghosts.clear();
+      gridHost.detached.clear();
     }
     if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
-      const missing = visiblePlacements.filter((placement) => !rendered.has(placement.card.id));
-      const forced = missing.filter((placement) => retainedPhotoIds.has(placement.card.id));
-      // Card trong hàng chờ gắn lại rẻ hơn dựng mới nên đứng trước.
-      const queue = missing.filter((placement) => !retainedPhotoIds.has(placement.card.id))
-        .sort((a, b) => (detachedCards.has(b.card.id) - detachedCards.has(a.card.id)) || distance(a) - distance(b));
-      allowed = new Set([...forced, ...queue.slice(0, fastScroll ? 0 : mountBudget.quota())].map((placement) => placement.card.id));
+      const placementOf = new Map(visiblePlacements.map((placement) => [placement.card.id, placement]));
+      allowed = gridHost.pickMounts({
+        missing: [...placementOf.keys()].filter((id) => !gridHost.rendered.has(id)),
+        mustMount: (id) => retainedPhotoIds.has(id),
+        distance: (id) => distance(placementOf.get(id)),
+        fast: fastScroll,
+      });
     }
     let mountMs = 0;
     if (origins && shouldAnimate && !reduced) {
-      for (const [id, node] of rendered) {
+      for (const [id, node] of gridHost.rendered) {
         const origin = origins.get(id);
         if (!origin || node.hidden) continue;
         node.style.left = `${origin.x}px`;
@@ -3080,42 +3067,42 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
     }
     if (!samePositions) {
-      positions.clear();
-      nextPositions.forEach((position, id) => positions.set(id, position));
-      for (const [id] of rendered) {
-        if (!positions.has(id) && origins?.has(id)) positions.set(id, origins.get(id));
+      gridHost.positions.clear();
+      nextPositions.forEach((position, id) => gridHost.positions.set(id, position));
+      for (const [id] of gridHost.rendered) {
+        if (!gridHost.positions.has(id) && origins?.has(id)) gridHost.positions.set(id, origins.get(id));
       }
       positionsGeometry = geometry;
     }
 
-    for (const [id, node] of rendered) {
+    for (const [id, node] of gridHost.rendered) {
       if (keep.has(id) || node === document.activeElement || node.contains(document.activeElement)) continue;
-      detachCard(id, node, animate || geometryChanged ? null : detachedCards);
-      rendered.delete(id);
+      detachCard(id, node, animate || geometryChanged ? null : gridHost.detached);
+      gridHost.rendered.delete(id);
     }
-    ghostLayer.prune(keep);
+    gridHost.ghosts.prune(keep);
     const fragment = document.createDocumentFragment();
     for (const placement of visiblePlacements) {
-      let node = rendered.get(placement.card.id);
-      if (node) ghostLayer.drop(placement.card.id);
+      let node = gridHost.rendered.get(placement.card.id);
+      if (node) gridHost.ghosts.drop(placement.card.id);
       if (!node && allowed && !allowed.has(placement.card.id)) {
-        ghostLayer.show(placement.card.id, placement, cardColor(placement.card));
+        gridHost.ghosts.show(placement.card.id, placement, cardColor(placement.card));
         continue;
       }
       if (!node) {
         const id = placement.card.id;
         const mountStart = performance.now();
-        const initialMediaId = gridMediaById.get(id)
+        const initialMediaId = gridHost.mediaById.get(id)
           || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
-        const reattached = detachedCards.take(id);
+        const reattached = gridHost.detached.take(id);
         node = reattached || createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
-          (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
-        rendered.set(placement.card.id, node);
+          (mediaId) => gridHost.mediaById.set(id, mediaId), syncCardSkeleton);
+        gridHost.rendered.set(placement.card.id, node);
         observeMediaCard(node);
         created.add(placement.card.id);
         // Card gắn lại đã có ảnh nên không cần card tạm để crossfade: bỏ card tạm của nó nếu có.
-        if (reattached) ghostLayer.drop(id);
-        else node.advertisingGhost = ghostLayer.take(id);
+        if (reattached) gridHost.ghosts.drop(id);
+        else node.advertisingGhost = gridHost.ghosts.take(id);
         mountMs += performance.now() - mountStart;
         const origin = origins?.get(placement.card.id) || (shouldAnimate && !reduced ? { x: placement.x, y: 0 } : null);
         if (origin) {
@@ -3136,22 +3123,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const appendStart = performance.now();
       grid.append(fragment);
       mountMs += performance.now() - appendStart;
-      mountBudget.record(created.size, mountMs);
+      gridHost.budget.record(created.size, mountMs);
     }
     // Còn card tạm chờ dựng thì hẹn frame sau, không dựng dồn trong một frame.
-    if (visiblePlacements.some((placement) => ghostLayer.has(placement.card.id))) {
+    if (visiblePlacements.some((placement) => gridHost.ghosts.has(placement.card.id))) {
       const mountGhosts = () => {
-        ghostFrame = 0;
         // Frame này đã có rAF cuộn chạy ngay sau: một lần renderWindow là đủ, hẹn lại frame kế để không mất lượt.
-        if (scrollFrame) {
-          ghostFrame = requestAnimationFrame(mountGhosts);
-          return;
-        }
-        renderWindow({ scrolling: true });
+        if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
+        else renderWindow({ scrolling: true });
       };
-      ghostFrame ||= requestAnimationFrame(mountGhosts);
+      gridHost.scheduleGhosts(mountGhosts);
     }
-    for (const [id, node] of rendered) node.hidden = retainCohort && !normalKeep.has(id);
+    for (const [id, node] of gridHost.rendered) node.hidden = retainCohort && !normalKeep.has(id);
     // Card mới gắn ở cuối grid (fragment) nên thứ tự DOM lệch; gỡ card không làm lệch. Cohort motion giữ thứ tự tạm.
     if (retainCohort) domOrderDirty = true;
     else if (domOrderDirty || created.size) {
@@ -3163,7 +3146,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const applyLayout = () => {
       if (!shouldAnimate || reduced) placeRendered();
       else {
-        if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
+        if (!masonry) masonry = createMasonry(grid, gridHost.positions, () => gridPixelHeight);
         // Thiếu option này Outlayer coi lần layout đầu là tức thì: lần dựng đầu mất motion từ đầu cột.
         masonry.options.layoutInstant = false;
         masonry.options.transitionDuration = "0.4s";
@@ -3172,7 +3155,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           item.isLayoutInstant = item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard));
         });
         masonry.layout();
-        for (const [id, node] of rendered) if (!node.hidden && origins?.get(id)?.w) morphSize(node, origins.get(id));
+        for (const [id, node] of gridHost.rendered) if (!node.hidden && origins?.get(id)?.w) morphSize(node, origins.get(id));
       }
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
@@ -3207,17 +3190,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
 
   const focusVirtualPlacement = (placement, { focus = true, scrollIntoView = true } = {}) => {
-    let node = rendered.get(placement.card.id);
+    let node = gridHost.rendered.get(placement.card.id);
     if (!node) {
       const id = placement.card.id;
-      const initialMediaId = gridMediaById.get(id)
+      const initialMediaId = gridHost.mediaById.get(id)
         || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
-      node = detachedCards.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
-        (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
-      rendered.set(placement.card.id, node);
+      node = gridHost.detached.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
+        (mediaId) => gridHost.mediaById.set(id, mediaId), syncCardSkeleton);
+      gridHost.rendered.set(placement.card.id, node);
       observeMediaCard(node);
       grid.append(node);
-      ghostLayer.drop(id);
+      gridHost.ghosts.drop(id);
     }
     node.hidden = false;
     sizeNode(node, placement, geometry.placements.length);
@@ -3283,7 +3266,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!placement) return null;
     retainedPhotoIds.add(id);
     focusVirtualPlacement(placement, { focus, scrollIntoView });
-    return rendered.get(id) || null;
+    return gridHost.rendered.get(id) || null;
   };
   const categoryById = new Map(categories.map((category) => [category.slug, category]));
   // Dãy thumbnail và mô tả mờ ở mép còn nội dung, thanh cuộn mô tả theo vị trí cuộn (owner 2026-10-24).
@@ -3409,14 +3392,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelRelatedMotion();
     relatedMasonry?.destroy();
     relatedMasonry = null;
-    relatedRendered.forEach((node) => {
+    relatedHost.rendered.forEach((node) => {
       releaseMediaCard(node);
       node.remove();
     });
-    relatedRendered.clear();
-    relatedDetachedCards.clear();
-    relatedGhostLayer.clear();
-    relatedPositions.clear();
+    relatedHost.rendered.clear();
+    relatedHost.detached.clear();
+    relatedHost.ghosts.clear();
+    relatedHost.positions.clear();
     relatedLayoutKey = "";
     relatedMeasuredGeometry = null;
   };
@@ -3425,11 +3408,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ensureRelatedPhoto = (id) => {
     const placement = relatedLayout?.photoPlacements.find((entry) => entry.card.id === id);
     if (!placement || !relatedGrid) return null;
-    let node = relatedRendered.get(id);
+    let node = relatedHost.rendered.get(id);
     if (!node) {
-      node = relatedDetachedCards.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, true,
-        relatedMediaById.get(id), (mediaId) => relatedMediaById.set(id, mediaId), syncCardSkeleton);
-      relatedRendered.set(id, node);
+      node = relatedHost.detached.take(id) || createPhotoCard(placement.card, locale, handleMediaLoaded, true,
+        relatedHost.mediaById.get(id), (mediaId) => relatedHost.mediaById.set(id, mediaId), syncCardSkeleton);
+      relatedHost.rendered.set(id, node);
       observeMediaCard(node);
       relatedGrid.append(node);
       setPlacementStyle(node, placement);
@@ -3472,9 +3455,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!relatedLayout || !relatedGrid) return;
     const focused = relatedGrid.contains(document.activeElement) ? document.activeElement : null;
     let cursor = relatedGrid.firstElementChild;
-    if (cursor === relatedGhostLayer.layer) cursor = cursor.nextElementSibling;
+    if (cursor === relatedHost.ghosts.layer) cursor = cursor.nextElementSibling;
     for (const placement of relatedLayout.layout.placements) {
-      const node = placement.card.kind === "suggestion" ? suggestionNode : relatedRendered.get(placement.card.id);
+      const node = placement.card.kind === "suggestion" ? suggestionNode : relatedHost.rendered.get(placement.card.id);
       if (!node) continue;
       if (node === cursor) cursor = cursor.nextElementSibling;
       else relatedGrid.insertBefore(node, cursor);
@@ -3483,7 +3466,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const relatedVisualCoordinates = () => {
     const rect = relatedGrid.getBoundingClientRect();
-    const nodes = [...relatedRendered];
+    const nodes = [...relatedHost.rendered];
     if (relatedLayout?.suggestionPlacement && suggestionNode?.dataset.advertisingRelatedItem && !suggestionNode.hidden) {
       nodes.push([suggestionNode.dataset.advertisingRelatedItem, suggestionNode]);
     }
@@ -3495,7 +3478,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (advertising-cta-center-parallax R10).
   const cancelRelatedDetours = () => {
-    for (const node of [...relatedRendered.values(), suggestionNode]) {
+    for (const node of [...relatedHost.rendered.values(), suggestionNode]) {
       node?.getAnimations().forEach((animation) => animation.id === "related-detour" && animation.cancel());
     }
   };
@@ -3521,7 +3504,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollTop: relatedScrollTop,
       viewportHeight: visible.height,
     });
-    const relatedFast = relatedMountBudget.begin(relatedScrollTop, visible.height);
+    const relatedFast = relatedHost.budget.begin(relatedScrollTop, visible.height);
     const normalKeep = new Set(windowed.items.map((placement) => placement.card.id));
     const suggestionId = relatedLayout.suggestionPlacement?.card.id;
     if (suggestionId && suggestionNode?.contains(document.activeElement)) normalKeep.add(suggestionId);
@@ -3529,7 +3512,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const validPhotoIds = new Set(relatedLayout.photoPlacements.map((placement) => placement.card.id));
     const anchorId = browseHistory?.current?.detail?.anchorId;
     if (validPhotoIds.has(anchorId)) normalKeep.add(anchorId);
-    for (const [id, node] of relatedRendered) {
+    for (const [id, node] of relatedHost.rendered) {
       if (!node.contains(document.activeElement)) continue;
       if (validPhotoIds.has(id)) normalKeep.add(id);
       else photoInfo?.focus({ preventScroll: true });
@@ -3541,15 +3524,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Card trong vùng trễ (ngoài vùng dựng) chưa mount thì không dựng, đã mount thì giữ.
     const retainedKeep = new Set([...normalPhotoKeep, ...windowed.retained.map((placement) => placement.card.id).filter((id) => validPhotoIds.has(id))]);
     if (!animate
-      && [...normalPhotoKeep].every((id) => relatedRendered.has(id))
-      && [...relatedRendered.keys(), ...relatedGhostLayer.ids()].every((id) => retainedKeep.has(id))
+      && [...normalPhotoKeep].every((id) => relatedHost.rendered.has(id))
+      && [...relatedHost.rendered.keys(), ...relatedHost.ghosts.ids()].every((id) => retainedKeep.has(id))
       && (!suggestionId || suggestionNode?.hidden === !keepSuggestion)) return;
     const motion = animate && !reduced;
-    const keep = motion ? new Set([...relatedRendered.keys(), ...normalPhotoKeep]) : retainedKeep;
-    relatedPositions.clear();
-    for (const placement of relatedLayout.layout.placements) relatedPositions.set(placement.card.id, { x: placement.x, y: placement.y });
+    const keep = motion ? new Set([...relatedHost.rendered.keys(), ...normalPhotoKeep]) : retainedKeep;
+    relatedHost.positions.clear();
+    for (const placement of relatedLayout.layout.placements) relatedHost.positions.set(placement.card.id, { x: placement.x, y: placement.y });
     // Card chưa mount dựng theo quota, gần giữa màn hình trước; phần còn lại là card tạm (R7). Motion layout dựng hết.
-    if (animate) relatedGhostLayer.clear();
+    if (animate) relatedHost.ghosts.clear();
     let relatedAllowed = null;
     if (!animate) {
       const center = relatedScrollTop + visible.height / 2;
@@ -3558,59 +3541,54 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const placement = placementOf.get(id);
         return placement ? Math.abs(placement.y + placement.pixelHeight / 2 - center) : Infinity;
       };
-      const missing = [...normalPhotoKeep].filter((id) => !relatedRendered.has(id));
-      const mustMount = (id) => retainedPhotoIds.has(id) || id === anchorId;
-      relatedAllowed = new Set([
-        ...missing.filter(mustMount),
-        ...missing.filter((id) => !mustMount(id))
-          .sort((a, b) => (relatedDetachedCards.has(b) - relatedDetachedCards.has(a)) || distance(a) - distance(b))
-          .slice(0, relatedFast ? 0 : relatedMountBudget.quota()),
-      ]);
+      relatedAllowed = relatedHost.pickMounts({
+        missing: [...normalPhotoKeep].filter((id) => !relatedHost.rendered.has(id)),
+        mustMount: (id) => retainedPhotoIds.has(id) || id === anchorId,
+        distance,
+        fast: relatedFast,
+      });
     }
-    relatedGhostLayer.prune(keep);
+    relatedHost.ghosts.prune(keep);
     let relatedMountMs = 0;
     let relatedCreated = 0;
     normalPhotoKeep.forEach((id) => {
-      if (relatedAllowed && !relatedRendered.has(id) && !relatedAllowed.has(id)) {
+      if (relatedAllowed && !relatedHost.rendered.has(id) && !relatedAllowed.has(id)) {
         const placement = relatedLayout.photoPlacements.find((entry) => entry.card.id === id);
-        if (placement) relatedGhostLayer.show(id, placement, mediaColors(placement.card.media.src)?.[0]);
+        if (placement) relatedHost.ghosts.show(id, placement, mediaColors(placement.card.media.src)?.[0]);
         return;
       }
-      const isNew = !relatedRendered.has(id);
-      if (!isNew) relatedGhostLayer.drop(id);
-      const reattached = isNew && relatedDetachedCards.has(id);
+      const isNew = !relatedHost.rendered.has(id);
+      if (!isNew) relatedHost.ghosts.drop(id);
+      const reattached = isNew && relatedHost.detached.has(id);
       const start = performance.now();
       const node = ensureRelatedPhoto(id);
       if (!isNew || !node) return;
-      if (reattached) relatedGhostLayer.drop(id);
-      else node.advertisingGhost = relatedGhostLayer.take(id);
+      if (reattached) relatedHost.ghosts.drop(id);
+      else node.advertisingGhost = relatedHost.ghosts.take(id);
       relatedMountMs += performance.now() - start;
       relatedCreated += 1;
     });
-    relatedMountBudget.record(relatedCreated, relatedMountMs);
-    if ([...normalPhotoKeep].some((id) => relatedGhostLayer.has(id))) {
-      relatedGhostFrame ||= requestAnimationFrame(() => {
-        relatedGhostFrame = 0;
-        renderRelatedWindow();
-      });
+    relatedHost.budget.record(relatedCreated, relatedMountMs);
+    if ([...normalPhotoKeep].some((id) => relatedHost.ghosts.has(id))) {
+      relatedHost.scheduleGhosts(() => renderRelatedWindow());
     }
     if (keepSuggestion) ensureSuggestionCard();
     // Chưa đặt trong related grid (pha primary của direct-entry) thì nó ẩn cho đến khi solver đặt.
     else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
-    for (const [id, node] of relatedRendered) {
+    for (const [id, node] of relatedHost.rendered) {
       if (keep.has(id)) {
         node.hidden = motion && !normalKeep.has(id);
-        if (!relatedPositions.has(id)) relatedPositions.set(id, origins?.get(id) || { x: 0, y: 0 });
+        if (!relatedHost.positions.has(id)) relatedHost.positions.set(id, origins?.get(id) || { x: 0, y: 0 });
       } else {
-        detachCard(id, node, relatedQueueStale ? null : relatedDetachedCards);
-        relatedRendered.delete(id);
+        detachCard(id, node, relatedQueueStale ? null : relatedHost.detached);
+        relatedHost.rendered.delete(id);
       }
     }
     relatedQueueStale = false;
     // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R10).
     const detours = new Map();
     const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
-    const suggestionPosition = keepSuggestion && relatedPositions.get(suggestionId);
+    const suggestionPosition = keepSuggestion && relatedHost.positions.get(suggestionId);
     const suggestionPlacement = relatedLayout.suggestionPlacement;
     const suggestionBox = suggestionPosition && suggestionPlacement ? {
       x: suggestionPosition.x, y: suggestionPosition.y,
@@ -3629,8 +3607,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       detours.set(node, { from, to: destination, plan });
       return destination;
     };
-    for (const [id, node] of relatedRendered) {
-      const destination = relatedPositions.get(id);
+    for (const [id, node] of relatedHost.rendered) {
+      const destination = relatedHost.positions.get(id);
       if (!destination || node.hidden) continue;
       // Card mới vào từ đầu cột: dưới primary, hoặc dưới suggestion ở cột của nó.
       const columnHead = suggestionBox && destination.x < suggestionBox.x + suggestionBox.width
@@ -3647,7 +3625,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Suggestion ghim dưới primary, đi theo đáy primary trong cùng frame, không shuffle (advertising-detail R5).
     if (keepSuggestion && suggestionNode) {
-      const destination = relatedPositions.get(suggestionId);
+      const destination = relatedHost.positions.get(suggestionId);
       suggestionNode.style.left = `${destination.x}px`;
       suggestionNode.style.top = `${destination.y}px`;
       suggestionNode.style.transform = "none";
@@ -3662,7 +3640,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     void relatedGrid.offsetHeight;
     relatedMotionFrame = requestAnimationFrame(() => {
       relatedMotionFrame = 0;
-      if (!relatedMasonry) relatedMasonry = createMasonry(relatedGrid, relatedPositions, () => relatedPixelHeight, {
+      if (!relatedMasonry) relatedMasonry = createMasonry(relatedGrid, relatedHost.positions, () => relatedPixelHeight, {
         itemSelector: "[data-advertising-related-item]",
         getId: (node) => node.dataset.advertisingRelatedItem,
       });
@@ -3701,7 +3679,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const queueScope = `${browse.tag || "all"}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
     if (queueScope !== relatedQueueScope) {
       if (relatedQueueScope) {
-        relatedDetachedCards.clear();
+        relatedHost.detached.clear();
         relatedQueueStale = true;
       }
       relatedQueueScope = queueScope;
@@ -3847,7 +3825,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     if (directEntryPhase === "primary") {
       // Ẩn, chưa đặt: task mount animate chúng từ vị trí gốc.
-      relatedRendered.forEach((node) => { node.hidden = true; });
+      relatedHost.rendered.forEach((node) => { node.hidden = true; });
       if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
     }
@@ -4491,7 +4469,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;
     photoImage.dataset.advertisingPhotoId = record.id;
-    rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
+    gridHost.rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
     renderPrimaryThumbs(record);
     const initialId = (reason === "direct" && !softNavigation && startupHistory?.historyFallback !== true
@@ -4527,7 +4505,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
     photoView.hidden = false;
     layoutRelated(browse);
-    relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
+    relatedHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
     if (
       browse.detail.anchorId
@@ -4647,7 +4625,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoViewer.close({ restoreFocus: false });
     settlePrimaryReveal();
     if (previousPhotoId) lastClosedPhotoId = previousPhotoId;
-    rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
+    gridHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
     activePrimaryMediaId = null;
     closePrimaryStrip();
@@ -4676,7 +4654,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const node = focusId ? ensurePhoto(focusId) : null;
     const gridMediaId = viewedMediaId || browse.grid.mediaId;
     if (node && gridMediaId) {
-      gridMediaById.set(focusId, gridMediaId);
+      gridHost.mediaById.set(focusId, gridMediaId);
       node.advertisingSetMediaId?.(gridMediaId, viewedTime);
     }
     let restoredScrollY;
@@ -4695,7 +4673,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       restoredScrollY = browse.grid.scrollY;
     }
     setLogicalScroll(restoredScrollY);
-    const link = focusId ? rendered.get(focusId)?.querySelector("a") : null;
+    const link = focusId ? gridHost.rendered.get(focusId)?.querySelector("a") : null;
     link?.focus({ preventScroll: true });
     requestAnimationFrame(() => {
       if (generation !== detailRenderGeneration || controller.signal.aborted) return;
@@ -4772,7 +4750,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { capture: true, signal: controller.signal });
   const adapter = {
     ensurePhoto,
-    getCardLink: (id) => rendered.get(id)?.querySelector("a") || null,
+    getCardLink: (id) => gridHost.rendered.get(id)?.querySelector("a") || null,
     releasePhoto(id) {
       retainedPhotoIds.delete(id);
       renderWindow();
@@ -4787,13 +4765,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const cachedCoordinates = (targetFilter, visualOrigins) => {
     const targetGeometry = geometryFor(targetFilter);
     const origins = new Map();
-    const visualSlots = [...rendered.entries()]
+    const visualSlots = [...gridHost.rendered.entries()]
       .filter(([, node]) => !node.hidden)
-      .map(([id]) => visualOrigins?.get(id) || positions.get(id))
+      .map(([id]) => visualOrigins?.get(id) || gridHost.positions.get(id))
       .filter(Boolean)
       .sort((left, right) => left.y - right.y || left.x - right.x);
-    for (const [id, node] of rendered) {
-      const position = visualOrigins?.get(id) || positions.get(id);
+    for (const [id, node] of gridHost.rendered) {
+      const position = visualOrigins?.get(id) || gridHost.positions.get(id);
       if (!node.hidden && position) origins.set(id, position);
     }
     targetGeometry.placements.forEach((placement, index) => {
@@ -4964,7 +4942,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const nextIndex = currentIndex + (event.shiftKey ? -1 : 1);
     if (currentIndex < 0 || nextIndex < 0 || nextIndex >= geometry.placements.length) return;
     const nextPlacement = geometry.placements[nextIndex];
-    const nextNode = rendered.get(nextPlacement.card.id);
+    const nextNode = gridHost.rendered.get(nextPlacement.card.id);
     if (nextNode && !nextNode.hidden) return;
     event.preventDefault();
     focusVirtualPlacement(nextPlacement);
@@ -5026,7 +5004,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const nextIndex = currentIndex + (event.shiftKey ? -1 : 1);
     if (currentIndex < 0 || nextIndex < 0 || nextIndex >= placements.length) return;
     const nextId = placements[nextIndex].card.id;
-    const nextNode = relatedRendered.get(nextId);
+    const nextNode = relatedHost.rendered.get(nextId);
     if (nextNode) return;
     event.preventDefault();
     ensureRelatedPhoto(nextId)?.querySelector("a")?.focus({ preventScroll: true });
@@ -5162,8 +5140,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const nextLocale = currentLocale();
     if (pendingLocaleSeedHandoff?.locale === nextLocale) pendingLocaleSeedHandoff = null;
     locale = nextLocale;
-    detachedCards.clear();
-    relatedDetachedCards.clear();
+    gridHost.detached.clear();
+    relatedHost.detached.clear();
     updateLocalizedContent();
     if (browseHistory.current.photo) renderPhoto(browseHistory.current, "locale");
   }, { signal: controller.signal });
@@ -5225,10 +5203,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.pause();
       releaseVideoSource(photoVideo);
     }
-    rendered.forEach((node) => node.querySelectorAll("video").forEach(releaseVideoSource));
+    gridHost.rendered.forEach((node) => node.querySelectorAll("video").forEach(releaseVideoSource));
     photoViewer.cleanup();
     clearRelatedCards();
-    detachedCards.clear();
+    gridHost.detached.clear();
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
     resizeObserver.disconnect();
@@ -5236,10 +5214,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaObserver.disconnect();
     masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
-    if (ghostFrame) cancelAnimationFrame(ghostFrame);
-    if (relatedGhostFrame) cancelAnimationFrame(relatedGhostFrame);
-    ghostLayer.destroy();
-    relatedGhostLayer.destroy();
+    gridHost.cancelGhosts();
+    relatedHost.cancelGhosts();
+    gridHost.ghosts.destroy();
+    relatedHost.ghosts.destroy();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (motionTimer) clearTimeout(motionTimer);
