@@ -35,9 +35,9 @@ try {
             const label = `${mask.className} "${line.textContent.trim().slice(0, 24)}"`;
             const maskStyle = getComputedStyle(mask);
             if (maskStyle.getPropertyValue("--mask-shadow-bottom").trim() !== "0px") {
-              return [`${label} đang ẩn nhưng mép dưới mask còn nới vùng bóng`];
+              return [`${label} is hidden but the mask bottom edge still extends the shadow area`];
             }
-            if (getComputedStyle(line).textShadow !== "none") return [`${label} đang ẩn nhưng còn bóng chữ`];
+            if (getComputedStyle(line).textShadow !== "none") return [`${label} is hidden but still has a text shadow`];
             const clip = getComputedStyle(mask).clipPath.match(/-?[\d.]+px/g)?.map(Number.parseFloat);
             if (!clip) return [];
             const [top, right, bottom] = clip;
@@ -45,7 +45,7 @@ try {
             const range = document.createRange();
             range.selectNodeContents(line);
             const textTop = range.getBoundingClientRect().top;
-            return textTop < clipBottom ? [`${label} lộ ${(clipBottom - textTop).toFixed(1)}px`] : [];
+            return textTop < clipBottom ? [`${label} leaks ${(clipBottom - textTop).toFixed(1)}px`] : [];
           });
         }, maskSelector);
         leaks.forEach((leak) => failures.push(`/${locale}/${route} ${viewport.width}px: ${leak}`));
@@ -63,7 +63,7 @@ try {
             // Skip while the reveal tween is still running (power4.out gets close to the end early).
             .filter((mask) => !window.gsap?.isTweening(mask.firstElementChild))
             .filter((mask) => new DOMMatrixReadOnly(getComputedStyle(mask.firstElementChild).transform).m42 < 1)
-            .map((mask) => `${mask.className} "${mask.textContent.trim().slice(0, 24)}" reveal xong vẫn cắt vùng bóng`),
+            .map((mask) => `${mask.className} "${mask.textContent.trim().slice(0, 24)}" still clips the shadow area after reveal`),
         maskSelector);
         closed.forEach((item) => failures.push(`/${locale}/${route} ${viewport.width}px: ${item}`));
       }
