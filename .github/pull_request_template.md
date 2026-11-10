@@ -4,7 +4,7 @@ After:
 
 How:
 
-Spec: <spec đã cập nhật>, hoặc `Spec: không đổi - <lý do>`
+Spec: <spec đã cập nhật>, hoặc `Spec: không đổi - <lý do>` (chạy `pnpm qa:docs` trước khi push để biết spec nào bị đụng)
 
 Design System: <README component đã cập nhật>, hoặc `Design System: không đổi - <lý do>` khi đổi file hoặc selector trong dòng `Nguồn:`
 

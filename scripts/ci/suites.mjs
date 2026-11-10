@@ -98,6 +98,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } else if (args[0] === "--select") {
     console.log(JSON.stringify(select(changed(flag("--base", "origin/main")), flag("--event", "pull_request"))));
   } else {
+    // Docs gate first (docs-system.md R4): the local run checks spec sync against origin/main, so a missing Spec line shows before the push.
+    if (args[0] === "--changed" && spawnSync(process.execPath, ["scripts/docs/check-docs.mjs"], { stdio: "inherit" }).status !== 0) process.exit(1);
     const suiteIds = args[0] === "--changed" ? select(changed("origin/main")) : args;
     const unknown = suiteIds.filter((id) => !ids.includes(id));
     if (!suiteIds.length) {

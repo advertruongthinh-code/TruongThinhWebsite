@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-11-08
+updated: 2026-11-10
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -9,6 +9,7 @@ source:
 tests:
   - scripts/docs/check-docs.mjs
   - tests/tooling/docs-malformed-link.test.mjs
+  - tests/tooling/docs-sync-local.test.mjs
 notion: none
 ---
 
@@ -136,15 +137,15 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | Check | Fail khi |
 | --- | --- |
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
-| sync | PR đổi file thuộc `source` của spec mà không đổi spec đó, và mô tả PR không có dòng `Spec: không đổi - <lý do>` |
+| sync | Branch đổi file thuộc `source` của spec mà không đổi spec đó, và cả mô tả PR lẫn commit message trên branch không có dòng `Spec: không đổi - <lý do>` |
 | budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
 Given PR sửa src/site/masonry/layout.mjs
 And không sửa docs/specs/advertising-masonry.md
-And mô tả PR không có dòng "Spec: không đổi - ..."
-When CI chạy pnpm qa:docs
+And mô tả PR và commit message trên branch không có dòng "Spec: không đổi - ..."
+When agent chạy pnpm qa:docs ở máy mình, hoặc CI chạy trên PR
 Then check sync fail và nêu tên spec cần cập nhật
 ```
 
@@ -152,8 +153,11 @@ Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter
 `_template.md` không tham gia. Ownership chỉ quét `src/site/`; source ngoài đó
 (như `src/worker/` của `cms.md`) khai `source:` để sync áp dụng. Sync chạy trong workflow `docs.yml` trên mọi PR,
 kể cả khi chỉ sửa mô tả PR; script đọc mô tả PR qua API lúc chạy, nên re-run một lần đỏ cũ sau khi sửa mô tả cũng
-đọc bản mới. PR của Dependabot (chỉ nâng version action) bỏ qua sync. PR template có mục "Spec" để agent ghi spec đã cập
-nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như CI ([R10 static-release](static-release.md#r10-gate-ci)).
+đọc bản mới. Chạy ở máy agent (không có `DOCS_BASE`, không có `CI`), sync so với `origin/main` và đọc commit message
+trên branch, nên agent thấy spec nào cần sửa hoặc miễn trước khi push, không phải sau khi PR đỏ; `pnpm qa:suite --changed`
+chạy check này trước ([ci-test-suites R6](ci-test-suites.md#r6-chạy-local-cùng-lệnh-với-ci)). Dòng miễn trong commit
+message có hiệu lực cho cả PR và không mất khi mô tả PR bị viết lại. PR của Dependabot (chỉ nâng version action) bỏ qua
+sync. PR template có mục "Spec" để agent ghi spec đã cập nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như CI ([R10 static-release](static-release.md#r10-gate-ci)).
 
 ### R5-R7. Design System, Impeccable và publish
 
