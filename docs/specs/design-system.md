@@ -161,7 +161,7 @@ Design System là nguồn agent đọc trước Graphify, Serena cho câu hỏi 
    đầu `src/` hoặc `scripts/`), selector CSS (backtick bắt đầu `.`) và link spec sở hữu. File dùng chung
    (`style.css`, `detail.css`, `motion.js`, HTML) không ghi làm file; phần CSS ghi bằng selector.
 2. Trên PR, `qa:docs` fail khi PR đổi một file trong `Nguồn:`, hoặc đổi dòng nằm trong rule CSS có selector chứa
-   selector của `Nguồn:`, mà không sửa README đó và mô tả PR không có dòng `Design System: không đổi - <lý do>`.
+   selector của `Nguồn:`, mà không sửa README đó và cả mô tả PR lẫn commit message trên branch không có dòng `Design System: không đổi - <lý do>`.
 
 ```gherkin
 Given PR sửa một dòng trong rule .glass-surface của detail.css

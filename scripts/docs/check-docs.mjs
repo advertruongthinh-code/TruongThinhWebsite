@@ -98,28 +98,34 @@ const MEDIA = /\.(avif|jxl|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
 if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/ not owned by any spec: ${unowned.join(', ')}`);
 
-// Sync runs on pull requests: CI sets DOCS_BASE to the base commit and PR_NUMBER to the PR number.
+// Sync runs on pull requests: CI sets DOCS_BASE to the base commit and PR_NUMBER to the PR number (empty DOCS_BASE skips sync).
+// A local run without DOCS_BASE checks against origin/main, so the gap shows before the push, not as a red PR.
 // The PR description is read through the API at run time, not from the event: a re-run after editing the description reads the new text.
 // A local run without PR_NUMBER reads PR_BODY.
-if (process.env.DOCS_BASE) {
+const originMain = () => { try { return git('rev-parse', '--verify', '-q', 'origin/main').trim(); } catch { return ''; } };
+const docsBase = process.env.DOCS_BASE ?? (process.env.CI ? '' : originMain());
+if (docsBase) {
   const { PR_NUMBER, GITHUB_API_URL, GITHUB_REPOSITORY, GH_TOKEN } = process.env;
   const res = PR_NUMBER && await fetch(`${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}`, { headers: { authorization: `Bearer ${GH_TOKEN}` } });
   if (res && !res.ok) throw new Error(`sync: cannot read PR body, HTTP ${res.status}`);
-  const body = res ? (await res.json()).body ?? '' : process.env.PR_BODY ?? '';
-  const base = `${process.env.DOCS_BASE}...HEAD`;
+  const prBody = res ? (await res.json()).body ?? '' : process.env.PR_BODY ?? '';
+  const base = `${docsBase}...HEAD`;
+  const mergeBase = git('merge-base', docsBase, 'HEAD').trim();
+  // Waiver lines count in the PR description or in any commit message on the branch: the local run reads commit
+  // messages before the PR exists, and a rewritten description cannot drop them.
+  const body = `${prBody}\n${git('log', '--format=%B', `${mergeBase}..HEAD`)}`;
   const changed = git('diff', '--name-only', base).split('\n').filter(Boolean);
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
-      errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add this line, alone and unformatted, to the PR body: Spec: không đổi - <lý do>`);
+      errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add this line, alone and unformatted, to a commit message on this branch or the PR body: Spec: không đổi - <lý do>`);
     }
   }
   // Component gate (design-system.md R6): the first `Nguồn:` line of a component README lists files and CSS selectors; a PR that changes
-  // them without editing that README needs a `Design System: không đổi - <lý do>` line in the PR description.
+  // them without editing that README needs a `Design System: không đổi - <lý do>` line in the PR description or a commit message.
   // The selector of the rule enclosing each changed CSS line, both added lines (new file) and removed lines (base file): removing or renaming a rule
   // also changes the selector.
-  const mergeBase = git('merge-base', process.env.DOCS_BASE, 'HEAD').trim();
   const ruleHeads = new Map();
   for (const file of changed.filter((f) => /^src\/site\/.*\.css$/.test(f))) {
     const { added, removed } = changedLineNumbers(git('diff', '-U0', base, '--', file));
@@ -138,7 +144,7 @@ if (process.env.DOCS_BASE) {
       ...selectors.filter((sel) => [...ruleHeads.values()].some((heads) => new RegExp(`${sel.replace(/[.]/g, '\\.')}(?![\\w-])`).test(heads))),
     ];
     if (hit.length && !changed.includes(readme) && !dsWaived) {
-      errors.push(`design-system sync: ${hit.join(', ')} changed but ${readme} did not; update it or add this line, alone and unformatted, to the PR body: Design System: không đổi - <lý do>`);
+      errors.push(`design-system sync: ${hit.join(', ')} changed but ${readme} did not; update it or add this line, alone and unformatted, to a commit message on this branch or the PR body: Design System: không đổi - <lý do>`);
     }
   }
 }

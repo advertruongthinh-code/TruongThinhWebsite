@@ -59,7 +59,8 @@ cache hay untracked worktree.
 ## STATE và living docs
 
 - Living-docs gate: đổi file thuộc `source:` của spec thì sửa spec đó trong cùng PR,
-  hoặc ghi `Spec: không đổi - <lý do>` trong mô tả PR. `pnpm qa:docs` (CI) kiểm link,
+  hoặc ghi `Spec: không đổi - <lý do>` trong commit message hoặc mô tả PR. Chạy `pnpm qa:docs` (hoặc
+  `pnpm qa:suite --changed`) trước khi push: nó so với `origin/main` và nêu spec nào cần sửa hay miễn. `pnpm qa:docs` kiểm link,
   budget dòng, ownership, sync và drift. Thay command, tooling, decision ngoài spec
   thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
@@ -67,7 +68,7 @@ cache hay untracked worktree.
   publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
   Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
   Đổi file hoặc selector trong dòng `Nguồn:` của README component thì sửa README đó, hoặc ghi
-  `Design System: không đổi - <lý do>` trong mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
+  `Design System: không đổi - <lý do>` trong commit message hoặc mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
