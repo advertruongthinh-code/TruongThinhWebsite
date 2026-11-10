@@ -12,7 +12,7 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
 }
 
 // Masonry 4.2.2 chỉ lo motion: vị trí lấy từ `positions` đã tính, không tự xếp, không tự layout khi resize.
-export function createMasonry(grid, positions, getHeight, { itemSelector = ".advertising-tile", getId = (node) => node.dataset.advertisingCard } = {}) {
+function createMasonry(grid, positions, getHeight, { itemSelector = ".advertising-tile", getId = (node) => node.dataset.advertisingCard } = {}) {
   const masonry = new window.Masonry(grid, {
     itemSelector,
     initLayout: false,
