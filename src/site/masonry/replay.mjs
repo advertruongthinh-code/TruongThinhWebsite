@@ -39,7 +39,7 @@ function frame(layoutViewportWidth) {
 
 function result(f, placed, columnBottoms, { layoutViewportWidth, filter, settings, source }) {
   const placementOrder = placed.map((placement) => placement.card.id);
-  const placements = placed.slice().sort(comparePlacement).map(({ cavity, natural, ...placement }, index) => ({ ...placement, index }));
+  const placements = placed.slice().sort(comparePlacement).map(({ natural, ...placement }, index) => ({ ...placement, index }));
   const totalPixelHeight = Math.max(0, ...columnBottoms);
   const coordinateHash = fnv1a32(`${MASONRY_LAYOUT_VERSION}:${source}:${filter}:${layoutViewportWidth}:${f.columns}:${placementOrder.join(",")}:${coordinateKey(placements) || "empty"}`).toString(16).padStart(8, "0");
   return {
