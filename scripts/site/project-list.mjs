@@ -78,9 +78,22 @@ const noscriptCard = (project) => [
 
 const line = (text, className) => `<span class="detail-hero-line-mask"><span class="${className}" data-motion-word-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span></span>`;
 
-const main = ({ filter, projects }, artifact) => {
-  // Mọi trang: kicker cố định là p, khẩu hiệu là h1; bộ lọc chỉ khác title, mô tả và URL. Hàng lọc, lưới, batch skeleton,
-  // CTA đuôi theo contract DOM của catalog-runtime (giống trang quảng cáo, bỏ viewer và chip sản phẩm).
+// Phần lưới (grid, batch skeleton, CTA đuôi) lấy nguyên từ khung trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh và chữ CTA:
+// một contract DOM masonry cho hai trang, thêm attribute ở trang quảng cáo thì trang Công trình có theo (masonry-reuse bước 9).
+const indexSection = (template, projects) => {
+  const sections = template.match(/<section\s+class="project-index"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
+  if (sections.length !== 1) throw new Error(`advertising frame anchor "index section" matched ${sections.length} times`);
+  return [
+    [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
+    [/<noscript>[\s\S]*?<\/noscript>/, () => `<noscript>${projects.map(noscriptCard).join("")}</noscript>`, "noscript"],
+    [/(<h2 id="cta-title" data-motion-lines>)[\s\S]*?(<\/h2>)/, (_match, open, close) => `${open}${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}${close}`, "cta title"],
+    [/(\s*)<section\s+class="detail-cta"/, (match, space) => `${space}<p class="projects-empty" data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>${match}`, "cta section"],
+  ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), sections[0]);
+};
+
+const main = ({ filter, projects }, artifact, template) => {
+  // Mọi trang: kicker cố định là p, khẩu hiệu là h1; bộ lọc chỉ khác title, mô tả và URL. Hàng lọc theo contract DOM của
+  // catalog-runtime (giống trang quảng cáo, bỏ viewer và chip sản phẩm).
   const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-advertising-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
@@ -97,19 +110,7 @@ const main = ({ filter, projects }, artifact) => {
             <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
           </button>
         </section>
-        <section class="project-index" id="du-an" aria-label="Ảnh công trình" data-en-aria-label="Project photos" data-header-tone="ink">
-          <div class="project-grid" data-project-grid>
-            <noscript>${projects.map(noscriptCard).join("")}</noscript>
-            <div class="advertising-grid__cta-skeleton" data-advertising-cta-skeleton aria-hidden="true"></div>
-          </div>
-          <p class="projects-empty" data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>
-          <section class="detail-cta" data-advertising-grid-cta aria-labelledby="cta-title" data-header-tone="ink">
-            <div class="detail-cta__copy">
-              <h2 id="cta-title" data-motion-lines>${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}</h2>
-              <a class="legacy-link" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer" data-motion-fade data-motion-delay="0.3"><span class="portal-subtitle" data-en="Discuss an idea">Trao đổi ý tưởng</span></a>
-            </div>
-          </section>
-        </section>
+        ${indexSection(template, projects)}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>
       </main>`;
 };
@@ -147,6 +148,6 @@ export const renderProjectListPage = (template, listPage, artifact) => {
     ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
     ['href="/vi/advertising-products/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/advertising-products/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
-    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, artifact), "main"],
+    [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, artifact, template), "main"],
   ].reduce((html, [pattern, replacement, name, expected]) => replaceCounted(html, pattern, replacement, name, expected), template);
 };

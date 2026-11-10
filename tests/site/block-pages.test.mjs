@@ -154,4 +154,8 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   assert.doesNotMatch(chip(html(null), "van-phong"), / hidden/, "a type with projects keeps its chip");
   assert.doesNotMatch(chip(html("can-ho"), "can-ho"), / hidden/, "an empty type keeps its own chip on its page");
   assert.match(html("can-ho"), /class="projects-empty"/, "the empty line is in the page; CSS shows it when the grid has no card");
+  // Phần lưới lấy từ khung trang quảng cáo: nội dung quảng cáo phải được thay hết.
+  assert.doesNotMatch(html(null).match(/<main[\s\S]*<\/main>/)[0], /advertising-products\/standee|Dấu ấn tiếp theo/, "no Advertising tile or CTA copy left in the grid");
+  assert.match(html(null), /aria-label="Ảnh công trình"[\s\S]*Không gian tiếp theo/, "project label and CTA copy replace the Advertising ones");
+  assert.match(html("van-phong"), /class="projects-empty"[^>]* hidden/, "a filter with projects hides the empty line");
 });
