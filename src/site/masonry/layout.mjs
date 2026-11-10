@@ -54,7 +54,7 @@ const SEARCH_CANDIDATE_LIMIT = 20;
 const SEARCH_BACKTRACK_DEPTH = 24;
 const ORGANIC_RHYTHM_WINDOW = 12;
 
-function layoutMedia(card) {
+export function layoutMedia(card) {
   if (card?.mediaItems === undefined) return card?.media;
   if (!Array.isArray(card.mediaItems) || card.mediaItems.length === 0) return null;
   const coverId = card.coverMediaId ?? card.mediaItems[0]?.id;
@@ -415,7 +415,7 @@ function layoutError(code, detail) {
   return error;
 }
 
-const comparePlacement = (left, right) => left.y - right.y || left.x - right.x || left.card.id.localeCompare(right.card.id);
+export const comparePlacement = (left, right) => left.y - right.y || left.x - right.x || left.card.id.localeCompare(right.card.id);
 
 function spanColumns(placement) {
   return Array.from({ length: placement.width }, (_, offset) => placement.left + offset);
@@ -733,7 +733,7 @@ function undoRhythms(logs) {
   }
 }
 
-function placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity = 0) {
+export function placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity = 0) {
   const media = layoutMedia(card);
   const pixelWidth = width * cardWidth + (width - 1) * gap;
   const mediaPixelHeight = pixelWidth * media.height / media.width;
@@ -746,6 +746,14 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
   const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
   return widths.flatMap((width) => spanSlots(state.columnBottoms, columns, width, gap, cardWidth)
     .map(({ left, y, cavity }) => placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity)));
+}
+
+// One coordinate string per layout, shared by the search (makeResult) and the cache replay (replay.mjs).
+export function coordinateKey(placements) {
+  return placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) => {
+    const media = layoutMedia(card);
+    return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
+  }).join("|");
 }
 
 // Span public do tỷ lệ cover quyết định (candidatePlacement); control layoutSpan cũ không ảnh hưởng geometry hay cache identity.
@@ -901,10 +909,7 @@ function compileLayoutPhase(options = {}) {
           : { ...placement, index };
       });
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
-    const coordinates = placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) => {
-      const media = layoutMedia(card);
-      return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
-    }).join("|");
+    const coordinates = coordinateKey(placements);
     const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
     return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
