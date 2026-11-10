@@ -171,7 +171,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
     // Mạng nhanh lên, rồi một video khác trên trang tải xong segment (gherkin R4).
     kbps = 0;
     await page.evaluate(async (src) => {
-      const { setVideoSource } = await import("/media/video-source.mjs");
+      const { setVideoSource } = await import("/media-lib/video-source.mjs");
       setVideoSource(document.createElement("video"), { hlsSrc: src }, { file: "", capWidth: 480 });
     }, hlsSrc);
     await page.waitForTimeout(4000);

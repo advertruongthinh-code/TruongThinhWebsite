@@ -2,7 +2,7 @@
 title: Tải ảnh nội dung
 status: live
 source:
-  - src/site/media/responsive-image.mjs
+  - src/site/media-lib/responsive-image.mjs
   - scripts/site/build-image-variants.mjs
   - src/site/head-inline.js
   - src/site/assets/content/jxl-thresholds.json
@@ -32,7 +32,7 @@ và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tê
 cả `.avif`, `.webp`; cỡ không nhỏ hơn bề rộng gốc thì bỏ. AVIF quality 55, WebP 78, effort 6. File đã có thì giữ;
 `--force` ghi lại. `--originals map.json` sinh từ PNG gốc khi cùng tỷ lệ với WebP (lệch dưới 0,005), không thì từ
 WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner, [danh sách](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
-([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`. Bước JXL: [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể). Ảnh dưới `advertising/` có thêm màu chủ đạo trong `media/colors.mjs`, `--check` báo màu thiếu ([progressive-loading R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
+([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`. Bước JXL: [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể). Ảnh dưới `advertising/` có thêm màu chủ đạo trong `media-lib/colors.mjs`, `--check` báo màu thiếu ([progressive-loading R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
 
 ```gherkin
 Given src/site/assets/content/shared/a.webp rộng 1536px và b.webp rộng 800px, chưa có biến thể
@@ -84,7 +84,7 @@ And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, k
 
 ### R3. Runtime Advertising chọn biến thể
 
-`media/responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP; phone luôn WebP, bản gốc rộng hơn 960 đổi thành cỡ 960 ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
+`media-lib/responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP; phone luôn WebP, bản gốc rộng hơn 960 đổi thành cỡ 960 ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
 `masonry/runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
 có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ nhỏ nhất không dưới `needed` pixel, không có
 `needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
@@ -237,7 +237,7 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | --- | --- | --- |
 | Command | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]` | Sinh, kiểm biến thể (R1) |
 | File | `<tên>.avif`, `<tên>-240.avif\|webp`, `<tên>-480.avif\|webp`, `<tên>-960.avif\|webp` cạnh `<tên>.webp` | R1 ghi; build, runtime đọc theo tên |
-| Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`media/responsive-image.mjs`) | `masonry/runtime.mjs`, `masonry/detail-viewer.mjs` import (R3) |
+| Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`media-lib/responsive-image.mjs`) | `masonry/runtime.mjs`, `masonry/detail-viewer.mjs` import (R3) |
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
 | Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
