@@ -3,6 +3,7 @@ title: Detail Advertising
 status: live
 source:
   - src/site/masonry/suggestion-slideshow.mjs
+  - src/site/media-lib/loading-expand-icon.mjs
 tests:
   - tests/site/advertising-photo-layout.test.mjs
   - tests/site/advertising-full-span-p72.e2e.mjs
