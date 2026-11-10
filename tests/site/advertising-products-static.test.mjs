@@ -118,13 +118,12 @@ assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no
 // Owner 2026-11-09: card masonry chính và related có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình).
 assert.doesNotMatch(runtime, /if \(!related\) \{\s*const title = figure\.appendChild/, "related cards are no longer excluded from the title");
 assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "advertising-tile__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
-// Owner 2026-11-10 (media-card R2): every card UI sits inside the media; touch always shows the name and top band, a real mouse shows them on hover.
-assert.match(siteCss, /--media-shade-even:\s*rgba\(0, 0, 0, 0\.2\);/, "even hero layer token is 0.2");
-assert.match(siteCss, /--media-shade-top:\s*linear-gradient\(180deg, rgba\(0, 0, 0, 0\.625\)[\s\S]*?transparent 36%\);/, "top band token fades over 36% like the hero");
-assert.match(siteCss, /\.hero-shade \{[^}]*background: var\(--media-shade-top\),[^}]*var\(--media-shade-even\);/, "hero shade is built from the shared tokens");
-assert.match(advertisingCss, /\.advertising-tile \.advertising-card-media::after \{\s*background: var\(--media-shade-top\);\s*opacity: 1;\s*transition: none;/, "touch cards always show the top band, without motion");
-assert.match(advertisingCss, /\.advertising-tile__title \{[^}]*position: absolute;[^}]*top: 8px;[^}]*left: 8px;[^}]*-webkit-line-clamp: 2;/, "card name sits top left inside the media, clamped to two lines");
-assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.advertising-tile \.advertising-card-media::after,\s*\.advertising-tile__title \{\s*opacity: 0;\s*\}\s*\.advertising-tile:hover \.advertising-card-media::after \{\s*background: var\(--media-shade-top\), var\(--media-shade-even\);/, "real-mouse hover shows the top band, the even layer and the name together");
+// Owner 2026-11-10 (media-card R3): every card UI sits inside the media; a real mouse shows the Pinterest shade and the name on hover, touch shows neither.
+assert.match(siteCss, /--media-shade-card: linear-gradient\(180deg, rgba\(17, 17, 17, 0\.4\) 48px, rgba\(17, 17, 17, 0\) 100%\);/, "card shade copies Pinterest: flat 0.4 over 48px, linear fade to the bottom");
+assert.match(advertisingCss, /\.advertising-tile \.advertising-card-media::after \{\s*background: var\(--media-shade-card\);\s*transition: none;\s*\}/, "card shade has no motion and keeps the base opacity 0");
+assert.match(advertisingCss, /\.advertising-tile__title \{[^}]*position: absolute;[^}]*top: 8px;[^}]*left: 8px;[^}]*opacity: 0;[^}]*-webkit-line-clamp: 2;/, "card name sits top left inside the media, hidden by default, clamped to two lines");
+assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.advertising-tile:hover \.advertising-card-media::after,\s*\.advertising-tile:hover \.advertising-tile__title \{\s*opacity: 1;/, "only real-mouse hover shows the shade and the name");
+assert.doesNotMatch(advertisingCss + runtime, /card-media__duration|advertisingMediaDuration/, "cards show no video duration pill");
 assert.doesNotMatch(advertisingCss, /advertising-grid--captioned|--advertising-caption-height/, "no card reserves a caption strip below the media");
 assert.doesNotMatch(sharedScripts, /captions: true/, "projects masonry has no caption option");
 assert.doesNotMatch(runtime, /data-advertising-photo-title/, "photo runtime does not render an image title");

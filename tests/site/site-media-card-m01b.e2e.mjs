@@ -394,7 +394,7 @@ async function run(viewport, touch, locale) {
       && Math.abs((dimensions.videoRect.right - dimensions.videoRect.left)
         / (dimensions.videoRect.bottom - dimensions.videoRect.top) - dimensions.video.width / dimensions.video.height) < 0.02,
     `actual image, video, poster ratios must match without crop: ${JSON.stringify(dimensions)}`);
-    assert.equal(after.duration, "0:03", "duration badge reports clip duration");
+    assert.equal(after.duration, null, "cards show no video duration pill (media-card R2, owner 2026-11-10)");
     assert.equal(await card.locator(`[data-advertising-media-select="${videoId}"][aria-current="true"]`).count(), 1,
       "video indicator tracks active media");
     assert.deepEqual(errors, [], "no runtime page errors");
@@ -576,7 +576,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     const video = card.locator("video");
     assert.equal(await video.evaluate((node) => node.muted), true);
     assert((await video.getAttribute("poster")).endsWith("poster-3x2.webp"));
-    assert.equal(await card.locator("[data-advertising-media-duration]").textContent(), "0:03");
+    // Cards show no video duration pill (owner 2026-11-10, media-card R2).
+    assert.equal(await card.locator("[data-advertising-media-duration]").count(), 0);
     const beforeVideoReady = await card.evaluate((node) => {
       const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
       const legacy = node.querySelector("img");
@@ -642,9 +643,9 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
     assert(state.activeId === videoId && state.legacyHidden && state.legacyDisplay === "none"
       && state.legacyWidth === 0 && state.videoReady && state.videoMuted
       && state.videoWidth === 480 && state.videoHeight === 320
-      && state.poster.endsWith("poster-3x2.webp") && state.duration === "0:03"
-      // The pill row of a video singleton holds only the duration pill (media-card R2, 2026-11-10): one row, no dots.
-      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 1
+      && state.poster.endsWith("poster-3x2.webp") && state.duration === undefined
+      // A video singleton has no pill row: no dots and no duration pill (media-card R2, owner 2026-11-10).
+      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
@@ -1256,7 +1257,7 @@ const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, acti
   return frames;
 }, { ms, action });
 
-test("M01b hover shows the top band and even layer at once, hides just viewed, and media change slides as one strip", async () => {
+test("M01b hover shows the Pinterest shade at once, hides just viewed, and media change slides as one strip", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -1268,17 +1269,18 @@ test("M01b hover shows the top band and even layer at once, hides just viewed, a
       marker.dataset.advertisingJustViewed = "";
       media.append(marker);
     });
+    const shade = "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)";
     const hoverState = () => card.locator(".advertising-card-media").evaluate((media) => ({
       scrim: getComputedStyle(media, "::after").opacity,
-      scrimColor: getComputedStyle(media, "::after").backgroundColor,
+      scrimColor: getComputedStyle(media, "::after").backgroundImage,
       marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
     }));
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: shade, marker: "1" });
     await card.locator(".advertising-card-media").hover();
-    // Owner 2026-11-10 (media-card R3): the top band and the even 0.2 layer appear at once, with no motion.
-    assert.deepEqual(await hoverState().then(({ scrim, scrimColor }) => ({ scrim, scrimColor })), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)" });
+    // Owner 2026-11-10 (media-card R3): the Pinterest shade appears at once, with no motion.
+    assert.deepEqual(await hoverState().then(({ scrim, scrimColor }) => ({ scrim, scrimColor })), { scrim: "1", scrimColor: shade });
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "0" });
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: shade, marker: "0" });
 
     const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
@@ -1297,7 +1299,7 @@ test("M01b hover shows the top band and even layer at once, hides just viewed, a
 
     await page.mouse.move(5, 5);
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: shade, marker: "1" });
     await context.close();
   } finally { await browser.close(); }
 });

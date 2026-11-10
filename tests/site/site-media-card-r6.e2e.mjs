@@ -165,7 +165,7 @@ async function geometry(card) {
       playback: playbackRect,
       controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select]")]
         .map((button) => edgeHitSelf(button)),
-      duration: duration && duration.getClientRects().length ? rect(duration) : null,
+      duration: duration ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
       count: count ? rect(count) : null,
       pill: pill && pillStyle.display !== "none"
@@ -177,21 +177,13 @@ const overlap = (a, b) => a && b ? Math.max(0, Math.min(a.right, b.right) - Math
   * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)) : 0;
 const inside = (box, parent) => box && parent && box.left >= parent.left - 0.5 && box.right <= parent.right + 0.5
   && box.top >= parent.top - 0.5 && box.bottom <= parent.bottom + 0.5;
-// Pill collision (plan owner 2026-11-10): the dots or counter stay centred and shift right only to keep an 8px gap from
-// the duration pill, never past the right inset; when both cannot fit, the duration pill hides and the centre pill stays
-// centred.
+// Pill row (owner 2026-11-10, media-card R2): cards show no video duration pill; the dots or counter stay centred.
 function assertPillRow(state, label) {
   const { pill, duration, media } = state;
   const centre = (box) => (box.left + box.right) / 2;
-  assert(pill.left >= media.left + 8 - 0.5 && pill.right <= media.right - 8 + 0.5, `${label} centre pill keeps the 8px insets: ${JSON.stringify(state)}`);
-  if (!duration) {
-    assert(Math.abs(centre(pill) - centre(media)) <= 1, `${label} centre pill is centred: ${JSON.stringify(state)}`);
-    return;
-  }
-  assert(inside(duration, media) && Math.abs(duration.left - media.left - 8) <= 1, `${label} duration pill sits at the left inset: ${JSON.stringify(state)}`);
-  assert(pill.left - duration.right >= 8 - 0.5, `${label} pills keep an 8px gap: ${JSON.stringify(state)}`);
-  assert(Math.abs(centre(pill) - centre(media)) <= 1 || Math.abs(pill.left - duration.right - 8) <= 1,
-    `${label} centre pill is centred or shifted only as far as the gap needs: ${JSON.stringify(state)}`);
+  assert.equal(duration, null, `${label} card shows no duration pill: ${JSON.stringify(state)}`);
+  assert(pill.left >= media.left + 8 - 0.5 && pill.right <= media.right - 8 + 0.5
+    && Math.abs(centre(pill) - centre(media)) <= 1, `${label} centre pill is centred inside the insets: ${JSON.stringify(state)}`);
 }
 
 const stableRect = (before, after, label) => {
@@ -247,9 +239,8 @@ async function runCard(locale, count, surface, width) {
         `${label} footer control overlaps another card: ${JSON.stringify(initial)}`);
     }
     assert(initial.controlEdgeHitSelf.every(Boolean), `${label} control edge must receive pointer: ${JSON.stringify(initial)}`);
-    // Pinterest-style video card: no play button, only the duration pill on the canvas (R4).
-    assert(initial.playback === null && (!initial.duration || inside(initial.duration, initial.media)),
-      `${label} video has no playback button and duration stays inside media: ${JSON.stringify(initial)}`);
+    // Video card: no play button on the canvas (R4).
+    assert.equal(initial.playback, null, `${label} video has no playback button: ${JSON.stringify(initial)}`);
     assert(initial.peers.every((peer) => overlap(initial.indicator, peer) <= 0.5),
       `${label} footer must not overlap another card: ${JSON.stringify(initial)}`);
     if (initial.loading) assert(inside(initial.loading, initial.media), `${label} loading circle remains inside media`);
@@ -279,11 +270,6 @@ async function runCard(locale, count, surface, width) {
   } finally { await browser.close(); }
 }
 
-// Plan owner 2026-11-10: a 5-media video card at 384px, video active, has no pill overlap and both pills inside the card.
-for (const surface of ["grid", "related"]) {
-  test(`R6-R2 VI384 ${surface} 5 media with a video keeps both pills apart inside the card`, async () => runCard("vi", 5, surface, 384));
-}
-
 for (const locale of ["vi", "en"]) {
   for (const width of [320, 390]) {
     for (const surface of ["grid", "related"]) {
@@ -310,13 +296,12 @@ async function runSingleton(locale, surface, width, videoCover) {
     const label = `${locale}-${width}-${surface}-${videoCover ? "video" : "image"}-singleton`;
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}.json`), JSON.stringify(state, null, 2));
     assert(Math.abs(state.card.height - state.media.height) <= 1, `${label} must not reserve a footer`);
-    // A video singleton keeps only the duration pill in the pill row; an image singleton has no row.
-    if (videoCover) assert(inside(state.indicator, state.media) && state.pill === null, `${label} row holds only the duration`);
-    else assert.equal(state.indicator, null, `${label} must not render an indicator`);
+    // A singleton has no pill row, and a video shows no duration pill (media-card R2, owner 2026-11-10).
+    assert.equal(state.indicator, null, `${label} must not render an indicator`);
+    assert.equal(state.duration, null, `${label} shows no duration pill`);
     assert.equal(state.controls.length, 0);
     assert.equal(await card.getAttribute("data-advertising-active-media-id"),
       `${cardId}-r6-${videoCover ? "video" : "image-1"}`);
-    if (videoCover) assert(inside(state.duration, state.media), `${label} video duration stays on the canvas`);
     assert.equal(state.playback, null);
   } finally { await browser.close(); }
 }

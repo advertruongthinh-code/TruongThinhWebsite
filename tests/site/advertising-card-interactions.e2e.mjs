@@ -29,19 +29,19 @@ try {
       const mediaScale = () => image.evaluate((image) => new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
       assert.equal(await mediaScale(), 1, `${locale} ${detail ? "detail" : "parent"} hover keeps media still`);
       assert.deepEqual(await card.boundingBox(), rect, "Hover must not shift the card frame");
-      // Owner 2026-11-10 (media-card R3): real-mouse hover shows the hero top band, the even 0.2 layer and the white name at once.
+      // Owner 2026-11-10 (media-card R3): real-mouse hover shows the Pinterest shade (48px flat 0.4, linear fade to the bottom) and the white name at once.
       const hovered = await card.evaluate(async (tile) => {
         const scrim = getComputedStyle(tile.querySelector(".advertising-card-media"), "::after");
         // Máy tải cao làm transition hover bắt đầu trễ: chờ lớp tối hiện đủ (tối đa 2s) rồi mới đọc.
         for (let frame = 0; frame < 120 && scrim.opacity !== "1"; frame += 1) await new Promise(requestAnimationFrame);
         const title = tile.querySelector(".advertising-tile__title");
-        return { scrim: scrim.backgroundColor, band: scrim.backgroundImage.startsWith("linear-gradient(rgba(0, 0, 0, 0.62"),
+        return { scrim: scrim.backgroundColor, band: scrim.backgroundImage === "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)",
           scrimOpacity: scrim.opacity, title: title?.textContent ?? null,
           titleOpacity: title && getComputedStyle(title).opacity, alt: tile.querySelector("img").alt };
       });
       assert.equal(hovered.scrimOpacity, "1", `${locale} ${detail ? "detail" : "parent"} hover shows the overlay`);
-      assert.deepEqual([hovered.scrim, hovered.band, hovered.title, hovered.titleOpacity], ["rgba(0, 0, 0, 0.2)", true, hovered.alt, "1"],
-        `${locale} ${detail ? "related" : "parent"} hover shows the card title over the hero-equivalent overlay: ${JSON.stringify(hovered)}`);
+      assert.deepEqual([hovered.scrim, hovered.band, hovered.title, hovered.titleOpacity], ["rgba(0, 0, 0, 0)", true, hovered.alt, "1"],
+        `${locale} ${detail ? "related" : "parent"} hover shows the card title over the Pinterest shade: ${JSON.stringify(hovered)}`);
       await page.mouse.move(0, 0);
       await page.keyboard.press("Tab");
       await card.locator("a").focus();
@@ -74,14 +74,13 @@ try {
     }, selector);
     assert.equal(await page.evaluate(() => matchMedia("(hover: hover) and (pointer: fine)").matches), false);
     assert.equal(await card.locator("img").evaluate(e => new DOMMatrixReadOnly(getComputedStyle(e).transform).a), 1);
-    // Touch has no hover (owner 2026-11-10, media-card R3): the name and the top band always show, with no even layer.
+    // Touch has no hover (owner 2026-11-10, media-card R3): a clean image, no name and no shade.
     assert.deepEqual(await card.evaluate((tile) => {
       const titles = [...tile.querySelectorAll(".advertising-tile__title")];
       const scrim = getComputedStyle(tile.querySelector(".advertising-card-media"), "::after");
-      return { titles: titles.length, titleOpacity: getComputedStyle(titles[0]).opacity, scrimOpacity: scrim.opacity,
-        band: scrim.backgroundImage.startsWith("linear-gradient(rgba(0, 0, 0, 0.62"), even: scrim.backgroundColor };
-    }), { titles: 1, titleOpacity: "1", scrimOpacity: "1", band: true, even: "rgba(0, 0, 0, 0)" },
-    `mobile ${detail ? "detail" : "parent"} card always shows its name on the top band`);
+      return { titles: titles.length, titleOpacity: getComputedStyle(titles[0]).opacity, scrimOpacity: scrim.opacity };
+    }), { titles: 1, titleOpacity: "0", scrimOpacity: "0" },
+    `mobile ${detail ? "detail" : "parent"} card shows neither its name nor the shade`);
     const expectedPhoto = await card.locator("a").evaluate(e => (new URL(e.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null));
     await card.locator("a").tap();
     await page.waitForFunction(id => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, expectedPhoto);

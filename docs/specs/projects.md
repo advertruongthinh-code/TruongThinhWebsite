@@ -58,8 +58,8 @@ giống hệt; mảng là category, loại là cụm (`clusterIds`), thẻ xếp
 related, gợi ý, chip sản phẩm (`viewer: false`), trang không nhúng khung detail ẩn; bấm thẻ đi thẳng tới trang chi tiết công trình. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
 mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09).
 Thẻ có tên công trình (`titleVi`/`titleEn`, đổi theo ngôn ngữ) nằm trên trái trong media như mọi card masonry (owner
-2026-11-10, thay tên dưới media của 2026-11-09): cảm ứng luôn hiện tên trên dải trên như hero, chuột thật hiện tên, dải
-trên và lớp đều 0.2 khi hover; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media),
+2026-11-10, thay tên dưới media của 2026-11-09): chuột thật hiện tên và lớp tối Pinterest khi hover, cảm ứng không hiện
+tên; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media),
 [R3](media-card.md#r3-đổi-media-trên-card)). Thẻ không zoom. Link thẻ lấy tên từ tên hiển thị qua
 `aria-labelledby` (tên hiển thị `aria-hidden` để không đọc lặp). Màu chờ ảnh là màu chủ đạo ảnh bìa (build tính bằng sharp). CTA đuôi
 "Không gian tiếp theo dành cho bạn". Không JavaScript thì thẻ tĩnh trong noscript. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
@@ -78,7 +78,7 @@ Then còn 25 thẻ và trang chi tiết công trình đó mở ra
 
 Given /en/projects/ trên điện thoại 390px
 When lưới dựng xong
-Then mỗi thẻ hiện tên tiếng Anh trên trái trong media, trên dải trên, thẻ cao đúng bằng media
+Then thẻ cao đúng bằng media, tên tiếng Anh không hiện trên cảm ứng nhưng là tên link của thẻ
 ```
 
 ### R3. Trang chi tiết công trình
@@ -155,7 +155,7 @@ Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Desig
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ luôn hiện, chỗ chừa trong thẻ và skeleton, gạch chân khi hover, focus, không lớp tối, không zoom) |
+| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom) |
 | R4, R5 | chưa có test |
 
 ## Gate còn mở

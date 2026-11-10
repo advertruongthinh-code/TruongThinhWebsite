@@ -84,8 +84,8 @@ try {
       }
       if (captions) {
         // projects R2, media-card R3 (owner 2026-11-10): the name sits top left inside the media, same as every masonry
-        // card. Touch always shows it on the top band; a real mouse shows it on hover with the even layer. The card is
-        // exactly as tall as its media, and skeleton frames reserve no caption space.
+        // card. Touch never shows it; a real mouse shows it on hover with the Pinterest shade. The card is exactly as tall
+        // as its media, and skeleton frames reserve no caption space.
         await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
         await page.waitForSelector("[data-advertising-card] .advertising-tile__title", { timeout: 5000 });
         const titles = Object.fromEntries(projects.map((project) => [project.id, project.title[locale]]));
@@ -126,14 +126,14 @@ try {
         const shownState = () => card.evaluate((tile) => {
           const scrim = getComputedStyle(tile.querySelector(".advertising-card-media"), "::after");
           return { title: getComputedStyle(tile.querySelector(".advertising-tile__title")).opacity, band: scrim.opacity,
-            even: scrim.backgroundColor, zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a };
+            shade: scrim.backgroundImage.startsWith("linear-gradient(rgba(17, 17, 17, 0.4) 48px"), zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a };
         });
         if (options.viewport.width > 960) {
-          assert.deepEqual(await shownState(), { title: "0", band: "0", even: "rgba(0, 0, 0, 0)", zoom: 1 }, `${at}: chuột thật, chưa hover thì không hiện tên`);
+          assert.deepEqual(await shownState(), { title: "0", band: "0", shade: true, zoom: 1 }, `${at}: chuột thật, chưa hover thì không hiện tên`);
           await card.hover();
-          assert.deepEqual(await shownState(), { title: "1", band: "1", even: "rgba(0, 0, 0, 0.2)", zoom: 1 }, `${at}: hover hiện tên, dải trên và lớp đều cùng lúc`);
+          assert.deepEqual(await shownState(), { title: "1", band: "1", shade: true, zoom: 1 }, `${at}: hover hiện tên và lớp tối Pinterest cùng lúc`);
         } else {
-          assert.deepEqual(await shownState(), { title: "1", band: "1", even: "rgba(0, 0, 0, 0)", zoom: 1 }, `${at}: cảm ứng luôn hiện tên trên dải trên`);
+          assert.deepEqual(await shownState(), { title: "0", band: "0", shade: true, zoom: 1 }, `${at}: cảm ứng không hiện tên, không lớp tối`);
         }
       }
       if (switched && options.viewport.width > 960) {

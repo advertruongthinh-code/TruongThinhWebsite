@@ -1058,17 +1058,15 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     // Frame skeleton là phần nhìn thấy; node này chỉ giữ trạng thái loading cho công nghệ hỗ trợ.
     const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
-    const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
-    loading.hidden = duration.hidden = true;
+    loading.hidden = true;
     media.append(loading);
 
-    // Pill row at the bottom inside the media (owner 2026-11-10): duration pill on the left, dots or counter centred.
+    // Pill row at the bottom inside the media (owner 2026-11-10): dots or counter centred; cards show no video duration.
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
     // 2-5 media use dots; from 6 media an i/N counter takes the dots' place (owner 2026-10-18); arrows on hover or a swipe
     // change media. Dots or the counter sit in one pill (owner 2026-10-26).
     const numericIndicator = items.length >= 6;
-    indicator.appendChild(el("span", "advertising-card-media__duration-slot")).append(duration);
     const pill = indicator.appendChild(el("span", "advertising-card-media__pill"));
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
@@ -1092,9 +1090,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M16 1 5 12l11 11" : "M8 1l11 11L8 23"}" /></svg>`;
       return button;
     }) : [];
-    // A singleton image override has nothing to show in the pill row.
-    if (hasCarousel || items[0].kind === "video") figure.append(indicator);
-    figure.append(...hoverSteps);
+    if (hasCarousel) figure.append(indicator, ...hoverSteps);
 
     const updateIndicator = (index) => {
       buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
@@ -1129,7 +1125,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
       media.classList.toggle("is-media-error", failed);
       indicator.hidden = failed;
-      if (failed) [...hoverSteps, duration].forEach((node) => { node.hidden = true; });
+      if (failed) hoverSteps.forEach((node) => { node.hidden = true; });
       loading.setAttribute("aria-label", failed ? english ? "Couldn't load media" : "Không tải được media"
         : english ? "Loading media" : "Đang tải media");
       loading.hidden = ready || loadedVideoPoster;
@@ -1245,8 +1241,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       layer.hidden = false;
       figure.dataset.advertisingActiveMediaId = item.id;
       updateIndicator(index);
-      duration.hidden = item.kind !== "video";
-      if (item.kind === "video") duration.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       updateLoading();
     };
     figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
@@ -1369,7 +1363,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
     && (related || !document.body.classList.contains("is-advertising-photo")));
-  // Card name inside the media, top left (media-card R3, owner 2026-11-10): CSS shows it on real-mouse hover and always
+  // Card name inside the media, top left (media-card R3, owner 2026-11-10): CSS shows it only on real-mouse hover, never
   // on touch. The link takes its name from the figcaption via aria-labelledby (WCAG 2.5.3: the visible label is part of
   // the link name); the figcaption is aria-hidden so screen readers do not read it twice. One card can sit in the main
   // grid and in related at once, so related ids carry their own prefix.

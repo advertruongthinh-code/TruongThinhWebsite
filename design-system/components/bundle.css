@@ -10,11 +10,9 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
-  /* Hero shade layers shared by .hero-shade and masonry cards (owner 2026-10-26, cards 2026-11-10): even 0.2 layer; top band
-     with a total darkness of 0.7 at the top edge fading over 36% of the height into the even layer. The band sits on the even
-     layer, so its own alpha is (0.7 - 0.2) / 0.8 = 0.625; cosine stops, zero slope at both ends, no hard edge. */
-  --media-shade-even: rgba(0, 0, 0, 0.2);
-  --media-shade-top: linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 4.5%, rgba(0, 0, 0, 0.533) 9%, rgba(0, 0, 0, 0.432) 13.5%, rgba(0, 0, 0, 0.312) 18%, rgba(0, 0, 0, 0.193) 22.5%, rgba(0, 0, 0, 0.092) 27%, rgba(0, 0, 0, 0.024) 31.5%, transparent 36%);
+  /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
+     48px, then a linear fade to transparent at the bottom edge of the card. */
+  --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -1061,11 +1059,17 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
-/* Owner 2026-10-26, every hero (home, Residential, Commercial, About): the shared top band and even layer (:root), plus a bottom
-   edge at a total of 0.5 (own alpha (0.5 - 0.2) / 0.8 = 0.375) fading over 42%; no left edge. */
+/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): phủ đều 0,2; độ tối tổng ở mép trên 0,7, nhạt dần
+   trong 36% chiều cao hero tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
+   lớp mép = (tổng - 0,2) / 0,8: 0,625 và 0,375. Mép trên dài và mịn: stop theo đường cosine, đầu và cuối dốc 0, không mép gắt. */
 .hero-shade {
   z-index: 1;
-  background: var(--media-shade-top), linear-gradient(0deg, rgba(0, 0, 0, 0.375), transparent 42%), var(--media-shade-even);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 4.5%, rgba(0, 0, 0, 0.533) 9%,
+      rgba(0, 0, 0, 0.432) 13.5%, rgba(0, 0, 0, 0.312) 18%, rgba(0, 0, 0, 0.193) 22.5%, rgba(0, 0, 0, 0.092) 27%,
+      rgba(0, 0, 0, 0.024) 31.5%, transparent 36%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.375), transparent 42%),
+    rgba(0, 0, 0, 0.2);
 }
 
 .hero-content {
@@ -4837,16 +4841,16 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
-/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. Touch has no hover, so
-   the hero top band (--media-shade-top) and the card name always show. A real mouse shows them only on hover, at once and
-   without motion, together with the even hero layer (--media-shade-even). */
+/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. A real mouse shows the
+   Pinterest hover shade (--media-shade-card) and the card name on hover, at once and without motion. Touch shows neither:
+   the image stays clean apart from the pill row. */
 .advertising-tile .advertising-card-media::after {
-  background: var(--media-shade-top);
-  opacity: 1;
+  background: var(--media-shade-card);
   transition: none;
 }
 
-/* Card name: top left inside the media, white on the top band, two lines then an ellipsis. */
+/* Card name: top left inside the 48px flat part of the shade, white, two lines then an ellipsis. Hidden until hover; it
+   stays the link's accessible name (aria-labelledby). */
 .advertising-tile__title {
   position: absolute;
   z-index: 2;
@@ -4861,21 +4865,13 @@ body.is-advertising-browse .advertising-grid {
   line-height: 1.4;
   text-shadow: var(--text-shadow-d);
   text-transform: uppercase;
+  opacity: 0;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .advertising-tile .advertising-card-media::after,
-  .advertising-tile__title {
-    opacity: 0;
-  }
-
-  .advertising-tile:hover .advertising-card-media::after {
-    background: var(--media-shade-top), var(--media-shade-even);
-  }
-
   .advertising-tile:hover .advertising-card-media::after,
   .advertising-tile:hover .advertising-tile__title {
     opacity: 1;
@@ -4931,23 +4927,8 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
-/* Duration pill as on Pinterest video cards (owner 2026-10-17): white 0.9, 12px text, total duration. */
-.advertising-card-media__duration {
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.9);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
-  pointer-events: none;
-}
-
-/* Pill row at the bottom inside the media (owner 2026-11-10): duration pill on the left, dots or n/N counter centred. The
-   two side slots share the free space equally, so the centre pill is centred; on a narrow card the duration slot never
-   shrinks below its pill, so the centre pill shifts right just enough to keep the 8px gap. When even that does not fit,
-   the duration pill hides (container queries below). */
+/* Pill row at the bottom inside the media (owner 2026-11-10): the dots or the n/N counter, centred. Cards show no video
+   duration pill. */
 .advertising-card-media__indicator {
   position: absolute;
   right: 0;
@@ -4955,31 +4936,15 @@ body.is-advertising-browse .advertising-grid {
   left: 0;
   z-index: 3;
   display: flex;
-  gap: 8px;
+  justify-content: center;
   align-items: center;
   height: 44px;
   box-sizing: border-box;
   padding: 0 8px;
-  container-type: inline-size;
   pointer-events: none;
 }
 
-.advertising-card-media__duration-slot,
-.advertising-card-media__indicator::after {
-  display: flex;
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.advertising-card-media__duration-slot {
-  min-width: min-content;
-}
-
-.advertising-card-media__indicator::after {
-  content: "";
-}
-
-/* Dots or the counter sit in a charcoal 0.9 pill shaped like the duration pill, white text like Pinterest's "2/8" counter
+/* Dots or the counter sit in a charcoal 0.9 pill, white text like Pinterest's "2/8" counter
    (owner 2026-10-26). The pill is 24px tall; the 20x44px dot hit areas fill the row. */
 .advertising-card-media__pill {
   display: flex;
@@ -4994,28 +4959,6 @@ body.is-advertising-browse .advertising-grid {
 
 .advertising-card-media__pill:empty {
   display: none;
-}
-
-/* Hide the duration pill when it cannot sit beside the centre pill. The query reads the row's content box (inside the 8px
-   insets): duration pill "M:SS" (38px) + 8px gap + centre pill (4px + 20px per dot). Two dots or the counter always fit
-   the narrowest card (101.5px content). A video of 10 minutes or more has a 7px wider pill and may reach into the right
-   inset, still inside the card. */
-@container (width < 150px) {
-  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(5)) .advertising-card-media__duration {
-    display: none;
-  }
-}
-
-@container (width < 130px) {
-  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(4)) .advertising-card-media__duration {
-    display: none;
-  }
-}
-
-@container (width < 110px) {
-  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(3)) .advertising-card-media__duration {
-    display: none;
-  }
 }
 
 .advertising-card-media__dot {

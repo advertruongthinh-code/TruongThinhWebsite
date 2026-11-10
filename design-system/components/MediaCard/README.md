@@ -27,10 +27,10 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
 - Card masonry không zoom ảnh khi hover hay focus (owner 2026-10-18). Dưới tên
-  là dải trên như hero (`media-shade-top`: 0.625 ở mép trên, hết ở 36%). Chuột
-  thật: tên, dải trên và lớp đều `media-shade-even` (0.2) chỉ hiện khi hover,
-  cùng lúc, không motion. Cảm ứng: tên và dải trên luôn hiện, không lớp đều
-  (owner 2026-11-10). Focus chỉ có viền.
+  là lớp tối học nguyên Pinterest (`media-shade-card`: 48px trên phẳng
+  `rgba(17, 17, 17, 0.4)`, rồi nhạt tuyến tính về 0 ở đáy card). Chuột thật: tên
+  và lớp tối chỉ hiện khi hover, cùng lúc, không motion. Cảm ứng: ảnh sạch, không
+  tên, không lớp tối (owner 2026-11-10). Focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed` (chữ có bóng D, lớp đen chờ media sẵn sàng).
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -57,26 +57,20 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 | Số item | Hàng pill trong canvas | Điều khiển |
 | --- | --- | --- |
-| 1 | Chỉ khi là video: nhãn thời lượng | Không chỉ báo |
+| 1 | Không | Không chỉ báo |
 | 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 20×44px |
 | Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
 
 - Hàng pill nằm sát đáy, trong canvas, lề 8px, không nền (owner 2026-11-10):
-  nhãn thời lượng bên trái, chấm hoặc bộ đếm ở giữa. Pill giữa lệch phải vừa đủ
-  để cách nhãn thời lượng 8px; card quá hẹp để đặt cả hai thì ẩn nhãn thời
-  lượng (container query theo số chấm), pill giữa vẫn ở giữa.
-- Chấm hoặc bộ đếm nằm trong một pill, cùng dáng nhãn thời lượng: cao
+  chấm hoặc bộ đếm ở giữa. Card không có nhãn thời lượng video.
+- Chấm hoặc bộ đếm nằm trong một pill: cao
   24px, bo 8px, nền than `rgba(32, 33, 32, 0.9)` như bộ đếm "2/8" của Pinterest
   (owner 2026-10-26). Bộ đếm chữ trắng `0.75rem` đậm 500 `tabular-nums`.
 - Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
 ### Video
 
-- **Duration:** theo card video Pinterest (owner 2026-10-17): góc dưới trái
-  canvas trong hàng pill, cách mép 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
-  chữ `ink` `0.75rem` đậm 500 `tabular-nums`; tổng thời lượng `m:ss` làm tròn
-  lên giây, không đếm ngược.
-- Không có nút phát hay icon loa. Mỗi lúc một video phát, luôn tắt tiếng:
+- Không có nút phát, icon loa hay nhãn thời lượng (owner 2026-11-10). Mỗi lúc một video phát, luôn tắt tiếng:
   cuộn dừng thì tự phát một card trong vùng giữa màn hình; chuột vào card video
   thì phát card đó, rời ra thì dừng. Không hiệu ứng hover riêng.
 
@@ -130,6 +124,6 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Masonry**: lưới ảnh xếp so le theo chiều cao ảnh.
 - **Alt**: mô tả ảnh cho người không nhìn thấy.
 - **Canvas**: khung media của card, cao theo tỷ lệ item cover.
-- **Hàng pill**: hàng 44px sát đáy trong canvas, chứa nhãn thời lượng, chấm hoặc bộ đếm.
+- **Hàng pill**: hàng 44px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
 - **Cover**: item được `coverMediaId` chọn làm mặt trước của card.
 - **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.
