@@ -73,7 +73,7 @@ function assertSpanGeometry(layout, label) {
   assert.ok(layout.placements.every((p) => p.width === 1 || isWide(p.card)), `${label}: only golden-ratio covers span two columns`);
   for (const p of layout.placements) {
     assert.ok(Math.abs(p.pixelWidth - (p.width * layout.cardWidth + (p.width - 1) * layout.interCardGap)) < 0.05, `${label}: natural width`);
-    // Cắt khép mép (masonry R5): card một cột thấp hơn tỷ lệ gốc tối đa min(0.25 gap, 5% media).
+    // Edge trim (masonry R5): a single-column card is shorter than its natural ratio by at most min(0.25 gap, 5% media).
     const natural = p.pixelWidth * p.card.media.height / p.card.media.width;
     const bleed = p.mediaBleed ?? 0;
     assert.ok(!bleed || (p.width === 1 && bleed <= Math.min(0.25 * layout.interCardGap, 0.05 * natural) + 1e-9), `${label}: bleed limit`);
@@ -98,11 +98,11 @@ function overlaps(a, b) {
     && Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 0.05;
 }
 
-// Masonry R5 không lỗ, viết lại độc lập với layout-core: card một cột vào cột thấp nhất theo thứ tự; card ngang chờ tới
-// khi hai cột kề bằng đáy (hàng đầu còn cột trống thì chỉ vào hàng đầu) (cắt card cuối cột dài hơn tối đa min(0.25 gap, 5% media), không chồng lên card ngang cùng
-// cặp); hết card một cột thì card ngang còn chờ xuống dải cuối: cặp chứa cột thấp nhất trước, top thấp hơn, cặp không
-// lỗ, cột trái; lỗ phải cao từ 0.25 tới dưới 0.5 cột; không có cặp, hoặc cột thấp nhất còn trống cạnh cột đã có card,
-// thì giữ một cột.
+// Masonry R5 no holes, reimplemented independently of layout-core: single-column cards go to the lowest column in order; wide cards wait
+// for two level adjacent columns (only the first row while it has an empty column), trimming the longer column's last card by at most min(0.25 gap, 5% media), never on a wide card of the same
+// pair; once single-column cards run out, waiting wide cards drop to the tail band: pair with the lowest column first, then lower top, then no
+// hole, then leftmost; a hole must be 0.25 to under 0.5 column tall; with no pair, or the lowest column empty beside an occupied one,
+// the card stays single-column.
 function assertSourceOrderShortestFrontier(layout, cards, label) {
   const cardsById = new Map(cards.map((card) => [card.id, card]));
   const remaining = layout.diagnostics.placementOrder.map((id) => cardsById.get(id));
@@ -468,8 +468,8 @@ test("R10 fills column four for every nonempty authored hero and tag pool at N4"
     assert.equal(result.layout.columns, 4, `${hero.id} ${tag}: R10 fixture uses N4`);
     assert.equal(result.primary.span, 3, `${hero.id} ${tag}: R10 primary spans three columns`);
     assertRelated(result, `${hero.id} ${tag}: R10 authored N4`);
-    // Cột 4 cạnh primary có card ở top primary; card đầu là card ngang thì nó chờ cặp cột bằng đáy (masonry R5) và card
-    // một cột kế tiếp lấp cột 4.
+    // Column 4 beside primary has a card at primary's top; if the first card is wide it waits for a level pair (masonry R5) and the
+    // next single-column card fills column 4.
     const columnFour = result.photoPlacements.find(({ left, width }) => left === 3 && width === 1);
     assert.equal(columnFour?.y, 0, `${hero.id} ${tag}: R10 fills column four at the primary top`);
     const repeated = compileAdvertisingRelatedLayout({

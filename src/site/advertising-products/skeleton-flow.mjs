@@ -255,8 +255,8 @@ export function createSkeletonFlowFrameLayout({
   }
   const baseBands = ratios.length > 1 ? [ratios[1], ratios[0], ...ratios.slice(2)] : ratios;
   // Khung ngang trải hai cột kề nhau, một trong hai là cột đang thấp nhất; không có chỗ thì khung chọn band khác.
-  // Không lỗ (advertising-masonry R5): hai đáy chênh nhau thì khung cuối của cột ngắn hơn (khung một cột của batch này)
-  // kéo dài đúng phần chênh; đáy là card thật hoặc khung hai cột thì chỉ đặt khi hai đáy bằng nhau.
+  // No holes (advertising-masonry R5): when two bottoms differ, the last frame of the shorter column (a single-column frame of this batch)
+  // stretches by exactly the difference; if that bottom is a real card or a two-column frame, place only when the bottoms are level.
   const wideSlot = (band, column, bottoms, lastFrames) => {
     if (!canSpanTwoColumns(columns, { width: 1, height: band.ratio })) return null;
     return spanSlots(bottoms, columns, 2, gap, cardWidth, gap)
@@ -387,8 +387,8 @@ export function createSkeletonFlowFrameLayout({
     kept = without;
   }
   for (const frame of kept) if (isLast(kept, frame)) frame.height = boundaryBottom - frame.top;
-  // Lỗ dải cuối của masonry (layout.holes, R5): mỗi lỗ một khung một cột cắt đúng lỗ, band gần tỷ lệ lỗ nhất, đứng trước
-  // các khung nối tiếp. Lưới có tên dưới card chừa chỗ tên như khung khác.
+  // Masonry tail holes (layout.holes, R5): one single-column frame cut to each hole, band nearest the hole ratio, placed before
+  // the continuation frames. Grids with captions reserve caption space like other frames.
   const fillers = holes.filter(({ height }) => height - captionHeight > 0).map(({ column, top, height }, index) => {
     const media = height - captionHeight;
     const band = ratios.reduce((best, item) => Math.abs(item.ratio - media / cardWidth) < Math.abs(best.ratio - media / cardWidth) ? item : best);

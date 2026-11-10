@@ -13,8 +13,8 @@ const ADVERTISING_WIDE_MIN_COLUMNS = 3;
 // thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
 // vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
 const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
-// Không lỗ (R5, owner 2026-11-10): đáy hai cột chênh tối đa 0.25 khoảng giữa (9/6/4px ở gap 35/25/15) và 5% chiều cao
-// media của card bị cắt. Lỗ dưới card ngang ở dải cuối phải cao ít nhất một phần tư cột để khung skeleton lấp.
+// No holes (R5, owner 2026-11-10): two column bottoms may differ by at most 0.25 gap (9/6/4px at gap 35/25/15) and 5% of
+// the trimmed card's media height. A hole under a tail-band wide card must be at least a quarter column tall to fit a skeleton frame.
 const BLEED_GAP_RATIO = 0.25;
 const BLEED_MEDIA_RATIO = 0.05;
 const MIN_HOLE_FILL_RATIO = 0.25;
@@ -890,7 +890,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
-    // Cắt khép mép (R5): card bị cắt thấp đi đúng phần chênh ở phần media; dải control và tên giữ nguyên.
+    // Edge trim (R5): the trimmed card loses exactly the difference from its media; the control strip and caption stay intact.
     const bleeds = new Map(state.placements.filter(({ bleed }) => bleed).map(({ bleed }) => [bleed.id, bleed.amount]));
     const holes = state.placements.filter(({ hole }) => hole).map(({ hole }) => ({ ...hole }));
     const placements = state.placements.slice().sort(comparePlacement)
@@ -943,11 +943,11 @@ function compileAdvertisingLayoutPhase(options = {}) {
     operations += 1;
   };
 
-  // Lưới public không lỗ (masonry R5, owner 2026-11-10): card một cột vào cột thấp nhất theo thứ tự; card ngang chỉ trải
-  // hai cột kề có đáy chênh không quá BLEED_GAP_RATIO khoảng giữa và không quá BLEED_MEDIA_RATIO media của card bị cắt.
-  // Phần chênh khép bằng cách cắt media card cuối của cột dài hơn (cover cắt đều trên dưới), nên mọi khoảng giữa đúng
-  // bằng gap. Chưa có cặp như vậy thì card ngang chờ, card sau đi tiếp; hết card một cột thì card ngang còn chờ thành
-  // các card cuối, lỗ dưới chúng ghi vào `holes` cho batch skeleton lấp.
+  // Hole-free public grid (masonry R5, owner 2026-11-10): single-column cards go to the lowest column in order; a wide card spans
+  // only two adjacent columns whose bottoms differ by at most BLEED_GAP_RATIO gap and BLEED_MEDIA_RATIO of the trimmed media.
+  // The difference is closed by trimming the media of the longer column's last card (cover crops top and bottom evenly), so every
+  // spacing equals the gap. Without such a pair the wide card waits and later cards go on; once single-column cards run out the
+  // waiting wide cards form the tail band, and holes under them are recorded in `holes` for the skeleton batch to fill.
   const lastIn = (column) => state.placements.findLast((item) => item.left <= column && column < item.left + item.width);
   const productCandidate = (cardIndex, placement) => {
     consumeOperation();
@@ -960,12 +960,12 @@ function compileAdvertisingLayoutPhase(options = {}) {
     const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
     if (!a && !b) return { left, y: 0, bleed: null };
     if (!a || !b) return null;
-    // Giữa lưới không chồng card ngang lên đúng card ngang của cùng cặp cột.
+    // Mid-grid, never stack a wide card directly on a wide card of the same column pair.
     if (!allowStack && lastIn(left) && lastIn(left) === lastIn(left + 1)) return null;
     const diff = Math.abs(a - b);
     if (diff <= 0.05) return { left, y: Math.max(a, b) + interCardGap, bleed: null };
     const target = lastIn(a > b ? left : left + 1);
-    // Không cắt card gợi ý, card 2 cột, hay đáy không do card (primary ghim ở related).
+    // Never trim a suggestion card, a two-column card, or a bottom not made by a card (pinned primary in related).
     if (!target || target.width !== 1 || target.card.kind === "suggestion" || Math.abs(target.y + target.pixelHeight - Math.max(a, b)) > 0.05) return null;
     if (diff > Math.min(BLEED_GAP_RATIO * interCardGap, BLEED_MEDIA_RATIO * target.mediaPixelHeight) + 1e-9) return null;
     return { left, y: Math.min(a, b) + interCardGap, bleed: { id: target.card.id, amount: diff } };
@@ -978,7 +978,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   });
   const productCandidates = () => {
     const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
-    // Slot card ngang không phụ thuộc card: tính một lần mỗi độ sâu, card ngang đầu không vừa thì mọi card ngang đều chờ.
+    // The wide slot does not depend on the card: compute it once per depth; if the first wide card does not fit, all wide cards wait.
     let wideSlot;
     for (let cardIndex = 0; cardIndex < remaining.length; cardIndex += 1) {
       const card = remaining[cardIndex];
@@ -986,7 +986,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
         if (wideSlot === undefined) {
           consumeOperation();
           const slot = firstBy(pairs.map((left) => levelPair(left, false)));
-          // Hàng đầu còn cột trống (cột 4 cạnh primary ở related) thì card ngang chỉ vào hàng đầu, không xuống dưới.
+          // While the first row still has an empty column (column 4 beside primary in related), wide cards only enter the first row.
           wideSlot = slot && (slot.y === 0 || state.columnBottoms.every(Boolean)) ? slot : null;
         }
         if (wideSlot) return [productCandidate(cardIndex, widePlacement(card, wideSlot))];
@@ -996,8 +996,8 @@ function compileAdvertisingLayoutPhase(options = {}) {
       const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
       return [productCandidate(cardIndex, placementAt(card, column, 1, y, cardWidth, interCardGap, captionPixelHeight))];
     }
-    // Dải cuối: chỉ còn card ngang. Cặp bằng đáy (được chồng) hoặc cặp có lỗ đủ cao cho một khung skeleton (lỗ thấp
-    // hơn khung mỏng nhất batch giữ lại thì không lấp được); không có thì card giữ một cột.
+    // Tail band: only wide cards remain. Use a level pair (stacking allowed) or a pair whose hole fits a skeleton frame (a hole
+    // thinner than the thinnest frame the batch keeps cannot be filled); otherwise the card stays single-column.
     const card = remaining[0];
     if (!card) return [];
     const holed = (left) => {
@@ -1007,10 +1007,10 @@ function compileAdvertisingLayoutPhase(options = {}) {
       const column = a < b ? left : left + 1;
       return { left, y: Math.max(a, b) + interCardGap, hole: { column, top: Math.min(a, b) + interCardGap, height: cavity - interCardGap } };
     };
-    // Ưu tiên cặp chứa cột thấp nhất (đáy dải cuối đều nhất), rồi top thấp hơn, rồi cặp không lỗ, rồi cột trái.
+    // Prefer the pair containing the lowest column (most even tail), then lower top, then no hole, then leftmost.
     const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
     const touches = (slot) => Number(column !== slot.left && column !== slot.left + 1);
-    // Cột thấp nhất còn trống mà cột khác đã có card (cột 4 cạnh primary ở related): card giữ một cột lấp cột đó.
+    // Lowest column still empty while another has cards (column 4 beside primary in related): the card fills it single-column.
     const emptyBeside = !state.columnBottoms[column] && state.columnBottoms.some(Boolean);
     const slot = emptyBeside ? null : pairs.flatMap((left) => [levelPair(left, true), holed(left)]).filter(Boolean)
       .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];

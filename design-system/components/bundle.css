@@ -5078,9 +5078,9 @@ body.is-advertising-browse .advertising-grid {
   background: transparent;
 }
 
-/* Media phủ đúng khung: height auto lấy tỷ lệ từ số pixel làm tròn của file đang tải (480w: 437x245), thấp hơn khung
-   tới 0,5px, nên một hàng pixel nền màu chủ đạo lộ ra ở đáy thành lằn tối (owner 2026-11-09). Cover thay vì giãn: card
-   bị cắt khép mép (advertising-masonry R5) thấp hơn tỷ lệ gốc tối đa 5%, ảnh và video cắt đều trên dưới, không méo. */
+/* Media covers the frame exactly: height auto takes its ratio from the rounded pixels of the loaded file (480w: 437x245), up to
+   0.5px shorter than the frame, so a row of dominant-colour fill showed as a dark line at the bottom (owner 2026-11-09). Cover, not
+   stretch: an edge-trimmed card (advertising-masonry R5) is up to 5% shorter than its natural ratio; media crops evenly, no distortion. */
 .advertising-tile img,
 .advertising-tile video.advertising-tile__foreground {
   display: block;

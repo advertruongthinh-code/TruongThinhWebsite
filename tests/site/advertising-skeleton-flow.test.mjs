@@ -219,7 +219,7 @@ for (const frame of captionedFrames) {
 }
 assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
   "a negative caption height is rejected");
-// Masonry R5: card cuối 2:1 trải cột 0-1 bằng đáy ở 1440px; batch nối tiếp ngay dưới nó ở cả hai cột, cùng chỗ tên như card
+// Masonry R5: the last 2:1 card spans level columns 0-1 at 1440px; the batch continues right below it in both columns, with caption space like a card
 // thật. Band khung (h/w 0.72, 1, 1.32) đều dưới tỷ lệ vàng nên theo cùng luật mọi khung rộng một cột.
 const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], index) => ({
   id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
@@ -243,7 +243,7 @@ for (const frame of wideTailFrames) {
   assert.equal(isAdvertisingWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
-// Masonry R5 không lỗ: lỗ dải cuối của masonry có một khung cắt đúng lỗ (chừa chỗ tên), đứng trước khung nối tiếp.
+// Masonry R5 no holes: each masonry tail hole gets one frame cut to the hole (caption space reserved), before continuation frames.
 const holeFrames = createSkeletonFlowFrameLayout({ columnBottoms: [600, 600, 400], columns: 3, cardWidth: 240, gap: 20,
   captionHeight: 30, boundaryBottom: 1_400, holes: [{ column: 1, top: 320, height: 150 }] });
 assert.deepEqual(holeFrames.filter(({ slot }) => slot.startsWith("h")).map(({ slot, column, span, top, height }) => [slot, column, span, top, height]),
@@ -277,7 +277,7 @@ for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [
     assert.equal(own.at(-1).top + own.at(-1).height, 1_800, `column ${column} ends on the batch bottom`);
     assert(own.slice(1).every((frame, index) => frame.band !== own[index].band),
       `column ${column} has no two frames of one band in a row, counting two-column frames`);
-    // Masonry R5: không lỗ, mỗi khung đứng đúng một gap dưới khung (hoặc card thật) phía trên nó ở mọi cột nó phủ.
+    // Masonry R5: no holes; each frame sits exactly one gap below the frame (or real card) above it in every column it covers.
     own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-9,
       `column ${column}: frame ${frame.slot} leaves no hole above it`));
   }

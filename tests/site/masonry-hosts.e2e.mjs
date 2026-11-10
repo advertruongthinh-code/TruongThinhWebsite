@@ -207,8 +207,8 @@ try {
       await page.waitForTimeout(2000);
       const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, arcSeen: window.__masonry.arcSeen, ctaEarly: window.__masonry.ctaEarly,
         ctaShown: Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
-      // 6. Không lỗ (masonry R5): ở đuôi lưới, mỗi card và khung batch đứng đúng một khoảng giữa dưới item gần nhất phía
-      // trên nó ở cùng cột (khung batch chừa thêm chỗ tên ở lưới có tên); lỗ dải cuối đã có khung lấp.
+      // 6. No holes (masonry R5): at the grid tail, each card and batch frame sits exactly one gap below the nearest item
+      // above it in the same column (batch frames add caption space on captioned grids); tail holes already have filler frames.
       const holes = await page.evaluate(({ root, card }) => {
         const gap = innerWidth <= 960 ? 15 : innerWidth <= 1200 ? 25 : 35;
         const scrollTop = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
@@ -216,13 +216,13 @@ try {
         const items = [...document.querySelectorAll(`${root} :is(${card}), [data-advertising-cta-frame]`)]
           .filter((node) => !node.hidden && node.getClientRects().length)
           .map((node) => {
-            // Vị trí layout (offset), không theo rect: batch skeleton có parallax translate riêng.
+            // Layout position (offset), not rect: the skeleton batch has its own parallax translate.
             let left = 0, top = 0;
             for (let at = node; at; at = at.offsetParent) { left += at.offsetLeft; top += at.offsetTop; }
             const rect = { left, top, right: left + node.offsetWidth, bottom: top + node.offsetHeight };
             return { node, frame: node.matches("[data-advertising-cta-frame]"), rect };
           })
-          // Chỉ vùng chắc chắn đã dựng (cửa sổ ảo dựng thêm một viewport mỗi phía): card giữa hai item đo được không bị thiếu.
+          // Only the zone surely mounted (the virtual window adds one viewport each side), so no card between two measured items is missing.
           .filter(({ rect }) => rect.top >= scrollTop - innerHeight / 2 && rect.bottom <= scrollTop + 1.5 * innerHeight);
         const found = [];
         for (const below of items) {

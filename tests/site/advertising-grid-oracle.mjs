@@ -239,7 +239,7 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       add("invalid-ratio", { ids: [id], columns: cardColumns });
     } else {
       const expectedMediaHeight = placement.pixelWidth * mediaHeight / mediaWidth;
-      // Cắt khép mép (masonry R5): chỉ card một cột, không phải card gợi ý, tối đa 0.25 gap và 5% media gốc.
+      // Edge trim (masonry R5): single-column, non-suggestion cards only, at most 0.25 gap and 5% of natural media.
       const bleed = placement.mediaBleed ?? 0;
       if (bleed && (layout.staggerBasis !== "image-height" || span !== 1 || placement.card?.kind === "suggestion"
         || bleed < 0 || bleed > Math.min(0.25 * interCardGap, 0.05 * expectedMediaHeight) + EPSILON)) {
@@ -354,8 +354,8 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     const highBottom = Math.max(leftBottom, rightBottom);
     const lowBottom = Math.min(leftBottom, rightBottom);
     const expected = highBottom + interCardGap;
-    // Lưới public không lỗ (masonry R5): hai đáy bằng nhau, trừ lỗ đã khai trong layout.holes ở dải cuối (dưới card ngang
-    // chỉ còn card ngang) và đủ cao cho một khung skeleton.
+    // Hole-free public grid (masonry R5): bottoms are level, except holes listed in layout.holes in the tail band (under wide cards
+    // with only wide cards below) that are tall enough for a skeleton frame.
     if (imageHeightLayout && highBottom - lowBottom > EPSILON) {
       const column = leftBottom < rightBottom ? card.left : card.left + 1;
       const hole = (layout.holes || []).find((item) => item.column === column
@@ -434,7 +434,7 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       const card = sequence.at(-1);
       return card ? { ...card, contributionBottom: card.bottom } : null;
     }).filter(Boolean);
-    // Dải cuối có card ngang (masonry R5) được để đáy lệch: batch skeleton lấp phần dưới mọi cột.
+    // A tail band with wide cards (masonry R5) may end uneven: the skeleton batch fills below every column.
     if (terminals.length > 1 && terminals.every((card) => card.span === 1)) {
       const spread = Math.max(...terminals.map((card) => card.contributionBottom)) - Math.min(...terminals.map((card) => card.contributionBottom));
       const allowed = Math.max(...terminals.map((card) => card.pixelHeight)) + interCardGap;

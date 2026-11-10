@@ -408,7 +408,7 @@ test("R5 golden-ratio covers span two columns from 3 columns and stay one column
 });
 
 test("R5 a golden-ratio cover spans only level columns mid-grid and falls to the tail band otherwise", () => {
-  // 768px: 3 cột rộng 229.33px, gap 15px; cắt khép mép tối đa 0.25 × 15 = 3.75px và 5% media.
+  // 768px: 3 columns 229.33px wide, gap 15px; edge trim at most 0.25 x 15 = 3.75px and 5% media.
   const cardWidth = (768 - 2 * 25 - 2 * 15) / 3;
   const layoutOf = (heights, after = []) => productLayoutOf(fixture([...heights.map((height) => [cardWidth, height]), [2, 1],
     ...after.map((height) => [cardWidth, height])], "wide-hole"), 768);
