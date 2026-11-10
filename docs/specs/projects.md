@@ -50,7 +50,7 @@ loại con (căn hộ, nhà phố, homestay; shop, F&B, showroom, văn phòng), 
 thứ tự chọn); mọi ảnh khít đúng tỷ lệ khung, không vùng dư (`kindFieldErrors` chặn); không chọn thì thẻ chỉ có ảnh bìa. CMS theo đúng flow này.
 Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertising. Mỗi bộ lọc có đường dẫn riêng crawl được.
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
-Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
+Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`; phần lưới, batch skeleton, CTA đuôi lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ CTA, nên một contract DOM masonry cho hai trang): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
 khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), chỉ chữ nhấn "cảm hứng" ("inspire") đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry giống 1:1 trang quảng cáo
 (owner 2026-11-08): chạy chính runtime [masonry Advertising](advertising-masonry.md) (`catalog-runtime.mjs`) với artifact công trình
 nhúng trong trang (`buildProjectArtifact`), nên lưới, batch skeleton, kính cung và CTA đuôi, motion thẻ, cuộn, lọc, tải ảnh, ảo hóa
