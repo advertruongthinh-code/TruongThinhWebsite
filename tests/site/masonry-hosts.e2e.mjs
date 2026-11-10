@@ -207,6 +207,27 @@ try {
       await page.waitForTimeout(2000);
       const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, arcSeen: window.__masonry.arcSeen, ctaEarly: window.__masonry.ctaEarly,
         ctaShown: Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
+      // 6. Không lỗ (masonry R5): ở đuôi lưới, mỗi card và khung batch đứng đúng một khoảng giữa dưới item gần nhất phía
+      // trên nó ở cùng cột (khung batch chừa thêm chỗ tên ở lưới có tên); lỗ dải cuối đã có khung lấp.
+      const holes = await page.evaluate(({ root, card }) => {
+        const gap = innerWidth <= 960 ? 15 : innerWidth <= 1200 ? 25 : 35;
+        const caption = Number.parseFloat(document.querySelector(`${root} :is(${card})`)?.style.getPropertyValue("--advertising-caption-height")) || 0;
+        const items = [...document.querySelectorAll(`${root} :is(${card}), [data-advertising-cta-frame]`)]
+          .filter((node) => !node.hidden && node.getClientRects().length)
+          .map((node) => ({ node, frame: node.matches("[data-advertising-cta-frame]"), rect: node.getBoundingClientRect() }));
+        const found = [];
+        for (const below of items) {
+          const above = items.filter((item) => item !== below && item.rect.bottom <= below.rect.top + 1
+            && Math.min(item.rect.right, below.rect.right) - Math.max(item.rect.left, below.rect.left) > 1)
+            .sort((a, b) => b.rect.bottom - a.rect.bottom)[0];
+          if (!above) continue;
+          const expected = gap + (above.frame ? caption : 0);
+          const actual = below.rect.top - above.rect.bottom;
+          if (Math.abs(actual - expected) > 1.5) found.push(`${above.node.dataset.masonryItem || above.node.dataset.advertisingCtaSlot}>${below.node.dataset.masonryItem || below.node.dataset.advertisingCtaSlot}:${actual.toFixed(1)}`);
+        }
+        return found;
+      }, sel);
+      check(label, !holes.length, `lỗ giữa item ở đuôi lưới ${JSON.stringify(holes.slice(0, 5))}`);
       check(label, end.arcSeen, "cung Kính không vào view, kiểm Kính reveal không có nghĩa");
       check(label, end.arcOverlap <= 100, `Kính reveal còn trong DOM ${Math.round(end.arcOverlap)}ms khi cung đang thấy`);
       check(label, !end.ctaEarly, `CTA đã hiện khi nút còn dưới viewport ${end.ctaEarly}`);

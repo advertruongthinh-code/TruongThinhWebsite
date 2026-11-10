@@ -243,6 +243,7 @@ export function createSkeletonFlowFrameLayout({
   ratios = SKELETON_RATIO_BANDS,
   seed,
   bandAssignments,
+  holes = [],
 } = {}) {
   if (!Array.isArray(columnBottoms) || !Number.isInteger(columns) || columns < 1
     || columnBottoms.length < columns || columnBottoms.slice(0, columns).some((bottom) => !Number.isFinite(bottom))
@@ -254,10 +255,19 @@ export function createSkeletonFlowFrameLayout({
   }
   const baseBands = ratios.length > 1 ? [ratios[1], ratios[0], ...ratios.slice(2)] : ratios;
   // Khung ngang trải hai cột kề nhau, một trong hai là cột đang thấp nhất; không có chỗ thì khung chọn band khác.
-  const wideSlot = (band, column, bottoms) => {
+  // Không lỗ (advertising-masonry R5): hai đáy chênh nhau thì khung cuối của cột ngắn hơn (khung một cột của batch này)
+  // kéo dài đúng phần chênh; đáy là card thật hoặc khung hai cột thì chỉ đặt khi hai đáy bằng nhau.
+  const wideSlot = (band, column, bottoms, lastFrames) => {
     if (!canSpanTwoColumns(columns, { width: 1, height: band.ratio })) return null;
     return spanSlots(bottoms, columns, 2, gap, cardWidth, gap)
       .filter(({ left, y }) => (left === column || left === column - 1) && y < boundaryBottom)
+      .map((slot) => {
+        if (slot.cavity <= 0.05) return { ...slot, stretch: null };
+        const lower = bottoms[slot.left] < bottoms[slot.left + 1] ? slot.left : slot.left + 1;
+        const frame = lastFrames[lower];
+        return frame?.span === 1 ? { ...slot, stretch: { frame, column: lower } } : null;
+      })
+      .filter(Boolean)
       .sort((a, b) => a.y - b.y || a.cavity - b.cavity)[0] || null;
   };
   const buildCandidate = (candidateSeed) => {
@@ -266,6 +276,7 @@ export function createSkeletonFlowFrameLayout({
     const depths = Array(columns).fill(0);
     const previousBandByColumn = new Map();
     const rowBands = new Map();
+    const lastFrames = Array(columns).fill(null);
     while (frames.length < maxFrames) {
       const column = bottoms.reduce((shortest, bottom, index) =>
         bottom < bottoms[shortest] ? index : shortest, 0);
@@ -278,8 +289,8 @@ export function createSkeletonFlowFrameLayout({
       // Chỗ đặt của band: một cột ở cột thấp nhất, hoặc hai cột theo luật span của card thật.
       const place = (band) => {
         if (!canSpanTwoColumns(columns, { width: 1, height: band.ratio })) return { left: column, span: 1, top, depth: depths[column] };
-        const wide = wideSlot(band, column, bottoms);
-        return wide && { left: wide.left, span: 2, top: wide.y, depth: Math.max(depths[wide.left], depths[wide.left + 1]) };
+        const wide = wideSlot(band, column, bottoms, lastFrames);
+        return wide && { left: wide.left, span: 2, top: wide.y, depth: Math.max(depths[wide.left], depths[wide.left + 1]), stretch: wide.stretch };
       };
       // Không cột nào khung phủ có hai khung liền cùng band (R1), kể cả cột kề của khung hai cột.
       const fresh = (band) => {
@@ -301,12 +312,18 @@ export function createSkeletonFlowFrameLayout({
           || candidates.find(fresh) || candidates[0] || baseBands[0];
       }
       // Mọi band đều ngang mà không có chỗ hai cột: khung giữ một cột.
-      const { left, span, top: frameTop, depth } = place(source) || { left: column, span: 1, top, depth: depths[column] };
+      const { left, span, top: frameTop, depth, stretch } = place(source) || { left: column, span: 1, top, depth: depths[column] };
+      if (stretch) {
+        stretch.frame.height += frameTop - gap - bottoms[stretch.column];
+        bottoms[stretch.column] = frameTop - gap;
+      }
       const height = (span * cardWidth + (span - 1) * gap) * source.ratio;
-      frames.push({ slot, column: left, span, depth, band: source.id, top: frameTop, height });
+      const frame = { slot, column: left, span, depth, band: source.id, top: frameTop, height };
+      frames.push(frame);
       if (!rowBands.has(depth)) rowBands.set(depth, new Set());
       rowBands.get(depth).add(source.id);
       for (let index = left; index < left + span; index += 1) {
+        lastFrames[index] = frame;
         previousBandByColumn.set(index, source);
         depths[index] = depth + 1;
         // Lưới có tên dưới card (projects R2): khung là phần media, chừa chỗ tên bên dưới như card thật.
@@ -370,7 +387,14 @@ export function createSkeletonFlowFrameLayout({
     kept = without;
   }
   for (const frame of kept) if (isLast(kept, frame)) frame.height = boundaryBottom - frame.top;
-  const result = kept.map((frame) => Object.freeze(frame));
+  // Lỗ dải cuối của masonry (layout.holes, R5): mỗi lỗ một khung một cột cắt đúng lỗ, band gần tỷ lệ lỗ nhất, đứng trước
+  // các khung nối tiếp. Lưới có tên dưới card chừa chỗ tên như khung khác.
+  const fillers = holes.filter(({ height }) => height - captionHeight > 0).map(({ column, top, height }, index) => {
+    const media = height - captionHeight;
+    const band = ratios.reduce((best, item) => Math.abs(item.ratio - media / cardWidth) < Math.abs(best.ratio - media / cardWidth) ? item : best);
+    return { slot: `h${index}`, column, span: 1, depth: 0, band: band.id, top, height: media };
+  });
+  const result = [...fillers, ...kept].map((frame) => Object.freeze(frame));
   Object.defineProperty(result, "diagnostics", {
     enumerable: false,
     value: Object.freeze({

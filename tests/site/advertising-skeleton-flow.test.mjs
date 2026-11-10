@@ -219,9 +219,9 @@ for (const frame of captionedFrames) {
 }
 assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
   "a negative caption height is rejected");
-// Masonry R5: card cuối 2:1 trải cột 0-1 ở 1440px; batch nối tiếp ngay dưới nó ở cả hai cột, cùng chỗ tên như card
+// Masonry R5: card cuối 2:1 trải cột 0-1 bằng đáy ở 1440px; batch nối tiếp ngay dưới nó ở cả hai cột, cùng chỗ tên như card
 // thật. Band khung (h/w 0.72, 1, 1.32) đều dưới tỷ lệ vàng nên theo cùng luật mọi khung rộng một cột.
-const wideTail = [[1, 1], [3, 4], [1, 1], [4, 5], [2, 1]].map(([width, height], index) => ({
+const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], index) => ({
   id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
   media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
 }));
@@ -243,6 +243,13 @@ for (const frame of wideTailFrames) {
   assert.equal(isAdvertisingWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
+// Masonry R5 không lỗ: lỗ dải cuối của masonry có một khung cắt đúng lỗ (chừa chỗ tên), đứng trước khung nối tiếp.
+const holeFrames = createSkeletonFlowFrameLayout({ columnBottoms: [600, 600, 400], columns: 3, cardWidth: 240, gap: 20,
+  captionHeight: 30, boundaryBottom: 1_400, holes: [{ column: 1, top: 320, height: 150 }] });
+assert.deepEqual(holeFrames.filter(({ slot }) => slot.startsWith("h")).map(({ slot, column, span, top, height }) => [slot, column, span, top, height]),
+  [["h0", 1, 1, 320, 120]], "a masonry hole gets one frame cut to the hole, minus the caption room");
+assert.equal(holeFrames[0].slot, "h0", "hole frames come before the continuation frames");
+assert.equal(holeFrames.find(({ slot }) => slot === "h0").band, "landscape", "the hole frame takes the band nearest its ratio");
 // R1: band ngang từ tỷ lệ vàng theo luật span của card thật (masonry-reuse bước 5): hai cột khi lưới >= 3 cột, không
 // chồng khung, khung cuối mỗi cột vẫn chạm đáy batch; lưới 2 cột giữ một cột. Số khung và band đọc từ attribute.
 const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 square:1 portrait:1.32 wide:0.5" });
@@ -270,6 +277,9 @@ for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [
     assert.equal(own.at(-1).top + own.at(-1).height, 1_800, `column ${column} ends on the batch bottom`);
     assert(own.slice(1).every((frame, index) => frame.band !== own[index].band),
       `column ${column} has no two frames of one band in a row, counting two-column frames`);
+    // Masonry R5: không lỗ, mỗi khung đứng đúng một gap dưới khung (hoặc card thật) phía trên nó ở mọi cột nó phủ.
+    own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-9,
+      `column ${column}: frame ${frame.slot} leaves no hole above it`));
   }
 }
 // Hai khung mỏng cuối cột không chặn nhau: cả hai cùng gộp vào khung phía trên (lỗi review #769).
