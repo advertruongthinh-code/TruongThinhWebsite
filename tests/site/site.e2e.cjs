@@ -6169,16 +6169,18 @@ async function runAdvertisingGridFocusedChecks() {
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
         assert(noOverlap, `${width}px grid has overlapping runtime tiles`);
         assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
-        assert(measured.tiles.every((tile) => {
+        const drifted = measured.tiles.find((tile) => {
           const expected = expectedById.get(tile.id);
-          return expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
+          // Card cắt mép dưới (R6, tối đa CROP_CAP) giữ tỷ lệ ảnh gốc khi cộng lại phần cắt mediaBleed.
+          return !(expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
             Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
-            Math.abs(tile.mediaWidth / tile.mediaHeight - expected.card.media.width / expected.card.media.height) <= 0.01 &&
+            Math.abs(tile.mediaWidth / (tile.mediaHeight + (expected.mediaBleed ?? 0)) - expected.card.media.width / expected.card.media.height) <= 0.01 &&
             Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
             tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
-            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05;
-        }), `${width}px runtime geometry drifted from v6 shared layout`);
+            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
+        });
+        assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
         // So le giờ là điểm chấm lúc build, không phải luật cứng (advertising-masonry R6): kiểm không lỗ, khe đúng, cắt trong trần.
         const verified = verifyLayout(expectedLayout);
         assert(verified.ok, `${width}px replayed layout fails verifyLayout: ${JSON.stringify(verified.errors.slice(0, 5))}`);
