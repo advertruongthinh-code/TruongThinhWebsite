@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, filterRank, matchesFilter } from "../../src/site/masonry/layout.mjs";
-import { buildLayoutCache } from "../../src/site/masonry/packer.mjs";
+import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import "./sync-brand-lockup.mjs";
 import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
@@ -58,7 +58,7 @@ if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== pat
 const artifact = buildAdvertisingArtifact();
 // Masonry layout cache (advertising-masonry R6): every filter on every width band, 8 to 32 precomputed variants. Its
 // self-check replays and verifies every kept layout at both band ends, so a catalog that cannot be laid out stops the build.
-const layoutCache = buildLayoutCache({ cards: artifact.cards, filters: PUBLIC_GRID_FILTERS, datasetVersion: artifact.datasetVersion, rankOf: filterRank, matches: matchesFilter });
+const layoutCache = buildLayoutCacheMemo({ cards: artifact.cards, filters: PUBLIC_GRID_FILTERS, datasetVersion: artifact.datasetVersion, rankOf: filterRank, matches: matchesFilter });
 
 // Rail công trình trang chủ: validate dữ liệu và placeholder trước khi xóa output cũ (page-home R8).
 const projectReel = JSON.parse(await readFile(path.join(sourceRoot, "content", "project-reel.json"), "utf8"));

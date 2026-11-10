@@ -3975,7 +3975,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 .detail-index-hero .project-filter:hover,
 .detail-index-hero .project-filter:focus-visible,
-.detail-index-hero .project-filter[aria-current="true"] {
+.detail-index-hero .project-filter:is([aria-current="true"], [aria-busy="true"]) {
   color: var(--ink);
   text-decoration-line: underline;
   text-decoration-thickness: 3px;
@@ -3993,11 +3993,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   transition: color 0.3s ease-out;
 }
 
-.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) {
   color: var(--ink);
 }
 
-.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child {
   text-decoration: underline 2px;
   text-underline-offset: 4px;
   text-decoration-skip-ink: none;
@@ -4011,8 +4011,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     position: relative;
   }
 
-  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"]),
-  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]),
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child {
     text-decoration: none;
   }
 
@@ -4034,8 +4034,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     height: 2px;
   }
 
-  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"])::after,
-  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child::after {
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"])::after,
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child::after {
     transform: scaleX(1);
     transform-origin: left center;
   }

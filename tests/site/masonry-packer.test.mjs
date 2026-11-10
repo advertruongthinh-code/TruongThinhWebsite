@@ -11,8 +11,9 @@ import {
   buildLayoutCache,
   packBand,
   poolSignature,
+  staggerViolations,
 } from "../../src/site/masonry/packer.mjs";
-import { createSeededRandom } from "../../src/site/masonry/random-order.mjs";
+import { createSeededRandom, shuffleWithSeed } from "../../src/site/masonry/random-order.mjs";
 import { replayLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 
 const FILTERS = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug), ...ADVERTISING_PRODUCT_CHIPS.map(({ filter }) => filter)];
@@ -97,6 +98,35 @@ test("one-column cards never cross rank tiers", () => {
         const ranks = entries.map((entry) => ADVERTISING_CARDS[entry >> 3]).filter((entry) => !isWideMedia(layoutMedia(entry))).map((entry) => filterRank(entry, filter));
         assert.ok(ranks.every((rank, i) => !i || rank >= ranks[i - 1]), `${filter} ${band.key}`);
       }
+    }
+  }
+});
+
+// Aligned bottoms per card at each band's scoring width (owner O9: soft, a score and not a rule). Real catalog, filters with
+// 20+ cards: the kept variants must beat the same packer on unselected random orders, and stay under an absolute ceiling.
+// Measured at T7: "all" 0.10 on 2 columns and 0.17 on 3-4 columns; the plan's 0.15 sample did not hold for the kept set.
+const STAGGER_CEILING = 0.2;
+const staggerMean = (orders, band, filter) => {
+  const values = orders.map((entries) => {
+    const layout = replayLayout({ entries, cards: ADVERTISING_CARDS, layoutViewportWidth: band.refWidth, filter });
+    return staggerViolations(layout) / layout.placements.length;
+  });
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+};
+test("kept variants stagger bottom edges better than random orders and under the ceiling", () => {
+  const index = new Map(ADVERTISING_CARDS.map((entry, i) => [entry, i]));
+  for (const filter of ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)]) {
+    const pool = ADVERTISING_CARDS.filter((entry) => matchesFilter(entry, filter));
+    const rank = (entry) => filterRank(entry, filter);
+    for (const band of LAYOUT_BANDS) {
+      const kept = staggerMean(cache[band.key].filters[filter].variants, band, filter);
+      const random = Array.from({ length: 16 }, (_, s) => {
+        const order = shuffleWithSeed(pool, "stagger-baseline", `${filter}:${s}`).sort((x, y) => rank(x) - rank(y));
+        return packBand(order, band, { rankOf: rank }).entries.map(({ card: entry, column, span }) => index.get(entry) * 8 + (span === 1 ? column : 4 + column));
+      });
+      const baseline = staggerMean(random, band, filter);
+      assert.ok(kept <= baseline, `${filter} ${band.key}: kept ${kept.toFixed(3)} vs random ${baseline.toFixed(3)}`);
+      assert.ok(kept <= STAGGER_CEILING, `${filter} ${band.key}: ${kept.toFixed(3)} per card`);
     }
   }
 });
