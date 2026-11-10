@@ -211,10 +211,19 @@ try {
       // trên nó ở cùng cột (khung batch chừa thêm chỗ tên ở lưới có tên); lỗ dải cuối đã có khung lấp.
       const holes = await page.evaluate(({ root, card }) => {
         const gap = innerWidth <= 960 ? 15 : innerWidth <= 1200 ? 25 : 35;
+        const scrollTop = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
         const caption = Number.parseFloat(document.querySelector(`${root} :is(${card})`)?.style.getPropertyValue("--advertising-caption-height")) || 0;
         const items = [...document.querySelectorAll(`${root} :is(${card}), [data-advertising-cta-frame]`)]
           .filter((node) => !node.hidden && node.getClientRects().length)
-          .map((node) => ({ node, frame: node.matches("[data-advertising-cta-frame]"), rect: node.getBoundingClientRect() }));
+          .map((node) => {
+            // Vị trí layout (offset), không theo rect: batch skeleton có parallax translate riêng.
+            let left = 0, top = 0;
+            for (let at = node; at; at = at.offsetParent) { left += at.offsetLeft; top += at.offsetTop; }
+            const rect = { left, top, right: left + node.offsetWidth, bottom: top + node.offsetHeight };
+            return { node, frame: node.matches("[data-advertising-cta-frame]"), rect };
+          })
+          // Chỉ vùng chắc chắn đã dựng (cửa sổ ảo dựng thêm một viewport mỗi phía): card giữa hai item đo được không bị thiếu.
+          .filter(({ rect }) => rect.top >= scrollTop - innerHeight / 2 && rect.bottom <= scrollTop + 1.5 * innerHeight);
         const found = [];
         for (const below of items) {
           const above = items.filter((item) => item !== below && item.rect.bottom <= below.rect.top + 1
