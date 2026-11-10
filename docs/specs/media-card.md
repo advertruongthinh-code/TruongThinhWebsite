@@ -68,7 +68,7 @@ xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải. Chấm hoặc bộ đếm nằm trong một pill
 giữa dải học Pinterest (owner 2026-11-10, đo bộ đếm "5/14" và chấm carousel trên pinterest.com): nền than
 `rgba(51,51,51,0.8)`, bo 12px; pill chấm gọn cao 16px, chấm 8px cách nhau 16px tâm tới tâm; pill bộ đếm padding 4px 8px,
-chữ trắng 12px thường, line-height 1.6 (cao khoảng 27px). Chấm đảo màu (thường trắng 40%, đang xem trắng). Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
+chữ trắng 12px thường, số thường (không `tabular-nums`: số 1 dạng bảng của Plus Jakarta Sans có chân, owner thấy lạ), line-height 1.6 (cao khoảng 27px). Chấm đảo màu (thường trắng 40%, đang xem trắng). Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật

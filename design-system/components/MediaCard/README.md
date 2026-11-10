@@ -66,7 +66,8 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 - Chấm hoặc bộ đếm nằm trong một pill học Pinterest (owner 2026-11-10): nền
   than `rgba(51, 51, 51, 0.8)`, bo 12px. Pill chấm gọn cao 16px, chấm 8px cách
   nhau 16px. Pill bộ đếm padding 4px 8px, chữ trắng `0.75rem` thường,
-  line-height 1.6, `tabular-nums`.
+  line-height 1.6, số thường (số 1 dạng
+  `tabular-nums` của Plus Jakarta Sans có chân, owner 2026-11-10 thấy lạ).
 - Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
 ### Video

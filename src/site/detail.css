@@ -1682,11 +1682,11 @@ body.is-advertising-browse .advertising-grid {
   opacity: 1;
 }
 
-/* Counter text as on Pinterest: 12px regular, 1.6 line height, tabular figures. */
+/* Counter text as on Pinterest: 12px regular, 1.6 line height. Proportional figures: the tabular "1" of Plus Jakarta Sans
+   carries a foot serif that looks odd in "1/11" (owner 2026-11-10). */
 .advertising-card-media__count {
   font-size: 0.75rem;
   font-weight: 400;
-  font-variant-numeric: tabular-nums;
   line-height: 1.6;
 }
 
