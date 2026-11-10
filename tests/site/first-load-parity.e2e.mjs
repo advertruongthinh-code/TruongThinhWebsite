@@ -121,24 +121,24 @@ try {
       console.log(where, JSON.stringify({ direct, soft }));
       // About keeps the title unsplit on both paths, so there is no text motion to compare.
       if (!direct.split && !soft.split) continue;
-      if (direct.flash) failures.push(`${where}: chữ hiện đủ ${direct.flash} frame trước motion khi mở trực tiếp`);
-      if (direct.lag === undefined || direct.lag < 0) failures.push(`${where}: từ đầu fade trước khi veil mở (lag ${direct.lag})`);
+      if (direct.flash) failures.push(`${where}: text fully visible for ${direct.flash} frames before motion on direct open`);
+      if (direct.lag === undefined || direct.lag < 0) failures.push(`${where}: fade started before the veil opened (lag ${direct.lag})`);
       // 100ms threshold: headless Chromium on the cloud has 80-120ms long frames right when the first word starts fading on both paths.
       if (direct.lag !== undefined && soft.lag !== undefined && Math.abs(direct.lag - soft.lag) > 100) {
-        failures.push(`${where}: độ trễ sau veil ${Math.round(direct.lag)}ms khác chuyển mềm ${Math.round(soft.lag)}ms`);
+        failures.push(`${where}: delay after veil ${Math.round(direct.lag)}ms differs from soft navigation ${Math.round(soft.lag)}ms`);
       }
       if (direct.span === undefined || soft.span === undefined || Math.abs(direct.span - soft.span) > 100) {
-        failures.push(`${where}: stagger ${direct.span}ms khác chuyển mềm ${soft.span}ms`);
+        failures.push(`${where}: stagger ${direct.span}ms differs from soft navigation ${soft.span}ms`);
       }
     }
   }
   const desktop = viewports[0];
   const lateFont = await recordDelayed(desktop, "/vi/residential/", "**/*.woff2", 1000);
   console.log("late font", JSON.stringify(lateFont));
-  if (!(lateFont.reveal >= 1000)) failures.push(`font trễ 1s: veil mở lúc ${lateFont.reveal}ms, trước khi font về`);
+  if (!(lateFont.reveal >= 1000)) failures.push(`font delayed 1s: veil opened at ${lateFont.reveal}ms, before the font arrived`);
   const lateHero = await recordDelayed(desktop, "/vi/residential/", "**/assets/content/**", 3000);
   console.log("late hero", JSON.stringify(lateHero));
-  if (!(lateHero.reveal < 3000)) failures.push(`ảnh hero trễ 3s: veil mở lúc ${lateHero.reveal}ms, đang chờ ảnh`);
+  if (!(lateHero.reveal < 3000)) failures.push(`hero image delayed 3s: veil opened at ${lateHero.reveal}ms, while waiting for the image`);
 } finally {
   await browser.close();
 }

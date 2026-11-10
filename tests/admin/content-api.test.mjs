@@ -77,7 +77,7 @@ const call = (environment, path, method = "GET", body, headers = {}) => worker.f
 }), environment);
 const text = { t0: { vi: "Chào mới", en: "New hello" } };
 
-test("content API: 501 không D1, 404 trang lạ, 405, 400 JSON hoặc nháp sai, 413 body quá lớn", async () => {
+test("content API: 501 without D1, 404 unknown page, 405, 400 bad JSON or draft, 413 oversized body", async () => {
   assert.equal((await call({ ...env(), DB: undefined }, "/api/admin/content/home")).status, 501);
   const environment = env();
   assert.equal((await call(environment, "/api/admin/content/blog")).status, 404);
@@ -89,7 +89,7 @@ test("content API: 501 không D1, 404 trang lạ, 405, 400 JSON hoặc nháp sai
   assert.equal(large.status, 413);
 });
 
-test("content API: lưu, đọc lại, 409 khi base cũ hoặc ghi đua, audit có khóa", async () => {
+test("content API: save, read back, 409 on stale base or racing write, audit has keys", async () => {
   const db = fakeDb();
   const environment = env(db);
   const saved = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: null, anchors: { t0: "Xin chào" } });
@@ -109,7 +109,7 @@ test("content API: lưu, đọc lại, 409 khi base cũ hoặc ghi đua, audit c
   assert.equal(drift.status, 400);
 });
 
-test("trang VI có nội dung đã lưu: bỏ ETag file tĩnh; nháp rỗng thì phục vụ nguyên file tĩnh", async () => {
+test("VI page with saved content: drops static-file ETag; empty draft serves the static file unchanged", async () => {
   const environment = env();
   await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: null });
   const page = await call(environment, "/vi/residential/");
@@ -123,7 +123,7 @@ test("trang VI có nội dung đã lưu: bỏ ETag file tĩnh; nháp rỗng thì
   assert.doesNotMatch(await empty.text(), /Chào mới|data-cms-key/);
 });
 
-test("card đã sửa: trang p/<id> hỏi lại bằng ETag cũ nhận bản mới, id lạ không 500, card ngoài catalog bị từ chối", async () => {
+test("edited card: p/<id> page revalidated with old ETag gets the new version, unknown id is not 500, card outside catalog is rejected", async () => {
   const environment = env();
   const card = {
     titleVi: "Tên", titleEn: "Name", descriptionVi: "Mô tả", descriptionEn: "Description",
