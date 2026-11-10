@@ -792,24 +792,39 @@ const attachCardDetail = (cards) => {
 };
 
 // Masonry layout cache (advertising-masonry R6): files are keyed by URL, so a preload before mount and every mount share
-// one import. A load error or a 4 s timeout settles to null: the grid then stacks one column and no retry loop starts.
+// one import. A load error, a wrong version or a 4 s timeout settles to null: the grid stacks one column. The import
+// keeps running past the timeout; a late file still lands in layoutCacheSettled and the grid relayouts once.
 const LAYOUT_CACHE_TIMEOUT_MS = 4000;
+const layoutCacheLoads = new Map();
 const layoutCacheImports = new Map();
 const layoutCacheSettled = new Map();
 const layoutCacheUrl = (template, band, filter = "") => template
   && template.replace("{band}", band.replace(":", "-")).replace("{filter}", filter);
+// Import without a time limit; resolves to the cache or null.
+const loadLayoutCache = (url) => {
+  if (!url) return Promise.resolve(null);
+  if (!layoutCacheLoads.has(url)) {
+    layoutCacheLoads.set(url, import(url)
+      .then((module) => (module.default?.version === MASONRY_LAYOUT_VERSION ? module.default : null))
+      .catch(() => null)
+      .then((cache) => {
+        if (cache || !layoutCacheSettled.has(url)) layoutCacheSettled.set(url, cache);
+        return cache;
+      }));
+  }
+  return layoutCacheLoads.get(url);
+};
+// The same import, bounded by the timeout: what mount and filter changes wait for.
 const importLayoutCache = (url) => {
   if (!url) return Promise.resolve(null);
   if (!layoutCacheImports.has(url)) {
     let timer;
     const timeout = new Promise((resolve) => { timer = setTimeout(resolve, LAYOUT_CACHE_TIMEOUT_MS, null); });
-    layoutCacheImports.set(url, Promise.race([import(url).then((module) => module.default ?? null), timeout])
-      .catch(() => null)
-      .then((cache) => {
-        clearTimeout(timer);
-        layoutCacheSettled.set(url, cache);
-        return cache;
-      }));
+    layoutCacheImports.set(url, Promise.race([loadLayoutCache(url), timeout]).then((cache) => {
+      clearTimeout(timer);
+      if (!layoutCacheSettled.has(url)) layoutCacheSettled.set(url, cache);
+      return cache;
+    }));
   }
   return layoutCacheImports.get(url);
 };
@@ -822,7 +837,8 @@ let warmWorker;
 // tải ngay khi artifact có video (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã
 // hiện (đo cloud 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
 export const preloadMasonry = () => {
-  warmWorker ||= startLayoutWorker();
+  // Only related masonry compiles in the Worker now; a direct card page needs it at once, a grid page warms it later.
+  if (advertisingPhotoId(new URL(location.href))) warmWorker ||= startLayoutWorker();
   loadArtifact().then((artifact) => {
     if (artifact.cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
     // Layout cache step 1: the one-filter file of this width band, in parallel with the vendor scripts. A direct card
@@ -1513,9 +1529,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
   const photoViewerThumbs = photoDialog?.querySelector("[data-advertising-photo-viewer-thumbs]");
 
-  // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó. Mỗi lần lấy thì mở sẵn
-  // Worker kế tiếp: mở detail không phải chờ tải lại module Worker (Slow 4G tắt cache: 3,3s không có card related).
-  let idleWorker = warmWorker || startLayoutWorker();
+  // Related masonry compiles in a Worker: warmed by preloadMasonry on a card page, else when detail prefetches. Each take
+  // opens the next one, so opening detail never waits on the Worker module (Slow 4G, cache off: 3.3 s without related).
+  let idleWorker = warmWorker;
   warmWorker = undefined;
   const takeWorker = () => {
     const worker = idleWorker || startLayoutWorker();
@@ -1583,7 +1599,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (controller.signal.aborted) return;
     const images = [...document.querySelectorAll("[data-advertising-card] img")].slice(0, 8);
     if (tries >= 24 || (images.length === 8 && images.every((image) => image.complete))) {
-      if (viewer) ensureDetail();
+      if (viewer) {
+        ensureDetail();
+        idleWorker ||= startLayoutWorker();
+      }
       bandLayoutsWanted = true;
       loadBandLayouts();
     } else setTimeout(prefetchDetail, 250, tries + 1);
@@ -1975,6 +1994,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (ticket === layoutWait && !controller.signal.aborted) run();
     });
   };
+  // A stack layout drawn while the cache was missing is replaced once that cache lands (late file, Back/Forward in the
+  // first seconds, a band change during a pending click). Only while filter and band are unchanged.
+  const relayoutWhenCached = (targetFilter, band) => {
+    const urls = [layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter)];
+    if (layoutCacheLoads.has(layoutCacheUrl(artifact.layoutCacheBandUrl, band))) urls.push(layoutCacheUrl(artifact.layoutCacheBandUrl, band));
+    for (const url of urls) {
+      void loadLayoutCache(url).then(() => {
+        if (controller.signal.aborted || filter !== targetFilter || geometry?.diagnostics?.source !== "stack"
+          || bandKey(document.documentElement.clientWidth) !== band || !cachedLayoutEntry(band, targetFilter)) return;
+        measure();
+      });
+    }
+  };
   const poolSignatures = new Map();
   const loggedMisses = new Set();
   const geometryRequest = (targetFilter) => {
@@ -1989,10 +2021,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const compile = () => {
       const layout = usable && replayLayout({ entries: entry.variants[variant], cards, layoutViewportWidth, filter: targetFilter, settings });
       if (layout) return layout;
+      // Only a declared cache that failed is a miss. No declared cache is stack by design; a cache still loading
+      // (Back/Forward in the first seconds) is not a failure either and must stay off console.warn.
+      const filterUrl = layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter);
+      const bandUrl = layoutCacheUrl(artifact.layoutCacheBandUrl, band);
+      const loading = !entry && !artifact.layouts && (filterUrl || bandUrl)
+        && !layoutCacheSettled.has(filterUrl) && !layoutCacheSettled.has(bandUrl);
       const missKey = `${targetFilter}|${band}`;
-      if (!loggedMisses.has(missKey)) {
+      if (!entry && !artifact.layouts && (filterUrl || bandUrl)) relayoutWhenCached(targetFilter, band);
+      if (loading) console.debug("[masonry] layout cache loading", targetFilter, band);
+      else if ((artifact.layouts || filterUrl || bandUrl) && !loggedMisses.has(missKey)) {
         loggedMisses.add(missKey);
-        console.warn("[masonry] layout cache miss", targetFilter, band, !entry ? "no-cache" : !usable ? "signature" : "replay");
+        console.warn("[masonry] layout cache miss", targetFilter, band, !entry ? "load" : !usable ? "signature" : "replay");
       }
       // Fallback for the whole grid (owner O3 last step): every card one column, random within each rank (taxonomy R1).
       const order = shuffleWithSeed(pool, browseHistory.current.seed, `grid:${targetFilter}`)
@@ -2004,7 +2044,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       artifactCacheIdentity.layoutAlgorithmVersion,
       targetFilter,
       layoutViewportWidth,
-      `${band}:${variant ?? "stack"}:${usable ? entry.sig : ""}`,
+      `${band}:${variant ?? `stack-${browseHistory.current.seed}`}:${usable ? entry.sig : ""}`,
     ].join(":");
     return { key, compile };
   };
@@ -3215,6 +3255,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.textContent = locale === "en" ? page.titleEn : page.titleVi;
   };
   const setActiveFilter = (nextFilter, { animate = false } = {}) => {
+    layoutWait += 1;
     if (nextFilter === filter) return;
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const origins = animate ? cachedCoordinates(nextFilter, visualOrigins) : undefined;
@@ -4636,6 +4677,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     getHref: () => window.location.href,
     getLogicalScroll,
     onApply({ action, browse, reason }) {
+      // Back/Forward, opening or closing a card: a filter click still waiting for its cache must not overwrite it.
+      if (reason !== "category") layoutWait += 1;
       clearTimeout(persistTimer);
       persistTimer = 0;
       if (action === "push") entryScroll.delete(entryIndex());
@@ -4893,7 +4936,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.preventDefault();
     event.stopImmediatePropagation();
     const nextFilter = control.dataset.advertisingFilter ?? control.dataset.advertisingProduct;
-    if (nextFilter === filter) return;
+    // Clicking the active filter again cancels a click still waiting for its cache.
+    if (nextFilter === filter) {
+      layoutWait += 1;
+      return;
+    }
     if (grid.contains(document.activeElement)) control.focus();
     whenLayoutReady(nextFilter, () => {
       browseHistory.replaceCategory(nextFilter);

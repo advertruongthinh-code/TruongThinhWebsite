@@ -37,6 +37,13 @@ assert.match(runtime, /document\.documentElement\.clientWidth/, "geometry uses f
 assert.match(runtime, /layoutViewportWidth(?::| =) document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
 assert.match(runtime, /layoutViewportWidth/, "shared core receives the full viewport width");
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
+// Main grid replays the build-time cache (advertising-masonry R6): embedded layouts first, then the cache files.
+const mainGridRequest = runtime.slice(runtime.indexOf("const geometryRequest = "), runtime.indexOf("const cacheGeometry = "));
+assert.match(runtime, /artifact\.layouts\?\.\[band\]\?\.filters\?\.\[targetFilter\]/, "runtime reads layouts embedded in the artifact");
+assert.match(mainGridRequest, /variantIndex\(browseHistory\.current\.seed, entry\.variants\.length\)/, "variant follows the browse seed");
+assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays a cached variant");
+assert.match(mainGridRequest, /stackLayout\(\{/, "main grid falls back to the stack layout");
+assert.doesNotMatch(mainGridRequest, /compileInWorker|compileMasonryLayout|takeWorker/, "main grid never runs the search solver");
 assert.ok(
   runtime.indexOf("if (hasLaidOut && !membershipChanged && !geometryChanged) return;")
     < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
@@ -53,7 +60,7 @@ assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualiz
 const filterClickHandler = runtime.slice(runtime.indexOf("const onRailClick = (event) => {"));
 assert.ok(
   filterClickHandler.indexOf("event.preventDefault();")
-    < filterClickHandler.indexOf("if (nextFilter === filter) return;"),
+    < filterClickHandler.indexOf("if (nextFilter === filter) {"),
   "active filter clicks are canceled before the same-filter no-op",
 );
 assert.match(runtime, /normalizeMasonrySettings/);

@@ -178,6 +178,7 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
   const order = cards.map((card) => card.id);
   // 2026-11-10 (media-card R2): hashes changed only because the caption field and CAPTION_METRICS_VERSION left the layout
   // identity; every placement's column, span, y and media height is identical to the previous hashes ab952cae/8f209679.
+  // 2026-11-10 (plan T4): 09e8f626/6bb197b9 -> 6eaee92f/d79391b8 only because MASONRY_LAYOUT_VERSION (v17) is in the hash.
   for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "6eaee92f", 0], [1440, "d79391b8", 12]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
