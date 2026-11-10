@@ -1,3 +1,4 @@
+import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
@@ -347,6 +348,8 @@ export function createDetailViewer({
     panX = panY = 0;
     renderTransform();
     unlock();
+    // Drop the picture so the next open never paints it; with no src attribute no error event fires.
+    expandedImage.removeAttribute("src");
     if (!restoreFocus || !expandButton.isConnected) return;
     expandButton.focus({ preventScroll: true });
     // Resize khi đang mở có thể để focus target đã khôi phục nằm ngoài màn hình; căn giữa nó ngay lập tức.
@@ -358,6 +361,18 @@ export function createDetailViewer({
   };
   // Image đang tải bản gốc cho viewer (showImage); null khi không chờ.
   let pendingOriginal = null;
+  // A photo opens only once the primary has it (owner 2026-11-11): the viewer starts from that picture, never from
+  // the one its <img> kept from the last open, which Chrome keeps painting until a new src loads.
+  const primaryReady = () => record?.media.kind === "video" || !heroImage
+    || (heroImage.complete && heroImage.naturalWidth > 0);
+  // Touch screens hide the button (R8), so its icon stays still there.
+  const expandIcon = expandButton.querySelector("[data-advertising-photo-expand-icon]");
+  const icon = expandIcon && createLoadingExpandIcon(expandIcon, { still: () => reducedMotion.matches || touchScreen.matches });
+  const syncExpand = () => {
+    const ready = primaryReady();
+    expandButton.disabled = !ready;
+    icon?.setLoading(!ready);
+  };
   const close = ({ restoreFocus = true, animate = restoreFocus } = {}) => {
     if (!dialog.open) return;
     pendingOriginal = null;
@@ -418,7 +433,7 @@ export function createDetailViewer({
     expandedImage.fetchPriority = "high";
   };
   const open = () => {
-    if (!record || dialog.open) return;
+    if (!record || dialog.open || !primaryReady()) return;
     sourceRect = record.media.kind === "video" ? video.getBoundingClientRect() : null;
     lockedScroll = scroll?.lockLogicalScroll?.() ?? scroll?.getLogicalScroll?.() ?? window.scrollY;
     if (sourceRect) attachVideo();
@@ -511,6 +526,8 @@ export function createDetailViewer({
     // Thói quen double tap: tap thứ hai rơi vào viewer vừa mở và bị nuốt, không zoom.
     lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   }, { signal: controller.signal });
+  heroImage?.addEventListener("load", syncExpand, { signal: controller.signal });
+  heroImage?.addEventListener("error", syncExpand, { signal: controller.signal });
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
@@ -695,6 +712,7 @@ export function createDetailViewer({
     close({ restoreFocus: false, animate: false });
     cancelMotion();
     cancelAnimationFrame(resizeFrame);
+    icon?.cleanup();
     resizeObserver?.disconnect();
     controller.abort();
     if (parent && dialog.parentNode !== parent) parent.insertBefore(dialog, nextSibling?.isConnected ? nextSibling : null);
@@ -709,6 +727,7 @@ export function createDetailViewer({
     setRecord(nextRecord) {
       if (record?.id !== nextRecord?.id) close({ restoreFocus: false });
       record = nextRecord || null;
+      syncExpand();
       if (record) expandedImage.dataset.advertisingPhotoId = record.id;
       else delete expandedImage.dataset.advertisingPhotoId;
       if (record && dialog.open) {
