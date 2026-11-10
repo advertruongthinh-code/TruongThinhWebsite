@@ -978,13 +978,18 @@ function compileAdvertisingLayoutPhase(options = {}) {
   });
   const productCandidates = () => {
     const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
+    // Slot card ngang không phụ thuộc card: tính một lần mỗi độ sâu, card ngang đầu không vừa thì mọi card ngang đều chờ.
+    let wideSlot;
     for (let cardIndex = 0; cardIndex < remaining.length; cardIndex += 1) {
       const card = remaining[cardIndex];
       if (card.kind !== "suggestion" && canSpanTwoColumns(columns, layoutMedia(card))) {
-        consumeOperation();
-        const slot = firstBy(pairs.map((left) => levelPair(left, false)));
-        // Hàng đầu còn cột trống (cột 4 cạnh primary ở related) thì card ngang chỉ vào hàng đầu, không xuống dưới.
-        if (slot && (slot.y === 0 || state.columnBottoms.every(Boolean))) return [productCandidate(cardIndex, widePlacement(card, slot))];
+        if (wideSlot === undefined) {
+          consumeOperation();
+          const slot = firstBy(pairs.map((left) => levelPair(left, false)));
+          // Hàng đầu còn cột trống (cột 4 cạnh primary ở related) thì card ngang chỉ vào hàng đầu, không xuống dưới.
+          wideSlot = slot && (slot.y === 0 || state.columnBottoms.every(Boolean)) ? slot : null;
+        }
+        if (wideSlot) return [productCandidate(cardIndex, widePlacement(card, wideSlot))];
         continue;
       }
       const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
