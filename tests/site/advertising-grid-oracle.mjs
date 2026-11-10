@@ -239,7 +239,13 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       add("invalid-ratio", { ids: [id], columns: cardColumns });
     } else {
       const expectedMediaHeight = placement.pixelWidth * mediaHeight / mediaWidth;
-      if (Math.abs(placement.mediaPixelHeight - expectedMediaHeight) > EPSILON) {
+      // Edge trim (masonry R5): single-column, non-suggestion cards only, at most 0.25 gap and 5% of natural media.
+      const bleed = placement.mediaBleed ?? 0;
+      if (bleed && (layout.staggerBasis !== "image-height" || span !== 1 || placement.card?.kind === "suggestion"
+        || bleed < 0 || bleed > Math.min(0.25 * interCardGap, 0.05 * expectedMediaHeight) + EPSILON)) {
+        add("bleed-limit", { ids: [id], columns: cardColumns, allowed: Math.min(0.25 * interCardGap, 0.05 * expectedMediaHeight), actual: bleed });
+      }
+      if (Math.abs(placement.mediaPixelHeight + bleed - expectedMediaHeight) > EPSILON) {
         add("natural-ratio", {
           ids: [id],
           columns: cardColumns,
@@ -301,6 +307,7 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
   }
   for (const columnCards of byColumn) columnCards.sort(compareCards);
 
+  const imageHeightLayout = layout.staggerBasis === "image-height";
   for (const card of orderedCards) {
     if (card.span === 1) {
       const sequence = byColumn[card.left];
@@ -347,6 +354,19 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     const highBottom = Math.max(leftBottom, rightBottom);
     const lowBottom = Math.min(leftBottom, rightBottom);
     const expected = highBottom + interCardGap;
+    // Hole-free public grid (masonry R5): bottoms are level, except holes listed in layout.holes in the tail band (under wide cards
+    // with only wide cards below) that are tall enough for a skeleton frame.
+    if (imageHeightLayout && highBottom - lowBottom > EPSILON) {
+      const column = leftBottom < rightBottom ? card.left : card.left + 1;
+      const hole = (layout.holes || []).find((item) => item.column === column
+        && Math.abs(item.top - lowBottom - interCardGap) <= EPSILON
+        && Math.abs(item.height - (highBottom - lowBottom - interCardGap)) <= EPSILON);
+      const tail = bridgeColumns.every((bridgeColumn) => byColumn[bridgeColumn]
+        .slice(byColumn[bridgeColumn].indexOf(card) + 1).every((below) => below.span === 2));
+      if (!hole || !tail || hole.height + EPSILON < 0.25 * cardWidth) {
+        add("hole", { ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean), columns: bridgeColumns, actual: highBottom - lowBottom, listed: Boolean(hole), tail });
+      }
+    }
     if (Math.abs(card.y - expected) > EPSILON) {
       add("bridge-top", {
         ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean),
@@ -414,7 +434,8 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       const card = sequence.at(-1);
       return card ? { ...card, contributionBottom: card.bottom } : null;
     }).filter(Boolean);
-    if (terminals.length > 1) {
+    // A tail band with wide cards (masonry R5) may end uneven: the skeleton batch fills below every column.
+    if (terminals.length > 1 && terminals.every((card) => card.span === 1)) {
       const spread = Math.max(...terminals.map((card) => card.contributionBottom)) - Math.min(...terminals.map((card) => card.contributionBottom));
       const allowed = Math.max(...terminals.map((card) => card.pixelHeight)) + interCardGap;
       if (spread > allowed + EPSILON) add("terminal-fill", { ids: terminals.map((card) => card.id), actual: spread, allowed });

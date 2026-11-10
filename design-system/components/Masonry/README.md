@@ -15,9 +15,12 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
   một cột, cao theo tỷ lệ gốc.
 - Card hai cột (owner 2026-11-09, mọi masonry kể cả related và Công trình):
   ảnh bìa ngang `w/h >= 1.618` (tỷ lệ vàng) rộng hai cột cộng một gutter khi
-  `C >= 3` (1440px: 667.5px). Card đứng ở cột thấp nhất, trải sang cột kề có
-  top thấp hơn; nếu phải chừa lỗ quá nửa cột (158px ở 1440) dưới card thì giữ
-  một cột. Điện thoại 2 cột: mọi card một cột.
+  `C >= 3` (1440px: 667.5px). Điện thoại 2 cột: mọi card một cột.
+- Không lỗ (owner 2026-11-10): card hai cột chỉ đặt trên hai cột kề bằng đáy;
+  chênh tối đa `0.25 ×` gutter (9/6/4px) và 5% media thì cắt card cuối cột dài
+  hơn cho khít (ảnh cover, cắt đều trên dưới). Chưa có cặp thì card chờ, card
+  sau đi tiếp; card hai cột còn chờ thành dải cuối, lỗ dưới chúng có khung
+  skeleton lấp ([masonry R5](../../../docs/specs/advertising-masonry.md#r5-hình-học-masonry)).
 
 | Viewport | Lề ngoài | Cột | Gutter | Rộng card |
 | ---: | ---: | ---: | ---: | ---: |
@@ -28,7 +31,8 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 | 1440 | 35 | 4 | 35 | 316 |
 
 Đo trên website ngày 2026-10-04.
-- Không spacer, không giãn gutter, không crop để giả so le. Rule stagger và
+- Không spacer, không giãn gutter, không crop để giả so le (chỉ cắt khép mép
+  ở trên). Rule stagger và
   chống nhịp gạch: [masonry R6](../../../docs/specs/advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí).
 - Chỉ mount card gần viewport; list có `aria-posinset`, `aria-setsize`; Tab
   vẫn đi qua được phần chưa mount.

@@ -148,7 +148,11 @@ assert.match(advertisingCss, /advertising-tile__media--natural[\s\S]*?background
 assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
 assert.match(advertisingCss, /advertising-tile img\.is-advertising-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
 assert.match(siteCss, /\.media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom\s*\{[\s\S]*?transform: scale\(1\.15\);/, "inactive advertising media inherits the shared project-card hover zoom");
-assert.doesNotMatch(advertisingCss, /object-fit|advertising-tile__backplate|data-media-fit|media--canvas/, "Advertising browse media has no crop, canvas, fit, or backplate selectors");
+// Edge trim (advertising-masonry R5, owner 2026-11-10): images and videos cover the frame, which is shorter than the natural ratio
+// by at most 5%; no other fit mode, canvas or backplate.
+assert.match(advertisingCss, /\.advertising-tile video\.advertising-tile__foreground \{[^}]*object-fit: cover;/, "bled media covers its frame without distortion");
+assert.equal(advertisingCss.match(/object-fit/g)?.length, 1, "cover on tile media is the only fit rule");
+assert.doesNotMatch(advertisingCss, /advertising-tile__backplate|data-media-fit|media--canvas/, "Advertising browse media has no canvas, fit, or backplate selectors");
 assert.ok(!existsSync(new URL("../../src/site/advertising-products/catalog-artifact.mjs", import.meta.url)), "source tree does not contain a generated artifact");
 
 const categoryOrder = artifact.categories.map((entry) => entry.slug);

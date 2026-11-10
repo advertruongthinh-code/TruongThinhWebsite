@@ -33,7 +33,11 @@ Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[d
 (`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
 hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
 thật (`canSpanTwoColumns`, `spanSlots` ở `layout-core.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
-khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; band mặc định (w/h tối đa 1.39) đều giữ một
+khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; không để lỗ
+([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): hai đáy chênh nhau thì khung một cột cuối của cột ngắn hơn
+(trong batch) kéo dài đúng phần chênh, đáy là card thật hay khung hai cột thì khung hai cột chỉ đặt khi hai đáy bằng nhau.
+Mỗi lỗ dải cuối của masonry (`layout.holes`) có một khung một cột cắt đúng lỗ (chừa chỗ tên ở lưới có tên), slot `h0`,
+`h1`, ..., band gần tỷ lệ lỗ nhất, đứng trước khung nối tiếp; band mặc định (w/h tối đa 1.39) đều giữ một
 cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
 (id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
@@ -50,6 +54,7 @@ cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch có 
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột
 When runtime dựng batch
 Then khung đầu mỗi cột cách card thật một khoảng giữa, đáy khung cuối mỗi cột trùng đáy batch
+And mỗi lỗ dải cuối của masonry có đúng một khung lấp, không khung nào để lỗ phía trên nó
 And không khung nào thấp hơn 0.25 bề rộng card, không hai khung liền cùng band trong một cột
 ```
 

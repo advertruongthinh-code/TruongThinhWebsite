@@ -73,7 +73,11 @@ function assertSpanGeometry(layout, label) {
   assert.ok(layout.placements.every((p) => p.width === 1 || isWide(p.card)), `${label}: only golden-ratio covers span two columns`);
   for (const p of layout.placements) {
     assert.ok(Math.abs(p.pixelWidth - (p.width * layout.cardWidth + (p.width - 1) * layout.interCardGap)) < 0.05, `${label}: natural width`);
-    assert.ok(Math.abs(p.mediaPixelHeight - p.pixelWidth * p.card.media.height / p.card.media.width) < 0.05, `${label}: natural height`);
+    // Edge trim (masonry R5): a single-column card is shorter than its natural ratio by at most min(0.25 gap, 5% media).
+    const natural = p.pixelWidth * p.card.media.height / p.card.media.width;
+    const bleed = p.mediaBleed ?? 0;
+    assert.ok(!bleed || (p.width === 1 && bleed <= Math.min(0.25 * layout.interCardGap, 0.05 * natural) + 1e-9), `${label}: bleed limit`);
+    assert.ok(Math.abs(p.mediaPixelHeight + bleed - natural) < 0.05, `${label}: natural height`);
   }
   assert.ok(layout.diagnostics.operations <= 300000, `${label}: operation budget`);
   for (const p of layout.placements) {
@@ -94,34 +98,75 @@ function overlaps(a, b) {
     && Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 0.05;
 }
 
+// Masonry R5 no holes, reimplemented independently of layout-core: single-column cards go to the lowest column in order; wide cards wait
+// for two level adjacent columns (only the first row while it has an empty column), trimming the longer column's last card by at most min(0.25 gap, 5% media), never on a wide card of the same
+// pair; once single-column cards run out, waiting wide cards drop to the tail band: pair with the lowest column first, then lower top, then no
+// hole, then leftmost; a hole must be 0.25 to under 0.5 column tall; with no pair, or the lowest column empty beside an occupied one,
+// the card stays single-column.
 function assertSourceOrderShortestFrontier(layout, cards, label) {
   const cardsById = new Map(cards.map((card) => [card.id, card]));
-  const orderedCards = layout.diagnostics.placementOrder.map((id) => cardsById.get(id));
+  const remaining = layout.diagnostics.placementOrder.map((id) => cardsById.get(id));
   const placementsById = new Map(layout.placements.map((placement) => [placement.card.id, placement]));
-  const columnBottoms = layout.initialColumnBottoms.slice();
-  assert.ok(orderedCards.every(Boolean), `${label}: placement order references only result cards`);
+  const { interCardGap: gap, cardWidth, columns } = layout;
+  const bottoms = layout.initialColumnBottoms.slice();
+  const last = Array(columns).fill(null);
+  assert.ok(remaining.every(Boolean), `${label}: placement order references only result cards`);
   assert.deepEqual(new Set(layout.diagnostics.placementOrder), new Set(cards.map(({ id }) => id)),
     `${label}: placement order preserves every source card`);
-  for (const card of orderedCards) {
+  const level = (left, allowStack) => {
+    const [a, b] = [bottoms[left], bottoms[left + 1]];
+    if (!a && !b) return { left, y: 0 };
+    if (!a || !b || (!allowStack && last[left] && last[left] === last[left + 1])) return null;
+    if (Math.abs(a - b) <= 0.05) return { left, y: Math.max(a, b) + gap };
+    const target = last[a > b ? left : left + 1];
+    if (!target || target.width !== 1 || Math.abs(target.y + target.natural - Math.max(a, b)) > 0.05) return null;
+    if (Math.abs(a - b) > Math.min(0.25 * gap, 0.05 * target.naturalMedia) + 1e-9) return null;
+    return { left, y: Math.min(a, b) + gap, bleed: { id: target.id, amount: Math.abs(a - b) } };
+  };
+  const lowest = () => bottoms.indexOf(Math.min(...bottoms));
+  const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
+  const bleeds = new Map();
+  while (remaining.length) {
+    const midSlot = () => {
+      const slot = pairs.map((left) => level(left, false)).filter(Boolean).sort((a, b) => a.y - b.y || a.left - b.left)[0];
+      return slot && (slot.y === 0 || bottoms.every(Boolean)) ? slot : null;
+    };
+    let index = remaining.findIndex((card) => !(columns >= 3 && isWide(card)) || midSlot());
+    let expected;
+    if (index >= 0 && columns >= 3 && isWide(remaining[index])) {
+      expected = { ...midSlot(), width: 2 };
+    } else if (index >= 0) {
+      const column = lowest();
+      expected = { left: column, y: bottoms[column] ? bottoms[column] + gap : 0, width: 1 };
+    } else {
+      index = 0;
+      const column = lowest();
+      const holed = (left) => {
+        const [a, b] = [bottoms[left], bottoms[left + 1]];
+        const cavity = Math.abs(a - b);
+        return a && b && cavity - gap >= 0.25 * cardWidth && cavity <= 0.5 * cardWidth + 0.05 ? { left, y: Math.max(a, b) + gap, hole: true } : null;
+      };
+      const touches = ({ left }) => Number(column !== left && column !== left + 1);
+      const slot = !bottoms[column] && bottoms.some(Boolean) ? null : pairs.flatMap((left) => [level(left, true), holed(left)]).filter(Boolean)
+        .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];
+      expected = slot ? { ...slot, width: 2 } : { left: column, y: bottoms[column] ? bottoms[column] + gap : 0, width: 1 };
+    }
+    const [card] = remaining.splice(index, 1);
     const placement = placementsById.get(card.id);
     assert.ok(placement, `${label}: missing ${card.id}`);
-    const frontier = columnBottoms.map((bottom) => bottom ? bottom + layout.interCardGap : 0);
-    const minimumY = Math.min(...frontier);
-    const column = frontier.findIndex((y) => Math.abs(y - minimumY) <= 1e-9);
-    // Card tỷ lệ vàng ở lưới từ 3 cột trải sang cột kề của cột thấp nhất khi lỗ dưới nó không quá nửa cột; cặp có
-    // một cột trống, một cột đã có card thì không trải.
-    const pair = layout.columns >= 3 && isWide(card) ? [column - 1, column]
-      .filter((left) => left >= 0 && left + 1 < layout.columns)
-      .filter((left) => (columnBottoms[left] === 0) === (columnBottoms[left + 1] === 0))
-      .map((left) => ({ left, y: Math.max(frontier[left], frontier[left + 1]), hole: Math.abs(frontier[left] - frontier[left + 1]) }))
-      .filter(({ hole }) => hole <= 0.5 * layout.cardWidth + 0.05)
-      .sort((a, b) => a.y - b.y || a.left - b.left)[0] : null;
-    const expected = pair ? { left: pair.left, y: pair.y, width: 2 } : { left: column, y: minimumY, width: 1 };
-    assert.ok(Math.abs(placement.y - expected.y) <= 0.05,
-      `${label}: ${card.id} y=${placement.y} expected ${expected.y}`);
+    assert.ok(Math.abs(placement.y - expected.y) <= 0.05, `${label}: ${card.id} y=${placement.y} expected ${expected.y}`);
     assert.equal(placement.left, expected.left, `${label}: ${card.id} did not use the expected column`);
     assert.equal(placement.width, expected.width, `${label}: ${card.id} span follows the golden-ratio rule`);
-    for (let offset = 0; offset < placement.width; offset += 1) columnBottoms[placement.left + offset] = placement.y + placement.pixelHeight;
+    if (expected.bleed) bleeds.set(expected.bleed.id, expected.bleed.amount);
+    const naturalMedia = placement.mediaPixelHeight + (placement.mediaBleed ?? 0);
+    const entry = { id: card.id, width: placement.width, y: placement.y, natural: placement.pixelHeight + (placement.mediaBleed ?? 0), naturalMedia };
+    for (let offset = 0; offset < placement.width; offset += 1) {
+      bottoms[placement.left + offset] = placement.y + entry.natural;
+      last[placement.left + offset] = entry;
+    }
+  }
+  for (const placement of layout.placements) {
+    assert.ok(Math.abs((placement.mediaBleed ?? 0) - (bleeds.get(placement.card.id) ?? 0)) <= 1e-6, `${label}: ${placement.card.id} bleed`);
   }
 }
 
@@ -423,10 +468,10 @@ test("R10 fills column four for every nonempty authored hero and tag pool at N4"
     assert.equal(result.layout.columns, 4, `${hero.id} ${tag}: R10 fixture uses N4`);
     assert.equal(result.primary.span, 3, `${hero.id} ${tag}: R10 primary spans three columns`);
     assertRelated(result, `${hero.id} ${tag}: R10 authored N4`);
-    const firstRelatedId = result.cards[0].id;
-    const firstRelatedPlacement = result.photoPlacements.find(({ card }) => card.id === firstRelatedId);
-    assert.equal(firstRelatedPlacement?.left, 3, `${hero.id} ${tag}: R10 fills column four`);
-    assert.equal(firstRelatedPlacement?.y, 0, `${hero.id} ${tag}: R10 aligns column four with the primary top`);
+    // Column 4 beside primary has a card at primary's top; if the first card is wide it waits for a level pair (masonry R5) and the
+    // next single-column card fills column 4.
+    const columnFour = result.photoPlacements.find(({ left, width }) => left === 3 && width === 1);
+    assert.equal(columnFour?.y, 0, `${hero.id} ${tag}: R10 fills column four at the primary top`);
     const repeated = compileAdvertisingRelatedLayout({
       cards: ADVERTISING_CARDS,
       categoryOrder,

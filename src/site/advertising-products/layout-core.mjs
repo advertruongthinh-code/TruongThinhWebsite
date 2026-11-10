@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v15";
+export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v16";
 const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 const ADVERTISING_MIN_COLUMNS = 2;
 const ADVERTISING_MAX_COLUMNS = 4;
@@ -13,6 +13,11 @@ const ADVERTISING_WIDE_MIN_COLUMNS = 3;
 // thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
 // vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
 const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
+// No holes (R5, owner 2026-11-10): two column bottoms may differ by at most 0.25 gap (9/6/4px at gap 35/25/15) and 5% of
+// the trimmed card's media height. A hole under a tail-band wide card must be at least a quarter column tall to fit a skeleton frame.
+const BLEED_GAP_RATIO = 0.25;
+const BLEED_MEDIA_RATIO = 0.05;
+const MIN_HOLE_FILL_RATIO = 0.25;
 
 // Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
 // nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
@@ -728,28 +733,19 @@ function undoRhythms(logs) {
   }
 }
 
-function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHeight, settings) {
+function placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity = 0) {
+  const media = layoutMedia(card);
+  const pixelWidth = width * cardWidth + (width - 1) * gap;
+  const mediaPixelHeight = pixelWidth * media.height / media.width;
+  const pixelHeight = mediaPixelHeight + mediaControlStripHeight(card) + captionPixelHeight;
+  return { card, left, top: y, width, height: pixelHeight, x: left * (cardWidth + gap), y, pixelWidth, mediaPixelHeight, captionPixelHeight, pixelHeight, cavity };
+}
+
+function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHeight) {
   const literalSpan = card?.layoutSpan;
-  // Lưới public: bề ngang do tỷ lệ cover quyết định (R5), không theo layoutSpan; khối gợi ý luôn một cột.
-  const widths = state.productLayout
-    ? (card?.kind !== "suggestion" && canSpanTwoColumns(columns, layoutMedia(card)) ? [1, 2] : [1])
-    : literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
-  const controlStripHeight = mediaControlStripHeight(card);
-  const candidates = [];
-  for (const width of widths) {
-    const mediaPixelWidth = width * cardWidth + (width - 1) * gap;
-    const media = layoutMedia(card);
-    const mediaPixelHeight = mediaPixelWidth * media.height / media.width;
-    const pixelHeight = mediaPixelHeight + controlStripHeight + captionPixelHeight;
-    for (const { left, y, cavity } of spanSlots(state.columnBottoms, columns, width, gap, cardWidth)) {
-      candidates.push({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight });
-    }
-  }
-  const placements = candidates.map(({ left, y, cavity, width, mediaPixelWidth, mediaPixelHeight, pixelHeight }) => ({
-    card, left, top: y, width, height: pixelHeight, x: left * (cardWidth + gap), y,
-    pixelWidth: mediaPixelWidth, mediaPixelHeight, captionPixelHeight, pixelHeight, cavity,
-  }));
-  return placements;
+  const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
+  return widths.flatMap((width) => spanSlots(state.columnBottoms, columns, width, gap, cardWidth)
+    .map(({ left, y, cavity }) => placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity)));
 }
 
 // Span public do tỷ lệ cover quyết định (candidatePlacement); control layoutSpan cũ không ảnh hưởng geometry hay cache identity.
@@ -894,15 +890,23 @@ function compileAdvertisingLayoutPhase(options = {}) {
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
+    // Edge trim (R5): the trimmed card loses exactly the difference from its media; the control strip and caption stay intact.
+    const bleeds = new Map(state.placements.filter(({ bleed }) => bleed).map(({ bleed }) => [bleed.id, bleed.amount]));
+    const holes = state.placements.filter(({ hole }) => hole).map(({ hole }) => ({ ...hole }));
     const placements = state.placements.slice().sort(comparePlacement)
-      .map(({ cavity, ...placement }, index) => ({ ...placement, index }));
+      .map(({ cavity, bleed, hole, ...placement }, index) => {
+        const amount = bleeds.get(placement.card.id);
+        return amount
+          ? { ...placement, height: placement.height - amount, mediaPixelHeight: placement.mediaPixelHeight - amount, pixelHeight: placement.pixelHeight - amount, mediaBleed: amount, index }
+          : { ...placement, index };
+      });
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
     const coordinates = placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) => {
       const media = layoutMedia(card);
       return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
     }).join("|");
     const coordinateHash = fnv1a32(`${datasetVersion}:${ADVERTISING_LAYOUT_ALGORITHM_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
-    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
+    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
     productLayout,
@@ -939,47 +943,100 @@ function compileAdvertisingLayoutPhase(options = {}) {
     operations += 1;
   };
 
-  const candidatesAtDepth = () => {
-    const candidates = [];
-    const seenShapes = new Set();
-    const window = productLayout ? Math.min(remaining.length, 1) : Math.min(remaining.length, SEARCH_WINDOW_SIZE);
-    for (let cardIndex = 0; cardIndex < window && (productLayout || candidates.length < SEARCH_CANDIDATE_LIMIT); cardIndex += 1) {
+  // Hole-free public grid (masonry R5, owner 2026-11-10): single-column cards go to the lowest column in order; a wide card spans
+  // only two adjacent columns whose bottoms differ by at most BLEED_GAP_RATIO gap and BLEED_MEDIA_RATIO of the trimmed media.
+  // The difference is closed by trimming the media of the longer column's last card (cover crops top and bottom evenly), so every
+  // spacing equals the gap. Without such a pair the wide card waits and later cards go on; once single-column cards run out the
+  // waiting wide cards form the tail band, and holes under them are recorded in `holes` for the skeleton batch to fill.
+  const lastIn = (column) => state.placements.findLast((item) => item.left <= column && column < item.left + item.width);
+  const productCandidate = (cardIndex, placement) => {
+    consumeOperation();
+    const staggerViolations = productStaggerViolations(state, placement, columns);
+    if (staggerViolations) alignedCandidateAttempts += 1;
+    else preferredCandidateAttempts += 1;
+    return { cardIndex, placement, score: placement.y, staggerViolations };
+  };
+  const levelPair = (left, allowStack) => {
+    const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
+    if (!a && !b) return { left, y: 0, bleed: null };
+    if (!a || !b) return null;
+    // Mid-grid, never stack a wide card directly on a wide card of the same column pair.
+    if (!allowStack && lastIn(left) && lastIn(left) === lastIn(left + 1)) return null;
+    const diff = Math.abs(a - b);
+    if (diff <= 0.05) return { left, y: Math.max(a, b) + interCardGap, bleed: null };
+    const target = lastIn(a > b ? left : left + 1);
+    // Never trim a suggestion card, a two-column card, or a bottom not made by a card (pinned primary in related).
+    if (!target || target.width !== 1 || target.card.kind === "suggestion" || Math.abs(target.y + target.pixelHeight - Math.max(a, b)) > 0.05) return null;
+    if (diff > Math.min(BLEED_GAP_RATIO * interCardGap, BLEED_MEDIA_RATIO * target.mediaPixelHeight) + 1e-9) return null;
+    return { left, y: Math.min(a, b) + interCardGap, bleed: { id: target.card.id, amount: diff } };
+  };
+  const firstBy = (slots) => slots.filter(Boolean).sort((a, b) => a.y - b.y || a.left - b.left)[0];
+  const widePlacement = (card, slot) => ({
+    ...placementAt(card, slot.left, 2, slot.y, cardWidth, interCardGap, captionPixelHeight),
+    bleed: slot.bleed || null,
+    hole: slot.hole || null,
+  });
+  const productCandidates = () => {
+    const pairs = Array.from({ length: Math.max(0, columns - 1) }, (_, left) => left);
+    // The wide slot does not depend on the card: compute it once per depth; if the first wide card does not fit, all wide cards wait.
+    let wideSlot;
+    for (let cardIndex = 0; cardIndex < remaining.length; cardIndex += 1) {
       const card = remaining[cardIndex];
-      for (const placement of candidatePlacement(card, state, columns, cardWidth, interCardGap, captionPixelHeight, settings)) {
-        const shape = `${placement.left}:${placement.mediaPixelHeight}:${card.kind || "photo"}`;
-        if (productLayout && seenShapes.has(shape)) continue;
-        seenShapes.add(shape);
+      if (card.kind !== "suggestion" && canSpanTwoColumns(columns, layoutMedia(card))) {
+        if (wideSlot === undefined) {
+          consumeOperation();
+          const slot = firstBy(pairs.map((left) => levelPair(left, false)));
+          // While the first row still has an empty column (column 4 beside primary in related), wide cards only enter the first row.
+          wideSlot = slot && (slot.y === 0 || state.columnBottoms.every(Boolean)) ? slot : null;
+        }
+        if (wideSlot) return [productCandidate(cardIndex, widePlacement(card, wideSlot))];
+        continue;
+      }
+      const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
+      const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
+      return [productCandidate(cardIndex, placementAt(card, column, 1, y, cardWidth, interCardGap, captionPixelHeight))];
+    }
+    // Tail band: only wide cards remain. Use a level pair (stacking allowed) or a pair whose hole fits a skeleton frame (a hole
+    // thinner than the thinnest frame the batch keeps cannot be filled); otherwise the card stays single-column.
+    const card = remaining[0];
+    if (!card) return [];
+    const holed = (left) => {
+      const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
+      const cavity = Math.abs(a - b);
+      if (!a || !b || cavity - interCardGap < MIN_HOLE_FILL_RATIO * cardWidth || cavity > ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) return null;
+      const column = a < b ? left : left + 1;
+      return { left, y: Math.max(a, b) + interCardGap, hole: { column, top: Math.min(a, b) + interCardGap, height: cavity - interCardGap } };
+    };
+    // Prefer the pair containing the lowest column (most even tail), then lower top, then no hole, then leftmost.
+    const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
+    const touches = (slot) => Number(column !== slot.left && column !== slot.left + 1);
+    // Lowest column still empty while another has cards (column 4 beside primary in related): the card fills it single-column.
+    const emptyBeside = !state.columnBottoms[column] && state.columnBottoms.some(Boolean);
+    const slot = emptyBeside ? null : pairs.flatMap((left) => [levelPair(left, true), holed(left)]).filter(Boolean)
+      .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];
+    if (slot) return [productCandidate(0, widePlacement(card, slot))];
+    const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
+    return [productCandidate(0, placementAt(card, column, 1, y, cardWidth, interCardGap, captionPixelHeight))];
+  };
+
+  const candidatesAtDepth = () => {
+    if (productLayout) return productCandidates();
+    const candidates = [];
+    const window = Math.min(remaining.length, SEARCH_WINDOW_SIZE);
+    for (let cardIndex = 0; cardIndex < window && candidates.length < SEARCH_CANDIDATE_LIMIT; cardIndex += 1) {
+      const card = remaining[cardIndex];
+      for (const placement of candidatePlacement(card, state, columns, cardWidth, interCardGap, captionPixelHeight)) {
         consumeOperation();
         if (hasGeometryConflict(state, placement, columns, cardWidth)) continue;
-        const staggerViolations = productLayout ? productStaggerViolations(state, placement, columns) : 0;
-        if (staggerViolations) alignedCandidateAttempts += 1;
-        else preferredCandidateAttempts += 1;
+        preferredCandidateAttempts += 1;
         const columnBottoms = state.columnBottoms.slice();
         for (const column of spanColumns(placement)) columnBottoms[column] = placement.y + placement.pixelHeight;
-        const score = productLayout
-          ? placement.y
-          : Math.max(...columnBottoms) + placement.cavity * 0.25 + (Math.max(...columnBottoms) - Math.min(...columnBottoms)) * 0.001;
-        candidates.push({ cardIndex, placement, score, staggerViolations });
-        if (!productLayout && candidates.length >= SEARCH_CANDIDATE_LIMIT) break;
+        const score = Math.max(...columnBottoms) + placement.cavity * 0.25 + (Math.max(...columnBottoms) - Math.min(...columnBottoms)) * 0.001;
+        candidates.push({ cardIndex, placement, score, staggerViolations: 0 });
+        if (candidates.length >= SEARCH_CANDIDATE_LIMIT) break;
       }
     }
-    if (productLayout && candidates.length) {
-      const single = candidates.filter(({ placement }) => placement.width === 1);
-      const minimumY = Math.min(...single.map(({ placement }) => placement.y));
-      const natural = single
-        .filter(({ placement }) => Math.abs(placement.y - minimumY) <= 1e-9)
-        .sort((a, b) => a.placement.left - b.placement.left || a.staggerViolations - b.staggerViolations)[0];
-      // Card ngang tỷ lệ vàng trải sang cột kề của cột thấp nhất; candidate 2 cột đã lọc lỗ quá ngưỡng. Hai cột kề
-      // cùng đạt thì chọn top thấp hơn (lỗ nhỏ hơn), hòa thì cột trái.
-      const column = natural.placement.left;
-      const wide = candidates
-        .filter(({ placement }) => placement.width === 2 && (placement.left === column || placement.left === column - 1))
-        .sort((a, b) => a.placement.y - b.placement.y || a.placement.left - b.placement.left)[0];
-      // Card đủ điều kiện luôn lấy chỗ 2 cột, không đưa bản một cột làm phương án lùi khi search backtrack: lùi sẽ
-      // âm thầm thu card về một cột và đổi hash. Catalog thật vốn đi pha fallback (35/35 layout, đo 2026-11-10).
-      return [wide || natural];
-    }
-    return candidates.sort((a, b) => a.staggerViolations - b.staggerViolations || a.score - b.score || bySource(a.placement.card, b.placement.card) || a.placement.left - b.placement.left).slice(0, SEARCH_CANDIDATE_LIMIT);
+    return candidates.sort((a, b) => a.score - b.score || bySource(a.placement.card, b.placement.card) || a.placement.left - b.placement.left).slice(0, SEARCH_CANDIDATE_LIMIT);
   };
 
   const apply = (candidate) => {

@@ -176,7 +176,7 @@ function goldenCatalogFixture() {
 test("M01d fixture layout retains golden coordinate hash, order and no filler", () => {
   const cards = goldenCatalogFixture();
   const order = cards.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "7d503988", 0], [1440, "77774588", 8]]) {
+  for (const [layoutViewportWidth, expectedHash, expectedWide] of [[390, "d9b2cebd", 0], [1440, "a7384446", 12]]) {
     const layout = compileAdvertisingProductLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -297,7 +297,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v15");
+  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v16");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
@@ -407,23 +407,36 @@ test("R5 golden-ratio covers span two columns from 3 columns and stay one column
   assert.equal(productLayoutOf(suggestion, 1440).placements[0].width, 1, "the related suggestion block never spans");
 });
 
-test("R5 a golden-ratio cover stays one column when spanning would leave a hole over half a column", () => {
-  // 768px: 3 cột rộng 229.33px, gap 15px. Ba card đầu nằm ở hàng đầu, card ngang 2:1 tới cột thấp nhất.
+test("R5 a golden-ratio cover spans only level columns mid-grid and falls to the tail band otherwise", () => {
+  // 768px: 3 columns 229.33px wide, gap 15px; edge trim at most 0.25 x 15 = 3.75px and 5% media.
   const cardWidth = (768 - 2 * 25 - 2 * 15) / 3;
-  const layoutFor = (heights) => {
-    const cards = fixture([...heights.map((height) => [cardWidth, height]), [2, 1]], "wide-hole");
-    return productLayoutOf(cards, 768).placements.find(({ card }) => card.id === "wide-hole-0003");
-  };
-  const atLimit = layoutFor([200, 200 + 0.5 * cardWidth, 600]);
-  assert.deepEqual([atLimit.left, atLimit.width], [0, 2], "a hole of exactly half a column still spans");
-  assert.ok(Math.abs(atLimit.y - (200 + 0.5 * cardWidth + 15)) < 1e-6, "the wide card drops to the taller bottom");
-  const overLimit = layoutFor([200, 200 + 0.5 * cardWidth + 1, 600]);
+  const layoutOf = (heights, after = []) => productLayoutOf(fixture([...heights.map((height) => [cardWidth, height]), [2, 1],
+    ...after.map((height) => [cardWidth, height])], "wide-hole"), 768);
+  const wideOf = (layout) => layout.placements.find(({ card }) => card.id === "wide-hole-0003");
+  const level = layoutOf([400, 200, 500], [185]);
+  assert.deepEqual([wideOf(level).left, wideOf(level).width], [0, 2], "the wide card waits until two adjacent bottoms meet");
+  assert.ok(Math.abs(wideOf(level).y - 415) < 1e-6);
+  assert.ok(level.placements.find(({ card }) => card.id === "wide-hole-0004").y < wideOf(level).y, "a later card fills first");
+  assert.deepEqual(level.holes, []);
+  assertGrid(level, "wide waits for level bottoms", 5);
+  const bleed = layoutOf([200, 203, 600]);
+  assert.deepEqual([wideOf(bleed).left, wideOf(bleed).width], [0, 2], "a 3px step is closed by cropping");
+  assert.ok(Math.abs(wideOf(bleed).y - 215) < 1e-6, "the wide card sits on the shorter bottom");
+  const cropped = bleed.placements.find(({ card }) => card.id === "wide-hole-0001");
+  assert.ok(Math.abs(cropped.mediaBleed - 3) < 1e-6 && Math.abs(cropped.mediaPixelHeight - 200) < 1e-6, "the taller card loses the step");
+  assertGrid(bleed, "bleed closes the step", 4);
+  const overBleed = wideOf(layoutOf([200, 204, 600]));
+  assert.deepEqual([overBleed.left, overBleed.width], [0, 1], "4px is over 0.25 gap and too small for a filler: one column");
+  const atLimit = layoutOf([200, 200 + 0.5 * cardWidth, 600]);
+  assert.deepEqual([wideOf(atLimit).left, wideOf(atLimit).width], [0, 2], "a tail hole of half a column still spans");
+  assert.ok(Math.abs(wideOf(atLimit).y - (200 + 0.5 * cardWidth + 15)) < 1e-6, "the wide card drops to the taller bottom");
+  assert.deepEqual(atLimit.holes.map(({ column, top, height }) => [column, top, Math.round(height * 1000) / 1000]),
+    [[0, 215, Math.round((0.5 * cardWidth - 15) * 1000) / 1000]], "the tail hole is handed to the skeleton batch");
+  assertGrid(atLimit, "tail hole", 4);
+  const overLimit = wideOf(layoutOf([200, 200 + 0.5 * cardWidth + 1, 600]));
   assert.deepEqual([overLimit.left, overLimit.width], [0, 1], "a larger hole keeps one column");
   assert.ok(Math.abs(overLimit.y - 215) < 1e-6, "the one-column card sits at the shortest bottom");
-  const bothNeighbours = layoutFor([300, 200, 250]);
-  assert.deepEqual([bothNeighbours.left, bothNeighbours.width], [1, 2], "the neighbour with the lower top wins");
-  assert.ok(Math.abs(bothNeighbours.y - 265) < 1e-6);
-  const sideOnly = layoutFor([200, 600, 210]);
+  const sideOnly = wideOf(layoutOf([200, 600, 210]));
   assert.deepEqual([sideOnly.left, sideOnly.width], [0, 1], "a small gap to a non-adjacent column does not count");
 });
 
@@ -751,13 +764,13 @@ test("organic order preserves a hard-safe requested layout when only its full bu
   const options = {
     cards, categoryOrder: ["organic-budget"], columns: 4,
     layoutViewportWidth: 1024, presentationOrder: cards.map(({ id }) => id),
-    operationBudget: 64,
+    operationBudget: 16,
   };
   const baseline = compileAdvertisingProductLayout(options);
   assertGrid(baseline, "hard-safe requested order", cards.length);
   const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });
   assertGrid(layout, "organic bounded fallback", cards.length);
-  assert.equal(layout.diagnostics.operations, 64);
+  assert.equal(layout.diagnostics.operations, 16);
   assert.ok(layout.diagnostics.operations <= layout.diagnostics.budget);
   assert.deepEqual(layout.diagnostics.placementOrder, baseline.diagnostics.placementOrder);
 });
@@ -788,7 +801,7 @@ test("organic order keeps the 19-card pool hard-safe at the production operation
 
 test("organic order diagnoses a deliberately insufficient 19-card budget without exceeding it", () => {
   const options = organicTightBudgetOptions();
-  const operationBudget = 128;
+  const operationBudget = 32;
   assert.throws(
     () => compileAdvertisingProductLayout({ ...options, organicOrder: true, operationBudget }),
     (error) => error.code === "search-exhausted" && error.diagnostic.budget === operationBudget

@@ -43,7 +43,9 @@ card masonry" chọn theo hai attribute này, không liệt kê từng loại ca
 
 Card thật, item ghim (primary và card gợi ý ở detail) và khung batch skeleton đều xếp bằng solver của `layout-core.mjs`,
 cùng luật span một hoặc hai cột ([masonry R5](advertising-masonry.md#r5-hình-học-masonry),
-[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Related đặt primary và gợi ý là item ghim
+[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Không lỗ giữa lưới ở cả ba nơi: card hai
+cột chờ cặp cột bằng đáy (cắt khép mép tối đa `min(0.25 × khoảng giữa, 5%)` media), card hai cột còn chờ thành dải cuối
+và batch skeleton lấp lỗ dưới chúng (`layout.holes`). Related đặt primary và gợi ý là item ghim
 ([detail R7](advertising-detail.md#r7-related)); skeleton đổi band và số khung bằng attribute trên batch
 ([skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)).
 

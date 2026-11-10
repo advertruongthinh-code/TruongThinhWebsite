@@ -2883,6 +2883,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...skeletonBatchConfig,
       seed: browseHistory.current.seed,
       bandAssignments: skeletonRatioBandBySlot,
+      holes: hostGeometry.holes || [],
     });
     frameLayout.forEach(({ slot, band }) => skeletonRatioBandBySlot.set(slot, band));
     const neededSlots = new Set(frameLayout.map(({ slot }) => slot));
