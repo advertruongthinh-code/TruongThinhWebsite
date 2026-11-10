@@ -1,7 +1,7 @@
 // Ngân sách dựng card theo frame (advertising-masonry R7): quota theo chi phí đo, vuốt cực nhanh chỉ giữ chỗ.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { breathePhase, createDetachedCards, createMountBudget, detachedCapacity } from "../../src/site/advertising-products/mount-budget.mjs";
+import { breathePhase, createDetachedCards, createMountBudget, detachedCapacity } from "../../src/site/masonry/mount-budget.mjs";
 
 const clock = () => {
   const state = { now: 1000 };

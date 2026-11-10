@@ -56,7 +56,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
     { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
     await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
@@ -67,7 +67,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
       await page.waitForTimeout(80);
     }
   } else {
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), cardId);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), cardId);
   }
   const card = page.locator(selector);
   await card.waitFor({ state: "visible" });

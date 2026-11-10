@@ -1,6 +1,6 @@
 # Primary ảnh Advertising
 
-Nguồn: `src/site/advertising-products/detour-path.mjs`; CSS `.advertising-photo-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
+Nguồn: `src/site/masonry/detour-path.mjs`; CSS `.advertising-photo-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
 
 Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, mô tả, CTA trao
 đổi và suggestion. Markup khung tĩnh trong `advertising-products/index.html`
@@ -8,8 +8,8 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 
 ## Bố cục
 
-- Rộng `min(3, số cột)` cột masonry (`computeAdvertisingPhotoGeometry` trong
-  `layout-core.mjs`).
+- Rộng `min(3, số cột)` cột masonry (`computeDetailGeometry` trong
+  `masonry/layout.mjs`).
 - Bốn cột hoặc màn hình ngang (`split`): ảnh bên trái, chữ một cột bên phải,
   cao bằng viewport trừ header và gutter; bốn cột thì trừ thêm 50px để lộ hàng
   ảnh dưới. Hai hoặc ba cột trên màn hình dọc (`pinterest`): ảnh trên, chữ

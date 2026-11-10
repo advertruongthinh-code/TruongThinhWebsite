@@ -86,7 +86,7 @@ compatibility trong Worker dormant; không dùng chúng làm canonical source pa
    `renderDetailComposition(category, products)` và ghi sáu detail route.
 3. `src/site/motion.js` giữ locale, route veil, header/menu, scroll và motion;
    `src/site/detail.js` mount detail behavior và điều phối catalog lifecycle.
-4. `src/site/advertising-products/catalog-runtime.mjs` validate artifact,
+4. `src/site/masonry/runtime.mjs` validate artifact,
    compile geometry, mount filter/masonry, virtualization, media replay và cleanup.
 5. `scripts/tooling/serve-static-parity.mjs` phục vụ `.site-output/`; output
    generated không được edit.
@@ -101,7 +101,7 @@ nguồn sở hữu contract thay vì chép lại toàn bộ requirement.
 | Boundary | Dữ liệu/capability | Khi lỗi |
 | --- | --- | --- |
 | Source → build | Catalog, layout, template, local media | Generator throw khi thiếu hero/media hoặc block kind/source không hợp lệ; output lỗi không được coi là release |
-| Artifact → catalog runtime | `catalog-artifact.mjs`, version, category/card invariant | `catalog-runtime.mjs` fail-closed khi artifact/version/dependency không hợp lệ; no-script card shell vẫn là fallback markup |
+| Artifact → catalog runtime | `catalog-artifact.mjs`, version, category/card invariant | `masonry/runtime.mjs` fail-closed khi artifact/version/dependency không hợp lệ; no-script card shell vẫn là fallback markup |
 | Runtime dependency | Masonry, Lazysizes, GSAP, Swiper | Nội dung đọc được; catalog enhancement hoặc motion không được phép làm mất content; Advertising detail carousel giữ native state khi Swiper lỗi |
 | Public static → CMS | Static HTML và dữ liệu published tương lai | Static output giữ vai trò fallback/rollback; CMS incident không được làm mất static route |
 | Admin write | Access JWT, asserted email, allowlist, origin và input validation | Từ chối request; không lộ admin state ra public |

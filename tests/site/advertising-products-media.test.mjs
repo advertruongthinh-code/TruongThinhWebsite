@@ -416,24 +416,24 @@ test("card products start with the plan map and R8 relabels, then ranked seconda
 });
 
 test("filter matches every product and cluster on the card by rank, and ?category= accepts old and new slugs", async () => {
-  const { advertisingFilterRank, matchesAdvertisingFilter } = await import("../../src/site/advertising-products/layout-core.mjs");
+  const { filterRank, matchesFilter } = await import("../../src/site/masonry/layout.mjs");
   const previousWindow = globalThis.window;
   globalThis.window = {};
-  const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+  const { parseBrowseLocation, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
   globalThis.window = previousWindow;
   // Gherkin R1: card hiện ở mọi sản phẩm và mọi cụm của nó; hạng 0 là sản phẩm chính.
   const decal = ADVERTISING_CARDS.find(({ id }) => id === "print-decals-21");
   assert.deepEqual(decal.productIds.slice(0, 2), ["printing-decals/decals-banners-canvas", "office-signs/room-signs"]);
   for (const [filter, rank] of [["printing-decals", 0], ["printing-decals/decals-banners-canvas", 0], ["office-signs", 1], ["office-signs/room-signs", 1]]) {
-    assert.ok(matchesAdvertisingFilter(decal, filter), filter);
-    assert.equal(advertisingFilterRank(decal, filter), rank, filter);
+    assert.ok(matchesFilter(decal, filter), filter);
+    assert.equal(filterRank(decal, filter), rank, filter);
   }
-  assert.ok(!matchesAdvertisingFilter(decal, "mobile-retail"));
-  assert.equal(advertisingFilterRank(decal, "all"), 0);
+  assert.ok(!matchesFilter(decal, "mobile-retail"));
+  assert.equal(filterRank(decal, "all"), 0);
   assert.deepEqual(Object.fromEntries(ADVERTISING_CLUSTERS.map(({ legacySlug, id }) => [legacySlug, id])), clusterByCategory);
   const artifact = buildAdvertisingArtifact();
   const schema = { cards: artifact.cards, categories: artifact.categories };
-  const browseAt = (locale, category) => parseAdvertisingBrowseLocation(
+  const browseAt = (locale, category) => parseBrowseLocation(
     `https://example.test/${locale}/advertising-products/?category=${encodeURIComponent(category)}`, schema).category;
   for (const cluster of ADVERTISING_CLUSTERS) {
     for (const slug of [cluster.legacySlug, cluster.id, cluster.slugVi, cluster.slugEn]) {
@@ -441,7 +441,7 @@ test("filter matches every product and cluster on the card by rank, and ?categor
       assert.equal(browseAt("en", slug), cluster.id, slug);
     }
     for (const [locale, slug] of [["vi", cluster.slugVi], ["en", cluster.slugEn]]) {
-      const url = serializeAdvertisingBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
+      const url = serializeBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
       assert.equal(url.searchParams.get("category"), slug);
     }
   }

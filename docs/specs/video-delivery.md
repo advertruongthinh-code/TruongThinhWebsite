@@ -3,7 +3,7 @@ title: Video thích ứng mạng (adaptive bitrate)
 status: live
 source:
   - scripts/site/build-video-ladder.mjs
-  - src/site/advertising-products/video-source.mjs
+  - src/site/media/video-source.mjs
 tests:
   - tests/site/video-ladder.test.mjs
   - tests/site/primary-video-keyframes.test.mjs

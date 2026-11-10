@@ -13,7 +13,7 @@
   }
   if (["advertising-products", "projects"].includes(directContainer?.dataset.barbaNamespace)
     && (navigationType === "back_forward" || historyFallback)) {
-    window.__ttAdvertisingBrowseStartupHistory = {
+    window.__ttBrowseStartupHistory = {
       navigationType,
       historyFallback,
       state: nativeState,
@@ -113,8 +113,8 @@
   // chung module, không tải hai lần; nếu chờ runtime tải xong mới import thì artifact trễ một vòng mạng.
   const loadAdvertisingCatalog = () => Promise.all([
     ensureAdvertisingDependencies(),
-    import("/advertising-products/catalog-runtime.mjs").then((runtime) => {
-      runtime.preloadAdvertisingCatalog();
+    import("/masonry/runtime.mjs").then((runtime) => {
+      runtime.preloadMasonry();
       return runtime;
     }),
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
@@ -290,9 +290,9 @@
 
     if (container.dataset.barbaNamespace === "advertising-products") {
       state.catalogReady = loadAdvertisingCatalog()
-        .then(({ mountAdvertisingCatalog }) => {
+        .then(({ mountMasonry }) => {
           if (!abort.signal.aborted) {
-            return mountAdvertisingCatalog(container, {
+            return mountMasonry(container, {
               signal: abort.signal,
               scroll: window.TruongThinhMotion,
               softNavigation,
@@ -311,8 +311,8 @@
       // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");
-      state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/advertising-products/catalog-runtime.mjs")])
-        .then(([artifact, , { mountAdvertisingCatalog }]) => {
+      state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/masonry/runtime.mjs")])
+        .then(([artifact, , { mountMasonry }]) => {
           if (emptyLine && rail) {
             const syncEmpty = () => {
               const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
@@ -323,7 +323,7 @@
             observers.push(railObserver);
           }
           if (!abort.signal.aborted) {
-            return mountAdvertisingCatalog(container, {
+            return mountMasonry(container, {
               signal: abort.signal,
               scroll: window.TruongThinhMotion,
               softNavigation,

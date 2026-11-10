@@ -2,7 +2,7 @@
 title: Viewer Advertising theo cử chỉ tay
 status: live
 source:
-  - src/site/advertising-products/photo-viewer.mjs
+  - src/site/masonry/detail-viewer.mjs
 tests:
   - tests/site/advertising-viewer-touch.e2e.mjs
   - tests/site/advertising-photo-view.e2e.mjs
@@ -250,9 +250,9 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
 | DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
 | CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
-| Hàm public | `TruongThinhAdvertising.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
+| Hàm public | `TruongThinhMasonry.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
 | DOM hook | `[data-advertising-photo-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |
-| Hàm public | `createAdvertisingPhotoViewer` | Giữ option; trả thêm `popState` (R10); chạm nghe trên khung của `heroImage` (R7) |
+| Hàm public | `createDetailViewer` | Giữ option; trả thêm `popState` (R10); chạm nghe trên khung của `heroImage` (R7) |
 
 Pointer Events thuần, không thêm thư viện gesture. Page pinch ngoài viewer giữ
 nguyên vì meta viewport không đổi. Xoay chỉ đổi `transform` của ảnh, không đổi

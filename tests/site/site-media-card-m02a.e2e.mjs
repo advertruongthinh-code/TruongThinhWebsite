@@ -81,9 +81,9 @@ async function openFixture(page, locale, { videoCover = false, direct = false, p
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   const query = direct ? photoOnly ? `?photo=${card.id}` : `?category=${card.category}&photo=${card.id}` : `?category=${card.category}`;
   await page.goto(`${base}/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()), null, { timeout: 5_000 });
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), null, { timeout: 5_000 });
   if (direct) await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
-  else await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), card.id);
+  else await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), card.id);
   return relatedMedia ? { card, related } : card;
 }
 
@@ -1424,7 +1424,7 @@ test("M02a route unmount pauses and unloads the primary video", async () => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     const video = page.locator("[data-advertising-photo-video]");
     await video.evaluate((node) => node.play());
-    await page.evaluate(() => window.TruongThinhAdvertising.unmount());
+    await page.evaluate(() => window.TruongThinhMasonry.unmount());
     const state = await video.evaluate((node) => ({ paused: node.paused, hasSrc: node.hasAttribute("src"),
       readyState: node.readyState }));
     assert.equal(state.paused, true);

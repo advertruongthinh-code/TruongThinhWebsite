@@ -4,10 +4,10 @@ status: live
 source:
   - src/site/advertising-products/index.html
   - src/site/advertising-products/catalog.mjs
-  - src/site/advertising-products/catalog-runtime.mjs
-  - src/site/advertising-products/layout-core.mjs
-  - src/site/advertising-products/layout-worker.mjs
-  - src/site/advertising-products/random-order.mjs
+  - src/site/masonry/runtime.mjs
+  - src/site/masonry/layout.mjs
+  - src/site/masonry/layout-worker.mjs
+  - src/site/masonry/random-order.mjs
   - src/site/advertising-products/media-contract.mjs
   - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/photo-tags.mjs
@@ -110,8 +110,8 @@ And mỗi lần bấm, aria-current nằm trên đúng một nút
 
 ### R4. Thứ tự ngẫu nhiên theo lượt duyệt
 
-Mỗi lượt duyệt có một seed (`createAdvertisingSeed`). Pool của mỗi filter được xáo Fisher-Yates bằng seed với scope
-`grid:<filter>` rồi xếp ổn định theo hạng (`advertisingFilterRank`, taxonomy R1), nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ. Khi pool có ít nhất 2 ảnh cao (h/w
+Mỗi lượt duyệt có một seed (`createBrowseSeed`). Pool của mỗi filter được xáo Fisher-Yates bằng seed với scope
+`grid:<filter>` rồi xếp ổn định theo hạng (`filterRank`, taxonomy R1), nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ. Khi pool có ít nhất 2 ảnh cao (h/w
 `>= 1.15`) và 2 ảnh thấp (`<= 0.9`), solver organic có thể đổi thứ tự trình bày để 12 card đầu có cả hai loại, không
 quá 4 ảnh cùng loại liền nhau; không cải thiện được thì giữ thứ tự seed và ghi lý do. Seed mới khi F5, mở URL trực tiếp,
 vào trang bằng link hoặc route mềm mới. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
@@ -129,8 +129,8 @@ Then trước F5 thứ tự card không đổi; sau F5 seed mới, pool giữ đ
 Bề rộng tính từ `documentElement.clientWidth` (không gồm thanh cuộn). Lề ngoài 15/25/35px khi viewport `<= 750`,
 `<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề, không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng giữa.
 Card rộng một cột (trừ card hai cột dưới), cao bằng ảnh theo tỷ lệ gốc, không caption (card nhiều media thêm dải control 44px theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)); mount `captions: true` (trang Công trình) cộng chỗ tên dưới mỗi card và mỗi khung skeleton (`captionPixelHeight`, [media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le; chỉ cắt khép mép dưới card hai cột như đoạn sau.
-Card hai cột (owner 2026-11-09, mọi masonry: lưới chính, filter, related, Công trình): ảnh bìa (`layoutMedia`) ngang có `w/h >= 1.618` (`isAdvertisingWideMedia`: `w × 1000 >= h × 1618`, không phép chia nên không lệch do làm tròn) rộng hai cột cộng một khoảng giữa khi `C >= 3`; `C = 2` (điện thoại), ảnh dưới tỷ lệ vàng và khối gợi ý của related luôn một cột, `layoutSpan` cũ không có tác dụng.
-Không lỗ (owner 2026-11-10, `advertising-grid-v16`): giữa lưới không có khoảng trống nào ngoài khoảng giữa. Card hai cột chỉ đặt trên hai cột kề có đáy bằng nhau, hoặc chênh không quá `0.25 ×` khoảng giữa (9/6/4px ở khoảng giữa 35/25/15px) và không quá `5%` chiều cao media của card bị cắt; top bằng đáy thấp hơn cộng khoảng giữa. Phần chênh khép bằng cách cắt card cuối của cột dài hơn: khung media thấp đi đúng phần chênh, ảnh và video phủ khung (`object-fit: cover`, cắt đều trên dưới), mọi media của card nhiều media cắt cùng mức; dải control 44px và tên dưới card không bị cắt, card tạm và blur lúc tải dùng đúng khung đã cắt (`mediaBleed` trên placement). Không cắt card gợi ý, card hai cột, primary (đáy ghim ở related) hay khung skeleton: card cuối là một trong số đó thì card hai cột chờ. Giữa lưới không đặt card hai cột ngay trên card hai cột của cùng cặp; hàng đầu còn cột trống (cột 4 cạnh primary ở related) thì card hai cột chỉ vào hàng đầu. Chưa có cặp hợp lệ thì card hai cột chờ, card sau đi tiếp theo thứ tự (R6); hết card một cột thì các card hai cột còn chờ thành dải cuối, theo thứ tự: cặp chứa cột thấp nhất, top thấp hơn, cặp không lỗ, cột trái. Ở dải cuối được chồng lên card hai cột và được để lỗ dưới card ở cột thấp hơn khi lỗ cao từ `0.25` tới `0.5` bề rộng cột; lỗ ghi vào `layout.holes` (`column`, `top`, `height`) cho batch skeleton lấp ([skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)). Không có cặp nào, hoặc cột thấp nhất còn trống cạnh cột đã có card, thì card giữ một cột. Đo catalog thật (All và 6 nhóm, 26 bề rộng 768–2560px, 182 layout): không lỗ giữa lưới, 185 card bị cắt, cắt nhiều nhất 4.63%, 37 lỗ dải cuối. Phase CMS: giao diện upload media cho card có bleeding indicator báo mức card có thể bị cắt tối đa (`min(0.25 × khoảng giữa, 5%)` chiều cao media ở từng bề rộng).
+Card hai cột (owner 2026-11-09, mọi masonry: lưới chính, filter, related, Công trình): ảnh bìa (`layoutMedia`) ngang có `w/h >= 1.618` (`isWideMedia`: `w × 1000 >= h × 1618`, không phép chia nên không lệch do làm tròn) rộng hai cột cộng một khoảng giữa khi `C >= 3`; `C = 2` (điện thoại), ảnh dưới tỷ lệ vàng và khối gợi ý của related luôn một cột, `layoutSpan` cũ không có tác dụng.
+Không lỗ (owner 2026-11-10, `masonry-grid-v16`): giữa lưới không có khoảng trống nào ngoài khoảng giữa. Card hai cột chỉ đặt trên hai cột kề có đáy bằng nhau, hoặc chênh không quá `0.25 ×` khoảng giữa (9/6/4px ở khoảng giữa 35/25/15px) và không quá `5%` chiều cao media của card bị cắt; top bằng đáy thấp hơn cộng khoảng giữa. Phần chênh khép bằng cách cắt card cuối của cột dài hơn: khung media thấp đi đúng phần chênh, ảnh và video phủ khung (`object-fit: cover`, cắt đều trên dưới), mọi media của card nhiều media cắt cùng mức; dải control 44px và tên dưới card không bị cắt, card tạm và blur lúc tải dùng đúng khung đã cắt (`mediaBleed` trên placement). Không cắt card gợi ý, card hai cột, primary (đáy ghim ở related) hay khung skeleton: card cuối là một trong số đó thì card hai cột chờ. Giữa lưới không đặt card hai cột ngay trên card hai cột của cùng cặp; hàng đầu còn cột trống (cột 4 cạnh primary ở related) thì card hai cột chỉ vào hàng đầu. Chưa có cặp hợp lệ thì card hai cột chờ, card sau đi tiếp theo thứ tự (R6); hết card một cột thì các card hai cột còn chờ thành dải cuối, theo thứ tự: cặp chứa cột thấp nhất, top thấp hơn, cặp không lỗ, cột trái. Ở dải cuối được chồng lên card hai cột và được để lỗ dưới card ở cột thấp hơn khi lỗ cao từ `0.25` tới `0.5` bề rộng cột; lỗ ghi vào `layout.holes` (`column`, `top`, `height`) cho batch skeleton lấp ([skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)). Không có cặp nào, hoặc cột thấp nhất còn trống cạnh cột đã có card, thì card giữ một cột. Đo catalog thật (All và 6 nhóm, 26 bề rộng 768–2560px, 182 layout): không lỗ giữa lưới, 185 card bị cắt, cắt nhiều nhất 4.63%, 37 lỗ dải cuối. Phase CMS: giao diện upload media cho card có bleeding indicator báo mức card có thể bị cắt tối đa (`min(0.25 × khoảng giữa, 5%)` chiều cao media ở từng bề rộng).
 
 ```gherkin
 Given viewport 768px, masonry đang ở All
@@ -203,8 +203,8 @@ Then hero không chạy lại, container giữ nguyên
 ### R10. Phụ thuộc, lỗi và không JavaScript
 
 `detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), Masonry 4.2.2, LazySizes
-5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `catalog-runtime.mjs`.
-Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `advertising-grid-v16`, nhóm không rỗng, card hợp lệ), cần Masonry.
+5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `masonry/runtime.mjs`.
+Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v16`, nhóm không rỗng, card hợp lệ), cần Masonry.
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-advertising-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
@@ -248,9 +248,9 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
 | Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới) |
-| Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow`, `isAdvertisingWideMedia` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs` (mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
-| Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation, artifact, viewer, captions})` | `detail.js` gọi; trả cleanup |
-| Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
+| Hàm public | `compileMasonryLayout`, `columnsForWidth`, `masonrySpacing`, `getVirtualWindow`, `isWideMedia` (`masonry/layout.mjs`); `createBrowseSeed`, `shuffleWithSeed` (`masonry/random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `masonry/layout-worker.mjs` (mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
+| Hàm public | `mountMasonry(container, {signal, scroll, softNavigation, artifact, viewer, captions})` | `detail.js` gọi; trả cleanup |
+| Hàm public | `window.TruongThinhMasonry`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
 | Event | `site:layout` | Phát cho shell khi chiều cao trang đổi (R6) |
 

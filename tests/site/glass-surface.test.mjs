@@ -2,12 +2,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
+import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/masonry/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
-const runtime = await read("advertising-products/catalog-runtime.mjs");
-const ctaBatch = await read("advertising-products/cta-batch.mjs");
+const runtime = await read("masonry/runtime.mjs");
+const ctaBatch = await read("masonry/cta-batch.mjs");
 
 // R1: chỉ các glass step và nền viewer sở hữu backdrop-filter (nền viewer blur trên mọi máy từ owner 2026-10-26).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());

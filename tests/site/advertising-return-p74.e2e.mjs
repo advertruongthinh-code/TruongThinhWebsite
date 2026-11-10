@@ -9,7 +9,7 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
     for (const via of ["back", "navbar", "navbar-related"]) {
       await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(1150));
       await page.waitForTimeout(500);
       const read = () => ({
@@ -70,7 +70,7 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
     const press = () => touch ? page.locator("[data-advertising-photo-back]").tap() : page.locator("[data-advertising-photo-back]").click();
     await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
     await page.waitForTimeout(500);
     const gridUrl = page.url();
@@ -107,7 +107,7 @@ try {
     assert(Math.abs(y - gridY) <= 1, `${width}: masonry scroll ${gridY} -> ${y}`);
     assert.equal(await page.evaluate(() => document.activeElement?.parentElement?.dataset.advertisingCard), cardId, "focus on card A");
     await page.goto(aUrl, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await press();
     await page.waitForTimeout(900);
     assert(!/\/p\/[^/]+\/$/.test(new URL(page.url()).pathname), `${width}: direct photo leaves detail`);
@@ -119,7 +119,7 @@ try {
     let previous;
     for (let run = 0; run < 2; run++) {
       await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.waitForTimeout(1600);
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
       await page.waitForTimeout(700);

@@ -1,24 +1,24 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { imageFormatReady, responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
+import { imageFormatReady, responsiveSource, responsiveSrcset } from "../media/responsive-image.mjs";
 import {
-  ADVERTISING_LAYOUT_ALGORITHM_VERSION,
-  ADVERTISING_SEARCH_OPERATION_BUDGET,
-  advertisingSpacing,
+  MASONRY_LAYOUT_VERSION,
+  MASONRY_SEARCH_BUDGET,
+  masonrySpacing,
   columnsForWidth,
-  computeAdvertisingPhotoGeometry,
-  compileAdvertisingProductLayout,
+  computeDetailGeometry,
+  compileMasonryLayout,
   fnv1a32,
   getVirtualWindow,
-  advertisingFilterRank,
-  matchesAdvertisingFilter,
-  normalizeAdvertisingProductSettings,
-  validateAdvertisingCards,
-} from "./layout-core.mjs";
-import { createAdvertisingPhotoViewer } from "./photo-viewer.mjs";
+  filterRank,
+  matchesFilter,
+  normalizeMasonrySettings,
+  validateMasonryCards,
+} from "./layout.mjs";
+import { createDetailViewer } from "./detail-viewer.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
-import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
+import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
   readSkeletonBatchConfig,
@@ -33,9 +33,9 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { createMasonryHost, isSizeMorph } from "./masonry-host.mjs";
-import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
-import { MEDIA_COLORS } from "./media-colors.mjs";
+import { createMasonryHost, isSizeMorph } from "./host.mjs";
+import { loadHls, releaseVideoSource, setVideoSource } from "../media/video-source.mjs";
+import { MEDIA_COLORS } from "../media/colors.mjs";
 import {
   breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
 } from "./mount-budget.mjs";
@@ -57,9 +57,9 @@ let lastClosedPhotoId = null;
 let artifactPromise;
 const GEOMETRY_CACHE_LIMIT = 24;
 const CAPTION_METRICS_VERSION = "advertising-caption-v2";
-const ADVERTISING_BROWSE_STATE_KEY = "advertisingBrowse";
-export const ADVERTISING_VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
-const ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS = 30_000;
+const BROWSE_STATE_KEY = "advertisingBrowse";
+export const VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
+const VISIT_SEED_HANDOFF_TTL_MS = 30_000;
 // Trang gốc và trang cụm, sản phẩm (taxonomy R4): /<locale>/advertising-products/[<cụm>/[<sản phẩm>/]].
 // Trang Công trình (projects R2) dùng chung runtime với gốc /<locale>/projects/; nhóm 2 là gốc, nhóm 3 là phần sau gốc.
 const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/(advertising-products|projects)(?:\/((?:[^/]+\/){0,2}))?$/;
@@ -178,15 +178,15 @@ function normalizedHandoffUrl(value) {
   }
 }
 
-export function writeAdvertisingVisitSeedHandoff(storage, targetUrl, seed, { now = Date.now() } = {}) {
+export function writeVisitSeedHandoff(storage, targetUrl, seed, { now = Date.now() } = {}) {
   const url = normalizedHandoffUrl(targetUrl);
   if (!storage || !url || typeof seed !== "string" || !seed || seed.length > 128 || !Number.isFinite(now)) return false;
   try {
-    storage.setItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY, JSON.stringify({
+    storage.setItem(VISIT_SEED_HANDOFF_KEY, JSON.stringify({
       version: 1,
       url,
       seed,
-      expiresAt: now + ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS,
+      expiresAt: now + VISIT_SEED_HANDOFF_TTL_MS,
     }));
     return true;
   } catch {
@@ -194,15 +194,15 @@ export function writeAdvertisingVisitSeedHandoff(storage, targetUrl, seed, { now
   }
 }
 
-export function consumeAdvertisingVisitSeedHandoff(storage, {
+export function consumeVisitSeedHandoff(storage, {
   targetUrl,
   navigationType,
   now = Date.now(),
 } = {}) {
   let serialized;
-  try { serialized = storage?.getItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
+  try { serialized = storage?.getItem(VISIT_SEED_HANDOFF_KEY); }
   catch { return null; }
-  try { storage?.removeItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
+  try { storage?.removeItem(VISIT_SEED_HANDOFF_KEY); }
   catch { /* Giá trị đọc được vẫn được validate và dùng cho lần khởi tạo này. */ }
   if (!serialized || navigationType !== "navigate" || !Number.isFinite(now)) return null;
   try {
@@ -228,7 +228,7 @@ const optionalFinite = (value) => value === null || value === undefined || value
 const nullableId = (value) => typeof value === "string" && value ? value : null;
 
 // pages: trang Công trình chỉ coi path là bộ lọc khi khớp một trang lọc; /projects/<slug>/ khác là trang chi tiết công trình.
-export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref, pages = null) {
+export function isQueryOnlyNavigation(previousHref, nextHref, pages = null) {
   let previous;
   let next;
   try {
@@ -250,7 +250,7 @@ export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref, pages =
 }
 
 // ?category= nhận id cụm, slug VI/EN, slug nhóm cũ (taxonomy R4) hoặc id sản phẩm; trả id filter hoặc null.
-const resolveAdvertisingFilter = (value, categories, cards) =>
+const resolveFilter = (value, categories, cards) =>
   categories.find((entry) => [entry.slug, entry.slugVi, entry.slugEn, entry.legacySlug].includes(value))?.slug
   ?? (cards.some((card) => card.productIds?.includes(value)) ? value : null);
 
@@ -262,14 +262,14 @@ const advertisingPathFilter = (pathname, pages) => {
 };
 
 // photos: false (trang Công trình, không có detail view) thì bỏ qua ?photo= và path trang card.
-export function parseAdvertisingBrowseLocation(input, { cards = [], categories = [], pages = [], tagRegistry = [], photos = true } = {}) {
+export function parseBrowseLocation(input, { cards = [], categories = [], pages = [], tagRegistry = [], photos = true } = {}) {
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
   const tagIds = new Set(tagRegistry.map((entry) => entry.id));
   const requestedPhoto = photos ? advertisingPhotoId(url) : null;
   const photoRecord = cardById.get(requestedPhoto);
   const requestedCategory = url.searchParams.get("category");
-  const category = photoRecord?.category || resolveAdvertisingFilter(requestedCategory, categories, cards)
+  const category = photoRecord?.category || resolveFilter(requestedCategory, categories, cards)
     || advertisingPathFilter(url.pathname, pages) || "all";
   const requestedTag = url.searchParams.get("tag");
   return {
@@ -279,7 +279,7 @@ export function parseAdvertisingBrowseLocation(input, { cards = [], categories =
   };
 }
 
-export function serializeAdvertisingBrowseLocation(input, browse = {}, categories = [], pages = []) {
+export function serializeBrowseLocation(input, browse = {}, categories = [], pages = []) {
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
   // Filter có trang (taxonomy R4) ghi thành path theo slug của locale; sản phẩm chưa có trang (R5) ghi path cụm kèm
@@ -305,7 +305,7 @@ export function serializeAdvertisingBrowseLocation(input, browse = {}, categorie
 const compareRelatedSource = (left, right) =>
   left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 
-export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
+export function selectRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
   // Tầng điểm build sẵn trong artifact (taxonomy R7); card cùng cụm còn lại (điểm 0) là tầng cuối.
@@ -334,7 +334,7 @@ export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroI
 // Nút gợi ý lấy từ sản phẩm (tag nhóm product, taxonomy R7) và tag của ảnh.
 const SUGGESTION_TAG_GROUPS = new Set(["product", "variant", "use"]);
 
-export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = null, limit = 4, tagRegistry = [] } = {}) {
+export function selectSuggestions({ cards = [], heroId, activeTag = null, limit = 4, tagRegistry = [] } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
   const tagById = new Map(tagRegistry.map((tag) => [tag.id, tag]));
@@ -391,16 +391,16 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
   });
 }
 
-export function compileAdvertisingRelatedLayout({
+export function compileRelatedLayout({
   cards = [], categoryOrder = [], columns: requestedColumns, datasetVersion, heroId,
   layoutViewportWidth, viewportHeight = 900, headerHeight = 0, safeTop = 0, safeBottom = 0,
   settings, measureDescriptionHeight, measureDescriptionMinimumHeight, minimumImageZoneHeight = 0,
   suggestionCard = null, tag = null, seed = null, primaryMedia = null,
-  compile = compileAdvertisingProductLayout,
+  compile = compileMasonryLayout,
 } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) throw new Error("Related layout requires a known photo");
-  const related = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag, seed });
+  const related = selectRelated({ cards, categoryOrder, heroId, tag, seed });
   const preferredColumns = Number.isInteger(requestedColumns) && requestedColumns >= 1 && requestedColumns <= 4
     ? requestedColumns : columnsForWidth(layoutViewportWidth);
   const columns = preferredColumns;
@@ -409,9 +409,9 @@ export function compileAdvertisingRelatedLayout({
     imageWidth: primaryMedia?.width || hero.media.width,
     imageHeight: primaryMedia?.height || hero.media.height, minimumImageZoneHeight,
   };
-  const basePrimary = computeAdvertisingPhotoGeometry(geometryOptions);
+  const basePrimary = computeDetailGeometry(geometryOptions);
   const primary = typeof measureDescriptionHeight === "function" || typeof measureDescriptionMinimumHeight === "function"
-    ? computeAdvertisingPhotoGeometry({ ...geometryOptions,
+    ? computeDetailGeometry({ ...geometryOptions,
       descriptionHeight: typeof measureDescriptionHeight === "function" ? measureDescriptionHeight(basePrimary.descriptionWidth, basePrimary.mode) : 0,
       minimumDescriptionHeight: typeof measureDescriptionMinimumHeight === "function" ? measureDescriptionMinimumHeight(basePrimary.descriptionWidth, basePrimary.mode, basePrimary) : 0 })
     : basePrimary;
@@ -431,8 +431,8 @@ export function compileAdvertisingRelatedLayout({
   const attempts = [];
   const canTryBelowPrimary = solverCards.length > 1 && primary.span < columns;
   const alongsideBudget = canTryBelowPrimary
-    ? Math.ceil(ADVERTISING_SEARCH_OPERATION_BUDGET / 2)
-    : ADVERTISING_SEARCH_OPERATION_BUDGET;
+    ? Math.ceil(MASONRY_SEARCH_BUDGET / 2)
+    : MASONRY_SEARCH_BUDGET;
   const compileAttempt = (mode, seed, operationBudget, attemptCards = solverCards) => {
     try {
       const compiled = compile({
@@ -456,13 +456,13 @@ export function compileAdvertisingRelatedLayout({
   } catch (error) {
     const isSearchExhausted = error?.code === "search-exhausted";
     const spent = attempts.reduce((total, attempt) => total + attempt.operations, 0);
-    const remainingBudget = ADVERTISING_SEARCH_OPERATION_BUDGET - spent;
+    const remainingBudget = MASONRY_SEARCH_BUDGET - spent;
     if (!isSearchExhausted || !canTryBelowPrimary || remainingBudget <= 0) {
       if (error?.diagnostic) {
         error.diagnostic = {
           ...error.diagnostic,
           operations: spent,
-          budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
+          budget: MASONRY_SEARCH_BUDGET,
           attempts,
         };
       }
@@ -476,7 +476,7 @@ export function compileAdvertisingRelatedLayout({
         fallbackError.diagnostic = {
           ...fallbackError.diagnostic,
           operations: attempts.reduce((total, attempt) => total + attempt.operations, 0),
-          budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
+          budget: MASONRY_SEARCH_BUDGET,
           attempts,
         };
       }
@@ -487,7 +487,7 @@ export function compileAdvertisingRelatedLayout({
     ...layout.diagnostics,
     preferredColumns,
     operations: attempts.reduce((total, attempt) => total + attempt.operations, 0),
-    budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
+    budget: MASONRY_SEARCH_BUDGET,
     attempts,
   };
   const original = new Map(solverSource.map((card) => [card.id, card]));
@@ -524,18 +524,18 @@ const normalizeBrowseHistoryState = (value = {}) => ({
   },
 });
 
-export function readAdvertisingBrowseHistoryState(browserState) {
+export function readBrowseHistoryState(browserState) {
   if (!browserState || typeof browserState !== "object") return null;
-  const direct = browserState[ADVERTISING_BROWSE_STATE_KEY];
+  const direct = browserState[BROWSE_STATE_KEY];
   if (direct) return normalizeBrowseHistoryState(direct);
   const index = Number(browserState.index);
   const stored = Number.isInteger(index)
-    ? browserState.states?.[index]?.data?.[ADVERTISING_BROWSE_STATE_KEY]
+    ? browserState.states?.[index]?.data?.[BROWSE_STATE_KEY]
     : null;
   return stored ? normalizeBrowseHistoryState(stored) : null;
 }
 
-export function createAdvertisingBrowseHistoryController({
+export function createBrowseHistoryController({
   cards = [],
   categories = [],
   pages = [],
@@ -551,7 +551,7 @@ export function createAdvertisingBrowseHistoryController({
     try { return globalThis.performance?.getEntriesByType?.("navigation")?.[0]?.type || null; }
     catch { return null; }
   },
-  createSeed = createAdvertisingSeed,
+  createSeed = createBrowseSeed,
   sessionStorage = safeSessionStorage(),
   now = Date.now,
   getLogicalScroll = () => 0,
@@ -562,15 +562,15 @@ export function createAdvertisingBrowseHistoryController({
   const nativeHistory = browserHistory || globalThis.history;
   const href = getHref || (() => globalThis.location.href);
   let currentHref = href();
-  const initialLocation = parseAdvertisingBrowseLocation(currentHref, schema);
+  const initialLocation = parseBrowseLocation(currentHref, schema);
   const barbaHistoryReady = () => {
     const entry = barbaHistory?.current;
     return Boolean(entry && entry.data && typeof entry.data === "object");
   };
   const navigationType = getNavigationType?.();
-  const initialHistory = readAdvertisingBrowseHistoryState(nativeHistory?.state)
+  const initialHistory = readBrowseHistoryState(nativeHistory?.state)
     || (navigationType === "back_forward" || historyFallback
-      ? readAdvertisingBrowseHistoryState(restoredHistoryState)
+      ? readBrowseHistoryState(restoredHistoryState)
       : null);
   const matchesLocation = (stored, located) => Boolean(stored)
     && stored.category === located.category
@@ -578,7 +578,7 @@ export function createAdvertisingBrowseHistoryController({
     && stored.tag === located.tag;
   const matchingInitialHistory = matchesLocation(initialHistory, initialLocation);
   const isReload = navigationType === "reload";
-  const localeHandoffSeed = consumeAdvertisingVisitSeedHandoff(sessionStorage, {
+  const localeHandoffSeed = consumeVisitSeedHandoff(sessionStorage, {
     targetUrl: currentHref,
     navigationType,
     now: now(),
@@ -599,15 +599,15 @@ export function createAdvertisingBrowseHistoryController({
     grid: matchingInitialHistory ? initialHistory.grid : undefined,
     detail: matchingInitialHistory ? initialHistory.detail : undefined,
   });
-  const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current, categories, pages);
+  const canonicalInitialUrl = serializeBrowseLocation(currentHref, current, categories, pages);
   const suppliedInitialUrl = new URL(currentHref);
   if (`${canonicalInitialUrl.pathname}${canonicalInitialUrl.search}` !== `${suppliedInitialUrl.pathname}${suppliedInitialUrl.search}`) {
     if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
-      barbaHistory.store({ [ADVERTISING_BROWSE_STATE_KEY]: current });
+      barbaHistory.store({ [BROWSE_STATE_KEY]: current });
     }
     nativeHistory?.replaceState?.({
       ...(nativeHistory.state || {}),
-      [ADVERTISING_BROWSE_STATE_KEY]: current,
+      [BROWSE_STATE_KEY]: current,
     }, "", `${canonicalInitialUrl.pathname}${canonicalInitialUrl.search}`);
     currentHref = canonicalInitialUrl.href;
   }
@@ -625,32 +625,32 @@ export function createAdvertisingBrowseHistoryController({
   });
   const storeCurrent = () => {
     current = snapshotWithScroll();
-    const stored = readAdvertisingBrowseHistoryState(barbaHistoryReady()
+    const stored = readBrowseHistoryState(barbaHistoryReady()
       ? barbaHistory.current.data : nativeHistory?.state);
     if (stored && JSON.stringify(stored) === JSON.stringify(current)) return;
     if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
-      barbaHistory.store({ [ADVERTISING_BROWSE_STATE_KEY]: current });
+      barbaHistory.store({ [BROWSE_STATE_KEY]: current });
       return;
     }
     if (nativeHistory?.replaceState) {
       nativeHistory.replaceState({
         ...(nativeHistory.state || {}),
-        [ADVERTISING_BROWSE_STATE_KEY]: current,
+        [BROWSE_STATE_KEY]: current,
       }, "", href());
     }
   };
   const write = (action, browse, reason) => {
     const normalized = normalizeBrowseHistoryState(browse);
-    const url = serializeAdvertisingBrowseLocation(href(), normalized, categories, pages);
+    const url = serializeBrowseLocation(href(), normalized, categories, pages);
     if (barbaHistoryReady() && typeof barbaHistory.add === "function") {
       barbaHistory.add(url.href, "barba", action, {
-        [ADVERTISING_BROWSE_STATE_KEY]: normalized,
+        [BROWSE_STATE_KEY]: normalized,
       });
     } else if (nativeHistory) {
       const method = action === "push" ? "pushState" : "replaceState";
       nativeHistory[method]?.({
         ...(nativeHistory.state || {}),
-        [ADVERTISING_BROWSE_STATE_KEY]: normalized,
+        [BROWSE_STATE_KEY]: normalized,
       }, "", `${url.pathname}${url.search}`);
     }
     current = normalized;
@@ -703,9 +703,9 @@ export function createAdvertisingBrowseHistoryController({
       return this.current;
     },
     handlePopState(event, previousHref, nextHref = href()) {
-      if (!isAdvertisingQueryOnlyNavigation(previousHref || currentHref, nextHref, pages)) return false;
-      const fromHistory = readAdvertisingBrowseHistoryState(event?.state);
-      const fromLocation = parseAdvertisingBrowseLocation(nextHref, schema);
+      if (!isQueryOnlyNavigation(previousHref || currentHref, nextHref, pages)) return false;
+      const fromHistory = readBrowseHistoryState(event?.state);
+      const fromLocation = parseBrowseLocation(nextHref, schema);
       current = normalizeBrowseHistoryState({
         ...(matchesLocation(fromHistory, fromLocation) ? fromHistory : {}),
         ...fromLocation,
@@ -744,7 +744,7 @@ export function createAdvertisingBrowseHistoryController({
       }, "photo");
     },
     replaceCategory(category) {
-      const valid = category === "all" || resolveAdvertisingFilter(category, categories, cards) === category;
+      const valid = category === "all" || resolveFilter(category, categories, cards) === category;
       if (!valid) return false;
       storeCurrent();
       return write("replace", { ...current, category }, "category");
@@ -760,7 +760,7 @@ export function createAdvertisingBrowseHistoryController({
       // Từ một photo, navbar giữ nhóm đã chọn trên masonry nguồn; vào thẳng photo hoặc grid nhóm thì về All.
       const category = (current.photo && current.grid.category) || "all";
       // Related photo nằm ngoài nhóm đó không có trong masonry, nên quay về photo đã mở từ nó.
-      const focusId = matchesAdvertisingFilter(cardById.get(viewedId), category) ? viewedId : current.grid.focusId;
+      const focusId = matchesFilter(cardById.get(viewedId), category) ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
       storeCurrent();
       return write("push", {
@@ -777,13 +777,13 @@ export function createAdvertisingBrowseHistoryController({
 
 const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT__
   ? Promise.resolve(window.__TT_ADVERTISING_ARTIFACT__)
-  : import("./catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
+  : import("../advertising-products/catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
 // Mô tả và related của card nằm riêng trong catalog-detail.mjs (artifact chỉ giữ phần grid cần). Artifact đã đủ trường
 // (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn từng trường còn thiếu vào card theo id (card CMS đã sửa có sẵn
 // mô tả mới, chỉ nhận related).
 let detailPromise;
-const loadCardDetail = () => detailPromise ||= import("./catalog-detail.mjs").then(({ default: detail }) => detail);
+const loadCardDetail = () => detailPromise ||= import("../advertising-products/catalog-detail.mjs").then(({ default: detail }) => detail);
 const attachCardDetail = (cards) => {
   if (cards.every((card) => card.descriptionVi !== undefined)) return Promise.resolve();
   return loadCardDetail().then((detail) => {
@@ -795,7 +795,7 @@ let warmWorker;
 // Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ. hls.js
 // tải ngay khi artifact có video (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã
 // hiện (đo cloud 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
-export const preloadAdvertisingCatalog = () => {
+export const preloadMasonry = () => {
   warmWorker ||= startLayoutWorker();
   loadArtifact().then(({ cards }) => {
     if (cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
@@ -804,7 +804,7 @@ export const preloadAdvertisingCatalog = () => {
 
 const currentLocale = () => document.documentElement.lang === "en" ? "en" : "vi";
 
-function surfaceAdvertisingLayoutStatus(grid, layout) {
+function surfaceLayoutStatus(grid, layout) {
   const diagnosticCode = layout?.diagnostics?.code;
   delete grid.dataset.advertisingLayoutError;
   if (diagnosticCode === "needs-media") {
@@ -816,7 +816,7 @@ function surfaceAdvertisingLayoutStatus(grid, layout) {
   delete grid.dataset.advertisingLayoutDiagnostic;
 }
 
-export function compileAdvertisingGeometry({ grid, options, compile = compileAdvertisingProductLayout }) {
+export function compileMasonryGeometry({ grid, options, compile = compileMasonryLayout }) {
   try {
     const layout = compile(options);
     const diagnosticCode = Reflect.get(layout?.diagnostics ?? {}, "code");
@@ -826,7 +826,7 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
         diagnostic: layout.diagnostics,
       });
     }
-    surfaceAdvertisingLayoutStatus(grid, layout);
+    surfaceLayoutStatus(grid, layout);
     return layout;
   } catch (error) {
     const code = error?.code || error?.diagnostic?.code || "compile-failed";
@@ -1425,11 +1425,11 @@ function sizeNode(node, placement, setSize) {
   node.setAttribute("aria-setsize", String(setSize));
 }
 
-export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true, captions = false } = {}) {
+export async function mountMasonry(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true, captions = false } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
-  const startupHistory = window.__ttAdvertisingBrowseStartupHistory;
-  delete window.__ttAdvertisingBrowseStartupHistory;
+  const startupHistory = window.__ttBrowseStartupHistory;
+  delete window.__ttBrowseStartupHistory;
 
   const grid = container.querySelector("[data-project-grid]");
   const filters = container.querySelector(".project-filters");
@@ -1501,14 +1501,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
-  if (artifact.layoutAlgorithmVersion !== ADVERTISING_LAYOUT_ALGORITHM_VERSION) {
+  if (artifact.layoutAlgorithmVersion !== MASONRY_LAYOUT_VERSION) {
     const error = new Error(`Unsupported advertising layout algorithm: ${artifact.layoutAlgorithmVersion}`);
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
   let settings;
   try {
-    settings = normalizeAdvertisingProductSettings(artifact.settings);
+    settings = normalizeMasonrySettings(artifact.settings);
   } catch (error) {
     console.error("[advertising-products] artifact settings validation failed", error);
     throw error;
@@ -1523,7 +1523,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const cards = artifact.cards;
   const categoryOrder = categories.map((entry) => entry?.slug);
   try {
-    validateAdvertisingCards(cards, { categoryOrder, requireNonEmpty: true });
+    validateMasonryCards(cards, { categoryOrder, requireNonEmpty: true });
   } catch (error) {
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
@@ -1620,7 +1620,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Tag, cỡ cửa sổ hoặc cỡ chữ của related đổi: bỏ hàng chờ và lượt dựng kế tiếp không đưa card cũ vào lại (R7).
   let relatedQueueScope = "";
   let relatedQueueStale = false;
-  let relatedCompile = compileAdvertisingProductLayout;
+  let relatedCompile = compileMasonryLayout;
   // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
   // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
   // solver đầy đủ, giữ geometry của primary và để việc mount card cho task kế tiếp.
@@ -1630,7 +1630,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let suggestionSlotHeroId = "";
   let stopSuggestionSlides;
   let descriptionThumbHeight = 0;
-  const photoViewer = createAdvertisingPhotoViewer({
+  const photoViewer = createDetailViewer({
     getVisibleViewport,
     closeButton: photoClose,
     dialog: photoDialog,
@@ -1791,7 +1791,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
     });
   };
-  let filter = resolveAdvertisingFilter(new URLSearchParams(location.search).get("category"), categories, cards)
+  let filter = resolveFilter(new URLSearchParams(location.search).get("category"), categories, cards)
     || advertisingPathFilter(location.pathname, pages) || "all";
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
@@ -1922,13 +1922,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   relatedGrid?.setAttribute("role", "list");
 
   const geometryRequest = (targetFilter) => {
-    const categoryPool = cards.filter((card) => matchesAdvertisingFilter(card, targetFilter));
+    const categoryPool = cards.filter((card) => matchesFilter(card, targetFilter));
     // Ngẫu nhiên trong từng hạng, hạng 1 (sản phẩm chính) đứng trước (taxonomy R1).
     const presentationOrder = shuffleWithSeed(
       categoryPool,
       browseHistory.current.seed,
       `grid:${targetFilter}`,
-    ).sort((left, right) => advertisingFilterRank(left, targetFilter) - advertisingFilterRank(right, targetFilter)).map(({ id }) => id);
+    ).sort((left, right) => filterRank(left, targetFilter) - filterRank(right, targetFilter)).map(({ id }) => id);
     const compileOptions = {
       layoutViewportWidth: document.documentElement.clientWidth,
       filter: targetFilter,
@@ -1969,10 +1969,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (layout) {
       geometries.delete(key);
       geometries.set(key, layout);
-      surfaceAdvertisingLayoutStatus(grid, layout);
+      surfaceLayoutStatus(grid, layout);
       return layout;
     }
-    layout = compileAdvertisingGeometry({ grid, options: compileOptions });
+    layout = compileMasonryGeometry({ grid, options: compileOptions });
     cacheGeometry(key, layout);
     return layout;
   };
@@ -3143,7 +3143,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const measure = ({ animate = false, origins } = {}) => {
     const layoutViewportWidth = document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
-    const { outer, interCardGap } = advertisingSpacing(layoutViewportWidth);
+    const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
     const projectIndex = grid.closest(".project-index");
     projectIndex?.style.setProperty("--advertising-outer", `${outer}px`);
     projectIndex?.style.setProperty("--advertising-gap", `${interCardGap}px`);
@@ -3185,7 +3185,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ensurePhoto = (id, { focus = false, scrollIntoView = false } = {}) => {
     const card = cards.find((entry) => entry.id === id);
     if (!card) return null;
-    if (!matchesAdvertisingFilter(card, filter)) setActiveFilter(card.category);
+    if (!matchesFilter(card, filter)) setActiveFilter(card.category);
     if (!geometry) measure();
     const placement = geometry?.placements.find((entry) => entry.card.id === id);
     if (!placement) return null;
@@ -3262,7 +3262,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (heroChanged) {
       stopSuggestionSlides?.();
       suggestionSlotHeroId = browse.photo;
-      suggestionSlots = selectAdvertisingSuggestions({
+      suggestionSlots = selectSuggestions({
         cards,
         heroId: browse.photo,
         activeTag: browse.tag,
@@ -3310,7 +3310,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncLocaleLinks = (browse) => {
     document.querySelectorAll("[data-language-option]").forEach((link) => {
-      link.href = serializeAdvertisingBrowseLocation(link.href, browse, categories, pages).href;
+      link.href = serializeBrowseLocation(link.href, browse, categories, pages).href;
     });
   };
   const clearRelatedCards = () => {
@@ -3569,7 +3569,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     const origins = relatedLayoutKey && directEntryPhase !== "primary" ? relatedVisualCoordinates() : undefined;
     cancelRelatedMotion();
-    const { outer, interCardGap } = advertisingSpacing(viewportWidth);
+    const { outer, interCardGap } = masonrySpacing(viewportWidth);
     const columns = columnsForWidth(viewportWidth);
     const suggestionInRelated = columns <= 3;
     const gridWidth = viewportWidth - (2 * outer);
@@ -3665,7 +3665,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const expandStyle = photoExpand ? getComputedStyle(photoExpand) : null;
     const imageControlMinimum = expandStyle ? Math.ceil(photoExpand.offsetHeight
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
-    relatedLayout = compileAdvertisingRelatedLayout({
+    relatedLayout = compileRelatedLayout({
       cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
         : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
       categoryOrder, columns,
@@ -4386,7 +4386,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
     // và không bị ép style lần hai (decision phone-frame-budget).
     const layoutWidth = document.documentElement.clientWidth;
-    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.style.setProperty("--gutter", `${masonrySpacing(layoutWidth).outer}px`);
     photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
     photoView.hidden = false;
     layoutRelated(browse);
@@ -4434,7 +4434,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       } catch (error) {
         if (!pending || error !== pending) throw error;
       } finally {
-        relatedCompile = compileAdvertisingProductLayout;
+        relatedCompile = compileMasonryLayout;
       }
       const result = await compileInWorker(pending.options, takeWorker());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return false;
@@ -4574,7 +4574,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Lần ghi bị throttle có thể bỏ lỡ scroll cuối trước Back/Forward; nhớ nó theo từng entry Barba.
   const entryScroll = new Map();
   const entryIndex = () => window.history.state?.index;
-  const browseHistory = createAdvertisingBrowseHistoryController({
+  const browseHistory = createBrowseHistoryController({
     cards,
     categories,
     pages,
@@ -5012,7 +5012,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Giữ entry đích native trong khi Barba vẫn sở hữu index đi ra.
     if (!window.history.state?.ttAdvertisingHistoryFallback) captureScroll();
     if (pendingLocaleSeedHandoff) {
-      writeAdvertisingVisitSeedHandoff(
+      writeVisitSeedHandoff(
         localeHandoffStorage,
         pendingLocaleSeedHandoff.targetUrl,
         pendingLocaleSeedHandoff.seed,
@@ -5169,13 +5169,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   return cleanup;
 }
 
-export function unmountAdvertisingCatalog() {
+export function unmountMasonry() {
   activeInstance?.cleanup();
 }
 
-window.TruongThinhAdvertising = {
+window.TruongThinhMasonry = {
   canHandlePopState: (previousHref, nextHref) => Boolean(activeInstance)
-    && isAdvertisingQueryOnlyNavigation(previousHref || activeInstance.browseHistory.currentHref, nextHref, activeInstance.pages),
+    && isQueryOnlyNavigation(previousHref || activeInstance.browseHistory.currentHref, nextHref, activeInstance.pages),
   captureDetail: (snapshot) => activeInstance?.browseHistory.captureDetail(snapshot) || null,
   getAdapter: () => activeInstance?.adapter || null,
   getBrowseState: () => activeInstance?.browseHistory.current || null,
@@ -5183,7 +5183,7 @@ window.TruongThinhAdvertising = {
   handlePopState: (event, previousHref, nextHref) =>
     activeInstance?.browseHistory.handlePopState(event, previousHref, nextHref) || false,
   handleViewerPopState: () => activeInstance?.photoViewer.popState() || false,
-  mount: mountAdvertisingCatalog,
+  mount: mountMasonry,
   navigatePhoto: (id) => Boolean(activeInstance?.browseHistory.openPhoto(id)),
   navigateQuery: (href, { reason = "navbar" } = {}) => {
     if (!activeInstance) return false;
@@ -5197,5 +5197,5 @@ window.TruongThinhAdvertising = {
     return false;
   },
   replaceTag: (tag) => Boolean(activeInstance?.browseHistory.replaceTag(tag)),
-  unmount: unmountAdvertisingCatalog,
+  unmount: unmountMasonry,
 };

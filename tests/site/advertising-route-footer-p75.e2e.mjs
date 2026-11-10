@@ -10,16 +10,16 @@ try {
     height: document.querySelector("[data-advertising-grid-cta]")?.offsetHeight,
     hash: document.querySelector(".advertising-grid__cta-skeleton")?.dataset.advertisingCtaSignature,
     footer: document.querySelector("footer.site-footer")?.offsetHeight,
-    seed: window.TruongThinhAdvertising.getBrowseState().seed,
+    seed: window.TruongThinhMasonry.getBrowseState().seed,
     gap: document.querySelector("footer.site-footer").getBoundingClientRect().top - document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect().bottom,
   });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.waitForTimeout(1500);
   const direct = await page.evaluate(read);
   await page.goto(`${base}/vi/`, { waitUntil: "networkidle" });
   await page.locator('.desktop-nav a[href*="advertising-products"]').click();
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.waitForTimeout(2000);
   const routed = await page.evaluate(read);
   console.log({ direct, routed });
@@ -30,7 +30,7 @@ try {
   const signatures = new Map();
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
     await page.locator(`[data-advertising-filter="${category}"]`).click();
-    await page.waitForFunction(value => window.TruongThinhAdvertising.getBrowseState().category === value, category);
+    await page.waitForFunction(value => window.TruongThinhMasonry.getBrowseState().category === value, category);
     // Chờ khối CTA đứng yên giữa hai lần đọc thay cho 650ms cố định: runner bận còn đang chuyển khi đọc.
     await page.waitForFunction(() => {
       const cta = document.querySelector("[data-advertising-grid-cta]");
@@ -47,7 +47,7 @@ try {
   }
   const beforeReload = await page.evaluate(read);
   await page.reload({ waitUntil: "networkidle" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.waitForTimeout(1500);
   const reloaded = await page.evaluate(read);
   assert.notEqual(reloaded.seed, beforeReload.seed, "F5 reseeds the filtered pool");

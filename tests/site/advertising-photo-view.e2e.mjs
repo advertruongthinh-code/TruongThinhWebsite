@@ -98,8 +98,8 @@ async function sha256(relativePath) {
 }
 
 const provenanceAtStart = {
-  sourceCatalogRuntimeSha256: await sha256("src/site/advertising-products/catalog-runtime.mjs"),
-  outputCatalogRuntimeSha256: await sha256(".site-output/advertising-products/catalog-runtime.mjs"),
+  sourceCatalogRuntimeSha256: await sha256("src/site/masonry/runtime.mjs"),
+  outputCatalogRuntimeSha256: await sha256(".site-output/masonry/runtime.mjs"),
   sourceStyleSha256: await sha256("src/site/style.css"),
   outputStyleSha256: await sha256(".site-output/style.css"),
 };
@@ -1567,8 +1567,8 @@ const report = {
   catalogRecordCountObservedFromSource: ADVERTISING_CARDS.length,
   provenanceAtStart,
   provenanceAtEnd: {
-    sourceCatalogRuntimeSha256: await sha256("src/site/advertising-products/catalog-runtime.mjs"),
-    outputCatalogRuntimeSha256: await sha256(".site-output/advertising-products/catalog-runtime.mjs"),
+    sourceCatalogRuntimeSha256: await sha256("src/site/masonry/runtime.mjs"),
+    outputCatalogRuntimeSha256: await sha256(".site-output/masonry/runtime.mjs"),
     sourceStyleSha256: await sha256("src/site/style.css"),
     outputStyleSha256: await sha256(".site-output/style.css"),
   },

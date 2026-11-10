@@ -84,7 +84,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
     if (!mediaSource) delete window.MediaSource;
   }, { artifact: fixtureArtifact(hls), mediaSource });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   // Hero Advertising chiếm màn đầu; intro và smooth scroll cần mount xong mới nhận wheel, rồi cuộn để card vào màn.
   await page.waitForTimeout(2500);
   await page.mouse.move(8, 450);
@@ -171,7 +171,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
     // Mạng nhanh lên, rồi một video khác trên trang tải xong segment (gherkin R4).
     kbps = 0;
     await page.evaluate(async (src) => {
-      const { setVideoSource } = await import("/advertising-products/video-source.mjs");
+      const { setVideoSource } = await import("/media/video-source.mjs");
       setVideoSource(document.createElement("video"), { hlsSrc: src }, { file: "", capWidth: 480 });
     }, hlsSrc);
     await page.waitForTimeout(4000);

@@ -74,16 +74,16 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
 | home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
-| masonry | `masonry.md` | phần chung mọi masonry: `masonry-host.mjs`, `mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
+| masonry | `masonry.md` | phần chung mọi masonry: `masonry/host.mjs`, `masonry/mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
-| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
-| adv-detail | `advertising-detail.md` | `suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
-| adv-viewer | `advertising-viewer-touch-zoom.md` | `photo-viewer.mjs` | |
+| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `masonry/skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
+| adv-detail | `advertising-detail.md` | `masonry/suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
+| adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
-| glass | `glass-surface.md` | `glass-surface.mjs` | |
-| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
-| progressive | `progressive-loading.md` | `sw.js`, `media-colors.mjs` | |
-| video | `video-delivery.md` | `build-video-ladder.mjs`, `video-source.mjs` | |
+| glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
+| media | `media-delivery.md` | biến thể ảnh, `media/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
+| progressive | `progressive-loading.md` | `sw.js`, `media/colors.mjs` | |
+| video | `video-delivery.md` | `build-video-ladder.mjs`, `media/video-source.mjs` | |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, `_headers`, `404.html`, demo Cloudflare | |
 | ci-suites | `ci-test-suites.md` | `ci.yml`, `tests/ci-suites.json`, `scripts/ci/` | |
 | content-tests | `content-independent-tests.md` | `content-contract.mjs` | |
@@ -141,7 +141,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
-Given PR sửa src/site/advertising-products/layout-core.mjs
+Given PR sửa src/site/masonry/layout.mjs
 And không sửa docs/specs/advertising-masonry.md
 And mô tả PR không có dòng "Spec: không đổi - ..."
 When CI chạy pnpm qa:docs

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
-import { advertisingFilterRank, compileAdvertisingProductLayout } from "../../src/site/advertising-products/layout-core.mjs";
-import { createGlassSurface, playGlassReveal } from "../../src/site/advertising-products/glass-surface.mjs";
+import { filterRank, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
+import { createGlassSurface, playGlassReveal } from "../../src/site/masonry/glass-surface.mjs";
 import { localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
 
 test("malformed card URLs fall back without breaking catalog initialization", () => {
-  const source = readFileSync(new URL("../../src/site/advertising-products/catalog-runtime.mjs", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
   const start = source.indexOf("const ADVERTISING_CARD_PATH_PATTERN");
   const end = source.indexOf("const skeletonNativeContexts", start);
   const photoId = runInNewContext(`${source.slice(start, end)}; advertisingPhotoId`);
@@ -19,14 +19,14 @@ test("malformed card URLs fall back without breaking catalog initialization", ()
 test("cluster-only filters compile the matching cards", () => {
   const card = { id: "fixture-1", category: "fixture", rank: 0, sourceOrder: 0,
     productIds: ["product"], clusterIds: ["cluster"], media: { src: "/fixture.webp", width: 100, height: 100 } };
-  const result = compileAdvertisingProductLayout({ cards: [card], categoryOrder: ["fixture"],
+  const result = compileMasonryLayout({ cards: [card], categoryOrder: ["fixture"],
     filter: "cluster", columns: 1, layoutViewportWidth: 390 });
   assert.deepEqual(result.placements.map(({ card }) => card.id), [card.id]);
 });
 
 test("product rank takes precedence over a later matching cluster", () => {
-  assert.equal(advertisingFilterRank({ productIds: ["p"], clusterIds: ["x", "y", "p"] }, "p"), 0);
-  assert.equal(advertisingFilterRank({ productIds: ["x"], clusterIds: ["x", "p"] }, "p"), 1);
+  assert.equal(filterRank({ productIds: ["p"], clusterIds: ["x", "y", "p"] }, "p"), 0);
+  assert.equal(filterRank({ productIds: ["x"], clusterIds: ["x", "p"] }, "p"), 1);
 });
 
 test("localization preserves authored attributes and literal replacement tokens", () => {

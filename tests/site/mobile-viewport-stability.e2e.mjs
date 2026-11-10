@@ -16,7 +16,7 @@ const results = [];
 const assets = {};
 const runnerSha256 = createHash("sha256").update(await fs.readFile(new URL(import.meta.url))).digest("hex");
 const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
-for (const file of ["motion.js", "style.css", "detail.css", "advertising-products/catalog-runtime.mjs", "advertising-products/photo-viewer.mjs"]) {
+for (const file of ["motion.js", "style.css", "detail.css", "masonry/runtime.mjs", "masonry/detail-viewer.mjs"]) {
   const source = await fs.readFile(`src/site/${file}`);
   const response = await fetch(`${base}/${file}`);
   const served = Buffer.from(await response.arrayBuffer());

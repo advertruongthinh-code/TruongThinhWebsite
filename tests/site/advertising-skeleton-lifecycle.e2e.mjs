@@ -241,7 +241,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
       await page.waitForTimeout(750);
       const sample = await ledger();
-      const appliedCategory = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().category);
+      const appliedCategory = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().category);
       cycles.push({ cycle, category, appliedCategory, ...sample });
       assert.equal(appliedCategory, category, "each stress cycle must apply the requested filter");
       assert.ok(sample.live <= 12 && sample.peak <= 12, "twenty filter/resize cycles never increase phone context budget");
@@ -251,7 +251,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(finalLedger.live <= Math.max(...cycles.slice(0, 10).map(cycle => cycle.live)), "settled live contexts do not accumulate");
     assert.ok(finalLedger.allocations <= 12, "phone native allocations plateau within the 12-context budget");
     // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
-    const softEntry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
+    const softEntry = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
     await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
     await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
     await page.locator('#header-logo').click();
@@ -259,10 +259,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       && location.pathname === "/vi/" && !window.barba.transitions.isRunning);
     assert.equal((await ledger()).running, 0, "non-catalog route has no running Flow");
     await page.goBack({waitUntil:"domcontentloaded"});
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.()
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
       && document.querySelector('[data-advertising-cta-skeleton]')?.dataset.advertisingCtaReady === "true");
     assert.equal(await page.evaluate(() => performance.timeOrigin), softEntry.timeOrigin, "Barba return uses the same document cache");
-    assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), softEntry.seed);
+    assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), softEntry.seed);
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.canvas?.classList.contains("advertising-grid__cta-shared-flow")).length), 1,
       "controller remount reuses the shared batch context");
     await fs.writeFile(output + "/" + engine + "-ledger.json", JSON.stringify({ portraitLedger, orientation, settled, cycles, finalLedger }, null, 2));
@@ -272,12 +272,12 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     results.push({ engine, version: browser.version(), heightOnly: changed, errors });
     assert.deepEqual(errors, [], "no renderer/runtime error");
     const entryLive = (await ledger()).live;
-    const entry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed, timeOrigin:performance.timeOrigin,nativeDisposals:window.__flowLedger.nativeDisposals}));
+    const entry = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed, timeOrigin:performance.timeOrigin,nativeDisposals:window.__flowLedger.nativeDisposals}));
     await page.goto(base + "/vi/", {waitUntil:"networkidle"});
     await page.goBack({waitUntil:"domcontentloaded"});
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.()
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
       && document.querySelector('[data-advertising-cta-skeleton]')?.dataset.advertisingCtaReady === "true");
-    const returned = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed, timeOrigin:performance.timeOrigin}));
+    const returned = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed, timeOrigin:performance.timeOrigin}));
     nativeEvents.push(...await page.evaluate(() => JSON.parse(sessionStorage.getItem("qa-flow-native-observations") || "[]")));
     await fs.writeFile(output + "/" + engine + "-native-events.json", JSON.stringify({entry,returned,nativeEvents},null,2));
     assert.equal(returned.seed, entry.seed, "native route exit and Back preserve the random entry");

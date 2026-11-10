@@ -1,8 +1,8 @@
 // Báo cáo Checkpoint A: organic score và lý do fallback cho pool uniform và hard.
 // Chạy: node tests/site/advertising-solver-report.mjs
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { compileAdvertisingProductLayout } from "../../src/site/advertising-products/layout-core.mjs";
-import { shuffleWithSeed } from "../../src/site/advertising-products/random-order.mjs";
+import { compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
+import { shuffleWithSeed } from "../../src/site/masonry/random-order.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
 
 const fixture = (name, count, ratios) => Array.from({ length: count }, (_, index) => {
@@ -29,7 +29,7 @@ for (const [name, cards, filter = cards[0].category] of pools) {
       const presentationOrder = shuffleWithSeed(pool, seed, `grid:${filter}`).map(({ id }) => id);
       let row = { name, width, seed, n: pool.length };
       try {
-        const layout = compileAdvertisingProductLayout({ cards, categoryOrder: [...new Set(cards.map(card => card.category))],
+        const layout = compileMasonryLayout({ cards, categoryOrder: [...new Set(cards.map(card => card.category))],
           filter, layoutViewportWidth: width, presentationOrder, organicOrder: true });
         const d = layout.diagnostics;
         row = { ...row, valid: inspectAdvertisingGrid({ layout, placements: layout.placements }).valid,

@@ -184,7 +184,7 @@ async function runDelayedAdapterCase(browser) {
   let releaseCatalog;
   const catalogGate = new Promise((resolve) => { releaseCatalog = resolve; });
   let interceptedCatalogRequests = 0;
-  await page.route("**/advertising-products/catalog-runtime.mjs", async (route) => {
+  await page.route("**/masonry/runtime.mjs", async (route) => {
     interceptedCatalogRequests += 1;
     await catalogGate;
     await route.continue();
@@ -197,7 +197,7 @@ async function runDelayedAdapterCase(browser) {
     // Chữ hero chờ veil mở (first-load-parity R2), nên lúc này chỉ mới tách từ.
     await waitForHeroPrepared(page);
     assert.equal(interceptedCatalogRequests, 1, "fixture did not hold the first catalog-runtime import");
-    assert.equal(await page.evaluate(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.())), false,
+    assert.equal(await page.evaluate(() => Boolean(window.TruongThinhMasonry?.getAdapter?.())), false,
       "fixture released the Advertising adapter before the pre-ready click");
     await installHeroOnceProbe(page);
 
@@ -212,7 +212,7 @@ async function runDelayedAdapterCase(browser) {
       });
     }
     releaseCatalog();
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.waitForFunction(() => document.querySelector('[data-advertising-filter="printing-decals"]')?.getAttribute("aria-current") === "true");
     await waitForHeroSettled(page);
 
@@ -232,7 +232,7 @@ async function runReadyLoopCase(browser) {
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await runEndHomeSequence(page);
@@ -261,7 +261,7 @@ async function runRouteEntryCase(browser) {
     await page.goto(`${baseUrl}/vi/`, { waitUntil: "networkidle" });
     await page.locator('.site-header a[href="/vi/advertising-products/"]').click();
     await page.waitForURL(`${baseUrl}/vi/advertising-products/`);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await runEndHomeSequence(page);
@@ -283,7 +283,7 @@ async function runRouteReturnCase(browser, locale) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await page.locator(`.site-header a[href="/${locale}/residential/"]`).click();
@@ -294,7 +294,7 @@ async function runRouteReturnCase(browser, locale) {
     ));
     await page.locator(`.site-header a[href="/${locale}/advertising-products/"]`).click();
     await page.waitForURL(`${baseUrl}/${locale}/advertising-products/`);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await page.locator('[data-advertising-filter="displays-booths"]').click();
     await page.waitForFunction(() => (
@@ -308,7 +308,7 @@ async function runRouteReturnCase(browser, locale) {
 
 async function runFailedAdapterFallbackCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.route("**/advertising-products/catalog-runtime.mjs", (route) => route.abort("failed"));
+  await page.route("**/masonry/runtime.mjs", (route) => route.abort("failed"));
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => (
@@ -332,7 +332,7 @@ async function runPendingAdapterFailureCase(browser) {
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   let rejectCatalog;
   const catalogGate = new Promise((resolve) => { rejectCatalog = resolve; });
-  await page.route("**/advertising-products/catalog-runtime.mjs", async (route) => {
+  await page.route("**/masonry/runtime.mjs", async (route) => {
     await catalogGate;
     await route.abort("failed");
   });
