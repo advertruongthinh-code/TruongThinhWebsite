@@ -5,7 +5,7 @@ import {
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
-import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
 
 export const ADVERTISING_DATASET_VERSION = "2026-09-24.1";
 
@@ -233,14 +233,14 @@ export const ADVERTISING_ROOT_PAGE = deepFreeze({
   // The root page hero kicker differs from the page name (owner 2026-11-08); cluster and product pages still take the kicker from labelVi, labelEn.
   kickerVi: "Sản phẩm tiêu biểu", kickerEn: "Our featured products",
 });
-// Static cluster and product pages (taxonomy R4); products under the thin-page threshold get no page (R5).
+// Static cluster and product pages (taxonomy R4); products under the threshold get no chip and no page (R5).
 // vi, en are the path after /<locale>/advertising-products/; filter is a cluster id or a product id.
 const clusterById = new Map(ADVERTISING_CLUSTERS.map((cluster) => [cluster.id, cluster]));
 const productCount = (id) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length;
 export const ADVERTISING_PAGES = deepFreeze([
   ...ADVERTISING_CLUSTERS.map((cluster) => ({ ...cluster, filter: cluster.id, cluster: cluster.id, vi: cluster.slugVi, en: cluster.slugEn })),
   ...ADVERTISING_PRODUCTS
-    .filter(({ id }) => productCount(id) >= ADVERTISING_THIN_PRODUCT_THRESHOLD)
+    .filter(({ id }) => productCount(id) >= ADVERTISING_PRODUCT_THRESHOLD)
     .map((product) => {
       const cluster = clusterById.get(product.cluster);
       return {
@@ -249,18 +249,13 @@ export const ADVERTISING_PAGES = deepFreeze([
       };
     }),
 ]);
-// Products without a filter page on the cluster page (R5): the URL is the cluster path plus ?category=, with the cluster title and kicker.
+// Product chips of the chip row (R3, R5): every product at the threshold has a page, vi, en are the URL part after /<locale>/advertising-products/.
 const pageByFilter = new Map(ADVERTISING_PAGES.map((page) => [page.filter, page]));
-const QUERY_PAGES = ADVERTISING_PRODUCTS.filter(({ id }) => !pageByFilter.has(id))
-  .map(({ id, cluster }) => ({ ...pageByFilter.get(cluster), filter: id, query: true }));
-// Product chips of the chip row (R3, R5): vi, en are the URL part after /<locale>/advertising-products/.
 export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS
-  .filter(({ id }) => productCount(id) >= ADVERTISING_CHIP_PRODUCT_THRESHOLD)
+  .filter(({ id }) => pageByFilter.has(id))
   .map(({ id, cluster, labelVi, labelEn }) => {
     const page = pageByFilter.get(id);
-    const target = page || pageByFilter.get(cluster);
-    const query = page ? "" : `?category=${encodeURIComponent(id)}`;
-    return { filter: id, cluster, labelVi, labelEn, count: productCount(id), vi: `${target.vi}/${query}`, en: `${target.en}/${query}` };
+    return { filter: id, cluster, labelVi, labelEn, count: productCount(id), vi: `${page.vi}/`, en: `${page.en}/` };
   }));
 
 // Product-group tags generated from the taxonomy, placed before the old tags in the artifact.
@@ -305,9 +300,9 @@ export function buildAdvertisingArtifact(options = {}) {
     clusters: ADVERTISING_CLUSTERS,
     products: ADVERTISING_PRODUCTS,
     // The root page (filter "all", empty path) plus cluster and product pages: runtime switches path, title and kicker by filter.
-    pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES, ...QUERY_PAGES]
-      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn }) =>
-        ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn })),
+    pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES]
+      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, kickerVi, kickerEn }) =>
+        ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, kickerVi, kickerEn })),
     cards: attachRelated(compiledCards),
   });
 }
