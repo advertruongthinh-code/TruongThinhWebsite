@@ -1,0 +1,332 @@
+{
+  "_note": "Dữ liệu cố định cho preview Design System Blocks và NewsList (scripts/docs/build-design-system.mjs); không đổi theo nội dung site.",
+  "page": {
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "titleLine1": {
+          "vi": "Căn hộ",
+          "en": "Apartment"
+        },
+        "titleLine2": {
+          "vi": "gỗ sồi ấm",
+          "en": "in warm oak"
+        },
+        "subtitle": {
+          "vi": "Nhà ở · Căn hộ hai phòng ngủ",
+          "en": "Residential · Two-bedroom apartment"
+        },
+        "image": {
+          "src": "/assets/content/projects/can-ho-hero.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
+          "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Một căn hộ gọn, ấm và dễ ở",
+          "en": "A compact, warm and easy home"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Gia chủ cần một căn hộ hai phòng ngủ đủ chỗ cất đồ cho cả nhà mà vẫn thoáng. Chúng tôi chọn gỗ sồi làm chất liệu chính, điểm thêm sơn xanh rêu và đèn hắt để không gian ấm vào buổi tối.\n\nMọi tủ, kệ được thiết kế theo số đo thực tế, cắt CNC tại xưởng rồi lắp đặt trong thời gian ngắn, ít bụi và ít làm phiền hàng xóm.",
+          "en": "The owners wanted a two-bedroom apartment with storage for the whole family that still felt open. We chose oak as the main material, with sage paint and cove lighting to keep the rooms warm in the evening.\n\nEvery cabinet and shelf was designed to measured dimensions, CNC-cut in our workshop and installed quickly, with little dust and little disruption for the neighbours."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Loại công trình",
+              "en": "Project type"
+            },
+            "text": {
+              "vi": "Căn hộ hai phòng ngủ",
+              "en": "Two-bedroom apartment"
+            }
+          },
+          {
+            "label": {
+              "vi": "Phong cách",
+              "en": "Style"
+            },
+            "text": {
+              "vi": "Tối giản ấm, gỗ sồi và xanh rêu",
+              "en": "Warm minimal, oak and sage"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Thiết kế, sản xuất, lắp đặt nội thất",
+              "en": "Interior design, fabrication and installation"
+            }
+          },
+          {
+            "label": {
+              "vi": "Bảo hành",
+              "en": "Aftercare"
+            },
+            "text": {
+              "vi": "Bảo trì sau bàn giao",
+              "en": "Maintenance after handover"
+            }
+          }
+        ]
+      },
+      {
+        "id": "altar",
+        "type": "image-pair",
+        "layout": "left-large",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng3-phong-tho.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn",
+            "altEn": "Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows"
+          },
+          {
+            "src": "/assets/content/projects/gieng3-chi-tiet.webp",
+            "width": 3072,
+            "height": 2304,
+            "altVi": "Cận cảnh cánh tủ gỗ sồi sáng dán cạnh, khe cánh đều và chân tủ âm",
+            "altEn": "Close-up of light oak cabinet doors with edge banding, even door gaps and a recessed plinth"
+          }
+        ]
+      },
+      {
+        "id": "detail",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/projects/can-ho-chi-tiet.webp",
+          "width": 3072,
+          "height": 2304,
+          "altVi": "Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm",
+          "altEn": "Close-up of an oak media unit: timber-veneer and sage-painted doors with tight joints and a recessed finger pull"
+        }
+      },
+      {
+        "id": "quote",
+        "type": "quote",
+        "text": {
+          "vi": "Tủ khít mạch, cánh đều tay, ở hai năm vẫn như mới.",
+          "en": "Tight joints, even doors, still like new after two years."
+        },
+        "author": {
+          "vi": "Gia chủ căn hộ",
+          "en": "Apartment owner"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn một căn hộ như thế này?",
+          "en": "Want a home like this?"
+        }
+      },
+      {
+        "id": "strip",
+        "type": "project-slider",
+        "projectIds": [
+          "can-ho-go-soi",
+          "nha-gieng-troi",
+          "van-phong-lam-viec-chung",
+          "tiem-banh-ngot"
+        ]
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem thêm không gian nhà ở",
+          "en": "More residential spaces"
+        },
+        "hrefVi": "/vi/residential/",
+        "hrefEn": "/en/residential/"
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "chon-tu-bep",
+          "mo-quan-ca-phe",
+          "nha-pho-giu-mat"
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "id": "can-ho-go-soi",
+      "slugVi": "can-ho-go-soi-am",
+      "slugEn": "warm-oak-apartment",
+      "title": {
+        "vi": "Căn hộ gỗ sồi ấm",
+        "en": "Warm oak apartment"
+      },
+      "cover": {
+        "src": "/assets/content/projects/can-ho-hero.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
+        "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
+      }
+    },
+    {
+      "id": "nha-gieng-troi",
+      "slugVi": "nha-pho-gieng-troi",
+      "slugEn": "light-well-townhouse",
+      "title": {
+        "vi": "Nhà phố giếng trời",
+        "en": "Light-well townhouse"
+      },
+      "cover": {
+        "src": "/assets/content/projects/gieng3-hero.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+        "altEn": "Two-storey light-well house overview: living room with a tree under the light well, a light oak TV wall, a timber staircase with a black steel handrail and the dining table beyond"
+      }
+    },
+    {
+      "id": "van-phong-lam-viec-chung",
+      "slugVi": "van-phong-lam-viec-chung",
+      "slugEn": "shared-workspace",
+      "title": {
+        "vi": "Văn phòng làm việc chung",
+        "en": "Shared workspace"
+      },
+      "cover": {
+        "src": "/assets/content/projects/shared-office-open-desks.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
+        "altEn": "Open desk area with green felt dividers, desk lamps and a logo wall"
+      }
+    },
+    {
+      "id": "tiem-banh-ngot",
+      "slugVi": "tiem-banh-ngot",
+      "slugEn": "neighbourhood-bakery",
+      "title": {
+        "vi": "Tiệm bánh ngọt",
+        "en": "Neighbourhood bakery"
+      },
+      "cover": {
+        "src": "/assets/content/projects/bakery-bread-shelves.webp",
+        "width": 1122,
+        "height": 1402,
+        "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
+        "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+      }
+    }
+  ],
+  "news": [
+    {
+      "id": "chon-tu-bep",
+      "group": "nha-o",
+      "published": "2026-11-07",
+      "slugVi": "chon-tu-bep-go-cong-nghiep",
+      "slugEn": "choosing-engineered-wood-kitchen-cabinets",
+      "title": {
+        "vi": "Chọn tủ bếp gỗ công nghiệp: năm điều nên hỏi trước khi đặt",
+        "en": "Engineered wood kitchen cabinets: five questions to ask before you order"
+      },
+      "cover": {
+        "src": "/assets/content/projects/gieng1-bep.webp",
+        "width": 2048,
+        "height": 3072,
+        "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
+        "altEn": "Single-run kitchen with white upper cabinets, walnut base units with recessed pulls, a pale grey stone counter and a glass wall to the planted light well"
+      }
+    },
+    {
+      "id": "mo-quan-ca-phe",
+      "group": "kinh-doanh",
+      "published": "2026-11-06",
+      "slugVi": "lam-noi-that-quan-ca-phe-nho",
+      "slugEn": "fitting-out-a-small-cafe",
+      "title": {
+        "vi": "Làm nội thất quán cà phê nhỏ: từ khảo sát tới ngày mở cửa",
+        "en": "Fitting out a small café: from site survey to opening day"
+      },
+      "cover": {
+        "src": "/assets/content/projects/home-commercial-cafe.webp",
+        "width": 2304,
+        "height": 3072,
+        "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
+        "altEn": "Café with timber tables, armchairs and a lit bar counter at the back"
+      }
+    },
+    {
+      "id": "nha-pho-giu-mat",
+      "group": "xu-huong",
+      "published": "2026-11-05",
+      "slugVi": "nha-pho-gieng-troi-go-toi-mau",
+      "slugEn": "light-wells-and-dark-timber-townhouses",
+      "title": {
+        "vi": "Giếng trời và gỗ tối màu: nhà phố vừa sáng vừa ấm",
+        "en": "Light wells and dark timber: townhouses that are bright and warm"
+      },
+      "cover": {
+        "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+        "altEn": "Single-storey light-well house overview: a full-height walnut TV wall, a planted light well in the middle of the house, a timber staircase with a black steel handrail and the dining table beyond"
+      }
+    },
+    {
+      "id": "bien-hieu-mat-tien",
+      "group": "quang-cao",
+      "published": "2026-11-09",
+      "slugVi": "chon-bien-hieu-chu-noi-hay-hop-den",
+      "slugEn": "raised-letters-or-light-box-signs",
+      "title": {
+        "vi": "Chữ nổi hay hộp đèn: chọn biển hiệu mặt tiền cho cửa hàng",
+        "en": "Raised letters or a light box: choosing a shopfront sign"
+      },
+      "cover": {
+        "src": "/assets/content/projects/placeholder-ngang.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Mặt tiền cửa hàng với biển chữ nổi đèn hắt trên nền ốp gỗ",
+        "altEn": "Shopfront with backlit raised letters on timber cladding"
+      }
+    },
+    {
+      "id": "tu-ao-am-tuong",
+      "group": "nha-o",
+      "published": "2026-11-08",
+      "slugVi": "thiet-ke-tu-ao-am-tuong",
+      "slugEn": "planning-a-built-in-wardrobe",
+      "title": {
+        "vi": "Tủ áo âm tường: đo, chia khoang và chọn cánh",
+        "en": "Built-in wardrobes: measuring, planning the interior and choosing doors"
+      },
+      "cover": {
+        "src": "/assets/content/projects/placeholder-ngang.webp",
+        "width": 3072,
+        "height": 2048,
+        "altVi": "Phòng ngủ với tủ áo âm tường cánh phẳng kịch trần",
+        "altEn": "Bedroom with a floor-to-ceiling flat-door built-in wardrobe"
+      }
+    }
+  ]
+}

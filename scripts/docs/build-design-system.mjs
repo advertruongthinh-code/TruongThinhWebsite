@@ -3,6 +3,8 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { renderProjectReel } from '../site/project-reel.mjs';
+import { renderBlocks } from '../site/blocks.mjs';
+import { renderNewsListPage } from '../site/block-pages.mjs';
 
 const OUT = 'design-system';
 // Link trong preview không điều hướng: claude.ai dừng preview live khi khung rời trang (spec design-system R3.5).
@@ -18,6 +20,9 @@ const frame = (markup, { cls = '', bg = 'var(--paper)', height }) =>
 // start: regex cho opening tag; open: hiện dialog đúng như motion.js để lại (open, is-active); htmlClass: class phụ trên root; frames: mỗi state class một bản có frame;
 // endStyle: giá trị cuối inline do motion.js đặt mà CSS không có fallback;
 // boot: false bỏ motion-fallback ở chỗ nó sẽ ghi đè state class (header tone).
+const BLOCKS_PREVIEW = 'scripts/docs/blocks-preview.json';
+const blocksPreview = JSON.parse(readFileSync(BLOCKS_PREVIEW, 'utf8'));
+const blocksPreviewContext = { projects: new Map(blocksPreview.projects.map((p) => [p.id, p])), news: new Map(blocksPreview.news.map((p) => [p.id, p])) };
 const COMPONENTS = [
   { name: 'Header', group: 'Shell', height: 420, file: 'src/site/index.html', start: /<header class="site-header"/, boot: false,
     frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-surface is-ink is-brand-color', height: 140 }] },
@@ -36,6 +41,14 @@ const COMPONENTS = [
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
     also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
+  // Khối trang công trình và News (layout-library R1): dựng từ dữ liệu cố định blocks-preview.json, không theo nội dung site.
+  // Hero khối cao bằng viewport; preview chốt 720px để không kéo theo chiều cao card.
+  { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.blk-hero { height: 720px; }',
+    markup: `<main id="noi-dung">\n${renderBlocks(blocksPreview.page, blocksPreviewContext)}\n</main>` },
+  // Trang danh sách News (news R2) dựng trên khung trang Giới thiệu như build; preview lấy phần <main>.
+  { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,
+    markup: extract(renderNewsListPage(readFileSync('src/site/about/index.html', 'utf8'), { path: '/news/', base: '/news/', number: 1, count: 2,
+      years: ['2026'], posts: blocksPreview.news }), /<main id="noi-dung"/) },
   { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
     also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
   { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-timeline/,

@@ -1,7 +1,7 @@
 ---
 title: Design System và Impeccable
 status: live
-updated: 2026-11-08
+updated: 2026-11-10
 source:
   - scripts/docs/build-design-system.mjs
   - scripts/docs/capture-design-system.mjs
@@ -69,7 +69,7 @@ And README dài tối đa 150 dòng
 
 1. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand lockup, floating CTA, hero, portal, project
    reel, gallery ngang, khối trang con, quy trình, dòng thời gian About, marquee, banner CTA, trang 404, filter, media
-   card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion, viewer, kính. Preview tĩnh lấy một hoặc nhiều
+   card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion, viewer, kính, khối trang công trình và News, danh sách News. Preview tĩnh lấy một hoặc nhiều
    khối từ HTML trang (`also`), kể cả trang khác; trang 404 kèm khối `<style>` riêng của trang.
 2. Preview dùng chính CSS website: `components/bundle.css` sinh từ `style.css`, `detail.css`, bỏ `@font-face` tự
    host (preview nạp font từ Google). `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card

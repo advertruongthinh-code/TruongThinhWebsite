@@ -6,7 +6,7 @@ source:
 tests:
   - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-08
+updated: 2026-11-10
 ---
 
 # Thư viện layout trang và khối
@@ -165,14 +165,16 @@ Then nhận đúng các khối được phép cho mẫu Bài News kèm ghi chú
 
 ## UI
 
-Thiết kế khối owner đã duyệt nhưng chưa code ghi trong spec này; khi khối chạy trên site thì mô tả chuyển vào
-`design-system/` ([Design System R1](design-system.md#r1-cấu-trúc-và-token)). Spec này chỉ link token, không chép.
+Khối đang chạy trên site mô tả ở [Khối công trình và News](../../design-system/components/Blocks/README.md) và
+[Danh sách News](../../design-system/components/NewsList/README.md); thiết kế khối owner đã duyệt nhưng chưa code ghi trong
+spec này ([Design System R1](design-system.md#r1-cấu-trúc-và-token)). Spec này chỉ link token, không chép.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 đến R6 | chưa có test; viết khi owner mở slice code |
+| R1, R4 | `node --test tests/site/blocks.test.mjs` (đủ mọi kiểu khối, cùng dữ liệu ra cùng HTML, escape chữ, báo đủ lỗi schema, cỡ ảnh khớp file) |
+| R2, R3, R5, R6 | chưa có test |
 
 ## Gate còn mở
 

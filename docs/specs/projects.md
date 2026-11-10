@@ -150,7 +150,7 @@ Then thấy bài đó trong phần bài liên quan
 
 ## UI
 
-Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Design System và Impeccable, owner duyệt trước khi code.
+Trang toàn bộ công trình dùng [Masonry](../../design-system/components/Masonry/README.md) và [MediaCard](../../design-system/components/MediaCard/README.md); trang chi tiết và dải công trình dùng [Khối công trình và News](../../design-system/components/Blocks/README.md). Thiết kế mới qua Design System và Impeccable, owner duyệt trước khi code.
 
 ## Kiểm tra
 
@@ -162,7 +162,6 @@ Thiết kế trang toàn bộ công trình, thẻ và trang chi tiết qua Desig
 ## Gate còn mở
 
 - Nghiên cứu SEO và từ khóa cho công trình, loại công trình, slug làm trước khi code, như trang sản phẩm quảng cáo (owner 2026-10-12).
-- Masonry công trình dùng chung hình học với [masonry Advertising](advertising-masonry.md) hay bản riêng; quyết khi viết plan.
 - Slug loại con chốt theo Keyword Planner; đổi slug thì thêm redirect.
 
 ## Chú thích thuật ngữ
