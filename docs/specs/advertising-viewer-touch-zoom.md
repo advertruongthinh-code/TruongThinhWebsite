@@ -270,7 +270,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
 | R | Test hoặc command |
 | --- | --- |
-| R7 (ảnh chưa tải) | `node tests/site/advertising-viewer-stale-image.e2e.mjs` |
+| R7 (ảnh chưa tải) | `node tests/site/advertising-viewer-stale-image.e2e.mjs`; phone thật thêm `DEVICE_CDP=http://127.0.0.1:9222 PROXY_PORT=8790` sau `adb reverse tcp:8790 tcp:8790` |
 | R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, ngưỡng xoay 20°, vùng chết pan 10px, chạm đúp, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
