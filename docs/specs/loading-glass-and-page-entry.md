@@ -102,7 +102,7 @@ sẵn hay chưa, để người xem không phân biệt được hai trường h
 
 1. Khi `src` đổi, ảnh và nền vùng dư cũ ẩn ngay (`data-advertising-photo-loading`), skeleton cuối masonry (cùng hook và cách
    bốc assignment, [skeleton](advertising-skeleton.md)) phủ khung, trên ảnh và dưới nút ảnh; khung có `aria-busy="true"`; runtime chờ `decode()`.
-2. Giải mã xong thì chạy ba bước (`revealGlass`, `crossfadeLayers`, `playGlassReveal`, `CARD_REVEAL_MS`, cùng nhịp
+2. Giải mã xong thì chạy ba bước (hàm reveal chung `playReveal` của card, primary, khung batch; `CARD_REVEAL_MS`, cùng nhịp
    `0.6s` với R2): Kính ba bậc hiện trên skeleton; dưới Kính skeleton mờ đi, ảnh và nền vùng dư hiện lên; Kính tan.
    Ảnh có sẵn chỉ làm skeleton đứng ngắn hơn, có khi không tới một frame.
 
@@ -225,7 +225,7 @@ And card tạm lên card thật thì ảnh hiện dần trong 0.45s, card chỉ 
 | DOM hook | `style="filter: blur(24px); scale: …"` trên `.advertising-tile__foreground` | Ảnh card chờ tải mờ, tràn khung 24px (R1), gỡ sau R2 |
 | DOM hook | `data-advertising-media-loading` trên card | Card đang mờ chờ ảnh thì thở (R1); gỡ lúc blur tan (R2), rời đi hoặc lỗi (R6, R7) |
 | DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh và nền vùng dư cũ ngay khi đổi `src`; primary đang chờ (R4, R5) |
-| Runtime | `attachCardSkeleton` (đặt blur), `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `playPrimaryReveal`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `CARD_LOADING_BLUR`, `CARD_LOADING_BLEED_PX`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
+| Runtime | `attachCardSkeleton` (đặt blur), `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `playReveal`, `renderPrimaryMedia`, `playPrimaryReveal`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `CARD_LOADING_BLUR`, `CARD_LOADING_BLEED_PX`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
 | Hàm public | `createGlassSurface`, `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`); `createSkeletonFlowRenderer`, `staticBackground` (`skeleton-flow.mjs`) | Kính và renderer dùng lại nguyên |
 | Card | `figure.advertisingPendingMediaId()` | Media id đang chờ hoặc `null`; runtime hỏi trước khi gắn skeleton |
 

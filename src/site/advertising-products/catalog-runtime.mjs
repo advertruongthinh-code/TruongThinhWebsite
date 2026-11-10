@@ -2449,10 +2449,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
       if (frame.dataset.advertisingCtaFrame) {
-        pending.glass = ctaBatch.revealGlass(revealGlass, frame);
-        pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
-          ...(pending.glass ? playGlassReveal(pending.glass, CARD_REVEAL_MS) : [])];
-        Promise.all(pending.animations.map(({ finished }) => finished)).then(settle, () => {});
+        const reveal = playReveal({ to: [frame.querySelector(".advertising-grid__cta-surface")], host: frame });
+        pending.glass = reveal.glass;
+        pending.animations = reveal.animations;
+        reveal.finished.then(settle, () => {});
         return;
       }
       frame.addEventListener("transitionend", pending.settle);
@@ -2607,12 +2607,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
   };
-  // Kính phủ lên media chỉ cho reveal (R2, R4): cuối cùng trong media box, trên photo và skeleton.
-  const revealGlass = (host) => {
-    const glass = createGlassSurface("even", 3);
-    glass.dataset.glassReveal = "";
-    host?.append(glass);
-    return glass;
+  // Một reveal cho card, primary và khung batch (masonry-reuse bước 8): `from` mờ đi, `to` hiện lên theo crossfade đã
+  // duyệt. Có `host` thì thêm Kính ba bậc cuối media box, trên photo và skeleton (R2, R4), trừ khi cung CTA đang thấy:
+  // Kính reveal làm Chrome bỏ blur các bậc của cung (skeleton R4).
+  const playReveal = ({ from = [], to = [], host = null }) => {
+    let glass = null;
+    if (host && !ctaBatch.arcInView) {
+      glass = createGlassSurface("even", 3);
+      glass.dataset.glassReveal = "";
+      host.append(glass);
+    }
+    const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
+    const finished = Promise.all(animations.map(({ finished: done }) => done));
+    // Reveal bị hủy (card rời view, đổi filter, teardown) làm `finished` reject; nơi gọi không cần thì không báo lỗi.
+    finished.catch(() => {});
+    return { glass, animations, finished };
   };
   // Nền realtime của vùng dư vẽ vào canvas 1/8 khung với blur của bậc cuối rồi phóng 8 lần (detail.css): CSS filter trên
   // ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
@@ -2724,7 +2733,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           media.style.setProperty("transition", "none", "important");
           media.classList.add("is-advertising-media-ready");
         });
-        entry.animations = crossfadeLayers([], layers, CARD_REVEAL_MS);
+        entry.animations = playReveal({ to: layers }).animations;
       }
       Promise.all(entry.animations.map(({ finished }) => finished))
         .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
@@ -3736,10 +3745,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
-    reveal.glass = revealGlass(heroFrame);
-    reveal.animations = [...crossfadeLayers([reveal.frame], incoming, CARD_REVEAL_MS),
-      ...playGlassReveal(reveal.glass, CARD_REVEAL_MS)];
-    Promise.all(reveal.animations.map(({ finished }) => finished))
+    const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
+    reveal.glass = played.glass;
+    reveal.animations = played.animations;
+    played.finished
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
   // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
@@ -3809,6 +3818,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let liveStill = null;
   const drawLiveBackground = () => {
     cancelLive = null;
+    // Trang không có detail (Công trình, viewer tắt) không có khung primary để vẽ.
+    if (!photoView) return;
     // Viewer mở thì khung primary chỉ còn zoom blur đứng yên phủ kín, video là frame lúc mở (advertising-detail R9, owner
     // 2026-10-26): vẽ một lần cho mỗi media, kể cả khi media vừa khít khung (glass false). Mỗi lần vẽ lại bắt blur 50px của
     // backdrop tính lại. Đóng viewer thì `close` vẽ lại theo nhịp thường.
@@ -3895,7 +3906,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       strip.animations.forEach((animation) => animation.cancel());
       strip.nodes.forEach((node) => node.remove());
     }
-    delete heroFrame.dataset.advertisingPhotoSliding;
+    if (heroFrame) delete heroFrame.dataset.advertisingPhotoSliding;
     startLiveBackground();
   };
   // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
