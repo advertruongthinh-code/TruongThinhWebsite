@@ -147,8 +147,8 @@ async function setup(page, locale, videoCover = false) {
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
@@ -169,8 +169,8 @@ async function setupSingleton(page, item) {
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   return card;
@@ -181,8 +181,8 @@ async function setupMany(page, locale) {
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.locator("img").first().waitFor({ state: "visible" });
   await card.evaluate(async (node) => {
@@ -276,7 +276,7 @@ async function run(viewport, touch, locale) {
   page.on("pageerror", (error) => errors.push(error.message));
   try {
     const card = await setup(page, locale);
-    await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("signage-raised-letters-16"));
+    await page.evaluate(() => window.TruongThinhMasonry.getAdapter().ensurePhoto("signage-raised-letters-16"));
     assert.equal(await page.locator('[data-advertising-card="signage-raised-letters-16"] [data-advertising-media-indicator]').count(), 0,
       "image-only public card retains legacy UI");
     const legacyState = await page.locator('[data-advertising-card="signage-raised-letters-16"]').evaluate((node) => {
@@ -567,8 +567,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
@@ -742,8 +742,8 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await Promise.all([videoResponse, posterResponse]);
@@ -811,8 +811,8 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => {
@@ -860,8 +860,8 @@ test("M01b failed next image restores the last valid card image", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
@@ -1037,8 +1037,8 @@ test("M01b stale image error preserves newer selection and failed reselect falls
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
@@ -1163,8 +1163,8 @@ test("M01b five media still use dot controls", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     assert.equal(await card.locator("[data-advertising-media-select]").count(), 5);
@@ -1188,8 +1188,8 @@ test("M01b hover arrows step card media by position and the card media never zoo
       await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
       await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-      await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+      await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+      await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
       const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
       await card.scrollIntoViewIfNeeded();
       await page.waitForTimeout(450);
@@ -1225,8 +1225,8 @@ async function setupThree(context) {
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
@@ -1372,9 +1372,9 @@ async function runWideCover(locale, related = false, mode = "normal") {
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     const selector = related ? `[data-advertising-related-card="${wideFixtureId}"]` : `[data-advertising-card="${wideFixtureId}"]`;
-    if (!related) await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), wideFixtureId);
+    if (!related) await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
       // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).

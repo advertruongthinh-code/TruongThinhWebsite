@@ -1,9 +1,9 @@
 # Masonry Advertising
 
-Nguồn: `src/site/advertising-products/layout-core.mjs`, `src/site/advertising-products/layout-worker.mjs`, `src/site/advertising-products/mount-budget.mjs`; CSS `.advertising-grid`, `.advertising-grid--captioned`; spec [Masonry](../../../docs/specs/advertising-masonry.md).
+Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`; CSS `.advertising-grid`, `.advertising-grid--captioned`; spec [Masonry](../../../docs/specs/advertising-masonry.md).
 
 Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
-`layout-core.mjs` tính (thuần, không đọc DOM), `catalog-runtime.mjs` mount và
+`masonry/layout.mjs` tính (thuần, không đọc DOM), `masonry/runtime.mjs` mount và
 ảo hóa; engine chuyển vị trí là `masonry-layout`.
 
 ## Hình học

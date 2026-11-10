@@ -1,7 +1,7 @@
 // Trang Công trình (projects R2): dựng trên khung trang Sản phẩm quảng cáo, chạy chính runtime masonry của trang đó
-// (catalog-runtime.mjs) với bộ thẻ công trình, không có detail view. Mỗi bộ lọc có trang riêng crawl được; artifact
+// (masonry/runtime.mjs) với bộ thẻ công trình, không có detail view. Mỗi bộ lọc có trang riêng crawl được; artifact
 // nhúng trong trang nên runtime đổi lọc tại chỗ.
-import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, fnv1a32, scheduleAdvertisingRank } from "../../src/site/advertising-products/layout-core.mjs";
+import { MASONRY_LAYOUT_VERSION, fnv1a32, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from "./block-pages.mjs";
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
@@ -38,7 +38,7 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     ...Object.entries(PROJECT_TYPES).map(([type, { label }]) => ({ slug: type, slugVi: type, slugEn: type, titleVi: label.vi, titleEn: label.en })),
   ];
   const nextSourceOrder = new Map();
-  const cards = scheduleAdvertisingRank(projects.map((project) => {
+  const cards = scheduleRank(projects.map((project) => {
     const category = PROJECT_FILTERS[project.sector];
     const sourceOrder = nextSourceOrder.get(category) ?? 0;
     nextSourceOrder.set(category, sourceOrder + 1);
@@ -59,7 +59,7 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     titleVi: `${filter.name.vi} — Trường Thịnh`, titleEn: `${filter.name.en} — Trường Thịnh`, kickerVi: ROOT_KICKER.vi, kickerEn: ROOT_KICKER.en,
   }));
   return {
-    datasetVersion: `projects-${fnv1a32(JSON.stringify(cards))}`, layoutAlgorithmVersion: ADVERTISING_LAYOUT_ALGORITHM_VERSION,
+    datasetVersion: `projects-${fnv1a32(JSON.stringify(cards))}`, layoutAlgorithmVersion: MASONRY_LAYOUT_VERSION,
     settings: {}, tagRegistry: [], categories, pages, cards,
   };
 };

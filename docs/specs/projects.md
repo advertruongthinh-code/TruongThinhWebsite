@@ -52,7 +52,7 @@ Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertisin
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`; phần lưới, batch skeleton, CTA đuôi lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ CTA, nên một contract DOM masonry cho hai trang): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
 khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), chỉ chữ nhấn "cảm hứng" ("inspire") đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry giống 1:1 trang quảng cáo
-(owner 2026-11-08): chạy chính runtime [masonry Advertising](advertising-masonry.md) (`catalog-runtime.mjs`) với artifact công trình
+(owner 2026-11-08): chạy chính runtime [masonry Advertising](advertising-masonry.md) (`masonry/runtime.mjs`) với artifact công trình
 nhúng trong trang (`buildProjectArtifact`), nên lưới, batch skeleton, kính cung và CTA đuôi, motion thẻ, cuộn, lọc, tải ảnh, ảo hóa
 giống hệt; mảng là category, loại là cụm (`clusterIds`), thẻ xếp ngẫu nhiên mỗi lần vào. Khác trang quảng cáo: không detail view,
 related, gợi ý, chip sản phẩm (`viewer: false`), trang không nhúng khung detail ẩn; bấm thẻ đi thẳng tới trang chi tiết công trình. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,

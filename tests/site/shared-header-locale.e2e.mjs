@@ -35,7 +35,7 @@ try {
     await ready(page);
     await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile a[href*='/p/']"));
     const photo = await page.locator("[data-project-grid] .advertising-tile a[href*='/p/']").first().getAttribute("href");
-    await page.evaluate(href => window.TruongThinhAdvertising.navigateQuery(href), photo);
+    await page.evaluate(href => window.TruongThinhMasonry.navigateQuery(href), photo);
     await page.waitForFunction(() => /\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
     await page.locator("[data-menu-open]").click();
     await page.locator('#site-menu [data-language-option="en"]').click();

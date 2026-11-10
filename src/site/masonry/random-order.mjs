@@ -1,6 +1,6 @@
-import { fnv1a32 } from "./layout-core.mjs";
+import { fnv1a32 } from "./layout.mjs";
 
-export function createAdvertisingSeed() {
+export function createBrowseSeed() {
   return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 14);
 }
 

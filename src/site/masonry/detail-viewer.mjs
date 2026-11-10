@@ -1,4 +1,4 @@
-import { responsiveSource } from "./responsive-image.mjs";
+import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -16,7 +16,7 @@ const rotate = (x, y, degrees) => {
   return [x * Math.cos(radians) - y * Math.sin(radians), x * Math.sin(radians) + y * Math.cos(radians)];
 };
 
-export function createAdvertisingPhotoViewer({
+export function createDetailViewer({
   dialog,
   expandButton,
   expandedImage,

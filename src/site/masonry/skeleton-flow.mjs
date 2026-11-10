@@ -1,6 +1,6 @@
 const FLOW_WIDTH = 240;
 import { shuffleWithSeed } from "./random-order.mjs";
-import { canSpanTwoColumns, spanSlots } from "./layout-core.mjs";
+import { canSpanTwoColumns, spanSlots } from "./layout.mjs";
 // Một context giữ attribute của lần getContext đầu tiên, nên lease tạo sẵn phải dùng những giá trị này.
 export const SKELETON_FLOW_CONTEXT_ATTRIBUTES = Object.freeze({
   alpha: false,

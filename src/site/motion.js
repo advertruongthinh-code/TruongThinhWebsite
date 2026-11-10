@@ -2669,12 +2669,12 @@
         && destination.pathname.slice(0, 4) === window.location.pathname.slice(0, 4)
         && destination.search === ""
         && destination.pathname !== `${window.location.pathname}${window.location.search}`
-        && window.TruongThinhAdvertising?.getAdapter?.()
+        && window.TruongThinhMasonry?.getAdapter?.()
       ) {
         // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
         const fromGrid = !isAdvertisingPhotoUrl(new URL(window.location.href));
         const navigateToAdvertisingParent = (instant = false) => {
-          if (window.TruongThinhAdvertising?.navigateQuery?.(
+          if (window.TruongThinhMasonry?.navigateQuery?.(
             destination.href,
             { reason: "navbar" },
           )) {
@@ -2951,7 +2951,7 @@
       && getSelection().toString()) event.preventDefault();
   });
   document.addEventListener("click", (event) => {
-    if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
+    if (!advertisingFilterQueueEnabled || window.TruongThinhMasonry?.getAdapter?.()) return;
     const control = event.target instanceof Element
       ? event.target.closest("[data-advertising-filter]")
       : null;
@@ -3031,7 +3031,7 @@
   }
 
   window.addEventListener("popstate", (event) => {
-    const advertising = window.TruongThinhAdvertising;
+    const advertising = window.TruongThinhMasonry;
     // Back khi photo viewer đang mở chỉ đóng viewer (advertising-viewer-touch-zoom R10).
     if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();

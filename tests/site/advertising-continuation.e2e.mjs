@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
 import { createHash } from "node:crypto";
 
-import { SKELETON_FLOW_PRESETS } from "../../src/site/advertising-products/skeleton-flow.mjs";
+import { SKELETON_FLOW_PRESETS } from "../../src/site/masonry/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
@@ -20,7 +20,7 @@ const flowPresetIds = new Set(SKELETON_FLOW_PRESETS.map(({ id }) => id));
 const output = path.join(root, ".tmp/mobile-skeleton-correction", "continuation-" + new Date().toISOString().replace(/[:.]/g, "-"));
 await fs.mkdir(output, { recursive: true });
 const evidence = { baseUrl, source: {}, performance: {} };
-for (const file of ["motion.js", "advertising-products/catalog-runtime.mjs", "advertising-products/skeleton-flow.mjs", "style.css"]) {
+for (const file of ["motion.js", "masonry/runtime.mjs", "masonry/skeleton-flow.mjs", "style.css"]) {
   evidence.source[file] = createHash("sha256").update(await fs.readFile(path.join(root, "src/site", file))).digest("hex");
 }
 
@@ -152,11 +152,11 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
     ? { width: 390, height: 844 }
     : { width: 1440, height: 900 });
   await page.goto(`${baseUrl}${canonicalPath}${query}`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   const sourceUrl = new URL(page.url());
   // URL ghi slug cụm theo locale, browse state giữ id cụm (taxonomy R4).
   const sourceBrowse = await page.evaluate(() => {
-    const { category, photo, tag } = window.TruongThinhAdvertising.getBrowseState();
+    const { category, photo, tag } = window.TruongThinhMasonry.getBrowseState();
     return { category, photo, tag };
   });
   const selector = mobile
@@ -183,7 +183,7 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
   await page.evaluate(() => history.back());
   await page.waitForFunction((href) => location.href === href, sourceUrl.href);
   await page.waitForFunction((expected) => {
-    const browse = window.TruongThinhAdvertising?.getBrowseState?.();
+    const browse = window.TruongThinhMasonry?.getBrowseState?.();
     return browse?.category === expected.category
       && browse.photo === expected.photo
       && browse.tag === expected.tag;
@@ -665,7 +665,7 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      // Context không cảm ứng là PC: core 100px và chín bậc (glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
+      // Context không cảm ứng là PC: core 100px và chín bậc (masonry/glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
       assert.deepEqual([blurs[0], blurs[1], ...blurs.slice(-3)], ["100", "4.5", "33.83", "49.85", "73.44"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
@@ -1185,8 +1185,8 @@ try {
 
   for (let attempt = 0; attempt < 20; attempt += 1) {
     await page.evaluate(async () => {
-      window.TruongThinhAdvertising.unmount();
-      await window.TruongThinhAdvertising.mount();
+      window.TruongThinhMasonry.unmount();
+      await window.TruongThinhMasonry.mount();
     });
     await ready(page);
   }
@@ -1230,7 +1230,7 @@ try {
   await page.goto(`${baseUrl}/en/advertising-products/`, { waitUntil: "networkidle" });
   // Trang nền trong headless không chạy rAF nên route-enter không gỡ.
   await page.bringToFront();
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   // Direct load phủ route veil đến khi phase enter gỡ route-enter; nút menu bị veil chặn click trước đó.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.locator("[data-menu-open]").click();

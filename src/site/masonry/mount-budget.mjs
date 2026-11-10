@@ -1,5 +1,5 @@
 // Ngân sách dựng card khi cuộn và card tạm (ghost) giữ chỗ cho card chưa dựng kịp (advertising-masonry R7).
-import { mountQuota } from "./layout-core.mjs";
+import { mountQuota } from "./layout.mjs";
 
 export const GHOST_FADE_MS = 450;
 export const GHOST_FADE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";

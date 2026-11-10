@@ -68,7 +68,7 @@ chữ dòng trên.
   1024, 1440px.
 - **Header:** ba track độc lập cho brand, nav và nút menu ([Header](components/Header/README.md#hình-học)).
 - **Detail:** project grid tối đa 1500px, bốn cột desktop, gap theo gutter.
-- **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
+- **Advertising:** masonry tính bằng `masonry/layout.mjs`, không dùng CSS grid
   ([Masonry](components/Masonry/README.md#hình-học)).
 - **Footer:** Hotline trên số Văn phòng, trụ sở, mạng xã hội; icon thay nhãn chữ, không logo. Lời mời và CTA nằm
   trước footer ([Footer](components/Footer/README.md)).

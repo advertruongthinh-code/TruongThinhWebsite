@@ -2,8 +2,8 @@
 title: CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ, parallax, CTA cuối related
 status: live
 source:
-  - src/site/advertising-products/cta-batch.mjs
-  - src/site/advertising-products/detour-path.mjs
+  - src/site/masonry/cta-batch.mjs
+  - src/site/masonry/detour-path.mjs
 tests:
   - tests/site/advertising-continuation.e2e.mjs
   - tests/site/advertising-related-cta.e2e.mjs
@@ -209,7 +209,7 @@ Then tiêu đề CTA chạy line reveal, nút fade vào như lần đầu ở ma
 ### R10. Card related không đi qua primary
 
 Tọa độ related grid; primary chiếm `[0, pw] × [0, ph]`. Hộp `w × h` góc trên trái `p` đè primary khi `p` thuộc
-`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
+`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`masonry/detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
 cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai đoạn qua góc vuông `C = (x điểm bên cạnh, y điểm phía dưới)`
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
@@ -229,7 +229,7 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Runtime | `renderCtaSkeleton` (`catalog-runtime.mjs`, nội bộ) | Tính `D`, ghi `--advertising-cta-top`, `--advertising-cta-tail-height`, dựng batch (R2, R5) |
+| Runtime | `renderCtaSkeleton` (`masonry/runtime.mjs`, nội bộ) | Tính `D`, ghi `--advertising-cta-top`, `--advertising-cta-tail-height`, dựng batch (R2, R5) |
 | Runtime | `measureCtaCopy`, `fitGridCtaHeading` | Trả `{ baseline, below }` của cụm chữ; ghi `font-size` inline cho tiêu đề (R1, R3) |
 | Runtime | `syncCtaParallax` | Ghi `transform` của `.detail-cta__copy`, không vượt mép trên CTA (R6, R7) |
 | Runtime | `scheduleResize`, `refreshFontGeometry`, `ResizeObserver` trên cụm chữ, CTA, footer | Đo lại và dựng lại (R8) |
@@ -237,11 +237,11 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 | DOM hook | `data-advertising-cta-settled` trên `.detail-cta[data-advertising-grid-cta]` | Bật transition vị trí sau lần đo đầu (R8) |
 | CSS | `.detail-cta[data-advertising-grid-cta]`, `.detail-cta__copy`, `h2` (`detail.css`) | Vị trí cụm, cỡ chữ theo breakpoint, đệm, `margin-bottom` âm (R1, R3, R6) |
 | CSS | `body.is-advertising-browse .site-footer` (`detail.css`) | `--footer-top-gap: 0px` (R2, R9) |
-| Module | `createCtaBatch` (`cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `arcInView`, `clear`; ghi `data-advertising-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
-| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
+| Module | `createCtaBatch` (`masonry/cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `arcInView`, `clear`; ghi `data-advertising-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
+| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`masonry/detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
 | CSS | `.site-footer` trong `@media (max-width: 750px), (max-height: 640px)` và `(max-width: 750px) and (orientation: portrait)` (`style.css`) | Footer gọn (R4) |
 
-Spec không sở hữu file: code nằm trong `catalog-runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
+Spec không sở hữu file: code nằm trong `masonry/runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
 ([trang con](detail-pages.md)), `style.css` ([shell](site-shell.md)), dùng `createSkeletonFlowFrameLayout`
 ([skeleton](advertising-skeleton.md)) và `arcGlassGeometry` ([Kính](glass-surface.md)); sửa hành vi ở đó thì cập nhật cả
 spec này.

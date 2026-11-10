@@ -7,7 +7,7 @@ import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD 
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
 globalThis.window ??= {};
-const { parseAdvertisingBrowseLocation, selectAdvertisingRelated, selectAdvertisingSuggestions, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { parseBrowseLocation, selectRelated, selectSuggestions, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
 const read = (path) => readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8");
 const artifact = buildAdvertisingArtifact();
 
@@ -79,13 +79,13 @@ test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang 
   const cluster = artifact.pages.find(({ filter }) => filter === "printing-decals");
   const pages = [...artifact.pages.filter(({ filter }) => filter !== "printing-decals/menus"), { ...cluster, filter: "printing-decals/menus", query: true }];
   const schema = { cards: artifact.cards, categories: artifact.categories, pages };
-  const parse = (href) => parseAdvertisingBrowseLocation(`https://local.test${href}`, schema).category;
+  const parse = (href) => parseBrowseLocation(`https://local.test${href}`, schema).category;
   assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
   assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
   const serialize = (href, category) => {
-    const url = serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
+    const url = serializeBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
     return `${url.pathname}${url.search}`;
   };
   assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
@@ -106,12 +106,12 @@ test("taxonomy R4: trang gốc trong artifact.pages khớp title và kicker củ
 
 test("taxonomy R7: related của ảnh Kỷ niệm chương đặt card Kỷ niệm chương trước card khác cùng cụm; nút gợi ý có sản phẩm", () => {
   const hero = artifact.cards.find((card) => card.productIds[0] === "office-signs/awards-plaques");
-  const related = selectAdvertisingRelated({ cards: artifact.cards, heroId: hero.id, seed: "r7" });
+  const related = selectRelated({ cards: artifact.cards, heroId: hero.id, seed: "r7" });
   const isAward = (card) => card.productIds.includes("office-signs/awards-plaques");
   const firstOther = related.findIndex((card) => !isAward(card));
   assert.ok(firstOther > 0 && related.slice(firstOther).every((card) => !isAward(card) && card.category === hero.category));
   assert.equal(related.length, artifact.cards.filter((card) => card !== hero && (isAward(card) || card.category === hero.category)).length);
-  const suggestions = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: hero.id, tagRegistry: artifact.tagRegistry });
+  const suggestions = selectSuggestions({ cards: artifact.cards, heroId: hero.id, tagRegistry: artifact.tagRegistry });
   assert.equal(suggestions[0].tag.id, "office-signs/awards-plaques");
   assert.equal(new Set(suggestions.map(({ tag }) => tag.labelVi)).size, suggestions.length, "không có hai nút trùng nhãn");
 });

@@ -2,8 +2,8 @@
 title: Skeleton cuối masonry Advertising
 status: live
 source:
-  - src/site/advertising-products/skeleton-flow.mjs
-  - src/site/advertising-products/skeleton-flow-worker.mjs
+  - src/site/masonry/skeleton-flow.mjs
+  - src/site/masonry/skeleton-flow-worker.mjs
   - scripts/site/image-palette.mjs
 tests:
   - tests/site/advertising-skeleton-flow.test.mjs
@@ -32,7 +32,7 @@ chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-load
 Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[data-advertising-cta-skeleton]`
 (`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
 hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
-thật (`canSpanTwoColumns`, `spanSlots` ở `layout-core.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
+thật (`canSpanTwoColumns`, `spanSlots` ở `masonry/layout.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
 khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; không để lỗ
 ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): hai đáy chênh nhau thì khung một cột cuối của cột ngắn hơn
 (trong batch) kéo dài đúng phần chênh, đáy là card thật hay khung hai cột thì khung hai cột chỉ đặt khi hai đáy bằng nhau.
@@ -68,7 +68,7 @@ tăng `hướng × speed / 100 × 1.2 × min(dt, 0.05s)`. Không có WebGL: khun
 (`staticBackground`), không vẽ khung CPU, không vòng lặp.
 
 ```gherkin
-Given module skeleton-flow.mjs đã nạp
+Given module masonry/skeleton-flow.mjs đã nạp
 When đọc SKELETON_FLOW_PRESETS
 Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 ```
@@ -223,8 +223,8 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
-| Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`masonry/skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `masonry/runtime.mjs` gọi |
+| Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`masonry/runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI
 

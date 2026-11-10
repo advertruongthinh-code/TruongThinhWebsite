@@ -16,13 +16,13 @@ const activeTag = "format-square";
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
-let selectAdvertisingSuggestions;
+let selectSuggestions;
 try {
-  ({ selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ selectSuggestions } = await import("../../src/site/masonry/runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
-const delayedActiveSlots = selectAdvertisingSuggestions({
+const delayedActiveSlots = selectSuggestions({
   cards: ADVERTISING_CARDS,
   heroId: "kiosk-posm-01",
   activeTag: "use-sampling",
@@ -270,7 +270,7 @@ try {
   await page.waitForTimeout(200);
   assert.equal(await runningLayers(offscreenTag), 0, "onscreen active row stays static");
 
-  await page.evaluate(() => window.TruongThinhAdvertising.unmount());
+  await page.evaluate(() => window.TruongThinhMasonry.unmount());
   await page.waitForTimeout(6_000);
   const cleaned = await page.evaluate(() => ({
     nextLayers: document.querySelectorAll('[data-advertising-suggestion-image-layer="next"]').length,

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
+import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium, webkit } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8792";
@@ -11,7 +11,7 @@ await fs.mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const results = [], errors = [];
 const ready = async page => {
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.() && window.TruongThinhAdvertising.getBrowseState().seed);
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.() && window.TruongThinhMasonry.getBrowseState().seed);
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
   // Direct-load veil phủ trang và header cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
@@ -27,7 +27,7 @@ const stripBackdropFilter = (page, engine) => engine === webkit ? page.addInitSc
   });
 }) : Promise.resolve();
 const read = page => page.evaluate(() => ({
-  browse: window.TruongThinhAdvertising.getBrowseState(),
+  browse: window.TruongThinhMasonry.getBrowseState(),
   ids: [...document.querySelectorAll("[data-advertising-card]")].map(node => node.dataset.advertisingCard),
   positions: [...document.querySelectorAll("[data-advertising-card]")].map(node => [node.dataset.advertisingCard, node.style.left, node.style.top]),
   hash: document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature,
@@ -47,11 +47,11 @@ try {
   assert.deepEqual(direct.filters.map(([slug]) => slug), filterOrder, "runtime keeps All and the six filters in canonical order");
   for (const category of ADVERTISING_CATEGORIES) {
     await page.locator('[data-advertising-filter="' + category.slug + '"]').click();
-    await page.waitForFunction(category => window.TruongThinhAdvertising.getBrowseState().category === category, category.slug);
+    await page.waitForFunction(category => window.TruongThinhMasonry.getBrowseState().category === category, category.slug);
     await page.waitForTimeout(700);
     const sample = await read(page);
     assert.equal(sample.browse.seed, direct.browse.seed);
-    assert.ok(sample.ids.every(id => matchesAdvertisingFilter(ADVERTISING_CARDS.find(card => card.id === id), category.slug)));
+    assert.ok(sample.ids.every(id => matchesFilter(ADVERTISING_CARDS.find(card => card.id === id), category.slug)));
     assert.equal(new Set(sample.ids).size, sample.ids.length);
     assert.deepEqual(sample.filters, direct.filters, "filter controls keep order and position");
     results.push({ case: "filter", category: category.slug, seed: sample.browse.seed, rendered: sample.ids.length });
@@ -61,10 +61,10 @@ try {
   assert.deepEqual((await read(page)).positions, originalPositions, "filter round trip preserves the entry layout");
   const hero = (await read(page)).ids[0];
   await page.locator('[data-advertising-card="' + hero + '"] a').click();
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry.getBrowseState().photo));
   assert.equal((await read(page)).browse.seed, direct.browse.seed);
   await page.goBack();
-  await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);
+  await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
   assert.equal((await read(page)).browse.seed, direct.browse.seed);
   results.push({ case: "photo-back", hero, seed: direct.browse.seed });
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]")
@@ -84,13 +84,13 @@ try {
   });
   await page.waitForFunction(() => window.__pendingBrowseScrollTime !== null);
   await page.mouse.click(pendingTarget.x, pendingTarget.y);
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry.getBrowseState().photo));
   const pendingClick = await page.evaluate(() => window.__pendingBrowseClick);
   assert.equal(pendingClick.scrollEventObserved, true, "native scroll event precedes photo navigation");
   assert.ok(pendingClick.elapsed < 200, "photo navigation occurs while scroll persistence is pending");
   assert.ok(Math.abs((await read(page)).browse.grid.scrollY - pendingClick.y) <= 2, "photo captures the latest scroll synchronously");
   await page.goBack();
-  await page.waitForFunction(y => !window.TruongThinhAdvertising.getBrowseState().photo
+  await page.waitForFunction(y => !window.TruongThinhMasonry.getBrowseState().photo
     && !document.querySelector("[data-advertising-photo-morph]") && Math.abs(scrollY - y) <= 2, pendingClick.y);
   results.push({ case: "pending-scroll-photo-back", ...pendingClick });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -192,7 +192,7 @@ try {
     await page.goto(base + "/vi/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
     const sample = await read(page);
     assert.equal(sample.browse.category, "printing-decals", slug);
-    assert.ok(sample.ids.length && sample.ids.every(id => matchesAdvertisingFilter(ADVERTISING_CARDS.find(card => card.id === id), "printing-decals")), slug);
+    assert.ok(sample.ids.length && sample.ids.every(id => matchesFilter(ADVERTISING_CARDS.find(card => card.id === id), "printing-decals")), slug);
     const landed = new URL(page.url());
     assert.equal(landed.pathname + landed.search, "/vi/advertising-products/in-an-decal/", slug);
     results.push({ case: "category-alias", slug, rendered: sample.ids.length });

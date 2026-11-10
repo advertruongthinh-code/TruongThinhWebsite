@@ -40,7 +40,7 @@ qua suggestion hoặc CTA.
 **FIRST VIEWPORT:** Identity trang, filter đang chọn và ảnh hợp lệ đầu tiên;
 locale và đường quay lại luôn rõ.
 
-**FORM:** Một layout engine (`layout-core.mjs`), không solver thứ hai; card
+**FORM:** Một layout engine (`masonry/layout.mjs`), không solver thứ hai; card
 không caption chiếm chỗ (tên chỉ hiện khi chuột thật hover, trên lớp
 `media-hover-overlay`), ảnh giữ trọn tỷ lệ.
 

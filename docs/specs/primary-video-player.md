@@ -244,9 +244,9 @@ And khi video mới phát thì tổng là 0:04, giờ chạy theo video mới
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
 | CSS token | `--text-shadow-d`, `--text-shadow-reach` trong `:root` | Bóng hai lớp R4; thread bóng chữ hero định nghĩa, ở đây chỉ dùng lại |
 | Script | `scripts/site/build-video-ladder.mjs` | Keyframe mỗi `0,5s` (R3) |
-| Hàm | `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Vùng ảnh `split` cao `min(W/r, H)` (R6) |
+| Hàm | `computeDetailGeometry` (`masonry/layout.mjs`) | Vùng ảnh `split` cao `min(W/r, H)` (R6) |
 
-Code nằm trong `catalog-runtime.mjs`, `photo-viewer.mjs`, `detail.css`, `layout-core.mjs`, `index.html` (bỏ nút toàn màn hình, nút mở lớn chỉ icon).
+Code nằm trong `masonry/runtime.mjs`, `masonry/detail-viewer.mjs`, `detail.css`, `masonry/layout.mjs`, `index.html` (bỏ nút toàn màn hình, nút mở lớn chỉ icon).
 
 ## UI
 

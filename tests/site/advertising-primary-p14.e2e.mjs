@@ -230,7 +230,7 @@ async function evidence(page) {
     ];
     const frameRect = frame?.getBoundingClientRect();
     const foregroundRect = foreground?.getBoundingClientRect();
-    // Chỉ item related thật; lớp ghost của card ảo (mount-budget.mjs) cũng là con của grid.
+    // Chỉ item related thật; lớp ghost của card ảo (masonry/mount-budget.mjs) cũng là con của grid.
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
       .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
     const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionBox
@@ -1127,8 +1127,8 @@ const generatedAt = new Date().toISOString();
 const provenance = {};
 for (const relativePath of [
   "src/site/advertising-products/index.html", ".site-output/advertising-products/index.html",
-  "src/site/advertising-products/catalog-runtime.mjs", ".site-output/advertising-products/catalog-runtime.mjs",
-  "src/site/advertising-products/layout-core.mjs", ".site-output/advertising-products/layout-core.mjs",
+  "src/site/masonry/runtime.mjs", ".site-output/masonry/runtime.mjs",
+  "src/site/masonry/layout.mjs", ".site-output/masonry/layout.mjs",
   "src/site/detail.css", ".site-output/detail.css",
 ]) provenance[relativePath] = await sha256(relativePath);
 

@@ -12,8 +12,8 @@ import {
   readSkeletonBatchConfig,
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
-} from "../../src/site/advertising-products/skeleton-flow.mjs";
-import { compileAdvertisingProductLayout, isAdvertisingWideMedia } from "../../src/site/advertising-products/layout-core.mjs";
+} from "../../src/site/masonry/skeleton-flow.mjs";
+import { compileMasonryLayout, isWideMedia } from "../../src/site/masonry/layout.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
@@ -225,7 +225,7 @@ const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], 
   id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
   media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
 }));
-const wideTailLayout = compileAdvertisingProductLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
+const wideTailLayout = compileMasonryLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
   layoutViewportWidth: 1440, captionPixelHeight: 34.92, presentationOrder: wideTail.map(({ id }) => id) });
 const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
 assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
@@ -240,7 +240,7 @@ for (const column of [0, 1]) {
 }
 for (const frame of wideTailFrames) {
   if (frame === wideTailFrames.findLast(({ column }) => column === frame.column)) continue;
-  assert.equal(isAdvertisingWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
+  assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
 // Masonry R5 no holes: each masonry tail hole gets one frame cut to the hole (caption space reserved), before continuation frames.

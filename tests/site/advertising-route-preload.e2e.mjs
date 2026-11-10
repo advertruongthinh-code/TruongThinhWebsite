@@ -11,7 +11,7 @@ const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({
   headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH, ignoreDefaultArgs: ["--hide-scrollbars"],
 });
-const files = ["masonry-4.2.2.min.js", "catalog-runtime.mjs", "catalog-artifact.mjs"];
+const files = ["masonry-4.2.2.min.js", "masonry/runtime.mjs", "catalog-artifact.mjs"];
 
 try {
   for (const locale of ["vi", "en"]) {

@@ -153,9 +153,8 @@
   // trang public (R10). Đổi sản phẩm chính là đổi cụm: card nhận sourceOrder cuối cụm mới, hạng xếp lại theo runtime.
   // Không nạp catalog-detail.mjs (nặng): runtime vẫn nạp lười và chỉ gắn trường card còn thiếu (related của card đã sửa).
   async function patchCatalog(edits) {
-    const dir = "/advertising-products/";
-    const [{ default: base }, { scheduleAdvertisingRank }] = await Promise.all(
-      ["catalog-artifact", "layout-core"].map((name) => import(`${dir}${name}.mjs`)),
+    const [{ default: base }, { scheduleRank }] = await Promise.all(
+      ["/advertising-products/catalog-artifact.mjs", "/masonry/layout.mjs"].map((href) => import(href)),
     );
     const clusterOf = new Map(base.products.map((product) => [product.id, product.cluster]));
     const nextOrder = new Map();
@@ -187,7 +186,7 @@
       }
       return next;
     });
-    return { ...base, cards: moved ? scheduleAdvertisingRank(cards, base.categories.map((entry) => entry.slug)) : cards };
+    return { ...base, cards: moved ? scheduleRank(cards, base.categories.map((entry) => entry.slug)) : cards };
   }
 
   // Nháp (chưa lưu) và bản đã lưu (cache của GET /api/admin/content, R8): bản xem trước áp nháp, không có thì bản đã lưu.

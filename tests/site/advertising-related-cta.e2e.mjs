@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
-const { planDetourPath } = await import("../../src/site/advertising-products/detour-path.mjs");
+const { planDetourPath } = await import("../../src/site/masonry/detour-path.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const ready = (page) => page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"

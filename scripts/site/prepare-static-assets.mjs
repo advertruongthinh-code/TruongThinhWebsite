@@ -6,7 +6,7 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
-import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
+import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 import "./sync-brand-lockup.mjs";
 import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
@@ -66,7 +66,7 @@ for (const layoutViewportWidth of PUBLIC_GRID_WIDTHS) {
       datasetVersion: artifact.datasetVersion,
       settings: artifact.settings,
     });
-    const filterCards = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
+    const filterCards = artifact.cards.filter((card) => matchesFilter(card, filter));
     if (filterCards.length > 0 && (layout.diagnostics?.code === "needs-media" || layout.placements.length !== filterCards.length)) {
       throw new Error(`Advertising public grid preflight failed for ${filter} at ${layoutViewportWidth}px: ${layout.diagnostics?.code ?? "incomplete-geometry"}`);
     }
@@ -187,13 +187,14 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
 const productLink = (chip) =>
   `<a class="rail-chip" href="/vi/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-advertising-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
 const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
-// Runtime chỉ biết module con sau khi tải xong, artifact chỉ tải sau detail.js: modulepreload gộp ba đợt mạng làm một
-// (static-release R1). Danh sách đọc từ import tĩnh của runtime nên thêm, bớt module không phải sửa HTML.
-const runtimeSource = await readFile(path.join(sourceRoot, "advertising-products", "catalog-runtime.mjs"), "utf8");
-const preloadModules = ["catalog-runtime.mjs", "catalog-artifact.mjs",
-  ...new Set([...runtimeSource.matchAll(/from "\.\/([\w-]+\.mjs)"/g)].map(([, name]) => name))];
-await Promise.all(preloadModules.map((name) => readFile(path.join(outputRoot, "advertising-products", name))));
-const modulePreloads = preloadModules.map((name) => `<link rel="modulepreload" href="/advertising-products/${name}">`).join("");
+// The runtime only learns its child modules after it loads, and the artifact only loads after detail.js: modulepreload
+// folds three network rounds into one (static-release R1). The list is read from the runtime's static imports, so adding or
+// removing a module needs no HTML change.
+const runtimeSource = await readFile(path.join(sourceRoot, "masonry", "runtime.mjs"), "utf8");
+const preloadModules = ["/masonry/runtime.mjs", "/advertising-products/catalog-artifact.mjs",
+  ...new Set([...runtimeSource.matchAll(/from "(\.{1,2}\/[\w/-]+\.mjs)"/g)].map(([, specifier]) => path.posix.join("/masonry", specifier)))];
+await Promise.all(preloadModules.map((href) => readFile(path.join(outputRoot, href))));
+const modulePreloads = preloadModules.map((href) => `<link rel="modulepreload" href="${href}">`).join("");
 const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).replace(
   '<script defer src="/assets/vendor/', (anchor) => modulePreloads + anchor,
 ).replace(

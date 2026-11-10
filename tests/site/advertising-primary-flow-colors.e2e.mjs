@@ -5,7 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
-const { MEDIA_COLORS } = await import(pathToFileURL(path.resolve("src/site/advertising-products/media-colors.mjs")));
+const { MEDIA_COLORS } = await import(pathToFileURL(path.resolve("src/site/media-lib/colors.mjs")));
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {

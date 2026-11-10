@@ -1,18 +1,18 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v16";
-const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
-const ADVERTISING_MIN_COLUMNS = 2;
-const ADVERTISING_MAX_COLUMNS = 4;
+export const MASONRY_LAYOUT_VERSION = "masonry-grid-v16";
+const MASONRY_IDEAL_SLOT_WIDTH = 220;
+const MASONRY_MIN_COLUMNS = 2;
+const MASONRY_MAX_COLUMNS = 4;
 // Card trải 2 cột (masonry R5, owner 2026-11-09): chỉ khi lưới có từ 3 cột; điện thoại 2 cột giữ mọi card một cột.
-const ADVERTISING_WIDE_MIN_COLUMNS = 3;
+const WIDE_MIN_COLUMNS = 3;
 // Lỗ lớn: card 2 cột phải hạ xuống đáy cao hơn của cặp cột, chừa khoảng trống dưới nó ở cột thấp hơn. Trống quá nửa
 // bề rộng một cột (158px ở 1440px) thì card giữ một cột. Nửa cột là ngưỡng bridge sẵn có của kernel cũ và oracle hình
 // học, bằng chiều cao card 2:1 ở một cột (ảnh ngang nhất catalog), nên lỗ không cao hơn card thấp nhất và không đọc
 // thành chỗ thiếu card. Đo catalog thật (7 filter, 10 seed, 768-1920px): 61-68% card tỷ lệ vàng trải 2 cột, lỗ trung
 // vị 0.18-0.22 cột; ngưỡng 0.75 cho 82-88% nhưng lỗ tới 0.75 cột (docs/specs/advertising-masonry.md R5).
-const ADVERTISING_WIDE_MAX_HOLE_RATIO = 0.5;
+const WIDE_MAX_HOLE_RATIO = 0.5;
 // No holes (R5, owner 2026-11-10): two column bottoms may differ by at most 0.25 gap (9/6/4px at gap 35/25/15) and 5% of
 // the trimmed card's media height. A hole under a tail-band wide card must be at least a quarter column tall to fit a skeleton frame.
 const BLEED_GAP_RATIO = 0.25;
@@ -21,9 +21,9 @@ const MIN_HOLE_FILL_RATIO = 0.25;
 
 // Cover ngang có w/h từ tỷ lệ vàng 1.618 trở lên. So bằng phép nhân (w × 1000 >= h × 1618) thay vì chia, nên kích thước
 // nguyên không lệch do làm tròn: 1618×1000 đủ, 1617×1000 không.
-export const isAdvertisingWideMedia = (media) => media.width * 1000 >= media.height * 1618;
+export const isWideMedia = (media) => media.width * 1000 >= media.height * 1618;
 // Luật span một chỗ (masonry-reuse bước 5): card thật, card related và khung batch skeleton cùng hỏi hai hàm này.
-export const canSpanTwoColumns = (columns, media) => columns >= ADVERTISING_WIDE_MIN_COLUMNS && isAdvertisingWideMedia(media);
+export const canSpanTwoColumns = (columns, media) => columns >= WIDE_MIN_COLUMNS && isWideMedia(media);
 // Chỗ đặt item rộng `width` cột trên các đáy cột: `y` là đỉnh, `cavity` là lỗ chừa dưới item ở cột thấp hơn. Item 2 cột
 // chỉ đặt trên hai cột cùng trống hoặc cùng có card, lỗ không quá nửa cột. `start`: đỉnh của cột trống.
 export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start = 0) {
@@ -39,7 +39,7 @@ export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start =
     else if (!empty.some(Boolean)) {
       const y = Math.max(...occupied) + gap;
       const cavity = y - Math.min(...occupied) - gap;
-      if (cavity <= ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) slots.push({ left, y, cavity });
+      if (cavity <= WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) slots.push({ left, y, cavity });
     }
   }
   return slots;
@@ -48,7 +48,7 @@ export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start =
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
 const CAPTION_METRICS_VERSION = "advertising-caption-v2";
-export const ADVERTISING_SEARCH_OPERATION_BUDGET = 300000;
+export const MASONRY_SEARCH_BUDGET = 300000;
 const SEARCH_WINDOW_SIZE = 64;
 const SEARCH_CANDIDATE_LIMIT = 20;
 const SEARCH_BACKTRACK_DEPTH = 24;
@@ -71,7 +71,7 @@ function mediaRatioBand(card) {
   return ratio >= 1.15 ? "high" : ratio <= 0.9 ? "low" : "medium";
 }
 
-export function scoreAdvertisingOrganicRhythm(items, limit = ORGANIC_RHYTHM_WINDOW) {
+export function scoreOrganicRhythm(items, limit = ORGANIC_RHYTHM_WINDOW) {
   const cards = items.map((item) => item?.card || item).filter(Boolean);
   const bands = cards.slice(0, limit).map(mediaRatioBand);
   const counts = cards.reduce((result, card) => {
@@ -114,7 +114,7 @@ export function scoreAdvertisingOrganicRhythm(items, limit = ORGANIC_RHYTHM_WIND
 }
 
 // pinFirst: related ở detail giữ ảnh đầu tiên đứng đầu để nó rơi vào cột 4 cạnh primary (detail R7).
-export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrderIds, { pinFirst = false } = {}) {
+export function solveOrganicOrder(cards, presentationOrderIds, { pinFirst = false } = {}) {
   if (!Array.isArray(cards) || !Array.isArray(presentationOrderIds)) return null;
   const cardById = new Map(cards.map((card) => [card.id, card]));
   if (presentationOrderIds.length !== cardById.size
@@ -123,7 +123,7 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
   const requested = presentationOrderIds.map((id) => cardById.get(id));
   const pinnedFirst = pinFirst || requested[0]?.kind === "suggestion" ? requested[0] : null;
   const movable = pinnedFirst ? requested.slice(1) : requested;
-  const baseline = scoreAdvertisingOrganicRhythm(requested);
+  const baseline = scoreOrganicRhythm(requested);
   if (!baseline.targetApplicable || requested.length < 3) {
     return {
       cards: requested,
@@ -161,7 +161,7 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
   requested.forEach((card) => {
     if (!usedIds.has(card.id)) ordered.push(card);
   });
-  const score = scoreAdvertisingOrganicRhythm(ordered);
+  const score = scoreOrganicRhythm(ordered);
   return {
     cards: ordered,
     applied: ordered.some((card, index) => card.id !== requested[index]?.id),
@@ -169,14 +169,14 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
   };
 }
 
-export function normalizeAdvertisingProductSettings(settings) {
+export function normalizeMasonrySettings(settings) {
   if (settings !== undefined && (!settings || typeof settings !== "object" || Array.isArray(settings))) {
     throw new Error("Invalid advertising settings: expected an object");
   }
   return {};
 }
 
-export function normalizeAdvertisingSettings(settings) {
+export function normalizeLegacyMasonrySettings(settings) {
   if (settings === undefined) return { landscapeThreshold: DEFAULT_LANDSCAPE_THRESHOLD };
   if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
     throw new Error("Invalid advertising settings: expected an object");
@@ -211,7 +211,7 @@ function assertCategoryOrder(categoryOrder) {
  * @param {any[]} cards
  * @param {any} [options]
  */
-export function validateAdvertisingCards(cards, options = {}) {
+export function validateMasonryCards(cards, options = {}) {
   const categoryOrder = options.categoryOrder ?? [], requireRanks = options.requireRanks ?? true, requireNonEmpty = options.requireNonEmpty ?? false;
   if (!Array.isArray(cards)) throw new Error("Advertising cards must be an array");
   if (requireNonEmpty && cards.length === 0) throw new Error("Advertising cards must not be empty");
@@ -262,19 +262,19 @@ export function validateAdvertisingCards(cards, options = {}) {
 }
 
 // Filter là "all", id cụm (mọi cụm có sản phẩm gắn trên media, taxonomy R1) hoặc id sản phẩm.
-export const matchesAdvertisingFilter = (card, filter) =>
+export const matchesFilter = (card, filter) =>
   filter === "all" || card?.category === filter || Boolean(card?.clusterIds?.includes(filter) || card?.productIds?.includes(filter));
 
 // Hạng của card trong filter: vị trí sản phẩm đầu tiên khớp filter (sản phẩm hoặc cụm), 0 là sản phẩm chính (taxonomy R1).
-export const advertisingFilterRank = (card, filter) =>
+export const filterRank = (card, filter) =>
   [card?.productIds?.indexOf(filter) ?? -1, card?.clusterIds?.indexOf(filter) ?? -1].find((index) => index >= 0) ?? 0;
 
 const bySource = (left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 const byRank = (left, right) => left.rank - right.rank || left.id.localeCompare(right.id);
 
 /** @param {any[]} cards @param {string[]} categoryOrder @returns {any[]} */
-export function scheduleAdvertisingRank(cards, categoryOrder) {
-  validateAdvertisingCards(cards, { categoryOrder, requireRanks: false });
+export function scheduleRank(cards, categoryOrder) {
+  validateMasonryCards(cards, { categoryOrder, requireRanks: false });
   /** @type {any[][]} */
   const queues = categoryOrder.map((category) => cards.filter((card) => card.category === category).sort(bySource));
   const ranked = cards.slice(0, 0);
@@ -288,20 +288,20 @@ export function scheduleAdvertisingRank(cards, categoryOrder) {
 }
 
 export function columnsForWidth(layoutViewportWidth) {
-  const { outer, interCardGap } = advertisingSpacing(layoutViewportWidth);
+  const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
   const gridWidth = layoutViewportWidth - (2 * outer);
-  return Math.min(ADVERTISING_MAX_COLUMNS, Math.max(ADVERTISING_MIN_COLUMNS,
-    Math.floor((gridWidth + interCardGap) / (ADVERTISING_IDEAL_SLOT_WIDTH + interCardGap))));
+  return Math.min(MASONRY_MAX_COLUMNS, Math.max(MASONRY_MIN_COLUMNS,
+    Math.floor((gridWidth + interCardGap) / (MASONRY_IDEAL_SLOT_WIDTH + interCardGap))));
 }
 
-export function advertisingSpacing(layoutViewportWidth) {
+export function masonrySpacing(layoutViewportWidth) {
   if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
   const outer = layoutViewportWidth <= 750 ? 15 : layoutViewportWidth <= 1200 ? 25 : 35;
   const interCardGap = layoutViewportWidth <= 960 ? 15 : layoutViewportWidth <= 1200 ? 25 : 35;
   return { outer, interCardGap };
 }
 
-export function computeAdvertisingPhotoGeometry(options = {}) {
+export function computeDetailGeometry(options = {}) {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError("Advertising photo geometry options must be an object");
   }
@@ -325,11 +325,11 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
     if (!Number.isFinite(value) || value < 0) throw new TypeError(`Invalid advertising photo ${name}: expected a non-negative finite number`);
   }
   if (columns === undefined) columns = columnsForWidth(layoutViewportWidth);
-  if (!Number.isInteger(columns) || columns < 1 || columns > ADVERTISING_MAX_COLUMNS) {
+  if (!Number.isInteger(columns) || columns < 1 || columns > MASONRY_MAX_COLUMNS) {
     throw new TypeError(`Invalid advertising photo columns: ${String(columns)}`);
   }
 
-  const { outer, interCardGap } = advertisingSpacing(layoutViewportWidth);
+  const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
   const gridWidth = layoutViewportWidth - (2 * outer);
   const cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
   const top = headerHeight + outer + safeTop;
@@ -749,28 +749,28 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
 }
 
 // Span public do tỷ lệ cover quyết định (candidatePlacement); control layoutSpan cũ không ảnh hưởng geometry hay cache identity.
-export function compileAdvertisingProductLayout(options = {}) {
+export function compileMasonryLayout(options = {}) {
   const cards = Array.isArray(options.cards)
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
     : options.cards;
-  const settings = normalizeAdvertisingProductSettings(options.settings);
+  const settings = normalizeMasonrySettings(options.settings);
   const compileOptions = { ...options, cards, settings, captionPixelHeight: options.captionPixelHeight ?? 0, productLayout: true };
   const requestedOrder = options.presentationOrder;
-  const totalBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
+  const totalBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
   const canSolveOrganicOrder = options.organicOrder === true
     && Array.isArray(requestedOrder)
     && Number.isInteger(totalBudget)
     && totalBudget >= 1
-    && totalBudget <= ADVERTISING_SEARCH_OPERATION_BUDGET;
+    && totalBudget <= MASONRY_SEARCH_BUDGET;
   if (!canSolveOrganicOrder) {
-    const layout = compileAdvertisingLayout(compileOptions);
+    const layout = compileLayoutSearch(compileOptions);
     return { ...layout, settings };
   }
 
-  const eligibleCards = options.filter ? cards.filter((card) => matchesAdvertisingFilter(card, options.filter)) : cards;
-  const solution = solveAdvertisingOrganicPresentationOrder(eligibleCards, requestedOrder, { pinFirst: options.continuousDetail === true });
-  const hardSafe = compileAdvertisingLayout(compileOptions);
-  const hardSafeRhythm = scoreAdvertisingOrganicRhythm(hardSafe.placements);
+  const eligibleCards = options.filter ? cards.filter((card) => matchesFilter(card, options.filter)) : cards;
+  const solution = solveOrganicOrder(eligibleCards, requestedOrder, { pinFirst: options.continuousDetail === true });
+  const hardSafe = compileLayoutSearch(compileOptions);
+  const hardSafeRhythm = scoreOrganicRhythm(hardSafe.placements);
   const hardSafeSpread = Math.max(0, ...hardSafe.columnBottoms) - Math.min(...hardSafe.columnBottoms);
   let layout = hardSafe;
   let actual = hardSafeRhythm;
@@ -779,13 +779,13 @@ export function compileAdvertisingProductLayout(options = {}) {
   if (solution?.applied && operations < totalBudget) {
     const remainingBudget = totalBudget - operations;
     try {
-      const candidate = compileAdvertisingLayout({
+      const candidate = compileLayoutSearch({
         ...compileOptions,
         presentationOrder: solution.cards.map(({ id }) => id),
         operationBudget: remainingBudget,
       });
       operations += candidate.diagnostics.operations;
-      const candidateRhythm = scoreAdvertisingOrganicRhythm(candidate.placements);
+      const candidateRhythm = scoreOrganicRhythm(candidate.placements);
       const candidateSpread = Math.max(0, ...candidate.columnBottoms) - Math.min(...candidate.columnBottoms);
       if (candidateRhythm.score > hardSafeRhythm.score
         || (candidateRhythm.score === hardSafeRhythm.score && candidateSpread < hardSafeSpread)) {
@@ -815,7 +815,7 @@ export function compileAdvertisingProductLayout(options = {}) {
 /**
  * @param {any} [options]
  */
-function compileAdvertisingLayoutPhase(options = {}) {
+function compileLayoutPhase(options = {}) {
   const productLayout = options?.productLayout === true;
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
   let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
@@ -829,15 +829,15 @@ function compileAdvertisingLayoutPhase(options = {}) {
     requestedPresentationOrder = options.presentationOrder;
     categoryOrder = options.categoryOrder ?? [];
     datasetVersion = options.datasetVersion ?? DEFAULT_DATASET_VERSION;
-    settings = normalizeAdvertisingSettings(options.settings);
+    settings = normalizeLegacyMasonrySettings(options.settings);
     columns = options.columns ?? columnsForWidth(layoutViewportWidth);
-    operationBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
+    operationBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
     suppliedCaptionPixelHeight = options.captionPixelHeight;
-    if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > ADVERTISING_SEARCH_OPERATION_BUDGET) throw new Error("Invalid advertising operation budget");
+    if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > MASONRY_SEARCH_BUDGET) throw new Error("Invalid advertising operation budget");
     if (suppliedCaptionPixelHeight !== undefined && (!Number.isFinite(suppliedCaptionPixelHeight) || suppliedCaptionPixelHeight < 0)) throw new Error("Invalid advertising caption height");
-    validateAdvertisingCards(cards, { categoryOrder });
+    validateMasonryCards(cards, { categoryOrder });
     if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
-    if (!Number.isInteger(columns) || columns < (productLayout ? 1 : ADVERTISING_MIN_COLUMNS) || columns > ADVERTISING_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
+    if (!Number.isInteger(columns) || columns < (productLayout ? 1 : MASONRY_MIN_COLUMNS) || columns > MASONRY_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
     terminalPhotoPeek = options.terminalPhotoPeek;
     continuousDetail = options.continuousDetail ?? false;
     if (typeof continuousDetail !== "boolean") throw new Error("Invalid continuous detail option");
@@ -856,7 +856,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
       throw new Error("Invalid initialColumnBottoms: expected one finite non-negative bottom per column");
     } else initialColumnBottoms = suppliedInitialColumnBottoms.slice();
     if (filter !== "all" && !categoryOrder.includes(filter) && !cards.some((card) => card.productIds?.includes(filter) || card.clusterIds?.includes(filter))) throw new Error(`Unknown advertising filter: ${filter}`);
-    ({ outer, interCardGap } = advertisingSpacing(layoutViewportWidth));
+    ({ outer, interCardGap } = masonrySpacing(layoutViewportWidth));
   } catch (error) {
     throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: Array.isArray(cards) ? cards.map((card) => card?.id).filter(Boolean) : [], violation: error.message });
   }
@@ -865,7 +865,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   const cardWidth = (availableWidth - interCardGap * (columns - 1)) / columns;
   if (cardWidth <= 0) throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: [], violation: "Advertising columns do not fit the viewport" });
   const captionPixelHeight = suppliedCaptionPixelHeight ?? (productLayout ? 0 : 10 + (layoutViewportWidth <= 578 ? 15.68 : 17.92));
-  const canonicalPool = cards.filter((card) => matchesAdvertisingFilter(card, filter)).sort(bySource);
+  const canonicalPool = cards.filter((card) => matchesFilter(card, filter)).sort(bySource);
   let pool = canonicalPool;
   if (requestedPresentationOrder !== undefined) {
     const poolById = new Map(canonicalPool.map((card) => [card.id, card]));
@@ -905,8 +905,8 @@ function compileAdvertisingLayoutPhase(options = {}) {
       const media = layoutMedia(card);
       return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
     }).join("|");
-    const coordinateHash = fnv1a32(`${datasetVersion}:${ADVERTISING_LAYOUT_ALGORITHM_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
-    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
+    const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
+    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
     productLayout,
@@ -1003,7 +1003,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
     const holed = (left) => {
       const [a, b] = [state.columnBottoms[left], state.columnBottoms[left + 1]];
       const cavity = Math.abs(a - b);
-      if (!a || !b || cavity - interCardGap < MIN_HOLE_FILL_RATIO * cardWidth || cavity > ADVERTISING_WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) return null;
+      if (!a || !b || cavity - interCardGap < MIN_HOLE_FILL_RATIO * cardWidth || cavity > WIDE_MAX_HOLE_RATIO * cardWidth + 0.05) return null;
       const column = a < b ? left : left + 1;
       return { left, y: Math.max(a, b) + interCardGap, hole: { column, top: Math.min(a, b) + interCardGap, height: cavity - interCardGap } };
     };
@@ -1159,13 +1159,13 @@ function compileAdvertisingLayoutPhase(options = {}) {
   return makeResult(state, diagnostics);
 }
 
-export function compileAdvertisingLayout(options = {}) {
-  if (!options || typeof options !== "object" || Array.isArray(options) || options.productLayout !== true) return compileAdvertisingLayoutPhase(options);
-  const totalBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
-  if (!Number.isInteger(totalBudget) || totalBudget < 1 || totalBudget > ADVERTISING_SEARCH_OPERATION_BUDGET) return compileAdvertisingLayoutPhase(options);
+export function compileLayoutSearch(options = {}) {
+  if (!options || typeof options !== "object" || Array.isArray(options) || options.productLayout !== true) return compileLayoutPhase(options);
+  const totalBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
+  if (!Number.isInteger(totalBudget) || totalBudget < 1 || totalBudget > MASONRY_SEARCH_BUDGET) return compileLayoutPhase(options);
   const preferredBudget = Math.max(1, Math.ceil(totalBudget / 2));
   try {
-    const layout = compileAdvertisingLayoutPhase({ ...options, operationBudget: preferredBudget, staggerMode: "preferred" });
+    const layout = compileLayoutPhase({ ...options, operationBudget: preferredBudget, staggerMode: "preferred" });
     layout.diagnostics = { ...layout.diagnostics, operations: layout.diagnostics.operations, budget: totalBudget, preferredAttempts: layout.diagnostics.operations, fallbackAttempts: 0, fallbackUsed: false, fallbackReason: null, staggerMode: "preferred" };
     return layout;
   } catch (preferredError) {
@@ -1177,7 +1177,7 @@ export function compileAdvertisingLayout(options = {}) {
       throw preferredError;
     }
     try {
-      const layout = compileAdvertisingLayoutPhase({ ...options, operationBudget: fallbackBudget, staggerMode: "fallback" });
+      const layout = compileLayoutPhase({ ...options, operationBudget: fallbackBudget, staggerMode: "fallback" });
       layout.diagnostics = { ...layout.diagnostics, operations: preferredAttempts + layout.diagnostics.operations, budget: totalBudget, preferredAttempts, fallbackAttempts: layout.diagnostics.operations, fallbackUsed: true, fallbackReason: preferredError.diagnostic.violation, staggerMode: "fallback" };
       return layout;
     } catch (fallbackError) {

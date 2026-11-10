@@ -1,7 +1,7 @@
 // Sân masonry dùng chung (masonry-reuse bước 7): thứ tự chọn card dựng thật trong một frame.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { pickMounts } from "../../src/site/advertising-products/masonry-host.mjs";
+import { pickMounts } from "../../src/site/masonry/host.mjs";
 
 const distance = (id) => ({ a: 30, b: 10, c: 20, d: 5 })[id];
 
@@ -25,7 +25,7 @@ test("mount shows ghosts for cards not allowed, reattaches queued cards and rele
   const { parseHTML } = await import("linkedom");
   const { document } = parseHTML("<div id=root></div>");
   Object.assign(globalThis, { document, requestAnimationFrame: () => 1, cancelAnimationFrame: () => {} });
-  const { createMasonryHost } = await import("../../src/site/advertising-products/masonry-host.mjs");
+  const { createMasonryHost } = await import("../../src/site/masonry/host.mjs");
   const created = [];
   const host = createMasonryHost(document.getElementById("root"), {
     create: ({ card }) => {

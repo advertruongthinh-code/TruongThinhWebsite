@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { test } from "node:test";
 
-const source = readFileSync(new URL("../../src/site/advertising-products/catalog-runtime.mjs", import.meta.url), "utf8");
+const source = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
 const start = source.indexOf("function trackStripSwipe(");
 const end = source.indexOf("function syncJustViewedMarker(", start);
 const trackSwipe = runInNewContext(`${source.slice(start, end)}; trackStripSwipe`);

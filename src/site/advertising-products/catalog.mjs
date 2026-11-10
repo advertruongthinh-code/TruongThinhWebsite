@@ -1,8 +1,8 @@
 import {
-  ADVERTISING_LAYOUT_ALGORITHM_VERSION,
-  compileAdvertisingProductLayout as compileLayout,
-  scheduleAdvertisingRank,
-} from "./layout-core.mjs";
+  MASONRY_LAYOUT_VERSION,
+  compileMasonryLayout as compileLayout,
+  scheduleRank,
+} from "../masonry/layout.mjs";
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
@@ -213,7 +213,7 @@ function compileCards(cards, categories) {
   const categoryOrder = categories.map((entry) => entry.slug);
   // sourceOrder của manifest đếm theo nhóm cũ; đánh lại theo cụm, giữ thứ tự manifest.
   const nextSourceOrder = new Map();
-  return scheduleAdvertisingRank(cards.map(selectCardMedia).map((card) => {
+  return scheduleRank(cards.map(selectCardMedia).map((card) => {
     const sourceOrder = nextSourceOrder.get(card.category) ?? 0;
     nextSourceOrder.set(card.category, sourceOrder + 1);
     return { ...card, sourceOrder };
@@ -309,7 +309,7 @@ export function buildAdvertisingArtifact(options = {}) {
   const compiledCards = compileCards(cards, categories);
   return deepFreeze({
     datasetVersion: ADVERTISING_DATASET_VERSION,
-    layoutAlgorithmVersion: ADVERTISING_LAYOUT_ALGORITHM_VERSION,
+    layoutAlgorithmVersion: MASONRY_LAYOUT_VERSION,
     settings,
     tagRegistry: ARTIFACT_TAG_REGISTRY,
     categories,

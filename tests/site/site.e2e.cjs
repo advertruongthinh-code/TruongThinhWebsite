@@ -4734,18 +4734,18 @@ async function advertisingWindowIds(page, filter) {
 function advertisingWindow(page, filter, width = null) {
   return page.evaluate(async ({ filter, width }) => {
     const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-    const { advertisingFilterRank, compileAdvertisingProductLayout, getVirtualWindow, matchesAdvertisingFilter, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
-    const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    const geometry = compileAdvertisingProductLayout({
+    const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter, normalizeMasonrySettings } = await import("/masonry/layout.mjs");
+    const { shuffleWithSeed } = await import("/masonry/random-order.mjs");
+    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+    const geometry = compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder: artifact.categories.map((category) => category.slug),
       datasetVersion: artifact.datasetVersion,
       filter,
       layoutViewportWidth: width ?? document.documentElement.clientWidth,
-      settings: normalizeAdvertisingProductSettings(artifact.settings),
-      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
+      settings: normalizeMasonrySettings(artifact.settings),
+      presentationOrder: shuffleWithSeed(pool, window.TruongThinhMasonry.getBrowseState().seed, `grid:${filter}`)
+        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
     return getVirtualWindow(geometry, {
@@ -5188,17 +5188,17 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     const { buildAdvertisingArtifact } = await import(
       pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
     );
-    const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-      pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+    const { compileMasonryLayout, getVirtualWindow } = await import(
+      pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
     );
-    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
     const artifact = buildAdvertisingArtifact();
     if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
     assert(
       artifact.cards.length === expectedCardCount,
       `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
     );
-    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow, shuffleWithSeed };
+    runtimeContract = { artifact, compileMasonryLayout, getVirtualWindow, shuffleWithSeed };
   }
   const cases = [
     { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
@@ -5270,12 +5270,12 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             viewportHeight: window.innerHeight,
             artifactCards: artifact?.ADVERTISING_CATALOG_ARTIFACT?.cards?.length ?? null,
             transitioning: document.body.classList.contains("is-transitioning"),
-            seed: window.TruongThinhAdvertising?.getBrowseState?.()?.seed ?? null,
+            seed: window.TruongThinhMasonry?.getBrowseState?.()?.seed ?? null,
           };
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
           ? (() => {
-              const layout = runtimeContract.compileAdvertisingLayout({
+              const layout = runtimeContract.compileMasonryLayout({
                 cards: runtimeContract.artifact.cards,
                 categoryOrder: runtimeContract.artifact.categories.map((category) => category.slug),
                 datasetVersion: runtimeContract.artifact.datasetVersion,
@@ -6070,9 +6070,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout, isAdvertisingWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { MASONRY_LAYOUT_VERSION, compileMasonryLayout, isWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
   const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
@@ -6082,7 +6082,7 @@ async function runAdvertisingGridFocusedChecks() {
     .flatMap((width) => [width - 1, width, width + 1]);
   const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
   // Bản thuật toán do unit test advertising-products-layout ghim; ở đây chỉ kiểm artifact đi cùng compiler.
-  assert(artifact.layoutAlgorithmVersion === ADVERTISING_LAYOUT_ALGORITHM_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${ADVERTISING_LAYOUT_ALGORITHM_VERSION}`);
+  assert(artifact.layoutAlgorithmVersion === MASONRY_LAYOUT_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${MASONRY_LAYOUT_VERSION}`);
   assert(
     artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
     "Advertising artifact retained legacy canvas or span authoring fields",
@@ -6141,8 +6141,8 @@ async function runAdvertisingGridFocusedChecks() {
         const expectedColumns = Math.min(4, Math.max(2, Math.floor((expectedGridWidth + expectedGap) / (220 + expectedGap))));
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
         // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const expectedLayout = compileAdvertisingLayout({
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        const expectedLayout = compileMasonryLayout({
           cards: artifact.cards,
           categoryOrder,
           datasetVersion: artifact.datasetVersion,
@@ -6155,7 +6155,7 @@ async function runAdvertisingGridFocusedChecks() {
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
-        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isAdvertisingWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
         const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
           Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
           Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
@@ -6333,9 +6333,9 @@ async function runAdvertisingGridFocusedChecks() {
 }
 
 async function advertisingArtifactScrollTarget(page, artifact, id) {
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { compileMasonryLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  const layout = compileAdvertisingLayout({
+  const layout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder: artifact.categories.map((category) => category.slug),
     datasetVersion: artifact.datasetVersion,
@@ -6352,10 +6352,10 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  const { compileMasonryLayout, getVirtualWindow } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
 
   await runPageCase(
@@ -6367,8 +6367,8 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
       // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-      const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-      const layout = compileAdvertisingLayout({
+      const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+      const layout = compileMasonryLayout({
         cards: artifact.cards,
         categoryOrder: artifact.categories.map((category) => category.slug),
         datasetVersion: artifact.datasetVersion,
@@ -6463,15 +6463,15 @@ async function runAdvertisingMediaEntranceChecks() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  const { compileMasonryLayout } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed với runtime.
   const deepestTarget = async (page) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const layout = compileAdvertisingLayout({
+    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+    const layout = compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder: artifact.categories.map((category) => category.slug),
       datasetVersion: artifact.datasetVersion,
@@ -6782,10 +6782,10 @@ async function runAdvertisingMediaFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = artifact.categories.map((category) => category.slug);
   // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
@@ -6804,7 +6804,7 @@ async function runAdvertisingMediaFocusedChecks() {
     const cards = artifact.cards
       .filter((card) => card.category === category.slug)
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
-    const layout = compileAdvertisingLayout({
+    const layout = compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
@@ -6812,7 +6812,7 @@ async function runAdvertisingMediaFocusedChecks() {
       layoutViewportWidth: 1440,
     });
     // Layout cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), xếp theo sourceOrder rồi id.
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, category.slug))
+    const pool = artifact.cards.filter((card) => matchesFilter(card, category.slug))
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
     assert(
       cards.length === expectedCounts[category.slug] &&
@@ -6825,7 +6825,7 @@ async function runAdvertisingMediaFocusedChecks() {
       `${category.slug} count or pool order drifted`,
     );
   }
-  const rankedLayout = compileAdvertisingLayout({
+  const rankedLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder,
     datasetVersion: artifact.datasetVersion,
@@ -6840,16 +6840,16 @@ async function runAdvertisingMediaFocusedChecks() {
   );
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
   const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
+    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+    return compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
       filter,
       layoutViewportWidth,
       presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
+        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
   };
@@ -7043,7 +7043,7 @@ async function runAdvertisingMediaFocusedChecks() {
           // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
             filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
-            filtered.tiles.every((tile) => matchesAdvertisingFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
+            filtered.tiles.every((tile) => matchesFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
           `${category.slug} filter retained a wrong category or URL state`,
         );
       }
@@ -7231,8 +7231,8 @@ async function runAdvertisingCompatibilityChecks() {
 // Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { filterRank, compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
@@ -7271,7 +7271,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     };
   });
   const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
-  const feasibleLayout = compileAdvertisingLayout({
+  const feasibleLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder: artifact.categories.map((category) => category.slug),
     datasetVersion: artifact.datasetVersion,
@@ -7283,9 +7283,9 @@ async function runAdvertisingThreeThousandCardProbe() {
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
   const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
+    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+    const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+    return compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder: artifact.categories.map((category) => category.slug),
       datasetVersion: artifact.datasetVersion,
@@ -7293,7 +7293,7 @@ async function runAdvertisingThreeThousandCardProbe() {
       filter,
       layoutViewportWidth,
       presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
+        .sort((left, right) => filterRank(left, filter) - filterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
   };
@@ -7413,8 +7413,8 @@ async function runAdvertisingThreeThousandCardProbe() {
 
 async function runAdvertisingLocaleLifecycleChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { compileMasonryLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
   const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
     const kiosk = index < 3;
     const primaryKiosk = index === 0;
@@ -7467,7 +7467,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
           .waitForFunction(
             (expected) => document.documentElement.lang === expected &&
               location.pathname.startsWith(`/${expected}/advertising-products/`) &&
-              window.TruongThinhAdvertising?.getBrowseState &&
+              window.TruongThinhMasonry?.getBrowseState &&
               // Trang vừa tải: rail filter hiện xong (entrance) trước khi test cuộn xuống grid.
               [...document.querySelectorAll("[data-advertising-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
               !document.documentElement.classList.contains("route-enter") &&
@@ -7482,8 +7482,8 @@ async function runAdvertisingLocaleLifecycleChecks() {
       };
       const virtualizeKiosk = async () => {
         // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const layout = compileAdvertisingLayout({
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        const layout = compileMasonryLayout({
           cards: artifact.cards,
           categoryOrder: artifact.categories.map((category) => category.slug),
           datasetVersion: artifact.datasetVersion,
@@ -12874,7 +12874,7 @@ async function runP13NavbarChecks() {
       const route = "/vi/advertising-products/?category=mobile-retail&campaign=retained";
       await gotoRoute(page, route);
       await page.evaluate(() => {
-        if (!window.TruongThinhAdvertising?.replaceTag?.("use-sampling")) {
+        if (!window.TruongThinhMasonry?.replaceTag?.("use-sampling")) {
           throw new Error("Advertising tag setup failed");
         }
       });
@@ -13013,10 +13013,10 @@ async function runP13NavbarChecks() {
     { route: "/vi/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await page.route("**/advertising-products/catalog-runtime.mjs*", (request) => request.abort());
+      await page.route("**/masonry/runtime.mjs*", (request) => request.abort());
       await gotoRoute(page, "/vi/advertising-products/?photo=kiosk-posm-07");
       const unavailable = await page.evaluate(() => ({
-        adapter: Boolean(window.TruongThinhAdvertising?.getAdapter?.()),
+        adapter: Boolean(window.TruongThinhMasonry?.getAdapter?.()),
         motion: Boolean(window.TruongThinhMotion),
       }));
       assert(
@@ -13041,7 +13041,7 @@ async function runP13NavbarChecks() {
         `Dependency fallback raised a runtime error: ${JSON.stringify(diagnostics)}`,
       );
       assert(
-        diagnostics.requestFailures.some((failure) => failure.includes("catalog-runtime.mjs")),
+        diagnostics.requestFailures.some((failure) => failure.includes("masonry/runtime.mjs")),
         `Catalog dependency failure was not observed: ${JSON.stringify(diagnostics)}`,
       );
     },
