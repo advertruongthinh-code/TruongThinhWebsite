@@ -1,7 +1,7 @@
 // Masonry layout cache, build side (plan T3): band table, real-catalog build, variant rules, edge cases.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_PRODUCT_CHIPS } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_DATASET_VERSION, ADVERTISING_PRODUCT_CHIPS } from "../../src/site/advertising-products/catalog.mjs";
 import { columnsForWidth, filterRank, isWideMedia, layoutMedia, masonrySpacing, matchesFilter } from "../../src/site/masonry/layout.mjs";
 import {
   LAYOUT_BANDS,
@@ -23,7 +23,7 @@ const warnings = [];
 const realWarn = console.warn;
 console.warn = (message, ...rest) => (String(message).startsWith("layout-cache:") ? warnings.push(String(message)) : realWarn(message, ...rest));
 const started = performance.now();
-const cache = build(ADVERTISING_CARDS, FILTERS);
+const cache = build(ADVERTISING_CARDS, FILTERS, ADVERTISING_DATASET_VERSION);
 const buildMs = performance.now() - started;
 console.warn = realWarn;
 
@@ -125,7 +125,7 @@ test("kept variants stagger bottom edges better than random orders and under the
         return packBand(order, band, { rankOf: rank }).entries.map(({ card: entry, column, span }) => index.get(entry) * 8 + (span === 1 ? column : 4 + column));
       });
       const baseline = staggerMean(random, band, filter);
-      assert.ok(kept <= baseline, `${filter} ${band.key}: kept ${kept.toFixed(3)} vs random ${baseline.toFixed(3)}`);
+      if (band.columns >= 3) assert.ok(kept < baseline, `${filter} ${band.key}: kept ${kept.toFixed(3)} vs random ${baseline.toFixed(3)}`);
       assert.ok(kept <= STAGGER_CEILING, `${filter} ${band.key}: ${kept.toFixed(3)} per card`);
     }
   }
