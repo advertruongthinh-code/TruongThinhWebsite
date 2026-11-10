@@ -7,8 +7,9 @@ tests:
   - tests/site/advertising-viewer-touch.e2e.mjs
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
+  - tests/site/advertising-viewer-stale-image.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -152,6 +153,7 @@ phát hoặc dừng, không mở viewer; nút mở lớn hiện và mở video v
 ([primary-video-player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Khung
 primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
 [media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
+Ảnh primary chưa tải xong thì chạm không mở viewer, như nút bị khóa ở [detail R9](advertising-detail.md#r9-viewer) (owner 2026-11-11).
 
 ```gherkin
 Given detail của một ảnh trên điện thoại dọc
@@ -268,6 +270,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
 | R | Test hoặc command |
 | --- | --- |
+| R7 (ảnh chưa tải) | `node tests/site/advertising-viewer-stale-image.e2e.mjs` |
 | R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, ngưỡng xoay 20°, vùng chết pan 10px, chạm đúp, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
