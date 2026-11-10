@@ -36,9 +36,7 @@ thật (`canSpanTwoColumns`, `spanSlots` ở `masonry/layout.mjs`): band có w/h
 khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; không để lỗ
 ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): hai đáy chênh nhau thì khung một cột cuối của cột ngắn hơn
 (trong batch) kéo dài đúng phần chênh, đáy là card thật hay khung hai cột thì khung hai cột chỉ đặt khi hai đáy bằng nhau.
-Mỗi lỗ dải cuối của masonry (`layout.holes`) có một khung một cột cắt đúng lỗ (chừa chỗ tên ở lưới có tên), slot `h0`,
-`h1`, ..., band gần tỷ lệ lỗ nhất, đứng trước khung nối tiếp; band mặc định (w/h tối đa 1.39) đều giữ một
-cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
+Masonry không còn lỗ, nên batch không có khung lấp lỗ. Hai trang lưới chính (Sản phẩm quảng cáo và Công trình) đặt `data-skeleton-ratios="landscape:0.72 square:1 portrait:1.32 wide:0.5"` nên có khung ngang `wide` trải hai cột từ lưới 3 cột; batch cuối related ở detail (`spanSkeleton: false`) bỏ mọi band trải hai cột. Band mặc định (w/h tối đa 1.39) đều giữ một cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
 (id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (card cao đúng bằng media, [media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media)). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
 `1`, đứng `1.32`; khung không chừa chỗ tên vì tên nằm trong media ở mọi lưới, kể cả trang Công trình. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
@@ -53,7 +51,7 @@ cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch có 
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột
 When runtime dựng batch
 Then khung đầu mỗi cột cách card thật một khoảng giữa, đáy khung cuối mỗi cột trùng đáy batch
-And mỗi lỗ dải cuối của masonry có đúng một khung lấp, không khung nào để lỗ phía trên nó
+And không khung nào để lỗ phía trên nó, kể cả khung hai cột; batch của related không có khung hai cột
 And không khung nào thấp hơn 0.25 bề rộng card, không hai khung liền cùng band trong một cột
 ```
 
@@ -234,7 +232,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
+| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, 200 seed x 3 và 4 cột x đáy ngẫu nhiên không lỗ và không lặp band, related không khung hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |

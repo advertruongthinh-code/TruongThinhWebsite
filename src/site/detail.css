@@ -2532,6 +2532,11 @@ body.is-advertising-browse .site-footer {
   right: 16px;
 }
 
+/* Locked until the primary photo has loaded (advertising-detail R9): the icon spins as a loader, the button stays white. */
+.advertising-photo-view__expand:disabled {
+  cursor: progress;
+}
+
 /* Nút quay lại kiểu Pinterest góc trên trái (detail R10), hiện cả màn cảm ứng. */
 .advertising-photo-view__back {
   top: 16px;
@@ -2550,7 +2555,7 @@ body.is-advertising-browse .site-footer {
 }
 
 @media (hover: hover) {
-  .advertising-photo-view__image-action:hover {
+  .advertising-photo-view__image-action:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
@@ -2561,7 +2566,7 @@ body.is-advertising-browse .site-footer {
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-view__image-action:active {
+.advertising-photo-view__image-action:not(:disabled):active {
   background: var(--media-control-active);
 }
 

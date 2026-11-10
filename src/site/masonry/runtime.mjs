@@ -2986,7 +2986,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       ...skeletonBatchConfig,
       seed: browseHistory.current.seed,
       bandAssignments: skeletonRatioBandBySlot,
-      holes: hostGeometry.holes || [],
+      spanSkeleton: !detailHost,
     });
     frameLayout.forEach(({ slot, band }) => skeletonRatioBandBySlot.set(slot, band));
     const neededSlots = new Set(frameLayout.map(({ slot }) => slot));

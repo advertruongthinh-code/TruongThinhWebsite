@@ -18,7 +18,7 @@ tests:
   - tests/site/related-scroll-device.mjs
   - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Detail Advertising
@@ -178,7 +178,7 @@ logic (`createDetailViewer`). Ảnh morph bằng transform từ khung primary t�
 trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
-cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
+cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Ảnh primary chưa tải xong thì nút `Xem lớn hơn` bị khóa (`disabled`, nền vẫn trắng, con trỏ `progress`): icon là vòng loading hai cung quay `0.7s` một vòng; tải xong thì mở lại ngay, không chờ Kính tan: vòng giữ tốc độ rồi phanh trong phần tư vòng cuối, dừng khi hai cung nằm ở góc phải trên và trái dưới, mỗi cung uốn thẳng thành một mũi tên của icon phóng to (`380ms`, `media-lib/loading-expand-icon.mjs`); reduced motion và màn cảm ứng (nút ẩn) không quay, đổi icon tức thì; viewer không bao giờ hiện ảnh của lần mở trước: đóng viewer thì ảnh trong viewer bị gỡ `src` (owner 2026-11-11). Video không khóa. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
 còn media sắc nét; video là frame lúc mở, đứng yên. Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 
 ```gherkin
