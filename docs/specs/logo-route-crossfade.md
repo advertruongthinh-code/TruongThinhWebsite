@@ -71,6 +71,8 @@ Then mark lật sang CMYK khi veil phủ kín, rồi giữ CMYK
 Đổi ngôn ngữ dùng cùng pha phủ (R1, veil phủ `0.75s`), rồi tải lại trang đích như F5
 ([Shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ), owner 2026-11-08). Không có R2: trang mới vào như tải
 trực tiếp, header dưới veil, intro chạy lại và mark vẽ lần đầu theo [Brand](../../design-system/brand.md#motion).
+Lúc bấm, cả header (logo, navbar, nút menu) ẩn ngay để không lộ chữ ngôn ngữ cũ khi menu đóng trên veil; veil
+trắng phủ trống tới khi trang mới tải, rồi header ngôn ngữ mới hiện theo intro (owner 2026-11-10). Ngoại lệ của R7.
 
 ### R5. Chuyển giữa chừng
 
@@ -89,8 +91,8 @@ kín, mark chạy tới hoặc tua ngược về CMYK theo [Brand](../../design-
 
 Mỗi lần chuyển trang theo R1 tới R4, cả cụm logo trên header (mark, chữ "TRƯỜNG THỊNH" và dòng phụ "NỘI THẤT
 · QUẢNG CÁO") giữ `opacity 1` và nằm trên veil (header `z-index 1000`, veil `999`), nên lúc veil phủ kín vẫn
-thấy logo: chữ `#2f2f2f`, mark CMYK. Áp dụng cho PC và điện thoại, mọi route mềm, route từ full menu (đổi ngôn
-ngữ chỉ có pha phủ, rồi tải lại trang), kể cả trang hero trắng. Owner bỏ kiểu cả cụm mờ cùng veil.
+thấy logo: chữ `#2f2f2f`, mark CMYK. Áp dụng cho PC và điện thoại, mọi route mềm, route từ full menu, kể cả trang
+hero trắng. Đổi ngôn ngữ là ngoại lệ: header ẩn cả cụm (R4, owner 2026-11-10). Owner bỏ kiểu cả cụm mờ cùng veil.
 
 ```gherkin
 Given /vi/ ở đầu trang, 1440px hoặc 412×915

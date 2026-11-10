@@ -101,7 +101,7 @@ Then nền không cuộn theo, Tab chỉ đi trong menu; đóng xong vị trí c
 
 ### R5. Đổi ngôn ngữ và ghi nhớ
 
-Click thường vào `[data-language-option]`: đóng menu, veil phủ như R6, lưu `localStorage['tt-lang']` rồi
+Click thường vào `[data-language-option]`: ẩn cả header ngay (không lộ chữ ngôn ngữ cũ, owner 2026-11-10), đóng menu, veil phủ như R6, lưu `localStorage['tt-lang']` rồi
 `location.replace` sang `/<locale>/...` giữ query, bỏ hash (không thêm entry). Trang đích tải lại từ đầu như F5
 (owner 2026-11-08): cuộn về đầu, veil mở, intro và mọi motion chạy lại. Trang cụm, sản phẩm Advertising, chi
 tiết công trình, News dùng link ngôn ngữ để đúng slug của locale đích. Khi tải, locale theo `data-route-locale`,
