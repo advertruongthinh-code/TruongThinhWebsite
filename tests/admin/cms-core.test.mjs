@@ -4,7 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { after, before, test } from "node:test";
 
-// Lõi CMS (cms-editor R3, R4, R8): gắn khóa theo thứ tự nguồn, áp nháp chữ, ảnh, danh sách, bản sao marquee.
+// CMS core (cms-editor R3, R4, R8): attach keys in source order, apply text drafts, images, lists, marquee copies.
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const FIXTURE = `<!doctype html><html><head><title>Gốc</title><meta name="description" content="Mô tả" data-en-content="About"></head><body>
@@ -109,7 +109,7 @@ test("apply danh sách: sắp lại, mục mới clone với khóa @id và place
   assert.ok(result.placeholder);
 });
 
-// Worker áp nội dung đã lưu trên DOM linkedom (R10): khóa phải trùng khóa editor đọc bằng DOMParser trên trang thật.
+// The Worker applies saved content on a linkedom DOM (R10): keys must match the keys the editor reads with DOMParser on the real page.
 const BUILT = [["home", "index.html"], ["residential", "residential/index.html"], ["commercial", "commercial/index.html"], ["about", "about/index.html"]];
 test("linkedom gắn khóa y như DOMParser trên bốn trang đã build", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
   const { parseHTML } = await import("linkedom");
@@ -130,9 +130,9 @@ test("linkedom gắn khóa y như DOMParser trên bốn trang đã build", { ski
   }
 });
 
-// Dấu chỗ gốc (R10): editor tính trên bản xem trước VI (localeHtml) bằng DOMParser, Worker tính trên HTML nguồn bằng
-// linkedom; lệch ở bất kỳ khóa nào thì lưu chỗ đó luôn bị từ chối. Hero sửa bỏ preload theo chuỗi trong <head>: chuỗi
-// đó đổi trong HTML nguồn thì test này báo, không gãy âm thầm.
+// Original placeholder (R10): the editor computes on the VI preview (localeHtml) with DOMParser, the Worker on the source HTML with
+// linkedom; if any key differs, saving that spot is always rejected. The edited hero drops the preload by a string in <head>: if that string
+// changes in the source HTML this test reports it, instead of breaking silently.
 test("dấu chỗ gốc trùng giữa bản xem trước (DOMParser) và HTML nguồn (linkedom)", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
   const { parseHTML } = await import("linkedom");
   const { localeHtml } = await import("../../scripts/tooling/serve-static-parity.mjs");

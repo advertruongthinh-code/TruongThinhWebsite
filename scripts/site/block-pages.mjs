@@ -1,14 +1,14 @@
-// Trang dựng từ khối (projects R3, news R3, layout-library R4): khung header, menu, footer lấy từ một trang có sẵn,
-// thân <main> là chuỗi khối của src/site/content/<kind>.json. Route theo slug VI và EN, cùng một file nguồn.
+// Block-built pages (projects R3, news R3, layout-library R4): header, menu and footer frame come from an existing page,
+// the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { renderBlocks } from "./blocks.mjs";
 
 export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
-// sector cũng là thư mục trang mảng dùng làm khung và namespace của nó.
+// The sector is also the sector page directory, used as its frame and namespace.
 export const SECTORS = ["residential", "commercial"];
 const SECTOR_NAME = { residential: "Không gian nhà ở", commercial: "Không gian kinh doanh" };
-// Bốn nhóm News (news R1); tên hiển thị và slug chốt theo Keyword Planner, tới đó dùng tên tạm.
+// Four News groups (news R1); display names and slugs are final per Keyword Planner, until then use the temporary names.
 export const NEWS_GROUPS = {
   "nha-o": { vi: "Không gian nhà ở", en: "Residential spaces" },
   "kinh-doanh": { vi: "Không gian kinh doanh", en: "Commercial spaces" },
@@ -16,10 +16,10 @@ export const NEWS_GROUPS = {
   "quang-cao": { vi: "Sản phẩm quảng cáo", en: "Advertising products" },
 };
 
-// Mỗi loại trang: thư mục route, trang khung, namespace, kiểu JSON-LD, mục cha trong breadcrumb.
+// Per page kind: route directory, frame page, namespace, JSON-LD type, parent breadcrumb entry.
 export const KINDS = {
   projects: { dir: "projects", frame: (page) => page.sector, namespace: "project", schema: "Article", parent: (page) => ({ name: SECTOR_NAME[page.sector], path: `/${page.sector}/` }) },
-  // Trang Giới thiệu không có trên navbar nên khung không gạch chân mục nào; bỏ aria-current của menu.
+  // The About page is not on the navbar, so the frame underlines no item; drop the menu's aria-current.
   news: { dir: "news", frame: () => "about", namespace: "news", schema: "BlogPosting", parent: () => ({ name: "News", path: "/news/" }) },
 };
 
@@ -32,7 +32,7 @@ export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KIN
 
 export const pageHref = (kind, locale, page) => `/${locale}/${KINDS[kind].dir}/${locale === "vi" ? page.slugVi : page.slugEn}/`;
 export const projectHref = (locale, project) => pageHref("projects", locale, project);
-// Một file nguồn mỗi trang; route VI và EN cùng trỏ vào đó, localeHtml đổi ngôn ngữ.
+// One source file per page; the VI and EN routes both point at it, localeHtml switches the language.
 export const pageSource = (kind, page) => `${KINDS[kind].dir}/${page.id}/index.html`;
 export const blockRoutes = (content) => Object.keys(KINDS).flatMap((kind) => (content[kind] ?? []).flatMap((page) => ["vi", "en"].map((locale) => [pageHref(kind, locale, page), pageSource(kind, page)])));
 
@@ -60,20 +60,20 @@ const jsonLd = (kind, page) => {
   }).replace(/</g, "\\u003c");
 };
 
-// Mỗi điểm neo của trang khung phải khớp đúng số lần mong đợi; khung đổi thì build dừng thay vì ra trang thiếu SEO.
+// Each anchor in the frame page must match exactly the expected number of times; if the frame changes the build stops instead of emitting a page missing SEO.
 const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
   const count = typeof pattern === "string" ? html.split(pattern).length - 1 : (html.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? []).length;
   if (count !== expected) throw new Error(`frame template anchor "${name}" matched ${count} times`);
   return expected ? html.replace(pattern, replacement) : html;
 };
 
-// Đầu bài News (news R3): nhóm, h1 tên bài, ngày đăng hiển thị khớp datePublished của JSON-LD.
+// News article head (news R3): group, h1 article title, display date matching the JSON-LD datePublished.
 const articleHead = (page) => {
   const group = NEWS_GROUPS[page.group];
   const [year, month, day] = page.published.split("-");
   return [
     '<header class="blk blk-article-head section-gap" data-header-tone="inverse">',
-    // Nhãn nhóm dẫn tới trang nhóm: trang nhóm không có nút lọc trên trang danh sách (news R2, owner 2026-11-09).
+    // The group label links to the group page: group pages have no filter chip on the list page (news R2, owner 2026-11-09).
     `  <p class="blk-article-head__meta"><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a> · <time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
     `  <h1 class="blk-article-head__title" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
     "</header>\n",
@@ -95,7 +95,7 @@ export const renderBlockPage = (kind, template, page, ctx) => {
   ].join("\n    ");
   const heroScript = /<script>\s*\/\/ detail-pages R5:[\s\S]*?<\/script>\s*/;
   return [
-    // Bỏ script chọn slide hero của trang mảng: trang dựng từ khối không có slideshow. Trang Giới thiệu không có script này.
+    // Drop the hero slide-picker script of the sector page: block-built pages have no slideshow. The About page has no such script.
     [heroScript, "", "hero slide script", heroScript.test(template) ? 1 : 0],
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(page.description.vi)}${middle}${escapeHtml(page.description.en)}"`, "meta description"],
@@ -108,9 +108,9 @@ export const renderBlockPage = (kind, template, page, ctx) => {
 };
 export const renderProjectPage = (template, project, ctx) => renderBlockPage("projects", template, project, ctx);
 
-// Trang danh sách News (news R2, owner 2026-11-09): bài mới nhất trước, 12 bài mỗi trang. Hàng lọc chỉ có "Tất cả" và các
-// năm có bài; trang năm không cho lập chỉ mục. Trang nhóm giữ đường dẫn cho SEO nhưng không hiện thành nút lọc.
-// VI và EN cùng đường dẫn, chỉ khác tiền tố locale.
+// News list page (news R2, owner 2026-11-09): newest first, 12 posts per page. The filter row has only "Tất cả" and the
+// years that have posts; year pages are not indexable. Group pages keep their path for SEO but do not appear as filter chips.
+// VI and EN share the path, differing only in the locale prefix.
 const NEWS_PAGE_SIZE = 12;
 export const newsListPages = (news) => {
   const sorted = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id));
@@ -132,14 +132,14 @@ export const newsListPages = (news) => {
 export const newsListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
 export const newsListRoutes = (news) => newsListPages(news).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, newsListSource(listPage)]));
 
-// Thẻ News theo Espacio /en/news: một ảnh bìa, nhóm và ngày, tiêu đề; kiểu lớn (bài đầu), thường, hàng ngang.
-// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS. Thẻ lớn nằm trên màn hình đầu nên ảnh
-// tải ngay (LCP); các thẻ còn lại lazy. Chữ tiêu đề bọc span inline để gạch chân rê chuột chạy theo bề rộng chữ.
+// News card following Espacio /en/news: one cover image, group and date, title; large (first post), regular and horizontal variants.
+// Classes are written out in full so the orphan-selectors test sees where each CSS variant is produced. The large card is above the fold, so its image
+// loads immediately (LCP); the other cards are lazy. The title text is wrapped in an inline span so the hover underline follows the text width.
 const NEWS_CARD_VARIANT = { main: " blk-news-card--main", row: " blk-news-card--row" };
 const newsCard = (post, variant = "") => {
   const group = NEWS_GROUPS[post.group];
   const [year, month, day] = post.published.split("-");
-  // Ảnh thẻ lớn là LCP: tải sớm, sizes đúng nửa trang trên PC để không kéo bản quá lớn.
+  // The large card image is the LCP: load early, sizes set to half the page on desktop so an oversized variant is not fetched.
   const loading = variant === "main" ? 'loading="eager" fetchpriority="high" sizes="(max-width: 960px) 100vw, 50vw"' : 'loading="lazy"';
   return [
     `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
@@ -150,7 +150,7 @@ const newsCard = (post, variant = "") => {
   ].join("");
 };
 
-// Khung trang danh sách (News, Công trình) dựng trên trang Giới thiệu: head SEO, namespace, link đổi ngôn ngữ, h1 và hàng lọc.
+// List page frame (News, Projects) built on the About page: SEO head, namespace, language-switch link, h1 and filter row.
 const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body, noindex = false }) => {
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
   const en = `${PUBLIC_ORIGIN}/en${listPath}`;
@@ -176,13 +176,13 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
     ['data-barba-namespace="about"', `data-barba-namespace="${namespace}"`, "namespace"],
     ['href="/vi/about/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/about/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
-    // Bỏ aria-current của menu trước khi chèn thân trang, vì thanh phân trang cũng dùng aria-current="page".
+    // Drop the menu's aria-current before inserting the page body, because the pagination bar also uses aria-current="page".
     [' aria-current="page"', "", "menu current page"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${main}\n      </main>`, "main"],
   ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), template);
 };
 
-// Bố cục Espacio: bài đầu là thẻ lớn ở cột trái, 4 bài kế là lưới 2x2 ở cột phải, còn lại là thẻ hàng ngang dưới lưới đó.
+// Espacio layout: the first post is a large card in the left column, the next 4 posts form a 2x2 grid in the right column, the rest are horizontal cards below that grid.
 const newsListBody = (posts) => {
   const [first, ...rest] = posts;
   if (!first) return "";
@@ -214,9 +214,9 @@ export const renderNewsListPage = (template, listPage) => {
   });
 };
 
-// Trường riêng của từng loại: mảng và loại công trình; nhóm, ngày đăng và slug không trùng trang nhóm, phân trang của News.
-// Thẻ công trình (projects R2, owner 2026-11-09): người soạn đặt khung thẻ (width, height) rồi chọn ảnh cho thẻ; mọi ảnh
-// khít đúng tỷ lệ khung, không vùng dư. Không có `card` thì thẻ chỉ có ảnh bìa.
+// Fields specific to each kind: sector and project type; group, publish date and slug must not collide with News group and pagination pages.
+// Project card (projects R2, owner 2026-11-09): the author sets the card frame (width, height) then picks the card images; every image
+// fits the frame ratio exactly, no leftover area. Without `card` the card has only the cover image.
 const isSize = (value) => Number.isSafeInteger(value) && value > 0;
 const cardErrors = (card, at) => {
   if (card === undefined) return [];
@@ -232,22 +232,22 @@ export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
     ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
-    // id cũng là thư mục file nguồn (projects/<id>/index.html), trùng slug lọc thì ghi đè trang lọc.
+    // id is also the source file directory (projects/<id>/index.html); colliding with a filter slug would overwrite the filter page.
     ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
     ...cardErrors(page.card, at),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
-  // id cũng là thư mục file nguồn (news/<id>/index.html), trùng trang nhóm, năm hoặc phân trang thì ghi đè trang danh sách.
+  // id is also the source file directory (news/<id>/index.html); colliding with a group, year or pagination page would overwrite the list page.
   for (const slug of new Set([page.id, page.slugVi, page.slugEn])) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug) || /^\d{4}$/.test(slug ?? "")) errors.push(`${at}: id hoặc slug ${slug} trùng đường dẫn nhóm, năm hoặc phân trang`);
   return errors;
 };
 
-// Trang toàn bộ công trình (projects R2): lưới so le như Sản phẩm quảng cáo, bấm thẻ mở trang công trình.
-// Lọc theo mảng hoặc loại bằng trang riêng có đường dẫn crawl được; slug lọc không được trùng slug công trình.
+// All-projects page (projects R2): staggered grid like Advertising products, clicking a card opens the project page.
+// Filtering by sector or type uses dedicated pages with crawlable paths; filter slugs must not collide with project slugs.
 export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" };
-// Loại công trình (projects R2): key là slug trang lọc; menu site dẫn tới đủ sáu trang dù loại chưa có công trình.
+// Project types (projects R2): key is the filter page slug; the site menu links to all six pages even if a type has no projects yet.
 export const PROJECT_TYPES = {
   "nha-pho": { sector: "residential", label: { vi: "Nhà phố", en: "Townhouses" } },
   "can-ho": { sector: "residential", label: { vi: "Căn hộ", en: "Apartments" } },
@@ -259,8 +259,8 @@ export const PROJECT_TYPES = {
 export const projectTypeHref = (type, locale) => `/${locale}/projects/${type}/`;
 const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
 
-// Mục tiêu biểu của menu site (content/menu.json, CMS sửa được): công trình theo thứ tự đã chọn; nhóm sản phẩm
-// quảng cáo theo danh sách đã chọn, danh sách rỗng thì lấy nhóm nhiều thẻ nhất (hòa thì giữ thứ tự catalog).
+// Featured items of the site menu (content/menu.json, CMS-editable): projects in the chosen order; advertising
+// product groups follow the chosen list, an empty list picks the group with the most cards (ties keep catalog order).
 export const menuFeatured = (menu, { projects, categories, cards }) => {
   const count = (slug) => cards.filter((card) => card.category === slug).length;
   const groups = menu.featuredProductGroups.length ? menu.featuredProductGroups : categories.map((category) => category.slug).toSorted((left, right) => count(right) - count(left));

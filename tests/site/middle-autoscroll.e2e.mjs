@@ -3,8 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-// docs/specs/scroll-feel.md R6: autoscroll chuột giữa kiểu Chrome khi Locomotive chạy.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/middle-autoscroll.e2e.mjs
+// docs/specs/scroll-feel.md R6: Chrome-style middle-mouse autoscroll while Locomotive runs.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/middle-autoscroll.e2e.mjs
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
@@ -15,13 +15,13 @@ const open = async (options) => {
   const page = await browser.newPage(options);
   await page.goto(`${baseUrl}/vi/`, { waitUntil: "load" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
-  // Chờ ảnh và section lười tải xong để giới hạn cuộn của Locomotive đã đủ dài.
+  // Wait for lazy images and sections to finish loading so Locomotive's scroll limit is long enough.
   await page.waitForTimeout(2000);
   return page;
 };
 const scrollY = (page) => page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 const origin = (page) => page.locator(".autoscroll-origin").count();
-// Điểm trống giữa màn hình: không nằm trong link, nút, ô nhập liệu.
+// Empty point at the screen center: not on a link, button or input.
 const blank = (page) => page.evaluate(() => {
   for (let y = 300; y < 800; y += 20) for (let x = 200; x < 1200; x += 40) {
     const element = document.elementFromPoint(x, y);
@@ -44,18 +44,18 @@ try {
   const point = await blank(page);
   assert.ok(point, "a blank point exists on the home page");
 
-  // Chế độ dính: nhả ngay, tốc độ theo công thức Chrome 0.04 × d^2.2 (116px khoảng 1393, 216px khoảng 5468px/giây).
+  // Sticky mode: release immediately, speed follows the Chrome formula 0.04 × d^2.2 (116px is about 1393, 216px about 5468 px/s).
   await page.mouse.move(point.x, point.y);
   await page.mouse.down({ button: "middle" });
   await page.mouse.up({ button: "middle" });
   assert.equal(await origin(page), 1, "sticky press shows the origin icon");
   const icon = await page.locator(".autoscroll-origin").boundingBox();
   assert.ok(icon.width === 32 && icon.height === 32, `origin icon is 32px, got ${icon.width}x${icon.height}`);
-  // Đo từ lúc đứng yên tới lúc đứng yên: kéo chuột ra rồi về điểm gốc (vùng chết, tốc độ 0), chờ quán tính dừng.
-  // Lúc đó cuộn logic đã bắt kịp đích nên quãng đường đúng bằng công thức nhân thời gian; đo giữa chừng thì độ trễ
-  // quán tính Locomotive dao động theo độ dài frame và runner bận làm tốc độ đo lệch 15% trở lên.
+  // Measure from rest to rest: drag the mouse out and back to the origin (dead zone, speed 0), wait for inertia to stop.
+  // By then the logical scroll has caught up with the target, so the distance equals formula times time exactly; measuring midway, Locomotive's
+  // inertia lag varies with frame length and a busy runner skews the measured speed by 15% or more.
   const measure = async (distance, seconds) => {
-    // Về đầu trang trước mỗi lần đo để không chạm giới hạn cuối trang.
+    // Return to the top before each measurement so the page-bottom limit is not hit.
     await page.mouse.move(point.x, point.y);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     const before = await rest(page);
@@ -73,12 +73,12 @@ try {
   };
   const { speed } = await measure(116, 1.5);
   assert.ok(speed > 1250 && speed < 1530, `sticky speed at 116px about 1393px/s, got ${speed}`);
-  // Trang chủ cuộn được khoảng 4400px nên cửa sổ 216px chỉ 0.6 giây; sai số một frame quanh hai cú di chuột lớn hơn.
+  // The home page scrolls about 4400px, so the 216px window lasts only 0.6 seconds; a one-frame error around the two large mouse moves matters more.
   const { speed: fast, cursor } = await measure(216, 0.6);
   assert.ok(fast > 4900 && fast < 6000, `sticky speed at 216px about 5468px/s, got ${fast}`);
   assert.equal(cursor, "down", "cursor points down");
 
-  // Lăn chuột thì dừng: biểu tượng mất, trang đứng sau quán tính.
+  // Wheel scroll stops it: the icon disappears, the page stops after inertia.
   await page.mouse.wheel(0, 1);
   await page.waitForTimeout(100);
   assert.equal(await origin(page), 0, "wheel removes the origin icon");
@@ -87,8 +87,8 @@ try {
   assert.ok(Math.abs((await scrollY(page)) - stopped) < 1, "page stays still after a wheel stop");
   console.log(`PASS sticky ${Math.round(speed)} and ${Math.round(fast)}px/s, wheel stop`);
 
-  // Nhấn giữ kéo lên rồi nhả: cuộn lên trong lúc giữ, dừng khi nhả. Trang đã cuộn nên tìm lại điểm trống:
-  // điểm cũ có thể rơi vào link và chuột giữa lên link không bắt đầu autoscroll.
+  // Press and hold, drag up, then release: scrolls up while held, stops on release. The page has scrolled, so find an empty point again:
+  // the old point may land on a link, and a middle click on a link does not start autoscroll.
   const holdPoint = await blank(page);
   assert.ok(holdPoint, "a blank point exists after the sticky run");
   await page.mouse.move(holdPoint.x, holdPoint.y);
@@ -101,7 +101,7 @@ try {
   assert.equal(await origin(page), 0, "releasing after a drag stops");
   console.log("PASS hold-drag");
 
-  // Dừng bằng nút chuột trái (không kích hoạt gì bên dưới) và bằng phím.
+  // Stop with the left mouse button (triggers nothing underneath) and with a key.
   const url = page.url();
   await page.mouse.move(point.x, point.y);
   await page.mouse.down({ button: "middle" });
@@ -115,7 +115,7 @@ try {
   assert.equal(await origin(page), 0, "a key press stops");
   console.log("PASS click and key stop");
 
-  // Chuột giữa lên link không bắt đầu; cuộn logic bị khóa (viewer, menu) cũng không.
+  // A middle click on a link does not start; locked logical scroll (viewer, menu) does not either.
   await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
   const link = await page.locator("a[href]:visible").first().boundingBox();
   await page.mouse.move(link.x + link.width / 2, link.y + link.height / 2);
@@ -130,7 +130,7 @@ try {
   await page.evaluate(() => window.TruongThinhMotion.unlockLogicalScroll());
   console.log("PASS link and lock");
 
-  // Dưới 981px và khi giảm chuyển động trang cuộn native, không tự làm autoscroll.
+  // Below 981px and with reduced motion the page scrolls natively, autoscroll does not start itself.
   for (const options of [{ viewport: { width: 390, height: 844 } }, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" }]) {
     const other = await open(options);
     const spot = await blank(other) || { x: 100, y: 400 };
@@ -142,7 +142,7 @@ try {
   }
   console.log("PASS native fallback");
 
-  // Icon bám pixel màn hình ở tỉ lệ Windows 125% và 150%: góc trên trái rơi đúng pixel thiết bị.
+  // The icon sticks to screen pixels at Windows 125% and 150% scaling: the top-left corner lands exactly on a device pixel.
   for (const deviceScaleFactor of [1.25, 1.5]) {
     const scaled = await open({ viewport: { width: 1440, height: 900 }, deviceScaleFactor });
     const spot = await blank(scaled);

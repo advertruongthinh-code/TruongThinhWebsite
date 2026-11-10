@@ -1,12 +1,12 @@
-// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/design-system.md R4).
-// Cách dùng: node scripts/docs/build-design-md.mjs [--check]
+// Build DESIGN.md and the .impeccable/design.json sidecar for Impeccable from design-system/ (docs/specs/design-system.md R4).
+// Usage: node scripts/docs/build-design-md.mjs [--check]
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { posix } from 'node:path';
 
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
 const readme = readFileSync('design-system/README.md', 'utf8');
 const title = `Design System: ${tokens.name}`;
-// JSON string là YAML double-quoted scalar hợp lệ, nên giá trị có dấu nháy hoặc dấu hai chấm không cần escape thêm.
+// A JSON string is a valid YAML double-quoted scalar, so values with quotes or colons need no extra escaping.
 const q = (value) => (typeof value === 'number' ? String(value) : JSON.stringify(value));
 const map = (entries) => entries.map(([key, value]) => `  ${key}: ${q(value)}`).join('\n');
 
@@ -14,7 +14,7 @@ const description = readme.split('\n\n')[1].replace(/\s+/g, ' ').match(/^(.+?\.)
 const typography = tokens.type.groups.flatMap((g) => g.styles).map((s) => [
   `  ${s.name}:`,
   `    fontFamily: ${q(tokens.type.families[s.family ?? 'sans'] ?? tokens.type.families.sans)}`,
-  // tokens.json giữ trần của clamp(); giá trị CSS thật được ghi trong usage.
+  // tokens.json keeps the clamp() ceiling; the real CSS value is written in usage.
   `    fontSize: ${q(s.usage.match(/clamp\([^)]*\)/)?.[0] ?? s.fontSize)}`,
   `    fontWeight: ${q(s.fontWeight)}`,
   `    lineHeight: ${q(s.lineHeight)}`,
@@ -33,11 +33,11 @@ const frontmatter = [
   '---',
 ].join('\n');
 
-// Link trong README tính theo design-system/; DESIGN.md nằm ở gốc repo.
+// Links in the README are relative to design-system/; DESIGN.md sits at the repo root.
 const rebase = (text) => text.replace(/\]\((?!https?:|#)([^)#]*)(#[^)]*)?\)/g, (_, path, hash = '') => `](${posix.normalize(posix.join('design-system', path))}${hash})`);
 const slug = (heading) => heading.toLowerCase().replace(/[^\p{L}\p{N} -]/gu, '').replace(/ /g, '-');
-// Tám mục Impeccable: đoạn mở đầu và các đoạn "**Quy tắc ...**" của mục cùng tên trong README, cộng link tới mục đó;
-// Do's and Don'ts toàn là quy tắc nên giữ nguyên (spec design-system R4.1).
+// Eight Impeccable sections: the opening paragraph and the "**Quy tắc ...**" paragraphs of the same-named README section, plus a link to that section;
+// Do's and Don'ts is all rules so it is kept as is (spec design-system R4.1).
 const HEADINGS = ['Overview', 'Colors', 'Typography', 'Layout', 'Elevation & Depth', 'Shapes', 'Components', "Do's and Don'ts"];
 const sections = HEADINGS.map((heading) => {
   const part = readme.split(`\n## ${heading}\n`)[1];
@@ -49,7 +49,7 @@ const sections = HEADINGS.map((heading) => {
 });
 const body = [`# ${title}`, `Nguồn chuẩn là [design-system/](design-system/README.md); file này chỉ giữ token và quy tắc cốt lõi cho Impeccable.`, ...sections].join('\n\n') + '\n';
 
-// Sidecar chỉ giữ thứ frontmatter không chứa được: shadow, biến motion của :root, breakpoint (Impeccable schemaVersion 2).
+// The sidecar keeps only what frontmatter cannot hold: shadow, :root motion variables, breakpoints (Impeccable schemaVersion 2).
 const root = readFileSync('src/site/style.css', 'utf8').match(/:root\s*\{([^}]*)\}/)[1];
 const motion = Object.keys(tokens.meta.cssOnly).map((name) => ({
   name, value: root.match(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`))[1].trim(), purpose: tokens.meta.cssOnly[name],

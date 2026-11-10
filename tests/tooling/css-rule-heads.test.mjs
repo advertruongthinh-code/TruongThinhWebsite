@@ -1,4 +1,4 @@
-// Gate component design-system.md R6.2: selector của rule bao dòng CSS đổi, cả rule một dòng, rule bị xóa, đổi tên.
+// Component gate design-system.md R6.2: selector of the rule enclosing a changed CSS line, including one-line rules, deleted and renamed rules.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { changedLineNumbers, cssRuleHeads } from "../../scripts/docs/css-rule-heads.mjs";

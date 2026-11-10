@@ -1,6 +1,6 @@
-// Veil phủ kín: chữ đổi ngay sang đậm, mark lật sang CMYK; veil mở: chữ đổi ngay, mark lật về màu trang đích; cụm logo
-// luôn hiện trên veil (docs/specs/logo-route-crossfade.md R1-R7).
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/logo-route-crossfade.e2e.mjs
+// Veil fully covering: text switches to bold immediately, the mark flips to CMYK; veil opening: text switches immediately, the mark flips to the destination page color; the logo cluster
+// stays visible above the veil (docs/specs/logo-route-crossfade.md R1-R7).
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/logo-route-crossfade.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -10,8 +10,8 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Ghi mỗi frame: animation clip-path (kiểu mọc cũ, phải luôn 0) và tween fill inline trên path của mark (phải 0), màu chữ
-// logo, lớp lật mark mới, opacity veil, opacity cụm logo, opacity riêng của mark, chữ, nav, hamburger.
+// Records every frame: clip-path animation (old grow style, must always be 0) and inline fill tween on the mark path (must be 0), logo
+// text color, new mark flip layer, veil opacity, logo cluster opacity, own opacity of mark, text, nav, hamburger.
 const startRecorder = (selector) => {
   const t0 = performance.now();
   const header = document.querySelector("[data-site-header]");
@@ -35,7 +35,7 @@ const startRecorder = (selector) => {
     const text = getComputedStyle(logo).color;
     if (text !== record.texts.at(-1)?.color) record.texts.push({ at: now, color: text });
     const nextRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
-    // reverse() lúc animation còn pending chỉ đổi playbackRate khi animation hết pending: đọc chiều chạy lúc đó.
+    // reverse() while the animation is still pending only changes playbackRate once it stops pending: read the direction at that moment.
     const last = record.flips.at(-1);
     const running = nextRoot === root && root?.lastElementChild.children[0].getAnimations()[0];
     if (last && last.rate === undefined && running && !running.pending) last.rate = running.playbackRate;
@@ -44,8 +44,8 @@ const startRecorder = (selector) => {
       record.flips.push({ at: now, front: band.children[0].dataset.fill, back: band.children[1].dataset.fill, rate: undefined });
     }
     root = nextRoot;
-    // Lớp lật chạy thì mark gốc phải ẩn; HTML trang đích mount dưới veil không được xóa style ẩn của nó, nếu không
-    // mark CMYK gốc lộ viền màu mờ quanh mặt trắng (owner 2026-11-09).
+    // While the flip layer runs the original mark must be hidden; the destination page HTML mounted under the veil must not remove its hide style, otherwise
+    // the original CMYK mark leaks a faint colored edge around the white face (owner 2026-11-09).
     if (root && getComputedStyle(logo.querySelector(".brand-lockup__mark")).visibility !== "hidden") record.markUnderFlip += 1;
     const opacity = Number(getComputedStyle(veil).opacity);
     record.logoMin = Math.min(record.logoMin, Number(getComputedStyle(logo).opacity));
@@ -73,7 +73,7 @@ const open = async (viewport, reducedMotion, route) => {
   await page.waitForTimeout(1500);
   return { context, page };
 };
-// Click bằng script để link trong menu (ẩn ở điện thoại) cũng đi qua Barba như click thật.
+// Click via script so links in the menu (hidden on phone) also go through Barba like a real click.
 const go = async (page, selector) => {
   await page.evaluate(startRecorder, selector);
   await page.waitForTimeout(400);
@@ -85,14 +85,14 @@ const go = async (page, selector) => {
 const white = "rgb(255, 255, 255)";
 const ink = "rgb(47, 47, 47)";
 const cyan = "rgb(0, 160, 227)";
-// Trên veil (owner 2026-11-09): lúc bấm chữ và mark giữ màu; veil phủ kín thì chữ đổi ngay sang đậm, mark đang trắng thì
-// lật sang CMYK; veil bắt đầu mở thì chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Không tween màu.
+// On the veil (owner 2026-11-09): at click, text and mark keep their color; when the veil fully covers, text switches to bold immediately and a white mark
+// flips to CMYK; when the veil starts opening, text switches immediately to the destination tone and the mark flips to the destination color. No color tween.
 const scenarios = [
   { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', texts: [white, ink, white], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-inverse" },
   { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', texts: [white, ink], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-color" },
   { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', texts: [ink, white], flip: { front: white, back: cyan, rate: -1 }, final: "is-brand-inverse" },
 ];
-// Một frame: callback GSAP lúc veil phủ kín có thể chạy trước hoặc sau lần đọc của recorder trong cùng frame.
+// One frame: the GSAP callback at full veil coverage may run before or after the recorder's read within the same frame.
 const frame = 40;
 
 try {
@@ -106,7 +106,7 @@ try {
       assert.equal(record.tweens, 0, `${label}: mark never tweens its fill ${dump}`);
       assert.equal(record.markUnderFlip, 0, `${label}: original mark stays hidden under the flip layer ${dump}`);
       assert.equal(record.final, scenario.final, `${label}: final mark colour`);
-      // Chữ đổi ngay, không tween: chỉ có đúng các màu này, không màu trung gian.
+      // Text switches immediately, no tween: only these exact colors, no intermediate color.
       assert.deepEqual(record.texts.map(({ color }) => color), scenario.texts, `${label}: text switches without a tween ${dump}`);
       const toInk = record.texts.find(({ color }) => color === ink);
       if (scenario.texts[0] !== ink) assert.ok(toInk.at >= record.veilClosed - frame, `${label}: text turns ink once the veil covers ${dump}`);
@@ -114,14 +114,14 @@ try {
       if (toDestination) {
         assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
       }
-      // Veil phủ kín ít nhất 1s (owner 2026-11-09) dù trang đích tải ngay, navbar không chớp.
+      // Veil stays fully covering at least 1s (owner 2026-11-09) even if the destination page loads instantly, so the navbar does not flicker.
       assert.ok(record.veilOpening - record.veilClosed >= 1000 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
-      // Mark lật (không tween) từ lúc veil phủ kín hoặc lúc veil bắt đầu mở, không phải lúc bấm.
+      // The mark flips (no tween) from full veil coverage or from veil opening start, not from the click.
       assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
       const { at, ...flip } = record.flips[0];
       assert.deepEqual(flip, scenario.flip, `${label}: first flip ${dump}`);
       assert.ok(at >= record.veilClosed - frame, `${label}: first flip waits for the full veil ${dump}`);
-      // R7: cụm logo luôn hiện trên veil; mark, chữ, nav, hamburger không có opacity riêng.
+      // R7: the logo cluster is always visible above the veil; mark, text, nav, hamburger have no opacity of their own.
       assert.equal(record.logoMin, 1, `${label}: logo never fades ${dump}`);
       assert.equal(record.partsBelowOne, 0, `${label}: mark, text, nav, hamburger keep their own opacity`);
       console.log(`PASS ${label}: text switches on the full veil, mark flips, no colour tween`);
@@ -129,7 +129,7 @@ try {
     }
   }
 
-  // R5: bấm link lúc mark đang lật dở (cuộn vừa đổi màu); lúc bấm mark giữ nguyên nên lần lật đang chạy chạy tiếp.
+  // R5: click a link while the mark is mid-flip (scroll just changed color); at click the mark is unchanged so the running flip continues.
   {
     const { context, page } = await open({ width: 1440, height: 900 }, "no-preference", "/vi/");
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
@@ -150,7 +150,7 @@ try {
     await context.close();
   }
 
-  // R6: reduced motion đổi ngay, không tween màu, không mọc.
+  // R6: reduced motion switches immediately, no color tween, no grow.
   {
     const { context, page } = await open({ width: 412, height: 915 }, "reduce", "/vi/");
     const record = await go(page, 'a[href="/vi/residential/"]');

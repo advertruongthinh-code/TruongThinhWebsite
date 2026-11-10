@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-// Đường lưu và phục vụ nội dung editor trong Worker (cms-editor R8, R10) chạy trong CI: D1 và ASSETS giả trong bộ nhớ.
-// HTMLRewriter là global của Workers, Node không có: thay bằng bản không đổi gì (phần rewrite do content-worker.e2e kiểm).
+// Editor content save and serve path in the Worker (cms-editor R8, R10) runs in CI: fake in-memory D1 and ASSETS.
+// HTMLRewriter is a Workers global that Node lacks: replaced with a no-op version (the rewrite part is checked by content-worker.e2e).
 globalThis.HTMLRewriter = class {
   on() {
     return this;
@@ -53,7 +53,7 @@ function fakeDb({ raceOnUpdate = false } = {}) {
   return db;
 }
 
-// ASSETS: trang nguồn có ETag; trang card tĩnh trả 304 khi ETag khớp, như Workers Static Assets.
+// ASSETS: the source page has an ETag; the static card page returns 304 when the ETag matches, like Workers Static Assets.
 function fakeAssets() {
   return {
     async fetch(request) {
@@ -100,11 +100,11 @@ test("content API: lưu, đọc lại, 409 khi base cũ hoặc ghi đua, audit c
   const stale = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: "2000-01-01T00:00:00.000Z" });
   assert.equal(stale.status, 409);
   assert.equal((await stale.json()).updatedBy, "admin@localhost");
-  // Hai người cùng base: UPDATE có điều kiện không đổi dòng nào thì 409, không ghi đè ngầm.
+  // Two people on the same base: a conditional UPDATE that changes no row gives 409, never a silent overwrite.
   const race = env(fakeDb({ raceOnUpdate: true }));
   race.DB.rows.set("residential", db.rows.get("residential"));
   assert.equal((await call(race, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: updatedAt })).status, 409);
-  // Dấu editor thấy lúc sửa khác nguồn hiện tại: trang đã đổi bản, không lưu.
+  // The mark the editor saw when editing differs from the current source: the page changed version, do not save.
   const drift = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: updatedAt, anchors: { t0: "Chữ cũ" } });
   assert.equal(drift.status, 400);
 });
