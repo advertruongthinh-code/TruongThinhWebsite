@@ -8,11 +8,12 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
   let arcInView = false;
   let rearmPending = false;
   // Kính reveal bất kỳ còn trong DOM khi cung đang thấy làm Chrome bỏ blur các bậc của cung (skeleton R4): cung vào
-  // viewport thì gỡ Kính reveal của khung batch, khung chỉ còn crossfade. Lỗi #757: tìm trong grid bỏ sót batch ở detail.
+  // viewport thì gỡ mọi Kính reveal trong trang (khung batch, primary), media chỉ còn crossfade. Lỗi #757: tìm trong grid
+  // bỏ sót batch ở detail.
   const tint = arc?.querySelector(".glass-surface__tint");
   const observer = tint && new IntersectionObserver(([entry]) => {
     arcInView = entry.isIntersecting;
-    if (arcInView) skeleton?.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+    if (arcInView) tint.ownerDocument.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
   });
   observer?.observe(tint);
   signal?.addEventListener("abort", () => {
@@ -24,8 +25,8 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
     cluster,
     arc,
     get host() { return skeleton?.dataset.advertisingCtaHost; },
-    // Kính reveal cho khung batch, trừ khi cung đang thấy.
-    revealGlass: (make, frame) => (arcInView ? null : make(frame)),
+    // Cung đang thấy thì reveal không thêm Kính.
+    get arcInView() { return arcInView; },
     // Gắn bộ node vào sân mới. `replay`: chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp, vì trước đó cụm
     // nằm đầu sân, trong viewport, nên observer vào view nổ sớm. Không replay thì giữ trạng thái đã hiện, kể cả khi
     // rời sân cũ trước lúc batch kịp đặt chỗ ở đó.
