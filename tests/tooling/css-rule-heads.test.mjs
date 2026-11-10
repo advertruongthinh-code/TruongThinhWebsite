@@ -20,26 +20,26 @@ const css = [
 ];
 const heads = (lines) => [...cssRuleHeads(css, lines)].join("\n");
 
-test("dòng thân rule lấy selector rule bao", () => {
+test("body line takes the enclosing rule selector", () => {
   assert.match(heads([2]), /^\.glass-surface \{$/);
   assert.match(heads([3]), /^\.glass-surface \{$/);
 });
 
-test("rule một dòng tính chính nó", () => {
+test("single-line rule counts itself", () => {
   assert.match(heads([4]), /data-glass-shape="arc"/);
 });
 
-test("dòng selector (đổi tên) tính chính nó, danh sách nhiều dòng gộp lại", () => {
+test("selector line (renamed) counts itself, multi-line lists are merged", () => {
   assert.equal(heads([6]), ".a, .glass-surface > i {");
   assert.equal(heads([5]), ".a, .glass-surface > i {");
 });
 
-test("rule trong at-rule lấy rule gần nhất; dòng at-rule đi tiếp ra ngoài", () => {
+test("rule inside at-rule takes the nearest rule; at-rule line passes through", () => {
   assert.equal(heads([11]).trim(), ".glass-layer {");
   assert.equal(heads([9]), "@media (max-width: 960px) {");
 });
 
-test("diff -U0 cho dòng xóa theo file base và dòng thêm theo file mới", () => {
+test("diff -U0 maps removed lines to the base file and added lines to the new file", () => {
   const diff = "@@ -6,3 +5,0 @@\n-x\n@@ -10 +9,2 @@\n";
   assert.deepEqual(changedLineNumbers(diff), { added: [9, 10], removed: [6, 7, 8, 10] });
 });

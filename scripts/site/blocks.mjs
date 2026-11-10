@@ -179,49 +179,49 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
   const { default: sharp } = await import("sharp");
   const errors = [];
   const text = (value, where) => {
-    if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: thiếu chữ VI`);
-    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: thiếu chữ EN`);
-    else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: số đoạn VI và EN khác nhau`);
+    if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
+    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
+    else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
   const media = async (value, where) => {
-    if (!value || !IMAGE_SRC.test(value.src ?? "")) return errors.push(`${where}: src phải là /assets/content/<kebab-case>.webp`);
-    for (const field of ["altVi", "altEn"]) if (typeof value[field] !== "string" || !value[field].trim()) errors.push(`${where}: thiếu ${field}`);
+    if (!value || !IMAGE_SRC.test(value.src ?? "")) return errors.push(`${where}: src must be /assets/content/<kebab-case>.webp`);
+    for (const field of ["altVi", "altEn"]) if (typeof value[field] !== "string" || !value[field].trim()) errors.push(`${where}: missing ${field}`);
     const file = path.join(siteRoot, value.src);
-    if (!existsSync(file)) return errors.push(`${where}: không có file ${value.src}`);
+    if (!existsSync(file)) return errors.push(`${where}: file not found ${value.src}`);
     const { width, height } = await sharp(file).metadata();
-    if (value.width !== width || value.height !== height) errors.push(`${where}: width/height phải là ${width}x${height}`);
+    if (value.width !== width || value.height !== height) errors.push(`${where}: width/height must be ${width}x${height}`);
   };
-  const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: link không hợp lệ`); };
+  const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
-  if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id phải kebab-case`);
-  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} phải kebab-case không dấu`);
+  if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
+  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
   text(page?.title, `${at}.title`);
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
-  if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: cần ít nhất một khối`];
+  if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: needs at least one block`];
 
   const blockIds = new Set();
   for (const [index, block] of page.blocks.entries()) {
     const where = `${at}.blocks[${index}]`;
     const spec = BLOCKS[block?.type];
-    if (!spec) { errors.push(`${where}: kiểu khối lạ ${block?.type}`); continue; }
-    if (!KEBAB.test(block.id ?? "")) errors.push(`${where}: id khối phải kebab-case`);
-    else if (blockIds.has(block.id)) errors.push(`${where}: trùng id khối ${block.id}`);
+    if (!spec) { errors.push(`${where}: unknown block type ${block?.type}`); continue; }
+    if (!KEBAB.test(block.id ?? "")) errors.push(`${where}: block id must be kebab-case`);
+    else if (blockIds.has(block.id)) errors.push(`${where}: duplicate block id ${block.id}`);
     blockIds.add(block.id);
     for (const field of spec.text ?? []) text(block[field], `${where}.${field}`);
     for (const field of spec.optionalText ?? []) if (block[field] !== undefined) text(block[field], `${where}.${field}`);
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
     for (const field of spec.href ?? []) href(block[field], `${where}.${field}`);
-    for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: phải là ${allowed.join(", ")}`);
+    for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: must be ${allowed.join(", ")}`);
     for (const [field, [min, max]] of Object.entries(spec.mediaList ?? {})) {
       const list = block[field];
-      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: cần ${min} đến ${max} ảnh`); continue; }
+      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: needs ${min} to ${max} images`); continue; }
       for (const [item, value] of list.entries()) await media(value, `${where}.${field}[${item}]`);
     }
     if (spec.list) {
       const [min, max] = spec.list.items;
       const list = block.items;
-      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.items: cần ${min} đến ${max} mục`); continue; }
+      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.items: needs ${min} to ${max} items`); continue; }
       for (const [item, value] of list.entries()) {
         for (const field of spec.list.text ?? []) text(value?.[field], `${where}.items[${item}].${field}`);
         for (const field of spec.list.media ?? []) await media(value?.[field], `${where}.items[${item}].${field}`);
@@ -230,14 +230,14 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
     }
     if (spec.video) {
       const value = block.video;
-      if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: cần src .mp4, poster .webp, width, height`);
+      if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
     }
     if (spec.ids) {
       const field = spec.ids === "projects" ? "projectIds" : "newsIds";
       const pool = spec.ids === "projects" ? projects : news;
       const list = block[field];
-      if (!Array.isArray(list) || list.length < 1) errors.push(`${where}.${field}: cần ít nhất một id`);
-      else for (const id of list) if (!pool.has(id) || id === page.id) errors.push(`${where}.${field}: id ${id} không có hoặc trỏ chính trang này`);
+      if (!Array.isArray(list) || list.length < 1) errors.push(`${where}.${field}: needs at least one id`);
+      else for (const id of list) if (!pool.has(id) || id === page.id) errors.push(`${where}.${field}: id ${id} not found or points to this page`);
     }
   }
   return errors;
@@ -249,7 +249,7 @@ export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].fla
   return pages.flatMap((page) => {
     const duplicate = seen.has(page[field]);
     seen.add(page[field]);
-    return duplicate ? [`${at}: trùng ${field} ${page[field]}`] : [];
+    return duplicate ? [`${at}: duplicate ${field} ${page[field]}`] : [];
   });
 });
 
