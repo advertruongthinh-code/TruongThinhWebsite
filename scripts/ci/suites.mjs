@@ -1,8 +1,8 @@
-// Bộ test CI theo phần website (docs/specs/ci-test-suites.md).
-// node scripts/ci/suites.mjs --select [--event <tên sự kiện>] [--base <ref>]  -> JSON id bộ cho matrix
-// node scripts/ci/suites.mjs <id>        -> build, mở preview port trống, chạy lệnh của bộ
-// node scripts/ci/suites.mjs --changed   -> chạy các bộ mà --select chọn so với origin/main
-// node scripts/ci/suites.mjs --all       -> JSON mọi bộ cho lượt đêm
+// CI test suites per website part (docs/specs/ci-test-suites.md).
+// node scripts/ci/suites.mjs --select [--event <event name>] [--base <ref>]  -> JSON of suite ids for the matrix
+// node scripts/ci/suites.mjs <id>        -> build, open preview on a free port, run the suite's commands
+// node scripts/ci/suites.mjs --changed   -> run the suites that --select picks against origin/main
+// node scripts/ci/suites.mjs --all       -> JSON of every suite for the nightly run
 import { execFileSync, execSync, spawn, spawnSync } from "node:child_process";
 import { appendFileSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 export const manifest = JSON.parse(readFileSync(new URL("../../tests/ci-suites.json", import.meta.url), "utf8"));
 const ids = Object.keys(manifest.suites).filter((id) => manifest.suites[id].tests.length);
 
-// Glob `source:` trong frontmatter spec, cùng cách đọc với scripts/docs/check-docs.mjs.
+// `source:` globs in spec frontmatter, read the same way as scripts/docs/check-docs.mjs.
 const specSources = (spec) => {
   const block = readFileSync(`docs/specs/${spec}.md`, "utf8").match(/^source:\n((?:\s+- .+\n)+)/m);
   return block ? block[1].split("\n").filter(Boolean).map((line) => line.replace(/^\s+- /, "").trim()) : [];
@@ -32,7 +32,7 @@ export function select(files, event = "pull_request") {
       const suite = manifest.suites[id];
       return any(file, suite.specs.flatMap(specSources)) || suite.tests.some((cmd) => testFiles(cmd).some((glob) => matchesGlob(file, glob)));
     });
-    // File code không thuộc bộ nào: chạy đủ cho an toàn (R3 mục 5).
+    // Code file belonging to no suite: run everything to be safe (R3 item 5).
     if (!hits.length) return ids;
     hits.forEach((id) => picked.add(id));
   }
@@ -46,7 +46,7 @@ const freePort = () => new Promise((resolve) => {
   });
 });
 
-// Bảng thời gian từng lệnh cho job summary (spec R10).
+// Per-command timing table for the job summary (spec R10).
 export const timingTable = (timings) => [
   "| Suite | Seconds | Result | Command |",
   "| --- | --- | --- | --- |",
@@ -54,11 +54,11 @@ export const timingTable = (timings) => [
 ].join("\n");
 
 async function run(suiteIds) {
-  // Chuỗi lệnh chạy qua shell: Windows chỉ có pnpm.cmd, execFileSync("pnpm") báo ENOENT.
+  // Command string runs through the shell: Windows only has pnpm.cmd, execFileSync("pnpm") fails with ENOENT.
   execSync("pnpm prepare:site", { stdio: "inherit" });
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  // Log preview ghi ra file để CI đính kèm khi bộ đỏ.
+  // Preview log is written to a file so CI can attach it when a suite is red.
   const log = openSync("static-server.log", "w");
   const timings = [];
   const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: ["ignore", log, log] });
@@ -82,7 +82,7 @@ async function run(suiteIds) {
     if (failed.length) throw new Error(`failed:\n${failed.join("\n")}`);
   } finally {
     server.kill();
-    // CI upload file này làm artifact, GitHub đọc job summary từ GITHUB_STEP_SUMMARY.
+    // CI uploads this file as an artifact; GitHub reads the job summary from GITHUB_STEP_SUMMARY.
     mkdirSync(".tmp", { recursive: true });
     writeFileSync(".tmp/suite-timing.json", JSON.stringify(timings, null, 2));
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${timingTable(timings)}\n`);

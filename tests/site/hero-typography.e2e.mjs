@@ -1,4 +1,4 @@
-// hero-typography R1, R2 (phone: title ở tâm hero, không kicker, rail neo cố định), R3, R4: title hai dòng, không cắt dấu, không cuộn ngang, khoảng cách dòng đều.
+// hero-typography R1, R2 (phone: title at hero center, no kicker, rail pinned), R3, R4: two-line title, no clipped diacritics, no horizontal scroll, even line spacing.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -11,7 +11,7 @@ const widths = (process.env.HERO_WIDTHS || "320,360,375,384,390,411,768,1024,128
   .split(",")
   .map(Number);
 
-// Dòng VI theo chốt owner 2026-10-18; EN chỉ kiểm số dòng và dấu.
+// VI lines per owner decision 2026-10-18; EN only checks line count and diacritics.
 const titles = [
   { route: "", selector: ".hero h1", mask: ".hero-line-mask", vi: ["làm chắc", "làm khác"] },
   { route: "", selector: ".legacy-copy h2", mask: ".line-mask", vi: ["giữ nghề", "không ngừng làm mới"] },
@@ -24,7 +24,7 @@ const titles = [
 
 const inspectTitle = (page, { selector, mask }) => page.evaluate(({ selector, mask }) => {
   const title = document.querySelector(selector);
-  // Chỉ lấy rect của text node; rect của span inline-block bọc cả hai dòng làm gộp sai.
+  // Take only the text node's rect; the rect of the inline-block span wrapping both lines merges them wrongly.
   const textRects = (node) => {
     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
     const rects = [];
@@ -37,7 +37,7 @@ const inspectTitle = (page, { selector, mask }) => page.evaluate(({ selector, ma
   };
   if (!title) return null;
   const lineCount = (node) => {
-    // Dòng mới khi top lệch quá nửa chiều cao rect; line-height chật làm rect hai dòng chồng nhau.
+    // A new line when top differs by more than half the rect height; tight line-height makes the two lines' rects overlap.
     const lines = [];
     for (const rect of textRects(node)) {
       const line = lines.at(-1);
@@ -57,7 +57,7 @@ const inspectTitle = (page, { selector, mask }) => page.evaluate(({ selector, ma
   };
 }, { selector, mask });
 
-// Ảnh chụp vùng title khi mask cắt và khi bỏ cắt; khác nhau nghĩa là có nét chữ (dấu) bị cắt.
+// Screenshots of the title area with the mask clipping and with clipping removed; a difference means a glyph stroke (diacritic) is clipped.
 const clippedInk = async (page, { selector, mask }, box, fontSize) => {
   const pad = fontSize * 0.6;
   const viewport = page.viewportSize();
@@ -68,7 +68,7 @@ const clippedInk = async (page, { selector, mask }, box, fontSize) => {
     height: box.height + pad * 2,
   };
   const shot = () => page.screenshot({ clip, animations: "disabled" });
-  // So theo pixel có ngưỡng: đổi lớp compositing làm anti-alias lệch vài mức xám.
+  // Pixel comparison with a threshold: changing the compositing layer shifts anti-aliasing by a few gray levels.
   const differs = async (...pngs) => {
     const [a, b] = await Promise.all(pngs.map((png) => sharp(png).raw().toBuffer()));
     return a.some((value, index) => Math.abs(value - b[index]) > 24);
@@ -81,7 +81,7 @@ const clippedInk = async (page, { selector, mask }, box, fontSize) => {
   const after = await shot();
   await unclip.evaluate((tag) => tag.remove());
   if (await differs(before, after)) return "clipped";
-  // Nét chữ của dòng 1 và dòng 2 (kể cả dấu) không được chồng hàng pixel lên nhau.
+  // Glyph strokes of line 1 and line 2 (including diacritics) must not share pixel rows.
   const only = async (hidden) => {
     const style = await page.addStyleTag({
       content: hidden.map((index) => `${selector} ${mask}:nth-of-type(${index + 1}) { visibility: hidden !important; }`).join(""),
@@ -91,7 +91,7 @@ const clippedInk = async (page, { selector, mask }, box, fontSize) => {
     return sharp(image).raw().toBuffer({ resolveWithObject: true });
   };
   const blank = await only([0, 1]);
-  // Pixel có nét của từng dòng khi dòng kia ẩn; trùng pixel nghĩa là hai dòng đè lên nhau.
+  // Inked pixels of each line while the other is hidden; overlapping pixels mean the two lines overlap.
   const ink = async (hidden) => {
     const { data, info } = await only(hidden);
     const marked = new Uint8Array(info.width * info.height);
@@ -136,8 +136,8 @@ const baselineGaps = (page) => page.evaluate(() => {
 });
 
 
-// Chữ nối nửa cỡ của motto (.heritage-text--minor, page-home R7) không bị clip-path của mask cắt nét: ảnh chụp
-// vùng chữ khi có và không có clip-path phải giống nhau; thiếu chữ nối hoặc ảnh chụp không ổn định thì báo lỗi.
+// The half-size connector text of the motto (.heritage-text--minor, page-home R7) is not clipped by the mask's clip-path: screenshots
+// of the text area with and without clip-path must match; a missing connector or an unstable screenshot is an error.
 const heritageMinorClip = async (page) => {
   const words = page.locator(".heritage-text--minor");
   const count = await words.count();
@@ -146,7 +146,7 @@ const heritageMinorClip = async (page) => {
   for (let index = 0; index < count; index += 1) {
     const word = words.nth(index);
     await word.scrollIntoViewIfNeeded();
-    // Cỡ chữ lớn của hàng quyết định độ nhô của dấu; chụp rộng theo cỡ đó.
+    // The large font size of the row determines how far diacritics protrude; capture wide by that size.
     const pad = await word.evaluate((node) => Number.parseFloat(getComputedStyle(node.closest(".heritage-row")).fontSize) * 0.6);
     const box = await word.boundingBox();
     const viewport = page.viewportSize();
@@ -170,13 +170,13 @@ const heritageMinorClip = async (page) => {
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
-// Đỉnh rail Advertising theo locale và bề rộng: trang có hàng chip và trang không có phải bằng nhau.
+// Advertising rail top by locale and width: a page with a chip row and one without must match.
 const railTops = new Map();
 try {
   for (const locale of ["vi", "en"]) {
     for (const route of [...new Set(titles.map((t) => t.route))]) for (const phone of [true, false]) {
       const path = typeof route === "string" ? route : route[locale];
-      // Phone giả lập touch và DPR như máy đo A04s (384x724, DPR 1.875); PC không touch.
+      // Phone emulates touch and DPR like the A04s test device (384x724, DPR 1.875); PC has no touch.
       const sizes = widths.filter((width) => phone === width < 768);
       if (!sizes.length) continue;
       const context = await browser.newContext({
@@ -186,13 +186,13 @@ try {
       });
       const page = await context.newPage();
       try {
-        // Tải lại ở từng bề rộng như máy thật; JS đo chữ lúc mount nên resize không thay được.
+        // Reload at each width like a real device; JS measures text on mount so resize cannot substitute.
         for (const width of sizes) {
           await page.setViewportSize({ width, height: phone ? 724 : 900 });
           await page.goto(`${origin}/${locale}/${path}`, { waitUntil: "load" });
           await page.evaluate(() => document.fonts.ready);
-          // Ẩn ảnh nền để ảnh chụp chỉ còn chữ, không phụ thuộc slide. Ẩn cả con: slide active tự đặt visibility visible,
-          // nên chỉ ẩn .hero-slides thì ảnh vẫn hiện, crossfade hoặc bước lên bản gốc (progressive-loading R10) đổi nền giữa hai ảnh chụp.
+          // Hide the background image so the screenshot has only text, independent of the slide. Hide the children too: the active slide sets visibility visible itself,
+          // so hiding only .hero-slides still shows the image, and a crossfade or step up to the original (progressive-loading R10) changes the background between two screenshots.
           await page.addStyleTag({ content: ".hero-slides, .hero-slides *, .hero-shade, [data-motion-hero-media], .legacy-closer img, .legacy-shade, .scroll-cue { visibility: hidden !important; }" });
           await page.waitForTimeout(500);
           for (const spec of titles.filter((t) => t.route === route)) {
@@ -234,7 +234,7 @@ try {
       }
     }
   }
-  // Chữ nối chỉ nhỏ từ 681px; dưới đó cùng cỡ, vẫn kiểm để mask không cắt ở phone.
+  // The connector text is smaller only from 681px; below that it is the same size, still checked so the mask does not clip on phone.
   for (const locale of ["vi", "en"]) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     const page = await context.newPage();
@@ -243,7 +243,7 @@ try {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(`${origin}/${locale}/`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
-        // Chỉ giữ chữ: ảnh heritage ẩn để ảnh chụp không phụ thuộc ảnh.
+        // Keep text only: the heritage image is hidden so the screenshot does not depend on the image.
         await page.addStyleTag({ content: ".heritage-image { visibility: hidden !important; }" });
         await page.waitForTimeout(500);
         const issue = await heritageMinorClip(page);

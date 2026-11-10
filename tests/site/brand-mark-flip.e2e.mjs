@@ -1,24 +1,24 @@
-// brand.md Motion: mark đổi màu bằng cách lật từng dải quanh trục dọc dải, song song cạnh trái tam giác,
-// trắng sang CMYK cyan trước, CMYK sang trắng chạy lùi đúng lượt đó nên đen trước; chỉ transform, opacity để GPU chạy;
-// đổi hướng giữa chừng thì tua ngược từ chỗ đang dừng (owner 2026-11-09).
-// Thu gọn và mở ra: logo, navbar, nền chạy chung 0.3s expo.out, mark lật ngay lúc bắt đầu. Thu gọn: nền, viền, chữ đổi
-// ngay rồi nền co cùng logo. Mở ra: nền trắng, chữ đậm giữ và giãn cùng logo, hết 0.3s mới đổi; không fade (owner 2026-11-09).
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
+// brand.md Motion: the mark changes color by flipping each strip around a vertical axis through the strip, parallel to the triangle's left edge;
+// white to CMYK cyan first, CMYK to white runs the same sequence in reverse so black goes first; only transform and opacity so the GPU runs it;
+// reversing mid-flip rewinds from where it stopped (owner 2026-11-09).
+// Collapse and expand: logo, navbar and background run together at 0.3s expo.out, the mark flips right at the start. Collapse: background, border and text change
+// immediately, then the background shrinks with the logo. Expand: white background and bold text hold and grow with the logo, switching only after 0.3s; no fade (owner 2026-11-09).
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/brand-mark-flip.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
-// DOM: đen, vàng, magenta, cyan.
+// DOM: black, yellow, magenta, cyan.
 const cmyk = ["rgb(43, 42, 41)", "rgb(255, 237, 0)", "rgb(229, 9, 127)", "rgb(0, 160, 227)"];
 const white = cmyk.map(() => "rgb(255, 255, 255)");
-// Ghi lúc header đổi trạng thái thu gọn và lúc lớp lật được chèn, theo performance.now().
+// Records when the header changes collapse state and when the flip layer is inserted, by performance.now().
 const watchPhases = () => {
   const header = document.querySelector("[data-site-header]");
   const logo = document.querySelector("#header-logo");
   const phases = { collapse: [], flip: [], lead: [], late: [], surface: [] };
-  // Nền và viền vẽ ở ::before để co cùng nhịp FLIP.
+  // Background and border are drawn on ::before so they shrink in step with the FLIP.
   const readSurface = () => ({
     background: getComputedStyle(header, "::before").backgroundColor,
     border: getComputedStyle(header, "::before").borderBottomStyle === "none" ? "none" : getComputedStyle(header, "::before").borderBottomColor,
@@ -29,15 +29,15 @@ const watchPhases = () => {
     if (header.classList.contains("is-collapsed") === collapsed) return;
     collapsed = !collapsed;
     phases.collapse.push(performance.now());
-    // Mẫu giữa nhịp 1, đo trong trang để không lệch theo độ trễ của Playwright.
+    // Sample mid-beat 1, measured inside the page to avoid Playwright latency skew.
     setTimeout(() => phases.lead.push({
       ...readSurface(),
       flip: Boolean(document.querySelector(".brand-lockup__mark-flip")),
-      // Nền đang co cùng logo: ::before còn dài thêm một đoạn (px) giữa nhịp.
+      // Background shrinks with the logo: ::before is still longer by some px mid-beat.
       shift: Number.parseFloat(getComputedStyle(header).getPropertyValue("--header-surface-shift")) || 0,
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }), 40);
-    // Gần cuối nhịp 0.3s: khoảng hở trên logo và dưới logo tới đáy nền (kể cả viền 1px).
+    // Near the end of the 0.3s beat: gap above the logo and below the logo to the bottom of the background (including the 1px border).
     setTimeout(() => {
       const box = header.getBoundingClientRect();
       const logoBox = logo.getBoundingClientRect();
@@ -54,13 +54,13 @@ const watchPhases = () => {
   }).observe(logo, { childList: true });
   window.__phases = phases;
 };
-// Thu gọn và mở ra: lật bắt đầu ngay, cùng frame header đổi class và nền đổi (owner 2026-11-09).
+// Collapse and expand: the flip starts immediately, in the same frame the header changes class and background (owner 2026-11-09).
 const flipLead = () => {
   const { collapse, flip } = window.__phases;
   return flip.at(-1) - collapse.at(-1);
 };
 
-// Dừng mọi animation của lớp lật tại `at` ms rồi đọc trạng thái từng dải.
+// Pause every animation of the flip layer at `at` ms, then read each strip's state.
 const readFlip = (at) => {
   const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
   if (!root) return null;
@@ -82,7 +82,7 @@ const readFlip = (at) => {
     markHidden: getComputedStyle(document.querySelector("#header-logo .brand-lockup__mark")).visibility === "hidden",
   };
 };
-// Trục của mỗi dải tính độc lập từ path: điểm giữa đoạn chân dải, đổi sang px trong khung lớp lật.
+// Each strip's axis is computed independently from its path: midpoint of the strip's foot segment, converted to px in the flip layer's frame.
 const readAxes = () => {
   const mark = document.querySelector("#header-logo .brand-lockup__mark");
   const box = mark.getBBox();
@@ -123,7 +123,7 @@ try {
       await context.close();
       continue;
     }
-    // Đầu nhịp: nền trắng, viền, chữ đậm đổi cùng frame header thu gọn, mark lật ngay, không fade.
+    // Start of the beat: white background, border and bold text change in the same frame the header collapses, mark flips immediately, no fade.
     await page.waitForFunction(() => window.__phases.lead.length);
     const lead = await page.evaluate(() => window.__phases.lead[0]);
     assert.equal(lead.flip, true, `${label}: mark flips while logo and navbar move`);
@@ -143,12 +143,12 @@ try {
     assert.deepEqual(start.front, white, `${label}: white face shows first`);
     assert.deepEqual(start.back, cmyk, `${label}: CMYK face comes in`);
     assert.ok(start.markHidden, `${label}: inline mark hides while the flip layer runs`);
-    // Bóng mặt dải (owner 2026-11-09): mỗi mặt một lớp bóng, tối nhất lúc mặt xoay ra cạnh, chỉ chạy opacity.
+    // Strip face shading (owner 2026-11-09): one shadow layer per face, darkest when the face turns edge-on, opacity only.
     const shades = await page.evaluate(() => [...document.querySelectorAll("#header-logo .brand-lockup__mark-flip > span > span > span")]
       .map((layer) => layer.getAnimations()[0]?.effect.getKeyframes().map((frame) => frame.opacity)));
     assert.deepEqual(shades, Array.from({ length: 4 }, () => [["0", "0.5"], ["0.5", "0"]]).flat(), `${label}: every face darkens as it turns edge-on`);
     assert.deepEqual([...new Set(start.props)].sort(), ["opacity", "transform"], `${label}: only compositor properties animate`);
-    // Cyan lật ở 0ms, magenta 80ms, vàng 160ms, đen 240ms.
+    // Cyan flips at 0ms, magenta 80ms, yellow 160ms, black 240ms.
     const early = await page.evaluate(readFlip, 150);
     assert.deepEqual(early.frontTurned, [false, false, true, true], `${label}: cyan and magenta turn first ${JSON.stringify(early)}`);
     const done = await page.evaluate(readFlip, 700);
@@ -162,21 +162,21 @@ try {
     }));
     assert.deepEqual(after, { hidden: "visible", fills: cmyk }, `${label}: flip layer leaves the CMYK mark`);
 
-    // Chiều về: chạy lùi lượt lật, đen trước; rồi đổi hướng giữa chừng thì tua ngược về CMYK.
+    // Return direction: flip sequence runs in reverse, black first; then reversing mid-flip rewinds to CMYK.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    // Mở ra (owner 2026-11-09): mark lật ngay; nền trắng, viền, chữ đậm giữ và giãn theo logo, navbar 0.3s, hết nhịp
-    // mới đổi một lần sang nền trong, chữ trắng, không fade.
+    // Expand (owner 2026-11-09): mark flips immediately; white background, border and bold text hold and grow with the logo, navbar 0.3s, only at the end of the beat
+    // does it switch once to the transparent background and white text, no fade.
     await page.waitForFunction(() => window.__phases.lead.length >= 2);
     const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
     assert.deepEqual([expandSample.background, expandSample.text], ["rgb(255, 255, 255)", "rgb(47, 47, 47)"], `${label}: white background and ink text hold while the header grows`);
     assert.ok(expandLead >= -1 && expandLead < 20, `${label}: flip back to white starts with the expand (${expandLead.toFixed(0)}ms)`);
     assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgb(211, 211, 211)", text: "rgb(47, 47, 47)" }, `${label}: surface still white when the flip back starts`);
-    // CMYK sang trắng là lượt trắng sang CMYK chạy lùi từ cuối: cùng mặt, mọi animation rate -1, đen rời trước.
+    // CMYK to white is the white to CMYK sequence run in reverse from the end: same faces, every animation rate -1, black leaves first.
     const back = await page.evaluate(async () => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-      // reverse() lúc animation còn pending chỉ đổi playbackRate khi animation sẵn sàng; máy bận thì đọc sớm ra rate 1.
+      // reverse() while the animation is pending only changes playbackRate once the animation is ready; on a busy machine an early read gives rate 1.
       await Promise.all([...root.querySelectorAll("span")].flatMap((face) => face.getAnimations()).map((animation) => animation.ready));
       return {
         faces: [...root.children].map((band) => [band.children[0].dataset.fill, band.children[1].dataset.fill]),
@@ -184,7 +184,7 @@ try {
       };
     });
     assert.deepEqual(back, { faces: white.map((color, index) => [color, cmyk[index]]), rates: [-1] }, `${label}: CMYK to white plays the same flip backwards`);
-    // Đổi hướng lúc lật dở (owner 2026-11-09): tua ngược ngay từ chỗ đang dừng, cùng lớp lật, không dựng lượt mới.
+    // Reversing mid-flip (owner 2026-11-09): rewind immediately from where it stopped, same flip layer, no new sequence built.
     await page.evaluate(() => { window.__flipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip"); });
     await page.waitForTimeout(150);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
@@ -208,11 +208,11 @@ try {
     assert.deepEqual(final.fills, cmyk, `${label}: reversal settles on CMYK`);
     assert.equal(final.flips, 2, `${label}: rewinding builds no second flip layer`);
 
-    // Đổi hướng ngay sau khi thu gọn: lượt lật vừa bắt đầu tua ngược về trắng, không dựng lượt mới.
+    // Reversing right after collapse: the flip just started rewinds back to white, no new sequence built.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });
-    // Cỡ lớn nhất của nền (owner 2026-11-09): logo lớn nhất cách đều cạnh trên và cạnh dưới nền, lệch tối đa viền 1px.
+    // Largest background size (owner 2026-11-09): the largest logo is equidistant from the top and bottom edges of the background, off by at most the 1px border.
     const late = await page.evaluate(() => window.__phases.late.at(-1));
     assert.equal(late.background, "rgb(255, 255, 255)", `${label}: background still white near the end of the expand`);
     assert.ok(Math.abs(late.gaps[0] - late.gaps[1]) <= 1.5, `${label}: largest logo sits evenly between the background edges ${JSON.stringify(late.gaps)}`);
@@ -231,7 +231,7 @@ try {
       fills: [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map((item) => getComputedStyle(item).fill),
     }));
     assert.deepEqual(cancelled, { flips: flipsBefore + 1, fills: white }, `${label}: turning back right after collapsing rewinds the one flip home`);
-    // Về trắng đen lật trước: 150ms sau khi chạy lùi (mốc 680 - 150), đen và vàng đã rời mặt CMYK, cyan chưa.
+    // Returning to white, black flips first: 150ms after the reverse run (mark 680 - 150), black and yellow have left the CMYK face, cyan has not.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     await page.waitForFunction(() => !document.querySelector(".brand-lockup__mark-flip"), null, { timeout: 2000 });

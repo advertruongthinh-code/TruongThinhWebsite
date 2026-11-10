@@ -1,5 +1,5 @@
-// Chạm link trong full menu trên phone: menu đóng ngay khi veil phủ kín và chữ menu reverse xong, không chờ shutter
-// và page scale (docs/specs/site-shell.md R4). Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/shared-header-menu-route-close.e2e.mjs
+// Tapping a link in the full menu on phone: the menu closes as soon as the veil fully covers and the menu text finishes reversing, without waiting for the shutter
+// and page scale (docs/specs/site-shell.md R4). Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/shared-header-menu-route-close.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -15,12 +15,12 @@ try {
   await page.goto(`${origin}/vi/`);
   await page.waitForFunction(() => window.barba?.history && !document.documentElement.classList.contains("route-enter"));
   await page.tap("[data-menu-open]");
-  // Chờ timeline mở xong (focus về nút đóng).
+  // Wait for the open timeline to finish (focus returns to the close button).
   await page.waitForFunction(() => document.activeElement?.matches("[data-menu-close]"));
   await page.evaluate(() => {
     const dialog = document.querySelector("#site-menu");
     const veil = document.querySelector(".route-veil");
-    // setTimeout thay rAF: headless không chạy rAF khi không có gì vẽ lại.
+    // setTimeout instead of rAF: headless does not run rAF when nothing repaints.
     const watch = () => {
       if (!dialog.open) {
         window.__menuClosed = { ms: performance.now() - window.__tapAt, veil: Number(getComputedStyle(veil).opacity) };
@@ -36,12 +36,12 @@ try {
   await page.tap('#site-menu .menu-group__title[href="/vi/residential/"]');
   await page.waitForFunction(() => window.__menuClosed, null, { timeout: 5_000 });
   const closed = await page.evaluate(() => window.__menuClosed);
-  // Trước sửa menu đóng sau page scale, khoảng 1.6s; sau sửa khoảng 0.75-0.9s.
+  // Before the fix the menu closed after page scale, about 1.6s; after the fix about 0.75-0.9s.
   assert.ok(closed.ms < 1_300, `menu closed ${Math.round(closed.ms)}ms after tap`);
   assert.ok(closed.veil >= 0.999, `menu closed before the veil covered (opacity ${closed.veil})`);
   await page.waitForURL(`${origin}/vi/residential/`);
-  // Mở lại menu sau route: chữ menu phải còn ẩn tới khi shutter phủ. syncDocumentState từng xóa style GSAP của menu
-  // nên cả 6 nhóm hiện ngay trên trang mới (owner 2026-11-08, PC).
+  // Reopen the menu after the route: menu text must stay hidden until the shutter covers. syncDocumentState once cleared the menu's GSAP style
+  // so all 6 groups showed immediately on the new page (owner 2026-11-08, PC).
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
   const hiddenAtOpen = await page.evaluate(() => new Promise((resolve) => {
     document.querySelector("[data-menu-open]").click();

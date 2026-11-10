@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 
-// Hồi quy: rời trang 404 bằng route mềm, container 404 phải ẩn khi veil mở, trang đích nằm từ đỉnh và cuộn được;
-// Back về 404 cũng là route mềm.
+// Regression: leaving the 404 page by soft route, the 404 container must hide when the veil opens, the destination page sits at the top and can scroll;
+// Back to 404 is also a soft route.
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -21,7 +21,7 @@ try {
       await page.goto(`${baseUrl}/${locale}/khong-co-trang-nay/`);
       await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
         && !document.documentElement.classList.contains("route-enter"), null, { timeout: 12_000 });
-      // Lấy mẫu mỗi frame từ lúc bấm link tới khi route xong: 404 không được chiếm chỗ lúc veil đã mở một phần.
+      // Sample every frame from the link click until the route finishes: 404 must not take space once the veil is partly open.
       const leaks = await page.evaluate((href) => new Promise((resolve) => {
         const found = [];
         const started = performance.now();
@@ -47,7 +47,7 @@ try {
         scrollable: document.scrollingElement.scrollHeight > innerHeight,
       }));
       assert.deepEqual(after, { path: target, top: 0, scrollable: true }, `${target}: page after leaving 404`);
-      // Back về 404 (status 404) vẫn là route mềm: cùng document, veil phủ kín, header không chạy lại intro.
+      // Back to 404 (status 404) is still a soft route: same document, veil fully covers, the header does not rerun its intro.
       await page.evaluate(() => {
         window.__sameDocument = true;
         window.__back = { veil: 0, minLogoScale: 1 };

@@ -1,4 +1,4 @@
-// Header đi theo quãng cuộn trên điện thoại (docs/specs/phone-header-scroll.md R1-R4, R6).
+// Header follows the scroll distance on phone (docs/specs/phone-header-scroll.md R1-R4, R6).
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -32,7 +32,7 @@ try {
     const page = await open(viewport, true);
     try {
       assert.equal((await headerBox(page)).top, 0, `${label}: header fully visible at page top`);
-      // R6: một chiều cao header trên điện thoại, logo cùng cỡ trước và sau mốc thu gọn 100px.
+      // R6: one header height on phone, logo the same size before and after the 100px collapse point.
       const size = () => page.evaluate(() => {
         const header = document.querySelector("[data-site-header]");
         const logo = header.querySelector(".brand-lockup").getBoundingClientRect();
@@ -58,7 +58,7 @@ try {
       await scrollTo(page, max);
       assert((await headerBox(page)).bottom <= 0, `${label}: page end does not reveal the header`);
 
-      // Header đang khuất nên bấm bằng DOM; R4 chỉ cần mở rồi đóng menu.
+      // The header is out of view so click via DOM; R4 only needs the menu to open then close.
       await page.evaluate(() => document.querySelector("[data-menu-open]").click());
       await page.waitForFunction(() => document.body.classList.contains("menu-open"));
       await page.keyboard.press("Escape");

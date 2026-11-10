@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Cài cjxl, djxl ghim trong tooling-versions.json (runtimes.libjxl) vào .tooling/libjxl/tools, kiểm SHA-256 trước khi giải nén.
-# build-image-variants.mjs tự dùng bản này; chỉ Linux x86_64 (cloud).
+# Install cjxl, djxl pinned in tooling-versions.json (runtimes.libjxl) into .tooling/libjxl/tools, verifying SHA-256 before extraction.
+# build-image-variants.mjs uses this build automatically; Linux x86_64 only (cloud).
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 read -r version url sha < <(node -e 'const p=require(process.argv[1]).runtimes.libjxl; console.log(p.version, p.url, p.sha256)' "$root/tooling-versions.json")

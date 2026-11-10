@@ -1,4 +1,4 @@
-/* Overlay trong bản xem trước của CMS (cms-editor R3). Không thuộc Design System, chỉ nạp trong iframe admin. */
+/* Overlay in the CMS preview (cms-editor R3). Not part of the Design System, only loaded in the admin iframe. */
 .tt-cms-box {
   position: fixed;
   z-index: 2147483646;

@@ -1,4 +1,4 @@
-# Chỉ cập nhật GitHub Actions; dependency npm giữ pin tay theo tooling-versions.json.
+# Only update GitHub Actions; npm dependencies stay hand-pinned per tooling-versions.json.
 version: 2
 updates:
   - package-ecosystem: github-actions

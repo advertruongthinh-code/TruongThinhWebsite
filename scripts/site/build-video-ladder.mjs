@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Sinh thang chất lượng HLS cho một video (video-delivery R1, R2): mỗi bậc một file fMP4 kèm playlist byte range, thêm
-// master.m3u8. Không sửa dữ liệu card (R5).
-// Cách dùng: node scripts/site/build-video-ladder.mjs <video gốc> <thư mục ra> (cần ffmpeg, ffprobe trong PATH).
+// Generates the HLS quality ladder for one video (video-delivery R1, R2): one fMP4 file per rung with a byte-range playlist, plus
+// master.m3u8. Does not modify card data (R5).
+// Usage: node scripts/site/build-video-ladder.mjs <source video> <output dir> (needs ffmpeg, ffprobe in PATH).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -9,7 +9,7 @@ import path from "node:path";
 const [source, outDir] = process.argv.slice(2).map((arg) => arg && path.resolve(arg));
 if (!source || !outDir) throw new Error("usage: build-video-ladder.mjs <source video> <output dir>");
 const CRF = { 240: 30, 480: 28, 960: 30, 1920: 28 };
-// cwd là thư mục ra để playlist trỏ file bằng tên tương đối.
+// cwd is the output dir so playlists reference files by relative name.
 const ffmpeg = (args) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { cwd: outDir });
 const probe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file]).toString());
 
@@ -19,19 +19,19 @@ const fps = video.r_frame_rate.split("/").reduce((num, den) => num / den);
 const hasAudio = streams.some((stream) => stream.codec_type === "audio");
 const keyTimes = probe(source, ["-select_streams", "v:0", "-skip_frame", "nokey", "-show_entries", "frame=pts_time"]).frames
   .map((frame) => Number(frame.pts_time));
-// Copy luồng chỉ khi gốc đã là H.264 High 4:2:0 và keyframe nằm đúng mỗi bội 0,5 s như bậc mã hóa lại, để segment mọi bậc
-// cắt cùng thời điểm.
+// Copy the stream only when the source is already H.264 High 4:2:0 with keyframes at every 0.5 s multiple like the re-encoded rungs, so segments of all rungs
+// cut at the same time.
 const copyable = video.codec_name === "h264" && video.profile === "High" && video.pix_fmt === "yuv420p"
   && keyTimes.every((time, index) => Math.abs(time - index * 0.5) < 1e-3);
 const tiers = Object.keys(CRF).map(Number).filter((width) => width <= video.width);
 
 mkdirSync(outDir, { recursive: true });
-// Tiếng mã hóa một lần rồi chép vào mọi bậc để điểm đổi bậc không có tiếng click (R4).
+// Audio is encoded once then copied into every rung so rung switches have no audible click (R4).
 if (hasAudio) ffmpeg(["-i", source, "-vn", "-c:a", "aac", "-b:a", "48k", "audio.m4a"]);
 for (const width of tiers) {
   const encode = width === video.width && copyable ? ["-c:v", "copy"] : ["-vf", `scale=${width}:-2`, "-c:v", "libx264",
     "-profile:v", "high", "-crf", String(CRF[width]), "-preset", "slow", "-pix_fmt", "yuv420p",
-    // Ép keyframe ở mỗi bội 0,5 s để cắt segment cùng chỗ; -g báo nhịp GOP cho rate control (thiếu nó file to hơn 9%).
+    // Force a keyframe at every 0.5 s multiple so segments cut at the same place; -g sets the GOP cadence for rate control (without it the file is 9% larger).
     "-force_key_frames", "expr:gte(t,n_forced*0.5)", "-g", String(Math.round(fps / 2)), "-sc_threshold", "0"];
   ffmpeg(["-i", source, ...(hasAudio ? ["-i", "audio.m4a", "-map", "1:a:0", "-c:a", "copy"] : []), "-map", "0:v:0", ...encode,
     "-f", "hls", "-hls_time", "2", "-hls_playlist_type", "vod", "-hls_segment_type", "fmp4", "-hls_flags", "single_file",
@@ -39,7 +39,7 @@ for (const width of tiers) {
 }
 if (hasAudio) rmSync(path.join(outDir, "audio.m4a"));
 
-// Bitrate tính từ byte thật của segment: ffmpeg chỉ ghi bitrate tiếng khi mã hóa theo CRF (R2).
+// Bitrate is computed from real segment bytes: ffmpeg only writes the audio bitrate when encoding with CRF (R2).
 const variants = tiers.map((width) => {
   const segments = [...readFileSync(path.join(outDir, `${width}.m3u8`), "utf8").matchAll(/#EXTINF:([\d.]+),\s*#EXT-X-BYTERANGE:(\d+)@/g)]
     .map(([, seconds, bytes]) => [Number(seconds), Number(bytes) * 8]);
@@ -50,7 +50,7 @@ const variants = tiers.map((width) => {
   return { width, line: `#EXT-X-STREAM-INF:BANDWIDTH=${peak},AVERAGE-BANDWIDTH=${average},CODECS="${codecs}",`
     + `RESOLUTION=${stream.width}x${stream.height},FRAME-RATE=${fps.toFixed(3)}\n${width}.m3u8` };
 });
-// Bậc 960 (hoặc bậc lớn nhất) đứng đầu vì hls.js nạp bậc đầu playlist trước, các bậc còn lại tăng dần.
+// The 960 rung (or the largest rung) goes first because hls.js loads the first playlist rung first, the rest ascending.
 const first = tiers.includes(960) ? 960 : Math.max(...tiers);
 const ordered = [...variants.filter(({ width }) => width === first), ...variants.filter(({ width }) => width !== first)];
 writeFileSync(path.join(outDir, "master.m3u8"), ["#EXTM3U", "#EXT-X-VERSION:7", "#EXT-X-INDEPENDENT-SEGMENTS",
