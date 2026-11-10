@@ -33,7 +33,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { createMasonryHost } from "./masonry-host.mjs";
+import { createMasonryHost, isSizeMorph } from "./masonry-host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 import { MEDIA_COLORS } from "./media-colors.mjs";
 import {
@@ -1425,36 +1425,6 @@ function sizeNode(node, placement, setSize) {
   node.setAttribute("aria-setsize", String(setSize));
 }
 
-function createMasonry(grid, positions, getHeight, { itemSelector = ".advertising-tile", getId = (node) => node.dataset.advertisingCard } = {}) {
-  const masonry = new window.Masonry(grid, {
-    itemSelector,
-    initLayout: false,
-    resize: false,
-    transitionDuration: "0.4s",
-    stagger: 0,
-  });
-  masonry._getItemLayoutPosition = (item) => positions.get(getId(item.element)) || { x: 0, y: 0 };
-  masonry._getContainerSize = () => ({ height: getHeight() });
-  // Outlayer đọc vị trí đầu bằng getComputedStyle rồi ghi transition cho từng card, nên mỗi card ép một lượt style
-  // (rAF Masonry 46-66ms trên A04s). Runtime đã ghi left/top inline bằng px; motion chỉ chạy trên transform nên
-  // inline trùng computed. Card chưa có vị trí inline vẫn đọc computed như cũ.
-  const itemize = masonry._itemize;
-  masonry._itemize = function (elements) {
-    const items = itemize.call(this, elements);
-    for (const item of items) {
-      const readComputed = item.getPosition;
-      item.getPosition = function () {
-        const { left, top } = this.element.style;
-        if (!left.endsWith("px") || !top.endsWith("px")) return readComputed.call(this);
-        this.position.x = parseFloat(left) - this.layout.size.paddingLeft;
-        this.position.y = parseFloat(top) - this.layout.size.paddingTop;
-      };
-    }
-    return items;
-  };
-  return masonry;
-}
-
 export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true, captions = false } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
@@ -1636,11 +1606,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     },
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: (card) => mediaColors(card.media.src)?.[0],
+    masonry: { itemSelector: "[data-advertising-related-item]", getId: (node) => node.dataset.advertisingRelatedItem },
   });
-  let relatedMasonry;
-  let relatedPixelHeight = 0;
-  let relatedMotionFrame = 0;
-  let relatedMotionTimer = 0;
   let relatedLayout;
   let activePhotoId = null;
   let activePrimaryMediaId = null;
@@ -1829,11 +1796,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
   let geometry;
-  let masonry;
   let scrollFrame = 0;
   let resizeFrame = 0;
   let lastResizeAt = -Infinity;
-  let layoutFrame = 0;
   let motionUntil = 0;
   let lastScrollAt = 0;
   let scrollActive = false;
@@ -1854,7 +1819,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // không bắn scrollend, nên quá PHONE_SCROLL_SETTLE_MS không có scroll event thì coi là đã dừng.
   const phoneScrollWait = () => scrollActive && performance.now() - lastScrollAt < PHONE_SCROLL_SETTLE_MS
     ? PHONE_REVEAL_SCROLL_IDLE_MS : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
-  let motionTimer = 0;
   let pendingScroll = false;
   let lastMeasuredGridWidth = 0;
   let lastLayoutViewportWidth = 0;
@@ -1862,7 +1826,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Hình học mà positions đang phản ánh; thứ tự DOM còn đúng thứ tự placement hay không.
   let positionsGeometry = null;
   let domOrderDirty = true;
-  let gridPixelHeight = 0;
   let announcedPageHeight = -1;
   let announcedGridHeight = -1;
   let ctaGeometryHash = "";
@@ -2097,7 +2060,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Card đổi cỡ cùng nhịp với vị trí: con của card co giãn từ cỡ cũ quanh góc trên trái của card, nên card lớn
   // lên không phủ item kế bên giữa lúc trượt (owner 10/10). Masonry giữ `transform`, nên scale nằm ở con.
-  const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
   const morphSize = (node, from) => {
     const sx = from.w / node.offsetWidth;
     const sy = from.h / node.offsetHeight;
@@ -2106,17 +2068,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
       child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: 400, easing: "ease" });
     }
-  };
-  const cancelMasonryTransitions = (instance = masonry) => {
-    instance?.items.forEach((item) => {
-      for (const child of item.element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
-      item.disableTransition();
-      item._transn.ingProperties = {};
-      item._transn.clean = {};
-      item._transn.onEnd = {};
-      item.element.style.transform = "";
-      item.layoutPosition();
-    });
   };
   // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
   // (getSize) trong frame cuộn và task Back (decision phone-frame-budget). Ghi left/top như Masonry: grid không padding.
@@ -2133,7 +2084,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Thời gian còn lại của transition transform (Masonry) và lượt co giãn đang chạy trên card.
   const remainingMotion = () => {
     let remaining = 0;
-    masonry?.items.forEach((item) => {
+    gridHost.masonry?.items.forEach((item) => {
       const animations = [
         ...item.element.getAnimations().filter((animation) => animation.transitionProperty === "transform"),
         ...[...item.element.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
@@ -2146,9 +2097,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return remaining;
   };
   const settleMotion = () => {
-    motionTimer = 0;
+    gridHost.motionTimer = 0;
     if (performance.now() < motionUntil) {
-      motionTimer = setTimeout(settleMotion, Math.max(0, motionUntil - performance.now()));
+      gridHost.motionTimer = setTimeout(settleMotion, Math.max(0, motionUntil - performance.now()));
       return;
     }
     // Raster vùng mới sau cú cuộn xa giữ frame, transition bắt đầu trễ so với hẹn 400ms; cắt ngang lúc đó làm card
@@ -2156,11 +2107,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const remaining = document.hidden ? 0 : remainingMotion();
     if (remaining > 0) {
       motionUntil = performance.now() + remaining;
-      motionTimer = setTimeout(settleMotion, remaining);
+      gridHost.motionTimer = setTimeout(settleMotion, remaining);
       return;
     }
     motionUntil = 0;
-    cancelMasonryTransitions();
+    gridHost.cancelTransitions();
     pruneMotionCohort();
     if (pendingScroll) {
       pendingScroll = false;
@@ -2171,14 +2122,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const cancelMotion = () => {
     // Không có motion đang chạy: settleMotion đã hủy transition và dọn cohort; duyệt lại mọi card chỉ tốn task mở detail.
-    if (!layoutFrame && !motionTimer && !motionUntil && !pendingScroll) return;
-    if (layoutFrame) cancelAnimationFrame(layoutFrame);
-    layoutFrame = 0;
-    if (motionTimer) clearTimeout(motionTimer);
-    motionTimer = 0;
+    if (!gridHost.motionFrame && !gridHost.motionTimer && !motionUntil && !pendingScroll) return;
+    gridHost.stopMotion();
     motionUntil = 0;
     pendingScroll = false;
-    cancelMasonryTransitions();
     pruneMotionCohort();
   };
   const visualCoordinates = () => {
@@ -2852,7 +2799,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const setCtaHostHeight = (height) => {
     if (ctaInDetail()) setStyleVar(photoCanvas, "--advertising-photo-canvas-height", `${height}px`);
     else {
-      gridPixelHeight = height;
+      gridHost.pixelHeight = height;
       grid.style.height = `${height}px`;
     }
   };
@@ -2860,7 +2807,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const detailHost = ctaInDetail();
     const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
     if (!ctaSkeleton || !hostGeometry) {
-      if (!detailHost) gridPixelHeight = geometry?.totalPixelHeight || 0;
+      if (!detailHost) gridHost.pixelHeight = geometry?.totalPixelHeight || 0;
       clearCtaSkeleton();
       return;
     }
@@ -3028,10 +2975,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const shift = origins.gridTop - grid.getBoundingClientRect().top;
       if (shift) origins = new Map([...origins].map(([id, origin]) => [id, { ...origin, y: origin.y + shift }]));
     }
-    if (layoutFrame && !animate) return;
-    if (layoutFrame) {
-      cancelAnimationFrame(layoutFrame);
-      layoutFrame = 0;
+    if (gridHost.motionFrame && !animate) return;
+    if (gridHost.motionFrame) {
+      cancelAnimationFrame(gridHost.motionFrame);
+      gridHost.motionFrame = 0;
     }
     gridHost.cancelGhosts();
     // Cuộn thường được giữ card trong vùng trễ và dựng theo ngân sách frame; motion layout (animate) dựng và gỡ theo
@@ -3126,35 +3073,28 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       domOrderDirty = false;
     }
     if (seeded.size) void grid.offsetHeight;
-    grid.style.height = `${gridPixelHeight}px`;
+    grid.style.height = `${gridHost.pixelHeight}px`;
     const applyLayout = () => {
       if (!shouldAnimate || reduced) placeRendered();
       else {
-        if (!masonry) masonry = createMasonry(grid, gridHost.positions, () => gridPixelHeight);
-        // Thiếu option này Outlayer coi lần layout đầu là tức thì: lần dựng đầu mất motion từ đầu cột.
-        masonry.options.layoutInstant = false;
-        masonry.options.transitionDuration = "0.4s";
-        masonry.reloadItems();
-        masonry.items.forEach((item) => {
-          item.isLayoutInstant = item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard));
-        });
-        masonry.layout();
+        gridHost.layoutMotion((element) => element.hidden
+          || (created.has(element.dataset.advertisingCard) && !seeded.has(element.dataset.advertisingCard)));
         for (const [id, node] of gridHost.rendered) if (!node.hidden && origins?.get(id)?.w) morphSize(node, origins.get(id));
       }
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
       if (shouldAnimate && !reduced) {
         motionUntil = performance.now() + 400;
-        if (motionTimer) clearTimeout(motionTimer);
-        motionTimer = setTimeout(settleMotion, 400);
+        if (gridHost.motionTimer) clearTimeout(gridHost.motionTimer);
+        gridHost.motionTimer = setTimeout(settleMotion, 400);
       }
       // Card mới cần LazySizes xét; card đã mount được IntersectionObserver lo.
       if (created.size || geometryChanged || shouldAnimate) window.lazySizes?.loader?.checkElems?.();
       // site:layout chạy Locomotive update(), giữa lúc scroll làm trang nhảy tiến một bước; card bị hoán đổi do
       // ảo hóa giữ nguyên chiều cao trang, nên chỉ khi chiều cao đổi mới báo layout (scroll-feel R1). Đọc offsetHeight
       // ép layout, nên chỉ đọc khi chiều cao grid hoặc hình học đổi.
-      if (geometryChanged || shouldAnimate || gridPixelHeight !== announcedGridHeight) {
-        announcedGridHeight = gridPixelHeight;
+      if (geometryChanged || shouldAnimate || gridHost.pixelHeight !== announcedGridHeight) {
+        announcedGridHeight = gridHost.pixelHeight;
         const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
         if (pageHeight !== announcedPageHeight) {
           announcedPageHeight = pageHeight;
@@ -3164,8 +3104,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     };
     if (seeded.size && animate && !reduced) {
       void grid.offsetHeight;
-      layoutFrame = requestAnimationFrame(() => {
-        layoutFrame = 0;
+      gridHost.motionFrame = requestAnimationFrame(() => {
+        gridHost.motionFrame = 0;
         applyLayout();
       });
       return;
@@ -3181,7 +3121,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
     // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
-    cancelMasonryTransitions();
+    gridHost.cancelTransitions();
     placeRendered();
     const anchor = node.querySelector("a");
     if (focus) anchor?.focus({ preventScroll: true });
@@ -3365,8 +3305,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const clearRelatedCards = () => {
     cancelRelatedMotion();
-    relatedMasonry?.destroy();
-    relatedMasonry = null;
+    relatedHost.masonry?.destroy();
+    relatedHost.masonry = null;
     relatedHost.rendered.forEach((node) => {
       releaseMediaCard(node);
       node.remove();
@@ -3450,17 +3390,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
   };
   const cancelRelatedMotion = () => {
-    if (relatedMotionFrame) cancelAnimationFrame(relatedMotionFrame);
-    if (relatedMotionTimer) clearTimeout(relatedMotionTimer);
-    relatedMotionFrame = 0;
-    relatedMotionTimer = 0;
+    relatedHost.stopMotion();
     cancelRelatedDetours();
-    cancelMasonryTransitions(relatedMasonry || null);
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
     // Vào thẳng thì related card mount trong task riêng; scroll hoặc resize trước đó không được mount chúng khi chưa animate.
-    if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
+    if (!animate && (relatedHost.motionFrame || relatedHost.motionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
     const relatedScrollTop = Math.max(0, getLogicalScroll() + visible.top - gridTop);
@@ -3579,21 +3515,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Không motion thì vị trí đã ghi ở trên; bỏ Masonry như placeRendered, vì layout() đo lại mọi card (getSize)
     // trong lúc cuộn related, long task trên phone Android (decision phone-frame-budget).
     if (!motion) {
-      relatedGrid.style.height = `${relatedPixelHeight}px`;
+      relatedGrid.style.height = `${relatedHost.pixelHeight}px`;
       return;
     }
     void relatedGrid.offsetHeight;
-    relatedMotionFrame = requestAnimationFrame(() => {
-      relatedMotionFrame = 0;
-      if (!relatedMasonry) relatedMasonry = createMasonry(relatedGrid, relatedHost.positions, () => relatedPixelHeight, {
-        itemSelector: "[data-advertising-related-item]",
-        getId: (node) => node.dataset.advertisingRelatedItem,
-      });
-      relatedMasonry.options.layoutInstant = false;
-      relatedMasonry.options.transitionDuration = "0.4s";
-      relatedMasonry.reloadItems();
-      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden || item.element === suggestionNode || detours.has(item.element); });
-      relatedMasonry.layout();
+    relatedHost.motionFrame = requestAnimationFrame(() => {
+      relatedHost.motionFrame = 0;
+      relatedHost.layoutMotion((element) => element.hidden || element === suggestionNode || detours.has(element));
       for (const [node, { from, to, plan }] of detours) {
         node.animate([
           { translate: `${from.x - to.x}px ${from.y - to.y}px` },
@@ -3601,10 +3529,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           { translate: "0px 0px" },
         ], { id: "related-detour", duration: 400, easing: "ease" });
       }
-      relatedMotionTimer = setTimeout(() => {
-        relatedMotionTimer = 0;
+      relatedHost.motionTimer = setTimeout(() => {
+        relatedHost.motionTimer = 0;
         cancelRelatedDetours();
-        cancelMasonryTransitions(relatedMasonry);
+        relatedHost.cancelTransitions();
         renderRelatedWindow();
       }, 400);
     });
@@ -3762,7 +3690,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const height = Math.max(primary.height, relatedLayout.layout.totalPixelHeight);
     relatedGrid.style.setProperty("--advertising-photo-related-height", `${height}px`);
     photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
-    relatedPixelHeight = height;
+    relatedHost.pixelHeight = height;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Đã đo nhưng chưa đặt: giữ nó ngoài mọi frame vẽ trước task mount.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
@@ -4732,7 +4660,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return origins;
   };
   const scheduleScroll = () => {
-    if (layoutFrame || performance.now() < motionUntil) {
+    if (gridHost.motionFrame || performance.now() < motionUntil) {
       pendingScroll = true;
       return;
     }
@@ -4741,7 +4669,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollFrame = 0;
       // Resize ở cuối trang kẹp scroll ngay khi grid đổi chiều cao, sau khi frame này đã được hẹn; đặt card tức thì
       // lúc chúng đang trượt làm card bay lệch (vòng 26), nên hoãn tới khi trượt xong như scroll trong lúc chuyển.
-      if (layoutFrame || performance.now() < motionUntil) {
+      if (gridHost.motionFrame || performance.now() < motionUntil) {
         pendingScroll = true;
         return;
       }
@@ -5157,15 +5085,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     resizeObserver.disconnect();
     scrollHintObserver.disconnect();
     mediaObserver.disconnect();
-    masonry?.destroy();
+    gridHost.masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
     gridHost.cancelGhosts();
     relatedHost.cancelGhosts();
     gridHost.ghosts.destroy();
     relatedHost.ghosts.destroy();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
-    if (layoutFrame) cancelAnimationFrame(layoutFrame);
-    if (motionTimer) clearTimeout(motionTimer);
+    if (gridHost.motionFrame) cancelAnimationFrame(gridHost.motionFrame);
+    if (gridHost.motionTimer) clearTimeout(gridHost.motionTimer);
     retainedPhotoIds.clear();
     settlePrimaryReveal();
     [...cardSkeletons.keys()].forEach(dropCardSkeleton);
