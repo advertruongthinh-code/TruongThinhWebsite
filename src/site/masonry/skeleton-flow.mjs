@@ -239,19 +239,22 @@ export function createSkeletonFlowFrameLayout({
   gap,
   boundaryBottom,
   maxFrames = Number.MAX_SAFE_INTEGER,
-  ratios = SKELETON_RATIO_BANDS,
+  ratios: allRatios = SKELETON_RATIO_BANDS,
   seed,
   bandAssignments,
-  holes = [],
+  spanSkeleton = true,
 } = {}) {
   if (!Array.isArray(columnBottoms) || !Number.isInteger(columns) || columns < 1
     || columnBottoms.length < columns || columnBottoms.slice(0, columns).some((bottom) => !Number.isFinite(bottom))
     || !Number.isFinite(cardWidth) || cardWidth <= 0
     || !Number.isFinite(gap) || gap < 0 || !Number.isFinite(boundaryBottom)
     || !Number.isInteger(maxFrames) || maxFrames < 1
-    || !Array.isArray(ratios) || !ratios.length || ratios.some(({ ratio }) => !Number.isFinite(ratio) || ratio <= 0)) {
+    || !Array.isArray(allRatios) || !allRatios.length || allRatios.some(({ ratio }) => !Number.isFinite(ratio) || ratio <= 0)) {
     throw new TypeError("Skeleton frame layout requires valid column geometry");
   }
+  // The related batch (spanSkeleton false) drops every band that would span two columns: related cards are one column.
+  const ratios = spanSkeleton ? allRatios : allRatios.filter((band) => !canSpanTwoColumns(columns, { width: 1, height: band.ratio }));
+  if (!ratios.length) throw new TypeError("Skeleton frame layout needs a band that stays one column");
   const baseBands = ratios.length > 1 ? [ratios[1], ratios[0], ...ratios.slice(2)] : ratios;
   // Khung ngang trải hai cột kề nhau, một trong hai là cột đang thấp nhất; không có chỗ thì khung chọn band khác.
   // No holes (advertising-masonry R5): when two bottoms differ, the last frame of the shorter column (a single-column frame of this batch)
@@ -385,13 +388,7 @@ export function createSkeletonFlowFrameLayout({
     kept = without;
   }
   for (const frame of kept) if (isLast(kept, frame)) frame.height = boundaryBottom - frame.top;
-  // Masonry tail holes (layout.holes, R5): one single-column frame cut to each hole, band nearest the hole ratio, placed before
-  // the continuation frames.
-  const fillers = holes.filter(({ height }) => height > 0).map(({ column, top, height }, index) => {
-    const band = ratios.reduce((best, item) => Math.abs(item.ratio - height / cardWidth) < Math.abs(best.ratio - height / cardWidth) ? item : best);
-    return { slot: `h${index}`, column, span: 1, depth: 0, band: band.id, top, height };
-  });
-  const result = [...fillers, ...kept].map((frame) => Object.freeze(frame));
+  const result = kept.map((frame) => Object.freeze(frame));
   Object.defineProperty(result, "diagnostics", {
     enumerable: false,
     value: Object.freeze({

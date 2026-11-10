@@ -1973,6 +1973,7 @@ try {
         const flow = node.querySelector("[data-advertising-flow-preset]");
         return {
           column: Number(node.dataset.advertisingCtaColumn),
+          span: Number(node.dataset.advertisingCtaSpan),
           depth: Number(node.dataset.advertisingCtaDepth),
           ratioBand: node.dataset.advertisingCtaRatioBand,
           height: rect.height,
@@ -2044,11 +2045,14 @@ try {
       assert.equal(state.ctaBackground, "rgba(0, 0, 0, 0)", `${label}: CTA obscures continuation frames`);
       for (let column = 0; column < state.columns; column += 1) {
         const frames = state.frameStates.filter((frame) => frame.column === column).sort((a, b) => a.depth - b.depth);
-        assert(frames.every((frame) => Math.abs(frame.width - frames[0].width) <= 0.1 && frame.height > 0), `${label}: invalid frame geometry in column ${column}`);
+        // Two-column wide frames (plan T6) are wider than one-column frames: compare widths within the same span.
+        assert(frames.every((frame) => Math.abs(frame.width - frames.find(({ span }) => span === frame.span).width) <= 0.1 && frame.height > 0), `${label}: invalid frame geometry in column ${column}`);
         assert(frames.length >= 1
           && frames.every((frame) => Math.abs(frame.targetOpacity - 1) <= 0.01),
         `${label}: frame retained local depth opacity instead of the global boundary fade`);
-        assert(frames.slice(1).every((frame, index) => frames[index].ratioBand !== frame.ratioBand),
+        // Frames that cover the column count too: a two-column frame sits between two frames of its neighbour column.
+        const covering = state.frameStates.filter((frame) => frame.column <= column && column < frame.column + frame.span).sort((a, b) => a.top - b.top);
+        assert(covering.slice(1).every((frame, index) => covering[index].ratioBand !== frame.ratioBand),
           `${label}: adjacent skeleton ratio bands repeat in column ${column}`);
         assert(frames.every((frame) => frame.maskImage === "none"), `${label}: frame retained a local fade mask`);
         assert(frames.every((frame) => frame.borderWidth === "0px"), `${label}: skeleton surface retained a border`);
@@ -2091,10 +2095,10 @@ try {
       const before = lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42);
       const y = cta.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll() - 160;
       window.TruongThinhMotion.setLogicalScroll(y);
-      // Đợi tween tick frame đầu thay vì mốc 90ms cố định: WebKit headless vẽ phần mềm chỉ ~8fps
-      // trên trang này (cả khi tắt backdrop-filter), frame đầu có thể tới sau 90ms.
+      // Wait for the tween's first frame instead of a fixed 90ms: headless WebKit paints in software at only ~8fps
+      // on this page (even with backdrop-filter off), so the first frame can land after 90ms. GSAP targets may be non-Node objects.
       const findTween = () => window.gsap.globalTimeline.getChildren(true, true, false)
-        .find((item) => item.targets().some((node) => title.contains(node)));
+        .find((item) => item.targets().some((node) => node instanceof Node && title.contains(node)));
       const started = performance.now();
       while (!(findTween()?.time() > 0) && performance.now() - started < 1000) await new Promise(requestAnimationFrame);
       const tween = findTween();

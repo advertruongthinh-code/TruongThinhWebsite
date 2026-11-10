@@ -226,13 +226,6 @@ for (const frame of wideTailFrames) {
   assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
-// Masonry R5 no holes: each masonry tail hole gets one frame cut to the hole, before continuation frames.
-const holeFrames = createSkeletonFlowFrameLayout({ columnBottoms: [600, 600, 400], columns: 3, cardWidth: 240, gap: 20,
-  boundaryBottom: 1_400, holes: [{ column: 1, top: 320, height: 150 }] });
-assert.deepEqual(holeFrames.filter(({ slot }) => slot.startsWith("h")).map(({ slot, column, span, top, height }) => [slot, column, span, top, height]),
-  [["h0", 1, 1, 320, 150]], "a masonry hole gets one frame cut to the hole");
-assert.equal(holeFrames[0].slot, "h0", "hole frames come before the continuation frames");
-assert.equal(holeFrames.find(({ slot }) => slot === "h0").band, "landscape", "the hole frame takes the band nearest its ratio");
 // R1: landscape bands from the golden ratio follow the real-card span rule (masonry-reuse step 5): two columns on grids of 3+ columns, no
 // overlapping frames, the last frame of every column still reaches the batch bottom; 2-column grids keep one column. Frame count and bands come from attributes.
 const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 square:1 portrait:1.32 wide:0.5" });
@@ -264,6 +257,37 @@ for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [
     own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-9,
       `column ${column}: frame ${frame.slot} leaves no hole above it`));
   }
+}
+// Plan T6: 200 seeds x 3 and 4 columns x random column bottoms. Every column ends on the batch bottom, each frame sits exactly
+// one gap below what is above it in every column it covers (no holes, no filler frames), no band repeats in a column, and
+// the wide band spans two columns at least once in 20 seeds on a 4-column grid.
+const randomFrom = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+let wideSpanSeeds = 0;
+for (const columns of [3, 4]) {
+  for (let seed = 0; seed < 200; seed += 1) {
+    const random = randomFrom(seed * 7 + columns);
+    const bottoms = Array.from({ length: columns }, () => 100 + Math.round(random() * 300));
+    const boundaryBottom = 1_800 + Math.round(random() * 400);
+    const frames = createSkeletonFlowFrameLayout({ columnBottoms: bottoms, columns, cardWidth: 240, gap: 20,
+      boundaryBottom, ratios: wideConfig.ratios, seed: `t6-${columns}-${seed}` });
+    assert(frames.every(({ slot }) => !slot.startsWith("h")), "no hole filler frames exist");
+    if (columns === 4 && seed < 20 && frames.some(({ span }) => span === 2)) wideSpanSeeds += 1;
+    for (let column = 0; column < columns; column += 1) {
+      const own = frames.filter((frame) => column >= frame.column && column < frame.column + frame.span);
+      const label = `columns ${columns} seed ${seed} column ${column}`;
+      assert.equal(own.at(-1).top + own.at(-1).height, boundaryBottom, `${label} ends on the batch bottom`);
+      own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-6,
+        `${label}: frame ${frame.slot} leaves no hole above it`));
+      assert(own.slice(1).every((frame, index) => frame.band !== own[index].band), `${label} repeats a band in a row`);
+    }
+  }
+}
+assert(wideSpanSeeds > 0, "the wide band spans two columns for some of the first 20 seeds on a 4-column grid");
+// A related batch passes spanSkeleton false: no frame spans two columns, the wide band stays out.
+for (let seed = 0; seed < 20; seed += 1) {
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
+    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed: `related-${seed}`, spanSkeleton: false });
+  assert(frames.every(({ span, band }) => span === 1 && band !== "wide"), "a related batch has no two-column frame");
 }
 // Two thin frames at a column end do not block each other: both merge into the frame above (review #769).
 for (const boundaryBottom of [1_040, 1_200, 1_500]) {
