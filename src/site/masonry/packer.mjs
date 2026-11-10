@@ -1,10 +1,10 @@
 // Build-side half of the masonry layout cache: searches card orders per filter and keeps the best 8 to 32 variants.
 // Only the build (and later the CMS admin page) loads this file; public pages replay the result with replay.mjs.
-import { columnsForWidth, isWideMedia, layoutMedia, masonrySpacing, scoreOrganicRhythm } from "./layout.mjs";
+import { isWideMedia, layoutMedia, scoreOrganicRhythm } from "./layout.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
-import { CROP_CAP, TRAIL, poolSignature, replayLayout, verifyLayout } from "./replay.mjs";
+import { CROP_CAP, TRAIL, bandKey, poolSignature, replayLayout, verifyLayout } from "./replay.mjs";
 
-export { CROP_CAP, poolSignature };
+export { CROP_CAP, bandKey, poolSignature };
 
 // One stored layout serves a whole band: column bottoms are linear in card width, so checking both band ends covers it.
 // Widths are viewport widths; cw values are the card widths at the band ends (rounded outward) and at the scoring width.
@@ -25,8 +25,6 @@ const PARTNER_WINDOW = 12;
 const MAX_PARTNERS = 3;
 const MAX_DEFER = 20;
 const TAIL_GUARD = 12;
-
-export const bandKey = (layoutViewportWidth) => `${columnsForWidth(layoutViewportWidth)}:${masonrySpacing(layoutViewportWidth).interCardGap}`;
 
 const inv = (card) => {
   const media = layoutMedia(card);

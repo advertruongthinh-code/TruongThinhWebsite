@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-export const MASONRY_LAYOUT_VERSION = "masonry-grid-v16";
+export const MASONRY_LAYOUT_VERSION = "masonry-grid-v17";
 const MASONRY_IDEAL_SLOT_WIDTH = 220;
 const MASONRY_MIN_COLUMNS = 2;
 const MASONRY_MAX_COLUMNS = 4;

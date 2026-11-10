@@ -21,6 +21,9 @@ export const TRAIL = 3;
 
 export const variantIndex = (seed, count) => fnv1a32(String(seed)) % count;
 
+// Width band of a stored layout: one per (columns, gap) pair; the runtime picks its cache file by it.
+export const bandKey = (layoutViewportWidth) => `${columnsForWidth(layoutViewportWidth)}:${masonrySpacing(layoutViewportWidth).interCardGap}`;
+
 // Identity of a filter pool: a cache built for another catalog or another card size must not replay.
 export const poolSignature = (poolCards) => fnv1a32(poolCards.map((card) => {
   const media = layoutMedia(card);
@@ -61,7 +64,7 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
     seen.add(card);
     if (code < 4) {
       if (code >= columns) return null;
-      const p = placementAt(card, code, 1, count[code] ? bottoms[code] + gap : 0, cardWidth, gap, 0);
+      const p = placementAt(card, code, 1, count[code] ? bottoms[code] + gap : 0, cardWidth, gap);
       p.natural = p.mediaPixelHeight;
       placed.push(p);
       bottoms[code] = p.y + p.pixelHeight;
@@ -91,7 +94,7 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
       }
       bottoms[longer] -= d;
     }
-    const p = placementAt(card, left, 2, count[ref] ? bottoms[ref] + gap : 0, cardWidth, gap, 0);
+    const p = placementAt(card, left, 2, count[ref] ? bottoms[ref] + gap : 0, cardWidth, gap);
     p.natural = p.mediaPixelHeight;
     placed.push(p);
     for (const column of [left, left + 1]) {
@@ -110,7 +113,7 @@ export function stackLayout({ order, layoutViewportWidth, filter = "all", settin
   const bottoms = Array(f.columns).fill(0), count = Array(f.columns).fill(0);
   const placed = order.map((card) => {
     const column = bottoms.indexOf(Math.min(...bottoms));
-    const p = placementAt(card, column, 1, count[column] ? bottoms[column] + f.interCardGap : 0, f.cardWidth, f.interCardGap, 0);
+    const p = placementAt(card, column, 1, count[column] ? bottoms[column] + f.interCardGap : 0, f.cardWidth, f.interCardGap);
     bottoms[column] = p.y + p.pixelHeight;
     count[column] += 1;
     return p;

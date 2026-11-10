@@ -45,8 +45,10 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
 assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
-assert.match(prepare, /compileAdvertisingLayout/, "prepare step uses the pure layout compiler for preflight");
-assert.match(prepare, /\[320, 390, 768, 1024, 1440, 1920, 2560\]/, "public preflight covers every required viewport width");
+assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/replay\.mjs"/, "the layout cache replay is preloaded with the runtime");
+assert.doesNotMatch(builtIndex, /packer\.mjs/, "public pages never load the build-side layout packer (advertising-masonry R6)");
+assert.match(prepare, /buildLayoutCache\(\{ cards: artifact\.cards, filters: PUBLIC_GRID_FILTERS/, "prepare step builds and self-checks the masonry layout cache for every public filter (static-release R2)");
+assert.ok(prepare.indexOf("buildLayoutCache({") < prepare.indexOf("await rm(outputRoot"), "layout cache self-check precedes destructive output cleanup");
 assert.ok(prepare.indexOf("const artifact = buildAdvertisingArtifact();") < prepare.indexOf("await rm(outputRoot"), "artifact validation precedes destructive output cleanup");
 assert.match(runtime, /catalog-artifact\.mjs/, "runtime reads generated artifact");
 assert.equal(artifact.layoutAlgorithmVersion, MASONRY_LAYOUT_VERSION);

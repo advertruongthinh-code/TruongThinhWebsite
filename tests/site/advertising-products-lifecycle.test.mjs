@@ -32,9 +32,9 @@ assert.ok(
 );
 assert.match(runtime, /if \(signal\?\.aborted\) return \(\) => \{\}/, "runtime checks route abort after artifact await");
 assert.doesNotMatch(runtime, /from ["']\.\/catalog\.mjs["']|ADVERTISING_CARDS/, "runtime cannot read source catalog records");
-assert.doesNotMatch(runtime, /artifact\.layouts|RATIO_UNITS|visibleBatches|geometry\.batches|Math\.min\(4\s*,/, "runtime has no rank-v2 layout or column cap");
+assert.doesNotMatch(runtime, /RATIO_UNITS|visibleBatches|geometry\.batches|Math\.min\(4\s*,/, "runtime has no rank-v2 layout or column cap");
 assert.match(runtime, /document\.documentElement\.clientWidth/, "geometry uses full layout viewport width");
-assert.match(runtime, /layoutViewportWidth: document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
+assert.match(runtime, /layoutViewportWidth(?::| =) document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
 assert.match(runtime, /layoutViewportWidth/, "shared core receives the full viewport width");
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
 assert.ok(
