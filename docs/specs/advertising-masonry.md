@@ -8,6 +8,8 @@ source:
   - src/site/masonry/layout.mjs
   - src/site/masonry/layout-worker.mjs
   - src/site/masonry/random-order.mjs
+  - src/site/masonry/packer.mjs
+  - src/site/masonry/replay.mjs
   - src/site/advertising-products/media-contract.mjs
   - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/photo-tags.mjs
