@@ -23,9 +23,9 @@ const failures = [];
 const check = (condition, message) => condition || failures.push(message);
 
 const readState = () => {
-  const dialog = document.querySelector("[data-advertising-photo-dialog]");
-  const image = document.querySelector("[data-advertising-photo-expanded-image]");
-  const viewport = document.querySelector("[data-advertising-photo-viewport]");
+  const dialog = document.querySelector("[data-detail-dialog]");
+  const image = document.querySelector("[data-detail-expanded-image]");
+  const viewport = document.querySelector("[data-detail-viewport]");
   const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
   const box = viewport.getBoundingClientRect();
   return {
@@ -37,10 +37,10 @@ const readState = () => {
     cx: box.left + box.width / 2, cy: box.top + box.height / 2,
     fitW: image.clientWidth, fitH: image.clientHeight, vw: viewport.clientWidth, vh: viewport.clientHeight,
     cover: Math.max(viewport.clientWidth / image.clientWidth, viewport.clientHeight / image.clientHeight),
-    open: dialog.open, phase: dialog.dataset.advertisingViewerState,
-    status: document.querySelector("[data-advertising-photo-zoom-status]").textContent,
-    plusDisabled: document.querySelector("[data-advertising-photo-zoom-in]").disabled,
-    minusDisabled: document.querySelector("[data-advertising-photo-zoom-out]").disabled,
+    open: dialog.open, phase: dialog.dataset.viewerState,
+    status: document.querySelector("[data-detail-zoom-status]").textContent,
+    plusDisabled: document.querySelector("[data-detail-zoom-in]").disabled,
+    minusDisabled: document.querySelector("[data-detail-zoom-out]").disabled,
     scroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
     pageZoom: visualViewport.scale,
     animations: image.getAnimations().length,
@@ -88,7 +88,7 @@ function checkMoved(before, after, dx, dy, label) {
 // R7: màn cảm ứng mở viewer bằng một tap trên primary photo; `double` mở bằng double tap theo thói quen cũ.
 async function openViewer(page, touch, { double = false } = {}) {
   const point = await (await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-image]");
+    const image = document.querySelector("[data-detail-image]");
     if (!image?.complete || !image.naturalWidth) return false;
     const box = image.getBoundingClientRect();
     const x = Math.round(box.left + box.width / 2);
@@ -105,16 +105,16 @@ const press = (page, hook) => page.evaluate((selector) => document.querySelector
 // Viewer không còn nút reset (owner 2026-10-25): bấm - tới khi về Fit, nút - disable ở Fit.
 async function resetZoom(page) {
   while (await page.evaluate(() => {
-    const zoomOut = document.querySelector("[data-advertising-photo-zoom-out]");
+    const zoomOut = document.querySelector("[data-detail-zoom-out]");
     return !zoomOut.disabled && (zoomOut.click(), true);
   })) await settled(page);
   await settled(page);
 }
 
 const settled = (page) => page.waitForFunction(() => {
-  const dialog = document.querySelector("[data-advertising-photo-dialog]");
-  return dialog?.open && dialog.dataset.advertisingViewerState === "open"
-    && document.querySelector("[data-advertising-photo-expanded-image]").getAnimations().length === 0;
+  const dialog = document.querySelector("[data-detail-dialog]");
+  return dialog?.open && dialog.dataset.viewerState === "open"
+    && document.querySelector("[data-detail-expanded-image]").getAnimations().length === 0;
 });
 
 // Pointer event từ CDP touch tới ở các frame kế tiếp, nên mỗi lần gửi chờ hai frame rồi mới trả về.
@@ -196,7 +196,7 @@ async function runPhone({ locale, width, height }) {
   const label = `${locale} ${start.vw}x${start.vh}`;
   // R7, R8: không có nút hiển thị trên primary hay trong viewer, và trang không zoom khi double tap.
   const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out"]
-    .filter((hook) => document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width > 1));
+    .filter((hook) => document.querySelector(`[data-detail-${hook}]`).getBoundingClientRect().width > 1));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   // R4, R7: tap thứ hai của double tap mở viewer bị nuốt, ảnh vẫn ở Fit.
   check(start.scale === 1 && start.x === 0 && start.y === 0, `${label} R7: double tap open zoomed the image ${start.scale}`);
@@ -232,10 +232,10 @@ async function runPhone({ locale, width, height }) {
   await settled(page);
   const between = await state();
   check(between.scale > 1.05 && between.scale < between.cover * 0.95, `${label} R5: pinch did not stop between stops (${between.scale})`);
-  await press(page, "data-advertising-photo-zoom-in");
+  await press(page, "data-detail-zoom-in");
   await settled(page);
   check(near((await state()).scale, between.cover), `${label} R5: + from between stops did not reach Cover`);
-  await press(page, "data-advertising-photo-zoom-out");
+  await press(page, "data-detail-zoom-out");
   await settled(page);
   const fitAgain = await state();
   check(near(fitAgain.scale, 1) && fitAgain.minusDisabled, `${label} R5: - did not return to Fit`);
@@ -363,8 +363,8 @@ async function runPhone({ locale, width, height }) {
   };
   await swipeImage(single.vh * 0.05, 6);
   const dragged = await page.evaluate(() => ({ y: new DOMMatrixReadOnly(getComputedStyle(
-    document.querySelector("[data-advertising-photo-expanded-image]")).transform).m42,
-  opacity: getComputedStyle(document.querySelector("[data-advertising-photo-dialog]"), "::backdrop").opacity }));
+    document.querySelector("[data-detail-expanded-image]")).transform).m42,
+  opacity: getComputedStyle(document.querySelector("[data-detail-dialog]"), "::backdrop").opacity }));
   check(Math.abs(dragged.y - single.vh * 0.05) <= 1 && Number(dragged.opacity) < 1,
     `${label} R9: image or backdrop did not follow the swipe ${JSON.stringify(dragged)}`);
   await page.waitForTimeout(150);
@@ -376,7 +376,7 @@ async function runPhone({ locale, width, height }) {
     `${label} R9: short swipe did not spring back ${JSON.stringify(sprung)}`);
   await swipeImage(single.vh * 0.3, 6);
   await touch.send("touchEnd", []);
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   const closed = await state();
   check(page.url() === url && closed.scroll === start.scroll && Math.abs(closed.angle) <= 0.5,
     `${label} R9/R11: swipe close left detail, scrolled or kept the rotation`);
@@ -385,9 +385,9 @@ async function runPhone({ locale, width, height }) {
   await page.waitForTimeout(100);
   await openViewer(page, touch);
   await page.evaluate(() => history.back());
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   await page.waitForTimeout(300);
-  check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
+  check(page.url() === url && !(await page.locator("[data-detail-view]").isHidden()),
     `${label} R10: Back left detail instead of closing the viewer`);
   // Vào trực tiếp: trang trước detail là bất cứ thứ gì có trước lần tải.
   await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // rời trang: trả về trước khi unload
@@ -423,10 +423,10 @@ async function runMotion() {
     } else {
       // Click + và bắt đầu pinch khi zoom 200ms đã dịch thấy rõ (điện thoại thật có thể giữ ở 0 vài frame).
       const sample = await page.evaluate(async () => {
-        const image = document.querySelector("[data-advertising-photo-expanded-image]");
-        const viewport = document.querySelector("[data-advertising-photo-viewport]");
+        const image = document.querySelector("[data-detail-expanded-image]");
+        const viewport = document.querySelector("[data-detail-viewport]");
         const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-        document.querySelector("[data-advertising-photo-zoom-in]").click();
+        document.querySelector("[data-detail-zoom-in]").click();
         let shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
         for (let i = 0; i < 10 && shown.a <= 1; i++) {
           await frame();
@@ -441,7 +441,7 @@ async function runMotion() {
         pointer("pointerdown", 1, -40);
         pointer("pointerdown", 2, 40);
         const adopted = new DOMMatrixReadOnly(getComputedStyle(image).transform);
-        const phase = document.querySelector("[data-advertising-photo-dialog]").dataset.advertisingViewerState;
+        const phase = document.querySelector("[data-detail-dialog]").dataset.viewerState;
         const running = image.getAnimations().length;
         pointer("pointerup", 2, 40);
         pointer("pointerup", 1, -40);
@@ -460,34 +460,34 @@ async function runDesktop() {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
   await page.goto(`${origin}/vi/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.complete);
-  await page.locator("[data-advertising-photo-expand]").click();
+  await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.complete);
+  await page.locator("[data-detail-expand]").click();
   await settled(page);
-  await page.locator("[data-advertising-photo-expanded-image]").dblclick();
+  await page.locator("[data-detail-expanded-image]").dblclick();
   await page.waitForTimeout(300);
   const state = await page.evaluate(readState);
   check(state.scale === 1 && state.open, `desktop: double-click changed the viewer (${state.scale})`);
   // R10 trên desktop, và đóng bằng nút bỏ history entry nên Back rời detail.
   const url = page.url();
   await page.evaluate(() => history.back());
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   check(page.url() === url, "desktop R10: Back left detail instead of closing the viewer");
-  await page.locator("[data-advertising-photo-expand]").click();
+  await page.locator("[data-detail-expand]").click();
   await settled(page);
-  await page.locator("[data-advertising-photo-close]").click();
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.locator("[data-detail-close]").click();
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   await page.waitForTimeout(300);
   check(page.url() === url, "desktop R10: closing by button changed the URL");
   // Back trong 250ms animation đóng chỉ ăn entry của viewer, không lùi thêm một entry.
-  await page.locator("[data-advertising-photo-expand]").click();
+  await page.locator("[data-detail-expand]").click();
   await settled(page);
   await page.evaluate(() => {
-    document.querySelector("[data-advertising-photo-close]").click();
+    document.querySelector("[data-detail-close]").click();
     history.back();
   });
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   await page.waitForTimeout(600);
-  check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
+  check(page.url() === url && !(await page.locator("[data-detail-view]").isHidden()),
     `desktop R10: Back during the close animation left detail (${page.url()})`);
   await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // rời trang: trả về trước khi unload
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })

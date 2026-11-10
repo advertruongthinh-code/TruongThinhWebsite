@@ -522,9 +522,9 @@ function cardPageRewriter(rewriter, card, id, lang, origin) {
     })
     .on('meta[property="og:image"]', { element: (element) => element.setAttribute("content", `${origin}${cover.src}`) })
     .on('script[type="application/ld+json"]', { element: (element) => element.setInnerContent(jsonLd, { html: true }) })
-    .on("[data-advertising-card-static] > h1", localized(card.titleVi, card.titleEn))
-    .on("[data-advertising-card-static] > p:first-of-type", localized(card.descriptionVi, card.descriptionEn, figures))
-    .on("[data-advertising-card-static] > figure", { element: (element) => element.remove() });
+    .on("[data-masonry-card-static] > h1", localized(card.titleVi, card.titleEn))
+    .on("[data-masonry-card-static] > p:first-of-type", localized(card.descriptionVi, card.descriptionEn, figures))
+    .on("[data-masonry-card-static] > figure", { element: (element) => element.remove() });
 }
 
 function publicOrigin(env, url) {

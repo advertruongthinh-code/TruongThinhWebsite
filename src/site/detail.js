@@ -188,12 +188,12 @@
   };
 
   const mountAdvertisingDetailCarousels = (container, state, reduceMotion) => {
-    const sections = [...container.querySelectorAll("[data-advertising-carousel]")];
+    const sections = [...container.querySelectorAll("[data-masonry-carousel]")];
     if (!sections.length) return Promise.resolve();
     const syncClientWidth = () => {
       const clientWidth = `${document.documentElement.clientWidth}px`;
       sections.forEach((section) => {
-        section.style.setProperty("--advertising-carousel-client-width", clientWidth);
+        section.style.setProperty("--masonry-carousel-client-width", clientWidth);
       });
     };
     syncClientWidth();
@@ -201,8 +201,8 @@
     return ensureAdvertisingCarouselModules().then(({ A11y, Mousewheel, Pagination, Swiper }) => {
       if (state.abort.signal.aborted || activePage !== state) return;
       sections.forEach((section) => {
-        const viewport = section.querySelector("[data-advertising-carousel-viewport]");
-        const pagination = section.querySelector("[data-advertising-carousel-pagination]");
+        const viewport = section.querySelector("[data-masonry-carousel-viewport]");
+        const pagination = section.querySelector("[data-masonry-carousel-pagination]");
         section.querySelectorAll("img").forEach((image) => {
           image.draggable = false;
         });
@@ -229,12 +229,12 @@
             enabled: true,
           },
         });
-        section.dataset.advertisingCarouselState = "enhanced";
+        section.dataset.masonryCarouselState = "enhanced";
         state.carousels.add(carousel);
       });
     }).catch(() => {
       sections.forEach((section) => {
-        section.dataset.advertisingCarouselState = "native";
+        section.dataset.masonryCarouselState = "native";
       });
     });
   };
@@ -315,7 +315,7 @@
         .then(([artifact, , { mountMasonry }]) => {
           if (emptyLine && rail) {
             const syncEmpty = () => {
-              const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
+              const filter = rail.querySelector('[data-masonry-filter][aria-current="true"]')?.dataset.masonryFilter ?? "all";
               emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
             };
             const railObserver = new MutationObserver(syncEmpty);
@@ -772,7 +772,7 @@
             if (activePage === state) rebuildText(true);
           });
 
-        const filters = selectAll("[data-advertising-filter]");
+        const filters = selectAll("[data-masonry-filter]");
         if (filters.length && heroSettled) {
           gsap.set(filters, {
             clearProps: "transform,opacity,visibility",

@@ -71,7 +71,7 @@ const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Màu chủ đạo: thẻ công trình mang sẵn color (build tính bằng sharp), thẻ quảng cáo tra MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
-const advertisingPhotoId = (url) => {
+const detailId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
   if (!id) return url.searchParams.get("photo");
   try { return decodeURIComponent(id); } catch { return null; }
@@ -99,7 +99,7 @@ const CARD_LOADING_BLUR = "blur(24px)";
 const CARD_LOADING_BLEED_PX = 24;
 const cardLoadingScale = (node) => {
   const width = Number.parseFloat(node.style.width);
-  const height = Number.parseFloat(node.style.getPropertyValue("--advertising-media-height"));
+  const height = Number.parseFloat(node.style.getPropertyValue("--masonry-media-height"));
   return width > 0 && height > 0
     ? `${1 + (2 * CARD_LOADING_BLEED_PX) / width} ${1 + (2 * CARD_LOADING_BLEED_PX) / height}`
     : "1";
@@ -266,7 +266,7 @@ export function parseBrowseLocation(input, { cards = [], categories = [], pages 
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
   const tagIds = new Set(tagRegistry.map((entry) => entry.id));
-  const requestedPhoto = photos ? advertisingPhotoId(url) : null;
+  const requestedPhoto = photos ? detailId(url) : null;
   const photoRecord = cardById.get(requestedPhoto);
   const requestedCategory = url.searchParams.get("category");
   const category = photoRecord?.category || resolveFilter(requestedCategory, categories, cards)
@@ -838,12 +838,12 @@ let warmWorker;
 // hiện (đo cloud 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
 export const preloadMasonry = () => {
   // Only related masonry compiles in the Worker now; a direct card page needs it at once, a grid page warms it later.
-  if (advertisingPhotoId(new URL(location.href))) warmWorker ||= startLayoutWorker();
+  if (detailId(new URL(location.href))) warmWorker ||= startLayoutWorker();
   loadArtifact().then((artifact) => {
     if (artifact.cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
     // Layout cache step 1: the one-filter file of this width band, in parallel with the vendor scripts. A direct card
     // page keeps the grid hidden, so its cache waits until the grid is needed.
-    if (!advertisingPhotoId(new URL(location.href))) {
+    if (!detailId(new URL(location.href))) {
       void importLayoutCache(layoutCacheUrl(artifact.layoutCacheFilterUrl, bandKey(document.documentElement.clientWidth), initialFilter(artifact)));
     }
   }).catch(() => {});
@@ -853,14 +853,14 @@ const currentLocale = () => document.documentElement.lang === "en" ? "en" : "vi"
 
 function surfaceLayoutStatus(grid, layout) {
   const diagnosticCode = layout?.diagnostics?.code;
-  delete grid.dataset.advertisingLayoutError;
+  delete grid.dataset.masonryLayoutError;
   if (diagnosticCode === "needs-media") {
-    grid.dataset.advertisingLayoutStatus = diagnosticCode;
-    grid.dataset.advertisingLayoutDiagnostic = JSON.stringify(layout.diagnostics);
+    grid.dataset.masonryLayoutStatus = diagnosticCode;
+    grid.dataset.masonryLayoutDiagnostic = JSON.stringify(layout.diagnostics);
     return;
   }
-  delete grid.dataset.advertisingLayoutStatus;
-  delete grid.dataset.advertisingLayoutDiagnostic;
+  delete grid.dataset.masonryLayoutStatus;
+  delete grid.dataset.masonryLayoutDiagnostic;
 }
 
 export function compileMasonryGeometry({ grid, options, compile = compileMasonryLayout }) {
@@ -877,9 +877,9 @@ export function compileMasonryGeometry({ grid, options, compile = compileMasonry
     return layout;
   } catch (error) {
     const code = error?.code || error?.diagnostic?.code || "compile-failed";
-    grid.dataset.advertisingLayoutError = code;
-    grid.dataset.advertisingLayoutStatus = "failed";
-    grid.dataset.advertisingLayoutDiagnostic = JSON.stringify(error?.diagnostic || { code, message: error?.message });
+    grid.dataset.masonryLayoutError = code;
+    grid.dataset.masonryLayoutStatus = "failed";
+    grid.dataset.masonryLayoutDiagnostic = JSON.stringify(error?.diagnostic || { code, message: error?.message });
     console.error("[advertising-products] layout compilation failed", error);
     throw error;
   }
@@ -895,8 +895,8 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
   // trên A04s (decision phone-frame-budget).
   const image = document.createElement("img");
   image.className = suggestion
-    ? "advertising-card-media__image media-hover-zoom"
-    : `advertising-tile__foreground advertising-card-media__image${native ? "" : " lazyload"}`;
+    ? "card-media__image media-hover-zoom"
+    : `masonry-card__foreground card-media__image${native ? "" : " lazyload"}`;
   image.loading = "lazy";
   image.decoding = "async";
   image.width = record.media.width;
@@ -1004,17 +1004,17 @@ function trackStripSwipe(target, { accepts = () => true, start = () => {}, width
 }
 
 function syncJustViewedMarker(figure, locale, marked) {
-  const media = figure.querySelector(".advertising-card-media");
+  const media = figure.querySelector(".card-media");
   if (!media) return;
-  let marker = media.querySelector("[data-advertising-just-viewed]");
+  let marker = media.querySelector("[data-masonry-just-viewed]");
   if (!marked) {
     marker?.remove();
     return;
   }
   if (!marker) {
     marker = document.createElement("span");
-    marker.className = "advertising-card-media__just-viewed";
-    marker.dataset.advertisingJustViewed = "";
+    marker.className = "card-media__just-viewed";
+    marker.dataset.masonryJustViewed = "";
     media.append(marker);
   }
   marker.textContent = locale === "en" ? "Just viewed" : "Vừa xem";
@@ -1052,15 +1052,15 @@ const setCardVideoSource = (video, attach) => {
 function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
   onPendingChange = () => {}) {
   const figure = document.createElement("figure");
-  figure.className = "project-tile advertising-tile";
-  figure.dataset[related ? "advertisingRelatedCard" : "advertisingCard"] = record.id;
-  figure.dataset.advertisingCategory = record.category;
+  figure.className = "project-tile masonry-card";
+  figure.dataset[related ? "masonryRelatedCard" : "masonryCard"] = record.id;
+  figure.dataset.masonryCategory = record.category;
   const link = document.createElement("a");
   // Card masonry và related không zoom media khi hover (owner 2026-10-18).
-  link.className = "advertising-card-interactive";
+  link.className = "card-interactive";
   link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
-  media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
+  media.className = "project-tile__media masonry-card__media--natural card-media";
   // Màu chủ đạo của ảnh lấp khung khi ảnh chưa nhận byte nào; ảnh mờ rồi nét phủ lên trên (progressive-loading R9).
   const color = cardColor(record);
   if (color) media.style.backgroundColor = color;
@@ -1096,45 +1096,45 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (tag === "button") node.type = "button";
       return node;
     };
-    media.classList.add("advertising-card-media--carousel");
+    media.classList.add("card-media--carousel");
     image.hidden = !useLegacyCover;
     if (useLegacyCover) {
-      image.dataset.advertisingMediaItem = items[coverIndex].id;
-      figure.dataset.advertisingActiveMediaId = items[coverIndex].id;
+      image.dataset.masonryMediaItem = items[coverIndex].id;
+      figure.dataset.masonryActiveMediaId = items[coverIndex].id;
     }
 
     // Frame skeleton là phần nhìn thấy; node này chỉ giữ trạng thái loading cho công nghệ hỗ trợ.
-    const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
+    const loading = el("span", "card-media__loading sr-only", "masonryMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     loading.hidden = true;
     media.append(loading);
 
     // Pill row at the bottom inside the media (owner 2026-11-10): dots or counter centred; cards show no video duration.
-    const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
+    const indicator = el("div", "card-media__indicator", "masonryMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
     // 2-5 media use dots; from 6 media an i/N counter takes the dots' place (owner 2026-10-18); arrows on hover or a swipe
     // change media. Dots or the counter sit in one pill (owner 2026-10-26).
     const numericIndicator = items.length >= 6;
-    const pill = indicator.appendChild(el("span", "advertising-card-media__pill"));
+    const pill = indicator.appendChild(el("span", "card-media__pill"));
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
-      const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
+      const button = el("button", "card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`
         : `Xem media ${index + 1} trên ${items.length}` });
-      button.dataset.advertisingMediaSelect = item.id;
+      button.dataset.masonryMediaSelect = item.id;
       pill.append(button);
       return button;
     }) : [];
     let countStatus;
     if (numericIndicator) {
-      countStatus = el("span", "advertising-card-media__count", "advertisingMediaCount",
+      countStatus = el("span", "card-media__count", "masonryMediaCount",
         { role: "status", "aria-live": "polite", "aria-atomic": "true" });
       pill.append(countStatus);
     }
     // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
     const hoverSteps = hasCarousel ? [-1, 1].map((step) => {
-      const button = el("button", `advertising-photo-view__media-step advertising-photo-view__media-step--${step < 0 ? "prev" : "next"}`,
+      const button = el("button", `detail-view__media-step detail-view__media-step--${step < 0 ? "prev" : "next"}`,
         "", { "aria-label": step < 0 ? english ? "Previous media" : "Media trước" : english ? "Next media" : "Media tiếp" });
-      button.dataset.advertisingMediaHoverStep = String(step);
+      button.dataset.masonryMediaHoverStep = String(step);
       button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M16 1 5 12l11 11" : "M8 1l11 11L8 23"}" /></svg>`;
       return button;
     }) : [];
@@ -1143,7 +1143,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const updateIndicator = (index) => {
       buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
       hoverSteps.forEach((button) => {
-        const target = index + Number(button.dataset.advertisingMediaHoverStep);
+        const target = index + Number(button.dataset.masonryMediaHoverStep);
         button.hidden = target < 0 || target >= items.length;
       });
       if (!numericIndicator) return;
@@ -1179,11 +1179,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       loading.hidden = ready || loadedVideoPoster;
       onPendingChange(figure);
       if (ready) {
-        layer.classList.add("is-advertising-media-ready");
+        layer.classList.add("is-masonry-media-ready");
         if (layer instanceof HTMLImageElement) {
           lastReadyImageIndex = activeIndex;
-          if (items[coverIndex].kind === "video" && figure.dataset.advertisingMediaLoaded !== "true") {
-            figure.dataset.advertisingMediaLoaded = "true";
+          if (items[coverIndex].kind === "video" && figure.dataset.masonryMediaLoaded !== "true") {
+            figure.dataset.masonryMediaLoaded = "true";
             onMediaLoaded(figure);
           }
         }
@@ -1199,8 +1199,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       let layer = layers.get(item.id);
       if (layer) return layer;
       layer = document.createElement(item.kind === "video" ? "video" : "img");
-      layer.className = "advertising-tile__foreground advertising-card-media__image";
-      layer.dataset.advertisingMediaItem = item.id;
+      layer.className = "masonry-card__foreground card-media__image";
+      layer.dataset.masonryMediaItem = item.id;
       layer.width = item.width;
       layer.height = item.height;
       if (item.kind === "video") {
@@ -1287,7 +1287,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const item = items[index];
       const layer = layerFor(index);
       layer.hidden = false;
-      figure.dataset.advertisingActiveMediaId = item.id;
+      figure.dataset.masonryActiveMediaId = item.id;
       updateIndicator(index);
       updateLoading();
     };
@@ -1317,7 +1317,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       laneAnimations = [];
       const active = layers.get(items[activeIndex]?.id);
       lanes.forEach(({ nodes: [layer] }) => {
-        layer.classList.remove("advertising-card-media__image--lane", "advertising-card-media__image--beside");
+        layer.classList.remove("card-media__image--lane", "card-media__image--beside");
         layer.style.translate = "";
         layer.hidden = layer !== active;
       });
@@ -1327,10 +1327,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       settleLanes();
       lanes = next;
       lanes.forEach(({ nodes: [layer], slot }) => {
-        if (isReady(layer)) layer.classList.add("is-advertising-media-ready");
+        if (isReady(layer)) layer.classList.add("is-masonry-media-ready");
         layer.hidden = false;
-        layer.classList.add("advertising-card-media__image--lane");
-        layer.classList.toggle("advertising-card-media__image--beside", slot !== 0);
+        layer.classList.add("card-media__image--lane");
+        layer.classList.toggle("card-media__image--beside", slot !== 0);
       });
       placeStrip(lanes, canvasWidth(), offset);
     };
@@ -1342,16 +1342,16 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const preloadNeighbors = () => [activeIndex - 1, activeIndex + 1].forEach((index) => {
       if (!items[index]) return;
       const layer = layerFor(index);
-      void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-advertising-media-ready"); });
+      void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-masonry-media-ready"); });
     });
     const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
       const from = activeIndex;
       const outgoing = layers.get(items[from]?.id);
       settleLanes();
       setActive(index);
-      onMediaChange(figure.dataset.advertisingActiveMediaId);
+      onMediaChange(figure.dataset.masonryActiveMediaId);
       // Lịch phát video tính lại: chấm, mũi tên, vuốt đổi media khi chuột vẫn trong card (media-card R4).
-      figure.dispatchEvent(new Event("advertising-media-change", { bubbles: true }));
+      figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
       const direction = activeIndex > from ? 1 : -1;
@@ -1359,13 +1359,13 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const token = slideToken;
       void whenMediaReady(incoming).then(() => {
         if (token !== slideToken) return;
-        if (isReady(incoming)) incoming.classList.add("is-advertising-media-ready");
+        if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
         runLanes(offset, -direction * canvasWidth(), timing);
       });
     };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
-      () => selectMedia(activeIndex + Number(button.dataset.advertisingMediaHoverStep))));
+      () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
     if (hasCarousel) {
       figure.addEventListener("pointerenter", preloadNeighbors);
       // Pointer events bao gồm cả touch; touch-action: pan-y để vuốt ngang cho handler này.
@@ -1410,24 +1410,24 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     listenForMediaLoad(figure, image, onMediaLoaded);
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
-    && (related || !document.body.classList.contains("is-advertising-photo")));
+    && (related || !document.body.classList.contains("is-detail")));
   // Card name inside the media, top left (media-card R3, owner 2026-11-10): CSS shows it only on real-mouse hover, never
   // on touch. The link takes its name from the figcaption via aria-labelledby (WCAG 2.5.3: the visible label is part of
   // the link name); the figcaption is aria-hidden so screen readers do not read it twice. One card can sit in the main
   // grid and in related at once, so related ids carry their own prefix.
   const title = figure.appendChild(document.createElement("figcaption"));
-  title.className = "advertising-tile__title";
+  title.className = "masonry-card__title";
   title.id = `${related ? "advertising-related-title" : "advertising-title"}-${record.id}`;
   title.setAttribute("aria-hidden", "true");
   title.textContent = locale === "en" ? record.titleEn : record.titleVi;
-  figure.querySelector(".advertising-card-interactive")?.setAttribute("aria-labelledby", title.id);
+  figure.querySelector(".card-interactive")?.setAttribute("aria-labelledby", title.id);
   return figure;
 }
 
 function listenForMediaLoad(figure, media, onMediaLoaded) {
   const markLoaded = () => {
-    if (figure.dataset.advertisingMediaLoaded === "true") return;
-    figure.dataset.advertisingMediaLoaded = "true";
+    if (figure.dataset.masonryMediaLoaded === "true") return;
+    figure.dataset.masonryMediaLoaded = "true";
     onMediaLoaded(figure);
   };
   if (media instanceof HTMLVideoElement) {
@@ -1462,8 +1462,8 @@ function sizeNode(node, placement, setSize) {
   node.style.width = `${placement.pixelWidth}px`;
   sizeLazyImage(node, placement);
   node.style.height = `${placement.pixelHeight}px`;
-  node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
-  node.dataset.advertisingSpan = String(placement.width);
+  node.style.setProperty("--masonry-media-height", `${placement.mediaPixelHeight}px`);
+  node.dataset.masonrySpan = String(placement.width);
   node.setAttribute("role", "listitem");
   node.setAttribute("aria-posinset", String(placement.index + 1));
   node.setAttribute("aria-setsize", String(setSize));
@@ -1478,56 +1478,56 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const grid = container.querySelector("[data-project-grid]");
   const filters = container.querySelector(".project-filters");
   if (!grid || !filters) return () => {};
-  const ctaSkeleton = grid.querySelector("[data-advertising-cta-skeleton]");
-  const gridCta = container.querySelector("[data-advertising-grid-cta]");
+  const ctaSkeleton = grid.querySelector("[data-masonry-cta-skeleton]");
+  const gridCta = container.querySelector("[data-masonry-grid-cta]");
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".project-index");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
-  const photoView = container.querySelector("[data-advertising-photo-view]");
+  const photoView = container.querySelector("[data-detail-view]");
   // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
   // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision phone-frame-budget).
   if (photoView?.hidden) globalThis.requestIdleCallback?.(() => {
     if (photoView.hidden) for (const node of [photoView, ...photoView.querySelectorAll("*")]) getComputedStyle(node).color;
   });
-  const photoCanvas = photoView?.querySelector("[data-advertising-photo-canvas]");
-  const photoPrimary = photoView?.querySelector("[data-advertising-photo-primary]");
-  const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
-  const photoVideo = photoView?.querySelector("[data-advertising-photo-video]");
-  const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
-  const photoPlayer = photoView?.querySelector("[data-advertising-photo-player]");
-  const photoPlayButton = photoPlayer?.querySelector("[data-advertising-photo-play]");
-  const photoVolumeGroup = photoPlayer?.querySelector("[data-advertising-photo-volume-group]");
-  const photoVolume = photoPlayer?.querySelector("[data-advertising-photo-volume]");
-  const photoProgress = photoPlayer?.querySelector("[data-advertising-photo-progress]");
-  const photoTimeCurrent = photoPlayer?.querySelector("[data-advertising-photo-time-current]");
-  const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
-  const photoMediaSteps = [...(photoView?.querySelectorAll("[data-advertising-photo-media-step]") ?? [])];
+  const photoCanvas = photoView?.querySelector("[data-detail-canvas]");
+  const photoPrimary = photoView?.querySelector("[data-detail-primary]");
+  const photoImage = photoView?.querySelector("[data-detail-image]");
+  const photoVideo = photoView?.querySelector("[data-detail-video]");
+  const photoAudioToggle = photoView?.querySelector("[data-detail-audio-toggle]");
+  const photoPlayer = photoView?.querySelector("[data-detail-player]");
+  const photoPlayButton = photoPlayer?.querySelector("[data-detail-play]");
+  const photoVolumeGroup = photoPlayer?.querySelector("[data-detail-volume-group]");
+  const photoVolume = photoPlayer?.querySelector("[data-detail-volume]");
+  const photoProgress = photoPlayer?.querySelector("[data-detail-progress]");
+  const photoTimeCurrent = photoPlayer?.querySelector("[data-detail-time-current]");
+  const photoTimeTotal = photoPlayer?.querySelector("[data-detail-time-total]");
+  const photoMediaSteps = [...(photoView?.querySelectorAll("[data-detail-media-step]") ?? [])];
   let photoMediaThumbs = null;
-  const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
+  const photoBackground = photoView?.querySelector("[data-detail-background]");
   // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
   // Không có bước blur: ảnh backdrop tự mang blur (detail.css), nên không thể lộ đường nối giữa các tile.
   const photoGlass = createGlassSurface("even", 0);
   photoBackground?.after(photoGlass);
-  const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
-  const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
-  const photoDescriptionBox = photoView?.querySelector("[data-advertising-photo-description-box]");
-  const photoDescriptionScroll = photoView?.querySelector("[data-advertising-photo-description-scroll]");
-  const photoDescriptionBar = photoView?.querySelector("[data-advertising-photo-description-bar]");
-  const photoInfo = photoView?.querySelector("[data-advertising-photo-info]");
-  const relatedGrid = photoView?.querySelector("[data-advertising-photo-related-grid]");
-  const suggestionNode = photoView?.querySelector("[data-advertising-photo-suggestion]");
-  const suggestionTitle = suggestionNode?.querySelector("[data-advertising-photo-related-title]");
-  const photoExpand = photoView?.querySelector("[data-advertising-photo-expand]");
-  const photoDialog = photoView?.querySelector("[data-advertising-photo-dialog]");
-  const photoExpandedImage = photoView?.querySelector("[data-advertising-photo-expanded-image]");
-  const photoViewport = photoView?.querySelector("[data-advertising-photo-viewport]");
-  const photoClose = photoView?.querySelector("[data-advertising-photo-close]");
-  const photoZoomIn = photoView?.querySelector("[data-advertising-photo-zoom-in]");
-  const photoZoomOut = photoView?.querySelector("[data-advertising-photo-zoom-out]");
-  const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
-  const photoViewerThumbs = photoDialog?.querySelector("[data-advertising-photo-viewer-thumbs]");
+  const photoCategory = photoView?.querySelector("[data-detail-category]");
+  const photoDescription = photoView?.querySelector("[data-detail-description]");
+  const photoDescriptionBox = photoView?.querySelector("[data-detail-description-box]");
+  const photoDescriptionScroll = photoView?.querySelector("[data-detail-description-scroll]");
+  const photoDescriptionBar = photoView?.querySelector("[data-detail-description-bar]");
+  const photoInfo = photoView?.querySelector("[data-detail-info]");
+  const relatedGrid = photoView?.querySelector("[data-detail-related-grid]");
+  const suggestionNode = photoView?.querySelector("[data-detail-suggestion]");
+  const suggestionTitle = suggestionNode?.querySelector("[data-detail-related-title]");
+  const photoExpand = photoView?.querySelector("[data-detail-expand]");
+  const photoDialog = photoView?.querySelector("[data-detail-dialog]");
+  const photoExpandedImage = photoView?.querySelector("[data-detail-expanded-image]");
+  const photoViewport = photoView?.querySelector("[data-detail-viewport]");
+  const photoClose = photoView?.querySelector("[data-detail-close]");
+  const photoZoomIn = photoView?.querySelector("[data-detail-zoom-in]");
+  const photoZoomOut = photoView?.querySelector("[data-detail-zoom-out]");
+  const photoZoomStatus = photoView?.querySelector("[data-detail-zoom-status]");
+  const photoViewerThumbs = photoDialog?.querySelector("[data-detail-viewer-thumbs]");
 
   // Related masonry compiles in a Worker: warmed by preloadMasonry on a card page, else when detail prefetches. Each take
   // opens the next one, so opening detail never waits on the Worker module (Slow 4G, cache off: 3.3 s without related).
@@ -1597,7 +1597,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const prefetchDetail = (tries = 0) => {
     if (controller.signal.aborted) return;
-    const images = [...document.querySelectorAll("[data-advertising-card] img")].slice(0, 8);
+    const images = [...document.querySelectorAll("[data-masonry-card] img")].slice(0, 8);
     if (tries >= 24 || (images.length === 8 && images.every((image) => image.complete))) {
       if (viewer) {
         ensureDetail();
@@ -1631,7 +1631,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   window.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
   window.visualViewport?.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resetVisibleViewport, { signal: controller.signal });
-  document.body.classList.add("is-advertising-browse");
+  document.body.classList.add("is-masonry-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
@@ -1654,11 +1654,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     attach: (node, placement) => {
       observeMediaCard(node);
       setPlacementStyle(node, placement);
-      node.dataset.advertisingRelatedItem = placement.card.id;
+      node.dataset.masonryRelatedItem = placement.card.id;
     },
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: (card) => mediaColors(card.media.src)?.[0],
-    masonry: { itemSelector: "[data-advertising-related-item]", getId: (node) => node.dataset.advertisingRelatedItem },
+    masonry: { itemSelector: "[data-masonry-related-item]", getId: (node) => node.dataset.masonryRelatedItem },
   });
   let relatedLayout;
   let activePhotoId = null;
@@ -1697,25 +1697,25 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     zoomStatus: photoZoomStatus,
     video: photoVideo,
     player: photoPlayer,
-    videoHost: photoDialog?.querySelector("[data-advertising-photo-video-host]"),
+    videoHost: photoDialog?.querySelector("[data-detail-video-host]"),
     onOpen: () => {
-      photoView.dataset.advertisingPhotoExpanded = "";
+      photoView.dataset.detailExpanded = "";
       drawLiveBackground();
     },
   });
   // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
   const visibleMediaCards = new Set();
-  const mediaKey = (node) => node.dataset.advertisingRelatedCard
-    ? `related:${node.dataset.advertisingRelatedCard}` : `grid:${node.dataset.advertisingCard}`;
-  const mediaLayers = (node) => [...node.querySelectorAll(".advertising-tile__foreground")];
+  const mediaKey = (node) => node.dataset.masonryRelatedCard
+    ? `related:${node.dataset.masonryRelatedCard}` : `grid:${node.dataset.masonryCard}`;
+  const mediaLayers = (node) => [...node.querySelectorAll(".masonry-card__foreground")];
   // Hiện ngay ở opacity cuối, không qua transition opacity của CSS (R3): đọc style để chốt `none` trước khi trả lại.
   // Mọi media hiện trong cùng task dùng chung một lần ép style (đọc opacity một lần cho cả lô), thay vì mỗi media một lần.
   const mediaToShow = [];
   const removeGhost = (node) => {
-    const ghost = node.advertisingGhost;
+    const ghost = node.masonryGhost;
     if (!ghost) return;
-    node.advertisingGhost = null;
+    node.masonryGhost = null;
     ghost.remove();
   };
   const flushShownMedia = () => {
@@ -1726,14 +1726,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const { node, media } of batch) {
       media.style.removeProperty("transition");
       // Card thật thay card tạm: ảnh hiện dần từ màu chủ đạo của card tạm; giảm chuyển động thì hiện thẳng.
-      if (node.advertisingGhost && !reduced) {
+      if (node.masonryGhost && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
         fading.set(node, fades);
       }
     }
     for (const { node } of batch) {
-      if (!node.advertisingGhost) continue;
+      if (!node.masonryGhost) continue;
       const fades = fading.get(node);
       if (fades) Promise.all(fades).then(() => removeGhost(node), () => removeGhost(node));
       else removeGhost(node);
@@ -1743,7 +1743,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const queued = mediaToShow.length > 0;
     mediaLayers(node).forEach((media) => {
       media.style.setProperty("transition", "none", "important");
-      media.classList.add("is-advertising-media-ready");
+      media.classList.add("is-masonry-media-ready");
       mediaToShow.push({ node, media });
     });
     if (!queued && mediaToShow.length) queueMicrotask(flushShownMedia);
@@ -1802,7 +1802,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // gắn lại thì layerFor dùng lại lớp không nguồn và card kẹt trạng thái chờ.
   const detachCard = (id, node, queue) => {
     const keepable = queue && !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
-      && mediaLayers(node).some((media) => media.classList.contains("is-advertising-media-ready"))
+      && mediaLayers(node).some((media) => media.classList.contains("is-masonry-media-ready"))
       && [...node.querySelectorAll("img")].every((image) => image.complete);
     releaseMediaCard(node);
     node.remove();
@@ -1811,7 +1811,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Filter sản phẩm (id "<cụm>/<slug>") vẫn đánh dấu cụm của nó trên rail.
   const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
   // Rail hai tầng (taxonomy R3): cụm đang chọn hiện hàng chip; mục sản phẩm đúng filter có aria-current.
-  const chipGroups = [...container.querySelectorAll("[data-advertising-chips]")];
+  const chipGroups = [...container.querySelectorAll("[data-masonry-chips]")];
   // Phần tử hiện sau khi bấm rail dùng lại nhịp entrance Advertising ([Motion](design-system/motion.md)); reduced motion vào thẳng trạng thái cuối.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
@@ -1823,15 +1823,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
   };
   const syncRail = ({ animate = false } = {}) => {
-    filters.querySelectorAll("[data-advertising-filter]").forEach((item) => {
-      item.setAttribute("aria-current", String(isRailCurrent(item.dataset.advertisingFilter)));
+    filters.querySelectorAll("[data-masonry-filter]").forEach((item) => {
+      item.setAttribute("aria-current", String(isRailCurrent(item.dataset.masonryFilter)));
     });
-    container.querySelectorAll("[data-advertising-product]").forEach((item) => {
-      item.setAttribute("aria-current", String(item.dataset.advertisingProduct === filter));
+    container.querySelectorAll("[data-masonry-product]").forEach((item) => {
+      item.setAttribute("aria-current", String(item.dataset.masonryProduct === filter));
     });
     chipGroups.forEach((group) => {
       const wasHidden = group.hidden;
-      group.hidden = !isRailCurrent(group.dataset.advertisingChips);
+      group.hidden = !isRailCurrent(group.dataset.masonryChips);
       // Chip hiện cùng nhịp filter rail lúc tải trang (y 20, 1s expo.out, stagger 0.15s), sau kicker 0.3s; đổi sản phẩm trong cụm không chạy lại.
       // Hàng dài thì ép tổng độ trễ so le tối đa 0.6s để chip cuối không hiện muộn.
       if (animate && wasHidden && !group.hidden) {
@@ -1931,16 +1931,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ];
     /** @type {Map<string, HTMLAnchorElement>} */
     const existing = new Map(
-      [...filters.querySelectorAll("[data-advertising-filter]")]
+      [...filters.querySelectorAll("[data-masonry-filter]")]
         .filter((control) => control instanceof HTMLAnchorElement)
-        .map((control) => [control.dataset.advertisingFilter, control]),
+        .map((control) => [control.dataset.masonryFilter, control]),
     );
     entries.forEach((entry) => {
       let control = existing.get(entry.slug);
       if (!control) {
         control = document.createElement("a");
         control.className = "project-filter";
-        control.dataset.advertisingFilter = entry.slug;
+        control.dataset.masonryFilter = entry.slug;
         filters.append(control);
       }
       control.href = `/${locale}/${browseBase(location.pathname)}/${entry.slug === "all" ? "" : `${locale === "en" ? entry.slugEn : entry.slugVi}/`}`;
@@ -1954,7 +1954,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         if (!record) return;
         const english = locale === "en";
         const link = node.querySelector("a");
-        const image = node.querySelector(".advertising-tile__foreground");
+        const image = node.querySelector(".masonry-card__foreground");
         const caption = node.querySelector("figcaption");
         if (link) link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
         if (image) image.alt = english ? record.media.altEn : record.media.altVi;
@@ -1967,7 +1967,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   updateLocalizedContent();
   ctaSkeleton?.replaceChildren();
   grid.replaceChildren(...(ctaSkeleton ? [ctaSkeleton] : []));
-  grid.classList.add("advertising-grid");
+  grid.classList.add("masonry-grid");
   grid.setAttribute("role", "list");
   relatedGrid?.setAttribute("role", "list");
 
@@ -2099,11 +2099,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const mount = new Set(visiblePlacements.map((placement) => placement.card.id));
     const keep = hysteresis ? new Set(windowed.retained.map((placement) => placement.card.id)) : new Set(mount);
     const focusedNode = [...gridHost.rendered.values()].find((node) => node === document.activeElement || node.contains(document.activeElement));
-    if (focusedNode && !mount.has(focusedNode.dataset.advertisingCard)) {
-      const focusedPlacement = geometry.placements.find((placement) => placement.card.id === focusedNode.dataset.advertisingCard);
+    if (focusedNode && !mount.has(focusedNode.dataset.masonryCard)) {
+      const focusedPlacement = geometry.placements.find((placement) => placement.card.id === focusedNode.dataset.masonryCard);
       if (focusedPlacement) visiblePlacements.push(focusedPlacement);
-      keep.add(focusedNode.dataset.advertisingCard);
-      mount.add(focusedNode.dataset.advertisingCard);
+      keep.add(focusedNode.dataset.masonryCard);
+      mount.add(focusedNode.dataset.masonryCard);
     }
     for (const id of retainedPhotoIds) {
       if (mount.has(id)) continue;
@@ -2287,7 +2287,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
   const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame) && skeletonMotionAllowed();
   const settleSkeletonCanvas = (frame) => {
-    const canvas = frame.querySelector('[data-advertising-flow-backend="webgl"]');
+    const canvas = frame.querySelector('[data-masonry-flow-backend="webgl"]');
     if (!canvas) return;
     canvas.style.transition = "none";
     canvas.style.opacity = "1";
@@ -2297,8 +2297,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const loadingSkeletonFrames = new Set();
   const skeletonFrames = () => [...skeletonFrameBySlot.values(), ...loadingSkeletonFrames];
-  const skeletonKey = (frame) => frame.dataset.advertisingCtaSlot
-    ?? `media:${frame.dataset.advertisingLoadingSkeleton}`;
+  const skeletonKey = (frame) => frame.dataset.masonryCtaSlot
+    ?? `media:${frame.dataset.masonryLoadingSkeleton}`;
   const skeletonPhase = (frame) => skeletonPhaseBySlot.get(skeletonKey(frame))
     ?? skeletonAssignmentByFrame.get(frame).phase;
   // Không có renderer live, canvas hiện ảnh tĩnh của chính Flow tại pha đã lưu (R5).
@@ -2312,13 +2312,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       ? cached.still
       : skeletonFlowStill(preset, phase);
     skeletonStillByKey.set(skeletonKey(frame), { assignment, phase, still });
-    canvas.className = "advertising-grid__cta-flow";
-    canvas.dataset.advertisingFlowPreset = preset.id;
-    canvas.dataset.advertisingFlowAnchorPermutation = anchorPermutation.join(",");
-    canvas.dataset.advertisingFlowPhase = String(assignment.phase);
-    canvas.dataset.advertisingFlowDirection = String(direction);
-    canvas.dataset.advertisingFlowSpeedScale = speedScale.toFixed(3);
-    canvas.dataset.advertisingFlowBackend = "none";
+    canvas.className = "masonry-grid__cta-flow";
+    canvas.dataset.masonryFlowPreset = preset.id;
+    canvas.dataset.masonryFlowAnchorPermutation = anchorPermutation.join(",");
+    canvas.dataset.masonryFlowPhase = String(assignment.phase);
+    canvas.dataset.masonryFlowDirection = String(direction);
+    canvas.dataset.masonryFlowSpeedScale = speedScale.toFixed(3);
+    canvas.dataset.masonryFlowBackend = "none";
     canvas.style.backgroundColor = preset.colors[3];
     canvas.style.backgroundImage = still;
     canvas.style.backgroundSize = "100% 100%";
@@ -2326,7 +2326,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
     canvas.setAttribute("aria-hidden", "true");
     // Canvas tràn ra ngoài surface 8% mỗi bên; surface hiện cùng ảnh tĩnh dưới canvas đang mờ dần.
-    const surface = frame.querySelector(".advertising-grid__cta-surface");
+    const surface = frame.querySelector(".masonry-grid__cta-surface");
     surface.style.backgroundColor = preset.colors[3];
     surface.style.backgroundImage = still;
     surface.style.backgroundSize = "116% 116%";
@@ -2335,9 +2335,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const createSkeletonFrame = () => {
     const frame = document.createElement("span");
-    frame.className = "advertising-grid__cta-frame";
+    frame.className = "masonry-grid__cta-frame";
     const surface = document.createElement("span");
-    surface.className = "advertising-grid__cta-surface";
+    surface.className = "masonry-grid__cta-surface";
     frame.append(surface);
     return frame;
   };
@@ -2363,16 +2363,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     let assignment = skeletonAssignmentByKey.get(key);
     if (!assignment) {
       assignment = drawSkeletonFlowAssignment({ neighbors: skeletonNeighbors(frame, rects),
-        colors: frame.dataset.advertisingFlowColors?.split(" ") });
+        colors: frame.dataset.masonryFlowColors?.split(" ") });
       skeletonAssignmentByKey.set(key, assignment);
       skeletonPhaseBySlot.delete(key);
     }
     skeletonAssignmentByFrame.set(frame, assignment);
-    frame.querySelector(".advertising-grid__cta-surface").append(createSkeletonCanvas(frame));
+    frame.querySelector(".masonry-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
   // Mọi khung batch vẽ trên một canvas WebGL chung nửa độ phân giải (advertising-skeleton R5).
   const sharedFlowFor = (frame) => {
-    const container = frame.closest(".advertising-grid__cta-skeleton");
+    const container = frame.closest(".masonry-grid__cta-skeleton");
     if (!container) return null;
     if (sharedSkeletonFlow === undefined) {
       sharedSkeletonFlow = createSharedSkeletonFlowLayer();
@@ -2390,7 +2390,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const { preset, direction, speedScale } = assignment;
     const sharedLayer = sharedFlowFor(frame);
     if (sharedLayer) {
-      const surface = frame.querySelector(".advertising-grid__cta-surface");
+      const surface = frame.querySelector(".masonry-grid__cta-surface");
       // Đang reveal thì canvas chung theo opacity của surface; xong reveal thì 1 (R4).
       const alpha = () => (skeletonEntryFrames.has(frame) ? Number(getComputedStyle(surface).opacity) : 1);
       skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale, alpha }));
@@ -2416,16 +2416,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const workerRenderer = !lease && createSkeletonFlowWorkerRenderer(canvas, shared ? { ...options, shared: true } : options);
     if (shared && !workerRenderer) return;
     const renderer = workerRenderer || createSkeletonFlowRenderer(canvas, options);
-    canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
+    canvas.dataset.masonryFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
-    canvas.dataset.advertisingFlowContext = shared ? "shared" : "own";
+    canvas.dataset.masonryFlowContext = shared ? "shared" : "own";
     if (renderer?.context) {
       const record = lease || rememberSkeletonContext(canvas, renderer.context, renderer);
       record.renderer = renderer;
       skeletonLeaseByFrame.set(frame, record);
     }
     if (oldCanvas && oldCanvas !== canvas) oldCanvas.replaceWith(canvas);
-    if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
+    if (!canvas.isConnected) frame.querySelector(".masonry-grid__cta-surface")?.append(canvas);
     // Vẽ một lần khi canvas được lease nằm trong frame; không có paint nào chen giữa, nên vẫn thấy frame đầu.
     renderer?.draw(performance.now());
     // Vuốt nhanh thì card chỉ ở trong viewport khoảng 270ms, fade 300ms thì Flow không kịp hiện (R4); ảnh tĩnh dưới canvas
@@ -2495,7 +2495,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Khung batch
   // trên điện thoại còn chờ swipe dừng (R5 "cuộn mượt thắng"); khung card mount ngay lúc vuốt (owner 18/10).
   const skeletonMountWait = (frame) => Math.max(motionUntil - performance.now(),
-    skeletonPhone() && frame.dataset.advertisingCtaFrame ? phoneScrollWait() : 0);
+    skeletonPhone() && frame.dataset.masonryCtaFrame ? phoneScrollWait() : 0);
   const pendingSkeletonMounts = () => [...skeletonMountWanted].filter((node) => node.isConnected && !skeletonFlowByFrame.has(node));
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
@@ -2548,12 +2548,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       // Card vào viewport lúc đang cuộn hiện ngay: fade 0.6s dài hơn thời gian vuốt nhanh để lại card trong viewport (R4).
-      if (!frame.dataset.advertisingCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
+      if (!frame.dataset.masonryCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
-      if (frame.dataset.advertisingCtaFrame) {
-        const reveal = playReveal({ to: [frame.querySelector(".advertising-grid__cta-surface")], host: frame });
+      if (frame.dataset.masonryCtaFrame) {
+        const reveal = playReveal({ to: [frame.querySelector(".masonry-grid__cta-surface")], host: frame });
         pending.glass = reveal.glass;
         pending.animations = reveal.animations;
         reveal.finished.then(settle, () => {});
@@ -2601,7 +2601,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         frame.classList.add("is-entry-ready");
         revealedSkeletonSlots.add(skeletonKey(frame));
         frame.classList.remove("is-looping");
-        frame.dataset.advertisingFlowState = "paused";
+        frame.dataset.masonryFlowState = "paused";
         renderer?.stop();
         return;
       }
@@ -2609,7 +2609,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         // Khung đã hiện giữ nguyên khi ra vào viewport, như card ảnh đã tải (skeleton R4); chạy lại thì nháy trắng dưới Kính.
         cancelSkeletonEntry(frame);
         frame.classList.remove("is-looping");
-        frame.dataset.advertisingFlowState = "paused";
+        frame.dataset.masonryFlowState = "paused";
         renderer?.stop();
         return;
       }
@@ -2617,7 +2617,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         cancelSkeletonEntry(frame);
         settleSkeletonCanvas(frame);
         frame.classList.remove("is-looping");
-        frame.dataset.advertisingFlowState = "paused";
+        frame.dataset.masonryFlowState = "paused";
         renderer?.stop();
         return;
       }
@@ -2626,13 +2626,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
         frame.classList.toggle("is-looping", Boolean(renderer));
-        frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
+        frame.dataset.masonryFlowState = renderer ? "running" : "paused";
         renderer?.start();
         return;
       }
       cancelSkeletonEntry(frame);
       frame.classList.remove("is-looping");
-      frame.dataset.advertisingFlowState = "paused";
+      frame.dataset.masonryFlowState = "paused";
       renderer?.stop();
     });
   };
@@ -2654,7 +2654,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
-  // Class body đổi ngay trong task chạm card (is-advertising-photo); đồng bộ ở frame kế để đọc rect không ép thêm
+  // Class body đổi ngay trong task chạm card (is-detail); đồng bộ ở frame kế để đọc rect không ép thêm
   // một lần style và layout trong task đó (decision phone-frame-budget).
   const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
@@ -2673,9 +2673,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
   const attachLoadingSkeleton = (host, mediaId, before = null, colors = null) => {
     const frame = createSkeletonFrame();
-    frame.dataset.advertisingLoadingSkeleton = mediaId;
+    frame.dataset.masonryLoadingSkeleton = mediaId;
     // Flow chờ ảnh primary mang 4 màu của chính ảnh (advertising-skeleton R3).
-    if (colors) frame.dataset.advertisingFlowColors = colors.join(" ");
+    if (colors) frame.dataset.masonryFlowColors = colors.join(" ");
     if (skeletonAssignmentByKey.has(skeletonKey(frame))) assignSkeleton(frame);
     frame.setAttribute("aria-hidden", "true");
     host.insertBefore(frame, before);
@@ -2752,12 +2752,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       media.style.scale = scale;
     });
     // Card mờ chờ ảnh thì thở (detail.css, spec chờ ảnh S2); dropCardSkeleton gỡ cùng lúc gỡ blur.
-    node.dataset.advertisingMediaLoading = "";
+    node.dataset.masonryMediaLoading = "";
     node.style.setProperty("--breathe-phase", breathePhase());
     // Card đã vẽ ảnh mờ trên màu chủ đạo, nên card tạm gỡ ở frame kế, không crossfade (R7).
-    if (node.advertisingGhost) {
-      const ghost = node.advertisingGhost;
-      node.advertisingGhost = null;
+    if (node.masonryGhost) {
+      const ghost = node.masonryGhost;
+      node.masonryGhost = null;
       requestAnimationFrame(() => ghost.remove());
     }
     showMedia(node);
@@ -2768,7 +2768,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const entry = cardSkeletons.get(node);
     if (!entry) return;
     cardSkeletons.delete(node);
-    delete node.dataset.advertisingMediaLoading;
+    delete node.dataset.masonryMediaLoading;
     entry.animations.forEach((animation) => animation.cancel());
     mediaLayers(node).forEach((media) => {
       media.style.removeProperty("transition");
@@ -2828,14 +2828,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         // Blur tan về 0 trong 0.6s (progressive-loading R9). Thở dừng đúng lúc đó: opacity đi từ giá trị đang thở về 1 cùng
         // nhịp, không nháy; đọc trước khi gỡ attribute vì gỡ rồi CSS animation dừng và giá trị đọc được luôn là 1.
         const from = layers.map((media) => getComputedStyle(media).opacity);
-        delete node.dataset.advertisingMediaLoading;
+        delete node.dataset.masonryMediaLoading;
         entry.animations = layers.map((media, index) => media.animate(
           [{ filter: CARD_LOADING_BLUR, opacity: from[index], scale: media.style.scale || "1" }, { filter: "none", opacity: 1, scale: "1" }],
           { duration: CARD_REVEAL_MS, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }));
       } else {
         layers.forEach((media) => {
           media.style.setProperty("transition", "none", "important");
-          media.classList.add("is-advertising-media-ready");
+          media.classList.add("is-masonry-media-ready");
         });
         entry.animations = playReveal({ to: layers }).animations;
       }
@@ -2871,12 +2871,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     let dx = before.left - after.left;
     let dy = before.top - after.top;
     // Khung batch co giãn từ cỡ cũ như card (morphSize); cụm CTA và Kính chỉ trượt.
-    const scale = node.dataset.advertisingCtaFrame && after.width && after.height
+    const scale = node.dataset.masonryCtaFrame && after.width && after.height
       ? `${before.width / after.width} ${before.height / after.height}` : "1 1";
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && scale === "1 1") return;
     // Ở detail khung batch cũng đi vòng primary như card related (R10); tọa độ tính từ góc trên trái primary.
     // Cụm CTA và Kính cung rộng cả lưới, luôn dưới primary: trượt thẳng, không đọc rect primary.
-    const box = node.dataset.advertisingCtaFrame && ctaInDetail() && photoPrimary?.getBoundingClientRect();
+    const box = node.dataset.masonryCtaFrame && ctaInDetail() && photoPrimary?.getBoundingClientRect();
     let corner = null;
     if (box?.width) {
       const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
@@ -2910,7 +2910,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (node && node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
   };
   const setCtaHostHeight = (height) => {
-    if (ctaInDetail()) setStyleVar(photoCanvas, "--advertising-photo-canvas-height", `${height}px`);
+    if (ctaInDetail()) setStyleVar(photoCanvas, "--detail-canvas-height", `${height}px`);
     else {
       gridHost.pixelHeight = height;
       grid.style.height = `${height}px`;
@@ -2941,9 +2941,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Ở detail biến đặt thẳng trên cụm CTA (nơi duy nhất dùng chúng), không trên canvas: biến kế thừa đổi trên canvas
     // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry.
     const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
-    setStyleVar(ctaVarHost, "--advertising-cta-top", `${ctaTop}px`);
+    setStyleVar(ctaVarHost, "--masonry-cta-top", `${ctaTop}px`);
     if (detailHost) {
-      setStyleVar(gridCta, "--advertising-gap", `${gap}px`);
+      setStyleVar(gridCta, "--masonry-gap", `${gap}px`);
       gridCta?.style.removeProperty("visibility");
     }
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
@@ -2954,9 +2954,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const copyRect = gridCtaCopy.getBoundingClientRect();
       observedCopySize = `${copyRect.width}x${copyRect.height}`;
       // CSS đặt copy theo dynamic viewport, nên thanh địa chỉ không bao giờ dựng lại batch.
-      gridCta.style.setProperty("--advertising-cta-footer-height", `${footerHeight}px`);
-      gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
-      requestAnimationFrame(() => { gridCta.dataset.advertisingCtaSettled = "true"; });
+      gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
+      gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
+      requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
     }
     // Baseline cuối nằm D phía trên đáy batch; cửa sổ quá thấp thì nút giữ cách nó một gap.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
@@ -2968,7 +2968,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (detailHost) setCtaHostHeight(ctaBottom);
       return;
     }
-    gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
+    gridCta?.style.setProperty("--masonry-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
     // Chiều cao vừa đo là chiều cao ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai.
     observedCtaHeight = ctaHeight;
@@ -3005,32 +3005,32 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         let frame = skeletonFrameBySlot.get(slot);
         if (!frame) {
           frame = createSkeletonFrame();
-          frame.dataset.advertisingCtaSlot = slot;
+          frame.dataset.masonryCtaSlot = slot;
           // Slot quay lại hiện màu ngay; slot mới vẽ khi lần đầu vào view.
           if (skeletonAssignmentByKey.has(slot)) assignSkeleton(frame);
           if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
           fragment.append(frame);
           skeletonFrameBySlot.set(slot, frame);
         }
-        frame.dataset.advertisingCtaFrame = "true";
-        frame.dataset.advertisingCtaColumn = String(column);
-        frame.dataset.advertisingCtaSpan = String(span);
-        frame.dataset.advertisingCtaDepth = String(depth);
-        frame.dataset.advertisingCtaRatioBand = band;
-        frame.dataset.advertisingCtaSlot = slot;
+        frame.dataset.masonryCtaFrame = "true";
+        frame.dataset.masonryCtaColumn = String(column);
+        frame.dataset.masonryCtaSpan = String(span);
+        frame.dataset.masonryCtaDepth = String(depth);
+        frame.dataset.masonryCtaRatioBand = band;
+        frame.dataset.masonryCtaSlot = slot;
         frame.style.left = `${column * (hostGeometry.cardWidth + hostGeometry.interCardGap)}px`;
         frame.style.top = `${top}px`;
         frame.style.width = `${span * hostGeometry.cardWidth + (span - 1) * hostGeometry.interCardGap}px`;
         frame.style.height = `${height}px`;
-        frame.style.setProperty("--advertising-cta-frame-opacity", "1");
+        frame.style.setProperty("--masonry-cta-frame-opacity", "1");
     });
     ctaGeometryHash = nextCtaGeometryHash;
     ctaSkeleton.append(fragment);
     ctaSkeleton.hidden = false;
-    ctaSkeleton.dataset.advertisingCtaColumns = String(hostGeometry.columns);
-    ctaSkeleton.dataset.advertisingCtaReady = "true";
-    ctaSkeleton.dataset.advertisingCtaRealBottom = String(hostGeometry.totalPixelHeight);
-    ctaSkeleton.dataset.advertisingCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
+    ctaSkeleton.dataset.masonryCtaColumns = String(hostGeometry.columns);
+    ctaSkeleton.dataset.masonryCtaReady = "true";
+    ctaSkeleton.dataset.masonryCtaRealBottom = String(hostGeometry.totalPixelHeight);
+    ctaSkeleton.dataset.masonryCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
     if (arcGlass) {
       // Cụm CTA (từ đầu heading đến cuối link) tại giới hạn cuộn, nơi parallax bằng 0.
       const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
@@ -3048,7 +3048,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     setCtaHostHeight(gridBottom);
     ctaBatch.placed();
-    ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
+    ctaSkeleton.querySelectorAll("[data-masonry-cta-frame]").forEach((frame) => {
       if (skeletonObserver) skeletonObserver.observe(frame);
       else visibleSkeletonFrames.add(frame);
     });
@@ -3191,7 +3191,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!shouldAnimate || reduced) placeRendered();
       else {
         gridHost.layoutMotion((element) => element.hidden
-          || (created.has(element.dataset.advertisingCard) && !seeded.has(element.dataset.advertisingCard)));
+          || (created.has(element.dataset.masonryCard) && !seeded.has(element.dataset.masonryCard)));
         for (const [id, node] of gridHost.rendered) if (!node.hidden && origins?.get(id)?.w) morphSize(node, origins.get(id));
       }
       hasLaidOut = true;
@@ -3248,9 +3248,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
     const projectIndex = grid.closest(".project-index");
-    projectIndex?.style.setProperty("--advertising-outer", `${outer}px`);
-    projectIndex?.style.setProperty("--advertising-gap", `${interCardGap}px`);
-    grid.style.setProperty("--advertising-gap", `${interCardGap}px`);
+    projectIndex?.style.setProperty("--masonry-outer", `${outer}px`);
+    projectIndex?.style.setProperty("--masonry-gap", `${interCardGap}px`);
+    grid.style.setProperty("--masonry-gap", `${interCardGap}px`);
     const gridWidth = grid.clientWidth;
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
@@ -3327,11 +3327,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // bàn phím trong dãy giữ dãy hiện (owner 2026-10-26).
   let viewerThumbsTimer = 0;
   const wakeViewerThumbs = () => {
-    photoViewerThumbs?.removeAttribute("data-advertising-viewer-idle");
+    photoViewerThumbs?.removeAttribute("data-viewer-idle");
     clearTimeout(viewerThumbsTimer);
     viewerThumbsTimer = setTimeout(() => {
       if (!photoViewerThumbs?.matches(":hover, :has(:focus-visible)")) {
-        photoViewerThumbs?.setAttribute("data-advertising-viewer-idle", "");
+        photoViewerThumbs?.setAttribute("data-viewer-idle", "");
       }
     }, 3000);
   };
@@ -3373,26 +3373,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         tagRegistry: artifact.tagRegistry || [],
       });
       const links = document.createElement("div");
-      links.className = "advertising-photo-view__suggestion-links";
+      links.className = "detail-view__suggestion-links";
       suggestionSlots.forEach(({ card, tag }, index) => {
         const link = document.createElement("button");
         link.type = "button";
-        link.className = "advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media";
-        link.dataset.advertisingSuggestionTag = tag.id;
-        link.dataset.advertisingSuggestionIndex = String(index);
+        link.className = "detail-view__suggestion-link card-interactive card-media";
+        link.dataset.masonrySuggestionTag = tag.id;
+        link.dataset.masonrySuggestionIndex = String(index);
         const first = suggestionDeck(tag.id, cards.filter(candidate => candidate.tagIds?.includes(tag.id)))[0] || card;
-        link.dataset.advertisingSuggestionRepresentative = first.id;
+        link.dataset.masonrySuggestionRepresentative = first.id;
         const image = createPhotoMedia(first, locale, { suggestion: true });
-        image.dataset.advertisingSuggestionImageLayer = "current";
-        image.dataset.advertisingSuggestionPhoto = first.id;
+        image.dataset.masonrySuggestionImageLayer = "current";
+        image.dataset.masonrySuggestionPhoto = first.id;
         const label = document.createElement("span");
-        label.className = "advertising-photo-view__suggestion-label";
+        label.className = "detail-view__suggestion-label";
         // Span ôm chữ để gạch chân hover dài đúng bằng dòng chữ (rule chung với portal, style.css).
         label.append(document.createElement("span"));
         link.append(image, label);
         links.append(link);
       });
-      const previousLinks = suggestionNode.querySelector(".advertising-photo-view__suggestion-links");
+      const previousLinks = suggestionNode.querySelector(".detail-view__suggestion-links");
       if (previousLinks) resizeObserver.unobserve(previousLinks);
       suggestionNode.replaceChildren(...[suggestionTitle, links].filter(Boolean));
       resizeObserver.observe(links);
@@ -3401,14 +3401,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         createImage: card => createPhotoMedia(card, locale, { suggestion: true }),
       });
     }
-    suggestionNode.querySelectorAll("[data-advertising-suggestion-tag]").forEach((link) => {
-      const slot = suggestionSlots.find(({ tag }) => tag.id === link.dataset.advertisingSuggestionTag);
+    suggestionNode.querySelectorAll("[data-masonry-suggestion-tag]").forEach((link) => {
+      const slot = suggestionSlots.find(({ tag }) => tag.id === link.dataset.masonrySuggestionTag);
       if (!slot) return;
       link.setAttribute("aria-pressed", String(browse.tag === slot.tag.id));
-      link.querySelector(".advertising-photo-view__suggestion-label > span").textContent = english ? slot.tag.labelEn : slot.tag.labelVi;
+      link.querySelector(".detail-view__suggestion-label > span").textContent = english ? slot.tag.labelEn : slot.tag.labelVi;
     });
     suggestionNode.hidden = suggestionSlots.length === 0;
-    suggestionNode.dataset.advertisingRelatedItem = "advertising-suggestion";
+    suggestionNode.dataset.masonryRelatedItem = "advertising-suggestion";
     suggestionNode.dataset.rank = "0";
     suggestionNode.dataset.sourceOrder = "0";
   };
@@ -3443,9 +3443,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.style.width = `${placement.pixelWidth}px`;
     sizeLazyImage(node, placement);
     node.style.height = `${placement.pixelHeight}px`;
-    node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
-    node.dataset.advertisingSpan = String(placement.width);
-    node.dataset.advertisingPlacementIndex = String(placement.index);
+    node.style.setProperty("--masonry-media-height", `${placement.mediaPixelHeight}px`);
+    node.dataset.masonrySpan = String(placement.width);
+    node.dataset.masonryPlacementIndex = String(placement.index);
     node.setAttribute("role", "listitem");
     node.setAttribute("aria-posinset", String(placement.index + 1));
     node.setAttribute("aria-setsize", String(relatedLayout.layout.placements.length));
@@ -3466,7 +3466,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     suggestionNode.style.width = `${placement.pixelWidth}px`;
     suggestionNode.style.height = `${placement.pixelHeight}px`;
     pinSuggestionSizes(placement.pixelWidth);
-    suggestionNode.dataset.advertisingPlacementIndex = String(placement.index);
+    suggestionNode.dataset.masonryPlacementIndex = String(placement.index);
     suggestionNode.setAttribute("role", "listitem");
     suggestionNode.setAttribute("aria-posinset", String(placement.index + 1));
     suggestionNode.setAttribute("aria-setsize", String(relatedLayout.layout.placements.length));
@@ -3488,8 +3488,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const relatedVisualCoordinates = () => {
     const rect = relatedGrid.getBoundingClientRect();
     const nodes = [...relatedHost.rendered];
-    if (relatedLayout?.suggestionPlacement && suggestionNode?.dataset.advertisingRelatedItem && !suggestionNode.hidden) {
-      nodes.push([suggestionNode.dataset.advertisingRelatedItem, suggestionNode]);
+    if (relatedLayout?.suggestionPlacement && suggestionNode?.dataset.masonryRelatedItem && !suggestionNode.hidden) {
+      nodes.push([suggestionNode.dataset.masonryRelatedItem, suggestionNode]);
     }
     return new Map(nodes.filter(([, node]) => !node.hidden)
       .map(([id, node]) => {
@@ -3697,7 +3697,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       suggestionParent.append(suggestionNode);
       focused?.focus({ preventScroll: true });
     }
-    photoView.dataset.advertisingPhotoLayout = suggestionInRelated ? "pinterest" : "split";
+    photoView.dataset.detailLayout = suggestionInRelated ? "pinterest" : "split";
     let suggestionHeight = 0;
     // Trong related grid, suggestion là một related card: pha primary nhường nó cho pha solver.
     const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
@@ -3729,7 +3729,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // ép một lượt style và layout của info (decision phone-frame-budget).
     const infoMeasures = new Map();
     const measureInfoOnce = (width, mode) => {
-      photoView.dataset.advertisingPhotoLayout = mode;
+      photoView.dataset.detailLayout = mode;
       const previousWidth = photoInfo.style.width;
       const previousHeight = photoInfo.style.height;
       try {
@@ -3762,7 +3762,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!photoInfo) return 0;
       const key = `${width}:${mode}`;
       if (!infoMeasures.has(key)) infoMeasures.set(key, measureInfoOnce(width, mode));
-      else photoView.dataset.advertisingPhotoLayout = mode;
+      else photoView.dataset.detailLayout = mode;
       const { naturalHeight, floor } = infoMeasures.get(key);
       return basePrimary ? floor : naturalHeight;
     };
@@ -3775,8 +3775,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       categoryOrder, columns,
       datasetVersion: artifact.datasetVersion, heroId: browse.photo,
       layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
-      safeTop: parseFloat(viewStyle.getPropertyValue("--advertising-safe-top")) || 0,
-      safeBottom: parseFloat(viewStyle.getPropertyValue("--advertising-safe-bottom")) || 0,
+      safeTop: parseFloat(viewStyle.getPropertyValue("--masonry-safe-top")) || 0,
+      safeBottom: parseFloat(viewStyle.getPropertyValue("--masonry-safe-bottom")) || 0,
       settings, suggestionCard, tag: browse.tag,
       seed: browse.seed,
       // Khung primary theo tỷ lệ cover cho mọi media của card (như dải media pin Pinterest): đổi media không đổi
@@ -3790,20 +3790,20 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
-    photoView.dataset.advertisingPhotoLayout = primary.mode;
-    photoView.dataset.advertisingPrimarySpan = String(primary.span);
+    photoView.dataset.detailLayout = primary.mode;
+    photoView.dataset.masonryPrimarySpan = String(primary.span);
     for (const [key, value] of Object.entries({
       top: primary.top, gap: primary.gap, "primary-width": primary.width, "primary-height": primary.height,
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
-    })) photoView.style.setProperty(`--advertising-photo-${key}`, `${value}px`);
+    })) photoView.style.setProperty(`--detail-${key}`, `${value}px`);
     if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
-    relatedGrid.dataset.advertisingRelatedColumns = String(relatedLayout.layout.columns);
+    relatedGrid.dataset.masonryRelatedColumns = String(relatedLayout.layout.columns);
     const height = Math.max(primary.height, relatedLayout.layout.totalPixelHeight);
-    relatedGrid.style.setProperty("--advertising-photo-related-height", `${height}px`);
-    photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
+    relatedGrid.style.setProperty("--detail-related-height", `${height}px`);
+    photoCanvas.style.setProperty("--detail-canvas-height", `${height}px`);
     relatedHost.pixelHeight = height;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Đã đo nhưng chưa đặt: giữ nó ngoài mọi frame vẽ trước task mount.
@@ -3830,7 +3830,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     animations.forEach((animation) => animation.cancel());
     glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
-    delete heroFrame.dataset.advertisingPhotoLoading;
+    delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
   };
   // Primary chạy đúng reveal của card tải chậm (loading-glass-and-page-entry R4): Kính ba bậc hiện trên skeleton, dưới
@@ -3848,7 +3848,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
     // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
-    delete heroFrame.dataset.advertisingPhotoLoading;
+    delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
     const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
     reveal.glass = played.glass;
@@ -3863,9 +3863,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const ratio = item.width / item.height;
     const width = Math.min(zoneWidth, ratio * zoneHeight);
     const height = width / ratio;
-    photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
-    photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
-    photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
+    photoView.style.setProperty("--detail-image-width", `${width}px`);
+    photoView.style.setProperty("--detail-image-height", `${height}px`);
+    photoView.dataset.detailGlass = String(!primaryFailed
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
@@ -3875,7 +3875,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // đổi giữa các lần render): primary không rộng hơn viewport; viewer "Xem lớn hơn" vẫn lấy bản gốc.
   const primarySource = (item) => item.kind === "video" ? item.posterSrc
     : responsiveSource(item.src, item.width, Math.ceil(innerWidth * devicePixelRatio));
-  const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
+  const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--detail-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
   const currentPrimaryNode = () => {
@@ -3892,9 +3892,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0);
   // Nền kính sống (owner 2026-10-19): khi video phát hoặc dải trượt, nền blur vẽ lại mỗi frame từ chính những gì trong
   // vùng media: phủ cover hộp media vào canvas 1/8 khung, blur bằng bậc cuối rồi phóng 8 lần.
-  // Còn lại ảnh nền tĩnh [data-advertising-photo-background] giữ việc này.
+  // Còn lại ảnh nền tĩnh [data-detail-background] giữ việc này.
   const liveBackground = document.createElement("canvas");
-  liveBackground.className = "advertising-photo-view__live-background";
+  liveBackground.className = "detail-view__live-background";
   liveBackground.hidden = true;
   photoBackground?.after(liveBackground);
   const liveScratch = document.createElement("canvas");
@@ -3935,7 +3935,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
       : [{ node: photoVideo, x: 0 }];
     // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
-    liveBackground.hidden = (!still && photoView.dataset.advertisingPhotoGlass !== "true") || (!strip && photoVideo.hidden);
+    liveBackground.hidden = (!still && photoView.dataset.detailGlass !== "true") || (!strip && photoVideo.hidden);
     if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
       const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
       const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
@@ -3946,7 +3946,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         Object.assign(liveScratch, { width: width + 2 * bleed, height: height + 2 * bleed });
       }
       const mediaWidth = strip?.width ?? primaryWidth();
-      const mediaHeight = parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-height")) || heroFrame.clientHeight;
+      const mediaHeight = parseFloat(photoView.style.getPropertyValue("--detail-image-height")) || heroFrame.clientHeight;
       const scale = Math.max(liveScratch.width / mediaWidth, liveScratch.height / mediaHeight);
       const left = (liveScratch.width - mediaWidth * scale) / 2;
       const top = (liveScratch.height - mediaHeight * scale) / 2;
@@ -4011,7 +4011,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       strip.animations.forEach((animation) => animation.cancel());
       strip.nodes.forEach((node) => node.remove());
     }
-    if (heroFrame) delete heroFrame.dataset.advertisingPhotoSliding;
+    if (heroFrame) delete heroFrame.dataset.detailSliding;
     startLiveBackground();
   };
   // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
@@ -4019,16 +4019,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     closePrimaryStrip();
     const width = primaryWidth();
     const clip = document.createElement("div");
-    clip.className = "advertising-photo-view__strip";
+    clip.className = "detail-view__strip";
     const lanes = entries.map(({ item, slot }) => {
       const media = slot ? Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) })
         : currentPrimaryNode();
-      media.classList.add("advertising-photo-view__strip-media");
+      media.classList.add("detail-view__strip-media");
       clip.append(media);
       return { slot, nodes: [media] };
     });
     photoVideo.after(clip);
-    heroFrame.dataset.advertisingPhotoSliding = "";
+    heroFrame.dataset.detailSliding = "";
     const playing = !photoVideo.hidden && !photoVideo.paused;
     primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null };
     // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
@@ -4061,7 +4061,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     activePrimaryItem = item;
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
-    photoView.dataset.advertisingActiveMediaId = item.id;
+    photoView.dataset.masonryActiveMediaId = item.id;
     // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
     if (!slide) {
       photoVideo.muted = true;
@@ -4069,7 +4069,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     photoImage.hidden = video;
     photoExpand.hidden = false;
-    photoExpand.toggleAttribute("data-advertising-photo-expand-video", video);
+    photoExpand.toggleAttribute("data-detail-expand-video", video);
     photoPlayer.hidden = !video;
     photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
     // Trong lúc trượt photoVideo giữ video đang xem (tiếng đang fade ra); dải dừng thì mới chuyển sang media đích.
@@ -4134,7 +4134,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // trên PC owner, làm đứng frame mỗi lần mở card related (đo 2026-11-09).
       photoBackground.src = video ? item.posterSrc : responsiveSource(item.src, item.width, BACKGROUND_SOURCE_WIDTH);
       photoBackground.loading = "eager";
-      photoBackground.dataset.advertisingPhotoId = record.id;
+      photoBackground.dataset.detailId = record.id;
     }
     if (changed) {
       // Ảnh có sẵn hay chưa đều chạy motion card tải chậm (loading-glass-and-page-entry R4): ảnh và nền cũ ẩn ngay,
@@ -4143,7 +4143,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         mediaColors(video ? item.posterSrc : item.src)?.slice(1)), animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
-      heroFrame.dataset.advertisingPhotoLoading = "true";
+      heroFrame.dataset.detailLoading = "true";
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Nền dùng file 240 riêng: chờ cả nền để nền không hiện sau reveal khi cache lạnh; nền lỗi không chặn reveal.
       Promise.all([photoImage.decode(), photoBackground?.decode().catch(() => {})])
@@ -4151,18 +4151,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord({ ...record, media: item });
-    photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
-      button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
+    photoMediaThumbs?.querySelectorAll("[data-detail-media-select]").forEach((button) => {
+      button.setAttribute("aria-current", String(button.dataset.detailMediaSelect === item.id));
     });
-    photoViewerThumbs?.querySelectorAll("[data-advertising-photo-viewer-select]").forEach((button) => {
-      button.setAttribute("aria-current", String(button.dataset.advertisingPhotoViewerSelect === item.id));
+    photoViewerThumbs?.querySelectorAll("[data-detail-viewer-select]").forEach((button) => {
+      button.setAttribute("aria-current", String(button.dataset.detailViewerSelect === item.id));
     });
     // Đọc rect trong frame kế: layout của frame đó vẫn phải chạy, nên không thêm lượt layout.
     requestAnimationFrame(keepActiveThumbInView);
     const items = record.mediaItems || [];
     const index = items.indexOf(item);
     photoMediaSteps.forEach((button) => {
-      const target = index + Number(button.dataset.advertisingPhotoMediaStep);
+      const target = index + Number(button.dataset.detailMediaStep);
       button.hidden = index < 0 || target < 0 || target >= items.length;
     });
   };
@@ -4197,8 +4197,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const english = locale === "en";
     if (!photoMediaThumbs) {
       photoMediaThumbs = document.createElement("div");
-      photoMediaThumbs.className = "advertising-photo-view__media-thumbs";
-      photoMediaThumbs.dataset.advertisingPhotoMediaThumbs = "";
+      photoMediaThumbs.className = "detail-view__media-thumbs";
+      photoMediaThumbs.dataset.detailMediaThumbs = "";
       photoMediaThumbs.setAttribute("role", "group");
       photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
       scrollHintObserver.observe(photoMediaThumbs);
@@ -4210,7 +4210,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     items.forEach((item, index) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.dataset.advertisingPhotoMediaSelect = item.id;
+      button.dataset.detailMediaSelect = item.id;
       button.setAttribute("aria-label", english
         ? `Show ${item.kind === "video" ? "video" : "image"} ${index + 1} of ${items.length}: ${item.altEn}`
         : `Xem ${item.kind === "video" ? "video" : "ảnh"} ${index + 1} trên ${items.length}: ${item.altVi}`);
@@ -4232,8 +4232,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!photoViewerThumbs) return;
       // Dãy viewer thay hai mũi tên (primary-video-player R8): viewer trượt sang media đó, primary đổi theo.
       const copy = button.cloneNode(true);
-      delete copy.dataset.advertisingPhotoMediaSelect;
-      copy.dataset.advertisingPhotoViewerSelect = item.id;
+      delete copy.dataset.detailMediaSelect;
+      copy.dataset.detailViewerSelect = item.id;
       copy.addEventListener("click", () => {
         const step = Math.sign(index - primaryIndex());
         if (step) photoViewer.slideTo({ ...record, media: item }, step, () => showPrimaryMedia(item));
@@ -4256,8 +4256,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const silent = photoVideo.muted || volume === 0;
     // Video đang phát mà dừng để kéo tua thì giữ giao diện đang phát, không chớp nút phát.
     const paused = photoVideo.paused && !scrub?.wasPlaying;
-    photoPlayer.dataset.advertisingVideoPaused = String(paused);
-    photoPlayer.dataset.advertisingVideoMuted = String(silent);
+    photoPlayer.dataset.masonryVideoPaused = String(paused);
+    photoPlayer.dataset.masonryVideoMuted = String(silent);
     photoPlayButton.setAttribute("aria-label", paused ? english ? "Play" : "Phát"
       : english ? "Pause" : "Tạm dừng");
     photoAudioToggle.setAttribute("aria-label", silent ? english ? "Unmute" : "Bật tiếng"
@@ -4284,7 +4284,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (photoVideo.paused) void photoVideo.play().catch(() => {});
     else photoVideo.pause();
   };
-  photoPlayer?.querySelector("[data-advertising-photo-play-surface]")
+  photoPlayer?.querySelector("[data-detail-play-surface]")
     .addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
   photoPlayButton?.addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
   // Kéo tua (primary-video-player R2): video dừng trong lúc kéo, mỗi lần chỉ một lệnh tua và lệnh mới chờ `seeked`;
@@ -4355,7 +4355,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
   }
   photoDialog?.addEventListener("close", () => {
-    delete photoView.dataset.advertisingPhotoExpanded;
+    delete photoView.dataset.detailExpanded;
     startLiveBackground();
   }, { signal: controller.signal });
   photoVideo?.addEventListener("play", () => {
@@ -4375,7 +4375,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const syncPrimaryError = () => {
     heroFrame.classList.toggle("is-media-error", primaryFailed);
     if (!primaryFailed) return;
-    photoView.dataset.advertisingPhotoGlass = "false";
+    photoView.dataset.detailGlass = "false";
     photoPlayer.hidden = photoExpand.hidden = true;
   };
   heroFrame?.addEventListener("error", ({ target }) => {
@@ -4393,12 +4393,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     probe.src = item.posterSrc;
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
-    () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
+    () => stepPrimaryMedia(Number(button.dataset.detailMediaStep)), { signal: controller.signal }));
   // Viewer vừa mở: dãy thumbnail viewer cuộn tới media đang xem (listener của viewer chạy trước, dialog đã mở).
   photoExpand?.addEventListener("click", () => requestAnimationFrame(keepActiveThumbInView), { signal: controller.signal });
   // Capture ở photoView chạy trước listener mở viewer trên nút: dải đang trượt dừng ở media đích rồi viewer mới lấy media.
   photoView?.addEventListener("click", (event) => {
-    if (primaryStrip && event.target.closest?.("[data-advertising-photo-expand]")) closePrimaryStrip();
+    if (primaryStrip && event.target.closest?.("[data-detail-expand]")) closePrimaryStrip();
   }, { capture: true, signal: controller.signal });
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
   // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
@@ -4456,8 +4456,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     moveCtaNodes("detail");
     syncLocaleLinks(browse);
-    photoView.dataset.advertisingPhotoId = record.id;
-    photoImage.dataset.advertisingPhotoId = record.id;
+    photoView.dataset.detailId = record.id;
+    photoImage.dataset.detailId = record.id;
     gridHost.rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
     renderPrimaryThumbs(record);
@@ -4485,13 +4485,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const revealPhotoView = (browse, generation) => {
     // Ẩn grid trước khi đổi class body: style của class mới không phải tính lại cho cả grid (CPU 4x: 8ms thay vì 15ms).
     if (gridSection) gridSection.hidden = true;
-    document.body.classList.add("is-advertising-photo");
-    document.body.dataset.advertisingPhotoActive = "true";
+    document.body.classList.add("is-detail");
+    document.body.dataset.detailActive = "true";
     // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
     // và không bị ép style lần hai (decision phone-frame-budget).
     const layoutWidth = document.documentElement.clientWidth;
     photoView.style.setProperty("--gutter", `${masonrySpacing(layoutWidth).outer}px`);
-    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    photoView.dataset.detailLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
     photoView.hidden = false;
     layoutRelated(browse);
     relatedHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
@@ -4557,7 +4557,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Tín hiệu cho test: "true" khi mọi pha dựng related của lượt mở này đã xong, kể cả site:layout sau motion related
     // (ngắt giữa chừng thì lượt sau tự đặt lại).
-    if (photoView) photoView.dataset.advertisingDetailReady = "false";
+    if (photoView) photoView.dataset.masonryDetailReady = "false";
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
@@ -4592,7 +4592,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent("site:layout"));
-          if (generation === detailRenderGeneration && photoView) photoView.dataset.advertisingDetailReady = "true";
+          if (generation === detailRenderGeneration && photoView) photoView.dataset.masonryDetailReady = "true";
         }, 400);
         // Batch CTA cuối related dựng ở task riêng: chung task mount related thì 111ms trên A04s (CTA R9, gate 50ms).
         // Pha "cta" giữ resize frame xen giữa không dựng batch chung frame với Masonry và LazySizes.
@@ -4603,7 +4603,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         renderCtaSkeleton();
       }
     }
-    if (!deferRelated && photoView) photoView.dataset.advertisingDetailReady = "true";
+    if (!deferRelated && photoView) photoView.dataset.masonryDetailReady = "true";
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
@@ -4623,11 +4623,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clearCtaSkeleton();
     moveCtaNodes("grid");
     syncLocaleLinks(browse);
-    if (photoView) delete photoView.dataset.advertisingPhotoId;
-    if (photoView) delete photoView.dataset.advertisingPhotoLayout;
-    if (photoView) delete photoView.dataset.advertisingPhotoGlass;
-    if (photoView) delete photoView.dataset.advertisingDetailReady;
-    if (photoImage) delete photoImage.dataset.advertisingPhotoId;
+    if (photoView) delete photoView.dataset.detailId;
+    if (photoView) delete photoView.dataset.detailLayout;
+    if (photoView) delete photoView.dataset.detailGlass;
+    if (photoView) delete photoView.dataset.masonryDetailReady;
+    if (photoImage) delete photoImage.dataset.detailId;
     photoView && (photoView.hidden = true);
     if (gridSection) {
       gridSection.hidden = false;
@@ -4635,8 +4635,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // card không có box (vào thẳng ?photo= rồi bấm navbar), nên rect đo ra 0, không cuộn và focus tới card.
       void gridSection.offsetHeight;
     }
-    document.body.classList.remove("is-advertising-photo");
-    delete document.body.dataset.advertisingPhotoActive;
+    document.body.classList.remove("is-detail");
+    delete document.body.dataset.detailActive;
     const focusId = browse.grid.focusId;
     if (browse.category !== filter) setActiveFilter(browse.category);
     if (!geometry || staleStackGeometry()) measure();
@@ -4906,22 +4906,22 @@ export async function mountMasonry(container = document.querySelector('[data-bar
 
   const handOffVideo = (node) => {
     const video = node.advertisingActiveVideo?.();
-    videoHandoff = video ? { mediaId: node.dataset.advertisingActiveMediaId, time: video.currentTime } : null;
+    videoHandoff = video ? { mediaId: node.dataset.masonryActiveMediaId, time: video.currentTime } : null;
   };
   grid.addEventListener("click", (event) => {
-    const link = event.target.closest("[data-advertising-card] > a");
+    const link = event.target.closest("[data-masonry-card] > a");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const card = link.closest("[data-advertising-card]");
+    const card = link.closest("[data-masonry-card]");
     if (!card) return;
     // Không có detail view (trang Công trình): link đi thẳng tới trang chi tiết qua route thường.
     if (!viewer) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const rect = card.getBoundingClientRect();
-    const activeId = card.dataset.advertisingActiveMediaId;
+    const activeId = card.dataset.masonryActiveMediaId;
     browseHistory.captureGrid({
       anchorOffset: rect.top,
-      focusId: card.dataset.advertisingCard,
+      focusId: card.dataset.masonryCard,
       mediaId: activeId || null,
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
@@ -4929,13 +4929,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Scroll ngay trước tap chưa kịp vào entryScroll (scroll event đến frame sau); Back phải về đúng Y lúc tap.
     entryScroll.delete(entryIndex());
     handOffVideo(card);
-    browseHistory.openPhoto(card.dataset.advertisingCard, activeId || null);
+    browseHistory.openPhoto(card.dataset.masonryCard, activeId || null);
   }, { signal: controller.signal });
   grid.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || !geometry) return;
-    const item = event.target instanceof Element ? event.target.closest("[data-advertising-card]") : null;
+    const item = event.target instanceof Element ? event.target.closest("[data-masonry-card]") : null;
     if (!item || !grid.contains(item)) return;
-    const currentIndex = geometry.placements.findIndex((placement) => placement.card.id === item.dataset.advertisingCard);
+    const currentIndex = geometry.placements.findIndex((placement) => placement.card.id === item.dataset.masonryCard);
     const nextIndex = currentIndex + (event.shiftKey ? -1 : 1);
     if (currentIndex < 0 || nextIndex < 0 || nextIndex >= geometry.placements.length) return;
     const nextPlacement = geometry.placements[nextIndex];
@@ -4946,11 +4946,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   }, { signal: controller.signal });
 
   const onRailClick = (event) => {
-    const control = event.target.closest("[data-advertising-filter], [data-advertising-product]");
+    const control = event.target.closest("[data-masonry-filter], [data-masonry-product]");
     if (!control || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const nextFilter = control.dataset.advertisingFilter ?? control.dataset.advertisingProduct;
+    const nextFilter = control.dataset.masonryFilter ?? control.dataset.masonryProduct;
     // Clicking the active filter again cancels a click still waiting for its cache.
     if (nextFilter === filter) {
       cancelLayoutWait();
@@ -4969,14 +4969,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, { signal: controller.signal });
   relatedGrid?.addEventListener("click", (event) => {
-    const link = event.target.closest("[data-advertising-related-card] > a");
+    const link = event.target.closest("[data-masonry-related-card] > a");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const node = link.closest("[data-advertising-related-card]");
-    const nextId = node?.dataset.advertisingRelatedCard;
+    const node = link.closest("[data-masonry-related-card]");
+    const nextId = node?.dataset.masonryRelatedCard;
     if (!nextId || nextId === browseHistory.current.photo) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const activeId = node.dataset.advertisingActiveMediaId;
+    const activeId = node.dataset.masonryActiveMediaId;
     const rect = node.getBoundingClientRect();
     browseHistory.captureDetail({
       anchorId: nextId,
@@ -5000,10 +5000,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   }, { signal: controller.signal });
   relatedGrid?.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || !relatedLayout) return;
-    const item = event.target instanceof Element ? event.target.closest("[data-advertising-related-card]") : null;
+    const item = event.target instanceof Element ? event.target.closest("[data-masonry-related-card]") : null;
     if (!item || !relatedGrid.contains(item)) return;
     const placements = relatedLayout.photoPlacements;
-    const currentIndex = placements.findIndex((placement) => placement.card.id === item.dataset.advertisingRelatedCard);
+    const currentIndex = placements.findIndex((placement) => placement.card.id === item.dataset.masonryRelatedCard);
     const nextIndex = currentIndex + (event.shiftKey ? -1 : 1);
     if (currentIndex < 0 || nextIndex < 0 || nextIndex >= placements.length) return;
     const nextId = placements[nextIndex].card.id;
@@ -5040,14 +5040,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoDescriptionBar.addEventListener("lostpointercapture", end, { once: true });
   }, { signal: controller.signal });
   suggestionNode?.addEventListener("click", (event) => {
-    const link = event.target.closest("[data-advertising-suggestion-tag]");
+    const link = event.target.closest("[data-masonry-suggestion-tag]");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const tag = link.dataset.advertisingSuggestionTag;
+    const tag = link.dataset.masonrySuggestionTag;
     const nextTag = browseHistory.current.tag === tag ? null : tag;
     if (!browseHistory.replaceTag(nextTag)) return;
     requestAnimationFrame(() => {
-      const nextLink = [...suggestionNode.querySelectorAll("[data-advertising-suggestion-tag]")]
-        .find((node) => node.dataset.advertisingSuggestionTag === nextTag);
+      const nextLink = [...suggestionNode.querySelectorAll("[data-masonry-suggestion-tag]")]
+        .find((node) => node.dataset.masonrySuggestionTag === nextTag);
       (nextLink || photoInfo)?.focus({ preventScroll: true });
     });
   }, { signal: controller.signal });
@@ -5055,7 +5055,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const leavePhoto = () => {
     if (!browseHistory.escapeDirectPhoto()) history.back();
   };
-  photoView?.querySelector("[data-advertising-photo-back]")?.addEventListener("click", () => {
+  photoView?.querySelector("[data-detail-back]")?.addEventListener("click", () => {
     if (browseHistory.current.photo) leavePhoto();
   }, { signal: controller.signal });
   document.addEventListener("keydown", (event) => {
@@ -5078,10 +5078,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let videoScheduleFrame = 0;
   const scheduleVideo = () => {
     // Catalog chưa có video (main 2026-10-26): khỏi đo layout mỗi frame cuộn.
-    if (!playingVideos.length && !document.querySelector("figure.advertising-tile video")) return;
-    const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.advertising-tile:hover") : null;
+    if (!playingVideos.length && !document.querySelector("figure.masonry-card video")) return;
+    const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.masonry-card:hover") : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
-    const next = [...document.querySelectorAll("figure.advertising-tile")].flatMap((figure) => {
+    const next = [...document.querySelectorAll("figure.masonry-card")].flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();
       // getClientRects thay checkVisibility (Safari dưới 17.4 không có): rỗng khi video hoặc tổ tiên display none.
       if (!video?.getClientRects().length) return [];
@@ -5106,10 +5106,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
   addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
-  document.addEventListener("advertising-media-change", scheduleVideoSoon, { signal: controller.signal });
+  document.addEventListener("masonry-media-change", scheduleVideoSoon, { signal: controller.signal });
   for (const type of ["pointerover", "pointerout"]) {
     document.addEventListener(type, (event) => {
-      const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
+      const figure = event.pointerType === "mouse" && event.target.closest?.("figure.masonry-card");
       if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
       scheduleVideoSoon();
     }, { signal: controller.signal });
@@ -5152,7 +5152,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let observedCopySize = "";
   const resizeObserver = new ResizeObserver((entries) => {
     if (activePhotoId && !suggestionNode?.hidden
-      && entries.some(entry => entry.target.matches(".advertising-photo-view__suggestion-links"))
+      && entries.some(entry => entry.target.matches(".detail-view__suggestion-links"))
       && suggestionNode.scrollHeight > suggestionNode.offsetHeight + 1) {
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
@@ -5230,8 +5230,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     cancelAnimationFrame(skeletonSyncFrame);
     clearCtaSkeleton();
     photoGlass.remove();
-    document.body.classList.remove("is-advertising-browse", "is-advertising-photo");
-    delete document.body.dataset.advertisingPhotoActive;
+    document.body.classList.remove("is-masonry-browse", "is-detail");
+    delete document.body.dataset.detailActive;
     if (activeInstance?.container === container) activeInstance = undefined;
   };
   signal?.addEventListener("abort", cleanup, { once: true });
@@ -5253,7 +5253,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     // Trả trước chi phí style và layout của chế độ photo trước việc primary; ẩn để không frame chưa có kích thước nào được vẽ.
-    document.body.classList.add("is-advertising-photo");
+    document.body.classList.add("is-detail");
     if (gridSection) gridSection.hidden = true;
     if (photoView) {
       photoView.hidden = false;
@@ -5279,7 +5279,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!geometry) measure();
   } else {
     // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
-    document.body.classList.remove("is-advertising-photo");
+    document.body.classList.remove("is-detail");
     measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");
   }
@@ -5306,7 +5306,7 @@ window.TruongThinhMasonry = {
   navigateQuery: (href, { reason = "navbar" } = {}) => {
     if (!activeInstance) return false;
     const next = new URL(href, window.location.href);
-    const photo = advertisingPhotoId(next);
+    const photo = detailId(next);
     if (photo) return Boolean(activeInstance.browseHistory.openPhoto(photo));
     if (reason === "navbar") {
       activeInstance.browseHistory.returnToGrid({ reason });

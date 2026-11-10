@@ -19,8 +19,8 @@ async function scrollTo(page, target) {
 
 // Advertising khôi phục history scroll khi catalog mount; chỉ cuộn sau đó.
 const catalogSettled = page => page.waitForFunction(() => {
-  const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-  return !skeleton || skeleton.dataset.advertisingCtaReady === "true";
+  const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+  return !skeleton || skeleton.dataset.masonryCtaReady === "true";
 });
 
 try {

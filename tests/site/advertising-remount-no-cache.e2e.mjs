@@ -22,11 +22,11 @@ try {
     window.__whiteMs = [];
     window.__pendingRemoved = 0;
     const tick = () => {
-      for (const card of document.querySelectorAll("[data-project-grid] [data-advertising-card]")) {
+      for (const card of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
         const { top, bottom, height } = card.getBoundingClientRect();
         const image = [...card.querySelectorAll("img")].find((node) => !node.hidden);
         const white = height > 0 && bottom > 0 && top < innerHeight && image
-          && !image.classList.contains("is-advertising-media-ready") && !card.querySelector("[data-advertising-loading-skeleton]");
+          && !image.classList.contains("is-masonry-media-ready") && !card.querySelector("[data-masonry-loading-skeleton]");
         if (white && !since.has(card)) since.set(card, performance.now());
         if (!white && since.has(card)) {
           window.__whiteMs.push(performance.now() - since.get(card));
@@ -39,7 +39,7 @@ try {
     // Card bị gỡ mà img còn đang tải nghĩa là request vẫn chạy sau khi card rời DOM.
     new MutationObserver((records) => records.forEach(({ removedNodes }) => removedNodes.forEach((node) => {
       // Card chỉ bị dời chỗ trong DOM thì vẫn nối, không tính.
-      if (node.dataset?.advertisingCard === undefined || node.isConnected) return;
+      if (node.dataset?.masonryCard === undefined || node.isConnected) return;
       window.__pendingRemoved += [...node.querySelectorAll("img")].filter((image) => !image.complete).length;
     }))).observe(document, { childList: true, subtree: true });
   });
@@ -67,12 +67,12 @@ try {
   assert.ok(whiteMs.length, "cards remounted while scrolling");
   assert.ok(longest <= MAX_WHITE_MS, `no card stays blank over ${MAX_WHITE_MS}ms, longest ${Math.round(longest)}ms`);
   assert.equal(pendingRemoved, 0, `removed cards drop their pending image requests, ${pendingRemoved} still loading`);
-  const stuck = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+  const stuck = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
     .filter((card) => {
       const { top, bottom, height } = card.getBoundingClientRect();
       const image = [...card.querySelectorAll("img")].find((node) => !node.hidden);
-      return height > 0 && bottom > 0 && top < innerHeight && !image?.classList.contains("is-advertising-media-ready");
-    }).map((card) => card.dataset.advertisingCard));
+      return height > 0 && bottom > 0 && top < innerHeight && !image?.classList.contains("is-masonry-media-ready");
+    }).map((card) => card.dataset.masonryCard));
   assert.deepEqual(stuck, [], "every visible card shows its image once scrolling stops");
   await context.close();
   console.log(`advertising remount without cache: ${whiteMs.length} blank spans, longest ${Math.round(longest)}ms`);

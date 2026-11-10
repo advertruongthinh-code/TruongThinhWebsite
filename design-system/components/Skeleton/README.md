@@ -1,11 +1,11 @@
 # Skeleton cuối masonry
 
-Nguồn: `src/site/masonry/skeleton-flow.mjs`, `src/site/masonry/skeleton-flow-worker.mjs`; CSS `.advertising-grid__cta-frame`; spec [Skeleton](../../../docs/specs/advertising-skeleton.md).
+Nguồn: `src/site/masonry/skeleton-flow.mjs`, `src/site/masonry/skeleton-flow-worker.mjs`; CSS `.masonry-grid__cta-frame`; spec [Skeleton](../../../docs/specs/advertising-skeleton.md).
 
 Phần kết trang Advertising: các khung rỗng nối tiếp từ đáy ảnh thật mỗi cột,
 CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên. Runtime
 `masonry/skeleton-flow.mjs` và `masonry/runtime.mjs` dựng khung
-(`.advertising-grid__cta-frame`); CTA là `section.detail-cta` tĩnh.
+(`.masonry-grid__cta-frame`); CTA là `section.detail-cta` tĩnh.
 
 ## Hành vi
 

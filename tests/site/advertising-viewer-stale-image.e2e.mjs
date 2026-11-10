@@ -41,17 +41,17 @@ try {
     const page = await context.newPage();
     slow = false;
     await page.goto(`${origin}/vi/advertising-products/`);
-    await page.locator("[data-project-grid] [data-advertising-card] a").first().click();
+    await page.locator("[data-project-grid] [data-masonry-card] a").first().click();
     const loaded = () => {
-      const image = document.querySelector("[data-advertising-photo-image]");
-      return image?.complete && image.naturalWidth && !document.querySelector("[data-advertising-photo-loading=true]");
+      const image = document.querySelector("[data-detail-image]");
+      return image?.complete && image.naturalWidth && !document.querySelector("[data-detail-loading=true]");
     };
     await page.waitForFunction(loaded, null, { timeout: 60_000 });
 
     // First zoom: the viewer image ends on card A's photo.
-    await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
+    await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
     await page.waitForFunction(() => {
-      const image = document.querySelector("[data-advertising-photo-expanded-image]");
+      const image = document.querySelector("[data-detail-expanded-image]");
       return image.complete && image.naturalWidth && document.querySelector("dialog[open]");
     }, null, { timeout: 60_000 });
     await page.keyboard.press("Escape");
@@ -60,26 +60,26 @@ try {
     // Card B from the related grid, with slow images: zoom before its photo arrives.
     slow = true;
     const nextId = await page.evaluate(() => {
-      const current = document.querySelector("[data-advertising-photo-image]").dataset.advertisingPhotoId;
-      const card = [...document.querySelectorAll("[data-advertising-related-card]")]
-        .find((node) => node.dataset.advertisingRelatedCard !== current && node.querySelector(":scope > a"));
+      const current = document.querySelector("[data-detail-image]").dataset.detailId;
+      const card = [...document.querySelectorAll("[data-masonry-related-card]")]
+        .find((node) => node.dataset.masonryRelatedCard !== current && node.querySelector(":scope > a"));
       card.querySelector(":scope > a").click();
-      return card.dataset.advertisingRelatedCard;
+      return card.dataset.masonryRelatedCard;
     });
-    await page.waitForFunction((id) => document.querySelector("[data-advertising-photo-image]").dataset.advertisingPhotoId === id, nextId);
-    assert.ok(await page.evaluate(() => !document.querySelector("[data-advertising-photo-image]").complete),
+    await page.waitForFunction((id) => document.querySelector("[data-detail-image]").dataset.detailId === id, nextId);
+    assert.ok(await page.evaluate(() => !document.querySelector("[data-detail-image]").complete),
       `${label}: card B photo must still be loading for this test`);
     // The last open's picture is gone, so no later open can paint it.
-    assert.ok(await page.evaluate(() => !document.querySelector("[data-advertising-photo-expanded-image]").hasAttribute("src")),
+    assert.ok(await page.evaluate(() => !document.querySelector("[data-detail-expanded-image]").hasAttribute("src")),
       `${label}: closing the viewer drops its picture`);
     // Owner 2026-11-11: while the primary photo loads the expand button is locked and a tap on the photo does nothing.
-    assert.ok(await page.locator("[data-advertising-photo-expand]").isDisabled(), `${label}: expand button locked while card B loads`);
+    assert.ok(await page.locator("[data-detail-expand]").isDisabled(), `${label}: expand button locked while card B loads`);
     // Desktop: the icon is a spinning loader; touch screens hide the button, so the icon stays still.
-    const spinning = () => document.querySelector("[data-advertising-photo-expand-icon]").getAnimations().length > 0;
+    const spinning = () => document.querySelector("[data-detail-expand-icon]").getAnimations().length > 0;
     assert.equal(await page.evaluate(spinning), !touch, `${label}: loading icon spins only where the button shows`);
-    await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
+    await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
     if (touch) {
-      const frame = await page.locator("[data-advertising-photo-image]").boundingBox();
+      const frame = await page.locator("[data-detail-image]").boundingBox();
       await tap(page, frame.x + frame.width / 2, frame.y + frame.height / 2);
     }
     await page.waitForTimeout(400);
@@ -87,15 +87,15 @@ try {
 
     // Chrome keeps painting the last decoded picture of an <img> until its new src loads, while currentSrc and
     // naturalWidth already describe the new src. So the viewer image must never be visible before it is complete.
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-expand]").disabled, null, { timeout: 60_000 });
-    assert.ok(await page.evaluate(() => document.querySelector("[data-advertising-photo-image]").complete), `${label}: unlocks once loaded`);
+    await page.waitForFunction(() => !document.querySelector("[data-detail-expand]").disabled, null, { timeout: 60_000 });
+    assert.ok(await page.evaluate(() => document.querySelector("[data-detail-image]").complete), `${label}: unlocks once loaded`);
     // The spinner morphs back into the expand icon within a second and stops.
     await page.waitForFunction(() => {
-      const group = document.querySelector("[data-advertising-photo-expand-icon]");
+      const group = document.querySelector("[data-detail-expand-icon]");
       return !group.getAnimations().length && !group.style.transform && group.querySelector("path").getAttribute("d").startsWith("M15.00 3.00");
     }, null, { timeout: 2000 });
     await page.evaluate(() => {
-      const image = document.querySelector("[data-advertising-photo-expanded-image]");
+      const image = document.querySelector("[data-detail-expanded-image]");
       window.__staleFrames = 0;
       window.__done = false;
       const end = performance.now() + 1000;
@@ -109,7 +109,7 @@ try {
         else window.__done = true;
       };
       requestAnimationFrame(tick);
-      document.querySelector("[data-advertising-photo-expand]").click();
+      document.querySelector("[data-detail-expand]").click();
     });
     await page.waitForFunction(() => window.__done);
     assert.ok(await page.evaluate(() => document.querySelector("dialog[open]")), `${label}: viewer opens once loaded`);

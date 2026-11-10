@@ -17,7 +17,7 @@ const failures = [];
 try {
   const probe = await browser.newPage({ viewport: { width: 1329, height: 912 } });
   await probe.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
-  const heroes = (await probe.$$eval("[data-advertising-card]", (nodes) => nodes.map((node) => node.dataset.advertisingCard)))
+  const heroes = (await probe.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard)))
     .slice(0, heroCount);
   await probe.close();
   assert(heroes.length >= Math.min(heroCount, 4), "grid has cards to open");
@@ -29,7 +29,7 @@ try {
       Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
     });
     await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true",
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true",
       null, { timeout: 40000 });
     await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
     await page.waitForTimeout(300);
@@ -39,11 +39,11 @@ try {
       const grid = document.querySelector("[data-project-grid]").getBoundingClientRect();
       const widths = new Map();
       const overflow = [];
-      for (const node of document.querySelectorAll("[data-advertising-card]:not([hidden])")) {
+      for (const node of document.querySelectorAll("[data-masonry-card]:not([hidden])")) {
         const rect = node.getBoundingClientRect();
         if (!rect.width) continue;
-        if (rect.right - grid.right > 1) overflow.push(`${node.dataset.advertisingCard} right +${Math.round(rect.right - grid.right)}px width ${node.style.width}`);
-        const span = node.dataset.advertisingSpan;
+        if (rect.right - grid.right > 1) overflow.push(`${node.dataset.masonryCard} right +${Math.round(rect.right - grid.right)}px width ${node.style.width}`);
+        const span = node.dataset.masonrySpan;
         widths.set(span, [...(widths.get(span) || []), Math.round(rect.width)]);
       }
       const mixed = [...widths].filter(([, list]) => new Set(list).size > 1).map(([span, list]) => `span ${span}: ${[...new Set(list)].join("/")}px`);

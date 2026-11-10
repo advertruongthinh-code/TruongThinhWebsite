@@ -35,15 +35,15 @@ test("taxonomy R4: trang sản phẩm EN có title, meta, canonical, hreflang, h
   assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [ADVERTISING_ROOT_PAGE.kickerEn], "h1 duy nhất là kicker cố định");
   assert.match(html, new RegExp(`<h1\\s+class="hero-kicker"[^>]*data-vi="${ADVERTISING_ROOT_PAGE.kickerVi}"`));
   assert.match(html, /<p id="page-title" class="hero-title"/);
-  assert.match(html, /data-advertising-filter="printing-decals" aria-current="true"/);
-  assert.match(html, /data-advertising-filter="all" aria-current="false"/);
+  assert.match(html, /data-masonry-filter="printing-decals" aria-current="true"/);
+  assert.match(html, /data-masonry-filter="all" aria-current="false"/);
 });
 
 test("taxonomy R4: rail trang gốc link tới trang cụm theo slug của locale", async () => {
   const [vi, en] = await Promise.all([read("vi/advertising-products/index.html"), read("en/advertising-products/index.html")]);
   for (const { slug, slugVi, slugEn } of ADVERTISING_CATEGORIES) {
-    assert.match(vi, new RegExp(`href="/vi/advertising-products/${slugVi}/"[^>]*data-advertising-filter="${slug}"`));
-    assert.match(en, new RegExp(`href="/en/advertising-products/${slugEn}/"[^>]*data-advertising-filter="${slug}"`));
+    assert.match(vi, new RegExp(`href="/vi/advertising-products/${slugVi}/"[^>]*data-masonry-filter="${slug}"`));
+    assert.match(en, new RegExp(`href="/en/advertising-products/${slugEn}/"[^>]*data-masonry-filter="${slug}"`));
   }
 });
 
@@ -51,7 +51,7 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
   assert.deepEqual([ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD], [3, 9]);
   const html = await read("vi/advertising-products/index.html");
   const count = (id) => artifact.cards.filter((card) => card.productIds.includes(id)).length;
-  const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-advertising-product="([^"]+)"/g)]
+  const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-masonry-product="([^"]+)"/g)]
     .map(([, vi, en, id]) => ({ vi, en, id }));
   assert.deepEqual(chips.map(({ id }) => id).sort(), artifact.products.filter(({ id }) => count(id) >= 3).map(({ id }) => id).sort(), "một chip mỗi sản phẩm từ 3 ảnh");
   for (const { vi, en, id } of chips) {
@@ -68,10 +68,10 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
   for (const [, href] of clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].matchAll(/href="(\/vi\/advertising-products\/[^"]*)"/g)) {
     assert.ok(existsSync(new URL(`../../.site-output${href}index.html`, import.meta.url)), `noscript ${href}`);
   }
-  assert.equal((html.match(/data-advertising-chips="[^"]+" hidden/g) || []).length, ADVERTISING_CATEGORIES.length, "trang gốc ẩn mọi hàng chip");
+  assert.equal((html.match(/data-masonry-chips="[^"]+" hidden/g) || []).length, ADVERTISING_CATEGORIES.length, "trang gốc ẩn mọi hàng chip");
   const page = await read("vi/advertising-products/bang-hieu-quang-cao/chu-noi/index.html");
-  assert.match(page, /data-advertising-chips="signage">/);
-  assert.equal((page.match(/data-advertising-product="signage\/raised-letters" aria-current="true"/g) || []).length, 1);
+  assert.match(page, /data-masonry-chips="signage">/);
+  assert.equal((page.match(/data-masonry-product="signage\/raised-letters" aria-current="true"/g) || []).length, 1);
 });
 
 test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path, không trang ghi ?category=", () => {

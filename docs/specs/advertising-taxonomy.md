@@ -98,7 +98,7 @@ thoại: hàng chip cuộn ngang. Mọi cụm và sản phẩm là `<a href>` t�
 document, `replaceState`, card chuyển vị trí); URL thành path trang đích và đổi `document.title` theo trang
 đích, nhưng kicker hero giữ nguyên chữ của trang đã tải, không đổi theo filter (owner 2026-11-08); đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Chip chỉ có cho sản phẩm đủ
 ngưỡng chip R5; chip của sản phẩm chưa có trang trỏ trang cụm kèm `?category=` (R5).
-Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
+Link sản phẩm mang `data-masonry-product` (không phải `data-masonry-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): từ 1025px rail một hàng nâng lên một bậc, hàng chip nằm
 chỗ rail cũ và chữ "Cuộn xuống" vẫn hiện bên dưới; hẹp hơn thì chip nằm ngay dưới rail; trang
@@ -250,7 +250,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 | Data | `photo-tags.mjs` | tag `variant` mang `productId`; `productIds` mỗi media, sửa nhãn R8 |
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4; `<cụm>/?category=<id>` cho sản phẩm chỉ có chip; `<cụm>/404.html` chuyển về trang cụm (R5) |
-| DOM hook | `[data-advertising-filter]` | giữ cho cụm; `[data-advertising-product]` cho chip sản phẩm |
+| DOM hook | `[data-masonry-filter]` | giữ cho cụm; `[data-masonry-product]` cho chip sản phẩm |
 | Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `clusterIds` (cụm của từng sản phẩm, cùng thứ tự), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7); `pages` có thêm mục `query: true` cho sản phẩm chưa có trang, path và chữ của trang cụm (R5) |
 
 ## UI

@@ -18,7 +18,7 @@ const FILTER_DELAY_MS = 2000;
 const gridPath = "/vi/advertising-products/";
 
 const state = (page) => page.evaluate(() => ({
-  current: document.querySelector('[aria-current="true"][data-advertising-filter]')?.dataset.advertisingFilter ?? null,
+  current: document.querySelector('[aria-current="true"][data-masonry-filter]')?.dataset.masonryFilter ?? null,
   path: location.pathname,
 }));
 
@@ -37,7 +37,7 @@ async function openGrid() {
     await route.continue();
   });
   await page.goto(`${baseUrl}${gridPath}`);
-  await page.waitForSelector("[data-advertising-card] a", { state: "attached" });
+  await page.waitForSelector("[data-masonry-card] a", { state: "attached" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getBrowseState?.());
   return { page, warnings };
 }
@@ -46,7 +46,7 @@ try {
   // Control: the click waits for the cache, then lands once.
   {
     const { page, warnings } = await openGrid();
-    await page.locator('[data-advertising-filter="signage"]').click();
+    await page.locator('[data-masonry-filter="signage"]').click();
     await page.waitForTimeout(FILTER_DELAY_MS / 4);
     assert.deepEqual(await state(page), { current: "all", path: gridPath }, "filter click waits while its cache loads");
     await page.waitForTimeout(FILTER_DELAY_MS + 1500);
@@ -57,9 +57,9 @@ try {
   // Re-clicking the active filter cancels the pending click.
   {
     const { page } = await openGrid();
-    await page.locator('[data-advertising-filter="signage"]').click();
+    await page.locator('[data-masonry-filter="signage"]').click();
     await page.waitForTimeout(100);
-    await page.locator('[data-advertising-filter="all"]').click();
+    await page.locator('[data-masonry-filter="all"]').click();
     await page.waitForTimeout(FILTER_DELAY_MS + 1500);
     assert.deepEqual(await state(page), { current: "all", path: gridPath }, "re-clicking All cancels the pending Signage click");
     await page.close();
@@ -67,9 +67,9 @@ try {
   // Opening a card cancels the pending click: the card URL stays.
   {
     const { page } = await openGrid();
-    await page.locator('[data-advertising-filter="signage"]').click();
+    await page.locator('[data-masonry-filter="signage"]').click();
     await page.waitForTimeout(100);
-    await page.locator("[data-project-grid] [data-advertising-card]:not([data-advertising-category='signage']) a").first().click();
+    await page.locator("[data-project-grid] [data-masonry-card]:not([data-masonry-category='signage']) a").first().click();
     await page.waitForFunction(() => location.pathname.includes("/p/"));
     // Opening a card selects the card's own cluster; the late Signage cache must not replace it.
     const browseCategory = () => page.evaluate(() => window.TruongThinhMasonry.getBrowseState().category);

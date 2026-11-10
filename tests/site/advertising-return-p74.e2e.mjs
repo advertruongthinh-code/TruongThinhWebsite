@@ -16,20 +16,20 @@ try {
         y: window.TruongThinhMotion.getLogicalScroll(), url: location.href,
       });
       const before = await page.evaluate(read);
-      const rect = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card] > a")]
-        .map(x => ({ ...x.getBoundingClientRect().toJSON(), id: x.parentElement.dataset.advertisingCard })).find(r => r.top > 110 && r.top < innerHeight - 100));
+      const rect = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card] > a")]
+        .map(x => ({ ...x.getBoundingClientRect().toJSON(), id: x.parentElement.dataset.masonryCard })).find(r => r.top > 110 && r.top < innerHeight - 100));
       assert(rect, "visible grid card is available");
       await page.mouse.click(rect.x + rect.width / 2, Math.min(rect.bottom - 10, rect.top + 100));
       await page.waitForTimeout(1000);
       assert(/\/p\/[^/]+\/$/.test(new URL(page.url()).pathname), "card opens detail");
-      const clip = await page.locator('.advertising-photo-view__suggestion-link[aria-pressed="false"]').first()
+      const clip = await page.locator('.detail-view__suggestion-link[aria-pressed="false"]').first()
         .evaluate(el => ({ clip: getComputedStyle(el).backgroundClip, border: getComputedStyle(el).borderTopColor }));
       assert.equal(clip.clip, "padding-box");
       assert.equal(clip.border, "rgba(0, 0, 0, 0)");
       let returnId = rect.id;
       if (via === "navbar-related") {
-        const related = page.locator('[data-advertising-related-card^="office-signs-wayfinding-"] > a').first();
-        returnId = await related.evaluate(el => el.parentElement.dataset.advertisingRelatedCard);
+        const related = page.locator('[data-masonry-related-card^="office-signs-wayfinding-"] > a').first();
+        returnId = await related.evaluate(el => el.parentElement.dataset.masonryRelatedCard);
         await related.scrollIntoViewIfNeeded();
         await related.click();
         await page.waitForTimeout(900);
@@ -56,7 +56,7 @@ try {
         // Skeleton R3: Back là một page state mới, nên frame Flow draw assignment mới; chỉ scroll được khôi phục.
       } else {
         assert.equal(new URL(after.url).search, new URL(before.url).search, "navbar keeps the picked group");
-        const returned = await page.locator(`[data-advertising-card="${returnId}"]`).boundingBox();
+        const returned = await page.locator(`[data-masonry-card="${returnId}"]`).boundingBox();
         assert(returned);
         const targetTop = via === "navbar-related" ? Math.max(0, (910 - returned.height) / 2) : rect.top;
         assert(Math.abs(returned.y - targetTop) <= 2, `${width}/${via}: ${returned.y} != ${targetTop}`);
@@ -68,26 +68,26 @@ try {
   // Nút quay lại (R10): góc trên trái khung primary, lùi từng entry như Back; ảnh vào thẳng về masonry nhóm.
   for (const [width, touch] of [[1440, false], [390, true]]) {
     const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
-    const press = () => touch ? page.locator("[data-advertising-photo-back]").tap() : page.locator("[data-advertising-photo-back]").click();
+    const press = () => touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
     await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
     await page.waitForTimeout(500);
     const gridUrl = page.url();
     const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-    const card = page.locator("[data-advertising-card] > a").filter({ visible: true }).nth(1);
-    const cardId = await card.evaluate(el => el.parentElement.dataset.advertisingCard);
+    const card = page.locator("[data-masonry-card] > a").filter({ visible: true }).nth(1);
+    const cardId = await card.evaluate(el => el.parentElement.dataset.masonryCard);
     await card.click();
     await page.waitForTimeout(1000);
     const place = await page.evaluate(() => {
-      const frame = document.querySelector(".advertising-photo-view__hero-frame").getBoundingClientRect();
-      const back = document.querySelector("[data-advertising-photo-back]").getBoundingClientRect();
-      return { dx: back.left - frame.left, dy: back.top - frame.top, w: back.width, label: document.querySelector("[data-advertising-photo-back]").getAttribute("aria-label") };
+      const frame = document.querySelector(".detail-view__hero-frame").getBoundingClientRect();
+      const back = document.querySelector("[data-detail-back]").getBoundingClientRect();
+      return { dx: back.left - frame.left, dy: back.top - frame.top, w: back.width, label: document.querySelector("[data-detail-back]").getAttribute("aria-label") };
     });
     const inset = width > 750 ? 16 : 8;
     assert.deepEqual([Math.round(place.dx), Math.round(place.dy), place.w, place.label], [inset, inset, 36, "Quay lại"], JSON.stringify(place));
     const aUrl = page.url();
-    const related = page.locator("[data-advertising-related-card] > a").first();
+    const related = page.locator("[data-masonry-related-card] > a").first();
     await related.scrollIntoViewIfNeeded();
     await related.click();
     await page.waitForTimeout(1000);
@@ -97,7 +97,7 @@ try {
     await press();
     await page.waitForTimeout(900);
     assert.equal(page.url(), aUrl, `${width}: first press returns to A`);
-    assert.equal(await page.locator("dialog#advertising-photo-dialog").evaluate(d => d.open), false, "press does not open viewer");
+    assert.equal(await page.locator("dialog#detail-dialog").evaluate(d => d.open), false, "press does not open viewer");
     await page.evaluate(() => scrollTo(0, 0));
     await page.waitForTimeout(400);
     await press();
@@ -105,7 +105,7 @@ try {
     assert.equal(page.url(), gridUrl, `${width}: second press returns to masonry`);
     const y = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     assert(Math.abs(y - gridY) <= 1, `${width}: masonry scroll ${gridY} -> ${y}`);
-    assert.equal(await page.evaluate(() => document.activeElement?.parentElement?.dataset.advertisingCard), cardId, "focus on card A");
+    assert.equal(await page.evaluate(() => document.activeElement?.parentElement?.dataset.masonryCard), cardId, "focus on card A");
     await page.goto(aUrl, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await press();
@@ -124,10 +124,10 @@ try {
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
       await page.waitForTimeout(700);
       const geometry = await page.evaluate(() => {
-        const copy = document.querySelector("[data-advertising-grid-ta], [data-advertising-grid-cta] .detail-cta__copy").getBoundingClientRect();
+        const copy = document.querySelector("[data-masonry-grid-ta], [data-masonry-grid-cta] .detail-cta__copy").getBoundingClientRect();
         const footer = document.querySelector("footer").getBoundingClientRect();
-        const skeleton = document.querySelector(".advertising-grid__cta-skeleton").getBoundingClientRect();
-        const section = document.querySelector(".project-index:has(.advertising-grid__cta-skeleton)");
+        const skeleton = document.querySelector(".masonry-grid__cta-skeleton").getBoundingClientRect();
+        const section = document.querySelector(".project-index:has(.masonry-grid__cta-skeleton)");
         const tint = section.querySelector(":scope > .glass-surface .glass-surface__tint");
         return { copy: copy.toJSON(), footer: footer.toJSON(), edge: skeleton.bottom,
           overlap: section.getBoundingClientRect().top + parseFloat(tint.style.top) + parseFloat(tint.style.height) - skeleton.bottom };
@@ -155,20 +155,20 @@ try {
   {
     const columns = () => {
       const grid = document.querySelector("[data-project-grid]").getBoundingClientRect();
-      const cards = [...document.querySelectorAll("[data-advertising-card]:not([hidden])")]
+      const cards = [...document.querySelectorAll("[data-masonry-card]:not([hidden])")]
         .map((node) => node.getBoundingClientRect()).filter((rect) => rect.width);
       return { columns: new Set(cards.map((rect) => Math.round(rect.left))).size, gridWidth: grid.width };
     };
     const page = await browser.newPage({ viewport: { width: 1329, height: 912 } });
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
-    const hero = await page.$eval("[data-advertising-card]", (node) => node.dataset.advertisingCard);
+    const hero = await page.$eval("[data-masonry-card]", (node) => node.dataset.masonryCard);
     // Hoãn mọi message gửi Worker 3 s: lượt prewarm grid sau detail còn chạy lúc bấm navbar.
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage;
       Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
     });
     await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true",
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true",
       null, { timeout: 30000 });
     await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
     await page.waitForTimeout(300);

@@ -40,7 +40,7 @@ for (const slug of slugs) {
   assert.match(html, new RegExp('<noscript>\\s*<meta http-equiv="refresh" content="0; url=' + targets.vi + '" data-en-content="0; url=' + targets.en + '">\\s*<\/noscript>'));
   assert.match(html, new RegExp('<a href="' + targets.vi + '" data-en-href="' + targets.en + '"'));
   assert.match(html, /data-en="/, slug + " fallback copy has no English data attribute");
-  assert.doesNotMatch(html, /<img\b|<figure\b|swiper|data-advertising-carousel|data-advertising-source-id|advertising-detail__composition|advertising-detail__hero/i, slug + " must not inline the retired pool or carousel");
+  assert.doesNotMatch(html, /<img\b|<figure\b|swiper|data-masonry-carousel|data-masonry-source-id|advertising-detail__composition|advertising-detail__hero/i, slug + " must not inline the retired pool or carousel");
   const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
   assert.ok(script, slug + " has no early redirect script");
   for (const locale of ["vi", "en"]) {

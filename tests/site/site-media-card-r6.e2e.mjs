@@ -57,9 +57,9 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
-  const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
+  const selector = `[data-masonry-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
-    await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
+    await page.locator("[data-detail-related-grid]").scrollIntoViewIfNeeded();
     // Cuộn mượt của site chỉ đi khoảng 60px mỗi lần và thứ tự related xáo theo lượt xem: card có lúc nằm ở vị trí 36,
     // cần 32 lần (đo 2026-10-26), nên ngân sách 32 lần đỏ chập chờn. 120 lần phủ hết trang (khoảng 5.400px).
     for (let attempt = 0; attempt < 120 && await page.locator(selector).count() === 0; attempt += 1) {
@@ -77,10 +77,10 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   let layoutSettled = false;
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const positions = await page.evaluate((kind) => [...document.querySelectorAll(kind === "related"
-      ? "[data-advertising-related-card]" : "[data-advertising-card]")]
+      ? "[data-masonry-related-card]" : "[data-masonry-card]")]
       .filter((node) => !node.hidden).map((node) => {
         const rect = node.getBoundingClientRect();
-        return { id: node.dataset.advertisingRelatedCard ?? node.dataset.advertisingCard, x: rect.x, y: rect.y };
+        return { id: node.dataset.masonryRelatedCard ?? node.dataset.masonryCard, x: rect.x, y: rect.y };
       }), surface);
     stable = previous && positions.length === previous.length && positions.every((item, index) =>
       item.id === previous[index].id && Math.abs(item.x - previous[index].x) <= 0.5
@@ -107,7 +107,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
         && box.left >= 0 && box.right <= innerWidth) return;
       previous = current;
     }
-    throw new Error(`R6 ${node.dataset.advertisingRelatedCard ? "related" : "grid"} card stayed outside the safe viewport: ${JSON.stringify({ previous, viewportHeight: innerHeight })}`);
+    throw new Error(`R6 ${node.dataset.masonryRelatedCard ? "related" : "grid"} card stayed outside the safe viewport: ${JSON.stringify({ previous, viewportHeight: innerHeight })}`);
   });
   return card;
 }
@@ -118,52 +118,52 @@ async function geometry(card) {
       const { x, y, width, height, top, right, bottom, left } = item.getBoundingClientRect();
       return { x, y, width, height, top, right, bottom, left };
     };
-    const media = node.querySelector(".advertising-card-media");
+    const media = node.querySelector(".card-media");
     const mediaRect = rect(media);
-    const indicator = node.querySelector("[data-advertising-media-indicator]");
-    const peers = [...document.querySelectorAll(node.dataset.advertisingRelatedCard
-      ? "[data-advertising-related-card]" : "[data-advertising-card]")]
+    const indicator = node.querySelector("[data-masonry-media-indicator]");
+    const peers = [...document.querySelectorAll(node.dataset.masonryRelatedCard
+      ? "[data-masonry-related-card]" : "[data-masonry-card]")]
       .filter((item) => item !== node && !item.hidden).map(rect);
-    const controls = [...node.querySelectorAll("[data-advertising-media-select]")]
+    const controls = [...node.querySelectorAll("[data-masonry-media-select]")]
       .map((button) => {
         const box = rect(button);
         const x = box.left + box.width / 2;
         const y = box.top + box.height / 2;
         const hit = document.elementFromPoint(x, y);
-        const blocker = hit?.closest("[data-advertising-related-card]");
-        return { id: button.dataset.advertisingMediaSelect,
+        const blocker = hit?.closest("[data-masonry-related-card]");
+        return { id: button.dataset.masonryMediaSelect,
           box, hitSelf: hit === button, hitTag: hit?.tagName ?? null,
           hitStack: hit === button ? null : document.elementsFromPoint(x, y).slice(0, 5)
             .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
-              relatedId: item.closest("[data-advertising-related-card]")?.dataset.advertisingRelatedCard ?? null })),
+              relatedId: item.closest("[data-masonry-related-card]")?.dataset.masonryRelatedCard ?? null })),
           edgeHitStacks: [box.left + 3, box.right - 3].map((edgeX) =>
             document.elementFromPoint(edgeX, y) === button ? null : document.elementsFromPoint(edgeX, y).slice(0, 5)
               .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
-                relatedId: item.closest("[data-advertising-related-card]")?.dataset.advertisingRelatedCard ?? null }))),
-          hitCard: blocker?.dataset.advertisingRelatedCard ?? null, blocker: blocker ? rect(blocker) : null,
+                relatedId: item.closest("[data-masonry-related-card]")?.dataset.masonryRelatedCard ?? null }))),
+          hitCard: blocker?.dataset.masonryRelatedCard ?? null, blocker: blocker ? rect(blocker) : null,
           withinMedia: box.left >= mediaRect.left - 0.5 && box.right <= mediaRect.right + 0.5
             && box.top >= mediaRect.top - 0.5 && box.bottom <= mediaRect.bottom + 0.5 };
       });
-    const playback = node.querySelector("[data-advertising-media-playback]");
-    const duration = node.querySelector("[data-advertising-media-duration]");
-    const loading = node.querySelector("[data-advertising-media-loading]");
-    const count = node.querySelector("[data-advertising-media-count]");
+    const playback = node.querySelector("[data-masonry-media-playback]");
+    const duration = node.querySelector("[data-masonry-media-duration]");
+    const loading = node.querySelector("[data-masonry-media-loading]");
+    const count = node.querySelector("[data-masonry-media-count]");
     const playbackRect = playback && !playback.hidden ? rect(playback) : null;
     const edgeHitSelf = (button) => {
       const box = rect(button);
       return [box.left + 3, box.right - 3].every((x) =>
         document.elementFromPoint(x, box.top + box.height / 2) === button);
     };
-    const dot = node.querySelector(".advertising-card-media__dot");
+    const dot = node.querySelector(".card-media__dot");
     const dotStyle = dot && getComputedStyle(dot, "::before");
-    const pill = node.querySelector(".advertising-card-media__pill");
+    const pill = node.querySelector(".card-media__pill");
     const pillStyle = pill && getComputedStyle(pill);
     return { card: rect(node), media: mediaRect, indicator: indicator ? rect(indicator) : null, peers, controls,
       dotVisualSize: dotStyle ? { width: parseFloat(dotStyle.width) + 2 * parseFloat(dotStyle.borderLeftWidth),
         height: parseFloat(dotStyle.height) + 2 * parseFloat(dotStyle.borderTopWidth) } : null,
-      customMediaHeight: getComputedStyle(node).getPropertyValue("--advertising-media-height"),
+      customMediaHeight: getComputedStyle(node).getPropertyValue("--masonry-media-height"),
       playback: playbackRect,
-      controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select]")]
+      controlEdgeHitSelf: [...node.querySelectorAll("[data-masonry-media-select]")]
         .map((button) => edgeHitSelf(button)),
       duration: duration ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
@@ -251,9 +251,9 @@ async function runCard(locale, count, surface, width) {
     if (outputDir && locale === "vi" && count === 6) {
       await page.screenshot({ path: path.join(outputDir, `r6-${label}.png`) });
     }
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-video`);
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), `${cardId}-r6-video`);
     if (count >= 6) return;
-    const control = card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
+    const control = card.locator(`[data-masonry-media-select="${cardId}-r6-image-${count}"]`);
     const controlBox = initial.controls.find((item) => item.id === `${cardId}-r6-image-${count}`).box;
     let clickError = null;
     try { await page.mouse.click(controlBox.right - 3, controlBox.top + controlBox.height / 2); }
@@ -261,7 +261,7 @@ async function runCard(locale, count, surface, width) {
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}-pointer.json`),
       JSON.stringify({ initial, clickError }, null, 2));
     assert.equal(clickError, null, `${label} real pointer click must reach its control: ${clickError}`);
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-image-${count}`);
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), `${cardId}-r6-image-${count}`);
     assert.equal(await control.getAttribute("aria-current"), "true");
     assert.equal(page.url(), url, "media selection does not open detail or change URL");
     const after = await geometry(card);
@@ -304,7 +304,7 @@ async function runSingleton(locale, surface, width, videoCover) {
     assert.equal(state.indicator, null, `${label} must not render an indicator`);
     assert.equal(state.duration, null, `${label} shows no duration pill`);
     assert.equal(state.controls.length, 0);
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"),
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"),
       `${cardId}-r6-${videoCover ? "video" : "image-1"}`);
     assert.equal(state.playback, null);
   } finally { await browser.close(); }
@@ -320,22 +320,22 @@ async function runStableDelivery(locale, surface, width, mode) {
   const videoGate = new Promise((resolve) => { releaseVideo = resolve; });
   try {
     const card = await setup(page, locale, 2, true, surface, mode, videoGate);
-    const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
+    const selector = `[data-masonry-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
     const first = await geometry(card);
     const url = page.url();
     assert(Math.abs(first.card.height - first.media.height) <= 1
       && Math.abs(first.indicator.bottom - first.media.bottom) <= 1,
     `${mode} starts with the pill row inside the media`);
-    await card.locator(`[data-advertising-media-select="${cardId}-r6-image-2"]`).click();
+    await card.locator(`[data-masonry-media-select="${cardId}-r6-image-2"]`).click();
     const slide = await geometry(card);
-    await card.locator(`[data-advertising-media-select="${cardId}-r6-video"]`).click();
+    await card.locator(`[data-masonry-media-select="${cardId}-r6-video"]`).click();
     const pending = await geometry(card);
     releaseVideo();
     await page.waitForFunction(({ selector, mode }) => {
       const card = document.querySelector(selector);
       const video = card?.querySelector("video");
       return mode === "slow" ? video?.readyState >= 2
-        : Boolean(video?.error && card.querySelector("[data-advertising-media-loading]")?.hidden);
+        : Boolean(video?.error && card.querySelector("[data-masonry-media-loading]")?.hidden);
     }, { selector, mode }, { timeout: 5000 });
     const settled = await geometry(card);
     const label = `${locale}-${width}-${surface}-${mode}`;

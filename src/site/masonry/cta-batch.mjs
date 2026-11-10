@@ -24,7 +24,7 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
     skeleton,
     cluster,
     arc,
-    get host() { return skeleton?.dataset.advertisingCtaHost; },
+    get host() { return skeleton?.dataset.masonryCtaHost; },
     // Cung đang thấy thì reveal không thêm Kính.
     get arcInView() { return arcInView; },
     // Gắn bộ node vào sân mới. `replay`: chữ và nút chạy lại motion vào view sau lần đặt chỗ kế tiếp, vì trước đó cụm
@@ -36,12 +36,12 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
       skeletonParent.append(skeleton);
       clusterParent?.append(...[cluster, arc].filter(Boolean));
       // Biến đặt thẳng trên cụm thuộc sân cũ; sân mới đặt lại khi dựng batch.
-      cluster?.style.removeProperty("--advertising-cta-top");
-      cluster?.style.removeProperty("--advertising-gap");
+      cluster?.style.removeProperty("--masonry-cta-top");
+      cluster?.style.removeProperty("--masonry-gap");
       // Cụm chưa có top cho tới lần dựng batch kế tiếp: ẩn để không hiện ở đầu sân.
       if (replay) cluster?.style.setProperty("visibility", "hidden");
       else cluster?.style.removeProperty("visibility");
-      skeleton.dataset.advertisingCtaHost = host;
+      skeleton.dataset.masonryCtaHost = host;
     },
     // Sân đổi nội dung mà batch không đổi sân (đổi ảnh ở detail): chạy lại motion vào view sau lần đặt chỗ kế tiếp.
     rearmOnPlace() { rearmPending = true; },
@@ -55,11 +55,11 @@ export function createCtaBatch({ skeleton, cluster, arcHome, signal, rearm }) {
       if (!skeleton) return;
       skeleton.hidden = true;
       skeleton.replaceChildren();
-      cluster?.style.removeProperty("--advertising-cta-tail-height");
+      cluster?.style.removeProperty("--masonry-cta-tail-height");
       if (arc) arc.hidden = true;
-      delete skeleton.dataset.advertisingCtaColumns;
-      delete skeleton.dataset.advertisingCtaReady;
-      delete skeleton.dataset.advertisingCtaSignature;
+      delete skeleton.dataset.masonryCtaColumns;
+      delete skeleton.dataset.masonryCtaReady;
+      delete skeleton.dataset.masonryCtaSignature;
     },
   };
   return batch;

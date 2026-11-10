@@ -83,7 +83,7 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
 // Lớp card tạm nằm đầu host (dưới mọi card), cùng hệ tọa độ với card: left, top, width, height theo px.
 export function createGhostLayer(host) {
   const layer = document.createElement("div");
-  layer.className = "advertising-ghost-layer";
+  layer.className = "masonry-ghost-layer";
   layer.setAttribute("aria-hidden", "true");
   const pending = new Map();
   const attach = () => {
@@ -101,8 +101,8 @@ export function createGhostLayer(host) {
       let element = pending.get(id);
       if (!element) {
         element = document.createElement("div");
-        element.className = "advertising-ghost";
-        element.dataset.advertisingGhost = id;
+        element.className = "masonry-ghost";
+        element.dataset.masonryGhost = id;
         element.style.animationDelay = breathePhase();
         pending.set(id, element);
         attach();

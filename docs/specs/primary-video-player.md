@@ -240,7 +240,7 @@ And khi video mới phát thì tổng là 0:04, giờ chạy theo video mới
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5); bỏ `fullscreen` (R8) |
+| DOM hook | `data-detail-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5); bỏ `fullscreen` (R8) |
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
 | CSS token | `--text-shadow-d`, `--text-shadow-reach` trong `:root` | Bóng hai lớp R4; thread bóng chữ hero định nghĩa, ở đây chỉ dùng lại |
 | Script | `scripts/site/build-video-ladder.mjs` | Keyframe mỗi `0,5s` (R3) |
@@ -265,7 +265,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát (`drop-shadow`), đường tua và núm (`box-shadow`, thanh tua không filter), giờ của player; nút icon, thumbnail video, mũi tên card có `will-change: transform`; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
-| R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
+| R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `detail-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
 | R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
 | R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1, R2 (kể cả video đang dừng) và [gate](../decisions/phone-frame-budget.md) không rơi frame ở primary và viewer đạt trên SM-A047F |
 

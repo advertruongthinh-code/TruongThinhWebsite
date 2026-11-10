@@ -31,25 +31,25 @@ assert(directSlots.some(({ tag }) => tag.id === "use-sampling"), "D17 keeps an i
 
 function readSuggestions() {
   const rounded = (value) => Math.round(value * 10) / 10;
-  const info = document.querySelector("[data-advertising-photo-info]")?.getBoundingClientRect();
-  const body = document.querySelector("[data-advertising-photo-description]")?.getBoundingClientRect();
-  const suggestion = document.querySelector("[data-advertising-photo-suggestion]")?.getBoundingClientRect();
-  const links = document.querySelector(".advertising-photo-view__suggestion-links")?.getBoundingClientRect();
-  const buttons = [...document.querySelectorAll("[data-advertising-suggestion-tag]")].map((button) => {
+  const info = document.querySelector("[data-detail-info]")?.getBoundingClientRect();
+  const body = document.querySelector("[data-detail-description]")?.getBoundingClientRect();
+  const suggestion = document.querySelector("[data-detail-suggestion]")?.getBoundingClientRect();
+  const links = document.querySelector(".detail-view__suggestion-links")?.getBoundingClientRect();
+  const buttons = [...document.querySelectorAll("[data-masonry-suggestion-tag]")].map((button) => {
     const rect = button.getBoundingClientRect();
     return {
-      id: button.dataset.advertisingSuggestionTag,
-      index: button.dataset.advertisingSuggestionIndex,
-      representative: button.dataset.advertisingSuggestionRepresentative,
+      id: button.dataset.masonrySuggestionTag,
+      index: button.dataset.masonrySuggestionIndex,
+      representative: button.dataset.masonrySuggestionRepresentative,
       pressed: button.getAttribute("aria-pressed"),
       rect: [rect.x, rect.y, rect.width, rect.height].map(rounded),
     };
   });
   return {
-    layout: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout,
-    span: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPrimarySpan,
-    inInfo: Boolean(document.querySelector("[data-advertising-photo-suggestion]")?.closest("[data-advertising-photo-info]")),
-    inRelated: Boolean(document.querySelector("[data-advertising-photo-suggestion]")?.closest("[data-advertising-photo-related-grid]")),
+    layout: document.querySelector("[data-detail-view]")?.dataset.detailLayout,
+    span: document.querySelector("[data-detail-view]")?.dataset.masonryPrimarySpan,
+    inInfo: Boolean(document.querySelector("[data-detail-suggestion]")?.closest("[data-detail-info]")),
+    inRelated: Boolean(document.querySelector("[data-detail-suggestion]")?.closest("[data-detail-related-grid]")),
     info: [info.x, info.y, info.width, info.height].map(rounded),
     body: [body.x, body.y, body.width, body.height].map(rounded),
     suggestion: [suggestion.x, suggestion.y, suggestion.width, suggestion.height].map(rounded),
@@ -61,8 +61,8 @@ function readSuggestions() {
       scrollY,
       innerHeight,
       layoutHeight: document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height,
-      top: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-top"),
-      primaryHeight: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-primary-height"),
+      top: document.querySelector("[data-detail-view]")?.style.getPropertyValue("--detail-top"),
+      primaryHeight: document.querySelector("[data-detail-view]")?.style.getPropertyValue("--detail-primary-height"),
     },
   };
 }
@@ -131,8 +131,8 @@ try {
     await page.setViewportSize({ width: 1569, height: 912 });
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
     // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
-      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
+    await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
+      && document.querySelector("[data-masonry-related-card]:not([hidden])"));
     const split = await page.evaluate(readSuggestions);
     assert.equal(split.layout, "split", `${locale}: fixture must exercise split primary`);
     assert.equal(split.span, "3", `${locale}: desktop primary must span three columns`);
@@ -142,19 +142,19 @@ try {
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-1569x912.png`) });
     assert(split.buttons.filter(({ pressed }) => pressed === "true").length === 1, `${locale}: active URL tag is represented`);
     const alternate = split.buttons.find(({ pressed }) => pressed !== "true").id;
-    await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
+    await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, alternate);
     const toggled = await readSettled(page);
     assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry ${layoutInputs(split, toggled)}`);
-    await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
+    await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     const off = await readSettled(page);
     assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
     // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
-      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
+    await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
+      && document.querySelector("[data-masonry-related-card]:not([hidden])"));
     const secondDesktop = await page.evaluate(readSuggestions);
     assert.equal(secondDesktop.layout, "split", `${locale}: intrinsic ratio cannot change desktop mode`);
     assert.equal(secondDesktop.span, "3", `${locale}: second desktop primary must span three columns`);
@@ -164,8 +164,8 @@ try {
 
     await page.setViewportSize({ width: 820, height: 1180 });
     await page.waitForFunction(() => innerWidth === 820
-      && document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
-      && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout === "pinterest"
+      && document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
+      && document.querySelector("[data-detail-view]")?.dataset.detailLayout === "pinterest"
       && document.documentElement.scrollWidth <= document.documentElement.clientWidth);
     const tablet = await page.evaluate(readSuggestions);
     assert.equal(tablet.span, "3", `${locale}: tablet primary must span three columns`);
@@ -174,7 +174,7 @@ try {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction(() => innerWidth === 390
-      && document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
+      && document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
       && document.documentElement.scrollWidth <= document.documentElement.clientWidth);
     const narrow = await page.evaluate(readSuggestions);
     assert.equal(narrow.layout, "pinterest", `${locale}: phone primary must use full-span Pinterest mode`);
@@ -185,9 +185,9 @@ try {
 
     // Full-span chỉ xếp chồng khi viewport dọc; viewport ngang luôn split (detail spec R2).
     await page.setViewportSize({ width: 954, height: 1000 });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout === "pinterest");
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout === "pinterest");
     await page.setViewportSize({ width: 1165, height: 910 });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout === "split");
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout === "split");
     const splitAfterResize = await page.evaluate(readSuggestions);
     assertContained(splitAfterResize, `${locale} full-span to split resize`);
   }

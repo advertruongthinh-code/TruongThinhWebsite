@@ -23,7 +23,7 @@ gãy link và lịch sử.
 - ID đã dùng trong link: GRID-R4, capability `advertising-grid-geometry`,
   `advertising-grid-media`.
 - Code và selector: `masonry-grid-v17`, `[data-project-grid]`,
-  `[data-advertising-card]`.
+  `[data-masonry-card]`.
 - Report, verification và archive có ngày giữ nguyên chữ gốc.
 
 ## Chú thích thuật ngữ

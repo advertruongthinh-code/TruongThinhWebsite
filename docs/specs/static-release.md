@@ -122,20 +122,20 @@ And thẻ html có lang="en" và data-route-locale="en"
 `<img>` có `src` hoặc `data-src` là WebP dưới `/assets/content/` được bọc
 `<picture>` với source JXL khi có `.jxl` cùng tên; `<img>` giữ WebP. Có `width` thì cả hai mang
 `srcset` (hoặc `data-srcset`) gồm các cỡ nhỏ hơn `width` cộng bản gốc, và `sizes`. Ảnh đã có `srcset`,
-có attribute `data-advertising-*` hoặc thiếu JXL giữ nguyên. Pipeline: [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
+có attribute `data-masonry-*` hoặc thiếu JXL giữ nguyên. Pipeline: [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
 
 ```gherkin
 Given <img src="/assets/content/a.webp" width="1600"> có a.jxl, a-240.*, a-480.*, a-960.* cạnh nó
 When build
 Then ảnh nằm trong <picture> có source JXL với srcset 240w, 480w, 960w, 1600w
 And <img> giữ src a.webp với srcset WebP 240w, 480w, 960w, 1600w
-And <img data-advertising-photo-background> giữ nguyên, không bọc
+And <img data-detail-background> giữ nguyên, không bọc
 ```
 
 ### R7. Sáu trang tương thích Advertising
 
 Mỗi nhóm cũ trong `ADVERTISING_LEGACY_CATEGORIES` có `advertising-products/<slug>/index.html`
-cùng bản VI, EN: tiêu đề, mô tả, `<main data-advertising-compatibility-route>`
+cùng bản VI, EN: tiêu đề, mô tả, `<main data-masonry-compatibility-route>`
 với một link, canonical là trang cụm mới, không ảnh hay carousel. Script đầu trang gọi
 `location.replace` tới trang cụm `/<locale>/advertising-products/<slug cụm theo locale>/`: bỏ `category`, `photo`,
 `tag` cũ, giữ query khác; locale theo path, không khớp thì theo `lang`. Không JavaScript thì `<noscript>` refresh về
@@ -250,7 +250,7 @@ Then job fail và liệt kê file biến thể còn thiếu
 | Data | `nonPublicSourceAssets` | Path không public (R3), export từ `non-public-source-assets.mjs` |
 | Data | `catalog-artifact.mjs` | Build sinh trong output, runtime Advertising import |
 | Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
-| DOM hook | `[data-advertising-compatibility-route]` | `main` của trang tương thích |
+| DOM hook | `[data-masonry-compatibility-route]` | `main` của trang tương thích |
 | Attribute | `data-en`, `data-vi`, `data-en-*`, `data-vi-*`, `data-route-locale` | Build và runtime đổi ngôn ngữ |
 
 ## UI

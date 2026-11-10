@@ -740,13 +740,13 @@ export function createSkeletonFlowRenderer(canvas, {
     resumeAfterRestore = wasRunning;
     releaseResources();
     backend = "fallback";
-    if (canvas.dataset) canvas.dataset.advertisingFlowBackend = "fallback";
+    if (canvas.dataset) canvas.dataset.masonryFlowBackend = "fallback";
   };
   const onContextRestored = () => {
     if (destroyed) return;
     gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
     if (initializeWebGl()) {
-      if (canvas.dataset) canvas.dataset.advertisingFlowBackend = "webgl";
+      if (canvas.dataset) canvas.dataset.masonryFlowBackend = "webgl";
       draw();
       if (resumeAfterRestore) start();
     }
@@ -827,7 +827,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   let phase = options.initialPhase;
   let startedAt = null;
   let destroyed = false;
-  flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
+  flowWorkerBackends.set(id, (value) => { canvas.dataset.masonryFlowBackend = value; });
   const send = (type) => !destroyed && worker.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
@@ -969,7 +969,7 @@ export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase 
 export function createSharedSkeletonFlowLayer() {
   const scale = 0.5;
   const canvas = document.createElement("canvas");
-  canvas.className = "advertising-grid__cta-shared-flow";
+  canvas.className = "masonry-grid__cta-shared-flow";
   canvas.setAttribute("aria-hidden", "true");
   const attributes = { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true };
   let gl = canvas.getContext("webgl", attributes);

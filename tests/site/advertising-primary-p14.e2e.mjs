@@ -98,9 +98,9 @@ function attachDiagnostics(page) {
 
 async function settle(page) {
   await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-image]");
-    const primary = document.querySelector("[data-advertising-photo-primary]");
-    const relatedImages = [...document.querySelectorAll("[data-advertising-related-card] img")];
+    const image = document.querySelector("[data-detail-image]");
+    const primary = document.querySelector("[data-detail-primary]");
+    const relatedImages = [...document.querySelectorAll("[data-masonry-related-card] img")];
     return image?.complete && image.naturalWidth > 0 && primary?.getBoundingClientRect().width > 0
       && relatedImages.some((entry) => entry.complete && entry.naturalWidth > 0);
   }, null, { timeout: 12_000 });
@@ -151,7 +151,7 @@ async function settle(page) {
     if (!targets.every(visibleAndSettled)) return false;
     return true;
   }, null, { timeout: 8_000 });
-  await page.waitForFunction(() => ![...document.querySelectorAll("[data-advertising-related-card]")]
+  await page.waitForFunction(() => ![...document.querySelectorAll("[data-masonry-related-card]")]
     .some((node) => node.getAnimations().some((animation) => animation.playState === "running")), null, { timeout: 8_000 });
   // Veil vào trang phủ và chặn pointer tới khi clearRouteEntry gỡ html.route-enter và body.is-transitioning.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
@@ -162,21 +162,21 @@ async function evidence(page) {
   return page.evaluate(() => {
     const box = (node) => node?.getBoundingClientRect().toJSON() || null;
     const styles = (node) => node && getComputedStyle(node);
-    const view = document.querySelector("[data-advertising-photo-view]");
-    const primary = document.querySelector("[data-advertising-photo-primary]");
-    const hero = document.querySelector("[data-advertising-photo-hero]");
-    const frame = document.querySelector(".advertising-photo-view__hero-frame");
-    const foreground = document.querySelector("[data-advertising-photo-image]");
-    const background = document.querySelector("[data-advertising-photo-background]");
-    const info = document.querySelector("[data-advertising-photo-info]");
-    const description = document.querySelector("[data-advertising-photo-description]");
-    const descriptionBox = document.querySelector("[data-advertising-photo-description-box]");
-    const descriptionScroll = document.querySelector("[data-advertising-photo-description-scroll]");
-    const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
-    const suggestion = document.querySelector("[data-advertising-suggestion-card]");
-    const cta = document.querySelector("[data-advertising-photo-cta]");
-    const expand = document.querySelector("[data-advertising-photo-expand]");
-    const dialog = document.querySelector("[data-advertising-photo-dialog]");
+    const view = document.querySelector("[data-detail-view]");
+    const primary = document.querySelector("[data-detail-primary]");
+    const hero = document.querySelector("[data-detail-hero]");
+    const frame = document.querySelector(".detail-view__hero-frame");
+    const foreground = document.querySelector("[data-detail-image]");
+    const background = document.querySelector("[data-detail-background]");
+    const info = document.querySelector("[data-detail-info]");
+    const description = document.querySelector("[data-detail-description]");
+    const descriptionBox = document.querySelector("[data-detail-description-box]");
+    const descriptionScroll = document.querySelector("[data-detail-description-scroll]");
+    const relatedGrid = document.querySelector("[data-detail-related-grid]");
+    const suggestion = document.querySelector("[data-masonry-suggestion-card]");
+    const cta = document.querySelector("[data-detail-cta]");
+    const expand = document.querySelector("[data-detail-expand]");
+    const dialog = document.querySelector("[data-detail-dialog]");
     const foregroundStyle = styles(foreground);
     const backgroundStyle = styles(background);
     const glass = frame?.querySelector(":scope > .glass-surface");
@@ -202,7 +202,7 @@ async function evidence(page) {
       .filter((face) => face.family.replaceAll(/["']/g, "") === "Plus Jakarta Sans")
       .map((face) => ({ status: face.status, weight: face.weight, style: face.style }));
     const ctaLabel = cta?.querySelector("span:not([aria-hidden='true'])");
-    const iconFor = (control) => control?.querySelector("svg, [data-advertising-photo-control-icon], [aria-hidden='true']");
+    const iconFor = (control) => control?.querySelector("svg, [data-detail-control-icon], [aria-hidden='true']");
     const iconMetrics = (control) => {
       const icon = iconFor(control);
       const iconStyle = styles(icon);
@@ -213,12 +213,12 @@ async function evidence(page) {
         contentHeight: iconRect.height - Number.parseFloat(iconStyle.paddingTop) - Number.parseFloat(iconStyle.paddingBottom),
       } : null;
     };
-    const related = [...document.querySelectorAll("[data-advertising-related-card]")]
+    const related = [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0)
       .map((node) => {
         const image = node.querySelector("img");
         return {
-          id: node.dataset.advertisingRelatedCard,
+          id: node.dataset.masonryRelatedCard,
           rect: box(node),
           image: image?.complete && image.naturalWidth > 0 ? {
             rect: box(image), naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight,
@@ -226,13 +226,13 @@ async function evidence(page) {
         };
       });
     const flowSelectors = [
-      "[data-advertising-photo-category]", "[data-advertising-photo-description-box]", "[data-advertising-photo-cta]",
+      "[data-detail-category]", "[data-detail-description-box]", "[data-detail-cta]",
     ];
     const frameRect = frame?.getBoundingClientRect();
     const foregroundRect = foreground?.getBoundingClientRect();
     // Chỉ item related thật; lớp ghost của card ảo (masonry/mount-budget.mjs) cũng là con của grid.
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
-      .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
+      .filter((node) => node.dataset.masonryRelatedItem && node.getBoundingClientRect().width > 0);
     const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionBox
       && !node.hidden && styles(node).display !== "none");
     const infoGap = Number.parseFloat(infoStyle?.rowGap) || 0;
@@ -283,7 +283,7 @@ async function evidence(page) {
       } : null,
       view: box(view), primary: box(primary), hero: box(hero), frame: box(frame), info: box(info),
       contentRects: {
-        category: box(document.querySelector("[data-advertising-photo-category]")),
+        category: box(document.querySelector("[data-detail-category]")),
         descriptionBox: box(descriptionBox), description: box(description),
       },
       minimum: { infoHeight: infoMinimumHeight, imageHeight: imageMinimumHeight, descriptionFloor },
@@ -296,11 +296,11 @@ async function evidence(page) {
       } : null,
       containOverflow: Boolean(frameRect && foregroundRect
         && (foregroundRect.width < frameRect.width - 1 || foregroundRect.height < frameRect.height - 1)),
-      layout: view?.dataset.advertisingPhotoLayout || null,
-      span: Number(view?.dataset.advertisingPrimarySpan),
-      relatedColumns: Number(document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingRelatedColumns),
-      safeTop: Number.parseFloat(styles(view)?.getPropertyValue("--advertising-safe-top")) || 0,
-      safeBottom: Number.parseFloat(styles(view)?.getPropertyValue("--advertising-safe-bottom")) || 0,
+      layout: view?.dataset.detailLayout || null,
+      span: Number(view?.dataset.masonryPrimarySpan),
+      relatedColumns: Number(document.querySelector("[data-detail-related-grid]")?.dataset.masonryRelatedColumns),
+      safeTop: Number.parseFloat(styles(view)?.getPropertyValue("--masonry-safe-top")) || 0,
+      safeBottom: Number.parseFloat(styles(view)?.getPropertyValue("--masonry-safe-bottom")) || 0,
       primaryGap: Number.parseFloat(styles(primary)?.gap),
       foreground: foreground ? {
         rect: box(foreground), currentSrc: foreground.currentSrc, naturalWidth: foreground.naturalWidth,
@@ -312,7 +312,7 @@ async function evidence(page) {
         ariaLabel: background.getAttribute("aria-label"), ariaHidden: background.getAttribute("aria-hidden"),
         title: background.getAttribute("title"), tabIndex: background.tabIndex,
         objectFit: backgroundStyle.objectFit, pointerEvents: backgroundStyle.pointerEvents,
-        filter: backgroundStyle.filter, morph: background.hasAttribute("data-advertising-photo-morph"),
+        filter: backgroundStyle.filter, morph: background.hasAttribute("data-detail-morph"),
       } : null,
       infoState: info ? {
         clientHeight: info.clientHeight, scrollHeight: info.scrollHeight, scrollTop: info.scrollTop,
@@ -323,9 +323,9 @@ async function evidence(page) {
         body: Number.parseFloat(descriptionStyle?.fontSize),
       },
       copy: {
-        titleCount: document.querySelectorAll("[data-advertising-photo-title]").length,
+        titleCount: document.querySelectorAll("[data-detail-title]").length,
         description: description?.textContent?.trim() || "",
-        tagCount: document.querySelectorAll("[data-advertising-photo-tags], [data-advertising-photo-tag]").length,
+        tagCount: document.querySelectorAll("[data-detail-tags], [data-detail-tag]").length,
       },
       descriptionScroll: descriptionScroll ? {
         clientHeight: descriptionScroll.clientHeight, scrollHeight: descriptionScroll.scrollHeight,
@@ -334,19 +334,19 @@ async function evidence(page) {
       } : null,
       suggestion: suggestion ? {
         first: visibleRelatedItems[0] === suggestion,
-        inInfo: Boolean(suggestion.closest("[data-advertising-photo-info]")),
-        inRelated: Boolean(suggestion.closest("[data-advertising-photo-related-grid]")),
+        inInfo: Boolean(suggestion.closest("[data-detail-info]")),
+        inRelated: Boolean(suggestion.closest("[data-detail-related-grid]")),
         rank: Number(suggestion.dataset.rank), sourceOrder: Number(suggestion.dataset.sourceOrder),
         rect: box(suggestion), scrollHeight: suggestion.scrollHeight, clientHeight: suggestion.clientHeight,
-        buttons: [...suggestion.querySelectorAll("[data-advertising-suggestion-tag]")].map(box),
+        buttons: [...suggestion.querySelectorAll("[data-masonry-suggestion-tag]")].map(box),
       } : null,
       flow: flowSelectors.map((selector) => ({
         selector,
         // Card nhiều media chèn dãy thumbnail trước mô tả (media-card R6, kiểm ở m02a); thứ tự ở đây bỏ qua dãy đó.
-        index: [...(info?.children || [])].filter((node) => !node.matches("[data-advertising-photo-media-thumbs]"))
+        index: [...(info?.children || [])].filter((node) => !node.matches("[data-detail-media-thumbs]"))
           .indexOf(info?.querySelector(`:scope > ${selector}`)),
       })),
-      ctaCount: document.querySelectorAll("[data-advertising-photo-cta]").length,
+      ctaCount: document.querySelectorAll("[data-detail-cta]").length,
       cta: cta ? {
         tag: cta.tagName, rect: box(cta), href: cta.href, target: cta.target,
         rel: cta.rel, label: cta.textContent.trim(), labelRect: box(ctaLabel),
@@ -532,8 +532,8 @@ function assertControls(actual, locale, touch = false) {
 
 async function focusByKeyboard(page, selector) {
   await page.bringToFront();
-  if (selector === "[data-advertising-photo-cta]"
-    && await page.evaluate(() => document.activeElement?.matches("[data-advertising-photo-expand]"))) {
+  if (selector === "[data-detail-cta]"
+    && await page.evaluate(() => document.activeElement?.matches("[data-detail-expand]"))) {
     await page.keyboard.press("Shift+Tab");
     if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
   }
@@ -566,14 +566,14 @@ async function assertExpandedControl(page, selector, otherSelector, mode, label)
 }
 
 async function activateWithoutViewer(page, context, action, externalRequests, label) {
-  const cta = page.locator("[data-advertising-photo-cta]");
+  const cta = page.locator("[data-detail-cta]");
   const sourceUrl = page.url();
   const requestCount = externalRequests.length;
   if (action === "modified") {
     await page.evaluate(() => {
       window.__adP14ModifiedClick = null;
       window.addEventListener("click", (event) => {
-        if (event.target.closest?.("[data-advertising-photo-cta]")) {
+        if (event.target.closest?.("[data-detail-cta]")) {
           window.__adP14ModifiedClick = {
             ctrlKey: event.ctrlKey, metaKey: event.metaKey, button: event.button,
             defaultPrevented: event.defaultPrevented,
@@ -588,11 +588,11 @@ async function activateWithoutViewer(page, context, action, externalRequests, la
       `${label}: modified click was intercepted`);
     for (const popup of context.pages().filter((entry) => entry !== page)) await popup.close().catch(() => {});
     assert.equal(page.url(), sourceUrl, `${label}: modified click changed source-page location`);
-    const dialogOpen = await page.locator("[data-advertising-photo-dialog]").evaluate((node) => Boolean(node.open));
+    const dialogOpen = await page.locator("[data-detail-dialog]").evaluate((node) => Boolean(node.open));
     assert.equal(dialogOpen, false, `${label}: modified click opened viewer`);
     return;
   }
-  if (action === "keyboard") await focusByKeyboard(page, "[data-advertising-photo-cta]");
+  if (action === "keyboard") await focusByKeyboard(page, "[data-detail-cta]");
   // Tab qua control trước đó kéo smooth scroll, smooth scroll snap về đích khi xong; chuột và chạm bấm khi trang
   // đã đứng yên như người dùng (Playwright đòi CTA đứng yên, GPU phần mềm trên cloud chỉ ~15fps nên lerp kéo dài).
   else await page.evaluate(async () => {
@@ -616,7 +616,7 @@ async function activateWithoutViewer(page, context, action, externalRequests, la
   assert(externalRequests.length > requestCount, `${label}: ${action} did not preserve native link navigation`);
   assert(externalRequests.slice(requestCount).every((url) => new URL(url).origin === "https://zalo.me"),
     `${label}: ${action} attempted unexpected external navigation`);
-  const dialogOpen = await page.locator("[data-advertising-photo-dialog]").evaluate((node) => Boolean(node.open));
+  const dialogOpen = await page.locator("[data-detail-dialog]").evaluate((node) => Boolean(node.open));
   assert.equal(dialogOpen, false, `${label}: ${action} opened viewer`);
   assert.equal(context.pages().filter((entry) => entry !== page && !entry.isClosed()).length, 0, `${label}: popup was left open`);
 }
@@ -629,14 +629,14 @@ async function screenshot(page, label) {
 
 // Focus vùng mô tả rồi End: trình duyệt cuộn vùng đang focus tới cuối; info không được cuộn theo.
 async function scrollDescriptionToEnd(page) {
-  await page.locator("[data-advertising-photo-description-scroll]").focus();
+  await page.locator("[data-detail-description-scroll]").focus();
   await page.keyboard.press("End");
   await page.waitForTimeout(300);
   return page.evaluate(() => {
-    const scroll = document.querySelector("[data-advertising-photo-description-scroll]");
+    const scroll = document.querySelector("[data-detail-description-scroll]");
     return { reached: scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 1,
       fadeEnd: scroll.hasAttribute("data-fade-end"),
-      infoScrollTop: document.querySelector("[data-advertising-photo-info]")?.scrollTop || 0 };
+      infoScrollTop: document.querySelector("[data-detail-info]")?.scrollTop || 0 };
   });
 }
 
@@ -673,9 +673,9 @@ async function wheelToHit(page, locator, label) {
     const direction = state.rect.top > viewport.height / 2 ? 1 : -1;
     const distance = direction > 0 ? state.rect.top - viewport.height * 0.65
       : viewport.height * 0.35 - state.rect.bottom;
-    const beforeTop = await page.locator("[data-advertising-photo-primary]").evaluate((node) => node.getBoundingClientRect().top);
+    const beforeTop = await page.locator("[data-detail-primary]").evaluate((node) => node.getBoundingClientRect().top);
     await page.mouse.wheel(0, direction * Math.min(300, Math.max(60, distance)));
-    await page.waitForFunction((previous) => document.querySelector("[data-advertising-photo-primary]")?.getBoundingClientRect().top !== previous,
+    await page.waitForFunction((previous) => document.querySelector("[data-detail-primary]")?.getBoundingClientRect().top !== previous,
       beforeTop, { timeout: 4_000 })
       .catch(() => { throw new Error(`${label}: wheel stalled, target ${state.rect.top}-${state.rect.bottom}`); });
   }
@@ -690,14 +690,14 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
       return rect?.toJSON() || null;
     };
     return {
-      primary: position("[data-advertising-photo-primary]"),
-      hero: position("[data-advertising-photo-hero]"),
-      info: position("[data-advertising-photo-info]"),
-      description: position("[data-advertising-photo-description-box]"),
-      cta: position("[data-advertising-photo-cta]"),
+      primary: position("[data-detail-primary]"),
+      hero: position("[data-detail-hero]"),
+      info: position("[data-detail-info]"),
+      description: position("[data-detail-description-box]"),
+      cta: position("[data-detail-cta]"),
       related: (() => {
-        const rect = [...document.querySelectorAll("[data-advertising-related-card]")]
-          .find((node) => node.dataset.advertisingRelatedCard === id)?.getBoundingClientRect();
+        const rect = [...document.querySelectorAll("[data-masonry-related-card]")]
+          .find((node) => node.dataset.masonryRelatedCard === id)?.getBoundingClientRect();
         return rect?.toJSON() || null;
       })(),
       pageHeight: document.scrollingElement.scrollHeight,
@@ -706,19 +706,19 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
   const before = await geometry();
   assert(before.pageHeight > initial.viewport.height, `${test.label}: nonfit content has no document scroll`);
   assertControls(initial, test.locale, test.hasTouch);
-  const expand = await wheelToHit(page, page.locator("[data-advertising-photo-expand]"), `${test.label}: expand`);
+  const expand = await wheelToHit(page, page.locator("[data-detail-expand]"), `${test.label}: expand`);
   await page.mouse.click(expand.x, expand.y);
-  await page.waitForFunction(() => Boolean(document.querySelector("[data-advertising-photo-dialog]")?.open));
+  await page.waitForFunction(() => Boolean(document.querySelector("[data-detail-dialog]")?.open));
   await page.keyboard.press("Escape");
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
 
-  const description = await wheelToHit(page, page.locator("[data-advertising-photo-description-box]"), `${test.label}: description`);
+  const description = await wheelToHit(page, page.locator("[data-detail-description-box]"), `${test.label}: description`);
   const finalPage = await scrollDescriptionToEnd(page);
   assert(finalPage.reached, `${test.label}: end of the description is unreachable`);
 
-  const cta = await wheelToHit(page, page.locator("[data-advertising-photo-cta]"), `${test.label}: CTA`);
+  const cta = await wheelToHit(page, page.locator("[data-detail-cta]"), `${test.label}: CTA`);
   await activateWithoutViewer(page, context, "pointer", externalRequests, test.label);
-  const related = await wheelToHit(page, page.locator(`[data-advertising-related-card="${relatedId}"]`), `${test.label}: related`);
+  const related = await wheelToHit(page, page.locator(`[data-masonry-related-card="${relatedId}"]`), `${test.label}: related`);
   const after = await geometry();
   closeTo(after.primary.width, before.primary.width, `${test.label}: primary width changed during scroll`, 1);
   closeTo(after.primary.height, before.primary.height, `${test.label}: primary height changed during scroll`, 1);
@@ -796,9 +796,9 @@ async function runPageCase(browser, test) {
     }
     if (test.controls) {
       stage = "controls-hover-focus";
-      const hoverExpand = await assertExpandedControl(page, "[data-advertising-photo-expand]", "[data-advertising-photo-cta]", "hover", test.label);
+      const hoverExpand = await assertExpandedControl(page, "[data-detail-expand]", "[data-detail-cta]", "hover", test.label);
       await page.mouse.move(0, 0);
-      const focusExpand = await assertExpandedControl(page, "[data-advertising-photo-expand]", "[data-advertising-photo-cta]", "focus", test.label);
+      const focusExpand = await assertExpandedControl(page, "[data-detail-expand]", "[data-detail-cta]", "focus", test.label);
       stage = "controls-activation";
       await activateWithoutViewer(page, context, "keyboard", externalRequests, test.label);
       await activateWithoutViewer(page, context, "pointer", externalRequests, test.label);
@@ -897,28 +897,28 @@ async function runP7PinterestContract(browser, locale) {
     stage = "geometry";
     const initial = await page.evaluate(() => {
       const rect = (selector) => document.querySelector(selector)?.getBoundingClientRect().toJSON() || null;
-      const view = document.querySelector("[data-advertising-photo-view]");
-      const primary = document.querySelector("[data-advertising-photo-primary]");
-      const frame = document.querySelector(".advertising-photo-view__hero-frame");
-      const image = document.querySelector("[data-advertising-photo-image]");
-      const info = document.querySelector("[data-advertising-photo-info]");
-      const descriptionBox = document.querySelector("[data-advertising-photo-description-box]");
-      const descriptionScroll = document.querySelector("[data-advertising-photo-description-scroll]");
-      const description = document.querySelector("[data-advertising-photo-description]");
-      const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
-      const suggestion = document.querySelector("[data-advertising-suggestion-card]");
+      const view = document.querySelector("[data-detail-view]");
+      const primary = document.querySelector("[data-detail-primary]");
+      const frame = document.querySelector(".detail-view__hero-frame");
+      const image = document.querySelector("[data-detail-image]");
+      const info = document.querySelector("[data-detail-info]");
+      const descriptionBox = document.querySelector("[data-detail-description-box]");
+      const descriptionScroll = document.querySelector("[data-detail-description-scroll]");
+      const description = document.querySelector("[data-detail-description]");
+      const relatedGrid = document.querySelector("[data-detail-related-grid]");
+      const suggestion = document.querySelector("[data-masonry-suggestion-card]");
       const frameRect = frame?.getBoundingClientRect();
       const imageRect = image?.getBoundingClientRect();
       const glass = frame?.querySelector(":scope > .glass-surface");
       const items = [...(relatedGrid?.children || [])]
-        .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
+        .filter((node) => node.dataset.masonryRelatedItem && node.getBoundingClientRect().width > 0);
       return {
         viewportHeight: visualViewport?.height || innerHeight, viewportWidth: innerWidth,
-        columns: Number(relatedGrid?.dataset.advertisingRelatedColumns),
-        span: Number(view?.dataset.advertisingPrimarySpan),
-        layout: view?.dataset.advertisingPhotoLayout,
-        primary: rect("[data-advertising-photo-primary]"), hero: rect("[data-advertising-photo-hero]"),
-        info: rect("[data-advertising-photo-info]"), gap: Number.parseFloat(getComputedStyle(primary).gap) || 0,
+        columns: Number(relatedGrid?.dataset.masonryRelatedColumns),
+        span: Number(view?.dataset.masonryPrimarySpan),
+        layout: view?.dataset.detailLayout,
+        primary: rect("[data-detail-primary]"), hero: rect("[data-detail-hero]"),
+        info: rect("[data-detail-info]"), gap: Number.parseFloat(getComputedStyle(primary).gap) || 0,
         // Sàn info như assertCore: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
         infoMinimum: [...info.children].filter((node) => node !== descriptionBox && !node.hidden && getComputedStyle(node).display !== "none")
           .reduce((sum, node) => sum + node.getBoundingClientRect().height + (Number.parseFloat(getComputedStyle(info).rowGap) || 0),
@@ -930,21 +930,21 @@ async function runP7PinterestContract(browser, locale) {
         containOverflow: Boolean(frameRect && imageRect && (imageRect.width < frameRect.width - 1 || imageRect.height < frameRect.height - 1)),
         glassActive: Boolean(glass && getComputedStyle(glass).display !== "none"),
         suggestion: suggestion ? { first: items[0] === suggestion,
-          inInfo: Boolean(suggestion.closest("[data-advertising-photo-info]")),
-          inRelated: Boolean(suggestion.closest("[data-advertising-photo-related-grid]")),
+          inInfo: Boolean(suggestion.closest("[data-detail-info]")),
+          inRelated: Boolean(suggestion.closest("[data-detail-related-grid]")),
           rank: Number(suggestion.dataset.rank),
           sourceOrder: Number(suggestion.dataset.sourceOrder), ariaHidden: suggestion.getAttribute("aria-hidden"),
           rect: suggestion.getBoundingClientRect().toJSON(), scrollHeight: suggestion.scrollHeight,
           clientHeight: suggestion.clientHeight,
-          buttons: [...suggestion.querySelectorAll("[data-advertising-suggestion-tag]")]
+          buttons: [...suggestion.querySelectorAll("[data-masonry-suggestion-tag]")]
             .map((node) => node.getBoundingClientRect().toJSON()) } : null,
         back: (() => {
-          const button = document.querySelector("[data-advertising-photo-back]");
-          const frame = button?.closest(".advertising-photo-view__hero-frame")?.getBoundingClientRect();
+          const button = document.querySelector("[data-detail-back]");
+          const frame = button?.closest(".detail-view__hero-frame")?.getBoundingClientRect();
           const rect = button?.getBoundingClientRect();
           return rect && frame ? { dx: rect.left - frame.left, dy: rect.top - frame.top, width: rect.width } : null;
         })(),
-        viewerTouchAction: getComputedStyle(document.querySelector("[data-advertising-photo-viewport]")).touchAction,
+        viewerTouchAction: getComputedStyle(document.querySelector("[data-detail-viewport]")).touchAction,
       };
     });
     assert.equal(initial.span, initial.columns, `${label}: fixture must exercise full-span mode`);
@@ -976,17 +976,17 @@ async function runP7PinterestContract(browser, locale) {
     assert.equal(initial.viewerTouchAction, "none", `${label}: fullscreen viewer lost exclusive pan/zoom gestures`);
 
     stage = "description-scroll";
-    const descriptionTop = () => page.evaluate(() => document.querySelector("[data-advertising-photo-description-scroll]").scrollTop);
-    await page.locator("[data-advertising-photo-description-scroll]").hover();
+    const descriptionTop = () => page.evaluate(() => document.querySelector("[data-detail-description-scroll]").scrollTop);
+    await page.locator("[data-detail-description-scroll]").hover();
     await page.mouse.wheel(0, 40);
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-description-scroll]").scrollTop > 0);
+    await page.waitForFunction(() => document.querySelector("[data-detail-description-scroll]").scrollTop > 0);
     assert((await descriptionTop()) > 0, `${label}: wheel over the description does not scroll it`);
     const end = await scrollDescriptionToEnd(page);
     assert.deepEqual([end.reached, end.fadeEnd, end.infoScrollTop], [true, false, 0], `${label}: End does not reach the last line`);
 
     stage = "vertical-scroll";
     // Ngoài vùng mô tả (nhóm, ảnh, suggestion) wheel dọc luôn cuộn trang.
-    for (const selector of ["[data-advertising-photo-hero]", "[data-advertising-photo-category]", "[data-advertising-suggestion-card]"]) {
+    for (const selector of ["[data-detail-hero]", "[data-detail-category]", "[data-masonry-suggestion-card]"]) {
       await page.evaluate(() => scrollTo(0, 0));
       await page.locator(selector).hover();
       const beforeScroll = await page.evaluate(() => scrollY);
@@ -1018,17 +1018,17 @@ async function runP7SuggestionCellContract(browser, locale) {
     await settle(page);
     stage = "suggestion-cell";
     const state = await page.evaluate(() => {
-      const suggestion = document.querySelector("[data-advertising-suggestion-card]");
-      const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
+      const suggestion = document.querySelector("[data-masonry-suggestion-card]");
+      const relatedGrid = document.querySelector("[data-detail-related-grid]");
       const rect = suggestion?.getBoundingClientRect().toJSON();
       const items = [...(relatedGrid?.children || [])]
-        .filter((node) => node.dataset.advertisingRelatedItem && node.getBoundingClientRect().width > 0);
+        .filter((node) => node.dataset.masonryRelatedItem && node.getBoundingClientRect().width > 0);
       return suggestion ? {
         first: items[0] === suggestion, rect, scrollHeight: suggestion.scrollHeight,
-        inInfo: Boolean(suggestion.closest("[data-advertising-photo-info]")),
-        inRelated: Boolean(suggestion.closest("[data-advertising-photo-related-grid]")),
+        inInfo: Boolean(suggestion.closest("[data-detail-info]")),
+        inRelated: Boolean(suggestion.closest("[data-detail-related-grid]")),
         clientHeight: suggestion.clientHeight,
-        buttons: [...suggestion.querySelectorAll("[data-advertising-suggestion-tag]")]
+        buttons: [...suggestion.querySelectorAll("[data-masonry-suggestion-tag]")]
           .map((node) => node.getBoundingClientRect().toJSON()),
       } : null;
     });

@@ -223,7 +223,7 @@ a {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .advertising-detail__carousel)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .detail-carousel)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -1142,7 +1142,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .hero:not(.detail-index-hero) .scroll-cue,
 .portal-copy,
 .legacy-copy,
-.detail-cta:not([data-advertising-grid-cta]) {
+.detail-cta:not([data-masonry-grid-cta]) {
   text-shadow: var(--text-shadow-d);
 }
 
@@ -1772,13 +1772,13 @@ em {
   white-space: nowrap;
 }
 
-.advertising-photo-view__suggestion-label > span {
+.detail-view__suggestion-label > span {
   position: relative;
 }
 
 #dich-vu .portal-subtitle::after,
 .legacy-link .portal-subtitle::after,
-.advertising-photo-view__suggestion-label > span::after {
+.detail-view__suggestion-label > span::after {
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -1795,7 +1795,7 @@ em {
 #dich-vu .service-portal:focus-visible .portal-subtitle::after,
 .legacy-closer:hover .portal-subtitle::after,
 .legacy-link:is(:hover, :focus-visible) .portal-subtitle::after,
-.advertising-photo-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .advertising-photo-view__suggestion-label > span::after {
+.detail-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .detail-view__suggestion-label > span::after {
   transform: scaleX(1);
   transform-origin: left center;
 }

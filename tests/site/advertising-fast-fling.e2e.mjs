@@ -20,7 +20,7 @@ try {
     let added = 0;
     new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
       // Card chỉ bị dời chỗ trong DOM (insertBefore) không phải card mới.
-      if (node.dataset?.advertisingCard !== undefined && !node.__seen) {
+      if (node.dataset?.masonryCard !== undefined && !node.__seen) {
         node.__seen = true;
         added += 1;
       }
@@ -28,7 +28,7 @@ try {
     const step = 12;
     const tick = () => {
       if (probe.running) {
-        const rects = [...document.querySelectorAll("[data-project-grid] [data-advertising-card], .advertising-ghost")]
+        const rects = [...document.querySelectorAll("[data-project-grid] [data-masonry-card], .masonry-ghost")]
           .map((node) => node.getBoundingClientRect()).filter((rect) => rect.bottom > 0 && rect.top < innerHeight && rect.height > 0);
         let covered = 0;
         let total = 0;
@@ -40,8 +40,8 @@ try {
         }
         probe.frames.push(covered / total);
         probe.added.push(added);
-        for (const ghost of document.querySelectorAll(".advertising-ghost")) {
-          probe.ghosts.set(ghost.dataset.advertisingGhost, getComputedStyle(ghost).backgroundColor);
+        for (const ghost of document.querySelectorAll(".masonry-ghost")) {
+          probe.ghosts.set(ghost.dataset.masonryGhost, getComputedStyle(ghost).backgroundColor);
         }
         probe.crossfades = Math.max(probe.crossfades, document.getAnimations().filter((animation) => {
           const timing = animation.effect?.getTiming?.();
@@ -82,12 +82,12 @@ try {
   // Vùng trễ: cuộn xuống 2.2 viewport; card đã dựng ở vị trí trước nằm cao hơn viewport quá một viewport vẫn còn.
   await scrollTo(page, viewport * 4);
   await settle(2500);
-  await page.evaluate(() => document.querySelectorAll("[data-project-grid] [data-advertising-card]").forEach((node) => { node.__before = true; }));
+  await page.evaluate(() => document.querySelectorAll("[data-project-grid] [data-masonry-card]").forEach((node) => { node.__before = true; }));
   await scrollTo(page, viewport * 6.2);
   await settle(1500);
   const kept = await page.evaluate(() => {
     const vh = innerHeight;
-    const cards = [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")];
+    const cards = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")];
     return {
       sameNodeBeyondOneViewport: cards.filter((node) => node.__before && node.getBoundingClientRect().bottom < -vh).length,
       farthest: Math.max(...cards.map((node) => Math.max(-node.getBoundingClientRect().bottom, node.getBoundingClientRect().top - vh))),
@@ -140,19 +140,19 @@ try {
   await settle(5000);
   const after = await page.evaluate((entries) => {
     const vh = innerHeight;
-    const strayGhosts = [...document.querySelectorAll(".advertising-ghost")].filter((node) => {
+    const strayGhosts = [...document.querySelectorAll(".masonry-ghost")].filter((node) => {
       const rect = node.getBoundingClientRect();
       return rect.bottom > -vh && rect.top < 2 * vh;
     }).length;
     const wrong = [];
     for (const [id, color] of entries) {
-      const media = document.querySelector(`[data-advertising-card="${id}"] .advertising-card-media`);
+      const media = document.querySelector(`[data-masonry-card="${id}"] .card-media`);
       if (media && getComputedStyle(media).backgroundColor !== color) wrong.push(id);
     }
-    const blank = [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")].filter((card) => {
+    const blank = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((card) => {
       const rect = card.getBoundingClientRect();
       const image = [...card.querySelectorAll("img")].find((node) => !node.hidden);
-      return rect.bottom > 0 && rect.top < vh && !image?.classList.contains("is-advertising-media-ready");
+      return rect.bottom > 0 && rect.top < vh && !image?.classList.contains("is-masonry-media-ready");
     }).length;
     return { strayGhosts, wrong, blank };
   }, fling.ghosts);

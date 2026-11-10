@@ -71,23 +71,23 @@ try {
   {
     const { page, originals } = await open();
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-card] img").length > 8);
+    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-card] img").length > 8);
     await page.waitForTimeout(5000);
-    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
+    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]
       .filter((image) => image.currentSrc).map((image) => new URL(image.currentSrc).pathname));
     assert.ok(cards.length && cards.every((pathname) => VARIANT.test(pathname)), `masonry cards stay on their variant ${JSON.stringify(cards)}`);
     assert.deepEqual(originals.filter(({ pathname }) => cards.some((card) => card.replace(VARIANT, "") === pathname.replace(/\.\w+$/, ""))), [],
       "no masonry card requests its original");
     // Mở detail bằng click (route mềm) để primary dùng lại cùng img khi mở media sau.
-    await page.locator("[data-advertising-card] > a").first().click();
-    const primary = "[data-advertising-photo-image]";
+    await page.locator("[data-masonry-card] > a").first().click();
+    const primary = "[data-detail-image]";
     await page.waitForFunction((selector) => {
       const image = document.querySelector(selector);
       return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
     }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
     // Primary dùng lại một img: mở media khác thì ảnh hiện phải là media đó, không phải bản gốc của media trước.
     await page.goBack();
-    await page.locator("[data-advertising-card] > a").nth(1).click();
+    await page.locator("[data-masonry-card] > a").nth(1).click();
     await page.waitForTimeout(2000);
     const shown = await page.evaluate((selector) => {
       const image = document.querySelector(selector);
@@ -102,10 +102,10 @@ try {
   {
     const { page } = await open({ viewport: { width: 1920, height: 940 } });
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
-    await page.locator("[data-advertising-card] > a").first().click();
+    await page.locator("[data-masonry-card] > a").first().click();
     await page.waitForTimeout(6000);
     // Ảnh gốc nhỏ (không có variant lớn hơn khung) vẫn là ứng viên đúng; chỉ bản gốc lớn hơn nhiều so với khung là nâng sai.
-    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card] img, [data-advertising-suggestion-card] img")]
+    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card] img, [data-masonry-suggestion-card] img")]
       .filter((image) => image.currentSrc && image.clientWidth > 0).map((image) => ({ pathname: new URL(image.currentSrc).pathname,
         oversized: image.naturalWidth > 1.5 * image.clientWidth * devicePixelRatio })));
     const upgraded = cards.filter(({ pathname, oversized }) => !VARIANT.test(pathname) && oversized).map(({ pathname }) => pathname);

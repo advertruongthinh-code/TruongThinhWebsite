@@ -19,27 +19,27 @@ const open = async (device) => {
   return { context, page, slow };
 };
 // Card trong viewport: ảnh chưa tải mà không blur hoặc không có màu chủ đạo là ô trống; card không còn khung skeleton hay canvas Flow.
-const cardStates = (page, selector = "[data-project-grid] [data-advertising-card]") => page.evaluate((selector) =>
+const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") => page.evaluate((selector) =>
   [...document.querySelectorAll(selector)].filter((card) => {
     const { top, bottom } = card.getBoundingClientRect();
     return bottom > 0 && top < innerHeight;
   }).map((card) => {
     const image = card.querySelector("img");
     return {
-      id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
+      id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
       blur: Boolean(image?.style.filter.startsWith("blur(")),
-      // Card mờ chờ ảnh thì thở: runtime gắn data-advertising-media-loading lên card (spec chờ ảnh S2).
-      marked: card.hasAttribute("data-advertising-media-loading"),
+      // Card mờ chờ ảnh thì thở: runtime gắn data-masonry-media-loading lên card (spec chờ ảnh S2).
+      marked: card.hasAttribute("data-masonry-media-loading"),
       // Blur tan (animate WAAPI) còn blur inline nhưng thở đã dừng.
       revealing: Boolean(image?.getAnimations().some((animation) => animation.animationName === undefined)),
-      color: Boolean(card.querySelector(".advertising-card-media")?.style.backgroundColor),
+      color: Boolean(card.querySelector(".card-media")?.style.backgroundColor),
       glass: Boolean(card.querySelector(".glass-surface")),
-      skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton], canvas")),
+      skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton], canvas")),
     };
   }), selector);
 // Số card tạm (loading-glass R10) đang giao viewport.
-const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll(".advertising-ghost")].filter((ghost) => {
+const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll(".masonry-ghost")].filter((ghost) => {
   const { top, bottom } = ghost.getBoundingClientRect();
   return bottom > 0 && top < innerHeight;
 }).length);
@@ -64,9 +64,9 @@ try {
       let next = 0;
       window.__blurTrace = [];
       const tick = () => {
-        for (const image of document.querySelectorAll("[data-project-grid] [data-advertising-card] img[style*='blur(']")) {
+        for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img[style*='blur(']")) {
           if (!ids.has(image)) ids.set(image, ++next);
-          window.__blurTrace.push([image.closest("[data-advertising-card]").dataset.advertisingCard, ids.get(image),
+          window.__blurTrace.push([image.closest("[data-masonry-card]").dataset.masonryCard, ids.get(image),
             // Thở (CSS animation media-breathe) không phải animate vào; chỉ đếm animation khác (WAAPI).
             image.getAnimations().filter((animation) => animation.animationName !== "media-breathe").length]);
         }
@@ -111,7 +111,7 @@ try {
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
     // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận
     // blur ở IntersectionObserver của frame kế.
-    await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+    await page.waitForFunction(() => ![...document.querySelectorAll(".masonry-ghost")].some((ghost) => {
       const { top, bottom } = ghost.getBoundingClientRect();
       return bottom > 0 && top < innerHeight;
     }), null, { timeout: 5000 });
@@ -156,9 +156,9 @@ try {
     await page.addInitScript(() => {
       window.__opacityTrace = new Map();
       const tick = () => {
-        for (const image of document.querySelectorAll("[data-project-grid] [data-advertising-card] img")) {
+        for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img")) {
           const trace = window.__opacityTrace.get(image) || [];
-          const rect = image.closest("[data-advertising-card]").getBoundingClientRect();
+          const rect = image.closest("[data-masonry-card]").getBoundingClientRect();
           trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter), rect.bottom > 0 && rect.top < innerHeight]);
           window.__opacityTrace.set(image, trace);
         }
@@ -190,7 +190,7 @@ try {
     await page.waitForTimeout(1500);
     slow.on = true;
     const tap = await page.evaluate(() => {
-      const link = [...document.querySelectorAll("[data-advertising-card] > a")].find((node) => {
+      const link = [...document.querySelectorAll("[data-masonry-card] > a")].find((node) => {
         const { top, bottom } = node.getBoundingClientRect();
         return top > 80 && bottom < innerHeight - 20;
       });
@@ -198,21 +198,21 @@ try {
       return [x + width / 2, y + height / 2];
     });
     await page.touchscreen.tap(...tap);
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-related-card]").length);
+    await page.waitForFunction(() => document.querySelectorAll("[data-masonry-related-card]").length);
     await page.waitForTimeout(2000);
     assert.equal(await page.evaluate(() => scrollY), 0, "phone: detail opens at the top");
-    await page.evaluate(() => scrollTo(0, document.querySelector("[data-advertising-related-card]").getBoundingClientRect().top - 100));
+    await page.evaluate(() => scrollTo(0, document.querySelector("[data-masonry-related-card]").getBoundingClientRect().top - 100));
     await page.waitForTimeout(500);
-    const related = await cardStates(page, "[data-advertising-related-card]");
+    const related = await cardStates(page, "[data-masonry-related-card]");
     assert.ok(related.some(({ blur }) => blur), `phone: related cards blur while loading ${JSON.stringify(related)}`);
     assert.deepEqual(related.filter(({ blur, marked, revealing }) => blur !== marked && !revealing), [],
       "phone: related cards breathe exactly while blurred");
     await page.waitForFunction(() => {
-      const loaded = [...document.querySelectorAll("[data-advertising-related-card]")]
+      const loaded = [...document.querySelectorAll("[data-masonry-related-card]")]
         .map((card) => card.querySelector("img")).filter((image) => image?.naturalWidth > 0);
       return loaded.length && loaded.every((image) => !image.style.filter.startsWith("blur("));
     }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still blurred "
-      + JSON.stringify(await cardStates(page, "[data-advertising-related-card]"))));
+      + JSON.stringify(await cardStates(page, "[data-masonry-related-card]"))));
     await context.close();
   }
   // PC Slow 4G tắt cache, mở detail từ masonry (owner 2026-11-01): card related giữ chỗ trước, batch CTA nối sau,
@@ -228,15 +228,15 @@ try {
     await page.evaluate(() => {
       window.__batchBeforeRelated = 0;
       const tick = () => {
-        const canvas = document.querySelector("[data-advertising-photo-canvas]");
-        const batch = canvas?.querySelector("[data-advertising-cta-frame]");
-        if (batch && !batch.closest("[hidden]") && !canvas.querySelector("[data-advertising-related-card]")) window.__batchBeforeRelated++;
-        if (!canvas?.querySelector("[data-advertising-related-card]")) requestAnimationFrame(tick);
+        const canvas = document.querySelector("[data-detail-canvas]");
+        const batch = canvas?.querySelector("[data-masonry-cta-frame]");
+        if (batch && !batch.closest("[hidden]") && !canvas.querySelector("[data-masonry-related-card]")) window.__batchBeforeRelated++;
+        if (!canvas?.querySelector("[data-masonry-related-card]")) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     });
-    await page.locator("[data-project-grid] [data-advertising-card] > a").first().click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-canvas] [data-advertising-related-card]"),
+    await page.locator("[data-project-grid] [data-masonry-card] > a").first().click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-canvas] [data-masonry-related-card]"),
       null, { timeout: 15000 });
     assert.equal(await page.evaluate(() => window.__batchBeforeRelated), 0, "desktop detail: batch shows before related cards");
     await context.close();

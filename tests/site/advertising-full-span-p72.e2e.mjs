@@ -21,24 +21,24 @@ try {
       try {
         await page.goto(`${origin}/${locale}/advertising-products/?category=${category}&photo=${photo}`);
         await page.waitForFunction(() => {
-          const view = document.querySelector("[data-advertising-photo-view]");
-          const image = document.querySelector("[data-advertising-photo-image]");
-          return document.fonts.status === "loaded" && view?.dataset.advertisingPhotoLayout === "pinterest"
+          const view = document.querySelector("[data-detail-view]");
+          const image = document.querySelector("[data-detail-image]");
+          return document.fonts.status === "loaded" && view?.dataset.detailLayout === "pinterest"
             && image?.complete && image.naturalWidth > 0;
         });
         const state = await page.evaluate(() => {
           const box = (selector) => document.querySelector(selector).getBoundingClientRect();
-          const primary = box("[data-advertising-photo-primary]");
-          const frame = box(".advertising-photo-view__hero-frame");
-          const image = box("[data-advertising-photo-image]");
-          const info = box("[data-advertising-photo-info]");
-          const gap = Number.parseFloat(getComputedStyle(document.querySelector("[data-advertising-photo-primary]")).gap);
+          const primary = box("[data-detail-primary]");
+          const frame = box(".detail-view__hero-frame");
+          const image = box("[data-detail-image]");
+          const info = box("[data-detail-info]");
+          const gap = Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-primary]")).gap);
           return {
             primaryHeight: primary.height, primaryTop: primary.top, primaryBottom: primary.bottom,
             frameWidth: frame.width, frameHeight: frame.height,
             imageWidth: image.width, imageHeight: image.height, imageLeft: image.left,
             frameLeft: frame.left, infoHeight: info.height, gap,
-            glass: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass,
+            glass: document.querySelector("[data-detail-view]").dataset.detailGlass,
             horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           };
         });
