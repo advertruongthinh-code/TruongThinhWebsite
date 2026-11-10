@@ -111,9 +111,13 @@ document.documentElement.classList.add("media-gate");
     resized.unobserve(image);
     inView.delete(image);
   };
-  // Card masonry giữ bản vừa khung dù card dọc cao quá 60% viewport (owner chọn 2026-10-31).
+  // Card masonry, kể cả card related và card gợi ý ở detail, giữ bản vừa khung dù card dọc cao quá 60% viewport (owner
+  // chọn 2026-10-31): card related lên bản gốc làm PC đứng 200-480ms mỗi lần giải mã JXL 4K giữa hai lần lướt (đo 2026-11-09).
+  // Phone không lên bản gốc 4K (owner 2026-11-07, media query như <source> phone của build).
+  const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
   const watchUpgrade = (image) => {
-    if (!VARIANT.test(image.currentSrc) || image.closest("[data-advertising-card]")) return;
+    if (phone || !VARIANT.test(image.currentSrc)
+      || image.closest("[data-masonry-item]")) return;
     upgradeObserver.observe(image);
     resized.observe(image);
   };
@@ -136,7 +140,7 @@ document.documentElement.classList.add("media-gate");
       Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width));
     const loaded = image.currentSrc.replace(/\.\w+$/, "");
     if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
-    [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
+    [image, ...image.parentElement.querySelectorAll(":scope > source")].forEach((node) => node.setAttribute("sizes", `${needed}px`));
   }));
   const fitted = 'picture > img[loading="lazy"], picture > img[data-srcset]';
   // Container Barba dựng ngoài document nên ảnh có thể load xong trước khi gắn vào, event load không tới document;

@@ -11,15 +11,17 @@
     delete cleanedState.ttAdvertisingHistoryFallback;
     try { window.history.replaceState(cleanedState, "", window.location.href); } catch {}
   }
-  if (directContainer?.dataset.barbaNamespace === "advertising-products"
+  if (["advertising-products", "projects"].includes(directContainer?.dataset.barbaNamespace)
     && (navigationType === "back_forward" || historyFallback)) {
-    window.__ttAdvertisingBrowseStartupHistory = {
+    window.__ttBrowseStartupHistory = {
       navigationType,
       historyFallback,
       state: nativeState,
     };
   }
 
+  // Trang chạy runtime masonry quảng cáo: Sản phẩm quảng cáo và Công trình (projects R2, cùng hero, motion, lưới).
+  const isCatalogNamespace = (namespace) => namespace === "advertising-products" || namespace === "projects";
   let activePage;
   let advertisingCarouselModulesPromise;
   let advertisingCarouselStylePromise;
@@ -111,8 +113,8 @@
   // chung module, không tải hai lần; nếu chờ runtime tải xong mới import thì artifact trễ một vòng mạng.
   const loadAdvertisingCatalog = () => Promise.all([
     ensureAdvertisingDependencies(),
-    import("/advertising-products/catalog-runtime.mjs").then((runtime) => {
-      runtime.preloadAdvertisingCatalog();
+    import("/masonry/runtime.mjs").then((runtime) => {
+      runtime.preloadMasonry();
       return runtime;
     }),
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
@@ -255,7 +257,7 @@
     if (!container || activePage?.container === container) return activePage?.catalogReady;
     unmount();
 
-    const advertisingHeroSettled = container.dataset.barbaNamespace === "advertising-products"
+    const advertisingHeroSettled = isCatalogNamespace(container.dataset.barbaNamespace)
       && advertisingHeroPlayed.has(container);
 
     const reduceMotion = window.matchMedia(
@@ -263,7 +265,7 @@
     ).matches;
     const gsap = window.gsap;
     if (
-      container.dataset.barbaNamespace === "advertising-products"
+      isCatalogNamespace(container.dataset.barbaNamespace)
       && (settled || reduceMotion || (gsap && window.SplitText))
     ) advertisingHeroPlayed.add(container);
     const abort = new AbortController();
@@ -288,14 +290,53 @@
 
     if (container.dataset.barbaNamespace === "advertising-products") {
       state.catalogReady = loadAdvertisingCatalog()
-        .then(({ mountAdvertisingCatalog }) => {
+        .then(({ mountMasonry }) => {
           if (!abort.signal.aborted) {
-            return mountAdvertisingCatalog(container, {
+            return mountMasonry(container, {
               signal: abort.signal,
               scroll: window.TruongThinhMotion,
               softNavigation,
             });
           }
+        });
+    }
+
+    // Trang Công trình (projects R2): chính runtime masonry quảng cáo với artifact công trình nhúng trong trang, không
+    // detail view; không tải catalog-artifact, catalog-detail của trang quảng cáo.
+    const projectArtifact = container.dataset.barbaNamespace === "projects"
+      && container.querySelector("script[data-project-artifact]");
+    if (projectArtifact) {
+      // Parse trong chuỗi promise: JSON hỏng đi vào nhánh lỗi (thẻ tĩnh), không lan lên shell rồi tải lại trang mãi.
+      const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent));
+      // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
+      const emptyLine = container.querySelector(".projects-empty");
+      const rail = container.querySelector(".project-filters");
+      state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/masonry/runtime.mjs")])
+        .then(([artifact, , { mountMasonry }]) => {
+          if (emptyLine && rail) {
+            const syncEmpty = () => {
+              const filter = rail.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter ?? "all";
+              emptyLine.hidden = filter === "all" || artifact.cards.some((card) => card.category === filter || card.clusterIds?.includes(filter));
+            };
+            const railObserver = new MutationObserver(syncEmpty);
+            railObserver.observe(rail, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
+            observers.push(railObserver);
+          }
+          if (!abort.signal.aborted) {
+            return mountMasonry(container, {
+              signal: abort.signal,
+              scroll: window.TruongThinhMotion,
+              softNavigation,
+              artifact,
+              viewer: false,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("[projects] catalog mount failed", error);
+          const grid = container.querySelector("[data-project-grid]");
+          const fallback = grid?.querySelector("noscript");
+          if (fallback && !grid.querySelector(".project-tile")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
         });
     }
 
@@ -337,6 +378,7 @@
         // Không có SplitText thì chữ giữ nguyên và hiện đủ; media và hero motion vẫn chạy.
         const splitRoute = Boolean(SplitText) && new Set([
           "advertising-products",
+          "projects",
           "residential",
           "commercial",
         ]).has(container.dataset.barbaNamespace);
@@ -371,7 +413,7 @@
         const isGroupSettled = (group) => settled || (
           isHeroGroup(group) && (
             advertisingHeroSettled || (
-              container.dataset.barbaNamespace === "advertising-products" && advertisingHeroTextStarted
+              isCatalogNamespace(container.dataset.barbaNamespace) && advertisingHeroTextStarted
             )
           )
         );
@@ -647,6 +689,25 @@
         motionItems.forEach((item) => {
           item.style.setProperty("--motion-delay", `${getDelay(item)}s`);
         });
+        // Một khối được đặt vào layout mới (cụm CTA chuyển giữa masonry và detail, đổi ảnh detail): chữ và nút về
+        // trạng thái chưa hiện rồi chờ lần vào view kế tiếp, như lần đầu ở masonry (advertising-cta-center-parallax R9).
+        state.rearmMotion = (root) => {
+          if (settled || !root) return;
+          [...lineGroups, ...wordGroups].filter((group) => root.contains(group)).forEach((group) => {
+            textObserver.unobserve(group);
+            observedTextGroups.delete(group);
+            completedTextGroups.delete(group);
+            lineStates.delete(group);
+            lineTweens.get(group)?.kill();
+            lineTweens.delete(group);
+            prepareTextGroup(group);
+          });
+          motionItems.filter((item) => root.contains(item)).forEach((item) => {
+            item.classList.remove("is-motion-inview");
+            itemObserver.unobserve(item);
+            itemObserver.observe(item);
+          });
+        };
         mediaItems.forEach((item) => {
           const markReady = () => item.classList.add("is-motion-ready");
           if (item.complete) markReady();
@@ -656,53 +717,6 @@
             item.addEventListener("error", markReady, { once: true, signal: abort.signal });
           }
         });
-
-        const isInside = (section, element) =>
-          Boolean(section && element && (section === element || section.contains(element)));
-        state.replaySection = (section) => {
-          if (!section) return false;
-          const sectionTextGroups = [...lineGroups, ...wordGroups].filter((group) =>
-            isInside(section, group) &&
-              !(container.dataset.barbaNamespace === "advertising-products" && isHeroGroup(group)),
-          );
-          const sectionMotionItems = motionItems.filter((item) =>
-            isInside(section, item) &&
-              !(container.dataset.barbaNamespace === "advertising-products" && item.closest(".detail-index-hero")),
-          );
-          const sectionHeroItems = [
-            heroKicker,
-            heroWrapperZoom,
-            heroMediaZoom,
-          ].filter((item) =>
-            isInside(section, item) && container.dataset.barbaNamespace !== "advertising-products",
-          );
-
-          sectionTextGroups.forEach((group) => {
-            const parts = prepareTextGroup(group);
-            gsap.killTweensOf(parts);
-            gsap.set(
-              parts,
-              group.hasAttribute("data-motion-lines")
-                ? { y: hiddenY }
-                : { opacity: 0 },
-            );
-          });
-          [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
-            item.classList.remove("is-motion-inview"),
-          );
-
-          scheduleFrame(() => {
-            sectionTextGroups.forEach((group) => revealTextGroup(group, 0));
-            [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
-              item.classList.add("is-motion-inview"),
-            );
-          });
-          return Boolean(
-            sectionTextGroups.length ||
-              sectionMotionItems.length ||
-              sectionHeroItems.length,
-          );
-        };
 
         if (heroKicker && heroSettled) {
           settleHeroItem(heroKicker);
@@ -842,11 +856,11 @@
     return state.catalogReady;
   };
 
-  const replaySection = (section) => activePage?.replaySection?.(section) || false;
   const revertSplitText = () => activePage?.revertSplitText?.();
   const rebuildSplitText = () => activePage?.rebuildSplitText?.();
+  const rearmMotion = (root) => activePage?.rearmMotion?.(root);
 
-  window.TruongThinhDetail = { mount, replaySection, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
+  window.TruongThinhDetail = { mount, revertSplitText, rebuildSplitText, rearmMotion, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
   if (document.documentElement.classList.contains("motion-fallback")) {
     mount(undefined, { settled: true });
   }

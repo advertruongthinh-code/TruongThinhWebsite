@@ -50,13 +50,15 @@ try {
   page.on("request", (request) => { if (request.resourceType() === "document") documents.push(request.url()); });
   await page.locator('[data-advertising-filter="signage"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
-  // Bấm cụm: kicker đổi chữ và hàng chip vừa hiện đều chạy entrance (opacity 0 trước khi vào).
+  // Bấm cụm: hàng chip vừa hiện chạy entrance (opacity 0 trước khi vào); kicker đứng yên (taxonomy R3, owner 2026-11-08).
   const entrance = () => page.evaluate(() => ({
+    kickerText: document.querySelector("[data-motion-hero-kicker]").textContent.trim(),
     kicker: document.querySelector("[data-motion-hero-kicker]").getAnimations().filter((a) => !(a instanceof CSSTransition)).length,
     chips: [...document.querySelectorAll(".rail-chips:not([hidden]) .rail-chip")].map((chip) => chip.getAnimations().filter((a) => !(a instanceof CSSTransition)).length),
   }));
   const clusterEntrance = await entrance();
-  assert.equal(clusterEntrance.kicker, 1, "kicker chạy lại entrance khi đổi chữ");
+  assert.equal(clusterEntrance.kickerText, "Sản phẩm tiêu biểu", "kicker không đổi khi lọc cụm");
+  assert.equal(clusterEntrance.kicker, 0, "kicker không chạy entrance vì không đổi chữ");
   assert.ok(clusterEntrance.chips.length > 1 && clusterEntrance.chips.every((count) => count === 1), "mỗi chip của cụm vừa hiện có entrance");
   const chip = `.rail-chips:not([hidden]) [data-advertising-product="${product}"]`;
   await page.hover(chip);
@@ -104,7 +106,7 @@ try {
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
-  // Menu đủ ngưỡng trang R5 (taxonomy) nên chip sang trang sản phẩm riêng, kicker là tên sản phẩm.
+  // Menu đủ ngưỡng trang R5 (taxonomy) nên chip sang trang sản phẩm riêng; kicker vẫn đứng yên.
   const menus = "printing-decals/menus";
   const menuUrl = "/vi/advertising-products/in-an-decal/menu/";
   const menuIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(menus)).map((card) => card.id));
@@ -117,7 +119,7 @@ try {
   assert.ok(menuIds.size >= 9, "Menu đủ 9 ảnh");
   assert.deepEqual(menuShown.sort(), [...menuIds].sort(), "masonry chỉ còn card Menu");
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
-  assert.equal(await page.locator("[data-motion-hero-kicker]").textContent(), "Menu", "kicker là tên sản phẩm");
+  assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).trim(), "Sản phẩm tiêu biểu", "kicker không đổi khi lọc sản phẩm");
   await page.locator('[data-advertising-filter="all"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "về Tất cả thì hàng chip ẩn");

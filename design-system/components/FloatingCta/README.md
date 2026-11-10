@@ -1,5 +1,7 @@
 # Floating CTA
 
+Nguồn: CSS `.floating-cta`; spec [Shell](../../../docs/specs/site-shell.md).
+
 Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floating-cta`; lớp
 `show` do `motion.js` gắn.
 

@@ -6,9 +6,10 @@
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
    Cần kiến thức ngoài module (tech stack, runtime, spec, decision): mở [docs index](docs/index.md), chọn đúng file `docs/*.md` rồi đọc; tech stack ở [Architecture](docs/architecture.md#tech-stack).
-4. Mọi task đọc [Skill, MCP và vận hành tool](docs/operations/agent-rule-workflow-tools.md) trước action chuyên môn đầu tiên.
-5. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
-6. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
+4. Hỏi về hình thức, token, số đo, motion, component: đọc [Design System](design-system/README.md) rồi README component trước Graphify, Serena; dòng `Nguồn:` ở đầu README chỉ file code và spec. Design System mô tả code đang chạy: lệch thì code thắng, sửa Design System trong cùng PR.
+5. Mọi task đọc [Skill, MCP và vận hành tool](docs/operations/agent-rule-workflow-tools.md) trước action chuyên môn đầu tiên.
+6. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
+7. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
 
 ## Ranh giới
 
@@ -65,6 +66,8 @@ cache hay untracked worktree.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
   publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
   Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
+  Đổi file hoặc selector trong dòng `Nguồn:` của README component thì sửa README đó, hoặc ghi
+  `Design System: không đổi - <lý do>` trong mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
@@ -75,7 +78,7 @@ cache hay untracked worktree.
 
 ## Viết và phản hồi
 
-- Code viết bằng tiếng Anh: identifier, chuỗi, tên file và hàm; text hiển thị trên UI, tên file và ID hiện có giữ nguyên. Code comment viết tiếng Việt, giữ technical term và các từ trong phụ lục `## Chú thích thuật ngữ` của docs. Áp dụng cho code mới và code sửa. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
+- Code viết hoàn toàn bằng tiếng Anh: identifier, chuỗi, tên file, hàm và mọi code comment (JS, CSS, HTML comment, shell, PowerShell, workflow YAML, test). Không thuộc code nên giữ nguyên: text hiển thị trên UI, chuỗi i18n, dữ liệu nội dung, slug và URL tiếng Việt, tên file và ID hiện có. Áp dụng cho code mới và code sửa; comment tiếng Việt gặp trong file đang sửa thì dịch luôn. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
 - Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, việc đang chờ (không đoán thời gian khi không có số đo), lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 

@@ -38,6 +38,11 @@ const cardStates = (page, selector = "[data-project-grid] [data-advertising-card
       skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton], canvas")),
     };
   }), selector);
+// Số card tạm (loading-glass R10) đang giao viewport.
+const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll(".advertising-ghost")].filter((ghost) => {
+  const { top, bottom } = ghost.getBoundingClientRect();
+  return bottom > 0 && top < innerHeight;
+}).length);
 const assertNoBlank = (label, states) => {
   assert.ok(states.length, `${label}: cards in view`);
   assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
@@ -98,9 +103,19 @@ try {
     await page.mouse.move(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2);
     await page.mouse.down();
     for (const y of [700, 200, 850, 400]) await page.mouse.move(1437, y, { steps: 6 });
-    assertNoBlank("desktop scrollbar drag", await cardStates(page));
+    // Giữa lúc kéo nhanh, viewport có thể chỉ còn card tạm (loading-glass R10): card tạm phủ cũng là không trống.
+    const dragging = await cardStates(page);
+    if (dragging.length) assertNoBlank("desktop scrollbar drag", dragging);
+    else assert.ok(await ghostsInView(page), "desktop scrollbar drag: ghost cards cover the viewport");
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
+    // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận
+    // blur ở IntersectionObserver của frame kế.
+    await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+      const { top, bottom } = ghost.getBoundingClientRect();
+      return bottom > 0 && top < innerHeight;
+    }), null, { timeout: 5000 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assertNoBlank("desktop scrollbar settle", await cardStates(page));
     await context.close();
   }
@@ -143,7 +158,8 @@ try {
       const tick = () => {
         for (const image of document.querySelectorAll("[data-project-grid] [data-advertising-card] img")) {
           const trace = window.__opacityTrace.get(image) || [];
-          trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter)]);
+          const rect = image.closest("[data-advertising-card]").getBoundingClientRect();
+          trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter), rect.bottom > 0 && rect.top < innerHeight]);
           window.__opacityTrace.set(image, trace);
         }
         if (performance.now() < 14000) requestAnimationFrame(tick);
@@ -157,7 +173,8 @@ try {
       .filter((trace) => trace.some(([, blurred]) => blurred) && trace.some(([, blurred], i) => !blurred && trace.slice(0, i).some(([, was]) => was)))
       // Bỏ các frame trước lúc ảnh bắt đầu mờ (opacity 0 chờ lazyload).
       .map((trace) => trace.slice(trace.findIndex(([, blurred]) => blurred)))
-      .map((trace) => trace.slice(1).reduce((max, [opacity], i) => Math.max(max, Math.abs(opacity - trace[i][0])), 0)));
+      // Card vừa ra khỏi viewport thì bỏ skeleton ngay (không ai thấy bước nhảy), nên chỉ tính cặp frame mà card còn trong viewport.
+      .map((trace) => trace.slice(1).reduce((max, [opacity, , visible], i) => (visible && trace[i][2] ? Math.max(max, Math.abs(opacity - trace[i][0])) : max), 0)));
     assert.ok(jumps.length, "opacity trace: some card went from blurred to sharp");
     assert.ok(jumps.every((jump) => jump <= 0.1), `opacity trace: no frame jumps over 0.1 when breathing stops ${JSON.stringify(jumps)}`);
     await context.close();
@@ -196,6 +213,32 @@ try {
       return loaded.length && loaded.every((image) => !image.style.filter.startsWith("blur("));
     }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still blurred "
       + JSON.stringify(await cardStates(page, "[data-advertising-related-card]"))));
+    await context.close();
+  }
+  // PC Slow 4G tắt cache, mở detail từ masonry (owner 2026-11-01): card related giữ chỗ trước, batch CTA nối sau,
+  // như masonry; không có frame nào batch đã hiện trong canvas detail mà chưa có card related.
+  {
+    const { context, page, slow } = await open({ viewport: { width: 1440, height: 900 } });
+    slow.on = false;
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+    await cdp.send("Network.emulateNetworkConditions",
+      { offline: false, latency: 562.5, downloadThroughput: 180_000, uploadThroughput: 84_375 });
+    await page.evaluate(() => {
+      window.__batchBeforeRelated = 0;
+      const tick = () => {
+        const canvas = document.querySelector("[data-advertising-photo-canvas]");
+        const batch = canvas?.querySelector("[data-advertising-cta-frame]");
+        if (batch && !batch.closest("[hidden]") && !canvas.querySelector("[data-advertising-related-card]")) window.__batchBeforeRelated++;
+        if (!canvas?.querySelector("[data-advertising-related-card]")) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.locator("[data-project-grid] [data-advertising-card] > a").first().click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-canvas] [data-advertising-related-card]"),
+      null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__batchBeforeRelated), 0, "desktop detail: batch shows before related cards");
     await context.close();
   }
   console.log("PASS advertising skeleton slow network");

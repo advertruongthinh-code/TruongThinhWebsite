@@ -1,5 +1,5 @@
-// Video site có keyframe tối đa mỗi 0,5s để lệnh tua chỉ giải mã ít frame (primary-video-player R3).
-// CI không có ffprobe nên đọc bảng stss (sample đồng bộ) và stts (thời lượng sample) thẳng từ file MP4.
+// Site videos have a keyframe at most every 0.5s so seeking decodes few frames (primary-video-player R3).
+// CI has no ffprobe, so read the stss (sync sample) and stts (sample duration) tables directly from the MP4 file.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -24,7 +24,7 @@ const boxes = (buffer, start, end) => {
 const child = (buffer, box, ...types) => types.reduce((parent, type) =>
   parent && boxes(buffer, parent.start, parent.end).find((entry) => entry.type === type), box);
 
-// Thời điểm (giây) của từng keyframe trong track video, thêm điểm cuối clip để clip chỉ một keyframe cũng bị bắt.
+// Time (seconds) of each keyframe in the video track, with the clip end appended so a clip with a single keyframe is also caught.
 function keyframeTimes(buffer) {
   const moov = boxes(buffer, 0, buffer.length).find((box) => box.type === "moov");
   const track = boxes(buffer, moov.start, moov.end).filter((box) => box.type === "trak").find((trak) => {
@@ -43,13 +43,13 @@ function keyframeTimes(buffer) {
     for (let sample = 0; sample < count; sample += 1, time += delta) starts.push(time / timescale);
   }
   const stss = child(buffer, stbl, "stss");
-  // Không có stss thì mọi sample đều là keyframe.
+  // Without stss every sample is a keyframe.
   const keys = stss ? Array.from({ length: buffer.readUInt32BE(stss.start + 4) },
     (_, index) => starts[buffer.readUInt32BE(stss.start + 8 + index * 4) - 1]) : starts;
   return [...keys, time / timescale];
 }
 
-// fMP4 của thang HLS (video-delivery R1): sample nằm trong từng moof, keyframe là sample tắt cờ non-sync (0x10000).
+// fMP4 of the HLS ladder (video-delivery R1): samples sit in each moof, a keyframe is a sample with the non-sync flag off (0x10000).
 function fragmentKeyframeTimes(buffer, moov, track, timescale) {
   const tkhd = child(buffer, track, "tkhd");
   const trackId = buffer.readUInt32BE(tkhd.start + (buffer[tkhd.start] === 1 ? 20 : 12));
@@ -61,7 +61,7 @@ function fragmentKeyframeTimes(buffer, moov, track, timescale) {
     const traf = boxes(buffer, moof.start, moof.end)
       .find((box) => box.type === "traf" && buffer.readUInt32BE(child(buffer, box, "tfhd").start + 4) === trackId);
     if (!traf) continue;
-    // Trường tùy chọn đọc tuần tự theo cờ; thiếu thì lấy mặc định của tfhd rồi trex.
+    // Optional fields are read sequentially by flag; if absent, take the tfhd default, then trex.
     let at;
     const read = (present) => { if (!present) return undefined; at += 4; return buffer.readUInt32BE(at - 4); };
     const tfhd = child(buffer, traf, "tfhd");

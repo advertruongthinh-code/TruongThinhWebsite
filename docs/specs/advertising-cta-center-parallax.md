@@ -2,7 +2,8 @@
 title: CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ, parallax, CTA cuối related
 status: live
 source:
-  - src/site/advertising-products/detour-path.mjs
+  - src/site/masonry/cta-batch.mjs
+  - src/site/masonry/detour-path.mjs
 tests:
   - tests/site/advertising-continuation.e2e.mjs
   - tests/site/advertising-related-cta.e2e.mjs
@@ -191,25 +192,32 @@ tiếp các cột related, cột chỉ có primary bắt đầu một khoảng g
 (`--advertising-photo-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
 chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-view` không đệm dưới. CTA trong info primary
 vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
-(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s), và mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
-cụm và Kính trượt `0.4s` như masonry.
+(pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s); các pha trước, kể cả resize, không dựng batch,
+nên card related giữ chỗ trước rồi batch nối sau như masonry (owner 2026-11-01). Sau đó batch dựng lại mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
+cụm và Kính trượt `0.4s` như masonry. Cụm vào layout mới (sang detail, đổi ảnh detail): sau lần dựng batch kế tiếp tiêu đề, nút về chưa hiện (`TruongThinhDetail.rearmMotion`)
+rồi reveal khi vào viewport như lần đầu ở masonry; không vậy thì observer nổ lúc cụm còn ở đầu canvas (owner 2026-11-09).
 
 ```gherkin
 Given detail ở 1569x912 hoặc 390x844, cuộn tới cuối trang
 Then chân chữ dòng cuối của tiêu đề CTA nằm trên đường giữa viewport, sai số 1px
 And batch nối tiếp các cột related, đáy batch là đáy CTA ngay trên footer
 And data-advertising-cta-host là "detail", info primary vẫn có nút của nó
+When mở detail từ masonry rồi cuộn tới CTA
+Then tiêu đề CTA chạy line reveal, nút fade vào như lần đầu ở masonry
 ```
 
 ### R10. Card related không đi qua primary
 
 Tọa độ related grid; primary chiếm `[0, pw] × [0, ph]`. Hộp `w × h` góc trên trái `p` đè primary khi `p` thuộc
-`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
+`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`masonry/detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
 cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai đoạn qua góc vuông `C = (x điểm bên cạnh, y điểm phía dưới)`
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
-chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related, suggestion và khung
+chạy Web Animations trên `translate`; hủy motion related hủy cả animation này. Áp dụng card related và khung
 batch (đổi tag giữ khung để chúng trượt); cụm CTA và Kính cung rộng cả lưới nên trượt thẳng; giảm chuyển động đặt thẳng.
+Suggestion ghim dưới primary ([detail R5](advertising-detail.md#r5-suggestion)) tự nó không đi vòng, nhưng là vùng cấm thứ hai
+(owner 2026-11-07, phone thấy card lòn dưới nó): cùng công thức với `Z` dời theo góc trên trái của suggestion (`origin` của
+`planDetourPath`); điểm đầu trong vùng đó xuất phát ngay dưới suggestion, card mới ở cột của nó vào từ đáy suggestion.
 
 ```gherkin
 Given detail 1569x912 layout split, card ở cột 4 cạnh primary
@@ -221,7 +229,7 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Runtime | `renderCtaSkeleton` (`catalog-runtime.mjs`, nội bộ) | Tính `D`, ghi `--advertising-cta-top`, `--advertising-cta-tail-height`, dựng batch (R2, R5) |
+| Runtime | `renderCtaSkeleton` (`masonry/runtime.mjs`, nội bộ) | Tính `D`, ghi `--advertising-cta-top`, `--advertising-cta-tail-height`, dựng batch (R2, R5) |
 | Runtime | `measureCtaCopy`, `fitGridCtaHeading` | Trả `{ baseline, below }` của cụm chữ; ghi `font-size` inline cho tiêu đề (R1, R3) |
 | Runtime | `syncCtaParallax` | Ghi `transform` của `.detail-cta__copy`, không vượt mép trên CTA (R6, R7) |
 | Runtime | `scheduleResize`, `refreshFontGeometry`, `ResizeObserver` trên cụm chữ, CTA, footer | Đo lại và dựng lại (R8) |
@@ -229,11 +237,11 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 | DOM hook | `data-advertising-cta-settled` trên `.detail-cta[data-advertising-grid-cta]` | Bật transition vị trí sau lần đo đầu (R8) |
 | CSS | `.detail-cta[data-advertising-grid-cta]`, `.detail-cta__copy`, `h2` (`detail.css`) | Vị trí cụm, cỡ chữ theo breakpoint, đệm, `margin-bottom` âm (R1, R3, R6) |
 | CSS | `body.is-advertising-browse .site-footer` (`detail.css`) | `--footer-top-gap: 0px` (R2, R9) |
-| DOM hook | `data-advertising-cta-host` trên batch | Host hiện tại của ba node CTA (R9) |
-| Module | `planDetourPath`, `segmentCrossesBox` (`detour-path.mjs`) | Đường đi card related (R10) |
+| Module | `createCtaBatch` (`masonry/cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `arcInView`, `clear`; ghi `data-advertising-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
+| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`masonry/detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
 | CSS | `.site-footer` trong `@media (max-width: 750px), (max-height: 640px)` và `(max-width: 750px) and (orientation: portrait)` (`style.css`) | Footer gọn (R4) |
 
-Spec không sở hữu file: code nằm trong `catalog-runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
+Spec không sở hữu file: code nằm trong `masonry/runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
 ([trang con](detail-pages.md)), `style.css` ([shell](site-shell.md)), dùng `createSkeletonFlowFrameLayout`
 ([skeleton](advertising-skeleton.md)) và `arcGlassGeometry` ([Kính](glass-surface.md)); sửa hành vi ở đó thì cập nhật cả
 spec này.
@@ -260,7 +268,7 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 | R7 | `advertising-continuation.e2e.mjs` (bật giảm chuyển động giữa trang thì độ lệch về 0) |
 | R8 | `advertising-continuation.e2e.mjs` (filter và đổi cỡ dựng lại batch); vị trí chân chữ sau đổi cỡ tại chỗ và thanh địa chỉ chưa có test |
 | R9 | `advertising-related-cta.e2e.mjs` (host detail, chân chữ, đáy batch trên footer, nút info, đổi tag, Back về grid) |
-| R10 | `advertising-detour-path.test.mjs` (fixture); `advertising-related-detour.e2e.mjs` (rect mỗi frame không giao primary) |
+| R10 | `advertising-detour-path.test.mjs` (fixture); `advertising-related-detour.e2e.mjs` (rect mỗi frame không giao primary, phone không giao suggestion ghim) |
 
 ## Gate còn mở
 

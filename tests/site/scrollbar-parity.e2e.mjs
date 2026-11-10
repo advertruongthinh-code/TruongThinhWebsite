@@ -100,6 +100,25 @@ try {
   await page.waitForFunction(()=>window.TruongThinhMotion.getLogicalScroll()<=1);
   record('drag endpoints',await measure(page));
   await page.mouse.up(); await page.mouse.move(600,300);
+  // Thả thumb giữa lúc lerp chưa tới đích: trang phải trượt tiếp tới đích rồi lăn chuột chỉ đi một nấc,
+  // không đứng giữa chừng rồi nhảy cả quãng còn lại ở nấc lăn đầu tiên (owner 2026-11-09).
+  const fastThumb = await page.locator('.c-scrollbar_thumb').boundingBox();
+  await page.mouse.move(fastThumb.x+fastThumb.width/2,fastThumb.y+fastThumb.height/2);
+  await page.mouse.down();
+  await page.mouse.move(1437,450,{steps:3});
+  await page.waitForTimeout(50);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  await page.waitForFunction(() => !document.documentElement.classList.contains('has-scroll-scrolling'),null,{timeout:5000});
+  const released=(await measure(page)).y;
+  const releaseLimit=await page.locator('[data-scroll-container]').evaluate(e=>e.offsetHeight-innerHeight);
+  assert.ok(Math.abs(released-releaseLimit/2)<=releaseLimit*0.02,`released thumb glides to its target: ${released} vs ${releaseLimit/2}`);
+  await page.mouse.move(600,300); await page.mouse.wheel(0,100);
+  await page.waitForFunction(before => window.TruongThinhMotion.getLogicalScroll()>before+1,released);
+  await page.waitForFunction(() => !document.documentElement.classList.contains('has-scroll-scrolling'),null,{timeout:5000});
+  const wheelStep=(await measure(page)).y-released;
+  assert.ok(wheelStep>0&&wheelStep<=200,`first wheel after a thumb release moves one notch: ${wheelStep}px`);
+  record('thumb release then wheel',{...await measure(page),released,wheelStep});
   await page.keyboard.press('End');
   await page.waitForFunction(() => !document.documentElement.classList.contains('has-scroll-scrolling'));
   const bottom = await measure(page);
@@ -124,6 +143,23 @@ try {
   near((await measure(page)).y,locked.y,'menu restores scroll');
   assert.ok(await page.locator('[data-menu-open]').evaluate(e => e===document.activeElement),'menu restores focus');
   record('menu lock/release',await measure(page));
+  // Route mềm giữ document không gutter suốt lúc đổi trang: scrollbar native không được lóe lên rồi ẩn (giật ngang).
+  // Đọc class ở mỗi lần đổi (microtask) thay vì chờ frame, vì khoảng hở giữa gỡ trang cũ và mount trang mới có khi lọt
+  // giữa hai frame.
+  await page.goto(`${base}/vi/`); await ready(page);
+  await page.evaluate(() => {
+    window.__routeGutters = new Set();
+    const html = document.documentElement;
+    const check = () => window.__routeGutters.add(html.classList.contains('has-scroll-smooth') ? 'overlay' : 'native');
+    window.__routeObserver = new MutationObserver(check);
+    window.__routeObserver.observe(html, { attributes: true, attributeFilter: ['class'] });
+    check();
+  });
+  await page.click('.desktop-nav a[href="/vi/residential/"]');
+  await page.waitForFunction(() => location.pathname === '/vi/residential/' && !document.body.classList.contains('is-transitioning') && !document.documentElement.classList.contains('route-enter'));
+  const routeGutters = await page.evaluate(() => { window.__routeObserver.disconnect(); return [...window.__routeGutters]; });
+  assert.deepEqual(routeGutters,['overlay'],`route never drops to native scrollbar (saw ${routeGutters.join(', ')})`);
+  record('route no native flash',await measure(page));
   await page.setViewportSize({width:1440,height:900});
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(() => !document.documentElement.classList.contains('has-scroll-smooth'));

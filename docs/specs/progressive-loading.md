@@ -3,7 +3,7 @@ title: Ảnh JPEG XL progressive và thứ tự tải
 status: live
 source:
   - src/site/sw.js
-  - src/site/advertising-products/media-colors.mjs
+  - src/site/media-lib/colors.mjs
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-reveal-complete.e2e.mjs
@@ -13,7 +13,7 @@ tests:
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/406332849a0e816ebc6af97487876c15
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Ảnh JPEG XL progressive và thứ tự tải
@@ -29,7 +29,7 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
 
 - 307 trên 497 ảnh nội dung rộng khoảng 3072px. Thang biến thể là 240, 480, 960 rồi bản gốc, ở AVIF và WebP.
 - AVIF trung bình trên 24 ảnh lớn: cỡ 960 là 58 KB, 1600 là 120 KB, 2048 là 176 KB, gốc là 325 KB.
-- Ảnh primary và viewer Advertising luôn tải bản gốc, cả trên điện thoại (`catalog-runtime.mjs`, `photo-viewer.mjs`).
+- Ảnh primary và viewer Advertising luôn tải bản gốc, cả trên điện thoại (`masonry/runtime.mjs`, `masonry/detail-viewer.mjs`).
 - Veil mở khi `mountPage` xong; trên Advertising gồm vendor, runtime, artifact và lần dựng catalog. Veil không chờ ảnh, font.
 - `sharp` 0.35.5 của repo không encode được JXL. `cjxl`, `djxl` v0.11.1 (libjxl chính thức) chạy được trên cloud.
 - Cùng SSIM với AVIF quality 55, JXL nặng hơn khoảng 50% (8 ảnh 1600px). Cùng dung lượng với AVIF, JXL progressive có SSIM so
@@ -57,7 +57,7 @@ duyệt đọc được JXL chỉ tải JXL (owner chọn 2026-10-31). Logo khá
   chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
 - Mọi trình duyệt phải tải được ảnh (owner 2026-10-31, thay quyết định chỉ JXL ngày 2026-10-27): runtime Advertising dò
   ảnh JXL 1x1 trước lần dựng đầu; không giải mã được (Firefox, Chrome dưới 155) thì dùng WebP 240, 480, 960 và bản gốc.
-- AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); og:image, JSON-LD, sitemap ảnh giữ WebP.
+- Phone (`(hover: none) and (pointer: coarse)`) chỉ dùng WebP, trần cỡ 960, không tải bản gốc; PC dùng JXL, WebP khi trình duyệt không đọc được JXL (owner 2026-11-07). A04s giải mã 480 JXL 47ms, WebP 17ms; 960 là 87 so với 28ms. AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); og:image, JSON-LD, sitemap ảnh giữ WebP.
 
 Trung tâm vùng ưu tiên dùng giữa ảnh. Đặt tâm theo model Google Attention Center là việc sau, cần TensorFlow Lite.
 
@@ -172,7 +172,7 @@ Then slide 2 chỉ tải khi tới lượt hydrate, không tải trước
 - Hiện ảnh đi qua đường settle sẵn có: `settle()` của script `<head>` cho trang tĩnh, `revealCard`, `playPrimaryReveal` cho
   Advertising; không viết đường hiện ảnh thứ hai.
 - Một điều kiện mở veil trong `mountPage`, dùng cho mở trực tiếp và route mềm.
-- Chọn biến thể chỉ ở `responsivePictures` (build) và `responsive-image.mjs` (runtime); đổi đuôi sang `.jxl`, thang cỡ khai
+- Chọn biến thể chỉ ở `responsivePictures` (build) và `media-lib/responsive-image.mjs` (runtime); đổi đuôi sang `.jxl`, thang cỡ khai
   một lần mỗi nơi. Bước JXL nằm trong `build-image-variants.mjs`, không thêm script build mới.
 - Vệt sáng, skeleton, Kính, dấu báo lỗi giữ nguyên code. Đo bằng `image-delivery-measure.mjs`, thêm mốc "ảnh hiện".
 
@@ -229,8 +229,8 @@ And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị g
 
 Ảnh khung lớn (rộng từ 640px, hoặc rộng hay cao từ 60% viewport: hero, ảnh lớn detail) đã hiện ở bản vừa khung (R3) và đang trong
 màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang (owner chọn 14:01, thay "mọi ảnh" lúc 10:45). Card và ô nhỏ giữ
-bản vừa khung: card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC. Bản gốc tải riêng bằng
-`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện.
+bản vừa khung: mọi item masonry (`[data-masonry-item]`: card lưới, card related, card gợi ý, ở mọi trang có masonry): card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC (card related: PC owner đứng 200-480ms, 2026-11-09). Bản gốc tải riêng bằng
+`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện. Phone không lên bản gốc (R1).
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
   Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
@@ -254,8 +254,8 @@ And lúc trang đang cuộn không ảnh nào đổi sang bản gốc
 | Tool | `cjxl`, `djxl` v0.11.1 ghim trong `tooling-versions.json` | Encode, tính ngưỡng |
 
 Code nằm trong file của spec khác: `motion.js` ([shell](site-shell.md)), `prepare-static-assets.mjs`, `_headers`
-([phát hành tĩnh](static-release.md)), `build-image-variants.mjs`, `responsive-image.mjs` ([tải ảnh](media-delivery.md)),
-`catalog-runtime.mjs`, `photo-viewer.mjs` ([masonry](advertising-masonry.md), [viewer](advertising-viewer-touch-zoom.md)).
+([phát hành tĩnh](static-release.md)), `build-image-variants.mjs`, `media-lib/responsive-image.mjs` ([tải ảnh](media-delivery.md)),
+`masonry/runtime.mjs`, `masonry/detail-viewer.mjs` ([masonry](advertising-masonry.md), [viewer](advertising-viewer-touch-zoom.md)).
 Khi cài, sửa các spec sở hữu trong cùng PR và chuyển spec này sang `live`.
 
 ## UI
@@ -282,7 +282,7 @@ sang blur trên ảnh (R9); README Kính, MediaCard, Skeleton, Vệt sáng và M
 ## Gate còn mở
 
 - A05s và iPhone 16 chưa đo JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
-- R8 còn hụt, có sẵn từ trước JXL: CLS detail Advertising ([#649](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/649)), request ảnh trùng ở detail ([#655](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/655)), veil tan quá 1s ở Slow 4G. Ảnh đầu ở Advertising sát ngưỡng 5% (lab +2 đến +5,7%, A04s +5,2%), các route khác nhanh hơn hoặc ngang. Main.
+- R8 còn hụt, có sẵn từ trước JXL: veil tan quá 1s ở Slow 4G. Ảnh đầu ở Advertising sát ngưỡng 5% (lab +2 đến +5,7%, A04s +5,2%), các route khác nhanh hơn hoặc ngang. Main.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
 

@@ -1,0 +1,900 @@
+[
+  {
+    "id": "chon-tu-bep",
+    "group": "nha-o",
+    "published": "2026-11-07",
+    "slugVi": "chon-tu-bep-go-cong-nghiep",
+    "slugEn": "choosing-engineered-wood-kitchen-cabinets",
+    "title": {
+      "vi": "Chọn tủ bếp gỗ công nghiệp: năm điều nên hỏi trước khi đặt",
+      "en": "Engineered wood kitchen cabinets: five questions to ask before you order"
+    },
+    "description": {
+      "vi": "Lõi ván, bề mặt, dán cạnh, phụ kiện và cách đo: những điều quyết định tủ bếp dùng bền hay nhanh hỏng.",
+      "en": "Board core, surface, edge banding, hardware and measuring: what decides whether a kitchen lasts."
+    },
+    "cover": {
+      "src": "/assets/content/projects/gieng1-bep.webp",
+      "width": 2048,
+      "height": 3072,
+      "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
+      "altEn": "Single-run kitchen with white upper cabinets, walnut base units with recessed pulls, a pale grey stone counter and a glass wall to the planted light well"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ bếp là món nội thất dùng nhiều nhất trong nhà, lại chịu nước, nhiệt và va chạm mỗi ngày. Trước khi đặt, nên hỏi rõ năm điều dưới đây; câu trả lời cho biết tủ có bền hay không.",
+          "en": "The kitchen is the hardest-working piece of furniture in a home, facing water, heat and knocks every day. Before ordering, ask these five questions; the answers tell you whether it will last."
+        }
+      },
+      {
+        "id": "kitchen",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/gieng1-bep.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
+          "altEn": "Single-run kitchen with white upper cabinets, walnut base units with recessed pulls, a pale grey stone counter and a glass wall to the planted light well"
+        }
+      },
+      {
+        "id": "core",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một, lõi ván là gì. Khu chậu rửa và máy rửa chén nên dùng lõi chống ẩm; tủ trên khô ráo có thể dùng lõi thường.\n\nHai, bề mặt hoàn thiện. Melamine, laminate hay sơn có độ chịu trầy và cách vệ sinh khác nhau, nên xem mẫu thật dưới ánh sáng nhà mình.",
+          "en": "One: what is the board core. Around the sink and dishwasher, use a moisture-resistant core; dry upper cabinets can use a standard one.\n\nTwo: the surface finish. Melamine, laminate and paint differ in scratch resistance and cleaning, so look at real samples under your own light."
+        }
+      },
+      {
+        "id": "materials",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/shared/consultation-materials.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Tư vấn vật liệu hoàn thiện cho nhà ở",
+            "altEn": "Consulting on finish materials for a home"
+          },
+          {
+            "src": "/assets/content/shared/cnc.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Sản xuất chi tiết nội thất nhà ở trên máy CNC",
+            "altEn": "Producing residential interior components on a CNC machine"
+          }
+        ]
+      },
+      {
+        "id": "edges",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ba, cạnh ván được dán thế nào. Cạnh dán bằng máy, kín keo giữ nước không thấm vào lõi.\n\nBốn, bản lề, ray và tay nắm. Phụ kiện tốt giúp cánh đóng êm và không xệ sau vài năm.\n\nNăm, ai đo và lắp. Đo tại nhà và lắp bởi chính người làm tủ giúp khe cánh đều, tủ khít tường.",
+          "en": "Three: how are the edges banded. Machine-applied banding with a tight glue line keeps water out of the core.\n\nFour: hinges, runners and handles. Good hardware keeps doors closing softly and stops them sagging after a few years.\n\nFive: who measures and installs. When the maker measures on site and fits the kitchen, door gaps stay even and units sit tight to the wall."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần tư vấn tủ bếp?",
+          "en": "Need advice on a kitchen?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "tu-ao-am-tuong",
+          "nha-pho-giu-mat"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "mo-quan-ca-phe",
+    "group": "kinh-doanh",
+    "published": "2026-11-06",
+    "slugVi": "lam-noi-that-quan-ca-phe-nho",
+    "slugEn": "fitting-out-a-small-cafe",
+    "title": {
+      "vi": "Làm nội thất quán cà phê nhỏ: từ khảo sát tới ngày mở cửa",
+      "en": "Fitting out a small café: from site survey to opening day"
+    },
+    "description": {
+      "vi": "Các bước làm nội thất một quán cà phê nhỏ và những việc chủ quán nên chuẩn bị ở mỗi bước.",
+      "en": "The steps of fitting out a small café, and what the owner should prepare at each one."
+    },
+    "cover": {
+      "src": "/assets/content/projects/home-commercial-cafe.webp",
+      "width": 2304,
+      "height": 3072,
+      "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
+      "altEn": "Café with timber tables, armchairs and a lit bar counter at the back"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Với quán nhỏ, mỗi mét vuông phải vừa đẹp vừa làm việc được. Làm đúng thứ tự giúp tránh sửa đi sửa lại và mở cửa đúng hẹn.",
+          "en": "In a small café, every square metre has to look good and work hard. Doing things in the right order avoids rework and keeps the opening date."
+        }
+      },
+      {
+        "id": "cafe",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/home-commercial-cafe.webp",
+          "width": 2304,
+          "height": 3072,
+          "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
+          "altEn": "Café with timber tables, armchairs and a lit bar counter at the back"
+        }
+      },
+      {
+        "id": "steps",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khảo sát mặt bằng trước: đo đạc, điện nước, hướng nắng và lối đi của khách. Từ đó mới bố trí quầy pha chế, khu ngồi và kho.\n\nKhi bản vẽ chốt, xưởng sản xuất quầy, kệ, bàn trong lúc mặt bằng làm phần thô, nên tiết kiệm được thời gian.",
+          "en": "Survey the space first: measurements, power and water, sunlight and how customers will move. Only then lay out the bar, seating and storage.\n\nOnce drawings are signed off, the workshop builds the bar, shelving and tables while the shell works go on, which saves time."
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/shared/workshop-wide-v2.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Toàn cảnh xưởng Trường Thịnh với đội ngũ đang sản xuất",
+          "altEn": "Trường Thịnh workshop and production team"
+        }
+      },
+      {
+        "id": "install",
+        "type": "paragraph",
+        "text": {
+          "vi": "Lắp đặt gọn trong vài ngày cuối, kiểm tra từng cánh tủ, ổ điện và đèn trước khi bàn giao. Sau khi mở cửa vẫn nên có người ghé bảo trì định kỳ.",
+          "en": "Installation fits into the last few days, with every door, socket and light checked before handover. After opening, regular maintenance visits keep things working."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở quán?",
+          "en": "Opening a café soon?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "quay-ke-cua-hang",
+          "chon-tu-bep"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "nha-pho-giu-mat",
+    "group": "xu-huong",
+    "published": "2026-11-05",
+    "slugVi": "nha-pho-gieng-troi-go-toi-mau",
+    "slugEn": "light-wells-and-dark-timber-townhouses",
+    "title": {
+      "vi": "Giếng trời và gỗ tối màu: nhà phố vừa sáng vừa ấm",
+      "en": "Light wells and dark timber: townhouses that are bright and warm"
+    },
+    "description": {
+      "vi": "Cách phối giếng trời, cây xanh và gỗ tối màu để nhà phố hẹp vẫn đủ sáng mà không lạnh.",
+      "en": "How light wells, planting and dark timber keep a narrow townhouse bright without feeling cold."
+    },
+    "cover": {
+      "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+      "altEn": "Single-storey light-well house overview: a full-height walnut TV wall, a planted light well in the middle of the house, a timber staircase with a black steel handrail and the dining table beyond"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhà phố hẹp và sâu cần ánh sáng tự nhiên ở giữa nhà. Giếng trời đưa nắng xuống, còn gỗ tối màu như óc chó cân lại cho không gian không bị chói và lạnh.",
+          "en": "Narrow, deep townhouses need daylight in the middle. A light well brings the sun down, while dark timber such as walnut balances the space so it never feels glaring or cold."
+        }
+      },
+      {
+        "id": "gallery",
+        "type": "gallery-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
+            "altEn": "Single-storey light-well house overview: a full-height walnut TV wall, a planted light well in the middle of the house, a timber staircase with a black steel handrail and the dining table beyond"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-loi-vao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Lối vào với hệ tủ giày gỗ óc chó kịch trần cánh phẳng, hốc kệ trắng và bậc ngồi gỗ treo, nhìn ra giếng trời có cây",
+            "altEn": "Entry with full-height flush walnut shoe cabinets, a white niche and a floating timber bench, looking out to the planted light well"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-tu-ao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Tủ áo gỗ tối màu kịch trần cạnh giường, một khoang mở thấy áo treo, ngăn kéo và kệ có đèn hắt",
+            "altEn": "Floor-to-ceiling dark timber wardrobe beside the bed, one bay open to hanging clothes, drawers and lit shelves"
+          }
+        ]
+      },
+      {
+        "id": "detail",
+        "type": "paragraph",
+        "text": {
+          "vi": "Mảng tủ lớn nên dùng cánh phẳng, tay nắm âm để gỗ tối không nặng mắt. Hốc kệ trắng có đèn hắt tạo điểm sáng xen kẽ.",
+          "en": "Large cabinet runs work best with flat doors and recessed pulls, so dark timber never looks heavy. White niches with cove light add points of brightness."
+        }
+      },
+      {
+        "id": "close-up",
+        "type": "image-pair",
+        "layout": "right-large",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng1-phong-tam.webp",
+            "width": 2304,
+            "height": 3072,
+            "altVi": "Phòng tắm với tủ lavabo treo gỗ óc chó hai ngăn kéo, chậu đặt bàn, gương không khung và tường đá mài xám",
+            "altEn": "Bathroom with a wall-hung two-drawer walnut vanity, a countertop basin, a frameless mirror and grey terrazzo walls"
+          },
+          {
+            "src": "/assets/content/projects/gieng1-chi-tiet.webp",
+            "width": 3072,
+            "height": 2304,
+            "altVi": "Cận cảnh tủ thấp gỗ óc chó tay nắm âm và hốc kệ trắng, khe cánh đều, nắng giếng trời trên sàn đá mài",
+            "altEn": "Close-up of a low walnut cabinet with recessed pulls and a white niche, even door gaps and light-well sun on the terrazzo floor"
+          }
+        ]
+      },
+      {
+        "id": "quote",
+        "type": "quote",
+        "text": {
+          "vi": "Gỗ tối cần ánh sáng; ánh sáng cần một chất liệu đủ ấm để giữ lại.",
+          "en": "Dark timber needs light; light needs a material warm enough to hold it."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn nhà phố sáng hơn?",
+          "en": "Want a brighter townhouse?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "bo-goc-noi-that",
+          "chon-tu-bep"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "bien-hieu-mat-tien",
+    "group": "quang-cao",
+    "published": "2026-11-09",
+    "slugVi": "chon-bien-hieu-chu-noi-hay-hop-den",
+    "slugEn": "raised-letters-or-light-box-signs",
+    "title": {
+      "vi": "Chữ nổi hay hộp đèn: chọn biển hiệu mặt tiền cho cửa hàng",
+      "en": "Raised letters or a light box: choosing a shopfront sign"
+    },
+    "description": {
+      "vi": "So sánh chữ nổi và hộp đèn theo mặt tiền, giờ mở cửa và cách bảo trì, để biển hiệu dễ đọc cả ngày lẫn đêm.",
+      "en": "Raised letters and light boxes compared by frontage, opening hours and upkeep, so the sign reads well day and night."
+    },
+    "cover": {
+      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Mặt tiền cửa hàng với biển chữ nổi đèn hắt trên nền ốp gỗ",
+      "altEn": "Shopfront with backlit raised letters on timber cladding"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Biển hiệu là thứ khách thấy trước khi bước vào cửa hàng. Chữ nổi và hộp đèn đều phổ biến, nhưng hợp với những mặt tiền khác nhau.",
+          "en": "The sign is what customers see before they step inside. Raised letters and light boxes are both common, but they suit different frontages."
+        }
+      },
+      {
+        "id": "lead-image",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Mặt tiền cửa hàng với biển chữ nổi đèn hắt trên nền ốp gỗ",
+          "altEn": "Shopfront with backlit raised letters on timber cladding"
+        }
+      },
+      {
+        "id": "body",
+        "type": "paragraph",
+        "text": {
+          "vi": "Chữ nổi hợp với mặt tiền có nền đẹp sẵn như ốp gỗ, sơn hay đá. Chữ cắt CNC từ mica, alu hoặc inox, có thể gắn đèn hắt phía sau để buổi tối chữ nổi lên trên nền.\n\nHộp đèn hợp với mặt tiền hẹp, phố nhiều biển hoặc cửa hàng mở tới khuya. Cả mặt hộp sáng đều nên dễ thấy từ xa.",
+          "en": "Raised letters suit frontages that already have a good surface such as timber, paint or stone. Letters are CNC-cut from acrylic, aluminium composite or stainless steel, and can be backlit so they stand out at night.\n\nLight boxes suit narrow frontages, streets crowded with signs or shops open late. The whole face glows evenly, so it is easy to spot from a distance."
+        }
+      },
+      {
+        "id": "detail-pair",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận chữ nổi mica cắt CNC, thành chữ và đèn LED hắt phía sau",
+            "altEn": "Close-up of CNC-cut acrylic letters, their returns and the LED backlighting"
+          },
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Hộp đèn mặt mica in logo sáng đều trên mặt tiền hẹp lúc tối",
+            "altEn": "Printed acrylic light box glowing evenly on a narrow frontage at night"
+          }
+        ]
+      },
+      {
+        "id": "advice",
+        "type": "paragraph",
+        "text": {
+          "vi": "Trước khi đặt, nên kiểm tra ba việc: quy định biển hiệu của khu phố hoặc tòa nhà, nguồn điện và đường đi dây cho đèn, cách thay đèn khi hỏng.\n\nBiển gắn cao nên có lối tiếp cận để bảo trì mà không phải tháo cả biển.",
+          "en": "Before ordering, check three things: the signage rules of the street or building, the power supply and cable route for the lights, how to replace a light when it fails.\n\nA high sign should have access for maintenance without taking the whole sign down."
+        }
+      },
+      {
+        "id": "closing-image",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Thợ lắp biển hiệu đấu nối đèn và kiểm tra khung trước khi bàn giao",
+          "altEn": "Installer wiring the lights and checking the frame before handover"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần làm biển hiệu mặt tiền?",
+          "en": "Need a shopfront sign?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "man-hinh-led-san-khau",
+          "quay-ke-cua-hang"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "tu-ao-am-tuong",
+    "group": "nha-o",
+    "published": "2026-11-08",
+    "slugVi": "thiet-ke-tu-ao-am-tuong",
+    "slugEn": "planning-a-built-in-wardrobe",
+    "title": {
+      "vi": "Tủ áo âm tường: đo, chia khoang và chọn cánh",
+      "en": "Built-in wardrobes: measuring, planning the interior and choosing doors"
+    },
+    "description": {
+      "vi": "Cách đo hốc tường, chia khoang theo đồ thật và chọn cánh mở hay cánh lùa cho tủ áo âm tường gỗ công nghiệp.",
+      "en": "How to measure the recess, plan the interior around what you own and choose hinged or sliding doors for an engineered wood built-in wardrobe."
+    },
+    "cover": {
+      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Phòng ngủ với tủ áo âm tường cánh phẳng kịch trần",
+      "altEn": "Bedroom with a floor-to-ceiling flat-door built-in wardrobe"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ áo âm tường đóng sát trần và tường nên gọn, ít bám bụi. Nhưng vì làm theo số đo riêng, tủ chỉ dùng tốt khi được đo và chia khoang kỹ.",
+          "en": "A built-in wardrobe runs tight to the ceiling and walls, so it is tidy and gathers little dust. But because it is made to measure, it only works well when it is measured and planned carefully."
+        }
+      },
+      {
+        "id": "lead-image",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng ngủ với tủ áo âm tường cánh phẳng kịch trần",
+          "altEn": "Bedroom with a floor-to-ceiling flat-door built-in wardrobe"
+        }
+      },
+      {
+        "id": "body",
+        "type": "paragraph",
+        "text": {
+          "vi": "Đo hốc tường ở nhiều điểm, vì tường và trần ít khi thẳng tuyệt đối. Xưởng chừa nẹp bù để tủ khít mà vẫn lắp được.\n\nChia khoang theo đồ thật đang có: bao nhiêu đồ treo dài, treo ngắn, đồ gấp, ngăn kéo cho đồ nhỏ. Kệ trên cùng dành cho chăn gối ít dùng.",
+          "en": "Measure the recess at several points, as walls and ceilings are rarely perfectly straight. The workshop leaves filler strips so the unit fits tight and can still be installed.\n\nPlan the interior around what you actually own: how much long hanging, short hanging, folded clothes, drawers for small items. The top shelf is for bedding you rarely use."
+        }
+      },
+      {
+        "id": "detail-pair",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Bên trong tủ áo: khoang treo, kệ đồ gấp và ngăn kéo",
+            "altEn": "Inside the wardrobe: hanging space, shelves for folded clothes and drawers"
+          },
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận cánh lùa tủ áo và ray trượt giảm chấn",
+            "altEn": "Close-up of a sliding wardrobe door and its soft-close track"
+          }
+        ]
+      },
+      {
+        "id": "advice",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cánh mở cần chỗ trống trước tủ; cánh lùa hợp phòng hẹp nhưng mỗi lần chỉ mở được một phần tủ. Dù chọn loại nào, bản lề và ray giảm chấn giúp cánh đóng êm lâu dài.\n\nNếu phòng ẩm hoặc tủ áp tường nhà tắm, dùng ván lõi chống ẩm cho thân tủ.",
+          "en": "Hinged doors need clear space in front; sliding doors suit narrow rooms but only open part of the wardrobe at a time. Either way, soft-close hinges and runners keep doors closing smoothly for a long time.\n\nIf the room is damp or the wardrobe backs onto a bathroom wall, use moisture-resistant board for the carcass."
+        }
+      },
+      {
+        "id": "closing-image",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận mép cánh tủ dán cạnh, khe cánh đều và tay nắm âm",
+          "altEn": "Close-up of edge-banded door edges, even gaps and recessed pulls"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần đo tủ áo âm tường?",
+          "en": "Need a built-in wardrobe measured?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "chon-tu-bep",
+          "bo-goc-noi-that"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "quay-ke-cua-hang",
+    "group": "kinh-doanh",
+    "published": "2026-11-04",
+    "slugVi": "bo-tri-quay-ke-cua-hang-nho",
+    "slugEn": "planning-fixtures-for-a-small-store",
+    "title": {
+      "vi": "Quầy kệ cho cửa hàng nhỏ: vừa trưng bày vừa chứa hàng",
+      "en": "Fixtures for a small store: display and storage in one"
+    },
+    "description": {
+      "vi": "Bố trí lối đi, chiều cao kệ, ánh sáng và quầy thu ngân để cửa hàng nhỏ bán tốt mà vẫn gọn.",
+      "en": "Planning aisles, shelf heights, lighting and the till so a small store sells well and stays tidy."
+    },
+    "cover": {
+      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Cửa hàng nhỏ với kệ tường hai bên và bàn trưng bày ở giữa",
+      "altEn": "Small store with wall shelving on both sides and a display table in the middle"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cửa hàng nhỏ không có chỗ cho đồ thừa. Mỗi kệ và quầy phải vừa trưng bày, vừa chứa hàng, vừa dẫn khách đi hết cửa hàng.",
+          "en": "A small store has no room for spare furniture. Every shelf and counter has to display goods, hold stock and guide customers through the whole shop."
+        }
+      },
+      {
+        "id": "lead-image",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Cửa hàng nhỏ với kệ tường hai bên và bàn trưng bày ở giữa",
+          "altEn": "Small store with wall shelving on both sides and a display table in the middle"
+        }
+      },
+      {
+        "id": "body",
+        "type": "paragraph",
+        "text": {
+          "vi": "Giữ lối đi chính thông từ cửa tới cuối cửa hàng, đặt hàng chủ lực ở kệ cuối để khách đi hết một vòng. Bàn trưng bày ở giữa không nên cao quá tầm nhìn để khách vẫn thấy kệ phía sau.\n\nTầng kệ ngang tầm mắt dành cho hàng bán chạy; tầng thấp và hộc kín phía dưới làm kho tại chỗ.",
+          "en": "Keep the main aisle clear from the door to the back, and put key products on the far wall so customers walk the full loop. The central table should stay below eye level so customers can still see the shelving behind it.\n\nEye-level shelves are for best sellers; lower shelves and closed cupboards below act as on-floor storage."
+        }
+      },
+      {
+        "id": "detail-pair",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận kệ tường có đèn LED hắt từng tầng, hộc kín phía dưới",
+            "altEn": "Close-up of wall shelving with LED strips on every tier and closed cupboards below"
+          },
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Quầy thu ngân gần cửa với kệ sau quầy",
+            "altEn": "Till counter near the door with shelving behind"
+          }
+        ]
+      },
+      {
+        "id": "advice",
+        "type": "paragraph",
+        "text": {
+          "vi": "Đèn LED hắt trong từng tầng kệ giúp màu hàng hiện đúng và phía trong kệ không bị tối. Quầy thu ngân đặt gần cửa để nhân viên vừa tính tiền vừa đón khách.\n\nKệ làm bằng ván công nghiệp cắt CNC theo số đo mặt bằng nên lắp nhanh và ít bụi.",
+          "en": "LED strips in each shelf tier show products in true colour and keep the back of the shelf from going dark. A till near the door lets staff take payment and greet customers at once.\n\nShelving in CNC-cut engineered board, made to the measured floor plan, installs quickly with little dust."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở cửa hàng?",
+          "en": "Opening a store soon?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "mo-quan-ca-phe",
+          "bien-hieu-mat-tien"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "man-hinh-led-san-khau",
+    "group": "quang-cao",
+    "published": "2026-11-02",
+    "slugVi": "man-hinh-led-module-san-khau-hoi-truong",
+    "slugEn": "led-module-screens-for-stages-and-halls",
+    "title": {
+      "vi": "Màn hình LED module cho sân khấu và hội trường: chuẩn bị gì trước khi lắp",
+      "en": "LED module screens for stages and halls: what to prepare before installation"
+    },
+    "description": {
+      "vi": "Khoảng cách xem, khung đỡ, nguồn điện và người vận hành: những việc cần chốt để màn hình LED chạy ổn định.",
+      "en": "Viewing distance, support frame, power and who runs it: what to settle so an LED screen runs reliably."
+    },
+    "cover": {
+      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Màn hình LED module phía sau sân khấu hội trường đang trình chiếu",
+      "altEn": "LED module screen behind a hall stage, showing a presentation"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Màn hình LED ghép từ nhiều module nên kích thước linh hoạt, hợp cho sân khấu, hội trường và phòng sự kiện. Muốn màn hình hiển thị đẹp và chạy bền, cần chốt vài việc từ đầu.",
+          "en": "LED screens are built from many modules, so their size is flexible and suits stages, halls and event rooms. For a screen that looks good and lasts, a few things need settling early."
+        }
+      },
+      {
+        "id": "lead-image",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Màn hình LED module phía sau sân khấu hội trường đang trình chiếu",
+          "altEn": "LED module screen behind a hall stage, showing a presentation"
+        }
+      },
+      {
+        "id": "body",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khoảng cách điểm ảnh quyết định độ mịn. Khán giả ngồi gần cần điểm ảnh nhỏ hơn; hội trường sâu thì phần lớn khán giả ngồi xa, không cần điểm ảnh quá nhỏ và tiết kiệm chi phí hơn.\n\nKích thước màn hình nên tính theo số module chẵn và tỷ lệ của nội dung hay chiếu, để hình không bị viền đen hay kéo méo.",
+          "en": "Pixel pitch decides how fine the image looks. Audiences sitting close need a smaller pitch; in a deep hall most of the audience sits far away, so a very fine pitch is not needed and costs less.\n\nSize the screen in whole modules and to the aspect ratio of the content you usually show, so images are not letterboxed or stretched."
+        }
+      },
+      {
+        "id": "detail-pair",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Mặt sau màn hình LED: khung thép đỡ module, dây nguồn và dây tín hiệu đi gọn",
+            "altEn": "Back of an LED screen: steel frame holding the modules, with power and signal cables neatly routed"
+          },
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận module LED và mép ghép giữa hai tấm",
+            "altEn": "Close-up of LED modules and the joint between two panels"
+          }
+        ]
+      },
+      {
+        "id": "advice",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khung đỡ phải tính theo tải trọng màn hình và cách lắp treo hay đặt sàn. Nguồn điện nên đi đường riêng, màn hình cần chỗ thoáng để tản nhiệt và lối tiếp cận để thay module khi cần.\n\nCuối cùng, chốt người vận hành: ai bật tắt, ai đưa nội dung lên và gọi ai khi có sự cố.",
+          "en": "The support frame must be designed for the screen's weight and whether it hangs or stands on the floor. Power should run on its own circuit, and the screen needs room to shed heat and access for replacing modules when needed.\n\nFinally, decide who runs it: who switches it on and off, who loads content and who to call when something goes wrong."
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần màn hình LED cho sân khấu?",
+          "en": "Need an LED screen for your stage?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "bien-hieu-mat-tien",
+          "quay-ke-cua-hang"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "bo-goc-noi-that",
+    "group": "xu-huong",
+    "published": "2026-10-30",
+    "slugVi": "xu-huong-bo-goc-cong-noi-that-go",
+    "slugEn": "rounded-corners-in-panel-furniture",
+    "title": {
+      "vi": "Bo góc, cạnh cong: nội thất gỗ mềm mắt hơn",
+      "en": "Rounded corners and curved edges: softer panel furniture"
+    },
+    "description": {
+      "vi": "Vì sao góc bo và cạnh cong được dùng nhiều trong nhà ở, và cách làm chúng trên ván công nghiệp bằng CNC.",
+      "en": "Why rounded corners and curved edges are popular in homes, and how CNC makes them in engineered board."
+    },
+    "cover": {
+      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Phòng khách với kệ TV treo bo cạnh và góc tường trát bo cong",
+      "altEn": "Living room with a rounded floating TV unit and a curved plaster wall corner"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Góc bo và cạnh cong xuất hiện nhiều trong nội thất nhà ở: mặt bàn, cánh tủ, hốc kệ, cả góc tường. Đường cong làm không gian mềm hơn và đỡ va chạm cho trẻ nhỏ.",
+          "en": "Rounded corners and curved edges are showing up across home interiors: tabletops, cabinet doors, shelf niches, even wall corners. Curves soften a room and spare small children hard knocks."
+        }
+      },
+      {
+        "id": "lead-image",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng khách với kệ TV treo bo cạnh và góc tường trát bo cong",
+          "altEn": "Living room with a rounded floating TV unit and a curved plaster wall corner"
+        }
+      },
+      {
+        "id": "body",
+        "type": "paragraph",
+        "text": {
+          "vi": "Với ván công nghiệp, đường cong khó làm bằng tay cho đều. Máy CNC cắt biên dạng và phay bo cạnh theo bản vẽ, nên các chi tiết cùng một độ bo, ghép vào là khớp.\n\nCạnh cong cần nẹp dán cạnh dẻo và máy dán cạnh phù hợp; chỗ cong quá gắt có thể phải sơn thay vì dán cạnh.",
+          "en": "In engineered board, curves are hard to cut evenly by hand. A CNC machine cuts the profile and rounds the edges from the drawing, so parts share the same rounding and fit together.\n\nCurved edges need flexible edge banding and a suitable edge bander; very tight curves may need paint instead of banding."
+        }
+      },
+      {
+        "id": "detail-pair",
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận mặt bàn ăn bo góc và chân vát phay CNC",
+            "altEn": "Close-up of a rounded dining tabletop and CNC-cut tapered legs"
+          },
+          {
+            "src": "/assets/content/projects/placeholder-doc.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Cận hốc kệ trưng bày bo góc cạnh góc tường cong",
+            "altEn": "Close-up of rounded display niches beside a curved wall corner"
+          }
+        ]
+      },
+      {
+        "id": "advice",
+        "type": "paragraph",
+        "text": {
+          "vi": "Muốn đường cong trông có chủ ý, nên lặp lại ở vài món chính thay vì rải khắp nhà. Phong cách Japandi hay tối giản ấm hợp nhất với góc bo, gỗ sáng và tường trơn.",
+          "en": "For curves to look intentional, repeat them on a few key pieces rather than scattering them everywhere. Japandi or warm minimal styles suit rounded corners, light timber and plain walls best."
+        }
+      },
+      {
+        "id": "closing-image",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Phòng ngủ con với tủ áo cánh phẳng và mép đồ gỗ bo tròn",
+          "altEn": "Child's bedroom with a flat-door wardrobe and rounded furniture edges"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn đồ gỗ bo góc cho nhà mình?",
+          "en": "Want rounded furniture for your home?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards",
+        "newsIds": [
+          "nha-pho-giu-mat",
+          "tu-ao-am-tuong"
+        ]
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  }
+]

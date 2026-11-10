@@ -2,11 +2,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
+import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/masonry/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
-const runtime = await read("advertising-products/catalog-runtime.mjs");
+const runtime = await read("masonry/runtime.mjs");
+const ctaBatch = await read("masonry/cta-batch.mjs");
 
 // R1: chỉ các glass step và nền viewer sở hữu backdrop-filter (nền viewer blur trên mọi máy từ owner 2026-10-26).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
@@ -19,7 +20,7 @@ assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var
 // R2: một step đầy là trần 100px; core của cung giữ 28px của band trên phone (PC đặt inline 100px, chín bậc ở dải).
 assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
 assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the phone arc's core holds 28px");
-assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
+assert.match(ctaBatch, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // Primary photo tự mang blur của step đầy: backdrop-filter ở đó in tile seam vào thumbnail tab của Chrome.
 assert.match(css, /\[data-advertising-photo-background\] \{\s*filter: blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/,
@@ -52,10 +53,10 @@ assert.match(css, new RegExp(`^${arc} > \\.glass-surface__grain \\{\\s*backgroun
 assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: the Kính box has no opacity, mask or filter");
 
 // R2, R3: số của owner và hai giới hạn.
-const desktop = arcGlassGeometry({ width: 1440, batchBottom: 900, realBottom: 50, cardWidth: 320, clusterTop: 400, clusterBottom: 560 });
-assert.equal(desktop.yIn, 376, "R2: apex 15% of the CTA cluster above the heading");
+const desktop = arcGlassGeometry({ width: 1440, batchBottom: 1100, realBottom: 50, cardWidth: 320, clusterTop: 600, clusterBottom: 760 });
+assert.equal(desktop.yIn, 576, "R2: apex 15% of the CTA cluster above the heading");
 assert.equal(desktop.radius, 3.5 * 1440, "R2: radius 3.5 viewport widths");
-assert.equal(desktop.band, 1.75 * 160, "R2: band 1.75 cluster heights");
+assert.equal(desktop.band, 2.5 * 160, "R2: desktop band 2.5 cluster heights");
 assert.equal(desktop.cy, desktop.yIn + desktop.radius, "R2: centre under the batch, middle of the screen");
 const short = arcGlassGeometry({ width: 390, batchBottom: 760, realBottom: 560, cardWidth: 172, clusterTop: 600, clusterBottom: 700 });
 assert.equal(short.yIn - short.band, 560, "R2: the band edge stops at the real photos");

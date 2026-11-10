@@ -10,14 +10,12 @@ const OUT = 'scripts/docs/captures';
 const GRID = '/vi/advertising-products/';
 const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-26';
 const CLIP = '/__design_system__/clip.mp4';
-// Các card trong viewport đầu của grid có seed, để media của chúng tải xong; hiện 1 item, 3 item, 11 item và một video cover
-// cộng một ảnh (docs/specs/media-card.md).
-const MEDIA_CARDS = ['office-signs-wayfinding-25', 'kiosk-posm-33', 'office-signs-wayfinding-54', 'print-decals-33'];
-
+// MediaCard lấy bốn card hàng đầu của grid với seed cố định (grid ảo chỉ giữ card gần viewport), rồi biến chúng
+// thành 1 item, 3 item, 11 item và một video cover cộng một ảnh (docs/specs/media-card.md).
 // Catalog live chỉ có card một ảnh, nên MediaCard lặp ảnh của chính mỗi card làm item phụ, như fixture e2e.
-function mediaCardArtifact() {
+function mediaCardArtifact(ids) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
-  const [, dots, counter, video] = MEDIA_CARDS.map((id) => artifact.cards.find((card) => card.id === id));
+  const [, dots, counter, video] = ids.map((id) => artifact.cards.find((card) => card.id === id));
   for (const [card, count, cover] of [[dots, 3, 0], [counter, 11, 6], [video, 2, 0]]) {
     card.mediaItems = Array.from({ length: count }, (_, i) => ({ ...card.mediaItems[0], id: `${card.id}-ds-${i + 1}` }));
     card.coverMediaId = card.mediaItems[cover].id;
@@ -31,7 +29,7 @@ function mediaCardArtifact() {
 // focus đánh dấu child mà frame preview cuộn tới (mặc định: chính element).
 const CAPTURES = [
   { name: 'Filter', route: GRID, select: '.project-filters' },
-  { name: 'MediaCard', route: GRID, select: '[data-project-grid]', cards: MEDIA_CARDS, artifact: mediaCardArtifact },
+  { name: 'MediaCard', route: GRID, select: '[data-project-grid]', firstRow: 4, artifact: mediaCardArtifact },
   { name: 'Masonry', route: GRID, select: '[data-project-grid]' },
   { name: 'Skeleton', route: GRID, select: '.project-index', focus: '[data-advertising-cta-frame]',
     setup: (page) => page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)) },
@@ -81,6 +79,8 @@ function snapshot({ select, cards, focus }) {
 // Thuộc tính lazy và responsive sẽ trỏ preview về site; build-design-system.mjs viết lại src và poster.
 // Video chỉ giữ poster, để clip fixture không lọt vào design-system/.
 const clean = (html) => html
+  // Ảnh primary đổi sang URL tuyệt đối khi lên bản gốc; giữ đường dẫn site để build chép WebP.
+  .replaceAll(BASE, '')
   .replace(/<source\b[^>]*>/g, '')
   .replace(/(<video\b[^>]*?)\ssrc="[^"]*"/g, '$1')
   .replace(/\s(?:srcset|sizes|data-srcset|data-sizes|loading)="[^"]*"/g, '')
@@ -91,15 +91,27 @@ const clean = (html) => html
 
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
 mkdirSync(OUT, { recursive: true });
-for (const capture of CAPTURES) {
+const openPage = async (route) => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-  if (capture.artifact) {
-    await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, capture.artifact());
-    await page.route(`**${CLIP}`, (route) => route.fulfill({ path: 'tests/site/fixtures/site-media-card-clip-audio.mp4', contentType: 'video/mp4' }));
-  }
   // Visit seed cố định giữ thứ tự card ổn định giữa các lần capture.
   await page.addInitScript(() => sessionStorage.setItem('tt-advertising-visit-seed-handoff-v1', JSON.stringify({
     version: 1, url: location.href.split('#')[0], seed: 'design-system', expiresAt: Date.now() + 60000 })));
+  return page;
+};
+for (const capture of CAPTURES) {
+  if (capture.firstRow) {
+    const probe = await openPage();
+    await probe.goto(BASE + capture.route, { waitUntil: 'networkidle' });
+    capture.cards = await probe.evaluate((n) => [...document.querySelectorAll('[data-advertising-card]')]
+      .map((el) => ({ id: el.dataset.advertisingCard, top: parseFloat(el.style.top), left: parseFloat(el.style.left) }))
+      .sort((a, b) => a.top - b.top || a.left - b.left).slice(0, n).sort((a, b) => a.left - b.left).map((c) => c.id), capture.firstRow);
+    await probe.close();
+  }
+  const page = await openPage();
+  if (capture.artifact) {
+    await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, capture.artifact(capture.cards));
+    await page.route(`**${CLIP}`, (route) => route.fulfill({ path: 'tests/site/fixtures/site-media-card-clip-audio.mp4', contentType: 'video/mp4' }));
+  }
   await page.goto(BASE + capture.route, { waitUntil: 'networkidle' });
   await page.waitForTimeout(2500);
   if (capture.setup) { await capture.setup(page); await page.waitForTimeout(2500); }

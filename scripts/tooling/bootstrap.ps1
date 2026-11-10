@@ -76,7 +76,7 @@ function Install-GlobalNode {
     }
   }
   Write-Utf8Atomic (Join-Path $nodeRoot "package.json") (($package | ConvertTo-Json -Depth 5) + [Environment]::NewLine)
-  # Impeccable 4 phát hành engine dưới dạng optional dependency theo platform.
+  # Impeccable 4 ships its engine as a per-platform optional dependency.
   & (Get-ProjectPnpm) --dir $nodeRoot install --no-frozen-lockfile
   if ($LASTEXITCODE -ne 0) { throw "Global Node dependency installation failed." }
 }
@@ -95,8 +95,8 @@ function Install-PnpmShim {
 }
 
 function Install-GlobalSkills {
-  # Skill của Claude Code đến từ plugin đã pin (local-setup.ps1), giống cloud-setup.sh.
-  # Codex tự cài lại skill của nó khi cần; ở đây chỉ giữ skill Graphify.
+  # Claude Code skills come from the pinned plugins (local-setup.ps1), like cloud-setup.sh.
+  # Codex reinstalls its own skills when needed; here only the Graphify skill is kept.
   & (Join-Path $PSScriptRoot "local-setup.ps1")
   & (Join-Path $globalRoot "python\Scripts\graphify.exe") install --platform agents
   if ($LASTEXITCODE -ne 0) { throw "Graphify global skill installation failed." }

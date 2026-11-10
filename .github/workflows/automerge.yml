@@ -1,7 +1,7 @@
 name: Automerge
 
-# Tự merge PR khi CI và Docs cùng xanh, không cần agent. Mặc định bật; giữ PR lại bằng
-# draft hoặc nhãn `hold`. Chỉ đọc metadata, không checkout code của PR.
+# Auto-merge a PR when CI and Docs are both green, no agent needed. On by default; hold a PR back with
+# draft or the `hold` label. Reads metadata only, never checks out PR code.
 on:
   workflow_run:
     workflows: [CI, Docs]
@@ -32,18 +32,18 @@ jobs:
               const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
               if (pr.state !== 'open' || pr.draft || pr.head.sha !== sha) continue;
               if (pr.labels.some((label) => label.name === 'hold')) {
-                core.info(`PR #${number}: nhãn hold, giữ lại.`);
+                core.info(`PR #${number}: hold label, leaving it open.`);
                 continue;
               }
               const runs = await github.paginate(github.rest.checks.listForRef, { owner, repo, ref: sha });
               const green = required.every((name) =>
                 runs.some((run) => run.name === name && run.conclusion === 'success'));
               if (!green) {
-                core.info(`PR #${number}: chưa đủ check xanh (${required.join(', ')}).`);
+                core.info(`PR #${number}: required checks not green yet (${required.join(', ')}).`);
                 continue;
               }
-              // Ruleset trả 405 "Required status check ... is expected" khi check vừa xanh (re-run) chưa
-              // kịp ghi nhận: thử lại với backoff 10s, 20s, 40s (tổng 70s, dưới timeout 5 phút của job).
+              // The ruleset returns 405 "Required status check ... is expected" when a check has just turned green (re-run) but has not
+              // been recorded yet: retry with backoff 10s, 20s, 40s (70s total, under the job's 5-minute timeout).
               let merged = false;
               for (let attempt = 0; attempt < 4 && !merged; attempt++) {
                 try {
@@ -51,24 +51,24 @@ jobs:
                   merged = true;
                 } catch (error) {
                   if (error.status === 405 && /status check/i.test(error.message) && attempt < 3) {
-                    core.info(`PR #${number}: ruleset chưa ghi nhận check, thử lại lần ${attempt + 1}/3.`);
+                    core.info(`PR #${number}: ruleset has not registered the check, retry ${attempt + 1}/3.`);
                     await new Promise((resolve) => setTimeout(resolve, 10000 * 2 ** attempt));
                     continue;
                   }
-                  // Conflict hoặc PR đã được run song song merge: để thread xử lý.
-                  core.warning(`PR #${number}: không merge được: ${error.message}`);
+                  // Conflict or the PR was already merged by a parallel run: leave it to that thread.
+                  core.warning(`PR #${number}: could not merge: ${error.message}`);
                   break;
                 }
               }
               if (!merged) continue;
-              core.info(`PR #${number}: đã merge.`);
-              // Merge bằng GITHUB_TOKEN không kích hoạt xóa branch tự động của repo (kiểm 18/10), nên xóa tay.
+              core.info(`PR #${number}: merged.`);
+              // A merge by GITHUB_TOKEN does not trigger the repo's automatic branch deletion (checked 18/10), so delete manually.
               if (pr.head.repo.full_name === `${owner}/${repo}` && pr.head.ref !== pr.base.ref
                   && pr.head.ref !== context.payload.repository.default_branch) {
                 await github.rest.git.deleteRef({ owner, repo, ref: `heads/${pr.head.ref}` })
-                  .catch((error) => core.warning(`PR #${number}: không xóa được branch: ${error.message}`));
+                  .catch((error) => core.warning(`PR #${number}: could not delete branch: ${error.message}`));
               }
-              // Merge bằng GITHUB_TOKEN không kích hoạt CI push; dispatch tay để Deploy demo chạy tiếp.
+              // A merge by GITHUB_TOKEN does not trigger CI push; dispatch manually so Deploy demo continues.
               await github.rest.actions.createWorkflowDispatch({
                 owner, repo, workflow_id: 'ci.yml', ref: pr.base.ref,
               });

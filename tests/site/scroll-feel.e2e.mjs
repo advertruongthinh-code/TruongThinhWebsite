@@ -40,12 +40,12 @@ try {
     await settle(page);
     await page.waitForTimeout(1500);
 
-    // R4: chỉ media hero (và rail trang chủ) mang speed của Locomotive.
+    // R4: only hero media (and the home rail) carry Locomotive speed.
     const speeds = await page.evaluate(() => [...document.querySelectorAll("[data-scroll-speed]")]
       .map((node) => `.${node.classList[0]}:${node.dataset.scrollSpeed}`).sort());
     assert.deepEqual(speeds, [...parallax[name]].sort(), `${name}: parallax targets follow R4`);
 
-    // R3: media hero vẫn phủ hero khi nó trôi.
+    // R3: hero media still covers the hero while it drifts.
     const hero = await page.evaluate(() => document.querySelector(".hero")?.getBoundingClientRect().height || 0);
     for (const fraction of [0, 0.25, 0.5, 0.75, 1]) {
       await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), Math.round(hero * fraction));
@@ -62,7 +62,7 @@ try {
       assert.ok(gap <= 1, `${name}: hero media shows an edge at ${fraction} of the hero (${gap}px)`);
     }
 
-    // R1: cùng wheel input đi cùng khoảng cách trên mọi trang.
+    // R1: the same wheel input travels the same distance on every page.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(300);
     await page.mouse.move(720, 450);
@@ -73,7 +73,7 @@ try {
     await page.waitForTimeout(1800);
     travel[name] = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 
-    // R1: cuộn dài (vào masonry Advertising) lướt mượt, không có frame nhảy vượt các frame lân cận.
+    // R1: a long scroll (into the Advertising masonry) glides smoothly, with no frame jumping past its neighbors.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(300);
     await page.evaluate(() => {
@@ -103,7 +103,7 @@ try {
   }
   await page.close();
 
-  // R5: khối Giữ nghề theo CTA banner Espacio ở mọi width.
+  // R5: the Giữ nghề block follows the Espacio CTA banner at every width.
   const expected = (width) => ({
     height: width > 1200 ? 600 : width > 960 ? 500 : 400,
     gutter: width > 1200 ? Math.max(35, (width - 1500) / 2) : width > 750 ? 25 : 15,
@@ -131,7 +131,7 @@ try {
           below: next.top - box.bottom,
           fontSize: parseFloat(getComputedStyle(title).fontSize),
           fits: titleBox.top >= copy.top - 1 && titleBox.bottom <= copy.bottom + 1
-            // Chừa 0.3em cho dấu chấm treo (.text-hang-end) khi dòng chạm mép ở cửa sổ hẹp.
+            // Leave 0.3em for the hanging punctuation (.text-hang-end) when a line touches the edge in a narrow window.
             && [title, ...title.querySelectorAll(".line-mask")].every((node) =>
               node.scrollWidth <= node.clientWidth + 0.3 * parseFloat(getComputedStyle(title).fontSize)),
           href: link?.getAttribute("href"),
@@ -141,17 +141,17 @@ try {
       });
       const target = expected(width);
       const label = `${locale} ${width}px`;
-      // Chiều cao bảng R5 là tối thiểu: tiêu đề cỡ CTA chung không co, khối cao theo chữ.
+      // R5 panel height is a minimum: the shared CTA-size title does not shrink, the block grows with the text.
       assert.ok(block.height >= target.height - 1, `${label}: block height ${block.height}`);
       assert.ok(Math.abs(block.left - target.gutter) <= 1 && Math.abs(block.right - target.gutter) <= 1,
         `${label}: gutters ${block.left}/${block.right}`);
       assert.ok(Math.abs(block.below - target.below) <= 1, `${label}: space below ${block.below}`);
-      // Cỡ tiêu đề CTA chung clamp(3.2rem, 6vw, 7rem), bằng CTA trang con.
+      // Shared CTA title size is clamp(3.2rem, 6vw, 7rem), same as the subpage CTA.
       const ctaSize = Math.min(Math.max(51.2, width * 0.06), 112);
       assert.ok(Math.abs(block.fontSize - ctaSize) <= 1, `${label}: title size ${block.fontSize} vs ${ctaSize}`);
       assert.ok(block.fits, `${label}: title fits the copy box`);
       assert.equal(block.href, `/${locale}/about/`, `${label}: link goes to About`);
-      // Bố cục CTA chung (detail-pages R10): nút cách hộp tiêu đề 2rem cộng nửa phần dư vùng chạm 44px, tiêu đề ở tâm khối.
+      // Shared CTA layout (detail-pages R10): button sits 2rem below the title box plus half the surplus of the 44px touch area, title at block center.
       assert.ok(block.linkGap >= 40 && block.linkGap <= 46, `${label}: link sits under the title (${block.linkGap}px)`);
       assert.ok(Math.abs(block.titleCenter) <= 1, `${label}: title box centred in the block (${block.titleCenter}px)`);
       await view.close();

@@ -1,7 +1,9 @@
 # Kính
 
+Nguồn: `src/site/masonry/glass-surface.mjs`; CSS `.glass-surface`; spec [Kính](../../../docs/specs/glass-surface.md).
+
 Một component cho mọi bề mặt glass của trang Advertising. Runtime
-`glass-surface.mjs` dựng `div.glass-surface` gồm các lớp bậc nhòe, một lớp
+`masonry/glass-surface.mjs` dựng `div.glass-surface` gồm các lớp bậc nhòe, một lớp
 tint trắng và một lớp hạt nhiễu; style ở mục Kính của `src/site/detail.css`.
 Không bề mặt nào khác tự viết `backdrop-filter`.
 
@@ -32,7 +34,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   một đoạn bằng `1/3` bề rộng dải (owner 2026-11-01), từ đó vào trong đều `100px`. Số lớp cố định theo máy, không đo fps: PC lõi
   và 9 bậc dải; điện thoại 2 lớp (lõi `28px` và bậc dải trong cùng). Đỉnh cung cao hơn mép trên tiêu đề
   `15%` chiều cao cụm CTA (chữ nằm trong lõi; điện thoại giữ `35%` dưới mép tiêu đề), bán kính `3.5` × bề rộng màn, dải giảm nhòe
-  `1.75` × chiều cao cụm, vùng trắng tuyệt đối `0.35` × bề rộng card. Dải không
+  PC `2.5`, điện thoại `1.75` × chiều cao cụm (owner 2026-11-07 làm dịu; bậc dải điện thoại trải hết dải, mép mask mỗi bậc
+  theo smoothstep), vùng trắng tuyệt đối `0.35` × bề rộng card. Dải không
   lên quá ảnh thật; bán kính tăng nếu cần để hai góc đáy batch trắng tuyệt đối.
 - **Trắng theo cùng cung:** trắng về 0 ở `0.85` bề rộng dải (thu hẹp, owner 2026-11-01; hạt nhiễu thu theo), tới cung đạt tint, vào
   trong tăng tới trắng tuyệt đối ở vòng qua hai góc đáy batch.

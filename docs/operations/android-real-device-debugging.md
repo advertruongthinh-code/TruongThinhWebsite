@@ -2,12 +2,16 @@
 title: Debug Chrome trên Android thật qua USB
 type: operations
 status: connection-verified
-updated: 2026-09-27
+updated: 2026-11-10
 related_specs:
   - ../specs/site-shell.md
 ---
 
 # Debug Android thật qua USB
+
+Máy đo chuẩn hiện tại: **Galaxy A04s `SM-A047F`** (Chrome 156, Android 14, viewport 384x724 CSS px,
+DPR 1,875), nối adb qua PC owner. Mọi số đo, PR, reply ghi đúng tên này; Galaxy A05s `SM-A057F`
+(411px) là máy cũ, chỉ còn trong lịch sử dưới đây, không dùng để đo mới.
 
 Owner xác nhận thiết bị là Android, browser Chrome, máy host Windows chạy
 Codex. Trang chạy trên điện thoại thật; viewport desktop emulation không thay
@@ -193,8 +197,10 @@ Sau khi xong phiên test, gỡ đúng forwarding vừa tạo; giữ mapping khá
 & $androidAdb -s $androidSerial reverse --remove tcp:8790
 ```
 
-Nếu thay bằng Chrome Port forwarding8790, tắt đúng mapping đó. Tắt USB debugging
-trên điện thoại khi không còn dùng phiên debug.
+Nếu thay bằng Chrome Port forwarding8790, tắt đúng mapping đó. Đóng tab đã mở,
+dừng server của phiên. Không khóa điện thoại (owner 2026-10-31): giữ
+`svc power stayon usb`, không gửi phím power/sleep, không tắt màn hình, không tắt
+USB debugging, để thread sau kết nối được mà owner không phải mở khóa.
 
 ## Chú thích thuật ngữ
 

@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-31
+updated: 2026-11-08
 ---
 
 # Bộ test CI chia theo phần website
@@ -48,7 +48,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | --- | --- | --- |
 | `fast` | static-release, cms, cms-editor | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route, editor CMS (`tests/admin/`, [cms-editor R9](cms-editor.md#r9-chạy-local-và-ci)); chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
-| `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
+| `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark lật màu, 404, reduced motion |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
 | `brand` | site-shell, logo-route-crossfade | logo: màu, bbox, co giãn khi đổi cỡ màn hình |
 | `shell-motion` | site-shell, logo-route-crossfade | menu, reduced motion, bfcache, nhịp chữ và logo kiểu Espacio, link nội bộ |
@@ -56,11 +56,13 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |
 | `home` | page-home | hero, portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
+| `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết |
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
-| `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route |
+| `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route, bấm filter khi cache xếp card đang tải, preload cache từ head |
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
+| `masonry-hosts` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax, advertising-detail, progressive-loading, projects | ma trận chung cho mọi nơi có masonry (Advertising, Công trình, related): vuốt nhanh, vùng giữ card, không lên 4K, Kính reveal không chồng cung, CTA chưa hiện trước khi vào view, F5 |
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |

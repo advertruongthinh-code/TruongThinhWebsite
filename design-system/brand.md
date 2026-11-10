@@ -100,7 +100,6 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 | Bốn màu CMYK | Bốn màu dưới | `#2f2f2f` ở header, `ink` ở menu | Header trên nền trắng hoặc sticky; full menu |
 | Đơn màu trắng | `#fff` | `#fff` | Header trên ảnh hero hoặc nền tối |
 | Đơn màu đen | `#2b2a29` | `#2f2f2f` | Trạng thái tạm một frame trước CMYK (xem dưới) |
-| Đơn màu đậm | `#2f2f2f` | `#2f2f2f` | Header trên veil khi chuyển trang, như Espacio |
 | Favicon | `#000000` hoặc `#ffffff` | Không có chữ | OS sáng dùng bản đen, OS tối dùng bản trắng |
 
 | Path | Màu | Token | Hex |
@@ -135,73 +134,107 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | --- | --- | --- |
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
-| Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
-| Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
-| Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
-| Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
+| Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ngay lúc bắt đầu nhịp cùng nền, khi mở ra thì đổi ở `0.3s` cùng nền | Mỗi lần header đổi tone |
+| Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: mark lật sang trắng ngay lúc bắt đầu; nền trắng, viền và chữ đậm giữ, nền bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng, không fade (owner 2026-11-09). Cỡ lớn nhất của nền: logo lớn nhất cách đều cạnh trên và cạnh dưới nền | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
+| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s`, bắt đầu ngay (thu gọn, mở ra, veil phủ kín, veil bắt đầu mở) hoặc từ `0.1s` (đổi tone theo section) | Theo state machine dưới |
+| Màu mark khi chuyển trang | Lúc bấm giữ nguyên. Veil phủ kín: chữ đổi ngay sang `#2f2f2f`, mark đang trắng lật sang CMYK ngay lúc đó (đang CMYK thì giữ). Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Chữ không có motion (owner 2026-11-09) | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio. Đổi ngôn ngữ thì cả header ẩn ngay lúc bấm, veil trắng phủ trống tới khi trang mới tải (owner 2026-11-10) | Route mềm ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); đổi ngôn ngữ ([R4](../docs/specs/logo-route-crossfade.md#r4-đổi-ngôn-ngữ)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
-Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
-thời lớp cũ lùi lên đúng bằng phần lớp mới đã phủ; hình dải không đổi, mép lớp
-mới nằm ngang. Ở mọi frame, mỗi điểm của dải chỉ thuộc một lớp: lớp mới dưới
-mép mọc, lớp cũ trên mép mọc. Hai lớp chỉ chồng nhau trong dải ngang `1px`
-ngay dưới mép mọc để không hở khe; mép trái, phải, đỉnh và chân dải không bao
-giờ có hai lớp chồng nhau, nên không lộ viền mảnh của lớp cũ quanh dải. Hai
-chiều (vào và rời CMYK) giống hệt nhau về hướng, thứ tự và timing. Mỗi dải chạy trong chiều cao riêng
-của nó, chân chung ở đáy mark. Đường cong `cubic-bezier(0.16, 1, 0.3, 1)`;
-`delay + duration = 1s` ở mọi dải nên cả bốn cùng xong một lúc:
+Mỗi lần mark đổi màu, từng dải lật như tấm biển xoay: mặt màu cũ quay đi, mặt màu
+mới quay tới. Trục lật của mỗi dải là đường song song cạnh trái tam giác, đi qua
+trung điểm đoạn cạnh phải của dải (cũng là đường giữa dải, qua trung điểm chân
+dải); dải đen là tam giác nên trục qua trung điểm cạnh phải của nó. Mỗi dải có
+phối cảnh riêng đặt trên trục (`perspective` gấp 6 lần bề rộng mark) nên dải lật
+tại chỗ. Lượt lật là một đoạn motion: sang CMYK (hay sang màu khác trắng) chạy
+tới, cyan trước, từ trái sang phải; về trắng chạy lùi đúng đoạn đó, đen trước,
+từ phải sang trái, các dải quay chiều ngược lại (owner 2026-11-09). Bảng dưới là
+chiều tới; chiều lùi đọc từ cuối bảng lên, tính từ mốc `0.68s`.
 
-| Dải | Delay / duration |
-| --- | --- |
-| 1 đen | `0` / `1s` |
-| 2 vàng | `0.07s` / `0.93s` |
-| 3 magenta | `0.14s` / `0.86s` |
-| 4 cyan | `0.21s` / `0.79s` |
+| Dải | Mặt cũ quay đi (`0` tới `90°`) | Mặt mới quay tới (`-90°` tới `0`) |
+| --- | --- | --- |
+| 4 cyan | `0` / `0.22s` | `0.22s` / `0.22s` |
+| 3 magenta | `0.08s` / `0.22s` | `0.3s` / `0.22s` |
+| 2 vàng | `0.16s` / `0.22s` | `0.38s` / `0.22s` |
+| 1 đen | `0.24s` / `0.22s` | `0.46s` / `0.22s` |
 
-Đổi hướng giữa chừng: phần đang hiển thị (kể cả dải mọc dở) giữ làm lớp cũ,
-lớp mới mọc lại từ chân và toàn bộ lớp cũ lùi theo cùng mép mọc như trên. Lớp
-cũ là bản sao bốn path trong `.brand-lockup__mark-underlay`, gỡ khi lớp mới
-mọc xong.
+Mặt cũ quay đi với `cubic-bezier(0.5, 0, 0.75, 0)`, mặt mới quay tới với đường
+cong đối xứng `cubic-bezier(0.25, 1, 0.5, 1)`, nên chạy lùi trông y như chạy tới,
+không khựng đầu lượt. Mọi mặt cùng kết thúc ở mốc `0.68s` (`endDelay`), nên chạy
+lùi từ cuối giữ đúng lệch `0.08s` giữa các dải. Lớp lật là `.brand-lockup__mark-flip` trong
+`#header-logo`: mỗi dải một lớp HTML, mỗi mặt một lớp GPU riêng, chỉ animate
+`transform` và `opacity` nên chạy trên compositor; cuộn làm bận main thread
+không làm mark giật (đo A04s 2026-11-07: kiểu mọc `clip-path` cũ còn khoảng 20
+frame/giây và đứng hình khi main thread bận). Trong lúc lật, path inline của mark
+ẩn; lật xong gỡ lớp lật, mark inline hiện lại với màu cuối.
+
+Mỗi mặt có thêm một lớp bóng đen cùng hình dải, opacity `0` tới `0.5` khi mặt cũ
+quay ra cạnh và `0.5` về `0` khi mặt mới quay tới, cùng delay, thời lượng và
+easing với mặt đó (owner 2026-11-09). Dải mảnh xoay quanh trục dọc dải nên nếu
+không có bóng, mắt chỉ thấy dải hẹp lại rồi nở ra, bốn dải lệch nhau trông như
+một vệt quét; bóng cho thấy mặt đang nghiêng. Trên nền trắng, mặt trắng nghiêng
+hiện thành xám thoáng qua.
+
+Khi thu gọn, nền trắng, viền và chữ đậm hiện ngay lúc logo và navbar bắt đầu
+chạy, không fade; nền bắt đầu ở cao cũ rồi co cùng logo và navbar trong `0.3s`
+(owner 2026-11-09). Khi mở ra (kéo lên), nền trắng, viền và chữ đậm giữ, nền
+bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi một lần sang
+nền trong, chữ trắng, không fade (owner 2026-11-09). Nền và chữ đổi cùng một
+frame nên chữ luôn đọc được: chữ đen chỉ hiện trên nền trắng, chữ trắng chỉ hiện
+trên ảnh. Cả hai chiều mark lật ngay lúc bắt đầu nhịp, không pha xám (pha xám
+khiến mark đổi màu hai lần). Đổi tone theo section (không thu gọn, nền không
+đổi) mark lật từ `0.1s`, cùng nhịp stagger nav lúc intro.
+
+Đổi hướng trong nhịp 1 (lớp lật chưa dựng) về đúng màu lúc vào nhịp: mark giữ
+nguyên, không lật. Đổi hướng lúc đang lật: tua ngược ngay từ chỗ đang dừng, như
+tua băng, cùng lớp lật, không chờ nhịp header (owner 2026-11-09). Vì chiều về
+trắng là chiều tới chạy lùi nên tua kiểu nào thứ tự dải cũng đúng chiều. Màu đích
+sang màu thứ ba (không phải hai đầu của lượt): lượt đang chạy lật cho xong, rồi
+hết lượt chờ của lần đổi thì lật tiếp từ màu vừa tới.
 
 ```gherkin
 Given trang chủ ở đầu trang, mark trắng trên hero, trên điện thoại hoặc PC
-When cuộn thành sticky rồi cuộn về đầu trang, dừng ảnh ở 0.1s, 0.5s và 0.9s mỗi chiều
-Then trên và dưới mép mọc chỉ có một lớp, quanh mép trái, phải, đỉnh dải không có
-  điểm ảnh nào mang màu lớp cũ
-And kiểu mọc, thứ tự đen, vàng, magenta, cyan và mốc 1s giữ nguyên
+When cuộn thành sticky rồi cuộn về đầu trang
+Then mỗi dải lật quanh trục riêng qua trung điểm chân dải, song song cạnh trái
+And khi thu gọn, nền, viền và chữ đổi ngay lúc bắt đầu, nền co cùng logo trong 0.3s
+And khi mở ra, nền trắng và chữ đậm giữ, nền giãn cùng logo, hết 0.3s mới đổi sang nền trong, chữ trắng
+And cả hai chiều mark bắt đầu lật ngay, không pha xám
+And sang CMYK cyan lật trước, đen sau cùng, mọi mặt CMYK hiện ở 0.7s tính từ lúc lật
+And về trắng đen lật trước, cyan sau cùng
+And đổi hướng lúc đang lật thì tua ngược từ chỗ đang dừng
+And lớp lật chỉ animate transform và opacity
 ```
 
-FLIP chạy song song với màu mark và không hủy nó. Giảm chuyển động: không
+FLIP chạy trong nhịp 1, xong về mắt trước khi mark lật. Giảm chuyển động: không
 intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
 ### State machine màu
 
-Header có một trong ba trạng thái màu mark. Header ở tone mực (nền trắng) khi
+Header có một trong hai trạng thái màu mark. Header ở tone mực (nền trắng) khi
 một trong ba điều kiện đúng: đã cuộn quá `100px` (sticky), section đang dưới
-header có `data-header-tone="ink"`, hoặc đang chuyển route mà trang đích chưa
-sẵn sàng.
+header có `data-header-tone="ink"`, hoặc veil chuyển route đang phủ kín (vào
+thẳng trang: tới khi trang đích sẵn sàng).
 
 | Trạng thái | Lớp header | Mark |
 | --- | --- | --- |
 | Trắng | `is-brand-inverse` | Bốn path trắng |
 | CMYK | `is-brand-color` | Bốn màu |
-| Đậm | `is-brand-ink` | Bốn path `#2f2f2f`, chỉ khi chuyển route |
 
 | Từ | Sự kiện | Tới | Cách chuyển |
 | --- | --- | --- | --- |
 | Chưa vẽ | Mở trang (direct, F5) trên nền ảnh | Trắng | Ngay, không transition |
-| Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
-| Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | CMYK mọc lên trên lớp trắng |
-| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Trắng mọc lên trên lớp CMYK |
-| Trắng, CMYK | Bấm link chuyển route | Đậm | Tween màu `0.3s` cùng chữ |
-| Đậm | Veil bắt đầu mở | Trắng hoặc CMYK theo trang đích | Tween màu `0.3s` cùng chữ |
-| Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
+| Chưa vẽ | Mở trang trên nền trắng | CMYK | Lật từ đen `#2b2a29` sang CMYK |
+| Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | Sticky: lật ngay cùng lúc nền trắng hiện; section: giữ trắng, từ `0.1s` lật sang CMYK |
+| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Về đầu trang: lật ngay lúc header bắt đầu mở ra, nền tắt ở `0.3s`; section: giữ CMYK, từ `0.1s` lật sang trắng; đen trước |
+| Trắng | Veil chuyển route phủ kín | CMYK | Lật ngay, không chờ nhịp; chữ đổi ngay sang đậm |
+| CMYK | Veil bắt đầu mở, trang đích hero ảnh | Trắng | Lật ngay, đen trước; chữ đổi ngay sang trắng |
+| Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Tua ngược từ chỗ đang dừng |
 
-- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark tween sang
-  `#2f2f2f` cùng chữ, như Espacio; logo luôn hiện trên veil, mark giữ màu đậm
-  suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại mark), rồi tween theo
-  tone trang đích lúc veil bắt đầu mở. Bấm link lúc mark đang mọc dở thì kiểu
-  mọc dừng, từng dải tween từ màu đang có.
+- Chuyển route: lúc bấm link header ghim lại, chữ và mark giữ màu đang có.
+  Veil phủ kín thì chữ đổi ngay sang đậm và mark lật sang CMYK (đang CMYK thì
+  giữ); logo luôn hiện trên veil, HTML trang đích mount dưới veil không làm vẽ
+  lại mark. Veil bắt đầu mở thì chữ đổi ngay sang tone trang đích và mark lật
+  theo. Bấm link lúc mark đang lật dở thì lượt lật chạy tiếp (owner 2026-11-09).
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 

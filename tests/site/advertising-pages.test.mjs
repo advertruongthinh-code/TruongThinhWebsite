@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "../../src/site/advertising-products/taxonomy.mjs";
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
 globalThis.window ??= {};
-const { parseAdvertisingBrowseLocation, selectAdvertisingRelated, selectAdvertisingSuggestions, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { parseBrowseLocation, selectRelated, selectSuggestions, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
 const read = (path) => readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8");
 const artifact = buildAdvertisingArtifact();
 
@@ -31,9 +31,9 @@ test("taxonomy R4: trang sản phẩm EN có title, meta, canonical, hreflang, h
   const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1];
   assert.match(noscript, /<p[^>]*>Business cards, flyers, brochures, catalogues/);
   for (const page of ADVERTISING_PAGES) assert.match(noscript, new RegExp(`href="/en/advertising-products/${page.en}/"`), page.filter);
-  const page = ADVERTISING_PAGES.find(({ filter }) => filter === "printing-decals/office-printing");
-  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [page.labelEn], "h1 duy nhất là tên sản phẩm");
-  assert.match(html, /<h1\s+class="hero-kicker"[^>]*data-vi="In ấn văn phòng"/);
+  // Kicker giữ chữ cố định của trang gốc ở mọi trang cụm, trang sản phẩm (taxonomy R5, owner 2026-11-08).
+  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [ADVERTISING_ROOT_PAGE.kickerEn], "h1 duy nhất là kicker cố định");
+  assert.match(html, new RegExp(`<h1\\s+class="hero-kicker"[^>]*data-vi="${ADVERTISING_ROOT_PAGE.kickerVi}"`));
   assert.match(html, /<p id="page-title" class="hero-title"/);
   assert.match(html, /data-advertising-filter="printing-decals" aria-current="true"/);
   assert.match(html, /data-advertising-filter="all" aria-current="false"/);
@@ -79,13 +79,13 @@ test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang 
   const cluster = artifact.pages.find(({ filter }) => filter === "printing-decals");
   const pages = [...artifact.pages.filter(({ filter }) => filter !== "printing-decals/menus"), { ...cluster, filter: "printing-decals/menus", query: true }];
   const schema = { cards: artifact.cards, categories: artifact.categories, pages };
-  const parse = (href) => parseAdvertisingBrowseLocation(`https://local.test${href}`, schema).category;
+  const parse = (href) => parseBrowseLocation(`https://local.test${href}`, schema).category;
   assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
   assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
   const serialize = (href, category) => {
-    const url = serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
+    const url = serializeBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
     return `${url.pathname}${url.search}`;
   };
   assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
@@ -101,17 +101,17 @@ test("taxonomy R4: trang gốc trong artifact.pages khớp title và kicker củ
   const html = await readFile(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
   const root = artifact.pages.find(({ filter }) => filter === "all");
   assert.match(html, new RegExp(`<title data-en="${root.titleEn}">\\s*${root.titleVi}\\s*</title>`));
-  assert.match(html, new RegExp(`data-en="${root.labelEn}"\\s*>\\s*${root.labelVi}\\s*</p>`, "i"));
+  assert.match(html, new RegExp(`data-en="${root.kickerEn}"\\s*>\\s*${root.kickerVi}\\s*</p>`, "i"));
 });
 
 test("taxonomy R7: related của ảnh Kỷ niệm chương đặt card Kỷ niệm chương trước card khác cùng cụm; nút gợi ý có sản phẩm", () => {
   const hero = artifact.cards.find((card) => card.productIds[0] === "office-signs/awards-plaques");
-  const related = selectAdvertisingRelated({ cards: artifact.cards, heroId: hero.id, seed: "r7" });
+  const related = selectRelated({ cards: artifact.cards, heroId: hero.id, seed: "r7" });
   const isAward = (card) => card.productIds.includes("office-signs/awards-plaques");
   const firstOther = related.findIndex((card) => !isAward(card));
   assert.ok(firstOther > 0 && related.slice(firstOther).every((card) => !isAward(card) && card.category === hero.category));
   assert.equal(related.length, artifact.cards.filter((card) => card !== hero && (isAward(card) || card.category === hero.category)).length);
-  const suggestions = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: hero.id, tagRegistry: artifact.tagRegistry });
+  const suggestions = selectSuggestions({ cards: artifact.cards, heroId: hero.id, tagRegistry: artifact.tagRegistry });
   assert.equal(suggestions[0].tag.id, "office-signs/awards-plaques");
   assert.equal(new Set(suggestions.map(({ tag }) => tag.labelVi)).size, suggestions.length, "không có hai nút trùng nhãn");
 });

@@ -147,8 +147,8 @@ async function setup(page, locale, videoCover = false) {
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
@@ -169,8 +169,8 @@ async function setupSingleton(page, item) {
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   return card;
@@ -181,8 +181,8 @@ async function setupMany(page, locale) {
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.locator("img").first().waitFor({ state: "visible" });
   await card.evaluate(async (node) => {
@@ -276,7 +276,7 @@ async function run(viewport, touch, locale) {
   page.on("pageerror", (error) => errors.push(error.message));
   try {
     const card = await setup(page, locale);
-    await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("signage-raised-letters-16"));
+    await page.evaluate(() => window.TruongThinhMasonry.getAdapter().ensurePhoto("signage-raised-letters-16"));
     assert.equal(await page.locator('[data-advertising-card="signage-raised-letters-16"] [data-advertising-media-indicator]').count(), 0,
       "image-only public card retains legacy UI");
     const legacyState = await page.locator('[data-advertising-card="signage-raised-letters-16"]').evaluate((node) => {
@@ -394,7 +394,7 @@ async function run(viewport, touch, locale) {
       && Math.abs((dimensions.videoRect.right - dimensions.videoRect.left)
         / (dimensions.videoRect.bottom - dimensions.videoRect.top) - dimensions.video.width / dimensions.video.height) < 0.02,
     `actual image, video, poster ratios must match without crop: ${JSON.stringify(dimensions)}`);
-    assert.equal(after.duration, "0:03", "duration badge reports clip duration");
+    assert.equal(after.duration, null, "cards show no video duration pill (media-card R2, owner 2026-11-10)");
     assert.equal(await card.locator(`[data-advertising-media-select="${videoId}"][aria-current="true"]`).count(), 1,
       "video indicator tracks active media");
     assert.deepEqual(errors, [], "no runtime page errors");
@@ -567,8 +567,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
@@ -576,7 +576,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     const video = card.locator("video");
     assert.equal(await video.evaluate((node) => node.muted), true);
     assert((await video.getAttribute("poster")).endsWith("poster-3x2.webp"));
-    assert.equal(await card.locator("[data-advertising-media-duration]").textContent(), "0:03");
+    // Cards show no video duration pill (owner 2026-11-10, media-card R2).
+    assert.equal(await card.locator("[data-advertising-media-duration]").count(), 0);
     const beforeVideoReady = await card.evaluate((node) => {
       const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
       const legacy = node.querySelector("img");
@@ -587,13 +588,16 @@ test("M01b synthetic video cover starts muted with poster", async () => {
         legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
         legacyRect: { width: oldRect.width, height: oldRect.height },
         videoReadyState: active.readyState,
+        // Media đang mờ chờ tải cố ý tràn khung 24px mỗi phía (loading-glass R1, khung cắt phần tràn).
+        bleed: active.style.filter.startsWith("blur(") ? 24 : 0,
         frame: { left: frame.left, top: frame.top, right: frame.right, bottom: frame.bottom },
         videoRect: { left: activeRect.left, top: activeRect.top, right: activeRect.right, bottom: activeRect.bottom } };
     });
-    const withinFrame = beforeVideoReady.videoRect.left >= beforeVideoReady.frame.left - 1
-      && beforeVideoReady.videoRect.top >= beforeVideoReady.frame.top - 1
-      && beforeVideoReady.videoRect.right <= beforeVideoReady.frame.right + 1
-      && beforeVideoReady.videoRect.bottom <= beforeVideoReady.frame.bottom + 1;
+    const slack = 1 + beforeVideoReady.bleed;
+    const withinFrame = beforeVideoReady.videoRect.left >= beforeVideoReady.frame.left - slack
+      && beforeVideoReady.videoRect.top >= beforeVideoReady.frame.top - slack
+      && beforeVideoReady.videoRect.right <= beforeVideoReady.frame.right + slack
+      && beforeVideoReady.videoRect.bottom <= beforeVideoReady.frame.bottom + slack;
     assert(beforeVideoReady.legacyHidden && beforeVideoReady.legacyDisplay === "none"
       && beforeVideoReady.legacyRect.width === 0 && beforeVideoReady.legacyRect.height === 0
       && withinFrame && beforeVideoReady.videoReadyState < 2 && beforeVideoReady.mediaLoaded !== "true",
@@ -639,7 +643,8 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
     assert(state.activeId === videoId && state.legacyHidden && state.legacyDisplay === "none"
       && state.legacyWidth === 0 && state.videoReady && state.videoMuted
       && state.videoWidth === 480 && state.videoHeight === 320
-      && state.poster.endsWith("poster-3x2.webp") && state.duration === "0:03"
+      && state.poster.endsWith("poster-3x2.webp") && state.duration === undefined
+      // A video singleton has no pill row: no dots and no duration pill (media-card R2, owner 2026-11-10).
       && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
@@ -739,8 +744,8 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await Promise.all([videoResponse, posterResponse]);
@@ -808,8 +813,8 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => {
@@ -857,8 +862,8 @@ test("M01b failed next image restores the last valid card image", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
@@ -1034,8 +1039,8 @@ test("M01b stale image error preserves newer selection and failed reselect falls
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
@@ -1160,8 +1165,8 @@ test("M01b five media still use dot controls", async () => {
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     assert.equal(await card.locator("[data-advertising-media-select]").count(), 5);
@@ -1185,8 +1190,8 @@ test("M01b hover arrows step card media by position and the card media never zoo
       await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
       await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-      await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+      await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+      await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
       const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
       await card.scrollIntoViewIfNeeded();
       await page.waitForTimeout(450);
@@ -1222,8 +1227,8 @@ async function setupThree(context) {
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
@@ -1252,7 +1257,7 @@ const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, acti
   return frames;
 }, { ms, action });
 
-test("M01b hover darkens the canvas, fades just viewed, and media change slides as one strip", async () => {
+test("M01b hover shows the Pinterest shade at once, hides just viewed, and media change slides as one strip", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -1264,26 +1269,18 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
       marker.dataset.advertisingJustViewed = "";
       media.append(marker);
     });
+    const shade = "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)";
     const hoverState = () => card.locator(".advertising-card-media").evaluate((media) => ({
       scrim: getComputedStyle(media, "::after").opacity,
-      scrimColor: getComputedStyle(media, "::after").backgroundColor,
+      scrimColor: getComputedStyle(media, "::after").backgroundImage,
       marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
     }));
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: shade, marker: "1" });
     await card.locator(".advertising-card-media").hover();
-    // Lấy frame đầu tiên lớp tối đã bắt đầu hiện thay vì mốc giờ cố định (máy tải cao làm transition bắt đầu trễ).
-    const fading = await card.locator(".advertising-card-media").evaluate((media) => new Promise((resolve) => {
-      const read = () => {
-        const scrim = getComputedStyle(media, "::after").opacity;
-        if (scrim === "0") return requestAnimationFrame(read);
-        resolve({ scrim, marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity });
-      };
-      read();
-    }));
-    assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
-      `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
+    // Owner 2026-11-10 (media-card R3): the Pinterest shade appears at once, with no motion.
+    assert.deepEqual(await hoverState().then(({ scrim, scrimColor }) => ({ scrim, scrimColor })), { scrim: "1", scrimColor: shade });
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "0" });
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: shade, marker: "0" });
 
     const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
@@ -1302,7 +1299,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
 
     await page.mouse.move(5, 5);
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: shade, marker: "1" });
     await context.close();
   } finally { await browser.close(); }
 });
@@ -1369,9 +1366,9 @@ async function runWideCover(locale, related = false, mode = "normal") {
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
-    await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+    await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     const selector = related ? `[data-advertising-related-card="${wideFixtureId}"]` : `[data-advertising-card="${wideFixtureId}"]`;
-    if (!related) await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), wideFixtureId);
+    if (!related) await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
       // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).

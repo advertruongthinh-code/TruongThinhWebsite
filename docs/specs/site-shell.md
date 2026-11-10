@@ -5,6 +5,7 @@ source:
   - src/site/motion.js
   - src/site/style.css
   - src/site/assets/brand/**
+  - scripts/site/sync-site-menu.mjs
 tests:
   - tests/site/site.e2e.cjs
   - tests/site/site-static-contract.cjs
@@ -19,7 +20,7 @@ tests:
   - tests/site/reduced-motion-live.e2e.mjs
   - tests/site/route-veil-header.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-10-31
+updated: 2026-11-09
 ---
 
 # Shell website
@@ -52,10 +53,9 @@ Then lúc mở menu phủ header, scrollbar và CTA; sau khi đóng thumb scroll
 
 ### R2. Header: tone, thu gọn, lockup và nav desktop
 
-Cuộn quá 100px thì header `is-collapsed` (nền trắng, viền). Header ink khi thu gọn, khi đang
-chuyển route, hoặc khi section dưới điểm dò `scrollY + min(80px, 12% chiều cao cửa sổ)` có
-`data-header-tone="ink"`; còn lại trắng. Màu chữ, hamburger tween ngắn, đổi ngay ở lần vẽ đầu và
-khi reduced motion. Đổi trạng thái thu gọn thì lockup chạy FLIP scale; màu mark theo
+Cuộn quá 100px thì header `is-collapsed`; nền trắng, viền (`is-surface`, vẽ ở `::before`) và tone chữ đổi ngay lúc FLIP `0.3s` bắt đầu, nền co cùng logo và navbar; mở ra thì nền trắng, viền và chữ đậm giữ, nền giãn cùng logo và navbar `0.3s`, hết nhịp mới đổi ngay sang nền trong, chữ trắng; mark lật ngay lúc bắt đầu cả hai chiều (owner 2026-11-09). Cỡ lớn nhất của nền là lúc logo lớn nhất cách đều cạnh trên và cạnh dưới nền (đáy nền thấp hơn đáy header mở); thu gọn bắt đầu từ cỡ này, mở ra giãn tới cỡ này. Header ink khi thu gọn, khi veil
+chuyển route đang phủ kín, hoặc khi section dưới điểm dò `scrollY + min(80px, 12% chiều cao cửa sổ)` có
+`data-header-tone="ink"`; còn lại trắng. Màu chữ, hamburger đổi ngay, không tween. Đổi trạng thái thu gọn thì lockup chạy FLIP scale; màu mark theo
 [state machine](../../design-system/brand.md#state-machine-màu) (class `is-brand-*`). Nav desktop
 ẩn (`is-space-hidden`, `inert`, `aria-hidden`) khi breakpoint ẩn danh sách (≤750px), khi xuống
 dòng, bị cắt hoặc chạm logo, nút menu; đo lại khi resize, đổi ngôn ngữ, font tải xong.
@@ -84,12 +84,12 @@ Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px t
 ### R4. Full menu
 
 `[data-menu-open]` gọi `showModal`, thêm `body.menu-open` (khóa cuộn nền), `aria-expanded`, dừng
-smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút đóng. Escape hoặc
+smooth scroll, chạy timeline mở (dựng một lần lúc rảnh, mỗi lần mở chỉ chạy lại), thu nhỏ trang phía sau (`will-change: transform`, gỡ khi đóng xong) rồi focus nút đóng. Escape hoặc
 `[data-menu-close]` chạy ngược timeline, đóng dialog, chạy lại smooth scroll, giữ vị trí cuộn, focus
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
-ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link (số và tiêu đề nhỏ
-`.menu-group__kind` một dòng, tiêu đề lớn một dòng, `aria-label` giữ tên đầy đủ), cột 4/3/2/1, vùng link cuộn riêng. Click link thường: menu reverse
+ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), sáu nhóm link (số, tiêu đề lớn một dòng, mục con), cột 3/2/1 (PC ba trên, ba dưới), vùng link cuộn riêng.
+Nav dựng lúc build (`sync-site-menu.mjs`) vào mọi trang nguồn: 01 Nhà ở, 02 Kinh doanh (trang mảng, rồi Công trình lọc theo `PROJECT_TYPES`), 03 Công trình (rồi công trình trong `content/menu.json`), 04 Quảng cáo (rồi 5 nhóm theo `menuFeatured`), 05 Về chúng tôi (không có Liên hệ), 06 Liên hệ (mạng xã hội; chưa có link thì `aria-disabled` như footer). Cùng script dựng navbar `.desktop-nav`: Nhà ở, Kinh doanh, Công trình, Quảng cáo theo thứ tự nhóm 01-04; trang Công trình gạch chân mục Công trình. Click link thường: menu reverse
 cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
@@ -101,27 +101,27 @@ Then nền không cuộn theo, Tab chỉ đi trong menu; đóng xong vị trí c
 
 ### R5. Đổi ngôn ngữ và ghi nhớ
 
-Click thường vào `[data-language-option]`: đóng menu, veil phủ và mở như R6, không tải lại;
-`history.replaceState` sang `/<locale>/...` (không thêm entry), đặt `lang`, `data-route-locale`, đổi chữ
-`data-en`/`data-vi` và `aria-label`, `alt`, `content`, dựng lại SplitText, đổi link nội bộ, canonical,
-alternate, `og:locale`, `og:url`, giữ vị trí cuộn, lưu `localStorage['tt-lang']`, phát `languagechange`.
-Khi tải, locale theo `data-route-locale`, thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng
-`location.assign`, lưu vị trí cuộn vào `sessionStorage`, khôi phục khi tải.
+Click thường vào `[data-language-option]`: ẩn cả header ngay (không lộ chữ ngôn ngữ cũ, owner 2026-11-10), đóng menu, veil phủ như R6, lưu `localStorage['tt-lang']` rồi
+`location.replace` sang `/<locale>/...` giữ query, bỏ hash (không thêm entry). Trang đích tải lại từ đầu như F5
+(owner 2026-11-08): cuộn về đầu, veil mở, intro và mọi motion chạy lại. Trang cụm, sản phẩm Advertising, chi
+tiết công trình, News dùng link ngôn ngữ để đúng slug của locale đích. Khi tải, locale theo `data-route-locale`,
+thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng `location.assign`, lưu vị trí cuộn vào
+`sessionStorage`, khôi phục khi tải.
 
 ```gherkin
 Given /vi/residential/ đã cuộn 1200px
 When mở menu và chọn EN
-Then URL thành /en/residential/, history không thêm entry, vị trí cuộn giữ, reload vẫn là EN
+Then URL thành /en/residential/, history không thêm entry, trang tải lại ở đầu với intro như F5, reload vẫn là EN
 ```
 
 ### R6. Route mềm và click trong shell
 
 Barba (transition `persistent-shell`, timeout 15s) xử lý link nội bộ. Điều hướng native khi: chọn ngôn
 ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, có `target`, `download`,
-phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
-mark tween sang màu đậm cùng chữ theo [logo đổi màu](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
-alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay và class `is-brand-*` của mark), CTA, menu;
-lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header.
+phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (hiện, chữ và mark giữ màu; veil phủ kín thì chữ đổi ngay sang ink, mark lật sang CMYK theo
+[logo đổi màu](logo-route-crossfade.md)); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
+alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ lớp lật và class `is-brand-*` của mark), CTA, menu;
+lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil (veil phủ kín ít nhất `1s`, [logo đổi màu R2](logo-route-crossfade.md#r2-veil-bắt-đầu-mở-tone-trang-đích)). Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header.
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
@@ -168,10 +168,10 @@ Then trang chủ hiện lại ở 1500px; đi link mới thì trang đích bắt
 
 ### R9. Scrollbar
 
-Khi Locomotive chạy: một scrollbar overlay `.c-scrollbar`, document không có gutter; thumb ẩn lúc
-nghỉ, hiện khi hover sát mép phải hoặc khi cuộn. Kéo thumb tới mép dưới chạm đúng giới hạn cuộn,
-lên mép trên về 0; menu mở giữa lúc kéo thì dừng kéo, giữ vị trí; cuộn bị khóa thì thumb không nhận
-kéo. Mỗi route, ngôn ngữ, Back chỉ có một `.c-scrollbar`. Dưới 981px, reduced motion, fallback:
+Khi Locomotive chạy: một scrollbar overlay `.c-scrollbar`, document không có gutter, kể cả giữa hai trang lúc route mềm (scrollbar native không lóe); thumb ẩn lúc
+nghỉ, hiện khi hover sát mép phải hoặc khi cuộn. Kéo thumb tới mép dưới chạm đúng giới hạn cuộn, lên mép trên về 0; thả thumb
+khi trang chưa tới đích thì trang trượt tiếp tới đích, nấc lăn kế tiếp chỉ đi một nấc; menu mở giữa lúc kéo thì dừng kéo, giữ
+vị trí; cuộn bị khóa thì thumb không nhận kéo. Mỗi route, ngôn ngữ, Back chỉ có một `.c-scrollbar`. Dưới 981px, reduced motion, fallback:
 scrollbar native mặc định, app không style scrollbar document. Rail ngang (`.editorial-strip`,
 `.project-track`, `.detail-gallery__track`, `.project-filters`) ẩn thanh ngang, vẫn kéo, vuốt được.
 
@@ -245,7 +245,7 @@ Then không có veil hay timeline menu, scroll native, trang Residential hiện 
 | Hàm public | `window.TruongThinhMotion` (`getLogicalScroll`, `setLogicalScroll`, `lockLogicalScroll`, `unlockLogicalScroll`, `getViewportMetrics`); `window.__ttMotionBoot` (`claim`, `release`, `fail`, `fallback`) | Advertising runtime, test; head script (R7) |
 | Event, storage | Phát `site:scroll`, `site:menu-closed`, `languagechange`, nghe `site:layout`; `localStorage['tt-lang']`, `sessionStorage['tt-locale-scroll:<path><search>']` | Module trang đồng bộ shell; ngôn ngữ, cuộn fallback |
 | Token | `--site-layout-viewport-height`, `--header-row-height`, `--gutter`, `--footer-top-gap` | Layout shell |
-| Phụ thuộc | `window.TruongThinhDetail`, `window.TruongThinhAdvertising` | Mount trang, adapter Advertising (spec trang) |
+| Phụ thuộc | `window.TruongThinhDetail`, `window.TruongThinhMasonry` | Mount trang, adapter Advertising (spec trang) |
 
 ## UI
 

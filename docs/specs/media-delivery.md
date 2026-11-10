@@ -2,7 +2,7 @@
 title: Tải ảnh nội dung
 status: live
 source:
-  - src/site/advertising-products/responsive-image.mjs
+  - src/site/media-lib/responsive-image.mjs
   - scripts/site/build-image-variants.mjs
   - src/site/head-inline.js
   - src/site/assets/content/jxl-thresholds.json
@@ -11,14 +11,14 @@ tests:
   - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Tải ảnh nội dung
 
 ## Mục đích
 
-Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể WebP, AVIF, JXL; site dùng JXL, WebP dự phòng, AVIF chỉ lưu trong repo; HTML tĩnh
+Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể WebP, AVIF, JXL; PC dùng JXL, WebP dự phòng, phone chỉ WebP tới cỡ 960, AVIF chỉ lưu trong repo; HTML tĩnh
 và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong, ảnh lỗi có dấu báo lỗi; một script đo tốc độ trên demo.
 Bọc `<picture>` lúc build, font, thư viện, cache header thuộc [phát hành tĩnh](static-release.md); skeleton chờ ảnh
 Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều ảnh và video ở [media-card](media-card.md).
@@ -32,7 +32,7 @@ và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tê
 cả `.avif`, `.webp`; cỡ không nhỏ hơn bề rộng gốc thì bỏ. AVIF quality 55, WebP 78, effort 6. File đã có thì giữ;
 `--force` ghi lại. `--originals map.json` sinh từ PNG gốc khi cùng tỷ lệ với WebP (lệch dưới 0,005), không thì từ
 WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner, [danh sách](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
-([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`. Bước JXL: [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể). Ảnh dưới `advertising/` có thêm màu chủ đạo trong `media-colors.mjs`, `--check` báo màu thiếu ([progressive-loading R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
+([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`. Bước JXL: [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể). Ảnh dưới `advertising/` có thêm màu chủ đạo trong `media-lib/colors.mjs`, `--check` báo màu thiếu ([progressive-loading R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
 
 ```gherkin
 Given src/site/assets/content/shared/a.webp rộng 1536px và b.webp rộng 800px, chưa có biến thể
@@ -45,9 +45,11 @@ And chạy lại với --check thì exit 0
 ### R2. HTML tĩnh chọn biến thể
 
 Build bọc `<img>` nội dung trong `<picture>` ([phát hành tĩnh R6](static-release.md#r6-ảnh-nội-dung-bọc-)). Khi có
-`width`: `<source type="image/jxl">` mang `srcset` các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ hơn `width`, `<img>` mang
+`width`: `<source media="(hover: none) and (pointer: coarse)">` đứng đầu mang WebP 240, 480, 960 nhỏ hơn `width`, không bản gốc trừ khi
+`width` không quá 960 (phone, [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)); sau đó
+`<source type="image/jxl">` mang `srcset` các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ hơn `width`, `<img>` mang
 `srcset` WebP 240, 480, 960, cả hai cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"`
-nhận `auto, 100vw` (trình duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` thì `<source>` chỉ có `<tên>.jxl`.
+nhận `auto, 100vw` (trình duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` thì `<source>` phone chỉ có `<tên>.webp`, `<source>` JXL chỉ có `<tên>.jxl`.
 `<img>` WebP cho Google Images và trình duyệt chưa đọc JXL ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)), và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
 `data-srcset`; `hydrateDeferredHeroImages` (`motion.js`) chép sang `srcset` trên `<source>` và `<img>` rồi gán `src`
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). `picture { display: contents }` nên không thêm box;
@@ -82,8 +84,8 @@ And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, k
 
 ### R3. Runtime Advertising chọn biến thể
 
-`responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
-`catalog-runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
+`media-lib/responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP; phone luôn WebP, bản gốc rộng hơn 960 đổi thành cỡ 960 ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
+`masonry/runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
 có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ nhỏ nhất không dưới `needed` pixel, không có
 `needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
 
@@ -93,7 +95,7 @@ có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `wi
 | Nút suggestion | native lazy, `srcset`, `sizes="auto, 50vw"`; ảnh kế của slideshow eager, `sizes` ghim bằng bề rộng nút |
 | Item khác trên card nhiều media | native lazy, `sizes="auto, 50vw"` ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
 | Thumbnail primary | lazy, `sizes="auto, 25vw"`; video dùng poster |
-| Ảnh primary | `responsiveSource` với `needed` = bề rộng viewport × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư cùng URL |
+| Ảnh primary | `responsiveSource` với `needed` = bề rộng viewport × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư (blur 100px) lấy cỡ 240 |
 | Viewer | `responsiveSource` gán lúc mở, `fetchPriority="high"` |
 
 ```gherkin
@@ -110,7 +112,7 @@ trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách
 ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). Không preload ảnh: `<link rel="preload">` chỉ dành
 cho hai file font ([phát hành tĩnh R4](static-release.md#r4-font-và-thư-viện-tự-host)), vì preload cạnh `<picture>`
 làm tải ảnh hai lần. Ngoại lệ duy nhất: ảnh đầu hero trang chủ chọn ngẫu nhiên nên không có `src` trong HTML; script
-head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng ứng viên `<picture>` chọn (JXL khi ảnh thử 1x1 giải mã được, không thì WebP), script hero gán đúng các giá trị đó
+head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng ứng viên `<picture>` chọn (phone WebP tới 960; JXL khi ảnh thử 1x1 giải mã được, không thì WebP), script hero gán đúng các giá trị đó
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). Mọi `<img>` nội dung có `width`, `height` (trừ nền primary Advertising) nên khung giữ chỗ trước khi
 tải. Advertising chỉ tải ảnh card trong cửa sổ ảo hóa; primary eager, ưu tiên cao.
 
@@ -235,7 +237,7 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | --- | --- | --- |
 | Command | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]` | Sinh, kiểm biến thể (R1) |
 | File | `<tên>.avif`, `<tên>-240.avif\|webp`, `<tên>-480.avif\|webp`, `<tên>-960.avif\|webp` cạnh `<tên>.webp` | R1 ghi; build, runtime đọc theo tên |
-| Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`responsive-image.mjs`) | `catalog-runtime.mjs`, `photo-viewer.mjs` import (R3) |
+| Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`media-lib/responsive-image.mjs`) | `masonry/runtime.mjs`, `masonry/detail-viewer.mjs` import (R3) |
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
 | Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
@@ -244,8 +246,8 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
 
 Code tải ảnh nằm trong file của spec khác: `prepare-static-assets.mjs` ([phát hành tĩnh](static-release.md)), `style.css`,
-`motion.js` ([shell](site-shell.md)), `catalog-runtime.mjs` ([masonry](advertising-masonry.md)), `photo-viewer.mjs`
-([viewer chạm](advertising-viewer-touch-zoom.md)), `suggestion-slideshow.mjs` ([detail](advertising-detail.md)); sửa hành vi
+`motion.js` ([shell](site-shell.md)), `masonry/runtime.mjs` ([masonry](advertising-masonry.md)), `masonry/detail-viewer.mjs`
+([viewer chạm](advertising-viewer-touch-zoom.md)), `masonry/suggestion-slideshow.mjs` ([detail](advertising-detail.md)); sửa hành vi
 tải ảnh ở đó thì cập nhật cả spec này.
 
 ## UI

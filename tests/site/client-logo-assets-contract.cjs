@@ -78,14 +78,15 @@ for (const [groupIndex, group] of groupMatches.entries()) {
 assert.doesNotMatch(html, /client-logo-placeholder/, "Logo placeholders must be removed");
 assert.ok(fs.existsSync(logoDirectory), "Missing public client logo directory");
 
-// Biến thể responsive -240/-480/-960 là build output của bản gốc, không phải asset riêng.
+// Responsive variants -240/-480/-960 are build output of the original, not separate assets.
 const filesWithExtension = (directory, extension) =>
   fs.readdirSync(directory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:240|480|960)\.[a-z]+$/.test(entry.name))
     .map((entry) => entry.name);
 
-assert.equal(filesWithExtension(projectDirectory, ".webp").length, 134, "Expected 134 project WebP assets");
-assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 21, "Expected 21 shared WebP assets");
+// Do not hardcode the image count (content-independent-tests R1): content-contract R2 item 5 checks each file has a consumer.
+assert.ok(filesWithExtension(projectDirectory, ".webp").length > 0, "Expected project WebP assets");
+assert.ok(filesWithExtension(sharedDirectory, ".webp").length > 0, "Expected shared WebP assets");
 
 const legacyDirectory = path.join(site, "assets/site");
 const legacyFiles = fs.existsSync(legacyDirectory)

@@ -1,7 +1,7 @@
 ---
 title: Design System và Impeccable
 status: live
-updated: 2026-10-24
+updated: 2026-11-08
 source:
   - scripts/docs/build-design-system.mjs
   - scripts/docs/capture-design-system.mjs
@@ -32,7 +32,8 @@ hai file này trỏ về `design-system/`, không chép lại. Hành vi từng p
 2. Giá trị token lấy đúng từ CSS đang chạy (`src/site/style.css`, `detail.css`); không chế giá trị. Check
    design-drift so khối `:root` đầu `style.css` với token cùng tên: thiếu token hoặc khác giá trị thì fail. Biến
    motion không có family token, khai trong `tokens.json` `meta.cssOnly` kèm lý do. Literal rải trong selector không
-   thuộc check.
+   thuộc check. Type token ghi giá trị thật sau `CSS thật:` trong `usage`; mỗi biểu thức `clamp`, `min`, `max`,
+   `calc`, `var` ở đó phải có nguyên văn trong `style.css` hoặc `detail.css`, không thì fail.
 3. Motion là section `motion.md` (format không có nhóm token motion).
 4. Chỉ mô tả Trường Thịnh: số đo là của website Trường Thịnh. Site tham khảo chỉ ghi ở section `Nguồn tham khảo` của
    `README.md` (owner 2026-10-04).
@@ -66,9 +67,10 @@ And README dài tối đa 150 dòng
 
 ### R3. Preview component đứng yên, đúng hình
 
-1. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand lockup, floating CTA, hero, project reel,
-   gallery ngang, banner CTA, filter, media card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion,
-   viewer, kính.
+1. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand lockup, floating CTA, hero, portal, project
+   reel, gallery ngang, khối trang con, quy trình, dòng thời gian About, marquee, banner CTA, trang 404, filter, media
+   card, masonry, skeleton, vệt sáng chờ ảnh, primary, suggestion, viewer, kính. Preview tĩnh lấy một hoặc nhiều
+   khối từ HTML trang (`also`), kể cả trang khác; trang 404 kèm khối `<style>` riêng của trang.
 2. Preview dùng chính CSS website: `components/bundle.css` sinh từ `style.css`, `detail.css`, bỏ `@font-face` tự
    host (preview nạp font từ Google). `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card
    rail công trình chèn từ dữ liệu như build) hoặc từ bản chụp, sinh `bundle.css`, `bundle.js` rỗng và ảnh
@@ -91,7 +93,9 @@ And README dài tối đa 150 dòng
     để claude.ai dựng ở khổ đó rồi thu nhỏ. `qa:docs` fail khi preview dùng class không còn trong `src/site/` hay
     `scripts/site/`. Capture không tự chạy; chạy lại khi bố cục hoặc copy đổi, rồi build. Catalog public chưa có
     card nhiều media nên capture MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
-    như test e2e; video chỉ giữ poster.
+    như test e2e; video chỉ giữ poster. Grid ảo chỉ giữ card gần viewport, nên capture chọn bốn card hàng đầu của
+    lần mở thử cùng seed thay vì id cố định. Ảnh JPEG XL, SVG và URL tuyệt đối của site đổi về bản WebP hoặc file
+    gốc trong `preview-media/`.
 
 ```gherkin
 Given owner mở mục Components trên claude.ai
@@ -149,6 +153,23 @@ Then artifact có đúng các file của bản stage, không còn file đã bỏ
 And lastChange trên claude.ai khớp design-system/design-system.json sau PR ghi lại
 ```
 
+### R6. Dòng Nguồn và gate component
+
+Design System là nguồn agent đọc trước Graphify, Serena cho câu hỏi hình thức (AGENTS.md); gate này giữ nó khớp code.
+
+1. Dòng thứ ba mỗi `components/<Tên>/README.md` là `Nguồn:`: file riêng của component (đường dẫn trong backtick bắt
+   đầu `src/` hoặc `scripts/`), selector CSS (backtick bắt đầu `.`) và link spec sở hữu. File dùng chung
+   (`style.css`, `detail.css`, `motion.js`, HTML) không ghi làm file; phần CSS ghi bằng selector.
+2. Trên PR, `qa:docs` fail khi PR đổi một file trong `Nguồn:`, hoặc đổi dòng nằm trong rule CSS có selector chứa
+   selector của `Nguồn:`, mà không sửa README đó và mô tả PR không có dòng `Design System: không đổi - <lý do>`.
+
+```gherkin
+Given PR sửa một dòng trong rule .glass-surface của detail.css
+And không sửa design-system/components/Glass/README.md
+When CI chạy pnpm qa:docs với mô tả PR không có dòng "Design System: không đổi - ..."
+Then check design-system sync fail và nêu README cần cập nhật
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -168,11 +189,12 @@ And lastChange trên claude.ai khớp design-system/design-system.json sau PR gh
 
 | R | Cách kiểm |
 | --- | --- |
-| R1 | `pnpm qa:docs` (design-drift, link) |
+| R1 | `pnpm qa:docs` (design-drift, type token, link) |
 | R2 | `wc -l design-system/README.md`; review PR |
 | R3 | `node scripts/docs/build-design-system.mjs --check`; render preview local ở 1440px; owner mở Components |
 | R4 | `node scripts/docs/build-design-md.mjs --check`; `impeccable context`, `impeccable doctor` |
 | R5 | Đọc lại artifact bằng công cụ Artifact sau publish |
+| R6 | `pnpm qa:docs` trên PR (design-system sync) |
 
 ## Gate còn mở
 

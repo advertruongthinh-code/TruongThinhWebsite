@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const runtime = await readFile(new URL("../../src/site/advertising-products/catalog-runtime.mjs", import.meta.url), "utf8");
+const runtime = await readFile(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
+const hostSource = await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8");
 const detailSource = await readFile(new URL("../../src/site/detail.js", import.meta.url), "utf8");
 const motionSource = await readFile(new URL("../../src/site/motion.js", import.meta.url), "utf8");
-const viewerSource = await readFile(new URL("../../src/site/advertising-products/photo-viewer.mjs", import.meta.url), "utf8");
+const viewerSource = await readFile(new URL("../../src/site/masonry/detail-viewer.mjs", import.meta.url), "utf8");
 
 assert.match(detailSource, /import\("\/assets\/vendor\/swiper-14\.2\.0\/swiper\.mjs"\)/, "detail runtime loads the pinned Swiper core only for carousel routes");
 for (const moduleName of ["mousewheel", "pagination", "a11y"]) {
@@ -18,12 +19,12 @@ assert.match(detailSource, /mousewheel:\s*\{[\s\S]*?forceToAxis:\s*true[\s\S]*?r
 assert.match(detailSource, /pagination:\s*\{[\s\S]*?clickable:\s*true/);
 assert.match(detailSource, /\.destroy\(true,\s*true\)/, "carousel instances must be destroyed with their generated state");
 
-assert.match(runtime, /export async function mountAdvertisingCatalog/);
-assert.match(runtime, /import\(["']\.\/catalog-artifact\.mjs["']\)/, "runtime loads output artifact once");
-assert.match(runtime, /from ["']\.\/layout-core\.mjs["']/, "runtime uses the shared pure layout core");
-assert.match(runtime, /compileAdvertisingProductLayout/);
+assert.match(runtime, /export async function mountMasonry/);
+assert.match(runtime, /import\(["']\.\.\/advertising-products\/catalog-artifact\.mjs["']\)/, "runtime loads output artifact once");
+assert.match(runtime, /from ["']\.\/layout\.mjs["']/, "runtime uses the shared pure layout core");
+assert.match(runtime, /compileMasonryLayout/);
 assert.match(runtime, /getVirtualWindow/);
-assert.match(runtime, /layoutAlgorithmVersion[^\n]*ADVERTISING_LAYOUT_ALGORITHM_VERSION/, "runtime fails closed on artifact schema mismatch");
+assert.match(runtime, /layoutAlgorithmVersion[^\n]*MASONRY_LAYOUT_VERSION/, "runtime fails closed on artifact schema mismatch");
 assert.ok(
   runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("if (typeof window.Masonry")
     && runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("const categories = artifact.categories"),
@@ -31,42 +32,49 @@ assert.ok(
 );
 assert.match(runtime, /if \(signal\?\.aborted\) return \(\) => \{\}/, "runtime checks route abort after artifact await");
 assert.doesNotMatch(runtime, /from ["']\.\/catalog\.mjs["']|ADVERTISING_CARDS/, "runtime cannot read source catalog records");
-assert.doesNotMatch(runtime, /artifact\.layouts|RATIO_UNITS|visibleBatches|geometry\.batches|Math\.min\(4\s*,/, "runtime has no rank-v2 layout or column cap");
+assert.doesNotMatch(runtime, /RATIO_UNITS|visibleBatches|geometry\.batches|Math\.min\(4\s*,/, "runtime has no rank-v2 layout or column cap");
 assert.match(runtime, /document\.documentElement\.clientWidth/, "geometry uses full layout viewport width");
-assert.match(runtime, /layoutViewportWidth: document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
+assert.match(runtime, /layoutViewportWidth(?::| =) document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
 assert.match(runtime, /layoutViewportWidth/, "shared core receives the full viewport width");
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
+// Main grid replays the build-time cache (advertising-masonry R6): embedded layouts first, then the cache files.
+const mainGridRequest = runtime.slice(runtime.indexOf("const geometryRequest = "), runtime.indexOf("const cacheGeometry = "));
+assert.match(runtime, /artifact\.layouts\?\.\[band\]\?\.filters\?\.\[targetFilter\]/, "runtime reads layouts embedded in the artifact");
+assert.match(mainGridRequest, /variantIndex\(browseHistory\.current\.seed, entry\.variants\.length\)/, "variant follows the browse seed");
+assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays a cached variant");
+assert.match(mainGridRequest, /stackLayout\(\{/, "main grid falls back to the stack layout");
+assert.doesNotMatch(mainGridRequest, /compileInWorker|compileMasonryLayout|takeWorker/, "main grid never runs the search solver");
 assert.ok(
   runtime.indexOf("if (hasLaidOut && !membershipChanged && !geometryChanged) return;")
-    < runtime.indexOf("const nextPositions = new Map(geometry.placements.map"),
+    < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
-assert.match(runtime, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
-assert.match(runtime, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
-assert.match(runtime, /stagger: 0/, "Masonry has no stagger");
+assert.match(hostSource, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
+assert.match(hostSource, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
+assert.match(hostSource, /stagger: 0/, "Masonry has no stagger");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
-assert.match(runtime, /const cancelMasonryTransitions = \(instance = masonry\) => \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
+assert.match(hostSource, /export function cancelMasonryTransitions\(instance\) \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");
 const filterClickHandler = runtime.slice(runtime.indexOf("const onRailClick = (event) => {"));
 assert.ok(
   filterClickHandler.indexOf("event.preventDefault();")
-    < filterClickHandler.indexOf("if (nextFilter === filter) return;"),
+    < filterClickHandler.indexOf("if (nextFilter === filter) {"),
   "active filter clicks are canceled before the same-filter no-op",
 );
-assert.match(runtime, /normalizeAdvertisingProductSettings/);
-assert.match(runtime, /normalizeAdvertisingProductSettings\(artifact\.settings\)/, "retired public settings are normalized before compile");
+assert.match(runtime, /normalizeMasonrySettings/);
+assert.match(runtime, /normalizeMasonrySettings\(artifact\.settings\)/, "retired public settings are normalized before compile");
 assert.match(runtime, /settings,/, "normalized settings are passed to the layout compiler");
 assert.match(runtime, /advertising-tile__media--natural/, "catalog cards use a natural media surface");
 assert.match(runtime, /querySelectorAll\("\.advertising-tile__foreground"\)[\s\S]*is-advertising-media-ready/, "the single foreground keeps the replayable media entrance");
 assert.match(runtime, /data-advertising-span|dataset\.advertisingSpan/, "solver span is available for focused geometry QA");
 assert.doesNotMatch(runtime, /presentationCanvas|fitMode|mediaCandidates|advertising-tile__backplate|data-media-fit|media--canvas/, "legacy canvas, fit, and backplate consumers are removed");
-assert.match(runtime, /CAPTION_METRICS_VERSION|artifactDataHash|artifactCacheIdentity|settingsHash/, "geometry cache identity includes artifact data and caption settings");
+assert.match(runtime, /artifactDataHash|artifactCacheIdentity|settingsHash/, "geometry cache identity includes artifact data");
 assert.match(runtime, /diagnostics/, "invalid or incomplete compiler diagnostics are surfaced before mounting");
 assert.match(runtime, /diagnosticCode && diagnosticCode !== "needs-media"/, "needs-media remains a non-fatal layout diagnostic");
 assert.match(runtime, /advertisingLayoutStatus = diagnosticCode/, "runtime surfaces non-fatal diagnostics on the grid");
-assert.match(runtime, /export function compileAdvertisingGeometry/, "runtime geometry diagnostics have an executable seam");
+assert.match(runtime, /export function compileMasonryGeometry/, "runtime geometry diagnostics have an executable seam");
 assert.doesNotMatch(runtime, /const revealedCards = new Set\(\)/, "media reveal cannot be disabled permanently at module scope");
 assert.match(runtime, /new IntersectionObserver\(/, "one catalog observer owns viewport re-entry");
 assert.match(runtime, /intersectionRatio === 0/, "media re-arms only after a full viewport exit");
@@ -86,35 +94,35 @@ assert.match(viewerSource, /event\.preventDefault\(\);[\s\S]*event\.stopPropagat
 assert.match(motionSource, /lockLogicalScroll[\s\S]*unlockLogicalScroll/, "viewer scroll lock uses the logical-scroll owner");
 assert.match(runtime, /heroImage: photoImage/, "viewer receives the rendered hero");
 assert.match(runtime, /advertisingPhotoLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
-assert.match(detailSource, /mountAdvertisingCatalog\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
+assert.match(detailSource, /mountMasonry\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
 assert.match(motionSource, /softNavigation:\s*true/, "Barba marks destination remounts");
-assert.match(runtime, /computeAdvertisingPhotoGeometry\(/, "the shared pure geometry owns responsive primary spans");
+assert.match(runtime, /computeDetailGeometry\(/, "the shared pure geometry owns responsive primary spans");
 assert.doesNotMatch(runtime, /whenPhotoImageReady/, "morph feedback must not wait for a full image network request");
 assert.match(detailSource, /GSAP 3\.15\.0[\s\S]*optional: true[\s\S]*SplitText 3\.15\.0[\s\S]*optional: true/, "animation-only dependencies should not block catalog mount");
 assert.match(detailSource, /if \(!dependency\.optional\) throw error/, "required catalog dependencies should remain fail closed");
 
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
-let compileAdvertisingGeometry;
-let createAdvertisingBrowseHistoryController;
-let isAdvertisingQueryOnlyNavigation;
-let parseAdvertisingBrowseLocation;
-let readAdvertisingBrowseHistoryState;
-let serializeAdvertisingBrowseLocation;
+let compileMasonryGeometry;
+let createBrowseHistoryController;
+let isQueryOnlyNavigation;
+let parseBrowseLocation;
+let readBrowseHistoryState;
+let serializeBrowseLocation;
 try {
   ({
-    compileAdvertisingGeometry,
-    createAdvertisingBrowseHistoryController,
-    isAdvertisingQueryOnlyNavigation,
-    parseAdvertisingBrowseLocation,
-    readAdvertisingBrowseHistoryState,
-    serializeAdvertisingBrowseLocation,
-  } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+    compileMasonryGeometry,
+    createBrowseHistoryController,
+    isQueryOnlyNavigation,
+    parseBrowseLocation,
+    readBrowseHistoryState,
+    serializeBrowseLocation,
+  } = await import("../../src/site/masonry/runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
 const oneItemGrid = { dataset: /** @type {any} */ ({}) };
-const oneItemLayout = compileAdvertisingGeometry({
+const oneItemLayout = compileMasonryGeometry({
   grid: oneItemGrid,
   options: {
     layoutViewportWidth: 390,
@@ -141,7 +149,7 @@ const originalConsoleError = console.error;
 console.error = () => {};
 try {
   assert.throws(
-    () => compileAdvertisingGeometry({ grid: failureGrid, options: {}, compile: () => { throw compileFailure; } }),
+    () => compileMasonryGeometry({ grid: failureGrid, options: {}, compile: () => { throw compileFailure; } }),
     (error) => error === compileFailure,
     "compiler failures remain fail-closed and preserve the original error",
   );
@@ -159,62 +167,78 @@ const browseFixture = {
   categories: [{ slug: "kiosk-posm" }, { slug: "print-decals" }],
   tagRegistry: [{ id: "shared" }, { id: "tag-a" }, { id: "tag-b" }],
 };
-const parsedBrowse = parseAdvertisingBrowseLocation(
+const parsedBrowse = parseBrowseLocation(
   "https://example.test/vi/advertising-products/?category=kiosk-posm&photo=photo-a&tag=shared",
   browseFixture,
 );
 assert.deepEqual(parsedBrowse, { category: "kiosk-posm", photo: "photo-a", tag: "shared" });
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/?category=missing&photo=missing&tag=missing", browseFixture),
+  parseBrowseLocation("https://example.test/vi/advertising-products/?category=missing&photo=missing&tag=missing", browseFixture),
   { category: "all", photo: null, tag: null },
   "invalid browse parameters fail open to the catalog",
 );
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/?photo=missing&tag=shared", browseFixture),
+  parseBrowseLocation("https://example.test/vi/advertising-products/?photo=missing&tag=shared", browseFixture),
   { category: "all", photo: null, tag: null },
   "a tag without a valid detail photo fails open with the invalid photo",
 );
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/?photo=photo-a&tag=missing", browseFixture),
+  parseBrowseLocation("https://example.test/vi/advertising-products/?photo=photo-a&tag=missing", browseFixture),
   { category: "kiosk-posm", photo: "photo-a", tag: null },
   "an invalid tag is removed while its valid detail photo remains active",
 );
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/?category=print-decals&photo=photo-a", browseFixture),
+  parseBrowseLocation("https://example.test/vi/advertising-products/?category=print-decals&photo=photo-a", browseFixture),
   { category: "kiosk-posm", photo: "photo-a", tag: null },
   "valid photo identity normalizes a conflicting category to the photo's parent grid",
 );
 assert.equal(
-  serializeAdvertisingBrowseLocation("https://example.test/en/advertising-products/?qa=1", parsedBrowse).href,
+  serializeBrowseLocation("https://example.test/en/advertising-products/?qa=1", parsedBrowse).href,
   "https://example.test/en/advertising-products/p/photo-a/?qa=1&tag=shared",
   "detail serializes to its card page path, keeping unrelated query parameters and locale",
 );
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/en/advertising-products/p/photo-a/?tag=shared", browseFixture),
+  parseBrowseLocation("https://example.test/en/advertising-products/p/photo-a/?tag=shared", browseFixture),
   { category: "kiosk-posm", photo: "photo-a", tag: "shared" },
   "a card page path opens its detail",
 );
 assert.deepEqual(
-  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/p/missing/", browseFixture),
+  parseBrowseLocation("https://example.test/vi/advertising-products/p/missing/", browseFixture),
   { category: "all", photo: null, tag: null },
   "an unknown card path fails open to the catalog",
 );
 assert.equal(
-  isAdvertisingQueryOnlyNavigation(
+  isQueryOnlyNavigation(
     "https://example.test/vi/advertising-products/?photo=photo-a",
     "https://example.test/vi/advertising-products/?photo=photo-b",
   ),
   true,
 );
 assert.equal(
-  isAdvertisingQueryOnlyNavigation(
+  isQueryOnlyNavigation(
     "https://example.test/vi/advertising-products/?photo=photo-a",
     "https://example.test/vi/residential/",
   ),
   false,
 );
+// Trang Công trình (projects R2) dùng chung runtime: khác gốc là chuyển trang, slug lạ dưới /projects/ là trang chi tiết.
+const projectPages = [{ filter: "all", vi: "", en: "" }, { filter: "kinh-doanh", vi: "kinh-doanh", en: "kinh-doanh" }];
+assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/advertising-products/", projectPages), false, "Projects to Advertising is a page change");
+assert.equal(isQueryOnlyNavigation("https://example.test/vi/advertising-products/", "https://example.test/vi/projects/"), false, "Advertising to Projects is a page change");
+assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/projects/kinh-doanh/", projectPages), true, "a Projects filter path is in place");
+assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/kinh-doanh/", "https://example.test/vi/projects/can-ho-go-soi-am/", projectPages), false, "a project detail path is a page change");
+assert.deepEqual(
+  parseBrowseLocation("https://example.test/vi/projects/kinh-doanh/?photo=photo-a", { ...browseFixture, pages: projectPages, photos: false }),
+  { category: "kinh-doanh", photo: null, tag: null },
+  "without a viewer ?photo= is ignored and the filter comes from the path",
+);
 assert.equal(
-  isAdvertisingQueryOnlyNavigation(
+  serializeBrowseLocation("https://example.test/en/projects/", { category: "kinh-doanh" }, [], projectPages).pathname,
+  "/en/projects/kinh-doanh/",
+  "Projects filter URLs keep the /projects/ root",
+);
+assert.equal(
+  isQueryOnlyNavigation(
     "https://example.test/vi/residential/",
     "https://example.test/vi/advertising-products/?photo=photo-a",
   ),
@@ -229,7 +253,7 @@ const fallbackHistory = {
   pushState(state, _title, href) { fallbackState = state; fallbackHref = new URL(href, fallbackHref).href; },
   replaceState(state, _title, href) { fallbackState = state; if (href) fallbackHref = new URL(href, fallbackHref).href; },
 };
-const fallbackController = createAdvertisingBrowseHistoryController({
+const fallbackController = createBrowseHistoryController({
   ...browseFixture,
   browserHistory: fallbackHistory,
   getHref: () => fallbackHref,
@@ -271,7 +295,7 @@ const lateNativeHistory = {
     if (url) lateBarbaHref = new URL(url, lateBarbaHref).href;
   },
 };
-const lateAdapterController = createAdvertisingBrowseHistoryController({
+const lateAdapterController = createBrowseHistoryController({
   ...browseFixture,
   barbaHistory: lateBarbaHistory,
   browserHistory: lateNativeHistory,
@@ -332,7 +356,7 @@ const fixtureBarbaHistory = {
     fixtureEntries.push({ href: url, state: structuredClone(fixtureState) });
   },
 };
-const browseController = createAdvertisingBrowseHistoryController({
+const browseController = createBrowseHistoryController({
   ...browseFixture,
   barbaHistory: fixtureBarbaHistory,
   browserHistory: { get state() { return fixtureState; } },
@@ -340,7 +364,7 @@ const browseController = createAdvertisingBrowseHistoryController({
   getLogicalScroll: () => logicalScroll,
   onApply: (entry) => fixtureApplies.push(entry),
 });
-const staleDirectController = createAdvertisingBrowseHistoryController({
+const staleDirectController = createBrowseHistoryController({
   ...browseFixture,
   browserHistory: {
     state: {
@@ -361,7 +385,7 @@ assert.deepEqual(
   "direct URL identity wins over stale history identity",
 );
 assert.equal(staleDirectController.current.grid.scrollY, 0, "mismatched direct history cannot donate stale supplemental scroll");
-const matchingReloadController = createAdvertisingBrowseHistoryController({
+const matchingReloadController = createBrowseHistoryController({
   ...browseFixture,
   browserHistory: {
     state: {
@@ -387,13 +411,13 @@ const directPhotoHistory = {
     directPhotoHref = new URL(href, directPhotoHref).href;
   },
 };
-const directPhotoController = createAdvertisingBrowseHistoryController({
+const directPhotoController = createBrowseHistoryController({
   ...browseFixture,
   browserHistory: directPhotoHistory,
   getHref: () => directPhotoHref,
 });
 directPhotoController.persistCurrent();
-const reloadedDirectController = createAdvertisingBrowseHistoryController({
+const reloadedDirectController = createBrowseHistoryController({
   ...browseFixture,
   browserHistory: directPhotoHistory,
   getHref: () => directPhotoHref,
@@ -406,7 +430,7 @@ assert.equal(directPhotoController.current.grid.focusId, "photo-a");
 assert.equal(matchingReloadController.escapeDirectPhoto(), false, "a non-direct reload keeps ordinary browser Back ownership");
 let cleanedDirectHref = "https://example.test/vi/advertising-products/?category=missing&photo=missing&tag=shared";
 let cleanedDirectState = { from: "barba", index: 12 };
-createAdvertisingBrowseHistoryController({
+createBrowseHistoryController({
   ...browseFixture,
   browserHistory: {
     get state() { return cleanedDirectState; },
@@ -419,9 +443,9 @@ createAdvertisingBrowseHistoryController({
 });
 assert.equal(cleanedDirectHref, "https://example.test/vi/advertising-products/", "invalid direct photo/category/tag query is cleaned in place");
 assert.equal(cleanedDirectState.index, 12, "invalid direct cleanup preserves the Barba history index");
-const cleanedBrowseState = readAdvertisingBrowseHistoryState(cleanedDirectState);
+const cleanedBrowseState = readBrowseHistoryState(cleanedDirectState);
 assert.match(cleanedBrowseState.seed, /^[a-z0-9]+-[a-z0-9]+$/, "a fresh direct route receives a visit seed");
-assert.deepEqual(readAdvertisingBrowseHistoryState(cleanedDirectState), {
+assert.deepEqual(readBrowseHistoryState(cleanedDirectState), {
   category: "all",
   directPhotoRootId: null,
   photo: null,
@@ -445,16 +469,16 @@ assert.equal(fixtureEntries.length, 3, "tag replace does not add a history entry
 browseController.openPhoto("photo-b");
 assert.equal(fixtureEntries.length, 3, "same-photo activation does not push a duplicate entry");
 assert.deepEqual(fixtureEntries.map((entry) => entry.state.index), [7, 8, 9], "Barba owns monotonically increasing history indexes");
-assert.equal(readAdvertisingBrowseHistoryState(gridEntry.state).grid.focusId, "photo-a");
-assert.equal(readAdvertisingBrowseHistoryState(gridEntry.state).grid.viewportWidth, 1440);
-assert.equal(readAdvertisingBrowseHistoryState(gridEntry.state).grid.anchorOffset, 180);
-assert.equal(readAdvertisingBrowseHistoryState(photoAEntry.state).photo, "photo-a");
-assert.equal(readAdvertisingBrowseHistoryState(photoAEntry.state).tag, "shared");
-assert.equal(readAdvertisingBrowseHistoryState(photoBEntry.state).photo, "photo-b");
-assert.equal(readAdvertisingBrowseHistoryState(photoAEntry.state).detail.scrollY, 210, "A stores its detail scroll before B is pushed");
-assert.equal(readAdvertisingBrowseHistoryState(photoAEntry.state).detail.anchorId, "photo-b");
-assert.equal(readAdvertisingBrowseHistoryState(photoAEntry.state).detail.anchorOffset, 240);
-assert.equal(readAdvertisingBrowseHistoryState(photoBEntry.state).detail.scrollY, 0, "B starts at the top instead of inheriting A scroll");
+assert.equal(readBrowseHistoryState(gridEntry.state).grid.focusId, "photo-a");
+assert.equal(readBrowseHistoryState(gridEntry.state).grid.viewportWidth, 1440);
+assert.equal(readBrowseHistoryState(gridEntry.state).grid.anchorOffset, 180);
+assert.equal(readBrowseHistoryState(photoAEntry.state).photo, "photo-a");
+assert.equal(readBrowseHistoryState(photoAEntry.state).tag, "shared");
+assert.equal(readBrowseHistoryState(photoBEntry.state).photo, "photo-b");
+assert.equal(readBrowseHistoryState(photoAEntry.state).detail.scrollY, 210, "A stores its detail scroll before B is pushed");
+assert.equal(readBrowseHistoryState(photoAEntry.state).detail.anchorId, "photo-b");
+assert.equal(readBrowseHistoryState(photoAEntry.state).detail.anchorOffset, 240);
+assert.equal(readBrowseHistoryState(photoBEntry.state).detail.scrollY, 0, "B starts at the top instead of inheriting A scroll");
 
 fixtureHref = photoAEntry.href;
 fixtureState = photoAEntry.state;
@@ -490,7 +514,7 @@ const navbarCases = [
 for (const [startHref, related, search, focusId, anchorOffset] of navbarCases) {
   let navbarHref = startHref;
   let navbarState = null;
-  const navbarController = createAdvertisingBrowseHistoryController({
+  const navbarController = createBrowseHistoryController({
     ...browseFixture,
     cards: [...browseFixture.cards, { id: "photo-c", category: "kiosk-posm", tagIds: ["shared"] }],
     browserHistory: {
@@ -517,7 +541,7 @@ for (const [startHref, related, search, focusId, anchorOffset] of navbarCases) {
 
 let englishHref = "https://example.test/en/advertising-products/";
 let englishAdds = 0;
-const englishController = createAdvertisingBrowseHistoryController({
+const englishController = createBrowseHistoryController({
   ...browseFixture,
   barbaHistory: {
     current: { data: {} },

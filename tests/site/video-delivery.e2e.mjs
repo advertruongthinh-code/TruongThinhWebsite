@@ -47,12 +47,14 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 after(() => server.close());
 const hlsSrc = `http://127.0.0.1:${server.address().port}/master.m3u8`;
 
-// Mọi card thành một video để luôn có card video trong màn, không phụ thuộc seed của grid.
+// Mọi card thành một video để luôn có card video trong màn, không phụ thuộc seed của grid. Khung card 640x396 (w/h 1.616,
+// ngay dưới tỷ lệ vàng) giữ mọi card một cột như lưới trước luật hai cột (masonry R5): clip 16:9 thì card nào cũng trải
+// hai cột, số video cùng tải đổi và pha phát của video R4 chọn đổi theo; test này đo thang bậc, không đo hình học.
 function fixtureArtifact(hls) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
     card.mediaItems = [{
-      ...card.mediaItems[0], id: `${card.id}-ladder`, kind: "video", width: 640, height: 360,
+      ...card.mediaItems[0], id: `${card.id}-ladder`, kind: "video", width: 640, height: 396,
       src: `${filePrefix}clip.mp4`, cardSrc: `${filePrefix}card.mp4`, hlsSrc: hls ? hlsSrc : undefined,
       source: "M00b sealed synthetic fixture", provenance: "Synthetic test-only fixture, not public media.",
       sourceId: "video-delivery:test-only:clip", sha256: "853e4939e6a4627cc7777665283b2affab189132243974a4777f5a955338e827",
@@ -82,7 +84,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
     if (!mediaSource) delete window.MediaSource;
   }, { artifact: fixtureArtifact(hls), mediaSource });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   // Hero Advertising chiếm màn đầu; intro và smooth scroll cần mount xong mới nhận wheel, rồi cuộn để card vào màn.
   await page.waitForTimeout(2500);
   await page.mouse.move(8, 450);
@@ -169,7 +171,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
     // Mạng nhanh lên, rồi một video khác trên trang tải xong segment (gherkin R4).
     kbps = 0;
     await page.evaluate(async (src) => {
-      const { setVideoSource } = await import("/advertising-products/video-source.mjs");
+      const { setVideoSource } = await import("/media-lib/video-source.mjs");
       setVideoSource(document.createElement("video"), { hlsSrc: src }, { file: "", capWidth: 480 });
     }, hlsSrc);
     await page.waitForTimeout(4000);

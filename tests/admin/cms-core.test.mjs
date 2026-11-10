@@ -4,7 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { after, before, test } from "node:test";
 
-// Lõi CMS (cms-editor R3, R4, R8): gắn khóa theo thứ tự nguồn, áp nháp chữ, ảnh, danh sách, bản sao marquee.
+// CMS core (cms-editor R3, R4, R8): attach keys in source order, apply text drafts, images, lists, marquee copies.
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const FIXTURE = `<!doctype html><html><head><title>Gốc</title><meta name="description" content="Mô tả" data-en-content="About"></head><body>
@@ -36,7 +36,7 @@ before(async () => {
 });
 after(() => browser?.close());
 
-test("stamp gắn khóa theo thứ tự nguồn, giống nhau giữa DOM thật và DOMParser", async () => {
+test("stamp assigns keys in source order, identical between real DOM and DOMParser", async () => {
   const result = await run(() => {
     const keys = (doc) => [...doc.querySelectorAll("[data-cms-key]")].map((node) => node.dataset.cmsKey);
     const parsed = new DOMParser().parseFromString(document.documentElement.outerHTML, "text/html");
@@ -55,7 +55,7 @@ test("stamp gắn khóa theo thứ tự nguồn, giống nhau giữa DOM thật 
   assert.equal(result.mirrorKeys, 0);
 });
 
-test("apply đổi chữ theo ngôn ngữ, giữ cả hai bản, cập nhật bản sao marquee", async () => {
+test("apply swaps text by language, keeps both versions, updates the marquee copy", async () => {
   const result = await run(() => {
     window.TTCms.stamp(document, "residential");
     window.TTCms.apply(document, {
@@ -67,7 +67,7 @@ test("apply đổi chữ theo ngôn ngữ, giữ cả hai bản, cập nhật b�
   assert.deepEqual(result, { text: "New", vi: "Mới", title: "Title", mirror: "Run" });
 });
 
-test("apply đổi ảnh: bỏ source và srcset, ghi đúng thuộc tính lazy, alt theo ngôn ngữ", async () => {
+test("apply swaps images: drops source and srcset, writes lazy attributes, alt by language", async () => {
   const result = await run(() => {
     window.TTCms.stamp(document, "residential");
     window.TTCms.apply(document, { image: { i1: { src: "/new.webp", width: 800, height: 600, altVi: "Mới", altEn: "New" } } }, "vi");
@@ -83,7 +83,7 @@ test("apply đổi ảnh: bỏ source và srcset, ghi đúng thuộc tính lazy,
   assert.deepEqual(result, { sources: 0, dataSrc: "/new.webp", srcset: false, size: ["800", "600"], alt: ["Mới", "New"] });
 });
 
-test("apply danh sách: sắp lại, mục mới clone với khóa @id và placeholder trống, slide đầu active", async () => {
+test("apply lists: reorders, clones new items with @id keys and empty placeholders, first slide active", async () => {
   const result = await run(() => {
     window.TTCms.stamp(document, "residential");
     window.TTCms.apply(document, {
@@ -109,9 +109,9 @@ test("apply danh sách: sắp lại, mục mới clone với khóa @id và place
   assert.ok(result.placeholder);
 });
 
-// Worker áp nội dung đã lưu trên DOM linkedom (R10): khóa phải trùng khóa editor đọc bằng DOMParser trên trang thật.
+// The Worker applies saved content on a linkedom DOM (R10): keys must match the keys the editor reads with DOMParser on the real page.
 const BUILT = [["home", "index.html"], ["residential", "residential/index.html"], ["commercial", "commercial/index.html"], ["about", "about/index.html"]];
-test("linkedom gắn khóa y như DOMParser trên bốn trang đã build", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
+test("linkedom assigns the same keys as DOMParser on the four built pages", { skip: !existsSync(".site-output/index.html") && "site not built" }, async () => {
   const { parseHTML } = await import("linkedom");
   await import("../../src/admin/cms-core.js");
   const signature = (doc) => [...doc.querySelectorAll("[data-cms-key], [data-cms-list], [data-cms-item]")]
@@ -130,10 +130,10 @@ test("linkedom gắn khóa y như DOMParser trên bốn trang đã build", { ski
   }
 });
 
-// Dấu chỗ gốc (R10): editor tính trên bản xem trước VI (localeHtml) bằng DOMParser, Worker tính trên HTML nguồn bằng
-// linkedom; lệch ở bất kỳ khóa nào thì lưu chỗ đó luôn bị từ chối. Hero sửa bỏ preload theo chuỗi trong <head>: chuỗi
-// đó đổi trong HTML nguồn thì test này báo, không gãy âm thầm.
-test("dấu chỗ gốc trùng giữa bản xem trước (DOMParser) và HTML nguồn (linkedom)", { skip: !existsSync(".site-output/index.html") && "chưa build site" }, async () => {
+// Original placeholder (R10): the editor computes on the VI preview (localeHtml) with DOMParser, the Worker on the source HTML with
+// linkedom; if any key differs, saving that spot is always rejected. The edited hero drops the preload by a string in <head>: if that string
+// changes in the source HTML this test reports it, instead of breaking silently.
+test("original placeholders match between preview (DOMParser) and source HTML (linkedom)", { skip: !existsSync(".site-output/index.html") && "site not built" }, async () => {
   const { parseHTML } = await import("linkedom");
   const { localeHtml } = await import("../../scripts/tooling/serve-static-parity.mjs");
   await import("../../src/admin/cms-core.js");

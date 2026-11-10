@@ -6,6 +6,8 @@
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
+  // Id riêng mỗi lần mount: lúc Barba chuyển trang, container cũ (ẩn) còn trong DOM cùng lưới News.
+  let newsGridCount = 0;
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
@@ -102,12 +104,15 @@
     const hiddenByBreakpoint = getComputedStyle(desktopNavList).display === "none";
     const items = [...desktopNavList.children];
     const listRect = desktopNavList.getBoundingClientRect();
-    const logoRect = headerLogo?.getBoundingClientRect();
+    // Logo đo theo box layout, bỏ transform: lúc intro scale(0) rect rộng 0 nên nav đè logo mà không bị ẩn.
+    const logoParent = headerLogo?.offsetParent;
+    const logoRight = logoParent
+      && logoParent.getBoundingClientRect().left + logoParent.clientLeft + headerLogo.offsetLeft + headerLogo.offsetWidth;
     const menuRect = openButton.getBoundingClientRect();
     const wraps = items.length > 0
       && items.some((item) => Math.abs(item.offsetTop - items[0].offsetTop) > 1);
     const clips = desktopNavList.scrollWidth > desktopNavList.clientWidth + 1;
-    const overlaps = logoRect && (listRect.left < logoRect.right - 1 || listRect.right > menuRect.left + 1);
+    const overlaps = Boolean(logoRight) && (listRect.left < logoRight - 1 || listRect.right > menuRect.left + 1);
     const hidden = hiddenByBreakpoint || items.length === 0 || wraps || clips || overlaps;
     desktopNav.classList.toggle("is-space-hidden", hidden);
     desktopNav.inert = hidden;
@@ -164,6 +169,13 @@
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
+  // Route mềm: header ở tone veil (chữ đậm, mark CMYK) từ lúc veil phủ kín tới lúc veil bắt đầu mở, kể cả khi trang
+  // đích mount dưới veil (logo-route-crossfade R1, R2).
+  let routeVeilInk = false;
+  // Veil phủ kín ít nhất 1s (owner 2026-11-09), dài hơn một lượt lật mark, kể cả khi trang đích có sẵn trong cache: chữ đậm và mark CMYK
+  // hiện đủ lâu trên veil, navbar không chớp (owner 2026-11-09, logo-route-crossfade R2).
+  const routeVeilHold = 1000;
+  let routeVeilCoveredAt;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
   let menuTimeline;
@@ -182,27 +194,6 @@
       : window.scrollY;
   const getPageChildren = () =>
     pageState ? [...pageState.container.children] : [];
-  const getDominantSection = () => {
-    const candidates = pageState
-      ? [
-          ...pageState.container.querySelectorAll(
-            "main > section, main > figure, :scope > footer",
-          ),
-        ]
-      : [];
-    const visibleArea = (element) => {
-      const rect = element.getBoundingClientRect();
-      return Math.max(
-        0,
-        Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0),
-      );
-    };
-    return candidates.reduce(
-      (best, candidate) =>
-        !best || visibleArea(candidate) > visibleArea(best) ? candidate : best,
-      undefined,
-    );
-  };
 
   // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
   // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
@@ -504,35 +495,11 @@
     applyLanguage(currentLanguage, false, !translatedByServer);
   };
 
-  const colorHeader = (color, immediate = false) => {
-    if (currentHeaderColor === color && !immediate) return;
-    const isInitialColor = currentHeaderColor === "";
+  // Chữ logo, nav, hamburger đổi màu ngay, không motion (owner 2026-11-09), cả lúc cuộn lẫn lúc chuyển trang.
+  const colorHeader = (color) => {
     currentHeaderColor = color;
-    const colorTargets = [
-      headerLogo,
-      ...header.querySelectorAll(".desktop-nav a"),
-      header.querySelector(".menu-button"),
-    ].filter((target) => target instanceof HTMLElement);
-    const strokeTargets = [
-      ...header.querySelectorAll(".menu-button line"),
-    ].filter((target) => target instanceof SVGElement);
-    const targets = [...colorTargets, ...strokeTargets];
-    if (
-      immediate ||
-      isInitialColor ||
-      !hasGsap ||
-      reduceMotion
-    ) {
-      if (hasGsap) gsap.killTweensOf(targets);
-      colorTargets.forEach((target) => target.style.setProperty("color", color));
-      strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
-      return;
-    }
-    gsap.killTweensOf(targets);
-    gsap
-      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: true } })
-      .to(colorTargets, { color }, 0)
-      .to(strokeTargets, { stroke: color }, 0);
+    header.querySelectorAll("#header-logo, .desktop-nav a, .menu-button").forEach((target) => target.style.setProperty("color", color));
+    header.querySelectorAll(".menu-button line").forEach((target) => target.style.setProperty("stroke", color));
   };
 
   /**
@@ -580,6 +547,55 @@
     );
   }
 
+  const headerSlideTargets = () =>
+    [...header.querySelectorAll(".desktop-nav, [data-menu-open] svg")].filter((el) => el instanceof Element);
+
+  function playHeaderSlideMotion(before) {
+    if (reduceMotion || !hasGsap || !before) return;
+    before.forEach(([el, top]) => {
+      const dy = top - el.getBoundingClientRect().top;
+      if (Math.abs(dy) < 0.5) return;
+      gsap.fromTo(el, { y: dy }, { y: 0, duration: 0.3, ease: "expo.out", overwrite: "auto", clearProps: "y" });
+    });
+  }
+
+  // Nền và viền header vẽ ở ::before (style.css), chạy chung nhịp FLIP 0.3s expo.out, chỉ transform. Cỡ lớn nhất của
+  // nền: logo lớn nhất cách đều cạnh trên và cạnh dưới (owner 2026-11-09), nên lúc header mở, đáy nền thấp hơn đáy
+  // header đúng phần surfaceExtra. Thu gọn: nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar. Mở ra: nền trắng và
+  // chữ ink giữ (headerSurfaceHeld), nền giãn từ cao cũ tới cỡ lớn nhất; hết 0.3s nền tắt và chữ đổi ngay, không fade.
+  const surfaceExtra = () => {
+    const top = Number.parseFloat(getComputedStyle(header).paddingTop) || 0;
+    return headerLogo instanceof HTMLElement ? Math.max(0, 2 * top + headerLogo.offsetHeight - header.offsetHeight) : 0;
+  };
+  // killTweensOf(header, "--header-surface-shift") không bắt được tween biến CSS: giữ tham chiếu để dừng tween cũ,
+  // nếu không onComplete của nhịp trước nhả nền giữa nhịp mới.
+  let headerSurfaceTween;
+  function playHeaderSurfaceMotion(heightBefore, extraBefore) {
+    if (!hasGsap) return;
+    headerSurfaceTween?.kill();
+    headerSurfaceTween = undefined;
+    header.style.removeProperty("--header-surface-shift");
+    const from = heightBefore + extraBefore - header.offsetHeight;
+    const to = header.classList.contains("is-collapsed") ? 0 : surfaceExtra();
+    if (reduceMotion || Math.abs(from - to) < 0.5) {
+      releaseHeaderSurface();
+      return;
+    }
+    headerSurfaceTween = gsap.fromTo(
+      header,
+      { "--header-surface-shift": `${from}px` },
+      {
+        "--header-surface-shift": `${to}px`,
+        duration: headerBeat,
+        ease: "expo.out",
+        onComplete: () => {
+          header.style.removeProperty("--header-surface-shift");
+          releaseHeaderSurface();
+        },
+      },
+    );
+  }
+
   const updateToneRanges = () => {
     if (!pageState) {
       toneRanges = [];
@@ -604,6 +620,30 @@
     header.style.removeProperty("transform");
   };
 
+  // Nhịp header (brand.md Motion): logo FLIP, navbar và nền chạy chung 0.3s expo.out; nền, viền, chữ đổi ngay lúc bắt
+  // đầu nhịp và mark lật cùng lúc (owner 2026-11-09). Đổi tone không thu gọn (section nền trắng): mark lật sau 0.1s,
+  // 0.1s cũng là nhịp stagger nav lúc intro.
+  const headerBeat = 0.3;
+  const headerSettle = 0.1;
+  // Header thu gọn hoặc mở ra: mark lật ngay (updateHeader đặt 0).
+  let headerMarkLeadFor = headerSettle;
+  // Mở ra: nền trắng, viền, chữ ink giữ tới hết nhịp 0.3s (playHeaderSurfaceMotion nhả).
+  let headerSurfaceHeld = false;
+  let headerSurfaceLast = [false, false];
+  const paintHeaderSurface = (ink, collapsed) => {
+    headerSurfaceLast = [ink, collapsed];
+    const surface = collapsed || headerSurfaceHeld;
+    header.classList.toggle("is-ink", ink || headerSurfaceHeld);
+    header.classList.toggle("is-logo-ink", collapsed);
+    header.classList.toggle("is-surface", surface);
+    const color = ink || headerSurfaceHeld ? "#2f2f2f" : "#ffffff";
+    if (color !== currentHeaderColor) colorHeader(color);
+  };
+  function releaseHeaderSurface() {
+    if (!headerSurfaceHeld) return;
+    headerSurfaceHeld = false;
+    paintHeaderSurface(...headerSurfaceLast);
+  }
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =
       document.body.classList.contains("is-transitioning") ||
@@ -616,23 +656,34 @@
     const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
     // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
-    const ink = (routeTransitionActive && !routeDestinationReady) || pageHeaderInk;
+    // Route mềm (routeMarkHeld): tone veil chỉ trong lúc veil phủ kín; vào thẳng trang: tới khi trang đích sẵn sàng.
+    const ink = (routeTransitionActive && (routeMarkHeld ? routeVeilInk : !routeDestinationReady)) || pageHeaderInk;
     const collapsedChanged =
       lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
     const logoBeforeRect =
       collapsedChanged && headerLogo instanceof HTMLElement
         ? headerLogo.getBoundingClientRect()
         : null;
-    header.classList.toggle("is-ink", ink);
-    header.classList.toggle("is-logo-ink", collapsed);
+    // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
+    const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
+    const heightBefore = collapsedChanged ? header.offsetHeight : 0;
+    const extraBefore = collapsedChanged ? surfaceExtra() : 0;
     header.classList.toggle("is-collapsed", collapsed);
-    colorHeader(ink ? "#2f2f2f" : "#ffffff");
+    // Thu gọn (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy, không fade;
+    // nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion). Mở ra: nền trắng, chữ ink giữ và giãn
+    // theo navbar 0.3s, hết nhịp mới tắt. Cả hai chiều mark lật ngay lúc bắt đầu.
+    if (collapsedChanged) headerSurfaceHeld = !collapsed && hasGsap && !reduceMotion && header.classList.contains("is-surface");
+    paintHeaderSurface(ink, collapsed);
+    if (collapsedChanged) headerMarkLeadFor = 0;
     if (!routeMarkHeld && (activeSection || routeTransitionActive || collapsed)) {
       syncHeaderBrandSurface(ink);
     }
+    headerMarkLeadFor = headerSettle;
     if (collapsedChanged) {
       headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
+      playHeaderSlideMotion(slideBefore);
+      playHeaderSurfaceMotion(heightBefore, extraBefore);
     }
     lastHeaderCollapsed = collapsed;
 
@@ -713,92 +764,246 @@
   const headerMark = header.querySelector(".brand-lockup__mark");
   const headerMarkPaths = [...(headerMark?.querySelectorAll("path") || [])];
   const markBlack = headerMarkPaths.map(() => "rgb(43, 42, 41)");
-  let headerMarkUnderlay;
-  let headerMarkSlots = [];
-  let headerMarkRise = 0;
-  // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
-  // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
+  let headerMarkFlip;
+  // Trục lật của mỗi dải: điểm giữa đoạn chân dải, theo hệ tọa độ path. Đường qua điểm này song song cạnh trái
+  // tam giác cũng đi qua trung điểm cạnh phải của dải. Cache theo `d` vì snapBrandMark có thể dựng lại path.
+  const bandAxis = new Map();
+  const readBandAxis = (path) => {
+    const d = path.getAttribute("d");
+    if (!bandAxis.has(d)) {
+      const length = path.getTotalLength();
+      const points = Array.from({ length: 97 }, (_, step) => path.getPointAtLength((length * step) / 96));
+      const base = Math.max(...points.map((point) => point.y));
+      const foot = points.filter((point) => base - point.y < 0.5).map((point) => point.x);
+      bandAxis.set(d, [(Math.min(...foot) + Math.max(...foot)) / 2, base]);
+    }
+    return bandAxis.get(d);
+  };
+  // Màu đang hiển thị của từng dải khi lật dở: dải đã quay mặt mới ra thì lấy màu mới, chưa thì màu cũ.
+  const readFlipFaces = () => headerMarkFlip.bands.map(({ front, back }) => {
+    const timing = front.getAnimations()[0]?.effect.getComputedTiming();
+    return timing && timing.progress !== null && timing.progress < 1 ? front.dataset.fill : back.dataset.fill;
+  });
+  const stopHeaderMarkFlip = () => {
+    if (!headerMarkFlip) return;
+    headerMarkFlip.root.remove();
+    headerMark.style.removeProperty("visibility");
+    headerMarkFlip = undefined;
+  };
+  // Gỡ lớp lật khi mọi mặt chạy xong. Mỗi lần tua ngược thì `gen` tăng, lượt chờ cũ bỏ qua.
+  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích sang màu thứ ba (`flip.next`) thì lật tiếp từ màu vừa tới,
+  // sau khi hết nhịp header của lần đổi đó.
+  const advanceHeaderMarkFlip = (flip) => {
+    if (headerMarkFlip !== flip) return;
+    const next = flip.next;
+    if (!next) {
+      stopHeaderMarkFlip();
+      return;
+    }
+    const wait = next.at - performance.now();
+    if (wait > 0 && hasGsap) {
+      gsap.delayedCall(wait / 1000, () => advanceHeaderMarkFlip(flip));
+      return;
+    }
+    stopHeaderMarkFlip();
+    flipHeaderMark(flip.dest, next.target, next.backward);
+  };
+  const settleHeaderMarkFlip = (flip) => {
+    const gen = flip.gen;
+    Promise.all(flip.animations.map((animation) => animation.finished)).then(
+      () => flip.gen === gen && advanceHeaderMarkFlip(flip),
+      () => {},
+    );
+  };
+  // Lượt lật là một đoạn motion chạy tới (`front` sang `back`, cyan trước) hoặc chạy lùi (`back` về `front`, đen trước).
+  // Đổi đích về đầu kia lúc đang lật: tua ngược ngay từ chỗ đang dừng, như tua băng (owner 2026-11-09).
+  const runHeaderMarkFlip = (flip, rate) => {
+    flip.next = undefined;
+    flip.dest = rate > 0 ? flip.back : flip.front;
+    if (flip.animations[0].playbackRate === rate) return;
+    flip.animations.forEach((animation) => animation.reverse());
+    flip.gen += 1;
+    settleHeaderMarkFlip(flip);
+  };
+  // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
+  const headerFlipShade = "#000";
+  const headerFlipShadeMax = 0.5;
+  // Dựng lớp lật và lật từng dải từ `from` sang `target`. `backward` (về trắng): dựng lượt lật từ `target` sang `from`
+  // rồi chạy lùi từ cuối, nên đen lật trước, cyan sau cùng, đúng là trắng sang CMYK tua ngược (owner 2026-11-09).
+  const flipHeaderMark = (from, target, backward) => {
+    const front = backward ? target : from;
+    const back = backward ? from : target;
+    // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
+    // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
+    const logoRect = headerLogo.getBoundingClientRect();
+    const markRect = headerMark.getBoundingClientRect();
+    const box = headerMark.getBBox();
+    const width = (markRect.width / logoRect.width) * headerLogo.offsetWidth;
+    const percent = (value, whole) => `${(value / whole) * 100}%`;
+    const root = document.createElement("span");
+    root.className = "brand-lockup__mark-flip";
+    root.setAttribute("aria-hidden", "true");
+    Object.assign(root.style, {
+      left: percent(markRect.left - logoRect.left, logoRect.width),
+      top: percent(markRect.top - logoRect.top, logoRect.height),
+      width: percent(markRect.width, logoRect.width),
+      height: percent(markRect.height, logoRect.height),
+    });
+    // Mỗi mặt có thêm lớp bóng cùng hình dải: tối dần khi mặt xoay ra cạnh, sáng lại khi quay tới (owner 2026-11-09:
+    // dải mảnh xoay quanh trục dọc dải trông như quét, bóng cho mắt thấy chiều sâu). Bóng chỉ chạy opacity.
+    const svg = (fill, d) => `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"><path fill="${fill}" d="${d}"/></svg>`;
+    const face = (path, fill) => {
+      const layer = document.createElement("span");
+      layer.dataset.fill = fill;
+      const d = path.getAttribute("d");
+      layer.innerHTML = `${svg(fill, d)}<span>${svg(headerFlipShade, d)}</span>`;
+      return layer;
+    };
+    const bands = headerMarkPaths.map((path, index) => {
+      const [axisX, axisY] = readBandAxis(path);
+      const origin = `${((axisX - box.x) / box.width) * 100}% ${((axisY - box.y) / box.height) * 100}%`;
+      const band = document.createElement("span");
+      // Phối cảnh đặt ngay trên trục từng dải, dải lật tại chỗ; cỡ phối cảnh theo cỡ mark.
+      band.style.perspective = `${width * 6}px`;
+      band.style.perspectiveOrigin = origin;
+      const frontFace = face(path, front[index]);
+      const backFace = face(path, back[index]);
+      frontFace.style.transformOrigin = backFace.style.transformOrigin = origin;
+      band.append(frontFace, backFace);
+      root.append(band);
+      return { front: frontFace, back: backFace };
+    });
+    // SVG không chứa được lớp HTML; lớp lật nằm trong #header-logo nên cùng chịu FLIP scale.
+    headerLogo.prepend(root);
+    headerMark.style.visibility = "hidden";
+    const flip = { root, bands, front, back, dest: target, gen: 0, animations: [] };
+    headerMarkFlip = flip;
+    // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
+    // Mọi mặt cùng kết thúc ở mốc cuối của lượt (endDelay), nên chạy lùi từ cuối hay tua ngược giữa chừng thì các dải
+    // vẫn giữ đúng lệch 80ms, theo thứ tự ngược lại.
+    const total = (bands.length - 1) * 80 + 440;
+    const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
+    const shade = (layer, keyframes, timing) => flip.animations.push(layer.lastElementChild.animate(keyframes, timing));
+    bands.forEach(({ front, back }, index) => {
+      const delay = (bands.length - 1 - index) * 80;
+      // Mặt sau dùng đúng đường cong đối xứng của mặt trước, cùng 220ms: chạy lùi trông như chạy tới, không khựng đầu lượt.
+      const frontTiming = { delay, duration: 220, endDelay: total - delay - 220, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
+      const backTiming = { delay: delay + 220, duration: 220, endDelay: total - delay - 440, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "both" };
+      shade(front, [{ opacity: 0 }, { opacity: headerFlipShadeMax }], frontTiming);
+      shade(back, [{ opacity: headerFlipShadeMax }, { opacity: 0 }], backTiming);
+      flip.animations.push(front.animate(
+        [
+          { transform: turn(0), opacity: 1 },
+          { transform: turn(90), opacity: 1, offset: 0.999 },
+          { transform: turn(90), opacity: 0 },
+        ],
+        frontTiming,
+      ));
+      flip.animations.push(back.animate(
+        [
+          { transform: turn(-90), opacity: 0 },
+          { transform: turn(-90), opacity: 1, offset: 0.001 },
+          { transform: turn(0), opacity: 1 },
+        ],
+        backTiming,
+      ));
+    });
+    if (backward) flip.animations.forEach((animation) => animation.reverse());
+    settleHeaderMarkFlip(flip);
+  };
+  let headerMarkLead;
+  // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
+  // đứng yên ở góc hiện tại trong lúc chờ.
+  const leadHeaderMark = (className, run, from) => {
+    // Không chờ nhịp (veil phủ kín hoặc bắt đầu mở): lật ngay trong frame này.
+    if (!hasGsap || !headerMarkLeadFor) {
+      run();
+      return;
+    }
+    const call = gsap.delayedCall(headerMarkLeadFor, () => {
+      if (headerMarkLead?.call === call) headerMarkLead = undefined;
+      run();
+    });
+    headerMarkLead = { className, call, from };
+  };
+  // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
+  // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
+  // `tween`: từng dải tween màu thay vì lật (đổi hướng cuộn trong nhịp 1). Chuyển trang luôn lật (logo-route-crossfade).
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
   ) => {
-    // Đọc clip đang chạy trước khi hủy để giữ đúng phần lớp mới đã mọc khi đổi hướng giữa chừng.
-    const clips = headerMarkPaths.map((path) => getComputedStyle(path).clipPath);
-    header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
+    const flipping = headerMarkFlip;
+    const leading = headerMarkLead;
+    // Đang chờ hết nhịp header để lật tới đúng màu này: chờ tiếp.
+    if (leading && rise && !tween && leading.className === className) return;
+    if (leading) {
+      leading.call.kill();
+      headerMarkLead = undefined;
+    }
+    header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add(className);
+    // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
     if (hasGsap) gsap.killTweensOf(headerMarkPaths);
     headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+    const target = headerMarkPaths.map((path) => getComputedStyle(path).fill);
+    const same = (colors) => colors.every((color, index) => color === target[index]);
+    if (leading?.from && rise && !tween && !reduceMotion) {
+      // Đổi hướng trong nhịp 1, lớp lật chưa dựng: về đúng màu lúc vào nhịp thì mark chỉ tween về cùng chữ, không lật;
+      // sang màu khác thì coi như nhịp 1 chưa chạy, lật từ màu cũ.
+      if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
+      else from = leading.from;
+    }
+    // Về trắng thì chạy lùi, đen lật trước (owner 2026-11-09); sang màu khác thì chạy tới, cyan trước.
+    const backward = className === "is-brand-inverse";
+    // Đang lật mà đích là một đầu của lượt lật: chạy tới hoặc tua ngược từ chỗ đang dừng (đích đang tới thì lật tiếp).
+    // Sang màu thứ ba: lượt đang chạy lật cho xong, rồi lật tiếp sang màu đó sau nhịp header của lần đổi này.
+    if (flipping && rise && !tween && !reduceMotion) {
+      const rate = same(flipping.back) ? 1 : same(flipping.front) ? -1 : 0;
+      if (rate) runHeaderMarkFlip(flipping, rate);
+      else flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000, backward };
+      return;
+    }
+    // Chuyển trang hoặc vẽ ngay khi đang lật: lớp cũ là mặt đang hiển thị của từng dải.
+    if (flipping) from = readFlipFaces();
+    stopHeaderMarkFlip();
     if (tween && hasGsap && !reduceMotion && headerMark) {
-      // Dừng kiểu mọc đang chạy; tween đi từ màu đang hiển thị của từng dải.
-      headerMarkUnderlay?.remove();
-      headerMarkUnderlay = undefined;
-      headerMarkSlots = [];
-      headerMarkRise += 1;
-      headerMarkPaths.forEach((path) => path.getAnimations().forEach((animation) => animation.cancel()));
-      const to = headerMarkPaths.map((path) => getComputedStyle(path).fill);
+      // Cùng màu thì không có motion. Tween fill tuyến tính giữa hai màu đặc cùng hình chính là crossfade hai lớp.
+      if (same(from)) return;
       gsap.fromTo(
         headerMarkPaths,
         { fill: (index) => from[index] },
-        { fill: (index) => to[index], ...tween, clearProps: "fill" },
+        { fill: (index) => target[index], ...tween, clearProps: "fill" },
       );
       return;
     }
-    if (!rise || reduceMotion || !headerMark) return;
-    if (!headerMarkUnderlay) {
-      headerMarkUnderlay = headerMark.cloneNode(false);
-      headerMarkUnderlay.removeAttribute("id");
-      headerMarkUnderlay.setAttribute("class", "brand-lockup__mark-underlay");
-      headerMark.before(headerMarkUnderlay);
-    }
-    const token = ++headerMarkRise;
-    Promise.all(headerMarkPaths.map((path, index) => {
-      // Mỗi dải có một slot chứa lớp cũ; slot lùi từ chân theo mép mọc nên mép trái, phải, đỉnh không chồng hai lớp.
-      // Đổi hướng giữa chừng: slot cũ đứng yên ở clip hiện tại và nằm trong slot mới cùng phần dải đã mọc.
-      const slot = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      const previous = headerMarkSlots[index];
-      if (previous) {
-        const clip = getComputedStyle(previous).clipPath;
-        previous.getAnimations().forEach((animation) => animation.cancel());
-        previous.style.clipPath = clip;
-        slot.append(previous);
-      }
-      const layer = path.cloneNode(false);
-      layer.setAttribute("fill", from[index]);
-      layer.style.clipPath = clips[index];
-      slot.append(layer);
-      headerMarkUnderlay.append(slot);
-      headerMarkSlots[index] = slot;
-      path.getAnimations().forEach((animation) => animation.cancel());
-      // Dải 1 đen tới 4 cyan bắt đầu lệch 0.07s, cả bốn cùng xong ở 1s.
-      const delay = index * 70;
-      const timing = { delay, duration: 1000 - delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
-      // Lớp cũ thừa 1px dưới mép mọc để không hở khe giữa hai lớp.
-      slot.animate({ clipPath: ["inset(0 0 -1px 0)", "inset(0 0 calc(100% - 1px) 0)"] }, { ...timing, fill: "both" });
-      return path.animate({ clipPath: ["inset(100% 0 0 0)", "inset(0)"] }, { ...timing, fill: "backwards" }).finished;
-    })).then(() => {
-      if (token !== headerMarkRise) return;
-      headerMarkUnderlay.remove();
-      headerMarkUnderlay = undefined;
-      headerMarkSlots = [];
-    }, () => {});
+    if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
+    // Mark đã đúng màu (ví dụ CMYK lúc bấm link trên nền trắng): không lật.
+    if (same(from)) return;
+    // Nhịp 1: mark giữ màu cũ; nhịp 2: header đã xong về mắt, các dải lật thẳng sang màu đích.
+    headerMarkPaths.forEach((path, index) => path.style.setProperty("fill", from[index]));
+    leadHeaderMark(className, () => {
+      headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+      flipHeaderMark(from, target, backward);
+    }, from);
   };
-  function syncHeaderBrandSurface(whiteSurface, tween) {
+  function syncHeaderBrandSurface(whiteSurface) {
     if (whiteSurface) {
-      if (lastHeaderWhiteSurface === undefined && !tween) {
+      if (lastHeaderWhiteSurface === undefined) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
         lastHeaderWhiteSurface !== true ||
         !header.classList.contains("is-brand-color")
       ) {
-        paintHeaderMark("is-brand-color", { tween });
+        paintHeaderMark("is-brand-color");
       }
     } else if (
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
       // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
-      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined, tween });
+      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined });
     }
     lastHeaderWhiteSurface = whiteSurface;
   };
@@ -806,7 +1011,7 @@
     routeDestinationReady = true;
     const destinationWhiteSurface =
       container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
-    // Route mềm giữ mark đậm dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
+    // Route mềm giữ mark CMYK dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
     if (!routeMarkHeld) syncHeaderBrandSurface(destinationWhiteSurface);
     return destinationWhiteSurface;
   };
@@ -823,12 +1028,11 @@
   const pinHeaderForRoute = () => {
     header.style.transitionDuration = "0s";
     header.classList.remove("is-hidden");
-    header.classList.add("is-route-pinned", "is-ink");
+    header.classList.add("is-route-pinned");
     routeDestinationReady = false;
-    colorHeader("#2f2f2f");
+    // Lúc bấm, chữ và mark giữ màu; đổi khi veil phủ kín (inkRouteHeader).
     routeMarkHeld = true;
-    // Mark đậm cùng chữ lúc bấm, như Espacio (logo-route-crossfade R1).
-    paintHeaderMark("is-brand-ink", { rise: false, tween: { duration: 0.3, ease: "expo.out" } });
+    routeVeilInk = false;
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -846,6 +1050,10 @@
     });
   };
 
+  // Locomotive phát "scroll" đồng bộ trong update()/scrollTo() với y cũ; header theo y đó thì đổi thu gọn rồi đổi lại
+  // trong cùng task và chạy FLIP logo dù trạng thái cuối không đổi (photo view về masonry bằng navbar, owner 2026-11-08).
+  // setPageScroll tự gọi updateHeader với y đích ở cuối.
+  let pageScrollSetting = false;
   const setPageScroll = (state, scrollY, { instant = false } = {}) => {
     const target = Math.max(0, Number(scrollY) || 0);
     // Về đầu trang không cần clamp: không đọc scrollHeight, nên không ép layout trong task gọi nó.
@@ -854,7 +1062,8 @@
       Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
     );
     state.smoothScrollY = nextScroll;
-    if (state.smoothScroll) {
+    if (state.smoothScroll) try {
+      pageScrollSetting = true;
       // Không truyền behavior thì `html { scroll-behavior: smooth }` trượt native scroll lệch về 0 qua nhiều frame;
       // Chrome bỏ qua style inline mới đặt với scrollTo(0, 0) vì không cập nhật style cho tọa độ này.
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -867,6 +1076,8 @@
       // Locomotive 4.1.4 có thể hoãn một scroll zero-duration thêm một frame.
       if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
+    } finally {
+      pageScrollSetting = false;
     } else {
       window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
@@ -945,10 +1156,17 @@
       document.body.classList.contains("menu-open") ||
       typeof window.LocomotiveScroll === "undefined"
     ) {
+      document.documentElement.classList.remove("has-scroll-smooth");
       window.scrollTo({ top: scrollY, behavior: "instant" });
       return;
     }
     window.scrollTo({ top: 0, behavior: "instant" });
+    // News R2: mốc dính đọc lúc bật smooth (luôn từ 981px) để không lệch khi header đổi cao theo breakpoint.
+    const newsMain = state.container.querySelector(".blk-news-list__main[data-scroll-sticky]");
+    if (newsMain) {
+      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(newsMain).top) || 0);
+      newsMain.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
+    }
     state.smoothScroll = new window.LocomotiveScroll({
       el: state.container,
       smooth: true,
@@ -984,6 +1202,13 @@
         });
       };
       window.addEventListener("mousemove", core.moveScrollBar);
+      // Vendor thả thumb là dừng vòng lerp dù chưa tới đích: trang đứng giữa chừng, nấc lăn kế tiếp trượt nốt cả
+      // quãng còn lại thành cú nhảy. Listener đăng ký sau releaseScrollBar của vendor nên chạy sau nó; trượt tiếp tới đích.
+      const glideAfterThumbRelease = () => {
+        if (core.stop || core.isScrolling || core.isDraggingScrollbar) return;
+        if (Math.abs(core.instance.delta.y - core.instance.scroll.y) >= 0.5) core.startScrolling();
+      };
+      window.addEventListener("mouseup", glideAfterThumbRelease);
       const checkScroll = core.checkScroll.bind(core);
       const updateDelta = core.updateDelta.bind(core);
       core.updateDelta = (event) => {
@@ -1027,6 +1252,7 @@
       const destroy = smooth.destroy.bind(smooth);
       smooth.destroy = () => {
         cancelThumbMove();
+        window.removeEventListener("mouseup", glideAfterThumbRelease);
         core.scrollbarThumb.removeEventListener("mousedown", blockLockedThumb, true);
         destroy();
       };
@@ -1036,19 +1262,21 @@
       window.dispatchEvent(
         new CustomEvent("site:scroll", { detail: { y: scroll.y } }),
       );
-      updateHeader(scroll.y);
+      if (!pageScrollSetting) updateHeader(scroll.y);
     });
     state.smoothScroll.update();
     if (logicalScrollLock) state.smoothScroll.stop();
   };
 
-  const clearSmoothScrollStyles = (state) => {
+  const clearSmoothScrollStyles = (state, keepNativeHidden = false) => {
     document.documentElement.classList.remove(
       "has-scroll-init",
-      "has-scroll-smooth",
       "has-scroll-scrolling",
       "has-scroll-dragging",
     );
+    // Giữa hai trang (route), giữ overflow hidden của has-scroll-smooth tới khi trang mới init lại:
+    // nếu bỏ, scrollbar native hiện vài frame rồi ẩn, layout giật một bề rộng scrollbar.
+    document.documentElement.classList.toggle("has-scroll-smooth", keepNativeHidden);
     state.container.style.removeProperty("transform");
     state.container.style.removeProperty("will-change");
     state.container.querySelectorAll("[data-scroll]").forEach((element) => {
@@ -1062,13 +1290,14 @@
     window.scrollTo({ top: state.smoothScrollY, behavior: "instant" });
   };
 
-  const destroySmoothScroll = (state) => {
+  const destroySmoothScroll = (state, { keepNativeHidden = false } = {}) => {
+    keepNativeHidden &&= Boolean(state.smoothScroll);
     if (state.smoothScroll) {
       state.smoothScroll.stop();
       state.smoothScroll.destroy();
       state.smoothScroll = undefined;
     }
-    clearSmoothScrollStyles(state);
+    clearSmoothScrollStyles(state, keepNativeHidden);
 
     let cleanupFrames = 2;
     const finishNativeCleanup = () => {
@@ -1079,7 +1308,7 @@
       ) {
         return;
       }
-      clearSmoothScrollStyles(state);
+      clearSmoothScrollStyles(state, keepNativeHidden);
       cleanupFrames -= 1;
       if (cleanupFrames > 0) {
         window.requestAnimationFrame(finishNativeCleanup);
@@ -1093,7 +1322,7 @@
       .querySelectorAll(".hero-slide img[data-src]")
       .forEach((image) => {
         // Wrapper <picture> build-time mang variant hoãn dưới dạng data-srcset.
-        [image.previousElementSibling, image].forEach((node) => {
+        [...image.parentElement.querySelectorAll(":scope > source"), image].forEach((node) => {
           if (!node?.dataset.srcset) return;
           node.srcset = node.dataset.srcset;
           node.removeAttribute("data-srcset");
@@ -1273,6 +1502,7 @@
       const scrollCueLabel = scrollCue?.querySelector("[data-scroll-cue-label]");
       const splitCueRoute = new Set([
         "advertising-products",
+        "projects",
         "residential",
         "commercial",
       ]).has(state.container.dataset.barbaNamespace);
@@ -1628,150 +1858,6 @@
         userPaused = !userPaused;
         syncMotionState();
       };
-      const isInside = (section, element) =>
-        Boolean(section && element && (section === element || section.contains(element)));
-      state.replayMotion = (section) => {
-        if (!section) return false;
-        const sectionReveals = revealItems.filter((item) => isInside(section, item));
-        const sectionGroups = revealGroups.filter((group) => isInside(section, group));
-        const sectionLegacyLabels = legacyLabels.filter((label) =>
-          isInside(section, label),
-        );
-        const sectionHeritageLines = heritageLines.filter((line) =>
-          isInside(section, line),
-        );
-        const sectionHeritageImages = heritageImages.filter((image) =>
-          isInside(section, image),
-        );
-        const sectionPortalTitles = portalTitles.filter(({ card }) =>
-          isInside(section, card),
-        );
-        const sectionPortalSubtitles = portalSubtitles.filter(({ card }) =>
-          isInside(section, card),
-        );
-        const sectionHeroWords = heroWords.filter((word) => isInside(section, word));
-        const sectionProjectTrack = isInside(section, projectTrack)
-          ? projectTrack
-          : null;
-        const hasSectionMotion = Boolean(
-          sectionReveals.length ||
-            sectionGroups.length ||
-            sectionLegacyLabels.length ||
-            sectionHeritageLines.length ||
-            sectionHeritageImages.length ||
-            sectionPortalTitles.length ||
-            sectionPortalSubtitles.length ||
-            sectionHeroWords.length ||
-            sectionProjectTrack ||
-            isInside(section, state.hero),
-        );
-        if (!hasSectionMotion) return false;
-        const tweenTargets = [
-          ...sectionReveals,
-          ...sectionGroups.flatMap((group) => [
-            ...group.querySelectorAll(".line-mask > span"),
-          ]),
-          ...sectionHeritageLines,
-          ...sectionPortalTitles.flatMap(({ card, lines }) => [
-            ...(lines.length
-              ? lines
-              : card.querySelectorAll(".portal-copy strong")),
-          ]),
-          ...sectionHeroWords,
-        ];
-        gsap.killTweensOf(tweenTargets);
-        if (sectionReveals.length) {
-          gsap.set(sectionReveals, { opacity: 0, y: 60 });
-        }
-        sectionGroups.forEach((group) =>
-          gsap.set(group.querySelectorAll(".line-mask > span"), { y: maskHiddenY }),
-        );
-        sectionLegacyLabels.forEach((label) => label.classList.remove("is-inview"));
-        if (sectionHeritageLines.length) {
-          gsap.set(sectionHeritageLines, { y: maskHiddenY });
-        }
-        sectionPortalTitles.forEach(({ card, lines }) =>
-          gsap.set(
-            lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-            { y: maskHiddenY },
-          ),
-        );
-        if (sectionHeroWords.length) gsap.set(sectionHeroWords, { opacity: 0 });
-        sectionHeritageImages.forEach((image) => image.classList.remove("is-inview"));
-        sectionPortalSubtitles.forEach(({ card }) =>
-          card.classList.remove("is-subtitle-inview"),
-        );
-        sectionProjectTrack?.classList.remove("is-inview");
-
-        window.requestAnimationFrame(() => {
-          if (sectionReveals.length) {
-            gsap.to(sectionReveals, {
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power3.out",
-            });
-          }
-          sectionGroups.forEach((group) =>
-            gsap.to(group.querySelectorAll(".line-mask > span"), {
-              y: "-0.1em",
-              duration: 1.9,
-              onComplete: openTextMasks,
-              ease: "power4.out",
-              stagger: 0.1,
-            }),
-          );
-          sectionLegacyLabels.forEach((label) => label.classList.add("is-inview"));
-          sectionHeritageLines.forEach((line) =>
-            gsap.to(line, {
-              y: "-0.1em",
-              duration: 1.9,
-              onComplete: openTextMasks,
-              delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
-              ease: "power4.out",
-            }),
-          );
-          sectionPortalTitles.forEach(({ card, index, lines }) =>
-            gsap.to(
-              lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-              {
-                y: "-0.1em",
-                duration: 1.9,
-                onComplete: openTextMasks,
-                delay: (index % 3) * 0.3,
-                ease: "power4.out",
-              },
-            ),
-          );
-          if (sectionHeroWords.length) {
-            gsap.to(sectionHeroWords, {
-              opacity: 1,
-              duration: 1,
-              stagger: 0.2,
-              ease: "expo.out",
-              clearProps: "opacity",
-            });
-          }
-          sectionHeritageImages.forEach((image) => image.classList.add("is-inview"));
-          sectionPortalSubtitles.forEach(({ card }) =>
-            card.classList.add("is-subtitle-inview"),
-          );
-          sectionProjectTrack?.classList.add("is-inview");
-          if (carouselEnabled && isInside(section, state.hero)) {
-            heroTimelines.forEach((timeline) => {
-              timeline.kill();
-              timelines.delete(timeline);
-            });
-            heroTimelines.clear();
-            if (slides.length) gsap.set(slides, { autoAlpha: 0 });
-            if (slides[0]) gsap.set(slides[0], { autoAlpha: 1 });
-            holdSettledSlide = false;
-            startSlide(0);
-            syncMotionState();
-          }
-        });
-        return hasSectionMotion;
-      };
       const heroObserver = state.hero
         ? new IntersectionObserver(([entry]) => {
             heroInView = entry.isIntersecting;
@@ -1810,7 +1896,6 @@
     }, state.container);
 
     return () => {
-      state.replayMotion = undefined;
       state.stopCarousel?.();
       observers.forEach((observer) => observer.disconnect());
       timelines.forEach((timeline) => timeline.kill());
@@ -1821,7 +1906,7 @@
 
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
 
-  const unmountPage = () => {
+  const unmountPage = ({ keepNativeHidden = false } = {}) => {
     if (!pageState) return;
     const state = pageState;
     state.abort.abort();
@@ -1831,7 +1916,7 @@
       window.cancelIdleCallback(state.idleCallback);
     }
     if (state.heroTimer) window.clearTimeout(state.heroTimer);
-    destroySmoothScroll(state);
+    destroySmoothScroll(state, { keepNativeHidden });
     pageState = undefined;
     toneRanges = [];
   };
@@ -1876,6 +1961,16 @@
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
+    // News R2: thẻ lớn dính cột trái. Smooth scroll dời container bằng transform nên CSS sticky không chạy; dùng sticky
+    // của Locomotive, nhả ra ở đáy lưới; mốc dính (data-scroll-offset) đặt trong initSmoothScroll. Native scroll vẫn dùng CSS.
+    const newsMain = container.querySelector(".blk-news-list__main");
+    if (newsMain) {
+      const grid = newsMain.parentElement;
+      grid.id ||= `news-grid-${++newsGridCount}`;
+      newsMain.setAttribute("data-scroll", "");
+      newsMain.setAttribute("data-scroll-sticky", "");
+      newsMain.setAttribute("data-scroll-target", `#${grid.id}`);
+    }
 
     watchWhiteOverlayMedia(state);
     pauseOffscreenMediaSweeps(state);
@@ -1917,33 +2012,6 @@
     scheduleTextMaskMeasurement();
 
     return pageState === state && !state.abort.signal.aborted && state.container.isConnected;
-  };
-
-  const resetMenuVisuals = () => {
-    menuTimeline?.kill();
-    menuPageTween?.kill();
-    menuTimeline = undefined;
-    menuPageTween = undefined;
-    if (!hasGsap) return;
-    window.gsap.set(getPageChildren(), {
-      clearProps: "transform,transformOrigin",
-    });
-    window.gsap.set(dialog.querySelectorAll(".menu-shutters i"), {
-      clearProps: "height",
-    });
-    window.gsap.set(
-      [
-        dialog.querySelector(".menu-brand"),
-        dialog.querySelector(".menu-language"),
-        dialog.querySelector(".menu-appointment"),
-        dialog.querySelector(".menu-close__icon"),
-        dialog.querySelector(".menu-nav"),
-        ...dialog.querySelectorAll(
-          ".menu-group, .menu-group__number, .menu-group__title, .menu-option",
-        ),
-      ].filter(Boolean),
-      { clearProps: "transform,opacity,visibility" },
-    );
   };
 
   const setReducedMenuState = (opened) => {
@@ -2011,10 +2079,13 @@
     if (reduceMotion) {
       setReducedMenuState(false);
     } else if (!hasGsap) {
-      resetMenuVisuals();
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
         shutter.style.height = "100vh";
       });
+    } else {
+      menuPageTween?.kill();
+      menuPageTween = undefined;
+      window.gsap.set(getPageChildren(), { clearProps: "transform,transformOrigin,willChange" });
     }
     const resolve = resolveMenuClose;
     resolveMenuClose = undefined;
@@ -2044,37 +2115,17 @@
       duration: 0.7,
       delay: 0.85,
       ease: "power2.out",
-      transformOrigin: "50vw 50vh",
       onComplete: () => finishClose(restoreFocus),
     });
     menuCloseTimer = window.setTimeout(() => finishClose(restoreFocus), 1750);
     return menuClosePromise;
   };
 
-  const openMenu = () => {
-    if (dialog.open || routeInFlight) return;
-    if (pageState) pageState.menuContextSection = getDominantSection();
-    dialog.showModal();
-    dialog.focus({ preventScroll: true });
-    document.body.classList.add("menu-open");
-    window.requestAnimationFrame(() => {
-      if (dialog.open && document.body.classList.contains("menu-open")) {
-        dialog.classList.add("is-active");
-      }
-    });
-    openButton.setAttribute("aria-expanded", "true");
-    showHeader();
-    pageState?.smoothScroll?.stop();
-    if (!hasGsap || reduceMotion) {
-      dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
-        shutter.style.height = "100vh";
-      });
-      dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
-      setReducedMenuState(true);
-      closeButton.focus();
-      return;
-    }
-    resetMenuVisuals();
+  // Timeline mở menu dựng một lần (lúc rảnh sau tải trang, hoặc lần mở đầu) rồi chỉ play(0): dựng lại mỗi lần mở
+  // làm GSAP xóa rồi đọc lại style từng phần tử, long task 60-90ms trên A04s. fromTo trong timeline paused vẫn đặt
+  // ngay trạng thái đầu, nên reverse về 0 là trạng thái chờ mở lần sau. Menu nằm ngoài container Barba, giữ qua route.
+  const buildMenuTimeline = () => {
+    if (menuTimeline) return menuTimeline;
     const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
     const menuBrand = dialog.querySelector(".menu-brand");
     const menuLanguage = dialog.querySelector(".menu-language");
@@ -2091,20 +2142,6 @@
         ".menu-group__number, .menu-group__title, .menu-option",
       ),
     ];
-    window.gsap.set(shutters, { height: 0 });
-    window.gsap.set(menuBrand, { y: -140, opacity: 0 });
-    window.gsap.set(menuLanguageItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuAppointmentItems, { y: -20, opacity: 0 });
-    window.gsap.set(menuCloseIcon, { opacity: 0, rotation: 90 });
-    window.gsap.set(menuNav, { opacity: 0 });
-    window.gsap.set(menuGroups, { y: -140, yPercent: 0, opacity: 0 });
-    window.gsap.set(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 });
-    menuPageTween = window.gsap.to(getPageChildren(), {
-      scale: 0.9,
-      duration: 0.7,
-      ease: "power2.out",
-      transformOrigin: "50vw 50vh",
-    });
     menuTimeline = window.gsap
       .timeline({
         paused: true,
@@ -2125,9 +2162,53 @@
       .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
       .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
       .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
-      .timeScale(1.15)
-      .play(0);
+      .timeScale(1.15);
+    return menuTimeline;
   };
+
+  const openMenu = () => {
+    if (dialog.open || routeInFlight) return;
+    // Tâm scale là giữa màn hình theo tọa độ từng child. "50vw 50vh" tính từ đỉnh child nên khi đã cuộn sâu tâm nằm
+    // xa phía trên màn hình, cả lưới bay lên như card bị trộn (A04s, scrollY 3677: card dịch 315-354px). Đo trước
+    // showModal, lúc layout còn sạch; đóng giữ nguyên origin này.
+    const pageOrigins = getPageChildren().map((child) => {
+      const rect = child.getBoundingClientRect();
+      return `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
+    });
+    dialog.showModal();
+    dialog.focus({ preventScroll: true });
+    document.body.classList.add("menu-open");
+    window.requestAnimationFrame(() => {
+      if (dialog.open && document.body.classList.contains("menu-open")) {
+        dialog.classList.add("is-active");
+      }
+    });
+    openButton.setAttribute("aria-expanded", "true");
+    showHeader();
+    pageState?.smoothScroll?.stop();
+    if (!hasGsap || reduceMotion) {
+      dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
+        shutter.style.height = "100vh";
+      });
+      dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
+      setReducedMenuState(true);
+      closeButton.focus();
+      return;
+    }
+    menuPageTween?.kill();
+    buildMenuTimeline().timeScale(1.15).play(0);
+    // will-change giữ raster scale của trang sau cố định: không có nó, mỗi frame scale mới bắt GPU raster lại cả trang
+    // (A04s: GPU bận 1.1-1.45s trong 2s mở menu). Gỡ ở finishClose.
+    menuPageTween = window.gsap.fromTo(getPageChildren(), { scale: 1, willChange: "transform" }, {
+      scale: 0.9,
+      duration: 0.7,
+      ease: "power2.out",
+      transformOrigin: (index) => pageOrigins[index],
+    });
+  };
+  if (hasGsap && !reduceMotion) {
+    (window.requestIdleCallback || window.setTimeout)(() => buildMenuTimeline());
+  }
 
   const setRouteVeil = (opacity) => {
     if (hasGsap) window.gsap.set(routeVeil, { opacity });
@@ -2146,14 +2227,26 @@
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
-    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng tween màu, không mọc
-    // (logo-route-crossfade R2).
-    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
+    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; mark lật sang đúng màu (logo-route-crossfade R2).
+    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk);
     routeMarkHeld = false;
+    routeVeilInk = false;
     setRouteVeil(0);
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
+  };
+
+  // Veil phủ kín (owner 2026-11-09): chữ, nav, hamburger đổi ngay sang đậm, không motion; mark đang trắng thì lật sang
+  // CMYK từ đúng lúc đó, đang CMYK thì giữ (logo-route-crossfade R1).
+  const inkRouteHeader = () => {
+    if (!routeMarkHeld) return;
+    routeVeilInk = true;
+    routeVeilCoveredAt = performance.now();
+    updateHeader();
+    headerMarkLeadFor = 0;
+    syncHeaderBrandSurface(true);
+    headerMarkLeadFor = headerSettle;
   };
 
   const coverRoute = () => {
@@ -2165,6 +2258,7 @@
     const fade = new Promise((resolve) => {
       if (!hasGsap || reduceMotion) {
         setRouteVeil(1);
+        inkRouteHeader();
         resolve();
         return;
       }
@@ -2173,7 +2267,10 @@
         opacity: 1,
         duration: 0.75,
         ease: "power4.inOut",
-        onComplete: resolve,
+        onComplete: () => {
+          inkRouteHeader();
+          resolve();
+        },
       });
     });
     return fade;
@@ -2206,6 +2303,8 @@
     }
     // Veil chờ cả font để chữ hero không đổi font sau khi lộ; font lỗi vẫn làm ready xong (progressive-loading R4).
     await document.fonts.ready;
+    const hold = routeMarkHeld && routeVeilInk ? routeVeilCoveredAt + routeVeilHold - performance.now() : 0;
+    if (hold > 0) await new Promise((resolve) => setTimeout(resolve, hold));
     routeTimeline?.kill();
     showHeader();
     header.classList.add("is-route-pinned");
@@ -2214,11 +2313,14 @@
     startRouteReveal();
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
-      // Mark tween màu theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
-      // vẫn giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
+      // Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích từ đó (logo-route-crossfade R2);
+      // routeMarkHeld giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
+      routeVeilInk = false;
       updateToneRanges();
       updateHeader();
-      syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "expo.out" });
+      headerMarkLeadFor = 0;
+      syncHeaderBrandSurface(pageHeaderInk);
+      headerMarkLeadFor = headerSettle;
     }
     return new Promise((resolve) => {
       routeTimeline = window.gsap.to(routeVeil, {
@@ -2253,20 +2355,25 @@
   };
 
   const syncAttributes = (current, next) => {
+    // style trong menu là trạng thái đầu GSAP của timeline mở dựng một lần (buildMenuTimeline): xóa nó khi chuyển
+    // trang thì lần mở sau chữ menu hiện ngay trên trang trước khi shutter phủ. Header trong HTML không có style inline;
+    // style trong header là state runtime (màu chữ, FLIP, mark ẩn khi lớp lật chạy): xóa giữa lúc lật thì mark CMYK gốc
+    // hiện lại dưới mặt trắng, lộ viền màu mờ quanh từng dải trên veil trắng (owner 2026-11-09).
+    const keep = (name) => name === "open" || (name === "style" && (dialog.contains(current) || header.contains(current)));
     [...current.attributes].forEach(({ name }) => {
-      if (name !== "open" && !next.hasAttribute(name)) current.removeAttribute(name);
+      if (!keep(name) && !next.hasAttribute(name)) current.removeAttribute(name);
     });
     [...next.attributes].forEach(({ name, value }) => {
-      if (name !== "open") current.setAttribute(name, value);
+      if (!keep(name)) current.setAttribute(name, value);
     });
   };
 
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    // Lớp underlay do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    // Lớp lật do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
     const currentChildren = [...current.children].filter(
-      (child) => !child.classList.contains("brand-lockup__mark-underlay"),
+      (child) => !child.classList.contains("brand-lockup__mark-flip"),
     );
     const nextChildren = [...next.children];
     if (currentChildren.length !== nextChildren.length) return false;
@@ -2354,8 +2461,9 @@
     if (nextProfile) document.body.dataset.detailHeroProfile = nextProfile;
     else delete document.body.dataset.detailHeroProfile;
 
-    // Class màu mark là state runtime; HTML trang mới không có nên giữ lại để mark không vẽ lại.
-    const brandClasses = [...header.classList].filter((name) => name.startsWith("is-brand-"));
+    // Class `is-*` của header (màu mark, tone, nền) là state runtime; HTML trang mới không có nên giữ lại, nếu không chữ
+    // logo nháy trắng một frame trên veil (owner 2026-11-09). Style inline trong header syncAttributes đã giữ.
+    const brandClasses = [...header.classList].filter((name) => name.startsWith("is-"));
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
         document.querySelector(selector),
@@ -2454,66 +2562,8 @@
     );
   };
 
-  const updateLocaleLinks = (language) => {
-    document.querySelectorAll("a[href]").forEach((link) => {
-      const href = link.getAttribute("href");
-      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
-      const optionLanguage = link.dataset.languageOption;
-      const targetLanguage = optionLanguage === "en" ? "en" : optionLanguage === "vi" ? "vi" : language;
-      const url = new URL(href, window.location.href);
-      const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
-      url.pathname = `/${targetLanguage}${suffix}`;
-      link.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
-    });
-  };
 
-  const updateLocaleHead = (url, language) => {
-    const canonical = new URL(url.href);
-    canonical.search = "";
-    canonical.hash = "";
-    document.querySelector('link[rel="canonical"]')?.setAttribute(
-      "href",
-      canonical.href,
-    );
-    document
-      .querySelectorAll('link[rel="alternate"][hreflang]')
-      .forEach((link) => {
-        const locale = link.hreflang === "x-default" ? "vi" : link.hreflang;
-        if (locale !== "vi" && locale !== "en") return;
-        const alternate = new URL(canonical.href);
-        alternate.pathname = alternate.pathname.replace(
-          /^\/(?:vi|en)(?=\/|$)/,
-          `/${locale}`,
-        );
-        link.href = alternate.href;
-      });
-    document
-      .querySelector('meta[property="og:locale"]')
-      ?.setAttribute("content", language === "en" ? "en_US" : "vi_VN");
-    document
-      .querySelector('meta[property="og:url"]')
-      ?.setAttribute("content", canonical.href);
-  };
 
-  const nextFrame = () =>
-    new Promise((resolve) => window.requestAnimationFrame(resolve));
-
-  const replayVisibleSection = async (section) => {
-    const pageReplayed = Boolean(pageState?.replayMotion?.(section));
-    const detailReplayed = Boolean(
-      window.TruongThinhDetail?.replaySection?.(section),
-    );
-    const replayed = pageReplayed || detailReplayed;
-    await nextFrame();
-    await nextFrame();
-    return {
-      detailReplayed,
-      pageReplayed,
-      reducedMotion: reduceMotion,
-      replayed: Boolean(replayed),
-      section,
-    };
-  };
 
   const switchLocaleRoute = (language) => {
     const routeLocale = getRouteLocale();
@@ -2521,63 +2571,35 @@
     if (localeSwitchPromise) return localeSwitchPromise;
     const nextLanguage = language === "en" ? "en" : "vi";
     localeSwitchPromise = (async () => {
-      const section = pageState?.menuContextSection || getDominantSection();
-      const scrollY = Math.max(0, getPageScroll());
       if (nextLanguage === currentLanguage) {
         await closeMenu(false);
         return true;
       }
-      // Đổi ngôn ngữ dùng cùng veil với route mềm: phủ, đổi chữ dưới veil, rồi mở; reduced motion không veil.
+      // Owner 2026-11-08: đổi ngôn ngữ chạy lại toàn bộ motion như F5. Veil phủ rồi tải trang đích từ đầu
+      // (route-enter của head-inline mở veil, intro chạy lại, cuộn về đầu); replace để không thêm entry history.
+      // Owner 2026-11-10: không cho thấy header ngôn ngữ cũ khi menu đóng lại trên veil; trang đích tải lại hiện header mới.
+      // replace() bỏ trang cũ khỏi history nên bfcache không trả lại header đang ẩn.
+      header.style.visibility = "hidden";
       await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
       // Trang cụm, sản phẩm Advertising: link ngôn ngữ đã mang path đúng slug của locale đích.
-      const option = isAdvertisingPath(url.pathname)
+      // Trang chi tiết công trình, News có slug VI, EN khác nhau: dùng link khi link locale hiện tại
+      // trỏ đúng trang đang xem (lọc tại chỗ chưa cập nhật link thì giữ cách đổi tiền tố).
+      const pathOf = (link) => link && new URL(link.href).pathname;
+      const linksMatchPage = pathOf(document.querySelector(`[data-language-option="${currentLanguage}"][href]`)) === url.pathname;
+      const option = (isAdvertisingPath(url.pathname) || linksMatchPage)
         && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
       url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
       url.hash = "";
-      if (window.barba?.history?.update && window.barba.history.store) {
-        window.barba.history.update({
-          scroll: { x: window.scrollX, y: scrollY },
-          url: url.href,
-        });
-        window.barba.history.store({});
-        window.history.replaceState(window.history.state, "", url.href);
-      } else {
-        window.history.replaceState(window.history.state, "", url.href);
-      }
-      document.documentElement.dataset.routeLocale = nextLanguage;
-      const previousOverflowAnchor = document.documentElement.style.overflowAnchor;
-      document.documentElement.style.overflowAnchor = "none";
-      let replay;
-      let reveal;
       try {
-        await applyLanguage(nextLanguage);
-        updateLocaleLinks(nextLanguage);
-        updateLocaleHead(url, nextLanguage);
-        await nextFrame();
-        await nextFrame();
-        if (!reduceMotion) reveal = playRouteEnter();
-        replay = await replayVisibleSection(section);
-        pageState?.smoothScroll?.update();
-        setPageScroll(pageState, scrollY);
-        await nextFrame();
-        await nextFrame();
-      } finally {
-        document.documentElement.style.overflowAnchor = previousOverflowAnchor;
-        // Lỗi trước khi mở veil thì gỡ veil ngay để trang không kẹt dưới lớp trắng.
-        if (!reveal && !reduceMotion) clearRouteEntry();
-      }
-      setPageScroll(pageState, scrollY);
-      requestLayoutUpdate();
-      window.dispatchEvent(
-        new CustomEvent("site:section-replay", { detail: replay }),
-      );
-      await reveal;
+        window.localStorage.setItem("tt-lang", nextLanguage);
+      } catch {}
+      hardFallbackPending = true;
+      window.location.replace(url.href);
       return true;
     })().finally(() => {
-      if (pageState) pageState.menuContextSection = undefined;
       localeSwitchPromise = undefined;
     });
     return localeSwitchPromise;
@@ -2650,12 +2672,12 @@
         && destination.pathname.slice(0, 4) === window.location.pathname.slice(0, 4)
         && destination.search === ""
         && destination.pathname !== `${window.location.pathname}${window.location.search}`
-        && window.TruongThinhAdvertising?.getAdapter?.()
+        && window.TruongThinhMasonry?.getAdapter?.()
       ) {
         // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
         const fromGrid = !isAdvertisingPhotoUrl(new URL(window.location.href));
         const navigateToAdvertisingParent = (instant = false) => {
-          if (window.TruongThinhAdvertising?.navigateQuery?.(
+          if (window.TruongThinhMasonry?.navigateQuery?.(
             destination.href,
             { reason: "navbar" },
           )) {
@@ -2932,7 +2954,7 @@
       && getSelection().toString()) event.preventDefault();
   });
   document.addEventListener("click", (event) => {
-    if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
+    if (!advertisingFilterQueueEnabled || window.TruongThinhMasonry?.getAdapter?.()) return;
     const control = event.target instanceof Element
       ? event.target.closest("[data-advertising-filter]")
       : null;
@@ -3012,7 +3034,7 @@
   }
 
   window.addEventListener("popstate", (event) => {
-    const advertising = window.TruongThinhAdvertising;
+    const advertising = window.TruongThinhMasonry;
     // Back khi photo viewer đang mở chỉ đóng viewer (advertising-viewer-touch-zoom R10).
     if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();
@@ -3077,7 +3099,8 @@
                 await advertisingCatalogLoad;
                 // Unmount chạy ngoài frame vừa kết thúc veil.
                 await nextTask();
-                unmountPage();
+                // Trang mới mount lại smooth scroll ngay sau; giữ scrollbar native ẩn qua khoảng hở (site-shell R9).
+                unmountPage({ keepNativeHidden: true });
                 data.current.container.hidden = true;
               },
               async beforeEnter(data) {
@@ -3092,7 +3115,7 @@
                   hardNavigate(fallbackUrl.href);
                   return;
                 }
-                if (data.next.container.dataset.barbaNamespace === "advertising-products") {
+                if (["advertising-products", "projects"].includes(data.next.container.dataset.barbaNamespace)) {
                   try {
                     await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
                   } catch (error) {

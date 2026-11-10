@@ -17,6 +17,7 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 
 | Việc | Tool |
 | --- | --- |
+| Hình thức, số đo, motion, component | [Design System](../../design-system/README.md) trước Graphify |
 | Kiến trúc, quan hệ, blast radius | Graphify trước |
 | Declaration, reference, diagnostics | Serena; literal dùng `rg` |
 | QA trình duyệt và evidence | Playwright, CDP script |
@@ -50,7 +51,7 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 
 ## Graphify
 
-- Mọi truy vấn về code, tài liệu, quan hệ, blast radius dùng Graphify trước. Chỉ đi thẳng `rg` hoặc đọc file khi tìm literal, hoặc đã biết đúng file.
+- Mọi truy vấn về code, tài liệu, quan hệ, blast radius dùng Graphify trước. Đi thẳng `rg`, đọc file khi tìm literal hoặc đã biết file; hỏi hình thức thì đọc Design System trước.
 - Đường chính là wrapper trong [scripts map](agent-rule-scripts.md): wrapper tự refresh AST và fail closed khi refresh lỗi. Chi tiết ở [graphify](graphify.md).
 - Exit 3 là tên mơ hồ: chọn tên cụ thể trong danh sách. Exit 4 là không có node: chuyển `rg`.
 - Cạnh `EXTRACTED` có trong source; cạnh `INFERRED` do Graphify suy ra, phải kiểm lại.

@@ -1,12 +1,12 @@
-// Rail công trình trang chủ (page-home R8): validate src/site/content/project-reel.json rồi sinh các
-// figure.project-card thay `<!-- project-reel-cards -->` trong index.html. Dữ liệu sai thì build dừng.
+// Home page project rail (page-home R8): validate src/site/content/project-reel.json then generate the
+// figure.project-card elements replacing `<!-- project-reel-cards -->` in index.html. Invalid data stops the build.
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-// Số card: dưới 3 mất nhịp so le; trên 6 thì card ở lưới desktop 981px hẹp dưới khoảng 130px.
+// Card count: fewer than 3 loses the staggered rhythm; more than 6 makes cards in the 981px desktop grid narrower than about 130px.
 const PROJECT_REEL_MIN = 3;
 const PROJECT_REEL_MAX = 6;
-// Biến thể -> class; key cũng là danh sách biến thể hợp lệ. low và mid hiện cùng độ lệch.
+// Variant -> class; the keys are also the list of valid variants. low and mid show the same offset.
 const VARIANT_CLASS = { high: "project-card--high", mid: "project-card--mid", low: "project-card--low" };
 const TEXT_FIELDS = ["altVi", "altEn", "captionVi", "captionEn"];
 
@@ -16,7 +16,7 @@ export async function validateProjectReel(items, siteRoot) {
   if (!Array.isArray(items) || items.length < PROJECT_REEL_MIN || items.length > PROJECT_REEL_MAX) {
     throw new Error(`project-reel: need ${PROJECT_REEL_MIN}-${PROJECT_REEL_MAX} items, got ${Array.isArray(items) ? items.length : typeof items}`);
   }
-  // sharp nạp lúc chạy: job Docs chỉ render preview, không cài node_modules.
+  // sharp is loaded at run time: the Docs job only renders previews and does not install node_modules.
   const { default: sharp } = await import("sharp");
   const errors = [];
   const ids = new Set();
@@ -33,7 +33,7 @@ export async function validateProjectReel(items, siteRoot) {
     for (const field of TEXT_FIELDS) {
       if (typeof item[field] !== "string" || !item[field].trim()) errors.push(`${at}: missing ${field}`);
     }
-    // Chỉ WebP dưới assets/content: build bọc <picture> AVIF, srcset theo media-delivery R5.
+    // Only WebP under assets/content: the build wraps it in an AVIF <picture>, srcset per media-delivery R5.
     if (typeof item.src !== "string" || !/^\/assets\/content\/[a-z0-9/-]+\.webp$/.test(item.src)) {
       errors.push(`${at}: src must be /assets/content/<kebab-case>.webp`);
       continue;
@@ -49,7 +49,7 @@ export async function validateProjectReel(items, siteRoot) {
   if (errors.length) throw new Error(`project-reel data invalid:\n${errors.join("\n")}`);
 }
 
-// Chỉ gọi với dữ liệu đã qua validateProjectReel.
+// Only call with data that passed validateProjectReel.
 export const renderProjectReel = (items) => items.toSorted((left, right) => left.order - right.order).map((item) => [
   `<figure class="project-card ${VARIANT_CLASS[item.variant]}">`,
   '  <span class="project-card__media">',

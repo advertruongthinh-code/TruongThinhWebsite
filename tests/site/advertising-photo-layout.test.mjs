@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
-import { advertisingSpacing, columnsForWidth, computeAdvertisingPhotoGeometry } from "../../src/site/advertising-products/layout-core.mjs";
+import { masonrySpacing, columnsForWidth, computeDetailGeometry } from "../../src/site/masonry/layout.mjs";
 
 const closeTo = (actual, expected, tolerance = 1e-9) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} is within ${tolerance} of ${expected}`);
@@ -27,9 +27,9 @@ const base = {
 };
 
 test("uses span min(3, N) and ignores the old 1.80 ratio boundary", () => {
-  const belowBand = computeAdvertisingPhotoGeometry({ ...base, imageWidth: 1799 });
-  const atBand = computeAdvertisingPhotoGeometry({ ...base, imageWidth: 1800 });
-  const aboveBand = computeAdvertisingPhotoGeometry({ ...base, imageWidth: 1801 });
+  const belowBand = computeDetailGeometry({ ...base, imageWidth: 1799 });
+  const atBand = computeDetailGeometry({ ...base, imageWidth: 1800 });
+  const aboveBand = computeDetailGeometry({ ...base, imageWidth: 1801 });
 
   assert.equal(belowBand.mode, "split");
   assert.equal(belowBand.span, 3);
@@ -38,9 +38,9 @@ test("uses span min(3, N) and ignores the old 1.80 ratio boundary", () => {
   assert.equal(aboveBand.mode, "split");
   assert.equal(aboveBand.span, 3);
 
-  const sparse = computeAdvertisingPhotoGeometry({ ...base, columns: 1, imageWidth: 2000 });
+  const sparse = computeDetailGeometry({ ...base, columns: 1, imageWidth: 2000 });
   assert.equal(sparse.span, 1);
-  const narrow = computeAdvertisingPhotoGeometry({ ...base, columns: 2, imageWidth: 1000 });
+  const narrow = computeDetailGeometry({ ...base, columns: 2, imageWidth: 1000 });
   assert.equal(narrow.span, 2, "narrow grids clamp D10 span to N=2");
 });
 
@@ -59,7 +59,7 @@ test("uses the approved 220px grid target without decreasing columns on wider vi
 });
 
 test("splits a three-column desktop primary into a two-column hero and one-column info", () => {
-  const geometry = computeAdvertisingPhotoGeometry(base);
+  const geometry = computeDetailGeometry(base);
 
   assert.equal(geometry.mode, "split");
   assert.equal(geometry.span, 3);
@@ -73,21 +73,21 @@ test("splits a three-column desktop primary into a two-column hero and one-colum
 
 test("split primary takes the media height up to the viewport cap (primary-video-player R6)", () => {
   const viewport = { layoutViewportWidth: 1440, viewportHeight: 900, columns: 4, headerHeight: 102.515625 };
-  const landscape = computeAdvertisingPhotoGeometry({ ...viewport, imageWidth: 960, imageHeight: 640 });
+  const landscape = computeDetailGeometry({ ...viewport, imageWidth: 960, imageHeight: 640 });
   assert.equal(landscape.mode, "split");
   closeTo(landscape.imageZoneWidth, 668, 1);
   closeTo(landscape.imageZoneHeight, landscape.imageZoneWidth / 1.5);
   closeTo(landscape.height, landscape.imageZoneHeight);
   closeTo(landscape.descriptionHeight, landscape.height);
   assert.equal(landscape.hasContainOverflow, false, "landscape media has no zoom blur band above or below");
-  const portrait = computeAdvertisingPhotoGeometry({ ...viewport, imageWidth: 640, imageHeight: 960 });
+  const portrait = computeDetailGeometry({ ...viewport, imageWidth: 640, imageHeight: 960 });
   closeTo(portrait.imageZoneHeight, portrait.heightCap);
   closeTo(portrait.height, portrait.heightCap);
   assert.equal(portrait.hasContainOverflow, true, "portrait media keeps zoom blur at both sides");
 });
 
 test("full-span landscape primary ends after its width-fitted image and natural description", () => {
-  const geometry = computeAdvertisingPhotoGeometry({
+  const geometry = computeDetailGeometry({
     layoutViewportWidth: 390, viewportHeight: 800, columns: 1,
     headerHeight: 72.59375, imageWidth: 2000, imageHeight: 1000,
     descriptionHeight: 120,
@@ -103,20 +103,21 @@ test("full-span landscape primary ends after its width-fitted image and natural 
 });
 
 test("full-span portrait primary caps height and leaves side overflow only", () => {
-  const geometry = computeAdvertisingPhotoGeometry({
+  const geometry = computeDetailGeometry({
     layoutViewportWidth: 390, viewportHeight: 800, columns: 1,
     headerHeight: 72.59375, imageWidth: 400, imageHeight: 1000,
     descriptionHeight: 120,
   });
-  closeTo(geometry.height, 800 - geometry.top);
-  closeTo(geometry.imageZoneHeight, 800 - geometry.top - 120 - geometry.internalGap);
+  // Chừa gap và 50px để related lộ dưới primary (advertising-detail R4).
+  closeTo(geometry.height, 800 - geometry.top - geometry.gap - geometry.belowPeek);
+  closeTo(geometry.imageZoneHeight, 800 - geometry.top - geometry.gap - geometry.belowPeek - 120 - geometry.internalGap);
   closeTo(geometry.imageHeight, geometry.imageZoneHeight);
   assert(geometry.imageWidth < geometry.imageZoneWidth);
   assert.equal(geometry.hasContainOverflow, true);
 });
 
 test("full-span long description uses the 28 percent viewport ceiling without inner stretch", () => {
-  const geometry = computeAdvertisingPhotoGeometry({
+  const geometry = computeDetailGeometry({
     layoutViewportWidth: 390, viewportHeight: 800, columns: 1,
     headerHeight: 72.59375, imageWidth: 2000, imageHeight: 1000,
     descriptionHeight: 600,
@@ -128,20 +129,20 @@ test("full-span long description uses the 28 percent viewport ceiling without in
 });
 
 test("uses Pinterest layout whenever the primary spans every column", () => {
-  const phone = computeAdvertisingPhotoGeometry({
+  const phone = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 750,
     viewportHeight: 900,
     columns: 3,
   });
-  const tablet = computeAdvertisingPhotoGeometry({
+  const tablet = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 751,
     viewportHeight: 900,
     columns: 3,
   });
 
-  const split = computeAdvertisingPhotoGeometry({
+  const split = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 1005,
     viewportHeight: 900,
@@ -168,7 +169,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
   ];
 
   for (const sample of cases) {
-    const geometry = computeAdvertisingPhotoGeometry({
+    const geometry = computeDetailGeometry({
       ...base,
       layoutViewportWidth: sample.width,
       viewportHeight: sample.height,
@@ -182,18 +183,17 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // Primary full-span có related card bên dưới, không phải bên cạnh, nên không có peek.
-    const peek = geometry.span === geometry.columns ? 0 : sample.peek;
+    // Mọi viewport chừa peek, kể cả primary full-span (advertising-detail R4).
     closeTo(
       geometry.heightCap,
-      sample.height - geometry.top - sample.gap - peek - 7,
+      sample.height - geometry.top - sample.gap - sample.peek - 7,
     );
     assert.equal(geometry.mode, geometry.span === geometry.columns && sample.width <= sample.height ? "pinterest" : "split");
     if (geometry.mode === "split") {
       closeTo(geometry.height, Math.min(geometry.imageZoneWidth / 3, geometry.heightCap));
-      assert.ok(geometry.top + geometry.height + geometry.gap + peek + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height);
     } else {
-      assert.ok(geometry.top + geometry.height + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height + 1e-9);
       assert.ok(geometry.imageZoneHeight <= geometry.width / (3000 / base.imageHeight) + 1e-9);
       closeTo(geometry.imageZoneHeight + geometry.descriptionHeight + geometry.internalGap, geometry.height);
     }
@@ -202,21 +202,21 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
 
 test("uses one responsive token for detail outer edges and the navbar-to-primary gap", () => {
   for (const layoutViewportWidth of [320, 750, 751, 820, 960, 961, 1200, 1201, 1569, 1920, 2560]) {
-    const geometry = computeAdvertisingPhotoGeometry({
+    const geometry = computeDetailGeometry({
       ...base,
       layoutViewportWidth,
       viewportHeight: 1200,
       columns: columnsForWidth(layoutViewportWidth),
       headerHeight: 100,
     });
-    assert.equal(geometry.top - base.headerHeight, advertisingSpacing(layoutViewportWidth).outer,
+    assert.equal(geometry.top - base.headerHeight, masonrySpacing(layoutViewportWidth).outer,
       `${layoutViewportWidth}px detail outer gap matches the navbar-to-primary gap`);
   }
 });
 
 test("fits split primary to its media and keeps a wide full-span image at natural height", () => {
-  const split = computeAdvertisingPhotoGeometry(base);
-  const pinterest = computeAdvertisingPhotoGeometry({ ...base, layoutViewportWidth: 390, columns: 1, imageWidth: 4000 });
+  const split = computeDetailGeometry(base);
+  const pinterest = computeDetailGeometry({ ...base, layoutViewportWidth: 390, columns: 1, imageWidth: 4000 });
 
   closeTo(split.height, split.imageZoneWidth);
   assert.equal(pinterest.mode, "pinterest");
@@ -228,8 +228,8 @@ test("fits split primary to its media and keeps a wide full-span image at natura
 });
 
 test("keeps split primary at its media height when measured text changes", () => {
-  const first = computeAdvertisingPhotoGeometry(base);
-  const measured = computeAdvertisingPhotoGeometry({ ...base, descriptionHeight: 500 });
+  const first = computeDetailGeometry(base);
+  const measured = computeDetailGeometry({ ...base, descriptionHeight: 500 });
 
   assert.equal(measured.mode, "split");
   closeTo(measured.width, first.width);
@@ -240,8 +240,8 @@ test("keeps split primary at its media height when measured text changes", () =>
 });
 
 test("uses natural full-span description until its viewport cap, then paginates", () => {
-  const first = computeAdvertisingPhotoGeometry({ ...base, layoutViewportWidth: 390, columns: 1, viewportHeight: 1600, imageWidth: 2000 });
-  const measured = computeAdvertisingPhotoGeometry({
+  const first = computeDetailGeometry({ ...base, layoutViewportWidth: 390, columns: 1, viewportHeight: 1600, imageWidth: 2000 });
+  const measured = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 390,
     columns: 1,
@@ -249,7 +249,7 @@ test("uses natural full-span description until its viewport cap, then paginates"
     imageWidth: 2000,
     descriptionHeight: 400,
   });
-  const overflow = computeAdvertisingPhotoGeometry({
+  const overflow = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 390,
     columns: 1,
@@ -282,12 +282,12 @@ test("preserves output fields and contains every catalog photo across measured v
 
   for (const viewport of measuredViewports) {
     for (const card of ADVERTISING_CARDS) {
-      const first = computeAdvertisingPhotoGeometry({
+      const first = computeDetailGeometry({
         ...viewport,
         imageWidth: card.media.width,
         imageHeight: card.media.height,
       });
-      const measured = computeAdvertisingPhotoGeometry({
+      const measured = computeDetailGeometry({
         ...viewport,
         imageWidth: card.media.width,
         imageHeight: card.media.height,
@@ -335,41 +335,41 @@ test("preserves output fields and contains every catalog photo across measured v
 
 test("L04R keeps existing geometry when readable floors fit and grows only insufficient zones", () => {
   const options = { ...base, layoutViewportWidth: 390, columns: 1, viewportHeight: 844, imageWidth: 2000, descriptionHeight: 300 };
-  const original = computeAdvertisingPhotoGeometry(options);
-  assert.deepEqual(computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 0, minimumImageZoneHeight: 0 }), original);
-  assert.deepEqual(computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 100, minimumImageZoneHeight: 80 }), original);
-  const readable = computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 340, minimumImageZoneHeight: 104 });
+  const original = computeDetailGeometry(options);
+  assert.deepEqual(computeDetailGeometry({ ...options, minimumDescriptionHeight: 0, minimumImageZoneHeight: 0 }), original);
+  assert.deepEqual(computeDetailGeometry({ ...options, minimumDescriptionHeight: 100, minimumImageZoneHeight: 80 }), original);
+  const readable = computeDetailGeometry({ ...options, minimumDescriptionHeight: 340, minimumImageZoneHeight: 104 });
   assert.equal(readable.descriptionHeight, 340);
   assert.ok(readable.descriptionHeight > original.descriptionHeight);
   assert.ok(readable.imageZoneHeight >= 104);
   closeTo(readable.imageWidth / readable.imageHeight, options.imageWidth / options.imageHeight);
   closeTo(readable.height, readable.imageZoneHeight + readable.descriptionHeight + readable.internalGap);
-  const split = computeAdvertisingPhotoGeometry({ ...base, viewportHeight: 390, minimumDescriptionHeight: 420, minimumImageZoneHeight: 104 });
+  const split = computeDetailGeometry({ ...base, viewportHeight: 390, minimumDescriptionHeight: 420, minimumImageZoneHeight: 104 });
   assert.equal(split.mode, "split");
   assert.equal(split.descriptionHeight, 420);
   assert.equal(split.height, 420);
   assert.ok(split.imageZoneHeight < split.height, "the image zone keeps its media height; taller info runs below it");
   assert.ok(split.top + split.height > 390, "insufficient viewport becomes scrollable");
   for (const field of ["minimumDescriptionHeight", "minimumImageZoneHeight"]) {
-    for (const value of [-1, NaN, Infinity]) assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, [field]: value }), TypeError);
+    for (const value of [-1, NaN, Infinity]) assert.throws(() => computeDetailGeometry({ ...base, [field]: value }), TypeError);
   }
 });
 
 test("validates finite inputs and rejects physically impossible geometry", () => {
-  assert.throws(() => computeAdvertisingPhotoGeometry(), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, imageWidth: 0 }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, columns: null }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, safeTop: -1 }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, descriptionHeight: -1 }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, descriptionHeight: Number.NaN }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, descriptionHeight: Number.POSITIVE_INFINITY }), TypeError);
-  assert.throws(() => computeAdvertisingPhotoGeometry({
+  assert.throws(() => computeDetailGeometry(), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, imageWidth: 0 }), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, columns: null }), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, safeTop: -1 }), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, descriptionHeight: -1 }), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, descriptionHeight: Number.NaN }), TypeError);
+  assert.throws(() => computeDetailGeometry({ ...base, descriptionHeight: Number.POSITIVE_INFINITY }), TypeError);
+  assert.throws(() => computeDetailGeometry({
     ...base,
     layoutViewportWidth: 390,
     viewportHeight: 180,
     headerHeight: 100,
   }), RangeError);
-  const compactLandscape = computeAdvertisingPhotoGeometry({
+  const compactLandscape = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 390,
     columns: columnsForWidth(390),
@@ -379,7 +379,7 @@ test("validates finite inputs and rejects physically impossible geometry", () =>
   });
   assert.equal(compactLandscape.mode, "split");
   assert.ok(compactLandscape.top + compactLandscape.height <= 188);
-  const compactPinterest = computeAdvertisingPhotoGeometry({
+  const compactPinterest = computeDetailGeometry({
     ...base,
     layoutViewportWidth: 390,
     columns: columnsForWidth(390),

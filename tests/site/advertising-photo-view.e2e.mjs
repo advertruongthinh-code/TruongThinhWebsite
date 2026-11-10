@@ -72,16 +72,16 @@ function expectedPhotoGeometry(evidence) {
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
   const available = evidence.windowHeight - top - evidence.safeBottom;
-  // Split chừa gap, và related peek 50px khi primary chưa chiếm hết cột; pinterest vừa phần dưới header.
-  const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
+  // Detail spec R2 (owner 2026-11-07): mọi layout chừa gap và 50px để related lộ dưới primary.
+  const heightCap = available - gap - 50;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
-  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
+  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, heightCap - gap - 1);
   // Split: vùng ảnh cao theo media tới heightCap (primary-video-player R6); info cao bằng vùng ảnh, trừ khi nhãn cụm dài
   // làm sàn info cao hơn (runtime giữ sàn đó).
   const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
   const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? splitImageZoneHeight
-    : Math.min(width / ratio, available - descriptionHeight - gap);
+    : Math.min(width / ratio, heightCap - descriptionHeight - gap);
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
   const imageHeight = imageWidth / ratio;
@@ -98,8 +98,8 @@ async function sha256(relativePath) {
 }
 
 const provenanceAtStart = {
-  sourceCatalogRuntimeSha256: await sha256("src/site/advertising-products/catalog-runtime.mjs"),
-  outputCatalogRuntimeSha256: await sha256(".site-output/advertising-products/catalog-runtime.mjs"),
+  sourceCatalogRuntimeSha256: await sha256("src/site/masonry/runtime.mjs"),
+  outputCatalogRuntimeSha256: await sha256(".site-output/masonry/runtime.mjs"),
   sourceStyleSha256: await sha256("src/site/style.css"),
   outputStyleSha256: await sha256(".site-output/style.css"),
 };
@@ -583,8 +583,12 @@ async function assertDescriptionKeyboardScroll(page, label) {
 async function openDialog(page, { touch = false, label, settlements } = {}) {
   const expand = page.locator("[data-advertising-photo-expand]");
   await assertVisible(expand, "expand button");
-  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng.
-  await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
+  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng. Vào thẳng trang thì
+  // playRouteEnter chờ font rồi mới gắn is-transitioning; html.route-enter còn tới khi veil mở xong (clearRouteEntry).
+  // Reduced motion: mountPageMotion gắn motion-paused sau khi veil mở; chờ trạng thái ổn định đó.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+    && !document.body.classList.contains("is-transitioning")
+    && (!matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("motion-paused")));
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
@@ -1413,11 +1417,16 @@ function assertOneColumnGrid(evidence, label, { parent = false, related = false 
   const widths = evidence.cards.map((card) => card.inlineWidth);
   assert(widths.every((width) => width > 0), `${label}: a rendered card has no placement width`);
   for (const card of evidence.cards) {
-    assert(Math.abs(card.inlineWidth - expectedWidth) <= 1, `${label}: ${card.id} placement width ${card.inlineWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.cssWidth - expectedWidth) <= 1, `${label}: ${card.id} CSS render width ${card.cssWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.computedWidth - expectedWidth) <= 1, `${label}: ${card.id} computed width ${card.computedWidth}px differs from independent W ${expectedWidth}px`);
-    assert(Math.abs(card.rect.width - expectedWidth) <= 1, `${label}: ${card.id} visual width ${card.rect.width}px differs from independent W ${expectedWidth}px after return motion settled`);
-    if (parent) assert.equal(card.span, "1", `${label}: ${card.id} exposes non-one span ${card.span}`);
+    // Masonry R5: card có cover w/h >= 1.618 trải hai cột ở lưới từ 3 cột (chính và related); card khác đúng một cột.
+    const span = card.span === "2" ? 2 : 1;
+    if (span === 2) assert(columns >= 3 && card.image && card.image.naturalWidth * 1000 >= card.image.naturalHeight * 1618,
+      `${label}: ${card.id} spans two columns without a golden-ratio cover on a 3+ column grid`);
+    const cardWidth = span * expectedWidth + (span - 1) * evidence.gap;
+    assert(Math.abs(card.inlineWidth - cardWidth) <= 1, `${label}: ${card.id} placement width ${card.inlineWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.cssWidth - cardWidth) <= 1, `${label}: ${card.id} CSS render width ${card.cssWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.computedWidth - cardWidth) <= 1, `${label}: ${card.id} computed width ${card.computedWidth}px differs from independent ${span}-column width ${cardWidth}px`);
+    assert(Math.abs(card.rect.width - cardWidth) <= 1, `${label}: ${card.id} visual width ${card.rect.width}px differs from independent ${span}-column width ${cardWidth}px after return motion settled`);
+    if (parent) assert(["1", "2"].includes(card.span), `${label}: ${card.id} exposes span ${card.span}`);
     if (!card.image) continue;
     assert(card.image.naturalWidth > 0 && card.image.naturalHeight > 0, `${label}: ${card.id} media is not hydrated`);
     const renderedRatio = card.image.width / card.image.height;
@@ -1558,8 +1567,8 @@ const report = {
   catalogRecordCountObservedFromSource: ADVERTISING_CARDS.length,
   provenanceAtStart,
   provenanceAtEnd: {
-    sourceCatalogRuntimeSha256: await sha256("src/site/advertising-products/catalog-runtime.mjs"),
-    outputCatalogRuntimeSha256: await sha256(".site-output/advertising-products/catalog-runtime.mjs"),
+    sourceCatalogRuntimeSha256: await sha256("src/site/masonry/runtime.mjs"),
+    outputCatalogRuntimeSha256: await sha256(".site-output/masonry/runtime.mjs"),
     sourceStyleSha256: await sha256("src/site/style.css"),
     outputStyleSha256: await sha256(".site-output/style.css"),
   },

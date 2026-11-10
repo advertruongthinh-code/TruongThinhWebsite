@@ -35,9 +35,9 @@ const families = [
 const results = [];
 const url = (route) => new URL(route, `${base}/`).href;
 const candidatePaths = {
-  "catalog-runtime": ["src/site/advertising-products/catalog-runtime.mjs", ".site-output/advertising-products/catalog-runtime.mjs"],
+  "catalog-runtime": ["src/site/masonry/runtime.mjs", ".site-output/masonry/runtime.mjs"],
   motion: ["src/site/motion.js", ".site-output/motion.js"],
-  "photo-viewer": ["src/site/advertising-products/photo-viewer.mjs", ".site-output/advertising-products/photo-viewer.mjs"],
+  "photo-viewer": ["src/site/masonry/detail-viewer.mjs", ".site-output/masonry/detail-viewer.mjs"],
   "vi-advertising-html": ["src/site/advertising-products/index.html", ".site-output/vi/advertising-products/index.html"],
   "en-advertising-html": ["src/site/advertising-products/index.html", ".site-output/en/advertising-products/index.html"],
 };
@@ -73,7 +73,7 @@ function watch(page) {
 
 async function advertisingReady(page, route = "advertising-products/") {
   await page.goto(url(route), { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()), undefined, { timeout: 12_000 });
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), undefined, { timeout: 12_000 });
   // Veil vào trang còn nhận hit test tới khi gỡ; chạm và elementFromPoint chỉ đo khi veil đã gỡ.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
     && !document.body.classList.contains("is-transitioning"));
@@ -81,7 +81,7 @@ async function advertisingReady(page, route = "advertising-products/") {
 
 async function settledHistory(page, expectedPhoto) {
   await page.waitForFunction((photo) => {
-    const browse = window.TruongThinhAdvertising?.getBrowseState?.();
+    const browse = window.TruongThinhMasonry?.getBrowseState?.();
     const actualPhoto = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
     const y = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const entryY = photo ? browse?.detail?.scrollY : browse?.grid?.scrollY;
@@ -92,7 +92,7 @@ async function settledHistory(page, expectedPhoto) {
   return page.evaluate(async (photo) => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const sample = () => {
-      const browse = window.TruongThinhAdvertising.getBrowseState();
+      const browse = window.TruongThinhMasonry.getBrowseState();
       const y = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
       return { url: location.href, length: history.length, y, photo: browse.photo || null,
         seed: browse.seed, category: browse.category, tag: browse.tag,
@@ -127,7 +127,7 @@ async function historyGeometry(page, cardId, offsets = [0]) {
       const card = document.querySelector(`[data-advertising-card="${id}"]`);
       const rect = card?.getBoundingClientRect();
       const scroller = document.scrollingElement;
-      const browse = window.TruongThinhAdvertising?.getBrowseState?.();
+      const browse = window.TruongThinhMasonry?.getBrowseState?.();
       return { targetMs, elapsedMs: Math.round(performance.now() - start), url: location.href,
         windowY: scrollY, documentY: scroller?.scrollTop ?? null,
         logicalY: window.TruongThinhMotion?.getLogicalScroll?.() ?? null,
@@ -157,7 +157,7 @@ async function inventory(browser) {
       for (const route of [...new Set(families.map((item) => item.route))]) {
         await page.goto(url(`${locale}/${route}`), { waitUntil: "domcontentloaded" });
         if (route.startsWith("advertising-products/")) {
-          await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()), undefined, { timeout: 12_000 });
+          await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), undefined, { timeout: 12_000 });
           if (route.includes("photo=")) await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-view]")?.hidden);
         }
         for (const family of families.filter((item) => item.route === route)) {
@@ -258,7 +258,7 @@ try {
 
   await runCase(browser, "no-grid-morph-and-last-viewed-marker", async (page) => {
     await advertisingReady(page, "vi/advertising-products/?category=signage-raised-letters");
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), photoId);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), photoId);
     const card = page.locator(`[data-advertising-card="${photoId}"] > a`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => { const image = document.querySelector(`[data-advertising-card="${id}"] img`);
@@ -284,7 +284,7 @@ try {
 
   await runCase(browser, "history-entry-scroll-and-photo-identity", async (page) => {
     await advertisingReady(page, "vi/advertising-products/?category=signage-raised-letters");
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), photoId);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), photoId);
     const card = page.locator(`[data-advertising-card="${photoId}"] > a`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => { const image = document.querySelector(`[data-advertising-card="${id}"] img`);

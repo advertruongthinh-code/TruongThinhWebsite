@@ -194,7 +194,9 @@ try {
       const { width, height } = img.getBoundingClientRect();
       const shown = Math.max(width, height * img.getAttribute("width") / img.getAttribute("height")) * devicePixelRatio;
       const variant = Number(img.currentSrc.match(/-(\d+)\.\w+$/)?.[1]);
-      return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= 0.9 * shown };
+      // Phone chỉ tải WebP tới cỡ 960 (owner 2026-11-07, media-delivery): đủ nét là đạt 0.9x hoặc đã ở cỡ trần 960.
+      const cap = matchMedia("(hover: none) and (pointer: coarse)").matches ? 960 : Infinity;
+      return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= Math.min(0.9 * shown, cap) };
     }), selector);
     assert.ok(images.length, `${label}: ${selector} images loaded`);
     assert.deepEqual(images.filter(image => !image.sharp), [], `${label}: each image loads a variant of at least 0.9x its cropped visible width`);
@@ -315,7 +317,7 @@ try {
       }))).observe(document.body, { childList: true, subtree: true });
     });
     const revealGlass = (host) => page.evaluate((name) => window.__ttRevealGlass.filter((glass) => glass.host === name), host);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.()?.seed
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getBrowseState?.()?.seed
       && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
     const geometry = () => page.evaluate(() => ({
       cards: [...document.querySelectorAll("[data-advertising-card]")].map(node => [node.dataset.advertisingCard, node.style.left, node.style.top]),
@@ -413,7 +415,7 @@ try {
     // Viewer: skeleton và aria-busy theo photo hiện tại, kể cả hero swap nhanh.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-advertising-photo-image]").parentElement;
-      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),
+      return { photo: window.TruongThinhMasonry.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),
         glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
     });
     // Kính reveal là của ảnh; card mở bằng video (media tạm nhiều media) không có skeleton ảnh nên chọn card mở bằng ảnh.
@@ -428,7 +430,7 @@ try {
       card.querySelector("a").click();
       return card.dataset.advertisingRelatedCard;
     });
-    await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id, relatedId);
+    await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id, relatedId);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-image]").parentElement.hasAttribute("aria-busy")
       && document.querySelector("[data-advertising-photo-image]").complete, null, { timeout: 30_000 });
     await page.waitForTimeout(DELAY + 300);
@@ -445,11 +447,11 @@ try {
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
     // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
     await page.goBack();
-    await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id
+    await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id
       && !document.querySelector("[data-advertising-photo-image]").parentElement.hasAttribute("aria-busy"), first.photo);
     primaryReveals.push(await revealGlass("primary"));
     await page.goBack();
-    await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);
+    await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-photo-view] [data-advertising-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });

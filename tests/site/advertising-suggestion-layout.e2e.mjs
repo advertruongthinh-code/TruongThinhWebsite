@@ -13,14 +13,14 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
-let selectAdvertisingSuggestions;
+let selectSuggestions;
 try {
-  ({ selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ selectSuggestions } = await import("../../src/site/masonry/runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
 
-const directSlots = selectAdvertisingSuggestions({
+const directSlots = selectSuggestions({
   cards: ADVERTISING_CARDS,
   heroId: "kiosk-posm-01",
   activeTag: "use-sampling",

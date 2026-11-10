@@ -89,7 +89,21 @@ async function runSecurityContract() {
       DB: { prepare: () => ({ bind: () => ({ first: async () => null }) }) },
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
-    // Runtime SSR được runPublicContract bao phủ trên Wrangler, vốn cung cấp HTMLRewriter.
+    // SSR runtime is covered by runPublicContract on Wrangler, which provides HTMLRewriter.
+    // /advertising-products* is Worker-first: the masonry layout cache modules must still reach the static assets untouched.
+    const layoutCachePath = "/advertising-products/layout-cache/4-35/all.mjs";
+    const assetPaths = [];
+    const layoutCache = await worker.default.fetch(new Request(`https://site.example${layoutCachePath}`), {
+      PUBLIC_ORIGIN: "https://site.example",
+      ASSETS: { fetch: async (request) => {
+        assetPaths.push(new URL(request.url ?? request).pathname);
+        return new Response("export default {};", { headers: { "content-type": "text/javascript" } });
+      } },
+      DB: { prepare: () => ({ bind: () => ({ first: async () => null, all: async () => ({ results: [] }) }), all: async () => ({ results: [] }) }) },
+    });
+    assert(layoutCache.status === 200, `layout cache module returned ${layoutCache.status}`);
+    assert.deepEqual(assetPaths, [layoutCachePath], "layout cache module is served from static assets");
+    assert(await layoutCache.text() === "export default {};", "layout cache module body passes through unchanged");
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {
@@ -157,13 +171,13 @@ async function runSecurityContract() {
       }
     }
 
-    // Đăng nhập dev chỉ nhận host loopback; host public vẫn cần Access dù biến bị đặt nhầm.
+    // Dev login accepts only loopback hosts; a public host still needs Access even if the variable is set by mistake.
     const devEnv = { ...env, CMS_LOCAL_ADMIN_EMAIL: "admin@localhost" };
     for (const [method, path] of protectedEndpoints) {
       const response = await worker.default.fetch(new Request(`https://admin.site.example${path}`, { method, headers: { Origin: "https://admin.site.example" } }), devEnv);
       assert(response.status === 403, `dev admin reached public host ${method} ${path} with ${response.status}`);
     }
-    // Host www không mở CMS (cả UI lẫn API), kể cả khi có vé Access hợp lệ.
+    // The www host does not open the CMS (UI or API), even with a valid Access ticket.
     for (const path of ["/admin/", "/api/admin/settings"]) {
       assert.equal((await worker.default.fetch(new Request(`https://site.example${path}`, { headers }), env)).status, 404, `public host served ${path}`);
     }
@@ -320,6 +334,9 @@ async function runPublicContract() {
     assert(result.status === 308, `${source} returned ${result.status}, expected 308`);
     assert(new URL(result.headers.get("location")).pathname + new URL(result.headers.get("location")).search === destination, `${source} redirected to ${result.headers.get("location")}`);
   }
+
+  const layoutCacheModule = await response("/advertising-products/layout-cache/4-35/all.mjs");
+  assert(layoutCacheModule.status === 200 && /javascript/.test(layoutCacheModule.headers.get("content-type") || ""), `layout cache module returned ${layoutCacheModule.status}`);
 
   const robots = await response("/robots.txt");
   const robotsText = await robots.text();

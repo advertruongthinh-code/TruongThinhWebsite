@@ -1,9 +1,11 @@
 # Filter Advertising
 
+Nguồn: `src/site/advertising-products/taxonomy.mjs`; CSS `.project-filters`; spec [Phân loại](../../../docs/specs/advertising-taxonomy.md).
+
 Rail hai tầng trong hero trang Advertising: hàng cụm (`Tất cả` và sáu cụm) và tầng
 sản phẩm có trang ([taxonomy R3, R5](../../../docs/specs/advertising-taxonomy.md#r3-rail-cụm-và-sản-phẩm)).
 Build sinh markup tĩnh từ `taxonomy.mjs` vào `.project-filters` và các `.rail-chips`;
-runtime `catalog-runtime.mjs` cập nhật trạng thái.
+runtime `masonry/runtime.mjs` cập nhật trạng thái.
 
 ## Hành vi
 

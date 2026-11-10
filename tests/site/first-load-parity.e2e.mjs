@@ -1,5 +1,5 @@
-// first-load-parity R2: mở trực tiếp chạy motion chữ hero giống chuyển mềm, không lộ chữ trước motion.
-// progressive-loading R4: veil chờ font, không chờ ảnh hero.
+// first-load-parity R2: a direct open runs the hero text motion like a soft transition, with no text exposed before the motion.
+// progressive-loading R4: the veil waits for fonts, not for the hero image.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -9,7 +9,7 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Ghi mỗi frame: opacity veil và opacity thật (nhân cả cây cha) của từ đầu, từ cuối, hoặc cả title khi chưa tách từ.
+// Record every frame: veil opacity and real opacity (multiplied through parents) of the first word, last word, or the whole title when not split into words.
 const recorder = () => {
   const frames = (window.__heroFrames = []);
   const visible = (node) => {
@@ -19,7 +19,7 @@ const recorder = () => {
   };
   const tick = () => {
     const veil = document.querySelector(".route-veil");
-    // Barba chèn container mới sau container cũ: title cuối là của trang đích.
+    // Barba inserts the new container after the old one: the last title belongs to the target page.
     const title = [...document.querySelectorAll(
       "main .hero .hero-content > :is(h1, p.hero-title):not(.hero-kicker)",
     )].at(-1);
@@ -41,11 +41,11 @@ const recorder = () => {
 
 const summarize = (recorded) => {
   const frames = recorded.filter((f) => f.page === recorded.at(-1)?.page);
-  // Veil bắt đầu mở: frame đầu veil dưới 0,98 sau khi đã che đủ. Delay intro đếm từ mốc này (first-load-parity R2).
+  // Veil starts opening: first frame with veil below 0.98 after it fully covered. The intro delay counts from this point (first-load-parity R2).
   const covered = frames.findIndex((f) => f.veil >= 0.98);
   const reveal = frames.find((f, i) => i > covered && f.veil < 0.98);
   const fading = (key) => frames.find((f) => f.split && f[key] > 0.02 && f[key] < 0.98);
-  // Chữ lộ trước motion: veil đã mở một phần mà chữ đứng đủ trước khi từ đầu bắt đầu fade.
+  // Text exposed before the motion: the veil is partly open while the text is fully visible before the first word starts fading.
   const start = fading("first");
   const end = fading("last");
   const flash = frames.filter((f) => f.veil < 0.95 && f.first > 0.5 && (!start || f.t < start.t)).length;
@@ -53,7 +53,7 @@ const summarize = (recorded) => {
     reveal: reveal?.t,
     fadeStart: start?.t,
     lag: start && reveal ? start.t - reveal.t : undefined,
-    // Khoảng stagger từ từ đầu tới từ cuối bắt đầu fade; ít nhiễu hơn đo lúc fade xong.
+    // Stagger span from the first word to the last word starting to fade; less noisy than measuring when the fade ends.
     span: start && end ? end.t - start.t : undefined,
     split: frames.some((f) => f.split),
     flash,
@@ -84,7 +84,7 @@ const record = async (viewport, route, from) => {
   }
 };
 
-// progressive-loading R4: veil mở khi mount và font xong, không chờ ảnh hero.
+// progressive-loading R4: the veil opens on mount and fonts done, not waiting for the hero image.
 const recordDelayed = async (viewport, route, pattern, delay) => {
   const context = await browser.newContext({ viewport });
   await context.addInitScript(recorder);
@@ -119,26 +119,26 @@ try {
       const direct = await record(viewport, route);
       const soft = await record(viewport, route, from);
       console.log(where, JSON.stringify({ direct, soft }));
-      // About giữ title không split ở cả hai đường, không có motion chữ để so.
+      // About keeps the title unsplit on both paths, so there is no text motion to compare.
       if (!direct.split && !soft.split) continue;
-      if (direct.flash) failures.push(`${where}: chữ hiện đủ ${direct.flash} frame trước motion khi mở trực tiếp`);
-      if (direct.lag === undefined || direct.lag < 0) failures.push(`${where}: từ đầu fade trước khi veil mở (lag ${direct.lag})`);
-      // Ngưỡng 100ms: Chromium headless trên cloud có frame dài 80-120ms đúng lúc từ đầu bắt đầu fade ở cả hai đường.
+      if (direct.flash) failures.push(`${where}: text fully visible for ${direct.flash} frames before motion on direct open`);
+      if (direct.lag === undefined || direct.lag < 0) failures.push(`${where}: fade started before the veil opened (lag ${direct.lag})`);
+      // 100ms threshold: headless Chromium on the cloud has 80-120ms long frames right when the first word starts fading on both paths.
       if (direct.lag !== undefined && soft.lag !== undefined && Math.abs(direct.lag - soft.lag) > 100) {
-        failures.push(`${where}: độ trễ sau veil ${Math.round(direct.lag)}ms khác chuyển mềm ${Math.round(soft.lag)}ms`);
+        failures.push(`${where}: delay after veil ${Math.round(direct.lag)}ms differs from soft navigation ${Math.round(soft.lag)}ms`);
       }
       if (direct.span === undefined || soft.span === undefined || Math.abs(direct.span - soft.span) > 100) {
-        failures.push(`${where}: stagger ${direct.span}ms khác chuyển mềm ${soft.span}ms`);
+        failures.push(`${where}: stagger ${direct.span}ms differs from soft navigation ${soft.span}ms`);
       }
     }
   }
   const desktop = viewports[0];
   const lateFont = await recordDelayed(desktop, "/vi/residential/", "**/*.woff2", 1000);
   console.log("late font", JSON.stringify(lateFont));
-  if (!(lateFont.reveal >= 1000)) failures.push(`font trễ 1s: veil mở lúc ${lateFont.reveal}ms, trước khi font về`);
+  if (!(lateFont.reveal >= 1000)) failures.push(`font delayed 1s: veil opened at ${lateFont.reveal}ms, before the font arrived`);
   const lateHero = await recordDelayed(desktop, "/vi/residential/", "**/assets/content/**", 3000);
   console.log("late hero", JSON.stringify(lateHero));
-  if (!(lateHero.reveal < 3000)) failures.push(`ảnh hero trễ 3s: veil mở lúc ${lateHero.reveal}ms, đang chờ ảnh`);
+  if (!(lateHero.reveal < 3000)) failures.push(`hero image delayed 3s: veil opened at ${lateHero.reveal}ms, while waiting for the image`);
 } finally {
   await browser.close();
 }

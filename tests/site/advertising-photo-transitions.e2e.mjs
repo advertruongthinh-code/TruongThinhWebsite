@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
+import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -21,12 +21,12 @@ const sha256 = async (filePath) => createHash("sha256").update(await readFile(fi
 const provenance = {
   generatedAt,
   source: {
-    path: "src/site/advertising-products/catalog-runtime.mjs",
-    sha256: await sha256(path.join(root, "src/site/advertising-products/catalog-runtime.mjs")),
+    path: "src/site/masonry/runtime.mjs",
+    sha256: await sha256(path.join(root, "src/site/masonry/runtime.mjs")),
   },
   output: {
-    path: ".site-output/advertising-products/catalog-runtime.mjs",
-    sha256: await sha256(path.join(root, ".site-output/advertising-products/catalog-runtime.mjs")),
+    path: ".site-output/masonry/runtime.mjs",
+    sha256: await sha256(path.join(root, ".site-output/masonry/runtime.mjs")),
   },
   motionSource: {
     path: "src/site/motion.js",
@@ -45,7 +45,7 @@ const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
 const mediaCardId = "signage-raised-letters-06";
 const mediaVideoId = `${mediaCardId}-synthetic-video`;
-// Phản chiếu ADVERTISING_VISIT_SEED_HANDOFF_KEY; module runtime cần window mới import được.
+// Phản chiếu VISIT_SEED_HANDOFF_KEY; module runtime cần window mới import được.
 const visitSeedHandoffKey = "tt-advertising-visit-seed-handoff-v1";
 const p13BaselineOnly = process.env.PHOTO_TRANSITIONS_P13_BASELINE === "1";
 const p13GateOnly = process.env.PHOTO_TRANSITIONS_P13_GATE === "1";
@@ -129,8 +129,8 @@ async function quiet(page) {
 const settleHover = (control) => control.evaluate((node) => Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))));
 async function openA(page) {
   await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
   const card = page.locator(`[data-advertising-card="${A}"] > a`);
   await card.click();
   await ready(page, A);
@@ -181,10 +181,10 @@ async function m02bFixture(page, locale, direct = false, seed = null) {
     }, { key: visitSeedHandoffKey, url: target, value: seed });
   }
   await page.goto(target, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-  if (seed) assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), seed, "M02b fixture seed must be consumed");
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+  if (seed) assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), seed, "M02b fixture seed must be consumed");
   if (direct) await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
-  else await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), mediaCardId);
+  else await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), mediaCardId);
   return card;
 }
 
@@ -384,8 +384,8 @@ async function readInputTimingProbe(page) {
 }
 
 async function ensureParentTarget(page) {
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+  await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
   await page.waitForFunction((id) => {
     const image = document.querySelector(`[data-advertising-card="${id}"] img`);
     return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
@@ -689,8 +689,8 @@ try {
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-grid-click`);
       await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+      await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       const card = page.locator(`[data-advertising-card="${A}"] > a`);
       await card.scrollIntoViewIfNeeded();
       // Y của masonry đổi tiếp vài frame sau khi cuộn tới card; chỉ lấy khi đứng yên 5 frame liền.
@@ -734,8 +734,8 @@ try {
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-close-A`);
       await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+      await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       await page.locator(`[data-advertising-card="${A}"] > a`).click();
       await ready(page, A);
       await page.goBack();
@@ -748,7 +748,7 @@ try {
 
       stage(`${locale}-close-B`);
       await page.evaluate((id) => {
-        const card = window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: false });
+        const card = window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: false });
         const rect = card.getBoundingClientRect();
         const motion = window.TruongThinhMotion;
         motion.setLogicalScroll(motion.getLogicalScroll() + rect.top - (innerHeight - rect.height) / 2);
@@ -777,7 +777,7 @@ try {
         && !document.querySelector("[data-advertising-photo-morph]"));
       assert.deepEqual((await readMarkers()).map(({ id }) => id), [B], `${locale}: same-tab history keeps latest marker`);
       await page.reload({ waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       assert.deepEqual(await readMarkers(), [], `${locale}: full reload clears runtime marker`);
       evidence.push({ locale, first, second, afterReload: 0 });
     }
@@ -798,7 +798,7 @@ try {
       const initialLength = await page.evaluate(() => history.length);
       await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // tránh vùng mũi tên hover 32px ở mép canvas (media-card R3)
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
-      const y0 = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
+      const y0 = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.scrollY);
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: card creates exactly one history entry`);
       stage(`${locale}-detail-image-Y1`);
@@ -929,7 +929,7 @@ try {
         const initialLength = await page.evaluate(() => history.length);
         const gridActivation = await activate(page.locator(`[data-advertising-card="${mediaCardId}"] > a`));
         await ready(page, mediaCardId);
-        const storedGridY = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
+        const storedGridY = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.scrollY);
         const gridY = gridActivation.y;
         assert(Math.abs(storedGridY - gridY) <= 1, `${locale}: stored grid Y must match independent click observer`);
         const nextId = await page.locator("[data-advertising-related-card]").first().getAttribute("data-advertising-related-card");
@@ -971,7 +971,7 @@ try {
 
         stage(`${profile.name}-${locale}-related-virtualization-remount`);
         const away = await page.evaluate(({ id, originY }) => {
-          window.TruongThinhAdvertising.getAdapter().releasePhoto(id);
+          window.TruongThinhMasonry.getAdapter().releasePhoto(id);
           const max = document.documentElement.scrollHeight - innerHeight;
           const target = originY > max / 2 ? 0 : max;
           window.TruongThinhMotion.setLogicalScroll(target);
@@ -997,7 +997,7 @@ try {
         await checkMarker(locale, mediaCardId, "main", "Back-main-grid");
         stage(`${profile.name}-${locale}-reload-clears-marker`);
         await page.reload({ waitUntil: "domcontentloaded" });
-        await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+        await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
         await checkMarker(locale, null, "main", "reload");
         evidence.push({ profile: profile.name, locale, gridY, ya, yb, back, forward,
           emulation: await page.evaluate(() => ({ touchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches, width: innerWidth, height: innerHeight })) });
@@ -1065,6 +1065,8 @@ try {
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-advertising-related-card="${id}"] > a`);
       // Thứ tự related được seed và virtualize; quét xuống rồi lên lại cho đến khi card đích mount.
+      // Mỗi bước 0.6 viewport trong hai frame là vuốt nhanh (advertising-masonry R7): runtime chỉ đặt card tạm. Chờ
+      // card tạm trong viewport được thay bằng card thật rồi mới xét, không thì card đích không bao giờ mount (đỏ ở 390, một cột dài).
       for (let step = 0, direction = 1; step < 120 && !(await link.count()); step += 1) {
         const moved = await page.evaluate((sign) => {
           const before = window.TruongThinhMotion.getLogicalScroll();
@@ -1072,6 +1074,10 @@ try {
           return before;
         }, direction);
         await page.evaluate(frame);
+        await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+          const rect = ghost.getBoundingClientRect();
+          return ghost.checkVisibility() && rect.bottom > 0 && rect.top < innerHeight;
+        }), null, { timeout: 5_000 });
         if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
       // Related còn xếp chỗ sau khi primary sẵn sàng (card đi từ đầu cột, solver đầy đủ ở task sau); WebKit
@@ -1259,7 +1265,7 @@ try {
     // Thứ tự trình bày được seed, nên card cuối của catalog có thể nằm gần đỉnh; thay vào đó cuộn tới cuối.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForFunction((id) => !document.querySelector(`[data-advertising-card="${id}"]`), firstId);
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), firstId);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), firstId);
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`), firstId);
     const remount = await page.locator(`[data-advertising-card="${firstId}"]`).evaluate(async (node) => {
       const read = () => {
@@ -1551,9 +1557,9 @@ try {
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     const a = await page.evaluate(() => ({
-      seed: window.TruongThinhAdvertising.getBrowseState().seed,
+      seed: window.TruongThinhMasonry.getBrowseState().seed,
       y: window.TruongThinhMotion.getLogicalScroll(),
-      gridY: window.TruongThinhAdvertising.getBrowseState().grid.scrollY,
+      gridY: window.TruongThinhMasonry.getBrowseState().grid.scrollY,
       length: history.length,
     }));
     // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy.
@@ -1564,7 +1570,7 @@ try {
     await ready(page, B);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     const b = await page.evaluate(() => ({
-      seed: window.TruongThinhAdvertising.getBrowseState().seed,
+      seed: window.TruongThinhMasonry.getBrowseState().seed,
       y: window.TruongThinhMotion.getLogicalScroll(),
       length: history.length,
     }));
@@ -1576,7 +1582,7 @@ try {
     await page.goBack();
     await ready(page, A);
     const back = await noGridMorphEvidence(page, A, a.y);
-    assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), a.seed, "Back preserves seed");
+    assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), a.seed, "Back preserves seed");
 
     stage("Forward-B");
     await armNoGridMorphProbe(page);
@@ -1610,15 +1616,15 @@ try {
       networkFailures.length = 0;
       stage(locale + "-offscreen-grid-fixture");
       await page.goto(href("/" + locale + "/advertising-products/?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       let initial = null;
       for (const candidate of ADVERTISING_CARDS.filter((card) => card.category === "signage")) {
-        await page.evaluate((photoId) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(photoId), candidate.id);
+        await page.evaluate((photoId) => window.TruongThinhMasonry.getAdapter().ensurePhoto(photoId), candidate.id);
         initial = await page.evaluate((photoId) => {
           const card = document.querySelector('[data-advertising-card="' + photoId + '"]');
           return { id: photoId, rect: card?.getBoundingClientRect().toJSON() || null,
-            seed: window.TruongThinhAdvertising.getBrowseState().seed, length: history.length };
+            seed: window.TruongThinhMasonry.getBrowseState().seed, length: history.length };
         }, candidate.id);
         if (initial.rect?.top > 884) break;
       }
@@ -1638,7 +1644,7 @@ try {
       // setLogicalScroll(480) bị kẹp đúng về đáy đó (272px ở 1543x884) và không tự lên lại.
       await page.waitForFunction(() => document.querySelector("[data-advertising-related-card]:not([hidden])"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
-      await page.waitForFunction(() => Math.abs(window.TruongThinhAdvertising.getBrowseState().detail.scrollY - 480) <= 1);
+      await page.waitForFunction(() => Math.abs(window.TruongThinhMasonry.getBrowseState().detail.scrollY - 480) <= 1);
       const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 
       stage(locale + "-grid-Y0");
@@ -1650,8 +1656,8 @@ try {
       const grid = await page.evaluate((photoId) => ({
         y: window.TruongThinhMotion.getLogicalScroll(),
         cardTop: document.querySelector('[data-advertising-card="' + photoId + '"]')?.getBoundingClientRect().top ?? null,
-        seed: window.TruongThinhAdvertising.getBrowseState().seed,
-        category: window.TruongThinhAdvertising.getBrowseState().category,
+        seed: window.TruongThinhMasonry.getBrowseState().seed,
+        category: window.TruongThinhMasonry.getBrowseState().category,
         length: history.length,
       }), id);
       assert(grid.cardTop === null || grid.cardTop > 884, locale + ": grid Y0 must keep card offscreen");
@@ -1663,8 +1669,8 @@ try {
       await ready(page, id);
       const forward = await noGridMorphEvidence(page, id, detailY);
       const forwardState = await page.evaluate(() => ({
-        seed: window.TruongThinhAdvertising.getBrowseState().seed,
-        category: window.TruongThinhAdvertising.getBrowseState().category,
+        seed: window.TruongThinhMasonry.getBrowseState().seed,
+        category: window.TruongThinhMasonry.getBrowseState().category,
         length: history.length,
       }));
 
@@ -1674,9 +1680,9 @@ try {
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       const back = await noGridMorphEvidence(page, null, grid.y);
       const backState = await page.evaluate(() => ({
-        seed: window.TruongThinhAdvertising.getBrowseState().seed,
-        category: window.TruongThinhAdvertising.getBrowseState().category,
-        focusId: window.TruongThinhAdvertising.getBrowseState().grid.focusId,
+        seed: window.TruongThinhMasonry.getBrowseState().seed,
+        category: window.TruongThinhMasonry.getBrowseState().category,
+        focusId: window.TruongThinhMasonry.getBrowseState().grid.focusId,
         length: history.length,
       }));
       assert.equal(forwardState.seed, initial.seed, locale + ": Forward changed seed");
@@ -1713,7 +1719,7 @@ try {
   await caseRun("history-grid-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
     stage("grid-Back-with-pointer-retained");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     const link = page.locator("[data-advertising-card] > a").first();
     const photoId = await link.evaluate((node) => node.closest("[data-advertising-card]").dataset.advertisingCard);
     await link.scrollIntoViewIfNeeded();
@@ -1745,8 +1751,8 @@ try {
     });
     stage("Back-with-visible-scrollbar");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     // Cuộn như click() sẽ làm trước, để vị trí grid mà Back khôi phục chính là vị trí đọc ở đây.
     const gridCard = page.locator('[data-advertising-card="' + A + '"] > a');
     await gridCard.scrollIntoViewIfNeeded();
@@ -1764,7 +1770,7 @@ try {
 
     stage("real-viewport-resize");
     await page.setViewportSize({ width: 1020, height: 900 });
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     await armNoGridMorphProbe(page);
     await page.locator('[data-advertising-card="' + A + '"] > a').click();
     await ready(page, A);
@@ -1874,7 +1880,7 @@ try {
     stage("abort-gsap");
     await page.route("**/*gsap*", (route) => route.abort());
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.()
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
       && document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
     const state = await page.evaluate(() => ({ grid: document.querySelectorAll("[data-project-grid] .advertising-tile").length, locked: [document.body.style.overflow, document.documentElement.style.overflow] }));
     assert(state.grid > 0, "animation dependency failure did not fail open to a usable grid"); assert.deepEqual(state.locked, ["", ""]);
@@ -1967,6 +1973,7 @@ try {
         const flow = node.querySelector("[data-advertising-flow-preset]");
         return {
           column: Number(node.dataset.advertisingCtaColumn),
+          span: Number(node.dataset.advertisingCtaSpan),
           depth: Number(node.dataset.advertisingCtaDepth),
           ratioBand: node.dataset.advertisingCtaRatioBand,
           height: rect.height,
@@ -2038,11 +2045,14 @@ try {
       assert.equal(state.ctaBackground, "rgba(0, 0, 0, 0)", `${label}: CTA obscures continuation frames`);
       for (let column = 0; column < state.columns; column += 1) {
         const frames = state.frameStates.filter((frame) => frame.column === column).sort((a, b) => a.depth - b.depth);
-        assert(frames.every((frame) => Math.abs(frame.width - frames[0].width) <= 0.1 && frame.height > 0), `${label}: invalid frame geometry in column ${column}`);
+        // Two-column wide frames (plan T6) are wider than one-column frames: compare widths within the same span.
+        assert(frames.every((frame) => Math.abs(frame.width - frames.find(({ span }) => span === frame.span).width) <= 0.1 && frame.height > 0), `${label}: invalid frame geometry in column ${column}`);
         assert(frames.length >= 1
           && frames.every((frame) => Math.abs(frame.targetOpacity - 1) <= 0.01),
         `${label}: frame retained local depth opacity instead of the global boundary fade`);
-        assert(frames.slice(1).every((frame, index) => frames[index].ratioBand !== frame.ratioBand),
+        // Frames that cover the column count too: a two-column frame sits between two frames of its neighbour column.
+        const covering = state.frameStates.filter((frame) => frame.column <= column && column < frame.column + frame.span).sort((a, b) => a.top - b.top);
+        assert(covering.slice(1).every((frame, index) => covering[index].ratioBand !== frame.ratioBand),
           `${label}: adjacent skeleton ratio bands repeat in column ${column}`);
         assert(frames.every((frame) => frame.maskImage === "none"), `${label}: frame retained a local fade mask`);
         assert(frames.every((frame) => frame.borderWidth === "0px"), `${label}: skeleton surface retained a border`);
@@ -2138,7 +2148,7 @@ try {
 
     stage("detail-cleanup-restore");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+    await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     await page.locator(`[data-advertising-card="${A}"] > a`).click();
     await ready(page, A);
     // Detail dùng lại batch cho cuối related (CTA R9): batch rời grid, nằm trong canvas detail.
@@ -2158,7 +2168,7 @@ try {
     const assertNoBack = async () => assert.equal(await page.locator("[data-advertising-photo-return]").count(), 0, "standalone Back must be removed");
     stage("parent-no-back");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await assertNoBack();
     stage("open-B"); await openA(page); await chooseB(page); await ready(page, B);
     const expandControl = page.locator("[data-advertising-photo-expand]");
@@ -2271,11 +2281,11 @@ try {
     const groupSlug = ADVERTISING_CATEGORIES.find((category) => category.slug === group).slugVi;
     const openFromGroup = async () => {
       await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       // Anchor offset đã lưu của A phải khớp giữa các stage: click dưới route veil khiến Playwright
       // thử lại với căn scroll khác, và html scroll-behavior sẽ để nó dừng giữa chừng khi đang cuộn.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id)
+      await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id)
         .scrollIntoView({ block: "nearest", behavior: "instant" }), A);
       await page.locator(`[data-advertising-card="${A}"] > a`).click();
       await ready(page, A);
@@ -2289,7 +2299,7 @@ try {
         "the picked group stays active on the filter rail");
       const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
         .map((node) => node.dataset.advertisingCard));
-      assert(cards.length && cards.every((id) => matchesAdvertisingFilter(ADVERTISING_CARDS.find((card) => card.id === id), group)), `masonry only shows ${group}`);
+      assert(cards.length && cards.every((id) => matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), group)), `masonry only shows ${group}`);
       return page.evaluate((id) => {
         const rect = document.querySelector(`[data-advertising-card="${id}"]`).getBoundingClientRect();
         return { top: rect.top, height: rect.height };
@@ -2298,7 +2308,7 @@ try {
 
     stage("same-photo-keeps-offset");
     await openFromGroup();
-    const origin = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.anchorOffset);
+    const origin = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.anchorOffset);
     const sameTop = await navbarReturn(A);
     assert(Math.abs(sameTop.top - origin) <= 2, `A returns to its old offset: ${sameTop.top} != ${origin}`);
 

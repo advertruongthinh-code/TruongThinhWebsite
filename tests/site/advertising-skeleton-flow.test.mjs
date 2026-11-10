@@ -9,9 +9,11 @@ import {
   advanceSkeletonFlowPhase,
   createSkeletonFlowRenderer,
   createSkeletonFlowFrameLayout,
+  readSkeletonBatchConfig,
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
-} from "../../src/site/advertising-products/skeleton-flow.mjs";
+} from "../../src/site/masonry/skeleton-flow.mjs";
+import { compileMasonryLayout, isWideMedia } from "../../src/site/masonry/layout.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
@@ -203,6 +205,102 @@ for (const frame of frameLayout) {
 }
 assert(Math.min(...continuationBottoms.map((bottom) => bottom + frameLayoutInput.gap)) >= frameLayoutInput.boundaryBottom,
   "the adaptive batch must reach its visual boundary");
+// Masonry R5: the last 2:1 card spans level columns 0-1 at 1440px; the batch continues right below it in both columns. Frame
+// bands (h/w 0.72, 1, 1.32) are all below the golden ratio, so the same rule keeps every frame one column wide.
+const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], index) => ({
+  id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
+  media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
+}));
+const wideTailLayout = compileMasonryLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
+  layoutViewportWidth: 1440, presentationOrder: wideTail.map(({ id }) => id) });
+const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
+assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
+const wideTailFrames = createSkeletonFlowFrameLayout({
+  columnBottoms: wideTailLayout.columnBottoms, columns: wideTailLayout.columns, cardWidth: wideTailLayout.cardWidth,
+  gap: wideTailLayout.interCardGap, boundaryBottom: 2_400,
+});
+for (const column of [0, 1]) {
+  assert.equal(wideTailFrames.find((frame) => frame.column === column).top,
+    wideTailCard.y + wideTailCard.pixelHeight + wideTailLayout.interCardGap,
+    `column ${column}: the batch starts one gap below the spanning card`);
+}
+for (const frame of wideTailFrames) {
+  if (frame === wideTailFrames.findLast(({ column }) => column === frame.column)) continue;
+  assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
+    "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
+}
+// R1: band ngang từ tỷ lệ vàng theo luật span của card thật (masonry-reuse bước 5): hai cột khi lưới >= 3 cột, không
+// chồng khung, khung cuối mỗi cột vẫn chạm đáy batch; lưới 2 cột giữ một cột. Số khung và band đọc từ attribute.
+const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 square:1 portrait:1.32 wide:0.5" });
+assert.deepEqual(wideConfig.ratios.map(({ id }) => id), ["landscape", "square", "portrait", "wide"]);
+assert.equal(readSkeletonBatchConfig({ skeletonRatios: "wide:x" }).ratios.length, 3, "a bad ratio list keeps the default bands");
+assert.equal(readSkeletonBatchConfig({}).maxFrames, Number.MAX_SAFE_INTEGER, "without a count the batch fills to its bottom");
+for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [4, undefined]]) {
+  const bottoms = [120, 180, 150, 210, 90].slice(0, columns);
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: bottoms, columns, cardWidth: 240, gap: 20,
+    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed });
+  const wide = frames.filter(({ span }) => span === 2);
+  if (columns === 2) assert.equal(wide.length, 0, "a two-column grid keeps every frame one column wide");
+  else {
+    assert(wide.length > 0, "a four-column grid spans the golden-ratio band across two columns");
+    assert(wide.every(({ band }) => band === "wide"), "only the golden-ratio band spans two columns");
+  }
+  const box = ({ column, span, top, height }) => [column, column + span, top, top + height];
+  frames.forEach((a, index) => frames.slice(index + 1).forEach((b) => {
+    const [al, ar, at, ab] = box(a);
+    const [bl, br, bt, bb] = box(b);
+    assert(!(al < br && bl < ar && at < bb && bt < ab), `frames ${a.slot} and ${b.slot} do not overlap`);
+  }));
+  for (let column = 0; column < columns; column += 1) {
+    const own = frames.filter((frame) => column >= frame.column && column < frame.column + frame.span);
+    assert.equal(own.at(-1).top + own.at(-1).height, 1_800, `column ${column} ends on the batch bottom`);
+    assert(own.slice(1).every((frame, index) => frame.band !== own[index].band),
+      `column ${column} has no two frames of one band in a row, counting two-column frames`);
+    // Masonry R5: no holes; each frame sits exactly one gap below the frame (or real card) above it in every column it covers.
+    own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-9,
+      `column ${column}: frame ${frame.slot} leaves no hole above it`));
+  }
+}
+// Plan T6: 200 seeds x 3 and 4 columns x random column bottoms. Every column ends on the batch bottom, each frame sits exactly
+// one gap below what is above it in every column it covers (no holes, no filler frames), no band repeats in a column, and
+// the wide band spans two columns at least once in 20 seeds on a 4-column grid.
+const randomFrom = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+let wideSpanSeeds = 0;
+for (const columns of [3, 4]) {
+  for (let seed = 0; seed < 200; seed += 1) {
+    const random = randomFrom(seed * 7 + columns);
+    const bottoms = Array.from({ length: columns }, () => 100 + Math.round(random() * 300));
+    const boundaryBottom = 1_800 + Math.round(random() * 400);
+    const frames = createSkeletonFlowFrameLayout({ columnBottoms: bottoms, columns, cardWidth: 240, gap: 20,
+      boundaryBottom, ratios: wideConfig.ratios, seed: `t6-${columns}-${seed}` });
+    assert(frames.every(({ slot }) => !slot.startsWith("h")), "no hole filler frames exist");
+    if (columns === 4 && seed < 20 && frames.some(({ span }) => span === 2)) wideSpanSeeds += 1;
+    for (let column = 0; column < columns; column += 1) {
+      const own = frames.filter((frame) => column >= frame.column && column < frame.column + frame.span);
+      const label = `columns ${columns} seed ${seed} column ${column}`;
+      assert.equal(own.at(-1).top + own.at(-1).height, boundaryBottom, `${label} ends on the batch bottom`);
+      own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-6,
+        `${label}: frame ${frame.slot} leaves no hole above it`));
+      assert(own.slice(1).every((frame, index) => frame.band !== own[index].band), `${label} repeats a band in a row`);
+    }
+  }
+}
+assert(wideSpanSeeds > 0, "the wide band spans two columns for some of the first 20 seeds on a 4-column grid");
+// A related batch passes spanSkeleton false: no frame spans two columns, the wide band stays out.
+for (let seed = 0; seed < 20; seed += 1) {
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
+    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed: `related-${seed}`, spanSkeleton: false });
+  assert(frames.every(({ span, band }) => span === 1 && band !== "wide"), "a related batch has no two-column frame");
+}
+// Hai khung mỏng cuối cột không chặn nhau: cả hai cùng gộp vào khung phía trên (lỗi review #769).
+for (const boundaryBottom of [1_040, 1_200, 1_500]) {
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
+    boundaryBottom, ratios: wideConfig.ratios });
+  assert(frames.every(({ height }) => height >= 240 * 0.25), `no thin frame survives at batch bottom ${boundaryBottom}`);
+}
+const counted = createSkeletonFlowFrameLayout({ columnBottoms: [100, 100, 100, 100], columns: 4, cardWidth: 200, gap: 20,
+  boundaryBottom: 5_000, ...readSkeletonBatchConfig({ skeletonCount: "6" }) });
+assert.equal(counted.length, 6, "data-skeleton-count caps the batch at N frames");
 const mobileFrameLayout = createSkeletonFlowFrameLayout({
   columnBottoms: [100, 114], columns: 2, cardWidth: 220, gap: 15,
   boundaryBottom: 700,

@@ -165,7 +165,7 @@ async function recordState(page, engine, label, options = {}) {
   return record;
 }
 async function checkBody(page,engine,label,options={}) {
-  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only')),explicitHidden:Boolean(e.closest('[hidden]')),
+  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.advertising-tile__title')),explicitHidden:Boolean(e.closest('[hidden]')),
     inactivePhoto:Boolean(e.closest('.advertising-photo-view')&&!document.body.classList.contains('is-advertising-photo')),
     inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-advertising-grid-cta],.detail-process')&&document.body.classList.contains('is-advertising-photo')),
     silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
@@ -197,7 +197,7 @@ async function checkBody(page,engine,label,options={}) {
   }
 }
 async function checkMenu(page,engine,label) {
-  const state=()=>page.evaluate(()=>{const b=window.TruongThinhAdvertising?.getBrowseState();return{href:location.href,photo:b&&{category:b.category,photo:b.photo,tag:b.tag,seed:b.seed},length:history.length};});
+  const state=()=>page.evaluate(()=>{const b=window.TruongThinhMasonry?.getBrowseState();return{href:location.href,photo:b&&{category:b.category,photo:b.photo,tag:b.tag,seed:b.seed},length:history.length};});
   const before=await state();
   const opener=page.locator('[data-menu-open]');await opener.focus();await page.keyboard.press('Enter');
   await page.waitForFunction(()=>document.querySelector('#site-menu')?.open&&Number(getComputedStyle(document.querySelector('.menu-nav')).opacity)>.99);
@@ -249,7 +249,7 @@ async function checkDescriptionScroll(page,engine,label) {
   await recordState(page,engine,`${label}: description top`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
   await page.keyboard.press('End');await page.waitForTimeout(300);
   await recordState(page,engine,`${label}: description end`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
-  const state=await page.evaluate(()=>{const s=document.querySelector('[data-advertising-photo-description-scroll]');return {photo:window.TruongThinhAdvertising.getBrowseState().photo,locale:document.documentElement.lang,text:document.querySelector('[data-advertising-photo-description]').textContent,reached:s.scrollTop+s.clientHeight>=s.scrollHeight-1};});
+  const state=await page.evaluate(()=>{const s=document.querySelector('[data-advertising-photo-description-scroll]');return {photo:window.TruongThinhMasonry.getBrowseState().photo,locale:document.documentElement.lang,text:document.querySelector('[data-advertising-photo-description]').textContent,reached:s.scrollTop+s.clientHeight>=s.scrollHeight-1};});
   const card=ADVERTISING_CARDS.find(card=>card.id===state.photo),expected=state.locale==='en'?card.descriptionEn:card.descriptionVi;
   assert.equal(state.text.replace(/\s+/g,' ').trim(),expected.replace(/\s+/g,' ').trim(),'whole description is in the scroller');
   await saveRecord({kind:'description-scroll',engine,label,source:expected,faults:state.reached?[]:['description end unreachable by keyboard']});
@@ -379,7 +379,7 @@ async function runAboutHistory(browser,engine) {
       const after=await documentSnapshot(page);
       assert.notEqual(after.timeOrigin,before.timeOrigin,'About query route uses native navigation');
       assert.equal(after.length,before.length+1,'query route creates one history entry');
-      assert.equal(await page.evaluate(()=>window.TruongThinhAdvertising?.getBrowseState?.().category),'displays-booths','query category preserved');
+      assert.equal(await page.evaluate(()=>window.TruongThinhMasonry?.getBrowseState?.().category),'displays-booths','query category preserved');
       await saveRecord({kind:'about-query',engine,source,destination,before,after,faults:[]});
     }catch(error){await saveRecord({kind:'about-query',engine,source,destination,error:error.message});}
     finally{await context.close();}
@@ -422,7 +422,7 @@ async function runStates(browser,engine) {
       await checkCtaReflow(page,engine,`${locale}: ${textSize}px`);
       for(const category of ['all',...ADVERTISING_CATEGORIES.map(({slug})=>slug)]) {
         await page.locator(`[data-advertising-filter="${category}"]`).click();
-        await page.waitForFunction(category=>window.TruongThinhAdvertising?.getBrowseState().category===category,category);
+        await page.waitForFunction(category=>window.TruongThinhMasonry?.getBrowseState().category===category,category);
         await recordState(page,engine,`${locale}: category ${category}`);
         await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));
         await recordState(page,engine,`${locale}: category ${category} first grid`,{selector:bodySelector,viewportOnly:true});
@@ -432,29 +432,29 @@ async function runStates(browser,engine) {
       await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));await ready(page);
       await page.locator('[data-advertising-card] a').first().focus();
       await page.locator('[data-advertising-card] a').first().click();
-      await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising?.getBrowseState().photo));
+      await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry?.getBrowseState().photo));
       await recordState(page,engine,`${locale}: photo`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active first photo body`);
       await checkDescriptionScroll(page,engine,`${locale}: first photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
-      await page.locator('[data-advertising-suggestion-tag]').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().tag));
+      await page.locator('[data-advertising-suggestion-tag]').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().tag));
       await recordState(page,engine,`${locale}: tag`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active tag body`);
       await checkDescriptionScroll(page,engine,`${locale}: tag photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
-      const tagged=await page.evaluate(()=>window.TruongThinhAdvertising.getBrowseState());
+      const tagged=await page.evaluate(()=>window.TruongThinhMasonry.getBrowseState());
       const tagPool=ADVERTISING_CARDS.filter(card=>card.id!==tagged.photo&&card.tagIds?.includes(tagged.tag));
       if(!tagPool.length) {
         assert.equal(await page.locator('[data-advertising-related-card]:visible').count(),0,'unique-photo tag has no related photos');
         await saveRecord({kind:'empty-tag',engine,label:`${locale}: unique tag`,photo:tagged.photo,tag:tagged.tag,expected:[],faults:[]});
         await page.locator('[data-advertising-suggestion-tag][aria-pressed="true"]').click();
-        await page.waitForFunction(()=>window.TruongThinhAdvertising.getBrowseState().tag===null);
+        await page.waitForFunction(()=>window.TruongThinhMasonry.getBrowseState().tag===null);
         await recordState(page,engine,`${locale}: clear unique tag`,{selector:bodySelector,viewportOnly:true});
       }
-      const priorPhoto=await page.evaluate(()=>window.TruongThinhAdvertising.getBrowseState().photo);
+      const priorPhoto=await page.evaluate(()=>window.TruongThinhMasonry.getBrowseState().photo);
       await page.evaluate(()=>{const grid=document.querySelector('[data-advertising-photo-related-grid]'),primary=document.querySelector('[data-advertising-photo-primary]');window.scrollTo({top:grid.getBoundingClientRect().top+scrollY+primary.offsetHeight,behavior:'instant'});});await ready(page);
       await page.locator('[data-advertising-related-card] > a').first().click();
-      await page.waitForFunction(prior=>window.TruongThinhAdvertising.getBrowseState().photo!==prior,priorPhoto);
+      await page.waitForFunction(prior=>window.TruongThinhMasonry.getBrowseState().photo!==prior,priorPhoto);
       await recordState(page,engine,`${locale}: related photo`,{selector:bodySelector,viewportOnly:true});
       const detailURL=page.url();
       await checkBody(page,engine,`${locale}: active related photo body`);
@@ -467,8 +467,8 @@ async function runStates(browser,engine) {
       await page.waitForFunction(()=>document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState==='open');
       await checkControls(page,engine,`${locale}: viewer`,'#advertising-photo-dialog button');
       const viewerURL=page.url();await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#advertising-photo-dialog').open);assert.equal(page.url(),viewerURL,'viewer Escape preserves photo URL');
-      await page.goBack();await page.waitForFunction(prior=>window.TruongThinhAdvertising.getBrowseState().photo===prior,priorPhoto);
-      await recordState(page,engine,`${locale}: Back prior photo`,{selector:bodySelector,viewportOnly:true});await page.goForward();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
+      await page.goBack();await page.waitForFunction(prior=>window.TruongThinhMasonry.getBrowseState().photo===prior,priorPhoto);
+      await recordState(page,engine,`${locale}: Back prior photo`,{selector:bodySelector,viewportOnly:true});await page.goForward();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().photo));
       assert.equal(page.url(),detailURL,'Forward restores detail URL');await recordState(page,engine,`${locale}: Forward photo`,{selector:bodySelector,viewportOnly:true});
       await page.reload({waitUntil:'networkidle'});await recordState(page,engine,`${locale}: photo reload`,{selector:bodySelector,viewportOnly:true});
       await checkMenu(page,engine,`${locale}: photo menu`);
@@ -478,11 +478,11 @@ async function runStates(browser,engine) {
       await page.waitForURL(url=>url.pathname.startsWith(locale==='vi'?'/en/':'/vi/'));assert.equal(new URL(page.url()).search,query,'photo locale preserves category/photo/tag query');await recordState(page,engine,`${locale}: photo locale`,{selector:bodySelector,viewportOnly:true});
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu .menu-group__title[href="/${locale==='vi'?'en':'vi'}/advertising-products/"]`).click();
-      await page.waitForFunction(()=>!window.TruongThinhAdvertising.getBrowseState().photo);
+      await page.waitForFunction(()=>!window.TruongThinhMasonry.getBrowseState().photo);
       await recordState(page,engine,`${locale}: return grid`,{selector:bodySelector,viewportOnly:true});
       const gridURL=page.url();await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));await ready(page);
-      await page.locator('[data-advertising-card] a').first().focus();await page.locator('[data-advertising-card] a').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
-      await page.keyboard.press('Escape');await page.waitForFunction(()=>!window.TruongThinhAdvertising.getBrowseState().photo);assert.equal(page.url(),gridURL,'photo Escape returns preceding grid');
+      await page.locator('[data-advertising-card] a').first().focus();await page.locator('[data-advertising-card] a').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().photo));
+      await page.keyboard.press('Escape');await page.waitForFunction(()=>!window.TruongThinhMasonry.getBrowseState().photo);assert.equal(page.url(),gridURL,'photo Escape returns preceding grid');
       if(issues.length)throw Error(issues.join('\n'));
     }catch(e){await saveRecord({kind:'state',engine,label:`${locale}: advertising interaction`,error:e.message,issues:[...issues],measured:await page.evaluate(measure)});await page.screenshot({path:path.join(dir,`${engine}-${locale}-interaction-error-${results.length}.png`)});}
     issues.length=0;
@@ -503,7 +503,9 @@ async function runStates(browser,engine) {
       const locale=route.startsWith('/vi/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
       await page.waitForURL(url=>url.pathname===route.replace(/^\/(vi|en)\//,`/${locale}/`));await recordState(page,engine,`history locale ${route}`);
       assert.equal(new URL(page.url()).search,original.search,'locale preserves search');assert.equal(new URL(page.url()).hash,'','locale clears hash');assert.equal(await page.evaluate(()=>document.documentElement.lang),locale,'DOM locale updates');
-      assert.deepEqual(await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin,index:window.barba?.history?.current?.index??window.barba?.history?.i??null})),historyBefore,'locale replaces current history entry in same document');
+      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): document mới, không thêm entry history.
+      const historyAfter=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin}));
+      assert.equal(historyAfter.length,historyBefore.length,'locale replaces the current history entry');assert.notEqual(historyAfter.timeOrigin,historyBefore.timeOrigin,'locale reloads the page like F5');
       await page.waitForFunction(()=>!document.querySelector('#site-menu').open);
       const localized=page.url(),destination=`/${locale}/${route.includes('/residential/')?'commercial':'residential'}/`;
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);

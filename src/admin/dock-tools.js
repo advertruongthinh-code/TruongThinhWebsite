@@ -1,6 +1,6 @@
-// Bổ sung cho dock Dockview MIT (cms-editor R11): ghim tab, lịch sử bố cục (undo/redo), mép tự ẩn và kéo panel ra
-// mép. Tự viết trên API công khai của `dockview` 8.8 (edge group, collapse, moveTo, toJSON/fromJSON); không dùng hay
-// mở khóa module của `dockview-enterprise`.
+// Extras for the MIT Dockview dock (cms-editor R11): tab pinning, layout history (undo/redo), auto-hide edges and dragging panels to
+// an edge. Self-written on the public `dockview` 8.8 API (edge group, collapse, moveTo, toJSON/fromJSON); does not use or
+// unlock any module of `dockview-enterprise`.
 
 const EDGES = ["left", "right", "bottom"];
 const HISTORY_DEPTH = 25;
@@ -22,7 +22,7 @@ const icon = (path) => {
 };
 const CLOSE_ICON = '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" fill="none"/>';
 const PIN_ICON = '<path d="M9.5 1.5l5 5-1.4.6-2.6 2.6.3 3-1.3 1.3-3-3-3.5 3.5-.7-.7 3.5-3.5-3-3L4.1 5.2l3 .3 2.6-2.6z" fill="currentColor"/>';
-// Mũi tên chỉ về phía mép mà nhóm sẽ thu vào.
+// The arrow points toward the edge the group will collapse into.
 const COLLAPSE_ICON = {
   left: '<path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
   right: '<path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -30,7 +30,7 @@ const COLLAPSE_ICON = {
 };
 const isPinned = (panel) => Boolean(panel?.params?.pinned);
 
-// Tab tự vẽ theo DOM tab mặc định (`dv-default-tab`) để giữ style theme; tab ghim có biểu tượng ghim thay nút đóng.
+// Custom tab modeled on the default tab DOM (`dv-default-tab`) to keep theme styling; a pinned tab has a pin icon instead of the close button.
 class Tab {
   constructor() {
     this.title = el("div", "dv-default-tab-content");
@@ -70,7 +70,7 @@ class Tab {
   }
 }
 
-// Đổi trạng thái ghim lưu trong `params` để `toJSON()` giữ lại; sắp xếp nhóm được làm khi params đổi.
+// Switch the pin state stored in `params` so `toJSON()` keeps it; group sorting runs when params change.
 function setPinned(api, pinned) {
   api.updateParameters({ pinned: pinned || undefined });
 }
@@ -82,7 +82,7 @@ export function dockOptions() {
 export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) {
   // ---------- Ghim tab ----------
   let sorting = false;
-  // Tab ghim luôn đứng đầu nhóm; tab thường kéo lên trước tab ghim sẽ bị đẩy về sau khối ghim.
+  // Pinned tabs always sit at the group start; a regular tab dragged before a pinned tab is pushed back after the pinned block.
   function sortGroup(group) {
     if (sorting || !group) return;
     const order = [...group.panels.filter(isPinned), ...group.panels.filter((panel) => !isPinned(panel))];
@@ -107,7 +107,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     if (panel) setPinned(panel.api, !isPinned(panel));
   }
 
-  // Menu chuột phải trên tab: ghim, bỏ ghim, đóng.
+  // Right-click menu on a tab: pin, unpin, close.
   const menu = el("div", "dock-menu");
   menu.hidden = true;
   menu.setAttribute("role", "menu");
@@ -136,8 +136,8 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   });
   document.addEventListener("pointerdown", (event) => { if (!menu.contains(event.target)) hideMenu(); });
 
-  // ---------- Lịch sử bố cục ----------
-  // Mỗi bước là ảnh chụp `toJSON()`; so sánh bỏ qua nhóm và tab đang chọn để bấm qua lại tab không tạo bước.
+  // ---------- Layout history ----------
+  // Each step is a `toJSON()` snapshot; comparison ignores the active group and tab so switching tabs back and forth adds no step.
   const undoStack = [];
   const redoStack = [];
   const keyOf = (json) => JSON.stringify(json, (key, value) => (key === "activeGroup" || key === "activeView" ? undefined : value));
@@ -160,7 +160,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     current = next;
     notify();
   }
-  // Thu, mở nhóm mép không phát `onDidLayoutChange` trong Dockview 8.8; gộp hai nguồn thành một tín hiệu đổi bố cục.
+  // Collapsing or expanding an edge group does not fire `onDidLayoutChange` in Dockview 8.8; merge both sources into one layout-change signal.
   const layoutListeners = new Set();
   const layoutChanged = () => layoutListeners.forEach((listener) => listener());
   dock.onDidLayoutChange(layoutChanged);
@@ -171,7 +171,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     clearTimeout(timer);
     timer = setTimeout(record, HISTORY_MERGE_MS);
   });
-  // Đổi cỡ cửa sổ làm đổi kích thước mọi panel; không tính là một bước.
+  // Resizing the window resizes every panel; it does not count as a step.
   window.addEventListener("resize", () => { quietUntil = Date.now() + HISTORY_MERGE_MS * 2; });
 
   function restore(from, to) {
@@ -188,7 +188,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   const undo = () => restore(undoStack, redoStack);
   const redo = () => restore(redoStack, undoStack);
 
-  // ---------- Mép tự ẩn: bấm tab ở dải mép để trượt panel ra, ghim để mở hẳn ----------
+  // ---------- Auto-hide edge: click a tab in the edge strip to slide the panel out, pin to open it fully ----------
   const peek = { box: el("div", "dock-peek"), panel: null, home: null };
   const peekTitle = el("strong", "dock-peek__title");
   const pinButton = el("button", "dock-peek__button", "Ghim");
@@ -230,7 +230,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   function hidePeek() {
     if (!peek.panel) return;
     const { parent, next, content } = peek.home;
-    // Panel không phải tab đang mở của nhóm thì Dockview chưa gắn nội dung; gỡ ra để Dockview tự gắn khi cần.
+    // If the panel is not the group's active tab Dockview has not attached its content; detach it so Dockview attaches it when needed.
     if (parent?.isConnected) parent.insertBefore(content, next?.parentNode === parent ? next : null);
     else content.remove();
     peek.panel = null;
@@ -250,8 +250,8 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     panel?.api.close();
   });
 
-  // Dockview MIT mở hẳn nhóm khi bấm tab ở dải thu gọn; chặn ở pha capture để thay bằng trượt ra tạm (peek), dải
-  // vẫn thu gọn nên lưới không đổi. Kéo tab (dragstart) không bị chặn.
+  // MIT Dockview fully opens the group when a tab in the collapsed strip is clicked; block it in the capture phase and replace it with a temporary slide-out (peek), the strip
+  // stays collapsed so the grid does not change. Dragging a tab (dragstart) is not blocked.
   const stripTab = (event) => event.button === 0 && event.target.closest?.(".dv-edge-collapsed .dv-tab[data-tab-panel-id]");
   for (const type of ["pointerdown", "mousedown"]) {
     root.addEventListener(type, (event) => { if (stripTab(event)) event.stopPropagation(); }, true);
@@ -273,7 +273,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     if (event.key === "Escape") { hidePeek(); hideMenu(); }
   });
 
-  // Nút trên header nhóm mép đang mở: thu lại thành dải tự ẩn.
+  // Button on the header of an open edge group: collapse it back into an auto-hide strip.
   const headerSyncs = new Set();
   layoutListeners.add(() => later(() => headerSyncs.forEach((sync) => sync())));
   function headerActions(group) {
@@ -304,7 +304,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     };
   }
 
-  // ---------- Kéo panel ra mép để tạo nhóm mép (thu gọn) ----------
+  // ---------- Drag a panel to an edge to create an edge group (collapsed) ----------
   const bands = EDGES.map((position) => {
     const band = el("div", `dock-band dock-band--${position}`);
     band.hidden = true;
@@ -332,7 +332,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   dock.onWillDragPanel(({ panel }) => {
     hidePeek();
     dragged = panel;
-    // Hiện dải sau khi trình duyệt chụp ảnh kéo, tránh dải lọt vào ảnh.
+    // Show the strip after the browser captures the drag image, so the strip does not end up in the image.
     later(() => { if (dragged) bands.forEach((band) => { band.hidden = false; }); });
   });
   document.addEventListener("dragend", endDrag, true);
@@ -347,7 +347,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     if (panel.group !== group) panel.api.moveTo({ group, position: "center" });
   }
 
-  // Nhóm mép rỗng thì gỡ hẳn, mép không chiếm chỗ tới lần kéo sau.
+  // Remove an empty edge group entirely so the edge takes no space until the next drag.
   const dropEmptyEdges = () => later(() => {
     for (const position of EDGES) {
       const group = dock.groups.find((item) => edgeOf(item) === position);
@@ -357,13 +357,13 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   dock.onDidRemovePanel(dropEmptyEdges);
   dock.onDidMovePanel(dropEmptyEdges);
 
-  // Mở một panel nằm trong dải thu gọn thì trượt nó ra thay vì chỉ đổi tab ẩn.
+  // Opening a panel that sits in a collapsed strip slides it out instead of only changing the hidden tab.
   function reveal(panel) {
     if (edgeOf(panel.group) && panel.group.api.isCollapsed()) showPeek(panel);
     else panel.api.setActive();
   }
 
-  // Phím tắt: Ctrl+Alt+Z hoàn tác bố cục, Ctrl+Alt+Y hoặc Ctrl+Alt+Shift+Z làm lại, Ctrl+Shift+Enter ghim tab đang mở.
+  // Shortcuts: Ctrl+Alt+Z undoes the layout, Ctrl+Alt+Y or Ctrl+Alt+Shift+Z redoes, Ctrl+Shift+Enter pins the active tab.
   document.addEventListener("keydown", (event) => {
     if (!event.ctrlKey && !event.metaKey) return;
     const key = event.key.toLowerCase();

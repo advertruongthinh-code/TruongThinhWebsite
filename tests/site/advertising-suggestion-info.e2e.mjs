@@ -63,9 +63,9 @@ try {
 }
 const historyPage = await browser.newPage({ viewport: { width: 820, height: 1180 } });
 await historyPage.goto(`${baseUrl}/en/advertising-products/`, { waitUntil: "networkidle" });
-await historyPage.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.());
+await historyPage.waitForFunction(() => window.TruongThinhMasonry?.getBrowseState?.());
 const browseState = () => historyPage.evaluate(() => {
-  const browse = window.TruongThinhAdvertising.getBrowseState();
+  const browse = window.TruongThinhMasonry.getBrowseState();
   return {
     photo: browse.photo,
     tag: browse.tag,
@@ -78,29 +78,29 @@ const browseState = () => historyPage.evaluate(() => {
 const firstCard = historyPage.locator("[data-advertising-card]:not(:has(.advertising-card-media--carousel)) > a").first();
 const openedId = await firstCard.evaluate((node) => node.parentElement.dataset.advertisingCard);
 await firstCard.click();
-await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
+await historyPage.waitForFunction((photo) => window.TruongThinhMasonry.getBrowseState().photo === photo, openedId);
 const opened = await browseState();
 assert.deepEqual({ photo: opened.photo, tag: opened.tag, pressed: opened.pressed }, { photo: openedId, tag: null, pressed: [] }, "native photo open records its browse state");
 assert.equal((new URL(opened.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), openedId, "native photo open writes the photo URL");
 const related = historyPage.locator("[data-advertising-related-card] > a").first();
 const relatedPhoto = await related.evaluate((node) => node.closest("[data-advertising-related-card]").dataset.advertisingRelatedCard);
 await related.click();
-await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, relatedPhoto);
+await historyPage.waitForFunction((photo) => window.TruongThinhMasonry.getBrowseState().photo === photo, relatedPhoto);
 const selected = historyPage.locator('[data-advertising-suggestion-tag]:not([aria-pressed="true"])').first();
 const selectedTag = await selected.getAttribute("data-advertising-suggestion-tag");
 await selected.click();
-await historyPage.waitForFunction((tag) => window.TruongThinhAdvertising.getBrowseState().tag === tag, selectedTag);
+await historyPage.waitForFunction((tag) => window.TruongThinhMasonry.getBrowseState().tag === tag, selectedTag);
 const tagged = await browseState();
 assert.deepEqual({ photo: tagged.photo, tag: tagged.tag, pressed: tagged.pressed }, { photo: relatedPhoto, tag: selectedTag, pressed: [selectedTag] }, "tag replacement preserves the current related photo and pressed toggle");
 await historyPage.locator(`[data-advertising-suggestion-tag="${selectedTag}"][aria-pressed="true"]`).press("Enter");
-await historyPage.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().tag === null);
+await historyPage.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().tag === null);
 await historyPage.goBack({ waitUntil: "networkidle" });
-await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
+await historyPage.waitForFunction((photo) => window.TruongThinhMasonry.getBrowseState().photo === photo, openedId);
 const back = await browseState();
 assert.deepEqual({ photo: back.photo, tag: back.tag, pressed: back.pressed }, { photo: openedId, tag: null, pressed: [] }, "Back restores the opened photo state after replacement");
 assert.equal((new URL(back.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), openedId, "Back restores the opened photo URL");
 await historyPage.goForward({ waitUntil: "networkidle" });
-await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, relatedPhoto);
+await historyPage.waitForFunction((photo) => window.TruongThinhMasonry.getBrowseState().photo === photo, relatedPhoto);
 const forward = await browseState();
 assert.deepEqual({ photo: forward.photo, tag: forward.tag, pressed: forward.pressed }, { photo: relatedPhoto, tag: null, pressed: [] }, "Forward restores the related photo after tag replacement");
 assert.equal((new URL(forward.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), relatedPhoto, "Forward restores the related photo URL");

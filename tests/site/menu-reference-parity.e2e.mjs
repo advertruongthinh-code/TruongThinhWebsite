@@ -19,7 +19,7 @@ try {
     await page.locator('#site-menu[open].is-active').waitFor();
     for (const width of widths) {
       await page.setViewportSize({ width, height: 910 });
-      // Headless Chromium có thể áp style media query mới sau resize một hai frame.
+      // Headless Chromium may apply the new media query style a frame or two after resize.
       await page.waitForTimeout(100);
       await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
       const m = await page.evaluate(() => {
@@ -39,7 +39,7 @@ try {
       near(m.logo.h, width > 1200 ? 67.515625 : 59.578125, 'logo height');
       near(m.logo.x, gutter, 'logo left'); near(m.logo.y, gutter, 'logo top');
       near(m.close.right, width - gutter + 10, 'close right');
-      assert.equal(m.columns, width <= 578 ? 1 : width <= 960 ? 2 : width <= 1200 ? 3 : 4);
+      assert.equal(m.columns, width <= 578 ? 1 : width <= 960 ? 2 : 3);
       assert.equal(m.title, '28.8px'); assert.equal(m.overflow, false, `${locale}/${width} overflow`);
       assert.ok(m.navBottom <= 911, 'menu scroll area inside viewport');
       if (width <= 578) { assert.notEqual(m.label, 'none'); assert.ok(m.cta.y > m.lang.y + m.lang.h - 1); }

@@ -1,8 +1,8 @@
 import {
-  ADVERTISING_LAYOUT_ALGORITHM_VERSION,
-  compileAdvertisingProductLayout as compileLayout,
-  scheduleAdvertisingRank,
-} from "./layout-core.mjs";
+  MASONRY_LAYOUT_VERSION,
+  compileMasonryLayout as compileLayout,
+  scheduleRank,
+} from "../masonry/layout.mjs";
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
@@ -213,7 +213,7 @@ function compileCards(cards, categories) {
   const categoryOrder = categories.map((entry) => entry.slug);
   // sourceOrder của manifest đếm theo nhóm cũ; đánh lại theo cụm, giữ thứ tự manifest.
   const nextSourceOrder = new Map();
-  return scheduleAdvertisingRank(cards.map(selectCardMedia).map((card) => {
+  return scheduleRank(cards.map(selectCardMedia).map((card) => {
     const sourceOrder = nextSourceOrder.get(card.category) ?? 0;
     nextSourceOrder.set(card.category, sourceOrder + 1);
     return { ...card, sourceOrder };
@@ -232,6 +232,8 @@ export const ADVERTISING_CARDS = deepFreeze(compileCards(SOURCE_ADVERTISING_CARD
 export const ADVERTISING_ROOT_PAGE = deepFreeze({
   filter: "all", vi: "", en: "", labelVi: "Sản phẩm quảng cáo", labelEn: "Advertising products",
   titleVi: "Sản phẩm Quảng cáo — Trường Thịnh", titleEn: "Advertising products — Trường Thịnh",
+  // Kicker hero của trang gốc khác tên trang (owner 2026-11-08); trang cụm, trang sản phẩm vẫn lấy kicker từ labelVi, labelEn.
+  kickerVi: "Sản phẩm tiêu biểu", kickerEn: "Our featured products",
 });
 // Trang tĩnh cụm và sản phẩm (taxonomy R4); sản phẩm dưới ngưỡng trang mỏng không có trang (R5).
 // vi, en là path sau /<locale>/advertising-products/; filter là id cụm hoặc id sản phẩm.
@@ -307,7 +309,7 @@ export function buildAdvertisingArtifact(options = {}) {
   const compiledCards = compileCards(cards, categories);
   return deepFreeze({
     datasetVersion: ADVERTISING_DATASET_VERSION,
-    layoutAlgorithmVersion: ADVERTISING_LAYOUT_ALGORITHM_VERSION,
+    layoutAlgorithmVersion: MASONRY_LAYOUT_VERSION,
     settings,
     tagRegistry: ARTIFACT_TAG_REGISTRY,
     categories,
@@ -315,7 +317,8 @@ export function buildAdvertisingArtifact(options = {}) {
     products: ADVERTISING_PRODUCTS,
     // Trang gốc (filter "all", path rỗng) cùng trang cụm, sản phẩm: runtime đổi path, title và kicker theo filter.
     pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES, ...QUERY_PAGES]
-      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query }) => ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query })),
+      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn }) =>
+        ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query, kickerVi, kickerEn })),
     cards: attachRelated(compiledCards),
   });
 }

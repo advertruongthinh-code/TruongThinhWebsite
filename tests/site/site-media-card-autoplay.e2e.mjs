@@ -57,7 +57,7 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(playlist));
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.waitForFunction(() => document.querySelectorAll("[data-advertising-card] video").length >= 4);
   // Intro hero và smooth scroll cần mount xong mới nhận wheel.
   await page.waitForTimeout(2500);
@@ -239,9 +239,9 @@ test("R4 reduced motion: no autoplay on scroll, hover still plays", async () => 
   } finally { await browser.close(); }
 });
 
-// Card và detail giữ đúng media và giây video khi đi qua lại (owner 2026-10-18): card sang detail, Back về masonry,
-// đổi ngôn ngữ trong detail.
-test("R4 desktop: the viewed media and video time carry from card to detail, back to masonry, and across locale", async () => {
+// Card và detail giữ đúng media và giây video khi đi qua lại (owner 2026-10-18): card sang detail, Back về masonry.
+// Đổi ngôn ngữ tải lại trang như F5 (owner 2026-11-08) nên không còn giữ media, giây.
+test("R4 desktop: the viewed media and video time carry from card to detail and back to masonry", async () => {
   const { browser, page } = await open({ playlist: true });
   const detail = () => page.evaluate(() => {
     const view = document.querySelector("[data-advertising-photo-view]");
@@ -293,14 +293,5 @@ test("R4 desktop: the viewed media and video time carry from card to detail, bac
     assert.equal(state.mediaId, `${id}-autoplay-video-2`, "Back leaves the card on the media viewed in detail");
     assert(state.time >= 1.9, `the card video resumes from the detail time: ${state.time}`);
 
-    await seekCard(id, 1.5);
-    await openCard(id);
-    await seekDetail(1.5);
-    await page.locator("[data-menu-open]").click();
-    await page.locator('[data-language-option="en"]').first().click();
-    await page.waitForFunction(() => document.documentElement.lang === "en");
-    state = await detail();
-    assert.equal(state.mediaId, `${id}-autoplay-video-2`, "locale change keeps the media");
-    assert(state.time >= 1.45 && state.time < 3, `locale change keeps the video time: ${state.time}`);
   } finally { await browser.close(); }
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { planDetourPath, segmentCrossesBox } from "../../src/site/advertising-products/detour-path.mjs";
+import { planAroundPinned, planDetourPath, segmentCrossesBox } from "../../src/site/masonry/detour-path.mjs";
 
 // Fixture cố định: primary 3 cột ở 1569px, card một cột.
 const zone = { width: 1140, height: 640 };
@@ -69,4 +69,31 @@ test("segmentCrossesBox: chạm mép không tính, đi xuyên thì tính", () =>
 test("điểm đầu trong vùng cấm hoặc from === to thì trả null, không ném lỗi", () => {
   assert.equal(planDetourPath({ from: { x: 400, y: 200 }, to: belowMid, size, zone }), null);
   assert.equal(planDetourPath({ from: besideTop, to: besideTop, size, zone }), null);
+});
+
+test("vùng cấm lệch gốc (suggestion ghim dưới primary): góc tính trong tọa độ grid", () => {
+  const origin = { x: 0, y: 500 };
+  const suggestion = { width: 170, height: 260 };
+  const card = { width: 170, height: 200 };
+  const beside = { x: 186, y: 500 };
+  const below = { x: 0, y: 776 };
+  const plan = planDetourPath({ from: beside, to: below, size: card, zone: suggestion, origin });
+  assert.deepEqual(plan.corner, { x: beside.x, y: below.y });
+  assert.equal(planDetourPath({ from: below, to: { x: 0, y: 1000 }, size: card, zone: suggestion, origin }), null);
+});
+
+// Một bộ luật cho mọi item ghim (masonry-reuse bước 6): card related và khung batch CTA cùng gọi planAroundPinned.
+test("item ghim: điểm đầu trong primary rồi trong suggestion dời xuống dưới cả hai; đi vòng hộp đầu tiên cắt", () => {
+  const primary = { x: 0, y: 0, width: 356, height: 500 };
+  const suggestion = { x: 0, y: 516, width: 170, height: 260 };
+  const card = { width: 170, height: 200 };
+  // Primary lớn lên đè chỗ cũ: xuất phát dưới primary, rơi vào suggestion nên dời tiếp xuống dưới suggestion.
+  const pushed = planAroundPinned({ from: { x: 0, y: 300 }, to: { x: 0, y: 1200 }, size: card, pinned: [primary, suggestion], gap: 16 });
+  assert.deepEqual(pushed.from, { x: 0, y: 792 });
+  assert.equal(pushed.plan, null);
+  // Bên cạnh primary xuống dưới suggestion: đi vòng primary trước (thứ tự danh sách).
+  const around = planAroundPinned({ from: { x: 372, y: 0 }, to: { x: 0, y: 792 }, size: card, pinned: [primary, suggestion], gap: 16 });
+  assert.deepEqual(around.plan.corner, { x: 372, y: 792 });
+  // Không có item ghim nào: đi thẳng.
+  assert.equal(planAroundPinned({ from: { x: 372, y: 0 }, to: { x: 0, y: 792 }, size: card, pinned: [] }).plan, null);
 });

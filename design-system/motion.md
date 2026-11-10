@@ -28,9 +28,9 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 
 | Motion | Thông số | Bề mặt UI |
 | --- | --- | --- |
-| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px). Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
+| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), neo trái theo chữ. Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
 | Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Project reel](components/ProjectReel/README.md), portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
-| Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`suggestion-slideshow.mjs`) |
+| Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`masonry/suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005` | [Hero](components/Hero/README.md) About (`data-motion-hero-media`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
 | Kính reveal | Năm bậc trong `0.6s`, chỉ opacity | [Media card](components/MediaCard/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md) ([Kính](components/Glass/README.md)) |
@@ -50,11 +50,11 @@ zoom, pan, vuốt đóng ([Viewer](components/Viewer/README.md)); trượt vào 
 | Chuyển động | Thông số |
 | --- | --- |
 | Header intro | Chỉ khi tải trực tiếp: lockup `scale 0 → 1` `1.5s power4.out`; mục nav `y -150 → 0` `1.5s power4.out`, stagger 0.1, tại 0.3s; hamburger `scaleX 0 → 1` `1s power4.out` tại 1.5s. Vào bằng route mềm thì không chạy lại |
-| Header collapse | Khi `scrollY > 100`. Transform `1s cubic-bezier(0, 0, .1, .99)`; padding, nền, viền, màu `0.3s ease-out` |
-| Đổi tone header | Chữ nav và nét hamburger đổi màu cùng lúc `0.3s expo.out` theo `data-header-tone` của section dưới header |
+| Header collapse | Khi `scrollY > 100`. Một nhịp ([Brand Motion](brand.md#motion)): lockup FLIP scale, nav và icon menu trượt bằng `translateY`, nền co bằng `translateY` của `::before`, cùng `0.3s expo.out` (`cubic-bezier(.16, 1, .3, 1)`); thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade, nền bắt đầu ở cao cũ rồi co cùng logo, mark lật `0.68s` cùng lúc; mở ra: mark lật ngay, nền trắng, viền và chữ đậm giữ, nền giãn cùng logo, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng (owner 2026-11-09); cỡ lớn nhất của nền là lúc logo lớn nhất cách đều cạnh trên và cạnh dưới nền. Padding đổi ngay (không transition layout). Transform ẩn/hiện `1s cubic-bezier(0, 0, .1, .99)` |
+| Đổi tone header | Chữ logo, nav và nét hamburger đổi màu ngay, không motion, cùng frame nền header đổi, theo `data-header-tone` của section dưới header ([Brand Motion](brand.md#motion), owner 2026-11-09); chuyển trang cũng đổi ngay: sang đậm lúc veil phủ kín, sang tone trang đích lúc veil bắt đầu mở ([logo đổi màu](../docs/specs/logo-route-crossfade.md)) |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay. Điện thoại cảm ứng (cạnh ngắn tối đa 750px): header lệch đúng bằng quãng cuộn, không transition, dừng thì giữ nguyên ([spec](../docs/specs/phone-header-scroll.md)) |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
-| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000, trừ lúc vào thẳng trang). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; cụm logo header luôn hiện trên veil, mark tween sang `#2f2f2f` lúc bấm và về màu trang đích lúc veil mở, `0.3s` cùng chữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); body có `is-transitioning` trong lúc chuyển |
+| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000, trừ lúc vào thẳng trang). Cover `0.75s power4.inOut`, giữ phủ kín ít nhất `1s` (owner 2026-11-09, kể cả trang có trong cache), uncover `1s power4.inOut`; lúc bấm header hiện ngay (bỏ `is-hidden`, không transition) và ghim lại, chữ và mark giữ màu; trang đích mount dưới veil, header về trạng thái theo vị trí cuộn của trang đích (thường là mở ra) bằng FLIP `0.3s expo.out` như khi cuộn, chạy trên veil; cụm logo header luôn hiện trên veil; veil phủ kín thì chữ đổi ngay sang đậm, mark lật sang CMYK; veil bắt đầu mở thì chữ đổi ngay, mark lật sang màu trang đích ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); body có `is-transitioning` trong lúc chuyển |
 | Vào thẳng trang | F5, gõ link, mở link từ ứng dụng khác, Back/Forward không qua bfcache: veil phủ cả trang lẫn header từ khung hình đầu; trang dựng xong thì uncover `1s power4.inOut`, header intro chạy khi veil tan và kết thúc đúng trạng thái theo vị trí cuộn (quá 100px thì thu gọn), entrance của trang chạy tiếp. Mạng chậm giữ veil tới khi trang dựng xong; script motion lỗi thì gỡ veil ngay, không motion. Back từ bfcache và reduced motion không có veil |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; menu đóng khi veil phủ kín và chữ menu đã reverse xong, không chờ shutter (trùng màu veil) và page scale; URL chỉ commit khi cả hai xong |
 | Gạch chân nav, footer, menu | [Gạch chân chạy](#motion-theo-bề-mặt-ui); mục Advertising ở trang detail không gạch chân khi nghỉ |
@@ -94,25 +94,25 @@ trượt `margin-bottom 0.4s ease-out`
 
 ### Lockup header
 
-Intro, FLIP scale `300ms expo.out` (điện thoại không chạy vì header đầu trang và thu gọn cùng cỡ), tone cụm chữ và bốn dải màu mọc lên của
+Intro, FLIP scale `300ms expo.out` (điện thoại không chạy vì header đầu trang và thu gọn cùng cỡ), tone cụm chữ và bốn dải màu lật của
 mark ở [Brand guideline](brand.md#motion).
 
 ### Full menu
 
-Timeline GSAP mở trong `motion.js`. Cột thời điểm là vị trí trong timeline;
+Timeline GSAP mở trong `motion.js`, dựng một lần rồi chạy lại mỗi lần mở. Cột thời điểm là vị trí trong timeline;
 timeline chạy `timeScale 1.15` nên giây thật bằng vị trí chia 1.15 (shutter
 phủ xong khoảng 0.91s). Chữ chỉ hiện sau khi shutter phủ xong.
 
 | Phần | Thông số |
 | --- | --- |
-| Shutter | `height 0 → 100vh`, `0.6s power4.inOut`, stagger `0.15`; 4/3/2/1 cột ở mặc định, 1200, 960, 578px |
+| Shutter | `height 0 → 100vh`, `0.6s power4.inOut`, stagger `0.15`; 3/2/1 cột ở mặc định, 960, 578px |
 | Nav menu | opacity `0 → 1`, `0.6s`, tại `1.05s` |
 | Nhóm link | `y -140 → 0`, opacity `0 → 1`, `1s expo.out`, stagger `0.02`, tại `1.1s` |
 | Brand, locale, CTA hẹn | `y -140` (brand) hoặc `-20`, `0.6s expo.out`, tại `1.15s`; mark có màu CMYK ngay từ frame đầu |
 | Mục con | `y -20 → 0`, `0.6s expo.out`, stagger `0.03`, tại `1.35s` |
 | Nút đóng | opacity `0 → 1`, rotate `90° → 0`, `0.6s expo.out`, tại `1.4s` |
-| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin `50vw 50vh`, ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
-| Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3, 1.5s |
+| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin là giữa màn hình (đo theo vị trí từng child lúc mở, kể cả khi đã cuộn sâu), ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
+| Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3s theo cột |
 
 ## Text
 
@@ -162,6 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
+| Card masonry (chính, related, Công trình) | Không zoom; chuột thật: lớp tối `media-shade-card` và tên card hiện cùng lúc, không motion; cảm ứng: không tên, không lớp tối ([Media card](components/MediaCard/README.md)) |
 | Nút Suggestion | Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
@@ -174,7 +175,7 @@ outline. Touch không cần hover để mở ảnh.
 ### Kicker và hàng chip khi đổi filter
 
 Bấm cụm hoặc chip trên [rail](components/Filter/README.md) chạy lại hai entrance có sẵn của Advertising (không thêm
-nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opacity` và `transform`:
+nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opacity` và `transform`:
 
 - Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
   `--ease`, không delay.
@@ -203,6 +204,10 @@ nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opa
   cùng `400ms`; điểm xuất phát có từ prepaint.
 - Tọa độ không đổi thì không có motion. Card gắn lại do ảo hóa tại tọa độ cũ
   hiện ngay, không chạy lại motion.
+- Ở detail, card related, suggestion và khung batch không bao giờ trượt qua sau
+  ảnh primary: đường thẳng cắt primary thì card đi hai đoạn qua một góc vuông,
+  tổng vẫn `0.4s ease`; cụm CTA và Kính cung trượt thẳng
+  ([spec R10](../docs/specs/advertising-cta-center-parallax.md#r10-card-related-không-đi-qua-primary)).
 
 ### Ảnh trong card
 
@@ -210,13 +215,17 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 (mục trên) và ảnh hiện (mục này).
 
 - Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
-  ngay ở opacity cuối dưới `blur(24px)`, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
+  ngay ở opacity cuối dưới `blur(24px)`, phóng tràn khung 24px mỗi phía, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
   (opacity `1 → 0.45 → 1`, `2s ease-in-out`, lặp; reduced motion không thở). Tải và `decode()` xong thì thở dừng,
-  blur về `none` và opacity về 1 trong `0.6s`
+  blur về `none`, scale và opacity về 1 trong `0.6s`
   `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
+- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở như ảnh
+  đang mờ và cùng pha. Card tạm lên card thật thì ảnh có sẵn hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)` (cùng nhịp ảnh nội dung ngoài masonry), chỉ opacity; ảnh chưa xong thì vào luồng ảnh mờ
+  ở trên. Reduced motion: card tạm không thở, ảnh hiện thẳng.
 - Reduced motion: ảnh vẫn mờ khi chờ, tải xong thì nét ngay, không tan.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
@@ -227,6 +236,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Frame rỗng nối từ đáy ảnh thật mỗi cột, cùng gutter, xếp tới đáy batch ngay
   trên footer; CTA nằm trong batch.
+- Ở detail, batch, cụm CTA và Kính cung chuyển xuống cuối related: batch nối
+  tiếp các cột related, related rỗng thì nằm dưới primary
+  ([spec R9](../docs/specs/advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)).
 - Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
   bằng WebGL. Mỗi frame (batch và skeleton chờ ảnh) bốc preset trong 12, hoán
   vị anchor, chiều chảy, pha liên tục và tốc độ lệch tối đa 10% lúc vào
@@ -251,7 +263,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
   bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
-  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
+  (power3.inOut) (`masonry/suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối (chỉ hiện khi media sẵn sàng) và nhãn `Vừa xem` / `Just viewed` có bóng D.

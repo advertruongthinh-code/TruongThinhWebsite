@@ -22,8 +22,19 @@ const CANONICAL_ROUTES = [
   // Trang card (media-seo R1) mà link card trên masonry trỏ tới.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
     .map((card) => `/vi/advertising-products/p/${card.id}/`),
+  // Trang công trình, tin tức và trang lọc của chúng: cùng nguồn với serve-static-parity.
+  ...(() => {
+    const blocks = require("../../scripts/site/block-pages.mjs");
+    const { projectListRoutes } = require("../../scripts/site/project-list.mjs");
+    const content = blocks.loadBlockContent(path.join(__dirname, "../../src/site/"));
+    return [
+      ...blocks.blockRoutes(content),
+      ...projectListRoutes(content.projects),
+      ...blocks.newsListRoutes(content.news),
+    ].map(([route]) => route).filter((route) => route.startsWith("/vi/"));
+  })(),
 ];
-const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
+const HEADER_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/projects/", "/vi/advertising-products/"];
 const VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
@@ -34,7 +45,7 @@ const VIEWPORTS = [
 const HEADER_VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
-  ...[749, 750, 751, 760, 768, 820, 950, 960, 961, 1024, 1200, 1201, 1440].map((width) => ({
+  ...[749, 750, 751, 760, 768, 820, 950, 960, 961, 1024, 1200, 1201, 1280, 1366, 1440].map((width) => ({
     width,
     height: 900,
   })),
@@ -264,14 +275,15 @@ function assertPersistentNavigationContracts() {
         !/\blanguage-toggle\b|data-language-toggle/.test(headerSource) &&
         menuSource &&
         (menuSource.match(/data-language-option="(?:vi|en)"/g) || []).length === 2 &&
-        (menuSource.match(/class="menu-group"/g) || []).length === 4 &&
-        (menuSource.match(/class="menu-group__title"/g) || []).length === 4 &&
-        (menuSource.match(/class="menu-group__links"/g) || []).length === 4 &&
-        [15, 17].includes((menuSource.match(/class="menu-option"/g) || []).length) &&
+        (menuSource.match(/class="menu-group"/g) || []).length === 6 &&
+        (menuSource.match(/class="menu-group__title"/g) || []).length === 6 &&
+        (menuSource.match(/class="menu-group__links"/g) || []).length === 6 &&
+        // Sáu nhóm (site-shell R4); số công trình, nhóm quảng cáo tiêu biểu theo menu.json nên chỉ chặn dưới.
+        (menuSource.match(/class="menu-option"/g) || []).length >= 20 &&
         !/<a\b[^>]*href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
         /class="menu-appointment"[\s\S]*?data-menu-calendar viewBox="0 0 58\.09 57\.82"/.test(menuSource) &&
         !/class="menu-foot"/.test(menuSource),
-      `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
+      `${relativePath} must own locale, appointment, and six groups inside the full menu only`,
     );
     assert(
       // Header giữ nhãn đầy đủ; full menu tách tiêu đề nhỏ/lớn nên nhãn đầy đủ nằm ở aria-label.
@@ -288,7 +300,8 @@ function assertPersistentNavigationContracts() {
         /<nav\b(?=[^>]*\bid="header-menu-items")(?=[^>]*\bclass="[^"]*\bdesktop-nav\b)[^>]*>\s*<ul>[\s\S]*<li[\s\S]*<\/ul>/.test(
           headerSource,
         ) &&
-        (headerSource.match(/<li(?:\s[^>]*)?>\s*<a\b/g) || []).length === 3 &&
+        (headerSource.match(/<li(?:\s[^>]*)?>\s*<a\b/g) || []).length === 4 &&
+        headerSource.includes('<a href="/vi/projects/"') &&
         /<button\b(?=[^>]*\bid="header-menu-toggle")(?=[^>]*\bclass="[^"]*\bmenu-button\b)/.test(
           headerSource,
         ) &&
@@ -450,8 +463,8 @@ function assertPersistentNavigationContracts() {
   assert(
     projectsHeroSection &&
       projectsHeroContent?.includes('class="hero-kicker"') &&
-      projectsHeroContent?.includes("Sản phẩm quảng cáo") &&
-      projectsHeroContent?.includes('data-en="Advertising products"') &&
+      projectsHeroContent?.includes("Sản phẩm tiêu biểu") &&
+      projectsHeroContent?.includes('data-en="Our featured products"') &&
       projectsHeroContent?.includes("để thương hiệu") &&
       projectsHeroContent?.includes("luôn trong tầm mắt") &&
       projectsHeroContent?.includes('data-en="Keep your brand"') &&
@@ -516,7 +529,7 @@ function assertPersistentNavigationContracts() {
       /@media \(min-width:\s*751px\) and \(max-width:\s*960px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*min\(435\.875px, 100%\);/.test(
         styleSource,
       ) &&
-      /@media \(min-width:\s*961px\) and \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*calc\(100% \+ 30px\);[\s\S]*?min-width:\s*0;[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;[\s\S]*?margin-inline:\s*auto;[\s\S]*?grid-template-columns:[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content;[\s\S]*?column-gap:\s*0;/.test(
+      /@media \(min-width:\s*961px\) and \(max-width:\s*1400px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*calc\(100% \+ 30px\);[\s\S]*?min-width:\s*0;[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?left:\s*auto;[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;[\s\S]*?margin-inline:\s*auto;[\s\S]*?grid-template-columns:[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content;[\s\S]*?column-gap:\s*0;/.test(
         styleSource,
       ) &&
       /\.desktop-nav\.is-space-hidden\s*\{[^}]*visibility:\s*hidden;[^}]*pointer-events:\s*none;/.test(styleSource) &&
@@ -531,7 +544,7 @@ function assertPersistentNavigationContracts() {
       /\.site-header\s*\{[\s\S]*?border-bottom:\s*0 solid transparent;/.test(
         styleSource,
       ) &&
-      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom:\s*1px solid #d3d3d3;/.test(
+      /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom-width:\s*1px;[\s\S]*?\.site-header\.is-surface::before\s*\{[\s\S]*?border-bottom:\s*1px solid #d3d3d3;/.test(
         styleSource,
       ),
     "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
@@ -555,9 +568,11 @@ function assertPersistentNavigationContracts() {
       /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
+      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
+      !/clipPath/.test(motionSource) &&
       /\.menu-brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?justify-self:\s*start;/.test(
         styleSource,
       ) &&
@@ -637,20 +652,21 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      /const colorTargets = \[[\s\S]*?headerLogo,[\s\S]*?\.desktop-nav a/.test(
+      // Chữ logo, nav, hamburger đổi màu ngay, không tween, cả lúc cuộn lẫn chuyển trang (owner 2026-11-09).
+      /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
+      !/const colorHeader = \(color\) => \{(?:(?!\n  \};)[\s\S])*gsap/.test(motionSource) &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
       /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
       ) &&
       /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
-      /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
+      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
-      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
-        motionSource,
-      ) &&
+      !/clipPath/.test(motionSource) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
       /const isExactCurrentUrl[\s\S]*?normalizePathname\(url\.pathname\)[\s\S]*?url\.search === window\.location\.search/.test(
         motionSource,
@@ -668,16 +684,13 @@ function assertPersistentNavigationContracts() {
       /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header text/hamburger color or the deliberately slower mark-color transition drifted",
+    "Header text/hamburger instant color or the mark flip drifted",
   );
   assert(
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
       styleSource,
     ) &&
-      /\.menu-nav\s*\{[\s\S]*?overflow-y:\s*scroll;[\s\S]*?grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/.test(
-        styleSource,
-      ) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?repeat\(3, minmax\(0, 1fr\)\)/.test(
+      /\.menu-nav\s*\{[\s\S]*?overflow-y:\s*scroll;[\s\S]*?grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/.test(
         styleSource,
       ) &&
       /@media \(max-width:\s*960px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/.test(
@@ -686,7 +699,7 @@ function assertPersistentNavigationContracts() {
       /@media \(max-width:\s*578px\)[\s\S]*?\.menu-nav\s*\{[\s\S]*?grid-template-columns:\s*1fr/.test(
         styleSource,
       ),
-    "Full menu does not match the audited 4/3/2/1 scroll-grid contract",
+    "Full menu does not match the 3/2/1 scroll-grid contract (site-shell R4)",
   );
   assert(
     /\.hero\s*\{(?=[^}]*position:\s*relative;)(?=[^}]*z-index:\s*1;)(?=[^}]*display:\s*grid;)(?=[^}]*overflow:\s*hidden;)[^}]*\}/.test(styleSource) &&
@@ -740,7 +753,7 @@ function assertPersistentNavigationContracts() {
     "The approved 0.75s cover / 1s reveal veil timing changed",
   );
   assert(
-    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
+    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\{ keepNativeHidden: true \}\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
       motionSource,
     ),
     "The outgoing Barba container is not removed from flow while fully covered",
@@ -1069,17 +1082,18 @@ async function assertDirectRouteContracts(page) {
       menuPrimary: inspect(
         "#site-menu .menu-group:not(:last-child) > a.menu-group__title",
       ),
-      menuAbout: inspect("#site-menu .menu-group:last-child a[href]"),
+      menuAbout: inspect("#site-menu .menu-group:nth-last-child(-n+2) a[href]"),
     };
   });
-  const expectedHeader = ["/vi/", ...DIRECT_SERVICE_ROUTES].sort();
-  const expectedMenu = [...DIRECT_SERVICE_ROUTES].sort();
+  const expectedHeader = ["/vi/", ...HEADER_ROUTES].sort();
+  const expectedMenu = [...HEADER_ROUTES, "/vi/about/"].sort();
   const expectedAbout = [
     "/vi/about/",
     "/vi/about/?topic=commitment",
     "/vi/about/?topic=contact",
     "/vi/about/?topic=heritage",
     "/vi/about/?topic=process",
+    "/vi/news/",
   ].sort();
   const headerHrefs = unique(contracts.header.hrefs).sort();
   const menuHrefs = unique(contracts.menuPrimary.hrefs).sort();
@@ -1984,6 +1998,7 @@ async function runHeaderParityChecks() {
               JSON.stringify([
                 "Không gian Nhà ở",
                 "Không gian Kinh doanh",
+                "Công trình",
                 "Sản phẩm Quảng cáo",
               ]) &&
             expanded.lockupPathCount === 4 &&
@@ -2003,11 +2018,17 @@ async function runHeaderParityChecks() {
               expanded.navListMargin.every((value) => Math.abs(value - 16) <= 0.1) &&
               Math.abs(
                 expanded.navListLeft -
-                  (viewport.width > 1200 ? expanded.nav.width * -0.1 : 0),
+                  // Lệch trái -10% chỉ trên 1400px; tới 1400 nav canh giữa để 4 nhãn VI không bị ẩn.
+                  (viewport.width > 1400 ? expanded.nav.width * -0.1 : 0),
               ) <= 1,
             `Header vertical or x rhythm drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
           );
         }
+        // Laptop 1280/1366 phải thấy đủ 4 mục navbar (trước đây bị ẩn từ 1201 tới ~1340px).
+        assert(
+          viewport.width <= 1200 || !expanded.navHidden,
+          `Navbar is hidden at ${viewport.width}`,
+        );
         const expectedBrandWidth = expectedBrandHeaderWidth(viewport.width);
         const expectedBrandHeight = expectedBrandHeaderHeight(viewport.width);
         // Logo bám mép trên vùng padding, cùng khoảng với mép trái.
@@ -2072,7 +2093,8 @@ async function runHeaderParityChecks() {
               style.paddingBottom,
               style.paddingLeft,
             ].map(Number.parseFloat),
-            background: style.backgroundColor,
+            // Nền header vẽ ở ::before để co cùng nhịp FLIP (owner 2026-11-09).
+            background: getComputedStyle(header, "::before").backgroundColor,
             border: Number.parseFloat(style.borderBottomWidth),
             overflow:
               document.documentElement.scrollWidth -
@@ -2271,12 +2293,14 @@ async function runHeaderParityChecks() {
         (frame) =>
           frame.values.every((value) => value === "rgb(47, 47, 47)"),
       );
+      // Owner 2026-11-09: lockup, chữ, nav, hamburger đổi màu cùng một frame, không tween, ngay lúc nhịp FLIP 0.3s bắt
+      // đầu (frame đầu sau khi cuộn), cùng nền trắng.
       assert(
         firstChanged >= 0 &&
-          Math.max(...changed) - firstChanged <= 1 &&
-          settled > firstChanged &&
-          trace[settled].time - trace[firstChanged].time <= 380,
-        `Header tone tween drifted: ${JSON.stringify({ changed, settled })}`,
+          Math.max(...changed) === firstChanged &&
+          settled === firstChanged &&
+          trace[firstChanged].time < 100,
+        `Header tone tween drifted: ${JSON.stringify({ changed, settled, at: trace[firstChanged]?.time })}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -2284,7 +2308,8 @@ async function runHeaderParityChecks() {
 
   await runPageCase(
     "header scroll direction pointer and interaction motion",
-    // 961 tới 980px: nav còn hiện (dưới 961px nav ẩn theo R2) và cuộn native (Locomotive từ 981px).
+    // 961 tới 980px: cuộn native (Locomotive từ 981px). Navbar bốn mục (#708) chỉ hiện từ khoảng 1040px nên phần
+    // hover và link đang chọn đổi viewport sang 1100px.
     { route: "/vi/residential/", viewport: { width: 970, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -2377,6 +2402,8 @@ async function runHeaderParityChecks() {
         "A 150px upward direction change did not show the header",
       );
 
+      await page.setViewportSize({ width: 1100, height: 900 });
+      await page.waitForTimeout(600);
       const activeLink = page.locator('.desktop-nav a[aria-current="page"]');
       const hoverLink = page.locator(".desktop-nav a").nth(1);
       const underline = await activeLink.evaluate((element) => {
@@ -2907,12 +2934,13 @@ async function runEspacioRouteLogoTimingChecks() {
           ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
         )}`,
       );
-      // logo-route-crossfade R2: tới Residential (hero ảnh) mark đậm dưới veil rồi sang trắng, không qua CMYK.
+      // logo-route-crossfade R1, R2: tới Residential (hero ảnh) mark CMYK chỉ khi veil phủ kín, rồi về trắng.
       assert(
-        !ordinaryTrace.some(
-          (sample) => sample.transitioning && sample.brandColor,
-        ),
-        "Residential route painted the CMYK mark during the transition",
+        ordinaryTrace.every((sample) => !sample.transitioning || !sample.brandColor || sample.veil >= 0.99) &&
+          !ordinaryTrace.at(-1)?.brandColor,
+        `Residential route showed the CMYK mark outside the full veil: ${JSON.stringify(
+          ordinaryTrace.filter((sample) => sample.brandColor && sample.veil < 0.99).slice(0, 4),
+        )}`,
       );
 
       await page.evaluate(() => {
@@ -2961,51 +2989,20 @@ async function runEspacioRouteLogoTimingChecks() {
       const advertisingStart = advertisingTrace.findIndex(
         (sample) => sample.namespace === "advertising-products",
       );
-      const startsBlack = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= advertisingStart &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) =>
-            fill.every((channel) => channel >= 30 && channel <= 70),
-          ),
-      );
-      const endsCmyk = advertisingTrace.findIndex(
-        (sample, index) =>
-          index >= startsBlack &&
-          sample.colorState &&
-          sample.fills[1]?.[0] >= 245 &&
-          sample.fills[1]?.[1] >= 225 &&
-          sample.fills[2]?.[0] >= 220 &&
-          sample.fills[2]?.[2] >= 100 &&
-          sample.fills[3]?.[1] >= 145 &&
-          sample.fills[3]?.[2] >= 210,
-      );
-      // Tween bắt đầu lúc veil mở, tức mẫu đen cuối trước khi đủ CMYK; mẫu đen đầu tiên còn tính cả lúc chờ veil,
-      // runner bận làm khoảng chờ đó dài ra.
-      const tweenStart = advertisingTrace.findLastIndex(
-        (sample, index) =>
-          index < endsCmyk &&
-          sample.fills.length === 4 &&
-          sample.fills.every((fill) => fill.every((channel) => channel >= 30 && channel <= 70)),
-      );
-      const colorDuration =
-        startsBlack >= 0 && endsCmyk >= 0
-          ? advertisingTrace[endsCmyk].time - advertisingTrace[tweenStart].time
-          : Number.NaN;
+      // logo-route-crossfade R1, R3: trang đích mount dưới veil đã phủ kín nên mark đã CMYK, rồi giữ CMYK khi veil mở.
+      const cmykMark = (sample) =>
+        sample.colorState &&
+        sample.fills[1]?.[0] >= 245 &&
+        sample.fills[1]?.[1] >= 225 &&
+        sample.fills[2]?.[0] >= 220 &&
+        sample.fills[2]?.[2] >= 100 &&
+        sample.fills[3]?.[1] >= 145 &&
+        sample.fills[3]?.[2] >= 210;
       assert(
-        advertisingStart >= 0 && startsBlack >= advertisingStart,
-        `Advertising mark did not begin monochrome black: ${JSON.stringify(
+        advertisingStart >= 0 && advertisingTrace.slice(advertisingStart).every(cmykMark),
+        `Advertising mark was not CMYK from mount under the veil: ${JSON.stringify(
           advertisingTrace.slice(Math.max(0, advertisingStart - 2), advertisingStart + 12),
         )}`,
-      );
-      // logo-route-crossfade R2, R3: lúc veil mở, từng dải tween từ đậm sang CMYK trong 0.3s expo.out (GSAP, không transition CSS).
-      assert(
-        endsCmyk > startsBlack && colorDuration <= 450,
-        `Advertising mark did not complete black-to-CMYK in 0.3s: ${JSON.stringify({
-          colorDuration,
-          startsBlack,
-          endsCmyk,
-        })}`,
       );
       assert(
         advertisingTrace
@@ -3028,7 +3025,8 @@ async function runEspacioRouteLogoTimingChecks() {
       await gotoRoute(page, "/vi/");
       // Ảnh tải theo biến thể srcset AVIF/WebP (media-delivery R3).
       await page.route(/residential-detail-x1(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
-        await new Promise((resolve) => setTimeout(resolve, 1_800));
+        // Ảnh chậm hơn cả lượt route: veil phủ 0.75s, giữ phủ kín tối thiểu 1s (logo-route-crossfade R2), rồi mở.
+        await new Promise((resolve) => setTimeout(resolve, 3_200));
         delayedHeroReleased = true;
         await requestRoute.continue();
       });
@@ -3050,7 +3048,7 @@ async function runEspacioRouteLogoTimingChecks() {
           );
         },
         null,
-        { timeout: 2_500 },
+        { timeout: 3_000 },
       );
       const state = await page.evaluate(() => {
         const image = document.querySelector(
@@ -4173,226 +4171,73 @@ async function runLanguagePersistenceCheck() {
 async function runLanguageScrollRetentionCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
-    "locale switch stays in-place, keeps reading position, and replays only the visible section",
+    "locale switch reloads the target page like F5: top, full intro, no history entry",
     { route: "/vi/residential/?qa=scroll", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
+      // Owner 2026-11-08 (site-shell R5): đổi ngôn ngữ chạy lại toàn bộ motion như F5, tức tải lại trang đích.
       const switchLocale = async (expectedUrl) => {
         const expectedLanguage = expectedUrl.startsWith("/en/") ? "en" : "vi";
-        const before = await page.evaluate(() => {
-          const container = document.querySelector('[data-barba="container"]');
-          const candidates = [
-            ...container.querySelectorAll(
-              "main > section, main > figure, :scope > footer",
-            ),
-          ];
-          const visibleArea = (element) => {
-            const rect = element.getBoundingClientRect();
-            return Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
-          };
-          const section = candidates.reduce(
-            (best, candidate) =>
-              visibleArea(candidate) > visibleArea(best) ? candidate : best,
-            candidates[0],
-          );
-          const target = section?.matches("[data-motion-media]")
-            ? section
-            : section?.querySelector("[data-motion-media], [data-motion-up], [data-motion-fade]");
-          window.__ttLocaleSwitchProbe = {
-            container,
-            historyLength: history.length,
-            languageEvents: [],
-            replayEvents: [],
-            target,
-            targetClassChanges: [],
-            timeOrigin: performance.timeOrigin,
-          };
-          if (target) {
-            new MutationObserver(() => {
-              window.__ttLocaleSwitchProbe.targetClassChanges.push(
-                target.classList.contains("is-motion-inview"),
-              );
-            }).observe(target, { attributes: true, attributeFilter: ["class"] });
-          }
-          window.addEventListener(
-            "languagechange",
-            () => {
-              window.__ttLocaleSwitchProbe.languageEvents.push({
-                dialogOpen: document.querySelector("#site-menu")?.open,
-                language: document.documentElement.lang,
-              });
-            },
-            { once: true },
-          );
-          window.addEventListener(
-            "site:section-replay",
-            (event) => {
-              window.__ttLocaleSwitchProbe.replayEvents.push({
-                detailReplayed: event.detail?.detailReplayed,
-                pageReplayed: event.detail?.pageReplayed,
-                replayed: event.detail?.replayed,
-                sectionMatches: event.detail?.section === section,
-                targetMatches: target ? section?.contains(target) || section === target : true,
-              });
-            },
-            { once: true },
-          );
-          // Đổi ngôn ngữ phủ veil như route mềm (site-shell R5); ghi opacity cao nhất của veil.
-          const veil = document.querySelector(".route-veil");
-          window.__ttLocaleSwitchProbe.veilPeak = 0;
-          const sampleVeil = () => {
-            window.__ttLocaleSwitchProbe.veilPeak = Math.max(
-              window.__ttLocaleSwitchProbe.veilPeak,
-              Number(getComputedStyle(veil).opacity),
-            );
-            window.requestAnimationFrame(sampleVeil);
-          };
-          sampleVeil();
-          return {
-            historyLength: history.length,
-            sectionClass: section?.className,
-            sectionTag: section?.tagName,
-            scrollY: window.scrollY,
-            targetPresent: Boolean(target),
-            // Nhóm line và word replay qua GSAP không đổi class (detail-pages R5, home R11).
-            textPresent: Boolean(section?.querySelector("[data-motion-lines], [data-motion-words]")),
-            timeOrigin: performance.timeOrigin,
-          };
-        });
+        const before = await page.evaluate(() => ({
+          historyLength: history.length,
+          scrollY: window.scrollY,
+          timeOrigin: performance.timeOrigin,
+        }));
         await page.evaluate(() => {
           document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
         await waitForMenuVisualState(page);
-        await page
-          .locator(`#site-menu [data-language-option="${expectedLanguage}"]`)
-          .evaluate((button) => button.click());
-        await page.waitForURL(
-          (url) =>
-            `${url.pathname}${url.search}` === expectedUrl && url.hash === "",
-          { timeout: 6_000 },
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page
+            .locator(`#site-menu [data-language-option="${expectedLanguage}"]`)
+            .evaluate((button) => button.click()),
+        ]);
+        assert(
+          (await page.evaluate(() => `${location.pathname}${location.search}${location.hash}`)) === expectedUrl,
+          `Locale switch landed on the wrong URL (expected ${expectedUrl})`,
         );
         await page.waitForFunction(
-          (language) =>
-            document.documentElement.lang === language &&
-            !document.querySelector("#site-menu")?.open &&
-            window.__ttLocaleSwitchProbe?.replayEvents.length === 1,
-          expectedLanguage,
-          { timeout: 6_000 },
-        );
-        await page.evaluate(() => document.fonts?.ready);
-        await page.waitForFunction(
-          () => !document.body.classList.contains("is-transitioning"),
+          () =>
+            window.TruongThinhMotion &&
+            !document.documentElement.classList.contains("route-enter") &&
+            !document.body.classList.contains("is-transitioning"),
           null,
-          { timeout: 6_000 },
+          { timeout: 8_000 },
         );
         const after = await page.evaluate(() => ({
-          containerIdentity:
-            window.__ttLocaleSwitchProbe.container ===
-            document.querySelector('[data-barba="container"]'),
           historyLength: history.length,
-          languageEvents: window.__ttLocaleSwitchProbe.languageEvents,
-          replayEvents: window.__ttLocaleSwitchProbe.replayEvents,
-          scrollY: window.scrollY,
-          targetClassChanges: window.__ttLocaleSwitchProbe.targetClassChanges,
+          language: document.documentElement.lang,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          stored: localStorage.getItem("tt-lang"),
           timeOrigin: performance.timeOrigin,
-          transitioning: document.body.classList.contains("is-transitioning"),
-          veilPeak: window.__ttLocaleSwitchProbe.veilPeak,
         }));
         assert(
-          after.containerIdentity &&
-            after.timeOrigin === before.timeOrigin &&
+          after.timeOrigin !== before.timeOrigin &&
             after.historyLength === before.historyLength &&
-            !after.transitioning &&
-            after.veilPeak === 1,
-          `Locale switch replaced the document or skipped the route veil: ${JSON.stringify({ before, after })}`,
-        );
-        assert(
-          after.languageEvents.length === 1 &&
-            after.languageEvents[0].language === expectedLanguage &&
-            after.languageEvents[0].dialogOpen === false,
-          `Language changed before the menu finished closing: ${JSON.stringify(after.languageEvents)}`,
-        );
-        assert(
-          after.replayEvents[0]?.sectionMatches &&
-            after.replayEvents[0]?.targetMatches &&
-            (before.targetPresent
-              ? after.replayEvents[0]?.replayed &&
-                after.targetClassChanges.includes(false) &&
-                after.targetClassChanges.includes(true)
-              : before.textPresent
-                ? after.replayEvents[0]?.replayed === true
-                : after.replayEvents[0]?.replayed === false &&
-                  after.targetClassChanges.length === 0),
-          `The dominant section did not restart its motion: ${JSON.stringify({ before, after })}`,
-        );
-        assert(
-          Math.abs(after.scrollY - before.scrollY) <= 2,
-          `Locale switch moved the reading position: ${JSON.stringify({ before: before.scrollY, after: after.scrollY })}`,
+            after.language === expectedLanguage &&
+            after.stored === expectedLanguage &&
+            after.scrollY <= 1 &&
+            before.scrollY > 100,
+          `Locale switch did not reload the page from the top like F5: ${JSON.stringify({ before, after })}`,
         );
       };
-      const expectScroll = async (expected, label) => {
-        const actual = await page.evaluate(() => window.scrollY);
-        assert(
-          Math.abs(actual - expected) <= 2,
-          `${label}: expected ${expected}px, received ${actual}px`,
-        );
+      const scrollDown = async () => {
+        await page.evaluate(() => {
+          document.documentElement.style.scrollBehavior = "auto";
+          window.scrollTo(0, Math.min(1_700, document.documentElement.scrollHeight - innerHeight));
+        });
+        await page.waitForFunction(() => window.scrollY > 100);
       };
 
       await gotoRoute(page, "/vi/residential/?qa=scroll");
-      const expectedScroll = await page.evaluate(() => {
-        history.replaceState(
-          history.state,
-          "",
-          "/vi/residential/?qa=scroll",
-        );
-        document.documentElement.style.scrollBehavior = "auto";
-        const target = Math.min(1_700, document.documentElement.scrollHeight - innerHeight);
-        window.scrollTo(0, target);
-        return target;
-      });
-      await page.waitForFunction(
-        (target) => Math.abs(window.scrollY - target) <= 2,
-        expectedScroll,
-      );
-
+      await scrollDown();
       await switchLocale("/en/residential/?qa=scroll");
-      await expectScroll(expectedScroll, "VI to EN");
-
+      await scrollDown();
       await switchLocale("/vi/residential/?qa=scroll");
-      await expectScroll(expectedScroll, "EN to VI");
 
-      await gotoRoute(page, "/en/residential/?qa=direct-en");
-      await page.locator(".detail-media").scrollIntoViewIfNeeded();
-      await page.waitForFunction(
-        () =>
-          document
-            .querySelector(".detail-media [data-motion-media]")
-            ?.classList.contains("is-motion-inview"),
-        null,
-        { timeout: 3_000 },
-      );
-      const directEnglishScroll = await page.evaluate(() => {
-        const target = document.querySelector(".detail-media");
-        const rect = target.getBoundingClientRect();
-        const top = Math.max(0, rect.top + window.scrollY - (innerHeight - rect.height) / 2);
-        window.scrollTo(0, top);
-        return window.scrollY;
-      }).then(() => page.evaluate(async () => {
-        // Bước nhảy reveal các line group phía trên; SplitText reflow rồi dịch scrollY qua scroll
-        // anchoring. Lấy baseline khi vị trí đã giữ 30 frame.
-        await document.fonts?.ready;
-        let last = window.scrollY;
-        for (let stable = 0; stable < 30;) {
-          await new Promise((resolve) => requestAnimationFrame(resolve));
-          stable = window.scrollY === last ? stable + 1 : 0;
-          last = window.scrollY;
-        }
-        return last;
-      }));
-      await switchLocale("/vi/residential/?qa=direct-en");
-      await expectScroll(directEnglishScroll, "direct EN to VI");
       const routeTimeOrigin = await page.evaluate(() => performance.timeOrigin);
       const routeLink = await findRouteLink(
         page,
@@ -4406,7 +4251,7 @@ async function runLanguageScrollRetentionCheck() {
       assert(
         (await page.evaluate(() => performance.timeOrigin)) === routeTimeOrigin &&
           (await page.evaluate(() => document.documentElement.lang)) === "vi",
-        "Locale replaceState broke the next Barba route navigation",
+        "Locale reload broke the next Barba route navigation",
       );
       assertDiagnostics(diagnostics);
     },
@@ -4427,7 +4272,7 @@ async function runLocaleResponsivePreferenceChecks() {
     },
   ]) {
     await runPageCase(
-      `in-place locale switch ${testCase.label}`,
+      `locale switch reloads like F5 ${testCase.label}`,
       {
         route: "/vi/residential/?qa=locale-mode",
         viewport: testCase.viewport,
@@ -4447,69 +4292,47 @@ async function runLocaleResponsivePreferenceChecks() {
           await page.evaluate(() => window.scrollTo(0, 1_200));
           await page.waitForTimeout(120);
         }
-        const before = await page.evaluate(() => {
-          window.__ttLocaleModeProbe = {
-            container: document.querySelector('[data-barba="container"]'),
-            replay: null,
-          };
-          window.addEventListener(
-            "site:section-replay",
-            (event) => {
-              window.__ttLocaleModeProbe.replay = {
-                reducedMotion: event.detail?.reducedMotion,
-                replayed: event.detail?.replayed,
-              };
-            },
-            { once: true },
-          );
-          return {
-            historyLength: history.length,
-            scrollY: window.scrollY,
-            timeOrigin: performance.timeOrigin,
-          };
-        });
+        const before = await page.evaluate(() => ({
+          historyLength: history.length,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          timeOrigin: performance.timeOrigin,
+        }));
         await page.evaluate(() => {
           document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
-        await page
-          .locator('#site-menu [data-language-option="en"]')
-          .evaluate((link) => link.click());
+        // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): về đầu trang, intro chạy lại.
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page
+            .locator('#site-menu [data-language-option="en"]')
+            .evaluate((link) => link.click()),
+        ]);
         await page.waitForFunction(
           () =>
+            window.TruongThinhMotion &&
             location.pathname === "/en/residential/" &&
             document.documentElement.lang === "en" &&
-            !document.querySelector("#site-menu")?.open &&
-            window.__ttLocaleModeProbe?.replay &&
+            !document.documentElement.classList.contains("route-enter") &&
             !document.body.classList.contains("is-transitioning"),
           null,
-          { timeout: 6_000 },
+          { timeout: 8_000 },
         );
         const after = await page.evaluate(() => ({
-          containerIdentity:
-            window.__ttLocaleModeProbe.container ===
-            document.querySelector('[data-barba="container"]'),
           historyLength: history.length,
-          replay: window.__ttLocaleModeProbe.replay,
-          scrollY: window.scrollY,
+          scrollY: window.TruongThinhMotion.getLogicalScroll(),
+          search: location.search,
           timeOrigin: performance.timeOrigin,
-          transitioning: document.body.classList.contains("is-transitioning"),
         }));
         assert(
-          after.containerIdentity &&
+          after.timeOrigin !== before.timeOrigin &&
             after.historyLength === before.historyLength &&
-            after.timeOrigin === before.timeOrigin &&
-            Math.abs(after.scrollY - before.scrollY) <= 2 &&
-            !after.transitioning,
-          `${testCase.label} replaced the document or moved scroll: ${JSON.stringify({ before, after })}`,
+            after.search === "?qa=locale-mode" &&
+            before.scrollY > 20 &&
+            after.scrollY <= 1,
+          `${testCase.label} did not reload from the top like F5: ${JSON.stringify({ before, after })}`,
         );
-        if (testCase.reducedMotion === "reduce") {
-          assert(
-            after.replay.reducedMotion === true && after.replay.replayed === false,
-            `Reduced motion replayed entrance motion: ${JSON.stringify(after.replay)}`,
-          );
-        }
         assertDiagnostics(diagnostics);
       },
     );
@@ -4785,24 +4608,26 @@ async function runMenuChecks() {
           `${viewport.width}x${viewport.height}: header or full-menu lockup differs from live Espacio geometry ${JSON.stringify(menuContract.brandParity)}`,
         );
         assert(
-          menuContract.childGroupCount === 4 &&
-            menuContract.childItemCount === 17 &&
+          // Sáu nhóm (site-shell R4); công trình, nhóm quảng cáo tiêu biểu theo menu.json nên mục con chỉ chặn dưới.
+          menuContract.childGroupCount === 6 &&
+            menuContract.childItemCount >= 20 &&
             menuContract.fragmentLinkCount === 0 &&
             JSON.stringify(menuContract.titles) === JSON.stringify([
               "/vi/residential/",
               "/vi/commercial/",
+              "/vi/projects/",
               "/vi/advertising-products/",
               "/vi/about/",
+              "/vi/about/?topic=contact",
             ]),
           `${viewport.width}x${viewport.height}: menu groups or non-fragment child routes do not match the contract`,
         );
-        const dividerIndexes = viewport.width >= 1201
-          ? [0, 1, 2]
-          : viewport.width >= 961
-            ? [0, 1, 3]
-            : viewport.width >= 579
-              ? [0, 2]
-              : [];
+        // Cột 3/2/1 (site-shell R4): nhóm cuối mỗi hàng không có vạch.
+        const dividerIndexes = viewport.width >= 961
+          ? [0, 1, 3, 4]
+          : viewport.width >= 579
+            ? [0, 2, 4]
+            : [];
         assert(
           menuContract.dividers.every(({ height, dividerHeight, dividerDisplay }, index) =>
             dividerIndexes.includes(index)
@@ -4820,7 +4645,7 @@ async function runMenuChecks() {
           `${viewport.width}x${viewport.height}: settled menu links overlap ${menuContract.overlaps.join(",")}`,
         );
         assert(
-          menuContract.titleFontSizes.length === 4 &&
+          menuContract.titleFontSizes.length === 6 &&
             menuContract.titleFontSizes.every((size) => Math.abs(size - 28.8) <= 0.1),
           `${viewport.width}x${viewport.height}: menu title size drifted from 28.8px (1.8rem) ${JSON.stringify(menuContract.titleFontSizes)}`,
         );
@@ -4900,34 +4725,48 @@ async function runMenuChecks() {
   }
 }
 
+// Main-grid expectation on the runtime path (advertising-masonry R6): the built cache variant
+// variantIndex(seed, variants.length) placed by replayLayout; no cache, a pool signature mismatch or a failed replay
+// means stackLayout. `layouts` maps band -> { filters } like artifact.layouts; omitted, it reads the built band file
+// in .site-output; null means a cacheless artifact (injected test fixtures). Related masonry keeps compileMasonryLayout.
+async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed, layouts = artifact.layouts }) {
+  const { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+  const { filterRank, matchesFilter, normalizeMasonrySettings } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const band = bandKey(layoutViewportWidth);
+  const settings = normalizeMasonrySettings(artifact.settings);
+  const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+  const bandCache = layouts === undefined
+    ? (await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "layout-cache", `${band.replace(":", "-")}.mjs`)).href)).default
+    : layouts?.[band];
+  const entry = bandCache?.filters?.[filter];
+  const replayed = entry?.variants?.length && entry.sig === poolSignature(pool) && replayLayout({
+    entries: entry.variants[variantIndex(seed, entry.variants.length)], cards: artifact.cards, layoutViewportWidth, filter, settings,
+  });
+  return replayed || stackLayout({
+    order: shuffleWithSeed(pool, seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
+    layoutViewportWidth, filter, settings,
+  });
+}
+
 // Masonry R4/R7: cửa sổ runtime là layout organic đã seed cho lượt vào này.
 async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
 // `width` tính cửa sổ cho layout viewport mà trang chưa resize tới.
-function advertisingWindow(page, filter, width = null) {
-  return page.evaluate(async ({ filter, width }) => {
-    const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-    const { advertisingFilterRank, compileAdvertisingProductLayout, getVirtualWindow, matchesAdvertisingFilter, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
-    const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    const geometry = compileAdvertisingProductLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth: width ?? document.documentElement.clientWidth,
-      settings: normalizeAdvertisingProductSettings(artifact.settings),
-      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-    return getVirtualWindow(geometry, {
-      scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
-      viewportHeight: innerHeight, overscan: innerHeight,
-    }).items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
-  }, { filter, width });
+async function advertisingWindow(page, filter, width = null) {
+  const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "catalog-artifact.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const state = await page.evaluate(() => ({
+    seed: window.TruongThinhMasonry.getBrowseState().seed,
+    layoutViewportWidth: document.documentElement.clientWidth,
+    scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
+    viewportHeight: innerHeight,
+  }));
+  const geometry = await expectedGridLayout({ artifact, filter, layoutViewportWidth: width ?? state.layoutViewportWidth, seed: state.seed });
+  return getVirtualWindow(geometry, { scrollTop: state.scrollTop, viewportHeight: state.viewportHeight, overscan: state.viewportHeight })
+    .items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
 }
 
 // Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
@@ -5363,17 +5202,14 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     const { buildAdvertisingArtifact } = await import(
       pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
     );
-    const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-      pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-    );
-    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+    const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
     const artifact = buildAdvertisingArtifact();
     if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
     assert(
       artifact.cards.length === expectedCardCount,
       `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
     );
-    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow, shuffleWithSeed };
+    runtimeContract = { artifact, getVirtualWindow };
   }
   const cases = [
     { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
@@ -5445,21 +5281,16 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             viewportHeight: window.innerHeight,
             artifactCards: artifact?.ADVERTISING_CATALOG_ARTIFACT?.cards?.length ?? null,
             transitioning: document.body.classList.contains("is-transitioning"),
-            seed: window.TruongThinhAdvertising?.getBrowseState?.()?.seed ?? null,
+            seed: window.TruongThinhMasonry?.getBrowseState?.()?.seed ?? null,
           };
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
-          ? (() => {
-              const layout = runtimeContract.compileAdvertisingLayout({
-                cards: runtimeContract.artifact.cards,
-                categoryOrder: runtimeContract.artifact.categories.map((category) => category.slug),
-                datasetVersion: runtimeContract.artifact.datasetVersion,
-                filter: "all",
+          ? await (async () => {
+              // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): cùng seed, cùng cache với runtime.
+              const layout = await expectedGridLayout({
+                artifact: runtimeContract.artifact,
                 layoutViewportWidth: state.layoutViewportWidth,
-                // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): dựng lại cùng seed với runtime.
-                presentationOrder: runtimeContract.shuffleWithSeed(runtimeContract.artifact.cards, state.seed, "grid:all")
-                  .map(({ id }) => id),
-                organicOrder: true,
+                seed: state.seed,
               });
               const ids = runtimeContract.getVirtualWindow(layout, {
                 scrollTop: Math.max(0, state.scrollY - state.gridTop),
@@ -5795,6 +5626,8 @@ async function runAdvertisingRapidFilterCheck() {
         const grid = document.querySelector("[data-project-grid]");
         return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-advertising-card="${id}"]`)?.style.transform;
       }, trackedId, { timeout: 2_000 }).catch(() => {});
+      // Cú cuộn xa chỉ giữ chỗ bằng card tạm trước, card thật dựng dần theo ngân sách frame (masonry R7).
+      await page.waitForFunction(() => !document.querySelector(".advertising-ghost"), null, { timeout: 3_000 }).catch(() => {});
       const settled = await capture();
       await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
         if (!grid.__blockRapidTransitionEnd) return;
@@ -6111,6 +5944,11 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               headingColorIsInk: isInk(getComputedStyle(heading).color),
               headingFits: heading.scrollWidth <= heading.clientWidth + 1 && headingRect.left >= -1 && headingRect.right <= window.innerWidth + 1 && lineRects.every((line) => line.left >= -1 && line.right <= window.innerWidth + 1),
               headingFontSize: Number.parseFloat(getComputedStyle(heading).fontSize),
+              strongLineStyle: (() => {
+                const strong = heading.querySelector(".detail-title__strong");
+                const style = strong && getComputedStyle(strong);
+                return style ? { fontStyle: style.fontStyle, fontWeight: style.fontWeight } : null;
+              })(),
               headingLineCount: lineRects.length,
               headingText: normalize(heading.textContent),
               kickerText: normalize(kicker.textContent),
@@ -6172,7 +6010,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               ? "Keep your brand always in sight"
               : "để thương hiệu luôn trong tầm mắt";
           const expectedKicker =
-            locale === "en" ? "Advertising products" : "Sản phẩm quảng cáo";
+            locale === "en"
+              ? "Our featured products"
+              : "Sản phẩm tiêu biểu";
           const expectedScroll = locale === "en" ? "SCROLL DOWN" : "CUỘN XUỐNG";
           assert(hero.tone === "ink" && hero.headerIsInk, `${locale} ${viewport.width}x${viewport.height}: header did not start in ink tone`);
           assert(hero.backgroundIsWhite && hero.headingColorIsInk, `${locale} ${viewport.width}x${viewport.height}: editorial hero is not white with ink content`);
@@ -6182,6 +6022,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
           assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment ${JSON.stringify({ text: hero.headingText, lines: hero.headingLineCount, fits: hero.headingFits, aligned: hero.titleAlignment })}`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
+          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "700", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
@@ -6235,11 +6076,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { MASONRY_LAYOUT_VERSION, isWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { verifyLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
   const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
   const contractBoundaryWidths = [750, 960, 1200];
   const columnBoundaryWidths = [500, 735, 990];
@@ -6247,7 +6086,7 @@ async function runAdvertisingGridFocusedChecks() {
     .flatMap((width) => [width - 1, width, width + 1]);
   const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
   // Bản thuật toán do unit test advertising-products-layout ghim; ở đây chỉ kiểm artifact đi cùng compiler.
-  assert(artifact.layoutAlgorithmVersion === ADVERTISING_LAYOUT_ALGORITHM_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${ADVERTISING_LAYOUT_ALGORITHM_VERSION}`);
+  assert(artifact.layoutAlgorithmVersion === MASONRY_LAYOUT_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${MASONRY_LAYOUT_VERSION}`);
   assert(
     artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
     "Advertising artifact retained legacy canvas or span authoring fields",
@@ -6294,7 +6133,8 @@ async function runAdvertisingGridFocusedChecks() {
             tiles,
             outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--advertising-outer")),
             gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--advertising-gap")),
-            captionCount: grid.querySelectorAll("figcaption").length,
+            // Tên card chỉ hiện khi hover chuột thật (owner 2026-11-09), không chiếm chỗ; ngoài nó không còn caption.
+            captionCount: grid.querySelectorAll("figcaption:not(.advertising-tile__title)").length,
           };
         });
         const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
@@ -6305,21 +6145,12 @@ async function runAdvertisingGridFocusedChecks() {
         const expectedColumns = Math.min(4, Math.max(2, Math.floor((expectedGridWidth + expectedGap) / (220 + expectedGap))));
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
         // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const expectedLayout = compileAdvertisingLayout({
-          cards: artifact.cards,
-          categoryOrder,
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: measured.viewportWidth,
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
-        });
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        const expectedLayout = await expectedGridLayout({ artifact, layoutViewportWidth: measured.viewportWidth, seed });
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
-        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1), `${width}px v6 compiler lost 2..4 columns or one-column photos`);
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
         const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
           Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
           Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
@@ -6331,24 +6162,28 @@ async function runAdvertisingGridFocusedChecks() {
         assert(Math.abs(measured.width - expectedGridWidth) <= 0.05, `${width}px grid width expected ${expectedGridWidth}, got ${measured.width}`);
         assert(expectedColumns >= 2 && expectedColumns <= 4, `${width}px expected column contract escaped 2..4: ${expectedColumns}`);
         assert(expectedLayout.columns === expectedColumns, `${width}px compiler columns expected ${expectedColumns}, got ${expectedLayout.columns}`);
-        assert(measured.tiles.every((tile) => Math.abs(tile.width - expectedCardWidth) <= 0.05), `${width}px one-column card width drift: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
+        // Card tỷ lệ vàng trải 2 cột ở lưới từ 3 cột (R5); bề rộng từng card so với placement ở phép kiểm dưới.
+        assert(measured.tiles.every((tile) => [1, 2].some((span) => Math.abs(tile.width - (span * expectedCardWidth + (span - 1) * expectedGap)) <= 0.05)), `${width}px card width is neither one nor two columns: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
         assert(measured.gapToken === expectedGap, `${width}px gap token expected ${expectedGap}, got ${measured.gapToken}`);
         assert(measured.overflow <= 1 && withinGrid, `${width}px horizontal overflow or out-of-grid tile: ${JSON.stringify({ overflow: measured.overflow, withinGrid })}`);
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
         assert(noOverlap, `${width}px grid has overlapping runtime tiles`);
         assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
-        assert(measured.tiles.every((tile) => {
+        const drifted = measured.tiles.find((tile) => {
           const expected = expectedById.get(tile.id);
-          return expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
+          // Card cắt mép dưới (R6, tối đa CROP_CAP) giữ tỷ lệ ảnh gốc khi cộng lại phần cắt mediaBleed.
+          return !(expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
             Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
-            Math.abs(tile.mediaWidth / tile.mediaHeight - expected.card.media.width / expected.card.media.height) <= 0.01 &&
+            Math.abs(tile.mediaWidth / (tile.mediaHeight + (expected.mediaBleed ?? 0)) - expected.card.media.width / expected.card.media.height) <= 0.01 &&
             Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
             tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
-            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05;
-        }), `${width}px runtime geometry drifted from v6 shared layout`);
-        const oracle = inspectAdvertisingGrid({ layout: expectedLayout, placements: expectedLayout.placements });
-        assert(oracle.valid, `${width}px full v6 layout violates one-column stagger/anti-brick oracle: ${JSON.stringify(oracle.violations)}`);
+            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
+        });
+        assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
+        // So le giờ là điểm chấm lúc build, không phải luật cứng (advertising-masonry R6): kiểm không lỗ, khe đúng, cắt trong trần.
+        const verified = verifyLayout(expectedLayout);
+        assert(verified.ok, `${width}px replayed layout fails verifyLayout: ${JSON.stringify(verified.errors.slice(0, 5))}`);
 
         const firstPass = await page.locator("[data-project-grid]").evaluate((grid) =>
           [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
@@ -6495,30 +6330,11 @@ async function runAdvertisingGridFocusedChecks() {
   );
 }
 
-async function advertisingArtifactScrollTarget(page, artifact, id) {
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  const layout = compileAdvertisingLayout({
-    cards: artifact.cards,
-    categoryOrder: artifact.categories.map((category) => category.slug),
-    datasetVersion: artifact.datasetVersion,
-    filter: "all",
-    layoutViewportWidth,
-  });
-  const target = layout.placements.find((placement) => placement.card.id === id);
-  if (!target) throw new Error(`artifact placement missing: ${id}`);
-  const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
-  return gridTop + target.y;
-}
-
 async function runAdvertisingKeyboardVirtualizationCheck() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const artifact = buildAdvertisingArtifact();
 
   await runPageCase(
@@ -6530,24 +6346,16 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
       // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-      const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-      const layout = compileAdvertisingLayout({
-        cards: artifact.cards,
-        categoryOrder: artifact.categories.map((category) => category.slug),
-        datasetVersion: artifact.datasetVersion,
-        settings: artifact.settings,
-        filter: "all",
-        layoutViewportWidth,
-        presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-        organicOrder: true,
-      });
+      const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+      const layout = await expectedGridLayout({ artifact, layoutViewportWidth, seed });
       const expected = layout.placements.map((placement) => placement.card);
       // Trần cửa sổ ảo: số card lớn nhất mà getVirtualWindow trả ở bất kỳ vị trí cuộn nào. Locomotive cuộn mượt (lerp) và
       // runtime nhận vị trí qua site:scroll lệch vài ms so với lúc test đọc gridTop, nên so với đoạn cuộn vừa đo sẽ flake;
       // ảo hóa mất giới hạn thì domCount vượt trần này xa (cả danh sách).
       let maxWindowCount = 0;
       for (let top = 0; top <= layout.totalPixelHeight; top += 4) {
-        maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900 }).items.length);
+        // Vùng giữ (gỡ khi ra xa hơn hai viewport) là trần số card đang mount (advertising-masonry R7).
+        maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900, releaseOverscan: 1800 }).retained.length);
       }
       const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
         const activeItem = document.activeElement?.closest("[data-advertising-card]");
@@ -6625,23 +6433,11 @@ async function runAdvertisingMediaEntranceChecks() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed với runtime.
+  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed, cùng cache với runtime.
   const deepestTarget = async (page) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const layout = compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter: "all",
-      layoutViewportWidth: 1440,
-      presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-      organicOrder: true,
-    });
+    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+    const layout = await expectedGridLayout({ artifact, layoutViewportWidth: 1440, seed });
     return layout.placements.reduce((deepest, placement) =>
       placement.y > deepest.y ? placement : deepest);
   };
@@ -6841,11 +6637,17 @@ async function runAdvertisingMediaEntranceChecks() {
           const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           const firstReady = visible.findIndex((sample) => sample.ready);
           const blankFrames = replay.samples.findIndex((sample) => sample.ready);
+          // Cú nhảy xa là vuốt nhanh: card thay chỗ card tạm nên ảnh hiện dần 0.45s bằng một animation opacity
+          // (loading-glass R10); ảnh cache chưa giải mã xong lúc card thật gắn vào luồng ảnh mờ, nên lớp mờ còn trong lúc dần.
+          // Ngoài đoạn dần đó vẫn không skeleton, Kính hay transition CSS.
+          const fading = (sample) => sample.animations === 1;
           assert(
             firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
-                sample.opacity >= 0.999) && sample.shellOpacity >= 0.999 && !sample.overlay &&
-                sample.animations === 0) &&
+                (sample.opacity >= 0.999 || fading(sample))) && sample.shellOpacity >= 0.999 && (!sample.overlay || (sample.ready && fading(sample))) &&
+                (sample.animations === 0 || fading(sample))) &&
+              // Runner không GPU có thể trễ frame dài hơn cửa sổ lấy mẫu: animation còn chạy là chưa hết dần, không phải kẹt.
+              (visible.at(-1).opacity >= 0.999 || fading(visible.at(-1))) &&
               replay.events.length === 0,
             `${locale} media re-entry cycle ${cycle} replayed its entrance instead of showing at once: ${JSON.stringify(replay)}`,
           );
@@ -6938,10 +6740,9 @@ async function runAdvertisingMediaFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  const { compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = artifact.categories.map((category) => category.slug);
   // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
@@ -6960,7 +6761,7 @@ async function runAdvertisingMediaFocusedChecks() {
     const cards = artifact.cards
       .filter((card) => card.category === category.slug)
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
-    const layout = compileAdvertisingLayout({
+    const layout = compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
@@ -6968,17 +6769,20 @@ async function runAdvertisingMediaFocusedChecks() {
       layoutViewportWidth: 1440,
     });
     // Layout cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), xếp theo sourceOrder rồi id.
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, category.slug))
+    const pool = artifact.cards.filter((card) => matchesFilter(card, category.slug))
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
     assert(
       cards.length === expectedCounts[category.slug] &&
         cards.every((card, index) => card.sourceOrder === index) &&
         layout.placements.length === pool.length &&
-        layout.placements.every((placement, index) => placement.card.id === pool[index].id),
-      `${category.slug} count or FIFO source order drifted`,
+        // Thứ tự xếp là FIFO theo nguồn; thứ tự nhìn (theo top) có thể lệch khi card hai cột hạ xuống đáy cao hơn (R5).
+        layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id) &&
+        new Set(layout.placements.map(({ card }) => card.id)).size === pool.length &&
+        pool.every(({ id }) => layout.placements.some(({ card }) => card.id === id)),
+      `${category.slug} count or pool order drifted`,
     );
   }
-  const rankedLayout = compileAdvertisingLayout({
+  const rankedLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder,
     datasetVersion: artifact.datasetVersion,
@@ -6992,20 +6796,9 @@ async function runAdvertisingMediaFocusedChecks() {
     `All layout did not retain all ${expectedCardCount} ranked cards`,
   );
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder,
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
 
   const readGridState = (page) => page.locator("[data-project-grid]").evaluate((grid) => {
     const bounds = grid.getBoundingClientRect();
@@ -7044,18 +6837,23 @@ async function runAdvertisingMediaFocusedChecks() {
   });
   const assertGridState = (state, layout, label) => {
     const localScroll = Math.max(0, state.scrollY - state.gridTop);
-    const expected = getVirtualWindow(layout, {
+    const windowed = getVirtualWindow(layout, {
       scrollTop: localScroll,
       viewportHeight: state.viewportHeight,
       overscan: state.viewportHeight,
-    }).items;
+      releaseOverscan: 2 * state.viewportHeight,
+    });
+    // Vùng dựng phải có mặt đủ; card đã dựng chỉ được còn lại trong vùng giữ (hai viewport), theo thứ tự layout (masonry R7).
+    const expected = windowed.retained;
     const expectedById = new Map(expected.map((placement) => [placement.card.id, placement]));
+    const domIds = state.tiles.map((tile) => tile.id);
+    const inLayoutOrder = domIds.every((id, index) => index === 0 || expected.findIndex((p) => p.card.id === id) > expected.findIndex((p) => p.card.id === domIds[index - 1]));
     const overlap = state.tiles.some((first, index) => state.tiles.slice(index + 1).some((second) =>
       Math.min(first.left + first.width, second.left + second.width) - Math.max(first.left, second.left) > 0.05 &&
       Math.min(first.top + first.height, second.top + second.height) - Math.max(first.top, second.top) > 0.05,
     ));
     const checks = {
-      order: JSON.stringify(state.tiles.map((tile) => tile.id)) === JSON.stringify(expected.map((placement) => placement.card.id)),
+      order: inLayoutOrder && windowed.items.every((placement) => domIds.includes(placement.card.id)),
       geometry: state.tiles.every((tile) => {
           const placement = expectedById.get(tile.id);
           return placement && Math.abs(tile.left - Reflect.get(placement, "x")) <= 0.05 &&
@@ -7136,7 +6934,7 @@ async function runAdvertisingMediaFocusedChecks() {
       // Rời chuột khỏi lưới: card gắn lại dưới con trỏ chạy lớp tối hover (R3), không phải hiệu ứng vào của ảnh.
       await page.mouse.move(0, 0);
       const initialTileIds = initial.tiles.map((tile) => tile.id);
-      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+      let timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const initialRequests = new Set(mediaRequestPaths);
       const initialSources = new Set(initial.tiles.map((tile) => originalPath(tile.source)));
       assert(
@@ -7160,11 +6958,15 @@ async function runAdvertisingMediaFocusedChecks() {
         );
         await page.waitForTimeout(500);
         const localized = await settledGridState(page, pageLayout, `${language} locale round-trip`);
+        // Đổi ngôn ngữ tải lại trang như F5 (site-shell R5, #735) nhưng giữ seed qua handoff (advertising-masonry):
+        // trang mới, cùng thứ tự card.
+        const reloadedOrigin = await page.evaluate(() => performance.timeOrigin);
         assert(
           JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
-            (await page.evaluate(() => performance.timeOrigin)) === timeOrigin,
-          `${language} locale round-trip replaced the ${expectedCardCount}-card runtime window`,
+            reloadedOrigin !== timeOrigin,
+          `${language} locale round-trip must reload like F5 and keep the ${expectedCardCount}-card order`,
         );
+        timeOrigin = reloadedOrigin;
       }
 
       for (const category of artifact.categories) {
@@ -7187,7 +6989,7 @@ async function runAdvertisingMediaFocusedChecks() {
           // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
             filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
-            filtered.tiles.every((tile) => matchesAdvertisingFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
+            filtered.tiles.every((tile) => matchesFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
           `${category.slug} filter retained a wrong category or URL state`,
         );
       }
@@ -7375,15 +7177,13 @@ async function runAdvertisingCompatibilityChecks() {
 // Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { compileMasonryLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
   const interCardGap = 35;
   // R5: masonry rộng bằng viewport trừ hai lề, không còn bề rộng tối đa.
   const cardWidth = (viewport.width - 70 - interCardGap * 3) / 4;
-  const captionPixelHeight = 0;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
   const patterns = [[2, 3, 4], [3, 5, 2], [4, 2, 5], [5, 4, 3]];
@@ -7395,7 +7195,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     const phases = [0, deltas[0] * quantum, (deltas[0] + deltas[1]) * quantum, (deltas[0] + deltas[1] + deltas[2]) * quantum];
     const bottom = (row + 1) * rowStep + phases[column];
     const top = row ? bottoms[index - 4] + interCardGap : 0;
-    const mediaPixelHeight = bottom - top - captionPixelHeight;
+    const mediaPixelHeight = bottom - top;
     bottoms.push(bottom);
     return {
       id: `benchmark-${String(index).padStart(4, "0")}`,
@@ -7415,7 +7215,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     };
   });
   const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
-  const feasibleLayout = compileAdvertisingLayout({
+  const feasibleLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder: artifact.categories.map((category) => category.slug),
     datasetVersion: artifact.datasetVersion,
@@ -7426,21 +7226,10 @@ async function runAdvertisingThreeThousandCardProbe() {
   const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      settings: artifact.settings,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
   const scrollTargetFor = async (page, layout, id) => {
     const target = layout.placements.find((placement) => placement.card.id === id);
     if (!target) throw new Error(`artifact placement missing: ${id}`);
@@ -7557,8 +7346,6 @@ async function runAdvertisingThreeThousandCardProbe() {
 
 async function runAdvertisingLocaleLifecycleChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
     const kiosk = index < 3;
     const primaryKiosk = index === 0;
@@ -7588,7 +7375,6 @@ async function runAdvertisingLocaleLifecycleChecks() {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
       }, artifact);
       await gotoRoute(page, "/vi/advertising-products/");
-      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const snapshot = () => page.evaluate(() => {
         const title = document.querySelector("#page-title");
         const lines = [...document.querySelectorAll("[data-motion-lines] .motion-line")];
@@ -7600,60 +7386,37 @@ async function runAdvertisingLocaleLifecycleChecks() {
           duplicateLines: document.querySelectorAll("[data-motion-lines] .motion-line .motion-line").length > 0,
         };
       });
+      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5); artifact tiêm lại qua addInitScript.
       const switchLanguage = async (language) => {
-        await page.evaluate(() => {
-          window.__ttAdvertisingLocaleSettled = false;
-          window.addEventListener(
-            "site:section-replay",
-            () => {
-              window.__ttAdvertisingLocaleSettled = true;
-            },
-            { once: true },
-          );
-        });
+        const before = await page.evaluate(() => performance.timeOrigin);
         await openMenu(page);
-        await page.locator(`#site-menu [data-language-option="${language}"]`).click();
+        await Promise.all([
+          page.waitForEvent("load", { timeout: 10_000 }),
+          page.locator(`#site-menu [data-language-option="${language}"]`).click(),
+        ]);
         await page
           .waitForFunction(
-            (expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open,
+            (expected) => document.documentElement.lang === expected &&
+              location.pathname.startsWith(`/${expected}/advertising-products/`) &&
+              window.TruongThinhMasonry?.getBrowseState &&
+              // Trang vừa tải: rail filter hiện xong (entrance) trước khi test cuộn xuống grid.
+              [...document.querySelectorAll("[data-advertising-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
+              !document.documentElement.classList.contains("route-enter") &&
+              !document.body.classList.contains("is-transitioning"),
             language,
-            { timeout: 6_000 },
+            { timeout: 15_000 },
           )
           .catch((error) => {
-            throw new Error(`language ${language} did not settle in place: ${error.message}`);
+            throw new Error(`language ${language} did not finish loading: ${error.message}`);
           });
-        await page
-          .waitForFunction((expected) => location.pathname.startsWith(`/${expected}/advertising-products/`), language)
-          .catch((error) => {
-            throw new Error(`language ${language} did not update the route: ${error.message}`);
-          });
-        await page
-          // Replay phát trước khi veil mở xong; menu không mở khi route còn chạy (site-shell R4), nên chờ cả hai.
-          .waitForFunction(() => window.__ttAdvertisingLocaleSettled === true && !document.body.classList.contains("is-transitioning"))
-          .catch(async (error) => {
-            const state = await page.evaluate(() => ({
-              language: document.documentElement.lang,
-              menuOpen: Boolean(document.querySelector("#site-menu")?.open),
-              pathname: location.pathname,
-              replayed: window.__ttAdvertisingLocaleSettled,
-              transitioning: document.body.classList.contains("is-transitioning"),
-            }));
-            throw new Error(`language ${language} did not complete its production replay: ${error.message}; ${JSON.stringify({ state, diagnostics })}`);
-          });
-        assert(await page.evaluate(() => performance.timeOrigin) === timeOrigin, "locale switch must stay in the current document");
+        assert(await page.evaluate(() => performance.timeOrigin) !== before, "locale switch must reload the page like F5");
       };
       const virtualizeKiosk = async () => {
         // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const layout = compileAdvertisingLayout({
-          cards: artifact.cards,
-          categoryOrder: artifact.categories.map((category) => category.slug),
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+        const layout = await expectedGridLayout({
+          artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
         // Cuộn tới placement xa kiosk nhất để kiosk chắc chắn rời DOM ảo hóa.
@@ -7711,9 +7474,9 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
         const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+      assert(localizedCard.filter === "All" && localizedCard.title === "Exhibition booths" && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or hover title did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
@@ -7721,11 +7484,12 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
         const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
-      await page.locator(".advertising-tile a").first().focus();
+      // Focus một tile bị filter loại (kiosk thuộc displays-booths); sau khi tải lại, tile đầu trong DOM tùy vị trí cuộn.
+      await page.locator('[data-advertising-card="kiosk-posm-01"] a').focus();
       await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
       await page.waitForTimeout(250);
       const filterFocus = await page.evaluate(() => {
@@ -10094,7 +9858,7 @@ async function runHomeMotionRegressionCheck() {
     "The route request failure fallback changed",
   );
   assert(
-    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|/.test(
+    /const ink =\s*\(routeTransitionActive && \(routeMarkHeld \? routeVeilInk : !routeDestinationReady\)\) \|\|/.test(
       motionSource,
     ),
     "Route transitions do not force the header to an ink tone over the white veil",
@@ -10739,7 +10503,7 @@ function assertBrandShellSourceContracts() {
     "Header brand bbox and independent Espacio row-height matrices drifted",
   );
   assert(
-    /const delay = index \* 70;/.test(motionSource) &&
+    /const delay = \(bands\.length - 1 - index\) \* 80;/.test(motionSource) &&
       !/\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill|is-brand-color-reset/.test(
         styleSource,
       ) &&
@@ -10767,7 +10531,7 @@ function assertBrandShellSourceContracts() {
         motionSource,
       ) &&
       !/killTweensOf\(logoTarget\)/.test(motionSource),
-    "Header/menu mark color must use the selected 1s sequence without dead variants while preserving 0.3s lockup scale",
+    "Header/menu mark color must use the selected band flip sequence without dead variants while preserving 0.3s lockup scale",
   );
 }
 
@@ -11403,20 +11167,32 @@ async function runBrandColorMotionCheck() {
               window.__ttWhiteSurfaceLogoTrace.samples.push({
                 elapsed,
                 fills: paths.map((path) => getComputedStyle(path).fill),
-                underlay: [
+                // Lớp lật: mỗi dải một mặt cũ (đen) và một mặt mới (CMYK).
+                front: [
                   ...document.querySelectorAll(
-                    "#header-logo .brand-lockup__mark-underlay path",
+                    "#header-logo .brand-lockup__mark-flip > span > span:first-child",
                   ),
-                ].map((path) => path.getAttribute("fill")),
-                totals: paths.map((path) => {
-                  const timing = path.getAnimations()[0]?.effect?.getTiming();
+                ].map((face) => face.dataset.fill),
+                back: [
+                  ...document.querySelectorAll(
+                    "#header-logo .brand-lockup__mark-flip > span > span:last-child",
+                  ),
+                ].map((face) => face.dataset.fill),
+                totals: [
+                  ...document.querySelectorAll(
+                    "#header-logo .brand-lockup__mark-flip > span > span:last-child",
+                  ),
+                ].map((face) => {
+                  const timing = face.getAnimations()[0]?.effect?.getTiming();
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Animation 1s bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp đen đã gỡ
-              // (trần 2.5s) thay vì dừng cứng ở 1.15s.
-              const underlayGone = !document.querySelector("#header-logo .brand-lockup__mark-underlay path");
-              if (elapsed < 1_150 || (!underlayGone && elapsed < 2_500)) requestAnimationFrame(sample);
+              // Lật bắt đầu sau nhịp header (0.1s) kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
+              // đã dựng rồi gỡ (trần 2.5s) thay vì dừng cứng ở 1.15s.
+              const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
+              const trace = window.__ttWhiteSurfaceLogoTrace;
+              trace.seen ||= !flipGone;
+              if (elapsed < 1_150 || (!(trace.seen && flipGone) && elapsed < 2_500)) requestAnimationFrame(sample);
               else window.__ttWhiteSurfaceLogoTrace.done = true;
             };
             sample();
@@ -11448,20 +11224,21 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ. Lấy mẫu đã gắn animation: runner bận có
-        // frame đã đổi màu đích nhưng animation chưa gắn (totals 0).
-        const rising = trace.find(
-          ({ fills, underlay, totals }) =>
-            JSON.stringify(underlay) === JSON.stringify(black) &&
+        // Từng dải lật từ đen sang CMYK, cyan trước, đen xong cuối ở 0.68s rồi lớp lật bị gỡ. Lấy mẫu đã gắn
+        // animation: runner bận có frame đã dựng lớp lật nhưng animation chưa gắn (totals 0).
+        const flipping = trace.find(
+          ({ fills, front, back, totals }) =>
+            JSON.stringify(front) === JSON.stringify(black) &&
+            JSON.stringify(back) === JSON.stringify(cmyk) &&
             JSON.stringify(fills) === JSON.stringify(cmyk) &&
             totals.every((total) => total > 0),
         );
         const settled = trace.at(-1);
         assert(
-          rising?.totals.every((total) => total === 1000) &&
-            settled.underlay.length === 0 &&
+          JSON.stringify(flipping?.totals) === JSON.stringify([680, 600, 520, 440]) &&
+            settled.front.length === 0 &&
             JSON.stringify(settled.fills) === JSON.stringify(cmyk),
-          `Direct white-surface mark did not rise CMYK over black in 1s: ${JSON.stringify({ rising, settled })}`,
+          `Direct white-surface mark did not flip black to CMYK in 0.68s: ${JSON.stringify({ flipping, settled })}`,
         );
         assertDiagnostics(diagnostics);
       },
@@ -11758,14 +11535,12 @@ async function runBrandColorMotionCheck() {
             [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
               (path) => getComputedStyle(path).fill,
             ),
-            // Lớp cũ bên dưới cũng là màu đang hiển thị khi mark mọc.
+            // Mặt cũ của lớp lật cũng là màu đang hiển thị khi mark lật.
             [
               ...document.querySelectorAll(
-                "#header-logo .brand-lockup__mark-underlay path",
+                "#header-logo .brand-lockup__mark-flip > span > span:first-child",
               ),
-            ]
-              .slice(0, 4)
-              .map((path) => path.getAttribute("fill")),
+            ].map((face) => face.dataset.fill),
           );
           requestAnimationFrame(sample);
         };
@@ -11805,7 +11580,7 @@ async function runBrandColorMotionCheck() {
   );
 
   await runPageCase(
-    "interrupted mark rise keeps the visible layers and rises again from the foot",
+    "interrupted mark flip rewinds in place back to CMYK",
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -11815,33 +11590,39 @@ async function runBrandColorMotionCheck() {
         "rgb(229, 9, 127)",
         "rgb(0, 160, 227)",
       ];
-      const white = cmyk.map(() => "rgb(255, 255, 255)");
       const readMark = () =>
-        page.evaluate(() => ({
-          fills: [
-            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-          ].map((path) => getComputedStyle(path).fill),
-          times: [
-            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-          ].map((path) => Number(path.getAnimations()[0]?.currentTime ?? -1)),
-          underlay: [
-            ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark-underlay path",
-            ),
-          ].map((path) => ({
-            fill: path.getAttribute("fill"),
-            clip: path.style.clipPath,
-          })),
-        }));
+        page.evaluate(() => {
+          const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
+          return {
+            fills: [
+              ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+            ].map((path) => getComputedStyle(path).fill),
+            flip: Boolean(root),
+            same: Boolean(root) && root === window.__ttFlipRoot,
+            rates: [
+              ...new Set(
+                [...(root?.querySelectorAll("span") || [])]
+                  .flatMap((face) => face.getAnimations())
+                  .map((animation) => animation.playbackRate),
+              ),
+            ],
+          };
+        });
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+      // Chờ lượt lật sang CMYK chạy xong hẳn: trong nhịp header chưa có lớp lật nhưng mark còn giữ màu cũ.
       await page.waitForFunction(
-        () =>
+        (expected) =>
           document
             .querySelector("[data-site-header]")
             ?.classList.contains("is-brand-color") &&
-          !document.querySelector(".brand-lockup__mark-underlay"),
-        null,
+          !document.querySelector(".brand-lockup__mark-flip") &&
+          JSON.stringify(
+            [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
+              (path) => getComputedStyle(path).fill,
+            ),
+          ) === JSON.stringify(expected),
+        cmyk,
         { timeout: 4_000 },
       );
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
@@ -11850,46 +11631,39 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
+      // Lớp lật dựng sau nhịp header 0.1s (brand.md Motion).
+      await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
+      await page.evaluate(() => {
+        window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
+      });
       await page.waitForTimeout(120);
       await page.evaluate(() =>
         document
           .querySelector("#tay-nghe")
           ?.scrollIntoView({ block: "start", behavior: "instant" }),
       );
-      await page.waitForFunction(
-        () =>
-          document.querySelectorAll(
-            "#header-logo .brand-lockup__mark-underlay path",
-          ).length === 8,
+      await page.waitForFunction(() =>
+        document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-brand-color"),
       );
+      // Đổi hướng lúc lật dở (owner 2026-11-09): lượt về trắng là lượt sang CMYK chạy lùi, nên đổi hướng chỉ tua ngược
+      // từ chỗ đang dừng, cùng lớp lật, mọi animation chạy tới lại.
+      await page.waitForTimeout(30);
       const reversed = await readMark();
-      // Lớp cũ gồm CMYK đầy đủ bên dưới và lớp trắng đang mọc dở giữ nguyên clip lúc đổi hướng.
-      const partial = (clip) => {
-        const top = Number.parseFloat(clip.match(/inset\(([\d.]+)%/)?.[1]);
-        return top > 0 && top < 100;
-      };
-      // Underlay xếp theo từng path: lớp màu rồi lớp trắng của path đó.
-      const colorLayers = reversed.underlay.filter((_, index) => index % 2 === 0);
-      const whiteLayers = reversed.underlay.filter((_, index) => index % 2 === 1);
       assert(
-        JSON.stringify(colorLayers.map(({ fill }) => fill)) === JSON.stringify(cmyk) &&
-          colorLayers.every(({ clip }) => clip === "none") &&
-          JSON.stringify(whiteLayers.map(({ fill }) => fill)) === JSON.stringify(white) &&
-          whiteLayers.some(({ clip }) => partial(clip)) &&
-          JSON.stringify(reversed.fills) === JSON.stringify(cmyk) &&
-          reversed.times.every((time) => time >= 0 && time < 400),
-        `Interrupted rise did not keep the visible layers or restart from the foot: ${JSON.stringify(reversed)}`,
+        reversed.flip && reversed.same && JSON.stringify(reversed.rates) === "[1]",
+        `Interrupted flip did not rewind in place: ${JSON.stringify(reversed)}`,
       );
       await page.waitForFunction(
-        () => !document.querySelector(".brand-lockup__mark-underlay"),
+        () => !document.querySelector(".brand-lockup__mark-flip"),
         null,
         { timeout: 2_000 },
       );
       const settled = await readMark();
       assert(
-        JSON.stringify(settled.fills) === JSON.stringify(cmyk) &&
-          settled.times.every((time) => time === -1),
-        `Interrupted rise did not settle to CMYK: ${JSON.stringify(settled)}`,
+        JSON.stringify(settled.fills) === JSON.stringify(cmyk) && !settled.flip,
+        `Interrupted flip did not settle to CMYK: ${JSON.stringify(settled)}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -11972,7 +11746,7 @@ async function runBrandColorMotionCheck() {
       const state = await page.evaluate(() => ({
         classes: document.querySelector("[data-site-header]")?.className || "",
         transitions: window.__ttDirectDarkFillTransitions,
-        rising: document.querySelectorAll(".brand-lockup__mark-underlay").length,
+        rising: document.querySelectorAll(".brand-lockup__mark-flip").length,
         fills: [
           ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
         ].map((path) => getComputedStyle(path).fill),
@@ -12010,11 +11784,9 @@ async function runBrandColorMotionCheck() {
           ].map((path) => getComputedStyle(path).fill);
           const underlay = [
             ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark-underlay path",
+              "#header-logo .brand-lockup__mark-flip > span > span:first-child",
             ),
-          ]
-            .slice(0, 4)
-            .map((path) => path.getAttribute("fill"));
+          ].map((face) => face.dataset.fill);
           if (
             [fills, underlay].some(
               (layer) =>
@@ -12045,10 +11817,10 @@ async function runBrandColorMotionCheck() {
               "#header-logo .brand-lockup__mark path",
             ),
           ].map((path) => getComputedStyle(path).fill);
-          // Chờ lớp CMYK mọc xong để vị trí cuộn đã ổn định trước khi rời trang.
+          // Chờ lớp CMYK lật xong để vị trí cuộn đã ổn định trước khi rời trang.
           return (
             JSON.stringify(fills) === JSON.stringify(expected) &&
-            !document.querySelector(".brand-lockup__mark-underlay")
+            !document.querySelector(".brand-lockup__mark-flip")
           );
         },
         cmyk,
@@ -12898,7 +12670,8 @@ async function runReducedMotionChecks() {
 }
 
 async function runP13NavbarChecks() {
-  const viewport = { width: 1329, height: 912 };
+  // Navbar bốn mục (#708) ẩn ở 1201 tới khoảng 1320px vì đè logo (#719), nên đo ở 1440px.
+  const viewport = { width: 1440, height: 912 };
   const parentRoutes = ["residential", "commercial", "advertising-products"];
   const setLogicalScroll = async (page, value) => {
     const expected = await page.evaluate((scrollY) => {
@@ -13026,7 +12799,7 @@ async function runP13NavbarChecks() {
       const route = "/vi/advertising-products/?category=mobile-retail&campaign=retained";
       await gotoRoute(page, route);
       await page.evaluate(() => {
-        if (!window.TruongThinhAdvertising?.replaceTag?.("use-sampling")) {
+        if (!window.TruongThinhMasonry?.replaceTag?.("use-sampling")) {
           throw new Error("Advertising tag setup failed");
         }
       });
@@ -13107,18 +12880,19 @@ async function runP13NavbarChecks() {
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
       // Menu trỏ thẳng trang cụm (taxonomy R4).
+      // Nhóm trong menu là 5 nhóm nhiều sản phẩm nhất theo menu.json (#703), không cố định mobile-retail.
       const link = page.locator(
-        '#site-menu .menu-option[href="/vi/advertising-products/xe-ban-hang-luu-dong/"]',
+        '#site-menu .menu-option[href="/vi/advertising-products/in-an-decal/"]',
       ).first();
-      assert(await link.count(), "Advertising menu has no mobile-retail option");
+      assert(await link.count(), "Advertising menu has no printing-decals option");
       await link.click();
       await page.waitForFunction(
-        () => location.pathname === "/vi/advertising-products/xe-ban-hang-luu-dong/",
+        () => location.pathname === "/vi/advertising-products/in-an-decal/",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({
         activeFilter: document
-          .querySelector('[data-advertising-filter="mobile-retail"]')
+          .querySelector('[data-advertising-filter="printing-decals"]')
           ?.getAttribute("aria-current"),
         historyLength: history.length,
         url: location.href,
@@ -13164,10 +12938,10 @@ async function runP13NavbarChecks() {
     { route: "/vi/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await page.route("**/advertising-products/catalog-runtime.mjs*", (request) => request.abort());
+      await page.route("**/masonry/runtime.mjs*", (request) => request.abort());
       await gotoRoute(page, "/vi/advertising-products/?photo=kiosk-posm-07");
       const unavailable = await page.evaluate(() => ({
-        adapter: Boolean(window.TruongThinhAdvertising?.getAdapter?.()),
+        adapter: Boolean(window.TruongThinhMasonry?.getAdapter?.()),
         motion: Boolean(window.TruongThinhMotion),
       }));
       assert(
@@ -13192,7 +12966,7 @@ async function runP13NavbarChecks() {
         `Dependency fallback raised a runtime error: ${JSON.stringify(diagnostics)}`,
       );
       assert(
-        diagnostics.requestFailures.some((failure) => failure.includes("catalog-runtime.mjs")),
+        diagnostics.requestFailures.some((failure) => failure.includes("masonry/runtime.mjs")),
         `Catalog dependency failure was not observed: ${JSON.stringify(diagnostics)}`,
       );
     },

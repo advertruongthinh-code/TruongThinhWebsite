@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
-const { planDetourPath } = await import("../../src/site/advertising-products/detour-path.mjs");
+const { planDetourPath } = await import("../../src/site/masonry/detour-path.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const ready = (page) => page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"
@@ -110,7 +110,7 @@ const toggleTag = async (page, tag) => {
   return page.evaluate(() => window.__ctaSample);
 };
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
@@ -170,6 +170,17 @@ try {
   await page.locator("[data-advertising-card] a").first().click();
   await ready(page);
   assert.equal(await page.getAttribute("[data-advertising-cta-skeleton]", "data-advertising-cta-host"), "detail");
+  // Cụm CTA chuyển sang detail chờ lần vào view như lần đầu ở masonry: chưa hiện khi còn dưới màn, hiện khi cuộn tới (R9).
+  const ctaReveal = () => page.evaluate(() => {
+    const cta = document.querySelector("[data-advertising-grid-cta]");
+    return { link: cta.querySelector("[data-motion-fade]").classList.contains("is-motion-inview"),
+      lineY: new DOMMatrixReadOnly(getComputedStyle(cta.querySelector("h2 .motion-line")).transform).m42,
+      below: cta.getBoundingClientRect().top > innerHeight };
+  });
+  const armed = await ctaReveal();
+  assert.ok(armed.below && !armed.link && armed.lineY > 0, `detail: CTA đã hiện trước khi vào view ${JSON.stringify(armed)}`);
+  const revealed = await measureEnd(page).then(ctaReveal);
+  assert.ok(revealed.link && revealed.lineY < 0, `detail: CTA không hiện khi vào view ${JSON.stringify(revealed)}`);
   await page.goBack();
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaHost === "grid"
     && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 10000 });
@@ -220,6 +231,41 @@ try {
   }
   assert.ok(detourCase, `không ca nào trong ${heroes.length} hero có khung batch cần đi vòng primary`);
   console.log(`khung batch đi vòng: ${detourCase}; related rỗng: ${emptyCase || "không gặp"}`);
+
+  // F5 thẳng vào detail rồi cuộn tới cuối: Kính reveal của khung batch hay card related còn trong DOM khi cung đang thấy
+  // làm Chrome bỏ blur các bậc của cung, lòng cung mất rồi hiện lại (owner 2026-11-09; skeleton R4 áp cho mọi masonry).
+  {
+    const context = await browser.newContext({ viewport: { width: 1569, height: 912 } });
+    await context.addInitScript(() => {
+      window.__ttArcOverlap = { since: null, max: 0 };
+      const tick = () => {
+        const tint = document.querySelector('.glass-surface[data-glass-shape="arc"]:not([hidden]) .glass-surface__tint')?.getBoundingClientRect();
+        const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
+        const state = window.__ttArcOverlap;
+        const now = performance.now();
+        state.since = arcInView && document.querySelector("[data-advertising-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
+        state.max = Math.max(state.max, state.since == null ? 0 : now - state.since);
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    const fresh = await context.newPage();
+    await fresh.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await ready(fresh);
+    await fresh.evaluate(async () => {
+      const motion = window.TruongThinhMotion;
+      for (let step = 1; step <= 10; step++) {
+        const top = (document.documentElement.scrollHeight - innerHeight) * step / 10;
+        if (!motion?.setLogicalScroll?.(top)) window.scrollTo(0, top);
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    });
+    const overlap = await fresh.evaluate(() => window.__ttArcOverlap.max);
+    // Chừa vài frame: observer của cung báo vào view sau frame cung lộ; reveal 0.6s thì lộ cả reveal.
+    assert.ok(overlap <= 100, `detail F5: Kính reveal còn trong DOM ${Math.round(overlap)}ms khi cung đang thấy`);
+    await context.close();
+  }
 
   // Giảm chuyển động: đổi tag đặt khung thẳng, CTA vẫn sát footer.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });

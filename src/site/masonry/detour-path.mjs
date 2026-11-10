@@ -1,0 +1,64 @@
+// Đường đi của card khi chuyển vị trí, không đi qua hộp primary (advertising-cta-center-parallax R10).
+// Tọa độ là góc trên trái trong related grid; primary chiếm [0, zone.width] x [0, zone.height].
+
+// Đoạn a -> b có đi vào hộp mở (minX, maxX) x (minY, maxY) không; chạm mép không tính (slab test).
+export function segmentCrossesBox(a, b, box) {
+  let enter = 0;
+  let exit = 1;
+  for (const [start, delta, min, max] of [[a.x, b.x - a.x, box.minX, box.maxX], [a.y, b.y - a.y, box.minY, box.maxY]]) {
+    if (delta === 0) {
+      if (start <= min || start >= max) return false;
+      continue;
+    }
+    let t0 = (min - start) / delta;
+    let t1 = (max - start) / delta;
+    if (t0 > t1) [t0, t1] = [t1, t0];
+    enter = Math.max(enter, t0);
+    exit = Math.min(exit, t1);
+    if (enter >= exit) return false;
+  }
+  return true;
+}
+
+// null: đi thẳng. Ngược lại đi qua góc vuông `corner`; `cornerOffset` là tỷ lệ quãng đường tới góc (0..1).
+// `origin`: góc trên trái của vùng cấm khi nó không nằm ở gốc tọa độ (suggestion ghim dưới primary, advertising-detail R5).
+export function planDetourPath({ from, to, size, zone, origin }) {
+  if (!zone) return null;
+  if (origin && (origin.x || origin.y)) {
+    const shift = (point, sign) => ({ x: point.x + sign * origin.x, y: point.y + sign * origin.y });
+    const plan = planDetourPath({ from: shift(from, -1), to: shift(to, -1), size, zone });
+    return plan && { ...plan, corner: shift(plan.corner, 1) };
+  }
+  const box = { minX: -size.width, maxX: zone.width, minY: -size.height, maxY: zone.height };
+  if (!segmentCrossesBox(from, to, box)) return null;
+  // Bên cạnh primary: x >= pw; phía dưới: y >= ph. Chỉ một điểm mỗi loại thì đường thẳng mới có thể cắt.
+  // Giả định: tọa độ related không âm và runtime đã đưa điểm đầu ra khỏi Z, nên khi cắt Z luôn có một đầu bên
+  // cạnh và một đầu phía dưới. Thiếu một trong hai (điểm đầu trong Z) thì trả null, card đi thẳng.
+  const beside = [from, to].find((point) => point.x >= zone.width);
+  const below = [from, to].find((point) => point !== beside && point.y >= zone.height);
+  if (!beside || !below) return null;
+  const corner = { x: beside.x, y: below.y };
+  const first = Math.hypot(corner.x - from.x, corner.y - from.y);
+  const second = Math.hypot(to.x - corner.x, to.y - corner.y);
+  return { corner, cornerOffset: first + second > 0 ? first / (first + second) : 0 };
+}
+
+// Item ghim (primary, suggestion ghim dưới primary) là vùng cấm chung của card related và khung batch CTA
+// (masonry-reuse bước 6): một danh sách hộp `{ x, y, width, height }` cùng hệ tọa độ với `from`, `to`, xếp từ trên
+// xuống (dời một lượt theo thứ tự, nên hộp dưới không đẩy điểm ngược lên hộp trên).
+// Điểm đầu nằm trong vùng của một hộp thì dời xuống ngay dưới hộp đó (resize làm primary lớn lên đè chỗ cũ); đường
+// thẳng cắt hộp nào thì đi vòng hộp đầu tiên cắt, theo thứ tự danh sách.
+export function planAroundPinned({ from, to, size, pinned = [], gap = 0 }) {
+  let start = from;
+  for (const box of pinned) {
+    if (start.x > box.x - size.width && start.x < box.x + box.width
+      && start.y > box.y - size.height && start.y < box.y + box.height) {
+      start = { ...start, y: box.y + box.height + gap };
+    }
+  }
+  for (const box of pinned) {
+    const plan = planDetourPath({ from: start, to, size, zone: { width: box.width, height: box.height }, origin: box });
+    if (plan) return { from: start, plan };
+  }
+  return { from: start, plan: null };
+}

@@ -64,6 +64,9 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
+  /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
+     48px, then a linear fade to transparent at the bottom edge of the card. */
+  --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -284,12 +287,24 @@ html.route-enter .site-header {
   border-bottom: 0 solid transparent;
   background: transparent;
   color: white;
-  transition:
-    padding 0.3s ease-out,
-    color 0.3s ease-out,
-    border-color 0.3s ease-out,
-    background-color 0.3s ease-out,
-    transform 1s cubic-bezier(0, 0, 0.1, 0.99);
+  /* Nhịp header: logo FLIP, navbar và nền 0.3s; nền, viền, chữ (.is-surface, .is-ink) đổi một lần, không fade: thu gọn
+     thì ngay lúc bắt đầu nhịp, mở ra thì hết nhịp; mark lật ngay lúc bắt đầu (owner 2026-11-09, brand.md Motion). */
+  transition: transform 1s cubic-bezier(0, 0, 0.1, 0.99);
+}
+
+/* Nền và viền header: lớp ::before kéo lên khỏi màn hình, đáy trùng đáy header. Thu gọn hoặc mở ra: motion.js đặt
+   --header-surface-shift bằng phần header vừa đổi cao rồi về 0 trong 0.3s, nền co hoặc giãn cùng logo và navbar;
+   mở ra thì nền giữ tới hết nhịp mới tắt; chỉ transform. */
+.site-header::before {
+  position: absolute;
+  z-index: -1;
+  top: -100vh;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  transform: translateY(var(--header-surface-shift, 0px));
 }
 
 .site-header.is-ink {
@@ -300,9 +315,13 @@ html.route-enter .site-header {
   padding-top: 10px;
   padding-bottom: 10px;
   grid-template-rows: var(--header-collapsed-row-height);
+  border-bottom-width: 1px;
+}
+
+.site-header.is-surface::before {
+  bottom: -1px;
   border-bottom: 1px solid #d3d3d3;
   background: var(--white);
-  color: #2f2f2f;
 }
 
 .site-header.is-collapsed .brand-lockup {
@@ -319,7 +338,7 @@ html.route-enter .site-header {
 
 /* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
 .site-header.is-follow {
-  transition-property: padding, color, border-color, background-color;
+  transition: none;
 }
 
 .site-header.is-route-pinned {
@@ -354,6 +373,43 @@ html.route-enter .site-header {
   fill: currentColor;
 }
 
+/* Lớp lật màu mark do motion.js chèn lúc đổi màu, gỡ khi lật xong (brand.md Motion). Mỗi mặt là lớp GPU riêng. */
+#header-logo {
+  position: relative;
+}
+
+.brand-lockup__mark-flip,
+.brand-lockup__mark-flip > span,
+.brand-lockup__mark-flip > span > span {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.brand-lockup__mark-flip {
+  inset: auto;
+}
+
+.brand-lockup__mark-flip > span > span {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Lớp bóng của từng mặt: cùng hình dải, chỉ chạy opacity (brand.md Motion). */
+.brand-lockup__mark-flip > span > span > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.brand-lockup__mark-flip svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
 .site-header.is-brand-color .brand-lockup {
   --logo-mark-black: #2b2a29;
   --logo-mark-yellow: #ffed00;
@@ -366,14 +422,6 @@ html.route-enter .site-header {
   --logo-mark-yellow: #fff;
   --logo-mark-magenta: #fff;
   --logo-mark-cyan: #fff;
-}
-
-/* Mark đậm cùng màu chữ trong lúc chuyển trang (logo-route-crossfade R1). */
-.site-header.is-brand-ink .brand-lockup {
-  --logo-mark-black: #2f2f2f;
-  --logo-mark-yellow: #2f2f2f;
-  --logo-mark-magenta: #2f2f2f;
-  --logo-mark-cyan: #2f2f2f;
 }
 
 .menu-brand .brand-lockup {
@@ -586,7 +634,7 @@ html.route-enter .site-header {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   overflow: visible;
 }
 
@@ -814,7 +862,8 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   opacity: 0;
   overflow-x: hidden;
   overflow-y: scroll;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Sáu nhóm: PC ba trên, ba dưới (site-shell R4). */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: minmax(min-content, 1fr);
   align-content: stretch;
   align-items: stretch;
@@ -899,7 +948,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   transition: transform 0.3s linear;
 }
 
-.menu-group:nth-child(4n)::after {
+.menu-group:nth-child(3n)::after {
   display: none;
 }
 
@@ -907,21 +956,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   transform: scaleY(1);
 }
 
-.menu-open .menu-group:nth-child(1)::after { transition-delay: 0.9s; }
-.menu-open .menu-group:nth-child(2)::after { transition-delay: 1.1s; }
-.menu-open .menu-group:nth-child(3)::after { transition-delay: 1.3s; }
-.menu-open .menu-group:nth-child(4)::after { transition-delay: 1.5s; }
+.menu-open .menu-group:nth-child(3n + 1)::after { transition-delay: 0.9s; }
+.menu-open .menu-group:nth-child(3n + 2)::after { transition-delay: 1.1s; }
+.menu-open .menu-group:nth-child(3n)::after { transition-delay: 1.3s; }
 
 .menu-group__number {
   font-size: 0.8rem;
   line-height: 1.4;
-}
-
-/* Tiêu đề nhỏ: loại nhóm cùng dòng số thứ tự, để tiêu đề lớn chỉ còn tên nhóm, gọn một dòng. */
-.menu-group__kind {
-  margin-left: 0.6em;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .menu-group__title {
@@ -975,6 +1016,10 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   flex-direction: column;
   align-items: flex-start;
   gap: 15px;
+}
+
+.menu-option[aria-disabled="true"] {
+  pointer-events: none;
 }
 
 .menu-option {
@@ -2500,10 +2545,6 @@ em {
     column-gap: 44.4609375px;
   }
 
-  .menu-shutters {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .menu-head {
     padding: 25px;
     --brand-menu-height: 59.578125px;
@@ -2520,20 +2561,8 @@ em {
     gap: 25px;
   }
 
-  .menu-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .menu-group {
     padding: 25px 25px 0;
-  }
-
-  .menu-group:nth-child(4n)::after {
-    display: block;
-  }
-
-  .menu-group:nth-child(3n)::after {
-    display: none;
   }
 
   .editorial-strip,
@@ -2577,17 +2606,21 @@ em {
   }
 }
 
-@media (min-width: 961px) and (max-width: 1200px) {
+/* Tới 1400px, 4 nhãn tiếng Việt không đủ chỗ cho kiểu lệch trái -10% của màn rộng: canh giữa, khe co lại như
+   Espacio dưới 1200px, để navbar không bị ẩn trên laptop 1280/1366. */
+@media (min-width: 961px) and (max-width: 1400px) {
   .desktop-nav {
     width: calc(100% + 30px);
     min-width: 0;
   }
 
   .desktop-nav ul {
+    left: auto;
     width: fit-content;
     max-width: 100%;
     margin-inline: auto;
     grid-template-columns:
+      max-content minmax(0, 44.4609375px)
       max-content minmax(0, 44.4609375px)
       max-content minmax(0, 44.4609375px)
       max-content;
@@ -2604,6 +2637,17 @@ em {
 
   .desktop-nav li:nth-child(3) {
     grid-column: 5;
+  }
+
+  .desktop-nav li:nth-child(4) {
+    grid-column: 7;
+  }
+}
+
+/* Trên 1200px khe cột header là 70px: cho nav lấn 50px mỗi bên, chừa 20px tới logo và nút menu. */
+@media (min-width: 1201px) and (max-width: 1400px) {
+  .desktop-nav {
+    width: calc(100% + 100px);
   }
 }
 

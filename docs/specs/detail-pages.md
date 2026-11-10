@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-31
+updated: 2026-11-07
 ---
 
 # Trang Residential, Commercial và About
@@ -50,9 +50,8 @@ Then html có lang="en", title "Commercial spaces — Trường Thịnh", hero p
 
 ### R2. Residential và Commercial: section và nội dung
 
-`main#noi-dung` có một `h1`, mười một khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
-footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã
-mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
+`main#noi-dung` có một `h1`, mười hai khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
+footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
@@ -67,11 +66,12 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
+| 12 | `.blk-projects` | Dải công trình nhà ở như Espacio `/en/interior-design`, sinh từ `content/projects.json` ([projects R1](projects.md#r1-dải-công-trình-trên-trang-nhà-ở-và-kinh-doanh)) | Dải công trình kinh doanh như `/en/kitchens` | ink |
 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
+Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
 ```
 
 ### R3. About: section và nội dung
@@ -141,8 +141,8 @@ theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `d
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
 (thêm trượt từ 60px), `[data-motion-media]` (chờ ảnh tải) hiện trong 0,6s khi vào viewport. Portal reveal như
 [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ). Parallax Locomotive ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)):
-ảnh hero About (`.about-hero__media`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ: revert split, thay chữ, tách lại khi font sẵn sàng, section
-đang xem phát lại qua `replaySection` ([trang chủ R11](page-home.md#r11-đổi-ngôn-ngữ-phát-lại-section-đang-xem)). Rời
+ảnh hero About (`.about-hero__media`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ tải lại
+trang như F5, mọi reveal chạy lại từ đầu ([trang chủ R11](page-home.md#r11-đổi-ngôn-ngữ-chạy-lại-trang)). Rời
 trang: `unmount` hủy listener (AbortSignal), observer, frame, split, GSAP context. Không thêm thư viện animation ngoài
 [danh sách tự host](static-release.md#r4-font-và-thư-viện-tự-host).
 
@@ -255,7 +255,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 | DOM hook | `[data-motion-lines]`, `[data-motion-words]`, `[data-motion-*-source]`, `[data-motion-fade]`, `[data-motion-up]`, `[data-motion-media]`, `data-motion-delay`, `data-scroll-speed` | Reveal, parallax (R6) |
 | DOM hook | `[data-gallery]`, `[data-gallery-track]` | Gallery (R7) |
 | Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-motion-ready`, `is-dragging`, `is-overlay-media-ready` | `detail.js`, `motion.js` ghi |
-| Hàm public | `window.TruongThinhDetail`: `mount(container, {settled, softNavigation})`, `unmount()`, `replaySection(section)` trả boolean, `revertSplitText()`, `rebuildSplitText()` | `motion.js` gọi; `ensureAdvertisingDependencies` thuộc Advertising |
+| Hàm public | `window.TruongThinhDetail`: `mount(container, {settled, softNavigation})`, `unmount()`, `revertSplitText()`, `rebuildSplitText()` | `motion.js` gọi; `ensureAdvertisingDependencies` thuộc Advertising |
 | Data | `data-cms="hero.kicker"` | Worker CMS dormant đọc |
 
 ## UI

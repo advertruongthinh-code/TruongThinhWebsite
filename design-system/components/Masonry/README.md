@@ -1,7 +1,9 @@
 # Masonry Advertising
 
+Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`; CSS `.advertising-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md).
+
 Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
-`layout-core.mjs` tính (thuần, không đọc DOM), `catalog-runtime.mjs` mount và
+`masonry/layout.mjs` tính (thuần, không đọc DOM), `masonry/runtime.mjs` mount và
 ảo hóa; engine chuyển vị trí là `masonry-layout`.
 
 ## Hình học
@@ -9,8 +11,16 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 - Lề ngoài 15/25/35px (viewport `<= 750`, `<= 1200`, lớn hơn); khoảng giữa
   cột 15/25/35px (`<= 960`, `<= 1200`, lớn hơn). Masonry rộng hết viewport trừ
   lề ngoài, không giới hạn bề rộng tối đa.
-- Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; mỗi ảnh
-  rộng đúng một cột, cao theo tỷ lệ gốc.
+- Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; ảnh rộng
+  một cột, cao theo tỷ lệ gốc.
+- Card hai cột (owner 2026-11-09, mọi masonry kể cả related và Công trình):
+  ảnh bìa ngang `w/h >= 1.618` (tỷ lệ vàng) rộng hai cột cộng một gutter khi
+  `C >= 3` (1440px: 667.5px). Điện thoại 2 cột: mọi card một cột.
+- Không lỗ (owner 2026-11-10): card hai cột chỉ đặt trên hai cột kề bằng đáy;
+  chênh tối đa `0.25 ×` gutter (9/6/4px) và 5% media thì cắt card cuối cột dài
+  hơn cho khít (ảnh cover, cắt đều trên dưới). Chưa có cặp thì card chờ, card
+  sau đi tiếp; card hai cột còn chờ thành dải cuối, lỗ dưới chúng có khung
+  skeleton lấp ([masonry R5](../../../docs/specs/advertising-masonry.md#r5-hình-học-masonry)).
 
 | Viewport | Lề ngoài | Cột | Gutter | Rộng card |
 | ---: | ---: | ---: | ---: | ---: |
@@ -21,11 +31,18 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 | 1440 | 35 | 4 | 35 | 316 |
 
 Đo trên website ngày 2026-10-04.
-- Không spacer, không giãn gutter, không crop để giả so le. Rule stagger và
+- Không spacer, không giãn gutter, không crop để giả so le (chỉ cắt khép mép
+  ở trên). Rule stagger và
   chống nhịp gạch: [masonry R6](../../../docs/specs/advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí).
 - Chỉ mount card gần viewport; list có `aria-posinset`, `aria-setsize`; Tab
   vẫn đi qua được phần chưa mount.
 - Không có JavaScript: sáu card tĩnh trong HTML vẫn hiện.
+
+## Tên card Công trình
+
+Trang Công trình mount cùng masonry, tên card như mọi card masonry: trên trái
+trong media, card cao đúng bằng media, khung skeleton không chừa chỗ tên
+(owner 2026-11-10, [Media card](../MediaCard/README.md#cấu-trúc)).
 
 Chuyển vị trí ở [Motion](../../motion.md#vị-trí-card-masonry). Preview chụp
 viewport 1440px với seed cố định.

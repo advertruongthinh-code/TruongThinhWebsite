@@ -1,5 +1,7 @@
 # Brand lockup
 
+Nguồn: `src/site/assets/brand/truong-thinh-lockup.svg`, `scripts/site/sync-brand-lockup.mjs`; CSS `.brand-lockup`; spec [Shell](../../../docs/specs/site-shell.md).
+
 Logo Trường Thịnh gồm mark tam giác bốn path và hai dòng chữ, dùng trong
 header, full menu và footer. Markup là SVG inline `svg.brand-lockup`, không
 dùng file ảnh.
@@ -7,7 +9,8 @@ dùng file ảnh.
 ## Hình học
 
 Hình dựng tỷ lệ (H, Y = H/6, khối chữ 4Y), dạng màu, motion và state machine
-màu theo [Brand guideline](../../brand.md#logo). Kích thước header: `brand-header-width` ×
+màu theo [Brand guideline](../../brand.md#logo); chuyển trang: chữ đổi ngay, mark lật theo veil
+([logo đổi màu](../../../docs/specs/logo-route-crossfade.md)). Kích thước header: `brand-header-width` ×
 `brand-header-height`.
 
 ## Số SVG và kích thước

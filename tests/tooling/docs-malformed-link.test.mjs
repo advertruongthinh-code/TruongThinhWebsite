@@ -16,6 +16,7 @@ test("docs gate diagnoses malformed percent encoding without crashing", (t) => {
   for (const directory of ["design-system", "src/site", "scripts/docs"]) mkdirSync(join(root, directory), { recursive: true });
   writeFileSync(join(root, "design-system/tokens.json"), "{}");
   writeFileSync(join(root, "src/site/style.css"), ":root {\n\n}\n");
+  writeFileSync(join(root, "src/site/detail.css"), "");
   for (const script of ["build-design-system.mjs", "build-design-md.mjs"]) writeFileSync(join(root, "scripts/docs", script), "");
   const result = spawnSync(process.execPath, [fileURLToPath(new URL("../../scripts/docs/check-docs.mjs", import.meta.url))], {
     cwd: root, encoding: "utf8", env: { ...process.env, DOCS_BASE: "" },

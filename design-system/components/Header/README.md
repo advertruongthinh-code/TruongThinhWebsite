@@ -1,6 +1,8 @@
 # Header
 
-Thanh điều hướng cố định đầu trang: brand lockup, nav ba route dịch vụ và nút
+Nguồn: CSS `.site-header`, `.desktop-nav`, `.menu-button`; spec [Shell](../../../docs/specs/site-shell.md), [Header trên điện thoại](../../../docs/specs/phone-header-scroll.md).
+
+Thanh điều hướng cố định đầu trang: brand lockup, nav bốn route (Nhà ở, Kinh doanh, Công trình, Quảng cáo) và nút
 mở full menu. Markup ở mọi trang (`<header class="site-header">`), style ở
 `src/site/style.css`, trạng thái do `src/site/motion.js` gắn.
 
@@ -25,8 +27,10 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | `> 1200` | 102.52 | 81.39 | `35px 35px 0` | `10px 35px` | 70 | `260.97 × 67.52` | `65 × 67.52` |
 
 - Lockup sticky `191.88 × 49.64` mọi width.
-- Nav ẩn tới 750px; từ 751px ba link một hàng, chữ hoa 700 16/22.4. Link
-  đầu ở x 275.63 (768), 260.63 (1024), 426.28 (1440).
+- Nav ẩn tới 750px; bốn link một hàng, chữ hoa 700 16/22.4, chỉ hiện khi
+  đủ chỗ (từ khoảng 1040px; hẹp hơn thì `is-space-hidden`, còn nút menu).
+  Tới 1400px nav canh giữa, khe giữa các link co lại (tối đa 44.46px); trên
+  1400px khe 39.46px, lệch trái 10% như Espacio.
 - Hamburger `35 × 19`, nét 3px; hover hoặc focus thì dòng trên và dưới co
   một nửa, dòng giữa giãn gấp đôi; nhấn thì nút `scale(.8)`.
 - Underline nav cao 3px, cách chữ 4px; nghỉ `scaleX(0)` neo phải, hover hoặc
@@ -38,12 +42,13 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | --- | --- | --- |
 | mặc định | Trên hero ảnh | Nền trong, chữ trắng |
 | `is-brand-inverse` | Nền tối | Lockup trắng |
-| `is-ink` | Trang nền trắng | Chữ `ink` |
+| `is-ink` | Trang nền trắng, hoặc veil chuyển trang phủ kín | Chữ `ink`, đổi ngay không tween |
 | `is-collapsed` | `scrollY > 100` | Nền `white`, viền dưới 1px `#d3d3d3`, chữ `#2f2f2f` |
 | `is-brand-color` | Sticky hoặc nền trắng | Mark CMYK ([state machine](../../brand.md#state-machine-màu)) |
 | `is-hidden` | Cuộn xuống giữa trang | `translateY(-100%)`; `:focus-within` luôn hiện |
 
-Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell).
+Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell). Collapse: FLIP lockup và navbar
+`0.3s expo.out`; nền (`.is-surface`, vẽ ở `::before`), viền và chữ đổi một lần, không fade: thu gọn thì đổi ngay lúc bắt đầu nhịp rồi nền co cùng logo và navbar, mở ra thì nền giãn cùng logo và navbar, hết nhịp mới đổi; cỡ lớn nhất của nền là lúc logo lớn nhất cách đều cạnh trên và cạnh dưới nền; mark lật ngay lúc bắt đầu ([Brand Motion](../../brand.md#motion)).
 
 ## Chú thích thuật ngữ
 

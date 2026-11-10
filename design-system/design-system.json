@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-01T05:05:12Z",
-    "via": "Claude Code (Remote Control)",
-    "note": "Đợt #663, #664: bundle CTA related, README MediaCard, Kính, Skeleton, Vệt sáng và motion.md theo tải ảnh JXL và blur trên màu chủ đạo"
+    "at": "2026-11-10T18:43:40Z",
+    "via": "Claude Code",
+    "note": "Nút Xem lớn hơn khóa khi ảnh primary đang tải, icon loading morph sang phóng to (#791); masonry không lỗ, card UI trong ảnh học Pinterest, Skeleton, Suggestion, Header và đổi ngôn ngữ theo main (#763, #764, #766, #768, #770, #772, #779, #785, #788, #789)"
   }
 }

@@ -2,12 +2,21 @@
 
 const { test, expect } = require("playwright/test");
 
+const fs = require("node:fs");
+const path = require("node:path");
+
+// Trang dựng từ khối lấy mẫu đầu tiên trong dữ liệu (content-independent-tests R4), không ghi cứng slug.
+const content = (kind) => JSON.parse(fs.readFileSync(path.join(__dirname, "../../src/site/content", `${kind}.json`), "utf8"));
 const routes = [
   "/vi/",
   "/vi/residential/",
   "/vi/commercial/",
   "/vi/advertising-products/",
   "/vi/about/",
+  "/vi/projects/",
+  `/vi/projects/${content("projects")[0].slugVi}/`,
+  "/vi/news/",
+  `/vi/news/${content("news")[0].slugVi}/`,
 ];
 
 for (const route of routes) {

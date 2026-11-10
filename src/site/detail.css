@@ -93,6 +93,12 @@
   font-style: italic;
 }
 
+/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08).
+   Trang cụm, sản phẩm đổi khẩu hiệu thành <p id="page-title"> nên chọn theo id, không theo h1. */
+.detail-index-hero #page-title .detail-title__strong {
+  font-style: italic;
+}
+
 .detail-intro,
 .detail-lead,
 .detail-note,
@@ -636,6 +642,11 @@
   z-index: 3;
 }
 
+/* Chip ẩn (loại chưa có công trình, projects R2) thắng display của rail. */
+.detail-index-hero .project-filter[hidden] {
+  display: none;
+}
+
 .detail-index-hero .project-filter {
   display: inline-block;
   padding: 0;
@@ -813,35 +824,9 @@
   object-position: 58% 50%;
 }
 
-.project-tile figcaption {
-  position: relative;
-  padding: 0.75rem 0 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.project-tile figcaption::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right;
-  background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
-}
-
 @media (hover: hover) and (pointer: fine) {
   .project-tile:not(.advertising-tile):hover img {
     transform: scale(1.15);
-  }
-
-  .project-tile:hover figcaption::after {
-    transform: scaleX(1);
-    transform-origin: left;
   }
 }
 
@@ -1502,6 +1487,10 @@ body.is-advertising-browse .advertising-grid {
   aspect-ratio: auto;
   overflow: hidden;
   background: #e9e6df;
+  /* Vòng 1px màu giấy vẽ trên nền khung, dưới media: chỗ nào media hụt khung dưới một pixel (làm tròn tỷ lệ, layer
+     composite lệch subpixel, mép khử răng cưa) lộ màu giấy như rãnh giữa card, không lộ màu chủ đạo thành lằn tối
+     (owner 2026-11-09). Không đổi hình học. */
+  box-shadow: inset 0 0 0 1px var(--paper);
 }
 
 .advertising-card-media {
@@ -1528,8 +1517,8 @@ body.is-advertising-browse .advertising-grid {
     background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. */
+/* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
+   above it and video keeps playing underneath. */
 .advertising-card-media::after {
   position: absolute;
   z-index: 1;
@@ -1541,8 +1530,40 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
+/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. A real mouse shows the
+   Pinterest hover shade (--media-shade-card) and the card name on hover, at once and without motion. Touch shows neither:
+   the image stays clean apart from the pill row. */
+.advertising-tile .advertising-card-media::after {
+  background: var(--media-shade-card);
+  transition: none;
+}
+
+/* Card name as Pinterest's board name on pin hover (measured 2026-11-10): 16px bold on a 24px line, centred in the 48px flat
+   part of the shade (top 24px), 28px from the card edges, one line then an ellipsis. Hidden until hover; it stays the
+   link's accessible name (aria-labelledby). */
+.advertising-tile__title {
+  position: absolute;
+  z-index: 2;
+  top: 24px;
+  right: 28px;
+  left: 28px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-shadow: var(--text-shadow-d);
+  text-transform: uppercase;
+  opacity: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  pointer-events: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .advertising-tile:hover .advertising-card-media::after {
+  .advertising-tile:hover .advertising-card-media::after,
+  .advertising-tile:hover .advertising-tile__title {
     opacity: 1;
   }
 
@@ -1596,56 +1617,61 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
-/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
-.advertising-card-media__duration {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.9);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
-  pointer-events: none;
-}
-
+/* Pill row at the bottom inside the media (owner 2026-11-10): the dots or the n/N counter, centred. Cards show no video
+   duration pill. */
 .advertising-card-media__indicator {
   position: absolute;
+  right: 0;
   bottom: 0;
   left: 0;
   z-index: 3;
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 44px;
+  align-items: center;
+  height: var(--card-pill-row);
   box-sizing: border-box;
-  color: var(--ink);
-  background: var(--paper);
+  padding: 0 8px;
   pointer-events: none;
 }
 
-/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
-   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
+/* The pill sits 12px above the card edge, like the buttons along the bottom of a hovered Pinterest pin (measured
+   2026-11-10): the dots pill is centred in the 40px row, the taller counter pill rests on a 12px bottom inset. */
+.advertising-tile {
+  --card-pill-row: 40px;
+}
+
+.advertising-card-media__indicator:has(.advertising-card-media__count) {
+  height: auto;
+  padding-bottom: 12px;
+}
+
+/* Dots or the counter sit in a pill copied from Pinterest's "5/14" carousel counter (measured 2026-11-10): charcoal
+   rgba(51, 51, 51, 0.8), radius 12px, white 12px regular text, padding 4px 8px. The dots pill is compact like Pinterest's
+   carousel dots: 8px dots every 16px, 16px tall; the 16x40px dot hit areas fill the row. */
 .advertising-card-media__pill {
   display: flex;
+  flex: none;
   align-items: center;
-  height: 24px;
-  padding: 0 2px;
-  border-radius: 8px;
+  height: 16px;
+  border-radius: 12px;
   color: #fff;
-  background: rgba(32, 33, 32, 0.9);
+  background: rgba(51, 51, 51, 0.8);
+}
+
+.advertising-card-media__pill:has(.advertising-card-media__count) {
+  height: auto;
+  padding: 4px 8px;
+}
+
+.advertising-card-media__pill:empty {
+  display: none;
 }
 
 .advertising-card-media__dot {
   display: grid;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 44px;
+  flex: 0 0 16px;
+  width: 16px;
+  height: var(--card-pill-row);
   padding: 0;
   place-items: center;
   border: 0;
@@ -1668,13 +1694,12 @@ body.is-advertising-browse .advertising-grid {
   opacity: 1;
 }
 
-/* Chữ như nhãn thời lượng: 12px, 500, số đều. */
+/* Counter text as on Pinterest: 12px regular, 1.6 line height. Proportional figures: the tabular "1" of Plus Jakarta Sans
+   carries a foot serif that looks odd in "1/11" (owner 2026-11-10). */
 .advertising-card-media__count {
-  padding: 0 4px;
   font-size: 0.75rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .advertising-card-media__dot:focus-visible {
@@ -1686,10 +1711,18 @@ body.is-advertising-browse .advertising-grid {
   background: transparent;
 }
 
-.advertising-tile img {
+/* Media covers the frame exactly: height auto takes its ratio from the rounded pixels of the loaded file (480w: 437x245), up to
+   0.5px shorter than the frame, so a row of dominant-colour fill showed as a dark line at the bottom (owner 2026-11-09). Cover, not
+   stretch: an edge-trimmed card (advertising-masonry R5) is up to 5% shorter than its natural ratio; media crops evenly, no distortion. */
+.advertising-tile img,
+.advertising-tile video.advertising-tile__foreground {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+}
+
+.advertising-tile img {
   opacity: 0;
 }
 
@@ -1702,6 +1735,31 @@ body.is-advertising-browse .advertising-grid {
    nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
 [data-advertising-media-loading] .advertising-tile__foreground[style*="blur("] {
   animation: media-breathe 2s ease-in-out infinite;
+  /* Pha chung với card tạm (runtime ghi --breathe-phase), nên đổi từ card tạm sang card mờ không nhảy độ sáng. */
+  animation-delay: var(--breathe-phase, 0s);
+}
+
+/* Card tạm giữ chỗ card chưa dựng kịp khi vuốt nhanh (advertising-masonry R7): màu chủ đạo của ảnh bìa, thở như card
+   chờ ảnh. Lớp nằm đầu grid, dưới mọi card, không nhận chạm. */
+.advertising-ghost-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Card tạm thêm, bớt mỗi frame cuộn; cô lập layout để grid và trang không tính lại theo (A04s: layout ép mỗi frame). */
+  contain: strict;
+}
+
+.advertising-ghost {
+  position: absolute;
+  contain: strict;
+  background: #e9e6df;
+  animation: media-breathe 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertising-ghost {
+    animation: none;
+  }
 }
 
 [data-advertising-media-loading] .advertising-card-media__just-viewed {
@@ -1735,7 +1793,7 @@ body.is-advertising-browse .advertising-grid {
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
-   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do glass-surface.mjs
+   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do masonry/glass-surface.mjs
    đặt inline qua --glass-step-blur, thắng các rule này); saturate() và brightness() nhân nhau, nên mỗi step
    mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
    chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
@@ -1760,7 +1818,7 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-/* Band step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
+/* Band step của arc vượt số đếm đã fit của thiết bị này (masonry/glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -1794,7 +1852,7 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.06;
 }
 
-/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
+/* Runtime arc đặt từng layer (masonry/glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
    trên PC runtime đặt inline --glass-full-blur: 100px cho core (chín bậc của dải đã mang blur tới trần 100px). */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
@@ -1813,7 +1871,7 @@ body.is-advertising-browse .advertising-grid {
 /* Trên các layer WebGL của skeleton trong trang composited (smooth scroll), Chromium bỏ blur của step dưới một
    sibling blended, nên mép card lộ sắc nét qua arc. White noise với blending normal làm sáng thêm
    0.12 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.06 của nó trừ khỏi tint
-   (glass-surface.mjs). */
+   (masonry/glass-surface.mjs). */
 .glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
   background-image: var(--glass-grain-white, none);
   mix-blend-mode: normal;
@@ -2049,14 +2107,15 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
+/* Multi-media masonry card arrows as on the Pinterest grid (measured 2026-10-18): 32px hit areas at the left and right edges,
+   from the top of the canvas down to the pill row, thin white 16px chevron (centre 16px from the edge), no background,
+   above the hover layer; a light shadow keeps the chevron readable on bright media; the button is its own layer so the shadow
+   paints once (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px);
+  height: calc(100% - var(--card-pill-row));
   border-radius: 0;
   background: transparent;
   color: #fff;
@@ -2473,6 +2532,11 @@ body.is-advertising-browse .site-footer {
   right: 16px;
 }
 
+/* Locked until the primary photo has loaded (advertising-detail R9): the icon spins as a loader, the button stays white. */
+.advertising-photo-view__expand:disabled {
+  cursor: progress;
+}
+
 /* Nút quay lại kiểu Pinterest góc trên trái (detail R10), hiện cả màn cảm ứng. */
 .advertising-photo-view__back {
   top: 16px;
@@ -2491,7 +2555,7 @@ body.is-advertising-browse .site-footer {
 }
 
 @media (hover: hover) {
-  .advertising-photo-view__image-action:hover {
+  .advertising-photo-view__image-action:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
@@ -2502,7 +2566,7 @@ body.is-advertising-browse .site-footer {
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-view__image-action:active {
+.advertising-photo-view__image-action:not(:disabled):active {
   background: var(--media-control-active);
 }
 
@@ -3359,6 +3423,12 @@ body.is-advertising-photo .detail-process {
   display: none;
 }
 
+/* Vào thẳng detail: main rỗng tới khi runtime lộ photo view, margin của footer lọt qua làm trang lệch 64px rồi
+   footer trượt khỏi màn hình (CLS 0,44, issue #649). Giữ footer dưới mép viewport ngay từ lần vẽ đầu. */
+body.is-advertising-photo .page-shell > main {
+  min-height: 100vh;
+}
+
 body.is-advertising-photo .desktop-nav a[aria-current="page"],
 body.is-advertising-photo #site-menu[open] a[aria-current="page"] {
   pointer-events: auto;
@@ -3725,4 +3795,587 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   .detail-index-hero > .hero-browse {
     --hero-chip-row: calc(0.75rem + 0.8125rem * 1.4);
   }
+}
+
+/* Khối trang công trình và News (layout-library R1, scripts/site/blocks.mjs). Học bố cục trang con /en/projects/ của
+   Espacio, theo chữ, màu, khoảng cách của site; cùng khung bề rộng với các khối detail. */
+.blk {
+  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  margin-inline: auto;
+}
+
+/* Nền tối như hero trang tĩnh: màu chờ ảnh của .hero và lớp phủ .hero-shade dùng chung (style.css). */
+.blk-hero {
+  position: relative;
+  height: var(--site-layout-viewport-height);
+  min-height: 32rem;
+  overflow: hidden;
+  background: var(--media-loading-surface);
+  color: var(--white);
+}
+
+.blk-hero__media {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+.blk-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.blk-hero__copy {
+  position: absolute;
+  z-index: 2;
+  inset: auto var(--gutter) clamp(2.5rem, 7vw, 6rem);
+  text-shadow: var(--text-shadow-d);
+}
+
+.blk-hero__title {
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 8.5rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-display);
+  word-spacing: var(--word-spacing-display);
+}
+
+.blk-hero__title span {
+  display: block;
+}
+
+.blk-hero__line2 {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.blk-hero__subtitle {
+  margin: 1.25rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Đầu trang bài News và trang danh sách: dải tối tràn mép như hero các trang tĩnh (nền --media-loading-surface,
+   chữ trắng, header inverse); nội dung giữ cùng cột với các khối .blk bên dưới. */
+.blk-article-head {
+  width: auto;
+  /* Bỏ margin-top của .section-gap: dải tối sát mép trên như hero; khối kế tiếp vẫn cách bằng .section-gap của nó. */
+  margin: 0;
+  padding: calc(var(--header-row-height) + clamp(2rem, 6vw, 5rem)) max(var(--gutter), calc((100% - 1370px) / 2)) clamp(2.5rem, 6vw, 5rem);
+  background: var(--media-loading-surface);
+  color: var(--white);
+}
+
+.blk-article-head .blk-news-filter__chip {
+  color: inherit;
+}
+
+.blk-article-head__meta {
+  margin: 0 0 1.25rem;
+  color: rgb(255 255 255 / 0.72);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-article-head__group {
+  color: inherit;
+  text-underline-offset: 0.3em;
+}
+
+.blk-article-head__title {
+  max-width: 20ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+.blk-title h2,
+.blk-contact__title {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(2.25rem, 4.45vw, 4rem);
+  font-weight: 300;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.blk-paragraph p,
+.blk-quote p {
+  max-width: 36rem;
+  margin: 0 0 1em auto;
+  font-size: clamp(1.125rem, 1.35vw, 1.375rem);
+  line-height: 1.55;
+  word-spacing: var(--word-spacing-body);
+}
+
+.blk-paragraph p:first-child {
+  text-indent: 4.5em;
+}
+
+/* Dàn chữ trang công trình, News theo Espacio (owner 2026-11-08, đo 75 trang): đoạn văn 24px PC, 20,8px phone, giãn dòng 1,4,
+   cột 600px, thụt dòng đầu 100px PC, 50px phone; phone khối cách nhau 30px, lề 15px. Chỉ trong main của hai namespace. */
+.blk-paragraph p {
+  max-width: 37.5rem;
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.blk-paragraph p:first-child {
+  text-indent: 100px;
+}
+
+@media (max-width: 680px) {
+  :is([data-barba-namespace="project"], [data-barba-namespace="news"]) #noi-dung {
+    --section-gap: 30px;
+    --gutter: 15px;
+  }
+
+  .blk-paragraph p {
+    font-size: 1.3rem;
+  }
+
+  .blk-paragraph p:first-child {
+    text-indent: 50px;
+  }
+}
+
+.blk-paragraph--columns {
+  columns: 2 22rem;
+  column-gap: clamp(2rem, 5vw, 5rem);
+}
+
+.blk-paragraph--columns p {
+  max-width: none;
+  margin-left: 0;
+}
+
+.blk-image__figure,
+.blk-video__figure,
+.blk-pair__item {
+  margin: 0;
+}
+
+.blk-image img,
+.blk-pair img,
+.blk-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.blk-image--left-2-3 .blk-image__figure { width: 66%; }
+.blk-image--right-2-3 .blk-image__figure { width: 66%; margin-left: auto; }
+.blk-image--left-1-2 .blk-image__figure { width: 50%; }
+.blk-image--right-1-2 .blk-image__figure { width: 50%; margin-left: auto; }
+
+.blk figcaption {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.blk-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
+}
+
+.blk-pair--left-large { grid-template-columns: 2fr 1fr; }
+.blk-pair--right-large { grid-template-columns: 1fr 2fr; }
+
+.blk-facts__list {
+  display: grid;
+  grid-template-columns: repeat(var(--facts-columns, 4), 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: fact;
+}
+
+.blk-facts--2 { --facts-columns: 2; }
+.blk-facts--3 { --facts-columns: 3; }
+
+.blk-facts__item {
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  counter-increment: fact;
+}
+
+.blk-facts__item::before {
+  content: counter(fact, decimal-leading-zero);
+  display: block;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.blk-facts__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-facts__text {
+  margin: 0;
+  font-size: clamp(1.125rem, 1.35vw, 1.375rem);
+  line-height: 1.4;
+}
+
+.blk-quote blockquote {
+  margin: 0;
+}
+
+.blk-quote cite {
+  display: block;
+  margin-left: auto;
+  max-width: 36rem;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.blk-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.blk-contact__zalo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3.25rem;
+  padding: 0 1.75rem;
+  color: var(--white);
+  background: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.blk-cta {
+  display: flex;
+  justify-content: center;
+}
+
+.blk-cta__link {
+  display: inline-flex;
+  text-wrap: balance;
+  align-items: center;
+  gap: 1.5rem;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.blk-cta__arrow {
+  flex: none;
+  width: 9rem;
+  height: 2.5rem;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 40'%3E%3Cpath d='M0 20h142M122 1l20 19-20 19' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: translate 0.4s var(--ease);
+}
+
+.blk-cta__link:hover .blk-cta__arrow {
+  translate: 0.75rem 0;
+}
+
+.blk-projects__track {
+  display: grid;
+  /* Thẻ dọc cỡ như Espacio: 4 thẻ trên PC 1440, thẻ thấp lệch xuống so le. */
+  grid-auto-columns: clamp(15rem, 21vw, 19rem);
+  grid-auto-flow: column;
+  justify-content: start;
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.blk-projects__card {
+  color: var(--ink);
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.blk-projects__name {
+  display: block;
+  padding-top: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.blk-news-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+.blk-news-card,
+.blk-banner {
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.blk-news-card img,
+.blk-banner img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.blk-news-card__title,
+.blk-banner__title {
+  display: block;
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.blk-banners {
+  display: grid;
+  grid-template-columns: repeat(var(--banner-columns, 3), 1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.blk-banners--1 { --banner-columns: 1; }
+.blk-banners--2 { --banner-columns: 2; }
+
+@media (max-width: 980px) {
+  .blk-image[class*="blk-image--"] .blk-image__figure,
+  .blk-pair {
+    width: 100%;
+  }
+
+  .blk-pair,
+  .blk-news-cards__grid,
+  .blk-banners {
+    grid-template-columns: 1fr;
+  }
+
+  .blk-facts__list {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .blk-paragraph p,
+  .blk-quote p {
+    margin-left: 0;
+  }
+
+  .blk-projects__track {
+    grid-auto-columns: 72%;
+  }
+
+  .blk-projects .project-card--low {
+    padding-top: 0;
+  }
+
+  .blk-cta__arrow {
+    width: 5rem;
+  }
+}
+
+/* Danh sách News (news R2): hàng lọc nhóm, ngày và nhóm trên thẻ, thanh phân trang. */
+.blk-news-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2rem;
+}
+
+.blk-news-filter__chip,
+.blk-news-pager a {
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.blk-news-filter__chip[aria-current="true"],
+.blk-news-pager a[aria-current="page"] {
+  text-decoration: underline;
+  text-underline-offset: 0.35em;
+}
+
+.blk-news-card__meta {
+  display: block;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blk-news-card__meta + .blk-news-card__title {
+  margin-top: 0.5rem;
+}
+
+.blk-news-pager {
+  display: flex;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+/* Bố cục danh sách theo Espacio /en/news (owner 2026-11-09): hai cột; thẻ lớn bài mới nhất dính ở cột trái, cột phải là lưới
+   2x2 rồi các thẻ hàng ngang (ảnh 1/3, chữ 2/3); ảnh bìa 3:2. Rê chuột thì gạch chân tiêu đề chạy như navbar, không phóng to ảnh.
+   CSS sticky chỉ chạy khi cuộn native (reduced motion, 961-980px); smooth scroll từ 981px dùng sticky của Locomotive
+   (motion.js đọc `top` dưới đây làm mốc dính). */
+.blk-news-list__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  align-items: start;
+}
+
+.blk-news-list__main {
+  position: sticky;
+  top: calc(var(--header-collapsed-row-height, 61px) + 40px);
+}
+
+.blk-news-list__side,
+.blk-news-list__quad {
+  display: grid;
+  gap: 35px;
+}
+
+.blk-news-list__quad {
+  grid-template-columns: 1fr 1fr;
+}
+
+.blk-news-list .blk-news-card img {
+  aspect-ratio: 3 / 2;
+}
+
+.blk-news-list .blk-news-card__title {
+  font-size: 1.3rem;
+  line-height: 1.3;
+}
+
+.blk-news-list .blk-news-card--main .blk-news-card__title {
+  font-size: clamp(2rem, 3.33vw, 3rem);
+}
+
+/* Gạch chân 3px chạy theo bề rộng chữ như navbar: mọc từ trái, thu về phải; nền của span inline nối qua các dòng. */
+.blk-news-list .blk-news-card__text {
+  padding-bottom: 4px;
+  background: linear-gradient(currentColor, currentColor) right bottom / 0 3px no-repeat;
+  transition: background-size 0.3s cubic-bezier(0.4, 0, 0, 1);
+}
+
+.blk-news-list .blk-news-card:hover .blk-news-card__text,
+.blk-news-list .blk-news-card:focus-visible .blk-news-card__text {
+  background-position: left bottom;
+  background-size: 100% 3px;
+}
+
+/* Ảnh chiếm hai hàng; hàng chữ dưới giãn (1fr) để nhóm và ngày nằm sát trên tiêu đề. picture là display: contents nên
+   <source> thành grid item rỗng, chiếm ô và đẩy ảnh, chữ xuống hàng sau. */
+.blk-news-card > picture > source {
+  display: none;
+}
+
+.blk-news-card--row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 35px;
+  align-content: start;
+}
+
+.blk-news-card--row img {
+  grid-row: span 2;
+}
+
+.blk-news-card--row .blk-news-card__meta {
+  margin-top: 0;
+}
+
+/* Thẻ lớn lúc dính phải vừa màn hình (laptop 1366x650, 1536x730): ảnh co chiều cao, cắt cover, tiêu đề luôn đủ. */
+@media (min-width: 961px) {
+  .blk-news-list .blk-news-card--main {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--header-collapsed-row-height, 61px) - 80px);
+  }
+
+  .blk-news-list .blk-news-card--main img {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .blk-news-list__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blk-news-list__main {
+    position: static;
+  }
+}
+
+@media (max-width: 578px) {
+  .blk-news-list__quad {
+    grid-template-columns: 1fr;
+  }
+
+  .blk-news-list__quad .blk-news-card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr;
+    column-gap: 15px;
+    align-content: start;
+  }
+
+  .blk-news-list__quad .blk-news-card img {
+    grid-row: span 2;
+  }
+
+  .blk-news-list__quad .blk-news-card__meta,
+  .blk-news-card--row .blk-news-card__meta {
+    margin-top: 0;
+  }
+
+  .blk-news-card--row {
+    column-gap: 15px;
+  }
+}
+
+/* Khẩu hiệu hero trang Công trình: chỉ chữ nhấn (em) đậm 700 nghiêng, phần còn lại 500 như dòng một (owner 2026-11-08). */
+.projects-title__accent em {
+  font-style: italic;
+  font-weight: 700;
+}
+
+/* Trang loại chưa có công trình (projects R2): dòng "đang cập nhật"; build và detail.js bật tắt hidden theo bộ lọc. */
+.projects-empty {
+  margin: 0;
+  padding-block: 2rem;
+  text-align: center;
+  color: var(--muted);
 }
