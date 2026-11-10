@@ -3,6 +3,7 @@ title: Viewer Advertising theo cử chỉ tay
 status: live
 source:
   - src/site/masonry/detail-viewer.mjs
+  - src/site/media-lib/loading-expand-icon.mjs
 tests:
   - tests/site/advertising-viewer-touch.e2e.mjs
   - tests/site/advertising-photo-view.e2e.mjs
