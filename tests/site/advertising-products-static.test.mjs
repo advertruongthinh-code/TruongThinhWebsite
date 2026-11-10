@@ -118,14 +118,15 @@ assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no
 // Owner 2026-11-09: card masonry chính và related có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình).
 assert.doesNotMatch(runtime, /if \(!related\) \{\s*const title = figure\.appendChild/, "related cards are no longer excluded from the title");
 assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "advertising-tile__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
-assert.match(siteCss, /--media-hover-overlay:\s*rgba\(0, 0, 0, 0\.353\);/, "hover overlay token matches the hero-shade average darkness");
-assert.match(advertisingCss, /\.advertising-grid \.advertising-card-media::after,\s*\[data-advertising-related-card\] \.advertising-card-media::after \{\s*background: var\(--media-hover-overlay\);/, "main and related masonry hover overlay use the shared token");
-assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.advertising-grid:not\(\.advertising-grid--captioned\) \.advertising-tile__title,\s*\[data-advertising-related-card\] \.advertising-tile__title \{[^}]*opacity: 0;/, "related cards show the same real-mouse title as the main grid");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-card-media::after \{\s*content: none;/, "project cards have no hover overlay");
-assert.match(advertisingCss, /\.advertising-tile__title \{\s*display: none;\s*\}\s*@media \(hover: hover\) and \(pointer: fine\)/, "advertising title only exists for a real mouse");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title \{[^}]*height: var\(--advertising-caption-height\);[^}]*white-space: nowrap;/, "project caption fills the reserved one-line height");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title::after \{[^}]*height: 3px;[^}]*transform: scaleX\(0\);[^}]*transform-origin: right center;[^}]*transition: transform 0\.3s cubic-bezier\(0\.4, 0, 0, 1\);/, "project caption underline matches the navbar link underline");
-assert.match(sharedScripts, /viewer: false,\s*captions: true,/, "projects masonry mounts with captions");
+// Owner 2026-11-10 (media-card R2): every card UI sits inside the media; touch always shows the name and top band, a real mouse shows them on hover.
+assert.match(siteCss, /--media-shade-even:\s*rgba\(0, 0, 0, 0\.2\);/, "even hero layer token is 0.2");
+assert.match(siteCss, /--media-shade-top:\s*linear-gradient\(180deg, rgba\(0, 0, 0, 0\.625\)[\s\S]*?transparent 36%\);/, "top band token fades over 36% like the hero");
+assert.match(siteCss, /\.hero-shade \{[^}]*background: var\(--media-shade-top\),[^}]*var\(--media-shade-even\);/, "hero shade is built from the shared tokens");
+assert.match(advertisingCss, /\.advertising-tile \.advertising-card-media::after \{\s*background: var\(--media-shade-top\);\s*opacity: 1;\s*transition: none;/, "touch cards always show the top band, without motion");
+assert.match(advertisingCss, /\.advertising-tile__title \{[^}]*position: absolute;[^}]*top: 8px;[^}]*left: 8px;[^}]*-webkit-line-clamp: 2;/, "card name sits top left inside the media, clamped to two lines");
+assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.advertising-tile \.advertising-card-media::after,\s*\.advertising-tile__title \{\s*opacity: 0;\s*\}\s*\.advertising-tile:hover \.advertising-card-media::after \{\s*background: var\(--media-shade-top\), var\(--media-shade-even\);/, "real-mouse hover shows the top band, the even layer and the name together");
+assert.doesNotMatch(advertisingCss, /advertising-grid--captioned|--advertising-caption-height/, "no card reserves a caption strip below the media");
+assert.doesNotMatch(sharedScripts, /captions: true/, "projects masonry has no caption option");
 assert.doesNotMatch(runtime, /data-advertising-photo-title/, "photo runtime does not render an image title");
 assert.doesNotMatch(index, /data-advertising-photo-title|id="du-an-title"/, "Advertising markup has no image or grid title");
 assert.match(index, /data-advertising-photo-info[^>]*aria-label="Thông tin ảnh sản phẩm quảng cáo"/, "photo information retains an accessible region label");

@@ -111,8 +111,7 @@ export function createGhostLayer(host) {
       setStyle(element, "left", `${placement.x}px`);
       setStyle(element, "top", `${placement.y}px`);
       setStyle(element, "width", `${placement.pixelWidth}px`);
-      // Card có tên dưới media (projects R2): card tạm chỉ phủ phần media, chỗ tên để trống như card thật.
-      setStyle(element, "height", `${placement.pixelHeight - (placement.captionPixelHeight || 0)}px`);
+      setStyle(element, "height", `${placement.pixelHeight}px`);
       if (color) setStyle(element, "backgroundColor", color);
     },
     // Card thật thay chỗ: trả phần tử để card crossfade lên trên nó, rồi người gọi gỡ nó.

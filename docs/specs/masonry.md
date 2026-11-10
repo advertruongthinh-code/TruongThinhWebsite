@@ -28,7 +28,7 @@ hoặc ở spec chi tiết được trỏ tới, không chép sang từng trang.
 ### R1. Ba nơi, một runtime
 
 Ba lưới chạy chung `mountMasonry` (`masonry/runtime.mjs`). Trang Công trình mount với `viewer: false` (không
-detail, related, gợi ý, chip sản phẩm, không khung detail ẩn trong HTML) và `captions: true`. Phần lưới của trang Công
+detail, related, gợi ý, chip sản phẩm, không khung detail ẩn trong HTML). Phần lưới của trang Công
 trình (grid, thẻ tĩnh noscript, batch skeleton, CTA đuôi) lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ
 CTA ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)): thêm attribute ở trang quảng cáo thì trang Công trình có theo.
 

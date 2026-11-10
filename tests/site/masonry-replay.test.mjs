@@ -21,7 +21,7 @@ test("replay returns the layout shape runtime reads, with 2-column wide cards an
   assert.deepEqual(layout.holes, []);
   assert.equal(layout.diagnostics.source, "cache");
   assert.equal(layout.placements.filter(({ width }) => width === 2).length, 2);
-  assert.ok(layout.placements.every((p, i) => p.index === i && p.captionPixelHeight === 0 && p.pixelHeight === p.mediaPixelHeight));
+  assert.ok(layout.placements.every((p, i) => p.index === i && p.pixelHeight === p.mediaPixelHeight));
   assert.match(layout.coordinateHash, /^[0-9a-f]{8}$/);
   assert.ok(verifyLayout(layout).ok);
 });

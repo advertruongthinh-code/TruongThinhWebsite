@@ -39,10 +39,9 @@ khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì
 Mỗi lỗ dải cuối của masonry (`layout.holes`) có một khung một cột cắt đúng lỗ (chừa chỗ tên ở lưới có tên), slot `h0`,
 `h1`, ..., band gần tỷ lệ lỗ nhất, đứng trước khung nối tiếp; band mặc định (w/h tối đa 1.39) đều giữ một
 cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
-(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
+(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (card cao đúng bằng media, [media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media)). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
-`1`, đứng `1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
-chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
+`1`, đứng `1.32`; khung không chừa chỗ tên vì tên nằm trong media ở mọi lưới, kể cả trang Công trình. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
 đầu. Khung cuối mỗi cột kéo tới đáy batch (khung hai cột chỉ kéo khi là khung cuối của cả hai cột); phần còn lại ngắn
 hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot

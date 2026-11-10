@@ -7239,7 +7239,6 @@ async function runAdvertisingThreeThousandCardProbe() {
   const interCardGap = 35;
   // R5: masonry rộng bằng viewport trừ hai lề, không còn bề rộng tối đa.
   const cardWidth = (viewport.width - 70 - interCardGap * 3) / 4;
-  const captionPixelHeight = 0;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
   const patterns = [[2, 3, 4], [3, 5, 2], [4, 2, 5], [5, 4, 3]];
@@ -7251,7 +7250,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     const phases = [0, deltas[0] * quantum, (deltas[0] + deltas[1]) * quantum, (deltas[0] + deltas[1] + deltas[2]) * quantum];
     const bottom = (row + 1) * rowStep + phases[column];
     const top = row ? bottoms[index - 4] + interCardGap : 0;
-    const mediaPixelHeight = bottom - top - captionPixelHeight;
+    const mediaPixelHeight = bottom - top;
     bottoms.push(bottom);
     return {
       id: `benchmark-${String(index).padStart(4, "0")}`,

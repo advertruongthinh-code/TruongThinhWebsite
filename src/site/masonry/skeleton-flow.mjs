@@ -237,7 +237,6 @@ export function createSkeletonFlowFrameLayout({
   columns,
   cardWidth,
   gap,
-  captionHeight = 0,
   boundaryBottom,
   maxFrames = Number.MAX_SAFE_INTEGER,
   ratios = SKELETON_RATIO_BANDS,
@@ -248,7 +247,7 @@ export function createSkeletonFlowFrameLayout({
   if (!Array.isArray(columnBottoms) || !Number.isInteger(columns) || columns < 1
     || columnBottoms.length < columns || columnBottoms.slice(0, columns).some((bottom) => !Number.isFinite(bottom))
     || !Number.isFinite(cardWidth) || cardWidth <= 0
-    || !Number.isFinite(gap) || gap < 0 || !Number.isFinite(captionHeight) || captionHeight < 0 || !Number.isFinite(boundaryBottom)
+    || !Number.isFinite(gap) || gap < 0 || !Number.isFinite(boundaryBottom)
     || !Number.isInteger(maxFrames) || maxFrames < 1
     || !Array.isArray(ratios) || !ratios.length || ratios.some(({ ratio }) => !Number.isFinite(ratio) || ratio <= 0)) {
     throw new TypeError("Skeleton frame layout requires valid column geometry");
@@ -326,8 +325,7 @@ export function createSkeletonFlowFrameLayout({
         lastFrames[index] = frame;
         previousBandByColumn.set(index, source);
         depths[index] = depth + 1;
-        // Lưới có tên dưới card (projects R2): khung là phần media, chừa chỗ tên bên dưới như card thật.
-        bottoms[index] = frameTop + height + captionHeight;
+        bottoms[index] = frameTop + height;
       }
     }
     return frames;
@@ -388,11 +386,10 @@ export function createSkeletonFlowFrameLayout({
   }
   for (const frame of kept) if (isLast(kept, frame)) frame.height = boundaryBottom - frame.top;
   // Masonry tail holes (layout.holes, R5): one single-column frame cut to each hole, band nearest the hole ratio, placed before
-  // the continuation frames. Grids with captions reserve caption space like other frames.
-  const fillers = holes.filter(({ height }) => height - captionHeight > 0).map(({ column, top, height }, index) => {
-    const media = height - captionHeight;
-    const band = ratios.reduce((best, item) => Math.abs(item.ratio - media / cardWidth) < Math.abs(best.ratio - media / cardWidth) ? item : best);
-    return { slot: `h${index}`, column, span: 1, depth: 0, band: band.id, top, height: media };
+  // the continuation frames.
+  const fillers = holes.filter(({ height }) => height > 0).map(({ column, top, height }, index) => {
+    const band = ratios.reduce((best, item) => Math.abs(item.ratio - height / cardWidth) < Math.abs(best.ratio - height / cardWidth) ? item : best);
+    return { slot: `h${index}`, column, span: 1, depth: 0, band: band.id, top, height };
   });
   const result = [...fillers, ...kept].map((frame) => Object.freeze(frame));
   Object.defineProperty(result, "diagnostics", {

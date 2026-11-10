@@ -13,13 +13,12 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   [Masonry](../Masonry/README.md#hình-học)), không crop (trừ cắt khép mép tối đa 5%
   dưới card hai cột, ảnh và video cover), không caption chiếm chỗ;
   alt VI/EN là tên card.
-- Card masonry chính và related có `figcaption.advertising-tile__title`
-  (`aria-hidden`, tên VI/EN theo ngôn ngữ, link lấy tên qua `aria-labelledby`;
-  id related có tiền tố `advertising-related-title-`). Advertising và related:
-  chỉ chuột thật hover mới hiện, chữ trắng `0.8rem` 700 chữ hoa có bóng D giữa
-  canvas (chỗ "Vừa xem"), chừa 40px hai mép cho mũi tên; cảm ứng không có.
-  Công trình: luôn hiện dưới media
-  ([Masonry](../Masonry/README.md#tên-card-công-trình)).
+- Mọi card masonry (chính, bộ lọc, related, Công trình) có
+  `figcaption.advertising-tile__title` (`aria-hidden`, tên VI/EN theo ngôn ngữ,
+  link lấy tên qua `aria-labelledby`; id related có tiền tố
+  `advertising-related-title-`) nằm trên trái trong canvas, cách mép 8px, chữ
+  trắng `0.8rem` 700 chữ hoa có bóng D, tối đa 2 dòng rồi dấu ba chấm
+  (owner 2026-11-10). Mọi UI của card nằm trong media nên card cao đúng bằng media.
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
@@ -27,11 +26,11 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   mép mờ không thành viền tối (owner 2026-11-09), thở (opacity `1 → 0.45 → 1`, `2s`,
   owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
-- Card masonry và related không zoom ảnh khi hover hay focus (owner
-  2026-10-18); chuột thật hover phủ lớp tối lên canvas: masonry chính và
-  related `media-hover-overlay` (0.353, bằng độ tối trung bình `.hero-shade`,
-  owner 2026-11-09) dưới tên card, card Công trình không có lớp tối; focus chỉ
-  có viền.
+- Card masonry không zoom ảnh khi hover hay focus (owner 2026-10-18). Dưới tên
+  là dải trên như hero (`media-shade-top`: 0.625 ở mép trên, hết ở 36%). Chuột
+  thật: tên, dải trên và lớp đều `media-shade-even` (0.2) chỉ hiện khi hover,
+  cùng lúc, không motion. Cảm ứng: tên và dải trên luôn hiện, không lớp đều
+  (owner 2026-11-10). Focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed` (chữ có bóng D, lớp đen chờ media sẵn sàng).
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -56,22 +55,25 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 ### Chỉ báo theo số item
 
-| Số item | Dải dưới canvas | Điều khiển |
+| Số item | Hàng pill trong canvas | Điều khiển |
 | --- | --- | --- |
-| 1 | Không có | Không chỉ báo; video vẫn có duration |
+| 1 | Chỉ khi là video: nhãn thời lượng | Không chỉ báo |
 | 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 20×44px |
-| Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong dải; đổi media bằng mũi tên hover hoặc vuốt |
+| Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
 
-- Dải nằm đáy card, rộng bằng card, nền `paper`.
-- Chấm hoặc bộ đếm nằm trong một pill giữa dải, cùng dáng nhãn thời lượng: cao
+- Hàng pill nằm sát đáy, trong canvas, lề 8px, không nền (owner 2026-11-10):
+  nhãn thời lượng bên trái, chấm hoặc bộ đếm ở giữa. Pill giữa lệch phải vừa đủ
+  để cách nhãn thời lượng 8px; card quá hẹp để đặt cả hai thì ẩn nhãn thời
+  lượng (container query theo số chấm), pill giữa vẫn ở giữa.
+- Chấm hoặc bộ đếm nằm trong một pill, cùng dáng nhãn thời lượng: cao
   24px, bo 8px, nền than `rgba(32, 33, 32, 0.9)` như bộ đếm "2/8" của Pinterest
   (owner 2026-10-26). Bộ đếm chữ trắng `0.75rem` đậm 500 `tabular-nums`.
-- Chỉ chấm nhận click; chỗ trống của dải mở detail như thân card.
+- Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
 ### Video
 
-- **Duration:** theo card video Pinterest (owner 2026-10-17): góc trên trái
-  canvas, cách 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
+- **Duration:** theo card video Pinterest (owner 2026-10-17): góc dưới trái
+  canvas trong hàng pill, cách mép 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
   chữ `ink` `0.75rem` đậm 500 `tabular-nums`; tổng thời lượng `m:ss` làm tròn
   lên giây, không đếm ngược.
 - Không có nút phát hay icon loa. Mỗi lúc một video phát, luôn tắt tiếng:
@@ -98,7 +100,7 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 | Phần tử | VI | EN |
 | --- | --- | --- |
-| Dải | `Media của thẻ` | `Card media` |
+| Hàng pill | `Media của thẻ` | `Card media` |
 | Chấm | `Xem media 2 trên 3` | `Show media 2 of 3` |
 | Nút trước, nút sau | `Media trước`, `Media tiếp` | `Previous media`, `Next media` |
 | Bộ đếm | `Media 7 trên 11` | `Media 7 of 11` |
@@ -108,10 +110,9 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 - Canvas cao bằng bề rộng card nhân tỷ lệ item cover; mọi item cùng tỷ lệ,
   căn giữa trong canvas.
-- Card từ hai item cao bằng canvas cộng 44px; masonry tính sẵn 44px nên đổi
-  media không đổi khung card. Card một item giữ hình học card một ảnh.
+- Card cao đúng bằng canvas, kể cả card nhiều item; đổi media không đổi khung card.
 - Ví dụ ở 1440px (bốn cột, gap 35px): card rộng 316.25px; ảnh 1448×1086 cho
-  canvas 237.19px, card 281.19px.
+  canvas và card 237.19px.
 
 ### Chờ tải, Vừa xem, reduced motion
 
@@ -120,7 +121,7 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
-  canvas, không phủ dải. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
+  cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
 - **Reduced motion:** skeleton đứng yên, ảnh mờ và card tạm không thở; ảnh hiện ngay, không transition,
   không zoom.
 
@@ -129,6 +130,6 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Masonry**: lưới ảnh xếp so le theo chiều cao ảnh.
 - **Alt**: mô tả ảnh cho người không nhìn thấy.
 - **Canvas**: khung media của card, cao theo tỷ lệ item cover.
-- **Dải**: vùng điều khiển 44px dưới canvas, chứa chấm hoặc bộ đếm.
+- **Hàng pill**: hàng 44px sát đáy trong canvas, chứa nhãn thời lượng, chấm hoặc bộ đếm.
 - **Cover**: item được `coverMediaId` chọn làm mặt trước của card.
 - **Subpixel**: phần lẻ dưới một pixel thiết bị của tọa độ hoặc kích thước.

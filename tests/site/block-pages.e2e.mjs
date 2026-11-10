@@ -83,8 +83,9 @@ try {
         assert.ok(reached.ok(), `${at}: ${target} HTTP ${reached.status()}`);
       }
       if (captions) {
-        // projects R2 (owner 2026-11-09): tên luôn hiện dưới media ở mọi viewport, chỗ của nó đã chừa trong hình học card
-        // và batch skeleton; không lớp tối, không zoom; gạch chân 3px chỉ khi hover chuột thật hoặc focus bàn phím.
+        // projects R2, media-card R3 (owner 2026-11-10): the name sits top left inside the media, same as every masonry
+        // card. Touch always shows it on the top band; a real mouse shows it on hover with the even layer. The card is
+        // exactly as tall as its media, and skeleton frames reserve no caption space.
         await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
         await page.waitForSelector("[data-advertising-card] .advertising-tile__title", { timeout: 5000 });
         const titles = Object.fromEntries(projects.map((project) => [project.id, project.title[locale]]));
@@ -94,7 +95,6 @@ try {
             column: frame.dataset.advertisingCtaColumn, top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
           }));
           return {
-            captionHeight: 17 + 1.12 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize),
             gap: Number.parseFloat(getComputedStyle(host).getPropertyValue("--advertising-gap")),
             strides: frames.flatMap((frame, index) => {
               const next = frames.slice(index + 1).find((other) => other.column === frame.column);
@@ -102,18 +102,14 @@ try {
             }),
             cards: [...host.querySelectorAll("[data-advertising-card]")].map((tile) => {
               const title = tile.querySelector(".advertising-tile__title");
-              const media = tile.querySelector(".advertising-card-media");
-              const strip = tile.querySelector(".advertising-card-media__indicator:not([hidden])");
+              const media = tile.querySelector(".advertising-card-media").getBoundingClientRect();
               const box = tile.getBoundingClientRect();
               const titleBox = title.getBoundingClientRect();
-              const style = getComputedStyle(title);
               return {
                 id: tile.dataset.advertisingCard, text: title.textContent, hidden: title.getAttribute("aria-hidden"),
-                shown: style.display !== "none" && style.opacity === "1" && style.visibility === "visible", nowrap: style.whiteSpace,
-                titleHeight: titleBox.height, belowMedia: titleBox.top - (strip ?? media).getBoundingClientRect().bottom, belowTitle: box.bottom - titleBox.bottom,
-                overlay: getComputedStyle(media, "::after").content,
-                // Chiều cao chữ thật (padding CSS + một dòng) phải vừa chỗ chừa, không bị cắt; label của link là tên thẻ.
-                fits: title.scrollHeight <= title.clientHeight, label: tile.querySelector(".advertising-card-interactive")?.getAttribute("aria-labelledby") === title.id,
+                inside: titleBox.top >= media.top + 7.5 && titleBox.left >= media.left + 7.5 && titleBox.right <= media.right - 7.5,
+                flush: Math.abs(box.height - media.height) <= 0.5,
+                label: tile.querySelector(".advertising-card-interactive")?.getAttribute("aria-labelledby") === title.id,
               };
             }),
           };
@@ -121,33 +117,23 @@ try {
         assert.ok(grid.cards.length > 0, `${at}: chưa có thẻ công trình`);
         for (const card of grid.cards) {
           assert.equal(card.text, titles[card.id], `${at}: tên thẻ ${card.id} theo ngôn ngữ`);
-          assert.ok(card.shown && card.nowrap === "nowrap" && card.hidden === "true", `${at}: tên ${card.id} luôn hiện, một dòng: ${JSON.stringify(card)}`);
-          assert.ok(Math.abs(card.titleHeight - grid.captionHeight) <= 0.5 && Math.abs(card.belowMedia) <= 0.5 && Math.abs(card.belowTitle) <= 0.5,
-            `${at}: tên ${card.id} nằm đúng chỗ chừa dưới media: ${JSON.stringify(card)}`);
-          assert.equal(card.overlay, "none", `${at}: thẻ ${card.id} không có lớp tối`);
-          assert.ok(card.fits && card.label, `${at}: tên ${card.id} vừa chỗ chừa và là tên link: ${JSON.stringify(card)}`);
+          assert.ok(card.inside && card.flush && card.hidden === "true" && card.label,
+            `${at}: tên ${card.id} nằm trong media, card cao đúng bằng media, là tên link: ${JSON.stringify(card)}`);
         }
-        assert.ok(grid.strides.every((stride) => Math.abs(stride - grid.gap - grid.captionHeight) <= 0.5),
-          `${at}: batch skeleton chừa chỗ tên như thẻ thật: ${JSON.stringify(grid)}`);
+        assert.ok(grid.strides.every((stride) => Math.abs(stride - grid.gap) <= 0.5),
+          `${at}: batch skeleton không chừa chỗ tên: ${JSON.stringify(grid)}`);
         const card = page.locator("[data-advertising-card]").first();
-        const hoverState = () => card.evaluate((tile) => ({
-          underline: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector(".advertising-tile__title"), "::after").transform).a,
-          zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a,
-          overlay: getComputedStyle(tile.querySelector(".advertising-card-media"), "::after").content,
-        }));
+        const shownState = () => card.evaluate((tile) => {
+          const scrim = getComputedStyle(tile.querySelector(".advertising-card-media"), "::after");
+          return { title: getComputedStyle(tile.querySelector(".advertising-tile__title")).opacity, band: scrim.opacity,
+            even: scrim.backgroundColor, zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a };
+        });
         if (options.viewport.width > 960) {
+          assert.deepEqual(await shownState(), { title: "0", band: "0", even: "rgba(0, 0, 0, 0)", zoom: 1 }, `${at}: chuột thật, chưa hover thì không hiện tên`);
           await card.hover();
-          await page.waitForTimeout(700);
-          assert.deepEqual(await hoverState(), { underline: 1, zoom: 1, overlay: "none" }, `${at}: hover chỉ chạy gạch chân`);
-          await page.mouse.move(0, 0);
-          await page.waitForTimeout(700);
-          assert.equal((await hoverState()).underline, 0, `${at}: rời chuột thì gạch chân thu lại`);
-          await page.keyboard.press("Tab");
-          await card.locator("a").focus();
-          await page.waitForTimeout(700);
-          assert.equal((await hoverState()).underline, 1, `${at}: focus bàn phím chạy gạch chân`);
+          assert.deepEqual(await shownState(), { title: "1", band: "1", even: "rgba(0, 0, 0, 0.2)", zoom: 1 }, `${at}: hover hiện tên, dải trên và lớp đều cùng lúc`);
         } else {
-          assert.deepEqual(await hoverState(), { underline: 0, zoom: 1, overlay: "none" }, `${at}: cảm ứng không có gạch chân`);
+          assert.deepEqual(await shownState(), { title: "1", band: "1", even: "rgba(0, 0, 0, 0)", zoom: 1 }, `${at}: cảm ứng luôn hiện tên trên dải trên`);
         }
       }
       if (switched && options.viewport.width > 960) {

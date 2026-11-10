@@ -208,11 +208,10 @@ try {
       const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, arcSeen: window.__masonry.arcSeen, ctaEarly: window.__masonry.ctaEarly,
         ctaShown: Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
       // 6. No holes (masonry R5): at the grid tail, each card and batch frame sits exactly one gap below the nearest item
-      // above it in the same column (batch frames add caption space on captioned grids); tail holes already have filler frames.
+      // above it in the same column; tail holes already have filler frames.
       const holes = await page.evaluate(({ root, card }) => {
         const gap = innerWidth <= 960 ? 15 : innerWidth <= 1200 ? 25 : 35;
         const scrollTop = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-        const caption = Number.parseFloat(document.querySelector(`${root} :is(${card})`)?.style.getPropertyValue("--advertising-caption-height")) || 0;
         const items = [...document.querySelectorAll(`${root} :is(${card}), [data-advertising-cta-frame]`)]
           .filter((node) => !node.hidden && node.getClientRects().length)
           .map((node) => {
@@ -230,7 +229,7 @@ try {
             && Math.min(item.rect.right, below.rect.right) - Math.max(item.rect.left, below.rect.left) > 1)
             .sort((a, b) => b.rect.bottom - a.rect.bottom)[0];
           if (!above) continue;
-          const expected = gap + (above.frame ? caption : 0);
+          const expected = gap;
           const actual = below.rect.top - above.rect.bottom;
           if (Math.abs(actual - expected) > 1.5) found.push(`${above.node.dataset.masonryItem || above.node.dataset.advertisingCtaSlot}>${below.node.dataset.masonryItem || below.node.dataset.advertisingCtaSlot}:${actual.toFixed(1)}`);
         }

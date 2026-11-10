@@ -1517,9 +1517,8 @@ body.is-advertising-browse .advertising-grid {
     background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính và related dùng lớp tối
-   bằng hero (--media-hover-overlay, owner 2026-11-09), nút gợi ý giữ 30%; lưới Công trình không có lớp tối. */
+/* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
+   above it and video keeps playing underneath. */
 .advertising-card-media::after {
   position: absolute;
   z-index: 1;
@@ -1531,103 +1530,52 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
-.advertising-grid .advertising-card-media::after,
-[data-advertising-related-card] .advertising-card-media::after {
-  background: var(--media-hover-overlay);
+/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. Touch has no hover, so
+   the hero top band (--media-shade-top) and the card name always show. A real mouse shows them only on hover, at once and
+   without motion, together with the even hero layer (--media-shade-even). */
+.advertising-tile .advertising-card-media::after {
+  background: var(--media-shade-top);
+  opacity: 1;
+  transition: none;
 }
 
-.advertising-grid--captioned .advertising-card-media::after {
-  content: none;
-}
-
-/* Tên card (owner 2026-11-09). Advertising, cả related: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ
-   "Vừa xem" (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
+/* Card name: top left inside the media, white on the top band, two lines then an ellipsis. */
 .advertising-tile__title {
-  display: none;
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  left: 8px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-shadow: var(--text-shadow-d);
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .advertising-tile .advertising-card-media::after,
+  .advertising-tile__title {
+    opacity: 0;
+  }
+
   .advertising-tile:hover .advertising-card-media::after {
+    background: var(--media-shade-top), var(--media-shade-even);
+  }
+
+  .advertising-tile:hover .advertising-card-media::after,
+  .advertising-tile:hover .advertising-tile__title {
     opacity: 1;
   }
 
   .advertising-tile:hover .advertising-card-media__just-viewed {
     opacity: 0;
-  }
-
-  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title,
-  [data-advertising-related-card] .advertising-tile__title {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 0;
-    left: 0;
-    display: grid;
-    height: var(--advertising-media-height);
-    box-sizing: border-box;
-    padding: 0.5rem 40px;
-    place-items: center;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center;
-    text-shadow: var(--text-shadow-d);
-    text-transform: uppercase;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--media-hover-duration) var(--media-hover-easing);
-  }
-
-  .advertising-tile:hover .advertising-tile__title {
-    opacity: 1;
-  }
-}
-
-/* Công trình (projects R2): tên luôn hiện dưới media như /en/projects của Espacio, một dòng cắt "…" để hình học
-   card cố định; runtime chừa --advertising-caption-height (10px trên chữ, 7px dưới cho gạch chân). Hover chuột thật
-   hoặc focus bàn phím chạy gạch chân 3px như link navbar (.desktop-nav a::after). */
-.advertising-grid--captioned .advertising-tile__title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  display: block;
-  max-width: 100%;
-  height: var(--advertising-caption-height);
-  box-sizing: border-box;
-  padding: 10px 0 7px;
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 0.8rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.advertising-grid--captioned .advertising-tile__title::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right center;
-  background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
-}
-
-.advertising-grid--captioned .advertising-tile > a:focus-visible ~ .advertising-tile__title::after {
-  transform: scaleX(1);
-  transform-origin: left center;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .advertising-grid--captioned .advertising-tile:hover .advertising-tile__title::after {
-    transform: scaleX(1);
-    transform-origin: left center;
   }
 }
 
@@ -1676,12 +1624,8 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
-/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
+/* Duration pill as on Pinterest video cards (owner 2026-10-17): white 0.9, 12px text, total duration. */
 .advertising-card-media__duration {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
   padding: 4px 6px;
   border-radius: 8px;
   color: var(--ink);
@@ -1693,32 +1637,78 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
+/* Pill row at the bottom inside the media (owner 2026-11-10): duration pill on the left, dots or n/N counter centred. The
+   two side slots share the free space equally, so the centre pill is centred; on a narrow card the duration slot never
+   shrinks below its pill, so the centre pill shifts right just enough to keep the 8px gap. When even that does not fit,
+   the duration pill hides (container queries below). */
 .advertising-card-media__indicator {
   position: absolute;
-  bottom: var(--advertising-caption-height, 0px);
+  right: 0;
+  bottom: 0;
   left: 0;
   z-index: 3;
   display: flex;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  width: 100%;
   height: 44px;
   box-sizing: border-box;
-  color: var(--ink);
-  background: var(--paper);
+  padding: 0 8px;
+  container-type: inline-size;
   pointer-events: none;
 }
 
-/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
-   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
+.advertising-card-media__duration-slot,
+.advertising-card-media__indicator::after {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.advertising-card-media__duration-slot {
+  min-width: min-content;
+}
+
+.advertising-card-media__indicator::after {
+  content: "";
+}
+
+/* Dots or the counter sit in a charcoal 0.9 pill shaped like the duration pill, white text like Pinterest's "2/8" counter
+   (owner 2026-10-26). The pill is 24px tall; the 20x44px dot hit areas fill the row. */
 .advertising-card-media__pill {
   display: flex;
+  flex: none;
   align-items: center;
   height: 24px;
   padding: 0 2px;
   border-radius: 8px;
   color: #fff;
   background: rgba(32, 33, 32, 0.9);
+}
+
+.advertising-card-media__pill:empty {
+  display: none;
+}
+
+/* Hide the duration pill when it cannot sit beside the centre pill. The query reads the row's content box (inside the 8px
+   insets): duration pill "M:SS" (38px) + 8px gap + centre pill (4px + 20px per dot). Two dots or the counter always fit
+   the narrowest card (101.5px content). A video of 10 minutes or more has a 7px wider pill and may reach into the right
+   inset, still inside the card. */
+@container (width < 150px) {
+  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(5)) .advertising-card-media__duration {
+    display: none;
+  }
+}
+
+@container (width < 130px) {
+  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(4)) .advertising-card-media__duration {
+    display: none;
+  }
+}
+
+@container (width < 110px) {
+  .advertising-card-media__indicator:has(.advertising-card-media__dot:nth-child(3)) .advertising-card-media__duration {
+    display: none;
+  }
 }
 
 .advertising-card-media__dot {
@@ -2162,14 +2152,15 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
+/* Multi-media masonry card arrows as on the Pinterest grid (measured 2026-10-18): 32px hit areas at the left and right edges,
+   from the top of the canvas down to the 44px pill row, thin white 16px chevron (centre 16px from the edge), no background,
+   above the hover layer; a light shadow keeps the chevron readable on bright media; the button is its own layer so the shadow
+   paints once (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px - var(--advertising-caption-height, 0px));
+  height: calc(100% - 44px);
   border-radius: 0;
   background: transparent;
   color: #fff;

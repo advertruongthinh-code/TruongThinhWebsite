@@ -643,7 +643,8 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
       && state.legacyWidth === 0 && state.videoReady && state.videoMuted
       && state.videoWidth === 480 && state.videoHeight === 320
       && state.poster.endsWith("poster-3x2.webp") && state.duration === "0:03"
-      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
+      // The pill row of a video singleton holds only the duration pill (media-card R2, 2026-11-10): one row, no dots.
+      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 1
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
@@ -1255,7 +1256,7 @@ const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, acti
   return frames;
 }, { ms, action });
 
-test("M01b hover darkens the canvas, fades just viewed, and media change slides as one strip", async () => {
+test("M01b hover shows the top band and even layer at once, hides just viewed, and media change slides as one strip", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -1272,21 +1273,12 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
       scrimColor: getComputedStyle(media, "::after").backgroundColor,
       marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
     }));
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.353)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0)", marker: "1" });
     await card.locator(".advertising-card-media").hover();
-    // Lấy frame đầu tiên lớp tối đã bắt đầu hiện thay vì mốc giờ cố định (máy tải cao làm transition bắt đầu trễ).
-    const fading = await card.locator(".advertising-card-media").evaluate((media) => new Promise((resolve) => {
-      const read = () => {
-        const scrim = getComputedStyle(media, "::after").opacity;
-        if (scrim === "0") return requestAnimationFrame(read);
-        resolve({ scrim, marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity });
-      };
-      read();
-    }));
-    assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
-      `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
+    // Owner 2026-11-10 (media-card R3): the top band and the even 0.2 layer appear at once, with no motion.
+    assert.deepEqual(await hoverState().then(({ scrim, scrimColor }) => ({ scrim, scrimColor })), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)" });
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.353)", marker: "0" });
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "0" });
 
     const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
@@ -1305,7 +1297,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
 
     await page.mouse.move(5, 5);
     await settleTransitions(page);
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.353)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0)", marker: "1" });
     await context.close();
   } finally { await browser.close(); }
 });

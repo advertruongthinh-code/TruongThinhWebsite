@@ -165,10 +165,11 @@ async function geometry(card) {
       playback: playbackRect,
       controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select]")]
         .map((button) => edgeHitSelf(button)),
-      duration: duration && !duration.hidden ? rect(duration) : null,
+      duration: duration && duration.getClientRects().length ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
       count: count ? rect(count) : null,
-      pill: pill ? { ...rect(pill), background: pillStyle.backgroundColor, radius: pillStyle.borderRadius } : null };
+      pill: pill && pillStyle.display !== "none"
+        ? { ...rect(pill), background: pillStyle.backgroundColor, radius: pillStyle.borderRadius } : null };
   });
 }
 
@@ -176,6 +177,23 @@ const overlap = (a, b) => a && b ? Math.max(0, Math.min(a.right, b.right) - Math
   * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)) : 0;
 const inside = (box, parent) => box && parent && box.left >= parent.left - 0.5 && box.right <= parent.right + 0.5
   && box.top >= parent.top - 0.5 && box.bottom <= parent.bottom + 0.5;
+// Pill collision (plan owner 2026-11-10): the dots or counter stay centred and shift right only to keep an 8px gap from
+// the duration pill, never past the right inset; when both cannot fit, the duration pill hides and the centre pill stays
+// centred.
+function assertPillRow(state, label) {
+  const { pill, duration, media } = state;
+  const centre = (box) => (box.left + box.right) / 2;
+  assert(pill.left >= media.left + 8 - 0.5 && pill.right <= media.right - 8 + 0.5, `${label} centre pill keeps the 8px insets: ${JSON.stringify(state)}`);
+  if (!duration) {
+    assert(Math.abs(centre(pill) - centre(media)) <= 1, `${label} centre pill is centred: ${JSON.stringify(state)}`);
+    return;
+  }
+  assert(inside(duration, media) && Math.abs(duration.left - media.left - 8) <= 1, `${label} duration pill sits at the left inset: ${JSON.stringify(state)}`);
+  assert(pill.left - duration.right >= 8 - 0.5, `${label} pills keep an 8px gap: ${JSON.stringify(state)}`);
+  assert(Math.abs(centre(pill) - centre(media)) <= 1 || Math.abs(pill.left - duration.right - 8) <= 1,
+    `${label} centre pill is centred or shifted only as far as the gap needs: ${JSON.stringify(state)}`);
+}
+
 const stableRect = (before, after, label) => {
   for (const key of ["x", "y", "width", "height"]) {
     assert(Math.abs(before[key] - after[key]) <= 1, `${label} ${key} changed: ${JSON.stringify({ before, after })}`);
@@ -193,13 +211,14 @@ async function runCard(locale, count, surface, width) {
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}-before.json`), JSON.stringify({ initial, url }, null, 2));
     assert(Math.abs(initial.media.height - initial.media.width * 9 / 16) <= 1,
       `${label} canvas must use the authored 16:9 cover: ${JSON.stringify(initial)}`);
-    assert(Math.abs(initial.card.height - initial.media.height - 44) <= 1,
-      `${label} card must reserve a 44px footer: ${JSON.stringify(initial)}`);
-    assert(initial.indicator && inside(initial.indicator, initial.card)
-      && Math.abs(initial.indicator.top - initial.media.bottom) <= 1
-      && Math.abs(initial.indicator.bottom - initial.card.bottom) <= 1
+    // Owner 2026-11-10 (media-card R2): the pill row sits inside the media, so the card is exactly as tall as its media.
+    assert(Math.abs(initial.card.height - initial.media.height) <= 1,
+      `${label} card adds no strip below the media: ${JSON.stringify(initial)}`);
+    assert(initial.indicator && inside(initial.indicator, initial.media)
+      && Math.abs(initial.indicator.bottom - initial.media.bottom) <= 1
       && Math.abs(initial.indicator.height - 44) <= 1,
-    `${label} indicator must occupy the dedicated footer: ${JSON.stringify(initial)}`);
+    `${label} pill row must sit at the bottom inside the media: ${JSON.stringify(initial)}`);
+    assertPillRow(initial, label);
     // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
     assert.equal(initial.controls.length, count >= 6 ? 0 : count);
     // Owner 2026-10-26: chấm hoặc bộ đếm nằm trong pill than 0.9, bo 8px như nhãn thời lượng, giữa dải.
@@ -228,11 +247,9 @@ async function runCard(locale, count, surface, width) {
         `${label} footer control overlaps another card: ${JSON.stringify(initial)}`);
     }
     assert(initial.controlEdgeHitSelf.every(Boolean), `${label} control edge must receive pointer: ${JSON.stringify(initial)}`);
-    // Card video kiểu Pinterest: không có nút phát, chỉ nhãn thời lượng trên canvas (R4).
-    assert(initial.playback === null && inside(initial.duration, initial.media),
+    // Pinterest-style video card: no play button, only the duration pill on the canvas (R4).
+    assert(initial.playback === null && (!initial.duration || inside(initial.duration, initial.media)),
       `${label} video has no playback button and duration stays inside media: ${JSON.stringify(initial)}`);
-    assert(overlap(initial.indicator, initial.duration) <= 0.5,
-    `${label} footer must not cover video overlays: ${JSON.stringify(initial)}`);
     assert(initial.peers.every((peer) => overlap(initial.indicator, peer) <= 0.5),
       `${label} footer must not overlap another card: ${JSON.stringify(initial)}`);
     if (initial.loading) assert(inside(initial.loading, initial.media), `${label} loading circle remains inside media`);
@@ -262,11 +279,16 @@ async function runCard(locale, count, surface, width) {
   } finally { await browser.close(); }
 }
 
+// Plan owner 2026-11-10: a 5-media video card at 384px, video active, has no pill overlap and both pills inside the card.
+for (const surface of ["grid", "related"]) {
+  test(`R6-R2 VI384 ${surface} 5 media with a video keeps both pills apart inside the card`, async () => runCard("vi", 5, surface, 384));
+}
+
 for (const locale of ["vi", "en"]) {
   for (const width of [320, 390]) {
     for (const surface of ["grid", "related"]) {
       for (const count of [5, 6, 7]) {
-        test(`R6-R3 ${locale.toUpperCase()}${width} ${surface} ${count} media use a separate footer and real edge pointer`,
+        test(`R6-R3 ${locale.toUpperCase()}${width} ${surface} ${count} media keep the pill row inside the media and real edge pointer`,
           async () => runCard(locale, count, surface, width));
       }
     }
@@ -288,7 +310,9 @@ async function runSingleton(locale, surface, width, videoCover) {
     const label = `${locale}-${width}-${surface}-${videoCover ? "video" : "image"}-singleton`;
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}.json`), JSON.stringify(state, null, 2));
     assert(Math.abs(state.card.height - state.media.height) <= 1, `${label} must not reserve a footer`);
-    assert.equal(state.indicator, null, `${label} must not render an indicator`);
+    // A video singleton keeps only the duration pill in the pill row; an image singleton has no row.
+    if (videoCover) assert(inside(state.indicator, state.media) && state.pill === null, `${label} row holds only the duration`);
+    else assert.equal(state.indicator, null, `${label} must not render an indicator`);
     assert.equal(state.controls.length, 0);
     assert.equal(await card.getAttribute("data-advertising-active-media-id"),
       `${cardId}-r6-${videoCover ? "video" : "image-1"}`);
@@ -310,9 +334,9 @@ async function runStableDelivery(locale, surface, width, mode) {
     const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
     const first = await geometry(card);
     const url = page.url();
-    assert(Math.abs(first.card.height - first.media.height - 44) <= 1
-      && Math.abs(first.indicator.top - first.media.bottom) <= 1,
-    `${mode} starts with reserved footer`);
+    assert(Math.abs(first.card.height - first.media.height) <= 1
+      && Math.abs(first.indicator.bottom - first.media.bottom) <= 1,
+    `${mode} starts with the pill row inside the media`);
     await card.locator(`[data-advertising-media-select="${cardId}-r6-image-2"]`).click();
     const slide = await geometry(card);
     await card.locator(`[data-advertising-media-select="${cardId}-r6-video"]`).click();

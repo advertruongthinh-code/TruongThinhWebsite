@@ -205,49 +205,35 @@ for (const frame of frameLayout) {
 }
 assert(Math.min(...continuationBottoms.map((bottom) => bottom + frameLayoutInput.gap)) >= frameLayoutInput.boundaryBottom,
   "the adaptive batch must reach its visual boundary");
-// Lưới Công trình (projects R2): khung giữ band cho phần media và chừa chỗ tên bên dưới như card thật.
-const captionedFrames = createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: 34.92 });
-const captionedBottoms = frameLayoutInput.columnBottoms.slice();
-for (const frame of captionedFrames) {
-  assert.equal(frame.top, captionedBottoms[frame.column] + frameLayoutInput.gap,
-    "a captioned skeleton starts one gap below the previous card or frame including its caption");
-  if (frame !== captionedFrames.findLast(({ column }) => column === frame.column)) {
-    assert.ok([0.72, 1, 1.32].some((ratio) => Math.abs(frame.height - ratio * frameLayoutInput.cardWidth) < 1e-9),
-      "a captioned skeleton paints only the media band");
-  }
-  captionedBottoms[frame.column] = frame.top + frame.height + 34.92;
-}
-assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
-  "a negative caption height is rejected");
-// Masonry R5: the last 2:1 card spans level columns 0-1 at 1440px; the batch continues right below it in both columns, with caption space like a card
-// thật. Band khung (h/w 0.72, 1, 1.32) đều dưới tỷ lệ vàng nên theo cùng luật mọi khung rộng một cột.
+// Masonry R5: the last 2:1 card spans level columns 0-1 at 1440px; the batch continues right below it in both columns. Frame
+// bands (h/w 0.72, 1, 1.32) are all below the golden ratio, so the same rule keeps every frame one column wide.
 const wideTail = [[1, 1], [1, 1], [3, 4], [4, 5], [2, 1]].map(([width, height], index) => ({
   id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
   media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
 }));
 const wideTailLayout = compileMasonryLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
-  layoutViewportWidth: 1440, captionPixelHeight: 34.92, presentationOrder: wideTail.map(({ id }) => id) });
+  layoutViewportWidth: 1440, presentationOrder: wideTail.map(({ id }) => id) });
 const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
 assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
 const wideTailFrames = createSkeletonFlowFrameLayout({
   columnBottoms: wideTailLayout.columnBottoms, columns: wideTailLayout.columns, cardWidth: wideTailLayout.cardWidth,
-  gap: wideTailLayout.interCardGap, captionHeight: 34.92, boundaryBottom: 2_400,
+  gap: wideTailLayout.interCardGap, boundaryBottom: 2_400,
 });
 for (const column of [0, 1]) {
   assert.equal(wideTailFrames.find((frame) => frame.column === column).top,
     wideTailCard.y + wideTailCard.pixelHeight + wideTailLayout.interCardGap,
-    `column ${column}: the batch starts one gap below the spanning card and its caption`);
+    `column ${column}: the batch starts one gap below the spanning card`);
 }
 for (const frame of wideTailFrames) {
   if (frame === wideTailFrames.findLast(({ column }) => column === frame.column)) continue;
   assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
-// Masonry R5 no holes: each masonry tail hole gets one frame cut to the hole (caption space reserved), before continuation frames.
+// Masonry R5 no holes: each masonry tail hole gets one frame cut to the hole, before continuation frames.
 const holeFrames = createSkeletonFlowFrameLayout({ columnBottoms: [600, 600, 400], columns: 3, cardWidth: 240, gap: 20,
-  captionHeight: 30, boundaryBottom: 1_400, holes: [{ column: 1, top: 320, height: 150 }] });
+  boundaryBottom: 1_400, holes: [{ column: 1, top: 320, height: 150 }] });
 assert.deepEqual(holeFrames.filter(({ slot }) => slot.startsWith("h")).map(({ slot, column, span, top, height }) => [slot, column, span, top, height]),
-  [["h0", 1, 1, 320, 120]], "a masonry hole gets one frame cut to the hole, minus the caption room");
+  [["h0", 1, 1, 320, 150]], "a masonry hole gets one frame cut to the hole");
 assert.equal(holeFrames[0].slot, "h0", "hole frames come before the continuation frames");
 assert.equal(holeFrames.find(({ slot }) => slot === "h0").band, "landscape", "the hole frame takes the band nearest its ratio");
 // R1: band ngang từ tỷ lệ vàng theo luật span của card thật (masonry-reuse bước 5): hai cột khi lưới >= 3 cột, không

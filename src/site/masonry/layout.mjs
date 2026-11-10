@@ -47,7 +47,6 @@ export function spanSlots(columnBottoms, columns, width, gap, cardWidth, start =
 
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
-const CAPTION_METRICS_VERSION = "advertising-caption-v2";
 export const MASONRY_SEARCH_BUDGET = 300000;
 const SEARCH_WINDOW_SIZE = 64;
 const SEARCH_CANDIDATE_LIMIT = 20;
@@ -59,10 +58,6 @@ export function layoutMedia(card) {
   if (!Array.isArray(card.mediaItems) || card.mediaItems.length === 0) return null;
   const coverId = card.coverMediaId ?? card.mediaItems[0]?.id;
   return card.mediaItems.find((item) => item?.id === coverId) ?? null;
-}
-
-function mediaControlStripHeight(card) {
-  return Array.isArray(card?.mediaItems) && card.mediaItems.length >= 2 ? 44 : 0;
 }
 
 function mediaRatioBand(card) {
@@ -711,7 +706,7 @@ function appendRhythms(state, occupied, cardWidth, previousMutableBrick, allowAl
       logs.push({ tracker, edgeLists, log, finalizedCount: tracker.finalizedCount });
       // Ngay cả card tương lai thấp nhất cũng không thể đổi một edge gần nhất phía sau cận này.
       const futureEdges = [boundary, boundary + 1].map((column) =>
-        (state.columnBottoms[column] ? state.columnBottoms[column] + state.interCardGap : 0) + state.minimumMediaHeight + (kind === "card" ? state.captionPixelHeight : 0),
+        (state.columnBottoms[column] ? state.columnBottoms[column] + state.interCardGap : 0) + state.minimumMediaHeight,
       );
       if (!allowAlignedFallback && finalizedRhythmHasBrick(tracker, edgeLists, futureEdges)) return { conflict: true, logs };
       if (changedRhythmHasBrick(tracker, changedIndices)) changedBrick = true;
@@ -733,26 +728,26 @@ function undoRhythms(logs) {
   }
 }
 
-export function placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity = 0) {
+// Card UI sits inside the media (media-card R2), so a card is exactly as tall as its media.
+export function placementAt(card, left, width, y, cardWidth, gap, cavity = 0) {
   const media = layoutMedia(card);
   const pixelWidth = width * cardWidth + (width - 1) * gap;
   const mediaPixelHeight = pixelWidth * media.height / media.width;
-  const pixelHeight = mediaPixelHeight + mediaControlStripHeight(card) + captionPixelHeight;
-  return { card, left, top: y, width, height: pixelHeight, x: left * (cardWidth + gap), y, pixelWidth, mediaPixelHeight, captionPixelHeight, pixelHeight, cavity };
+  return { card, left, top: y, width, height: mediaPixelHeight, x: left * (cardWidth + gap), y, pixelWidth, mediaPixelHeight, pixelHeight: mediaPixelHeight, cavity };
 }
 
-function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHeight) {
+function candidatePlacement(card, state, columns, cardWidth, gap) {
   const literalSpan = card?.layoutSpan;
   const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
   return widths.flatMap((width) => spanSlots(state.columnBottoms, columns, width, gap, cardWidth)
-    .map(({ left, y, cavity }) => placementAt(card, left, width, y, cardWidth, gap, captionPixelHeight, cavity)));
+    .map(({ left, y, cavity }) => placementAt(card, left, width, y, cardWidth, gap, cavity)));
 }
 
 // One coordinate string per layout, shared by the search (makeResult) and the cache replay (replay.mjs).
 export function coordinateKey(placements) {
-  return placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) => {
+  return placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, pixelHeight }) => {
     const media = layoutMedia(card);
-    return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
+    return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
   }).join("|");
 }
 
@@ -762,7 +757,7 @@ export function compileMasonryLayout(options = {}) {
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
     : options.cards;
   const settings = normalizeMasonrySettings(options.settings);
-  const compileOptions = { ...options, cards, settings, captionPixelHeight: options.captionPixelHeight ?? 0, productLayout: true };
+  const compileOptions = { ...options, cards, settings, productLayout: true };
   const requestedOrder = options.presentationOrder;
   const totalBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
   const canSolveOrganicOrder = options.organicOrder === true
@@ -828,7 +823,7 @@ function compileLayoutPhase(options = {}) {
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
   let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
   let settings, columns, outer, interCardGap, initialColumnBottoms, operationBudget;
-  let terminalPhotoPeek, continuousDetail, suppliedCaptionPixelHeight, requestedPresentationOrder;
+  let terminalPhotoPeek, continuousDetail, requestedPresentationOrder;
   try {
     if (!options || typeof options !== "object" || Array.isArray(options)) throw new Error("Advertising layout options must be an object");
     layoutViewportWidth = options.layoutViewportWidth ?? Number.NaN;
@@ -840,9 +835,7 @@ function compileLayoutPhase(options = {}) {
     settings = normalizeLegacyMasonrySettings(options.settings);
     columns = options.columns ?? columnsForWidth(layoutViewportWidth);
     operationBudget = options.operationBudget ?? MASONRY_SEARCH_BUDGET;
-    suppliedCaptionPixelHeight = options.captionPixelHeight;
     if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > MASONRY_SEARCH_BUDGET) throw new Error("Invalid advertising operation budget");
-    if (suppliedCaptionPixelHeight !== undefined && (!Number.isFinite(suppliedCaptionPixelHeight) || suppliedCaptionPixelHeight < 0)) throw new Error("Invalid advertising caption height");
     validateMasonryCards(cards, { categoryOrder });
     if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
     if (!Number.isInteger(columns) || columns < (productLayout ? 1 : MASONRY_MIN_COLUMNS) || columns > MASONRY_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
@@ -872,7 +865,6 @@ function compileLayoutPhase(options = {}) {
   const availableWidth = layoutViewportWidth - (2 * outer);
   const cardWidth = (availableWidth - interCardGap * (columns - 1)) / columns;
   if (cardWidth <= 0) throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: [], violation: "Advertising columns do not fit the viewport" });
-  const captionPixelHeight = suppliedCaptionPixelHeight ?? (productLayout ? 0 : 10 + (layoutViewportWidth <= 578 ? 15.68 : 17.92));
   const canonicalPool = cards.filter((card) => matchesFilter(card, filter)).sort(bySource);
   let pool = canonicalPool;
   if (requestedPresentationOrder !== undefined) {
@@ -898,7 +890,7 @@ function compileLayoutPhase(options = {}) {
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
-    // Edge trim (R5): the trimmed card loses exactly the difference from its media; the control strip and caption stay intact.
+    // Edge trim (R5): the trimmed card loses exactly the difference from its media.
     const bleeds = new Map(state.placements.filter(({ bleed }) => bleed).map(({ bleed }) => [bleed.id, bleed.amount]));
     const holes = state.placements.filter(({ hole }) => hole).map(({ hole }) => ({ ...hole }));
     const placements = state.placements.slice().sort(comparePlacement)
@@ -910,7 +902,7 @@ function compileLayoutPhase(options = {}) {
       });
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
     const coordinates = coordinateKey(placements);
-    const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
+    const coordinateHash = fnv1a32(`${datasetVersion}:${MASONRY_LAYOUT_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
     return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, holes, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: MASONRY_LAYOUT_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
@@ -921,7 +913,6 @@ function compileLayoutPhase(options = {}) {
     rhythms: Array.from({ length: columns - 1 }, () => ({ image: createRhythmTracker(cardWidth), card: createRhythmTracker(cardWidth) })),
     mutableBrick: false,
     interCardGap,
-    captionPixelHeight,
     minimumMediaHeight: mediaMinima[0]?.height ?? Infinity,
     staggerMinimumRatio: 0.10,
     enforceStagger: productLayout && staggerMode === "preferred",
@@ -977,7 +968,7 @@ function compileLayoutPhase(options = {}) {
   };
   const firstBy = (slots) => slots.filter(Boolean).sort((a, b) => a.y - b.y || a.left - b.left)[0];
   const widePlacement = (card, slot) => ({
-    ...placementAt(card, slot.left, 2, slot.y, cardWidth, interCardGap, captionPixelHeight),
+    ...placementAt(card, slot.left, 2, slot.y, cardWidth, interCardGap),
     bleed: slot.bleed || null,
     hole: slot.hole || null,
   });
@@ -999,7 +990,7 @@ function compileLayoutPhase(options = {}) {
       }
       const column = state.columnBottoms.reduce((lowest, bottom, index) => bottom < state.columnBottoms[lowest] ? index : lowest, 0);
       const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
-      return [productCandidate(cardIndex, placementAt(card, column, 1, y, cardWidth, interCardGap, captionPixelHeight))];
+      return [productCandidate(cardIndex, placementAt(card, column, 1, y, cardWidth, interCardGap))];
     }
     // Tail band: only wide cards remain. Use a level pair (stacking allowed) or a pair whose hole fits a skeleton frame (a hole
     // thinner than the thinnest frame the batch keeps cannot be filled); otherwise the card stays single-column.
@@ -1021,7 +1012,7 @@ function compileLayoutPhase(options = {}) {
       .sort((a, b) => touches(a) - touches(b) || a.y - b.y || Number(Boolean(a.hole)) - Number(Boolean(b.hole)) || a.left - b.left)[0];
     if (slot) return [productCandidate(0, widePlacement(card, slot))];
     const y = state.columnBottoms[column] ? state.columnBottoms[column] + interCardGap : 0;
-    return [productCandidate(0, placementAt(card, column, 1, y, cardWidth, interCardGap, captionPixelHeight))];
+    return [productCandidate(0, placementAt(card, column, 1, y, cardWidth, interCardGap))];
   };
 
   const candidatesAtDepth = () => {
@@ -1030,7 +1021,7 @@ function compileLayoutPhase(options = {}) {
     const window = Math.min(remaining.length, SEARCH_WINDOW_SIZE);
     for (let cardIndex = 0; cardIndex < window && candidates.length < SEARCH_CANDIDATE_LIMIT; cardIndex += 1) {
       const card = remaining[cardIndex];
-      for (const placement of candidatePlacement(card, state, columns, cardWidth, interCardGap, captionPixelHeight)) {
+      for (const placement of candidatePlacement(card, state, columns, cardWidth, interCardGap)) {
         consumeOperation();
         if (hasGeometryConflict(state, placement, columns, cardWidth)) continue;
         preferredCandidateAttempts += 1;
