@@ -132,6 +132,8 @@ test("menu featured: chosen projects in order; product groups chosen or by card 
   assert.deepEqual(auto.projects.map((project) => project.id), ["b", "a"]);
   assert.deepEqual(auto.productGroups.map((group) => group.slug), ["y", "z", "x"]);
   assert.deepEqual(menuFeatured({ featuredProjects: [], featuredProductGroups: ["x"] }, data).productGroups.map((group) => group.slug), ["x"]);
+  const tied = { ...data, categories: [{ slug: "q" }, { slug: "p" }], cards: [{ category: "q" }, { category: "p" }] };
+  assert.deepEqual(menuFeatured({ featuredProjects: [], featuredProductGroups: [] }, tied).productGroups.map((group) => group.slug), ["p", "q"]);
   assert.deepEqual(menuErrors({ featuredProjects: ["a", "a", "c"], featuredProductGroups: ["w"] }, data, "m"), [
     "m: featuredProjects a không có trong projects.json hoặc bị lặp",
     "m: featuredProjects c không có trong projects.json hoặc bị lặp",
