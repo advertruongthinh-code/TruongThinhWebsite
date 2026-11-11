@@ -1,7 +1,7 @@
-// Đường đi của card khi chuyển vị trí, không đi qua hộp primary (advertising-cta-center-parallax R10).
-// Tọa độ là góc trên trái trong related grid; primary chiếm [0, zone.width] x [0, zone.height].
+// Path of a card when it changes position, avoiding the primary box (advertising-cta-center-parallax R10).
+// Coordinates are the top-left corner in the related grid; the primary occupies [0, zone.width] x [0, zone.height].
 
-// Đoạn a -> b có đi vào hộp mở (minX, maxX) x (minY, maxY) không; chạm mép không tính (slab test).
+// Whether segment a -> b enters the open box (minX, maxX) x (minY, maxY); touching an edge does not count (slab test).
 export function segmentCrossesBox(a, b, box) {
   let enter = 0;
   let exit = 1;
@@ -20,8 +20,8 @@ export function segmentCrossesBox(a, b, box) {
   return true;
 }
 
-// null: đi thẳng. Ngược lại đi qua góc vuông `corner`; `cornerOffset` là tỷ lệ quãng đường tới góc (0..1).
-// `origin`: góc trên trái của vùng cấm khi nó không nằm ở gốc tọa độ (suggestion ghim dưới primary, advertising-detail R5).
+// null: go straight. Otherwise go through the right-angle `corner`; `cornerOffset` is the fraction of the distance to the corner (0..1).
+// `origin`: top-left of the forbidden zone when it is not at the coordinate origin (suggestion pinned below the primary, advertising-detail R5).
 export function planDetourPath({ from, to, size, zone, origin }) {
   if (!zone) return null;
   if (origin && (origin.x || origin.y)) {
@@ -31,9 +31,9 @@ export function planDetourPath({ from, to, size, zone, origin }) {
   }
   const box = { minX: -size.width, maxX: zone.width, minY: -size.height, maxY: zone.height };
   if (!segmentCrossesBox(from, to, box)) return null;
-  // Bên cạnh primary: x >= pw; phía dưới: y >= ph. Chỉ một điểm mỗi loại thì đường thẳng mới có thể cắt.
-  // Giả định: tọa độ related không âm và runtime đã đưa điểm đầu ra khỏi Z, nên khi cắt Z luôn có một đầu bên
-  // cạnh và một đầu phía dưới. Thiếu một trong hai (điểm đầu trong Z) thì trả null, card đi thẳng.
+  // Beside the primary: x >= pw; below: y >= ph. Only with one point of each kind can a straight line cross.
+  // Assumption: related coordinates are non-negative and the runtime has already moved the start point out of Z, so when crossing Z one end is always
+  // beside and the other below. If either is missing (start point inside Z) return null and the card goes straight.
   const beside = [from, to].find((point) => point.x >= zone.width);
   const below = [from, to].find((point) => point !== beside && point.y >= zone.height);
   if (!beside || !below) return null;
@@ -43,11 +43,11 @@ export function planDetourPath({ from, to, size, zone, origin }) {
   return { corner, cornerOffset: first + second > 0 ? first / (first + second) : 0 };
 }
 
-// Item ghim (primary, suggestion ghim dưới primary) là vùng cấm chung của card related và khung batch CTA
-// (masonry-reuse bước 6): một danh sách hộp `{ x, y, width, height }` cùng hệ tọa độ với `from`, `to`, xếp từ trên
-// xuống (dời một lượt theo thứ tự, nên hộp dưới không đẩy điểm ngược lên hộp trên).
-// Điểm đầu nằm trong vùng của một hộp thì dời xuống ngay dưới hộp đó (resize làm primary lớn lên đè chỗ cũ); đường
-// thẳng cắt hộp nào thì đi vòng hộp đầu tiên cắt, theo thứ tự danh sách.
+// Pinned items (primary, suggestion pinned below the primary) are the shared forbidden zone of related cards and the CTA batch frame
+// (masonry-reuse step 6): a list of boxes `{ x, y, width, height }` in the same coordinate system as `from`, `to`, ordered from top
+// to bottom (shifted in one pass in order, so a lower box never pushes the point back up into an upper box).
+// A start point inside a box's zone is shifted to just below that box (a resize growing the primary overlaps the old spot); a straight
+// line crossing a box goes around the first box it crosses, in list order.
 export function planAroundPinned({ from, to, size, pinned = [], gap = 0 }) {
   let start = from;
   for (const box of pinned) {

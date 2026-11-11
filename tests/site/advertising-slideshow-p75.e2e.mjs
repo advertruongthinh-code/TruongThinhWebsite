@@ -15,7 +15,7 @@ try {
   const second = await image.getAttribute("src");
   assert.notEqual(second, first, "inactive suggestion crossfades to another related image");
   assert.equal(await image.evaluate(el => getComputedStyle(el).transform), "none", "owner removed the zoom out");
-  // Bộ thưa (dưới 4 ảnh) vẫn chạy đồng hồ giữ ảnh ngay khi hiện.
+  // A sparse set (under 4 photos) still starts the hold timer as soon as the photo shows.
   await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?photo=signage-raised-letters-20`, { waitUntil: "networkidle" });
   await page.locator("[data-masonry-suggestion-tag]").first().scrollIntoViewIfNeeded();
   await page.waitForTimeout(1000);

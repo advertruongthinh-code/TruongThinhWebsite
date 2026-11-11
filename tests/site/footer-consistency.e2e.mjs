@@ -32,7 +32,7 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Rộng hơn 750px bốn cột (751-1023px ba cột); từ 750px trở xuống footer gọn: dọc hai cột (icon xếp dọc), ngang địa chỉ trên hai số.
+  // Wider than 750px four columns (751-1023px three columns); at 750px and below the footer is compact: two columns stacked (icons stacked), address above the two numbers horizontally.
   for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
     const small = width <= 750 || height <= 640;
     let expectedHeight;
@@ -42,11 +42,11 @@ try {
       for (const route of [...routes, "advertising-products/?category=kiosk-posm&photo=kiosk-posm-06", ...detailRoutes]) {
         await page.goto(`${baseUrl}/${locale}/${route}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector(".footer-contact");
-        // Route detail redirect về route Advertising canonical; chờ runtime state của nó.
+        // The detail route redirects to the canonical Advertising route; wait for its runtime state.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
           || document.body.classList.contains(/\/p\/[^/]+\/$/.test(location.pathname) ? "is-detail" : "is-masonry-browse"));
         await page.evaluate(() => document.fonts.ready);
-        // Reduced motion vẫn cho mọi property transition 0.01ms, nên để thay đổi class settle.
+        // Reduced motion still gives every property a 0.01ms transition, so let the class change settle.
         await page.waitForTimeout(100);
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
@@ -61,7 +61,7 @@ try {
             copyright: footer.querySelectorAll(".footer-bottom").length,
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
-            // Masonry browse và detail đều kết thúc bằng batch CTA sát footer (CTA R9), nên đọc class của body.
+            // Masonry browse and detail both end with a CTA batch next to the footer (CTA R9), so read the body class.
             advertisingBrowse: document.body.classList.contains("is-masonry-browse"),
             bodyClass: document.body.className,
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
@@ -80,14 +80,14 @@ try {
             socialsRight: footer.querySelector(".footer-socials").getBoundingClientRect().right,
           };
         });
-        // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
+        // Advertising browse drops the gap above the footer: its skeleton batch fills that space.
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        // Viền trên tràn mép trang; không logo; hotline cùng độ đậm số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Các cột giãn đều: biên trái tới địa chỉ bằng
-        // biên phải sau mạng xã hội; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
-        // Cửa sổ thấp nằm ngang dùng icon 24px để footer không quá 38.2% viewport.
+        // Top border spans the page edge; no logo; hotline has the same weight as the landline number. No floating CTA lane reserved:
+        // right margin equals left margin, normal screens pad vertically from 40px. Columns spread evenly: left edge to address equals
+        // right edge after social links; address has the same font size as the two numbers; dragging the mouse can select the numbers (links do not drag away).
+        // Short landscape windows use 24px icons so the footer does not exceed 38.2% of the viewport.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
@@ -112,8 +112,8 @@ try {
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
         assert.equal(result.copyright, 0);
         assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
-        // Cuối trang đã có nút Zalo của trang (lời mời, .detail-cta) nên floating CTA không hiện lại.
-        // Bỏ qua Advertising: browse nối batch khi cuộn tới cuối, photo view có luật CTA riêng.
+        // The page end already has the page Zalo button (invitation, .detail-cta), so the floating CTA does not reappear.
+        // Skip Advertising: browse appends a batch when scrolling to the end, and the photo view has its own CTA rule.
         const ctaShownAtEnd = !route.startsWith("advertising-products") && await page.evaluate(async () => {
           scrollTo(0, document.documentElement.scrollHeight);
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -124,7 +124,7 @@ try {
         count++;
       }
     }
-    // 404 vừa một màn hình: floating CTA ẩn khi footer lọt vào viewport nên không đè nội dung footer.
+    // 404 fits one screen: the floating CTA hides when the footer enters the viewport so it does not cover footer content.
     for (const locale of ["vi", "en"]) {
       await page.goto(`${baseUrl}/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
       await page.waitForSelector(".footer-contact");
@@ -145,15 +145,15 @@ try {
     await page.close();
   }
   console.log(`Footer consistency: ${count} route/locale/viewport checks passed`);
-  // Màn đầu trang chủ, Nhà ở, Kinh doanh: floating CTA hiện cùng nút dừng hero; hai nút không được chồng nhau.
-  // Nút dừng chỉ có khi không reduced motion. Hai trang con dùng cùng CSS nên chỉ kiểm VI.
+  // First screen of home, Residential, Commercial: the floating CTA appears with the hero pause button; the two buttons must not overlap.
+  // The pause button exists only without reduced motion. The two child pages share the same CSS so only VI is checked.
   for (const [width, height] of [[320, 568], [360, 800], [390, 844], [430, 932], [750, 912], [568, 320], [667, 375], [844, 390], [1024, 600], [1280, 632], [1440, 900]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     for (const path of ["vi/", "en/", "vi/residential/", "vi/commercial/"]) {
       await page.goto(`${baseUrl}/${path}`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".floating-cta.show")
         && document.querySelector("[data-motion-toggle]:not([hidden])")?.getClientRects().length);
-      // Chờ CTA trượt vào xong (transform 1s).
+      // Wait for the CTA to finish sliding in (transform 1s).
       await page.waitForTimeout(1200);
       const rects = await page.evaluate(() => [".floating-cta", "[data-motion-toggle]"]
         .map(selector => document.querySelector(selector).getBoundingClientRect())

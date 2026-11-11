@@ -1,7 +1,7 @@
-// Lằn tối ở mép card masonry (owner 2026-11-09): nền màu chủ đạo của khung không được lộ ở mép media.
-// 1. Ảnh đã tải phủ đúng khung, kể cả khi file đang tải làm tròn pixel lệch tỷ lệ (480w: 437x245 của khung 3065x1725).
-// 2. Ảnh mờ chờ tải phóng ra ngoài khung ít nhất bằng bán kính blur, dải mép nhạt của blur nằm ngoài vùng cắt.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-media-edge.e2e.mjs
+// Dark seam at the masonry card edge (owner 2026-11-09): the frame's dominant-color background must not show at the media edge.
+// 1. A loaded image covers the frame exactly, even when the file still loading rounds pixels to a skewed ratio (480w: 437x245 of a 3065x1725 frame).
+// 2. The blurred image waiting to load overshoots the frame by at least the blur radius, so the blur's pale edge band lies outside the clipped area.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-media-edge.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -28,7 +28,7 @@ try {
       const media = tile.querySelector(".project-tile__media");
       const image = media?.querySelector("img.is-masonry-media-ready:not([hidden])");
       if (!image?.naturalWidth || image.style.filter) return [];
-      // Hết blur thì không còn scale tràn khung: scale sót lại làm ảnh lớn hơn khung (gap âm).
+      // Once the blur is gone there is no overflow scale: a leftover scale makes the image larger than the frame (negative gap).
       if (image.style.scale) return [{ id: tile.dataset.masonryCard, gap: Infinity, scale: image.style.scale }];
       const box = media.getBoundingClientRect();
       const rect = image.getBoundingClientRect();
@@ -37,10 +37,10 @@ try {
     }));
     assert.ok(edges.length > 8, `${viewport.width}px: enough loaded cards measured (${edges.length})`);
     assert.deepEqual(edges.filter(({ gap }) => gap > 0.01), [], `${viewport.width}px: loaded media leaves the frame colour visible at an edge`);
-    // Lớp chặn thứ hai: ép media hụt khung 0,6px; hàng pixel đáy của card nền tối phải là màu giấy, không phải màu chủ đạo.
+    // Second guard layer: force the media 0.6px short of the frame; the bottom pixel row of a dark-background card must be the paper color, not the dominant color.
     await page.addStyleTag({ content: ".masonry-card img { height: calc(100% - 0.6px) !important; }" });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    // Khung nền tối đặt tay (rgb 20) trên card đã hiện ảnh, không phụ thuộc màu chủ đạo của catalog.
+    // A hand-set dark background frame (rgb 20) on a card already showing its image, independent of the catalog's dominant color.
     const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card .project-tile__media")].filter((media) => {
       const box = media.getBoundingClientRect();
       return media.querySelector("img.is-masonry-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
@@ -61,7 +61,7 @@ try {
     await page.close();
   }
 
-  // Ảnh card bị giữ 8s như Slow 3G: card trong viewport đang mờ.
+  // Card image held for 8s like Slow 3G: the card in the viewport is blurred.
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();

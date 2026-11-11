@@ -1,9 +1,9 @@
-// Sân masonry (masonry-reuse bước 7): state dựng theo cửa sổ cuộn của một lưới. Masonry chính (Advertising, Công trình)
-// và related ở detail là hai instance, nên ngân sách dựng, card tạm và hàng chờ LRU chỉ viết một lần (advertising-masonry R7).
+// Masonry yard (masonry-reuse step 7): state built from one grid's scroll window. The main masonry (Advertising, Projects)
+// and the related one in detail are two instances, so the build budget, placeholder cards and LRU queue are written only once (advertising-masonry R7).
 import { createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity } from "./mount-budget.mjs";
 
-// Card nào được dựng thật trong frame này: card bắt buộc luôn dựng; còn lại card trong hàng chờ trước (gắn lại rẻ hơn
-// dựng mới), rồi gần giữa màn hình trước, tối đa `quota` card. Vuốt rất nhanh (`fast`) thì chỉ dựng card bắt buộc.
+// Which cards are really built this frame: required cards always build; the rest are queued cards first (reattaching is cheaper than
+// building new), then those nearest the screen center first, up to `quota` cards. A very fast swipe (`fast`) builds only required cards.
 export function pickMounts({ missing, mustMount = () => false, distance, queued = () => false, fast = false, quota }) {
   const forced = missing.filter(mustMount);
   const rest = missing.filter((id) => !mustMount(id))
@@ -11,7 +11,7 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
   return new Set([...forced, ...rest.slice(0, fast ? 0 : quota())]);
 }
 
-// Masonry 4.2.2 chỉ lo motion: vị trí lấy từ `positions` đã tính, không tự xếp, không tự layout khi resize.
+// Masonry 4.2.2 only handles motion: positions come from the computed `positions`, it does not place cards itself or lay out on resize.
 function createMasonry(grid, positions, getHeight, { itemSelector = ".masonry-card", getId = (node) => node.dataset.masonryCard } = {}) {
   const masonry = new window.Masonry(grid, {
     itemSelector,
@@ -22,9 +22,9 @@ function createMasonry(grid, positions, getHeight, { itemSelector = ".masonry-ca
   });
   masonry._getItemLayoutPosition = (item) => positions.get(getId(item.element)) || { x: 0, y: 0 };
   masonry._getContainerSize = () => ({ height: getHeight() });
-  // Outlayer đọc vị trí đầu bằng getComputedStyle rồi ghi transition cho từng card, nên mỗi card ép một lượt style
-  // (rAF Masonry 46-66ms trên A04s). Runtime đã ghi left/top inline bằng px; motion chỉ chạy trên transform nên
-  // inline trùng computed. Card chưa có vị trí inline vẫn đọc computed như cũ.
+  // Outlayer reads the initial position with getComputedStyle then writes a transition for each card, so each card forces a style pass
+  // (Masonry rAF 46-66ms on the A04s). The runtime already writes left/top inline in px; motion runs only on transform so
+  // inline matches computed. A card without an inline position is still read from computed as before.
   const itemize = masonry._itemize;
   masonry._itemize = function (elements) {
     const items = itemize.call(this, elements);
@@ -42,10 +42,10 @@ function createMasonry(grid, positions, getHeight, { itemSelector = ".masonry-ca
   return masonry;
 }
 
-// Lượt co giãn cỡ card (morphSize) chạy trên con của card bằng `scale`.
+// The card size morph (morphSize) runs on the card's child using `scale`.
 export const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
 
-// Dừng transition Masonry và lượt co giãn đang chạy, đặt card ngay ở chỗ đích.
+// Stop the running Masonry transition and size morph, placing the card at its target right away.
 export function cancelMasonryTransitions(instance) {
   instance?.items.forEach((item) => {
     for (const child of item.element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
@@ -58,33 +58,33 @@ export function cancelMasonryTransitions(instance) {
   });
 }
 
-// `create(placement)` dựng card mới; `attach(node, placement)` gắn observer và style chung khi card vào sân (mới hoặc từ
-// hàng chờ); `detach(id, node, queue)` gỡ card khỏi DOM, giữ vào `queue` nếu còn dùng lại được; `color(card)` là màu
-// card tạm; `masonry` là option Masonry riêng của sân (`itemSelector`, `getId`).
+// `create(placement)` builds a new card; `attach(node, placement)` attaches the observer and shared style when a card enters the yard (new or from the
+// queue); `detach(id, node, queue)` removes a card from the DOM, keeping it in `queue` if it can be reused; `color(card)` is the
+// placeholder card color; `masonry` is the yard's own Masonry option (`itemSelector`, `getId`).
 export function createMasonryHost(root, { create, attach = () => {}, detach, color = () => undefined, masonry = {},
   deviceMemory = globalThis.navigator?.deviceMemory } = {}) {
   const host = {
     root,
-    // Card đang trong DOM và tọa độ của chúng theo id.
+    // Cards currently in the DOM and their coordinates by id.
     rendered: new Map(),
     positions: new Map(),
-    // Media đang hiện của card nhiều media: card dựng lại mở đúng media đó.
+    // The media currently shown on a multi-media card: a rebuilt card opens that same media.
     mediaById: new Map(),
     ghosts: createGhostLayer(root),
     budget: createMountBudget(),
-    // Card vừa gỡ mà ảnh còn giải mã, sức chứa theo RAM máy (R7, V4).
+    // Cards just detached whose image is still decoding, capacity by machine RAM (R7, V4).
     detached: createDetachedCards(detachedCapacity(deviceMemory)),
     ghostFrame: 0,
-    // Chiều cao sân theo layout; Masonry đọc nó làm cỡ container.
+    // Yard height from layout; Masonry reads it as the container size.
     pixelHeight: 0,
-    // Masonry chỉ chạy motion layout; tạo khi cần lần đầu. rAF trước lượt motion và hẹn kết thúc lượt.
+    // Masonry only runs layout motion; created on first need. rAF before the motion pass and a scheduled end of the pass.
     masonry: null,
     motionFrame: 0,
     motionTimer: 0,
-    // Một lượt motion layout: card trượt từ chỗ đang đứng tới `positions` trong 0.4s; `instant(element)` đặt thẳng.
+    // One layout motion pass: cards slide from where they stand to `positions` over 0.4s; `instant(element)` places directly.
     layoutMotion(instant) {
       host.masonry ||= createMasonry(root, host.positions, () => host.pixelHeight, masonry);
-      // Thiếu option này Outlayer coi lần layout đầu là tức thì: lần dựng đầu mất motion từ đầu cột.
+      // Without this option Outlayer treats the first layout as instant: the first build loses motion from the column start.
       host.masonry.options.layoutInstant = false;
       host.masonry.options.transitionDuration = "0.4s";
       host.masonry.reloadItems();
@@ -92,7 +92,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
       host.masonry.layout();
     },
     cancelTransitions: () => cancelMasonryTransitions(host.masonry),
-    // Hủy lượt motion đã hẹn (rAF và hẹn kết thúc) rồi đặt card ngay ở đích.
+    // Cancel the scheduled motion pass (rAF and scheduled end) then place cards right at the target.
     stopMotion() {
       if (host.motionFrame) cancelAnimationFrame(host.motionFrame);
       if (host.motionTimer) clearTimeout(host.motionTimer);
@@ -100,7 +100,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
       host.motionTimer = 0;
       host.cancelTransitions();
     },
-    // Còn card tạm chờ dựng: hẹn một lượt dựng ở frame sau, không dựng dồn trong một frame.
+    // Placeholder cards still waiting to build: schedule a build pass on the next frame, do not build all in one frame.
     scheduleGhosts(render) {
       host.ghostFrame ||= requestAnimationFrame(() => {
         host.ghostFrame = 0;
@@ -114,7 +114,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
     pickMounts: ({ missing, mustMount, distance, fast }) => pickMounts({
       missing, mustMount, distance, fast, queued: (id) => host.detached.has(id), quota: host.budget.quota,
     }),
-    // Card của placement: đã dựng thì trả node; chưa thì gắn lại từ hàng chờ hoặc dựng mới, rồi gắn vào `parent`.
+    // The placement's card: if built return the node; otherwise reattach from the queue or build new, then attach to `parent`.
     ensure(placement, parent = root) {
       const id = placement.card.id;
       let node = host.rendered.get(id);
@@ -125,9 +125,9 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
       parent.append(node);
       return node;
     },
-    // Một lượt dựng của cửa sổ cuộn: card đã có bỏ card tạm; card chưa tới lượt (`allowed`) hiện card tạm; card tới
-    // lượt gắn lại hoặc dựng mới, crossfade lên card tạm của nó. Thời gian dựng vào ngân sách; còn card tạm thì hẹn
-    // `render` ở frame sau. Trả các cặp `[node, placement]` vừa vào sân.
+    // One build pass of the scroll window: existing cards drop their placeholder; cards not yet their turn (`allowed`) show a placeholder; cards whose
+    // turn has come reattach or build new, crossfading over their placeholder. Build time counts against the budget; if placeholders remain, schedule
+    // `render` on the next frame. Returns the `[node, placement]` pairs that just entered the yard.
     mount(placements, { allowed = null, render } = {}) {
       const created = [];
       const fragment = document.createDocumentFragment();
@@ -145,7 +145,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
         const start = performance.now();
         const reattached = host.detached.has(id);
         const node = host.ensure(placement, fragment);
-        // Card gắn lại đã có ảnh nên không cần card tạm để crossfade.
+        // A reattached card already has its image so it needs no placeholder to crossfade.
         if (reattached) host.ghosts.drop(id);
         else node.masonryGhost = host.ghosts.take(id);
         mountMs += performance.now() - start;
@@ -159,7 +159,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
       if (render && placements.some((placement) => host.ghosts.has(placement.card.id))) host.scheduleGhosts(render);
       return created;
     },
-    // Gỡ card ngoài `keep`, trừ card đang giữ focus; `queue` false thì không giữ vào hàng chờ (hình học hoặc phạm vi đổi).
+    // Remove cards outside `keep`, except the card holding focus; `queue` false means do not keep them in the queue (geometry or range changed).
     release(keep, { queue = true } = {}) {
       for (const [id, node] of host.rendered) {
         if (keep.has(id) || node.contains(document.activeElement)) continue;

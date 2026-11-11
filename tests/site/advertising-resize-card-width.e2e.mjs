@@ -1,6 +1,6 @@
-// Masonry R6: vào thẳng ?photo=, về grid bằng navbar rồi resize trong lúc geometry còn chờ Worker; card ẩn trong cohort
-// lộ lại phải lấy bề rộng cột mới. Lỗi cũ: card giữ bề rộng 4 cột (288.5px) ở layout 3 cột, tràn mép phải grid.
-// Thứ tự grid ngẫu nhiên theo seed nên lỗi chỉ hiện ở một phần hero (main sau #670: 2/24); chạy 24 hero để bắt.
+// Masonry R6: load ?photo= directly, return to the grid via the navbar, then resize while geometry still waits on the Worker; a card hidden in the cohort
+// that is revealed again must take the new column width. Old bug: the card kept the 4-column width (288.5px) in a 3-column layout, overflowing the grid right edge.
+// Grid order is random by seed so the bug shows only in some heroes (main after #670: 2/24); run 24 heroes to catch it.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -23,7 +23,7 @@ try {
   assert(heroes.length >= Math.min(heroCount, 4), "grid has cards to open");
   for (const hero of heroes) {
     const page = await browser.newPage({ viewport: { width: 1329, height: 912 } });
-    // Worker trả geometry chậm: resize rơi vào lúc mount còn chờ (cách thread hạ long task tái hiện).
+    // The Worker returns geometry slowly: resize lands while mount is still waiting (how a thread-throttled long task reproduces it).
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage;
       Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };

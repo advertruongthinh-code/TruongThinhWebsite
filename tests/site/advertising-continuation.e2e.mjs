@@ -59,7 +59,7 @@ async function ready(page) {
     if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
     return true;
   });
-  // Resize dựng lại batch và có thể đẩy khung ra ngoài viewport sau lần căn đầu, nên căn lại mỗi nhịp chờ.
+  // Resize rebuilds the batch and can push the frame out of the viewport after the first alignment, so re-align on every wait tick.
   await page.waitForFunction(() => {
     const frame = document.querySelector("[data-masonry-cta-frame]");
     if (!frame) return false;
@@ -90,14 +90,14 @@ async function ready(page) {
   });
 }
 
-// Frame nhận assignment khi lần đầu vào view (skeleton R3), nên chỉ frame đã draw mới có assignment.
+// A frame receives its assignment on first entering view (skeleton R3), so only a drawn frame has an assignment.
 async function flowAssignments(page) {
   return page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")]
     .filter((frame) => frame.querySelector("[data-masonry-flow-preset]"))
     .map((frame) => {
       const canvas = frame.querySelector("[data-masonry-flow-preset]");
       return {
-        // Runtime giữ assignment theo slot; column:depth đổi chủ khi resize đổi số cột.
+        // The runtime keeps assignments per slot; column:depth changes owner when resize changes the column count.
         slot: frame.dataset.masonryCtaSlot,
         preset: canvas?.dataset.masonryFlowPreset,
         speedScale: Number(canvas?.dataset.masonryFlowSpeedScale),
@@ -135,7 +135,7 @@ function assignmentSignature(assignments) {
     `${slot}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
 }
 
-// Batch dựng thêm slot khi cuộn (frontier) và band đổi được khi dựng lại (skeleton R1); assignment của slot đã có phải giữ.
+// A batch builds more slots while scrolling (frontier) and bands can change on rebuild (skeleton R1); the assignment of an existing slot must be kept.
 async function assertSlotsKept(page, expected, message) {
   const current = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
   assert.deepEqual(expected.map(({ slot }) => current.has(slot) && stableFlowAssignment(current.get(slot))),
@@ -154,7 +154,7 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
   await page.goto(`${baseUrl}${canonicalPath}${query}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   const sourceUrl = new URL(page.url());
-  // URL ghi slug cụm theo locale, browse state giữ id cụm (taxonomy R4).
+  // The URL carries the cluster slug per locale, browse state keeps the cluster id (taxonomy R4).
   const sourceBrowse = await page.evaluate(() => {
     const { category, photo, tag } = window.TruongThinhMasonry.getBrowseState();
     return { category, photo, tag };
@@ -204,7 +204,7 @@ async function snapshot(page) {
     const cta = document.querySelector("[data-masonry-grid-cta]");
     const footer = document.querySelector("footer.site-footer");
     const gridRect = grid?.getBoundingClientRect();
-    // Kính (glass-surface.md): cung trên grid section, Kính đều trong primary frame.
+    // Kính (glass-surface.md): the arc on the grid section, uniform Kính inside the primary frame.
     const glass = section?.querySelector(":scope > .glass-surface[data-glass-shape=arc]");
     const glassRect = glass?.getBoundingClientRect();
     const glassTint = glass?.querySelector(".glass-surface__tint");
@@ -251,7 +251,7 @@ async function snapshot(page) {
       nativeGutter: innerWidth - document.documentElement.clientWidth,
       skeletonCoverageRatio: Math.max(0, deepestFrameBottom - ctaRect.top) / ctaRect.height,
       glassHidden: glass?.hidden ?? null,
-      // Bậc inner chỉ có mask, không đặt top riêng: chỉ lấy lớp có top.
+      // The inner step has only a mask and no top of its own: take only the layer that has a top.
       glassTop: Math.min(...[...(glass?.children || [])].map((layer) => Number.parseFloat(layer.style.top)).filter(Number.isFinite)),
       glassEnd: (Number.parseFloat(glassTint?.style.top) || 0) + (Number.parseFloat(glassTint?.style.height) || 0) - 2,
       boundaryBottom: Number.parseFloat(skeleton.style.height) || 0,
@@ -411,8 +411,8 @@ async function exitSkeletonViewport(page) {
   });
 }
 
-// Lần vào viewport đầu tiên (skeleton R4): frame hiện bằng Kính reveal 0.6s rồi gỡ khi Kính cung chưa giao viewport;
-// Kính cung đang giao viewport thì frame chỉ crossfade, không có Kính reveal. Phần vào lại nằm ở reenterSkeletonViewport.
+// First entry into the viewport (skeleton R4): the frame appears with a 0.6s Kính reveal then it is removed when the arc Kính does not intersect the viewport;
+// if the arc Kính is intersecting the viewport the frame only crossfades, with no Kính reveal. Re-entry is covered in reenterSkeletonViewport.
 async function firstEntryReveals(browser, scrollTarget) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 400 } });
   const page = await context.newPage();
@@ -434,18 +434,18 @@ async function firstEntryReveals(browser, scrollTarget) {
   });
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-    // Trang nền trong headless không chạy rAF nên entry không bắt đầu.
+    // The background page in headless does not run rAF so the entry does not start.
     await page.bringToFront();
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     await page.evaluate((target) => {
       const motion = window.TruongThinhMotion;
       const frameTop = document.querySelector("[data-masonry-cta-frame]").getBoundingClientRect().top;
-      // Frame đầu chỉ ló 40px ở đáy viewport: Kính cung nằm dưới frame nên chắc chắn ngoài viewport (chiều cao batch ngẫu nhiên).
+      // The first frame peeks only 40px at the bottom of the viewport: the arc Kính sits under the frame so it is certainly outside the viewport (batch height is random).
       const top = target === "first-frame" ? (motion?.getLogicalScroll?.() ?? scrollY) + frameTop - (innerHeight - 40) : document.documentElement.scrollHeight;
       if (!motion?.setLogicalScroll?.(top)) window.scrollTo(0, top);
     }, scrollTarget);
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-entry-ready"));
-    // Reveal 0.6s cộng thời gian settle; chờ hết rồi mới đọc vòng đời.
+    // Reveal 0.6s plus settle time; wait for it to finish before reading the lifecycle.
     await page.waitForTimeout(1_200);
     return await page.evaluate(() => ({
       ...window.__ttFirstEntry,
@@ -456,7 +456,7 @@ async function firstEntryReveals(browser, scrollTarget) {
   }
 }
 
-// Rời hẳn vùng nhìn thấy rồi vào lại: khung hiện ngay và Kính reveal không chạy lại (skeleton R4).
+// Leave the visible area entirely then re-enter: the frame appears immediately and the Kính reveal does not run again (skeleton R4).
 async function reenterSkeletonViewport(page, label) {
   await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonReenterReveals = 0;
@@ -494,11 +494,11 @@ async function reenterSkeletonViewport(page, label) {
 }
 
 const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() => {
-  // Khung batch chạy Flow trên canvas chung của batch (advertising-skeleton R5); renderer riêng chỉ còn cho skeleton media card.
+  // The batch frame runs Flow on the batch's shared canvas (advertising-skeleton R5); the dedicated renderer remains only for the media card skeleton.
   window.__ttFlowLive = (frame) => frame.dataset.masonryFlowState === "running"
     && (frame.querySelector("canvas")?.dataset.masonryFlowBackend === "webgl"
       || Boolean(frame.closest(".masonry-grid__cta-skeleton")?.querySelector(".masonry-grid__cta-shared-flow")));
-  // Canvas chung vẽ nhiều khung mỗi tick bằng scissor: một tick là một lần clear, không đếm theo drawArrays.
+  // The shared canvas draws several frames per tick using scissor: one tick is one clear, not counted by drawArrays.
   const nativeClear = WebGLRenderingContext.prototype.clear;
   WebGLRenderingContext.prototype.clear = function patchedClear(...args) {
     if (this.canvas?.matches?.(".masonry-grid__cta-shared-flow")) {
@@ -665,11 +665,11 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      // Context không cảm ứng là PC: core 100px và chín bậc (masonry/glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
+      // A non-touch context is PC: core 100px and nine steps (masonry/glass-surface.mjs, S5); the first 4.5 steps and the last three steps.
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
       assert.deepEqual([blurs[0], blurs[1], ...blurs.slice(-3)], ["100", "4.5", "33.83", "49.85", "73.44"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
-      // Primary photo tự mang blur của step đầy; Kính đều của nó chỉ giữ tint và grain.
+      // The primary photo carries the full step's blur itself; its uniform Kính keeps only tint and grain.
       assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);
       assert.equal(state.photoBackgroundFilter, "blur(100px) saturate(1.7) brightness(1.04)",
         `${locale} ${viewport.width}: photo background does not carry the full Kính blur`);
@@ -690,7 +690,7 @@ try {
       const visibleFlowStates = state.flowStates.filter(({ inViewport }) => inViewport);
       const hiddenFlowStates = state.flowStates.filter(({ inViewport }) => !inViewport);
       assert(visibleFlowStates.length > 0, `${locale} ${viewport.width}: no Flow frame is visible`);
-      // Mọi khung trong viewport đều chạy (advertising-skeleton R8); phone hoãn dựng tới khi cuộn dừng và hiện frame tĩnh (R5).
+      // Every frame in the viewport runs (advertising-skeleton R8); phones defer building until scrolling stops and show a still frame (R5).
       if (viewport.width <= 750) {
         assert(visibleFlowStates.every(({ state: flowState, staticImage }) => flowState === "running" || staticImage),
           `${locale} ${viewport.width}: paused Flow card lost its preset fallback`);
@@ -713,7 +713,7 @@ try {
       const finalViewport = await page.evaluate(async () => {
         const motion = window.TruongThinhMotion;
         const lastScroll = document.documentElement.scrollHeight - innerHeight;
-        // R6: cuộn 100px gần cuối làm copy CTA dịch 90px.
+        // R6: scrolling 100px near the end shifts the CTA copy by 90px.
         const copyNode = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
         const copyTopAt = async (y) => {
           if (!motion?.setLogicalScroll?.(y)) window.scrollTo(0, y);
@@ -725,7 +725,7 @@ try {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         await new Promise((resolve) => setTimeout(resolve, 900));
         const parallaxEnd = new DOMMatrixReadOnly(getComputedStyle(copyNode).transform).m42;
-        // Line reveal dừng cao hơn layout box 0.1em.
+        // The line reveal stops 0.1em higher than the layout box.
         const headingNode = document.querySelector("[data-masonry-grid-cta] h2");
         const fontSize = Number.parseFloat(getComputedStyle(headingNode).fontSize);
         const lines = [...headingNode.querySelectorAll(".motion-line")];
@@ -758,7 +758,7 @@ try {
       assert(finalViewport.headingTop >= -1 && finalViewport.linkTop >= finalViewport.headingBottom - 1
         && finalViewport.linkBottom <= finalViewport.viewportHeight + 1,
       `${locale} ${viewport.width}x${viewport.height}: final viewport clips or overlaps CTA content ${JSON.stringify(finalViewport)}`);
-      // R1: baseline của dòng cuối nằm đúng tâm viewport; cửa sổ R5 giữ link cách batch một gap.
+      // R1: the last line's baseline sits exactly at the viewport center; the R5 window keeps the link one gap from the batch.
       const expectedCtaGap = viewport.width <= 960 ? 15 : viewport.width <= 1200 ? 25 : 35;
       const shortWindow = Math.abs(finalViewport.ctaBottom - finalViewport.linkBottom - expectedCtaGap) <= 1;
       assert(shortWindow || Math.abs(finalViewport.baseline - finalViewport.viewportHeight / 2) <= 1,
@@ -771,13 +771,13 @@ try {
     }
   }
 
-  // R7: chuyển sang reduced motion bỏ ngay offset parallax của CTA.
+  // R7: switching to reduced motion drops the CTA's parallax offset immediately.
   const parallaxOffset = () => page.evaluate(async () => {
-    // Rule reduced-motion toàn cục để lại transition 0.01ms, nên đọc sau một khoảng chờ ngắn.
+    // The global reduced-motion rule leaves a 0.01ms transition, so read after a short wait.
     await new Promise((resolve) => setTimeout(resolve, 200));
     const copy = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
     const offset = () => new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
-    // Cuộn còn đang trượt thì offset chưa tới đích: chờ tới khi hai lần đọc liên tiếp khớp.
+    // While scroll is still sliding the offset has not reached the target: wait until two consecutive reads match.
     let last = offset();
     for (let tries = 0; tries < 20; tries++) {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -834,7 +834,7 @@ try {
       `N4 to N3 resize changed the stable Flow assignment for ${assignment.slot}`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  // Band đổi được khi đổi cỡ (skeleton R1) nên chữ ký và số khung không quay về cũ: chờ đúng số cột.
+  // Bands can change on resize (skeleton R1) so the signature and frame count do not return to the old ones: wait for exactly the right number of columns.
   await page.waitForFunction(({ signature, columns }) => {
     const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
     return skeleton?.dataset.masonryCtaColumns === columns
@@ -842,7 +842,7 @@ try {
   }, { signature: narrowSignature, columns: beforeResizeColumns });
   await ready(page);
   const roundTripBySlot = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
-  // Band dựng lại có thể đổi khi cột mới đặt slot ngay dưới khung cùng band (skeleton R1); chỉ assignment Flow phải giữ.
+  // A rebuilt band can change when a new column places a slot right under a frame of the same band (skeleton R1); only the Flow assignment must be kept.
   const keptSlots = filteredAssignments.filter(({ slot }) => roundTripBySlot.has(slot));
   assert.ok(keptSlots.length > 0, "resize round trip kept no Flow slot");
   assert.deepEqual(keptSlots.map(({ slot }) => stableFlowAssignment(roundTripBySlot.get(slot))),
@@ -911,7 +911,7 @@ try {
 
   await page.setViewportSize({ width: 1569, height: 912 });
   await ready(page);
-  // Cỡ mới dựng thêm slot ở đáy batch; các slot cũ giữ assignment, rồi đây là mốc mới cho các lần cuộn bên dưới.
+  // The new size builds more slots at the batch bottom; old slots keep their assignment, and this becomes the new baseline for later scrolls below.
   const resizedAssignments = await flowAssignments(page);
   const resizedBySlot = new Map(resizedAssignments.map((assignment) => [assignment.slot, assignment]));
   assert.deepEqual(stableAssignments.filter(({ slot }) => resizedBySlot.has(slot)).map(stableFlowAssignment),
@@ -929,7 +929,7 @@ try {
   });
   await page.waitForTimeout(1000);
   await page.bringToFront();
-  // Flow chỉ chạy khung đang thấy (R4); chiều cao batch ngẫu nhiên nên không phải lúc nào mọi khung cũng lọt 912px.
+  // Flow runs only visible frames (R4); batch height is random so not every frame always fits within 912px.
   await page.waitForFunction(() => {
     const inView = [...document.querySelectorAll("[data-masonry-cta-frame]")].filter(frame => {
       const rect = frame.getBoundingClientRect();
@@ -1043,7 +1043,7 @@ try {
     document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
   const freshReduced = await mobilePerformancePage.evaluate(() => ({
     contexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]').length,
-    // Frame draw ở lần vào đầu tiên, nên chỉ frame trong view mới phải hiện still.
+    // A frame draws on first entry, so only frames in view must show still.
     staticFrames: [...document.querySelectorAll("[data-masonry-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight;
@@ -1085,7 +1085,7 @@ try {
   const firstExit = await exitSkeletonViewport(page);
   assert(Math.abs(firstExit.opacity - firstExit.targetOpacity) <= 0.01, "offscreen skeleton lost its settled reveal state");
   assert(Math.abs(firstExit.transformY) <= 0.1, "offscreen skeleton changed frame geometry");
-  // Frame ngoài màn hình nhả lease; đọc fallback bằng getContext sẽ cấp phát một context không được quản lý.
+  // An offscreen frame releases its lease; reading the fallback via getContext would allocate an unmanaged context.
   const pausedPaints = await page.evaluate(() => ({ ...window.__ttSkeletonPaints }));
   await page.evaluate(() => new Promise((resolve) => {
     const started = performance.now();
@@ -1098,7 +1098,7 @@ try {
     .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
-  // Frame của batch vào bằng Kính reveal 0.6s từ runtime, không bao giờ là CSS opacity fade (skeleton R4).
+  // The batch frame enters with a 0.6s Kính reveal from the runtime, never a CSS opacity fade (skeleton R4).
   assert.equal(entryContract.frame.opacity, null, "skeleton frame must not fade its opacity in CSS");
   assert(entryContract.stagger.every((delay) => delay === undefined),
     "skeleton frames must not carry an opacity transition");
@@ -1228,17 +1228,17 @@ try {
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${baseUrl}/en/advertising-products/`, { waitUntil: "networkidle" });
-  // Trang nền trong headless không chạy rAF nên route-enter không gỡ.
+  // The background page in headless does not run rAF so route-enter is not removed.
   await page.bringToFront();
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
-  // Direct load phủ route veil đến khi phase enter gỡ route-enter; nút menu bị veil chặn click trước đó.
+  // A direct load covers the route veil until the enter phase removes route-enter; the menu button is blocked by the veil from clicks before that.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.locator("[data-menu-open]").click();
   await page.locator('#site-menu .menu-group__title[href="/en/advertising-products/"]').click();
   assert.equal(new URL(page.url()).pathname, "/en/advertising-products/", "parent nav changed canonical locale route");
   assert.equal(new URL(page.url()).search, "", "parent nav added query state");
   assert.equal(await page.locator('[data-masonry-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
-  // Lần vào đầu tiên: reveal chạy khi Kính cung ngoài viewport, không chạy khi cung đang giao viewport.
+  // First entry: the reveal runs when the arc Kính is outside the viewport, and does not run when the arc intersects the viewport.
   const revealedEntry = await firstEntryReveals(browser, "first-frame");
   assert(revealedEntry.added.length >= 1, "first entry: frame did not play the Kinh reveal");
   assert(revealedEntry.added.every(({ arcInView }) => !arcInView), "first entry: Kinh reveal played while the arc Kinh was in view");

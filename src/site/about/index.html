@@ -30,7 +30,7 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
+        // motion.js (defer) runs before DOMContentLoaded, so a slow network still keeps the veil.
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
@@ -113,7 +113,7 @@
       </button>
     </header>
 
-    <!-- TODO(owner): Thay placeholder này bằng URL Zalo chính thức đã xác minh. -->
+    <!-- TODO(owner): Replace this placeholder with the official verified Zalo URL. -->
     <a
       class="floating-cta"
       href="https://zalo.me/0949131050"
@@ -368,7 +368,7 @@
           </figcaption>
         </figure>
 
-        <!-- TODO(owner): Xác minh năm thành lập và chi tiết câu chuyện nguồn gốc trước khi thay các marker timeline trung tính này. -->
+        <!-- TODO(owner): Verify the founding year and the origin story details before replacing these neutral timeline markers. -->
         <section
           class="about-timeline section-gap"
           data-header-tone="ink"
@@ -668,7 +668,7 @@
           </figcaption>
         </figure>
 
-        <!-- TODO(owner): Bổ sung điều khoản bảo hành và hậu mãi đã xác minh tại đây khi có chính sách chính thức. -->
+        <!-- TODO(owner): Add the verified warranty and after-sales terms here once an official policy exists. -->
         <section
           class="about-commitments section-gap"
           data-header-tone="ink"

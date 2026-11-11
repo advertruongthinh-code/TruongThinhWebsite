@@ -81,7 +81,7 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Ảnh, video bị hủy khi card gỡ khỏi DOM hoặc đổi srcset/src là hành vi bình thường của trình duyệt.
+    // Images and videos aborted when a card is removed from the DOM or srcset/src changes are normal browser behavior.
     if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (new URL(request.url()).origin === baseOrigin || ["font", "stylesheet", "script"].includes(request.resourceType())) {
       issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
@@ -153,7 +153,7 @@ async function settle(page) {
   }, null, { timeout: 8_000 });
   await page.waitForFunction(() => ![...document.querySelectorAll("[data-masonry-related-card]")]
     .some((node) => node.getAnimations().some((animation) => animation.playState === "running")), null, { timeout: 8_000 });
-  // Veil vào trang phủ và chặn pointer tới khi clearRouteEntry gỡ html.route-enter và body.is-transitioning.
+  // The page-entry veil covers and blocks pointers until clearRouteEntry removes html.route-enter and body.is-transitioning.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
     && !document.body.classList.contains("is-transitioning"), null, { timeout: 8_000 });
 }
@@ -230,14 +230,14 @@ async function evidence(page) {
     ];
     const frameRect = frame?.getBoundingClientRect();
     const foregroundRect = foreground?.getBoundingClientRect();
-    // Chỉ item related thật; lớp ghost của card ảo (masonry/mount-budget.mjs) cũng là con của grid.
+    // Only real related items; the ghost layer of virtual cards (masonry/mount-budget.mjs) is also a child of the grid.
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
       .filter((node) => node.dataset.masonryRelatedItem && node.getBoundingClientRect().width > 0);
     const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionBox
       && !node.hidden && styles(node).display !== "none");
     const infoGap = Number.parseFloat(infoStyle?.rowGap) || 0;
     const descriptionLineHeight = Number.parseFloat(descriptionStyle?.lineHeight) || 0;
-    // Sàn mô tả như measureInfo: ba dòng, hoặc cả mô tả nếu ngắn hơn (detail R2).
+    // The floor is described like measureInfo: three lines, or the whole description if shorter (detail R2).
     const descriptionFloor = Math.min(3 * descriptionLineHeight, description?.offsetHeight || 0);
     const infoMinimumHeight = Math.ceil(visibleInfoControls.reduce((sum, node) => {
       const style = styles(node);
@@ -342,7 +342,7 @@ async function evidence(page) {
       } : null,
       flow: flowSelectors.map((selector) => ({
         selector,
-        // Card nhiều media chèn dãy thumbnail trước mô tả (media-card R6, kiểm ở m02a); thứ tự ở đây bỏ qua dãy đó.
+        // A multi-media card inserts the thumbnail row before the description (media-card R6, checked in m02a); the order here ignores that row.
         index: [...(info?.children || [])].filter((node) => !node.matches("[data-detail-media-thumbs]"))
           .indexOf(info?.querySelector(`:scope > ${selector}`)),
       })),
@@ -391,7 +391,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       assert(actual.desktopNav.visibility === "hidden" && actual.desktopNav.inert,
         `${label}: links that do not fit must leave the header and keyboard order`);
     } else if (actual.viewport.windowWidth > 1200) {
-      // Navbar 4 mục từ menu sáu nhóm (#704, #726): mọi link desktop đều hiện.
+      // Navbar with 4 items from the six-group menu (#704, #726): every desktop link shows.
       assert(actual.desktopNav.visibility === "visible" && actual.desktopNav.visibleLinks === 4
         && actual.desktopNav.links.length === 4,
         `${label}: wide desktop links must be visible`);
@@ -442,7 +442,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   closeTo(actual.foreground.naturalWidth / actual.foreground.naturalHeight,
     actual.foreground.widthAttribute / actual.foreground.heightAttribute, `${label}: foreground identity ratio`, 0.005);
   assert(actual.background, `${label}: decorative background is missing`);
-  // Cùng ảnh, có thể khác bản: foreground lên bản gốc, nền mờ có filter giữ bản vừa khung (progressive-loading R10).
+  // Same image, possibly a different version: the foreground goes to the original, the blurred background with a filter keeps the frame-fitting version (progressive-loading R10).
   const photoKey = (src) => new URL(src).pathname.replace(/(?:-\d+)?\.[a-z0-9]+$/i, "");
   assert.equal(photoKey(actual.background.currentSrc), photoKey(actual.foreground.currentSrc), `${label}: background and foreground use different photos`);
   assert.equal(actual.background.alt, "", `${label}: background alt must be empty`);
@@ -450,7 +450,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.background.tabIndex < 0, `${label}: background is keyboard focusable`);
   assert.equal(actual.background.pointerEvents, "none", `${label}: background accepts pointer input`);
   assert.equal(actual.background.objectFit, "cover", `${label}: background must use object-fit cover`);
-  // Photo mang blur của step đầy để raster tile khi tab-hover không thể tách nó; Kính chỉ giữ tint và grain.
+  // The photo carries the full-step blur so tab-hover tile raster cannot split it off; Kính keeps only the tint and grain.
   assert.equal(actual.background.filter, "blur(100px) saturate(1.7) brightness(1.04)", `${label}: background does not carry the full Kính blur`);
   assert.equal(actual.glass?.shape, "even", `${label}: photo overflow is not the even Kính`);
   assert.equal(actual.glass.display, actual.containOverflow ? "block" : "none", `${label}: Kính does not follow contain overflow`);
@@ -512,7 +512,7 @@ function assertControls(actual, locale, touch = false) {
   closeTo(actual.cta.icon.contentWidth, 20, `${label}: CTA glyph width`, 1);
   closeTo(actual.cta.icon.contentHeight, 20, `${label}: CTA glyph height`, 1);
   if (touch) {
-    // Màn cảm ứng mở viewer bằng một tap; nút chỉ còn cho screen reader.
+    // A touch screen opens the viewer with one tap; the button remains only for screen readers.
     assert(actual.expand.rect.width <= 1 && actual.expand.rect.height <= 1, `${label}: expand is visible on touch`);
     return;
   }
@@ -538,7 +538,7 @@ async function focusByKeyboard(page, selector) {
     if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
   }
   await page.evaluate(() => document.activeElement?.blur());
-  // Tab order tiếp tục từ control focus gần nhất, có thể nằm sau target: thử cả hai hướng.
+  // Tab order continues from the nearest focused control, which may sit after the target: try both directions.
   for (const [key, attempts] of [["Tab", 40], ["Shift+Tab", 80]]) {
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       await page.keyboard.press(key);
@@ -558,7 +558,7 @@ async function assertExpandedControl(page, selector, otherSelector, mode, label)
     const other = document.querySelector(otherSelector);
     return { control: node?.getBoundingClientRect().toJSON(), other: other?.getBoundingClientRect().toJSON() };
   }, { selector, otherSelector });
-  // Nút mở lớn chỉ icon, không bung chữ khi hover hay focus (primary-video-player R7).
+  // The expand button is icon-only and does not expand its text on hover or focus (primary-video-player R7).
   closeTo(state.control.width, 36, `${label}: ${mode} must not widen the control`, 1);
   closeTo(state.control.height, 36, `${label}: ${mode} must not grow the control`, 1);
   assert(!overlaps(state.control, state.other), `${label}: ${mode} control covers the other control`);
@@ -593,8 +593,8 @@ async function activateWithoutViewer(page, context, action, externalRequests, la
     return;
   }
   if (action === "keyboard") await focusByKeyboard(page, "[data-detail-cta]");
-  // Tab qua control trước đó kéo smooth scroll, smooth scroll snap về đích khi xong; chuột và chạm bấm khi trang
-  // đã đứng yên như người dùng (Playwright đòi CTA đứng yên, GPU phần mềm trên cloud chỉ ~15fps nên lerp kéo dài).
+  // Tabbing past the previous control drags a smooth scroll, which snaps to the target when done; mouse and touch click once the page
+  // is still, like a user (Playwright requires a still CTA, and software GPU on the cloud runs only ~15fps so the lerp drags on).
   else await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     for (let previous = NaN, current; (current = window.TruongThinhMotion.getLogicalScroll()) !== previous; previous = current) {
@@ -627,7 +627,7 @@ async function screenshot(page, label) {
   return file;
 }
 
-// Focus vùng mô tả rồi End: trình duyệt cuộn vùng đang focus tới cuối; info không được cuộn theo.
+// Focus the description area then End: the browser scrolls the focused area to the end; info must not scroll along.
 async function scrollDescriptionToEnd(page) {
   await page.locator("[data-detail-description-scroll]").focus();
   await page.keyboard.press("End");
@@ -653,7 +653,7 @@ async function wheelToHit(page, locator, label) {
     return { rect: rect.toJSON(), x, y, visible: bottom > top,
       hit: bottom > top && node.contains(document.elementFromPoint(x, y)) };
   });
-  // Locomotive 4 tính mỗi wheel event là một tick (khoảng 43px trên Linux Chromium), nên target xa cần nhiều bước.
+  // Locomotive 4 counts each wheel event as one tick (about 43px on Linux Chromium), so a far target needs many steps.
   for (let attempt = 0; attempt < 40; attempt += 1) {
     let state = await inspect();
     let stable = 0;
@@ -668,8 +668,8 @@ async function wheelToHit(page, locator, label) {
       assert(state.hit, `${label}: visible control is covered at its pointer target`);
       return state;
     }
-    // Target chưa visible nằm hẳn trên hoặc dưới vùng nhìn; so với nửa viewport để mép 2px của inspect
-    // (top trong [height - 2, height)) không đảo hướng lăn qua lại mãi.
+    // A not-yet-visible target sits entirely above or below the view; compare against half the viewport so inspect's 2px edge
+    // (top in [height - 2, height)) does not flip the scroll direction back and forth forever.
     const direction = state.rect.top > viewport.height / 2 ? 1 : -1;
     const distance = direction > 0 ? state.rect.top - viewport.height * 0.65
       : viewport.height * 0.35 - state.rect.bottom;
@@ -919,7 +919,7 @@ async function runP7PinterestContract(browser, locale) {
         layout: view?.dataset.detailLayout,
         primary: rect("[data-detail-primary]"), hero: rect("[data-detail-hero]"),
         info: rect("[data-detail-info]"), gap: Number.parseFloat(getComputedStyle(primary).gap) || 0,
-        // Sàn info như assertCore: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
+        // The info floor as in assertCore: the lines outside the description plus three description lines (or the whole description if shorter).
         infoMinimum: [...info.children].filter((node) => node !== descriptionBox && !node.hidden && getComputedStyle(node).display !== "none")
           .reduce((sum, node) => sum + node.getBoundingClientRect().height + (Number.parseFloat(getComputedStyle(info).rowGap) || 0),
             Math.min(3 * (Number.parseFloat(getComputedStyle(description).lineHeight) || 0), description.offsetHeight)),
@@ -950,7 +950,7 @@ async function runP7PinterestContract(browser, locale) {
     assert.equal(initial.span, initial.columns, `${label}: fixture must exercise full-span mode`);
     assert.equal(initial.layout, "pinterest", `${label}: full span did not select Pinterest mode`);
     assert(initial.primary.bottom <= initial.viewportHeight + 1.5, `${label}: primary extends below viewport`);
-    // Nhãn cụm dài xuống dòng ở 32px nên sàn info có thể vượt 28%; khi đó info không được cao hơn sàn.
+    // The long cluster label wraps at 32px so the info floor may exceed 28%; then info must not be taller than the floor.
     const infoCap = Math.max(initial.viewportHeight * 0.28, initial.infoMinimum + initial.gap + 1);
     assert(initial.info.height + initial.gap <= infoCap + 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap`);
@@ -969,7 +969,7 @@ async function runP7PinterestContract(browser, locale) {
     assert(initial.suggestion.scrollHeight <= initial.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
     assert.equal(initial.suggestion.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
     for (const button of initial.suggestion.buttons) assert(contained(button, initial.suggestion.rect), `${label}: suggestion button leaves its solver cell`);
-    // Nút quay lại kiểu Pinterest (detail R10, owner 2026-10-27): góc trên trái khung media, cả màn hẹp.
+    // Pinterest-style back button (detail R10, owner 2026-10-27): top-left corner of the media frame, on narrow screens too.
     const backInset = initial.viewportWidth > 750 ? 16 : 8;
     assert.deepEqual(initial.back && [Math.round(initial.back.dx), Math.round(initial.back.dy), initial.back.width],
       [backInset, backInset, 36], `${label}: Back control is not at the media frame top-left`);
@@ -985,7 +985,7 @@ async function runP7PinterestContract(browser, locale) {
     assert.deepEqual([end.reached, end.fadeEnd, end.infoScrollTop], [true, false, 0], `${label}: End does not reach the last line`);
 
     stage = "vertical-scroll";
-    // Ngoài vùng mô tả (nhóm, ảnh, suggestion) wheel dọc luôn cuộn trang.
+    // Outside the description area (group, image, suggestion) a vertical wheel always scrolls the page.
     for (const selector of ["[data-detail-hero]", "[data-detail-category]", "[data-masonry-suggestion-card]"]) {
       await page.evaluate(() => scrollTo(0, 0));
       await page.locator(selector).hover();
@@ -1085,7 +1085,7 @@ await runPageCase(browser, {
 await runPageCase(browser, {
   label: "sparse-related-vi-kiosk-posm-01-1569x912", locale: "vi", id: "kiosk-posm-01",
   viewport: { width: 1569, height: 912 }, tag: "product-kiosk-posm-product-01",
-  // Tag có 9 ảnh (thêm kiosk-posm-53, 62, 63) nên related đúng 8 card cùng tag.
+  // The tag has 9 images (adding kiosk-posm-53, 62, 63) so related has exactly 8 cards with the same tag.
   sparseTag: true, normalCopyFit: true, expectedRelatedCount: 8,
 });
 await runPageCase(browser, {

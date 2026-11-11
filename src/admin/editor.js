@@ -1,5 +1,5 @@
-// Editor CMS: dashboard Dockview gồm cây trang, xem trước theo cỡ, thuộc tính, media, nháp (cms-editor R1, R2, R4 đến
-// R8). Nháp lưu trong localStorage cùng origin nên bản xem trước (cms-core.js trong iframe) đọc được ngay.
+// CMS editor: Dockview dashboard with page tree, size-based preview, properties, media, drafts (cms-editor R1, R2, R4 to
+// R8). Drafts are stored in same-origin localStorage so the preview (cms-core.js in the iframe) reads them immediately.
 const { createDockview, themeLight } = window.dockview;
 import { dockOptions, setupDockTools } from "./dock-tools.js";
 
@@ -15,7 +15,7 @@ const VIEWPORTS = [
 ];
 const LAYOUT_KEY = "tt-cms-layout";
 const TAGS = { TITLE: "Tiêu đề trang (SEO)", META: "Mô tả SEO", H1: "Tiêu đề chính", H2: "Tiêu đề", H3: "Tiêu đề nhỏ", P: "Đoạn", A: "Liên kết", BUTTON: "Nút", FIGCAPTION: "Chú thích ảnh" };
-// Nháp có thể lưu: bốn trang sửa chữ, ảnh, danh sách và một nháp chung cho card Sản phẩm Quảng cáo (R7).
+// Savable drafts: four pages for editing text, images, lists, and one shared draft for Advertising Products cards (R7).
 const DRAFT_IDS = ["home", "residential", "commercial", "about", "advertising"];
 const MEDIA_TYPE = "application/x-tt-media";
 
@@ -25,7 +25,7 @@ const h = (tag, props = {}, ...children) => {
   node.append(...children.flat().filter((child) => child != null));
   return node;
 };
-// replaceChildren đổi null thành chữ "null"; luôn lọc trước khi gắn.
+// replaceChildren turns null into the text "null"; always filter before attaching.
 const fill = (root, ...nodes) => root.replaceChildren(...nodes.flat().filter((node) => node != null));
 const fold = (value) => value.normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/gi, "d").toLowerCase();
 const clean = (value) => value.replace(/\s+/g, " ").trim();
@@ -50,7 +50,7 @@ function toast(message) {
   toast.timer = setTimeout(() => (node.hidden = true), 4000);
 }
 
-// ---------- Nháp và bản đã lưu (R8) ----------
+// ---------- Drafts and saved version (R8) ----------
 
 const MAPS = ["text", "image", "list", "cards"];
 const emptyDraft = (page) => ({ page, base: null, updatedAt: null, text: {}, image: {}, list: {}, clone: {}, cards: {} });
@@ -58,13 +58,13 @@ const draftIdOf = (page) => (page?.cards ? "advertising" : page?.editable ? page
 const editsOf = (draft) => (draft.page === "advertising" ? { cards: draft.cards }
   : { text: draft.text, image: draft.image, list: draft.list, clone: draft.clone });
 const savedEdits = (id) => state.saved[id]?.edits ?? {};
-// Bản đang sửa: nháp trên máy nếu có, không thì bản đã lưu (base là phiên bản D1 nó dựa vào, dùng cho 409).
+// The version being edited: the local draft if any, otherwise the saved version (base is the D1 version it is based on, used for 409).
 const working = (id) => Object.assign(emptyDraft(id),
   readDraft(id) ?? { ...structuredClone(savedEdits(id)), base: state.saved[id]?.updatedAt ?? null });
 const baseKey = (key) => key.split("@")[0];
 const isNew = (key) => key.includes("@");
 
-// Thay đổi chưa lưu: mục khác bản đã lưu (hoặc khác bản gốc khi trang chưa lưu lần nào).
+// Unsaved changes: entries that differ from the saved version (or from the original when the page was never saved).
 function pending(draft) {
   const saved = savedEdits(draft.page);
   return MAPS.flatMap((map) => [...new Set([...Object.keys(draft[map]), ...Object.keys(saved[map] ?? {})])]
@@ -72,7 +72,7 @@ function pending(draft) {
     .map((key) => ({ map, key })));
 }
 
-// Mục mới không còn trong danh sách nào thì bỏ cả mẫu clone lẫn chữ, ảnh @id của nó.
+// A new entry that is in no list any more drops its clone template along with its text and image @id.
 function prune(draft) {
   const listed = new Set(Object.values(draft.list).flat());
   Object.keys(draft.clone).forEach((id) => listed.has(id) || delete draft.clone[id]);
@@ -82,7 +82,7 @@ function prune(draft) {
   }));
 }
 
-// Dấu chỗ gốc của khóa lúc bắt đầu sửa (R10): lưu gửi kèm, Worker từ chối nếu trang đã đổi bản sau lúc đó.
+// Original placeholder of the key when editing started (R10): sent along with save, the Worker rejects it if the page changed version after that.
 function track(draft, base) {
   if (!base || draft.page === "advertising") return;
   const keys = [...Object.keys(draft.text), ...Object.keys(draft.image)].map(baseKey).concat(Object.keys(draft.list));
@@ -102,7 +102,7 @@ function persist() {
   renderDrafts();
 }
 
-// Mỗi thao tác lưu một mốc hoàn tác; gõ liên tục cùng một ô (cùng group) gộp thành một mốc.
+// Each operation saves one undo point; continuous typing in the same field (same group) merges into one point.
 function commit(mutate, { reload = false, render = true, group = "" } = {}) {
   if (!group || group !== state.lastGroup) state.history.push(JSON.stringify(state.draft));
   state.lastGroup = group;
@@ -116,7 +116,7 @@ function commit(mutate, { reload = false, render = true, group = "" } = {}) {
   if (render) renderProps();
 }
 
-// Sửa nháp của trang khác (ghi alt cho mọi nơi dùng một media, R6): trang đang mở thì qua commit để hoàn tác được.
+// Edit the draft of another page (write alt for every place that uses one media, R6): the open page goes through commit so it can be undone.
 function withDraft(id, mutate, base) {
   if (state.draft?.page === id) return commit(mutate, { reload: true });
   const draft = working(id);
@@ -128,7 +128,7 @@ function withDraft(id, mutate, base) {
 function undo() {
   const previous = state.history.pop();
   if (!previous) return toast("Không còn thao tác để hoàn tác.");
-  // Giữ phiên bản đã lưu hiện tại: hoàn tác về mốc trước lúc Lưu không được làm lần lưu sau nhận 409.
+  // Keep the current saved version: undoing to a point before "Lưu" must not make the next save get 409.
   state.draft = { ...JSON.parse(previous), base: state.draft.base };
   state.lastGroup = "";
   persist();
@@ -139,20 +139,20 @@ function undo() {
 
 async function loadSaved(id) {
   const response = await fetch(`/api/admin/content/${id}`).catch(() => null);
-  // 404 (preview tĩnh), 501 (Worker không có D1) là chưa có lưu trữ. Lỗi khác: không biết bản đã lưu, khóa Lưu trang đó
-  // để không ghi đè bản trên web bằng nháp dựng từ bản gốc.
+  // 404 (static preview), 501 (Worker without D1) mean there is no storage. Other errors: the saved version is unknown, lock "Lưu" for that page
+  // so a draft built from the original does not overwrite the version on the web.
   if (!response || (!response.ok && ![404, 501].includes(response.status))) {
     state.saved[id] = { error: true };
     return;
   }
   const body = response.ok ? await response.json().catch(() => null) : null;
   state.saved[id] = body;
-  // Cache cho bản xem trước: không có nháp thì iframe áp bản đã lưu (cms-core.js).
+  // Cache for the preview: with no draft the iframe applies the saved version (cms-core.js).
   if (body?.edits) localStorage.setItem(savedKey(id), JSON.stringify(body.edits));
   else localStorage.removeItem(savedKey(id));
 }
 
-// Ô trống (viền đỏ) không được lưu: lưu là lên web.
+// An empty field (red border) is not saved: saving goes live.
 function emptyCount() {
   const draft = state.draft;
   if (draft.page === "advertising") {
@@ -194,13 +194,13 @@ async function put(baseUpdatedAt) {
     persist();
     return toast("Đã lưu, trang trên web đã đổi theo.");
   }
-  // Người khác vừa lưu cùng trang: hỏi trước khi ghi đè, không ghi đè ngầm.
+  // Someone else just saved the same page: ask before overwriting, never overwrite silently.
   if (response?.status === 409) {
     const who = `${result.updatedBy ?? "người khác"} lúc ${time(result.updatedAt)}`;
     if (confirm(`Trang này vừa được ${who} lưu. Ghi đè bằng bản của bạn?`)) return put(result.updatedAt);
     return toast("Chưa lưu. Xuất JSON để giữ bản của bạn, rồi Bỏ toàn bộ nháp để xem bản đã lưu.");
   }
-  // 501 (Worker chưa có D1) và 404 (preview tĩnh) là chưa có lưu trữ; lỗi khác hiện mã để không che lỗi thật.
+  // 501 (Worker without D1) and 404 (static preview) mean there is no storage; other errors show the code so real errors are not hidden.
   toast([501, 404].includes(response?.status) ? "Chưa nối lưu trữ, nháp vẫn ở máy này."
     : response?.status === 400 ? `Lưu chưa được: ${result.error ?? "dữ liệu không hợp lệ"}`
       : `Lưu chưa được (${response ? `mã ${response.status}` : "mất kết nối"}), nháp vẫn ở máy này.`);
@@ -211,11 +211,11 @@ function exportDraft() {
   const blob = new Blob([JSON.stringify(state.draft, null, 2)], { type: "application/json" });
   const link = h("a", { href: URL.createObjectURL(blob), download: `tt-cms-${state.draft.page}.json` });
   link.click();
-  // Firefox, Safari có thể hủy tải nếu thu hồi URL ngay trong cùng lượt.
+  // Firefox, Safari may cancel the download if the URL is revoked in the same turn.
   setTimeout(() => URL.revokeObjectURL(link.href), 0);
 }
 
-// ---------- Nội dung gốc của trang: đọc bản xem trước tiếng Việt, gắn khóa như trong iframe ----------
+// ---------- Page original content: read the Vietnamese preview, attach keys as in the iframe ----------
 
 async function loadBase(page) {
   const html = await fetch(page.preview.vi).then((response) => response.text());
@@ -242,7 +242,7 @@ async function loadBase(page) {
     }
     const vi = node.tagName === "META" ? node.getAttribute("content") : clean(node.textContent);
     const en = node.getAttribute(node.tagName === "META" ? "data-en-content" : "data-en") ?? vi;
-    // Chữ trong tiêu đề thường nằm trong span con: lấy nhãn theo thẻ chứa gần nhất.
+    // Text in a heading often sits in a child span: take the label from the nearest containing tag.
     const tag = node.closest(Object.keys(TAGS).join(", "))?.tagName;
     base.text[key] = { vi, en, label: `${TAGS[tag] ?? "Chữ"}${where}` };
   });
@@ -255,7 +255,7 @@ async function loadBase(page) {
         id: item.dataset.cmsItem,
         keys: [...item.querySelectorAll("[data-cms-key]")].map((node) => node.dataset.cmsKey),
         image: item.querySelector("img")?.dataset.cmsKey ?? null,
-        // Nhãn mục: ưu tiên chữ trong tiêu đề (số thứ tự "01" không giúp nhận ra mục).
+        // Item label: prefer the text in the heading (the sequence number "01" does not help identify the item).
         text: (item.querySelector("h2 [data-cms-key], h3 [data-cms-key], h4 [data-cms-key], h2[data-cms-key], h3[data-cms-key], h4[data-cms-key]")
           ?? [...item.querySelectorAll("[data-cms-key]")].find((node) => node.tagName !== "IMG"))?.dataset.cmsKey ?? null,
       })),
@@ -266,7 +266,7 @@ async function loadBase(page) {
 
 const baseOf = (page) => (state.bases[page.id] ??= loadBase(page));
 
-// Catalog Sản phẩm Quảng cáo gốc (R7): artifact lưới cộng mô tả, giống runtime trước khi vá.
+// Original Advertising Products catalog (R7): the grid artifact plus descriptions, same as the runtime before patching.
 function catalogData() {
   state.catalog ??= Promise.all(["catalog-artifact", "catalog-detail"].map((name) => import(`/advertising-products/${name}.mjs`)))
     .then(([{ default: artifact }, { default: detail }]) => (state.cat = {
@@ -306,7 +306,7 @@ function renderPages() {
   draw();
 }
 
-// ---------- Panel Xem trước (R2) ----------
+// ---------- Preview panel (R2) ----------
 
 const preview = {};
 
@@ -339,7 +339,7 @@ function buildPreview() {
   renderPreviewBar();
 }
 
-// Đổi cỡ chỉ đổi kích thước iframe, không tải lại; khung lớn hơn panel thì thu nhỏ bằng scale, giữ layout thật.
+// Changing size only resizes the iframe, no reload; a frame larger than the panel is shrunk by scale, keeping the real layout.
 function fit() {
   const { stage, sizer, frame } = preview;
   const { width, height } = state.viewport;
@@ -361,8 +361,8 @@ function renderPreviewBar() {
   if (state.page) preview.open.href = state.page[state.locale];
 }
 
-// Đổi bề rộng thì tải lại bản xem trước: runtime site (Locomotive, breakpoint) chỉ dựng đúng lúc tải trang,
-// đổi cỡ tại chỗ khi đang cuộn có thể để trang trắng. Chỗ đang chọn được cuộn lại sau khi tải.
+// Changing width reloads the preview: the site runtime (Locomotive, breakpoint) builds correctly only at page load,
+// resizing in place while scrolling can leave a blank page. The selected spot is scrolled back into view after load.
 function setViewport(viewport) {
   const reload = viewport.width !== state.viewport.width;
   state.viewport = viewport;
@@ -385,14 +385,14 @@ function setMode(edit) {
   renderPreviewBar();
 }
 
-// Tải hoặc tải lại luôn bằng cách đặt src về bản xem trước của trang đang mở, không dùng location.reload().
+// Load or reload always by setting src back to the preview of the open page, not location.reload().
 function loadFrame() {
   if (!state.page) return;
   state.overlay = null;
   preview.frame.src = state.page.preview?.[state.locale] ?? state.page[state.locale];
 }
 
-// ---------- Panel Thuộc tính (R3, R4, R7) ----------
+// ---------- Properties panel (R3, R4, R7) ----------
 
 const note = (text) => h("p", { className: "note" }, text);
 const labelled = (label, control) => h("label", { className: "field" }, h("span", {}, label), control);
@@ -408,7 +408,7 @@ const listOrder = (key) => state.draft.list[key] ?? state.base.lists[key].items.
 const itemInfo = (listKey, id) => {
   const template = state.draft.clone[id];
   const item = state.base.lists[listKey].items.find((entry) => entry.id === (template ?? id));
-  // Nháp cũ có thể giữ id mục mà HTML nguồn đã bỏ (khóa lệch, xem Gate của spec).
+  // An old draft may keep an item id the source HTML dropped (key mismatch, see the spec Gate).
   if (!item) return {};
   const suffix = template ? `@${id}` : "";
   return { image: item.image && item.image + suffix, text: item.text && item.text + suffix };
@@ -422,7 +422,7 @@ function renderProps() {
   if (!page.editable) return root.replaceChildren(note("Trang này chỉ xem."));
   if (!state.base) return root.replaceChildren(note("Đang tải nội dung trang."));
   const selected = state.selected;
-  // title và meta description nằm trong <head>, không bấm được trên trang: mở từ đây.
+  // title and meta description live in <head>, not clickable on the page: open them from here.
   const seo = (key) => state.base.text[key]
     && h("button", { type: "button", className: "link", onclick: () => select({ kind: "text", key }) }, state.base.text[key].label);
   if (!selected) return fill(root, note("Bấm một chỗ trên trang để sửa. Nhấn đúp vào chữ để sửa tại chỗ."),
@@ -542,12 +542,12 @@ function setOrder(listKey, order) {
   }, { reload: true });
 }
 
-// Thêm mục clone mục cuối; có media (thả từ panel Media) thì đặt luôn ảnh trong cùng một mốc hoàn tác.
+// Adding an item clones the last item; with media (dropped from the Media panel) the image is set in the same undo point.
 function addItem(listKey, media = null) {
   const order = listOrder(listKey);
   const last = order.at(-1);
   const id = `n${Date.now().toString(36)}`;
-  // Danh sách đã xóa hết thì lấy mục gốc đầu tiên làm mẫu.
+  // When the list has been fully deleted, take the first original item as the template.
   const template = state.draft.clone[last] ?? last ?? state.base.lists[listKey].items[0].id;
   const image = state.base.lists[listKey].items.find((item) => item.id === template)?.image;
   commit((draft) => {
@@ -564,7 +564,7 @@ function addItem(listKey, media = null) {
 function removeItem(listKey, id) {
   commit((draft) => {
     draft.list[listKey] = listOrder(listKey).filter((entry) => entry !== id);
-    // Mục gốc bị xóa: bỏ sửa đổi bên trong nó (mục mới do prune lo); hoàn tác vẫn trả lại.
+    // Original item deleted: drop edits inside it (the new item is handled by prune); undo still restores it.
     const own = draft.clone[id] ? [] : state.base.lists[listKey].items.find((entry) => entry.id === id)?.keys ?? [];
     own.forEach((key) => {
       delete draft.text[key];
@@ -581,7 +581,7 @@ function select(selection) {
   renderPickBanner();
 }
 
-// ---------- Card Sản phẩm Quảng cáo (R7) ----------
+// ---------- Advertising Products card (R7) ----------
 
 const mediaImage = (item) => ({ src: item.src, width: item.width, height: item.height, altVi: item.altVi || "", altEn: item.altEn || "" });
 const cardBase = (id) => {
@@ -595,7 +595,7 @@ const cardBase = (id) => {
 };
 const cardOf = (draft, id) => draft.cards[id] ?? cardBase(id);
 const cardValue = (id) => cardOf(state.draft, id);
-// Giống bản gốc thì bỏ khỏi nháp; ảnh bìa luôn là một media còn trong card.
+// Same as the original is dropped from the draft; the cover image is always a media still in the card.
 function setCard(draft, id, value) {
   if (!value.mediaItems.some((item) => item.id === value.coverMediaId)) value.coverMediaId = value.mediaItems[0]?.id ?? null;
   if (same(value, cardBase(id))) delete draft.cards[id];
@@ -619,7 +619,7 @@ function cardEditor(id) {
   const field = (name, label, rows) => {
     const control = rows ? h("textarea", { rows, value: value[name] }) : h("input", { type: "text", value: value[name] });
     control.addEventListener("input", () => update({ [name]: control.value }, { render: false, group: `card:${id}:${name}` }));
-    // Runtime dựng card lúc tải: gõ xong (rời ô) mới tải lại xem trước.
+    // The runtime builds the card at load: reload the preview only after typing finishes (leaving the field).
     control.addEventListener("change", () => loadFrame());
     return labelled(label, control);
   };
@@ -685,7 +685,7 @@ function cardEditor(id) {
 const media = { usage: null, detail: null, token: 0 };
 const thumbOf = (src) => state.media.find((item) => item.src === src)?.thumb ?? src;
 
-// Ảnh đang hiện của một trang: ảnh gốc trừ mục đã xóa, cộng ảnh của mục mới; src lấy từ nháp nếu đã đổi.
+// Images currently shown on a page: original images minus deleted items, plus images of new items; src comes from the draft if changed.
 function pageImages(base, edits) {
   const removed = new Set();
   const clones = [];
@@ -701,7 +701,7 @@ function pageImages(base, edits) {
     .map((use) => ({ ...use, src: edits.image?.[use.key]?.src ?? (isNew(use.key) ? "" : base.image[use.key].src) }));
 }
 
-// Nơi dùng của mọi media: bốn trang (nháp hoặc bản đã lưu) và card Sản phẩm Quảng cáo.
+// Where every media is used: four pages (draft or saved version) and Advertising Products cards.
 async function computeUsage() {
   const usage = new Map();
   const add = (src, use) => src && (usage.get(src) ?? usage.set(src, []).get(src)).push(use);
@@ -739,7 +739,7 @@ function buildMedia() {
   media.draw = async () => {
     const token = ++media.token;
     const usage = await usageMap();
-    // Lần vẽ sau đã bắt đầu (gõ tìm liên tục): bỏ kết quả cũ.
+    // A later render has started (continuous search typing): drop the old result.
     if (token !== media.token) return;
     const query = fold(media.search.value.trim());
     const items = state.media.filter((item) => (!media.folder.value || item.folder === media.folder.value)
@@ -799,7 +799,7 @@ async function showDetail(item) {
   media.detailBox.hidden = false;
 }
 
-// Alt sửa ở Media ghi vào nháp của mọi trang, card đang dùng ảnh (gom theo trang: một mốc hoàn tác mỗi trang).
+// Alt edited in Media is written into the draft of every page and card using the image (grouped per page: one undo point per page).
 async function writeAlt(item, altVi, altEn, uses) {
   const byDraft = Map.groupBy(uses, (use) => (use.card ? "advertising" : use.page.id));
   for (const [id, group] of byDraft) {
@@ -837,7 +837,7 @@ function startPick(target, selection = state.selected) {
   renderPickBanner();
 }
 
-// Đặt media vào chỗ đang chọn: ảnh của trang, hoặc thêm vào media của card.
+// Place media at the selected spot: a page image, or add to the card media.
 function placeMedia(item, target = state.pick) {
   if (target.card) {
     const card = cardValue(target.card);
@@ -849,7 +849,7 @@ function placeMedia(item, target = state.pick) {
   focusPanel("props");
 }
 
-// ---------- Panel Nháp (R8) ----------
+// ---------- Drafts panel (R8) ----------
 
 function pendingLabel({ map, key }) {
   const draft = state.draft;
@@ -859,7 +859,7 @@ function pendingLabel({ map, key }) {
   return `Card ${short(draft.cards[key]?.titleVi ?? state.cat?.cards.get(key)?.titleVi ?? key)}${draft.cards[key] ? "" : ": về bản gốc"}`;
 }
 
-// Bỏ một thay đổi: về giá trị đã lưu (hoặc bản gốc). Danh sách lấy lại cả mục mới, chữ, ảnh của chúng trong bản lưu.
+// Discard one change: back to the saved value (or original). A list also restores its new items, text, images from the saved version.
 function revert({ map, key }) {
   commit((draft) => {
     const saved = savedEdits(draft.page);
@@ -914,7 +914,7 @@ function renderStatus() {
   node.classList.toggle("is-dirty", Boolean(count));
 }
 
-// ---------- Mở trang ----------
+// ---------- Open page ----------
 
 async function openPage(page) {
   const id = draftIdOf(page);
@@ -946,7 +946,7 @@ async function openPage(page) {
   renderDrafts();
 }
 
-// Nháp sửa trên bản build cũ: khóa có dấu khác trang hiện tại có thể trỏ sang chỗ khác, bỏ thay vì đăng nhầm chỗ (R10).
+// A draft edited on an old build: a key with a different mark than the current page may point elsewhere, drop it instead of posting to the wrong place (R10).
 function dropDrift(draft, base) {
   const drift = Object.entries(draft.anchors ?? {}).filter(([key, value]) => value !== base.anchor[key]).map(([key]) => key);
   if (!drift.length) return;
@@ -960,7 +960,7 @@ function dropDrift(draft, base) {
   loadFrame();
 }
 
-// API cho overlay trong iframe (cùng origin).
+// API for the overlay in the iframe (same origin).
 window.TTEditor = {
   toast,
   onSelect: (selection) => {
@@ -977,7 +977,7 @@ window.TTEditor = {
     state.overlay?.setMode(state.edit);
     if (state.selected?.key) state.overlay?.select(state.selected.key);
   },
-  // Thả media từ panel Media vào xem trước (R6).
+  // Drop media from the Media panel into the preview (R6).
   onDropMedia(src, selection) {
     const item = state.media.find((entry) => entry.src === src);
     if (!item || !state.draft) return;
@@ -994,7 +994,7 @@ window.TTEditor = {
 
 // ---------- Dock (R1) ----------
 
-// Ghim tab, lịch sử bố cục, mép tự ẩn và kéo ra mép (R11) nằm ở dock-tools.js.
+// Tab pinning, layout history, auto-hide edges and edge dragging (R11) live in dock-tools.js.
 let tools;
 const dock = createDockview($("#dock"), {
   theme: themeLight,
@@ -1023,7 +1023,7 @@ function defaultLayout() {
   dock.getPanel("props").api.setActive();
 }
 
-// Mở lại panel đã đóng cạnh một panel chính còn mở; không còn panel nào thì Dockview tự đặt.
+// Reopen a closed panel next to a main panel that is still open; with no panel left Dockview places it itself.
 function focusPanel(id) {
   const ref = ["preview", "props", "pages"].find((other) => other !== id && dock.getPanel(other));
   const panel = dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction: "right" });
@@ -1043,7 +1043,7 @@ try {
 }
 tools.onLayoutChange(() => localStorage.setItem(LAYOUT_KEY, JSON.stringify(dock.toJSON())));
 
-// Chọn xong một mục thì đóng menu Bảng, không để nó che tab bên dưới.
+// After picking one item, close the "Bảng" menu so it does not cover the tab beneath.
 const closeMenu = (action) => () => {
   $(".topbar__menu").open = false;
   action();
@@ -1059,7 +1059,7 @@ $("#undo").addEventListener("click", undo);
 $("#save").addEventListener("click", save);
 $("#export").addEventListener("click", exportDraft);
 
-// Bản đã lưu của mọi nháp trước khi mở trang: nháp, xem trước, nơi dùng media đều dựa trên nó.
+// Saved version of every draft before opening the page: drafts, preview, media usage all rely on it.
 await Promise.all(DRAFT_IDS.map(loadSaved));
 buildMedia();
 const start = state.pages.find((page) => page.id === localStorage.getItem("tt-cms-page")) ?? state.pages[0];

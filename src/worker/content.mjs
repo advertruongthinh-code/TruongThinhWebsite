@@ -1,6 +1,6 @@
-// Nội dung editor CMS đã lưu (docs/specs/cms-editor.md R8, R10): kiểm nháp gửi lên, dấu chỗ gốc, áp lên HTML nguồn bằng
-// đúng code của bản xem trước (cms-core.js) trên DOM linkedom, và script vá catalog Sản phẩm Quảng cáo. index.js nạp
-// module này lười (import động) nên linkedom chỉ khởi tạo khi trang có nội dung đã lưu.
+// Saved CMS editor content (docs/specs/cms-editor.md R8, R10): validates the submitted draft, original anchors, applies it to the source HTML with
+// the exact preview code (cms-core.js) on the linkedom DOM, and the script that patches the Advertising Products catalog. index.js loads
+// this module lazily (dynamic import) so linkedom only initializes when a page has saved content.
 import { parseHTML } from "linkedom/worker";
 import { ADVERTISING_PRODUCTS } from "../site/advertising-products/taxonomy.mjs";
 import "../admin/cms-core.js";
@@ -16,13 +16,13 @@ const LIST_KEY = /^l\d{1,2}$/;
 const ITEM_ID = /^(?:\d{1,4}|n[a-z0-9]{1,12})$/;
 const CLONE_ID = /^n[a-z0-9]{1,12}$/;
 const CARD_ID = /^[a-z0-9][a-z0-9-]{0,99}$/;
-// Chỉ ảnh trong thư viện media tĩnh (R5); không nhận URL ngoài, không có "..".
+// Only images in the static media library (R5); no external URLs, no "..".
 const MEDIA_SRC = /^\/assets\/content\/(?:[\w-]+\/)*[\w.-]+\.(?:webp|svg|png|jpe?g)$/;
 const EDITOR_ATTRIBUTES = ["data-cms-key", "data-cms-list", "data-cms-label", "data-cms-item", "data-cms-shuffled", "data-cms-empty"];
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const filled = (value, max) => typeof value === "string" && value.trim() !== "" && value.length <= max;
-// linkedom không thoát "&" trong thuộc tính (data-vi, data-en): chữ dạng mã HTML như "&amp;" sẽ hiện thành "&" trên web.
+// linkedom does not escape "&" in attributes (data-vi, data-en): text in HTML-entity form like "&amp;" would show as "&" on the web.
 const ENTITY = /&(?:#\d+|#x[\da-f]+|[a-z][a-z\d]*);/i;
 const plain = (value) => !ENTITY.test(value);
 const size = (value) => Number.isInteger(value) && value > 0 && value <= 20000;
@@ -30,7 +30,7 @@ const validImage = (image) => isObject(image) && MEDIA_SRC.test(image.src ?? "")
   && size(image.width) && size(image.height)
   && ["altVi", "altEn"].every((field) => typeof image[field] === "string" && image[field].length <= 500);
 
-// Trả lỗi đầu tiên (chuỗi) hoặc null. Chữ, ảnh trống bị chặn: lưu là lên web nên không đăng placeholder rỗng.
+// Returns the first error (string) or null. Empty text and images are rejected: saving goes live, so no empty placeholder is published.
 export function validateEdits(page, edits) {
   if (!isObject(edits)) return "edits phải là object.";
   if (new TextEncoder().encode(JSON.stringify(edits)).length > MAX_EDITS_BYTES) return "Nháp quá lớn.";
@@ -78,7 +78,7 @@ export function validateEdits(page, edits) {
 }
 
 const baseKey = (key) => key.split("@")[0];
-// Khóa gốc của mọi sửa đổi: chữ, ảnh (bỏ hậu tố @id của mục mới) và danh sách.
+// The original key of every edit: text, images (dropping the @id suffix of new items) and lists.
 const editedKeys = (edits) => [...new Set([...Object.keys(edits.text ?? {}), ...Object.keys(edits.image ?? {})].map(baseKey)),
   ...Object.keys(edits.list ?? {})];
 
@@ -88,8 +88,8 @@ function stamped(html, page) {
   return document;
 }
 
-// Lúc lưu: ghi dấu chỗ gốc của mọi khóa được sửa. Editor gửi kèm dấu nó thấy lúc sửa (seen): khác nguồn hiện tại nghĩa là
-// trang đã đổi bản sau lúc sửa, khóa có thể trỏ sang chỗ khác nên không lưu. Mục mới phải đủ chữ, ảnh (không đăng ô trống).
+// On save: record the original anchor of every edited key. The editor sends the anchor it saw at edit time (seen): differing from the current source means
+// the page changed version after the edit, a key may point elsewhere so it is not saved. A new item must have all text and images (no blank cells published).
 export function anchorsFor(html, page, edits, seen = {}) {
   const document = stamped(html, page);
   const anchors = {};
@@ -110,7 +110,7 @@ export function anchorsFor(html, page, edits, seen = {}) {
   return { anchors };
 }
 
-// Giữ sửa đổi còn khớp dấu; khóa lệch (HTML nguồn đã đổi sau lúc lưu) vào stale và không áp, thay vì áp nhầm chỗ.
+// Keep edits that still match the anchor; a mismatched key (source HTML changed after save) goes to stale and is not applied, instead of applying to the wrong place.
 function freshOf(document, edits, anchors) {
   const fresh = { text: {}, image: {}, list: {}, clone: {} };
   const stale = [];
@@ -134,19 +134,19 @@ export function freshEdits(html, page, edits, anchors) {
   return freshOf(stamped(html, page), edits, anchors);
 }
 
-// HTML nguồn tiếng Việt kèm nội dung đã lưu; pipeline locale của index.js chạy tiếp như với HTML tĩnh.
+// Vietnamese source HTML with saved content; index.js's locale pipeline continues as with static HTML.
 export function renderPage(html, page, edits, anchors) {
   const document = stamped(html, page);
   const { fresh, stale } = freshOf(document, edits, anchors);
-  // <title> là thẻ chữ thô: linkedom ghi textContent của nó nguyên văn, không thoát "<". Title của editor do HTMLRewriter
-  // của index.js ghi (có thoát), không đi qua đây.
+  // <title> is a raw-text tag: linkedom writes its textContent verbatim, without escaping "<". The editor's title is written by index.js's
+  // HTMLRewriter (with escaping), not through here.
   const text = { ...fresh.text };
   delete text.title;
   apply(document, { ...fresh, text }, "vi");
-  // Chỗ editor đã sửa thắng field CMS cũ cùng phần tử (CmsField của index.js đọc data-cms).
+  // Spots the editor edited win over the old CMS field on the same element (index.js's CmsField reads data-cms).
   Object.keys(fresh.text).forEach((key) => document.querySelectorAll(`[data-cms-key="${key}"]`).forEach((node) => node.removeAttribute("data-cms")));
-  // Hero đã sửa: danh sách preload viết sẵn trong <head> không còn khớp slide (cms-editor gate); bỏ preload, đánh lại
-  // data-slide để script xáo của trang chạy đúng (ảnh đầu tải như ảnh lazy).
+  // Edited hero: the preload list hard-written in <head> no longer matches the slides (cms-editor gate); drop the preload, renumber
+  // data-slide so the page's shuffle script runs correctly (the first image loads like a lazy image).
   const hero = document.querySelector(".hero-slides[data-cms-list]");
   if (hero && (fresh.list[hero.dataset.cmsList] || [...hero.querySelectorAll("img[data-cms-key]")].some((img) => fresh.image[img.dataset.cmsKey]))) {
     hero.querySelectorAll(":scope > .hero-slide").forEach((slide, index) => (slide.dataset.slide = String(index)));
@@ -156,7 +156,7 @@ export function renderPage(html, page, edits, anchors) {
   return { html: document.toString(), fresh, stale };
 }
 
-// Một bản render mỗi trang, theo phiên bản đã lưu và ETag của HTML nguồn: request sau không parse lại.
+// One render per page, by saved version and the source HTML's ETag: later requests do not parse again.
 const rendered = new Map();
 export async function renderSaved(page, row, source) {
   const etag = source.headers.get("etag");
@@ -169,6 +169,6 @@ export async function renderSaved(page, row, source) {
   return value;
 }
 
-// Script đầu <head> của trang Sản phẩm Quảng cáo: runtime nhận catalog đã vá qua hook có sẵn (R7, R10).
+// First script in <head> of the Advertising Products page: the runtime receives the patched catalog through the existing hook (R7, R10).
 export const catalogScript = (cards) =>
   `<script>window.__TT_ADVERTISING_ARTIFACT__=(${patchCatalog})(${JSON.stringify(cards).replace(/</g, "\\u003c")});</script>`;

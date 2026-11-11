@@ -1,7 +1,7 @@
 const FLOW_WIDTH = 240;
 import { shuffleWithSeed } from "./random-order.mjs";
 import { canSpanTwoColumns, spanSlots } from "./layout.mjs";
-// Một context giữ attribute của lần getContext đầu tiên, nên lease tạo sẵn phải dùng những giá trị này.
+// A context keeps the attributes of its first getContext call, so a prebuilt lease must use these values.
 export const SKELETON_FLOW_CONTEXT_ATTRIBUTES = Object.freeze({
   alpha: false,
   antialias: false,
@@ -179,8 +179,8 @@ const turnDistance = (a, b) => {
 };
 const pick = (values, random) => values[Math.floor(normalizedRandom(random) * values.length)];
 
-// Vẽ một frame Flow khi nó lần đầu vào view; `neighbors` là assignment của các frame kề (cho phép pha live); `colors`
-// (4 màu của ảnh đang chờ) thay màu preset bốc được (R3).
+// Draw one Flow frame when it first enters view; `neighbors` is the assignment of adjacent frames (allows the live phase); `colors`
+// (the 4 colors of the image being awaited) replace the preset color that would be drawn (R3).
 export function drawSkeletonFlowAssignment({
   neighbors = [],
   colors = null,
@@ -208,16 +208,16 @@ export function drawSkeletonFlowAssignment({
   });
 }
 
-// Tỷ lệ cao/rộng của khung batch mặc định. Trang đổi bằng `ratios` (skeleton R1); tỷ lệ ngang từ tỷ lệ vàng trở lên
-// (cao/rộng <= 0.618) theo luật span của card thật: trải 2 cột khi lưới >= 3 cột và lỗ không quá nửa cột.
+// Height/width ratios of the default batch frames. A page overrides them with `ratios` (skeleton R1); landscape ratios from the golden ratio up
+// (height/width <= 0.618) follow the real card's span rule: span 2 columns when the grid has >= 3 columns and the hole is at most half a column.
 export const SKELETON_RATIO_BANDS = Object.freeze([
   Object.freeze({ id: "landscape", ratio: 0.72 }),
   Object.freeze({ id: "square", ratio: 1 }),
   Object.freeze({ id: "portrait", ratio: 1.32 }),
 ]);
 
-// Cấu hình batch từ attribute của trang: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`,
-// `data-skeleton-count="12"`. Thiếu hoặc sai thì giữ mặc định.
+// Batch configuration from page attributes: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`,
+// `data-skeleton-count="12"`. Missing or invalid values keep the default.
 export function readSkeletonBatchConfig(dataset = {}) {
   const ratios = String(dataset.skeletonRatios || "").trim().split(/\s+/).filter(Boolean).map((entry) => {
     const [id, ratio] = entry.split(":");
@@ -256,7 +256,7 @@ export function createSkeletonFlowFrameLayout({
   const ratios = spanSkeleton ? allRatios : allRatios.filter((band) => !canSpanTwoColumns(columns, { width: 1, height: band.ratio }));
   if (!ratios.length) throw new TypeError("Skeleton frame layout needs a band that stays one column");
   const baseBands = ratios.length > 1 ? [ratios[1], ratios[0], ...ratios.slice(2)] : ratios;
-  // Khung ngang trải hai cột kề nhau, một trong hai là cột đang thấp nhất; không có chỗ thì khung chọn band khác.
+  // A landscape frame spans two adjacent columns, one of them the currently lowest; with no room the frame picks another band.
   // No holes (advertising-masonry R5): when two bottoms differ, the last frame of the shorter column (a single-column frame of this batch)
   // stretches by exactly the difference; if that bottom is a real card or a two-column frame, place only when the bottoms are level.
   const wideSlot = (band, column, bottoms, lastFrames) => {
@@ -284,24 +284,24 @@ export function createSkeletonFlowFrameLayout({
         bottom < bottoms[shortest] ? index : shortest, 0);
       const top = Number(bottoms[column]) + gap;
       if (top >= boundaryBottom) break;
-      // Slot là thứ tự khung nối tiếp masonry, không phải ô cột:độ sâu: resize đổi số cột thì khung k vẫn là
-      // item k của cùng một lưới, nên nó trượt cùng card phía trên (owner 10/10).
+      // A slot is the order of frames following the masonry, not a column:depth cell: when resize changes the column count, frame k is still
+      // item k of the same grid, so it slides together with the card above it (owner 10/10).
       const slot = String(frames.length);
       const assignedBand = bandAssignments?.get?.(slot);
-      // Chỗ đặt của band: một cột ở cột thấp nhất, hoặc hai cột theo luật span của card thật.
+      // Band placement: one column at the lowest column, or two columns by the real card's span rule.
       const place = (band) => {
         if (!canSpanTwoColumns(columns, { width: 1, height: band.ratio })) return { left: column, span: 1, top, depth: depths[column] };
         const wide = wideSlot(band, column, bottoms, lastFrames);
         return wide && { left: wide.left, span: 2, top: wide.y, depth: Math.max(depths[wide.left], depths[wide.left + 1]), stretch: wide.stretch };
       };
-      // Không cột nào khung phủ có hai khung liền cùng band (R1), kể cả cột kề của khung hai cột.
+      // No column the frame covers has two adjacent frames of the same band (R1), including the neighbor column of a two-column frame.
       const fresh = (band) => {
         const at = place(band);
         return at && !Array.from({ length: at.span }, (_, offset) => previousBandByColumn.get(at.left + offset)?.id)
           .includes(band.id) ? at : null;
       };
       let source;
-      // Band cũ giữ theo slot, trừ khi cột mới đặt nó ngay dưới khung cùng band.
+      // The old band is kept per slot, unless the new column places it directly below a frame of the same band.
       const preservedBand = ratios.find((band) => band.id === assignedBand && fresh(band));
       if (preservedBand) {
         source = preservedBand;
@@ -313,7 +313,7 @@ export function createSkeletonFlowFrameLayout({
         source = candidates.find((band) => { const at = fresh(band); return at && !rowBands.get(at.depth)?.has(band.id); })
           || candidates.find(fresh) || candidates[0] || baseBands[0];
       }
-      // Mọi band đều ngang mà không có chỗ hai cột: khung giữ một cột.
+      // Every band is landscape but there is no room for two columns: the frame keeps one column.
       const { left, span, top: frameTop, depth, stretch } = place(source) || { left: column, span: 1, top, depth: depths[column] };
       if (stretch) {
         stretch.frame.height += frameTop - gap - bottoms[stretch.column];
@@ -371,14 +371,14 @@ export function createSkeletonFlowFrameLayout({
     if (rhythm.targetMet) break;
   }
 
-  // Frame cuối của mỗi cột kết thúc ở đáy batch; phần dư dưới một phần tư card được cộng vào frame phía trên. Khung 2
-  // cột chỉ kéo khi nó là khung cuối của cả hai cột; khung mỏng chỉ bỏ khi khung trên nó kéo được.
+  // The last frame of each column ends at the batch bottom; a remainder under a quarter of a card is added to the frame above. A 2
+  // column frame only stretches when it is the last frame of both columns; a thin frame is dropped only when the frame above it can stretch.
   const covers = (frame, column) => column >= frame.column && column < frame.column + frame.span;
   const lastIn = (frames, column) => frames.findLast((frame) => covers(frame, column));
   const isLast = (frames, frame) => Array.from({ length: frame.span }, (_, offset) => lastIn(frames, frame.column + offset))
     .every((last) => last === frame);
-  // Bỏ cùng lúc mọi khung mỏng đang là khung cuối, rồi lặp: hai khung mỏng không chặn nhau. Bỏ mà để lại khung không
-  // kéo được (khung hai cột còn khung sau ở một cột) thì giữ nguyên.
+  // Drop every thin frame that is currently a last frame at once, then repeat: two thin frames do not block each other. If dropping would leave a frame that cannot
+  // stretch (a two-column frame with a later frame in one column), leave it as is.
   let kept = selectedFrames;
   for (;;) {
     const thin = new Set(kept.filter((frame) => isLast(kept, frame) && boundaryBottom - frame.top < cardWidth * 0.25));
@@ -429,8 +429,8 @@ function compileShader(gl, type, source) {
   return shader;
 }
 
-// Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần: compile chặn
-// main thread khoảng 60ms trên A05s cũ. Context mất rồi khôi phục thì isProgram trả false và compile lại.
+// The shader is identical for every preset (uniforms are set per lease), so each context compiles only once: a compile blocks
+// the main thread about 60ms on the old A05s. When a context is lost then restored isProgram returns false and it compiles again.
 const programByContext = new WeakMap();
 function contextProgram(gl) {
   const cached = programByContext.get(gl);
@@ -440,7 +440,7 @@ function contextProgram(gl) {
   return program;
 }
 
-// Tam giác phủ viewport và noise texture ở unit 0; renderer riêng và canvas chung dùng chung.
+// A triangle covering the viewport and the noise texture at unit 0; the dedicated renderer and the shared canvas share them.
 function bindQuadAndNoise(gl, program, buffer, texture) {
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -489,7 +489,7 @@ function createProgram(gl) {
   return program;
 }
 
-// Một noise chung cho mọi renderer: grain chỉ hiện 3-4%, còn tạo lại 256x256 mỗi lần mount tốn hơn 10ms trên A05s cũ
+// One noise shared by every renderer: grain shows only 3-4%, and recreating 256x256 on each mount costs over 10ms on the old A05s
 // (decision phone-frame-budget).
 let sharedNoise;
 function createNoise() {
@@ -499,7 +499,7 @@ function createNoise() {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 0x1_0000_0000;
   };
-  // Một kênh LUMINANCE: shader chỉ đọc .r, nên ít hơn 4 lần byte phải ghi và upload mà ảnh không đổi.
+  // A single LUMINANCE channel: the shader reads only .r, so 4 times fewer bytes to write and upload with no change to the image.
   const data = new Uint8Array(256 * 256);
   for (let offset = 0; offset < data.length; offset += 1) data[offset] = Math.round((random() + random()) * 0.5 * 255);
   return (sharedNoise = data);
@@ -516,8 +516,8 @@ const automaticAnchor = (index, time) => {
   return [0.5 + 0.5 * Math.sin(time * fx + anchorPhase), 0.5 + 0.5 * Math.cos(time * fy + 1.5 * anchorPhase)];
 };
 
-// Bản sao CPU của SKELETON_FLOW_FRAGMENT_SHADER tại `phase`, các hàng từ trên xuống. Grain bị bỏ: ở
-// kích thước này nó sẽ upscale thành vệt, và ở opacity 3-4% frame live vẫn khớp khi không có nó.
+// CPU copy of SKELETON_FLOW_FRAGMENT_SHADER at `phase`, rows from top to bottom. Grain is dropped: at
+// this size it would upscale into streaks, and at 3-4% opacity the live frame still matches without it.
 export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 32 } = {}) {
   const colors = preset.colors.map(parseHex);
   const edges = [0, ...preset.bands, 1];
@@ -567,8 +567,8 @@ export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 3
   return pixels;
 }
 
-// Frame tĩnh cho frame không có renderer live: cùng Flow tại `phase`, dạng CSS image.
-// Mã hóa tay thành BMP 24-bit không nén: canvas.toDataURL ép GPU readback và PNG encode cho mỗi ảnh tĩnh.
+// Static frame for frames without a live renderer: the same Flow at `phase`, as a CSS image.
+// Hand-encoded as an uncompressed 24-bit BMP: canvas.toDataURL forces a GPU readback and PNG encode for every static image.
 const STILL_WIDTH = 48;
 const STILL_HEIGHT = 32;
 export function skeletonFlowStill(preset, phase) {
@@ -586,7 +586,7 @@ export function skeletonFlowStill(preset, phase) {
   view.setUint16(26, 1, true);
   view.setUint16(28, 24, true);
   for (let row = 0; row < STILL_HEIGHT; row += 1) {
-    // Hàng BMP chạy từ dưới lên theo thứ tự BGR; 48 * 3 byte không cần row padding.
+    // BMP rows run bottom to top in BGR order; 48 * 3 bytes needs no row padding.
     const target = 54 + (STILL_HEIGHT - 1 - row) * rowBytes;
     for (let column = 0; column < STILL_WIDTH; column += 1) {
       const source = (row * STILL_WIDTH + column) * 4;
@@ -615,14 +615,14 @@ export function createSkeletonFlowRenderer(canvas, {
   canvas.width = renderWidth;
   canvas.height = renderHeight;
   if (canvas.style) {
-    // Giữ ảnh tĩnh mà caller đã vẽ; nếu không thì fallback về gradient tĩnh.
+    // Keep the static image the caller already drew; otherwise fall back to a static gradient.
     canvas.style.backgroundColor ||= preset.colors[3];
     canvas.style.backgroundImage ||= staticBackground(preset);
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
   }
 
-  // OffscreenCanvas trong worker không nhận "experimental-webgl": WebKit ném TypeError thay vì trả null.
+  // OffscreenCanvas in a worker does not accept "experimental-webgl": WebKit throws a TypeError instead of returning null.
   let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES)
     || (globalThis.OffscreenCanvas && canvas instanceof OffscreenCanvas ? null : canvas.getContext("experimental-webgl"));
   let program = null;
@@ -785,9 +785,9 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 }
 
-// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (đo trên PC và A04s), nên renderer có context riêng xếp vào nhiều
-// worker, mỗi worker tối đa 4 context; hub chung (cuối file) luôn ở worker đầu và không tính vào 4. `flowWorkersFailed`
-// đặt khi không tạo được worker thì caller về renderer main thread.
+// Chrome keeps only 4 live WebGL contexts per worker (measured on PC and A04s), so renderers with their own context are spread over several
+// workers, at most 4 contexts each; the shared hub (end of file) always sits in the first worker and does not count toward the 4. `flowWorkersFailed`
+// is set when a worker cannot be created, so the caller falls back to the main-thread renderer.
 const FLOW_WORKER_CONTEXTS = 4;
 const flowWorkers = [];
 let flowWorkersFailed = false;
@@ -812,8 +812,8 @@ function flowWorkerSlot(shared) {
 export const skeletonFlowWorkerSupported = () => !flowWorkersFailed && typeof Worker === "function"
   && typeof OffscreenCanvas === "function" && "transferControlToOffscreen" in HTMLCanvasElement.prototype;
 
-// Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
-// để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
+// Renderer running in a worker, same API as createSkeletonFlowRenderer. The main-thread phase is computed from the run time
+// to save on release; it only differs from the worker when a worker frame takes longer than 50ms.
 export function createSkeletonFlowWorkerRenderer(canvas, options) {
   if (!skeletonFlowWorkerSupported()) return null;
   const slot = flowWorkerSlot(options.shared);
@@ -822,7 +822,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   const id = ++flowWorkerId;
   const offscreen = canvas.transferControlToOffscreen();
   worker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
-  // Caller duy nhất (catalog-runtime) luôn truyền đủ preset, pha, chiều và tốc độ.
+  // The only caller (catalog-runtime) always passes preset, phase, dimensions and speed in full.
   const { preset, speedScale, direction } = options;
   let phase = options.initialPhase;
   let startedAt = null;
@@ -864,8 +864,8 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   };
 }
 
-// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (advertising-skeleton R5): worker giữ một context chung, mỗi frame
-// vẽ lần lượt từng khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn.
+// Chrome keeps only 4 live WebGL contexts per worker (advertising-skeleton R5): the worker keeps one shared context, and each frame
+// draws every running frame in turn then copies the bitmap to the frame's bitmaprenderer canvas, so the number of running frames is not capped.
 let flowHub;
 function sharedFlowHub() {
   if (flowHub !== undefined) return flowHub;
@@ -873,7 +873,7 @@ function sharedFlowHub() {
   const attributes = SKELETON_FLOW_CONTEXT_ATTRIBUTES;
   let gl = surface.getContext("webgl", attributes);
   let locations = null;
-  // Dựng program, buffer, noise; gọi lại sau webglcontextrestored.
+  // Build program, buffer, noise; called again after webglcontextrestored.
   const setup = () => {
     const program = gl && contextProgram(gl);
     if (!program) return false;
@@ -891,7 +891,7 @@ function sharedFlowHub() {
   let frameId = 0;
   let lastTimestamp = -1;
   let lost = false;
-  // Sự kiện mất context đến sau một task, trong lúc đó transferToImageBitmap đã ném lỗi.
+  // The context-loss event arrives one task later, during which transferToImageBitmap already threw.
   const paint = (entry) => {
     if (lost || gl.isContextLost()) return;
     const { field, finish } = entry.preset;
@@ -921,8 +921,8 @@ function sharedFlowHub() {
   const resume = () => {
     if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
   };
-  // Context chung là context duy nhất của worker nên không bị bỏ vì giới hạn 4; mất do GPU reset thì khung giữ hình cuối,
-  // khôi phục thì dựng lại và chạy tiếp.
+  // The shared context is the worker's only context so it is not dropped by the limit of 4; when lost to a GPU reset the frames keep their last image,
+  // and on restore it rebuilds and continues running.
   surface.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
     programByContext.delete(gl);
@@ -939,7 +939,7 @@ function sharedFlowHub() {
   return (flowHub = { entries, paint, resume });
 }
 
-// Cùng API với createSkeletonFlowRenderer; chỉ chạy trong worker.
+// Same API as createSkeletonFlowRenderer; runs only in a worker.
 export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
   const hub = sharedFlowHub();
   const target = hub && canvas.getContext("bitmaprenderer");
@@ -963,9 +963,9 @@ export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase 
   };
 }
 
-// Một context WebGL vẽ mọi khung batch: 7-8 context riêng làm GPU A05s cũ quá tải (vòng 18), canvas chung nửa
-// độ phân giải đạt gate (vòng 20, advertising-skeleton R5). Canvas cao 2 viewport, chỉ dời khi viewport ra khỏi nó.
-// Một layer cho cả document: runtime gắn canvas vào batch hiện tại, controller remount dùng lại context.
+// One WebGL context draws every batch frame: 7-8 dedicated contexts overload the old A05s GPU (round 18), a shared canvas at half
+// resolution passes the gate (round 20, advertising-skeleton R5). The canvas is 2 viewports tall and only shifts when the viewport leaves it.
+// One layer for the whole document: the runtime attaches the canvas to the current batch, and a remounting controller reuses the context.
 export function createSharedSkeletonFlowLayer() {
   const scale = 0.5;
   const canvas = document.createElement("canvas");
@@ -974,7 +974,7 @@ export function createSharedSkeletonFlowLayer() {
   const attributes = { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true };
   let gl = canvas.getContext("webgl", attributes);
   let locations = null;
-  // Dựng program, buffer, noise texture; gọi lại sau webglcontextrestored.
+  // Build program, buffer, noise texture; called again after webglcontextrestored.
   const setup = () => {
     const program = gl && contextProgram(gl);
     if (!program) return false;
@@ -985,7 +985,7 @@ export function createSharedSkeletonFlowLayer() {
       time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
       noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
     };
-    // Alpha reveal qua blend hằng số: shader dùng chung với renderer riêng nên không thêm uniform.
+    // Alpha reveal through a constant blend: the shader is shared with the dedicated renderer so no extra uniform is added.
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.CONSTANT_ALPHA, gl.ZERO);
     return true;
@@ -1008,7 +1008,7 @@ export function createSharedSkeletonFlowLayer() {
     }
     const height = Math.min(container.offsetHeight, viewport * 2);
     const visibleTop = -container.getBoundingClientRect().top;
-    // Resize cửa sổ đổi bề ngang batch mà band không dời, nên so cả width của canvas.
+    // A window resize changes the batch width while the band does not move, so compare the canvas width too.
     const width = Math.round(container.offsetWidth * scale);
     if (height !== bandHeight || width !== canvas.width
       || visibleTop < bandTop || visibleTop + viewport > bandTop + bandHeight) {
@@ -1044,12 +1044,12 @@ export function createSharedSkeletonFlowLayer() {
     placeBand();
     clear();
     gl.enable(gl.SCISSOR_TEST);
-    // Rect thay cho offsetTop: khung trượt bằng `translate` khi masonry dời chỗ, canvas vẽ theo vị trí đang thấy.
+    // Rect instead of offsetTop: frames slide by `translate` when masonry shifts, and the canvas draws at the visible position.
     const origin = container.getBoundingClientRect();
     for (const entry of entries) {
       entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
       const { frame } = entry;
-      // Khung chưa vào entry không vẽ; khung đang entry vẽ theo opacity của reveal (R4).
+      // A frame not yet entered is not drawn; a frame entering is drawn by the reveal opacity (R4).
       if (!frame.isConnected || !frame.classList.contains("is-entry-ready")) continue;
       const alpha = entry.alpha();
       const box = frame.getBoundingClientRect();
@@ -1077,7 +1077,7 @@ export function createSharedSkeletonFlowLayer() {
     frameId = requestAnimationFrame(tick);
   }
 
-  // Mất context: canvas trống nên frame tĩnh dưới mỗi khung hiện ra; khôi phục thì dựng lại và chạy tiếp.
+  // Context lost: the canvas is blank so the static frame under each frame shows through; on restore it rebuilds and continues running.
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
     programByContext.delete(gl);
@@ -1092,7 +1092,7 @@ export function createSharedSkeletonFlowLayer() {
 
   return {
     canvas,
-    // Rời document không vào BFCache: trả context đúng một lần.
+    // Leaving the document does not enter BFCache: return the context exactly once.
     dispose() {
       entries.clear();
       halt();

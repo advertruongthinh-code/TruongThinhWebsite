@@ -1,6 +1,6 @@
 //# allFunctionsCalledOnLoad
-// Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
-// (khoảng 20% task click khi mở detail; decision phone-frame-budget).
+// V8 compile hint: compile every function on a background thread at load, so the first card tap does not compile lazily on the main thread
+// (about 20% of the click task when opening detail; decision phone-frame-budget).
 import { imageFormatReady, responsiveSource, responsiveSrcset } from "../media-lib/responsive-image.mjs";
 import {
   MASONRY_LAYOUT_VERSION,
@@ -44,7 +44,7 @@ import {
 let activeInstance;
 
 const startLayoutWorker = () => new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
-// Một lần compile trên Worker riêng; null khi Worker hoặc clone lỗi để caller compile đồng bộ.
+// One compile on a dedicated Worker; null when the Worker or clone fails so the caller compiles synchronously.
 const compileInWorker = (options, worker) => new Promise((resolve) => {
   worker.onmessage = ({ data }) => resolve(data);
   worker.onerror = () => resolve(null);
@@ -60,16 +60,16 @@ const GEOMETRY_CACHE_LIMIT = 24;
 const BROWSE_STATE_KEY = "advertisingBrowse";
 export const VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
 const VISIT_SEED_HANDOFF_TTL_MS = 30_000;
-// Trang gốc và trang cụm, sản phẩm (taxonomy R4): /<locale>/advertising-products/[<cụm>/[<sản phẩm>/]].
-// Trang Công trình (projects R2) dùng chung runtime với gốc /<locale>/projects/; nhóm 2 là gốc, nhóm 3 là phần sau gốc.
+// Root page and cluster, product pages (taxonomy R4): /<locale>/advertising-products/[<cluster>/[<product>/]].
+// The Projects page (projects R2) shares the runtime with the root /<locale>/projects/; group 2 is the root, group 3 is the part after the root.
 const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/(advertising-products|projects)(?:\/((?:[^/]+\/){0,2}))?$/;
 const browseBase = (pathname) => pathname.match(ADVERTISING_PATH_PATTERN)?.[2] ?? "advertising-products";
-// Trang card (media-seo R1): detail có URL /<locale>/advertising-products/p/<card-id>/; ?photo= cũ vẫn đọc được.
+// Card page (media-seo R1): detail has the URL /<locale>/advertising-products/p/<card-id>/; the old ?photo= is still read.
 const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([^/]+)\/$/;
-// Màu sinh lúc build theo tên file ảnh: [màu chủ đạo card, 4 màu Flow sáng tới tối].
+// Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark].
 const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
-// Màu chủ đạo: thẻ công trình mang sẵn color (build tính bằng sharp), thẻ quảng cáo tra MEDIA_COLORS.
+// Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
 const detailId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
@@ -81,21 +81,21 @@ let skeletonDocumentParked = false;
 let skeletonDocumentEventsBound = false;
 const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
   || document.documentElement.clientWidth <= 750;
-// Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
-// Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
+// Wide desktop shows 8-10 CTA frames at once; 12 keeps all of them alive and stays under Chrome's 16-context limit.
+// Phones also run every frame in the viewport (owner 2026-10-10), no longer limited to 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// Advertising-skeleton R5: Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome 155 và
-// A04s, Chrome 156: tạo context thứ 5 thì context cũ nhất bị thu hồi). PC: mọi khung vẽ chung một context trong worker rồi
-// chuyển hình sang canvas của khung, tối đa 24 khung. Điện thoại: context riêng mỗi khung, xếp 4 khung mỗi worker (12 khung);
-// context chung trên A04s làm tụt fps dưới gate R8 (đo 26/10).
+// Advertising-skeleton R5: Chrome keeps only 4 live WebGL contexts per dedicated worker (measured on RTX 3090, Chrome 155 and
+// A04s, Chrome 156: creating a 5th context reclaims the oldest one). PC: all frames draw on one shared context in the worker, then
+// transfer the image to the frame's canvas, up to 24 frames. Phone: one context per frame, 4 frames per worker (12 frames);
+// a shared context on the A04s drops fps below the R8 gate (measured 26/10).
 const SKELETON_SHARED_BUDGET = 24;
-// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
+// Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; card and primary shorten the duration to 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = 600;
-// Blur trên chính ảnh card đang tải (progressive-loading R9); filter không đọc lại nền mỗi frame như backdrop-filter.
+// Blur on the loading card image itself (progressive-loading R9); a filter does not re-read the backdrop every frame like backdrop-filter.
 const CARD_LOADING_BLUR = "blur(24px)";
-// Blur lấy pixel trong suốt ngoài mép ảnh nên mép mờ nhạt dần lộ nền màu chủ đạo thành viền tối (owner 2026-11-09).
-// Ảnh mờ phóng thêm chừng này mỗi phía (1 sigma của blur: mép khung còn khoảng 16% màu nền) để dải nhạt nằm ngoài khung bị cắt.
+// Blur samples transparent pixels outside the image edge, so the fading edge exposes the dominant background color as a dark border (owner 2026-11-09).
+// The blurred image is scaled up by this much on each side (1 blur sigma: the frame edge keeps about 16% of the background color) so the faded band falls outside the clipped frame.
 const CARD_LOADING_BLEED_PX = 24;
 const cardLoadingScale = (node) => {
   const width = Number.parseFloat(node.style.width);
@@ -105,18 +105,18 @@ const cardLoadingScale = (node) => {
     : "1";
 };
 const SKELETON_ASSIGN_BUDGET_MS = 8;
-// Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
+// On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a Glass reveal for every card that scrolls past.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
-// Card gắn lại có media đã tải chờ cache chừng này (R3 đo giải mã một tới ba frame); quá hạn mà ảnh chưa về (cache tắt
-// hoặc bị xóa) thì mang skeleton như card đang tải (R1), không để khung trắng.
+// A re-attached card with already-loaded media waits this long for the cache (R3 measured decode at one to three frames); past the deadline, if the image has not arrived (cache off
+// or cleared), it carries a skeleton like a loading card (R1), never a blank frame.
 const REMOUNT_CACHE_WAIT_MS = 150;
 const PHONE_SCROLL_SETTLE_MS = 500;
-// Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
-// hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
+// Card skeleton (advertising-skeleton R4): a card entering the viewport within this window after a scroll event shows the frame and Flow canvas
+// immediately without a fade, so a fast swipe still shows the running gradient.
 const SKELETON_SCROLL_ENTRY_MS = 250;
-// Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel để GPU giữ gate fps (R8, owner 18/10).
+// Card frames on phones also run during a swipe: a quarter of the pixels so the GPU holds the fps gate (R8, owner 18/10).
 const PHONE_CARD_FLOW = { width: 120, height: 80 };
-// Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
+// Document-wide shared batch Flow layer; null when there is no WebGL so the batch falls back to its own renderer.
 let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
@@ -203,7 +203,7 @@ export function consumeVisitSeedHandoff(storage, {
   try { serialized = storage?.getItem(VISIT_SEED_HANDOFF_KEY); }
   catch { return null; }
   try { storage?.removeItem(VISIT_SEED_HANDOFF_KEY); }
-  catch { /* Giá trị đọc được vẫn được validate và dùng cho lần khởi tạo này. */ }
+  catch { /* Value read is still validated and used for this initialization. */ }
   if (!serialized || navigationType !== "navigate" || !Number.isFinite(now)) return null;
   try {
     const handoff = JSON.parse(serialized);
@@ -216,7 +216,7 @@ export function consumeVisitSeedHandoff(storage, {
   }
 }
 
-// Thời lượng video dạng m:ss; card và player detail dùng chung để hai nơi hiện cùng tổng thời lượng.
+// Video duration as m:ss; the card and the detail player share this so both places show the same total duration.
 const formatVideoTime = (seconds, round = Math.floor) => {
   const whole = Math.max(0, round(Number(seconds) || 0));
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
@@ -227,7 +227,7 @@ const optionalFinite = (value) => value === null || value === undefined || value
   : Number.isFinite(Number(value)) ? Number(value) : null;
 const nullableId = (value) => typeof value === "string" && value ? value : null;
 
-// pages: trang Công trình chỉ coi path là bộ lọc khi khớp một trang lọc; /projects/<slug>/ khác là trang chi tiết công trình.
+// pages: the Projects page treats the path as a filter only when it matches a filter page; any other /projects/<slug>/ is a project detail page.
 export function isQueryOnlyNavigation(previousHref, nextHref, pages = null) {
   let previous;
   let next;
@@ -237,10 +237,10 @@ export function isQueryOnlyNavigation(previousHref, nextHref, pages = null) {
   } catch {
     return false;
   }
-  // Đổi filter giờ đổi cả path cụm, sản phẩm; cùng locale thì vẫn là điều hướng tại chỗ.
+  // Changing the filter now also changes the cluster, product path; within the same locale it is still in-place navigation.
   const [, previousLocale, previousBase] = previous.pathname.match(ADVERTISING_PATH_PATTERN) || [];
   const [, , nextBase, nextRest] = next.pathname.match(ADVERTISING_PATH_PATTERN) || [];
-  // Trang quảng cáo và trang Công trình dùng chung mẫu path nhưng là hai trang: khác gốc thì không phải đổi lọc tại chỗ.
+  // The ad page and the Projects page share a path pattern but are two different pages: a different root is not an in-place filter change.
   if (previousBase !== nextBase) return false;
   if (nextBase === "projects" && nextRest && !pages?.some((page) => `${page[previousLocale]}/` === nextRest)) return false;
   return previous.origin === next.origin
@@ -249,18 +249,18 @@ export function isQueryOnlyNavigation(previousHref, nextHref, pages = null) {
     && previous.pathname + previous.search !== next.pathname + next.search;
 }
 
-// ?category= nhận id cụm, slug VI/EN, slug nhóm cũ (taxonomy R4) hoặc id sản phẩm; trả id filter hoặc null.
+// ?category= accepts a cluster id, VI/EN slug, legacy group slug (taxonomy R4) or product id; returns the filter id or null.
 const resolveFilter = (value, categories, cards) =>
   categories.find((entry) => [entry.slug, entry.slugVi, entry.slugEn, entry.legacySlug].includes(value))?.slug
   ?? (cards.some((card) => card.productIds?.includes(value)) ? value : null);
 
-// Trang cụm, sản phẩm (taxonomy R4) đặt filter theo path; pages là artifact.pages (vi, en là path sau gốc).
+// Cluster, product pages (taxonomy R4) set the filter by path; pages is artifact.pages (vi, en are the path after the root).
 const advertisingPathFilter = (pathname, pages) => {
   const [, locale, , rest] = pathname.match(ADVERTISING_PATH_PATTERN) || [];
   return rest ? pages.find((page) => `${page[locale]}/` === rest)?.filter ?? null : null;
 };
 
-// photos: false (trang Công trình, không có detail view) thì bỏ qua ?photo= và path trang card.
+// photos: false (Projects page, no detail view) ignores ?photo= and the card page path.
 export function parseBrowseLocation(input, { cards = [], categories = [], pages = [], tagRegistry = [], photos = true } = {}) {
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
@@ -281,9 +281,9 @@ export function parseBrowseLocation(input, { cards = [], categories = [], pages 
 export function serializeBrowseLocation(input, browse = {}, categories = [], pages = []) {
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
-  // Filter có trang (taxonomy R4) ghi thành path theo slug của locale; filter không có mục nào về gốc kèm ?category=.
+  // A filter with a page (taxonomy R4) is written as a path using the locale's slug; a filter with no entry goes back to the root with ?category=.
   const locale = url.pathname.match(ADVERTISING_PATH_PATTERN)?.[1];
-  // Detail ghi path trang card, không kèm category (media-seo R1).
+  // Detail writes the card page path, without category (media-seo R1).
   if (locale && browse.photo) {
     url.pathname = advertisingCardPath(locale, browse.photo);
     if (browse.tag) url.searchParams.set("tag", browse.tag);
@@ -291,7 +291,7 @@ export function serializeBrowseLocation(input, browse = {}, categories = [], pag
   }
   const page = locale && pages.find((entry) => entry.filter === (browse.category || "all"));
   if (locale) url.pathname = `/${locale}/${browseBase(url.pathname)}/${page?.[locale] ? `${page[locale]}/` : ""}`;
-  // Cụm ghi slug theo locale của URL; id sản phẩm ghi nguyên.
+  // Cluster writes the slug for the URL's locale; product id is written as is.
   const entry = categories.find((item) => item.slug === browse.category);
   const category = entry?.[url.pathname.startsWith("/en/") ? "slugEn" : "slugVi"] ?? browse.category;
   if (category && category !== "all" && !page) url.searchParams.set("category", category);
@@ -306,7 +306,7 @@ const compareRelatedSource = (left, right) =>
 export function selectRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
-  // Tầng điểm build sẵn trong artifact (taxonomy R7); card cùng cụm còn lại (điểm 0) là tầng cuối.
+  // Score tiers prebuilt in the artifact (taxonomy R7); the remaining cards in the same cluster (score 0) are the last tier.
   const cardById = new Map(cards.map((card) => [card.id, card]));
   let tiers = (hero.related || []).map((ids) => ids.map((id) => cardById.get(id)).filter(Boolean));
   const scored = new Set(tiers.flat());
@@ -316,20 +316,20 @@ export function selectRelated({ cards = [], categoryOrder = [], heroId, tag = nu
     const hasTag = (card) => Array.isArray(card.tagIds) && card.tagIds.includes(tag);
     const ranked = new Set(tiers.flat());
     const categoryRank = new Map(categoryOrder.map((category, index) => [category, index]));
-    // Card mang tag ngoài láng giềng xếp sau, theo thứ tự cụm rồi sourceOrder như trước.
+    // Cards with tags outside the neighbors come after, in cluster order then sourceOrder as before.
     const rest = cards.filter((card) => card.id !== hero.id && !ranked.has(card) && hasTag(card)).sort((left, right) =>
       (categoryRank.get(left.category) ?? Number.MAX_SAFE_INTEGER)
         - (categoryRank.get(right.category) ?? Number.MAX_SAFE_INTEGER)
       || compareRelatedSource(left, right));
     tiers = [...tiers.map((tier) => tier.filter(hasTag)), rest];
   }
-  // Seed chỉ xáo trong một tầng để thứ tự điểm giữ nguyên.
+  // The seed shuffles only within a tier so the score order is preserved.
   return tiers.flatMap((tier, index) => seed === null
     ? tier
     : shuffleWithSeed(tier, seed, `related:${heroId}:${tag || "all"}:${index}`));
 }
 
-// Nút gợi ý lấy từ sản phẩm (tag nhóm product, taxonomy R7) và tag của ảnh.
+// Suggestion buttons come from the product (product group tag, taxonomy R7) and the image's tags.
 const SUGGESTION_TAG_GROUPS = new Set(["product", "variant", "use"]);
 
 export function selectSuggestions({ cards = [], heroId, activeTag = null, limit = 4, tagRegistry = [] } = {}) {
@@ -339,7 +339,7 @@ export function selectSuggestions({ cards = [], heroId, activeTag = null, limit 
   const validCards = cards.filter((card) => card.media?.src
     && Number(card.media.width) > 0
     && Number(card.media.height) > 0);
-  // Gom card theo tag một lượt: lọc lại toàn bộ card cho từng tag của registry là phần nặng của task dựng primary.
+  // Group cards by tag in one pass: re-filtering all cards for each registry tag is the heavy part of the primary build task.
   const cardsByTag = new Map();
   for (const card of validCards) {
     for (const tagId of new Set(card.tagIds)) {
@@ -368,7 +368,7 @@ export function selectSuggestions({ cards = [], heroId, activeTag = null, limit 
     if (activeIndex >= suggestionLimit) suggestions.splice(activeIndex, 1);
     if (activeIndex < 0 || activeIndex >= suggestionLimit) suggestions.splice(suggestionLimit - 1, 0, active);
   }
-  // Tag cũ trùng nhãn với sản phẩm chỉ giữ một nút: nút đầu tiên, trừ khi tag sau đang bật.
+  // A legacy tag whose label matches a product keeps only one button: the first, unless the later tag is active.
   const byLabel = new Map();
   for (const tag of suggestions) {
     if (!byLabel.has(tag.labelVi) || tag.id === active?.id) byLabel.set(tag.labelVi, tag);
@@ -678,7 +678,7 @@ export function createBrowseHistoryController({
     get currentHref() {
       return currentHref;
     },
-    // Đổi ngôn ngữ tại chỗ dùng replaceState: đồng bộ để popState kế tiếp so với URL /en/ thật.
+    // In-place locale change uses replaceState: synchronous so the next popState compares against the real /en/ URL.
     syncHref() {
       currentHref = href();
     },
@@ -755,9 +755,9 @@ export function createBrowseHistoryController({
     },
     returnToGrid({ reason = "navbar" } = {}) {
       const viewedId = current.photo || current.grid.focusId;
-      // Từ một photo, navbar giữ nhóm đã chọn trên masonry nguồn; vào thẳng photo hoặc grid nhóm thì về All.
+      // From a photo, the navbar keeps the group selected on the source masonry; going straight to a photo or a group grid goes to All.
       const category = (current.photo && current.grid.category) || "all";
-      // Related photo nằm ngoài nhóm đó không có trong masonry, nên quay về photo đã mở từ nó.
+      // A related photo outside that group is not in the masonry, so it returns to the photo it was opened from.
       const focusId = matchesFilter(cardById.get(viewedId), category) ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
       storeCurrent();
@@ -777,9 +777,9 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
   ? Promise.resolve(window.__TT_ADVERTISING_ARTIFACT__)
   : import("../advertising-products/catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
-// Mô tả và related của card nằm riêng trong catalog-detail.mjs (artifact chỉ giữ phần grid cần). Artifact đã đủ trường
-// (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn từng trường còn thiếu vào card theo id (card CMS đã sửa có sẵn
-// mô tả mới, chỉ nhận related).
+// Card description and related live separately in catalog-detail.mjs (the artifact keeps only the grid part). If the artifact already has all fields
+// (tests inject a full artifact) skip; otherwise attach each missing field to the card by id (an edited CMS card already has
+// a new description and only takes related).
 let detailPromise;
 const loadCardDetail = () => detailPromise ||= import("../advertising-products/catalog-detail.mjs").then(({ default: detail }) => detail);
 const attachCardDetail = (cards) => {
@@ -831,9 +831,9 @@ const initialFilter = ({ categories, cards, pages }) => resolveFilter(new URLSea
   || advertisingPathFilter(location.pathname, pages || []) || "all";
 
 let warmWorker;
-// Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ. hls.js
-// tải ngay khi artifact có video (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã
-// hiện (đo cloud 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
+// Called before mount (soft route, called when a link is clicked): load the artifact and start the layout Worker in parallel with the veil covering. hls.js
+// loads right away when the artifact has video (video-delivery R3): waiting for the first video card means on slow 4G the library arrives after the card is
+// already shown (measured on cloud 2026-10-25 over HTTP/2: 2/64 videos did not start in time).
 export const preloadMasonry = () => {
   // Only related masonry compiles in the Worker now; a direct card page needs it at once, a grid page warms it later.
   if (detailId(new URL(location.href))) warmWorker ||= startLayoutWorker();
@@ -883,14 +883,14 @@ export function compileMasonryGeometry({ grid, options, compile = compileMasonry
   }
 }
 
-// Bề rộng nguồn của nền blur primary (filter blur 100px): chi tiết nhỏ hơn bán kính blur không còn thấy.
+// Source width of the primary blur background (blur filter 100px): detail smaller than the blur radius is no longer visible.
 const BACKGROUND_SOURCE_WIDTH = 240;
 
 function createPhotoMedia(record, locale, { suggestion = false, native = false } = {}) {
-  // Giữ vòng đời preload/class LazySizes đã cam kết cho các card ảo hóa.
-  // Native loading riêng có ngưỡng viewport khác (design-system/motion.md).
-  // Related dùng native lazy (owner 2026-10-26): rAF checkElems của LazySizes chiếm 13-24ms trong frame mount related
-  // trên A04s (decision phone-frame-budget).
+  // Keep the LazySizes preload/class lifecycle committed for virtualized cards.
+  // Native loading alone has a different viewport threshold (design-system/motion.md).
+  // Related uses native lazy (owner 2026-10-26): LazySizes' rAF checkElems takes 13-24ms in the related mount frame
+  // on the A04s (decision phone-frame-budget).
   const image = document.createElement("img");
   image.className = suggestion
     ? "card-media__image media-hover-zoom"
@@ -909,7 +909,7 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
     image.alt = "";
     if (record.media.suggestionPosition) image.style.objectPosition = record.media.suggestionPosition;
   } else if (native) {
-    // data-sizes để sizeLazyImage ghi sizes từ solver; sizes "auto" thì parseFloat ra NaN nên lần ghi đầu luôn chạy.
+    // data-sizes lets sizeLazyImage write sizes from the solver; with sizes "auto", parseFloat gives NaN so the first write always runs.
     if (srcset) {
       image.dataset.sizes = "auto";
       image.sizes = "auto";
@@ -928,8 +928,8 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
   return image;
 }
 
-// Dải media liền (media-card R3, R6, owner 2026-10-19): mỗi lane là các node cùng một slot, xếp cạnh nhau cách `width`,
-// chỉ dịch translate, không đổi opacity. Thả tay sau khi kéo thì trượt nốt quãng còn lại, nhịp ngắn dần theo quãng.
+// Continuous media strip (media-card R3, R6, owner 2026-10-19): each lane is nodes of the same slot, placed side by side `width` apart,
+// only translate is shifted, opacity unchanged. Releasing after a drag slides the remaining distance, with a rhythm that shortens with the distance.
 const releaseTiming = (distance, width) => ({ duration: Math.max(200, PUSH_TIMING.duration * Math.min(1, distance / width)),
   easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
 function placeStrip(lanes, width, offset) {
@@ -940,7 +940,7 @@ function moveStrip(lanes, width, from, to, timing) {
     { translate: [`${slot * width + from}px 0`, `${slot * width + to}px 0`] }, timing)));
 }
 
-// Media hiện được: ảnh giải mã xong, video có frame hoặc poster đã giải mã; lỗi cũng kết thúc chờ để không treo dải.
+// Displayable media: image decoded, video with a frame or a decoded poster; an error also ends the wait so the strip does not hang.
 function whenMediaReady(node) {
   if (node instanceof HTMLVideoElement) {
     if (node.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return Promise.resolve();
@@ -956,9 +956,9 @@ function whenMediaReady(node) {
   return node.decode().catch(() => {});
 }
 
-// Vuốt kéo dải theo ngón tay (media-card R3, owner 2026-10-19): hướng chốt khi đi quá 10px; nhấc tay khi đã kéo quá nửa
-// khung hoặc từ 0.5px/ms thì sang media kế, còn lại bật về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay. Không có
-// pointermove (pointer tổng hợp) thì vận tốc vô hạn: vuốt ngang từ 10px là đổi media.
+// A swipe drags the strip with the finger (media-card R3, owner 2026-10-19): direction locks after 10px; lifting after dragging past half
+// the frame or at 0.5px/ms moves to the next media, otherwise it snaps back; at the two ends of the strip it moves only 1/3 of the finger distance. With no
+// pointermove (synthetic pointer) velocity is infinite: a horizontal swipe from 10px changes media.
 function trackStripSwipe(target, { accepts = () => true, start = () => {}, width, canStep, drag, release, signal }) {
   let gesture = null;
   const offset = (dx) => canStep(dx < 0 ? 1 : -1) ? dx : dx / 3;
@@ -1018,9 +1018,9 @@ function syncJustViewedMarker(figure, locale, marked) {
   marker.textContent = locale === "en" ? "Just viewed" : "Vừa xem";
 }
 
-// Lướt nhanh (kéo thanh cuộn, autoscroll chuột giữa) thì card video chỉ có poster: quá 3000px/s card đi hết quãng
-// overscan một viewport trước khi kịp tải đoạn đầu, gắn player HLS lúc đó chỉ tốn công. Cuộn chậm lại thì gắn, mỗi frame
-// một card.
+// Fast scrolling (dragging the scrollbar, middle-mouse autoscroll) leaves video cards with only a poster: past 3000px/s a card crosses the whole
+// overscan of one viewport before it can load the first segment, so attaching an HLS player then is wasted work. When scrolling slows, attach, one card
+// per frame.
 const FAST_SCROLL_PX_PER_S = 3000;
 let fastScroll = false;
 let videoSourceFrame = 0;
@@ -1031,7 +1031,7 @@ const flushVideoSources = () => {
   if (fastScroll || !video) return;
   deferredVideoSources.delete(video);
   if (video.isConnected) {
-    // Lịch phát có thể đã gọi play() lúc chưa có nguồn; gắn nguồn chạy lại thuật toán load và hủy lệnh đó, nên phát lại.
+    // The schedule may have called play() before a source existed; attaching a source reruns the load algorithm and cancels that call, so play again.
     const resume = !video.paused;
     attach();
     if (resume && video.paused) void video.play().catch(() => {});
@@ -1054,12 +1054,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.dataset[related ? "masonryRelatedCard" : "masonryCard"] = record.id;
   figure.dataset.masonryCategory = record.category;
   const link = document.createElement("a");
-  // Card masonry và related không zoom media khi hover (owner 2026-10-18).
+  // Masonry and related cards do not zoom media on hover (owner 2026-10-18).
   link.className = "card-interactive";
   link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "project-tile__media masonry-card__media--natural card-media";
-  // Màu chủ đạo của ảnh lấp khung khi ảnh chưa nhận byte nào; ảnh mờ rồi nét phủ lên trên (progressive-loading R9).
+  // The image's dominant color fills the frame while the image has received no bytes; the blurred then sharp image covers it (progressive-loading R9).
   const color = cardColor(record);
   if (color) media.style.backgroundColor = color;
   const image = createPhotoMedia(record, locale, { native: related });
@@ -1068,8 +1068,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.append(link);
   const items = record.mediaItems;
   const hasCarousel = Array.isArray(items) && items.length > 1;
-  // Đánh dấu chung của mọi item masonry (masonry-reuse bước 3): head-inline, CMS overlay, test đọc đánh dấu này thay
-  // cho liệt kê từng loại card.
+  // Common marker of every masonry item (masonry-reuse step 3): head-inline, CMS overlay, tests read this marker instead of
+  // listing each card type.
   figure.dataset.masonryItem = record.id;
   figure.dataset.masonryKind = hasCarousel ? "multi" : items?.[0]?.kind === "video" ? "video" : "photo";
   const hasSingletonOverride = Array.isArray(items) && items.length === 1
@@ -1101,7 +1101,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.masonryActiveMediaId = items[coverIndex].id;
     }
 
-    // Frame skeleton là phần nhìn thấy; node này chỉ giữ trạng thái loading cho công nghệ hỗ trợ.
+    // The skeleton frame is the visible part; this node only holds the loading state for assistive technology.
     const loading = el("span", "card-media__loading sr-only", "masonryMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     loading.hidden = true;
@@ -1128,7 +1128,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         { role: "status", "aria-live": "polite", "aria-atomic": "true" });
       pill.append(countStatus);
     }
-    // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
+    // The hover arrows reuse the primary's media strip arrows (Pinterest pin), hidden on the first and last media.
     const hoverSteps = hasCarousel ? [-1, 1].map((step) => {
       const button = el("button", `detail-view__media-step detail-view__media-step--${step < 0 ? "prev" : "next"}`,
         "", { "aria-label": step < 0 ? english ? "Previous media" : "Media trước" : english ? "Next media" : "Media tiếp" });
@@ -1166,7 +1166,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const ready = Boolean(layer && isReady(layer));
       const failedImage = layer instanceof HTMLImageElement && failedImages.has(items[activeIndex].id);
       const loadedVideoPoster = layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "loaded";
-      // Item active lỗi mà setActive không còn fallback: dấu báo lỗi dùng chung, ẩn điều khiển (media-card R5).
+      // An active item with an error and setActive has no fallback left: shared error marker, hide the controls (media-card R5).
       const failed = !ready && (failedImage
         || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
       media.classList.toggle("is-media-error", failed);
@@ -1189,9 +1189,9 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     image.addEventListener("load", updateLoading);
     image.addEventListener("lazyloaded", updateLoading);
-    // Script head gắn .is-media-error theo từng img lỗi, kể cả layer không còn active; card tự quyết theo item active.
+    // The head script sets .is-media-error per failed img, including layers that are no longer active; the card decides from the active item.
     media.addEventListener("error", updateLoading, true);
-    // Layer tạo theo nhu cầu: item active, hoặc hàng xóm của dải khi hover, vuốt (media-card R3).
+    // Layers are created on demand: the active item, or the strip's neighbors on hover, swipe (media-card R3).
     const layerFor = (index) => {
       const item = items[index];
       let layer = layers.get(item.id);
@@ -1205,16 +1205,16 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.muted = true;
         layer.defaultMuted = true;
         layer.playsInline = true;
-        // Khởi động trước (owner 2026-10-25): card vào DOM khi còn cách màn hình một viewport, tải và giải mã sẵn để lúc
-        // vào màn chỉ còn play; đo PC: video khởi động giữa lúc cuộn làm một Commit 82ms.
+        // Early start (owner 2026-10-25): a card entering the DOM one viewport away from the screen loads and decodes ahead so that
+        // on entering the screen only play remains; measured on PC: a video starting mid-scroll made an 82ms Commit.
         layer.preload = "auto";
         layer.poster = item.posterSrc;
-        // Card hiện tối đa ~440px CSS nên chặn ở bậc 480 (video-delivery R2) hoặc file cardSrc khi không có Media Source.
+        // A card shows at most ~440 CSS px so cap at the 480 tier (video-delivery R2) or the cardSrc file when there is no Media Source.
         setCardVideoSource(layer, () => setVideoSource(layer, item, { file: item.cardSrc || item.src, capWidth: 480 }));
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);
-        // Hết video thì card đẩy sang video kế trong playlist theo thứ tự dữ liệu, hết vòng quay lại video đầu; ảnh
-        // không vào playlist, card một video lặp lại chính nó (R4, owner 2026-10-18).
+        // When a video ends the card moves to the next video in the playlist in data order, and after the last it wraps to the first; images
+        // are not in the playlist, and a single-video card loops itself (R4, owner 2026-10-18).
         layer.addEventListener("ended", () => {
           if (activeIndex !== index) return;
           const videos = items.flatMap((entry, position) => entry.kind === "video" ? [position] : []);
@@ -1302,8 +1302,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const layer = layers.get(id);
       if (videoTime && layer instanceof HTMLVideoElement) layer.currentTime = videoTime;
     };
-    // Dải liền (owner 2026-10-19): media cũ và mới dính nhau, chỉ dịch vị trí, cắt ở canvas; media mới giải mã xong mới
-    // trượt để không lộ nền hay chạy fade lúc tải giữa chừng. Kéo tay đặt dải lệch `offset` trước khi thả.
+    // Continuous strip (owner 2026-10-19): old and new media are joined, only the position shifts, clipped at the canvas; the strip slides
+    // only after the new media has decoded, so no background shows or fade runs mid-load. A manual drag sets the strip `offset` before release.
     let lanes = [];
     let laneAnimations = [];
     let slideToken = 0;
@@ -1348,7 +1348,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       settleLanes();
       setActive(index);
       onMediaChange(figure.dataset.masonryActiveMediaId);
-      // Lịch phát video tính lại: chấm, mũi tên, vuốt đổi media khi chuột vẫn trong card (media-card R4).
+      // Video schedule recomputed: dots, arrows, swipe change media while the mouse is still in the card (media-card R4).
       figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
@@ -1366,7 +1366,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
     if (hasCarousel) {
       figure.addEventListener("pointerenter", preloadNeighbors);
-      // Pointer events bao gồm cả touch; touch-action: pan-y để vuốt ngang cho handler này.
+      // Pointer events include touch; touch-action: pan-y leaves horizontal swipes to this handler.
       trackStripSwipe(link, {
         start: () => {
           suppressClickUntil = 0;
@@ -1446,8 +1446,8 @@ function setPlacementStyle(node, placement) {
   node.style.height = `${placement.pixelHeight}px`;
 }
 
-// Ảnh LazySizes rộng bằng card: ghi sizes từ solver để lúc unveil không đọc offsetWidth từng ảnh (forced layout).
-// Ảnh đã tải chỉ nâng sizes, không hạ.
+// A LazySizes image as wide as the card: write sizes from the solver so unveil does not read each image's offsetWidth (forced layout).
+// An already-loaded image only raises sizes, never lowers.
 function sizeLazyImage(node, placement) {
   const image = node.querySelector("img[data-sizes]");
   if (!image) return;
@@ -1484,8 +1484,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridSection = grid.closest(".project-index");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
   const photoView = container.querySelector("[data-detail-view]");
-  // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
-  // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision phone-frame-budget).
+  // On first detail show, Blink lazily parses the CSS declarations matching the photo view inside the card-tap task. Read computed
+  // style at idle to parse ahead; first style cost drops about 3x (decision phone-frame-budget).
   if (photoView?.hidden) globalThis.requestIdleCallback?.(() => {
     if (photoView.hidden) for (const node of [photoView, ...photoView.querySelectorAll("*")]) getComputedStyle(node).color;
   });
@@ -1504,8 +1504,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const photoMediaSteps = [...(photoView?.querySelectorAll("[data-detail-media-step]") ?? [])];
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-detail-background]");
-  // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
-  // Không có bước blur: ảnh backdrop tự mang blur (detail.css), nên không thể lộ đường nối giữa các tile.
+  // Glass always covers the cover backdrop; CSS shows it only when the photo is contain and leaves empty space around.
+  // No blur step: the backdrop image carries its own blur (detail.css), so no seam between tiles can show.
   const photoGlass = createGlassSurface("even", 0);
   photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-detail-category]");
@@ -1536,7 +1536,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     idleWorker = startLayoutWorker();
     return worker;
   };
-  // Trang Công trình truyền artifact riêng (projects R2); trang quảng cáo tải catalog-artifact.mjs.
+  // The Projects page passes its own artifact (projects R2); the ad page loads catalog-artifact.mjs.
   const [artifact] = await Promise.all([providedArtifact ?? loadArtifact(), imageFormatReady()]);
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
@@ -1570,7 +1570,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
-  // Giữ nguyên tham chiếu artifact đã generate làm cache identity; không clone, chỉ gắn thêm trường detail vào card.
+  // Keep the reference of the generated artifact as the cache identity; do not clone, only attach the detail fields to the card.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
   if (typeof window.Masonry !== "function") {
@@ -1582,9 +1582,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const ctaBatch = createCtaBatch({ skeleton: ctaSkeleton, cluster: gridCta, arcHome: gridSectionStyleTarget,
     signal: controller.signal, rearm: (root) => window.TruongThinhDetail?.rearmMotion?.(root) });
   const arcGlass = ctaBatch.arc;
-  // Số khung và tỷ lệ khung batch theo attribute của trang (skeleton R1), không sửa code.
+  // Frame count and batch frame ratio come from the page attributes (skeleton R1), no code change.
   const skeletonBatchConfig = readSkeletonBatchConfig(ctaSkeleton?.dataset);
-  // Detail (mô tả, related) tải ngay khi ảnh 8 card đầu xong (tối đa 6 s) để không tranh băng thông với chúng; showPhoto chờ nếu chưa xong.
+  // Detail (description, related) loads as soon as the first 8 card images finish (at most 6 s) so it does not compete for bandwidth with them; showPhoto waits if it is not done.
   let detailLoaded = false;
   let detailReady;
   const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
@@ -1606,7 +1606,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     } else setTimeout(prefetchDetail, 250, tries + 1);
   };
   if (viewer || artifact.layoutCacheBandUrl) prefetchDetail();
-  // Giữ sẵn số đo CSS khi script shell không khởi động được.
+  // Keep the CSS measurements ready for when the shell script cannot start.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
     probe.className = "site-viewport-metrics";
@@ -1616,8 +1616,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const getLayoutViewportHeight = () => scroll?.getViewportMetrics?.().layoutHeight
     || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
     || innerHeight;
-  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe. Đọc visualViewport vẫn ép style recalc,
-  // nên giữ số đo tới khi viewport đổi (decision phone-frame-budget).
+  // Same formula as getViewportMetrics().visible but without reading the probe. Reading visualViewport still forces style recalc,
+  // so keep the measurement until the viewport changes (decision phone-frame-budget).
   let visibleViewport = null;
   const getVisibleViewport = () => visibleViewport ??= {
     width: window.visualViewport?.width ?? innerWidth,
@@ -1636,8 +1636,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const geometries = new Map();
   let geometryPending = false;
   const retainedPhotoIds = new Set();
-  // Sân masonry chính và related ở detail: cùng state dựng theo cửa sổ cuộn, ngân sách dựng, card tạm, hàng chờ LRU
-  // (advertising-masonry R7, masonry-reuse bước 7).
+  // Main masonry yard and related in detail: the same state built from the scroll window, build budget, temp cards, LRU wait queue
+  // (advertising-masonry R7, masonry-reuse step 7).
   const gridHost = createMasonryHost(grid, {
     create: ({ card: { id }, card }) => createPhotoCard(card, locale, handleMediaLoaded, false,
       gridHost.mediaById.get(id) || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null),
@@ -1661,19 +1661,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let relatedLayout;
   let activePhotoId = null;
   let activePrimaryMediaId = null;
-  // Mở detail từ card đang phát video: detail phát tiếp từ đúng giây đó (owner 2026-10-18); renderPhoto dùng một lần.
+  // Opening detail from a card playing video: detail continues from the exact second (owner 2026-10-18); renderPhoto uses it once.
   let videoHandoff = null;
   let primaryFailed = false;
   let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Tag, cỡ cửa sổ hoặc cỡ chữ của related đổi: bỏ hàng chờ và lượt dựng kế tiếp không đưa card cũ vào lại (R7).
+  // Tag, window size or related font size changed: drop the wait queue and the next build pass does not bring old cards back (R7).
   let relatedQueueScope = "";
   let relatedQueueStale = false;
   let relatedCompile = compileMasonryLayout;
-  // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
-  // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
-  // solver đầy đủ, giữ geometry của primary và để việc mount card cho task kế tiếp.
+  // When opening a photo (showPhoto), one task per phase: "primary" lays out the primary without related; "warm"
+  // runs the solver on a few cards so the full run does not pay for cold code; "related" runs the
+  // full solver, keeps the primary geometry and leaves card mounting to the next task.
   let directEntryPhase = "";
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
@@ -1701,14 +1701,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       drawLiveBackground();
     },
   });
-  // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
+  // Media keys loaded once: a remounted card swaps them in without Glass when its cached copy arrives.
   const loadedMediaKeys = new Set();
   const visibleMediaCards = new Set();
   const mediaKey = (node) => node.dataset.masonryRelatedCard
     ? `related:${node.dataset.masonryRelatedCard}` : `grid:${node.dataset.masonryCard}`;
   const mediaLayers = (node) => [...node.querySelectorAll(".masonry-card__foreground")];
-  // Hiện ngay ở opacity cuối, không qua transition opacity của CSS (R3): đọc style để chốt `none` trước khi trả lại.
-  // Mọi media hiện trong cùng task dùng chung một lần ép style (đọc opacity một lần cho cả lô), thay vì mỗi media một lần.
+  // Show immediately at the final opacity, bypassing the CSS opacity transition (R3): read the style to pin `none` before restoring.
+  // All media shown in the same task share one forced style (read opacity once for the whole batch) instead of one per media.
   const mediaToShow = [];
   const removeGhost = (node) => {
     const ghost = node.masonryGhost;
@@ -1723,7 +1723,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const fading = new Map();
     for (const { node, media } of batch) {
       media.style.removeProperty("transition");
-      // Card thật thay card tạm: ảnh hiện dần từ màu chủ đạo của card tạm; giảm chuyển động thì hiện thẳng.
+      // The real card replaces the temp card: the image fades in from the temp card's dominant color; with reduced motion it shows directly.
       if (node.masonryGhost && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
@@ -1751,23 +1751,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (cardSkeletons.has(node)) revealCard(node);
     else showMedia(node);
   };
-  // Reduced motion vẫn observe: skeleton loading chỉ hiện trên card đang trong view.
+  // Reduced motion still observes: loading skeleton shows only on cards in view.
   const mediaObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const node = entry.target;
       const id = mediaKey(node);
       if (!id) return;
-      // Card gắn lại có media đã tải: unveil ngay từ entry đầu, không chờ nhịp throttle của LazySizes, để bản cache
-      // sẵn trước khi card vào viewport (loading-glass R3).
+      // A re-attached card with already-loaded media: unveil immediately from the first entry, without waiting for LazySizes' throttle tick, so the cached copy is
+      // ready before the card enters the viewport (loading-glass R3).
       if (loadedMediaKeys.has(id)) {
         mediaLayers(node).forEach((media) => media.classList.contains("lazyload") && window.lazySizes?.loader?.unveil(media));
       }
       if (entry.intersectionRatio === 0) {
-        // Card bị dời trong DOM (restoreCanonicalDomOrder) báo một entry rỗng không có rootBounds rồi entry thật
-        // ngay sau; bỏ skeleton ở đây làm nó chớp lại từ opacity 0.
+        // A card moved in the DOM (restoreCanonicalDomOrder) reports an empty entry with no rootBounds, then the real entry
+        // right after; dropping the skeleton here makes it flash again from opacity 0.
         if (!entry.rootBounds && node.isConnected) return;
         visibleMediaCards.delete(id);
-        // Màu của skeleton gắn với media id, nên bỏ nó ở đây vẫn giữ màu cho entry kế tiếp.
+        // The skeleton's color is tied to the media id, so dropping it here still keeps the color for the next entry.
         dropCardSkeleton(node);
         return;
       }
@@ -1781,8 +1781,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
     node.querySelectorAll("video").forEach(releaseVideoSource);
-    // img tách khỏi DOM vẫn tải tiếp: kéo thanh cuộn khi không có cache dồn hàng trăm request của card đã gỡ trước ảnh
-    // đang thấy. Bỏ nguồn để trình duyệt hủy request.
+    // An img detached from the DOM keeps loading: dragging the scrollbar with no cache piles hundreds of requests from removed cards ahead of the visible
+    // image. Drop the source so the browser cancels the request.
     node.querySelectorAll("img").forEach((image) => {
       if (image.complete) return;
       image.removeAttribute("srcset");
@@ -1792,12 +1792,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
   };
-  // Gỡ card khỏi DOM: card đã hiện ảnh (không còn chờ, không lỗi) vào hàng chờ để quay lại thì gắn lại tức thì; card khác
-  // hủy như cũ (ảnh dở dang bỏ nguồn). Card video không vào hàng chờ: releaseVideoSource bỏ nguồn và nguồn chỉ gắn lại
-  // trong createPhotoCard, gắn lại node cũ sẽ chỉ còn poster.
-  // queue null: hàng chờ vừa bỏ (đổi filter, tag, layout), card gỡ trong lượt đó cũng không vào lại (masonry R7).
-  // Card còn img chưa tải xong (lớp kề do preloadNeighbors) không vào hàng chờ: releaseMediaCard bỏ nguồn img đó,
-  // gắn lại thì layerFor dùng lại lớp không nguồn và card kẹt trạng thái chờ.
+  // Removing a card from the DOM: a card that has shown its image (no longer waiting, no error) goes into the wait queue so re-attaching is instant; other cards
+  // are cancelled as before (a half-loaded image drops its source). Video cards do not enter the wait queue: releaseVideoSource drops the source and the source is only re-attached
+  // in createPhotoCard; re-attaching the old node would leave only the poster.
+  // queue null: the wait queue was just dropped (filter, tag, layout change), so cards removed in that pass do not re-enter either (masonry R7).
+  // A card with an img not yet loaded (neighbor layer from preloadNeighbors) does not enter the wait queue: releaseMediaCard drops that img's source,
+  // and on re-attach layerFor reuses the sourceless layer and the card gets stuck waiting.
   const detachCard = (id, node, queue) => {
     const keepable = queue && !node.advertisingPendingMediaId?.() && !node.querySelector(".is-media-error, video")
       && mediaLayers(node).some((media) => media.classList.contains("is-masonry-media-ready"))
@@ -1806,11 +1806,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.remove();
     if (keepable) queue.put(id, node);
   };
-  // Filter sản phẩm (id "<cụm>/<slug>") vẫn đánh dấu cụm của nó trên rail.
+  // A product filter (id "<cluster>/<slug>") still marks its cluster on the rail.
   const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
-  // Rail hai tầng (taxonomy R3): cụm đang chọn hiện hàng chip; mục sản phẩm đúng filter có aria-current.
+  // Two-tier rail (taxonomy R3): the selected cluster shows a chip row; the product entry matching the filter has aria-current.
   const chipGroups = [...container.querySelectorAll("[data-masonry-chips]")];
-  // Phần tử hiện sau khi bấm rail dùng lại nhịp entrance Advertising ([Motion](design-system/motion.md)); reduced motion vào thẳng trạng thái cuối.
+  // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
     nodes.forEach((node, index) => {
@@ -1830,13 +1830,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     chipGroups.forEach((group) => {
       const wasHidden = group.hidden;
       group.hidden = !isRailCurrent(group.dataset.masonryChips);
-      // Chip hiện cùng nhịp filter rail lúc tải trang (y 20, 1s expo.out, stagger 0.15s), sau kicker 0.3s; đổi sản phẩm trong cụm không chạy lại.
-      // Hàng dài thì ép tổng độ trễ so le tối đa 0.6s để chip cuối không hiện muộn.
+      // Chips appear at the same rhythm as the filter rail on page load (y 20, 1s expo.out, stagger 0.15s), after the 0.3s kicker; changing product within a cluster does not rerun it.
+      // For long rows cap the total stagger delay at 0.6s so the last chip does not appear late.
       if (animate && wasHidden && !group.hidden) {
         const chips = [...group.querySelectorAll(".rail-chip")];
         enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
-      // Hàng chip cuộn ngang trên điện thoại: đưa chip đang chọn vào khung, chỉ trục ngang để không kéo trang.
+      // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
       if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
     });
@@ -1851,8 +1851,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let motionUntil = 0;
   let lastScrollAt = 0;
   let scrollActive = false;
-  // Cả scroll native lẫn site:scroll của Locomotive (PC cuộn trượt, window.scrollY đứng yên); chỉ tính khi vị trí đổi,
-  // vì lúc tải trang cũng có scroll event ở y không đổi.
+  // Both native scroll and Locomotive's site:scroll (PC scrolls with a smooth scroller, window.scrollY stays still); count only when the position changes,
+  // because page load also fires a scroll event at an unchanged y.
   let lastScrollEventAt = -Infinity;
   const trackScroll = (readY) => {
     let last = 0;
@@ -1863,16 +1863,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     };
   };
   const enteringWhileScrolling = () => performance.now() - lastScrollEventAt < SKELETON_SCROLL_ENTRY_MS;
-  // Fling bận làm khoảng cách giữa hai scroll event vượt 120ms, nên đo thời gian một mình thấy "đã dừng" giữa fling;
-  // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ. Scroll do layout hoặc code (mở detail nhảy về y=0)
-  // không bắn scrollend, nên quá PHONE_SCROLL_SETTLE_MS không có scroll event thì coi là đã dừng.
+  // A busy fling makes the gap between two scroll events exceed 120ms, so timing alone sees "stopped" mid-fling;
+  // when scrollend exists wait for it, then still hold 120ms as before. Scroll caused by layout or code (opening detail jumps to y=0)
+  // does not fire scrollend, so with no scroll event past PHONE_SCROLL_SETTLE_MS treat it as stopped.
   const phoneScrollWait = () => scrollActive && performance.now() - lastScrollAt < PHONE_SCROLL_SETTLE_MS
     ? PHONE_REVEAL_SCROLL_IDLE_MS : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
   let pendingScroll = false;
   let lastMeasuredGridWidth = 0;
   let lastLayoutViewportWidth = 0;
   let lastGeometrySignature = "";
-  // Hình học mà positions đang phản ánh; thứ tự DOM còn đúng thứ tự placement hay không.
+  // The geometry that positions reflects; whether the DOM order still matches the placement order.
   let positionsGeometry = null;
   let domOrderDirty = true;
   let announcedPageHeight = -1;
@@ -1882,7 +1882,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let lastCtaViewportHeight = 0;
   let ctaCopyKey = "";
   let ctaCopyMetrics = { baseline: 0, below: 0 };
-  // Một inline box kích thước 0 ở cuối heading nằm trên baseline của dòng cuối.
+  // A zero-size inline box at the end of the heading sits on the baseline of the last line.
   const ctaBaselineProbe = document.createElement("span");
   ctaBaselineProbe.style.cssText = "display: inline-block; width: 0; height: 0;";
   const measureCtaCopy = () => {
@@ -1890,7 +1890,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       .filter((node) => !node.children.length && node.textContent.trim()).at(-1);
     (last || gridCtaHeading).append(ctaBaselineProbe);
     const line = last?.closest(".motion-line");
-    // Đo trạng thái đã reveal: bỏ offset reveal hiện tại của dòng, rồi đặt nó lên 0.1em như detail.js.
+    // Measure the revealed state: remove the line's current reveal offset, then place it at 0.1em like detail.js.
     const reveal = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42
       + 0.1 * Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize) : 0;
     const copyRect = gridCtaCopy.getBoundingClientRect();
@@ -1898,7 +1898,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ctaBaselineProbe.remove();
     return { baseline, below: copyRect.height - baseline };
   };
-  // Thu heading vừa đủ để khoảng trống dưới baseline cuối đủ dùng, không nhỏ hơn 1.3rem.
+  // Shrink the heading just enough that the space below the last baseline is sufficient, no smaller than 1.3rem.
   const fitGridCtaHeading = (room) => {
     gridCtaHeading.style.removeProperty("font-size");
     const css = measureCtaCopy();
@@ -1908,14 +1908,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridCtaHeading.style.fontSize = `${minSize}px`;
     const floor = measureCtaCopy();
     if (floor.below >= room || cssSize <= minSize) return floor;
-    // Khoảng trống dưới baseline tăng tuyến tính theo font size.
+    // The space below the baseline grows linearly with font size.
     gridCtaHeading.style.fontSize = `${minSize + (cssSize - minSize) * (room - floor.below) / (css.below - floor.below)}px`;
     return measureCtaCopy();
   };
-  // Phần copy chậm hơn trang 10% và về offset 0 tại giới hạn cuộn.
+  // The copy part is 10% slower than the page and returns to offset 0 at the scroll limit.
   const syncCtaParallax = () => {
     if (!gridCtaCopy || !siteFooter) return;
-    // CTA chỉ cao bằng copy (text 200%, landscape) không còn chỗ phía trên, và clip của nó sẽ cắt heading.
+    // A CTA only as tall as its copy (text 200%, landscape) has no room above, and its clip would cut the heading.
     const offset = reduced || (activePhotoId && !ctaInDetail()) ? 0
       : Math.max((siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1, -gridCtaCopy.offsetTop);
     gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
@@ -2079,11 +2079,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return layout;
   };
 
-  // `hysteresis`: card chỉ bị gỡ khi ra xa hơn hai viewport, dù chỉ được dựng khi cách tối đa một viewport (R7).
-  // `mount` là id cần có card thật; `keep` là id không được gỡ.
+  // `hysteresis`: a card is removed only when it is more than two viewports away, though it is built only within one viewport at most (R7).
+  // `mount` is the id that needs a real card; `keep` is the id that must not be removed.
   const virtualWindow = ({ hysteresis = false } = {}) => {
-    // Đọc rect là một lần ép layout mỗi frame; thử cache theo currentVisualY thì lệch lúc kéo thanh cuộn (visual trễ logical),
-    // nên giữ đọc thật; lớp card tạm có contain nên layout dơ chỉ còn ở card thật mới.
+    // Reading the rect is one forced layout per frame; caching by currentVisualY drifts while dragging the scrollbar (visual lags logical),
+    // so keep the real read; the temp card layer has contain, so dirty layout is left only on newly real cards.
     const gridTop = grid.getBoundingClientRect().top + currentVisualY;
     const visible = getVisibleViewport();
     const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
@@ -2128,14 +2128,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       .sort(([leftId], [rightId]) => (placementIndex.get(leftId) ?? Number.MAX_SAFE_INTEGER) - (placementIndex.get(rightId) ?? Number.MAX_SAFE_INTEGER) || leftId.localeCompare(rightId))
       .map(([, node]) => node);
     let cursor = grid.firstElementChild;
-    // Lớp card tạm luôn đứng đầu grid, dưới mọi card.
+    // The temp card layer always sits at the top of the grid, below every card.
     if (cursor === gridHost.ghosts.layer) cursor = cursor.nextElementSibling;
     for (const node of orderedNodes) {
       if (node === cursor) {
         cursor = cursor.nextElementSibling;
         continue;
       }
-      // moveBefore giữ transition fade của skeleton; insertBefore tháo node nên opacity nhảy thẳng tới đích.
+      // moveBefore keeps the skeleton's fade transition; insertBefore detaches the node so opacity jumps straight to the target.
       (grid.isConnected && grid.moveBefore ? grid.moveBefore : grid.insertBefore).call(grid, node, cursor);
     }
     if (activeElement?.isConnected && document.activeElement !== activeElement) activeElement.focus({ preventScroll: true });
@@ -2143,7 +2143,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const pruneMotionCohort = () => {
     if (!geometry) return;
     const { keep, visiblePlacements } = virtualWindow();
-    // Card giữ ẩn trong cohort không qua sizeNode của layout mới; lộ lại phải lấy cỡ mới, nếu không giữ bề rộng cột cũ.
+    // A card held hidden in the cohort does not pass through the new layout's sizeNode; when revealed it must take the new size, otherwise it keeps the old column width.
     for (const placement of visiblePlacements) {
       const node = gridHost.rendered.get(placement.card.id);
       if (node?.hidden) sizeNode(node, placement, geometry.placements.length);
@@ -2160,8 +2160,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridHost.ghosts.prune(keep);
     restoreCanonicalDomOrder();
   };
-  // Card đổi cỡ cùng nhịp với vị trí: con của card co giãn từ cỡ cũ quanh góc trên trái của card, nên card lớn
-  // lên không phủ item kế bên giữa lúc trượt (owner 10/10). Masonry giữ `transform`, nên scale nằm ở con.
+  // A card resizes in step with its position: the card's child scales from the old size around the card's top-left corner, so a growing
+  // card does not cover the neighboring item mid-slide (owner 10/10). Masonry owns `transform`, so the scale sits on the child.
   const morphSize = (node, from) => {
     const sx = from.w / node.offsetWidth;
     const sy = from.h / node.offsetHeight;
@@ -2171,8 +2171,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: 400, easing: "ease" });
     }
   };
-  // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
-  // (getSize) trong frame cuộn và task Back (decision phone-frame-budget). Ghi left/top như Masonry: grid không padding.
+  // Position is precomputed; Masonry only needs to run the motion. Instant layout skips it so it does not re-measure every card
+  // (getSize) in the scroll frame and the Back task (decision phone-frame-budget). Write left/top like Masonry: the grid has no padding.
   const placeRendered = () => {
     for (const [id, node] of gridHost.rendered) {
       const position = gridHost.positions.get(id);
@@ -2183,7 +2183,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (node.style.top !== top) node.style.top = top;
     }
   };
-  // Thời gian còn lại của transition transform (Masonry) và lượt co giãn đang chạy trên card.
+  // Remaining time of the transform transition (Masonry) and of the running scale pass on the card.
   const remainingMotion = () => {
     let remaining = 0;
     gridHost.masonry?.items.forEach((item) => {
@@ -2204,8 +2204,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       gridHost.motionTimer = setTimeout(settleMotion, Math.max(0, motionUntil - performance.now()));
       return;
     }
-    // Raster vùng mới sau cú cuộn xa giữ frame, transition bắt đầu trễ so với hẹn 400ms; cắt ngang lúc đó làm card
-    // đứng rồi nhảy thẳng tới chỗ mới (masonry R6). Chờ phần còn lại; tab ẩn không chạy frame nên đặt luôn.
+    // Rasterizing a new region after a long scroll holds the frame, so the transition starts 400ms late relative to schedule; cutting in then makes the card
+    // stand still then jump straight to the new place (masonry R6). Wait for the remainder; a hidden tab runs no frames so place it directly.
     const remaining = document.hidden ? 0 : remainingMotion();
     if (remaining > 0) {
       motionUntil = performance.now() + remaining;
@@ -2223,7 +2223,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     placeRendered();
   };
   const cancelMotion = () => {
-    // Không có motion đang chạy: settleMotion đã hủy transition và dọn cohort; duyệt lại mọi card chỉ tốn task mở detail.
+    // No motion running: settleMotion already cancelled the transition and cleaned up the cohort; re-walking every card would only cost the open-detail task.
     if (!gridHost.motionFrame && !gridHost.motionTimer && !motionUntil && !pendingScroll) return;
     gridHost.stopMotion();
     motionUntil = 0;
@@ -2236,7 +2236,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const [id, node] of gridHost.rendered) {
       if (node.hidden) continue;
       const rect = node.getBoundingClientRect();
-      // Cỡ đang thấy, kể cả lượt co giãn đang chạy (morphSize).
+      // Size currently visible, including a running scale pass (morphSize).
       const link = node.firstElementChild;
       const scaleY = link?.offsetHeight ? link.getBoundingClientRect().height / link.offsetHeight : 1;
       coordinates.set(id, { x: rect.left - gridRect.left, y: rect.top - gridRect.top,
@@ -2255,9 +2255,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const skeletonFrameBySlot = new Map();
   const skeletonPhaseBySlot = new Map();
   const skeletonEntryFrames = new Map();
-  // Slot batch và media đang tải giữ nguyên lượt vẽ trong một trạng thái trang (advertising-skeleton R3).
+  // Batch slots and loading media keep their paint pass within one page state (advertising-skeleton R3).
   const skeletonAssignmentByKey = new Map();
-  // Theo key chứ không theo frame: card ra vào view tạo frame mới cho cùng media, nên cache theo frame luôn trượt.
+  // By key, not by frame: a card entering and leaving view creates a new frame for the same media, so a per-frame cache always misses.
   const skeletonStillByKey = new Map();
   const resetSkeletonAssignments = () => {
     skeletonAssignmentByKey.clear();
@@ -2279,7 +2279,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
-  // Skeleton loading chạy trên related card và cả primary; batch CTA được xóa khi đang mở photo.
+  // Loading skeleton runs on related cards and on the primary; the CTA batch is removed while a photo is open.
   const skeletonMotionAllowed = () => !skeletonDocumentParked && !document.hidden
     && !skeletonMotionPreference.matches
     && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
@@ -2299,12 +2299,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ?? `media:${frame.dataset.masonryLoadingSkeleton}`;
   const skeletonPhase = (frame) => skeletonPhaseBySlot.get(skeletonKey(frame))
     ?? skeletonAssignmentByFrame.get(frame).phase;
-  // Không có renderer live, canvas hiện ảnh tĩnh của chính Flow tại pha đã lưu (R5).
+  // With no live renderer, the canvas shows Flow's own still image at the saved phase (R5).
   const createSkeletonCanvas = (frame, canvas = document.createElement("canvas")) => {
     const assignment = skeletonAssignmentByFrame.get(frame);
     const { preset, anchorPermutation, direction, speedScale } = assignment;
     const phase = skeletonPhase(frame);
-    // Remount dùng lại ảnh tĩnh đã vẽ lúc release; chỉ khi sang pha khác mới tốn một lần render CPU.
+    // Remount reuses the still image drawn at release; only a different phase costs one CPU render.
     const cached = skeletonStillByKey.get(skeletonKey(frame));
     const still = cached?.assignment === assignment && cached.phase === phase
       ? cached.still
@@ -2323,7 +2323,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
     canvas.setAttribute("aria-hidden", "true");
-    // Canvas tràn ra ngoài surface 8% mỗi bên; surface hiện cùng ảnh tĩnh dưới canvas đang mờ dần.
+    // The canvas overflows the surface by 8% on each side; the surface shows the same still image beneath the fading canvas.
     const surface = frame.querySelector(".masonry-grid__cta-surface");
     surface.style.backgroundColor = preset.colors[3];
     surface.style.backgroundImage = still;
@@ -2339,8 +2339,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     frame.append(surface);
     return frame;
   };
-  // Kề nhau: cùng cột phía trên hoặc dưới, hoặc cột kế tiếp chồng lên theo chiều dọc (R3).
-  // `rects` giữ các rect đọc trước mọi lần append canvas, nên một batch vẽ chỉ ép một layout.
+  // Adjacent: same column above or below, or the next column overlapping vertically (R3).
+  // `rects` holds the rects read before any canvas append, so one draw batch forces only one layout.
   const skeletonNeighbors = (frame, rects) => {
     const rectOf = (other) => rects?.get(other) ?? other.getBoundingClientRect();
     const rect = rectOf(frame);
@@ -2368,7 +2368,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonAssignmentByFrame.set(frame, assignment);
     frame.querySelector(".masonry-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
-  // Mọi khung batch vẽ trên một canvas WebGL chung nửa độ phân giải (advertising-skeleton R5).
+  // All batch frames draw on one shared half-resolution WebGL canvas (advertising-skeleton R5).
   const sharedFlowFor = (frame) => {
     const container = frame.closest(".masonry-grid__cta-skeleton");
     if (!container) return null;
@@ -2376,7 +2376,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       sharedSkeletonFlow = createSharedSkeletonFlowLayer();
       addEventListener("pagehide", (event) => { if (!event.persisted) sharedSkeletonFlow?.dispose(); });
     }
-    // Batch dựng lại xóa hoặc thêm khung sau canvas; canvas phải là con cuối để nằm trên khung, dưới Kính và CTA.
+    // A rebuilt batch removes or adds frames after the canvas; the canvas must be the last child to sit above the frames, below Glass and the CTA.
     const canvas = sharedSkeletonFlow?.canvas;
     if (canvas && container.lastElementChild !== canvas) container.append(canvas);
     return sharedSkeletonFlow;
@@ -2389,7 +2389,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const sharedLayer = sharedFlowFor(frame);
     if (sharedLayer) {
       const surface = frame.querySelector(".masonry-grid__cta-surface");
-      // Đang reveal thì canvas chung theo opacity của surface; xong reveal thì 1 (R4).
+      // While revealing, the shared canvas follows the surface opacity; after the reveal it is 1 (R4).
       const alpha = () => (skeletonEntryFrames.has(frame) ? Number(getComputedStyle(surface).opacity) : 1);
       skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale, alpha }));
       return;
@@ -2409,7 +2409,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       speedScale,
       ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
     };
-    // Vuốt nhanh làm rAF main thread còn khoảng 12fps trên A04s: vẽ trong worker thì Flow chạy đều (R8, owner 19/10).
+    // A fast swipe leaves the main-thread rAF at about 12fps on the A04s: drawing in a worker keeps Flow running steadily (R8, owner 19/10).
     const shared = !lease && sharedFlowAllowed();
     const workerRenderer = !lease && createSkeletonFlowWorkerRenderer(canvas, shared ? { ...options, shared: true } : options);
     if (shared && !workerRenderer) return;
@@ -2424,10 +2424,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     if (oldCanvas && oldCanvas !== canvas) oldCanvas.replaceWith(canvas);
     if (!canvas.isConnected) frame.querySelector(".masonry-grid__cta-surface")?.append(canvas);
-    // Vẽ một lần khi canvas được lease nằm trong frame; không có paint nào chen giữa, nên vẫn thấy frame đầu.
+    // Draw once when the canvas is leased inside the frame; no paint intervenes, so the first frame is still seen.
     renderer?.draw(performance.now());
-    // Vuốt nhanh thì card chỉ ở trong viewport khoảng 270ms, fade 300ms thì Flow không kịp hiện (R4); ảnh tĩnh dưới canvas
-    // cùng pha nên hiện ngay không nhảy.
+    // On a fast swipe a card stays in the viewport only about 270ms, so a 300ms fade means Flow never shows (R4); the still image under the canvas
+    // is in the same phase so it shows immediately without a jump.
     if (enteringWhileScrolling()) {
       canvas.style.opacity = "1";
       return;
@@ -2457,7 +2457,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const oldCanvas = frame.querySelector("canvas");
     if (oldCanvas && skeletonAssignmentByFrame.has(frame)) oldCanvas.replaceWith(createSkeletonCanvas(frame));
   };
-  // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
+  // `rects` is read before assignSkeleton appends the canvas; reading again afterwards forces another style recalc.
   const syncSkeletonRenderers = (rects) => {
     const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
     const eligible = skeletonMotionAllowed();
@@ -2465,8 +2465,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
-    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport. Dùng lại rect đã đọc
-    // trước khi append canvas: đọc lại ép thêm một layout (phone Android, decision phone-frame-budget).
+    // Card and CTA frames sit in different containers, so order by viewport position. Reuse the rect read
+    // before appending the canvas: reading again forces another layout (Android phone, decision phone-frame-budget).
     const prioritized = [...visibleSkeletonFrames]
       .filter((frame) => skeletonAssignmentByFrame.has(frame))
       .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
@@ -2477,7 +2477,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (keep.size >= budget) break;
       keep.add(frame);
     }
-    // Release trước khi cấp phát để xoay điện thoại không bao giờ chồng ngân sách context.
+    // Release before allocating so rotating the phone never stacks the context budget.
     for (const frame of skeletonFlowByFrame.keys()) {
       if (!keep.has(frame)) releaseSkeletonRenderer(frame);
     }
@@ -2485,13 +2485,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonMountWanted = keep;
     if ([...keep].some((frame) => !skeletonFlowByFrame.has(frame))) scheduleSkeletonMount();
   };
-  // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên phone Android (R8): mọi renderer
-  // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
-  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
+  // A new context, then shader and noise, each cost tens of ms on an Android phone (R8): every renderer
+  // mounts in its own task after the frame, with the new context one task before it; the still image shows meanwhile.
+  // A non-phone device mounts without waiting for scroll to stop, so Flow runs while the scrollbar is held (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
-  // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Khung batch
-  // trên điện thoại còn chờ swipe dừng (R5 "cuộn mượt thắng"); khung card mount ngay lúc vuốt (owner 18/10).
+  // Compiling the shader and creating the context stalls the card's 0.4s slide frame, so mount waits for it to finish. Batch frames
+  // on phones also wait for the swipe to stop (R5 "smooth scroll wins"); card frames mount immediately during a swipe (owner 18/10).
   const skeletonMountWait = (frame) => Math.max(motionUntil - performance.now(),
     skeletonPhone() && frame.dataset.masonryCtaFrame ? phoneScrollWait() : 0);
   const pendingSkeletonMounts = () => [...skeletonMountWanted].filter((node) => node.isConnected && !skeletonFlowByFrame.has(node));
@@ -2502,7 +2502,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       skeletonMountTimer = 0;
       const pending = pendingSkeletonMounts();
       const frame = pending.find((node) => skeletonMountWait(node) <= 0);
-      // Chỉ còn khung batch đang chờ cuộn dừng: hẹn lại theo thời gian chờ nhỏ nhất.
+      // Only batch frames waiting for scroll to stop remain: reschedule by the smallest wait time.
       if (!frame && pending.length) {
         scheduleSkeletonMount();
         return;
@@ -2514,7 +2514,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
-      // Worker tự tạo context ngoài main thread, không cần tạo trước.
+      // The Worker creates its context off the main thread, no need to create one ahead.
       if (!leased && !skeletonFlowWorkerSupported() && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
@@ -2525,7 +2525,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         }
       }
       mountSkeletonRenderer(frame);
-      // Vượt ngân sách hoặc mất context thì không mount gì; lần đổi visibility kế tiếp thử lại.
+      // Over budget or context lost: mount nothing; the next visibility change retries.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
     }, Number.isFinite(wait) ? Math.max(0, wait) : 0);
   };
@@ -2545,11 +2545,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         skeletonEntryFrames.delete(frame);
         return;
       }
-      // Card vào viewport lúc đang cuộn hiện ngay: fade 0.6s dài hơn thời gian vuốt nhanh để lại card trong viewport (R4).
+      // A card entering the viewport while scrolling shows immediately: a 0.6s fade is longer than a fast swipe leaves the card in the viewport (R4).
       if (!frame.dataset.masonryCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
-      // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
+      // A batch frame enters like a card image: Flow shows under Glass on the empty frame over 0.6s (skeleton R4).
       if (frame.dataset.masonryCtaFrame) {
         const reveal = playReveal({ to: [frame.querySelector(".masonry-grid__cta-surface")], host: frame });
         pending.glass = reveal.glass;
@@ -2562,8 +2562,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
     skeletonEntryFrames.set(frame, pending);
   };
-  // rAF của scheduleSkeletonSync chung task với frame cuộn và layout masonry; ảnh tĩnh render CPU ở task sau, nếu
-  // không task frame vượt 50ms trên phone Android lúc vuốt nhanh (R8, decision phone-frame-budget).
+  // The rAF of scheduleSkeletonSync shares a task with the scroll frame and masonry layout; the still image renders on CPU in a later task, otherwise
+  // the frame task exceeds 50ms on an Android phone during a fast swipe (R8, decision phone-frame-budget).
   let skeletonSyncInFrame = false;
   let skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
   const syncSkeletonMotion = () => {
@@ -2577,8 +2577,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
       else visibleSkeletonFrames.delete(frame);
     }
-    // Mỗi ảnh tĩnh là một lần render CPU; mở detail có thể cần hơn chục cái cùng lúc. Vượt ngân sách
-    // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision phone-frame-budget).
+    // Each still image is one CPU render; opening detail may need more than a dozen at once. Over budget,
+    // the rest go to a later task, and a frame without an assignment does not enter the entry yet (decision phone-frame-budget).
     const assignUntil = performance.now() + skeletonAssignBudget;
     let assigned = 0;
     for (const frame of visibleSkeletonFrames) {
@@ -2604,7 +2604,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       if (!visibleSkeletonFrames.has(frame)) {
-        // Khung đã hiện giữ nguyên khi ra vào viewport, như card ảnh đã tải (skeleton R4); chạy lại thì nháy trắng dưới Kính.
+        // A frame already shown stays as is when entering and leaving the viewport, like a loaded image card (skeleton R4); rerunning it flashes white under Glass.
         cancelSkeletonEntry(frame);
         frame.classList.remove("is-looping");
         frame.dataset.masonryFlowState = "paused";
@@ -2621,7 +2621,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
       if (!skeletonAssignmentByFrame.has(frame)) return;
       if (skeletonCanLoop(frame)) {
-        // Flow chạy từ frame đầu tiên của entry Kính (R4).
+        // Flow runs from the first frame of the Glass entry (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
         frame.classList.toggle("is-looping", Boolean(renderer));
         frame.dataset.masonryFlowState = renderer ? "running" : "paused";
@@ -2637,9 +2637,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let skeletonAssignTimer = 0;
   const scheduleSkeletonAssign = () => {
     if (skeletonAssignTimer || controller.signal.aborted) return;
-    // Chạy trong idle sau frame: layout đã sạch nên đọc rect không ép style, và ngân sách vừa phần rảnh của frame
-    // thay vì một task 17ms chen giữa hai frame lúc vuốt nhanh trên A05s cũ (decision phone-frame-budget). Luôn gán ít
-    // nhất một khung mỗi lượt để không treo khi idle hết hạn.
+    // Runs at idle after the frame: layout is clean so reading rects forces no style, and the budget fits the frame's idle part
+    // instead of a 17ms task wedged between two frames during a fast swipe on an old A05s (decision phone-frame-budget). Always assign at least
+    // one frame per pass so it does not hang when idle expires.
     const run = (deadline) => {
       skeletonAssignTimer = 0;
       if (controller.signal.aborted) return;
@@ -2652,8 +2652,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
-  // Class body đổi ngay trong task chạm card (is-detail); đồng bộ ở frame kế để đọc rect không ép thêm
-  // một lần style và layout trong task đó (decision phone-frame-budget).
+  // The body class changes right in the card-tap task (is-detail); sync in the next frame so reading rects does not force another
+  // style and layout in that task (decision phone-frame-budget).
   const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
@@ -2668,11 +2668,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       skeletonSyncInFrame = false;
     });
   };
-  // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
+  // Loading media shows the last masonry skeleton frame itself (loading-glass-and-page-entry R1, R5).
   const attachLoadingSkeleton = (host, mediaId, before = null, colors = null) => {
     const frame = createSkeletonFrame();
     frame.dataset.masonryLoadingSkeleton = mediaId;
-    // Flow chờ ảnh primary mang 4 màu của chính ảnh (advertising-skeleton R3).
+    // Flow waits for the primary image and carries the image's own 4 colors (advertising-skeleton R3).
     if (colors) frame.dataset.masonryFlowColors = colors.join(" ");
     if (skeletonAssignmentByKey.has(skeletonKey(frame))) assignSkeleton(frame);
     frame.setAttribute("aria-hidden", "true");
@@ -2693,11 +2693,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     frame.remove();
     scheduleSkeletonSync();
   };
-  // Bước crossfade của reveal đã duyệt: layer cũ mờ từ opacity hiện tại, layer mới từ 0.
+  // Crossfade step of the approved reveal: the old layer fades from its current opacity, the new layer from 0.
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;
     const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
-    // Đọc hết opacity trước lần ghi đầu, nên cả crossfade chỉ tốn một lần style recalc.
+    // Read all opacities before the first write, so the whole crossfade costs only one style recalc.
     const opacities = from.map((node) => getComputedStyle(node).opacity);
     return [
       ...from.map((node, index) => {
@@ -2709,9 +2709,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
   };
-  // Một reveal cho card, primary và khung batch (masonry-reuse bước 8): `from` mờ đi, `to` hiện lên theo crossfade đã
-  // duyệt. Có `host` thì thêm Kính ba bậc cuối media box, trên photo và skeleton (R2, R4), trừ khi cung CTA đang thấy:
-  // Kính reveal làm Chrome bỏ blur các bậc của cung (skeleton R4).
+  // One reveal for card, primary and batch frame (masonry-reuse step 8): `from` fades out, `to` shows via the approved
+  // crossfade. With `host`, add three-tier Glass at the bottom of the media box, over photo and skeleton (R2, R4), unless the arc CTA is visible:
+  // the reveal Glass makes Chrome drop the arc's tier blur (skeleton R4).
   const playReveal = ({ from = [], to = [], host = null }) => {
     let glass = null;
     if (host && !ctaBatch.arcInView) {
@@ -2721,38 +2721,38 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
     const finished = Promise.all(animations.map(({ finished: done }) => done));
-    // Reveal bị hủy (card rời view, đổi filter, teardown) làm `finished` reject; nơi gọi không cần thì không báo lỗi.
+    // A cancelled reveal (card leaves view, filter change, teardown) makes `finished` reject; callers that do not need it report no error.
     finished.catch(() => {});
     return { glass, animations, finished };
   };
-  // Nền realtime của vùng dư vẽ vào canvas 1/8 khung với blur của bậc cuối rồi phóng 8 lần (detail.css): CSS filter trên
-  // ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
+  // The realtime background of the spare area draws into a 1/8-frame canvas with the last tier's blur then scales up 8x (detail.css): a CSS filter on a
+  // scaled-up image is recomputed by the GPU at screen size every frame, a canvas is not.
   const BAKED_SCALE = 8;
   const BAKED_FILTERS = [[100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
-  // Media tải sau hiện dưới blur của chính nó, tải xong thì blur tan trong 0.6s; media đã tải thì hiện ngay
+  // Late-loading media shows under its own blur and the blur melts away over 0.6s once loaded; already-loaded media shows immediately
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
   const attachCardSkeleton = (node, waitCache = loadedMediaKeys.has(mediaKey(node))) => {
     const mediaId = node.advertisingPendingMediaId?.();
     if (cardSkeletons.has(node) || !mediaId) return;
-    // Card gắn lại có media đã tải thì chờ cache, không skeleton (loading-glass R3).
+    // A re-attached card with already-loaded media waits for the cache, no skeleton (loading-glass R3).
     if (waitCache) {
       setTimeout(() => node.isConnected && visibleMediaCards.has(mediaKey(node)) && attachCardSkeleton(node, false),
         REMOUNT_CACHE_WAIT_MS);
       return;
     }
-    // Ảnh hiện ngay dưới blur của chính nó để trình duyệt vẽ dần; filter trên ảnh không đọc lại nền mỗi frame như Kính
-    // backdrop-filter nên kéo thanh cuộn không rớt FPS (progressive-loading R9).
+    // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
+    // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
     const scale = cardLoadingScale(node);
     mediaLayers(node).forEach((media) => {
       media.style.filter = CARD_LOADING_BLUR;
       media.style.scale = scale;
     });
-    // Card mờ chờ ảnh thì thở (detail.css, spec chờ ảnh S2); dropCardSkeleton gỡ cùng lúc gỡ blur.
+    // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
     node.dataset.masonryMediaLoading = "";
     node.style.setProperty("--breathe-phase", breathePhase());
-    // Card đã vẽ ảnh mờ trên màu chủ đạo, nên card tạm gỡ ở frame kế, không crossfade (R7).
+    // The card has already drawn the blurred image over the dominant color, so the temp card is removed in the next frame, no crossfade (R7).
     if (node.masonryGhost) {
       const ghost = node.masonryGhost;
       node.masonryGhost = null;
@@ -2808,10 +2808,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       cardSkeletons.set(node, entry);
     }
     entry.revealing = true;
-    // Không có blur thì chỉ swap photo đã decode để crossfade không vẽ frame decode dở (R2).
+    // Without blur, only swap the decoded photo so the crossfade does not paint a half-decoded frame (R2).
     const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
-      // Card rời view lúc decode thì skeleton đã bị drop; vẫn phải hiện ảnh, không thì kẹt opacity 0.
+      // A card leaving view during decode has had its skeleton dropped; the image must still show, otherwise it is stuck at opacity 0.
       if (cardSkeletons.get(node) !== entry) {
         if (!cardSkeletons.has(node)) showMedia(node);
         return;
@@ -2823,8 +2823,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
       const layers = mediaLayers(node);
       if (entry.blur) {
-        // Blur tan về 0 trong 0.6s (progressive-loading R9). Thở dừng đúng lúc đó: opacity đi từ giá trị đang thở về 1 cùng
-        // nhịp, không nháy; đọc trước khi gỡ attribute vì gỡ rồi CSS animation dừng và giá trị đọc được luôn là 1.
+        // The blur melts to 0 over 0.6s (progressive-loading R9). The breathing stops at exactly that moment: opacity goes from the breathing value to 1 on the same
+        // rhythm, no flash; read before removing the attribute because once removed the CSS animation stops and the value read is always 1.
         const from = layers.map((media) => getComputedStyle(media).opacity);
         delete node.dataset.masonryMediaLoading;
         entry.animations = layers.map((media, index) => media.animate(
@@ -2860,25 +2860,25 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonFrameBySlot.clear();
     ctaBatch.clear();
   };
-  // Khung batch, cụm CTA và Kính cung trượt từ vị trí cũ cùng nhịp transform 0.4s ease của card masonry, nên cả
-  // trang đọc như một masonry khi resize hay đổi filter (owner 10/10). Dùng `translate` để không đè transform
-  // parallax của CTA.
+  // The batch frame, CTA cluster and arc Glass slide from the old position at the same 0.4s ease transform rhythm as masonry cards, so the whole
+  // page reads as one masonry on resize or filter change (owner 10/10). Use `translate` so the CTA's parallax
+  // transform is not overridden.
   const slideFrom = (node, before) => {
     if (!before || !node.isConnected) return;
     const after = node.getBoundingClientRect();
     let dx = before.left - after.left;
     let dy = before.top - after.top;
-    // Khung batch co giãn từ cỡ cũ như card (morphSize); cụm CTA và Kính chỉ trượt.
+    // The batch frame scales from its old size like a card (morphSize); the CTA cluster and Glass only slide.
     const scale = node.dataset.masonryCtaFrame && after.width && after.height
       ? `${before.width / after.width} ${before.height / after.height}` : "1 1";
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && scale === "1 1") return;
-    // Ở detail khung batch cũng đi vòng primary như card related (R10); tọa độ tính từ góc trên trái primary.
-    // Cụm CTA và Kính cung rộng cả lưới, luôn dưới primary: trượt thẳng, không đọc rect primary.
+    // In detail the batch frame also goes around the primary like a related card (R10); coordinates are computed from the primary's top-left corner.
+    // The CTA cluster and arc Glass span the whole grid, always below the primary: slide straight, do not read the primary rect.
     const box = node.dataset.masonryCtaFrame && ctaInDetail() && photoPrimary?.getBoundingClientRect();
     let corner = null;
     if (box?.width) {
       const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
-      // Item ghim như ở card related: primary, rồi suggestion ghim dưới nó (detail R5).
+      // Pinned items as on related cards: the primary, then the pinned suggestion below it (detail R5).
       const pin = suggestionNode?.parentElement === relatedGrid && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
       const pinned = [{ x: 0, y: 0, width: box.width, height: box.height },
         ...(pin?.width ? [{ x: pin.left - box.left, y: pin.top - box.top, width: pin.width, height: pin.height }] : [])];
@@ -2895,15 +2895,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
   }));
   const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
-  // Ba node CTA (batch, cụm, Kính cung) là một bộ: ở masonry nằm trong grid, ở detail chuyển sang canvas cuối related
-  // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
+  // The three CTA nodes (batch, cluster, arc Glass) are one set: in masonry they sit in the grid, in detail they move to the canvas at the end of related
+  // (advertising-cta-center-parallax R9). Keeping the nodes means the Flow renderer, per-slot band and measured font size are not lost.
   const ctaInDetail = () => ctaBatch.host === "detail";
-  // Sân của batch. Sang detail: chạy lại motion vào view sau lần đặt chỗ ở canvas (R9). Về masonry giữ trạng thái
-  // đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại. Ở grid cụm kế thừa biến từ .project-index.
+  // The batch yard. Going to detail: rerun the enter-view motion after the placement on the canvas (R9). Back to masonry keep the state
+  // already shown: scrolling back to the old place with the CTA on screen does not hide then rerun it. In the cluster grid inherit variables from .project-index.
   const moveCtaNodes = (host) => ctaBatch.attach(host, host === "detail" && photoCanvas
     ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, replay: true }
     : { skeletonParent: grid, clusterParent: gridSectionStyleTarget });
-  // Chỉ ghi khi đổi: ghi lại cùng giá trị biến kế thừa vẫn có thể làm bẩn style cả cây con.
+  // Write only on change: rewriting the same value of an inherited variable can still dirty the style of the whole subtree.
   const setStyleVar = (node, name, value) => {
     if (node && node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
   };
@@ -2922,22 +2922,22 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       clearCtaSkeleton();
       return;
     }
-    // Mỗi lần dựng tốn 15-115ms trên CPU chậm, nên lượt mở detail chỉ dựng một lần, ở task sau task gắn related (R9):
-    // pha primary, warm, related chưa đặt related, pha cta chờ task riêng; đang ở photo thì grid không dựng (batch sang detail ngay).
+    // Each build costs 15-115ms on a slow CPU, so an open-detail pass builds only once, in the task after the related mount task (R9):
+    // phases primary, warm, related do not place related yet, the cta phase waits for its own task; while on a photo the grid does not build (the batch goes to detail right away).
     if (detailHost ? directEntryPhase : browseHistory.current?.photo) return;
-    // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
+    // Read the visible position (including the previous slide) before cancelling that pass.
     const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
     cancelCtaSlides(slideOrigins?.keys() || []);
     const gap = hostGeometry.interCardGap;
     const ctaTop = hostGeometry.totalPixelHeight + gap;
-    // Đọc trước mọi lần ghi: đọc sau khi ghi biến ép trình duyệt tính lại style giữa task (A04s 60-140ms mỗi lần dựng).
+    // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
     const viewportHeight = getLayoutViewportHeight();
     lastCtaViewportHeight = viewportHeight;
     const footerHeight = siteFooter?.offsetHeight || 0;
     const room = viewportHeight / 2 - footerHeight - gap;
     const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
-    // Ở detail biến đặt thẳng trên cụm CTA (nơi duy nhất dùng chúng), không trên canvas: biến kế thừa đổi trên canvas
-    // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry.
+    // In detail the variables are set directly on the CTA cluster (the only place that uses them), not on the canvas: a changed inherited variable on the canvas
+    // recomputes style for all of related. In the grid the runtime writes the in-between value onto .project-index when measuring masonry.
     const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
     setStyleVar(ctaVarHost, "--masonry-cta-top", `${ctaTop}px`);
     if (detailHost) {
@@ -2947,32 +2947,32 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
-      // Cỡ copy sau fit là cỡ ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai. Đọc khi layout
-      // còn sạch sau lần đo của fit, trước các lần ghi biến dưới.
+      // The copy size after fit is the size ResizeObserver is about to report: do not treat it as a change that rebuilds a second time. Read while layout
+      // is still clean after fit's measurement, before the variable writes below.
       const copyRect = gridCtaCopy.getBoundingClientRect();
       observedCopySize = `${copyRect.width}x${copyRect.height}`;
-      // CSS đặt copy theo dynamic viewport, nên thanh địa chỉ không bao giờ dựng lại batch.
+      // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
       gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
       requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
     }
-    // Baseline cuối nằm D phía trên đáy batch; cửa sổ quá thấp thì nút giữ cách nó một gap.
+    // The last baseline sits D above the batch bottom; if the window is too short, the button keeps a gap from it.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(hostGeometry.cardWidth * 0.25) + 1,
       viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
     const nextCtaGeometryHash = `${detailHost ? "detail" : "grid"}:${hostGeometry.coordinateHash}:${tailHeight.toFixed(3)}`;
-    // Cùng hình học: layoutRelated vừa ghi lại chiều cao canvas bằng related, nên đặt lại đáy CTA.
+    // Same geometry: layoutRelated just rewrote the canvas height to the related height, so reset the CTA bottom.
     if (ctaGeometryHash === nextCtaGeometryHash) {
       if (detailHost) setCtaHostHeight(ctaBottom);
       return;
     }
     gridCta?.style.setProperty("--masonry-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
-    // Chiều cao vừa đo là chiều cao ResizeObserver sắp báo: không coi đó là thay đổi để dựng lại lần hai.
+    // The height just measured is the height ResizeObserver is about to report: do not treat it as a change that rebuilds a second time.
     observedCtaHeight = ctaHeight;
     const gridBottom = ctaTop + ctaHeight;
     ctaBottom = gridBottom;
-    // Batch kết thúc ngay trên footer.
+    // The batch ends right above the footer.
     const skeletonBoundaryBottom = gridBottom;
     const fragment = document.createDocumentFragment();
     const frameLayout = createSkeletonFlowFrameLayout({
@@ -3004,7 +3004,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         if (!frame) {
           frame = createSkeletonFrame();
           frame.dataset.masonryCtaSlot = slot;
-          // Slot quay lại hiện màu ngay; slot mới vẽ khi lần đầu vào view.
+          // A slot coming back shows its color immediately; a new slot draws on first entering view.
           if (skeletonAssignmentByKey.has(slot)) assignSkeleton(frame);
           if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
           fragment.append(frame);
@@ -3030,9 +3030,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ctaSkeleton.dataset.masonryCtaRealBottom = String(hostGeometry.totalPixelHeight);
     ctaSkeleton.dataset.masonryCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
     if (arcGlass) {
-      // Cụm CTA (từ đầu heading đến cuối link) tại giới hạn cuộn, nơi parallax bằng 0.
+      // CTA cluster (from heading start to link end) at the scroll limit, where parallax is zero.
       const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
-      // Hiện trước khi đo: box ẩn không có width.
+      // Show before measuring: a hidden box has no width.
       arcGlass.hidden = false;
       layoutArcGlass(arcGlass, arcGlassGeometry({
         width: arcGlass.clientWidth,
@@ -3052,14 +3052,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
     syncSkeletonMotion();
     syncCtaParallax();
-    // Kính cung đổi hình theo bề rộng mới; nó trượt theo độ dời của cụm CTA.
+    // The arc Glass changes shape with the new width; it slides by the CTA cluster's displacement.
     if (slideOrigins && gridCta && arcGlass) {
       const cta = slideOrigins.get(gridCta);
       const glass = slideOrigins.get(arcGlass);
       if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
         arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
     }
-    // Khung mới xuất phát ngay dưới khung đứng trước nó trong layout cũ, như item kế tiếp của masonry cũ.
+    // The new frame starts right below the frame that preceded it in the old layout, like the next item of the old masonry.
     if (slideOrigins) {
       let previous = null;
       frameLayout.forEach(({ slot }) => {
@@ -3075,13 +3075,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     slideOrigins?.forEach((before, node) => slideFrom(node, before));
   };
 
-  // `scrolling`: frame cuộn không đổi hình học, nên batch CTA đã dựng thì không đo lại (mỗi frame đo ép layout).
+  // `scrolling`: a scroll frame does not change geometry, so an already-built CTA batch is not re-measured (each frame's measurement forces layout).
   const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
     if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
-    // Grid đổi chiều cao làm trình duyệt kẹp scroll (đang ở cuối trang); card phải xuất phát từ chỗ đang thấy trên
-    // màn, nếu không chúng bay lệch đúng bằng độ kẹp rồi giật về (đo trên PC, vòng 26).
+    // The grid changing height makes the browser clamp the scroll (at page bottom); cards must start from where they are visible on
+    // screen, otherwise they fly off by exactly the clamp amount then snap back (measured on PC, round 26).
     if (origins?.gridTop !== undefined) {
       const shift = origins.gridTop - grid.getBoundingClientRect().top;
       if (shift) origins = new Map([...origins].map(([id, origin]) => [id, { ...origin, y: origin.y + shift }]));
@@ -3092,8 +3092,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       gridHost.motionFrame = 0;
     }
     gridHost.cancelGhosts();
-    // Cuộn thường được giữ card trong vùng trễ và dựng theo ngân sách frame; motion layout (animate) dựng và gỡ theo
-    // vùng dựng như cũ (R7).
+    // Normal scroll keeps cards in the hysteresis zone and builds within the frame budget; motion layout (animate) builds and removes by
+    // the build zone as before (R7).
     const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight } = virtualWindow({ hysteresis: !animate });
     const fastScroll = gridHost.budget.begin(currentVisualY, viewportHeight);
     const currentKeep = new Set(gridHost.rendered.keys());
@@ -3102,7 +3102,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
     if (hasLaidOut && !membershipChanged && !geometryChanged) return;
-    // Cùng hình học và không motion thì tọa độ đã nằm trong positions từ lần trước: không dựng lại map 285 card mỗi frame cuộn.
+    // Same geometry and no motion means coordinates are already in positions from last time: do not rebuild the 285-card map every scroll frame.
     const samePositions = hasLaidOut && !geometryChanged && !animate && positionsGeometry === geometry;
     const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
     const hasCoordinateDiff = samePositions ? false : coordinateChanged(nextPositions);
@@ -3112,10 +3112,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const keep = retainCohort ? new Set([...currentKeep, ...normalKeep]) : normalKeep;
     const created = new Set();
     const seeded = new Set();
-    // Card thật được dựng mới trong frame này: card ép giữ (vừa mở detail) luôn được dựng, còn lại theo quota, giao
-    // viewport và gần giữa màn hình trước. Lần layout đầu và motion layout dựng hết. Phần còn lại là card tạm.
+    // Real cards built fresh in this frame: forced-keep cards (just opened detail) are always built, the rest by quota, handed out
+    // viewport-intersecting and near-screen-center first. The first layout and motion layout build everything. The rest are temp cards.
     let allowed = null;
-    // Card tạm giữ tọa độ của hình học cũ: hình học đổi (đổi cỡ cửa sổ, filter) thì bỏ hết và dựng lại theo hình học mới.
+    // Temp cards keep the coordinates of the old geometry: when geometry changes (window resize, filter) drop them all and rebuild by the new geometry.
     if (animate || geometryChanged) {
       gridHost.ghosts.clear();
       gridHost.detached.clear();
@@ -3151,8 +3151,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
 
     gridHost.release(keep, { queue: !animate && !geometryChanged });
     gridHost.ghosts.prune(keep);
-    // Còn card tạm chờ dựng thì dựng ở frame sau; frame đó đã có rAF cuộn chạy ngay sau thì một lần renderWindow là
-    // đủ, hẹn lại frame kế để không mất lượt.
+    // If temp cards still await building, build in the next frame; if that frame already has a scroll rAF running right after, one renderWindow is
+    // enough, so reschedule for the next frame so no pass is lost.
     const mountGhosts = () => {
       if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
       else renderWindow({ scrolling: true });
@@ -3169,7 +3169,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const placement of visiblePlacements) {
       const node = gridHost.rendered.get(placement.card.id);
       if (!node) continue;
-      // Cùng hình học thì cỡ card không đổi: không ghi lại style và aria mỗi frame cuộn.
+      // Same geometry means card size is unchanged: do not rewrite style and aria every scroll frame.
       if (node.advertisingSizedBy !== geometry) {
         sizeNode(node, placement, geometry.placements.length);
         node.advertisingSizedBy = geometry;
@@ -3177,7 +3177,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       node.hidden = false;
     }
     for (const [id, node] of gridHost.rendered) node.hidden = retainCohort && !normalKeep.has(id);
-    // Card mới gắn ở cuối grid (fragment) nên thứ tự DOM lệch; gỡ card không làm lệch. Cohort motion giữ thứ tự tạm.
+    // New cards attach at the end of the grid (fragment) so DOM order drifts; removing cards does not. The motion cohort keeps temporary order.
     if (retainCohort) domOrderDirty = true;
     else if (domOrderDirty || created.size) {
       restoreCanonicalDomOrder();
@@ -3199,11 +3199,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         if (gridHost.motionTimer) clearTimeout(gridHost.motionTimer);
         gridHost.motionTimer = setTimeout(settleMotion, 400);
       }
-      // Card mới cần LazySizes xét; card đã mount được IntersectionObserver lo.
+      // New cards need LazySizes to examine them; already-mounted cards are handled by the IntersectionObserver.
       if (created.size || geometryChanged || shouldAnimate) window.lazySizes?.loader?.checkElems?.();
-      // site:layout chạy Locomotive update(), giữa lúc scroll làm trang nhảy tiến một bước; card bị hoán đổi do
-      // ảo hóa giữ nguyên chiều cao trang, nên chỉ khi chiều cao đổi mới báo layout (scroll-feel R1). Đọc offsetHeight
-      // ép layout, nên chỉ đọc khi chiều cao grid hoặc hình học đổi.
+      // site:layout runs Locomotive update(), which mid-scroll makes the page jump forward one step; cards swapped by
+      // virtualization keep the page height, so layout is reported only when the height changes (scroll-feel R1). Reading offsetHeight
+      // forces layout, so read it only when the grid height or geometry changes.
       if (geometryChanged || shouldAnimate || gridHost.pixelHeight !== announcedGridHeight) {
         announcedGridHeight = gridHost.pixelHeight;
         const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
@@ -3225,13 +3225,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
 
   const focusVirtualPlacement = (placement, { focus = true, scrollIntoView = true } = {}) => {
-    // Card chưa dựng (Tab tới card ngoài cửa sổ): dựng ngay, bỏ card tạm của nó.
+    // Card not built yet (Tab to a card outside the window): build it right away, dropping its temp card.
     const node = gridHost.ensure(placement);
     gridHost.ghosts.drop(placement.card.id);
     node.hidden = false;
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
-    // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
+    // An instant relayout mid-transition would stack the running transform onto the new top.
     gridHost.cancelTransitions();
     placeRendered();
     const anchor = node.querySelector("a");
@@ -3257,8 +3257,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderWindow({ animate, origins });
   };
 
-  // Title theo trang của filter (taxonomy R4); data-vi, data-en giữ cho lần đổi ngôn ngữ sau.
-  // Kicker hero đứng yên khi lọc, giữ chữ của trang đã tải (owner 2026-11-08).
+  // Title per filter page (taxonomy R4); data-vi, data-en kept for the next locale change.
+  // The hero kicker stays still when filtering, keeping the text of the loaded page (owner 2026-11-08).
   const syncPageHeading = () => {
     const page = pages.find((entry) => entry.filter === filter) || pages.find((entry) => entry.filter === "all");
     const node = document.querySelector("title");
@@ -3296,7 +3296,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return gridHost.rendered.get(id) || null;
   };
   const categoryById = new Map(categories.map((category) => [category.slug, category]));
-  // Dãy thumbnail và mô tả mờ ở mép còn nội dung, thanh cuộn mô tả theo vị trí cuộn (owner 2026-10-24).
+  // The thumbnail strip and description fade at the edge while content remains, the description scrollbar follows scroll position (owner 2026-10-24).
   const syncScrollFade = (node, before, after) => {
     node.toggleAttribute("data-fade-start", before > 1);
     node.toggleAttribute("data-fade-end", after > 1);
@@ -3316,13 +3316,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoDescriptionBar.style.setProperty("--thumb-height", `${descriptionThumbHeight}px`);
     photoDescriptionBar.style.setProperty("--thumb-top", `${room > 1 ? scrollTop / room * (clientHeight - descriptionThumbHeight) : 0}px`);
   };
-  // Khung hay nội dung đổi cỡ (layout, font, đổi card, đổi ngôn ngữ) thì đo lại sau layout, không ép layout riêng.
+  // When the frame or content changes size (layout, font, card change, locale change) re-measure after layout, without forcing a separate layout.
   const scrollHintObserver = new ResizeObserver(syncScrollHints);
   if (photoDescriptionScroll) [photoDescriptionScroll, photoDescription].forEach((node) => scrollHintObserver.observe(node));
   if (photoViewerThumbs) scrollHintObserver.observe(photoViewerThumbs);
   photoViewerThumbs?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
-  // Dãy thumbnail viewer tự ẩn khi chuột đứng yên 3s; rê chuột hoặc bấm phím thì hiện lại. Chuột trên dãy hoặc focus
-  // bàn phím trong dãy giữ dãy hiện (owner 2026-10-26).
+  // The viewer thumbnail strip hides itself when the mouse is still for 3s; moving the mouse or pressing a key shows it again. Mouse over the strip or keyboard
+  // focus inside the strip keeps it visible (owner 2026-10-26).
   let viewerThumbsTimer = 0;
   const wakeViewerThumbs = () => {
     photoViewerThumbs?.removeAttribute("data-viewer-idle");
@@ -3337,7 +3337,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   photoDialog?.addEventListener("pointermove", (event) => {
     if (event.pointerType === "mouse") wakeViewerThumbs();
   }, { signal: controller.signal });
-  // Mũi tên trái phải đổi media như bấm thumbnail; ảnh đang phóng to thì viewer dùng mũi tên để kéo ảnh (preventDefault).
+  // Left/right arrows change media like clicking a thumbnail; when the image is zoomed the viewer uses arrows to pan the image (preventDefault).
   photoDialog?.addEventListener("keydown", (event) => {
     wakeViewerThumbs();
     if (event.defaultPrevented || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
@@ -3345,7 +3345,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.preventDefault();
     photoViewerThumbs?.children[primaryIndex() + (event.key === "ArrowRight" ? 1 : -1)]?.click();
   }, { signal: controller.signal });
-  // Thumbnail đang xem nằm ngoài khung hoặc trong vùng mờ thì cuộn dãy cho nó vào giữa; dãy đang ẩn (viewer đóng) bỏ qua.
+  // If the viewed thumbnail is outside the frame or in the fade zone, scroll the strip to bring it to the center; a hidden strip (viewer closed) is skipped.
   const keepActiveThumbInView = () => {
     syncScrollHints();
     for (const node of [photoMediaThumbs, photoViewerThumbs]) {
@@ -3385,7 +3385,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         image.dataset.masonrySuggestionPhoto = first.id;
         const label = document.createElement("span");
         label.className = "detail-view__suggestion-label";
-        // Span ôm chữ để gạch chân hover dài đúng bằng dòng chữ (rule chung với portal, style.css).
+        // A span wraps the text so the hover underline is exactly as long as the text line (shared rule with portal, style.css).
         label.append(document.createElement("span"));
         link.append(image, label);
         links.append(link);
@@ -3430,7 +3430,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relatedLayoutKey = "";
     relatedMeasuredGeometry = null;
   };
-  // Card đã đặt kích thước theo relatedLayout nào; cùng layout thì cuộn không ghi lại.
+  // Which relatedLayout the card was sized for; the same layout means scrolling does not rewrite it.
   const relatedSized = new WeakMap();
   const ensureRelatedPhoto = (id) => {
     const placement = relatedLayout?.photoPlacements.find((entry) => entry.card.id === id);
@@ -3449,8 +3449,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.setAttribute("aria-setsize", String(relatedLayout.layout.placements.length));
     return node;
   };
-  // Nút gợi ý rộng bằng ô suggestion (lưới một cột): ghim sizes theo solver thay cho "auto". Chrome chọn lại ảnh
-  // khi bề rộng "auto" đổi lúc request đang chạy, hủy rồi tải lại cùng URL (issue #655).
+  // The suggestion button is as wide as the suggestion cell (single-column grid): pin sizes by the solver instead of "auto". Chrome re-selects the image
+  // when the "auto" width changes while a request is running, cancelling then reloading the same URL (issue #655).
   const pinSuggestionSizes = (width) => {
     suggestionNode.querySelectorAll("img[srcset]").forEach((image) => {
       const sizes = `${Math.ceil(width)}px`;
@@ -3495,7 +3495,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return [id, { x: position.left - rect.left, y: position.top - rect.top, w: position.width, h: position.height }];
       }));
   };
-  // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (advertising-cta-center-parallax R10).
+  // Cards going around the primary run Web Animations on `translate`, separate from Masonry's `transform` (advertising-cta-center-parallax R10).
   const cancelRelatedDetours = () => {
     for (const node of [...relatedHost.rendered.values(), suggestionNode]) {
       node?.getAnimations().forEach((animation) => animation.id === "related-detour" && animation.cancel());
@@ -3507,12 +3507,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
-    // Vào thẳng thì related card mount trong task riêng; scroll hoặc resize trước đó không được mount chúng khi chưa animate.
+    // On direct entry related cards mount in their own task; a scroll or resize before then must not mount them before they animate.
     if (!animate && (relatedHost.motionFrame || relatedHost.motionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
     const relatedScrollTop = Math.max(0, getLogicalScroll() + visible.top - gridTop);
-    // Như masonry chính (R7): dựng khi cách tối đa một viewport, gỡ khi ra xa hơn hai viewport (không áp cho motion layout).
+    // Like the main masonry (R7): build within one viewport at most, remove beyond two viewports (does not apply to motion layout).
     const windowed = getVirtualWindow(relatedLayout.layout, {
       overscan: visible.height,
       releaseOverscan: animate ? visible.height : visible.height * 2,
@@ -3536,7 +3536,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (validPhotoIds.has(id)) normalKeep.add(id);
     }
     const normalPhotoKeep = new Set([...normalKeep].filter((id) => id !== suggestionId));
-    // Card trong vùng trễ (ngoài vùng dựng) chưa mount thì không dựng, đã mount thì giữ.
+    // A card in the hysteresis zone (outside the build zone) that is not mounted is not built; if mounted, keep it.
     const retainedKeep = new Set([...normalPhotoKeep, ...windowed.retained.map((placement) => placement.card.id).filter((id) => validPhotoIds.has(id))]);
     if (!animate
       && [...normalPhotoKeep].every((id) => relatedHost.rendered.has(id))
@@ -3546,7 +3546,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const keep = motion ? new Set([...relatedHost.rendered.keys(), ...normalPhotoKeep]) : retainedKeep;
     relatedHost.positions.clear();
     for (const placement of relatedLayout.layout.placements) relatedHost.positions.set(placement.card.id, { x: placement.x, y: placement.y });
-    // Card chưa mount dựng theo quota, gần giữa màn hình trước; phần còn lại là card tạm (R7). Motion layout dựng hết.
+    // Unmounted cards are built by quota, near-screen-center first; the rest are temp cards (R7). Motion layout builds everything.
     if (animate) relatedHost.ghosts.clear();
     let relatedAllowed = null;
     const placementOf = new Map(relatedLayout.photoPlacements.map((placement) => [placement.card.id, placement]));
@@ -3566,10 +3566,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relatedHost.ghosts.prune(keep);
     const photoPlacements = [...normalPhotoKeep].map((id) => placementOf.get(id));
     relatedHost.mount(photoPlacements, { allowed: relatedAllowed, render: () => renderRelatedWindow() });
-    // Card đã trong sân đổi cỡ theo layout mới; card còn là card tạm thì chưa.
+    // A card already in the yard resizes to the new layout; a card that is still a temp card does not.
     photoPlacements.forEach(({ card: { id } }) => relatedHost.rendered.has(id) && ensureRelatedPhoto(id));
     if (keepSuggestion) ensureSuggestionCard();
-    // Chưa đặt trong related grid (pha primary của direct-entry) thì nó ẩn cho đến khi solver đặt.
+    // Not placed in the related grid yet (primary phase of direct-entry) so it stays hidden until the solver places it.
     else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
     for (const [id, node] of relatedHost.rendered) {
       if (!keep.has(id)) continue;
@@ -3578,7 +3578,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     relatedHost.release(keep, { queue: !relatedQueueStale });
     relatedQueueStale = false;
-    // Card có đường thẳng cắt qua primary: đặt ngay ở đích rồi trượt bằng `translate` qua góc vuông (R10).
+    // A card with a straight line crossing the primary: place it at the destination right away then slide with `translate` around the right angle (R10).
     const detours = new Map();
     const placementById = motion ? new Map(relatedLayout.layout.placements.map((placement) => [placement.card.id, placement])) : null;
     const suggestionPosition = keepSuggestion && relatedHost.positions.get(suggestionId);
@@ -3587,7 +3587,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       x: suggestionPosition.x, y: suggestionPosition.y,
       width: suggestionPlacement.pixelWidth, height: suggestionPlacement.pixelHeight,
     } : null;
-    // Item ghim: primary, rồi suggestion ghim dưới nó; card đi vòng cả hai, không trượt lòn dưới (owner 2026-11-07).
+    // Pinned items: primary, then the pinned suggestion below it; cards go around both, not sliding underneath (owner 2026-11-07).
     const pinned = [{ x: 0, y: 0, width: relatedLayout.primary.width, height: relatedLayout.primary.height },
       ...(suggestionBox ? [suggestionBox] : [])];
     const planDetour = (id, node, origin, destination) => {
@@ -3603,20 +3603,20 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const [id, node] of relatedHost.rendered) {
       const destination = relatedHost.positions.get(id);
       if (!destination || node.hidden) continue;
-      // Card mới vào từ đầu cột: dưới primary, hoặc dưới suggestion ở cột của nó.
+      // A new card enters from the top of the column: below the primary, or below the suggestion in its column.
       const columnHead = suggestionBox && destination.x < suggestionBox.x + suggestionBox.width
         ? suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap
         : destination.x < relatedLayout.primary.width ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
       let origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
       if (motion) origin = planDetour(id, node, origin, destination);
-      // Chỉ ghi khi đổi: cuộn related ghi lại mọi card đang mount ở mỗi lần cửa sổ đổi.
+      // Write only on change: scrolling related rewrites every mounted card on each window change.
       const left = `${origin.x}px`;
       const top = `${origin.y}px`;
       if (node.style.left !== left) node.style.left = left;
       if (node.style.top !== top) node.style.top = top;
       if (node.style.transform !== "none") node.style.transform = "none";
     }
-    // Suggestion ghim dưới primary, đi theo đáy primary trong cùng frame, không shuffle (advertising-detail R5).
+    // The suggestion pins below the primary, following the primary's bottom in the same frame, no shuffle (advertising-detail R5).
     if (keepSuggestion && suggestionNode) {
       const destination = relatedHost.positions.get(suggestionId);
       suggestionNode.style.left = `${destination.x}px`;
@@ -3624,8 +3624,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
-    // Không motion thì vị trí đã ghi ở trên; bỏ Masonry như placeRendered, vì layout() đo lại mọi card (getSize)
-    // trong lúc cuộn related, long task trên phone Android (decision phone-frame-budget).
+    // Without motion the position was already written above; drop Masonry like placeRendered, because layout() re-measures every card (getSize)
+    // during related scrolling, a long task on an Android phone (decision phone-frame-budget).
     if (!motion) {
       relatedGrid.style.height = `${relatedHost.pixelHeight}px`;
       return;
@@ -3677,7 +3677,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const gridWidth = viewportWidth - (2 * outer);
     const suggestionWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
     photoView.style.setProperty("--gutter", `${outer}px`);
-    // Header trên detail luôn thu gọn: padding 10px trên, dưới và viền 1px (advertising-detail R10).
+    // The header on detail is always collapsed: 10px top and bottom padding and a 1px border (advertising-detail R10).
     const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) + 21;
     const viewStyle = getComputedStyle(photoView);
     const suggestionParent = suggestionInRelated ? relatedGrid : photoInfo;
@@ -3697,7 +3697,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     photoView.dataset.detailLayout = suggestionInRelated ? "pinterest" : "split";
     let suggestionHeight = 0;
-    // Trong related grid, suggestion là một related card: pha primary nhường nó cho pha solver.
+    // In the related grid, the suggestion is a related card: the primary phase leaves it to the solver phase.
     const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
     if (suggestionSlots.length && suggestionNode) {
       suggestionNode.hidden = false;
@@ -3723,8 +3723,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         height: Math.max(1, suggestionHeight),
       },
     } : null;
-    // Solver hỏi chiều cao tự nhiên rồi chiều cao tối thiểu ở cùng bề rộng: đo một lần cho cả hai, mỗi lần đo
-    // ép một lượt style và layout của info (decision phone-frame-budget).
+    // The solver asks for natural height then minimum height at the same width: measure once for both, each measurement
+    // forces one style and layout pass of info (decision phone-frame-budget).
     const infoMeasures = new Map();
     const measureInfoOnce = (width, mode) => {
       photoView.dataset.detailLayout = mode;
@@ -3733,8 +3733,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       try {
         photoInfo.style.width = `${width}px`;
         photoInfo.style.height = "auto";
-        // Đổi ngôn ngữ chạy transition scale(0.9) trên main: rect co theo scale nên chia lại bằng bề rộng đã đặt,
-        // nếu không info thấp hơn 10% và mô tả bị cắt.
+        // A locale change runs a scale(0.9) transition on main: the rect shrinks with the scale so divide again by the set width,
+        // otherwise info is 10% shorter and the description is clipped.
         const infoRect = photoInfo.getBoundingClientRect();
         const naturalHeight = Math.ceil(infoRect.width ? infoRect.height * width / infoRect.width : infoRect.height);
         const controls = [...photoInfo.children].filter(node => node !== photoDescriptionBox
@@ -3747,7 +3747,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const gap = parseFloat(getComputedStyle(photoInfo).rowGap) || 0;
         return {
           naturalHeight,
-          // Mô tả dài giữ tối thiểu ba dòng để vùng cuộn còn đọc được (owner 2026-10-24).
+          // A long description keeps at least three lines so the scroll area stays readable (owner 2026-10-24).
           floor: Math.ceil(controlsHeight + Math.min(3 * lineHeight, photoDescription.offsetHeight)
             + controls.length * gap) + 1,
         };
@@ -3777,8 +3777,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       safeBottom: parseFloat(viewStyle.getPropertyValue("--masonry-safe-bottom")) || 0,
       settings, suggestionCard, tag: browse.tag,
       seed: browse.seed,
-      // Khung primary theo tỷ lệ cover cho mọi media của card (như dải media pin Pinterest): đổi media không đổi
-      // kích thước primary nên related đứng yên; media khác tỷ lệ nằm giữa nền zoom blur.
+      // The primary frame follows the cover ratio for all of the card's media (like the Pinterest pin media strip): changing media does not change the
+      // primary size so related stays still; media of another ratio sits in the middle of the zoom blur background.
       primaryMedia: (({ mediaItems = [], coverMediaId } = {}) => mediaItems.find((item) => item.id === coverMediaId))(
         cards.find((card) => card.id === browse.photo)),
       measureDescriptionHeight: measureInfo,
@@ -3804,12 +3804,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoCanvas.style.setProperty("--detail-canvas-height", `${height}px`);
     relatedHost.pixelHeight = height;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
-      // Đã đo nhưng chưa đặt: giữ nó ngoài mọi frame vẽ trước task mount.
+      // Measured but not placed: keep it out of every frame painted before the mount task.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
       return;
     }
     if (directEntryPhase === "primary") {
-      // Ẩn, chưa đặt: task mount animate chúng từ vị trí gốc.
+      // Hidden, not placed: the mount task animates them from the origin position.
       relatedHost.rendered.forEach((node) => { node.hidden = true; });
       if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
@@ -3817,8 +3817,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderCtaSkeleton({ slide: Boolean(origins) && !reduced });
     renderRelatedWindow({ animate: true, origins });
   };
-  // Primary đổi bên trong frame của chính nó (loading-glass-and-page-entry R4, R5): photo đang tải
-  // hiện skeleton ngay, photo đã cache thì crossfade lên photo đang hiển thị.
+  // The primary changes inside its own frame (loading-glass-and-page-entry R4, R5): a loading photo
+  // shows the skeleton immediately, a cached photo crossfades onto the displayed photo.
   const heroFrame = photoImage?.parentElement;
   let primaryReveal = null;
   const settlePrimaryReveal = () => {
@@ -3831,11 +3831,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  // Primary chạy đúng reveal của card tải chậm (loading-glass-and-page-entry R4): Kính ba bậc hiện trên skeleton, dưới
-  // Kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi Kính tan, cùng CARD_REVEAL_MS.
+  // The primary runs exactly the slow-loading card reveal (loading-glass-and-page-entry R4): three-tier Glass shows on the skeleton, under
+  // the Glass the skeleton fades while the image and spare-area background appear, then the Glass melts, all with CARD_REVEAL_MS.
   const playPrimaryReveal = (reveal, incoming) => {
     if (primaryReveal !== reveal) return;
-    // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
+    // Image decoded before the photo view shows (opened from grid): wait so Glass can measure the hero.
     if (photoView.hidden) {
       requestAnimationFrame(() => playPrimaryReveal(reveal, incoming));
       return;
@@ -3844,8 +3844,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       settlePrimaryReveal();
       return;
     }
-    // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
-    // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
+    // Remove the loading state in the same task as the animation: separated, a frame between the two tasks shows the new image fully
+    // and only then runs the reveal from 0 (flash bug on Back, Forward).
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
     const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
@@ -3854,7 +3854,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     played.finished
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
-  // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
+  // Media sits contain inside a cover frame; the spare area shows the zoom blur background (Glass), video included.
   const fitPrimaryMedia = (item) => {
     if (!relatedLayout) return;
     const { imageZoneWidth: zoneWidth, imageZoneHeight: zoneHeight } = relatedLayout.primary;
@@ -3866,16 +3866,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoView.dataset.detailGlass = String(!primaryFailed
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
-  // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
-  // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
+  // Primary media strip (media-card R6, owner 2026-10-19): media clipped at the contain BBox; the real media is hidden until the strip stops and the new media
+  // has decoded. Video does not play while the strip runs: the lane is the video's still image.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng viewport (cố định trong phiên, nên file không
-  // đổi giữa các lần render): primary không rộng hơn viewport; viewer "Xem lớn hơn" vẫn lấy bản gốc.
+  // Strip lane and preload image use the same file as the primary. JXL size follows viewport width (fixed within a session, so the file
+  // does not change between renders): the primary is no wider than the viewport; the "View larger" viewer still takes the original.
   const primarySource = (item) => item.kind === "video" ? item.posterSrc
     : responsiveSource(item.src, item.width, Math.ceil(innerWidth * devicePixelRatio));
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--detail-image-width"))
     || heroFrame.clientWidth;
-  // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
+  // The currently shown media lane draws synchronously into the canvas so it does not wait for decode; a video with no frame yet uses its poster.
   const currentPrimaryNode = () => {
     const source = photoVideo.hidden ? photoImage : photoVideo;
     const ready = source === photoVideo ? photoVideo.readyState >= 2 : photoImage.complete && photoImage.naturalWidth > 0;
@@ -3888,17 +3888,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const drawable = (node) => node instanceof HTMLVideoElement ? node.readyState >= 2
     : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0);
-  // Nền kính sống (owner 2026-10-19): khi video phát hoặc dải trượt, nền blur vẽ lại mỗi frame từ chính những gì trong
-  // vùng media: phủ cover hộp media vào canvas 1/8 khung, blur bằng bậc cuối rồi phóng 8 lần.
-  // Còn lại ảnh nền tĩnh [data-detail-background] giữ việc này.
+  // Live glass background (owner 2026-10-19): when video plays or the strip slides, the blur background redraws every frame from exactly what is in
+  // the media area: cover the media box onto a 1/8-frame canvas, blur with the last tier then scale up 8x.
+  // The static background image [data-detail-background] handles the rest.
   const liveBackground = document.createElement("canvas");
   liveBackground.className = "detail-view__live-background";
   liveBackground.hidden = true;
   photoBackground?.after(liveBackground);
   const liveScratch = document.createElement("canvas");
-  // Gọi callback ở frame video kế tiếp (trình duyệt thiếu requestVideoFrameCallback thì ở rAF kế tiếp); trả hàm hủy.
-  // Thứ đổi theo video chỉ vẽ lại khi video có frame mới: mỗi lần vẽ lại là một frame màn hình, mà clip 24 frame/s
-  // trên màn A04s 90Hz (đo 2026-10-26: thanh tua theo rAF đẩy primary lên 44 frame/s, ẩn thanh còn 23).
+  // Call the callback on the next video frame (browsers lacking requestVideoFrameCallback use the next rAF); returns a cancel function.
+  // Things that change with the video are redrawn only when the video has a new frame: each redraw is a screen frame, and a 24 frame/s clip
+  // on a 90Hz A04s screen (measured 2026-10-26: a seek bar on rAF pushes the primary to 44 frames/s, hiding the bar leaves 23).
   const nextVideoFrame = (callback) => {
     if (!photoVideo.requestVideoFrameCallback) {
       const id = requestAnimationFrame(callback);
@@ -3907,9 +3907,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const id = photoVideo.requestVideoFrameCallback(callback);
     return () => photoVideo.cancelVideoFrameCallback(id);
   };
-  // Hủy lượt vẽ đang chờ; null khi không có lượt nào.
+  // Cancel the pending draw; null when none.
   let cancelLive = null;
-  // Dải trượt đổi mỗi frame nên vẽ theo rAF; video thì theo frame video.
+  // The sliding strip changes every frame so draw by rAF; video by video frame.
   const queueLive = (videoFrame) => {
     if (videoFrame) cancelLive = nextVideoFrame(drawLiveBackground);
     else {
@@ -3917,27 +3917,27 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       cancelLive = () => cancelAnimationFrame(id);
     }
   };
-  // Media đã có frame đứng yên dưới viewer; null khi viewer đóng.
+  // Media that has a still frame under the viewer; null when the viewer is closed.
   let liveStill = null;
   const drawLiveBackground = () => {
     cancelLive = null;
-    // Trang không có detail (Công trình, viewer tắt) không có khung primary để vẽ.
+    // A page with no detail (Projects, viewer off) has no primary frame to draw.
     if (!photoView) return;
-    // Viewer mở thì khung primary chỉ còn zoom blur đứng yên phủ kín, video là frame lúc mở (advertising-detail R9, owner
-    // 2026-10-26): vẽ một lần cho mỗi media, kể cả khi media vừa khít khung (glass false). Mỗi lần vẽ lại bắt blur 50px của
-    // backdrop tính lại. Đóng viewer thì `close` vẽ lại theo nhịp thường.
+    // With the viewer open the primary frame is only a still zoom blur covering it fully, video is the frame at open time (advertising-detail R9, owner
+    // 2026-10-26): draw once per media, even when the media fits the frame exactly (glass false). Each redraw forces the 50px backdrop blur to
+    // recompute. Closing the viewer makes `close` redraw at the normal rhythm.
     const still = Boolean(photoDialog?.open);
     if (!still) liveStill = null;
     else if (liveStill === activePrimaryMediaId) return;
     const strip = still ? null : primaryStrip;
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
       : [{ node: photoVideo, x: 0 }];
-    // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
+    // A video with no frame yet (just changed source, seeked, looped) keeps the background just drawn instead of flashing back to the static background image.
     liveBackground.hidden = (!still && photoView.dataset.detailGlass !== "true") || (!strip && photoVideo.hidden);
     if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
       const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
       const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
-      // Vẽ tràn mép thêm hai lần bán kính blur để mép khung không mờ về trong suốt.
+      // Draw overflowing the edge by two blur radii so the frame edge does not fade to transparent.
       const bleed = 100 / BAKED_SCALE * 2;
       if (liveBackground.width !== width || liveBackground.height !== height) {
         Object.assign(liveBackground, { width, height });
@@ -3961,14 +3961,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     if (!still && (strip || !photoVideo.paused)) queueLive(!strip);
   };
-  // Vẽ ngay frame tới (đổi nguồn, tua, đóng dải hay viewer), sau đó lượt vẽ tự chọn nhịp.
+  // Draw the next frame immediately (source change, seek, strip close or viewer), after which the draw pass picks its own rhythm.
   const startLiveBackground = () => {
     cancelLive?.();
     queueLive(false);
   };
-  // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
-  // photoVideo.volume luôn là mức người xem chọn. Người xem chỉnh tiếng giữa lúc fade thì thắng (R11): fade thôi ghi
-  // volume nhưng vẫn chạy hết nhịp để fade ra còn dừng video.
+  // Fade audio at the strip's rhythm (PUSH_TIMING) when video switches between playing and paused (owner 2026-10-19); outside a fade,
+  // photoVideo.volume is always the level the viewer chose. If the viewer adjusts sound mid-fade the viewer wins (R11): the fade stops writing
+  // volume but still runs the full rhythm so a fade-out still pauses the video.
   let volumeFrame = 0;
   let viewerVolume = 1;
   let volumeOverride = false;
@@ -3996,7 +3996,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     };
     step(start);
   };
-  // Dải dừng hoặc bị thay: đưa photoVideo về media đích (strip.apply); vuốt bật về thì video phát lại, tiếng fade vào.
+  // Strip stopped or replaced: bring photoVideo to the target media (strip.apply); if a swipe snaps back the video plays again, with sound fading in.
   const closePrimaryStrip = () => {
     const strip = primaryStrip;
     primaryStrip = null;
@@ -4012,7 +4012,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (heroFrame) delete heroFrame.dataset.detailSliding;
     startLiveBackground();
   };
-  // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
+  // entries: [{ item, slot }], slot 0 is the media currently shown; `offset` is the offset of slot 0 from the frame.
   const openPrimaryStrip = (entries, offset = 0) => {
     closePrimaryStrip();
     const width = primaryWidth();
@@ -4029,7 +4029,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     heroFrame.dataset.detailSliding = "";
     const playing = !photoVideo.hidden && !photoVideo.paused;
     primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null };
-    // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
+    // The video's still image stays in the strip; the sound keeps running and fades with the strip's rhythm, then the video pauses.
     if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
     cancelLive?.();
@@ -4040,12 +4040,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     strip.animations = moveStrip(strip.lanes, strip.width, from, to, timing);
     return strip.animations.at(-1).finished;
   };
-  // `motion` từ vuốt kéo: dải đã mở sẵn, độ lệch lúc thả và nhịp trượt nốt.
+  // `motion` from a drag swipe: the strip is already open, the offset at release and the remaining slide rhythm.
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
     const source = video ? null : primarySource(item);
-    // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
+    // With the viewer open the primary changes directly: the strip is inserted next to photoVideo, but the video may be inside the viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
     if (changed || video || sliding) settlePrimaryReveal();
@@ -4053,14 +4053,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
     ]) : null;
     if (!sliding) closePrimaryStrip();
-    // Video sang video trong cùng card: giờ, tổng, thanh tua đứng ở video cũ tới khi video mới chạy (owner 2026-10-25).
+    // Video to video within the same card: time, total, seek bar stay on the old video until the new video runs (owner 2026-10-25).
     videoTimeHold = Boolean(slide) && video && activePrimaryItem?.kind === "video";
     activePrimaryMediaId = item.id;
     activePrimaryItem = item;
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.masonryActiveMediaId = item.id;
-    // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
+    // Changing media within the same card keeps the viewer's sound choice like Pinterest; opening a new card goes back to muted.
     if (!slide) {
       photoVideo.muted = true;
       photoVideo.defaultMuted = true;
@@ -4070,7 +4070,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoExpand.toggleAttribute("data-detail-expand-video", video);
     photoPlayer.hidden = !video;
     photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
-    // Trong lúc trượt photoVideo giữ video đang xem (tiếng đang fade ra); dải dừng thì mới chuyển sang media đích.
+    // While sliding, photoVideo keeps the video being viewed (sound fading out); once the strip stops it switches to the target media.
     const applyVideo = () => {
       stopVolumeFade();
       photoVideo.pause();
@@ -4102,7 +4102,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     fitPrimaryMedia(item);
     if (strip) {
       const from = motion?.offset ?? 0;
-      // Chỉ chờ media đang hiện và media đích; lane phía kia không vào khung.
+      // Wait only for the shown media and the target media; the lane on the other side does not enter the frame.
       void Promise.all(strip.lanes.filter(({ slot }) => slot === 0 || slot === Math.sign(slide))
         .flatMap(({ nodes }) => nodes).map(whenMediaReady))
         .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
@@ -4112,7 +4112,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
           strip.apply();
           Object.assign(strip, { apply: null, playing: false });
           if (!video) return whenMediaReady(photoImage);
-          // Video vào khung phát lại từ đầu (R6); dải gỡ khi video có frame.
+          // A video entering the frame plays from the start (R6); the strip is removed when the video has a frame.
           return photoVideo.readyState >= 2 || new Promise((resolve) => {
             photoVideo.addEventListener("loadeddata", resolve, { once: true });
             photoVideo.addEventListener("error", resolve, { once: true });
@@ -4120,30 +4120,30 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         })
         .then(() => { if (primaryStrip === strip) closePrimaryStrip(); }, () => {});
     }
-    // Ảnh của hai media cạnh vào cache để kéo tay không gặp lane trống.
+    // Images of the two adjacent media enter the cache so a manual drag does not meet an empty lane.
     const neighbors = record.mediaItems || [];
     const at = neighbors.indexOf(item);
     [neighbors[at - 1], neighbors[at + 1]].forEach((entry) => { if (entry) new Image().src = primarySource(entry); });
     syncVideoPlayer();
     syncVideoTime();
     if (photoBackground) {
-      // Markup để lazy để placeholder không tải khi detail ẩn; gán nguồn thật rồi mới eager, như ảnh chính.
-      // Nền bị blur 100px nên cỡ 240 đủ: bản cỡ primary (tới 2048, bản gốc) là một lần giải mã JXL lớn thứ hai, 200-430ms
-      // trên PC owner, làm đứng frame mỗi lần mở card related (đo 2026-11-09).
+      // Markup is lazy so the placeholder does not load while detail is hidden; assign the real source then make it eager, like the main image.
+      // The background is blurred 100px so size 240 suffices: the primary-size version (up to 2048, the original) is a second large JXL decode, 200-430ms
+      // on the owner's PC, stalling the frame each time a related card opens (measured 2026-11-09).
       photoBackground.src = video ? item.posterSrc : responsiveSource(item.src, item.width, BACKGROUND_SOURCE_WIDTH);
       photoBackground.loading = "eager";
       photoBackground.dataset.detailId = record.id;
     }
     if (changed) {
-      // Ảnh có sẵn hay chưa đều chạy motion card tải chậm (loading-glass-and-page-entry R4): ảnh và nền cũ ẩn ngay,
-      // skeleton phủ khung tới khi ảnh mới decode xong; ảnh có sẵn chỉ làm skeleton đứng ngắn hơn.
+      // Whether the image is available or not, both run the slow-loading card motion (loading-glass-and-page-entry R4): the old image and background hide immediately,
+      // the skeleton covers the frame until the new image has decoded; an available image only makes the skeleton stand shorter.
       const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
         mediaColors(video ? item.posterSrc : item.src)?.slice(1)), animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";
-      // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      // Nền dùng file 240 riêng: chờ cả nền để nền không hiện sau reveal khi cache lạnh; nền lỗi không chặn reveal.
+      // decode() rejects on error or when a newer source replaces this one.
+      // The background uses its own 240 file: wait for the background too so it does not show after the reveal on a cold cache; a failed background does not block the reveal.
       Promise.all([photoImage.decode(), photoBackground?.decode().catch(() => {})])
         .then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
         () => primaryReveal === reveal && settlePrimaryReveal());
@@ -4155,7 +4155,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoViewerThumbs?.querySelectorAll("[data-detail-viewer-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.detailViewerSelect === item.id));
     });
-    // Đọc rect trong frame kế: layout của frame đó vẫn phải chạy, nên không thêm lượt layout.
+    // Read the rect in the next frame: that frame's layout must run anyway, so no additional layout pass.
     requestAnimationFrame(keepActiveThumbInView);
     const items = record.mediaItems || [];
     const index = items.indexOf(item);
@@ -4164,7 +4164,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       button.hidden = index < 0 || target < 0 || target >= items.length;
     });
   };
-  // Mọi đường đổi media (thumbnail, mũi tên, vuốt, phím) đi qua đây; primary giữ khung nên related không xếp lại.
+  // Every media-change path (thumbnail, arrow, swipe, key) goes through here; the primary keeps its frame so related is not re-laid out.
   const showPrimaryMedia = (item, motion = null) => {
     const record = cards.find((card) => card.id === activePhotoId);
     if (!record || !item || activePrimaryMediaId === item.id) return;
@@ -4228,7 +4228,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       button.addEventListener("click", () => showPrimaryMedia(item));
       photoMediaThumbs.append(button);
       if (!photoViewerThumbs) return;
-      // Dãy viewer thay hai mũi tên (primary-video-player R8): viewer trượt sang media đó, primary đổi theo.
+      // The viewer strip replaces the two arrows (primary-video-player R8): the viewer slides to that media, the primary changes along.
       const copy = button.cloneNode(true);
       delete copy.dataset.detailMediaSelect;
       copy.dataset.detailViewerSelect = item.id;
@@ -4239,9 +4239,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoViewerThumbs.append(copy);
     });
   };
-  // Player video primary theo trang pin Pinterest (media-card R6): bấm video phát/dừng, thanh dưới hiện khi hover,
-  // focus hoặc đang dừng; thanh tua, thời gian, nút tiếng và thanh âm lượng (owner 2026-10-18).
-  // Trạng thái kéo tua (R2, bên dưới); khai báo trước để syncVideoPlayer, syncVideoTime đọc được.
+  // Primary video player follows the Pinterest pin page (media-card R6): click the video to play/pause, the bottom bar shows on hover,
+  // focus or while paused; seek bar, time, sound button and volume bar (owner 2026-10-18).
+  // Seek-drag state (R2, below); declared early so syncVideoPlayer, syncVideoTime can read it.
   let scrub = null;
   let pendingSeek = null;
   let videoTimeHold = false;
@@ -4249,10 +4249,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
   const syncVideoPlayer = () => {
     const english = locale === "en";
-    // Thanh âm lượng giữ mức người xem chọn trong lúc tiếng fade.
+    // The volume bar keeps the level the viewer chose while the sound fades.
     const volume = volumeFrame ? viewerVolume : photoVideo.volume;
     const silent = photoVideo.muted || volume === 0;
-    // Video đang phát mà dừng để kéo tua thì giữ giao diện đang phát, không chớp nút phát.
+    // A playing video paused to drag-seek keeps the playing look, so the play button does not flash.
     const paused = photoVideo.paused && !scrub?.wasPlaying;
     photoPlayer.dataset.masonryVideoPaused = String(paused);
     photoPlayer.dataset.masonryVideoMuted = String(silent);
@@ -4266,13 +4266,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const syncVideoTime = () => {
     if (videoTimeHold) return;
     photoProgress.max = photoVideo.duration > 0 ? photoVideo.duration : 1;
-    // Đang kéo tua: núm và giờ theo tay, không theo frame đang hiện.
+    // While dragging the seek: the knob and time follow the hand, not the frame currently shown.
     if (scrub) return;
     photoProgress.value = photoVideo.currentTime;
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
   };
-  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame video.
+  // timeupdate fires only ~4 times per second so the seek bar steps; while playing, draw per video frame.
   let cancelVideoTime = null;
   const tickVideoTime = () => {
     syncVideoTime();
@@ -4285,14 +4285,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   photoPlayer?.querySelector("[data-detail-play-surface]")
     .addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
   photoPlayButton?.addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
-  // Kéo tua (primary-video-player R2): video dừng trong lúc kéo, mỗi lần chỉ một lệnh tua và lệnh mới chờ `seeked`;
-  // ngoài đoạn đã tải thì giữ frame, thả tay (change) mới tua rồi phát tiếp nếu trước đó đang phát. Bàn phím cùng đường.
+  // Seek drag (primary-video-player R2): the video pauses while dragging, only one seek command at a time and a new command waits for `seeked`;
+  // outside the loaded range keep the frame, and on release (change) seek then resume playing if it was playing. The keyboard uses the same path.
   const isBuffered = (time) => Array.from({ length: photoVideo.buffered.length }, (_, index) => index)
     .some((index) => photoVideo.buffered.start(index) <= time && time <= photoVideo.buffered.end(index));
-  // Mọi lệnh tua đi qua đây, kể cả lúc thả (A04s 2026-10-26: 2 tới 3 lệnh chồng mỗi lượt kéo, lệnh thả chồng lệnh kéo).
-  // `seeking` tắt trước khi event `seeked` chạy (suy luận, chưa đo): lệnh gửi trong khe đó bỏ lệnh đang chờ, và `seeked`
-  // tới muộn không gửi chồng. Lệnh trùng chỗ đang tua (bấm một điểm trên thanh, phím mũi tên: input rồi change cùng
-  // giá trị) thì không tua lần hai.
+  // Every seek command goes through here, including on release (A04s 2026-10-26: 2 to 3 stacked commands per drag, the release command stacking on the drag command).
+  // `seeking` turns off before the `seeked` event runs (inference, not measured): a command sent in that gap drops the pending command, and a late
+  // `seeked` does not send a stacked one. A command to the same spot being sought (clicking a point on the bar, arrow keys: input then change with the same
+  // value) does not seek a second time.
   const seekTo = (time) => {
     if (time === photoVideo.currentTime) pendingSeek = null;
     else if (photoVideo.seeking) pendingSeek = time;
@@ -4322,7 +4322,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   photoVideo?.addEventListener("seeked", () => {
     if (pendingSeek !== null) seekTo(pendingSeek);
   }, { signal: controller.signal });
-  // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
+  // Dragging to 0 mutes but keeps the old volume, so the sound button restores exactly the previous level.
   photoVolume?.addEventListener("input", () => {
     const volume = Number(photoVolume.value);
     if (volumeFrame) volumeOverride = true;
@@ -4342,7 +4342,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     } else photoVideo.muted = true;
     syncVideoPlayer();
   }, { signal: controller.signal });
-  // Nạp lại nguồn đặt `paused` mà không bắn `pause`, chỉ `emptied`; thiếu nó nút phát giữa kẹt ẩn (R9).
+  // Reloading the source sets `paused` without firing `pause`, only `emptied`; without it the center play button stays stuck hidden (R9).
   for (const type of ["play", "pause", "volumechange", "emptied"]) {
     photoVideo?.addEventListener(type, syncVideoPlayer, { signal: controller.signal });
   }
@@ -4360,16 +4360,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     cancelVideoTime?.();
     tickVideoTime();
   }, { signal: controller.signal });
-  // Video đang phát không bắn lại `playing`; chỉ video mới (đổi nguồn rồi phát) mới nhả giờ đang giữ.
+  // A playing video does not fire `playing` again; only a new video (source change then play) releases the held time.
   photoVideo?.addEventListener("playing", () => {
     if (!videoTimeHold) return;
     videoTimeHold = false;
     photoTimeTotal.textContent = formatVideoTime(activePrimaryItem.durationSeconds, Math.ceil);
     syncVideoTime();
   }, { signal: controller.signal });
-  // Media primary không hiện được (ảnh lỗi; video lỗi và poster cũng lỗi): dấu báo lỗi dùng chung, tắt nền blur
-  // (media-card R5); renderPrimaryMedia bỏ dấu khi đổi media.
-  // Script head gắn .is-media-error theo từng img lỗi trong khung, kể cả nền blur; khung primary tự quyết theo media đang chọn.
+  // Primary media cannot be shown (image error; video error and poster error too): shared error marker, turn off the blur background
+  // (media-card R5); renderPrimaryMedia clears the marker when media changes.
+  // The head script sets .is-media-error per failed img in the frame, including the blur background; the primary frame decides from the selected media.
   const syncPrimaryError = () => {
     heroFrame.classList.toggle("is-media-error", primaryFailed);
     if (!primaryFailed) return;
@@ -4392,21 +4392,21 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.detailMediaStep)), { signal: controller.signal }));
-  // Viewer vừa mở: dãy thumbnail viewer cuộn tới media đang xem (listener của viewer chạy trước, dialog đã mở).
+  // Viewer just opened: the viewer thumbnail strip scrolls to the media being viewed (the viewer's listener ran first, the dialog is already open).
   photoExpand?.addEventListener("click", () => requestAnimationFrame(keepActiveThumbInView), { signal: controller.signal });
-  // Capture ở photoView chạy trước listener mở viewer trên nút: dải đang trượt dừng ở media đích rồi viewer mới lấy media.
+  // Capture on photoView runs before the viewer-open listener on the button: a sliding strip stops at the target media and then the viewer takes the media.
   photoView?.addEventListener("click", (event) => {
     if (primaryStrip && event.target.closest?.("[data-detail-expand]")) closePrimaryStrip();
   }, { capture: true, signal: controller.signal });
-  // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
-  // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
+  // A touch swipe drags the strip with the finger (R6 like card R3); arrow keys when focus is in the frame change media, the seek bar and
+  // volume keep their keys. A finger on the seek bar and volume only seeks and adjusts sound (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
     accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {
       if (reduced) return;
-      // Dải còn đang trượt từ lần trước thì mở dải mới từ media đang hiện.
+      // A strip still sliding from last time: open a new strip from the media currently shown.
       if (primaryStrip?.dragging && !primaryStrip.animations.length) {
         return placeStrip(primaryStrip.lanes, primaryStrip.width, offset);
       }
@@ -4418,7 +4418,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     },
     release: (step, offset) => {
       const strip = primaryStrip?.dragging ? primaryStrip : null;
-      // Vuốt kế tiếp lúc dải còn chờ media mở dải mới từ media đang hiện, không kéo lại dải cũ.
+      // The next swipe while the strip waits for media opens a new strip from the media currently shown, not dragging the old strip back.
       if (strip) strip.dragging = false;
       const width = strip?.width ?? primaryWidth();
       if (step) {
@@ -4447,7 +4447,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const generation = ++detailRenderGeneration;
     cancelMotion();
     activePhotoId = record.id;
-    // Đổi tag trong cùng ảnh giữ khung batch để chúng trượt hoặc đi vòng primary (CTA R9, R10); đổi ảnh thì dựng lại.
+    // Changing tag within the same photo keeps the batch frames so they slide or go around the primary (CTA R9, R10); changing photo rebuilds.
     if (previousPhotoId !== record.id || !ctaInDetail()) {
       clearCtaSkeleton();
       ctaBatch.rearmOnPlace();
@@ -4478,15 +4478,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (reveal) revealPhotoView(browse, generation);
     return true;
   };
-  // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
-  // và hiện ở task sau (decision phone-frame-budget).
+  // Show the photo view then layout and restore scroll; separate from renderPhoto so opening from the grid builds the DOM in the card-tap task
+  // and shows it in a later task (decision phone-frame-budget).
   const revealPhotoView = (browse, generation) => {
-    // Ẩn grid trước khi đổi class body: style của class mới không phải tính lại cho cả grid (CPU 4x: 8ms thay vì 15ms).
+    // Hide the grid before changing the body class: the new class's style need not be recomputed for the whole grid (CPU 4x: 8ms instead of 15ms).
     if (gridSection) gridSection.hidden = true;
     document.body.classList.add("is-detail");
     document.body.dataset.detailActive = "true";
-    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
-    // và không bị ép style lần hai (decision phone-frame-budget).
+    // Write the values layoutRelated will write before showing, so detail's first layout already includes them
+    // and is not forced to restyle a second time (decision phone-frame-budget).
     const layoutWidth = document.documentElement.clientWidth;
     photoView.style.setProperty("--gutter", `${masonrySpacing(layoutWidth).outer}px`);
     photoView.dataset.detailLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
@@ -4510,15 +4510,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
   };
-  // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên phone Android (docs/specs/advertising-detail.md R7):
-  // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
-  // Scroll được khôi phục cần toàn bộ chiều cao trong một lượt.
+  // Each phase is its own task so no phase blocks input over 50ms on an Android phone (docs/specs/advertising-detail.md R7):
+  // primary without related, solver warm-up on a few cards, full solver, then mount cards.
+  // Restoring scroll needs the full height in one pass.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
-  // Task ngay sau frame: style và layout còn bẩn của pha trước đã tính trong frame, không bị ép lại trong task mount.
+  // A task right after the frame: the dirty style and layout of the previous phase were computed in the frame, not forced again in the mount task.
   const afterNextFrame = () => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
-  // Solver đầy đủ của related là long task trên phone Android (decision phone-frame-budget): chạy layoutRelated với compile
-  // giả, mỗi lần compile còn thiếu thì tính trên Worker rồi chạy lại; số đo DOM vẫn ở main thread. Trả false khi bị
-  // thay; Worker lỗi thì compile đồng bộ.
+  // The full related solver is a long task on an Android phone (decision phone-frame-budget): run layoutRelated with a dummy
+  // compile, each missing compile is computed on the Worker then rerun; DOM measurement stays on the main thread. Returns false when
+  // replaced; on Worker error compile synchronously.
   const layoutRelatedInWorker = async (browse, generation) => {
     const results = new Map();
     for (;;) {
@@ -4553,15 +4553,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       await ensureDetail();
       if (controller.signal.aborted) return;
     }
-    // Tín hiệu cho test: "true" khi mọi pha dựng related của lượt mở này đã xong, kể cả site:layout sau motion related
-    // (ngắt giữa chừng thì lượt sau tự đặt lại).
+    // Signal for tests: "true" when every related build phase of this open pass is done, including site:layout after the related motion
+    // (if interrupted, the next pass re-sets it).
     if (photoView) photoView.dataset.masonryDetailReady = "false";
-    // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
+    // Only a different photo defers; changing tag or locale keeps related cards on screen.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
-    // Mở từ grid: dựng DOM detail đang ẩn, task sau mới hiện và layout.
+    // Opening from the grid: build the hidden detail DOM, show and layout in a later task.
     const fromGrid = deferRelated && photoView?.hidden;
-    // Bấm card grid: task của cú bấm chỉ ghi history; dựng primary ở task sau để task input dưới 50ms trên phone Android.
+    // Click on a grid card: the click's task only writes history; build the primary in a later task so the input task stays under 50ms on an Android phone.
     if (fromGrid && reason === "photo") {
       const pending = ++detailRenderGeneration;
       await nextTask();
@@ -4575,7 +4575,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       revealPhotoView(browse, generation);
     }
     for (const phase of deferRelated ? ["warm", "related", ""] : []) {
-      // Mount related đọc vị trí grid: chờ frame để không gộp style của pha related vào task mount (task 50-59ms trên A04s).
+      // Related mount reads grid positions: wait a frame so the related phase's style is not merged into the mount task (task 50-59ms on the A04s).
       await (phase ? nextTask() : afterNextFrame());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       directEntryPhase = phase;
@@ -4586,14 +4586,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         layoutRelated(browseHistory.current);
       } else {
         renderRelatedWindow({ animate: true, origins });
-        // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
-        // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
+        // Report layout after the related 400ms motion: merging into the mount task's Masonry and LazySizes frame makes motion.js's measurement passes
+        // force a dirty style, a 50-120ms frame on the A04s (decision phone-frame-budget).
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent("site:layout"));
           if (generation === detailRenderGeneration && photoView) photoView.dataset.masonryDetailReady = "true";
         }, 400);
-        // Batch CTA cuối related dựng ở task riêng: chung task mount related thì 111ms trên A04s (CTA R9, gate 50ms).
-        // Pha "cta" giữ resize frame xen giữa không dựng batch chung frame với Masonry và LazySizes.
+        // The batch CTA at the end of related builds in its own task: sharing the related mount task it is 111ms on the A04s (CTA R9, gate 50ms).
+        // The "cta" phase holds an interleaved resize frame so the batch is not built in the same frame as Masonry and LazySizes.
         directEntryPhase = "cta";
         await nextTask();
         if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
@@ -4605,7 +4605,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
-    // Về masonry từ detail của chính card đó: card đứng ở media vừa xem, video ở đúng giây (owner 2026-10-18).
+    // Back to masonry from that card's own detail: the card stands at the media just viewed, video at the exact second (owner 2026-10-18).
     const viewedMediaId = previousPhotoId && previousPhotoId === browse.grid.focusId ? activePrimaryMediaId : null;
     const viewedTime = viewedMediaId && photoVideo && !photoVideo.hidden ? photoVideo.currentTime : 0;
     const generation = ++detailRenderGeneration;
@@ -4629,8 +4629,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoView && (photoView.hidden = true);
     if (gridSection) {
       gridSection.hidden = false;
-      // Ép layout ngay: bỏ content-visibility: hidden của grid rồi thêm card trong cùng task, Chromium có lúc để
-      // card không có box (vào thẳng ?photo= rồi bấm navbar), nên rect đo ra 0, không cuộn và focus tới card.
+      // Force layout now: removing the grid's content-visibility: hidden then adding cards in the same task, Chromium sometimes leaves
+      // the card with no box (enter directly at ?photo= then click navbar), so the measured rect is 0, with no scroll and focus to the card.
       void gridSection.offsetHeight;
     }
     document.body.classList.remove("is-detail");
@@ -4667,13 +4667,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
   };
-  // Chrome âm thầm bỏ các lần ghi history vượt 200 mỗi 10 s, làm mất các push photo sau một lần scroll.
-  // Scroll được ghi tối đa mỗi 300 ms; lần ghi đang chờ bị bỏ khi entry đổi.
+  // Chrome silently drops history writes over 200 per 10 s, losing photo pushes after one scroll.
+  // Scroll is written at most every 300 ms; a pending write is dropped when the entry changes.
   let persistTimer = 0;
-  // Push đang chờ của một lần tap related (R7); scroll không được ghi cho đến khi nó hạ cánh.
+  // Pending push of a related tap (R7); scroll is not written until it lands.
   let relatedOpenTimer = 0;
   controller.signal.addEventListener("abort", () => clearTimeout(relatedOpenTimer), { once: true });
-  // Lần ghi bị throttle có thể bỏ lỡ scroll cuối trước Back/Forward; nhớ nó theo từng entry Barba.
+  // A throttled write can miss the last scroll before Back/Forward; remember it per Barba entry.
   const entryScroll = new Map();
   const entryIndex = () => window.history.state?.index;
   const browseHistory = createBrowseHistoryController({
@@ -4701,9 +4701,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
           ? { ...browse, detail: { ...browse.detail, scrollY } }
           : { ...browse, grid: { ...browse.grid, scrollY } };
       }
-      // Mở hoặc đóng photo và Back/Forward bắt đầu một trạng thái trang mới: frame vẽ lại (skeleton R3).
+      // Opening or closing a photo and Back/Forward start a new page state: frames redraw (skeleton R3).
       resetSkeletonAssignments();
-      // showPhoto và restoreGridEntry tự đồng bộ link locale.
+      // showPhoto and restoreGridEntry sync the locale link themselves.
       if (reason === "category") {
         syncLocaleLinks(browse);
         return;
@@ -4783,16 +4783,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (scrollFrame) return;
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
-      // Resize ở cuối trang kẹp scroll ngay khi grid đổi chiều cao, sau khi frame này đã được hẹn; đặt card tức thì
-      // lúc chúng đang trượt làm card bay lệch (vòng 26), nên hoãn tới khi trượt xong như scroll trong lúc chuyển.
+      // A resize at page bottom clamps scroll as soon as the grid changes height, after this frame has been scheduled; placing cards instantly
+      // while they are sliding makes them fly off (round 26), so defer until the slide ends like scroll during a transition.
       if (gridHost.motionFrame || performance.now() < motionUntil) {
         pendingScroll = true;
         return;
       }
       renderWindow({ scrolling: true });
       renderRelatedWindow();
-      // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s cũ.
-      // Chỉ khi pinch-zoom, vùng thấy (visual viewport) mới lệch khỏi vùng IntersectionObserver đo.
+      // Frames entering and leaving the layout viewport are already reported by skeletonObserver; running every scroll frame costs about 10ms on an old A05s.
+      // Only on pinch-zoom does the visible region (visual viewport) drift from the region IntersectionObserver measures.
       if ((window.visualViewport?.scale ?? 1) > 1) syncSkeletonMotion();
     });
   };
@@ -4811,7 +4811,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!controller.signal.aborted && ADVERTISING_PATH_PATTERN.test(location.pathname)) captureScroll();
     }, 300);
   };
-  // Tốc độ cuộn giữa hai lần scroll liên tiếp; 150ms không cuộn thì coi như đã dừng.
+  // Scroll speed between two consecutive scrolls; 150ms with no scroll counts as stopped.
   let scrollSample;
   let scrollIdleTimer = 0;
   const sampleScrollSpeed = (y) => {
@@ -4844,7 +4844,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     usesVisualScroll = false;
     scheduleScroll();
     scheduleBrowsePersistence();
-    // Ghi transform sau mọi lần đọc scroll, nếu không lần đọc kế tiếp ép style recalc giữa scroll event.
+    // Write transform after all scroll reads, otherwise the next read forces a style recalc mid scroll event.
     syncCtaParallax();
   };
   const scheduleResize = () => {
@@ -4854,7 +4854,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const viewportHeight = getLayoutViewportHeight();
       const viewportWidth = document.documentElement.clientWidth;
       if (activePhotoId) {
-        // Detail dựng sẵn nhưng còn ẩn (mở từ grid): task hiện detail tự layout; đo lúc ẩn chỉ ra cỡ 0 và tốn một frame.
+        // Detail built but still hidden (opened from grid): the task that shows detail lays out itself; measuring while hidden gives size 0 and costs a frame.
         if (photoView?.hidden) return;
         const geometryAlreadyMeasured = relatedMeasuredGeometry
           && relatedMeasuredGeometry.viewportHeight === viewportHeight
@@ -4870,7 +4870,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         window.dispatchEvent(new CustomEvent("site:layout"));
         return;
       }
-      // Mount còn chờ geometry từ Worker và sẽ tự measure. Back trong lúc chờ đã measure đồng bộ: resize phải chạy.
+      // Mount is still waiting for geometry from the Worker and will measure itself. Back during the wait already measured synchronously: resize must run.
       if (geometryPending && !geometry) return;
       // Crossing into another width band: keep the current layout until that band's cache is in, then resize once.
       const bandWait = layoutCachePending(filter);
@@ -4880,13 +4880,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
-        // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
-        // nên cả masonry trượt như một khối (đo trên PC, vòng 28).
+        // A card not yet mounted (outside the virtual window) starts from its place in the old layout, not from the grid top,
+        // so the whole masonry slides as one block (measured on PC, round 28).
         geometry?.placements.forEach(({ card, x, y, pixelWidth: w, pixelHeight: h }) => origins.has(card.id) || origins.set(card.id, { x, y, w, h }));
         cancelMotion();
-        // Đang kéo cạnh cửa sổ (relayout bề rộng liên tiếp dưới 250ms): đặt thẳng vị trí mỗi frame, không trượt. Mỗi lần
-        // relayout tốn khoảng 100ms nên trượt 0.4s bị khởi động lại liên tục, item kẹt giữa layout cũ và mới, chồng
-        // nhau (đo trên PC, vòng 44). Resize đơn lẻ vẫn trượt.
+        // Dragging a window edge (consecutive width relayouts under 250ms): set positions directly each frame, no sliding. Each
+        // relayout costs about 100ms so a 0.4s slide is restarted continuously, items get stuck between the old and new layouts, overlapping
+        // each other (measured on PC, round 44). A single resize still slides.
         const now = performance.now();
         const dragging = now - lastResizeAt < 250;
         lastResizeAt = now;
@@ -4896,7 +4896,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
-      // Thanh địa chỉ ẩn, hiện chỉ đổi innerHeight (batch theo svh không dựng lại): parallax CTA phải tính lại theo innerHeight mới.
+      // The address bar hiding and showing only changes innerHeight (batch by svh is not rebuilt): CTA parallax must be recomputed for the new innerHeight.
       syncCtaParallax();
       scheduleScroll();
     });
@@ -4911,7 +4911,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const card = link.closest("[data-masonry-card]");
     if (!card) return;
-    // Không có detail view (trang Công trình): link đi thẳng tới trang chi tiết qua route thường.
+    // No detail view (Projects page): links go straight to the detail page through a normal route.
     if (!viewer) return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -4924,7 +4924,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    // Scroll ngay trước tap chưa kịp vào entryScroll (scroll event đến frame sau); Back phải về đúng Y lúc tap.
+    // A scroll right before the tap has not yet reached entryScroll (the scroll event arrives next frame); Back must return to the exact Y at the tap.
     entryScroll.delete(entryIndex());
     handOffVideo(card);
     browseHistory.openPhoto(card.dataset.masonryCard, activeId || null);
@@ -4962,7 +4962,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   filters.addEventListener("click", onRailClick, { signal: controller.signal });
   chipGroups.forEach((group) => group.addEventListener("click", onRailClick, { signal: controller.signal }));
-  // Chrome không scroll link bị che một phần khi focus; giữ filter đang focus nguyên vẹn trên rail mobile.
+  // Chrome does not scroll a partly covered link on focus; keep the focused filter intact on the mobile rail.
   filters.addEventListener("focusin", (event) => {
     event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, { signal: controller.signal });
@@ -4983,10 +4983,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    // Task tap chỉ lưu anchor; entry mới và primary của nó đến ở task kế tiếp (R7).
-    // Focus rời related card ngay bây giờ, khi style còn sạch, nên không ép recalc.
+    // The tap task only saves the anchor; the new entry and its primary arrive in the next task (R7).
+    // Move focus off the related card now, while style is clean, so it forces no recalc.
     if (relatedGrid.contains(document.activeElement)) photoInfo?.focus({ preventScroll: true });
-    // Back trả về Y của lần tap, nên scroll còn đang lắng đến lúc push không ghi đè nó.
+    // Back returns to the Y of the tap, so a scroll still settling by the time of the push does not overwrite it.
     if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     const fromPhoto = browseHistory.current.photo;
     handOffVideo(node);
@@ -5012,7 +5012,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     restoreRelatedDomOrder();
   }, { signal: controller.signal });
   photoDescriptionScroll?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
-  // Locomotive bắt wheel và phím ở container nên cuộn cả trang; chữ còn cuộn được thì giữ input trong mô tả.
+  // Locomotive captures wheel and keys at the container so the whole page scrolls; when the text can still scroll keep the input in the description.
   photoDescriptionScroll?.addEventListener("wheel", (event) => {
     const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
     if (event.deltaY < 0 ? scrollTop > 0 : event.deltaY > 0 && scrollTop < scrollHeight - clientHeight - 1) event.stopPropagation();
@@ -5021,7 +5021,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (photoDescriptionScroll.scrollHeight > photoDescriptionScroll.clientHeight + 1
       && ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) event.stopPropagation();
   }, { signal: controller.signal });
-  // Kéo viên thanh cuộn: dịch con trỏ theo tỷ lệ phần chữ ẩn trên quãng viên chạy được.
+  // Dragging the scrollbar thumb: shift the pointer in proportion to the hidden text over the distance the thumb can travel.
   photoDescriptionBar?.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
     event.preventDefault();
@@ -5049,7 +5049,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       (nextLink || photoInfo)?.focus({ preventScroll: true });
     });
   }, { signal: controller.signal });
-  // Escape và nút quay lại cùng một đường (R10): ảnh vào thẳng về masonry nhóm, còn lại lùi một entry.
+  // Escape and the back button take the same path (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
   const leavePhoto = () => {
     if (!browseHistory.escapeDirectPhoto()) history.back();
   };
@@ -5069,27 +5069,27 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
-  // Lịch phát video card (media-card R4, owner 2026-10-24): masonry và related trong detail (owner 2026-10-25) phát mọi
-  // card đang đứng ở video và hiện quá 1/2 chiều cao dưới navbar; reduced motion chỉ phát card dưới chuột. Mỗi card tự
-  // chạy playlist video của nó (createPhotoCard, sự kiện ended).
+  // Card video schedule (media-card R4, owner 2026-10-24): masonry and related in detail (owner 2026-10-25) play every
+  // card that is standing on a video and showing more than 1/2 of its height below the navbar; reduced motion plays only the card under the mouse. Each card runs
+  // its own video playlist (createPhotoCard, ended event).
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const scheduleVideo = () => {
-    // Catalog chưa có video (main 2026-10-26): khỏi đo layout mỗi frame cuộn.
+    // Catalog has no video yet (main 2026-10-26): skip measuring layout every scroll frame.
     if (!playingVideos.length && !document.querySelector("figure.masonry-card video")) return;
     const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.masonry-card:hover") : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
     const next = [...document.querySelectorAll("figure.masonry-card")].flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();
-      // getClientRects thay checkVisibility (Safari dưới 17.4 không có): rỗng khi video hoặc tổ tiên display none.
+      // getClientRects instead of checkVisibility (Safari below 17.4 lacks it): empty when the video or an ancestor is display none.
       if (!video?.getClientRects().length) return [];
       if (reduced) return figure === hovered ? [video] : [];
       const { top, bottom, height } = video.getBoundingClientRect();
       return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
     });
     playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
-    // Video quay lại lịch thì phát tiếp từ chỗ đã dừng. Mỗi frame chỉ khởi động một video, còn lại hẹn frame sau
-    // (owner 2026-10-25: ba video bắt đầu cùng frame thành một Commit 82ms trên PC).
+    // A video returning to the schedule resumes from where it stopped. Only one video starts per frame, the rest wait for the next frame
+    // (owner 2026-10-25: three videos starting in the same frame make an 82ms Commit on PC).
     const waiting = next.filter((video) => video.paused);
     void waiting[0]?.play().catch(() => {});
     if (waiting.length > 1) scheduleVideoSoon();
@@ -5125,7 +5125,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     ensurePhoto(browse.grid.focusId)?.querySelector("a")?.focus({ preventScroll: true });
   }, { signal: controller.signal });
   addEventListener("pagehide", () => {
-    // Giữ entry đích native trong khi Barba vẫn sở hữu index đi ra.
+    // Keep the native target entry while Barba still owns the outgoing index.
     if (!window.history.state?.ttAdvertisingHistoryFallback) captureScroll();
     if (pendingLocaleSeedHandoff) {
       writeVisitSeedHandoff(
@@ -5155,8 +5155,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
     }
-    // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ. Grid ẩn khi mở
-    // detail rồi hiện lại cùng cỡ thì giữ số đo, để task Back không fit lại heading (decision phone-frame-budget).
+    // A heading or link shifting the copy edge (late style, font change) invalidates the CTA measurement. The grid hides when opening
+    // detail then shows again at the same size, so keep the measurement so the Back task does not re-fit the heading (decision phone-frame-budget).
     const copyEntry = entries.find((entry) => entry.target === gridCtaCopy);
     const copySize = copyEntry && `${copyEntry.contentRect.width}x${copyEntry.contentRect.height}`;
     if (copyEntry?.contentRect.width && copySize !== observedCopySize) {
@@ -5179,7 +5179,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   if (photoInfo) [...photoInfo.children].forEach((node) => resizeObserver.observe(node));
   const refreshFontGeometry = () => {
     if (controller.signal.aborted) return;
-    // Số đo web font làm dịch baseline CTA mà không đổi kích thước box heading.
+    // Web font metrics shift the CTA baseline without changing the heading box size.
     ctaCopyKey = "";
     ctaGeometryHash = "";
     if (activePhotoId) {
@@ -5243,25 +5243,25 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   }
   activeInstance = { adapter, browseHistory, container, cleanup, pages, photoViewer, syncSkeletonMotion };
   if (browseHistory.current.photo) {
-    // Grid ở trạng thái ẩn dưới photo; ensurePhoto đo nó khi quay lại. Không giải masonry ở main thread khi mở detail
-    // (ResizeObserver đo grid ẩn, 238ms trên A04s): geometry tính trên Worker sau khi detail xong, Back lấy từ cache.
+    // The grid is hidden under the photo; ensurePhoto measures it on return. Do not solve masonry on the main thread when opening detail
+    // (ResizeObserver measuring the hidden grid, 238ms on the A04s): geometry is computed on the Worker after detail finishes, Back takes it from cache.
     geometryPending = true;
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Mỗi bước dưới đây là một task riêng để không bước nào chặn input quá 50ms trên phone Android (R7, showPhoto).
+    // Each step below is its own task so no step blocks input over 50ms on an Android phone (R7, showPhoto).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    // Trả trước chi phí style và layout của chế độ photo trước việc primary; ẩn để không frame chưa có kích thước nào được vẽ.
+    // Pay the style and layout cost of photo mode ahead of the primary work; hidden so no frame without a size is painted.
     document.body.classList.add("is-detail");
     if (gridSection) gridSection.hidden = true;
     if (photoView) {
       photoView.hidden = false;
       photoView.style.visibility = "hidden";
     }
-    // Suggestion chỉ dựng lại khi có hero mới, nên renderPhoto dùng lại chúng.
+    // Suggestions are rebuilt only when there is a new hero, so renderPhoto reuses them.
     renderSuggestionLinks(browseHistory.current, locale === "en");
     getLayoutViewportHeight();
     await nextTask();
-    // Lộ view khi đã có mô tả card để showPhoto dựng primary cùng task: không frame nào vẽ ảnh mặc định của index.html.
+    // Reveal the view once the card description exists so showPhoto builds the primary in the same task: no frame paints index.html's default image.
     await ensureDetail();
     photoView?.style.removeProperty("visibility");
     if (controller.signal.aborted) return cleanup;
@@ -5276,7 +5276,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (controller.signal.aborted) return cleanup;
     if (!geometry) measure();
   } else {
-    // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
+    // Unknown ?photo= id goes back to the grid, which index.html hid before the first layout.
     document.body.classList.remove("is-detail");
     measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");

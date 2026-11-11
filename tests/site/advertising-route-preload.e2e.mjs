@@ -1,5 +1,5 @@
-// Route mềm sang Advertising tải vendor, module catalog và artifact song song với veil phủ, không chờ veil phủ xong,
-// và header không bị scrollbar native đẩy sang trái trong lúc chờ (docs/specs/site-shell.md R6). Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-route-preload.e2e.mjs
+// A soft route to Advertising loads the vendor, catalog module and artifact in parallel while the veil covers, without waiting for the veil to finish covering,
+// and the header is not pushed left by the native scrollbar while waiting (docs/specs/site-shell.md R6). Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-route-preload.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -7,7 +7,7 @@ import process from "node:process";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-// Hiện scrollbar như Chrome desktop để đo header bị đẩy khi scrollbar native hiện.
+// Show the scrollbar like desktop Chrome to measure the header shift when the native scrollbar appears.
 const browser = await chromium.launch({
   headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH, ignoreDefaultArgs: ["--hide-scrollbars"],
 });
@@ -15,7 +15,7 @@ const files = ["masonry-4.2.2.min.js", "masonry/runtime.mjs", "catalog-artifact.
 
 try {
   for (const locale of ["vi", "en"]) {
-    // Context mới: cache rỗng như sau Ctrl+Shift+R ở trang chủ.
+    // Fresh context: empty cache, as after Ctrl+Shift+R on the home page.
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       await page.goto(`${origin}/${locale}/`);
@@ -38,7 +38,7 @@ try {
           }
           if (document.body.classList.contains("is-transitioning") || window.__veilCovered === undefined) setTimeout(watch, 8);
         };
-        // Timer thay rAF: headless không tạo frame khi màn hình không đổi, nên rAF bỏ sót lúc đứng chờ mạng.
+        // Timer instead of rAF: headless produces no frames when the screen does not change, so rAF misses the moment of waiting on the network.
         watch();
       });
       await page.click(`header nav a[href="/${locale}/advertising-products/"]`);
@@ -51,8 +51,8 @@ try {
           performance.getEntriesByType("resource").find((entry) => entry.name.endsWith(`/${name}`))?.startTime])),
       }), files);
       assert(covered, `${locale}: the veil never covered`);
-      // Còn vài frame giữa lúc chèn trang mới và smooth scroll khởi động, ở mọi route (đo 31-130ms); chờ mạng
-      // trên main là 370ms trở lên.
+      // A few frames remain between inserting the new page and the smooth scroll starting, on every route (measured 31-130ms); the network wait
+      // on main is 370ms or more.
       assert(shift < 250, `${locale}: native scrollbar pushed the header for ${Math.round(shift)}ms`);
       for (const name of files) {
         assert(starts[name] < covered, `${locale}: ${name} must start before the veil covers: ${JSON.stringify({ covered, starts })}`);

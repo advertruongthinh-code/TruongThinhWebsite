@@ -1,5 +1,5 @@
-// Fail khi một selector CSS hoặc JS query của src/site gọi tên class hoặc data-* attribute
-// mà không markup, generator hay script nào tạo ra. Chạy: node --test tests/site/orphan-selectors.test.mjs
+// Fails when a CSS selector or JS query in src/site names a class or data-* attribute
+// that no markup, generator or script produces. Run: node --test tests/site/orphan-selectors.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -7,9 +7,9 @@ import test from "node:test";
 
 const repo = path.resolve(import.meta.dirname, "../..");
 const ALLOWED = new Set([
-  // Tạo lúc runtime bởi thư viện vendor (Locomotive Scroll, Swiper).
+  // Created at runtime by vendor libraries (Locomotive Scroll, Swiper).
   "c-scrollbar", "swiper-pagination", "swiper-pagination-bullet", "swiper-pagination-bullet-active", "swiper-initialized",
-  // Carousel Advertising detail không trang nào dùng (docs/specs/detail-pages.md, Gate).
+  // Advertising detail carousel, unused by any page (docs/specs/detail-pages.md, Gate).
   "detail-carousel", "detail-carousel-track", "detail-carousel-slide",
   "detail-carousel-pagination", "data-masonry-carousel", "data-masonry-carousel-viewport",
   "data-masonry-carousel-pagination",
@@ -33,7 +33,7 @@ const uses = site.flatMap(({ file, text }) => file.endsWith(".css")
     .flatMap((m) => namesIn(m[1]).map((name) => ({ name, file })))
   : [...text.matchAll(SELECTOR_CALL)].flatMap((m) => namesIn(m[2]).map((name) => ({ name, file }))));
 
-// Producer: mọi thứ trừ CSS, đã bỏ selector query và classList.contains.
+// Producer: everything except CSS, with query selectors and classList.contains removed.
 const producers = [...site.filter(({ file }) => !file.endsWith(".css")), ...generators]
   .map(({ text }) => text.replace(SELECTOR_CALL, "").replace(/classList\.contains\([^)]*\)/g, ""))
   .join("\n");

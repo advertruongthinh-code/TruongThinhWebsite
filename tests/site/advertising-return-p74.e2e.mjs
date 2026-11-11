@@ -34,8 +34,8 @@ try {
         await related.click();
         await page.waitForTimeout(900);
       }
-      // Header đã thu gọn ở detail và vẫn thu gọn ở masonry: không được chạy FLIP logo (owner 2026-11-08). Locomotive
-      // phát scroll với y cũ trong setPageScroll từng làm header mở rồi thu lại trong cùng task.
+      // The header is already collapsed at detail and stays collapsed at masonry: the logo FLIP must not run (owner 2026-11-08). Locomotive
+      // emitting scroll with a stale y in setPageScroll used to open then re-collapse the header within the same task.
       await page.evaluate(() => {
         const logo = document.querySelector("#header-logo");
         window.__logoMoved = false;
@@ -53,7 +53,7 @@ try {
       if (via === "back") {
         assert.equal(after.url, before.url);
         assert(Math.abs(after.y - before.y) <= 1, `${width}/${via}: ${before.y} -> ${after.y}`);
-        // Skeleton R3: Back là một page state mới, nên frame Flow draw assignment mới; chỉ scroll được khôi phục.
+        // Skeleton R3: Back is a new page state, so the Flow frame draws a new assignment; only scroll is restored.
       } else {
         assert.equal(new URL(after.url).search, new URL(before.url).search, "navbar keeps the picked group");
         const returned = await page.locator(`[data-masonry-card="${returnId}"]`).boundingBox();
@@ -65,7 +65,7 @@ try {
     }
     await page.close();
   }
-  // Nút quay lại (R10): góc trên trái khung primary, lùi từng entry như Back; ảnh vào thẳng về masonry nhóm.
+  // Back button (R10): top-left corner of the primary frame, steps back one entry like Back; a photo entered directly returns to the group masonry.
   for (const [width, touch] of [[1440, false], [390, true]]) {
     const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
     const press = () => touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
@@ -142,7 +142,7 @@ try {
         const bitmap = await createImageBitmap(await (await fetch(data)).blob());
         const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
         const ctx = canvas.getContext("2d"); ctx.drawImage(bitmap, 0, 0);
-        // Đường trên của footer (glass-surface R2) có thể rơi vào hàng biên, nên kiểm các hàng phía trên.
+        // The footer top line (glass-surface R2) may fall on the edge row, so check the rows above it.
         return [0.1, 0.35, 0.65, 0.9].flatMap(fraction => [-2, -1].map(offset =>
           [...ctx.getImageData(Math.floor(bitmap.width * fraction), Math.floor(edge) + offset, 1, 1).data].slice(0, 3)));
       }, { data: `data:image/png;base64,${png.toString("base64")}`, edge: geometry.edge });
@@ -151,7 +151,7 @@ try {
     console.log(`PASS ${width}: CTA/footer fit, stable reload position, white skeleton edge`);
     await page.close();
   }
-  // Back khi Worker còn tính geometry grid sau lần vào thẳng ?photo=, rồi resize: grid theo bề rộng mới như lần tải mới.
+  // Back while the Worker is still computing grid geometry after a direct ?photo= entry, then resize: the grid follows the new width like a fresh load.
   {
     const columns = () => {
       const grid = document.querySelector("[data-project-grid]").getBoundingClientRect();
@@ -162,7 +162,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1329, height: 912 } });
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
     const hero = await page.$eval("[data-masonry-card]", (node) => node.dataset.masonryCard);
-    // Hoãn mọi message gửi Worker 3 s: lượt prewarm grid sau detail còn chạy lúc bấm navbar.
+    // Defer every message sent to the Worker by 3 s: the grid prewarm pass after detail is still running when the navbar is clicked.
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage;
       Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
@@ -177,16 +177,16 @@ try {
     await fresh.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
     await fresh.waitForTimeout(900);
     const expected = await fresh.evaluate(columns);
-    // Card trượt 0.4s tới layout mới (chậm hơn khi máy bận); bản lỗi kẹt layout cũ cả sau khi Worker trả kết quả.
+    // The card slides 0.4s to the new layout (slower when the machine is busy); the buggy build stayed stuck in the old layout even after the Worker returned its result.
     let returned;
     for (const until = Date.now() + 5000; Date.now() < until;) {
       returned = await page.evaluate(columns);
       if (returned.columns === expected.columns) break;
       await page.waitForTimeout(150);
     }
-    assert.equal(returned.columns, expected.columns, `resize sau Back khi Worker còn tính: ${JSON.stringify({ returned, expected })}`);
-    // shortcut: chưa kiểm bề rộng từng card; ca này có lúc để một card giữ bề rộng cũ, cả trên main (đã báo điều phối),
-    // thêm khi bug đó được sửa.
+    assert.equal(returned.columns, expected.columns, `resize after Back while Worker still computing: ${JSON.stringify({ returned, expected })}`);
+    // shortcut: not yet checking each card's width; this case sometimes leaves one card at the old width, even on main (reported to coordination),
+    // add it when that bug is fixed.
     console.log(`PASS direct photo, Back while grid Worker pending, resize: ${returned.columns} columns`);
     await Promise.all([page.close(), fresh.close()]);
   }

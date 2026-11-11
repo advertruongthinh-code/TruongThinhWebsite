@@ -1,5 +1,5 @@
-// Trình duyệt không giải mã JXL vẫn tải đủ ảnh bằng WebP (owner 2026-10-31; progressive-loading R1).
-// Chromium tắt JXLImageFormat đóng vai Firefox. Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-format-fallback.e2e.mjs
+// A browser that cannot decode JXL still loads every image as WebP (owner 2026-10-31; progressive-loading R1).
+// Chromium with JXLImageFormat disabled plays the role of Firefox. Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-format-fallback.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -15,13 +15,13 @@ try {
   const jxl = [];
   page.on("request", (request) => request.url().endsWith(".jxl") && jxl.push(request.url()));
 
-  // Trang tĩnh: <picture> chọn img WebP.
+  // Static page: <picture> picks the WebP img.
   await page.goto(`${base}/vi/residential/`);
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.closest(".is-media-settled"), null, { timeout: 30_000 });
   const hero = await page.$$eval('img[fetchpriority="high"]', loaded());
   assert.ok(hero.length && hero.every(({ src, ok }) => ok && src.endsWith(".webp")), `static hero loads WebP ${JSON.stringify(hero)}`);
 
-  // Advertising: card, primary, viewer đều dùng WebP và không có dấu lỗi.
+  // Advertising: card, primary and viewer all use WebP and show no error marker.
   await page.goto(`${base}/vi/advertising-products/`);
   await page.waitForFunction(() => [...document.querySelectorAll("[data-masonry-card] img")].filter((image) => image.naturalWidth).length >= 4,
     null, { timeout: 30_000 });

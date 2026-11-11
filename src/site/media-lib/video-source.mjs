@@ -1,12 +1,12 @@
-// Nguồn video theo thang chất lượng (video-delivery R3, R4): có Media Source thì phát `hlsSrc` bằng hls.js, còn lại phát
-// file bậc cố định. Mạng nhanh lên thì thay phần bậc thấp đã tải phía trước vị trí phát.
+// Video source by quality ladder (video-delivery R3, R4): with Media Source, play `hlsSrc` through hls.js; otherwise play the
+// fixed-rung file. When the network speeds up, replace the already-buffered low-rung part ahead of the playhead.
 const HLS_URL = "/assets/vendor/hls.light-1.7.3.min.js";
 const players = new Map();
-// undefined: chưa nạp; null: trình duyệt không có Media Source hoặc nạp lỗi.
+// undefined: not loaded yet; null: the browser has no Media Source or loading failed.
 let hlsLibrary;
 let library;
 
-// Nạp thư viện lần đầu khi cần, không chặn render (R3); catalog gọi sớm cùng lúc tải artifact.
+// Load the library on first need without blocking render (R3); the catalog calls it early, alongside the artifact load.
 export const loadHls = () => library ??= new Promise((resolve) => {
   if (!self.MediaSource && !self.ManagedMediaSource) return resolve(hlsLibrary = null);
   const script = Object.assign(document.createElement("script"), { src: HLS_URL, async: true });
@@ -15,7 +15,7 @@ export const loadHls = () => library ??= new Promise((resolve) => {
   document.head.append(script);
 });
 
-// `nextAutoLevel` chạy lại thuật toán ABR mỗi lần đọc nên chỉ đọc một lần, và chỉ khi còn phần dưới bậc trần.
+// `nextAutoLevel` reruns the ABR algorithm on every read, so read it once, and only while there is still a part below the ceiling rung.
 const behind = (video) => {
   if (video.paused) return false;
   const { hls, fragments } = players.get(video);
@@ -23,8 +23,8 @@ const behind = (video) => {
   return lowest < hls.maxAutoLevel && lowest < hls.nextAutoLevel;
 };
 
-// R4 phía trước: xóa phần bậc thấp kể từ keyframe (mỗi 0,5 s) mà bậc mới kịp tải trước khi phát tới, băng thông chia
-// cho `share` video cùng thay; hls.js tự tải lại phần đã xóa ở bậc mới.
+// R4 ahead: remove the low-rung part from the keyframe (every 0.5 s) that the new rung can fetch before playback reaches it; bandwidth is split
+// across the `share` videos switching together; hls.js refetches the removed part at the new rung by itself.
 const replaceAhead = (video, share = 1) => {
   const { hls, fragments } = players.get(video);
   const level = hls.nextAutoLevel;
@@ -39,7 +39,7 @@ const replaceAhead = (video, share = 1) => {
     flushed = true;
     hls.trigger(self.Hls.Events.BUFFER_FLUSHING, { startOffset: from, endOffset: fragment.end, type: null });
   }
-  // Clip đã tải hết thì hls.js đang dừng tải: bật lại sau khi xóa xong để không đọc nhầm buffer cũ còn tới cuối clip.
+  // A fully loaded clip means hls.js has stopped loading: restart it after the removal so it does not misread the old buffer still reaching the clip end.
   if (flushed && !hls.loadingEnabled) hls.once(self.Hls.Events.BUFFER_FLUSHED, () => hls.startLoad(video.currentTime, true));
 };
 
@@ -53,8 +53,8 @@ export function releaseVideoSource(video) {
   video.load();
 }
 
-// Gắn nguồn cho video: card chặn ở bậc `capWidth` (R2), detail bắt đầu ở bậc đầu playlist. Trả false khi video đã đúng
-// nguồn này.
+// Attach the source to a video: a card caps at rung `capWidth` (R2), detail starts at the first playlist rung. Returns false when the video already has
+// this source.
 export function setVideoSource(video, item, { file, capWidth = Infinity }) {
   const key = item.hlsSrc || file;
   if (video.dataset.videoSource === key) return false;
@@ -66,7 +66,7 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
   }
   const attach = (Hls) => {
     if (video.dataset.videoSource !== key || players.has(video)) return;
-    // Gắn nguồn chạy lại thuật toán load nên hủy lệnh play() gọi trong lúc chờ thư viện; gọi lại sau khi gắn.
+    // Attaching a source reruns the load algorithm and so cancels a play() called while waiting for the library; call it again after attaching.
     const resume = !video.paused;
     if (!Hls) {
       video.src = file;
@@ -83,10 +83,10 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
       const cap = hls.levels.findLastIndex(({ width }) => width <= capWidth);
       if (card) hls.autoLevelCapping = cap;
       hls.startLevel = card ? cap : hls.firstLevel;
-      // Giây giao từ card sang detail hoặc ngược lại được gán trước khi playlist về (media-card R6).
+      // The second handed from card to detail or back is assigned before the playlist arrives (media-card R6).
       hls.startLoad(video.currentTime || -1);
     });
-    // Số đo chung (R4): clip tải hết thì hls.js ngừng đo, nên video vừa tải segment chia số đo cho video khác.
+    // Shared measurement (R4): once a clip is fully loaded hls.js stops measuring, so a video that just fetched a segment shares its measurement with the other videos.
     hls.on(Hls.Events.FRAG_BUFFERED, (_, { frag }) => {
       if (frag.type !== "main") return;
       fragments.set(frag.sn, { start: frag.start, end: frag.start + frag.duration, level: frag.level });
@@ -94,9 +94,9 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
       players.forEach((player) => { if (player.hls.bandwidthEstimate < estimate) player.hls.bandwidthEstimate = estimate; });
       const due = [...players.keys()].filter(behind);
       due.forEach((entry) => replaceAhead(entry, due.length));
-      // Card đang dừng (chưa vào màn hoặc đã cuộn qua) giữ phần đã tải rồi dừng, phát thì tải tiếp: ở 4G chậm card ngoài màn
-      // tải hết clip giành băng thông nên segment đầu của card vừa hiện mất 3,8 s (đo cloud 2026-10-25).
-      // Chỉ bật lại card do luật này dừng: bật cả khi luật thay phía trước đang chờ xóa xong thì tải trùng, video khựng.
+      // A paused card (not yet on screen or scrolled past) keeps what it loaded then stops; playing resumes loading: on slow 4G an off-screen card
+      // loading the whole clip hogs bandwidth, so the first segment of a card that just appeared took 3.8 s (measured on cloud 2026-10-25).
+      // Only re-enable a card paused by this rule: re-enabling while the replace-ahead rule is waiting for removal to finish would load twice and stall the video.
       if (card && video.paused) {
         hls.stopLoad();
         player.parked = true;
@@ -107,26 +107,26 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
       player.parked = false;
       hls.startLoad(video.currentTime, true);
     }, { signal: abort.signal });
-    // Tải hết clip thì dừng vòng lặp 100 ms của hls.js: mỗi card trong cửa sổ render giữ một instance chạy không dù
-    // đã tải xong (đo cloud 2026-10-25, 52 card: 200 ms script mỗi lượt cuộn 20 s); luật thay phía trước bật lại.
+    // Once fully loaded, stop hls.js's 100 ms loop: every card in the render window kept an instance spinning idle even
+    // after finishing (measured on cloud 2026-10-25, 52 cards: 200 ms of script per 20 s scroll); the replace-ahead rule re-enables it.
     hls.on(Hls.Events.BUFFERED_TO_END, () => hls.stopLoad());
-    // Lỗi không phục hồi được thì về file bậc cố định; file đó lỗi nữa thì card, primary xử lý lỗi video như cũ.
+    // On an unrecoverable error, fall back to the fixed-rung file; if that file also fails, the card and primary handle the video error as before.
     hls.on(Hls.Events.ERROR, (_, { fatal }) => {
       if (!fatal) return;
-      // Đang phát (hoặc chờ phát) thì phát tiếp bằng file: gỡ player chạy lại thuật toán load nên video dừng.
+      // If playing (or waiting to play), keep playing from the file: detaching the player reruns the load algorithm so the video would stop.
       const resume = !video.paused;
       releaseVideoSource(video);
       video.dataset.videoSource = key;
       video.src = file;
       if (resume) void video.play().catch(() => {});
     });
-    // Tua và lặp về giây 0 chạy lại luật phía trước (R4).
+    // Seek and loop back to second 0 rerun the ahead rule (R4).
     video.addEventListener("seeked", () => { if (behind(video)) replaceAhead(video); }, { signal: abort.signal });
     hls.attachMedia(video);
     hls.loadSource(item.hlsSrc);
     if (resume) void video.play().catch(() => {});
   };
-  // Thư viện đã nạp thì gắn ngay để play() của nơi gọi không bị hủy.
+  // If the library is already loaded, attach immediately so the caller's play() is not cancelled.
   if (hlsLibrary !== undefined) attach(hlsLibrary);
   else void loadHls().then(attach);
   return true;
