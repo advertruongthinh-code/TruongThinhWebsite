@@ -7024,6 +7024,9 @@ async function runAdvertisingMediaFocusedChecks() {
         return card.dataset.masonryCard;
       });
       const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
+      // The pointer is still on the filter button: scrolling slides cards under it, and hovering a multi-media card
+      // (media-card R3, R7 merged cards) loads its next item, which is not a lazy-window request. Park it off the grid.
+      await page.mouse.move(0, 0);
       const step = 450;
       for (let localY = 0; localY <= pageLayout.totalPixelHeight; localY += step) {
         const requestedBefore = new Set(mediaRequestPaths);
