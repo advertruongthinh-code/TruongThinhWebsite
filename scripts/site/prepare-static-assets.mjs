@@ -5,6 +5,7 @@ import { transform } from "esbuild";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, filterRank, matchesFilter } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
@@ -505,6 +506,19 @@ const localizeHtmlOutput = async (directory) => {
   );
 };
 
+// A card merged into a multi-media card keeps its old p/<id> URL as a redirect to the cover card (media-card R7);
+// written before localizing so the ROUTES loop below finds it.
+const cardById = new Map(ADVERTISING_CARDS.map((card) => [card.id, card]));
+for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
+  const cover = cardById.get(coverId);
+  const html = renderCompatibilityPage({ titleVi: cover.titleVi, titleEn: cover.titleEn, statementVi: cover.descriptionVi, statementEn: cover.descriptionEn },
+    { slugVi: `p/${coverId}`, slugEn: `p/${coverId}` });
+  for (const locale of ["vi", "en"]) {
+    const destination = path.join(outputRoot, locale, "advertising-products", "p", mergedId, "index.html");
+    await mkdir(path.dirname(destination), { recursive: true });
+    await writeFile(destination, html, "utf8");
+  }
+}
 await localizeHtmlOutput(outputRoot);
 
 for (const [route, source] of ROUTES) {
