@@ -1050,7 +1050,7 @@ const setCardVideoSource = (video, attach) => {
 function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
   onPendingChange = () => {}) {
   const figure = document.createElement("figure");
-  figure.className = "project-tile masonry-card";
+  figure.className = "masonry-card";
   figure.dataset[related ? "masonryRelatedCard" : "masonryCard"] = record.id;
   figure.dataset.masonryCategory = record.category;
   const link = document.createElement("a");
@@ -1058,7 +1058,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   link.className = "card-interactive";
   link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
-  media.className = "project-tile__media masonry-card__media--natural card-media";
+  media.className = "masonry-card__media masonry-card__media--natural card-media";
   // The image's dominant color fills the frame while the image has received no bytes; the blurred then sharp image covers it (progressive-loading R9).
   const color = cardColor(record);
   if (color) media.style.backgroundColor = color;
@@ -1481,7 +1481,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
   const siteFooter = container.querySelector("footer.site-footer");
-  const gridSection = grid.closest(".project-index");
+  const gridSection = grid.closest(".masonry-section");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
   const photoView = container.querySelector("[data-detail-view]");
   // On first detail show, Blink lazily parses the CSS declarations matching the photo view inside the card-tap task. Read computed
@@ -2899,7 +2899,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // (advertising-cta-center-parallax R9). Keeping the nodes means the Flow renderer, per-slot band and measured font size are not lost.
   const ctaInDetail = () => ctaBatch.host === "detail";
   // The batch yard. Going to detail: rerun the enter-view motion after the placement on the canvas (R9). Back to masonry keep the state
-  // already shown: scrolling back to the old place with the CTA on screen does not hide then rerun it. In the cluster grid inherit variables from .project-index.
+  // already shown: scrolling back to the old place with the CTA on screen does not hide then rerun it. In the cluster grid inherit variables from .masonry-section.
   const moveCtaNodes = (host) => ctaBatch.attach(host, host === "detail" && photoCanvas
     ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, replay: true }
     : { skeletonParent: grid, clusterParent: gridSectionStyleTarget });
@@ -2937,7 +2937,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const room = viewportHeight / 2 - footerHeight - gap;
     const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
     // In detail the variables are set directly on the CTA cluster (the only place that uses them), not on the canvas: a changed inherited variable on the canvas
-    // recomputes style for all of related. In the grid the runtime writes the in-between value onto .project-index when measuring masonry.
+    // recomputes style for all of related. In the grid the runtime writes the in-between value onto .masonry-section when measuring masonry.
     const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
     setStyleVar(ctaVarHost, "--masonry-cta-top", `${ctaTop}px`);
     if (detailHost) {
@@ -3245,7 +3245,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const layoutViewportWidth = document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
-    const projectIndex = grid.closest(".project-index");
+    const projectIndex = grid.closest(".masonry-section");
     projectIndex?.style.setProperty("--masonry-outer", `${outer}px`);
     projectIndex?.style.setProperty("--masonry-gap", `${interCardGap}px`);
     grid.style.setProperty("--masonry-gap", `${interCardGap}px`);

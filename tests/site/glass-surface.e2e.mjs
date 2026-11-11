@@ -16,7 +16,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
   args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 
 const arcState = () => {
-  const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
+  const glass = document.querySelector(".masonry-section > .glass-surface[data-glass-shape=arc]");
   const box = glass.getBoundingClientRect();
   const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full)")];
   const top = (node) => Number.parseFloat(node.style.top);
@@ -121,7 +121,7 @@ try {
         // R2: black and white stripes under the core, under the CTA copy, are lost to blur (a sharp edge jumps about 255).
         const stripesTop = await page.evaluate(() => {
           const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
-          const bottom = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
+          const bottom = document.querySelector(".masonry-section > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
           const node = Object.assign(document.createElement("div"), { id: "glass-stripes" });
           Object.assign(node.style, { position: "absolute", left: "0", width: "300px", height: "200px",
             top: `${bottom - skeleton.getBoundingClientRect().top - 200}px`, background: "repeating-linear-gradient(90deg, #000 0 40px, #fff 40px 80px)" });
@@ -158,7 +158,7 @@ try {
       }
       await page.waitForTimeout(1200);
       const phone = await page.evaluate(() => {
-        const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
+        const glass = document.querySelector(".masonry-section > .glass-surface[data-glass-shape=arc]");
         const [core, ...steps] = [...glass.querySelectorAll(".glass-surface__step")];
         const visible = steps.filter((node) => getComputedStyle(node).display !== "none");
         const blur = (node) => getComputedStyle(node).backdropFilter.match(/blur\(([\d.]+)px\)/)?.[1];

@@ -83,7 +83,7 @@ không âm ở cả hai đầu (P4) giữ cột chuẩn cố định trong dải
 ## Follow-up
 
 - CMS nối luồng lưu, tính lại cache theo filter có pool đổi (cả batch một lần), chạy trong Web Worker và cảnh báo khi card ngang bị hạ.
-- Gộp `.project-tile` và `.project-index` vào `.masonry-card` (tên DOM trang Công trình còn riêng): việc sau, ngoài plan.
+- Đã xong sau plan: `.project-tile` thành `.masonry-card` (media `.masonry-card__media`), thẻ noscript thành `.masonry-static-card`, section lưới `.project-index` thành `.masonry-section`. Còn lại `.project-grid` và `[data-project-grid]` giữ tên cũ.
 - Phép đo chuẩn (rAF, RAM, long task) đo lại trên A04s khi catalog đổi đáng kể.
 
 ## Chú thích thuật ngữ

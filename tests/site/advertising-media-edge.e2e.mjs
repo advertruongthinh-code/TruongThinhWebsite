@@ -25,7 +25,7 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
     await scrollThrough(page, 800);
     const edges = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card")].flatMap((tile) => {
-      const media = tile.querySelector(".project-tile__media");
+      const media = tile.querySelector(".masonry-card__media");
       const image = media?.querySelector("img.is-masonry-media-ready:not([hidden])");
       if (!image?.naturalWidth || image.style.filter) return [];
       // Once the blur is gone there is no overflow scale: a leftover scale makes the image larger than the frame (negative gap).
@@ -41,7 +41,7 @@ try {
     await page.addStyleTag({ content: ".masonry-card img { height: calc(100% - 0.6px) !important; }" });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     // A hand-set dark background frame (rgb 20) on a card already showing its image, independent of the catalog's dominant color.
-    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card .project-tile__media")].filter((media) => {
+    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card .masonry-card__media")].filter((media) => {
       const box = media.getBoundingClientRect();
       return media.querySelector("img.is-masonry-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
     }).slice(0, 4).map((media) => {
@@ -72,7 +72,7 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]").length > 2);
     const bleeds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]")].flatMap((tile) => {
-      const media = tile.querySelector(".project-tile__media");
+      const media = tile.querySelector(".masonry-card__media");
       const image = media?.querySelector(".masonry-card__foreground:not([hidden])");
       if (!image?.style.filter.startsWith("blur(")) return [];
       const box = media.getBoundingClientRect();

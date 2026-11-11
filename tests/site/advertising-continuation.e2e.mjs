@@ -199,7 +199,7 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
 async function snapshot(page) {
   return page.evaluate(() => {
     const grid = document.querySelector("[data-project-grid]");
-    const section = grid?.closest(".project-index");
+    const section = grid?.closest(".masonry-section");
     const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
     const cta = document.querySelector("[data-masonry-grid-cta]");
     const footer = document.querySelector("footer.site-footer");

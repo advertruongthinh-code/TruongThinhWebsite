@@ -51,7 +51,7 @@ Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products 
 `data-barba-namespace="advertising-products"`. `main#noi-dung` gồm: hero `.detail-index-hero#top` (kicker "Sản phẩm tiêu biểu" / "Our featured products",
 `h1` hai dòng "để thương hiệu / luôn trong tầm mắt" / "Keep your brand / always in sight", dòng 2 đậm 700 nghiêng ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), rail filter
 R3, scroll cue cách đáy như [Hero](../../design-system/components/Hero/README.md); trên 1024px dòng 2 neo mép phải
-khung); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
+khung); `section.masonry-section#du-an` chứa `[data-project-grid]`, khung batch
 `[data-masonry-cta-skeleton]` và CTA `section.detail-cta[data-masonry-grid-cta]` ("Dấu ấn tiếp theo / dành cho
 thương hiệu của bạn", link Zalo "Trao đổi ý tưởng"); `section[data-detail-view][hidden]` là detail. Khi
 duyệt masonry (không có `photo`), `body` có `is-masonry-browse`: floating CTA ẩn, footer không có khoảng phía trên.
@@ -207,7 +207,7 @@ Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v17`, nh�
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-masonry-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
-chữ thô (CSS chỉ áp trong `@media (scripting: none)`).
+chữ thô (CSS chỉ áp trong `@media (scripting: none)`). Card tĩnh trong `<noscript>` là `figure.masonry-static-card` (ô lưới CSS thường, không có hình học tuyệt đối của `.masonry-card`); trang Công trình dùng cùng class.
 
 ```gherkin
 Given Masonry 4.2.2 không tải được khi vào thẳng /vi/advertising-products/

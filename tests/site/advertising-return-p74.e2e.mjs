@@ -127,7 +127,7 @@ try {
         const copy = document.querySelector("[data-masonry-grid-ta], [data-masonry-grid-cta] .detail-cta__copy").getBoundingClientRect();
         const footer = document.querySelector("footer").getBoundingClientRect();
         const skeleton = document.querySelector(".masonry-grid__cta-skeleton").getBoundingClientRect();
-        const section = document.querySelector(".project-index:has(.masonry-grid__cta-skeleton)");
+        const section = document.querySelector(".masonry-section:has(.masonry-grid__cta-skeleton)");
         const tint = section.querySelector(":scope > .glass-surface .glass-surface__tint");
         return { copy: copy.toJSON(), footer: footer.toJSON(), edge: skeleton.bottom,
           overlap: section.getBoundingClientRect().top + parseFloat(tint.style.top) + parseFloat(tint.style.height) - skeleton.bottom };

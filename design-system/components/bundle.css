@@ -3418,14 +3418,14 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-heading,
 .detail-process,
 .detail-duo,
-.project-index,
+.masonry-section,
 .detail-cta {
   width: min(calc(100% - 2 * var(--gutter)), 1370px);
   margin-inline: auto;
 }
 
 .detail-heading h2,
-.project-index h1 {
+.masonry-section h1 {
   margin: 0;
   font-weight: 600;
   letter-spacing: var(--tracking-display);
@@ -4088,7 +4088,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   }
 }
 
-.project-index {
+.masonry-section {
   width: min(calc(100% - 2 * var(--gutter)), 1500px);
 }
 
@@ -4107,24 +4107,25 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   }
 }
 
-.project-tile {
+/* No-JavaScript fallback cards (noscript): a plain CSS grid cell, none of the absolute masonry geometry. */
+.masonry-static-card {
   min-width: 0;
 }
 
-.project-tile > a {
+.masonry-static-card > a {
   display: block;
   color: inherit;
   text-decoration: none;
 }
 
-.project-tile__media {
+.masonry-static-card__media {
   display: block;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background: #d9d7d0;
 }
 
-.project-tile:not(.masonry-card) img {
+.masonry-static-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -4132,17 +4133,18 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 /* Kiosk cover image: the light-box text leans right, shift the 3:4 crop frame to the right to keep the full text. */
-.project-tile:not(.masonry-card) img[src*="advertising-kiosk-posm-cover"] {
+.masonry-static-card img[src*="advertising-kiosk-posm-cover"] {
   object-position: 58% 50%;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .project-tile:not(.masonry-card):hover img {
+  .masonry-static-card:hover img {
     transform: scale(1.15);
   }
 }
 
-.project-tile[hidden] {
+.masonry-card[hidden],
+.masonry-static-card[hidden] {
   display: none;
 }
 
@@ -4316,7 +4318,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     gap: 15px;
   }
 
-  .project-index {
+  .masonry-section {
     width: calc(100% - 30px);
   }
 }
@@ -4745,21 +4747,21 @@ body.is-masonry-browse .masonry-grid {
   overflow: visible;
 }
 
-.detail-page .project-index {
+.detail-page .masonry-section {
   position: relative;
   --masonry-outer: 15px;
   width: calc(100% - (2 * var(--masonry-outer)));
 }
 
 /* While detail is open, the grid keeps its style and computed layout instead of display: none, so Back does not rebuild the whole grid in the popstate task (decision phone-frame-budget). */
-.detail-page .project-index[hidden] {
+.detail-page .masonry-section[hidden] {
   display: block;
   position: absolute;
   content-visibility: hidden;
 }
 
 @media (min-width: 751px) {
-  .detail-page .project-index {
+  .detail-page .masonry-section {
     --masonry-outer: 25px;
   }
 }
@@ -4775,7 +4777,7 @@ body.is-masonry-browse .masonry-grid {
     --masonry-gap: 35px;
   }
 
-  .detail-page .project-index {
+  .detail-page .masonry-section {
     --masonry-outer: 35px;
   }
 }
@@ -4793,7 +4795,7 @@ body.is-masonry-browse .masonry-grid {
   text-decoration: none;
 }
 
-.masonry-card .project-tile__media {
+.masonry-card .masonry-card__media {
   position: relative;
   height: var(--masonry-media-height, 100%);
   aspect-ratio: auto;
@@ -6730,7 +6732,7 @@ body.is-masonry-browse .floating-cta {
 }
 
 body.is-detail .detail-index-hero,
-body.is-detail .project-index,
+body.is-detail .masonry-section,
 body.is-detail .detail-process {
   display: none;
 }
