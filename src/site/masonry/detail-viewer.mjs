@@ -104,7 +104,7 @@ export function createDetailViewer({
     for (const [edge, value] of Object.entries({
       top: top - bounds.top, left: left - bounds.left,
       right: bounds.right - left - width, bottom: bounds.bottom - top - height,
-    })) dialog.style.setProperty(`--advertising-viewer-visible-${edge}`, `${Math.max(0, value)}px`);
+    })) dialog.style.setProperty(`--viewer-visible-${edge}`, `${Math.max(0, value)}px`);
   };
   // Ở 90° và 270° ảnh nằm ngang thành dọc nên khung vừa và cover tính theo chiều đã đổi (R11).
   const sideways = () => Math.abs(Math.round(angle / 90)) % 2 === 1;
@@ -127,8 +127,8 @@ export function createDetailViewer({
     fitHeight = fitWidth / ratio;
     media.style.width = `${fitWidth}px`;
     media.style.height = `${fitHeight}px`;
-    videoHost?.style.setProperty("--advertising-viewer-fit-width", `${fitWidth}px`);
-    videoHost?.style.setProperty("--advertising-viewer-fit-height", `${fitHeight}px`);
+    videoHost?.style.setProperty("--viewer-fit-width", `${fitWidth}px`);
+    videoHost?.style.setProperty("--viewer-fit-height", `${fitHeight}px`);
     const [visualWidth, visualHeight] = visualSize();
     cover = Math.max(viewport.clientWidth / visualWidth, viewport.clientHeight / visualHeight);
     scale = previousWidth ? scale * previousWidth / fitWidth : stop >= 0 ? stops()[stop] : clamp(scale, 1, 2 * cover);
@@ -167,14 +167,14 @@ export function createDetailViewer({
     cancelMotion();
     const generation = motionGeneration;
     media.style.transform = to;
-    dialog.dataset.advertisingViewerState = state;
+    dialog.dataset.viewerState = state;
     const settle = () => {
       if (generation !== motionGeneration) return;
       imageAnimation?.cancel();
       imageAnimation = null;
       media.style.transform = to;
       if (finish) finish();
-      else if (dialog.open) dialog.dataset.advertisingViewerState = "open";
+      else if (dialog.open) dialog.dataset.viewerState = "open";
     };
     if (reducedMotion.matches || typeof media.animate !== "function") {
       settle();
@@ -223,7 +223,7 @@ export function createDetailViewer({
     runMotion(matrix.toString(), renderTransform(), 200, "ease-in-out", "zooming");
   };
   const setScale = (target, anchor) => {
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || target === undefined
+    if (!dialog.open || dialog.dataset.viewerState === "closing" || target === undefined
       || media === video) return;
     const nextScale = clamp(target, 1, 2 * cover);
     if (nextScale !== scale) moveTo(nextScale, anchor);
@@ -231,7 +231,7 @@ export function createDetailViewer({
   // Một gesture trong lúc zoom animation tiếp tục từ frame đang trên màn hình; khi đang mở thì bắt đầu từ Fit.
   const adoptDisplayed = () => {
     if (!imageAnimation) return;
-    if (dialog.dataset.advertisingViewerState === "zooming") {
+    if (dialog.dataset.viewerState === "zooming") {
       const matrix = new DOMMatrixReadOnly(getComputedStyle(media).transform);
       scale = Math.hypot(matrix.a, matrix.b);
       angle = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
@@ -239,7 +239,7 @@ export function createDetailViewer({
       panY = matrix.m42;
     }
     cancelMotion();
-    dialog.dataset.advertisingViewerState = "open";
+    dialog.dataset.viewerState = "open";
     renderTransform();
   };
   // Quay lại trong [Fit, Max] và hít góc về bội 90 sau gesture; `anchor` đứng yên, Fit căn lại giữa (R2, R11).
@@ -291,8 +291,8 @@ export function createDetailViewer({
     scroll?.unlockLogicalScroll?.(lockedScroll);
   };
   const setBackdropOpacity = (value) => {
-    if (value === 1) dialog.style.removeProperty("--advertising-viewer-backdrop-opacity");
-    else dialog.style.setProperty("--advertising-viewer-backdrop-opacity", `${value}`);
+    if (value === 1) dialog.style.removeProperty("--viewer-backdrop-opacity");
+    else dialog.style.setProperty("--viewer-backdrop-opacity", `${value}`);
   };
   // Swipe để đóng (R9): ở Fit ảnh theo ngón tay theo chiều dọc và backdrop mờ dần theo khoảng cách.
   const moveSwipe = (event) => {
@@ -306,7 +306,7 @@ export function createDetailViewer({
       }
       swipe.active = true;
       tap = null;
-      dialog.dataset.advertisingViewerSwipe = "";
+      dialog.dataset.viewerSwipe = "";
     }
     swipe.velocity = (event.clientY - swipe.lastY) / Math.max(1, event.timeStamp - swipe.lastTime);
     Object.assign(swipe, { dy, lastY: event.clientY, lastTime: event.timeStamp });
@@ -317,7 +317,7 @@ export function createDetailViewer({
     const { active, dy, velocity } = swipe;
     swipe = null;
     if (!active) return;
-    delete dialog.dataset.advertisingViewerSwipe;
+    delete dialog.dataset.viewerSwipe;
     if (release && (Math.abs(dy) >= 0.15 * viewport.clientHeight || Math.abs(velocity) >= 0.5)) {
       close();
       return;
@@ -331,8 +331,8 @@ export function createDetailViewer({
     endSlide();
     dialog.close();
     if (media === video) detachVideo();
-    delete dialog.dataset.advertisingViewerState;
-    delete dialog.dataset.advertisingViewerSwipe;
+    delete dialog.dataset.viewerState;
+    delete dialog.dataset.viewerSwipe;
     setBackdropOpacity(1);
     // Đóng bằng bất cứ thứ gì ngoài Back: bỏ history entry của viewer để lần Back kế tiếp rời detail (R10).
     // Một flag, không phải state key: router có thể ghi đè state của entry khi viewer đang mở.
@@ -366,7 +366,7 @@ export function createDetailViewer({
   const primaryReady = () => record?.media.kind === "video" || !heroImage
     || (heroImage.complete && heroImage.naturalWidth > 0);
   // Touch screens hide the button (R8), so its icon stays still there.
-  const expandIcon = expandButton.querySelector("[data-advertising-photo-expand-icon]");
+  const expandIcon = expandButton.querySelector("[data-detail-expand-icon]");
   const icon = expandIcon && createLoadingExpandIcon(expandIcon, { still: () => reducedMotion.matches || touchScreen.matches });
   const syncExpand = () => {
     const ready = primaryReady();
@@ -380,7 +380,7 @@ export function createDetailViewer({
       finishClose(restoreFocus);
       return;
     }
-    if (dialog.dataset.advertisingViewerState === "closing") return;
+    if (dialog.dataset.viewerState === "closing") return;
     const target = sourceTransform();
     if (!target) {
       finishClose(restoreFocus);
@@ -464,17 +464,17 @@ export function createDetailViewer({
   // Dãy thumbnail viewer đổi media của card (R8): lớp trượt mang media cũ ra, media mới trượt vào như dải primary.
   // `apply` đổi primary sang media mới; video phải về primary trước khi primary đổi nguồn.
   const slideTo = (nextRecord, step, apply) => {
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return;
+    if (!dialog.open || dialog.dataset.viewerState === "closing") return;
     endSlide();
     cancelMotion();
-    dialog.dataset.advertisingViewerState = "open";
+    dialog.dataset.viewerState = "open";
     // Video: canvas vẽ frame đang hiện, chưa có frame thì poster; ảnh: bản sao của ảnh.
     const ghost = media === expandedImage ? expandedImage.cloneNode()
       : video.readyState < 2 ? Object.assign(document.createElement("img"), { src: video.poster, alt: "" })
         : Object.assign(document.createElement("canvas"), { width: video.videoWidth, height: video.videoHeight });
     ghost.getContext?.("2d").drawImage(video, 0, 0);
-    ghost.removeAttribute("data-advertising-photo-expanded-image");
-    ghost.className = "advertising-photo-dialog__ghost";
+    ghost.removeAttribute("data-detail-expanded-image");
+    ghost.className = "detail-dialog__ghost";
     ghost.setAttribute("aria-hidden", "true");
     for (const name of ["width", "height", "transform"]) ghost.style[name] = media.style[name];
     viewport.append(ghost);
@@ -532,7 +532,7 @@ export function createDetailViewer({
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
   viewport.addEventListener("wheel", (event) => {
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || event.deltaY === 0) return;
+    if (!dialog.open || dialog.dataset.viewerState === "closing" || event.deltaY === 0) return;
     event.preventDefault();
     setScale(nextStop(event.deltaY < 0 ? 1 : -1), event);
   }, { passive: false, signal: controller.signal });
@@ -553,7 +553,7 @@ export function createDetailViewer({
       setScale(1);
       return;
     }
-    const closing = dialog.dataset.advertisingViewerState === "closing";
+    const closing = dialog.dataset.viewerState === "closing";
     // Ngón thứ ba bị bỏ qua: nó không kéo cũng không kết thúc pinch.
     if (event.pointerType === "touch" && touches.size === 2) return;
     // Video không pinch, không chạm zoom: chạm video chỉ phát hoặc dừng qua player (R8).
@@ -563,7 +563,7 @@ export function createDetailViewer({
         // Hai ngón không bao giờ đóng viewer và kết thúc mọi drag, swipe hay tap một ngón.
         backdropPress = false;
         if (swipe?.active) {
-          delete dialog.dataset.advertisingViewerSwipe;
+          delete dialog.dataset.viewerSwipe;
           setBackdropOpacity(1);
           renderTransform();
         }
@@ -661,10 +661,10 @@ export function createDetailViewer({
       event.preventDefault();
       return;
     }
-    if (atFit() || dialog.dataset.advertisingViewerState === "closing"
+    if (atFit() || dialog.dataset.viewerState === "closing"
       || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     cancelMotion();
-    dialog.dataset.advertisingViewerState = "open";
+    dialog.dataset.viewerState = "open";
     if (event.key === "ArrowLeft") panX += 40;
     if (event.key === "ArrowRight") panX -= 40;
     if (event.key === "ArrowUp") panY += 40;
@@ -681,14 +681,14 @@ export function createDetailViewer({
       updateVisibleControls();
       if (fitGeometryKey === geometryKey()) return;
       sourceRect = null;
-      if (dialog.dataset.advertisingViewerState === "closing") {
+      if (dialog.dataset.viewerState === "closing") {
         finishClose(true);
         return;
       }
       cancelMotion();
       measureFit();
       renderTransform();
-      dialog.dataset.advertisingViewerState = "open";
+      dialog.dataset.viewerState = "open";
     });
   };
   const resizeObserver = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
@@ -705,7 +705,7 @@ export function createDetailViewer({
     if (!ownEntry || !dialog.open) return false;
     // Back giữa animation đóng cũng ăn entry của viewer; nếu không finishClose sẽ history.back() thêm lần nữa.
     ownEntry = false;
-    if (dialog.dataset.advertisingViewerState !== "closing") close();
+    if (dialog.dataset.viewerState !== "closing") close();
     return true;
   };
   const cleanup = () => {
@@ -728,8 +728,8 @@ export function createDetailViewer({
       if (record?.id !== nextRecord?.id) close({ restoreFocus: false });
       record = nextRecord || null;
       syncExpand();
-      if (record) expandedImage.dataset.advertisingPhotoId = record.id;
-      else delete expandedImage.dataset.advertisingPhotoId;
+      if (record) expandedImage.dataset.detailId = record.id;
+      else delete expandedImage.dataset.detailId;
       if (record && dialog.open) {
         expandedImage.alt = document.documentElement.lang === "en" ? record.media.altEn : record.media.altVi;
       }

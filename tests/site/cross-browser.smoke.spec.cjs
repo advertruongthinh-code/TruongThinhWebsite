@@ -122,14 +122,14 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   // Cuộn quán tính và cửa sổ ảo còn dời card sau wheel cuối; chờ tới khi có card nằm gọn thay vì chụp một lần.
   let photo;
   await expect.poll(async () => {
-    photo = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")].find((card) => {
+    photo = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")].find((card) => {
       const rect = card.getBoundingClientRect();
       return rect.top > 120 && rect.bottom < innerHeight;
-    })?.dataset.advertisingCard);
+    })?.dataset.masonryCard);
     if (!photo) await page.mouse.wheel(0, 40);
     return photo;
   }, { message: "a fully visible card", timeout: 10_000 }).toBeTruthy();
-  await page.locator(`[data-advertising-card="${photo}"] > a`).click();
+  await page.locator(`[data-masonry-card="${photo}"] > a`).click();
   await expect(page).toHaveURL(new RegExp(`/advertising-products/p/${photo}/`));
   expect(await page.evaluate(() => history.length)).toBe(length + 1);
   await page.goBack();

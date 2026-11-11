@@ -73,9 +73,9 @@ function watchVideos() {
   const nodes = window.__videoNodes = [];
   const entries = new WeakMap();
   const tick = () => {
-    if (window.__firstCard === undefined && document.querySelector("[data-advertising-card]")) window.__firstCard = performance.now();
+    if (window.__firstCard === undefined && document.querySelector("[data-masonry-card]")) window.__firstCard = performance.now();
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
-    for (const video of document.querySelectorAll("[data-advertising-card] video")) {
+    for (const video of document.querySelectorAll("[data-masonry-card] video")) {
       let entry = entries.get(video);
       if (!entry) {
         entries.set(video, entry = { created: performance.now(), visible: null, playing: null, stalls: [] });
@@ -131,7 +131,7 @@ const playback = async (base, network) => {
     late: window.__videos.flatMap((entry, index) => {
       if (entry.visible === null || (entry.playing !== null && entry.playing - entry.visible <= 300)) return [];
       const node = window.__videoNodes[index];
-      const id = node.dataset.advertisingMediaItem;
+      const id = node.dataset.masonryMediaItem;
       return [{
         id, createdMs: Math.round(entry.created), visibleMs: Math.round(entry.visible), playingMs: entry.playing && Math.round(entry.playing),
         endMs: Math.round(performance.now()), readyState: node.readyState, networkState: node.networkState, paused: node.paused,
@@ -164,7 +164,7 @@ const switching = async (base) => {
   await page.waitForTimeout(3000);
   const found = await page.waitForFunction(() => {
     scrollBy(0, 20);
-    const video = [...document.querySelectorAll("[data-advertising-card] video")]
+    const video = [...document.querySelectorAll("[data-masonry-card] video")]
       .find((node) => !node.paused && node.videoWidth && node.videoWidth < 480 && node.checkVisibility()
         && node.getBoundingClientRect().top > innerHeight / 2);
     if (!video) return false;
@@ -193,7 +193,7 @@ const switching = async (base) => {
     return { found: false };
   }
   await page.waitForTimeout(6000);
-  const before = await page.evaluate(() => ({ at: performance.now(), dropped: window.__switch.quality(), id: window.__switchVideo.dataset.advertisingMediaItem }));
+  const before = await page.evaluate(() => ({ at: performance.now(), dropped: window.__switch.quality(), id: window.__switchVideo.dataset.masonryMediaItem }));
   let triggered = 0;
   cdp.on("Network.requestWillBeSent", ({ request }) => { if (/\.mp4$/.test(new URL(request.url).pathname) && !request.url.includes(`/${before.id}/`)) triggered += 1; });
   await cdp.send("Network.emulateNetworkConditions", FAST);

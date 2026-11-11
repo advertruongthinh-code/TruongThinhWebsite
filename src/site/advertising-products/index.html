@@ -53,7 +53,7 @@
   >
     <script>
       // Vào thẳng detail (trang card hoặc ?photo= cũ): ẩn grid trước layout đầu tiên; catalog-runtime giữ hoặc bỏ class.
-      if (/\/advertising-products\/p\/[^/]+\/$/.test(location.pathname) || new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-advertising-photo");
+      if (/\/advertising-products\/p\/[^/]+\/$/.test(location.pathname) || new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-detail");
     </script>
     <div class="route-veil" aria-hidden="true">
       <i></i><i></i><i></i><i></i>
@@ -291,7 +291,7 @@
               aria-label="Lọc công trình theo loại"
               data-en-aria-label="Filter projects by type"
             >
-              <a class="project-filter" href="/vi/advertising-products/" data-advertising-filter="all" aria-current="true" data-en="All">Tất cả</a>
+              <a class="project-filter" href="/vi/advertising-products/" data-masonry-filter="all" aria-current="true" data-en="All">Tất cả</a>
               <!-- advertising-cluster-filters -->
             </div>
             <!-- advertising-product-chips -->
@@ -327,15 +327,15 @@
               <figure class="project-tile"><a href="/vi/advertising-products/in-an-decal/" data-en-href="/en/advertising-products/printing-decals/"><div class="project-tile__media"><img src="/assets/content/projects/advertising-print-decals-cover.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Ấn phẩm và decal tại xưởng in" data-en-alt="Print collateral and decals in the workshop" /></div></a></figure>
             </noscript>
             <div
-              class="advertising-grid__cta-skeleton"
-              data-advertising-cta-skeleton
+              class="masonry-grid__cta-skeleton"
+              data-masonry-cta-skeleton
               data-skeleton-ratios="landscape:0.72 square:1 portrait:1.32 wide:0.5"
               aria-hidden="true"
             ></div>
           </div>
           <section
             class="detail-cta"
-            data-advertising-grid-cta
+            data-masonry-grid-cta
             aria-labelledby="cta-title"
             data-header-tone="ink"
           >
@@ -359,21 +359,21 @@
         </section>
 
         <section
-          class="advertising-photo-view"
-          data-advertising-photo-view
-          data-advertising-photo-layout="stacked"
+          class="detail-view"
+          data-detail-view
+          data-detail-layout="stacked"
           data-header-tone="ink"
           aria-label="Chi tiết ảnh sản phẩm quảng cáo"
           data-en-aria-label="Advertising product photo details"
           hidden
         >
-          <div class="advertising-photo-view__canvas" data-advertising-photo-canvas>
-            <div class="advertising-photo-view__primary" data-advertising-photo-primary>
-              <figure class="advertising-photo-view__hero" data-advertising-photo-hero>
-                <div class="advertising-photo-view__hero-frame">
-                  <img data-advertising-photo-background src="/assets/content/projects/advertising-print-decals-cover-960.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <div class="detail-view__canvas" data-detail-canvas>
+            <div class="detail-view__primary" data-detail-primary>
+              <figure class="detail-view__hero" data-detail-hero>
+                <div class="detail-view__hero-frame">
+                  <img data-detail-background src="/assets/content/projects/advertising-print-decals-cover-960.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
                   <img
-                    data-advertising-photo-image
+                    data-detail-image
                     src="/assets/content/projects/advertising-print-decals-cover-960.webp"
                     width="960"
                     height="640"
@@ -381,69 +381,69 @@
                     decoding="async"
                     alt=""
                   />
-                  <video data-advertising-photo-video playsinline muted loop preload="metadata" hidden></video>
-                  <div class="advertising-video-player" data-advertising-photo-player hidden>
+                  <video data-detail-video playsinline muted loop preload="metadata" hidden></video>
+                  <div class="video-player" data-detail-player hidden>
                     <button
-                      class="advertising-video-player__surface"
+                      class="video-player__surface"
                       type="button"
-                      data-advertising-photo-play-surface
+                      data-detail-play-surface
                       aria-label="Tạm dừng hoặc phát video"
                       data-en-aria-label="Pause or play video"
                     ></button>
-                    <div class="advertising-video-player__bar">
+                    <div class="video-player__bar">
                       <button
-                        class="advertising-video-player__button"
+                        class="video-player__button"
                         type="button"
-                        data-advertising-photo-play
+                        data-detail-play
                         aria-label="Tạm dừng"
                         data-en-aria-label="Pause"
                       >
-                        <svg class="advertising-video-player__icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>
-                        <svg class="advertising-video-player__icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm9 0a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z" /></svg>
+                        <svg class="video-player__icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>
+                        <svg class="video-player__icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm9 0a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z" /></svg>
                       </button>
-                      <span class="advertising-video-player__time"><span data-advertising-photo-time-current>0:00</span> <span class="advertising-video-player__total">/ <span data-advertising-photo-time-total>0:00</span></span></span>
+                      <span class="video-player__time"><span data-detail-time-current>0:00</span> <span class="video-player__total">/ <span data-detail-time-total>0:00</span></span></span>
                       <input
-                        class="advertising-video-player__range advertising-video-player__progress"
+                        class="video-player__range video-player__progress"
                         type="range"
                         min="0"
                         max="1"
                         step="any"
                         value="0"
-                        data-advertising-photo-progress
+                        data-detail-progress
                         aria-label="Tua video"
                         data-en-aria-label="Seek video"
                       />
-                      <div class="advertising-video-player__volume" data-advertising-photo-volume-group>
-                        <div class="advertising-video-player__volume-pop">
+                      <div class="video-player__volume" data-detail-volume-group>
+                        <div class="video-player__volume-pop">
                           <input
-                            class="advertising-video-player__range advertising-video-player__volume-range"
+                            class="video-player__range video-player__volume-range"
                             type="range"
                             min="0"
                             max="1"
                             step="0.05"
                             value="0"
-                            data-advertising-photo-volume
+                            data-detail-volume
                             aria-label="Âm lượng"
                             data-en-aria-label="Volume"
                           />
                         </div>
                         <button
-                          class="advertising-video-player__button"
+                          class="video-player__button"
                           type="button"
-                          data-advertising-photo-audio-toggle
+                          data-detail-audio-toggle
                           aria-label="Bật tiếng"
                           data-en-aria-label="Unmute"
                         >
-                          <svg class="advertising-video-player__icon-sound" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="advertising-video-player__stroke" d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13" /></svg>
-                          <svg class="advertising-video-player__icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="advertising-video-player__stroke" d="M16 9l6 6M22 9l-6 6" /></svg>
+                          <svg class="video-player__icon-sound" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="video-player__stroke" d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13" /></svg>
+                          <svg class="video-player__icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="video-player__stroke" d="M16 9l6 6M22 9l-6 6" /></svg>
                         </button>
                       </div>
                     </div>
                   </div>
                   <button
-                    class="advertising-photo-view__media-step advertising-photo-view__media-step--prev"
+                    class="detail-view__media-step detail-view__media-step--prev"
                     type="button"
-                    data-advertising-photo-media-step="-1"
+                    data-detail-media-step="-1"
                     aria-label="Media trước"
                     data-en-aria-label="Previous media"
                     hidden
@@ -451,9 +451,9 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 1 5 12l11 11" /></svg>
                   </button>
                   <button
-                    class="advertising-photo-view__media-step advertising-photo-view__media-step--next"
+                    class="detail-view__media-step detail-view__media-step--next"
                     type="button"
-                    data-advertising-photo-media-step="1"
+                    data-detail-media-step="1"
                     aria-label="Media sau"
                     data-en-aria-label="Next media"
                     hidden
@@ -461,47 +461,47 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 1l11 11L8 23" /></svg>
                   </button>
                   <button
-                    class="advertising-photo-view__image-action advertising-photo-view__back"
+                    class="detail-view__image-action detail-view__back"
                     type="button"
-                    data-advertising-photo-back
+                    data-detail-back
                     aria-label="Quay lại"
                     data-en-aria-label="Back"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12H4M11 5l-7 7 7 7" /></svg>
                   </button>
                   <button
-                    class="advertising-photo-view__image-action advertising-photo-view__expand"
+                    class="detail-view__image-action detail-view__expand"
                     type="button"
-                    data-advertising-photo-expand
+                    data-detail-expand
                     aria-haspopup="dialog"
-                    aria-controls="advertising-photo-dialog"
+                    aria-controls="detail-dialog"
                     aria-label="Xem lớn hơn"
                     data-en-aria-label="View larger"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                      <g data-advertising-photo-expand-icon><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /><path d="" /></g>
+                      <g data-detail-expand-icon><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /><path d="" /></g>
                     </svg>
                   </button>
                 </div>
               </figure>
-              <div class="advertising-photo-view__info" data-advertising-photo-info tabindex="0" role="region" aria-label="Thông tin ảnh sản phẩm quảng cáo" data-en-aria-label="Advertising product photo information">
-                <p class="detail-eyebrow" data-advertising-photo-category></p>
-                <div class="advertising-photo-view__description" data-advertising-photo-description-box>
+              <div class="detail-view__info" data-detail-info tabindex="0" role="region" aria-label="Thông tin ảnh sản phẩm quảng cáo" data-en-aria-label="Advertising product photo information">
+                <p class="detail-eyebrow" data-detail-category></p>
+                <div class="detail-view__description" data-detail-description-box>
                   <div
-                    class="advertising-photo-view__description-scroll"
-                    data-advertising-photo-description-scroll
+                    class="detail-view__description-scroll"
+                    data-detail-description-scroll
                     tabindex="0"
                     role="group"
                     aria-label="Mô tả ảnh"
                     data-en-aria-label="Photo description"
                   >
-                    <p data-advertising-photo-description></p>
+                    <p data-detail-description></p>
                   </div>
-                  <span class="advertising-photo-view__description-bar" data-advertising-photo-description-bar aria-hidden="true" hidden></span>
+                  <span class="detail-view__description-bar" data-detail-description-bar aria-hidden="true" hidden></span>
                 </div>
                 <a
-                  class="advertising-photo-view__cta"
-                  data-advertising-photo-cta
+                  class="detail-view__cta"
+                  data-detail-cta
                   href="https://zalo.me/0949131050"
                   target="_blank"
                   rel="noreferrer"
@@ -515,21 +515,21 @@
                 </a>
               </div>
             </div>
-            <section class="advertising-photo-view__related" data-advertising-photo-related aria-label="Ảnh liên quan" data-en-aria-label="Related photos">
-              <div class="advertising-photo-view__related-grid" data-advertising-photo-related-grid>
+            <section class="detail-view__related" data-detail-related aria-label="Ảnh liên quan" data-en-aria-label="Related photos">
+              <div class="detail-view__related-grid" data-detail-related-grid>
                 <section
-                  class="advertising-photo-view__suggestion"
-                  data-advertising-photo-suggestion
-                  data-advertising-suggestion-card
+                  class="detail-view__suggestion"
+                  data-detail-suggestion
+                  data-masonry-suggestion-card
                   data-masonry-item="advertising-suggestion"
                   data-masonry-kind="suggestion"
-                  data-advertising-related-item="advertising-suggestion"
+                  data-masonry-related-item="advertising-suggestion"
                   data-rank="0"
                   data-source-order="0"
                   hidden
-                  aria-labelledby="advertising-photo-related-title"
+                  aria-labelledby="detail-related-title"
                 >
-                  <h2 id="advertising-photo-related-title" data-advertising-photo-related-title data-en="You might like">
+                  <h2 id="detail-related-title" data-detail-related-title data-en="You might like">
                     Có thể bạn thích
                   </h2>
                 </section>
@@ -537,18 +537,18 @@
             </section>
           </div>
           <dialog
-            class="advertising-photo-dialog"
-            id="advertising-photo-dialog"
-            data-advertising-photo-dialog
-            aria-labelledby="advertising-photo-dialog-title"
+            class="detail-dialog"
+            id="detail-dialog"
+            data-detail-dialog
+            aria-labelledby="detail-dialog-title"
           >
-            <h2 class="sr-only" id="advertising-photo-dialog-title" data-en="Expanded photo">
+            <h2 class="sr-only" id="detail-dialog-title" data-en="Expanded photo">
               Xem ảnh lớn
             </h2>
             <button
-              class="advertising-photo-dialog__close"
+              class="detail-dialog__close"
               type="button"
-              data-advertising-photo-close
+              data-detail-close
               aria-label="Đóng ảnh"
               data-en-aria-label="Close image"
             >
@@ -556,9 +556,9 @@
                 <path d="M5 5l14 14M19 5L5 19" />
               </svg>
             </button>
-            <div class="advertising-photo-dialog__viewport" data-advertising-photo-viewport>
+            <div class="detail-dialog__viewport" data-detail-viewport>
               <img
-                data-advertising-photo-expanded-image
+                data-detail-expanded-image
                 src="/assets/content/projects/advertising-print-decals-cover-960.webp"
                 width="960"
                 height="640"
@@ -566,25 +566,25 @@
                 decoding="async"
                 alt=""
               />
-              <div class="advertising-photo-dialog__video" data-advertising-photo-video-host hidden></div>
+              <div class="detail-dialog__video" data-detail-video-host hidden></div>
             </div>
             <div
-              class="advertising-photo-view__media-thumbs advertising-photo-dialog__thumbs"
+              class="detail-view__media-thumbs detail-dialog__thumbs"
               role="group"
               aria-label="Media sản phẩm"
               data-en-aria-label="Product media"
-              data-advertising-photo-viewer-thumbs
+              data-detail-viewer-thumbs
               hidden
             ></div>
             <div
-              class="advertising-photo-dialog__controls"
+              class="detail-dialog__controls"
               role="group"
               aria-label="Điều khiển phóng ảnh"
               data-en-aria-label="Photo zoom controls"
             >
               <button
                 type="button"
-                data-advertising-photo-zoom-in
+                data-detail-zoom-in
                 aria-label="Phóng to"
                 data-en-aria-label="Zoom in"
               >
@@ -594,7 +594,7 @@
               </button>
               <button
                 type="button"
-                data-advertising-photo-zoom-out
+                data-detail-zoom-out
                 aria-label="Thu nhỏ"
                 data-en-aria-label="Zoom out"
               >
@@ -602,7 +602,7 @@
                   <path d="M5 12h14" />
                 </svg>
               </button>
-              <output class="sr-only" data-advertising-photo-zoom-status aria-live="polite">100%</output>
+              <output class="sr-only" data-detail-zoom-status aria-live="polite">100%</output>
             </div>
           </dialog>
         </section>

@@ -87,7 +87,7 @@ And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, k
 `media-lib/responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP; phone luôn WebP, bản gốc rộng hơn 960 đổi thành cỡ 960 ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
 `masonry/runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
 có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ nhỏ nhất không dưới `needed` pixel, không có
-`needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
+`needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-masonry-*` nên build không bọc (R2).
 
 | Nơi | Cách tải |
 | --- | --- |
@@ -154,7 +154,7 @@ Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sán
 
 Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh
 vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
-`[data-advertising-photo-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
+`[data-detail-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
 `.client-logo-marquee`. Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.

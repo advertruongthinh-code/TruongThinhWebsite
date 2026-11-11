@@ -10,17 +10,17 @@ const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 const heroLimit = Number(process.env.DETOUR_HEROES || 10);
 const detourTarget = 3;
 
-const CARDS = "[data-advertising-related-card]:not([hidden]), [data-advertising-suggestion-card]:not([hidden])";
+const CARDS = "[data-masonry-related-card]:not([hidden]), [data-masonry-suggestion-card]:not([hidden])";
 
 // Bắt đầu lấy mẫu; resolve sau frame rAF đầu để thao tác không ăn vào cửa sổ đo.
 // Lấy mẫu tới khi hết animation "related-detour" và Masonry đứng yên, trần `cap` ms.
 const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promise((started) => {
-  const primary = document.querySelector(".advertising-photo-view__primary");
-  const grid = document.querySelector("[data-advertising-photo-related-grid]");
-  const nodes = () => [...document.querySelectorAll(cards)].filter((node) => node.closest("[data-advertising-photo-related-grid]"));
+  const primary = document.querySelector(".detail-view__primary");
+  const grid = document.querySelector("[data-detail-related-grid]");
+  const nodes = () => [...document.querySelectorAll(cards)].filter((node) => node.closest("[data-detail-related-grid]"));
   const box = (node) => { const r = node.getBoundingClientRect(); return { x: r.left, y: r.top, right: r.right, bottom: r.bottom }; };
-  const snapshot = () => Object.fromEntries(nodes().map((node) => [node.dataset.advertisingRelatedItem || "suggestion", box(node)]));
-  const pinned = () => { const node = grid?.querySelector("[data-advertising-photo-suggestion]"); return node && !node.hidden ? node : null; };
+  const snapshot = () => Object.fromEntries(nodes().map((node) => [node.dataset.masonryRelatedItem || "suggestion", box(node)]));
+  const pinned = () => { const node = grid?.querySelector("[data-detail-suggestion]"); return node && !node.hidden ? node : null; };
   const state = { primary: Boolean(primary && grid), overlaps: [], pinnedOverlaps: [], detours: 0, sampled: 0, before: primary ? snapshot() : {}, primaryBefore: primary && box(primary), done: false };
   window.__detourSample = state;
   if (!state.primary) { state.done = true; started(); return; }
@@ -40,11 +40,11 @@ const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promis
       const r = node.getBoundingClientRect();
       const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
       const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
-      if (x > 0.5 && y > 0.5) state.overlaps.push({ id: node.dataset.advertisingRelatedItem, x, y });
+      if (x > 0.5 && y > 0.5) state.overlaps.push({ id: node.dataset.masonryRelatedItem, x, y });
       if (s && node !== pin && !pin.contains(node)) {
         const sx = Math.min(r.right, s.right) - Math.max(r.left, s.left);
         const sy = Math.min(r.bottom, s.bottom) - Math.max(r.top, s.top);
-        if (sx > 0.5 && sy > 0.5) state.pinnedOverlaps.push({ id: node.dataset.advertisingRelatedItem, x: sx, y: sy });
+        if (sx > 0.5 && sy > 0.5) state.pinnedOverlaps.push({ id: node.dataset.masonryRelatedItem, x: sx, y: sy });
       }
     }
     frames += 1;
@@ -68,7 +68,7 @@ const besideToBelow = ({ before, after, primaryBefore, primaryAfter }) => Object
 
 const openDetail = async (page, locale, hero) => {
   await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"
+  await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
     && !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"),
   null, { timeout: 20000 });
   await page.waitForTimeout(500);
@@ -78,14 +78,14 @@ const openDetail = async (page, locale, hero) => {
 const assertSettled = async (page, label) => {
   await page.waitForTimeout(500);
   const wrong = await page.evaluate((cards) => {
-    const grid = document.querySelector("[data-advertising-photo-related-grid]");
+    const grid = document.querySelector("[data-detail-related-grid]");
     const origin = grid.getBoundingClientRect();
     return [...document.querySelectorAll(cards)].filter((node) => grid.contains(node)).flatMap((node) => {
       const r = node.getBoundingClientRect();
       const dx = r.left - origin.left - grid.clientLeft - Number.parseFloat(node.style.left || 0);
       const dy = r.top - origin.top - grid.clientTop - Number.parseFloat(node.style.top || 0);
       const detour = node.getAnimations().some((animation) => animation.id === "related-detour");
-      return Math.abs(dx) > 1 || Math.abs(dy) > 1 || detour ? [{ id: node.dataset.advertisingRelatedItem, dx, dy, detour }] : [];
+      return Math.abs(dx) > 1 || Math.abs(dy) > 1 || detour ? [{ id: node.dataset.masonryRelatedItem, dx, dy, detour }] : [];
     });
   }, CARDS);
   assert.deepEqual(wrong, [], `${label}: card chưa về đúng placement`);
@@ -95,8 +95,8 @@ const browser = await chromium.launch({ headless: true });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await probe.waitForSelector("[data-advertising-card]");
-  const heroes = (await probe.$$eval("[data-advertising-card]", (nodes) => nodes.map((node) => node.dataset.advertisingCard))).slice(0, heroLimit);
+  await probe.waitForSelector("[data-masonry-card]");
+  const heroes = (await probe.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard))).slice(0, heroLimit);
   await probe.close();
   assert.ok(heroes.length, "masonry không có card");
 
@@ -108,12 +108,12 @@ try {
     const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     page.on("pageerror", (error) => errors.push(`${hero}: ${error.message}`));
     await openDetail(page, locale, hero);
-    const tags = await page.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
+    const tags = await page.$$eval("[data-masonry-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.masonrySuggestionTag));
     let heroDetour = false;
     for (const tag of tags.slice(0, 3)) {
       for (let pass = 0; pass < 2; pass++) {
         await startSampler(page, 1500);
-        await page.locator(`[data-advertising-suggestion-tag="${tag}"]`).click();
+        await page.locator(`[data-masonry-suggestion-tag="${tag}"]`).click();
         const sample = await collect(page);
         const label = `${hero} tag ${tag} lượt ${pass + 1}`;
         assert.ok(sample.primary, `${label}: không thấy primary hoặc related grid`);
@@ -142,11 +142,11 @@ try {
     const phone = await browser.newPage({ viewport: { width: 384, height: 854 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     phone.on("pageerror", (error) => errors.push(`phone ${hero}: ${error.message}`));
     await openDetail(phone, "vi", hero);
-    const phoneTags = await phone.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
+    const phoneTags = await phone.$$eval("[data-masonry-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.masonrySuggestionTag));
     for (const tag of phoneTags.slice(0, 3)) {
       for (let pass = 0; pass < 2; pass++) {
         await startSampler(phone, 1500);
-        await phone.locator(`[data-advertising-suggestion-tag="${tag}"]`).tap();
+        await phone.locator(`[data-masonry-suggestion-tag="${tag}"]`).tap();
         const sample = await collect(phone);
         const label = `phone ${hero} tag ${tag} lượt ${pass + 1}`;
         assert.deepEqual(sample.overlaps, [], `${label}: card giao primary`);
@@ -162,10 +162,10 @@ try {
   // Giảm chuyển động: không có animation đi vòng.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
   await openDetail(reduced, "vi", heroes[0]);
-  const reducedTag = await reduced.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
+  const reducedTag = await reduced.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
   if (reducedTag) {
     await startSampler(reduced, 600);
-    await reduced.locator(`[data-advertising-suggestion-tag="${reducedTag}"]`).click();
+    await reduced.locator(`[data-masonry-suggestion-tag="${reducedTag}"]`).click();
     const { overlaps, detours } = await collect(reduced);
     assert.deepEqual(overlaps, []);
     assert.equal(detours, 0, "reduced motion vẫn chạy đường vòng");

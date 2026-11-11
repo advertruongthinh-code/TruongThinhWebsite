@@ -74,7 +74,7 @@ bị chặn. Vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi qu�
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
 về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
 ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
-ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Tên card (`titleVi`/`titleEn`, `figcaption.advertising-tile__title`) nằm trên trái trong media như tên board của pin Pinterest (owner 2026-11-10, đo trên pinterest.com): chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px (giữa phần phẳng 48px của lớp tối), cách mép trái và phải 28px, chữ hoa có bóng D, một dòng rồi dấu ba chấm, `aria-hidden`
+ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Tên card (`titleVi`/`titleEn`, `figcaption.masonry-card__title`) nằm trên trái trong media như tên board của pin Pinterest (owner 2026-11-10, đo trên pinterest.com): chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px (giữa phần phẳng 48px của lớp tối), cách mép trái và phải 28px, chữ hoa có bóng D, một dòng rồi dấu ba chấm, `aria-hidden`
 vì alt đã là tên; dưới tên là lớp tối học nguyên Pinterest (`--media-shade-card`: 48px trên phẳng `rgba(17,17,17,0.4)`,
 rồi nhạt tuyến tính về 0 ở đáy card; đo trên pin Pinterest 2026-11-10). Mọi card masonry (chính, bộ lọc, related, Công
 trình) như nhau (owner 2026-11-10, thay quy tắc cũ "Advertising không có tên card"). Chuột thật: tên và lớp tối chỉ hiện
@@ -82,7 +82,7 @@ khi hover, cùng lúc, không motion. Cảm ứng: ảnh sạch, không tên, kh
 `advertising-related-title-` (lưới chính `advertising-title-`) nên không trùng khi một card hiện ở cả hai. Nút gợi ý
 trong detail giữ lớp đen 30%. Card đang mang "Vừa xem" thì nhãn đó mờ dần khi hover và hiện lại khi rời chuột. Chữ "Vừa xem" có bóng D
 (`--text-shadow-d`) và hiện ngay; lớp đen `0.7` chỉ hiện khi media đang hiện của card đã sẵn sàng (không còn
-`data-advertising-media-loading`), cùng nhịp `0.6s` của blur tan (owner 2026-11-01). Video
+`data-masonry-media-loading`), cùng nhịp `0.6s` của blur tan (owner 2026-11-01). Video
 vẫn chạy dưới lớp tối; mũi tên, chấm, bộ đếm nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
 liền trượt ngang: media mới vào từ mép canvas phía đi tới, media cũ ra hết mép bên kia, hai media dính
 nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
@@ -229,9 +229,9 @@ And trong lúc video phát, nền blur đổi theo frame video
 | Hàm | `validateAdvertisingCardMedia`, `validateAdvertisingMediaPool` (`media-contract.mjs`) | Chặn dữ liệu sai khi catalog nạp |
 | Hàm | `layoutMedia` (`masonry/layout.mjs`) | Tỷ lệ cover; card cao đúng bằng media (R2) |
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`masonry/runtime.mjs`) | R3–R6 |
-| Attribute | `data-advertising-active-media-id` trên card và `[data-advertising-photo-view]` | Media đang xem; click card đọc để mở detail |
-| Attribute | `data-advertising-media-select`, `-prev`, `-next`, `-count`, `-loading`, `-item` | Hook test và control card |
-| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-advertising-photo-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
+| Attribute | `data-masonry-active-media-id` trên card và `[data-detail-view]` | Media đang xem; click card đọc để mở detail |
+| Attribute | `data-masonry-media-select`, `-prev`, `-next`, `-count`, `-loading`, `-item` | Hook test và control card |
+| Attribute | `data-detail-media-select`, `data-detail-audio-toggle`, `data-detail-video`, `data-detail-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-detail-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
 | History | `grid.mediaId`, `detail.mediaId` trong state history | Khôi phục media theo entry (R6) |
 
 ## UI

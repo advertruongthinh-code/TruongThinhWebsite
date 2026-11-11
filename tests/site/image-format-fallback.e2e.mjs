@@ -23,15 +23,15 @@ try {
 
   // Advertising: card, primary, viewer đều dùng WebP và không có dấu lỗi.
   await page.goto(`${base}/vi/advertising-products/`);
-  await page.waitForFunction(() => [...document.querySelectorAll("[data-advertising-card] img")].filter((image) => image.naturalWidth).length >= 4,
+  await page.waitForFunction(() => [...document.querySelectorAll("[data-masonry-card] img")].filter((image) => image.naturalWidth).length >= 4,
     null, { timeout: 30_000 });
-  const cards = await page.$$eval("[data-advertising-card] img", loaded());
+  const cards = await page.$$eval("[data-masonry-card] img", loaded());
   assert.ok(cards.length && cards.every(({ src }) => src.endsWith(".webp")), `cards use WebP ${JSON.stringify(cards.slice(0, 4))}`);
-  await page.evaluate(() => document.querySelector("[data-advertising-card] > a").click());
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.naturalWidth, null, { timeout: 30_000 });
-  await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-expanded-image]")?.naturalWidth, null, { timeout: 30_000 });
-  const detail = await page.$$eval("[data-advertising-photo-image], [data-advertising-photo-expanded-image]", loaded());
+  await page.evaluate(() => document.querySelector("[data-masonry-card] > a").click());
+  await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.naturalWidth, null, { timeout: 30_000 });
+  await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
+  await page.waitForFunction(() => document.querySelector("[data-detail-expanded-image]")?.naturalWidth, null, { timeout: 30_000 });
+  const detail = await page.$$eval("[data-detail-image], [data-detail-expanded-image]", loaded());
   assert.ok(detail.length === 2 && detail.every(({ src, ok }) => ok && src.endsWith(".webp")), `primary and viewer use WebP ${JSON.stringify(detail)}`);
   assert.equal(await page.locator(".is-media-error").count(), 0, "no media error marks");
   assert.deepEqual(jxl, [], "no JXL requests without JXL support");

@@ -59,7 +59,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
           kind, persisted, timeOrigin: performance.timeOrigin,
           allocations: window.__flowLedger.allocations,
           nativeDisposals: window.__flowLedger.nativeDisposals,
-          running: document.querySelectorAll('[data-advertising-flow-state="running"]').length,
+          running: document.querySelectorAll('[data-masonry-flow-state="running"]').length,
           phases: records.map(record => record.phase),
           };
           const key = "qa-flow-native-observations";
@@ -85,13 +85,13 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
   page.on("pageerror", error => errors.push(error.message));
   try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
-    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => {
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
+    await page.locator("[data-masonry-cta-frame]").first().evaluate(node => {
       const target = window.scrollY + node.getBoundingClientRect().top - 120;
       if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
     });
     await page.waitForFunction(() => {
-      const visible = [...document.querySelectorAll("[data-advertising-cta-frame]")].filter(node => {
+      const visible = [...document.querySelectorAll("[data-masonry-cta-frame]")].filter(node => {
         const rect = node.getBoundingClientRect(); return rect.top >= 0 && rect.bottom < innerHeight - 60;
       });
       return visible.length && visible.every(node => getComputedStyle(node).opacity === "1");
@@ -99,28 +99,28 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     // Chờ runtime dựng lại batch theo viewport mới (chữ ký đổi) rồi thêm hai frame; CPU bận làm frame dài,
     // nên chờ cố định có thể đọc trạng thái nửa chừng.
     const resizeTo = async (size) => {
-      const signature = () => document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaSignature;
+      const signature = () => document.querySelector("[data-masonry-cta-skeleton]").dataset.masonryCtaSignature;
       const before = await page.evaluate(signature);
       await page.setViewportSize(size);
-      await page.waitForFunction(old => document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaSignature !== old, before);
+      await page.waitForFunction(old => document.querySelector("[data-masonry-cta-skeleton]").dataset.masonryCtaSignature !== old, before);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     };
     const heightState = () => page.evaluate(() => {
-      const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-      const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
+      const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+      const frames = [...document.querySelectorAll("[data-masonry-cta-frame]")];
       const samples = frames.map(node => {
         const rect = node.getBoundingClientRect(), canvas = node.querySelector("canvas");
-        return { slot: node.dataset.advertisingCtaSlot, top: Number.parseFloat(node.style.top),
-          column: node.dataset.advertisingCtaColumn, depth: Number(node.dataset.advertisingCtaDepth),
+        return { slot: node.dataset.masonryCtaSlot, top: Number.parseFloat(node.style.top),
+          column: node.dataset.masonryCtaColumn, depth: Number(node.dataset.masonryCtaDepth),
           visible: rect.bottom > 0 && rect.top < innerHeight, opacity: getComputedStyle(node).opacity,
-          same: window.__lifecycleFrames?.get(node.dataset.advertisingCtaSlot) === node,
-          assignment: [node.dataset.advertisingCtaRatioBand, canvas?.dataset.advertisingFlowPreset,
-            canvas?.dataset.advertisingFlowAnchorPermutation, canvas?.dataset.advertisingFlowPhase,
-            canvas?.dataset.advertisingFlowDirection, canvas?.dataset.advertisingFlowSpeedScale] };
+          same: window.__lifecycleFrames?.get(node.dataset.masonryCtaSlot) === node,
+          assignment: [node.dataset.masonryCtaRatioBand, canvas?.dataset.masonryFlowPreset,
+            canvas?.dataset.masonryFlowAnchorPermutation, canvas?.dataset.masonryFlowPhase,
+            canvas?.dataset.masonryFlowDirection, canvas?.dataset.masonryFlowSpeedScale] };
       });
-      window.__lifecycleFrames = new Map(frames.map(node => [node.dataset.advertisingCtaSlot, node]));
+      window.__lifecycleFrames = new Map(frames.map(node => [node.dataset.masonryCtaSlot, node]));
       return { width: document.documentElement.clientWidth, height: innerHeight,
-        coordinateHash: skeleton.dataset.advertisingCtaSignature.split(":")[0],
+        coordinateHash: skeleton.dataset.masonryCtaSignature.split(":")[0],
         boundary: Number.parseFloat(skeleton.style.height),
         samples };
     });
@@ -156,7 +156,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       allocations: window.__flowLedger.allocations, peak: window.__flowLedger.peak,
       losses: window.__flowLedger.losses, restores: window.__flowLedger.restores,
       live: window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()).length,
-      running: document.querySelectorAll('[data-advertising-flow-state="running"]').length,
+      running: document.querySelectorAll('[data-masonry-flow-state="running"]').length,
       phase: window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()).map(entry => entry.phase),
     }));
     const portraitLedger = await ledger();
@@ -164,25 +164,25 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.evaluate(() => window.__observeFlowNativeEvents());
     // Đổi width/orientation giữ các slot chung; slot thừa vẫn theo geometry.
     await resizeTo({ width: 838, height: 390 }); await page.waitForTimeout(800);
-    const orientation = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")].map(node => ({
-      slot: node.dataset.advertisingCtaSlot, common: window.__lifecycleFrames.has(node.dataset.advertisingCtaSlot),
-      same: window.__lifecycleFrames.get(node.dataset.advertisingCtaSlot) === node,
+    const orientation = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")].map(node => ({
+      slot: node.dataset.masonryCtaSlot, common: window.__lifecycleFrames.has(node.dataset.masonryCtaSlot),
+      same: window.__lifecycleFrames.get(node.dataset.masonryCtaSlot) === node,
     })));
     assert.ok(orientation.filter(frame => frame.common).every(frame => frame.same), "orientation preserves common outer slots");
     assert.ok((await ledger()).peak <= 12, "838px phone landscape stays within the 12-context budget");
     await resizeTo({ width: 390, height: 844 }); await page.waitForTimeout(500);
     // html có scroll-behavior smooth: cuộn mặc định còn trượt khi lệnh cuộn sau chạy, Chromium chạy nốt phần trượt cũ.
-    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
+    await page.locator("[data-masonry-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
     await page.waitForTimeout(700);
     // Batch vẽ trên một canvas chung (R5): mất context thì frame tĩnh dưới khung hiện, khôi phục thì vẽ tiếp.
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()
-      && entry.canvas?.closest("[data-advertising-cta-skeleton]")).length), 1, "batch uses one shared WebGL context");
+      && entry.canvas?.closest("[data-masonry-cta-skeleton]")).length), 1, "batch uses one shared WebGL context");
     await page.evaluate(() => {
-      const canvas = document.querySelector(".advertising-grid__cta-shared-flow");
+      const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
       const record = window.__flowLedger.records.find(entry => entry.canvas === canvas);
       window.__lossRecord = record;
-      window.__lossOuter = document.querySelector("[data-advertising-cta-frame].is-entry-ready");
-      window.__lossSlot = window.__lossOuter.dataset.advertisingCtaSlot;
+      window.__lossOuter = document.querySelector("[data-masonry-cta-frame].is-entry-ready");
+      window.__lossSlot = window.__lossOuter.dataset.masonryCtaSlot;
       const extension = record.gl.getExtension("WEBGL_lose_context");
       if (!extension) throw Error("WEBGL_lose_context unavailable");
       window.__lossExtension = extension; extension.loseContext();
@@ -190,7 +190,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.waitForFunction(() => window.__lossRecord.gl.isContextLost());
     const lostState = await page.evaluate(() => ({
       still: Boolean(window.__lossOuter.querySelector("canvas")),
-      same: window.__lossOuter === document.querySelector('[data-advertising-cta-slot="' + window.__lossSlot + '"]'),
+      same: window.__lossOuter === document.querySelector('[data-masonry-cta-slot="' + window.__lossSlot + '"]'),
       opacity: Number(getComputedStyle(window.__lossOuter).opacity),
     }));
     await fs.writeFile(output + "/" + engine + "-loss.json", JSON.stringify(lostState, null, 2));
@@ -200,14 +200,14 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.waitForFunction(() => !window.__lossRecord.gl.isContextLost());
     const restoredPhase = await page.evaluate(() => window.__lossRecord.phase);
     await page.waitForFunction(phase => window.__lossRecord.phase !== phase, restoredPhase);
-    assert.equal(await page.evaluate(() => window.__lossOuter === document.querySelector('[data-advertising-cta-slot="' + window.__lossSlot + '"]')), true);
+    assert.equal(await page.evaluate(() => window.__lossOuter === document.querySelector('[data-masonry-cta-slot="' + window.__lossSlot + '"]')), true);
     assert.ok(await page.evaluate(() => window.__lossRecord.generation >= 2), "restored resource generation is new");
     // Ra hẳn rồi vào lại: khung đã hiện giữ nguyên, không chạy lại reveal Kính (R4).
     await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(250);
-    assert.ok(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length) > 0, "revealed frames stay revealed off screen");
-    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
+    assert.ok(await page.evaluate(() => document.querySelectorAll("[data-masonry-cta-frame].is-entry-ready").length) > 0, "revealed frames stay revealed off screen");
+    await page.locator("[data-masonry-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
     await page.waitForTimeout(50);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame] .glass-surface[data-glass-reveal]").length), 0, "re-entry replays no reveal");
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-masonry-cta-frame] .glass-surface[data-glass-reveal]").length), 0, "re-entry replays no reveal");
     await page.waitForTimeout(750);
     await page.emulateMedia({ reducedMotion: "reduce" }); await page.waitForTimeout(250);
     assert.equal((await ledger()).running, 0, "reduced motion has zero running Flow");
@@ -235,10 +235,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await page.waitForFunction(() => window.scrollY === 0);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const category = cycle % 2 ? "all" : "displays-booths";
-      await page.locator('[data-advertising-filter="' + category + '"]').click();
+      await page.locator('[data-masonry-filter="' + category + '"]').click();
       await page.waitForTimeout(550);
       await page.setViewportSize({ width: 390, height: cycle % 2 ? 844 : 788 });
-      await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
+      await page.locator("[data-masonry-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
       await page.waitForTimeout(750);
       const sample = await ledger();
       const appliedCategory = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().category);
@@ -260,10 +260,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.equal((await ledger()).running, 0, "non-catalog route has no running Flow");
     await page.goBack({waitUntil:"domcontentloaded"});
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
-      && document.querySelector('[data-advertising-cta-skeleton]')?.dataset.advertisingCtaReady === "true");
+      && document.querySelector('[data-masonry-cta-skeleton]')?.dataset.masonryCtaReady === "true");
     assert.equal(await page.evaluate(() => performance.timeOrigin), softEntry.timeOrigin, "Barba return uses the same document cache");
     assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), softEntry.seed);
-    assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.canvas?.classList.contains("advertising-grid__cta-shared-flow")).length), 1,
+    assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.canvas?.classList.contains("masonry-grid__cta-shared-flow")).length), 1,
       "controller remount reuses the shared batch context");
     await fs.writeFile(output + "/" + engine + "-ledger.json", JSON.stringify({ portraitLedger, orientation, settled, cycles, finalLedger }, null, 2));
 
@@ -276,7 +276,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.goto(base + "/vi/", {waitUntil:"networkidle"});
     await page.goBack({waitUntil:"domcontentloaded"});
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
-      && document.querySelector('[data-advertising-cta-skeleton]')?.dataset.advertisingCtaReady === "true");
+      && document.querySelector('[data-masonry-cta-skeleton]')?.dataset.masonryCtaReady === "true");
     const returned = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed, timeOrigin:performance.timeOrigin}));
     nativeEvents.push(...await page.evaluate(() => JSON.parse(sessionStorage.getItem("qa-flow-native-observations") || "[]")));
     await fs.writeFile(output + "/" + engine + "-native-events.json", JSON.stringify({entry,returned,nativeEvents},null,2));

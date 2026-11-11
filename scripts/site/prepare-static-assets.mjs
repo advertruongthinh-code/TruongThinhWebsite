@@ -167,7 +167,7 @@ const renderCompatibilityPage = (category, cluster) => {
     "  </script>",
     "</head>",
     "<body>",
-    '  <main id="noi-dung" data-advertising-compatibility-route>',
+    '  <main id="noi-dung" data-masonry-compatibility-route>',
     '    <h1 data-en="' + titleEn + '">' + titleVi + "</h1>",
     '    <p data-en="' + statementEn + '">' + statementVi + "</p>",
     '    <a href="' + targetVi + '" data-en-href="' + targetEn + '" data-en="Open ' + titleEn + '">' + titleVi + "</a>",
@@ -186,7 +186,7 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
 // Rail hai tầng sinh từ taxonomy.mjs (taxonomy R3): cụm link tới trang cụm; hàng chip sản phẩm đủ ngưỡng chip (R5) kèm
 // số ảnh của mỗi cụm ẩn sẵn, runtime hiện hàng của cụm đang chọn. data-en-href là URL slug EN.
 const productLink = (chip) =>
-  `<a class="rail-chip" href="/vi/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-advertising-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
+  `<a class="rail-chip" href="/vi/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-masonry-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
 const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
 // The runtime only learns its child modules after it loads, and the artifact only loads after detail.js: modulepreload
 // folds three network rounds into one (static-release R1). The list is read from the runtime's static imports, so adding or
@@ -201,11 +201,11 @@ const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).repla
 ).replace(
   "<!-- advertising-cluster-filters -->",
   ADVERTISING_CATEGORIES.map(({ slug, slugVi, slugEn, titleVi, titleEn }) =>
-    `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
+    `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-masonry-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
 ).replace(
   "<!-- advertising-product-chips -->",
   ADVERTISING_CATEGORIES.map(({ slug, titleVi, titleEn }) =>
-    `<div class="rail-chips" role="group" aria-label="${escapeHtml(titleVi)}" data-en-aria-label="${escapeHtml(titleEn)}" data-advertising-chips="${slug}" hidden>`
+    `<div class="rail-chips" role="group" aria-label="${escapeHtml(titleVi)}" data-en-aria-label="${escapeHtml(titleEn)}" data-masonry-chips="${slug}" hidden>`
     + `${ADVERTISING_PRODUCT_CHIPS.filter(({ cluster }) => cluster === slug).map(productLink).join("")}</div>`).join("\n          "),
 );
 // The marker stays in the template: each cluster and product page gets its own filter, the root page gets "all", card pages none.
@@ -234,10 +234,10 @@ const renderAdvertisingPage = (page) => advertisingTemplate
     (_match, attributes, space) => `<h1${attributes}data-en="${escapeHtml(ADVERTISING_ROOT_PAGE.kickerEn)}"${space}>${escapeHtml(ADVERTISING_ROOT_PAGE.kickerVi)}</h1>`)
   .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${pageHref("vi", page)}" data-language-option="vi"`)
   .replace('href="/en/advertising-products/" data-language-option="en"', `href="${pageHref("en", page)}" data-language-option="en"`)
-  .replace(/(data-advertising-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")
-  .replace(`data-advertising-filter="${page.cluster}"`, `data-advertising-filter="${page.cluster}" aria-current="true"`)
-  .replace(`data-advertising-chips="${page.cluster}" hidden`, `data-advertising-chips="${page.cluster}"`)
-  .replaceAll(`data-advertising-product="${page.filter}"`, `data-advertising-product="${page.filter}" aria-current="true"`)
+  .replace(/(data-masonry-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")
+  .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
+  .replace(`data-masonry-chips="${page.cluster}" hidden`, `data-masonry-chips="${page.cluster}"`)
+  .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
   .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
   const html = renderAdvertisingPage(page);
@@ -261,7 +261,7 @@ const renderCardStatic = (card) => {
   const pages = [...new Set([...card.clusterIds, ...card.productIds])]
     .map((id) => ADVERTISING_PAGES.find(({ filter }) => filter === id)).filter(Boolean);
   return [
-    '<article class="advertising-card-static" data-advertising-card-static>',
+    '<article class="masonry-card-static" data-masonry-card-static>',
     `<h1 data-en="${escapeHtml(card.titleEn)}">${escapeHtml(card.titleVi)}</h1>`,
     `<p data-en="${escapeHtml(card.descriptionEn)}">${escapeHtml(card.descriptionVi)}</p>`,
     ...card.mediaItems.map((item) => {
@@ -473,7 +473,7 @@ const PHONE_MEDIA = "(hover: none) and (pointer: coarse)";
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
     const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
-    if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.jxl`))) return tag;
+    if (!src || /\s(?:srcset|data-(?:masonry|detail|viewer)-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.jxl`))) return tag;
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
     const set = (format, widths, original = true) => {

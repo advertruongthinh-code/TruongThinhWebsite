@@ -17,7 +17,7 @@ try {
     const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile });
     const page = await context.newPage();
     await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "load" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout);
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout);
     await page.waitForTimeout(800);
     const label = `${width}px`;
     const samples = [await page.evaluate(header)];
@@ -28,10 +28,10 @@ try {
     }
     assert.deepEqual(samples.filter(item => !item.collapsed || item.height !== expected || item.background !== "rgb(255, 255, 255)"), [],
       `${label}: header stays collapsed, white, ${expected}px on detail ${JSON.stringify(samples)}`);
-    const heroTop = await page.evaluate(() => Math.round(document.querySelector("[data-advertising-photo-hero]").getBoundingClientRect().top));
+    const heroTop = await page.evaluate(() => Math.round(document.querySelector("[data-detail-hero]").getBoundingClientRect().top));
     assert.ok(Math.abs(heroTop - (expected + gutter)) <= 1, `${label}: primary starts ${gutter}px under the collapsed header (top ${heroTop})`);
     await page.keyboard.press("Escape");
-    await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"));
+    await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(500);
     assert.equal((await page.evaluate(header)).collapsed, false, `${label}: masonry at scrollY 0 restores the tall header`);

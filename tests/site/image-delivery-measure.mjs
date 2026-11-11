@@ -98,8 +98,8 @@ for (const viewport of viewports) for (const locale of ["vi", "en"]) for (const 
         const images = performance.getEntriesByType("resource")
           .filter((entry) => entry.initiatorType === "img" || /\.(webp|avif|jxl|jpe?g|png)(\?|$)/.test(entry.name))
           .map((entry) => ({ url: new URL(entry.name).pathname, start: Math.round(entry.startTime), end: Math.round(entry.responseEnd), transfer: entry.transferSize, body: entry.encodedBodySize }));
-        const cohort = [...document.querySelectorAll("[data-advertising-card], [data-advertising-related-card]")].slice(0, 8)
-          .map((node) => ({ id: node.dataset.advertisingCard || node.dataset.advertisingRelatedCard, src: node.querySelector("img")?.currentSrc || null }));
+        const cohort = [...document.querySelectorAll("[data-masonry-card], [data-masonry-related-card]")].slice(0, 8)
+          .map((node) => ({ id: node.dataset.masonryCard || node.dataset.masonryRelatedCard, src: node.querySelector("img")?.currentSrc || null }));
         return { ...window.__imageDelivery, images, cohort };
       });
       Object.assign(row, {

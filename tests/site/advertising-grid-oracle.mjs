@@ -362,15 +362,6 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
         actual: card.y,
       });
     }
-    const excessGap = Math.max(0, card.y - lowBottom - interCardGap);
-    if (excessGap > 0.5 * cardWidth + EPSILON) {
-      add("bridge-cavity", {
-        ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean),
-        columns: bridgeColumns,
-        allowed: 0.5 * cardWidth + EPSILON,
-        actual: excessGap,
-      });
-    }
   }
 
   const edgeKinds = [

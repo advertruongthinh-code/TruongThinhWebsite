@@ -149,7 +149,7 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   const script = html(null).match(/<script type="application\/json" data-project-artifact>([\s\S]*?)<\/script>/)[1];
   assert.ok(!script.includes("</"), "no </ inside the artifact script");
   assert.equal(JSON.parse(script).cards[0].titleVi, "A </script><b>");
-  const chip = (page, filter) => page.match(new RegExp(`<a class="project-filter"[^>]*data-advertising-filter="${filter}"[^>]*>`))[0];
+  const chip = (page, filter) => page.match(new RegExp(`<a class="project-filter"[^>]*data-masonry-filter="${filter}"[^>]*>`))[0];
   assert.match(chip(html(null), "can-ho"), / hidden/, "an empty type has no chip on the root page");
   assert.doesNotMatch(chip(html(null), "van-phong"), / hidden/, "a type with projects keeps its chip");
   assert.doesNotMatch(chip(html("can-ho"), "can-ho"), / hidden/, "an empty type keeps its own chip on its page");

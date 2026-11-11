@@ -11,7 +11,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
-  const link = page.locator("[data-advertising-card] > a").first();
+  const link = page.locator("[data-masonry-card] > a").first();
   await link.waitFor();
   // Giữ ảnh primary chưa về để Flow chờ ảnh còn trên khung lúc kiểm.
   await page.route("**/assets/content/**", async (route) => {
@@ -19,18 +19,18 @@ try {
     await route.continue().catch(() => {});
   });
   await link.click();
-  const frame = page.locator("[data-advertising-photo-view] [data-advertising-loading-skeleton]").first();
+  const frame = page.locator("[data-detail-view] [data-masonry-loading-skeleton]").first();
   await frame.waitFor({ state: "attached", timeout: 10_000 });
   const { colors, src } = await frame.evaluate((node) => {
-    const view = node.closest("[data-advertising-photo-view]");
-    const image = view.querySelector("[data-advertising-photo-image]");
-    return { colors: node.dataset.advertisingFlowColors, src: image?.getAttribute("src") || "" };
+    const view = node.closest("[data-detail-view]");
+    const image = view.querySelector("[data-detail-image]");
+    return { colors: node.dataset.masonryFlowColors, src: image?.getAttribute("src") || "" };
   });
   const key = src.split("/").pop().replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
   assert.ok(MEDIA_COLORS[key], `primary media has colours: ${src}`);
   assert.equal(colors, MEDIA_COLORS[key].slice(1).join(" "), "primary Flow uses the image's four colours");
-  const batch = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
-    .filter((node) => node.dataset.advertisingFlowColors).length);
+  const batch = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")]
+    .filter((node) => node.dataset.masonryFlowColors).length);
   assert.equal(batch, 0, "batch frames under the CTA keep the presets");
   console.log("advertising primary Flow colours passed");
 } finally {

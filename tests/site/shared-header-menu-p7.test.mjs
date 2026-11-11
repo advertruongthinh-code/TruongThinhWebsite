@@ -56,7 +56,7 @@ test("all source routes share one menu Zalo href", () => {
 
 test("Advertising does not add a route-specific menu CTA hide", () => {
   const css = fs.readFileSync(path.resolve("src/site/detail.css"), "utf8");
-  const routeSpecificHide = /body\.is-advertising-(?:browse|photo)[^{]*\.menu-appointment\s*\{[^}]*display\s*:\s*none/i;
+  const routeSpecificHide = /body\.is-(?:masonry-browse|detail)[^{]*\.menu-appointment\s*\{[^}]*display\s*:\s*none/i;
   assert.equal(routeSpecificHide.test(css), false,
     "Advertising browse/photo must keep the shared menu CTA visibility contract");
 });

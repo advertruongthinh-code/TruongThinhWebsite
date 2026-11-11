@@ -1,9 +1,9 @@
 # Media card
 
-Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/media-lib/colors.mjs`, `src/site/media-lib/video-source.mjs`; CSS `.advertising-tile`, `.advertising-tile__title`; spec [Card nhiều media](../../../docs/specs/media-card.md).
+Nguồn: `src/site/advertising-products/media-manifest.mjs`, `src/site/media-lib/colors.mjs`, `src/site/media-lib/video-source.mjs`; CSS `.masonry-card`, `.masonry-card__title`; spec [Card nhiều media](../../../docs/specs/media-card.md).
 
 Một ô sản phẩm trong masonry Advertising (masonry chính và related). Runtime
-`masonry/runtime.mjs` dựng `figure.project-tile.advertising-tile` từ
+`masonry/runtime.mjs` dựng `figure.project-tile.masonry-card` từ
 `media-manifest.mjs`; không viết tay trong HTML.
 
 ## Cấu trúc
@@ -14,7 +14,7 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   dưới card hai cột, ảnh và video cover), không caption chiếm chỗ;
   alt VI/EN là tên card.
 - Mọi card masonry (chính, bộ lọc, related, Công trình) có
-  `figcaption.advertising-tile__title` (`aria-hidden`, tên VI/EN theo ngôn ngữ,
+  `figcaption.masonry-card__title` (`aria-hidden`, tên VI/EN theo ngôn ngữ,
   link lấy tên qua `aria-labelledby`; id related có tiền tố
   `advertising-related-title-`) nằm trên trái trong canvas như tên board của pin
   Pinterest: chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px, cách mép trái

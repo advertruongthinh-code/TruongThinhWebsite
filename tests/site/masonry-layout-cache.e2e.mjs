@@ -32,7 +32,7 @@ const open = async (url, width = 1440, { setup, height = 900, ready = true } = {
   await page.goto(`${base}${url}`, { waitUntil: "domcontentloaded" });
   // Cards sit at 0,0 until the layout is measured; the CTA skeleton is built from that measure.
   if (ready) await page.waitForSelector("[data-project-grid] [data-masonry-item]", { state: "attached" });
-  if (ready) await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 30000 });
+  if (ready) await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 30000 });
   return { page, log };
 };
 
@@ -43,12 +43,12 @@ const snapshot = (page) => page.evaluate(() => {
     viewportWidth: document.documentElement.clientWidth,
     gridWidth: grid.clientWidth,
     items: [...grid.querySelectorAll("[data-masonry-item]")].filter((node) => !node.hidden).map((node) => ({
-      id: node.dataset.advertisingCard,
+      id: node.dataset.masonryCard,
       left: Number.parseFloat(node.style.left),
       top: Number.parseFloat(node.style.top),
       width: Number.parseFloat(node.style.width),
       height: Number.parseFloat(node.style.height),
-      span: Number(node.dataset.advertisingSpan),
+      span: Number(node.dataset.masonrySpan),
     })),
   };
 });
@@ -115,7 +115,7 @@ try {
       const wideIds = (await cardsOf(page, url)).filter((card) => isWideMedia(layoutMedia(card))).slice(0, 4).map((card) => card.id);
       const spans = await page.evaluate((ids) => ids.map((id) => {
         const node = window.TruongThinhMasonry.getAdapter().ensurePhoto(id);
-        return node && { id, span: Number(node.dataset.advertisingSpan), width: Number.parseFloat(node.style.width) };
+        return node && { id, span: Number(node.dataset.masonrySpan), width: Number.parseFloat(node.style.width) };
       }), wideIds);
       for (const entry of spans) assert.ok(entry, `${url} ${width}px: wide cover mounts`);
       assert.deepEqual(spans.map((entry) => entry.span), spans.map(() => (layout.columns >= 3 ? 2 : 1)), `${url} ${width}px: wide covers span`);
@@ -153,8 +153,8 @@ try {
         const firstCardAt = await page.evaluate(() => window.__firstCardAt);
         assert.ok(filterFile.at <= firstCardAt, "the one-filter file is requested before the first card exists");
         const before = cacheRequests().length;
-        await page.locator('[data-advertising-filter="signage"]').click();
-        await page.waitForFunction(() => document.querySelector('[data-advertising-filter="signage"]')?.getAttribute("aria-current") === "true");
+        await page.locator('[data-masonry-filter="signage"]').click();
+        await page.waitForFunction(() => document.querySelector('[data-masonry-filter="signage"]')?.getAttribute("aria-current") === "true");
         await settled(page);
         assert.equal(cacheRequests().length, before, "a filter click after the whole-band file arrived requests nothing");
       }
@@ -199,11 +199,11 @@ try {
         await target.route("**/layout-cache/4-35.mjs", async (route) => { await new Promise((resolve) => setTimeout(resolve, 3 * DELAY)); await route.continue(); });
       },
     });
-    const chip = page.locator('[data-advertising-filter="signage"]');
+    const chip = page.locator('[data-masonry-filter="signage"]');
     const state = () => page.evaluate(() => ({
-      busy: document.querySelector('[data-advertising-filter="signage"]').getAttribute("aria-busy"),
-      signage: document.querySelector('[data-advertising-filter="signage"]').getAttribute("aria-current"),
-      all: document.querySelector('[data-advertising-filter="all"]').getAttribute("aria-current"),
+      busy: document.querySelector('[data-masonry-filter="signage"]').getAttribute("aria-busy"),
+      signage: document.querySelector('[data-masonry-filter="signage"]').getAttribute("aria-current"),
+      all: document.querySelector('[data-masonry-filter="all"]').getAttribute("aria-current"),
     }));
     const before = await settled(page);
     await chip.click();
@@ -213,9 +213,9 @@ try {
     await page.waitForTimeout(DELAY + 1000);
     assert.deepEqual(await state(), { busy: null, signage: "true", all: "false" }, "the click lands and the busy mark is gone");
     // A second click cancelled before the file lands also clears the busy mark (re-click on the active filter).
-    await page.locator('[data-advertising-filter="all"]').click();
+    await page.locator('[data-masonry-filter="all"]').click();
     await page.waitForTimeout(200);
-    await page.locator('[data-advertising-filter="signage"]').click();
+    await page.locator('[data-masonry-filter="signage"]').click();
     await page.waitForTimeout(100);
     assert.equal((await state()).busy, null, "a cached filter needs no busy mark");
     await page.close();
@@ -230,11 +230,11 @@ try {
       },
     });
     await settled(page);
-    await page.locator('[data-advertising-filter="signage"]').click();
+    await page.locator('[data-masonry-filter="signage"]').click();
     await page.waitForTimeout(150);
-    await page.locator('[data-advertising-filter="all"]').click();
+    await page.locator('[data-masonry-filter="all"]').click();
     await page.waitForTimeout(100);
-    assert.equal(await page.locator('[data-advertising-filter="signage"]').getAttribute("aria-busy"), null, "cancelling the click clears the busy mark");
+    assert.equal(await page.locator('[data-masonry-filter="signage"]').getAttribute("aria-busy"), null, "cancelling the click clears the busy mark");
     await page.close();
     console.log("PASS chip busy mark cleared by cancel");
   }
@@ -251,7 +251,7 @@ try {
         await target.route("**/layout-cache/4-35.mjs", async (route) => { await new Promise((resolve) => setTimeout(resolve, LATE)); await route.continue(); });
       },
     });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true", null, { timeout: 30000 });
+    await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true", null, { timeout: 30000 });
     // The 4 s wait ends, the stack layout is measured; watch the hidden grid from then on.
     await page.waitForTimeout(4500);
     await page.evaluate(() => {
@@ -262,11 +262,11 @@ try {
     await page.waitForTimeout(LATE - 4500 + 1500);
     assert.equal(await page.evaluate(() => window.__gridWrites), 0, "the late cache did not touch the hidden grid while the card is open");
     await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
-    await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"), null, { timeout: 15000 });
+    await page.waitForFunction(() => !document.body.classList.contains("is-detail"), null, { timeout: 15000 });
     await settled(page);
     // A stack layout has no 2-column card; the cached one has them (mounted by id, they may sit below the window).
     const wideIds = ADVERTISING_CATALOG_ARTIFACT.cards.filter((card) => isWideMedia(layoutMedia(card))).slice(0, 4).map((card) => card.id);
-    const spans = await page.evaluate((ids) => ids.map((id) => Number(window.TruongThinhMasonry.getAdapter().ensurePhoto(id)?.dataset.advertisingSpan)), wideIds);
+    const spans = await page.evaluate((ids) => ids.map((id) => Number(window.TruongThinhMasonry.getAdapter().ensurePhoto(id)?.dataset.masonrySpan)), wideIds);
     assert.deepEqual(spans, wideIds.map(() => 2), "the cached layout (wide cards) replaced the stack layout");
     await page.close();
     console.log("PASS late cache with a card open");

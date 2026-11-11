@@ -197,9 +197,9 @@ try {
   await page.locator(".panel--pages .search").fill("advertising-products");
   await page.locator(".tree__item", { hasText: "Sản phẩm quảng cáo" }).first().click();
   await previewReady("/vi/advertising-products");
-  const tileLocator = frame().locator("[data-advertising-card]").first();
+  const tileLocator = frame().locator("[data-masonry-card]").first();
   await tileLocator.waitFor();
-  const cardId = await tileLocator.getAttribute("data-advertising-card");
+  const cardId = await tileLocator.getAttribute("data-masonry-card");
   await tileLocator.click();
   await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
   await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS");

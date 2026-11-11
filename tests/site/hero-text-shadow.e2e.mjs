@@ -16,7 +16,7 @@ const withShadow = [
   { route: "about/", selectors: [".hero h1", ".detail-cta h2", ".detail-cta p"] },
 ];
 const withoutShadow = [
-  { route: "advertising-products/", selectors: [".hero h1", ".detail-cta[data-advertising-grid-cta] h2"] },
+  { route: "advertising-products/", selectors: [".hero h1", ".detail-cta[data-masonry-grid-cta] h2"] },
 ];
 
 const failures = [];

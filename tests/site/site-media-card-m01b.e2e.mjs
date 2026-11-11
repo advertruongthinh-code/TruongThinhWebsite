@@ -87,11 +87,11 @@ const settleTransitions = async (page) => {
 
 async function wideFrame(card) {
   return card.evaluate((node) => {
-    const rect = node.querySelector(".advertising-card-media").getBoundingClientRect();
-    const legacy = node.querySelector(".advertising-card-media > img:not([data-advertising-media-item])");
+    const rect = node.querySelector(".card-media").getBoundingClientRect();
+    const legacy = node.querySelector(".card-media > img:not([data-masonry-media-item])");
     return { x: rect.x + scrollX, y: rect.y + scrollY, width: rect.width, height: rect.height,
       legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
-      activeId: node.dataset.advertisingActiveMediaId };
+      activeId: node.dataset.masonryActiveMediaId };
   });
 }
 
@@ -149,7 +149,7 @@ async function setup(page, locale, videoCover = false) {
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
   await card.locator("img").first().waitFor({ state: "visible" });
@@ -171,7 +171,7 @@ async function setupSingleton(page, item) {
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   return card;
 }
@@ -183,11 +183,11 @@ async function setupMany(page, locale) {
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
   await card.locator("img").first().waitFor({ state: "visible" });
   await card.evaluate(async (node) => {
-    const cta = document.querySelector("[data-advertising-grid-cta]");
-    const controls = [...node.querySelectorAll("[data-advertising-media-count]")];
+    const cta = document.querySelector("[data-masonry-grid-cta]");
+    const controls = [...node.querySelectorAll("[data-masonry-media-count]")];
     if (!cta || controls.length !== 1) throw new Error("many-media CTA or numeric counter is missing");
     let previous = null;
     let stable = 0;
@@ -218,7 +218,7 @@ async function visibleSwipePoints(card) {
   await card.scrollIntoViewIfNeeded();
   return card.evaluate((node) => {
     const link = node.querySelector(":scope > a");
-    const rect = node.querySelector(".advertising-card-media").getBoundingClientRect();
+    const rect = node.querySelector(".card-media").getBoundingClientRect();
     const y = rect.top + Math.min(rect.height / 2, 120);
     const x1 = rect.left + rect.width * 0.78;
     const x2 = rect.left + rect.width * 0.22;
@@ -264,7 +264,7 @@ async function pointerSwipe(link, from, to, y, pointerId) {
       pointerType: "mouse", isPrimary: true, clientY: point.y };
     node.dispatchEvent(new PointerEvent("pointerdown", { ...options, clientX: point.from }));
     node.dispatchEvent(new PointerEvent("pointerup", { ...options, clientX: point.to }));
-    return node.parentElement.dataset.advertisingActiveMediaId;
+    return node.parentElement.dataset.masonryActiveMediaId;
   }, { from, to, y, pointerId });
 }
 
@@ -277,12 +277,12 @@ async function run(viewport, touch, locale) {
   try {
     const card = await setup(page, locale);
     await page.evaluate(() => window.TruongThinhMasonry.getAdapter().ensurePhoto("signage-raised-letters-16"));
-    assert.equal(await page.locator('[data-advertising-card="signage-raised-letters-16"] [data-advertising-media-indicator]').count(), 0,
+    assert.equal(await page.locator('[data-masonry-card="signage-raised-letters-16"] [data-masonry-media-indicator]').count(), 0,
       "image-only public card retains legacy UI");
-    const legacyState = await page.locator('[data-advertising-card="signage-raised-letters-16"]').evaluate((node) => {
-      const image = node.querySelector(".advertising-card-media > img");
-      return { activeId: node.dataset.advertisingActiveMediaId || null,
-        layers: node.querySelectorAll("[data-advertising-media-item]").length,
+    const legacyState = await page.locator('[data-masonry-card="signage-raised-letters-16"]').evaluate((node) => {
+      const image = node.querySelector(".card-media > img");
+      return { activeId: node.dataset.masonryActiveMediaId || null,
+        layers: node.querySelectorAll("[data-masonry-media-item]").length,
         imageHidden: image?.hidden, imageDisplay: image && getComputedStyle(image).display };
     });
     assert(legacyState.activeId === null && legacyState.layers === 0
@@ -292,17 +292,17 @@ async function run(viewport, touch, locale) {
     await page.waitForTimeout(450);
     const before = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
-      return { id: node.dataset.advertisingActiveMediaId || null,
+      return { id: node.dataset.masonryActiveMediaId || null,
         rect: { width: rect.width, height: rect.height },
         url: location.href,
         photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
     assert.equal(before.photo, null, "carousel starts in grid");
-    assert.equal(await card.locator("[data-advertising-media-indicator]").count(), 1, "multi-media indicator exists");
-    assert.equal(await card.locator('[data-advertising-media-select][aria-current="true"]').count(), 1,
+    assert.equal(await card.locator("[data-masonry-media-indicator]").count(), 1, "multi-media indicator exists");
+    assert.equal(await card.locator('[data-masonry-media-select][aria-current="true"]').count(), 1,
       "one carousel dot is selected");
     if (touch) {
-      const box = await card.locator(".advertising-card-media").evaluate(async (node) => {
+      const box = await card.locator(".card-media").evaluate(async (node) => {
         let previous = null;
         let stable = 0;
         for (let frame = 0; frame < 80; frame++) {
@@ -321,7 +321,7 @@ async function run(viewport, touch, locale) {
       const x1 = box.x + box.width * 0.78;
       const x2 = box.x + box.width * 0.22;
       const hit = await page.evaluate(({ x, y, id }) => {
-        const link = document.querySelector(`[data-advertising-card="${id}"] > a`);
+        const link = document.querySelector(`[data-masonry-card="${id}"] > a`);
         const target = document.elementFromPoint(x, y);
         return { insideLink: Boolean(target && link?.contains(target)), visible: x >= 0 && x < innerWidth && y >= 0 && y < innerHeight };
       }, { x: x1, y, id: fixtureId });
@@ -330,29 +330,29 @@ async function run(viewport, touch, locale) {
       await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x2, y, id: 1 }] });
       await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
       await page.waitForTimeout(150);
-      assert.equal(await card.getAttribute("data-advertising-active-media-id"), videoId,
+      assert.equal(await card.getAttribute("data-masonry-active-media-id"), videoId,
         "swipe must select video");
     } else {
-      await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
+      await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     }
-    await page.waitForFunction(({ cardId, mediaId }) => document.querySelector(`[data-advertising-card="${cardId}"]`)?.dataset.advertisingActiveMediaId === mediaId,
+    await page.waitForFunction(({ cardId, mediaId }) => document.querySelector(`[data-masonry-card="${cardId}"]`)?.dataset.masonryActiveMediaId === mediaId,
       { cardId: fixtureId, mediaId: videoId }, { timeout: 5_000 });
     const loadingGeometry = await card.evaluate((node) => {
-      const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
-      const spinner = node.querySelector("[data-advertising-media-loading]");
+      const frame = node.querySelector(".card-media").getBoundingClientRect();
+      const spinner = node.querySelector("[data-masonry-media-loading]");
       const rect = spinner.getBoundingClientRect();
       return { visible: !spinner.hidden, withinFrame: rect.left >= frame.left && rect.right <= frame.right
         && rect.top >= frame.top && rect.bottom <= frame.bottom };
     });
     assert(loadingGeometry.visible && loadingGeometry.withinFrame, "loading circle stays inside the media frame");
-    await card.locator("[data-advertising-media-loading]").waitFor({ state: "hidden" });
+    await card.locator("[data-masonry-media-loading]").waitFor({ state: "hidden" });
     const after = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
       const video = node.querySelector("video");
-      return { id: node.dataset.advertisingActiveMediaId,
+      return { id: node.dataset.masonryActiveMediaId,
         rect: { width: rect.width, height: rect.height },
         video: video ? { muted: video.muted, poster: video.poster, src: video.currentSrc || video.src } : null,
-        duration: node.querySelector("[data-advertising-media-duration]")?.textContent?.trim() || null,
+        duration: node.querySelector("[data-masonry-media-duration]")?.textContent?.trim() || null,
         url: location.href,
         photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
@@ -364,7 +364,7 @@ async function run(viewport, touch, locale) {
       "video keeps poster, source and grid mute");
     await settlePush(card);
     const dimensions = await card.evaluate(async (node) => {
-      const cover = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
+      const cover = node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`);
       const video = node.querySelector("video");
       const poster = new Image();
       await new Promise((resolve, reject) => {
@@ -372,7 +372,7 @@ async function run(viewport, touch, locale) {
         poster.onerror = reject;
         poster.src = video.poster;
       });
-      const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
+      const frame = node.querySelector(".card-media").getBoundingClientRect();
       const rect = video.getBoundingClientRect();
       return { cover: { width: cover.naturalWidth, height: cover.naturalHeight },
         video: { width: video.videoWidth, height: video.videoHeight },
@@ -395,7 +395,7 @@ async function run(viewport, touch, locale) {
         / (dimensions.videoRect.bottom - dimensions.videoRect.top) - dimensions.video.width / dimensions.video.height) < 0.02,
     `actual image, video, poster ratios must match without crop: ${JSON.stringify(dimensions)}`);
     assert.equal(after.duration, null, "cards show no video duration pill (media-card R2, owner 2026-11-10)");
-    assert.equal(await card.locator(`[data-advertising-media-select="${videoId}"][aria-current="true"]`).count(), 1,
+    assert.equal(await card.locator(`[data-masonry-media-select="${videoId}"][aria-current="true"]`).count(), 1,
       "video indicator tracks active media");
     assert.deepEqual(errors, [], "no runtime page errors");
     if (touch) await page.waitForTimeout(450);
@@ -448,7 +448,7 @@ test("M01b swipe suppresses its click but permits a fresh pointer tap", async ()
       node.dispatchEvent(event);
       return { prevented: event.defaultPrevented, bubbled: window.__m01bBubbledClicks,
         elapsedMs: performance.now() - started,
-        activeId: node.parentElement.dataset.advertisingActiveMediaId };
+        activeId: node.parentElement.dataset.masonryActiveMediaId };
     }, { x: point.x1, y: point.y });
     assert(freshTap.elapsedMs < 400 && freshTap.bubbled === 1 && freshTap.activeId === fixtureId,
       `new pointer gesture within suppression window must activate detail: ${JSON.stringify(freshTap)}`);
@@ -475,7 +475,7 @@ test("M01b keyboard click after swipe is not suppressed", async () => {
       const event = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 0 });
       node.dispatchEvent(event);
       return { prevented: event.defaultPrevented, bubbled: window.__m01bBubbledClicks,
-        activeId: node.parentElement.dataset.advertisingActiveMediaId };
+        activeId: node.parentElement.dataset.masonryActiveMediaId };
     });
     assert(keyboard.bubbled === 1 && keyboard.activeId === videoId,
       `keyboard activation must bypass swipe suppression: ${JSON.stringify(keyboard)}`);
@@ -504,7 +504,7 @@ test("M01b a newer swipe keeps its click guard past an older timeout", async () 
       const event = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 });
       node.dispatchEvent(event);
       return { prevented: event.defaultPrevented, bubbled: window.__m01bBubbledClicks,
-        activeId: node.parentElement.dataset.advertisingActiveMediaId,
+        activeId: node.parentElement.dataset.masonryActiveMediaId,
         photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
     assert(compatibility.prevented && compatibility.bubbled === 0
@@ -535,7 +535,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
     };
     const swipeTouch = async (from, to, id) => {
       await touchPath(from, to, id);
-      return link.evaluate((node) => node.parentElement.dataset.advertisingActiveMediaId);
+      return link.evaluate((node) => node.parentElement.dataset.masonryActiveMediaId);
     };
     assert.equal(await swipeTouch(point.x1, point.x2, 61), videoId);
     const compatibility = await link.evaluate((node) => {
@@ -569,22 +569,22 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), videoId);
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), videoId);
     const video = card.locator("video");
     assert.equal(await video.evaluate((node) => node.muted), true);
     assert((await video.getAttribute("poster")).endsWith("poster-3x2.webp"));
     // Cards show no video duration pill (owner 2026-11-10, media-card R2).
-    assert.equal(await card.locator("[data-advertising-media-duration]").count(), 0);
+    assert.equal(await card.locator("[data-masonry-media-duration]").count(), 0);
     const beforeVideoReady = await card.evaluate((node) => {
-      const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
+      const frame = node.querySelector(".card-media").getBoundingClientRect();
       const legacy = node.querySelector("img");
       const oldRect = legacy.getBoundingClientRect();
       const active = node.querySelector("video");
       const activeRect = active.getBoundingClientRect();
-      return { mediaLoaded: node.dataset.advertisingMediaLoaded || null,
+      return { mediaLoaded: node.dataset.masonryMediaLoaded || null,
         legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
         legacyRect: { width: oldRect.width, height: oldRect.height },
         videoReadyState: active.readyState,
@@ -604,8 +604,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     `video cover must own its frame and loading state: ${JSON.stringify(beforeVideoReady)}`);
     releaseVideo();
     await page.waitForFunction((id) => {
-      const node = document.querySelector(`[data-advertising-card="${id}"]`);
-      return node?.querySelector("video")?.readyState >= 2 && node.dataset.advertisingMediaLoaded === "true";
+      const node = document.querySelector(`[data-masonry-card="${id}"]`);
+      return node?.querySelector("video")?.readyState >= 2 && node.dataset.masonryMediaLoaded === "true";
     }, fixtureId);
   } finally { releaseVideo(); await browser.close(); }
 });
@@ -619,23 +619,23 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
     assert(video);
     const card = await setupSingleton(page, video);
     await page.waitForFunction((id) => {
-      const node = document.querySelector(`[data-advertising-card="${id}"]`);
+      const node = document.querySelector(`[data-masonry-card="${id}"]`);
       return node?.querySelector("video")?.readyState >= 2;
     }, fixtureId, { timeout: 3_000 }).catch(() => {});
     const state = await card.evaluate((node) => {
-      const legacy = node.querySelector(".advertising-card-media > img:not([data-advertising-media-item])");
+      const legacy = node.querySelector(".card-media > img:not([data-masonry-media-item])");
       const active = node.querySelector("video");
-      const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
+      const frame = node.querySelector(".card-media").getBoundingClientRect();
       const rect = active?.getBoundingClientRect();
-      return { activeId: node.dataset.advertisingActiveMediaId || null,
+      return { activeId: node.dataset.masonryActiveMediaId || null,
         legacyHidden: legacy?.hidden, legacyDisplay: legacy && getComputedStyle(legacy).display,
         legacyWidth: legacy?.getBoundingClientRect().width,
         videoReady: active?.readyState >= 2, videoMuted: active?.muted,
         videoWidth: active?.videoWidth, videoHeight: active?.videoHeight,
-        poster: active?.poster, duration: node.querySelector("[data-advertising-media-duration]")?.textContent,
-        noPlayback: !node.querySelector("[data-advertising-media-playback]"),
-        mediaLoaded: node.dataset.advertisingMediaLoaded || null,
-        indicatorCount: node.querySelectorAll("[data-advertising-media-indicator], [data-advertising-media-select]").length,
+        poster: active?.poster, duration: node.querySelector("[data-masonry-media-duration]")?.textContent,
+        noPlayback: !node.querySelector("[data-masonry-media-playback]"),
+        mediaLoaded: node.dataset.masonryMediaLoaded || null,
+        indicatorCount: node.querySelectorAll("[data-masonry-media-indicator], [data-masonry-media-select]").length,
         withinFrame: Boolean(rect && rect.left >= frame.left - 1 && rect.top >= frame.top - 1
           && rect.right <= frame.right + 1 && rect.bottom <= frame.bottom + 1) };
     });
@@ -661,19 +661,19 @@ test("M01b video-only card with failed video and poster shows the load-error ind
       .find((media) => media.id === videoId);
     const card = await setupSingleton(page, { ...video, src: "/__missing_media__/clip.mp4",
       posterSrc: "/__missing_media__/poster.webp" });
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] .advertising-card-media`)
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"] .card-media`)
       ?.classList.contains("is-media-error"), fixtureId, { timeout: 5_000 });
     await page.waitForTimeout(300);
     const state = await card.evaluate((node) => ({
-      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
-      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
+      skeleton: Boolean(node.querySelector("[data-masonry-loading-skeleton]")),
+      status: node.querySelector("[data-masonry-media-loading]").getAttribute("aria-label"),
     }));
     assert.deepEqual(state, { skeleton: false, status: "Couldn't load media" });
     await clickCardBody(card, "failed-video");
-    await page.waitForFunction(() => document.querySelector(".advertising-photo-view__hero-frame")
+    await page.waitForFunction(() => document.querySelector(".detail-view__hero-frame")
       ?.classList.contains("is-media-error"), null, { timeout: 5_000 });
-    assert.equal(await page.evaluate(() => document.querySelector("[data-advertising-photo-view]")
-      .dataset.advertisingPhotoGlass), "false", "detail turns the blur backdrop off");
+    assert.equal(await page.evaluate(() => document.querySelector("[data-detail-view]")
+      .dataset.detailGlass), "false", "detail turns the blur backdrop off");
   } finally { await browser.close(); }
 });
 
@@ -696,19 +696,19 @@ test("M01b explicit singleton nonlegacy image renders without a carousel", async
       altEn: "Synthetic test image",
     });
     await page.waitForFunction((id) => {
-      const image = document.querySelector(`[data-advertising-media-item="${id}"]`);
+      const image = document.querySelector(`[data-masonry-media-item="${id}"]`);
       return image?.naturalWidth === 480;
     }, imageId, { timeout: 3_000 }).catch(() => {});
     const state = await card.evaluate((node) => {
-      const legacy = node.querySelector(".advertising-card-media > img:not([data-advertising-media-item])");
-      const active = node.querySelector("[data-advertising-media-item]");
-      return { activeId: node.dataset.advertisingActiveMediaId || null,
+      const legacy = node.querySelector(".card-media > img:not([data-masonry-media-item])");
+      const active = node.querySelector("[data-masonry-media-item]");
+      return { activeId: node.dataset.masonryActiveMediaId || null,
         legacyHidden: legacy?.hidden, legacyDisplay: legacy && getComputedStyle(legacy).display,
         legacyWidth: legacy?.getBoundingClientRect().width,
-        imageId: active?.dataset.advertisingMediaItem, imageWidth: active?.naturalWidth,
+        imageId: active?.dataset.masonryMediaItem, imageWidth: active?.naturalWidth,
         imageHeight: active?.naturalHeight, imageHidden: active?.hidden,
-        mediaLoaded: node.dataset.advertisingMediaLoaded || null,
-        indicatorCount: node.querySelectorAll("[data-advertising-media-indicator], [data-advertising-media-select]").length };
+        mediaLoaded: node.dataset.masonryMediaLoaded || null,
+        indicatorCount: node.querySelectorAll("[data-masonry-media-indicator], [data-masonry-media-select]").length };
     });
     if (outputDir) await writeFile(path.join(outputDir, "singleton-image-state.json"), JSON.stringify(state, null, 2));
     assert(state.activeId === imageId && state.legacyHidden && state.legacyDisplay === "none"
@@ -724,7 +724,7 @@ test("M01b explicit singleton nonlegacy image renders without a carousel", async
       const click = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1,
         clientX: point.x2, clientY: point.y });
       node.dispatchEvent(click);
-      return { prevented: click.defaultPrevented, activeId: node.parentElement.dataset.advertisingActiveMediaId };
+      return { prevented: click.defaultPrevented, activeId: node.parentElement.dataset.masonryActiveMediaId };
     }, points);
     assert.equal(compatibilityClick.activeId, imageId);
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
@@ -746,33 +746,33 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await Promise.all([videoResponse, posterResponse]);
     const fallbackWaitStarted = Date.now();
     await page.waitForFunction((id) => {
-      const node = document.querySelector(`[data-advertising-card="${id}"]`);
-      const image = node?.querySelector(`[data-advertising-media-item="${id}"]`);
-      return node?.dataset.advertisingActiveMediaId === id
+      const node = document.querySelector(`[data-masonry-card="${id}"]`);
+      const image = node?.querySelector(`[data-masonry-media-item="${id}"]`);
+      return node?.dataset.masonryActiveMediaId === id
         && image?.complete && image.naturalWidth > 0
         && getComputedStyle(image).visibility !== "hidden"
         && Number(getComputedStyle(image).opacity) >= 0.99;
     }, fixtureId, { timeout: 6_000 }).catch(() => {});
     const fallbackWaitMs = Date.now() - fallbackWaitStarted;
     const state = await card.evaluate((node) => {
-      const image = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
-      return { activeId: node.dataset.advertisingActiveMediaId,
+      const image = node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`);
+      return { activeId: node.dataset.masonryActiveMediaId,
         imageReady: Boolean(image && image.complete && image.naturalWidth > 0 && !image.hidden
           && getComputedStyle(image).visibility !== "hidden"
-          && image.classList.contains("is-advertising-media-ready") && Number(getComputedStyle(image).opacity) >= 0.99),
+          && image.classList.contains("is-masonry-media-ready") && Number(getComputedStyle(image).opacity) >= 0.99),
         imageNaturalWidth: image?.naturalWidth, imageHidden: image?.hidden,
         imageClass: image?.className, imageOpacity: image && getComputedStyle(image).opacity,
         imageTransitionDuration: image && getComputedStyle(image).transitionDuration,
-        imageSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-        spinnerHidden: node.querySelector("[data-advertising-media-loading]").hidden,
-        mediaLoaded: node.dataset.advertisingMediaLoaded || null,
+        imageSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+        spinnerHidden: node.querySelector("[data-masonry-media-loading]").hidden,
+        mediaLoaded: node.dataset.masonryMediaLoaded || null,
         videoHidden: node.querySelector("video").hidden,
-        controls: node.querySelectorAll("[data-advertising-media-select]").length };
+        controls: node.querySelectorAll("[data-masonry-media-select]").length };
     });
     state.fallbackWaitMs = fallbackWaitMs;
     if (outputDir) await writeFile(path.join(outputDir, "failed-video-cover-state.json"), JSON.stringify(state, null, 2));
@@ -781,7 +781,7 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     `failed cover must load an image candidate: ${JSON.stringify(state)}`);
     if (outputDir) {
       const visualState = async () => card.evaluate((node) => ({
-        scrollY, opacity: getComputedStyle(node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`)).opacity,
+        scrollY, opacity: getComputedStyle(node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`)).opacity,
       }));
       const beforeScreenshot = await visualState();
       await card.screenshot({ path: path.join(outputDir, "video-cover-double-404-card.png") });
@@ -789,8 +789,8 @@ test("M01b failed video cover loads its unready image fallback", async () => {
       await writeFile(path.join(outputDir, "fallback-screenshot-state.json"),
         JSON.stringify({ beforeScreenshot, afterScreenshot }, null, 2));
     }
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), fixtureId,
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), fixtureId,
       "failed video control retains valid fallback");
     await clickCardBody(card, "failed-video-cover");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
@@ -815,22 +815,22 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => {
-      const node = document.querySelector(`[data-advertising-card="${id}"]`);
-      const image = node?.querySelector(`[data-advertising-media-item="${id}"]`);
+      const node = document.querySelector(`[data-masonry-card="${id}"]`);
+      const image = node?.querySelector(`[data-masonry-media-item="${id}"]`);
       return image?.complete && image.naturalWidth === 0;
     }, fixtureId, { timeout: 3_000 });
     await page.waitForTimeout(100);
     const state = await card.evaluate((node) => ({
-      activeId: node.dataset.advertisingActiveMediaId,
-      imageSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
-      error: node.querySelector(".advertising-card-media").classList.contains("is-media-error"),
-      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
-      controlsHidden: node.querySelector("[data-advertising-media-indicator]").hidden,
-      mediaLoaded: node.dataset.advertisingMediaLoaded || null,
+      activeId: node.dataset.masonryActiveMediaId,
+      imageSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+      status: node.querySelector("[data-masonry-media-loading]").getAttribute("aria-label"),
+      error: node.querySelector(".card-media").classList.contains("is-media-error"),
+      skeleton: Boolean(node.querySelector("[data-masonry-loading-skeleton]")),
+      controlsHidden: node.querySelector("[data-masonry-media-indicator]").hidden,
+      mediaLoaded: node.dataset.masonryMediaLoaded || null,
     }));
     // R5: hết media hiện được thì dấu báo lỗi thay skeleton, điều khiển ẩn, status đọc lỗi.
     assert(state.activeId === fixtureId && state.imageSelected === "true" && state.status === "Couldn't load media" && state.error && !state.skeleton
@@ -864,27 +864,27 @@ test("M01b failed next image restores the last valid card image", async () => {
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
     const failedResponse = page.waitForResponse((response) => response.url().endsWith("missing-image.webp") && response.status() === 404);
-    await card.locator(`[data-advertising-media-select="${missingId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${missingId}"]`).click();
     await failedResponse;
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] [data-advertising-media-item="${id}-missing-image"]`)?.complete, fixtureId);
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"] [data-masonry-media-item="${id}-missing-image"]`)?.complete, fixtureId);
     if (outputDir) await card.screenshot({ path: path.join(outputDir, "image-404-card.png") });
     const state = await card.evaluate((node) => {
-      const cover = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
-      const spinner = node.querySelector("[data-advertising-media-loading]");
-      return { activeId: node.dataset.advertisingActiveMediaId,
+      const cover = node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`);
+      const spinner = node.querySelector("[data-masonry-media-loading]");
+      return { activeId: node.dataset.masonryActiveMediaId,
         coverVisible: !cover.hidden && getComputedStyle(cover).display !== "none" && cover.naturalWidth > 0,
-        coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-        spinnerHidden: spinner.hidden, controls: node.querySelectorAll("[data-advertising-media-select]").length };
+        coverSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+        spinnerHidden: spinner.hidden, controls: node.querySelectorAll("[data-masonry-media-select]").length };
     });
     assert(state.coverVisible && state.activeId === fixtureId && state.coverSelected === "true"
       && state.spinnerHidden && state.controls === 3,
     `failed image must restore valid cover and controls: ${JSON.stringify(state)}`);
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), videoId, "other media control remains usable");
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), videoId, "other media control remains usable");
     await clickCardBody(card, "failed-image");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await browser.close(); }
@@ -900,19 +900,19 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 200);
     await page.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.all([videoResponse, posterResponse]);
-    await page.waitForFunction((id) => Boolean(document.querySelector(`[data-advertising-card="${id}"] video`)?.error), fixtureId);
+    await page.waitForFunction((id) => Boolean(document.querySelector(`[data-masonry-card="${id}"] video`)?.error), fixtureId);
     await card.scrollIntoViewIfNeeded();
     await settlePush(card);
     if (outputDir) await card.screenshot({ path: path.join(outputDir, "video-404-poster.png") });
     const state = await card.evaluate((node) => {
-      const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
+      const frame = node.querySelector(".card-media").getBoundingClientRect();
       const video = node.querySelector("video");
       const rect = video.getBoundingClientRect();
-      return { activeId: node.dataset.advertisingActiveMediaId, videoError: video.error?.code,
-        muted: video.muted, poster: video.poster, spinnerHidden: node.querySelector("[data-advertising-media-loading]").hidden,
-        videoSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}-synthetic-video"]`)?.getAttribute("aria-current"),
+      return { activeId: node.dataset.masonryActiveMediaId, videoError: video.error?.code,
+        muted: video.muted, poster: video.poster, spinnerHidden: node.querySelector("[data-masonry-media-loading]").hidden,
+        videoSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}-synthetic-video"]`)?.getAttribute("aria-current"),
         frame: { x: frame.x, y: frame.y, width: frame.width, height: frame.height },
         videoRect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
         videoStyle: { width: getComputedStyle(video).width, maxWidth: getComputedStyle(video).maxWidth,
@@ -924,10 +924,10 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
     assert(state.activeId === videoId && state.videoError && state.muted && state.poster.endsWith("poster-3x2.webp")
       && state.spinnerHidden && state.videoSelected === "true" && withinFrame,
     `failed video must keep a settled poster within frame: ${JSON.stringify(state)}`);
-    await card.locator(`[data-advertising-media-select="${fixtureId}"]`).click();
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), fixtureId, "cover control remains usable");
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
-    assert.equal(await card.locator("[data-advertising-media-loading]").isHidden(), true,
+    await card.locator(`[data-masonry-media-select="${fixtureId}"]`).click();
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), fixtureId, "cover control remains usable");
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
+    assert.equal(await card.locator("[data-masonry-media-loading]").isHidden(), true,
       "failed video re-selection must not spin indefinitely");
     assert.deepEqual(errors, [], "failed video does not cause uncaught page errors");
   } finally { await browser.close(); }
@@ -944,25 +944,25 @@ test("M01b failed video and poster restore the ready image cover", async () => {
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     await page.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.route(`**${fixturePrefix}poster-3x2.webp`, (route) => route.fulfill({ status: 404, body: "" }));
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.all([videoResponse, posterResponse]);
-    await page.waitForFunction((id) => Boolean(document.querySelector(`[data-advertising-card="${id}"] video`)?.error), fixtureId);
+    await page.waitForFunction((id) => Boolean(document.querySelector(`[data-masonry-card="${id}"] video`)?.error), fixtureId);
     await page.waitForTimeout(200);
     if (outputDir) await card.screenshot({ path: path.join(outputDir, "video-and-poster-404-card.png") });
     const state = await card.evaluate((node) => {
-      const cover = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
-      return { activeId: node.dataset.advertisingActiveMediaId,
+      const cover = node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`);
+      return { activeId: node.dataset.masonryActiveMediaId,
         coverVisible: !cover.hidden && getComputedStyle(cover).display !== "none" && cover.naturalWidth > 0,
-        coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-        spinnerHidden: node.querySelector("[data-advertising-media-loading]").hidden,
+        coverSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+        spinnerHidden: node.querySelector("[data-masonry-media-loading]").hidden,
         videoHidden: node.querySelector("video").hidden,
-        controls: node.querySelectorAll("[data-advertising-media-select]").length };
+        controls: node.querySelectorAll("[data-masonry-media-select]").length };
     });
     assert(state.activeId === fixtureId && state.coverVisible && state.coverSelected === "true"
       && state.spinnerHidden && state.videoHidden && state.controls === 2,
     `double 404 must restore visible ready image: ${JSON.stringify(state)}`);
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), fixtureId,
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), fixtureId,
       "failed video control keeps usable fallback");
     await clickCardBody(card, "failed-video-poster");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
@@ -986,9 +986,9 @@ test("M01b stale poster failure does not override a newer image selection", asyn
       if (posterRequests === 2) { markProbeStarted(); await posterGate; }
       await route.fulfill({ status: 404, body: "" });
     });
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.race([probeStarted, new Promise((_, reject) => setTimeout(() => reject(new Error("poster probe request absent")), 5_000))]);
-    await card.locator(`[data-advertising-media-select="${fixtureId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${fixtureId}"]`).click();
     const probeResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     releasePoster();
     await probeResponse;
@@ -1001,11 +1001,11 @@ test("M01b stale poster failure does not override a newer image selection", asyn
     }));
     await settlePush(card);
     const state = await card.evaluate((node) => ({
-      activeId: node.dataset.advertisingActiveMediaId,
-      coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-      coverVisible: !node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`)?.hidden,
+      activeId: node.dataset.masonryActiveMediaId,
+      coverSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+      coverVisible: !node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`)?.hidden,
       videoHidden: node.querySelector("video")?.hidden,
-      spinnerHidden: node.querySelector("[data-advertising-media-loading]")?.hidden,
+      spinnerHidden: node.querySelector("[data-masonry-media-loading]")?.hidden,
     }));
     assert(state.activeId === fixtureId && state.coverSelected === "true" && state.coverVisible
       && state.videoHidden && state.spinnerHidden,
@@ -1041,34 +1041,34 @@ test("M01b stale image error preserves newer selection and failed reselect falls
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
     const request = page.waitForRequest((item) => item.url().endsWith("missing-image.webp"));
-    await card.locator(`[data-advertising-media-select="${missingId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${missingId}"]`).click();
     await request;
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), videoId);
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), videoId);
     const response = page.waitForResponse((item) => item.url().endsWith("missing-image.webp") && item.status() === 404);
     releaseError();
     await response;
     await page.waitForFunction(({ cardId, mediaId }) => {
-      const node = document.querySelector(`[data-advertising-card="${cardId}"]`);
-      return node?.querySelector(`[data-advertising-media-item="${mediaId}"]`)?.complete;
+      const node = document.querySelector(`[data-masonry-card="${cardId}"]`);
+      return node?.querySelector(`[data-masonry-media-item="${mediaId}"]`)?.complete;
     }, { cardId: fixtureId, mediaId: missingId });
     const afterError = await card.evaluate((node) => ({
-      activeId: node.dataset.advertisingActiveMediaId,
-      videoSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}-synthetic-video"]`)?.getAttribute("aria-current"),
+      activeId: node.dataset.masonryActiveMediaId,
+      videoSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}-synthetic-video"]`)?.getAttribute("aria-current"),
       videoVisible: !node.querySelector("video")?.hidden,
     }));
     assert(afterError.activeId === videoId && afterError.videoSelected === "true" && afterError.videoVisible,
       `stale error must not displace newer video: ${JSON.stringify(afterError)}`);
-    await card.locator(`[data-advertising-media-select="${missingId}"]`).click();
+    await card.locator(`[data-masonry-media-select="${missingId}"]`).click();
     const afterReselect = await card.evaluate((node) => ({
-      activeId: node.dataset.advertisingActiveMediaId,
-      coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-      coverVisible: !node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`)?.hidden,
-      spinnerHidden: node.querySelector("[data-advertising-media-loading]")?.hidden,
+      activeId: node.dataset.masonryActiveMediaId,
+      coverSelected: node.querySelector(`[data-masonry-media-select="${node.dataset.masonryCard}"]`)?.getAttribute("aria-current"),
+      coverVisible: !node.querySelector(`[data-masonry-media-item="${node.dataset.masonryCard}"]`)?.hidden,
+      spinnerHidden: node.querySelector("[data-masonry-media-loading]")?.hidden,
     }));
     assert(afterReselect.activeId === fixtureId && afterReselect.coverSelected === "true"
       && afterReselect.coverVisible && afterReselect.spinnerHidden,
@@ -1082,16 +1082,16 @@ async function runNumericIndicator(locale, viewport, mobile) {
   const page = await context.newPage();
   try {
     const card = await setupMany(page, locale);
-    const count = card.locator("[data-advertising-media-count]");
+    const count = card.locator("[data-masonry-media-count]");
     const initial = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
-      const strip = node.querySelector("[data-advertising-media-indicator]").getBoundingClientRect();
-      const counter = node.querySelector("[data-advertising-media-count]").getBoundingClientRect();
+      const strip = node.querySelector("[data-masonry-media-indicator]").getBoundingClientRect();
+      const counter = node.querySelector("[data-masonry-media-count]").getBoundingClientRect();
       return { width: rect.width, height: rect.height,
-        layers: node.querySelectorAll("[data-advertising-media-item]").length,
-        activeId: node.dataset.advertisingActiveMediaId,
-        dots: node.querySelectorAll("[data-advertising-media-select]").length,
-        stripButtons: node.querySelectorAll("[data-advertising-media-indicator] button").length,
+        layers: node.querySelectorAll("[data-masonry-media-item]").length,
+        activeId: node.dataset.masonryActiveMediaId,
+        dots: node.querySelectorAll("[data-masonry-media-select]").length,
+        stripButtons: node.querySelectorAll("[data-masonry-media-indicator] button").length,
         centerOffset: Math.abs((strip.left + strip.right) / 2 - (counter.left + counter.right) / 2) };
     });
     assert.equal(initial.layers, 1, "eleven items are not instantiated eagerly");
@@ -1113,29 +1113,29 @@ async function runNumericIndicator(locale, viewport, mobile) {
           : pointerSwipe(link, points.x2, points.x1, points.y, pointerId++));
         await page.waitForTimeout(450);
       } else {
-        await card.locator(".advertising-card-media").hover();
-        await card.locator(`[data-advertising-media-hover-step="${direction}"]`).click();
+        await card.locator(".card-media").hover();
+        await card.locator(`[data-masonry-media-hover-step="${direction}"]`).click();
       }
     };
     for (let index = 2; index <= 6; index++) await step(1);
     assert.equal(await count.textContent(), "6/11");
     if (!mobile) {
-      await card.locator('[data-advertising-media-hover-step="1"]').focus();
+      await card.locator('[data-masonry-media-hover-step="1"]').focus();
       await page.keyboard.press("Enter");
     } else await step(1);
     assert.equal(await count.textContent(), "7/11");
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${fixtureId}-image-7`);
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), `${fixtureId}-image-7`);
     await step(-1);
     assert.equal(await count.textContent(), "6/11");
     for (let index = 7; index <= 11; index++) await step(1);
     assert.equal(await count.textContent(), "11/11");
-    if (!mobile) assert(await card.locator('[data-advertising-media-hover-step="1"]').isHidden(), "next arrow hides at the last media");
+    if (!mobile) assert(await card.locator('[data-masonry-media-hover-step="1"]').isHidden(), "next arrow hides at the last media");
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), null, "media controls never open detail");
     const final = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
       return { width: rect.width, height: rect.height,
-        activeId: node.dataset.advertisingActiveMediaId,
-        layers: node.querySelectorAll("[data-advertising-media-item]").length };
+        activeId: node.dataset.masonryActiveMediaId,
+        layers: node.querySelectorAll("[data-masonry-media-item]").length };
     });
     assert(Math.abs(final.width - initial.width) <= 1 && Math.abs(final.height - initial.height) <= 1,
       `media selection keeps card geometry: ${JSON.stringify({ initial, final })}`);
@@ -1167,10 +1167,10 @@ test("M01b five media still use dot controls", async () => {
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-    const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+    const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
-    assert.equal(await card.locator("[data-advertising-media-select]").count(), 5);
-    assert.equal(await card.locator("[data-advertising-media-count]").count(), 0);
+    assert.equal(await card.locator("[data-masonry-media-select]").count(), 5);
+    assert.equal(await card.locator("[data-masonry-media-count]").count(), 0);
   } finally { await browser.close(); }
 });
 
@@ -1192,10 +1192,10 @@ test("M01b hover arrows step card media by position and the card media never zoo
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-      const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+      const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
       await card.scrollIntoViewIfNeeded();
       await page.waitForTimeout(450);
-      const arrows = () => card.evaluate((node) => [...node.querySelectorAll("[data-advertising-media-hover-step]")]
+      const arrows = () => card.evaluate((node) => [...node.querySelectorAll("[data-masonry-media-hover-step]")]
         .map((button) => getComputedStyle(button).display === "none" ? "-" : getComputedStyle(button).opacity).join(" "));
       if (touch) {
         assert.equal(await arrows(), "- -", "touch cards have no arrows");
@@ -1203,14 +1203,14 @@ test("M01b hover arrows step card media by position and the card media never zoo
         continue;
       }
       assert.equal(await arrows(), "- 0", "arrows stay hidden until hover; first media has no previous arrow");
-      await card.locator(".advertising-card-media").hover();
+      await card.locator(".card-media").hover();
       await settleTransitions(page);
       assert.equal(await arrows(), "- 1", "hover shows only the next arrow on the first media");
-      assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").first()
+      assert.equal(await card.locator("[data-masonry-media-item]:not([hidden])").first()
         .evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a), 1, "hover keeps card media still");
-      await card.locator('[data-advertising-media-hover-step="1"]').click();
-      await card.locator('[data-advertising-media-hover-step="1"]').click();
-      assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[2].id);
+      await card.locator('[data-masonry-media-hover-step="1"]').click();
+      await card.locator('[data-masonry-media-hover-step="1"]').click();
+      assert.equal(await card.getAttribute("data-masonry-active-media-id"), items[2].id);
       assert.equal(await arrows(), "1 -", "last media shows only the previous arrow");
       assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "arrows never open detail");
       await context.close();
@@ -1229,7 +1229,7 @@ async function setupThree(context) {
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
-  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
   await card.locator("img").first().waitFor({ state: "visible" });
@@ -1238,12 +1238,12 @@ async function setupThree(context) {
 
 // Ghi từng frame: vị trí (so với canvas), opacity, trạng thái giải mã của mọi layer đang hiện.
 const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, action }) => {
-  const media = node.querySelector(".advertising-card-media");
+  const media = node.querySelector(".card-media");
   const frames = [];
   let stop = false;
   const tick = () => {
     const box = media.getBoundingClientRect();
-    frames.push([...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")].map((layer) => {
+    frames.push([...media.querySelectorAll("[data-masonry-media-item]:not([hidden])")].map((layer) => {
       const rect = layer.getBoundingClientRect();
       return { left: rect.left - box.left, right: rect.right - box.left, width: box.width,
         opacity: getComputedStyle(layer).opacity, ready: layer.complete && layer.naturalWidth > 0 };
@@ -1263,27 +1263,27 @@ test("M01b hover shows the Pinterest shade at once, hides just viewed, and media
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const { page, card, items } = await setupThree(context);
     // Nhãn "Vừa xem" do masonry gắn khi đóng detail; test gắn đúng node runtime tạo để đo phần hover.
-    await card.locator(".advertising-card-media").evaluate((media) => {
-      const marker = Object.assign(document.createElement("span"), { className: "advertising-card-media__just-viewed",
+    await card.locator(".card-media").evaluate((media) => {
+      const marker = Object.assign(document.createElement("span"), { className: "card-media__just-viewed",
         textContent: "Just viewed" });
-      marker.dataset.advertisingJustViewed = "";
+      marker.dataset.masonryJustViewed = "";
       media.append(marker);
     });
     const shade = "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)";
-    const hoverState = () => card.locator(".advertising-card-media").evaluate((media) => ({
+    const hoverState = () => card.locator(".card-media").evaluate((media) => ({
       scrim: getComputedStyle(media, "::after").opacity,
       scrimColor: getComputedStyle(media, "::after").backgroundImage,
-      marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
+      marker: getComputedStyle(media.querySelector("[data-masonry-just-viewed]")).opacity,
     }));
     assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: shade, marker: "1" });
-    await card.locator(".advertising-card-media").hover();
+    await card.locator(".card-media").hover();
     // Owner 2026-11-10 (media-card R3): the Pinterest shade appears at once, with no motion.
     assert.deepEqual(await hoverState().then(({ scrim, scrimColor }) => ({ scrim, scrimColor })), { scrim: "1", scrimColor: shade });
     await settleTransitions(page);
     assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: shade, marker: "0" });
 
-    const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
+    const frames = await recordLayers(card, 1200, '[data-masonry-media-hover-step="1"]');
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), items[1].id);
     const sliding = frames.filter((layers) => layers.length === 2);
     assert(sliding.length >= 20, `strip slides over many frames: ${sliding.length}`);
     for (const layers of frames) {
@@ -1311,7 +1311,7 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
     const { page, card, items } = await setupThree(context);
     const point = await visibleSwipePoints(card);
     assert(point.visible && point.hitsLink, `touch gesture must start on visible card: ${JSON.stringify(point)}`);
-    const width = await card.locator(".advertising-card-media").evaluate((node) => node.clientWidth);
+    const width = await card.locator(".card-media").evaluate((node) => node.clientWidth);
     const client = await context.newCDPSession(page);
     const touch = (type, x) => client.send("Input.dispatchTouchEvent",
       { type, touchPoints: type === "touchEnd" ? [] : [{ x, y: point.y, id: 7 }] });
@@ -1320,10 +1320,10 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
       await touch("touchStart", start);
       for (let step = 1; step <= 6; step++) await touch("touchMove", start - distance * step / 6);
       // Chrome gom touchmove theo frame: chờ hai frame để lần move cuối tới handler rồi mới đo (CI đỏ, dải ở move thứ năm).
-      return card.locator(".advertising-card-media").evaluate(async (media) => {
+      return card.locator(".card-media").evaluate(async (media) => {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const box = media.getBoundingClientRect();
-        return [...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")]
+        return [...media.querySelectorAll("[data-masonry-media-item]:not([hidden])")]
           .map((layer) => Math.round(layer.getBoundingClientRect().left - box.left)).sort((a, b) => a - b);
       });
     };
@@ -1333,14 +1333,14 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
     await page.waitForTimeout(300);
     await touch("touchEnd");
     await settlePush(card);
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[0].id, "short slow drag snaps back");
-    assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").count(), 1);
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), items[0].id, "short slow drag snaps back");
+    assert.equal(await card.locator("[data-masonry-media-item]:not([hidden])").count(), 1);
 
     await drag(width * 0.6);
     await page.waitForTimeout(300);
     await touch("touchEnd");
     await settlePush(card);
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id, "drag past half commits");
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), items[1].id, "drag past half commits");
     assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "drag never opens detail");
     await context.close();
   } finally { await browser.close(); }
@@ -1367,10 +1367,10 @@ async function runWideCover(locale, related = false, mode = "normal") {
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
-    const selector = related ? `[data-advertising-related-card="${wideFixtureId}"]` : `[data-advertising-card="${wideFixtureId}"]`;
+    const selector = related ? `[data-masonry-related-card="${wideFixtureId}"]` : `[data-masonry-card="${wideFixtureId}"]`;
     if (!related) await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
-      await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
+      await page.locator("[data-detail-related-grid]").scrollIntoViewIfNeeded();
       // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).
       for (let i = 0; i < 120 && await page.locator(selector).count() === 0; i += 1) {
         await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
@@ -1382,17 +1382,17 @@ async function runWideCover(locale, related = false, mode = "normal") {
     await card.scrollIntoViewIfNeeded();
     const imageId = `${wideFixtureId}-wide-image`;
     const videoId = `${wideFixtureId}-wide-video`;
-    if (related) await card.locator(`[data-advertising-media-select="${imageId}"]`).scrollIntoViewIfNeeded();
+    if (related) await card.locator(`[data-masonry-media-select="${imageId}"]`).scrollIntoViewIfNeeded();
     await page.evaluate(() => document.fonts?.ready);
     const first = await stableWideFrame(card);
     assertWideFrame(first, `${locale} ${related ? "related" : "grid"} initial`);
-    const imageButton = card.locator(`[data-advertising-media-select="${imageId}"]`);
+    const imageButton = card.locator(`[data-masonry-media-select="${imageId}"]`);
     if (related && mode === "normal") {
       const hit = await imageButton.evaluate((node) => {
         const rect = node.getBoundingClientRect();
         const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-        const owner = node.closest("[data-advertising-related-card]");
-        const blocker = target?.closest("[data-advertising-related-card]");
+        const owner = node.closest("[data-masonry-related-card]");
+        const blocker = target?.closest("[data-masonry-related-card]");
         const box = (item) => {
           if (!item) return null;
           const value = item.getBoundingClientRect();
@@ -1401,7 +1401,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
         };
         return { buttonRect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
           ownerRect: box(owner), blockerRect: box(blocker),
-          hitRelatedId: blocker?.dataset.advertisingRelatedCard ?? null,
+          hitRelatedId: blocker?.dataset.masonryRelatedCard ?? null,
           hitTag: target?.tagName ?? null, hitClass: target?.className ?? null };
       });
       let clickError = null;
@@ -1411,11 +1411,11 @@ async function runWideCover(locale, related = false, mode = "normal") {
         JSON.stringify({ hit, clickError }, null, 2));
       if (clickError) await imageButton.evaluate((node) => node.click());
     } else await imageButton.evaluate((node) => node.click());
-    await page.waitForFunction(({ selector, id }) => document.querySelector(selector)?.dataset.advertisingActiveMediaId === id,
+    await page.waitForFunction(({ selector, id }) => document.querySelector(selector)?.dataset.masonryActiveMediaId === id,
       { selector, id: imageId });
     const slide = await wideFrame(card);
     assertStableWideFrame(first, slide, `${locale} ${related ? "related" : "grid"} slide`);
-    await card.locator(`[data-advertising-media-select="${videoId}"]`).evaluate((node) => node.click());
+    await card.locator(`[data-masonry-media-select="${videoId}"]`).evaluate((node) => node.click());
     const pending = await wideFrame(card);
     assertStableWideFrame(first, pending, `${locale} ${related ? "related" : "grid"} ${mode} pending`);
     releaseVideo();

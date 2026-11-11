@@ -653,7 +653,7 @@
       ({ top, bottom }) => top <= probeY && bottom > probeY,
     )?.section;
     // Detail ảnh Advertising không có hero nên header luôn thu gọn (advertising-detail R10).
-    const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
+    const collapsed = scrollY > 100 || document.body.classList.contains("is-detail");
     // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
     // Route mềm (routeMarkHeld): tone veil chỉ trong lúc veil phủ kín; vào thẳng trang: tới khi trang đích sẵn sàng.
@@ -2940,7 +2940,7 @@
     clearPendingAdvertisingFilter();
     if (!intent) return;
     const control = directContainer.querySelector(
-      `[data-advertising-filter="${CSS.escape(intent.filter)}"]`,
+      `[data-masonry-filter="${CSS.escape(intent.filter)}"]`,
     );
     if (control instanceof HTMLElement) {
       control.click();
@@ -2956,7 +2956,7 @@
   document.addEventListener("click", (event) => {
     if (!advertisingFilterQueueEnabled || window.TruongThinhMasonry?.getAdapter?.()) return;
     const control = event.target instanceof Element
-      ? event.target.closest("[data-advertising-filter]")
+      ? event.target.closest("[data-masonry-filter]")
       : null;
     const link = control?.closest("a[href]");
     if (
@@ -2981,7 +2981,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     pendingAdvertisingFilter = {
-      filter: control.dataset.advertisingFilter || "all",
+      filter: control.dataset.masonryFilter || "all",
       href: destination.href,
     };
   }, { capture: true, signal: runtimeAbort.signal });
@@ -3008,7 +3008,7 @@
     const grid = directContainer.querySelector("[data-project-grid]");
     grid?.replaceChildren();
     if (grid) grid.hidden = true;
-    directContainer.dataset.advertisingFallback = "failed";
+    directContainer.dataset.masonryFallback = "failed";
     document.documentElement.classList.add("motion-fallback");
     clearRouteEntry();
   };

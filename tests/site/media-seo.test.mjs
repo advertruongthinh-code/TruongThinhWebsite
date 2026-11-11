@@ -29,7 +29,7 @@ const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src)
 test("card page HTML carries the name, description, every media with alt, and image JSON-LD without JavaScript", async () => {
   for (const card of ADVERTISING_CARDS) {
     const html = await page("vi", card.id);
-    const [, article] = html.match(/<article class="advertising-card-static"[^>]*>([\s\S]*?)<\/article>/) || [];
+    const [, article] = html.match(/<article class="masonry-card-static"[^>]*>([\s\S]*?)<\/article>/) || [];
     assert.ok(article, `${card.id} static block`);
     assert.match(article, new RegExp(`<h1[^>]*>${card.titleVi.replace(/&/g, "&amp;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</h1>`), card.id);
     const images = [...article.matchAll(/<img\b[^>]*>/g)].map(([tag]) => tag);

@@ -22,7 +22,7 @@ const footerSource = sources.map(source => source.match(/<footer\b[\s\S]*?<\/foo
 assert.ok(footerSource.every(footer => footer === footerSource[0]), "Shared footer markup must match");
 for (const route of detailRoutes) {
   const generated = fs.readFileSync(path.join(".site-output", route, "index.html"), "utf8");
-  assert.match(generated, /data-advertising-compatibility-route/,
+  assert.match(generated, /data-masonry-compatibility-route/,
     `${route}: generated output is not the compatibility redirect shell`);
   assert.match(generated, /location\.replace\(target\.href\)/,
     `${route}: generated output does not resolve to the canonical parent route`);
@@ -44,7 +44,7 @@ try {
         await page.waitForSelector(".footer-contact");
         // Route detail redirect về route Advertising canonical; chờ runtime state của nó.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
-          || document.body.classList.contains(/\/p\/[^/]+\/$/.test(location.pathname) ? "is-advertising-photo" : "is-advertising-browse"));
+          || document.body.classList.contains(/\/p\/[^/]+\/$/.test(location.pathname) ? "is-detail" : "is-masonry-browse"));
         await page.evaluate(() => document.fonts.ready);
         // Reduced motion vẫn cho mọi property transition 0.01ms, nên để thay đổi class settle.
         await page.waitForTimeout(100);
@@ -62,7 +62,7 @@ try {
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
             // Masonry browse và detail đều kết thúc bằng batch CTA sát footer (CTA R9), nên đọc class của body.
-            advertisingBrowse: document.body.classList.contains("is-advertising-browse"),
+            advertisingBrowse: document.body.classList.contains("is-masonry-browse"),
             bodyClass: document.body.className,
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,

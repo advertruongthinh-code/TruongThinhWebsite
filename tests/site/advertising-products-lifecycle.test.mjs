@@ -66,20 +66,20 @@ assert.ok(
 assert.match(runtime, /normalizeMasonrySettings/);
 assert.match(runtime, /normalizeMasonrySettings\(artifact\.settings\)/, "retired public settings are normalized before compile");
 assert.match(runtime, /settings,/, "normalized settings are passed to the layout compiler");
-assert.match(runtime, /advertising-tile__media--natural/, "catalog cards use a natural media surface");
-assert.match(runtime, /querySelectorAll\("\.advertising-tile__foreground"\)[\s\S]*is-advertising-media-ready/, "the single foreground keeps the replayable media entrance");
-assert.match(runtime, /data-advertising-span|dataset\.advertisingSpan/, "solver span is available for focused geometry QA");
-assert.doesNotMatch(runtime, /presentationCanvas|fitMode|mediaCandidates|advertising-tile__backplate|data-media-fit|media--canvas/, "legacy canvas, fit, and backplate consumers are removed");
+assert.match(runtime, /masonry-card__media--natural/, "catalog cards use a natural media surface");
+assert.match(runtime, /querySelectorAll\("\.masonry-card__foreground"\)[\s\S]*is-masonry-media-ready/, "the single foreground keeps the replayable media entrance");
+assert.match(runtime, /data-masonry-span|dataset\.masonrySpan/, "solver span is available for focused geometry QA");
+assert.doesNotMatch(runtime, /presentationCanvas|fitMode|mediaCandidates|masonry-card__backplate|data-media-fit|media--canvas/, "legacy canvas, fit, and backplate consumers are removed");
 assert.match(runtime, /artifactDataHash|artifactCacheIdentity|settingsHash/, "geometry cache identity includes artifact data");
 assert.match(runtime, /diagnostics/, "invalid or incomplete compiler diagnostics are surfaced before mounting");
 assert.match(runtime, /diagnosticCode && diagnosticCode !== "needs-media"/, "needs-media remains a non-fatal layout diagnostic");
-assert.match(runtime, /advertisingLayoutStatus = diagnosticCode/, "runtime surfaces non-fatal diagnostics on the grid");
+assert.match(runtime, /masonryLayoutStatus = diagnosticCode/, "runtime surfaces non-fatal diagnostics on the grid");
 assert.match(runtime, /export function compileMasonryGeometry/, "runtime geometry diagnostics have an executable seam");
 assert.doesNotMatch(runtime, /const revealedCards = new Set\(\)/, "media reveal cannot be disabled permanently at module scope");
 assert.match(runtime, /new IntersectionObserver\(/, "one catalog observer owns viewport re-entry");
 assert.match(runtime, /intersectionRatio === 0/, "media re-arms only after a full viewport exit");
 assert.match(runtime, /\.disconnect\(\)/, "catalog cleanup disconnects its viewport observer");
-assert.match(runtime, /const updateLocalizedContent = \(\) => \{[\s\S]*?querySelector\("\.advertising-tile__foreground"\)/, "foreground alone retains localized meaningful alt");
+assert.match(runtime, /const updateLocalizedContent = \(\) => \{[\s\S]*?querySelector\("\.masonry-card__foreground"\)/, "foreground alone retains localized meaningful alt");
 assert.match(runtime, /let cleaned = false;[\s\S]*if \(cleaned\) return;[\s\S]*signal\?\.removeEventListener\("abort", cleanup\)/, "manual cleanup is idempotent and releases the parent abort listener");
 assert.match(viewerSource, /dialog\.showModal\(\)/, "expanded photo uses the native modal focus boundary");
 assert.match(viewerSource, /const stops = \(\) => \[1, cover, 2 \* cover\]/, "buttons and wheel stop at fit, cover, and 2x-cover");
@@ -93,7 +93,7 @@ assert.match(viewerSource, /event\.key === "Tab"[\s\S]*visibleControls/, "viewer
 assert.match(viewerSource, /event\.preventDefault\(\);[\s\S]*event\.stopPropagation\(\);[\s\S]*close\(\);/, "dialog Escape closes before photo history sees it");
 assert.match(motionSource, /lockLogicalScroll[\s\S]*unlockLogicalScroll/, "viewer scroll lock uses the logical-scroll owner");
 assert.match(runtime, /heroImage: photoImage/, "viewer receives the rendered hero");
-assert.match(runtime, /advertisingPhotoLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
+assert.match(runtime, /detailLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
 assert.match(detailSource, /mountMasonry\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
 assert.match(motionSource, /softNavigation:\s*true/, "Barba marks destination remounts");
 assert.match(runtime, /computeDetailGeometry\(/, "the shared pure geometry owns responsive primary spans");
@@ -139,9 +139,9 @@ const oneItemLayout = compileMasonryGeometry({
 });
 assert.equal(oneItemLayout.placements.length, 1, "runtime keeps valid one-item geometry");
 assert.equal(oneItemLayout.diagnostics.code, "needs-media", "runtime preserves non-fatal needs-media diagnostic");
-assert.equal(Reflect.get(oneItemGrid.dataset, "advertisingLayoutStatus"), "needs-media");
-assert.match(Reflect.get(oneItemGrid.dataset, "advertisingLayoutDiagnostic"), /needs-media/);
-assert.equal(Reflect.get(oneItemGrid.dataset, "advertisingLayoutError"), undefined);
+assert.equal(Reflect.get(oneItemGrid.dataset, "masonryLayoutStatus"), "needs-media");
+assert.match(Reflect.get(oneItemGrid.dataset, "masonryLayoutDiagnostic"), /needs-media/);
+assert.equal(Reflect.get(oneItemGrid.dataset, "masonryLayoutError"), undefined);
 
 const compileFailure = Object.assign(new Error("search budget exhausted"), { code: "search-exhausted" });
 const failureGrid = { dataset: /** @type {any} */ ({}) };
@@ -156,8 +156,8 @@ try {
 } finally {
   console.error = originalConsoleError;
 }
-assert.equal(Reflect.get(failureGrid.dataset, "advertisingLayoutStatus"), "failed");
-assert.equal(Reflect.get(failureGrid.dataset, "advertisingLayoutError"), "search-exhausted");
+assert.equal(Reflect.get(failureGrid.dataset, "masonryLayoutStatus"), "failed");
+assert.equal(Reflect.get(failureGrid.dataset, "masonryLayoutError"), "search-exhausted");
 
 const browseFixture = {
   cards: [
