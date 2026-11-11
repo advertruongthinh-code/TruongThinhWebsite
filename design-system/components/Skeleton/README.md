@@ -13,11 +13,14 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
   chiều cao); cao bằng bề rộng card nhân một trong ba band ngang `0.72`, vuông
   `1`, đứng `1.32`, hai khung liền nhau trong cột khác band; khung không chừa
   chỗ tên vì tên card nằm trong ảnh ở mọi lưới, kể cả trang Công trình.
-  Khung luôn rộng một cột: band ngang nhất (w/h 1.39) dưới tỷ lệ vàng nên theo
-  luật hai cột của [Masonry](../Masonry/README.md#hình-học) không khung nào trải;
-  dưới card hai cột, khung đầu của cả hai cột bắt đầu cách đáy card một gutter. Lỗ dải cuối
-  của masonry (dưới card hai cột ở cuối lưới) có một khung cắt đúng lỗ lấp; khung không
-  bao giờ để lỗ phía trên nó. Mặt trong là
+  Khung rộng một cột, trừ band ngang `wide` (cao `0.5` bề rộng, tỷ lệ w/h 2,
+  trên tỷ lệ vàng): ở hai trang lưới chính (Advertising, Công trình), từ lưới 3
+  cột, khung `wide` trải hai cột kề theo luật hai cột của
+  [Masonry](../Masonry/README.md#hình-học), chỉ khi hai đáy bằng nhau hoặc khung
+  một cột cuối của cột thấp hơn kéo dài đúng phần chênh. Batch cuối related ở
+  detail và điện thoại chỉ có khung một cột. Dưới card hai cột, khung đầu của cả
+  hai cột bắt đầu cách đáy card một gutter. Masonry không còn lỗ nên batch không có
+  khung lấp lỗ; khung không bao giờ để lỗ phía trên nó. Mặt trong là
   gradient Flow nhiều màu chảy chậm (WebGL, 12 preset). Mỗi khung bốc preset,
   pha, chiều chảy và tốc độ ngẫu nhiên lúc vào viewport, tránh preset của khung
   kề; trùng preset thì pha lệch xa. Giữ màu tới khi trang ổn định lại.

@@ -26,6 +26,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | 2026-08-09 | accepted | [Evidence browser QA tương tác](interactive-browser-qa.md) |
 | 2026-07-31 | accepted | [Worker CMS và locale URL là canonical](locale-prefixed-worker-routes.md) |
 | 2026-08-01 | accepted | [Full menu sở hữu locale và appointment control](menu-owns-locale-appointment.md) |
+| 2026-11-10 | accepted | [Masonry xếp card bằng bố cục tính sẵn](masonry-layout-cache.md) |
 | 2026-07-30 | accepted | [Motion nâng trải nghiệm, không giữ content làm con tin](motion-keeps-content-visible.md) |
 | 2026-08-09 | accepted | [Graphify dùng hook, watcher native và wrapper freshness](native-graphify-hooks-and-watcher.md) |
 | 2026-08-01 | accepted | [CMS project slot là optional trên static menu baseline](optional-cms-project-slots.md) |
