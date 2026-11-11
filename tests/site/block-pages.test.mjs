@@ -25,6 +25,9 @@ for (const sector of SECTORS) test(`${sector} project page carries its own head,
   assert.ok(html.includes('data-barba-namespace="project"'));
   assert.ok(!html.includes("detail-pages R5:"), "hero slide script removed");
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1, "one h1 from the hero block");
+  // A project page belongs to Projects: the navbar underlines Projects and the menu marks the Projects group, not the sector frame.
+  assert.deepEqual(html.match(/<li class="selected"><a href="[^"]+"/g), ['<li class="selected"><a href="/vi/projects/"']);
+  assert.deepEqual(html.match(/href="[^"]+" aria-current="page"/g), ['href="/vi/projects/" aria-current="page"', 'href="/vi/projects/" aria-current="page"']);
 });
 
 test("a changed template anchor stops the build instead of shipping a page without SEO", () => {
