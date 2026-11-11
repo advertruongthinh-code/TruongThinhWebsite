@@ -79,12 +79,12 @@ async function runDevice() {
 
   for (const locale of ["vi", "en"]) for (const card of cards) {
     await page.goto(`http://localhost:${port}/${locale}/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-related-card]"), null, { timeout: 60_000 });
+    await page.waitForFunction(() => document.querySelector("[data-masonry-related-card]"), null, { timeout: 60_000 });
     await sleep(1200);
     const target = await page.evaluate(async (wanted) => {
       const motion = window.TruongThinhMotion;
       const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const find = () => wanted === "first" ? document.querySelector("[data-advertising-related-card]") : document.querySelector(`[data-advertising-related-card="signage-raised-letters-${wanted}"]`);
+      const find = () => wanted === "first" ? document.querySelector("[data-masonry-related-card]") : document.querySelector(`[data-masonry-related-card="signage-raised-letters-${wanted}"]`);
       const max = document.documentElement.scrollHeight - innerHeight;
       for (let y = 0; !find() && y <= max; y += innerHeight / 2) { motion.setLogicalScroll(y); await frame(); }
       const node = find();
@@ -102,7 +102,7 @@ async function runDevice() {
         if (rec.frames.length < 60) requestAnimationFrame(sample);
       };
       requestAnimationFrame(sample);
-      return { id: node.dataset.advertisingRelatedCard, x: rect.left + 20, y: Math.max(rect.top + 20, header + 20), fromY: scrollY };
+      return { id: node.dataset.masonryRelatedCard, x: rect.left + 20, y: Math.max(rect.top + 20, header + 20), fromY: scrollY };
     }, card);
     const row = { target: `device ${model}`, profile: orientation, locale, card: target?.id.slice(-2) || card };
     if (!target) { rows.push({ ...row, status: "SKIP", detail: "card not in related list" }); continue; }

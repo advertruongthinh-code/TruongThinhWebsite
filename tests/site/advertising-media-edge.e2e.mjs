@@ -24,26 +24,26 @@ try {
     const page = await browser.newPage({ viewport });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
     await scrollThrough(page, 800);
-    const edges = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .advertising-tile")].flatMap((tile) => {
+    const edges = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card")].flatMap((tile) => {
       const media = tile.querySelector(".project-tile__media");
-      const image = media?.querySelector("img.is-advertising-media-ready:not([hidden])");
+      const image = media?.querySelector("img.is-masonry-media-ready:not([hidden])");
       if (!image?.naturalWidth || image.style.filter) return [];
       // Hết blur thì không còn scale tràn khung: scale sót lại làm ảnh lớn hơn khung (gap âm).
-      if (image.style.scale) return [{ id: tile.dataset.advertisingCard, gap: Infinity, scale: image.style.scale }];
+      if (image.style.scale) return [{ id: tile.dataset.masonryCard, gap: Infinity, scale: image.style.scale }];
       const box = media.getBoundingClientRect();
       const rect = image.getBoundingClientRect();
       const gap = Math.max(...[rect.top - box.top, box.bottom - rect.bottom, rect.left - box.left, box.right - rect.right].map(Math.abs));
-      return [{ id: tile.dataset.advertisingCard, gap, natural: `${image.naturalWidth}x${image.naturalHeight}` }];
+      return [{ id: tile.dataset.masonryCard, gap, natural: `${image.naturalWidth}x${image.naturalHeight}` }];
     }));
     assert.ok(edges.length > 8, `${viewport.width}px: enough loaded cards measured (${edges.length})`);
     assert.deepEqual(edges.filter(({ gap }) => gap > 0.01), [], `${viewport.width}px: loaded media leaves the frame colour visible at an edge`);
     // Lớp chặn thứ hai: ép media hụt khung 0,6px; hàng pixel đáy của card nền tối phải là màu giấy, không phải màu chủ đạo.
-    await page.addStyleTag({ content: ".advertising-tile img { height: calc(100% - 0.6px) !important; }" });
+    await page.addStyleTag({ content: ".masonry-card img { height: calc(100% - 0.6px) !important; }" });
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     // Khung nền tối đặt tay (rgb 20) trên card đã hiện ảnh, không phụ thuộc màu chủ đạo của catalog.
-    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .advertising-tile .project-tile__media")].filter((media) => {
+    const darkCards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card .project-tile__media")].filter((media) => {
       const box = media.getBoundingClientRect();
-      return media.querySelector("img.is-advertising-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
+      return media.querySelector("img.is-masonry-media-ready:not([hidden])") && box.top >= 0 && box.bottom <= innerHeight - 4 && box.width >= 60;
     }).slice(0, 4).map((media) => {
       media.style.backgroundColor = "rgb(20, 20, 20)";
       const box = media.getBoundingClientRect();
@@ -70,14 +70,14 @@ try {
       await route.continue().catch(() => {});
     });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-media-loading]").length > 2);
-    const bleeds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-media-loading]")].flatMap((tile) => {
+    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]").length > 2);
+    const bleeds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]")].flatMap((tile) => {
       const media = tile.querySelector(".project-tile__media");
-      const image = media?.querySelector(".advertising-tile__foreground:not([hidden])");
+      const image = media?.querySelector(".masonry-card__foreground:not([hidden])");
       if (!image?.style.filter.startsWith("blur(")) return [];
       const box = media.getBoundingClientRect();
       const rect = image.getBoundingClientRect();
-      return [{ id: tile.dataset.advertisingCard, bleed: Math.min(box.top - rect.top, rect.bottom - box.bottom, box.left - rect.left, rect.right - box.right) }];
+      return [{ id: tile.dataset.masonryCard, bleed: Math.min(box.top - rect.top, rect.bottom - box.bottom, box.left - rect.left, rect.right - box.right) }];
     }));
     assert.ok(bleeds.length > 2, `${viewport.width}px: blurred cards measured (${bleeds.length})`);
     assert.deepEqual(bleeds.filter(({ bleed }) => bleed < BLEED - 0.5), [], `${viewport.width}px: blurred media must overflow the frame by the blur radius`);

@@ -34,7 +34,7 @@ try {
       // Regular 4G.
       await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 170, downloadThroughput: 1_125_000, uploadThroughput: 190_000 });
       await page.goto(`${baseUrl}${route}`);
-      await page.waitForSelector("[data-advertising-card] a", { state: "attached" });
+      await page.waitForSelector("[data-masonry-card] a", { state: "attached" });
       // Chrome reports an unused preload a few seconds after load.
       await page.waitForTimeout(4500);
       const timing = await page.evaluate((cacheFile) => {

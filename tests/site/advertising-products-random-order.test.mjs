@@ -481,7 +481,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   document.querySelector = selector => selector === "dialog[open]" && covered ? {} : null;
   preference.matches = false;
   const button = {
-    dataset: { advertisingSuggestionTag: "cadence-test" }, isConnected: true,
+    dataset: { masonrySuggestionTag: "cadence-test" }, isConnected: true,
     getAttribute: () => active ? "true" : "false",
     querySelector: () => current,
     insertBefore: next => inserted.push(next),

@@ -53,10 +53,10 @@ const COMPONENTS = [
   { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /Khung ảnh nội dung chờ bằng vệt sáng/, htmlClass: 'media-gate',
     markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
       + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials.webp\' width="1536" height="1024" alt=""></figure>\n'
-      + '<div class="advertising-photo-view__suggestion-links">\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label"><span>Chữ nổi Mica</span></span></button>\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label"><span>Logo và chữ nổi tòa nhà</span></span></button>\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label"><span>Bảng vẫy Mica hút nổi</span></span></button>\n</div>\n</div>' },
+      + '<div class="detail-view__suggestion-links">\n'
+      + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Chữ nổi Mica</span></span></button>\n'
+      + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Logo và chữ nổi tòa nhà</span></span></button>\n'
+      + '<button type="button" class="detail-view__suggestion-link" aria-pressed="true"><span class="detail-view__suggestion-label"><span>Bảng vẫy Mica hút nổi</span></span></button>\n</div>\n</div>' },
 ];
 
 // Returns the outer HTML of the element whose opening tag matches `start`, balancing nested tags of the same name.

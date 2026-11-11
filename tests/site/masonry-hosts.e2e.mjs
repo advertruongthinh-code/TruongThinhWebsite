@@ -9,10 +9,10 @@ const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const VARIANT = /-(?:240|480|960|1600|2048)\.(?:jxl|webp)$/;
 
-const detailReady = (page) => page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"
+const detailReady = (page) => page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
   && !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"), null, { timeout: 20000 });
 const gridReady = (page) => page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
-  && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 20000 });
+  && document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 20000 });
 
 // Mỗi nơi: cách mở, gốc lưới; mọi item masonry mang đánh dấu chung data-masonry-item (masonry-reuse bước 3).
 const HOSTS = {
@@ -21,12 +21,12 @@ const HOSTS = {
   projects: { root: "[data-project-grid]", card: "[data-masonry-item]",
     open: async (page) => { await page.goto(`${base}/vi/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   // Như owner dùng: bấm card trên masonry (route mềm, CTA chuyển sang detail). Bước 5 tải lại trang, tức vào thẳng.
-  related: { root: "[data-advertising-photo-related-grid]", card: "[data-masonry-item]",
+  related: { root: "[data-detail-related-grid]", card: "[data-masonry-item]",
     open: async (page) => {
       await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
       await gridReady(page);
       await page.waitForTimeout(800);
-      await page.locator("[data-advertising-card]:not([hidden]) > a").first().click();
+      await page.locator("[data-masonry-card]:not([hidden]) > a").first().click();
       await detailReady(page);
     } },
 };
@@ -48,9 +48,9 @@ const firstEntryProbe = () => {
     const tint = document.querySelector('.glass-surface[data-glass-shape="arc"]:not([hidden]) .glass-surface__tint')?.getBoundingClientRect();
     const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
     if (arcInView) state.arcSeen = true;
-    state.since = arcInView && document.querySelector("[data-advertising-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
+    state.since = arcInView && document.querySelector("[data-masonry-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
     state.arcOverlap = Math.max(state.arcOverlap, state.since == null ? 0 : now - state.since);
-    const cta = document.querySelector("[data-advertising-grid-cta]");
+    const cta = document.querySelector("[data-masonry-grid-cta]");
     // Đo chính nút: phần trên của cụm CTA là đuôi batch, nằm trong viewport trước nút rất xa.
     // Chỉ xét lúc nút vừa nhận lớp hiện; sau đó cuộn đi nơi khác thì nút đã hiện là đúng.
     const link = cta?.querySelector("[data-motion-fade]");
@@ -66,7 +66,7 @@ const firstEntryProbe = () => {
       // batch phủ (lưới mẫu 16px). Khung batch lấp đáy so le của lưới: thứ tự card ngẫu nhiên có lúc để một cột dài hơn
       // các cột khác 600px. Frame trống hoàn toàn tính là 0, không bỏ qua.
       const root = document.querySelector(state.root)?.getBoundingClientRect();
-      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .advertising-ghost, [data-advertising-photo-primary], [data-advertising-cta-frame]`)]
+      const rects = [...document.querySelectorAll(`${state.root} :is(${state.card}), ${state.root} .masonry-ghost, [data-detail-primary], [data-masonry-cta-frame]`)]
         .map((node) => node.getBoundingClientRect()).filter((rect) => rect.bottom > 0 && rect.top < innerHeight && rect.height > 0);
       const zoneBottom = state.zoneBottom - (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
       const bottom = Math.min(innerHeight, root.bottom, zoneBottom);
@@ -87,7 +87,7 @@ const firstEntryProbe = () => {
 const scrollTo = (page, top) => page.evaluate((y) => window.TruongThinhMotion?.setLogicalScroll?.(y) || window.scrollTo(0, y), top);
 // Nút CTA đã nhận lớp hiện chưa. Trước khi CTA vào view lần đầu nó phải chưa hiện, kể cả khi cụm CTA từng nằm tạm
 // trong viewport lúc chờ dựng batch (lỗi #755 ở detail: motion chạy lúc cụm còn ẩn ở đầu canvas).
-const ctaShownNow = (page) => page.evaluate(() => Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")));
+const ctaShownNow = (page) => page.evaluate(() => Boolean(document.querySelector("[data-masonry-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")));
 const coverage = async (page, ms = 300) => {
   await page.evaluate(() => { window.__masonry.frames = []; window.__masonry.running = true; });
   await page.waitForTimeout(ms);
@@ -116,7 +116,7 @@ try {
       const { rootTop, rootBottom, viewport } = await page.evaluate((root) => {
         const rect = document.querySelector(root).getBoundingClientRect();
         const y = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-        const cta = document.querySelector("[data-advertising-grid-cta]")?.getBoundingClientRect();
+        const cta = document.querySelector("[data-masonry-grid-cta]")?.getBoundingClientRect();
         return { rootTop: rect.top + y, rootBottom: Math.min(rect.bottom, cta?.top ?? Infinity) + y, viewport: innerHeight };
       }, host.root);
 
@@ -206,20 +206,20 @@ try {
       });
       await page.waitForTimeout(2000);
       const end = await page.evaluate(() => ({ arcOverlap: window.__masonry.arcOverlap, arcSeen: window.__masonry.arcSeen, ctaEarly: window.__masonry.ctaEarly,
-        ctaShown: Boolean(document.querySelector("[data-advertising-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
+        ctaShown: Boolean(document.querySelector("[data-masonry-grid-cta] [data-motion-fade]")?.classList.contains("is-motion-inview")) }));
       // 6. No holes (masonry R5): at the grid tail, each card and batch frame sits exactly one gap below the nearest item
       // above it in the same column; tail holes already have filler frames.
       const holes = await page.evaluate(({ root, card }) => {
         const gap = innerWidth <= 960 ? 15 : innerWidth <= 1200 ? 25 : 35;
         const scrollTop = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-        const items = [...document.querySelectorAll(`${root} :is(${card}), [data-advertising-cta-frame]`)]
+        const items = [...document.querySelectorAll(`${root} :is(${card}), [data-masonry-cta-frame]`)]
           .filter((node) => !node.hidden && node.getClientRects().length)
           .map((node) => {
             // Layout position (offset), not rect: the skeleton batch has its own parallax translate.
             let left = 0, top = 0;
             for (let at = node; at; at = at.offsetParent) { left += at.offsetLeft; top += at.offsetTop; }
             const rect = { left, top, right: left + node.offsetWidth, bottom: top + node.offsetHeight };
-            return { node, frame: node.matches("[data-advertising-cta-frame]"), rect };
+            return { node, frame: node.matches("[data-masonry-cta-frame]"), rect };
           })
           // Only the zone surely mounted (the virtual window adds one viewport each side), so no card between two measured items is missing.
           .filter(({ rect }) => rect.top >= scrollTop - innerHeight / 2 && rect.bottom <= scrollTop + 1.5 * innerHeight);
@@ -231,7 +231,7 @@ try {
           if (!above) continue;
           const expected = gap;
           const actual = below.rect.top - above.rect.bottom;
-          if (Math.abs(actual - expected) > 1.5) found.push(`${above.node.dataset.masonryItem || above.node.dataset.advertisingCtaSlot}>${below.node.dataset.masonryItem || below.node.dataset.advertisingCtaSlot}:${actual.toFixed(1)}`);
+          if (Math.abs(actual - expected) > 1.5) found.push(`${above.node.dataset.masonryItem || above.node.dataset.masonryCtaSlot}>${below.node.dataset.masonryItem || below.node.dataset.masonryCtaSlot}:${actual.toFixed(1)}`);
         }
         return found;
       }, sel);

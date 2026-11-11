@@ -70,9 +70,9 @@ const href = (route) => new URL(route, baseUrl).href;
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 const snapshot = () => ({
   url: location.href,
-  hero: document.querySelector("[data-advertising-photo-image]")?.dataset.advertisingPhotoId || null,
-  heroSrc: document.querySelector("[data-advertising-photo-image]")?.currentSrc || null,
-  clones: [...document.querySelectorAll("[data-advertising-photo-morph]")].map((node) => ({ id: node.dataset.advertisingPhotoId, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() })),
+  hero: document.querySelector("[data-detail-image]")?.dataset.detailId || null,
+  heroSrc: document.querySelector("[data-detail-image]")?.currentSrc || null,
+  clones: [...document.querySelectorAll("[data-detail-morph]")].map((node) => ({ id: node.dataset.detailId, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() })),
   locked: [document.body.style.overflow, document.documentElement.style.overflow],
 });
 // waitForFunction không chờ giá trị của Promise mà predicate trả về (Promise luôn truthy nên điều kiện xong ngay lần đầu);
@@ -96,19 +96,19 @@ async function settle(page, predicate, argument) {
   return page.evaluate(snapshot);
 }
 async function ready(page, id) {
-  await settle(page, (expected) => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === expected && document.querySelector("[data-advertising-photo-image]")?.complete, id);
+  await settle(page, (expected) => document.querySelector("[data-detail-view]")?.dataset.detailId === expected && document.querySelector("[data-detail-image]")?.complete, id);
 }
 // Thay các khoảng chờ cố định: detail đang mở đã dựng xong related (dựng qua nhiều task, advertising-detail R7; runtime
-// đặt data-advertising-detail-ready) và primary reveal đã chạy xong (aria-busy gỡ cùng task bắt đầu reveal), không còn animation hữu hạn hay tween GSAP chưa xong,
+// đặt data-masonry-detail-ready) và primary reveal đã chạy xong (aria-busy gỡ cùng task bắt đầu reveal), không còn animation hữu hạn hay tween GSAP chưa xong,
 // và trạng thái đó giữ nguyên qua hai frame liên tiếp. Chỉ chứng minh "không còn gì chạy"; ca nào cần motion đã bắt đầu
 // thì phải chờ tín hiệu bắt đầu của nó trước.
 async function quiet(page) {
   const settled = await page.evaluate(() => new Promise((resolve) => {
     const deadline = performance.now() + 15_000;
     const busy = () => {
-      const view = document.querySelector("[data-advertising-photo-view]");
-      if (view && !view.hidden && (view.dataset.advertisingDetailReady !== "true"
-        || view.querySelector(".advertising-photo-view__hero-frame[aria-busy]"))) return true;
+      const view = document.querySelector("[data-detail-view]");
+      if (view && !view.hidden && (view.dataset.masonryDetailReady !== "true"
+        || view.querySelector(".detail-view__hero-frame[aria-busy]"))) return true;
       // media-hover-zoom là zoom 5s chạy nền liên tục trên card đang trong view, không phải chuyển cảnh.
       if (document.getAnimations().some((animation) => (animation.playState === "running" || animation.playState === "pending")
         && animation.effect?.getComputedTiming().iterations !== Infinity
@@ -131,18 +131,18 @@ async function openA(page) {
   await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-  const card = page.locator(`[data-advertising-card="${A}"] > a`);
+  const card = page.locator(`[data-masonry-card="${A}"] > a`);
   await card.click();
   await ready(page, A);
 }
 async function chooseB(page, beforeClick) {
-  await page.locator('[data-advertising-suggestion-tag="use-sampling"]').click();
+  await page.locator('[data-masonry-suggestion-tag="use-sampling"]').click();
   await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling");
-  const link = page.locator(`[data-advertising-related-card="${B}"] > a`);
+  const link = page.locator(`[data-masonry-related-card="${B}"] > a`);
   await link.waitFor();
   await link.scrollIntoViewIfNeeded();
   await page.waitForFunction((id) => {
-    const image = document.querySelector(`[data-advertising-related-card="${id}"] img`);
+    const image = document.querySelector(`[data-masonry-related-card="${id}"] img`);
     return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
   }, B);
   await beforeClick?.();
@@ -183,7 +183,7 @@ async function m02bFixture(page, locale, direct = false, seed = null) {
   await page.goto(target, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   if (seed) assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), seed, "M02b fixture seed must be consumed");
-  if (direct) await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
+  if (direct) await page.locator("[data-detail-view]").waitFor({ state: "visible" });
   else await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), mediaCardId);
   return card;
 }
@@ -194,8 +194,8 @@ async function armNoGridMorphProbe(page) {
     const probe = { clones: [], locks: [], frames: [] };
     const capture = (node) => {
       if (!(node instanceof Element)) return;
-      if (node.matches("[data-advertising-photo-morph]")) probe.clones.push({ id: node.dataset.advertisingPhotoId, at: performance.now() });
-      node.querySelectorAll?.("[data-advertising-photo-morph]").forEach(capture);
+      if (node.matches("[data-detail-morph]")) probe.clones.push({ id: node.dataset.detailId, at: performance.now() });
+      node.querySelectorAll?.("[data-detail-morph]").forEach(capture);
     };
     probe.observer = new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach(capture)));
     probe.observer.observe(document.body, { childList: true, subtree: true });
@@ -210,10 +210,10 @@ async function armNoGridMorphProbe(page) {
       const photo = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
       // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision phone-frame-budget):
       // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
-      const shown = Boolean(photo) === !document.querySelector("[data-advertising-photo-view]")?.hidden;
+      const shown = Boolean(photo) === !document.querySelector("[data-detail-view]")?.hidden;
       probe.frames.push({ photo, shown,
         y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
-        cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length });
+        cloneCount: document.querySelectorAll("[data-detail-morph]").length });
       // Lấy mẫu tới khi đọc evidence: detail có thể hiện muộn hơn một khung cố định trên máy chậm.
       if (!probe.stopped) requestAnimationFrame(sample);
     };
@@ -230,7 +230,7 @@ async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
     const probe = window.__ttM02bProbe;
     probe.restore();
     return { clones: probe.clones, locks: probe.locks, frames: probe.frames,
-      currentClones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+      currentClones: document.querySelectorAll("[data-detail-morph]").length,
       currentLocks: [document.body.style.overflow, document.documentElement.style.overflow] };
   });
   assert.equal(evidence.clones.length, 0, `grid/detail transition created a clone: ${JSON.stringify(evidence.clones)}`);
@@ -323,12 +323,12 @@ async function armInputTimingProbe(page, selector) {
   await page.evaluate((targetSelector) => {
     window.__ttP13InputTiming?.observer?.disconnect();
     const visualSignature = () => JSON.stringify({
-      photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId || null,
-      photoHidden: document.querySelector("[data-advertising-photo-view]")?.hidden ?? null,
+      photo: document.querySelector("[data-detail-view]")?.dataset.detailId || null,
+      photoHidden: document.querySelector("[data-detail-view]")?.hidden ?? null,
       gridHidden: document.querySelector("[data-project-index]")?.hidden ?? null,
-      clone: [...document.querySelectorAll("[data-advertising-photo-morph]")]
-        .map((node) => [node.dataset.advertisingPhotoId, getComputedStyle(node).transform, getComputedStyle(node).opacity]),
-      bodyPhoto: document.body.classList.contains("is-advertising-photo"),
+      clone: [...document.querySelectorAll("[data-detail-morph]")]
+        .map((node) => [node.dataset.detailId, getComputedStyle(node).transform, getComputedStyle(node).opacity]),
+      bodyPhoto: document.body.classList.contains("is-detail"),
     });
     const probe = {
       selector: targetSelector,
@@ -387,21 +387,21 @@ async function ensureParentTarget(page) {
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
   await page.waitForFunction((id) => {
-    const image = document.querySelector(`[data-advertising-card="${id}"] img`);
+    const image = document.querySelector(`[data-masonry-card="${id}"] img`);
     return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
   }, A);
 }
 
 async function prepareRelatedTarget(page) {
   await ready(page, A);
-  const tag = page.locator('[data-advertising-suggestion-tag="use-sampling"]');
+  const tag = page.locator('[data-masonry-suggestion-tag="use-sampling"]');
   if (new URL(page.url()).searchParams.get("tag") !== "use-sampling") await tag.click();
   await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling");
-  const link = page.locator(`[data-advertising-related-card="${B}"] > a`);
+  const link = page.locator(`[data-masonry-related-card="${B}"] > a`);
   await link.waitFor();
   await link.scrollIntoViewIfNeeded();
   await page.waitForFunction((id) => {
-    const image = document.querySelector(`[data-advertising-related-card="${id}"] img`);
+    const image = document.querySelector(`[data-masonry-related-card="${id}"] img`);
     return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
   }, B);
 }
@@ -409,22 +409,22 @@ async function prepareRelatedTarget(page) {
 async function measureTransition(page, flow) {
   if (flow === "parent-to-photo") {
     await ensureParentTarget(page);
-    const selector = `[data-advertising-card="${A}"] > a`;
+    const selector = `[data-masonry-card="${A}"] > a`;
     await armInputTimingProbe(page, selector);
     await page.locator(selector).click();
     const timing = await readInputTimingProbe(page);
     await ready(page, A);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     return timing;
   }
   if (flow === "related-to-photo") {
     await prepareRelatedTarget(page);
-    const selector = `[data-advertising-related-card="${B}"] > a`;
+    const selector = `[data-masonry-related-card="${B}"] > a`;
     await armInputTimingProbe(page, selector);
     await page.locator(selector).click();
     const timing = await readInputTimingProbe(page);
     await ready(page, B);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     return timing;
   }
   const selector = 'header .desktop-nav a[href="/vi/advertising-products/"]';
@@ -433,8 +433,8 @@ async function measureTransition(page, flow) {
   await page.locator(selector).click();
   const timing = await readInputTimingProbe(page);
   await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-    && document.querySelector("[data-advertising-photo-view]")?.hidden);
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    && document.querySelector("[data-detail-view]")?.hidden);
+  await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
   return timing;
 }
 
@@ -492,11 +492,11 @@ async function installRelatedMediaProbe(page) {
     const probe = { records: [] };
     const sampling = new WeakSet();
     const capture = (image) => {
-      const card = image.closest("[data-advertising-related-card]");
+      const card = image.closest("[data-masonry-related-card]");
       // Remount từ cache chèn lại cùng một node, nên dedupe theo lần chèn, không theo element.
       if (!card || sampling.has(image)) return;
       sampling.add(image);
-      const record = { id: card.dataset.advertisingRelatedCard, frames: [] };
+      const record = { id: card.dataset.masonryRelatedCard, frames: [] };
       probe.records.push(record);
       const started = performance.now();
       const sample = () => {
@@ -515,7 +515,7 @@ async function installRelatedMediaProbe(page) {
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
         // Card còn skeleton thì media chưa hiện: lấy mẫu tới khi fade xong, kể cả khi fixture giữ ảnh quá 3s.
-        if (card.querySelector("[data-advertising-loading-skeleton]")) record.pending = true;
+        if (card.querySelector("[data-masonry-loading-skeleton]")) record.pending = true;
         const elapsed = performance.now() - started;
         if ((elapsed < 3_000 || (record.pending && Number(style.opacity) < 0.99 && elapsed < 15_000))
           && image.isConnected) requestAnimationFrame(sample);
@@ -525,8 +525,8 @@ async function installRelatedMediaProbe(page) {
     };
     new MutationObserver((entries) => entries.forEach((entry) => entry.addedNodes.forEach((added) => {
       if (!(added instanceof Element)) return;
-      if (added.matches("[data-advertising-related-card] img")) capture(added);
-      added.querySelectorAll("[data-advertising-related-card] img").forEach(capture);
+      if (added.matches("[data-masonry-related-card] img")) capture(added);
+      added.querySelectorAll("[data-masonry-related-card] img").forEach(capture);
     }))).observe(document, { childList: true, subtree: true });
     window.__ttP13RelatedMedia = probe;
   });
@@ -555,7 +555,7 @@ async function installStuffingProbe(page, selector, gridSelector) {
             && animation.playState === "running")?.effect.getTiming().duration ?? null,
         };
       };
-      const record = { id: node.dataset.advertisingCard || node.dataset.advertisingRelatedCard, inserted: read(), frames: [] };
+      const record = { id: node.dataset.masonryCard || node.dataset.masonryRelatedCard, inserted: read(), frames: [] };
       probe.records.push(record);
       const started = performance.now();
       const sample = () => {
@@ -585,9 +585,9 @@ async function installBackdropMorphProbe(page) {
     window.__ttP4BackdropMorphs = { records: [] };
     Element.prototype.animate = function measuredBackdropMorph(keyframes, options) {
       const animation = nativeAnimate.call(this, keyframes, options);
-      const kind = this.matches?.("[data-advertising-photo-background]")
+      const kind = this.matches?.("[data-detail-background]")
         ? "backdrop"
-        : this.matches?.("[data-advertising-photo-morph]") ? "morph" : null;
+        : this.matches?.("[data-detail-morph]") ? "morph" : null;
       if (!kind) return animation;
       const record = {
         canceledAt: null,
@@ -601,8 +601,8 @@ async function installBackdropMorphProbe(page) {
           opacity: opacity ?? null,
           transform: transform || null,
         })) : null,
-        nodePhotoId: this.dataset.advertisingPhotoId || null,
-        photoId: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId || null,
+        nodePhotoId: this.dataset.detailId || null,
+        photoId: document.querySelector("[data-detail-view]")?.dataset.detailId || null,
         src: this.src || this.currentSrc || null,
         startedAt: performance.now(),
       };
@@ -631,9 +631,9 @@ async function installBackdropMorphProbe(page) {
 
 async function readBackdropMorphState(page) {
   return page.evaluate(() => {
-    const backdrop = document.querySelector("[data-advertising-photo-background]");
-    const hero = document.querySelector("[data-advertising-photo-image]");
-    const heroFrame = hero?.closest(".advertising-photo-view__hero-frame");
+    const backdrop = document.querySelector("[data-detail-background]");
+    const hero = document.querySelector("[data-detail-image]");
+    const heroFrame = hero?.closest(".detail-view__hero-frame");
     const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
     return {
       activeBackdropAnimations: backdrop?.getAnimations()
@@ -644,13 +644,13 @@ async function readBackdropMorphState(page) {
         opacity: backdropStyle.opacity,
         transform: backdropStyle.transform,
       } : null,
-      heroId: hero?.dataset.advertisingPhotoId || null,
+      heroId: hero?.dataset.detailId || null,
       heroFrameBackground: heroFrame ? getComputedStyle(heroFrame).backgroundColor : null,
       heroSrc: hero?.currentSrc || hero?.src || null,
       locked: [document.body.style.overflow, document.documentElement.style.overflow],
       records: (window.__ttP4BackdropMorphs?.records || []).map((record) => ({ ...record })),
       scrollY: window.scrollY,
-      viewId: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId || null,
+      viewId: document.querySelector("[data-detail-view]")?.dataset.detailId || null,
     };
   });
 }
@@ -691,7 +691,7 @@ try {
       await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-      const card = page.locator(`[data-advertising-card="${A}"] > a`);
+      const card = page.locator(`[data-masonry-card="${A}"] > a`);
       await card.scrollIntoViewIfNeeded();
       // Y của masonry đổi tiếp vài frame sau khi cuộn tới card; chỉ lấy khi đứng yên 5 frame liền.
       const gridY = await page.evaluate(() => new Promise((resolve) => {
@@ -727,20 +727,20 @@ try {
   });
 
   await caseRun("m02b-one-just-viewed-marker-per-tab", { width: 1440, height: 900 }, async (page, stage) => {
-    const readMarkers = () => page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")]
+    const readMarkers = () => page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")]
       .filter((card) => /Vừa xem|Just viewed/.test(card.innerText))
-      .map((card) => ({ id: card.dataset.advertisingCard, text: card.innerText })));
+      .map((card) => ({ id: card.dataset.masonryCard, text: card.innerText })));
     const evidence = [];
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-close-A`);
       await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-      await page.locator(`[data-advertising-card="${A}"] > a`).click();
+      await page.locator(`[data-masonry-card="${A}"] > a`).click();
       await ready(page, A);
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && !document.querySelector("[data-advertising-photo-morph]"));
+        && !document.querySelector("[data-detail-morph]"));
       await page.evaluate(frame);
       const first = await readMarkers();
       assert.deepEqual(first.map(({ id }) => id), [A], `${locale}: closing A must mark only A`);
@@ -754,18 +754,18 @@ try {
         motion.setLogicalScroll(motion.getLogicalScroll() + rect.top - (innerHeight - rect.height) / 2);
       }, B);
       const bCardInViewport = (id) => {
-        const card = document.querySelector(`[data-advertising-card="${id}"]`);
+        const card = document.querySelector(`[data-masonry-card="${id}"]`);
         const rect = card?.getBoundingClientRect();
         return Boolean(card && !card.hidden && rect.top >= 0 && rect.bottom <= innerHeight);
       };
       await page.waitForFunction(bCardInViewport, B, { timeout: 5_000 });
       await page.evaluate(frame);
       assert(await page.evaluate(bCardInViewport, B), `${locale}: B must stay within the viewport before click`);
-      await page.locator(`[data-advertising-card="${B}"] > a`).click();
+      await page.locator(`[data-masonry-card="${B}"] > a`).click();
       await ready(page, B);
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && !document.querySelector("[data-advertising-photo-morph]"));
+        && !document.querySelector("[data-detail-morph]"));
       await page.evaluate(frame);
       const second = await readMarkers();
       assert.deepEqual(second.map(({ id }) => id), [B], `${locale}: B replaces A without a second marker`);
@@ -774,7 +774,7 @@ try {
       await ready(page, B);
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && !document.querySelector("[data-advertising-photo-morph]"));
+        && !document.querySelector("[data-detail-morph]"));
       assert.deepEqual((await readMarkers()).map(({ id }) => id), [B], `${locale}: same-tab history keeps latest marker`);
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
@@ -789,21 +789,21 @@ try {
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-grid-video-Y0`);
       const card = await m02bFixture(page, locale);
-      const tile = page.locator(`[data-advertising-card="${mediaCardId}"]`);
+      const tile = page.locator(`[data-masonry-card="${mediaCardId}"]`);
       await tile.scrollIntoViewIfNeeded();
-      await tile.locator(`[data-advertising-media-select="${mediaVideoId}"]`).click();
-      await page.waitForFunction(({ id, mediaId }) => document.querySelector(`[data-advertising-card="${id}"]`)?.dataset.advertisingActiveMediaId === mediaId,
+      await tile.locator(`[data-masonry-media-select="${mediaVideoId}"]`).click();
+      await page.waitForFunction(({ id, mediaId }) => document.querySelector(`[data-masonry-card="${id}"]`)?.dataset.masonryActiveMediaId === mediaId,
         { id: mediaCardId, mediaId: mediaVideoId });
       const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       const initialLength = await page.evaluate(() => history.length);
       await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // tránh vùng mũi tên hover 32px ở mép canvas (media-card R3)
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       const y0 = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.scrollY);
-      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
+      await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: card creates exactly one history entry`);
       stage(`${locale}-detail-image-Y1`);
-      await page.locator(`[data-advertising-photo-media-select="${card.coverMediaId}"]`).click();
-      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
+      await page.locator(`[data-detail-media-select="${card.coverMediaId}"]`).click();
+      await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
       // Y của grid đến từ layout random, nên chọn Y của detail tránh nó.
       const target = Math.abs(y0 - 480) > 150 ? 480 : 0;
       // Detail mở mới dựng related qua nhiều task; trước đó trang chỉ cao bằng primary và setLogicalScroll bị kẹp về đáy.
@@ -817,13 +817,13 @@ try {
       stage(`${locale}-Back-grid-detail-media`);
       await page.goBack();
       await page.waitForFunction((y) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && document.querySelector("[data-advertising-photo-view]").hidden && Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, y0)
+        && document.querySelector("[data-detail-view]").hidden && Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, y0)
         .catch(() => {}); // lệch Y thì assert dưới báo giá trị thật
       await quiet(page);
       await restingScroll(page);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
-      const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
+      const gridMedia = await page.locator(`[data-masonry-card="${mediaCardId}"]`).getAttribute("data-masonry-active-media-id");
       // Back về masonry từ detail của chính card: card đứng ở media vừa xem trong detail (media-card R6, owner 2026-10-18).
       assert.equal(gridMedia, card.coverMediaId, `${locale}: Back shows the media last viewed in the detail`);
 
@@ -835,7 +835,7 @@ try {
       await restingScroll(page);
       const forwardY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(forwardY - y1) <= 1, `${locale}: Forward restored detail Y ${forwardY}, expected ${y1}`);
-      const activeThumb = await page.locator('[data-advertising-photo-media-select][aria-current="true"]').getAttribute("data-advertising-photo-media-select");
+      const activeThumb = await page.locator('[data-detail-media-select][aria-current="true"]').getAttribute("data-detail-media-select");
       assert.equal(activeThumb, card.coverMediaId, `${locale}: Forward restores detail entry media`);
       assert.equal(new URL(page.url()).searchParams.has("media"), false, `${locale}: media identity must not enter URL`);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: Back/Forward must not add entries`);
@@ -901,10 +901,10 @@ try {
         }, selector);
       };
       const checkMarker = async (locale, expectedId, grid, label) => {
-        const markers = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-just-viewed]")].map((node) => {
-          const card = node.closest("[data-advertising-card], [data-advertising-related-card]");
-          return { id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
-            grid: card.hasAttribute("data-advertising-related-card") ? "related" : "main",
+        const markers = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-just-viewed]")].map((node) => {
+          const card = node.closest("[data-masonry-card], [data-masonry-related-card]");
+          return { id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
+            grid: card.hasAttribute("data-masonry-related-card") ? "related" : "main",
             hidden: Boolean(node.closest("[hidden]")), text: node.textContent };
         }));
         const expected = expectedId ? [{ id: expectedId, grid, hidden: false, text: locale === "vi" ? "Vừa xem" : "Just viewed" }] : [];
@@ -918,32 +918,32 @@ try {
         await m02bFixture(page, locale, false, "m02b-l");
         await page.evaluate(() => {
           document.addEventListener("click", (event) => {
-            const card = event.target.closest("[data-advertising-card], [data-advertising-related-card]");
+            const card = event.target.closest("[data-masonry-card], [data-masonry-related-card]");
             if (!card) return;
-            window.__ttM02bActivation = { id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
+            window.__ttM02bActivation = { id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
               y: window.TruongThinhMotion.getLogicalScroll(), nativeY: scrollY, trusted: event.isTrusted };
           }, { capture: true });
         });
-        await positionCard(`[data-advertising-card="${mediaCardId}"]`);
+        await positionCard(`[data-masonry-card="${mediaCardId}"]`);
         const preClickGridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
         const initialLength = await page.evaluate(() => history.length);
-        const gridActivation = await activate(page.locator(`[data-advertising-card="${mediaCardId}"] > a`));
+        const gridActivation = await activate(page.locator(`[data-masonry-card="${mediaCardId}"] > a`));
         await ready(page, mediaCardId);
         const storedGridY = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.scrollY);
         const gridY = gridActivation.y;
         assert(Math.abs(storedGridY - gridY) <= 1, `${locale}: stored grid Y must match independent click observer`);
-        const nextId = await page.locator("[data-advertising-related-card]").first().getAttribute("data-advertising-related-card");
+        const nextId = await page.locator("[data-masonry-related-card]").first().getAttribute("data-masonry-related-card");
         assert(nextId && nextId !== mediaCardId, "related fixture needs another card");
-        await positionCard(`[data-advertising-related-card="${nextId}"]`);
+        await positionCard(`[data-masonry-related-card="${nextId}"]`);
         const preClickDetailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 
         stage(`${profile.name}-${locale}-A-to-B`);
         await armNoGridMorphProbe(page);
-        const detailActivation = await activate(page.locator(`[data-advertising-related-card="${nextId}"] > a`));
+        const detailActivation = await activate(page.locator(`[data-masonry-related-card="${nextId}"] > a`));
         const ya = detailActivation.y;
         await ready(page, nextId);
         await noGridMorphEvidence(page, nextId, 0);
-        await positionCard(`[data-advertising-related-card="${mediaCardId}"]`);
+        await positionCard(`[data-masonry-related-card="${mediaCardId}"]`);
         const yb = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
         assert(Math.abs(ya - yb) > 1, `${locale}: related history needs distinct YA/YB`);
         await checkMarker(locale, mediaCardId, "related", "A-to-B");
@@ -979,10 +979,10 @@ try {
         }, { id: mediaCardId, originY: yb });
         evidence.push({ locale, label: "virtual-away", ...away });
         await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
-        await page.waitForFunction((id) => !document.querySelector(`[data-advertising-related-card="${id}"]`), mediaCardId);
+        await page.waitForFunction((id) => !document.querySelector(`[data-masonry-related-card="${id}"]`), mediaCardId);
         await checkMarker(locale, null, "related", "offscreen-unmounted");
         await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), yb);
-        await page.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"]`), mediaCardId);
+        await page.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"]`), mediaCardId);
         await page.evaluate(frame);
         await checkMarker(locale, mediaCardId, "related", "virtual-remount");
         assert(Math.abs(await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) - yb) <= 1, `${locale}: marker remount must not scroll`);
@@ -1012,14 +1012,14 @@ try {
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-direct`);
       const card = await m02bFixture(page, locale, true);
-      const selected = () => page.locator('[data-advertising-photo-media-select][aria-current="true"]')
-        .getAttribute("data-advertising-photo-media-select");
+      const selected = () => page.locator('[data-detail-media-select][aria-current="true"]')
+        .getAttribute("data-detail-media-select");
       assert.equal(await selected(), card.coverMediaId, `${locale}: direct detail starts authored cover`);
-      await page.locator(`[data-advertising-photo-media-select="${mediaVideoId}"]`).click();
-      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
+      await page.locator(`[data-detail-media-select="${mediaVideoId}"]`).click();
+      await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
       stage(`${locale}-reload`);
       await page.reload({ waitUntil: "domcontentloaded" });
-      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
+      await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
       assert.equal(await selected(), card.coverMediaId, `${locale}: reload resets to cover`);
       assert.equal(new URL(page.url()).searchParams.has("media"), false, `${locale}: direct/reload URL remains card-only`);
       evidence.push({ locale, cover: card.coverMediaId, reload: await selected() });
@@ -1028,20 +1028,20 @@ try {
   });
   // R7: task tap chỉ ghi history, task kế tiếp chỉ paint primary; related solver và mount card chạy sau.
   await caseRun("related-tap-defers-related", { width: 412, height: 915 }, async (page) => {
-    const visibleRelated = () => [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length;
+    const visibleRelated = () => [...document.querySelectorAll("[data-masonry-related-card]")].filter((card) => !card.hidden).length;
     await page.goto(href("/vi/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
     await ready(page, "kiosk-posm-10");
     await page.waitForFunction(visibleRelated);
-    const link = page.locator("[data-advertising-related-card] > a").first();
-    const nextId = await link.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
+    const link = page.locator("[data-masonry-related-card] > a").first();
+    const nextId = await link.evaluate((node) => node.parentElement.dataset.masonryRelatedCard);
     const tapTask = await link.evaluate(async (node) => {
-      const photo = () => document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoId;
+      const photo = () => document.querySelector("[data-detail-view]").dataset.detailId;
       const before = photo();
       node.click();
       const unchanged = photo() === before;
       await new Promise((resolve) => setTimeout(resolve));
       return { unchanged, photo: photo(),
-        visibleRelated: [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length };
+        visibleRelated: [...document.querySelectorAll("[data-masonry-related-card]")].filter((card) => !card.hidden).length };
     });
     assert.deepEqual(tapTask, { unchanged: true, photo: nextId, visibleRelated: 0 },
       "tap task only records history; the primary task leaves related cards to later tasks");
@@ -1063,7 +1063,7 @@ try {
       await page.emulateMedia({ reducedMotion: scenario.reduced ? "reduce" : "no-preference" });
       await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
-      const link = page.locator(`[data-advertising-related-card="${id}"] > a`);
+      const link = page.locator(`[data-masonry-related-card="${id}"] > a`);
       // Thứ tự related được seed và virtualize; quét xuống rồi lên lại cho đến khi card đích mount.
       // Mỗi bước 0.6 viewport trong hai frame là vuốt nhanh (advertising-masonry R7): runtime chỉ đặt card tạm. Chờ
       // card tạm trong viewport được thay bằng card thật rồi mới xét, không thì card đích không bao giờ mount (đỏ ở 390, một cột dài).
@@ -1074,7 +1074,7 @@ try {
           return before;
         }, direction);
         await page.evaluate(frame);
-        await page.waitForFunction(() => ![...document.querySelectorAll(".advertising-ghost")].some((ghost) => {
+        await page.waitForFunction(() => ![...document.querySelectorAll(".masonry-ghost")].some((ghost) => {
           const rect = ghost.getBoundingClientRect();
           return ghost.checkVisibility() && rect.bottom > 0 && rect.top < innerHeight;
         }), null, { timeout: 5_000 });
@@ -1098,13 +1098,13 @@ try {
         window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
       await restingScroll(page);
       await page.waitForFunction((photoId) => {
-        const image = document.querySelector(`[data-advertising-related-card="${photoId}"] img`);
+        const image = document.querySelector(`[data-masonry-related-card="${photoId}"] img`);
         return image?.complete && image.naturalWidth > 0;
       }, id);
       // Runtime chỉ dời focus khi nó đang ở related (spec R7). Safari/WebKit không focus link khi click chuột,
       // nên ghi lại lúc click (capture, trước handler runtime) focus có nằm trong related không.
       await page.evaluate(() => addEventListener("click", () => {
-        window.__ttFocusInRelatedAtClick = Boolean(document.activeElement?.closest("[data-advertising-related-card]"));
+        window.__ttFocusInRelatedAtClick = Boolean(document.activeElement?.closest("[data-masonry-related-card]"));
       }, { capture: true, once: true }));
       // Kích hoạt native giữ focus trên card được click, khác với element.click().
       if (scenario.input === "keyboard") {
@@ -1114,13 +1114,13 @@ try {
       await ready(page, id);
       // Bấm card related dựng lại related qua nhiều task (advertising-detail R1): chờ card cũ rời related rồi mới đếm,
       // và đợi related mới dựng xong. Quá 5s vẫn còn thì assert dưới đỏ.
-      await page.waitForFunction((photoId) => !document.querySelector(`[data-advertising-related-card="${photoId}"]`), id, { timeout: 5_000 })
+      await page.waitForFunction((photoId) => !document.querySelector(`[data-masonry-related-card="${photoId}"]`), id, { timeout: 5_000 })
         .catch(() => {});
       await quiet(page);
       const state = await page.evaluate((photoId) => ({
-        clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
-        staleCards: document.querySelectorAll(`[data-advertising-related-card="${photoId}"]`).length,
-        focusInDetail: document.activeElement === document.querySelector("[data-advertising-photo-info]"),
+        clones: document.querySelectorAll("[data-detail-morph]").length,
+        staleCards: document.querySelectorAll(`[data-masonry-related-card="${photoId}"]`).length,
+        focusInDetail: document.activeElement === document.querySelector("[data-detail-info]"),
         focusInRelatedAtClick: window.__ttFocusInRelatedAtClick,
         focusOnBody: document.activeElement === document.body,
       }), id);
@@ -1135,8 +1135,8 @@ try {
   await caseRun("viewer-control-affordances", { width: 1329, height: 912 }, async (page, stage) => {
     await page.goto(href("/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
     await ready(page, "signage-raised-letters-01");
-    await page.locator("[data-advertising-photo-expand]").click();
-    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
+    await page.locator("[data-detail-expand]").click();
+    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-detail-${name}]`)]));
     // Để transition background 150 ms hoàn tất; runner đang tải nặng có thể trễ hơn một lần chờ cố định.
     const read = (control) => control.evaluate(async (node) => {
       await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
@@ -1188,14 +1188,14 @@ try {
     await activate(controls["zoom-in"], "zoom-to-cover");
     await activate(controls["zoom-in"], "zoom-to-limit");
     await checkDisabled(controls["zoom-in"], controls["zoom-out"]);
-    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
+    assert.equal(await page.locator("[data-detail-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
     await activate(controls["zoom-out"], "zoom-out");
     await page.keyboard.press("Tab");
     const focused = await page.locator(":focus").evaluate((node) => ({ outline: getComputedStyle(node).outlineStyle, width: parseFloat(getComputedStyle(node).outlineWidth) }));
     assert(focused.outline !== "none" && focused.width >= 2, "keyboard focus needs a clear ring");
     await activate(controls.close, "close");
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
-    assert.equal(await page.locator("[data-advertising-photo-dialog]").evaluate((node) => node.open), false);
+    await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
+    assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false);
     return evidence;
   });
 
@@ -1203,7 +1203,7 @@ try {
   // (ảnh còn ở kích thước fit giữa animation) và đóng viewer ngay khi pointerdown.
   await caseRun("viewer-backdrop-swipe-stays-open", { width: 838, height: 331 }, async (page, stage) => {
     const cdp = await page.context().newCDPSession(page);
-    const dialogOpen = () => page.evaluate(() => document.querySelector("#advertising-photo-dialog").open);
+    const dialogOpen = () => page.evaluate(() => document.querySelector("#detail-dialog").open);
     const touch = async (from, to) => {
       await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...from, id: 1 }] });
       for (let step = 1; step <= 9; step++) {
@@ -1214,8 +1214,8 @@ try {
       await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
       // Viewer đóng ngay khi pointerdown (state closing); không thì zoom xong về open. Chờ một trong hai rồi mới đọc.
       await page.waitForFunction(() => {
-        const dialog = document.querySelector("#advertising-photo-dialog");
-        return !dialog.open || dialog.dataset.advertisingViewerState === "open";
+        const dialog = document.querySelector("#detail-dialog");
+        return !dialog.open || dialog.dataset.viewerState === "open";
       });
       await page.evaluate(frame);
     };
@@ -1225,28 +1225,28 @@ try {
       await page.goto(href(`/${locale}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
       await ready(page, "kiosk-posm-37");
       // Màn cảm ứng chỉ giữ nút expand cho screen reader (viewer touch R7).
-      await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
-      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
+      await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       // Fit trên màn cảm ứng chạm mép trên dưới (viewer touch R8): điểm bắt đầu nằm sát phải ảnh Fit,
       // là backdrop lúc animation zoom mới chạy và thành ảnh khi zoom xong.
-      const x = Math.round(await page.evaluate(() => document.querySelector("[data-advertising-photo-expanded-image]").getBoundingClientRect().right) + 20);
-      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-in]").click());
-      const target = await page.evaluate((x) => document.elementFromPoint(x, 265)?.matches("[data-advertising-photo-viewport]"), x);
+      const x = Math.round(await page.evaluate(() => document.querySelector("[data-detail-expanded-image]").getBoundingClientRect().right) + 20);
+      await page.evaluate(() => document.querySelector("[data-detail-zoom-in]").click());
+      const target = await page.evaluate((x) => document.elementFromPoint(x, 265)?.matches("[data-detail-viewport]"), x);
       assert(target, "swipe must start on the backdrop while the zoom animation runs");
       await touch({ x, y: 265 }, { x, y: 83 });
       assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
       stage(`${locale}-backdrop-tap-closes`);
-      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-out]").click());
-      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.evaluate(() => document.querySelector("[data-detail-zoom-out]").click());
+      await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       await page.touchscreen.tap(20, 300);
-      await page.waitForFunction(() => !document.querySelector("#advertising-photo-dialog").open);
+      await page.waitForFunction(() => !document.querySelector("#detail-dialog").open);
       evidence.push({ locale, swipeKeptOpen: true, tapClosed: true });
     }
     return evidence;
   }, { contextOptions: { isMobile: true, hasTouch: true, deviceScaleFactor: 2.625 } });
   await caseRun("p13-position-stuffing-and-remount", { width: 1329, height: 912 }, async (page, stage) => {
     stage("parent-prepaint");
-    await installStuffingProbe(page, "[data-advertising-card]", "[data-project-grid]");
+    await installStuffingProbe(page, "[data-masonry-card]", "[data-project-grid]");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await stuffingSettled(page);
     const parentRecords = await page.evaluate(() => window.__ttP13Stuffing.records);
@@ -1255,19 +1255,19 @@ try {
     stage("cached-remount");
     const firstId = parentStuffing.id;
     // Lần layout đầu có motion 0.4s từ đầu cột; đọc tọa độ gốc sau khi motion dừng.
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)?.getAnimations()
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)?.getAnimations()
       .every(({ playState }) => playState !== "running"), firstId);
-    const initial = await page.locator(`[data-advertising-card="${firstId}"]`).evaluate((node) => {
+    const initial = await page.locator(`[data-masonry-card="${firstId}"]`).evaluate((node) => {
       const rect = node.getBoundingClientRect();
       const grid = node.closest("[data-project-grid]").getBoundingClientRect();
       return { x: rect.left - grid.left, y: rect.top - grid.top };
     });
     // Thứ tự trình bày được seed, nên card cuối của catalog có thể nằm gần đỉnh; thay vào đó cuộn tới cuối.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await page.waitForFunction((id) => !document.querySelector(`[data-advertising-card="${id}"]`), firstId);
+    await page.waitForFunction((id) => !document.querySelector(`[data-masonry-card="${id}"]`), firstId);
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), firstId);
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`), firstId);
-    const remount = await page.locator(`[data-advertising-card="${firstId}"]`).evaluate(async (node) => {
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`), firstId);
+    const remount = await page.locator(`[data-masonry-card="${firstId}"]`).evaluate(async (node) => {
       const read = () => {
         const rect = node.getBoundingClientRect();
         const grid = node.closest("[data-project-grid]").getBoundingClientRect();
@@ -1279,7 +1279,7 @@ try {
       return {
         first, second,
         runningAnimations: node.getAnimations().filter((animation) => animation.playState === "running").length,
-        domCount: document.querySelectorAll("[data-project-grid] [data-advertising-card]").length,
+        domCount: document.querySelectorAll("[data-project-grid] [data-masonry-card]").length,
       };
     });
     assert(Math.abs(remount.first.left - initial.x) <= 1 && Math.abs(remount.first.top - initial.y) <= 1, "cached remount lost its coordinate");
@@ -1299,30 +1299,30 @@ try {
       if (mediaReleased || route.request().resourceType() !== "image" || route.request().url().includes(`/${A}-`)) return route.continue();
       heldMedia.push(route);
     });
-    await installStuffingProbe(relatedPage, "[data-advertising-related-card]", "[data-advertising-photo-related-grid]");
+    await installStuffingProbe(relatedPage, "[data-masonry-related-card]", "[data-detail-related-grid]");
     await installRelatedMediaProbe(relatedPage);
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
     const relatedState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
-      primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
-      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-advertising-photo-view]")).getPropertyValue("--advertising-photo-gap")),
+      primary: document.querySelector("[data-detail-primary]").getBoundingClientRect().toJSON(),
+      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
     }));
     const relatedStuffing = assertStuffingRecord(relatedState.records, "related stuffing", (_record, first) => first.x < relatedState.primary.width ? relatedState.primary.height + relatedState.gap : 0);
     const initialRelatedIds = new Set(relatedState.records.map(({ id }) => id));
     const initialMediaId = relatedState.records[0]?.id;
     assert(initialMediaId, "initial related window has no media fixture");
     // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
-    await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
+    await relatedPage.locator(`[data-masonry-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
     // Ảnh card related chờ tải ở opacity cuối dưới blur của chính nó (progressive-loading R9); ảnh về thì blur tan và bị gỡ.
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img[style*='blur(']`), initialMediaId);
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] img[style*='blur(']`), initialMediaId);
     mediaReleased = true;
     await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
     await relatedPage.unroute(mediaPattern);
     await relatedPage.waitForFunction((id) => {
-      const card = document.querySelector(`[data-advertising-related-card="${id}"]`);
+      const card = document.querySelector(`[data-masonry-related-card="${id}"]`);
       return card?.querySelector("img")?.naturalWidth && !card.querySelector("img[style*='blur(']");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
@@ -1336,34 +1336,34 @@ try {
     await stuffingSettled(relatedPage);
     const tagState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
-      primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
-      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-advertising-photo-view]")).getPropertyValue("--advertising-photo-gap")),
+      primary: document.querySelector("[data-detail-primary]").getBoundingClientRect().toJSON(),
+      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
     }));
     const tagStuffing = assertStuffingRecord(tagState.records, "tag stuffing", (_record, first) => first.x < tagState.primary.width ? tagState.primary.height + tagState.gap : 0);
-    await relatedPage.locator('[data-advertising-suggestion-tag="format-portrait"][aria-pressed="true"]').click();
+    await relatedPage.locator('[data-masonry-suggestion-tag="format-portrait"][aria-pressed="true"]').click();
     await relatedPage.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     stage("related-cached-remount");
     // Deep link theo tag tải lại trang với thứ tự related riêng, nên chọn trong các card đang mount.
     // loading-glass R3 chỉ áp cho media đã tải xong trước khi ra khỏi viewport, nên chờ card trong màn đầu hiện ảnh.
-    await relatedPage.waitForFunction(() => [...document.querySelectorAll("[data-advertising-related-card]")]
+    await relatedPage.waitForFunction(() => [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => node.getBoundingClientRect().top < innerHeight)
-      .every((node) => node.querySelector(".advertising-tile__foreground.is-advertising-media-ready")));
-    const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card]")]
-      .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.advertisingRelatedCard })));
+      .every((node) => node.querySelector(".masonry-card__foreground.is-masonry-media-ready")));
+    const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card]")]
+      .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.masonryRelatedCard })));
     // scrollTo native chạy đua với smooth scroll còn đang giảm tốc trên desktop, nên dời logical position rồi để nó yên.
     await relatedPage.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
     await restingScroll(relatedPage);
     await relatedPage.waitForFunction((records) => records.some((record) => (
-      !document.querySelector(`[data-advertising-related-card="${record.id}"]`)
+      !document.querySelector(`[data-masonry-related-card="${record.id}"]`)
     )), topWindowIds);
     const remountMedia = await relatedPage.evaluate((records) => records.find((record) => (
-      !document.querySelector(`[data-advertising-related-card="${record.id}"]`)
+      !document.querySelector(`[data-masonry-related-card="${record.id}"]`)
     )) || null, topWindowIds);
     assert(remountMedia, "bottom virtual window retained every top-window card");
     const recordsBeforeRemount = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length, remountMedia.id);
     await relatedPage.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await restingScroll(relatedPage);
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`), remountMedia.id);
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] img`), remountMedia.id);
     await relatedPage.waitForFunction(([id, before]) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length > before, [remountMedia.id, recordsBeforeRemount]);
     // Image decode có thể làm trễ lúc fade bắt đầu, nên chờ fade được lấy mẫu kết thúc thay vì chờ cố định.
     await relatedPage.waitForFunction((id) => (window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1)?.frames.at(-1)?.opacity ?? 0) >= 0.99, remountMedia.id);
@@ -1372,11 +1372,11 @@ try {
     assert(remountedMedia?.frames.length && remountedMedia.frames.at(-1).opacity >= 0.99
       && remountedMedia.frames.every(({ opacity, fading }) => !fading && (opacity <= 0.05 || opacity >= 0.99)),
       `related cached remount media faded instead of showing at once ${JSON.stringify(remountedMedia)}`);
-    const relatedRemount = await relatedPage.locator(`[data-advertising-related-card="${remountMedia.id}"]`).evaluate(async (node) => {
+    const relatedRemount = await relatedPage.locator(`[data-masonry-related-card="${remountMedia.id}"]`).evaluate(async (node) => {
       const first = node.getBoundingClientRect().toJSON();
       await new Promise((resolve) => requestAnimationFrame(resolve));
       const second = node.getBoundingClientRect().toJSON();
-      return { first, second, positionAnimations: node.getAnimations().filter((animation) => animation.playState === "running").length, domCount: document.querySelectorAll("[data-advertising-related-card]").length };
+      return { first, second, positionAnimations: node.getAnimations().filter((animation) => animation.playState === "running").length, domCount: document.querySelectorAll("[data-masonry-related-card]").length };
     });
     assert(Math.abs(relatedRemount.first.left - relatedRemount.second.left) <= 0.1 && Math.abs(relatedRemount.first.top - relatedRemount.second.top) <= 0.1,
       "related cached remount replayed position stuffing");
@@ -1389,12 +1389,12 @@ try {
     // Đọc, click và đọc lại trong một task để assertion đo frame đầu đã seed,
     // không phải tiến trình scroll hay transition sau khi trang nhường một frame.
     const { beforeFilter, during } = await page.evaluate(() => {
-      const visible = () => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-        .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.advertisingCard, rect: node.getBoundingClientRect().toJSON() }));
+      const visible = () => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+        .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.masonryCard, rect: node.getBoundingClientRect().toJSON() }));
       const beforeFilter = visible();
       // Thứ tự card ngẫu nhiên theo seed nên lọc theo nhóm của card đầu đang mount, luôn có card được giữ lại để so vị trí.
-      const category = document.querySelector("[data-project-grid] [data-advertising-card]:not([hidden])").dataset.advertisingCategory;
-      document.querySelector(`[data-advertising-filter="${category}"]`).click();
+      const category = document.querySelector("[data-project-grid] [data-masonry-card]:not([hidden])").dataset.masonryCategory;
+      document.querySelector(`[data-masonry-filter="${category}"]`).click();
       return { beforeFilter, during: visible() };
     });
     const beforeById = new Map(beforeFilter.map((card) => [card.id, card.rect]));
@@ -1407,8 +1407,8 @@ try {
       `filter layout did not retain the current visual positions at input ${JSON.stringify(retainedDeltas)}`);
     await page.evaluate(() => { window.__ttResized = new Promise((resolve) => addEventListener("resize", resolve, { once: true })); });
     await page.setViewportSize({ width: 844, height: 390 });
-    await page.locator('[data-advertising-filter="all"]').click();
-    await page.waitForFunction(() => document.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter === "all");
+    await page.locator('[data-masonry-filter="all"]').click();
+    await page.waitForFunction(() => document.querySelector('[data-masonry-filter][aria-current="true"]')?.dataset.masonryFilter === "all");
     // Runtime relayout ở rAF sau resize, transition 400ms của card bắt đầu ở frame kế: chờ resize tới rồi qua ba frame
     // trước khi tin rằng không còn motion nào sắp bắt đầu.
     await page.evaluate(async () => {
@@ -1417,11 +1417,11 @@ try {
     });
     await quiet(page);
     const interrupted = await page.evaluate(() => ({
-      activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter,
-      clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
-      running: [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+      activeFilter: document.querySelector('[data-masonry-filter][aria-current="true"]')?.dataset.masonryFilter,
+      clones: document.querySelectorAll("[data-detail-morph]").length,
+      running: [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
         .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running").length,
-      domCount: document.querySelectorAll("[data-project-grid] [data-advertising-card]").length,
+      domCount: document.querySelectorAll("[data-project-grid] [data-masonry-card]").length,
     }));
     assert(during.length > 0, "filter interruption lost the visible motion cohort");
     assert.equal(interrupted.activeFilter, "all", "latest filter input did not win after resize interruption");
@@ -1433,15 +1433,15 @@ try {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
+    await page.locator(`[data-masonry-card="${A}"] > a`).click();
     await ready(page, A);
     const reduced = await page.evaluate(() => ({
-      clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+      clones: document.querySelectorAll("[data-detail-morph]").length,
       // Reduced motion rút mọi transition xuống 0.01ms, nên related relayout ngay sau khi mở không phải motion.
-      runningTransforms: [...document.querySelectorAll("[data-advertising-card], [data-advertising-related-card]")]
+      runningTransforms: [...document.querySelectorAll("[data-masonry-card], [data-masonry-related-card]")]
         .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running"
           && Number(animation.effect?.getTiming().duration) > 1).length,
-      photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
+      photo: document.querySelector("[data-detail-view]")?.dataset.detailId,
     }));
     assert.deepEqual(reduced, { clones: 0, runningTransforms: 0, photo: A });
     return { parentStuffing, relatedStuffing, tagStuffing, initialMedia, remountedMedia, relatedRemount, remount, interrupted, reduced };
@@ -1449,13 +1449,13 @@ try {
   await caseRun("morph-frame-identity", { width: 1440, height: 900 }, async (page, stage) => {
     stage("related-click-without-grid-morph");
     await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     let relatedY = 0;
     await chooseB(page, async () => {
       // Related order đã seed có thể đặt B trong view ở đỉnh; cuộn một phần để click bắt đầu khi đã cuộn.
       await page.evaluate((id) => {
         if (window.TruongThinhMotion.getLogicalScroll() > 0) return;
-        const top = document.querySelector(`[data-advertising-related-card="${id}"]`).getBoundingClientRect().top;
+        const top = document.querySelector(`[data-masonry-related-card="${id}"]`).getBoundingClientRect().top;
         window.TruongThinhMotion.setLogicalScroll(Math.max(1, Math.floor(top / 2)));
       }, B);
       await page.evaluate(frame);
@@ -1477,7 +1477,7 @@ try {
   await caseRun("viewer-morph-lock-handoff", { width: 1440, height: 900 }, async (page, stage) => {
     stage("viewer-open-morph");
     await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     await page.evaluate(() => {
       const motion = window.TruongThinhMotion;
       const lock = motion.lockLogicalScroll;
@@ -1493,36 +1493,36 @@ try {
         return unlock.apply(this, args);
       };
       Element.prototype.animate = function measuredViewerAnimation(keyframes, options) {
-        if (this.matches?.("[data-advertising-photo-expanded-image]")) {
+        if (this.matches?.("[data-detail-expanded-image]")) {
           window.__ttViewerProbe.animations.push({
             duration: Number(typeof options === "number" ? options : options?.duration),
-            state: document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState,
+            state: document.querySelector("[data-detail-dialog]")?.dataset.viewerState,
           });
         }
         return animate.call(this, keyframes, options);
       };
     });
     const baseline = await page.evaluate(() => [document.body.style.overflow, document.documentElement.style.overflow]);
-    await page.locator("[data-advertising-photo-expand]").click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.locator("[data-detail-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
     const opening = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
       animations: window.__ttViewerProbe.animations,
-      focus: document.activeElement?.matches("[data-advertising-photo-close]"),
+      focus: document.activeElement?.matches("[data-detail-close]"),
     }));
     assert(opening.locks.includes("hidden"), "viewer open must own document scroll lock");
     assert(opening.animations.some(({ duration, state }) => duration === 300 && state === "opening"),
       "primary to viewer open morph must remain");
     assert.equal(opening.focus, true, "viewer open must focus close control");
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
 
     stage("viewer-close-morph");
-    await page.locator("[data-advertising-photo-close]").click();
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.locator("[data-detail-close]").click();
+    await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     const closed = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
       animations: window.__ttViewerProbe.animations,
-      focus: document.activeElement?.matches("[data-advertising-photo-expand]"),
+      focus: document.activeElement?.matches("[data-detail-expand]"),
       lockEvents: window.__ttViewerProbe.locks,
     }));
     assert(closed.animations.some(({ duration, state }) => duration === 250 && state === "closing"),
@@ -1533,10 +1533,10 @@ try {
 
     stage("reduced-motion-and-error-release");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.locator("[data-advertising-photo-expand]").click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
-    await page.locator("[data-advertising-photo-close]").click();
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.locator("[data-detail-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
+    await page.locator("[data-detail-close]").click();
+    await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     const reduced = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
       animationCount: window.__ttViewerProbe.animations.length,
@@ -1544,10 +1544,10 @@ try {
     assert.deepEqual(reduced.locks, baseline, "reduced-motion viewer must release lock");
     assert.equal(reduced.animationCount, 2, "reduced-motion viewer must skip open and close morph");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.locator("[data-advertising-photo-expand]").click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
-    await page.locator("[data-advertising-photo-expanded-image]").evaluate((node) => node.dispatchEvent(new Event("error")));
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.locator("[data-detail-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
+    await page.locator("[data-detail-expanded-image]").evaluate((node) => node.dispatchEvent(new Event("error")));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     const afterError = await page.evaluate(() => [document.body.style.overflow, document.documentElement.style.overflow]);
     assert.deepEqual(afterError, baseline, "viewer image error must release lock");
     return { opening, closed, reduced, afterError };
@@ -1555,7 +1555,7 @@ try {
   await caseRun("history-back-forward-morph", { width: 1440, height: 900 }, async (page, stage) => {
     stage("detail-A-to-B");
     await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     const a = await page.evaluate(() => ({
       seed: window.TruongThinhMasonry.getBrowseState().seed,
       y: window.TruongThinhMotion.getLogicalScroll(),
@@ -1568,7 +1568,7 @@ try {
     }, { once: true, capture: true })));
     a.y = await page.evaluate(() => window.__relatedClickY);
     await ready(page, B);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     const b = await page.evaluate(() => ({
       seed: window.TruongThinhMasonry.getBrowseState().seed,
       y: window.TruongThinhMotion.getLogicalScroll(),
@@ -1596,7 +1596,7 @@ try {
     await armNoGridMorphProbe(page);
     await page.goBack();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, A);
     const grid = await noGridMorphEvidence(page, null, a.gridY);
     assert.equal(await page.evaluate(() => history.length), b.length, "Back/Forward must not add history entries");
     return { a, b, back, forward, grid };
@@ -1622,7 +1622,7 @@ try {
       for (const candidate of ADVERTISING_CARDS.filter((card) => card.category === "signage")) {
         await page.evaluate((photoId) => window.TruongThinhMasonry.getAdapter().ensurePhoto(photoId), candidate.id);
         initial = await page.evaluate((photoId) => {
-          const card = document.querySelector('[data-advertising-card="' + photoId + '"]');
+          const card = document.querySelector('[data-masonry-card="' + photoId + '"]');
           return { id: photoId, rect: card?.getBoundingClientRect().toJSON() || null,
             seed: window.TruongThinhMasonry.getBrowseState().seed, length: history.length };
         }, candidate.id);
@@ -1630,19 +1630,19 @@ try {
       }
       assert(initial?.rect?.top > 884, locale + ": no offscreen card after checking category candidates");
       const id = initial.id;
-      const link = page.locator('[data-advertising-card="' + id + '"] > a');
+      const link = page.locator('[data-masonry-card="' + id + '"] > a');
       await link.scrollIntoViewIfNeeded();
       await page.waitForFunction((photoId) => {
-        const image = document.querySelector('[data-advertising-card="' + photoId + '"] img');
+        const image = document.querySelector('[data-masonry-card="' + photoId + '"] img');
         return image?.complete && image.naturalWidth > 0;
       }, id);
       const clickedY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       await link.click();
       await ready(page, id);
-      await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+      await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
       // Detail mở mới dựng related qua nhiều task (advertising-detail R7); trước task mount trang chỉ cao bằng primary,
       // setLogicalScroll(480) bị kẹp đúng về đáy đó (272px ở 1543x884) và không tự lên lại.
-      await page.waitForFunction(() => document.querySelector("[data-advertising-related-card]:not([hidden])"));
+      await page.waitForFunction(() => document.querySelector("[data-masonry-related-card]:not([hidden])"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
       await page.waitForFunction(() => Math.abs(window.TruongThinhMasonry.getBrowseState().detail.scrollY - 480) <= 1);
       const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
@@ -1650,12 +1650,12 @@ try {
       stage(locale + "-grid-Y0");
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && !document.querySelector("[data-advertising-photo-morph]"));
+        && !document.querySelector("[data-detail-morph]"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       await page.waitForFunction(() => Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 1);
       const grid = await page.evaluate((photoId) => ({
         y: window.TruongThinhMotion.getLogicalScroll(),
-        cardTop: document.querySelector('[data-advertising-card="' + photoId + '"]')?.getBoundingClientRect().top ?? null,
+        cardTop: document.querySelector('[data-masonry-card="' + photoId + '"]')?.getBoundingClientRect().top ?? null,
         seed: window.TruongThinhMasonry.getBrowseState().seed,
         category: window.TruongThinhMasonry.getBrowseState().category,
         length: history.length,
@@ -1701,14 +1701,14 @@ try {
   await caseRun("history-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
     stage("detail-Back-with-pointer-retained");
     await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy, như case grid dưới.
     await chooseB(page, () => page.evaluate(() => addEventListener("click", () => {
       window.__relatedClickY = window.TruongThinhMotion.getLogicalScroll();
     }, { once: true, capture: true })));
     const aY = await page.evaluate(() => window.__relatedClickY);
     await ready(page, B);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     await armNoGridMorphProbe(page);
     await page.goBack();
     await ready(page, A);
@@ -1720,8 +1720,8 @@ try {
     stage("grid-Back-with-pointer-retained");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
-    const link = page.locator("[data-advertising-card] > a").first();
-    const photoId = await link.evaluate((node) => node.closest("[data-advertising-card]").dataset.advertisingCard);
+    const link = page.locator("[data-masonry-card] > a").first();
+    const photoId = await link.evaluate((node) => node.closest("[data-masonry-card]").dataset.masonryCard);
     await link.scrollIntoViewIfNeeded();
     // click() có thể cuộn lần nữa khi header che card, nên ghi lại Y mà chính click thấy.
     await page.evaluate(() => addEventListener("click", () => {
@@ -1730,11 +1730,11 @@ try {
     await link.click();
     const gridY = await page.evaluate(() => window.__gridClickY);
     await ready(page, photoId);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     await armNoGridMorphProbe(page);
     await page.goBack();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, photoId);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, photoId);
     const back = await noGridMorphEvidence(page, null, gridY);
     return { photoId, gridY, back };
   });
@@ -1754,12 +1754,12 @@ try {
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     // Cuộn như click() sẽ làm trước, để vị trí grid mà Back khôi phục chính là vị trí đọc ở đây.
-    const gridCard = page.locator('[data-advertising-card="' + A + '"] > a');
+    const gridCard = page.locator('[data-masonry-card="' + A + '"] > a');
     await gridCard.scrollIntoViewIfNeeded();
     const gridY = await restingScroll(page);
     await gridCard.click();
     await ready(page, A);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     const clientWidthBefore = await page.evaluate(() => document.documentElement.clientWidth);
     await armNoGridMorphProbe(page);
     await page.goBack();
@@ -1772,7 +1772,7 @@ try {
     await page.setViewportSize({ width: 1020, height: 900 });
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     await armNoGridMorphProbe(page);
-    await page.locator('[data-advertising-card="' + A + '"] > a').click();
+    await page.locator('[data-masonry-card="' + A + '"] > a').click();
     await ready(page, A);
     const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     const resized = await noGridMorphEvidence(page, A, detailY);
@@ -1784,7 +1784,7 @@ try {
     const read = async (label) => {
       await quiet(page);
       // Crossfade tại chỗ (loading-glass-and-page-entry R4) có thể fade backdrop; nó phải kết thúc và chỉ đổi opacity.
-      await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-background]")?.getAnimations()
+      await page.waitForFunction(() => !document.querySelector("[data-detail-background]")?.getAnimations()
         .some(({ playState }) => playState === "pending" || playState === "running"), null, { timeout: 5000 });
       const state = await readBackdropMorphState(page);
       const morphs = state.records.filter((record) => record.kind !== "backdrop"
@@ -1803,14 +1803,14 @@ try {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
-    await page.locator('[data-advertising-card="' + A + '"] > a').click();
+    await page.locator('[data-masonry-card="' + A + '"] > a').click();
     await ready(page, A);
     evidence.push(await read("reduced"));
     stage("grid-click-static");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
-    await page.locator('[data-advertising-card="' + A + '"] > a').click();
+    await page.locator('[data-masonry-card="' + A + '"] > a').click();
     await ready(page, A);
     evidence.push(await read("grid"));
     stage("related-click-static");
@@ -1833,7 +1833,7 @@ try {
   await caseRun("rapid-related-and-back-mid-morph", { width: 1440, height: 900 }, async (page, stage) => {
     stage("related-B-then-immediate-Back");
     await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     await chooseB(page, () => armNoGridMorphProbe(page));
     await ready(page, B);
     await page.goBack();
@@ -1843,9 +1843,9 @@ try {
       const probe = window.__ttM02bProbe;
       probe.restore();
       return {
-        photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
+        photo: document.querySelector("[data-detail-view]")?.dataset.detailId,
         clonesAdded: probe.clones,
-        currentClones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+        currentClones: document.querySelectorAll("[data-detail-morph]").length,
         locks: probe.locks,
         currentLocks: [document.body.style.overflow, document.documentElement.style.overflow],
       };
@@ -1870,7 +1870,7 @@ try {
     stage("open-A"); await openA(page);
     await page.route("**/*mobile-retail-04*.webp", async (route) => { await new Promise((resolve) => setTimeout(resolve, 700)); await route.continue(); });
     stage("B-and-resize"); await chooseB(page); await page.setViewportSize({ width: 1440, height: 900 });
-    await ready(page, B); await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+    await ready(page, B); await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     const state = await page.evaluate(snapshot);
     assert.equal(state.hero, B); assert.equal(state.clones.length, 0); assert.deepEqual(state.locked, ["", ""]);
     return state;
@@ -1881,15 +1881,15 @@ try {
     await page.route("**/*gsap*", (route) => route.abort());
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
-      && document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
-    const state = await page.evaluate(() => ({ grid: document.querySelectorAll("[data-project-grid] .advertising-tile").length, locked: [document.body.style.overflow, document.documentElement.style.overflow] }));
+      && document.querySelectorAll("[data-project-grid] .masonry-card").length > 0);
+    const state = await page.evaluate(() => ({ grid: document.querySelectorAll("[data-project-grid] .masonry-card").length, locked: [document.body.style.overflow, document.documentElement.style.overflow] }));
     assert(state.grid > 0, "animation dependency failure did not fail open to a usable grid"); assert.deepEqual(state.locked, ["", ""]);
     return state;
   }, { allowedIssues: ["console:Failed to load resource: net::ERR_FAILED"] });
 
   await caseRun("active-photo-locale-switch", { width: 390, height: 844 }, async (page, stage) => {
     stage("open-A-tag-B"); await openA(page); await chooseB(page); await ready(page, B);
-    const before = await page.evaluate(() => ({ photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), tag: new URL(location.href).searchParams.get("tag"), category: new URL(location.href).searchParams.get("category"), slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot }));
+    const before = await page.evaluate(() => ({ photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), tag: new URL(location.href).searchParams.get("tag"), category: new URL(location.href).searchParams.get("category"), slot: document.querySelector("[data-detail-related-grid]")?.dataset.masonrySuggestionSlot }));
     const switchLocale = async (language) => {
       await page.locator("[data-menu-open]").click();
       await page.waitForFunction(() => document.querySelector("#site-menu")?.open && document.querySelector("#site-menu")?.classList.contains("is-active"));
@@ -1903,9 +1903,9 @@ try {
         photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null),
         tag: new URL(location.href).searchParams.get("tag"),
         category: new URL(location.href).searchParams.get("category"),
-        slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot,
-        hero: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
-        backCount: document.querySelectorAll("[data-advertising-photo-return]").length,
+        slot: document.querySelector("[data-detail-related-grid]")?.dataset.masonrySuggestionSlot,
+        hero: document.querySelector("[data-detail-view]")?.dataset.detailId,
+        backCount: document.querySelectorAll("[data-detail-return]").length,
       }));
     };
     stage("menu-switch-en"); const en = await switchLocale("en");
@@ -1922,13 +1922,13 @@ try {
   await caseRun("related-suggestions-replace-state", { width: 1440, height: 900 }, async (page, stage) => {
     stage("open-B"); await openA(page); await chooseB(page); await ready(page, B);
     const readSuggestions = () => page.evaluate(() => ({
-      hero: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
+      hero: document.querySelector("[data-detail-view]")?.dataset.detailId,
       url: location.href,
       historyLength: history.length,
-      slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot,
-      links: [...document.querySelectorAll("[data-advertising-suggestion-tag]")].map((link) => ({
-        tag: link.dataset.advertisingSuggestionTag,
-        label: link.querySelector(".advertising-photo-view__suggestion-label")?.textContent?.trim(),
+      slot: document.querySelector("[data-detail-related-grid]")?.dataset.masonrySuggestionSlot,
+      links: [...document.querySelectorAll("[data-masonry-suggestion-tag]")].map((link) => ({
+        tag: link.dataset.masonrySuggestionTag,
+        label: link.querySelector(".detail-view__suggestion-label")?.textContent?.trim(),
         objectFit: getComputedStyle(link.querySelector("img")).objectFit,
         href: link.href,
       })),
@@ -1943,7 +1943,7 @@ try {
     const reloaded = await readSuggestions();
     assert.deepEqual({ slot: reloaded.slot, links: reloaded.links.map(({ tag, label }) => ({ tag, label })) }, { slot: before.slot, links: before.links.map(({ tag, label }) => ({ tag, label })) });
     stage("replace-tag"); const expectedTag = before.links[0].tag;
-    await page.locator("[data-advertising-suggestion-tag]").first().click();
+    await page.locator("[data-masonry-suggestion-tag]").first().click();
     await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, expectedTag);
     await ready(page, B);
     const tagged = await readSuggestions();
@@ -1962,27 +1962,27 @@ try {
   await caseRun("grid-cta-skeleton-flow", { width: 1440, height: 900 }, async (page, stage) => {
     const readCta = () => page.evaluate(() => {
       const grid = document.querySelector("[data-project-grid]");
-      const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-      const cta = document.querySelector("[data-advertising-grid-cta]");
-      const frames = [...(skeleton?.querySelectorAll("[data-advertising-cta-frame]") || [])];
+      const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+      const cta = document.querySelector("[data-masonry-grid-cta]");
+      const frames = [...(skeleton?.querySelectorAll("[data-masonry-cta-frame]") || [])];
       const gridRect = grid?.getBoundingClientRect();
       const ctaRect = cta?.getBoundingClientRect();
       const frameStates = frames.map((node) => {
         const rect = node.getBoundingClientRect();
-        const surface = node.querySelector(".advertising-grid__cta-surface");
-        const flow = node.querySelector("[data-advertising-flow-preset]");
+        const surface = node.querySelector(".masonry-grid__cta-surface");
+        const flow = node.querySelector("[data-masonry-flow-preset]");
         return {
-          column: Number(node.dataset.advertisingCtaColumn),
-          span: Number(node.dataset.advertisingCtaSpan),
-          depth: Number(node.dataset.advertisingCtaDepth),
-          ratioBand: node.dataset.advertisingCtaRatioBand,
+          column: Number(node.dataset.masonryCtaColumn),
+          span: Number(node.dataset.masonryCtaSpan),
+          depth: Number(node.dataset.masonryCtaDepth),
+          ratioBand: node.dataset.masonryCtaRatioBand,
           height: rect.height,
           left: rect.left - gridRect.left,
           maskImage: getComputedStyle(node).maskImage,
           opacity: Number(getComputedStyle(node).opacity),
-          targetOpacity: Number(getComputedStyle(node).getPropertyValue("--advertising-cta-frame-opacity")),
+          targetOpacity: Number(getComputedStyle(node).getPropertyValue("--masonry-cta-frame-opacity")),
           borderWidth: surface ? getComputedStyle(surface).borderTopWidth : null,
-          flowPreset: flow?.dataset.advertisingFlowPreset || null,
+          flowPreset: flow?.dataset.masonryFlowPreset || null,
           flowBackend: flow?.tagName || null,
           inView: rect.bottom > 0 && rect.top < innerHeight,
           flowFilter: flow ? getComputedStyle(flow).filter : null,
@@ -1990,14 +1990,14 @@ try {
           width: rect.width,
         };
       });
-      const visiblePhotos = [...(grid?.querySelectorAll('[role="listitem"][data-advertising-card]') || [])]
+      const visiblePhotos = [...(grid?.querySelectorAll('[role="listitem"][data-masonry-card]') || [])]
         .filter((node) => !node.hidden);
       return {
-        columns: Number(skeleton?.dataset.advertisingCtaColumns),
-        ctaCount: document.querySelectorAll("[data-advertising-grid-cta]").length,
+        columns: Number(skeleton?.dataset.masonryCtaColumns),
+        ctaCount: document.querySelectorAll("[data-masonry-grid-cta]").length,
         ctaTop: ctaRect.top - gridRect.top,
         ctaBottom: ctaRect.bottom - gridRect.top,
-        realPhotoBottom: Number(skeleton.dataset.advertisingCtaRealBottom),
+        realPhotoBottom: Number(skeleton.dataset.masonryCtaRealBottom),
         ctaBackground: getComputedStyle(cta).backgroundColor,
         sameSection: cta.parentElement === grid.parentElement,
         ctaText: cta?.querySelector("h2")?.textContent?.replace(/\s+/g, " ").trim(),
@@ -2008,16 +2008,16 @@ try {
         interactiveDescendants: skeleton?.querySelectorAll("a,button,input,select,textarea,[tabindex]").length ?? -1,
         listItems: visiblePhotos.length,
         photoSetSize: Number(visiblePhotos[0]?.getAttribute("aria-setsize")),
-        semanticIntruders: grid?.querySelectorAll('[role="listitem"]:not([data-advertising-card])').length || 0,
-        ready: skeleton?.dataset.advertisingCtaReady === "true",
-        signature: skeleton?.dataset.advertisingCtaSignature || null,
+        semanticIntruders: grid?.querySelectorAll('[role="listitem"]:not([data-masonry-card])').length || 0,
+        ready: skeleton?.dataset.masonryCtaReady === "true",
+        signature: skeleton?.dataset.masonryCtaSignature || null,
         // Kính dạng cung trên grid section sở hữu blur và trắng ở biên (glass-surface.md R2-R3).
         skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
           hidden: glass.hidden,
           tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
           blur: getComputedStyle([...glass.querySelectorAll(".glass-surface__step")].at(-1)).backdropFilter,
         })({}),
-        skeletonIsTile: skeleton?.classList.contains("advertising-tile") ?? null,
+        skeletonIsTile: skeleton?.classList.contains("masonry-card") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         viewportWidth: innerWidth,
         // Skeleton container cắt frame của nó (overflow hidden), nên paint kết thúc ở đáy container.
@@ -2075,7 +2075,7 @@ try {
         stage(`matrix-${locale}-${width}`);
         await page.setViewportSize({ width, height: width < 500 ? 844 : 900 });
         await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
-        await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+        await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
         const state = await readCta();
         assertCta(state, `${locale}-${width}`);
         assert.equal(state.ctaText, locale === "en" ? "The next mark for your brand" : "Dấu ấn tiếp theo dành cho thương hiệu của bạn");
@@ -2086,10 +2086,10 @@ try {
     stage("filter-resize-recompute");
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const initial = await readCta();
     const titleMotion = await page.evaluate(async () => {
-      const cta = document.querySelector("[data-advertising-grid-cta]");
+      const cta = document.querySelector("[data-masonry-grid-cta]");
       const title = cta.querySelector("h2");
       const lines = [...title.querySelectorAll(".motion-line")];
       const before = lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42);
@@ -2113,34 +2113,34 @@ try {
     await page.screenshot({ path: path.join(output, "cta-overlay-desktop.png") });
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.evaluate(() => {
-      document.querySelector("[data-advertising-cta-frame]").dataset.scrollIdentity = "retained";
+      document.querySelector("[data-masonry-cta-frame]").dataset.scrollIdentity = "retained";
       window.dispatchEvent(new Event("scroll"));
     });
     await page.evaluate(frame);
-    assert.equal(await page.locator('[data-advertising-cta-frame]').first().getAttribute("data-scroll-identity"), "retained", "scroll rebuilt unchanged skeleton nodes");
-    await page.locator('[data-advertising-filter="displays-booths"]').click();
-    await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, initial.signature);
+    assert.equal(await page.locator('[data-masonry-cta-frame]').first().getAttribute("data-scroll-identity"), "retained", "scroll rebuilt unchanged skeleton nodes");
+    await page.locator('[data-masonry-filter="displays-booths"]').click();
+    await page.waitForFunction((signature) => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature !== signature, initial.signature);
     // CTA trượt 0.4s cùng card về chỗ mới sau filter (owner 10/10); chỉ đo khi lượt trượt đã xong.
-    await page.waitForFunction(() => document.querySelector("[data-advertising-grid-cta]").getAnimations().length === 0);
+    await page.waitForFunction(() => document.querySelector("[data-masonry-grid-cta]").getAnimations().length === 0);
     const filtered = await readCta();
     assertCta(filtered, "filtered");
     assert.notEqual(filtered.signature, initial.signature, "filter did not recompute CTA skeleton");
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.waitForFunction((columns) => Number(document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaColumns) !== columns, filtered.columns);
-    await page.waitForFunction(() => document.querySelector("[data-advertising-grid-cta]").getAnimations().length === 0);
+    await page.waitForFunction((columns) => Number(document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaColumns) !== columns, filtered.columns);
+    await page.waitForFunction(() => document.querySelector("[data-masonry-grid-cta]").getAnimations().length === 0);
     const resized = await readCta();
     assertCta(resized, "resized");
 
     stage("keyboard-reduced-motion");
-    const ctaLink = page.locator("[data-advertising-grid-cta] a");
+    const ctaLink = page.locator("[data-masonry-grid-cta] a");
     await ctaLink.focus();
     assert.equal(await ctaLink.evaluate((node) => document.activeElement === node), true, "CTA link is not keyboard focusable");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const reduced = await page.evaluate(() => {
-      const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
-      const frame = document.querySelector("[data-advertising-cta-frame]");
+      const copy = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
+      const frame = document.querySelector("[data-masonry-cta-frame]");
       return { copyOpacity: getComputedStyle(copy).opacity, frameTransition: getComputedStyle(frame).transitionDuration };
     });
     assert.equal(reduced.copyOpacity, "1", "reduced motion hid CTA copy");
@@ -2149,29 +2149,29 @@ try {
     stage("detail-cleanup-restore");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
+    await page.locator(`[data-masonry-card="${A}"] > a`).click();
     await ready(page, A);
     // Detail dùng lại batch cho cuối related (CTA R9): batch rời grid, nằm trong canvas detail.
     assert.deepEqual(await page.evaluate(() => {
-      const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-      return { host: skeleton?.dataset.advertisingCtaHost, inGrid: Boolean(skeleton?.closest("[data-project-grid]")),
-        inCanvas: Boolean(skeleton?.closest("[data-advertising-photo-canvas]")) };
+      const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+      return { host: skeleton?.dataset.masonryCtaHost, inGrid: Boolean(skeleton?.closest("[data-project-grid]")),
+        inCanvas: Boolean(skeleton?.closest("[data-detail-canvas]")) };
     }), { host: "detail", inGrid: false, inCanvas: true }, "detail retained grid CTA skeleton");
     await page.goBack();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const restored = await readCta();
     assertCta(restored, "restored");
     return { matrix, initial, titleMotion, filtered, resized, reduced, restored };
   });
 
   await caseRun("square-controls-hover-and-return", { width: 1440, height: 900 }, async (page, stage) => {
-    const assertNoBack = async () => assert.equal(await page.locator("[data-advertising-photo-return]").count(), 0, "standalone Back must be removed");
+    const assertNoBack = async () => assert.equal(await page.locator("[data-detail-return]").count(), 0, "standalone Back must be removed");
     stage("parent-no-back");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await assertNoBack();
     stage("open-B"); await openA(page); await chooseB(page); await ready(page, B);
-    const expandControl = page.locator("[data-advertising-photo-expand]");
+    const expandControl = page.locator("[data-detail-expand]");
     await assertNoBack();
 
     const compact = await expandControl.evaluate((node) => ({
@@ -2212,10 +2212,10 @@ try {
     await page.emulateMedia({ reducedMotion: "no-preference" });
 
     stage("viewer-controls"); await expandControl.click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
     await assertNoBack();
     const viewerControls = await page.evaluate(() => [...document.querySelectorAll(
-      "[data-advertising-photo-close], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]",
+      "[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]",
     )].map((node) => ({
       disabled: node.disabled,
       hidden: node.hidden,
@@ -2227,18 +2227,18 @@ try {
       assert(Math.abs(control.rect.width - 36) <= 0.1 && Math.abs(control.rect.height - 36) <= 0.1);
       assert.equal(control.radius, "0px"); assert.equal(control.stroke, "2px");
     }
-    const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
+    const zoomOut = page.locator("[data-detail-zoom-out]");
     const disabledBackground = await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor);
     await zoomOut.hover(); await page.evaluate(frame); await settleHover(zoomOut);
     assert.equal(await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor), disabledBackground,
       "disabled zoom-out received active hover treatment");
-    const zoomIn = page.locator("[data-advertising-photo-zoom-in]");
+    const zoomIn = page.locator("[data-detail-zoom-in]");
     const zoomBackground = await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor);
     await zoomIn.hover(); await page.evaluate(frame); await settleHover(zoomIn);
     assert.notEqual(await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor), zoomBackground);
-    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
-    await page.locator("[data-advertising-photo-close]").click();
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    assert.equal(await page.locator("[data-detail-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
+    await page.locator("[data-detail-close]").click();
+    await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");
     await assertNoBack();
 
@@ -2246,7 +2246,7 @@ try {
     await page.goBack(); await ready(page, A); await assertNoBack();
     await page.goBack();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, A);
     await assertNoBack();
     await page.goForward(); await ready(page, A);
     await page.goForward(); await ready(page, B);
@@ -2254,7 +2254,7 @@ try {
     stage("navbar-return-current-photo");
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, B);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, B);
     await assertNoBack();
 
     stage("direct-photo-navbar-fallback");
@@ -2262,7 +2262,7 @@ try {
     await ready(page, B);
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, B);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, B);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     await assertNoBack();
 
@@ -2287,21 +2287,21 @@ try {
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id)
         .scrollIntoView({ block: "nearest", behavior: "instant" }), A);
-      await page.locator(`[data-advertising-card="${A}"] > a`).click();
+      await page.locator(`[data-masonry-card="${A}"] > a`).click();
       await ready(page, A);
     };
     const navbarReturn = async (focusId) => {
       await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
       await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-        && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, focusId);
+        && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, focusId);
       assert.equal(new URL(page.url()).pathname, `/vi/advertising-products/${groupSlug}/`, "navbar keeps the picked group in the URL");
-      assert.equal(await page.locator('[data-advertising-filter][aria-current="true"]').getAttribute("data-advertising-filter"), group,
+      assert.equal(await page.locator('[data-masonry-filter][aria-current="true"]').getAttribute("data-masonry-filter"), group,
         "the picked group stays active on the filter rail");
-      const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-        .map((node) => node.dataset.advertisingCard));
+      const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+        .map((node) => node.dataset.masonryCard));
       assert(cards.length && cards.every((id) => matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), group)), `masonry only shows ${group}`);
       return page.evaluate((id) => {
-        const rect = document.querySelector(`[data-advertising-card="${id}"]`).getBoundingClientRect();
+        const rect = document.querySelector(`[data-masonry-card="${id}"]`).getBoundingClientRect();
         return { top: rect.top, height: rect.height };
       }, focusId);
     };
@@ -2315,8 +2315,8 @@ try {
     stage("related-in-group-centered");
     await openFromGroup();
     // Mọi ảnh kiosk-posm có sản phẩm chính trong cụm của A.
-    const inGroup = page.locator(`[data-advertising-related-card^="${A.replace(/-\d+$/, "")}-"] > a`).first();
-    const C = await inGroup.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
+    const inGroup = page.locator(`[data-masonry-related-card^="${A.replace(/-\d+$/, "")}-"] > a`).first();
+    const C = await inGroup.evaluate((node) => node.parentElement.dataset.masonryRelatedCard);
     await inGroup.scrollIntoViewIfNeeded();
     await inGroup.click();
     await ready(page, C);
@@ -2335,7 +2335,7 @@ try {
     await ready(page, A);
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
+      && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, A);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     return { group, origin, C };
   });
@@ -2343,10 +2343,10 @@ try {
   await caseRun("skeleton-global-boundary-fade", { width: 1440, height: 900 }, async (page, stage) => {
     stage("grid-skeleton-only");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const state = await page.evaluate(() => {
-      const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-      const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
+      const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+      const frames = [...document.querySelectorAll("[data-masonry-cta-frame]")];
       const stateOf = (node) => {
         const style = getComputedStyle(node);
         return {
@@ -2361,9 +2361,9 @@ try {
         glass: glass && { hidden: glass.hidden, tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage },
         frames: frames.map((frame) => ({
           ...stateOf(frame),
-          surface: stateOf(frame.querySelector(".advertising-grid__cta-surface")),
+          surface: stateOf(frame.querySelector(".masonry-grid__cta-surface")),
         })),
-        photoBackdrop: document.querySelector("[data-advertising-photo-background]")?.getAnimations().length ?? 0,
+        photoBackdrop: document.querySelector("[data-detail-background]")?.getAnimations().length ?? 0,
       };
     });
     assert(state.glass?.hidden === false && /radial-gradient/i.test(state.glass.tint),

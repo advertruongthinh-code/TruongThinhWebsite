@@ -49,8 +49,8 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(`${baseUrl}/vi/advertising-products/`);
     await ready(page);
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile a[href*='/p/']"));
-    const photo = await page.locator("[data-project-grid] .advertising-tile a[href*='/p/']").first().getAttribute("href");
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card a[href*='/p/']"));
+    const photo = await page.locator("[data-project-grid] .masonry-card a[href*='/p/']").first().getAttribute("href");
     await page.evaluate(href => window.TruongThinhMasonry.navigateQuery(href), photo);
     await page.waitForFunction(() => /\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
     await page.locator("[data-menu-open]").click();

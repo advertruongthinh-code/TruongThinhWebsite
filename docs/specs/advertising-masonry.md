@@ -55,15 +55,15 @@ Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products 
 `h1` hai dòng "để thương hiệu / luôn trong tầm mắt" / "Keep your brand / always in sight", dòng 2 đậm 700 nghiêng ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), rail filter
 R3, scroll cue cách đáy như [Hero](../../design-system/components/Hero/README.md); trên 1024px dòng 2 neo mép phải
 khung); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
-`[data-advertising-cta-skeleton]` và CTA `section.detail-cta[data-advertising-grid-cta]` ("Dấu ấn tiếp theo / dành cho
-thương hiệu của bạn", link Zalo "Trao đổi ý tưởng"); `section[data-advertising-photo-view][hidden]` là detail. Khi
-duyệt masonry (không có `photo`), `body` có `is-advertising-browse`: floating CTA ẩn, footer không có khoảng phía trên.
+`[data-masonry-cta-skeleton]` và CTA `section.detail-cta[data-masonry-grid-cta]` ("Dấu ấn tiếp theo / dành cho
+thương hiệu của bạn", link Zalo "Trao đổi ý tưởng"); `section[data-detail-view][hidden]` là detail. Khi
+duyệt masonry (không có `photo`), `body` có `is-masonry-browse`: floating CTA ẩn, footer không có khoảng phía trên.
 
 ```gherkin
 Given /en/advertising-products/ tải trực tiếp
 When trang dựng xong
 Then title là "Advertising products — Trường Thịnh", h1 là "Keep your brand / always in sight"
-And body có is-advertising-browse, floating CTA không hiện
+And body có is-masonry-browse, floating CTA không hiện
 ```
 
 ### R2. Catalog và artifact
@@ -90,7 +90,7 @@ Then validator từ chối pool và nêu id trùng
 
 ### R3. Filter
 
-Rail `.project-filters` (`role="group"`) có bảy link `[data-advertising-filter]`: `all` ("Tất cả" / "All", về URL gốc)
+Rail `.project-filters` (`role="group"`) có bảy link `[data-masonry-filter]`: `all` ("Tất cả" / "All", về URL gốc)
 rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML, `href` là trang cụm theo slug locale); mục đang chọn có `aria-current="true"`. Cụm lấy card có ít nhất một sản phẩm
 thuộc cụm, xếp theo hạng ([taxonomy R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)). `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); đổi filter ghi path trang của filter đó theo slug locale (đổi `document.title` và kicker), sản phẩm chưa có trang ghi path trang cụm kèm `?category=` ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card)).
 Click chính không phím bổ trợ: không tải document, không request, không cuộn bằng code; URL đổi bằng `replaceState`
@@ -149,7 +149,7 @@ giữa, card đầu mỗi cột ở top 0; card hai cột phủ thêm cột kề
 hơn; mép ảnh và mép card không lặp nhịp gạch (lượng tử lệch theo `0.125 × bề rộng card`, cấm `ABABAB` và ba mức giống
 nhau liền nhau). Hết nửa ngân sách 300.000 phép thử thì pha dự phòng cho phép thẳng hàng, không bao giờ chồng card.
 Cùng dataset, filter, bề rộng và thứ tự cho cùng tọa độ (`coordinateHash`). Lỗi đầu vào (`invalid-input`) hoặc hết
-ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-advertising-layout-status="failed"`; pool không đủ
+ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-masonry-layout-status="failed"`; pool không đủ
 nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter hoặc bề rộng: card bị loại ẩn ngay, card còn lại và card mới đi
 từ vị trí cũ tới vị trí mới bằng `masonry-layout` ([motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
 dựng đầu card đi từ đầu cột. Card và khung skeleton ([R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)) trượt,
@@ -165,7 +165,7 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 
 ### R7. Ảo hóa và bàn phím
 
-Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một [sân masonry](masonry.md#r4-sân-masonry). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ.
+Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một [sân masonry](masonry.md#r4-sân-masonry). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-detail` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ.
 
 ```gherkin
 Given masonry All 285 card (tính từ catalog), đang ở đầu trang
@@ -175,8 +175,8 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 ### R8. Card và ảnh trong card
 
-Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không caption chiếm chỗ: tên card
-(`figcaption.advertising-tile__title`, `aria-hidden`) nằm trên trái trong ảnh, chuột thật hiện khi hover, cảm ứng không hiện ([media-card R3](media-card.md#r3-đổi-media-trên-card)), alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
+Card là `figure.masonry-card[data-masonry-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không caption chiếm chỗ: tên card
+(`figcaption.masonry-card__title`, `aria-hidden`) nằm trên trái trong ảnh, chuột thật hiện khi hover, cảm ứng không hiện ([media-card R3](media-card.md#r3-đổi-media-trên-card)), alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes` ghi bằng bề rộng card từ solver, không `auto` để khỏi đo từng ảnh). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì ảnh hiện mờ trên nền màu chủ đạo, ảnh về thì nét lại trong `0.6s`; ảnh đã có (cache, tải trước,
 vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh; hover chuột hiện lớp tối Pinterest và tên card cùng lúc, làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
@@ -207,7 +207,7 @@ Then hero không chạy lại, container giữ nguyên
 `detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), Masonry 4.2.2, LazySizes
 5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `masonry/runtime.mjs`.
 Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v17`, nhóm không rỗng, card hợp lệ), cần Masonry.
-Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-advertising-fallback="failed"`, html có
+Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-masonry-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
 chữ thô (CSS chỉ áp trong `@media (scripting: none)`).
@@ -215,7 +215,7 @@ chữ thô (CSS chỉ áp trong `@media (scripting: none)`).
 ```gherkin
 Given Masonry 4.2.2 không tải được khi vào thẳng /vi/advertising-products/
 When hết thời gian chờ
-Then masonry ẩn, container có data-advertising-fallback="failed", không còn markup thô
+Then masonry ẩn, container có data-masonry-fallback="failed", không còn markup thô
 ```
 
 ### R11. Cuối masonry
@@ -246,8 +246,8 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-project-grid]`, `[data-advertising-card]`, `[data-advertising-filter]`, `body.is-advertising-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
-| DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
+| DOM hook | `[data-project-grid]`, `[data-masonry-card]`, `[data-masonry-filter]`, `body.is-masonry-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
+| DOM hook | `data-masonry-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-masonry-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
 | Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới). Artifact mang `layoutCacheFilterUrl`, `layoutCacheBandUrl` tới cache bố cục (R6): `layout-cache/<dải>/<filter>.mjs` tải trước card đầu: script inline trong `<head>` mỗi trang lưới (build sinh, ngưỡng dải lấy từ `LAYOUT_BANDS`; trang card `/p/` và trang Công trình không có) chèn `modulepreload` ngay khi trình duyệt đọc head, `preloadMasonry` dùng chung lượt import đó, `layout-cache/<dải>.mjs` (mọi filter của dải) tải cùng lúc file detail; trang Công trình nhúng `layouts` trong artifact |
 | Hàm public | `compileMasonryLayout`, `columnsForWidth`, `masonrySpacing`, `getVirtualWindow`, `isWideMedia` (`masonry/layout.mjs`); `createBrowseSeed`, `shuffleWithSeed` (`masonry/random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); `buildLayoutCache`, `LAYOUT_BANDS` (`masonry/packer.mjs`, chỉ build gọi, trang public không tải) và `replayLayout`, `stackLayout`, `bandKey`, `poolSignature` (`masonry/replay.mjs`) cho lưới chính; solver related khi mở detail chạy trong Worker `masonry/layout-worker.mjs` (mở lúc tải trước detail, trang card mở lúc preload; mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module; trang Công trình không mở), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |

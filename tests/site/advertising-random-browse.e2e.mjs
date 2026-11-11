@@ -12,7 +12,7 @@ const browser = await chromium.launch({ headless: true });
 const results = [], errors = [];
 const ready = async page => {
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.() && window.TruongThinhMasonry.getBrowseState().seed);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+  await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
   // Direct-load veil phủ trang và header cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
 };
@@ -28,11 +28,11 @@ const stripBackdropFilter = (page, engine) => engine === webkit ? page.addInitSc
 }) : Promise.resolve();
 const read = page => page.evaluate(() => ({
   browse: window.TruongThinhMasonry.getBrowseState(),
-  ids: [...document.querySelectorAll("[data-advertising-card]")].map(node => node.dataset.advertisingCard),
-  positions: [...document.querySelectorAll("[data-advertising-card]")].map(node => [node.dataset.advertisingCard, node.style.left, node.style.top]),
-  hash: document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature,
-  filters: [...document.querySelectorAll(".project-filters [data-advertising-filter]")]
-    .map(node => [node.dataset.advertisingFilter, node.offsetLeft, node.offsetTop]),
+  ids: [...document.querySelectorAll("[data-masonry-card]")].map(node => node.dataset.masonryCard),
+  positions: [...document.querySelectorAll("[data-masonry-card]")].map(node => [node.dataset.masonryCard, node.style.left, node.style.top]),
+  hash: document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature,
+  filters: [...document.querySelectorAll(".project-filters [data-masonry-filter]")]
+    .map(node => [node.dataset.masonryFilter, node.offsetLeft, node.offsetTop]),
 }));
 const filterOrder = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)];
 try {
@@ -46,7 +46,7 @@ try {
   const originalPositions = direct.positions;
   assert.deepEqual(direct.filters.map(([slug]) => slug), filterOrder, "runtime keeps All and the six filters in canonical order");
   for (const category of ADVERTISING_CATEGORIES) {
-    await page.locator('[data-advertising-filter="' + category.slug + '"]').click();
+    await page.locator('[data-masonry-filter="' + category.slug + '"]').click();
     await page.waitForFunction(category => window.TruongThinhMasonry.getBrowseState().category === category, category.slug);
     await page.waitForTimeout(700);
     const sample = await read(page);
@@ -56,25 +56,25 @@ try {
     assert.deepEqual(sample.filters, direct.filters, "filter controls keep order and position");
     results.push({ case: "filter", category: category.slug, seed: sample.browse.seed, rendered: sample.ids.length });
   }
-  await page.locator('[data-advertising-filter="all"]').click();
+  await page.locator('[data-masonry-filter="all"]').click();
   await page.waitForTimeout(750);
   assert.deepEqual((await read(page)).positions, originalPositions, "filter round trip preserves the entry layout");
   const hero = (await read(page)).ids[0];
-  await page.locator('[data-advertising-card="' + hero + '"] a').click();
+  await page.locator('[data-masonry-card="' + hero + '"] a').click();
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry.getBrowseState().photo));
   assert.equal((await read(page)).browse.seed, direct.browse.seed);
   await page.goBack();
   await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
   assert.equal((await read(page)).browse.seed, direct.browse.seed);
   results.push({ case: "photo-back", hero, seed: direct.browse.seed });
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]")
+  await page.waitForFunction(() => !document.querySelector("[data-detail-morph]")
     && getComputedStyle(document.body).overflow !== "hidden");
   const pendingTarget = await page.evaluate(() => {
     window.__pendingBrowseScrollTime = null;
     window.addEventListener("scroll", () => { window.__pendingBrowseScrollTime = performance.now(); }, { once: true });
     // html có scroll-behavior: smooth; cuộn tức thì để đọc link đang hiện ngay trong frame này.
     window.scrollTo({ top: 900, behavior: "instant" });
-    const link = [...document.querySelectorAll('[data-advertising-card] a')].find(node => {
+    const link = [...document.querySelectorAll('[data-masonry-card] a')].find(node => {
       const r = node.getBoundingClientRect(); return r.top >= 10 && r.top < innerHeight - 100;
     });
     if (!link) throw Error("visible link required for pending-scroll navigation");
@@ -91,10 +91,10 @@ try {
   assert.ok(Math.abs((await read(page)).browse.grid.scrollY - pendingClick.y) <= 2, "photo captures the latest scroll synchronously");
   await page.goBack();
   await page.waitForFunction(y => !window.TruongThinhMasonry.getBrowseState().photo
-    && !document.querySelector("[data-advertising-photo-morph]") && Math.abs(scrollY - y) <= 2, pendingClick.y);
+    && !document.querySelector("[data-detail-morph]") && Math.abs(scrollY - y) <= 2, pendingClick.y);
   results.push({ case: "pending-scroll-photo-back", ...pendingClick });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]")
+  await page.waitForFunction(() => !document.querySelector("[data-detail-morph]")
     && getComputedStyle(document.documentElement).overflow !== "hidden"
     && getComputedStyle(document.body).overflow !== "hidden");
   await page.keyboard.press("Control+Home");

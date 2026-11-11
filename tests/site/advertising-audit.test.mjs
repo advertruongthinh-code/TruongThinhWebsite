@@ -10,7 +10,7 @@ test("malformed card URLs fall back without breaking catalog initialization", ()
   const source = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
   const start = source.indexOf("const ADVERTISING_CARD_PATH_PATTERN");
   const end = source.indexOf("const skeletonNativeContexts", start);
-  const photoId = runInNewContext(`${source.slice(start, end)}; advertisingPhotoId`);
+  const photoId = runInNewContext(`${source.slice(start, end)}; detailId`);
   assert.equal(photoId(new URL("https://site.test/vi/advertising-products/p/%E0/")), null);
   assert.equal(photoId(new URL("https://site.test/en/advertising-products/p/card-1/")), "card-1");
   assert.equal(photoId(new URL("https://site.test/vi/advertising-products/?photo=card-2")), "card-2");

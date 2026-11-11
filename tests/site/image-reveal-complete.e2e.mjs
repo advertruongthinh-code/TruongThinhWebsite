@@ -77,20 +77,20 @@ try {
 
   // Viewer: hiện ảnh primary đang có, chỉ đổi sang bản gốc khi bản gốc đã tải xong.
   // Card có bản gốc rộng hơn 1600 nên primary ở 1440px lấy cỡ 1600, viewer phải đổi sang bản gốc.
-  await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")]
+  await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")]
     // data-srcset có từ build; srcset chỉ có sau lazysizes, proxy chậm thì card đầu chưa chắc có (không phụ thuộc thứ tự nội dung).
     .find((card) => card.querySelector("img")?.getAttribute("data-srcset")?.includes("-1600.jxl")).querySelector("a").click());
   await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-image]");
-    return image?.complete && image.naturalWidth && !document.querySelector("[data-advertising-photo-loading=true]");
+    const image = document.querySelector("[data-detail-image]");
+    return image?.complete && image.naturalWidth && !document.querySelector("[data-detail-loading=true]");
   }, null, { timeout: 60_000 });
-  const primary = await page.evaluate(() => new URL(document.querySelector("[data-advertising-photo-image]").currentSrc).pathname);
+  const primary = await page.evaluate(() => new URL(document.querySelector("[data-detail-image]").currentSrc).pathname);
   await page.evaluate(() => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
+    const image = document.querySelector("[data-detail-expanded-image]");
     window.__viewerTrace = [];
     new MutationObserver(() => window.__viewerTrace.push({ src: new URL(image.src).pathname, complete: image.complete }))
       .observe(image, { attributes: true, attributeFilter: ["src"] });
-    document.querySelector("[data-advertising-photo-expand]").click();
+    document.querySelector("[data-detail-expand]").click();
   });
   await page.waitForFunction(() => window.__viewerTrace.length >= 2, null, { timeout: 60_000 });
   const viewer = await page.evaluate(() => window.__viewerTrace);

@@ -12,7 +12,7 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
 }
 
 // Masonry 4.2.2 chỉ lo motion: vị trí lấy từ `positions` đã tính, không tự xếp, không tự layout khi resize.
-function createMasonry(grid, positions, getHeight, { itemSelector = ".advertising-tile", getId = (node) => node.dataset.advertisingCard } = {}) {
+function createMasonry(grid, positions, getHeight, { itemSelector = ".masonry-card", getId = (node) => node.dataset.masonryCard } = {}) {
   const masonry = new window.Masonry(grid, {
     itemSelector,
     initLayout: false,
@@ -147,7 +147,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
         const node = host.ensure(placement, fragment);
         // Card gắn lại đã có ảnh nên không cần card tạm để crossfade.
         if (reattached) host.ghosts.drop(id);
-        else node.advertisingGhost = host.ghosts.take(id);
+        else node.masonryGhost = host.ghosts.take(id);
         mountMs += performance.now() - start;
         created.push([node, placement]);
       }

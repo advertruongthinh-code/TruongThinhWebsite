@@ -139,12 +139,12 @@ function screenshotName(value) {
 
 async function waitForPhoto(page) {
   await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-image]");
-    const primary = document.querySelector("[data-advertising-photo-primary]");
-    const photoView = document.querySelector("[data-advertising-photo-view]");
-    const canvas = document.querySelector("[data-advertising-photo-canvas]");
-    const info = document.querySelector("[data-advertising-photo-info]");
-    const hero = document.querySelector("[data-advertising-photo-hero]");
+    const image = document.querySelector("[data-detail-image]");
+    const primary = document.querySelector("[data-detail-primary]");
+    const photoView = document.querySelector("[data-detail-view]");
+    const canvas = document.querySelector("[data-detail-canvas]");
+    const info = document.querySelector("[data-detail-info]");
+    const hero = document.querySelector("[data-detail-hero]");
     return Boolean(image && primary && image.complete && image.naturalWidth > 0 && primary.getBoundingClientRect().width > 0);
   });
 }
@@ -153,10 +153,10 @@ async function settleGeometry(page, stage, settlements, { requireScrollStable = 
   const evidence = await page.evaluate(async (includeScroll) => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const snapshot = () => {
-      const image = document.querySelector("[data-advertising-photo-image]")?.getBoundingClientRect();
-      const primary = document.querySelector("[data-advertising-photo-primary]")?.getBoundingClientRect();
+      const image = document.querySelector("[data-detail-image]")?.getBoundingClientRect();
+      const primary = document.querySelector("[data-detail-primary]")?.getBoundingClientRect();
       const header = document.querySelector("[data-site-header]")?.getBoundingClientRect();
-      const related = [...document.querySelectorAll("[data-advertising-related-card]")]
+      const related = [...document.querySelectorAll("[data-masonry-related-card]")]
         .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0);
       return {
         image: image && { width: image.width, height: image.height, left: image.left, right: image.right },
@@ -183,7 +183,7 @@ async function settleGeometry(page, stage, settlements, { requireScrollStable = 
       await frame();
       last = snapshot();
       const ready = last.fonts !== "loading" && last.movingRelated === 0
-        && Boolean(document.querySelector("[data-advertising-photo-image]")?.complete)
+        && Boolean(document.querySelector("[data-detail-image]")?.complete)
         && !document.body.classList.contains("is-transitioning");
       const signature = JSON.stringify(last);
       stableFrames = ready && signature === previous ? stableFrames + 1 : 1;
@@ -213,7 +213,7 @@ async function movePointerToScrollContent(page) {
     for (const [x, y] of candidates) {
       const hit = document.elementFromPoint(x, y);
       if (hit?.closest("[data-scroll-container]") === container
-        && !hit.closest("[data-advertising-photo-info]")) return { x, y };
+        && !hit.closest("[data-detail-info]")) return { x, y };
     }
     return null;
   });
@@ -232,7 +232,7 @@ async function wheelUntilExpandVisible(page, label, settlements) {
     // Wheel về phía nút: trang smooth-scroll giữ scrollY native ở 0, nên click của locator
     // với scrollIntoView native sẽ dịch trang dưới Locomotive thay vì cuộn như người dùng.
     const offset = await page.evaluate(() => {
-      const rect = document.querySelector("[data-advertising-photo-expand]")?.getBoundingClientRect();
+      const rect = document.querySelector("[data-detail-expand]")?.getBoundingClientRect();
       if (!rect) return null;
       if (rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth) return 0;
       return rect.top + rect.height / 2 - innerHeight / 2;
@@ -251,13 +251,13 @@ async function ensureParentMediaHydrated(page, label, settlements) {
     let stableFrames = 0;
     for (let index = 0; index < 180; index += 1) {
       await frame();
-      const nodes = [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")];
+      const nodes = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")];
       const animationsRunning = nodes.some((node) => node.getAnimations({ subtree: true })
         .some((animation) => animation.playState === "running" || animation.playState === "pending"));
       const signature = JSON.stringify(nodes.map((node) => {
         const rect = node.getBoundingClientRect();
         const style = getComputedStyle(node);
-        return [node.dataset.advertisingCard, node.clientWidth, style.width, style.transform, rect.left, rect.top, rect.width, rect.height];
+        return [node.dataset.masonryCard, node.clientWidth, style.width, style.transform, rect.left, rect.top, rect.width, rect.height];
       }));
       const ready = nodes.length > 0 && !animationsRunning && !document.body.classList.contains("is-transitioning");
       stableFrames = ready && signature === previous ? stableFrames + 1 : 1;
@@ -266,9 +266,9 @@ async function ensureParentMediaHydrated(page, label, settlements) {
     }
     return false;
   });
-  const card = page.locator("[data-project-grid] [data-advertising-card]").first();
+  const card = page.locator("[data-project-grid] [data-masonry-card]").first();
   await card.scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
+  await page.waitForFunction(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]
     .some((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0));
   await settleGeometry(page, `${label}:parent-media-hydrated`, settlements, { requireScrollStable: true });
 }
@@ -276,22 +276,22 @@ async function ensureParentMediaHydrated(page, label, settlements) {
 async function layoutEvidence(page) {
   return page.evaluate(() => {
     const serializeRect = (node) => node?.getBoundingClientRect().toJSON() || null;
-    const image = document.querySelector("[data-advertising-photo-image]");
-    const hero = document.querySelector("[data-advertising-photo-hero]");
-    const frame = document.querySelector(".advertising-photo-view__hero-frame");
-    const primary = document.querySelector("[data-advertising-photo-primary]");
-    const photoView = document.querySelector("[data-advertising-photo-view]");
-    const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
-    const canvas = document.querySelector("[data-advertising-photo-canvas]");
-    const info = document.querySelector("[data-advertising-photo-info]");
+    const image = document.querySelector("[data-detail-image]");
+    const hero = document.querySelector("[data-detail-hero]");
+    const frame = document.querySelector(".detail-view__hero-frame");
+    const primary = document.querySelector("[data-detail-primary]");
+    const photoView = document.querySelector("[data-detail-view]");
+    const relatedGrid = document.querySelector("[data-detail-related-grid]");
+    const canvas = document.querySelector("[data-detail-canvas]");
+    const info = document.querySelector("[data-detail-info]");
     const header = document.querySelector("[data-site-header]");
-    const suggestion = document.querySelector("[data-advertising-photo-suggestion]");
-    const suggestionTitle = suggestion?.querySelector("[data-advertising-photo-related-title]");
-    const suggestionLinks = suggestion?.querySelector(".advertising-photo-view__suggestion-links");
-    const cta = [...document.querySelectorAll("[data-advertising-photo-cta]")]
+    const suggestion = document.querySelector("[data-detail-suggestion]");
+    const suggestionTitle = suggestion?.querySelector("[data-detail-related-title]");
+    const suggestionLinks = suggestion?.querySelector(".detail-view__suggestion-links");
+    const cta = [...document.querySelectorAll("[data-detail-cta]")]
       .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0 && node.getBoundingClientRect().height > 0);
     const primaryRect = primary?.getBoundingClientRect();
-    const related = [...document.querySelectorAll("[data-advertising-related-card]")]
+    const related = [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0)
       .map((node) => node.getBoundingClientRect());
     const relatedGridRect = relatedGrid?.getBoundingClientRect();
@@ -301,9 +301,9 @@ async function layoutEvidence(page) {
     const infoStyle = info && getComputedStyle(info);
     const titleStyle = suggestionTitle && getComputedStyle(suggestionTitle);
     const linksStyle = suggestionLinks && getComputedStyle(suggestionLinks);
-    const suggestionBanners = [...(suggestionLinks?.querySelectorAll(".advertising-photo-view__suggestion-link") || [])].map((link) => {
+    const suggestionBanners = [...(suggestionLinks?.querySelectorAll(".detail-view__suggestion-link") || [])].map((link) => {
       const bannerImage = link.querySelector("img");
-      const label = link.querySelector(".advertising-photo-view__suggestion-label");
+      const label = link.querySelector(".detail-view__suggestion-label");
       const linkStyle = getComputedStyle(link);
       const imageStyle = bannerImage && getComputedStyle(bannerImage);
       const labelStyle = label && getComputedStyle(label);
@@ -331,20 +331,20 @@ async function layoutEvidence(page) {
           scrollWidth: label.scrollWidth,
           scrollHeight: label.scrollHeight,
         } : null,
-        tag: link.dataset.advertisingSuggestionTag,
-        index: Number(link.dataset.advertisingSuggestionIndex),
+        tag: link.dataset.masonrySuggestionTag,
+        index: Number(link.dataset.masonrySuggestionIndex),
         pressed: link.getAttribute("aria-pressed"),
         backgroundColor: linkStyle.backgroundColor,
         overflow: linkStyle.overflow,
       };
     });
-    const relatedCards = [...document.querySelectorAll("[data-advertising-related-card]")]
+    const relatedCards = [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0)
       .map((node) => {
         const relatedImage = node.querySelector("img");
         const imageStyle = relatedImage && getComputedStyle(relatedImage);
         return {
-          id: node.dataset.advertisingRelatedCard,
+          id: node.dataset.masonryRelatedCard,
           rect: serializeRect(node),
           image: relatedImage && relatedImage.complete && relatedImage.naturalWidth > 0 ? {
             rect: serializeRect(relatedImage),
@@ -367,10 +367,10 @@ async function layoutEvidence(page) {
       infoRect: serializeRect(info),
       // Sàn info như measureInfo của runtime: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
       infoFloor: info ? (() => {
-        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-box]") && !node.hidden);
+        const controls = [...info.children].filter((node) => !node.matches("[data-detail-description-box]") && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => sum + node.offsetHeight
           + (Number.parseFloat(getComputedStyle(node).marginTop) || 0) + (Number.parseFloat(getComputedStyle(node).marginBottom) || 0), 0);
-        const description = info.querySelector("[data-advertising-photo-description]");
+        const description = info.querySelector("[data-detail-description]");
         const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight) || 0;
         return Math.ceil(controlsHeight + Math.min(3 * lineHeight, description.offsetHeight)
           + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
@@ -379,16 +379,16 @@ async function layoutEvidence(page) {
       frameRect: serializeRect(frame),
       headerRect: serializeRect(header),
       relatedGridRect: serializeRect(relatedGrid),
-      photoLayout: photoView?.dataset.advertisingPhotoLayout,
-      primarySpan: Number(photoView?.dataset.advertisingPrimarySpan),
-      relatedColumns: Number(relatedGrid?.dataset.advertisingRelatedColumns),
+      photoLayout: photoView?.dataset.detailLayout,
+      primarySpan: Number(photoView?.dataset.masonryPrimarySpan),
+      relatedColumns: Number(relatedGrid?.dataset.masonryRelatedColumns),
       primaryGap: primary ? Number.parseFloat(getComputedStyle(primary).gap) : null,
       clientWidth: document.documentElement.clientWidth,
       windowWidth: innerWidth,
       windowHeight: window.visualViewport?.height || innerHeight,
       headerCollapsedRowHeight: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")),
-      safeTop: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--advertising-safe-top")) || 0,
-      safeBottom: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--advertising-safe-bottom")) || 0,
+      safeTop: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--masonry-safe-top")) || 0,
+      safeBottom: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--masonry-safe-bottom")) || 0,
       scrollY,
       logicalScroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
       headerClasses: header?.className || "",
@@ -399,7 +399,7 @@ async function layoutEvidence(page) {
         overflowY: infoStyle.overflowY,
         // Số dòng mô tả đang thấy: chiều cao vùng cuộn chia line-height (chữ dài hơn thì cuộn bên trong).
         descriptionLines: (() => {
-          const scroller = info.querySelector("[data-advertising-photo-description-scroll]");
+          const scroller = info.querySelector("[data-detail-description-scroll]");
           return scroller ? scroller.clientHeight / Number.parseFloat(getComputedStyle(scroller).lineHeight) : null;
         })(),
         tabIndex: info.tabIndex,
@@ -556,8 +556,8 @@ function assertSuggestionAndRelated(evidence, label, expected, { textScale = 1 }
 }
 
 async function assertDescriptionKeyboardScroll(page, label) {
-  const info = page.locator("[data-advertising-photo-info]");
-  await page.locator("[data-advertising-photo-description]").evaluate((node) => {
+  const info = page.locator("[data-detail-info]");
+  await page.locator("[data-detail-description]").evaluate((node) => {
     node.textContent = node.textContent.repeat(30);
   });
   await info.focus();
@@ -567,21 +567,21 @@ async function assertDescriptionKeyboardScroll(page, label) {
   assert(before.scrollHeight > before.clientHeight + 1, `${label}: description fixture does not exercise capped overflow`);
   await page.keyboard.press("End");
   await page.waitForFunction(() => {
-    const node = document.querySelector("[data-advertising-photo-info]");
+    const node = document.querySelector("[data-detail-info]");
     return node && node.scrollTop > 0 && node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
   });
   closeTo(await page.evaluate(pageScroll), initialPageScroll, `${label}: End must scroll only the description`, 2);
   await page.keyboard.press("Home");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-info]")?.scrollTop === 0);
+  await page.waitForFunction(() => document.querySelector("[data-detail-info]")?.scrollTop === 0);
   closeTo(await page.evaluate(pageScroll), initialPageScroll, `${label}: Home must scroll only the description`, 2);
   await info.hover();
   await page.mouse.wheel(0, 220);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-info]")?.scrollTop > 0);
+  await page.waitForFunction(() => document.querySelector("[data-detail-info]")?.scrollTop > 0);
   closeTo(await page.evaluate(pageScroll), initialPageScroll, `${label}: wheel must scroll only the description`, 2);
 }
 
 async function openDialog(page, { touch = false, label, settlements } = {}) {
-  const expand = page.locator("[data-advertising-photo-expand]");
+  const expand = page.locator("[data-detail-expand]");
   await assertVisible(expand, "expand button");
   // Style baseline trước khi mở không được bắt class route transition đang giữa chừng. Vào thẳng trang thì
   // playRouteEnter chờ font rồi mới gắn is-transitioning; html.route-enter còn tới khi veil mở xong (clearRouteEntry).
@@ -593,8 +593,8 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
     // Màn cảm ứng mở viewer bằng một tap trên primary photo (viewer touch R7).
-    const button = touch ? document.querySelector("[data-advertising-photo-image]").parentElement
-      : document.querySelector("[data-advertising-photo-expand]");
+    const button = touch ? document.querySelector("[data-detail-image]").parentElement
+      : document.querySelector("[data-detail-expand]");
     window.__ttPhotoViewerBeforeOpen = undefined;
     const scrollStyle = () => ({
       bodyClass: document.body.className,
@@ -605,11 +605,11 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
     });
     window.__ttPhotoViewerOverflowBeforeOpen = scrollStyle();
     window.__ttPhotoViewerOpenMotion = { states: [], animations: [] };
-    const dialog = document.querySelector("[data-advertising-photo-dialog]");
+    const dialog = document.querySelector("[data-detail-dialog]");
     const observer = new MutationObserver(() => {
-      window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.advertisingViewerState || null);
+      window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.viewerState || null);
     });
-    observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
+    observer.observe(dialog, { attributes: true, attributeFilter: ["data-viewer-state"] });
     // Tap mở ở pointerup: lấy mẫu motion sau khi dialog đã mở.
     const onOpen = () => {
       if (dialog.open) return;
@@ -617,7 +617,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       requestAnimationFrame(() => {
         if (!dialog.open) return;
         button.removeEventListener(touch ? "pointerup" : "click", onOpen, { capture: true });
-        window.__ttPhotoViewerOpenMotion.animations = document.querySelector("[data-advertising-photo-expanded-image]")?.getAnimations()
+        window.__ttPhotoViewerOpenMotion.animations = document.querySelector("[data-detail-expanded-image]")?.getAnimations()
           .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
       });
     };
@@ -625,7 +625,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
     return window.__ttPhotoViewerOverflowBeforeOpen;
   }, touch);
   if (touch) {
-    const box = await page.locator("[data-advertising-photo-image]").boundingBox();
+    const box = await page.locator("[data-detail-image]").boundingBox();
     assert(box, "touch primary photo has no bounding box");
     await page.evaluate((rect) => {
       const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
@@ -635,9 +635,9 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
   } else {
     await expand.click();
   }
-  const dialog = page.locator("[data-advertising-photo-dialog]");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === true);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  const dialog = page.locator("[data-detail-dialog]");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open === true);
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   assert.equal(page.url(), beforeUrl, "opening dialog changed URL");
   const scrollBeforeLock = await page.evaluate(() => window.__ttPhotoViewerBeforeOpen);
   assert(Number.isFinite(scrollBeforeLock), "did not capture logical scroll before viewer handler");
@@ -646,14 +646,14 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
 
 async function observeCloseMotion(page) {
   await page.evaluate(() => {
-    const dialog = document.querySelector("[data-advertising-photo-dialog]");
+    const dialog = document.querySelector("[data-detail-dialog]");
     window.__ttPhotoViewerCloseMotion = { states: [], animations: [] };
     const observer = new MutationObserver(() => {
-      window.__ttPhotoViewerCloseMotion.states.push(dialog?.dataset.advertisingViewerState || null);
+      window.__ttPhotoViewerCloseMotion.states.push(dialog?.dataset.viewerState || null);
     });
-    observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
+    observer.observe(dialog, { attributes: true, attributeFilter: ["data-viewer-state"] });
     const captureAnimation = () => requestAnimationFrame(() => {
-      window.__ttPhotoViewerCloseMotion.animations = document.querySelector("[data-advertising-photo-expanded-image]")?.getAnimations()
+      window.__ttPhotoViewerCloseMotion.animations = document.querySelector("[data-detail-expanded-image]")?.getAnimations()
         .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
     });
     document.addEventListener("keydown", captureAnimation, { capture: true, once: true });
@@ -684,17 +684,17 @@ async function assertVisible(locator, label) {
 
 async function assertDialogFit(page, label, touch = false) {
   await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
+    const image = document.querySelector("[data-detail-expanded-image]");
     return Boolean(image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
   });
   const evidence = await page.evaluate(() => {
-    const viewport = document.querySelector("[data-advertising-photo-viewport]")?.getBoundingClientRect();
-    const imageNode = document.querySelector("[data-advertising-photo-expanded-image]");
+    const viewport = document.querySelector("[data-detail-viewport]")?.getBoundingClientRect();
+    const imageNode = document.querySelector("[data-detail-expanded-image]");
     const image = imageNode?.getBoundingClientRect();
-    const dialog = document.querySelector("[data-advertising-photo-dialog]");
-    const controls = [...document.querySelectorAll("[data-advertising-photo-close], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]")]
+    const dialog = document.querySelector("[data-detail-dialog]");
+    const controls = [...document.querySelectorAll("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]")]
       .map((node) => ({ disabled: node.disabled, hidden: node.hidden, focusVisible: node.matches(":focus-visible"), rect: node.getBoundingClientRect().toJSON() }));
-    const resetCount = document.querySelectorAll("[data-advertising-photo-zoom-reset]").length;
+    const resetCount = document.querySelectorAll("[data-detail-zoom-reset]").length;
     const ratio = image ? image.width / image.height : null;
     const naturalRatio = imageNode ? imageNode.naturalWidth / imageNode.naturalHeight : null;
     const dialogStyle = dialog ? getComputedStyle(dialog) : null;
@@ -704,7 +704,7 @@ async function assertDialogFit(page, label, touch = false) {
       bottom: parseFloat(dialogStyle.paddingBottom) || 0,
       left: parseFloat(dialogStyle.paddingLeft) || 0,
     } : null;
-    const output = document.querySelector("[data-advertising-photo-zoom-status]");
+    const output = document.querySelector("[data-detail-zoom-status]");
     const outputRect = output?.getBoundingClientRect();
     return { viewport, image, controls, resetCount, ratio, naturalRatio, naturalWidth: imageNode?.naturalWidth, open: dialog?.open === true, innerWidth, innerHeight, padding, output: outputRect?.toJSON(), outputPosition: output ? getComputedStyle(output).position : null };
   });
@@ -741,7 +741,7 @@ async function assertViewerLock(page, expectedScroll, baseline, label, settlemen
   }));
   assert(Math.abs(locked.logical - expectedScroll) <= 2, `${label}: viewer lock changed logical scroll before input (${expectedScroll}px to ${locked.logical}px)`);
   assert(locked.bodyOverflow === "hidden" || locked.htmlOverflow === "hidden", `${label}: viewer did not lock document scroll`);
-  const boundaryWheel = await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-in]")?.disabled ? -500 : 500);
+  const boundaryWheel = await page.evaluate(() => document.querySelector("[data-detail-zoom-in]")?.disabled ? -500 : 500);
   await page.mouse.wheel(0, boundaryWheel);
   await settleGeometry(page, `${label}:lock-wheel`, settlements, { requireScrollStable: true });
   const afterWheel = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY);
@@ -750,10 +750,10 @@ async function assertViewerLock(page, expectedScroll, baseline, label, settlemen
 
 async function transformEvidence(page) {
   return page.evaluate(() => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
-    const viewport = document.querySelector("[data-advertising-photo-viewport]");
+    const image = document.querySelector("[data-detail-expanded-image]");
+    const viewport = document.querySelector("[data-detail-viewport]");
     const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
-    const scale = Number.parseInt(document.querySelector("[data-advertising-photo-zoom-status]")?.textContent || "100", 10) / 100;
+    const scale = Number.parseInt(document.querySelector("[data-detail-zoom-status]")?.textContent || "100", 10) / 100;
     return {
       translateX: matrix.m41,
       translateY: matrix.m42,
@@ -766,24 +766,24 @@ async function transformEvidence(page) {
 
 async function zoomState(page) {
   return page.evaluate(() => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
-    const viewport = document.querySelector("[data-advertising-photo-viewport]");
+    const image = document.querySelector("[data-detail-expanded-image]");
+    const viewport = document.querySelector("[data-detail-viewport]");
     const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
     const cover = Math.max(viewport.clientWidth / image.clientWidth, viewport.clientHeight / image.clientHeight);
     return {
       scale: matrix.a,
       cover,
-      plusDisabled: document.querySelector("[data-advertising-photo-zoom-in]").disabled,
-      minusDisabled: document.querySelector("[data-advertising-photo-zoom-out]").disabled,
-      status: document.querySelector("[data-advertising-photo-zoom-status]")?.textContent,
+      plusDisabled: document.querySelector("[data-detail-zoom-in]").disabled,
+      minusDisabled: document.querySelector("[data-detail-zoom-out]").disabled,
+      status: document.querySelector("[data-detail-zoom-status]")?.textContent,
     };
   });
 }
 
 async function wheelZoomAroundAnchor(page, { deltaY, label }) {
   const anchor = await page.evaluate((wheelDelta) => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
-    const viewport = document.querySelector("[data-advertising-photo-viewport]");
+    const image = document.querySelector("[data-detail-expanded-image]");
+    const viewport = document.querySelector("[data-detail-viewport]");
     const viewportRect = viewport.getBoundingClientRect();
     const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
     const cover = Math.max(viewport.clientWidth / image.clientWidth, viewport.clientHeight / image.clientHeight);
@@ -811,17 +811,17 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
       localY,
       anchorUnclamped: Math.abs(desiredPanX) <= limitX + 0.01 && Math.abs(desiredPanY) <= limitY + 0.01,
       pageScroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY,
-      status: document.querySelector("[data-advertising-photo-zoom-status]")?.textContent,
+      status: document.querySelector("[data-detail-zoom-status]")?.textContent,
     };
   }, deltaY);
   await page.mouse.move(anchor.clientX, anchor.clientY);
   await page.mouse.wheel(0, deltaY);
   // Firefox có thể resolve mouse.wheel trước khi event tới nơi, nên chờ zoom mà nó khởi động kết thúc.
-  await page.waitForFunction((status) => document.querySelector("[data-advertising-photo-zoom-status]")?.textContent !== status
-    && document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open", anchor.status);
+  await page.waitForFunction((status) => document.querySelector("[data-detail-zoom-status]")?.textContent !== status
+    && document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open", anchor.status);
   const after = await page.evaluate(({ clientX, clientY, localX, localY }) => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
-    const viewport = document.querySelector("[data-advertising-photo-viewport]");
+    const image = document.querySelector("[data-detail-expanded-image]");
+    const viewport = document.querySelector("[data-detail-viewport]");
     const viewportRect = viewport.getBoundingClientRect();
     const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
     const centerX = viewportRect.left + viewportRect.width / 2;
@@ -845,13 +845,13 @@ async function middleClickReset(page, point, label) {
   await page.mouse.move(point.clientX, point.clientY);
   await page.mouse.down({ button: "middle" });
   await page.mouse.up({ button: "middle" });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   const state = await zoomState(page);
   assert(Math.abs(state.scale - 1) < 0.02 && state.minusDisabled && !state.plusDisabled,
     `${label}: middle-click did not reset Fit controls`);
   assert.equal(state.status, "100%", `${label}: middle-click did not sync zoom status`);
   const after = await page.evaluate(() => ({
-    open: document.querySelector("[data-advertising-photo-dialog]")?.open === true,
+    open: document.querySelector("[data-detail-dialog]")?.open === true,
     scroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY,
   }));
   assert(after.open, `${label}: middle-click closed the dialog`);
@@ -864,17 +864,17 @@ const press = (locator, touch) => (touch ? locator.evaluate((node) => node.click
 async function clickZoom(page, selector, { reducedMotion, label, touch }) {
   await page.evaluate((target) => {
     const button = document.querySelector(target);
-    const dialog = document.querySelector("[data-advertising-photo-dialog]");
+    const dialog = document.querySelector("[data-detail-dialog]");
     window.__ttPhotoViewerZoomMotion = { states: [], animations: [] };
-    const observer = new MutationObserver(() => window.__ttPhotoViewerZoomMotion.states.push(dialog?.dataset.advertisingViewerState || null));
-    observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
+    const observer = new MutationObserver(() => window.__ttPhotoViewerZoomMotion.states.push(dialog?.dataset.viewerState || null));
+    observer.observe(dialog, { attributes: true, attributeFilter: ["data-viewer-state"] });
     button?.addEventListener("click", () => requestAnimationFrame(() => {
-      window.__ttPhotoViewerZoomMotion.animations = document.querySelector("[data-advertising-photo-expanded-image]")?.getAnimations()
+      window.__ttPhotoViewerZoomMotion.animations = document.querySelector("[data-detail-expanded-image]")?.getAnimations()
         .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
     }), { capture: true, once: true });
   }, selector);
   await press(page.locator(selector), touch);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   const motion = await page.evaluate(() => window.__ttPhotoViewerZoomMotion);
   if (!reducedMotion) {
     assert(motion.states.includes("zooming"), `${label}: observer did not see zooming`);
@@ -892,22 +892,22 @@ async function exerciseDialog(page, options) {
   await assertDialogFit(page, options.label, options.touch);
   options.setStage?.("lock");
   await assertViewerLock(page, scrollBeforeLock, baseline, options.label, options.settlements);
-  const close = page.locator("[data-advertising-photo-close]");
-  const zoomIn = page.locator("[data-advertising-photo-zoom-in]");
-  const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
-  const viewport = page.locator("[data-advertising-photo-viewport]");
-  const expanded = page.locator("[data-advertising-photo-expanded-image]");
+  const close = page.locator("[data-detail-close]");
+  const zoomIn = page.locator("[data-detail-zoom-in]");
+  const zoomOut = page.locator("[data-detail-zoom-out]");
+  const viewport = page.locator("[data-detail-viewport]");
+  const expanded = page.locator("[data-detail-expanded-image]");
   await assertVisible(close, "close button");
   await assertVisible(zoomIn, "zoom-in button");
   await assertVisible(zoomOut, "zoom-out button");
   let level = await zoomState(page);
   assert(level.minusDisabled && !level.plusDisabled, `${options.label}: fit controls are incorrect`);
   options.setStage?.("zoom-cover");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled, `${options.label}: first plus is not cover`);
   options.setStage?.("zoom-max-pan");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled, `${options.label}: second plus is not two-times cover max`);
   const beforePan = await transformEvidence(page);
@@ -921,7 +921,7 @@ async function exerciseDialog(page, options) {
   await page.mouse.move(viewportBox.x + viewportBox.width / 2 + moveX, viewportBox.y + viewportBox.height / 2 + moveY);
   await page.mouse.up();
   await page.waitForFunction((start) => {
-    const image = document.querySelector("[data-advertising-photo-expanded-image]");
+    const image = document.querySelector("[data-detail-expanded-image]");
     const matrix = image && new DOMMatrixReadOnly(getComputedStyle(image).transform);
     return matrix && (Math.abs(matrix.m41 - start.translateX) > 0.5 || Math.abs(matrix.m42 - start.translateY) > 0.5);
   }, beforePan);
@@ -930,17 +930,17 @@ async function exerciseDialog(page, options) {
   await assertViewerLock(page, scrollBeforeLock, baseline, `${options.label} after zoom/pan`, options.settlements);
   assert.equal(page.url(), beforeUrl, `${options.label}: zoom/pan changed URL`);
   options.setStage?.("zoom-out-to-fit");
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled, `${options.label}: two minus did not return max to fit`);
   options.setStage?.("zoom-out-sequence");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled, `${options.label}: minus did not return max to cover`);
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
     `${options.label}: second minus did not return cover to fit`);
@@ -963,19 +963,19 @@ async function exerciseDialog(page, options) {
   options.setStage?.("keyboard-zoom");
   await zoomIn.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   await zoomIn.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
     `${options.label}: keyboard activation did not reach two-times Cover`);
   await zoomOut.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   await zoomOut.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
     `${options.label}: keyboard activation did not return to Fit`);
@@ -985,7 +985,7 @@ async function exerciseDialog(page, options) {
   await page.mouse.wheel(0, -120);
   await page.mouse.wheel(0, 120);
   await page.mouse.wheel(0, -120);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   level = await zoomState(page);
   assert(Number.isFinite(level.scale) && Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
     `${options.label}: rapid wheel input did not settle at the shared max state`);
@@ -995,12 +995,12 @@ async function exerciseDialog(page, options) {
     const resizedViewport = originalViewport.width < 700 ? { width: 820, height: 1180 } : { width: 390, height: 844 };
     await page.setViewportSize(resizedViewport);
     await page.waitForFunction((expectedWidth) => {
-      const image = document.querySelector("[data-advertising-photo-expanded-image]");
-      const viewportNode = document.querySelector("[data-advertising-photo-viewport]");
+      const image = document.querySelector("[data-detail-expanded-image]");
+      const viewportNode = document.querySelector("[data-detail-viewport]");
       const matrix = image && new DOMMatrixReadOnly(getComputedStyle(image).transform);
       const cover = image && viewportNode ? Math.max(viewportNode.clientWidth / image.clientWidth, viewportNode.clientHeight / image.clientHeight) : 0;
       return innerWidth === expectedWidth
-        && document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open"
+        && document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open"
         && matrix && Math.abs(matrix.a - cover * 2) < 0.03;
     }, resizedViewport.width);
     level = await zoomState(page);
@@ -1008,12 +1008,12 @@ async function exerciseDialog(page, options) {
       `${options.label}: resize lost the shared max zoom state ${JSON.stringify(level)}`);
     await page.setViewportSize(originalViewport);
     await page.waitForFunction((expectedWidth) => {
-      const image = document.querySelector("[data-advertising-photo-expanded-image]");
-      const viewportNode = document.querySelector("[data-advertising-photo-viewport]");
+      const image = document.querySelector("[data-detail-expanded-image]");
+      const viewportNode = document.querySelector("[data-detail-viewport]");
       const matrix = image && new DOMMatrixReadOnly(getComputedStyle(image).transform);
       const cover = image && viewportNode ? Math.max(viewportNode.clientWidth / image.clientWidth, viewportNode.clientHeight / image.clientHeight) : 0;
       return innerWidth === expectedWidth
-        && document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open"
+        && document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open"
         && matrix && Math.abs(matrix.a - cover * 2) < 0.03;
     }, originalViewport.width);
   }
@@ -1030,9 +1030,9 @@ async function exerciseDialog(page, options) {
   if (options.closeWithButton) await press(close, options.touch);
   else await page.keyboard.press("Escape");
   await assertViewerMotion(page, { phase: "close", reducedMotion, label: options.label });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open === false);
   assert.equal(page.url(), beforeUrl, `${options.label}: Escape changed photo URL`);
-  await page.waitForFunction(() => document.activeElement === document.querySelector("[data-advertising-photo-expand]"));
+  await page.waitForFunction(() => document.activeElement === document.querySelector("[data-detail-expand]"));
   assert.equal(await expand.count(), 1, `${options.label}: focus target was removed after close`);
   const restored = await page.evaluate(() => ({
     logical: window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY,
@@ -1061,7 +1061,7 @@ async function assertFocusVisibleAfterResize(page, label) {
   // Đặt nút gần đỉnh để layout sau resize có thể đẩy nó ra ngoài màn hình.
   await page.evaluate(() => {
     const motion = window.TruongThinhMotion;
-    motion.setLogicalScroll(motion.getLogicalScroll() + document.querySelector("[data-advertising-photo-expand]").getBoundingClientRect().top - 90);
+    motion.setLogicalScroll(motion.getLogicalScroll() + document.querySelector("[data-detail-expand]").getBoundingClientRect().top - 90);
   });
   await openDialog(page);
   const original = page.viewportSize();
@@ -1069,9 +1069,9 @@ async function assertFocusVisibleAfterResize(page, label) {
   await page.setViewportSize(resized);
   await page.waitForFunction((width) => innerWidth === width, resized.width);
   await page.keyboard.press("Escape");
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
+  await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open === false);
   const target = await page.evaluate(() => {
-    const button = document.querySelector("[data-advertising-photo-expand]");
+    const button = document.querySelector("[data-detail-expand]");
     const { top, bottom } = button.getBoundingClientRect();
     return { focused: document.activeElement === button, top, bottom, height: innerHeight };
   });
@@ -1120,7 +1120,7 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
       await openDialog(page);
       const resized = viewport.width < 700 ? { width: 1440, height: 900 } : { width: 390, height: 844 };
       await page.setViewportSize(resized);
-      await page.waitForFunction((expectedWidth) => document.querySelector("[data-advertising-photo-dialog]")?.open === true && innerWidth === expectedWidth, resized.width);
+      await page.waitForFunction((expectedWidth) => document.querySelector("[data-detail-dialog]")?.open === true && innerWidth === expectedWidth, resized.width);
       stage = `resize:${resized.width}x${resized.height}`;
       await settleGeometry(page, stage, settlements);
       await assertDialogFit(page, `${label} live resize`, touch);
@@ -1141,8 +1141,8 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
 
 async function waitForP13Media(page) {
   await page.waitForFunction(() => {
-    const banners = [...document.querySelectorAll(".advertising-photo-view__suggestion-link img")];
-    const related = [...document.querySelectorAll("[data-advertising-related-card] img")];
+    const banners = [...document.querySelectorAll(".detail-view__suggestion-link img")];
+    const related = [...document.querySelectorAll("[data-masonry-related-card] img")];
     return banners.length > 0
       && banners.every((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0)
       && related.some((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
@@ -1301,7 +1301,7 @@ async function runResizeSweep(browser) {
     await waitForPhoto(page);
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
-      await page.waitForFunction((expectedWidth) => innerWidth === expectedWidth && Boolean(document.querySelector("[data-advertising-photo-image]")?.complete), width);
+      await page.waitForFunction((expectedWidth) => innerWidth === expectedWidth && Boolean(document.querySelector("[data-detail-image]")?.complete), width);
       stage = `sweep:resize:${width}x900`;
       await settleGeometry(page, stage, settlements);
       assertLayout(await layoutEvidence(page), `${label} ${width}px`, { shape: record.shape, viewportWidth: width });
@@ -1336,7 +1336,7 @@ async function runScrollbarRegression(browser) {
         await waitForPhoto(page);
         for (const width of widths) {
           await page.setViewportSize({ width, height: 600 });
-          await page.waitForFunction((expectedWidth) => innerWidth === expectedWidth && Boolean(document.querySelector("[data-advertising-photo-image]")?.complete), width);
+          await page.waitForFunction((expectedWidth) => innerWidth === expectedWidth && Boolean(document.querySelector("[data-detail-image]")?.complete), width);
           stage = `scrollbar:resize:${width}x600`;
           await settleGeometry(page, stage, settlements);
           const evidence = await layoutEvidence(page);
@@ -1374,7 +1374,7 @@ async function oneColumnGridEvidence(page, { gridSelector, cardSelector }) {
       grid: grid?.getBoundingClientRect().toJSON() || null,
       gridClientWidth: grid?.clientWidth || 0,
       renderedNodeCount: rendered.length,
-      gap: grid ? Number.parseFloat(getComputedStyle(grid).getPropertyValue(requestedGrid === "[data-project-grid]" ? "--advertising-gap" : "--advertising-photo-gap")) || 0 : null,
+      gap: grid ? Number.parseFloat(getComputedStyle(grid).getPropertyValue(requestedGrid === "[data-project-grid]" ? "--masonry-gap" : "--detail-gap")) || 0 : null,
       viewportWidth: innerWidth,
       poolSetSizes: [...new Set(rendered.map((node) => node.getAttribute("aria-setsize")).filter(Boolean))],
       cards: nodes.map((node) => {
@@ -1382,12 +1382,12 @@ async function oneColumnGridEvidence(page, { gridSelector, cardSelector }) {
         const rect = node.getBoundingClientRect();
         const imageRect = image?.getBoundingClientRect();
         return {
-          id: node.dataset.advertisingCard || node.dataset.advertisingRelatedCard || node.dataset.advertisingSuggestionTag || "suggestion",
+          id: node.dataset.masonryCard || node.dataset.masonryRelatedCard || node.dataset.masonrySuggestionTag || "suggestion",
           inlineWidth: Number.parseFloat(node.style.width) || 0,
           cssWidth: node.clientWidth,
           computedWidth: Number.parseFloat(getComputedStyle(node).width) || 0,
           rect: rect.toJSON(),
-          span: node.dataset.advertisingSpan || null,
+          span: node.dataset.masonrySpan || null,
           setSize: node.getAttribute("aria-setsize"),
           image: image && imageRect ? {
             width: imageRect.width,
@@ -1466,10 +1466,10 @@ async function runOneColumnRegression(browser) {
       try {
         await page.goto(new URL(route(locale, record.card), baseUrl).href, { waitUntil: "domcontentloaded" });
         await waitForPhoto(page);
-        await page.waitForFunction(() => document.querySelectorAll("[data-advertising-related-card]").length > 0);
+        await page.waitForFunction(() => document.querySelectorAll("[data-masonry-related-card]").length > 0);
         await settleGeometry(page, "one-column:related", settlements);
         const related = assertOneColumnGrid(
-          await oneColumnGridEvidence(page, { gridSelector: "[data-advertising-photo-related-grid]", cardSelector: "[data-advertising-related-card]" }),
+          await oneColumnGridEvidence(page, { gridSelector: "[data-detail-related-grid]", cardSelector: "[data-masonry-related-card]" }),
           `${label}: related`,
           { related: true },
         );
@@ -1481,12 +1481,12 @@ async function runOneColumnRegression(browser) {
           await page.locator("[data-menu-open]").click();
           await page.locator(`.menu-group__title[href="/${locale}/advertising-products/"]`).click();
         }
-        await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(location.pathname) && document.querySelector("[data-advertising-photo-view]")?.hidden === true);
-        await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-card]").length > 0);
+        await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(location.pathname) && document.querySelector("[data-detail-view]")?.hidden === true);
+        await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-card]").length > 0);
         await ensureParentMediaHydrated(page, label, settlements);
         await settleGeometry(page, "one-column:parent", settlements);
         const parent = assertOneColumnGrid(
-          await oneColumnGridEvidence(page, { gridSelector: "[data-project-grid]", cardSelector: "[data-advertising-card]" }),
+          await oneColumnGridEvidence(page, { gridSelector: "[data-project-grid]", cardSelector: "[data-masonry-card]" }),
           `${label}: parent`,
           { parent: true },
         );
@@ -1554,7 +1554,7 @@ for (const browserName of selectedEngines) {
 }
 
 const report = {
-  name: "advertising-photo-view-e2e",
+  name: "detail-view-e2e",
   generatedAt: new Date().toISOString(),
   baseUrl,
   requestedEngines: selectedEngines,

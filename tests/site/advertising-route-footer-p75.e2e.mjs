@@ -7,11 +7,11 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 try {
   const page = await browser.newPage({ viewport: { width: 1567, height: 910 } });
   const read = () => ({
-    height: document.querySelector("[data-advertising-grid-cta]")?.offsetHeight,
-    hash: document.querySelector(".advertising-grid__cta-skeleton")?.dataset.advertisingCtaSignature,
+    height: document.querySelector("[data-masonry-grid-cta]")?.offsetHeight,
+    hash: document.querySelector(".masonry-grid__cta-skeleton")?.dataset.masonryCtaSignature,
     footer: document.querySelector("footer.site-footer")?.offsetHeight,
     seed: window.TruongThinhMasonry.getBrowseState().seed,
-    gap: document.querySelector("footer.site-footer").getBoundingClientRect().top - document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect().bottom,
+    gap: document.querySelector("footer.site-footer").getBoundingClientRect().top - document.querySelector("[data-masonry-grid-cta]").getBoundingClientRect().bottom,
   });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
@@ -26,17 +26,17 @@ try {
   assert.equal(routed.height, direct.height, "route entry must measure the new container footer");
   assert.notEqual(routed.seed, direct.seed, "a new route visit creates a fresh random seed");
   assert.ok(Math.abs(routed.gap - direct.gap) <= 1, "new-seed geometry preserves CTA-to-footer gap");
-  const filters = await page.locator("[data-advertising-filter]").evaluateAll(nodes => nodes.map(node => node.dataset.advertisingFilter));
+  const filters = await page.locator("[data-masonry-filter]").evaluateAll(nodes => nodes.map(node => node.dataset.masonryFilter));
   const signatures = new Map();
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
-    await page.locator(`[data-advertising-filter="${category}"]`).click();
+    await page.locator(`[data-masonry-filter="${category}"]`).click();
     await page.waitForFunction(value => window.TruongThinhMasonry.getBrowseState().category === value, category);
     // Chờ khối CTA đứng yên giữa hai lần đọc thay cho 650ms cố định: runner bận còn đang chuyển khi đọc.
     await page.waitForFunction(() => {
-      const cta = document.querySelector("[data-advertising-grid-cta]");
+      const cta = document.querySelector("[data-masonry-grid-cta]");
       const key = `${cta?.getBoundingClientRect().bottom}:${cta?.offsetHeight}:${document.querySelector("footer.site-footer")?.getBoundingClientRect().top}`;
       const settled = key === window.__ttCtaKey && !cta?.getAnimations().length &&
-        [...document.querySelectorAll("[data-project-grid] .advertising-tile")].every((tile) => getComputedStyle(tile).transform === "none");
+        [...document.querySelectorAll("[data-project-grid] .masonry-card")].every((tile) => getComputedStyle(tile).transform === "none");
       window.__ttCtaKey = key;
       return settled;
     }, null, { polling: 150, timeout: 5_000 });

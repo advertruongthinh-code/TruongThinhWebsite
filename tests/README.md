@@ -109,9 +109,9 @@ một flag `*_ONLY` để tránh chọn nhầm gate.
 | `TT_E2E_ADVERTISING_PROOF_ONLY=1` | `pnpm qa:site` | No-op scroll counter layout, filter morph, cohort union, pending-scroll catch-up |
 | `TT_E2E_ADVERTISING_COMPATIBILITY_ONLY=1` | `node tests/site/site.e2e.cjs` | Sáu slug VI/EN, query cũ, fallback không JavaScript |
 | `TT_E2E_P13_NAVBAR_ONLY=1` (+ `TT_E2E_P13_CASE`) | `node tests/site/site.e2e.cjs` | Re-click top, full menu, detail về parent, collapse/hide/reveal |
-| `PHOTO_VIEW_P13_GEOMETRY_ONLY=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Khối detail, vùng gợi ý, mô tả dài, chữ 200% bằng CSS |
-| `PHOTO_VIEW_SCROLLBAR_REGRESSION=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Thanh cuộn thật quanh 750/960/1200 px, related không overlap |
-| `PHOTO_VIEW_ONE_COLUMN_REGRESSION=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Policy một cột, natural ratio, không lựa chọn Auto/1/2 |
+| `PHOTO_VIEW_P13_GEOMETRY_ONLY=1` | `node tests/site/detail-view.e2e.mjs` | Khối detail, vùng gợi ý, mô tả dài, chữ 200% bằng CSS |
+| `PHOTO_VIEW_SCROLLBAR_REGRESSION=1` | `node tests/site/detail-view.e2e.mjs` | Thanh cuộn thật quanh 750/960/1200 px, related không overlap |
+| `PHOTO_VIEW_ONE_COLUMN_REGRESSION=1` | `node tests/site/detail-view.e2e.mjs` | Policy một cột, natural ratio, không lựa chọn Auto/1/2 |
 | `PHOTO_TRANSITIONS_P13_GATE=1` | `node tests/site/advertising-photo-transitions.e2e.mjs` | Chỉ position/morph/timing |
 | `PHOTO_TRANSITIONS_ENGINE=webkit` | `node tests/site/advertising-photo-transitions.e2e.mjs` | Chạy cả bộ trên WebKit hoặc Firefox (PC); mặc định Chromium |
 

@@ -29,7 +29,7 @@ chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-load
 
 ### R1. Batch nối tiếp masonry
 
-Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[data-advertising-cta-skeleton]`
+Khung `.masonry-grid__cta-frame[data-masonry-cta-frame]` nằm trong `[data-masonry-cta-skeleton]`
 (`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
 hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
 thật (`canSpanTwoColumns`, `spanSlots` ở `masonry/layout.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
@@ -126,7 +126,7 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 
 ### R5. WebGL context
 
-Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.advertising-grid__cta-skeleton`:
+Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.masonry-grid__cta-skeleton`:
 7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
@@ -146,7 +146,7 @@ program và noise; nhả renderer thì worker trả context (`loseContext`), mai
 mới ở pha đã lưu. Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (tạo context thứ 5 thì context cũ nhất bị thu hồi mà
 main thread không được báo), nên trên PC worker có đúng một
 context WebGL: mỗi khung vẽ một lượt vào context đó rồi chuyển hình sang canvas của khung bằng `bitmaprenderer`
-(`data-advertising-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
+(`data-masonry-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
 giữ context riêng mỗi khung nhưng xếp tối đa 4 khung mỗi worker, nên 12 khung chạy trên 3 worker; context chung trên A04s
 làm fps SurfaceFlinger tụt dưới 60 và khoảng giữa hai lần vẽ p95 vượt `33ms` nên không dùng. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
 worker lỗi thì về renderer main thread: ngân sách 12 context tính cả context đang dùng và đang rảnh, context giữ theo
@@ -169,8 +169,8 @@ Then batch chỉ dùng một context, tổng không lúc nào quá 12, không l�
 
 ### R6. CTA, Kính và footer trên batch
 
-CTA `section.detail-cta[data-advertising-grid-cta]` đặt tại `--advertising-cta-top` (đáy masonry cộng một khoảng
-giữa), cao `--advertising-cta-tail-height`; chân chữ, cỡ tiêu đề, parallax theo
+CTA `section.detail-cta[data-masonry-grid-cta]` đặt tại `--masonry-cta-top` (đáy masonry cộng một khoảng
+giữa), cao `--masonry-cta-tail-height`; chân chữ, cỡ tiêu đề, parallax theo
 [CTA giữa viewport](advertising-cta-center-parallax.md). Kính dạng cung đặt theo đáy batch, đáy card thật, bề rộng card
 và cụm CTA (`arcGlassGeometry`): card phía trên vẫn nét, nhòe tăng vào cụm CTA, đáy batch trắng tuyệt đối
 ([Kính R2–R3](glass-surface.md#r2-dạng-cung-nền-cho-cụm-cta-nhòe-tăng-dần)). Khi duyệt masonry footer không có khoảng
@@ -216,10 +216,10 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-advertising-cta-skeleton]` (`data-advertising-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
-| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
+| DOM hook | `[data-masonry-cta-skeleton]` (`data-masonry-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
+| DOM hook | `[data-masonry-cta-frame]` với `data-masonry-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-masonry-flow-state`; canvas `data-masonry-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
-| CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
+| CSS | `--masonry-cta-top`, `--masonry-cta-tail-height`, `--masonry-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
 | Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`masonry/skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `masonry/runtime.mjs` gọi |
 | Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`masonry/runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 

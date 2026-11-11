@@ -32,10 +32,10 @@ try {
   await page.waitForTimeout(4000);
   await wheel(-150, 60);
   await page.waitForTimeout(4000);
-  const stuck = await page.evaluate(() => [...document.querySelectorAll(".advertising-tile")].filter((card) => {
-    const image = card.querySelector("img.advertising-tile__foreground:not([hidden])");
-    return image?.complete && image.naturalWidth > 0 && !image.classList.contains("is-advertising-media-ready");
-  }).map((card) => card.dataset.advertisingCard || card.dataset.advertisingRelatedCard));
+  const stuck = await page.evaluate(() => [...document.querySelectorAll(".masonry-card")].filter((card) => {
+    const image = card.querySelector("img.masonry-card__foreground:not([hidden])");
+    return image?.complete && image.naturalWidth > 0 && !image.classList.contains("is-masonry-media-ready");
+  }).map((card) => card.dataset.masonryCard || card.dataset.masonryRelatedCard));
   assert.deepEqual(stuck, [], "loaded media stuck hidden after leaving the viewport during decode");
   console.log("advertising-reveal-offscreen: pass");
 } finally {

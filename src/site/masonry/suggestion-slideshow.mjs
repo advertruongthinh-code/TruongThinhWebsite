@@ -52,18 +52,18 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     if (stopped || isReduced() || document.hidden || root.hidden || button.getAttribute("aria-pressed") === "true"
       || offscreenState || pending.has(button)
       || document.body.classList.contains("motion-paused") || covered()) return;
-    const tag = button.dataset.advertisingSuggestionTag;
+    const tag = button.dataset.masonrySuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
     if (!deck.length) return;
-    const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
-    const index = deck.findIndex(card => card.id === current?.dataset.advertisingSuggestionPhoto);
+    const current = button.querySelector('[data-masonry-suggestion-image-layer="current"]');
+    const index = deck.findIndex(card => card.id === current?.dataset.masonrySuggestionPhoto);
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
     // Eager bỏ "auto" khỏi sizes; ghim width của button trước khi request bắt đầu.
     if (next.srcset) next.sizes = `${Math.ceil(button.getBoundingClientRect().width)}px`;
     next.loading = "eager";
-    next.dataset.advertisingSuggestionImageLayer = "next";
-    next.dataset.advertisingSuggestionPhoto = card.id;
+    next.dataset.masonrySuggestionImageLayer = "next";
+    next.dataset.masonrySuggestionPhoto = card.id;
     const state = { image: next, animation: null };
     pending.set(button, state);
     try { await next.decode(); } catch {
@@ -87,7 +87,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     animation.addEventListener("finish", () => {
       previousClock?.cancel();
       current?.remove();
-      next.dataset.advertisingSuggestionImageLayer = "current";
+      next.dataset.masonrySuggestionImageLayer = "current";
       animation.cancel();
       pending.delete(button);
     }, { once: true });
@@ -95,7 +95,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   };
   // Giữ mỗi ảnh đúng 5s theo đồng hồ của chính nút: đồng hồ bị pause khi nút khuất thì nhịp cũng dừng, như timeline hero.
   const timer = setInterval(() => {
-    root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => {
+    root.querySelectorAll("[data-masonry-suggestion-tag]").forEach(button => {
       const time = clocks.get(button);
       if (!(time?.currentTime < 5000 + (time?.effect?.getTiming().delay || 0))) void tick(button);
     });
@@ -125,8 +125,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   preference.addEventListener("change", onVisibility, { signal });
   // Đồng hồ đầu của nút thứ i trễ 0.4s * i để cả cụm chuyển ảnh lệch nhịp từ trên xuống. Dùng delay, không lùi
   // currentTime về âm: play() sau pause sẽ tua animation có currentTime âm về 0.
-  if (!isReduced()) root.querySelectorAll("[data-advertising-suggestion-tag]").forEach((button, index) => {
-    const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
+  if (!isReduced()) root.querySelectorAll("[data-masonry-suggestion-tag]").forEach((button, index) => {
+    const current = button.querySelector('[data-masonry-suggestion-image-layer="current"]');
     if (!current) return;
     clocks.set(button, clock(current, 400 * index));
   });

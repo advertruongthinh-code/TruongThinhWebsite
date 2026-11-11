@@ -58,15 +58,15 @@ async function scenario(label, fixture) {
     window.__probe = probe;
     const tick = () => {
       if (probe.watching) {
-        for (const node of document.querySelectorAll("[data-project-grid] [data-advertising-card]")) {
+        for (const node of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
           if (!node.__marked) continue;
           const rect = node.getBoundingClientRect();
           if (rect.bottom <= 0 || rect.top >= innerHeight) continue;
-          probe.reused.add(node.dataset.advertisingCard);
-          const image = [...node.querySelectorAll(".advertising-tile__foreground")].find((layer) => !layer.hidden);
-          const blank = !image?.classList.contains("is-advertising-media-ready") || Number.parseFloat(getComputedStyle(image).opacity) < 0.999;
+          probe.reused.add(node.dataset.masonryCard);
+          const image = [...node.querySelectorAll(".masonry-card__foreground")].find((layer) => !layer.hidden);
+          const blank = !image?.classList.contains("is-masonry-media-ready") || Number.parseFloat(getComputedStyle(image).opacity) < 0.999;
           const moving = node.getAnimations({ subtree: true }).some((animation) => animation.playState === "running");
-          if (blank || moving) probe.violations.push({ id: node.dataset.advertisingCard, blank, moving });
+          if (blank || moving) probe.violations.push({ id: node.dataset.masonryCard, blank, moving });
         }
       }
       requestAnimationFrame(tick);
@@ -79,9 +79,9 @@ async function scenario(label, fixture) {
   await page.waitForTimeout(3000);
   const marked = await page.evaluate(() => {
     const ids = [];
-    for (const node of document.querySelectorAll("[data-project-grid] [data-advertising-card]")) {
+    for (const node of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
       node.__marked = true;
-      ids.push(node.dataset.advertisingCard);
+      ids.push(node.dataset.masonryCard);
     }
     return ids;
   });
@@ -92,7 +92,7 @@ async function scenario(label, fixture) {
   await page.evaluate(() => {
     window.__probe.released = new Set();
     new MutationObserver((records) => records.forEach(({ removedNodes }) => removedNodes.forEach((node) => {
-      if (node.__marked && !node.isConnected) window.__probe.released.add(node.dataset.advertisingCard);
+      if (node.__marked && !node.isConnected) window.__probe.released.add(node.dataset.masonryCard);
     }))).observe(document.querySelector("[data-project-grid]"), { childList: true });
   });
   await glide(base0, base0 + 3 * viewport, 2);
@@ -106,7 +106,7 @@ async function scenario(label, fixture) {
   await page.waitForTimeout(1500);
   await page.evaluate(() => { window.__probe.watching = false; });
   const result = await page.evaluate((videoIds) => ({
-    same: [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")].filter((node) => node.__marked && window.__probe.released.has(node.dataset.advertisingCard)).map((node) => node.dataset.advertisingCard),
+    same: [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((node) => node.__marked && window.__probe.released.has(node.dataset.masonryCard)).map((node) => node.dataset.masonryCard),
     violations: window.__probe.violations.slice(0, 5),
     releasedVideo: [...window.__probe.released].filter((id) => videoIds.includes(id)).length,
   }), fixture ? [...fixture.videoIds] : []);

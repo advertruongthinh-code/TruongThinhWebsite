@@ -31,13 +31,13 @@ const CAPTURES = [
   { name: 'Filter', route: GRID, select: '.project-filters' },
   { name: 'MediaCard', route: GRID, select: '[data-project-grid]', firstRow: 4, artifact: mediaCardArtifact },
   { name: 'Masonry', route: GRID, select: '[data-project-grid]' },
-  { name: 'Skeleton', route: GRID, select: '.project-index', focus: '[data-advertising-cta-frame]',
+  { name: 'Skeleton', route: GRID, select: '.project-index', focus: '[data-masonry-cta-frame]',
     setup: (page) => page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)) },
-  { name: 'Primary', route: PHOTO, select: '.advertising-photo-view__primary' },
-  { name: 'Suggestion', route: PHOTO, select: '.advertising-photo-view__suggestion' },
-  { name: 'Viewer', route: PHOTO, select: '.advertising-photo-dialog', setup: (page) => page.click('.advertising-photo-view__expand') },
+  { name: 'Primary', route: PHOTO, select: '.detail-view__primary' },
+  { name: 'Suggestion', route: PHOTO, select: '.detail-view__suggestion' },
+  { name: 'Viewer', route: PHOTO, select: '.detail-dialog', setup: (page) => page.click('.detail-view__expand') },
   // Kính ở khung ảnh chính trang chi tiết; hạt runtime là blob URL nên build gán hạt thay thế (spec design-system R3.9).
-  { name: 'Glass', route: PHOTO, select: '.advertising-photo-view__hero-frame' },
+  { name: 'Glass', route: PHOTO, select: '.detail-view__hero-frame' },
   // Dải chấm gallery do detail.js dựng khi khối vào khung.
   { name: 'Gallery', route: '/vi/residential/', select: '.detail-gallery',
     setup: (page) => page.locator('.detail-gallery').scrollIntoViewIfNeeded() },
@@ -54,11 +54,11 @@ function snapshot({ select, cards, focus }) {
   if (cards) {
     // Grid card được đặt absolute; xếp các card giữ lại thẳng hàng từ gốc với grid gap.
     const kept = cards.map((id) => {
-      const card = node.querySelector(`[data-advertising-card="${id}"]`);
+      const card = node.querySelector(`[data-masonry-card="${id}"]`);
       if (!card) throw new Error(`missing card ${id}`);
       return card;
     });
-    const gap = parseFloat(node.style.getPropertyValue('--advertising-gap'));
+    const gap = parseFloat(node.style.getPropertyValue('--masonry-gap'));
     let left = 0;
     for (const card of kept) {
       Object.assign(card.style, { top: '0px', left: `${left}px` });
@@ -85,7 +85,7 @@ const clean = (html) => html
   .replace(/(<video\b[^>]*?)\ssrc="[^"]*"/g, '$1')
   .replace(/\s(?:srcset|sizes|data-srcset|data-sizes|loading)="[^"]*"/g, '')
   .replace(/\sclass="([^"]*)"/g, (_, c) => ` class="${c.split(/\s+/).filter((name) => !/^(lazy\w*|ls-is-cached)$/.test(name)).join(' ')}"`)
-  .replace(/\s(?:data-advertising-flow-(?:batch|phase|anchor-permutation))="[^"]*"/g, '')
+  .replace(/\s(?:data-masonry-flow-(?:batch|phase|anchor-permutation))="[^"]*"/g, '')
   // Grain của Kính là blob URL, mất cùng page.
   .replace(/--glass-grain(?:-white)?: url\(blob:[^)]*\);\s?/g, '');
 
@@ -102,8 +102,8 @@ for (const capture of CAPTURES) {
   if (capture.firstRow) {
     const probe = await openPage();
     await probe.goto(BASE + capture.route, { waitUntil: 'networkidle' });
-    capture.cards = await probe.evaluate((n) => [...document.querySelectorAll('[data-advertising-card]')]
-      .map((el) => ({ id: el.dataset.advertisingCard, top: parseFloat(el.style.top), left: parseFloat(el.style.left) }))
+    capture.cards = await probe.evaluate((n) => [...document.querySelectorAll('[data-masonry-card]')]
+      .map((el) => ({ id: el.dataset.masonryCard, top: parseFloat(el.style.top), left: parseFloat(el.style.left) }))
       .sort((a, b) => a.top - b.top || a.left - b.left).slice(0, n).sort((a, b) => a.left - b.left).map((c) => c.id), capture.firstRow);
     await probe.close();
   }

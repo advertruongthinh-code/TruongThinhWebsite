@@ -179,8 +179,8 @@ try {
   }
   await page.setViewportSize({width:1440,height:900});
   await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-09`); await ready(page);
-  await page.locator('[data-advertising-photo-expand]').click();
-  await page.waitForFunction(()=>document.querySelector('[data-advertising-photo-dialog]').open);
+  await page.locator('[data-detail-expand]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-detail-dialog]').open);
   const viewerY=(await measure(page)).y;
   await page.mouse.wheel(0,800); await page.keyboard.press('PageDown'); await page.waitForTimeout(200);
   near((await measure(page)).y,viewerY,'viewer blocks background input');
@@ -192,7 +192,7 @@ try {
   await page.keyboard.press('PageDown'); await page.waitForTimeout(200);
   near((await measure(page)).y,resizedLock,'resize keeps viewer lock');
   await page.keyboard.press('Escape');
-  await page.waitForFunction(()=>!document.querySelector('[data-advertising-photo-dialog]').open);
+  await page.waitForFunction(()=>!document.querySelector('[data-detail-dialog]').open);
   record('viewer lock/breakpoint/release',await measure(page));
   await page.mouse.move(600,300); await page.keyboard.press('PageDown');
   await page.waitForFunction(()=>!document.documentElement.classList.contains('has-scroll-scrolling'));

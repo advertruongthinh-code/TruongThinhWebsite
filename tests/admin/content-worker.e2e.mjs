@@ -82,12 +82,12 @@ try {
   const residential = await page.evaluate((url) => fetch(url).then((response) => response.headers.get("etag")), "/vi/residential/");
   assert.equal(residential, null, "trang có nội dung editor không giữ ETag của file tĩnh");
   assert.match(cardPage, /<title[^>]*>Saved card — Trường Thịnh/);
-  assert.match(cardPage, /data-advertising-card-static><h1[^>]*>Saved card<\/h1><p[^>]*>Saved description<\/p><figure><img src="\/assets\/content\/projects\/home-hero-walnut-bedroom\.webp"/);
+  assert.match(cardPage, /data-masonry-card-static><h1[^>]*>Saved card<\/h1><p[^>]*>Saved description<\/p><figure><img src="\/assets\/content\/projects\/home-hero-walnut-bedroom\.webp"/);
   await page.goto(`${baseUrl}/vi/advertising-products/`);
   const patched = await page.evaluate(async (cardId) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((entry) => entry.id === cardId), id);
   assert.equal(patched.titleVi, "Card lưu thật");
   assert.equal(patched.media.src, card.mediaItems[0].src);
-  await page.waitForSelector("[data-advertising-card]");
+  await page.waitForSelector("[data-masonry-card]");
 
   await reset("residential", {});
   await reset("advertising", { cards: {} });
