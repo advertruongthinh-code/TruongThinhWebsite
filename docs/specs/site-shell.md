@@ -84,7 +84,7 @@ Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px t
 ### R4. Full menu
 
 `[data-menu-open]` gọi `showModal`, thêm `body.menu-open` (khóa cuộn nền), `aria-expanded`, dừng
-smooth scroll, chạy timeline mở (dựng một lần lúc rảnh, mỗi lần mở chỉ chạy lại), thu nhỏ trang phía sau (`will-change: transform`, gỡ khi đóng xong) rồi focus nút đóng. Escape hoặc
+smooth scroll, chạy timeline mở (dựng một lần theo từng lát nhỏ lúc rảnh, không lát nào quá 50ms; mở menu khi chưa dựng xong thì dựng nốt ngay; mỗi lần mở chỉ chạy lại), thu nhỏ trang phía sau (`will-change: transform`, gỡ khi đóng xong) rồi focus nút đóng. Escape hoặc
 `[data-menu-close]` chạy ngược timeline, đóng dialog, chạy lại smooth scroll, giữ vị trí cuộn, focus
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn

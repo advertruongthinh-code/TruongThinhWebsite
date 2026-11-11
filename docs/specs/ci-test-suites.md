@@ -60,7 +60,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
 | `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route, bấm filter khi cache xếp card đang tải, preload cache từ head |
-| `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
+| `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại, lần dựng đầu chia task |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `adv-related` | advertising-detail, advertising-cta-center-parallax | related đi vòng primary, CTA cuối related (tách khỏi `adv-detail` 2026-11-11: gộp lại chạy gần 12 phút, chạm timeout job) |
 | `masonry-hosts` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax, advertising-detail, progressive-loading, projects | ma trận chung cho mọi nơi có masonry (Advertising, Công trình, related): vuốt nhanh, vùng giữ card, không lên 4K, Kính reveal không chồng cung, CTA chưa hiện trước khi vào view, F5 |

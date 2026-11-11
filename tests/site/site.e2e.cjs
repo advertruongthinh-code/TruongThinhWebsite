@@ -731,7 +731,7 @@ function assertPersistentNavigationContracts() {
       motionSource.includes("const menuAppointmentItems = [menuAppointment]") &&
       motionSource.includes('const menuCloseIcon = closeButton.querySelector(".menu-close__icon")') &&
       !motionSource.includes("menuCoverageAt") &&
-      /\.fromTo\(menuBrand,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuLanguageItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuAppointmentItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuCloseIcon,[\s\S]*1\.4\)[\s\S]*\.fromTo\(menuNav,[\s\S]*1\.05\)[\s\S]*\.fromTo\(menuGroups,[\s\S]*1\.1\)[\s\S]*\.fromTo\(menuDetailItems,[\s\S]*1\.35\)/.test(motionSource) &&
+      /\bfromTo\(menuBrand,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuLanguageItems,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuAppointmentItems,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuCloseIcon,[\s\S]*1\.4\)[\s\S]*\bfromTo\(menuNav,[\s\S]*1\.05\)[\s\S]*\bfromTo\(menuGroups,[\s\S]*1\.1\)[\s\S]*\bfromTo\(menuDetailItems,[\s\S]*1\.35\)/.test(motionSource) &&
       motionSource.includes("const setReducedMenuState = (opened) => {") &&
       (motionSource.match(/setReducedMenuState\(false\);/g) ?? []).length >= 2 &&
       (motionSource.match(/setReducedMenuState\(true\);/g) ?? []).length === 1 &&
@@ -5284,11 +5284,17 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
                 layoutViewportWidth: state.layoutViewportWidth,
                 seed: state.seed,
               });
+              const scrollTop = Math.max(0, state.scrollY - state.gridTop);
+              const visibleBottom = state.scrollY + state.viewportHeight - state.gridTop;
+              // The first build mounts only the first 8 cards and the cards on screen; the rest of the window mounts after the
+              // entry slide (advertising-masonry R7).
               const ids = runtimeContract.getVirtualWindow(layout, {
-                scrollTop: Math.max(0, state.scrollY - state.gridTop),
+                scrollTop,
                 viewportHeight: state.viewportHeight,
                 overscan: state.viewportHeight,
-              }).items.map((placement) => placement.card.id);
+              }).items.filter((placement) => placement.index < 8
+                || (placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop))
+                .map((placement) => placement.card.id);
               return {
                 ids,
                 minHeight: layout.totalPixelHeight,
