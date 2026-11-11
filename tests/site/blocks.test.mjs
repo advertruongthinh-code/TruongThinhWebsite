@@ -96,6 +96,9 @@ test("strip and News blocks without ids pick their items at build", () => {
   // Project page: other projects of the same sector in data order.
   const page = { ...project("a", "residential"), blocks: [{ type: "project-slider" }] };
   assert.deepEqual(links(renderBlocks(page, auto)), ["b", "d"]);
+  // On a project page the strip carries the "Other projects" heading; on a sector page it does not.
+  assert.match(renderBlocks(page, auto), /<h2 class="blk-projects__title" data-en="Other projects">Công trình khác<\/h2>/);
+  assert.doesNotMatch(renderBlocks({ id: "residential", sector: "residential", blocks: [{ type: "project-slider" }] }, auto), /blk-projects__title/);
   // News post: never itself, same group first, newest first, filled up to 3 from other groups.
   const article = { ...post("self", "nha-o", "2026-04-01"), blocks: [{ type: "news-cards" }] };
   assert.deepEqual(links(renderBlocks(article, auto)), ["new-home", "old-home", "new-trend"]);

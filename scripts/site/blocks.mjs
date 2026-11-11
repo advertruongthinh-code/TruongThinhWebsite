@@ -158,8 +158,11 @@ const BLOCKS = {
     // Cards staggered high and low like the home rail (ProjectReel); click opens the project page.
     render: (block, ctx, page) => {
       const variants = ["high", "low"];
+      // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
+      const onProjectPage = ctx.projects.has(page.id);
       return [
         '<section class="blk blk-projects section-gap" data-header-tone="ink">',
+        ...(onProjectPage ? ['  <h2 class="blk-projects__title" data-en="Other projects">Công trình khác</h2>'] : []),
         '  <div class="blk-projects__track">',
         ...(block.projectIds ?? autoProjectIds(ctx, page)).map((id, index) => {
           const project = ctx.projects.get(id);
