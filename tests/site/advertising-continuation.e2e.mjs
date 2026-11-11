@@ -47,6 +47,35 @@ async function scrollLogicalTargetIntoView(page, selector) {
   }, selector);
 }
 
+// Gap between each depth-0 skeleton frame and the real card above it in the same column(s). The grid mounts only cards
+// near the viewport, so each frame is scrolled into view before the card above it is read, then the scroll is restored.
+async function frontierGaps(page) {
+  const logicalScroll = () => page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY);
+  const scrollTo = (y) => page.evaluate((target) => {
+    if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
+  }, y);
+  const restore = await logicalScroll();
+  const frames = await page.evaluate(() => [...document.querySelectorAll('[data-masonry-cta-skeleton] [data-masonry-cta-frame][data-masonry-cta-depth="0"]')]
+    .map((frame) => ({ left: Number.parseFloat(frame.style.left), width: Number.parseFloat(frame.style.width),
+      top: Number.parseFloat(frame.style.top), span: Number(frame.dataset.masonryCtaSpan) || 1 })));
+  const gaps = [];
+  for (const frame of frames) {
+    const gridTop = await page.evaluate(() => document.querySelector("[data-project-grid]").getBoundingClientRect().top
+      + (window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY));
+    await scrollTo(gridTop + frame.top - 200);
+    gaps.push({ span: frame.span, gap: await page.waitForFunction(({ left, width, top }) => {
+      const grid = document.querySelector("[data-project-grid]");
+      // A wide card spans several columns, so a column ends at any card whose box covers it, not only one starting there.
+      const covering = [...grid.querySelectorAll(".masonry-card:not([hidden])")]
+        .filter((tile) => tile.offsetLeft <= left + 2 && tile.offsetLeft + tile.offsetWidth >= left + width - 2
+          && tile.offsetTop < top);
+      return covering.length ? top - Math.max(...covering.map((tile) => tile.offsetTop + tile.offsetHeight)) : null;
+    }, frame, { timeout: 5_000 }).then((handle) => handle.jsonValue()).catch(() => null) });
+  }
+  await scrollTo(restore);
+  return gaps;
+}
+
 async function ready(page) {
   await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
   await page.waitForFunction(() => {
@@ -222,23 +251,18 @@ async function snapshot(page) {
         const rect = frame.getBoundingClientRect();
         return {
           column: Number(frame.dataset.masonryCtaColumn),
+          span: Number(frame.dataset.masonryCtaSpan) || 1,
           depth: Number(frame.dataset.masonryCtaDepth),
           band: frame.dataset.masonryCtaRatioBand,
           top: rect.top - gridRect.top,
           bottom: rect.bottom - gridRect.top,
-          ratio: rect.height / rect.width,
+          // Measured against one card width (skeleton R1), so a two-column frame is not judged by its double width.
+          ratio: rect.height / ((rect.width - ((Number(frame.dataset.masonryCtaSpan) || 1) - 1) * (Number.parseFloat(getComputedStyle(grid).gap) || 0))
+            / (Number(frame.dataset.masonryCtaSpan) || 1)),
         };
       });
     const frameBottoms = frameRects.map((rect) => rect.bottom - gridRect.top);
     const deepestFrameBottom = Math.max(ctaRect.top, ...frameRects.map((rect) => rect.bottom));
-    const firstFrames = [...skeleton.querySelectorAll('[data-masonry-cta-frame][data-masonry-cta-depth="0"]')];
-    const frontierGaps = firstFrames.map((frame) => {
-      const left = Number.parseFloat(frame.style.left);
-      const terminal = Math.max(-Infinity, ...[...grid.querySelectorAll(".masonry-card:not([hidden])")]
-        .filter((tile) => Math.abs(tile.offsetLeft - left) <= 2)
-        .map((tile) => tile.offsetTop + tile.offsetHeight));
-      return Number.isFinite(terminal) ? Number.parseFloat(frame.style.top) - terminal : null;
-    });
     return {
       copy: [...new Set([...cta.querySelectorAll("[data-motion-line-source]")]
         .map((node) => node.dataset[document.documentElement.lang] || node.textContent.trim()))],
@@ -278,7 +302,8 @@ async function snapshot(page) {
       frameCount: frameBottoms.length,
       columns: Number(skeleton.dataset.masonryCtaColumns),
       frontierCoverage: Math.min(...Array.from({ length: Number(skeleton.dataset.masonryCtaColumns) }, (_, column) =>
-        Math.max(...frameState.filter((frame) => frame.column === column).map((frame) => frame.bottom))
+        // A wide frame covers every column it spans, not only the one it starts in.
+        Math.max(...frameState.filter((frame) => frame.column <= column && column < frame.column + frame.span).map((frame) => frame.bottom))
           + (Number.parseFloat(getComputedStyle(grid).gap) || 0)))
         - (Number.parseFloat(skeleton.style.height) || 0),
       physicalLines: cta.querySelectorAll("h2 > .motion-line-mask").length,
@@ -287,7 +312,6 @@ async function snapshot(page) {
       liveWebglContexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-cta-frame] canvas[data-masonry-flow-backend="webgl"]').length,
       flowPresets: [...document.querySelectorAll("[data-masonry-flow-preset]")].map((canvas) => canvas.dataset.masonryFlowPreset),
       frameState,
-      frontierGaps,
       flowStates: [...document.querySelectorAll("[data-masonry-cta-frame]")].map((frame) => {
         const rect = frame.getBoundingClientRect();
         return {
@@ -604,6 +628,7 @@ try {
         throw new Error(`${locale} ${viewport.width}x${viewport.height}: skeleton readiness failed`, { cause: error });
       });
       const state = await snapshot(page);
+      state.frontierGaps = await frontierGaps(page);
       (evidence.viewportBoundaries ||= []).push({ locale, viewport,
         layoutViewportWidth: state.layoutViewportWidth, nativeGutter: state.nativeGutter,
         glassLeft: state.glassLeft, glassRight: state.glassRight });
@@ -639,8 +664,9 @@ try {
         `${locale} ${viewport.width}x${viewport.height}: tail solver emitted an invalid CTA height`);
       assert(Math.min(...state.frameState.map(({ top }) => top)) < state.ctaBottom - state.ctaHeight,
         `${locale} ${viewport.width}x${viewport.height}: skeleton starts at the CTA row instead of continuing the real-card frontier`);
-      assert(state.frontierGaps.length === state.columns
-        && state.frontierGaps.every((gap) => gap !== null && Math.abs(gap - state.gridGap) <= 2),
+      // Two columns that end level can share one wide depth-0 frame, so the frames' spans, not their count, cover the row.
+      assert(state.frontierGaps.reduce((sum, { span }) => sum + span, 0) === state.columns
+        && state.frontierGaps.every(({ gap }) => gap !== null && Math.abs(gap - state.gridGap) <= 2),
       `${locale} ${viewport.width}x${viewport.height}: skeleton does not join each real-card column at the shared gap ${JSON.stringify(state.frontierGaps)}`);
       assert(state.copyBottom <= state.ctaHeight + 1,
         `${locale} ${viewport.width}x${viewport.height}: CTA copy is clipped below the composition ${JSON.stringify({ copyBottom: state.copyBottom, ctaHeight: state.ctaHeight })}`);
@@ -657,8 +683,9 @@ try {
       assert(state.frameState.every(({ ratio }) => ratio >= 0.25),
         `${locale} ${viewport.width}: skeleton layout emitted a thin residual frame`);
       for (let column = 0; column < state.columns; column += 1) {
-        const frames = state.frameState.filter((frame) => frame.column === column)
-          .sort((left, right) => left.depth - right.depth);
+        // A two-column frame sits in both columns it spans, so read each column top to bottom by position.
+        const frames = state.frameState.filter((frame) => frame.column <= column && column < frame.column + frame.span)
+          .sort((upper, lower) => upper.top - lower.top);
         assert(frames.slice(1).every((frame, index) => frame.band !== frames[index].band),
           `${locale} ${viewport.width}: skeleton column ${column} repeats an adjacent ratio band`);
       }
@@ -818,9 +845,11 @@ try {
   const beforeResizeColumns = await page.locator("[data-masonry-cta-skeleton]")
     .getAttribute("data-masonry-cta-columns");
   await page.setViewportSize({ width: 1000, height: 1000 });
-  await page.waitForFunction((signature) =>
-    document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature !== signature,
-  beforeResizeSignature);
+  // The filter's own rebuild can still change the signature at the old width, so also wait for the column count to move.
+  await page.waitForFunction(({ signature, columns }) => {
+    const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+    return skeleton?.dataset.masonryCtaSignature !== signature && skeleton.dataset.masonryCtaColumns !== columns;
+  }, { signature: beforeResizeSignature, columns: beforeResizeColumns });
   await ready(page);
   const narrowSignature = await page.locator("[data-masonry-cta-skeleton]").getAttribute("data-masonry-cta-signature");
   const narrowAssignments = await flowAssignments(page);
