@@ -4,7 +4,7 @@ Owner duyệt 2026-10-15, thêm provider kie.ai 2026-10-19. Điều phối đặ
 
 ## Fable
 
-Owner duyệt 2026-11-11. Khi dùng `fable`, ưu tiên cho nó làm plan chi tiết để model rẻ hơn (worker) implement. Fable chỉ viết code khi owner cho phép. Các vai trò khác như code review: fable chỉ nhảy vào khi owner cho phép.
+Owner duyệt 2026-11-11. Fable ưu tiên làm plan chi tiết cho worker rẻ hơn implement. Fable chỉ code hoặc code review khi owner cho phép.
 
 ## Provider và chế độ
 
@@ -90,9 +90,6 @@ Leo một bậc theo Pareto (haiku medium, haiku xhigh, sonnet high, opus medium
 - **Intelligence Index**: điểm tổng hợp của Artificial Analysis trên nhiều bộ test.
 - **Pareto**: tập lựa chọn không bị lựa chọn khác vừa điểm cao hơn vừa rẻ hơn vượt qua.
 - **Category**: nhóm bài test của LiveBench theo loại job (Coding, Design, Browser Use...).
-- **Provider**: nơi cấp quyền gọi model; ở đây là gói Max hoặc kie.ai.
-- **Credit**: đơn vị trả tiền của kie.ai, quy đổi ra USD.
-- **Chế độ**: trạng thái hạn mức Max quyết định provider.
 - **Subagent**: worker do Agent tool tạo trong một thread.
 - **File nóng**: file nhiều thread cùng sửa, dễ conflict.
 - **Leo bậc**: nâng model hoặc effort cho lần thử lại sau khi lần trước thất bại.
