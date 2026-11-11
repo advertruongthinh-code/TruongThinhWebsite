@@ -26,6 +26,7 @@ tests:
   - tests/site/advertising-card-interactions.e2e.mjs
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/advertising-resize-card-width.e2e.mjs
+  - tests/site/masonry-first-build.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
 updated: 2026-11-11
@@ -51,7 +52,7 @@ Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products 
 `data-barba-namespace="advertising-products"`. `main#noi-dung` gồm: hero `.detail-index-hero#top` (kicker "Sản phẩm tiêu biểu" / "Our featured products",
 `h1` hai dòng "để thương hiệu / luôn trong tầm mắt" / "Keep your brand / always in sight", dòng 2 đậm 700 nghiêng ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), rail filter
 R3, scroll cue cách đáy như [Hero](../../design-system/components/Hero/README.md); trên 1024px dòng 2 neo mép phải
-khung); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
+khung); `section.masonry-section#du-an` chứa `[data-project-grid]`, khung batch
 `[data-masonry-cta-skeleton]` và CTA `section.detail-cta[data-masonry-grid-cta]` ("Dấu ấn tiếp theo / dành cho
 thương hiệu của bạn", link Zalo "Trao đổi ý tưởng"); `section[data-detail-view][hidden]` là detail. Khi
 duyệt masonry (không có `photo`), `body` có `is-masonry-browse`: floating CTA ẩn, footer không có khoảng phía trên.
@@ -162,7 +163,7 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 
 ### R7. Ảo hóa và bàn phím
 
-Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một [sân masonry](masonry.md#r4-sân-masonry). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-detail` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ.
+Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được dựng, cộng card đang giữ focus và card vừa mở detail; card đã dựng chỉ bị gỡ khi ra xa hơn hai chiều cao vùng nhìn thấy (vùng trễ, nên vuốt qua lại không dựng lại liên tục). Motion layout dựng và gỡ theo vùng dựng. Tổng chiều cao, tọa độ và metadata giữ cho cả pool; áp cho masonry chính và related, hai instance của cùng một [sân masonry](masonry.md#r4-sân-masonry). Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-detail` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính. Card dựng theo ngân sách frame, card chưa tới lượt có card tạm màu chủ đạo ([loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)). Card vừa gỡ mà ảnh đã hiện vào hàng chờ LRU theo RAM máy (`navigator.deviceMemory`: tới 2 GB 8 card, 4 GB 24, từ 8 GB 48; thiếu thì coi như 4), quay lại cửa sổ thì gắn lại đúng node ([loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)); đổi filter, tag, ngôn ngữ, layout hoặc đóng masonry thì bỏ cả hàng chờ. Khi cuộn, cửa sổ nới thêm về phía đang cuộn đúng bằng bước cuộn vừa rồi (tối đa hai chiều cao vùng nhìn thấy): smooth scroll trên PC dời trang sau lượt dựng của frame nên cửa sổ trễ một bước, frame dài làm bước đó vượt vùng đệm và hở lưới. Lần dựng đầu mỗi khi gắn lưới (tải thẳng hoặc chuyển trang) chia task để không task nào quá 50ms trên A04s: dựng sẵn layout (replay cache) ở task trước, task dựng card chỉ dựng card giao vùng nhìn thấy và 8 card đầu (phần còn lại của cửa sổ là card tạm, dựng theo ngân sách sau motion vào), motion trang chạy task sau, cụm CTA cuối lưới dựng ở task kế tiếp; khôi phục scroll sâu hoặc có card focus thì dựng CTA ngay như cũ. Class `is-masonry-browse` (đưa cụm CTA ra khỏi flow) đặt cùng task cho lưới chiều cao, nếu không sẽ có khung hình footer nhảy lên rồi về (layout shift).
 
 ```gherkin
 Given masonry All 285 card (tính từ catalog), đang ở đầu trang
@@ -207,7 +208,7 @@ Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v17`, nh�
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-masonry-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
-chữ thô (CSS chỉ áp trong `@media (scripting: none)`).
+chữ thô (CSS chỉ áp trong `@media (scripting: none)`). Card tĩnh trong `<noscript>` là `figure.masonry-static-card` (ô lưới CSS thường, không có hình học tuyệt đối của `.masonry-card`); trang Công trình dùng cùng class.
 
 ```gherkin
 Given Masonry 4.2.2 không tải được khi vào thẳng /vi/advertising-products/
@@ -271,7 +272,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 | R4 | `advertising-products-random-order.test.mjs` (seed, history, handoff, reload); `advertising-random-browse.e2e.mjs`; `advertising-route-footer-p75.e2e.mjs` (route mới, F5) |
 | R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px; biên 1.618, solver related một cột, card tạm hai cột); `advertising-one-column.test.mjs` (dựng lại luật một cột của solver và related); `advertising-skeleton-flow.test.mjs` (batch dưới card hai cột); `advertising-products-static.test.mjs` (CSS) |
 | R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng của related); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY`; bố cục lưới chính: [cache bố cục](masonry-layout-cache.md#kiểm-tra) |
-| R7 | `advertising-products-layout.test.mjs` (`getVirtualWindow`, 3.000 card); `TT_E2E_ADVERTISING_KEYBOARD_ONLY`, `_3K_ONLY` |
+| R7 | `advertising-products-layout.test.mjs` (`getVirtualWindow`, 3.000 card); `TT_E2E_ADVERTISING_KEYBOARD_ONLY`, `_3K_ONLY`; `masonry-first-build.e2e.mjs` (lần dựng đầu chia task) |
 | R8 | `advertising-card-interactions.e2e.mjs`; `advertising-no-titles.e2e.mjs`; `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` |
 | R9 | `advertising-hero-once.e2e.mjs`; `TT_E2E_ADVERTISING_HERO_ONLY` |
 | R10 | `advertising-products-lifecycle.test.mjs` (phụ thuộc tùy chọn, bắt buộc); `TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY` |

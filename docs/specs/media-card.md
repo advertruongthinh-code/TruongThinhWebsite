@@ -11,31 +11,20 @@ tests:
   - tests/site/site-media-card-playback.e2e.mjs
   - tests/site/strip-swipe-audit.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # Card nhiều media
 
 ## Mục đích
 
-Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 285 card (tính từ catalog) hiện chỉ có một ảnh
-mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
-file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
+Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising; catalog có 284 card, 4 card có hai ảnh (R7), còn lại một ảnh mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 
 ## Hành vi
 
 ### R1. Dữ liệu media của card
 
-Card có `mediaItems` (thứ tự hiển thị) và `coverMediaId`; thiếu `coverMediaId` thì cover là item đầu.
-`validateAdvertisingCardMedia` (`media-contract.mjs`) chạy cho mọi card khi `catalog.mjs` nạp và từ chối card sai: danh
-sách rỗng, cover không có trong danh sách, trùng `id`, `kind` khác `image`/`video`, thiếu `src` hoặc `sourceId`, thiếu
-`altVi`/`altEn` hoặc `source`, `sha256`, `provenance`. `width`, `height` là số nguyên dương an toàn và mọi item cùng một
-tỷ lệ chính xác (so bằng BigInt, không sai số). Video cần thêm `posterSrc`, `posterWidth`/`posterHeight` cùng tỷ lệ,
-`durationSeconds` và `hasAudio` boolean; `cardSrc` (tùy chọn) là đường dẫn bản cho card. Ảnh legacy `record.media` được hiện làm cover (cùng `src`) thì cũng phải cùng
-tỷ lệ; không hiện thì giữ được tỷ lệ khác. Validator chỉ kiểm metadata, không kiểm byte file; khi chuẩn bị asset, đối
-chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh (poster). `media-manifest.mjs` hiện cho mỗi card đúng một
-item ảnh, `id` bằng id card.
+Card có `mediaItems` (thứ tự hiển thị) và `coverMediaId`; thiếu `coverMediaId` thì cover là item đầu. `validateAdvertisingCardMedia` (`media-contract.mjs`) chạy cho mọi card khi `catalog.mjs` nạp và từ chối card sai: danh sách rỗng, cover không có trong danh sách, trùng `id`, `kind` khác `image`/`video`, thiếu `src` hoặc `sourceId`, thiếu `altVi`/`altEn` hoặc `source`, `sha256`, `provenance`. `width`, `height` là số nguyên dương an toàn và mọi item cùng một tỷ lệ chính xác (so bằng BigInt, không sai số). Video cần thêm `posterSrc`, `posterWidth`/`posterHeight` cùng tỷ lệ, `durationSeconds` và `hasAudio` boolean; `cardSrc` (tùy chọn) là đường dẫn bản cho card. Ảnh legacy `record.media` được hiện làm cover (cùng `src`) thì cũng phải cùng tỷ lệ; không hiện thì giữ được tỷ lệ khác. Validator chỉ kiểm metadata, không kiểm byte file; khi chuẩn bị asset, đối chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh (poster). `media-manifest.mjs` cho mỗi card một item ảnh, `id` bằng id card; card gộp theo R7 có thêm item của các card đã gộp vào.
 
 ```gherkin
 Given card có hai item: ảnh 1536×1024 và video 1920×1080
@@ -220,6 +209,11 @@ And bấm mũi tên trước thì video đích đứng yên trong lúc dải ch�
 And trong lúc video phát, nền blur đổi theo frame video
 ```
 
+### R7. Gộp card thành card nhiều media
+
+AI đề xuất nhóm card có media giống nhau, owner chọn từng nhóm; không luật gộp tự động. Nhóm đã chọn ghi trong `MERGED_CARD_MEDIA` (`media-manifest.mjs`): id card bìa trỏ tới các id card gộp vào, theo thứ tự hiển thị; chỉ gộp card cùng tỷ lệ chính xác (R1), không crop. Card gộp vào thôi là card: ảnh của nó thành item sau của card bìa, alt lấy mô tả của chính ảnh đó (item bìa giữ alt cũ); `productIds`, `tagIds` theo card bìa. Ngưỡng [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card) đếm card, nên gộp làm giảm số card của sản phẩm.
+URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail.
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -251,13 +245,14 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
+| R7 | `site-media-card-contract.test.mjs` (item sau chỉ từ card đã gộp); `advertising-products-media.test.mjs` (284 card) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Không chặn phát hành. Card là một loại sản phẩm ([media-seo](media-seo.md#mục-đích)). Gộp ảnh thành card nhiều media làm đợt khác, khi toàn bộ media đã chuẩn: AI đề xuất nhóm, owner audit tay từng nhóm, không luật gộp tự động. Chưa có
+- Không chặn phát hành. Card là một loại sản phẩm ([media-seo](media-seo.md#mục-đích)). Gộp card theo R7 từng đợt; đợt sau và các nhóm vướng ngưỡng 10 card chờ owner chọn. Chưa có
   clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About

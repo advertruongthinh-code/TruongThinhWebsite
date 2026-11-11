@@ -32,7 +32,7 @@ try {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
 
-// Rail sinh lúc build từ taxonomy.mjs (taxonomy R3), nên đọc HTML đã build.
+// The rail is generated at build time from taxonomy.mjs (taxonomy R3), so read the built HTML.
 const builtIndex = await read(".site-output/advertising-products/index.html");
 assert.equal((builtIndex.match(/data-masonry-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
 assert.deepEqual([...builtIndex.matchAll(/data-masonry-filter="([^"]+)"/g)].map(([, slug]) => slug),
@@ -41,7 +41,7 @@ assert.deepEqual([...builtIndex.matchAll(/data-masonry-filter="([^"]+)"/g)].map(
 // must stay bare, or the detail hero frame stops being the parent the runtime inserts its skeleton into (plan T8, B5).
 assert.doesNotMatch(builtIndex, /<picture>(?:(?!<\/picture>)[\s\S])*?<img\b[^>]*\sdata-(?:masonry|detail|viewer)-/,
   "runtime-owned images are not wrapped in <picture> by the build");
-// Ngoại lệ duy nhất: chọn và xáo slide hero trang chủ (page-home R3), không phải grid.
+// The only exception: choosing and shuffling the home hero slides (page-home R3), not a grid.
 assert.doesNotMatch(sharedScripts.replace("const first = Math.floor(Math.random() * slides.length);", "")
   .replace("[slide.dataset.slide === first ? -1 : Math.random(), slide]", ""),
   /Math\.random|random-order|shuffle/, "grid routes outside Advertising are never randomized");
@@ -66,7 +66,7 @@ const kioskFairIds = ["kiosk-posm-25", "kiosk-posm-26", "kiosk-posm-27", "kiosk-
 assert.ok(kioskFairIds.every((id) => artifact.cards.some((card) => card.id === id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
 assert.ok(kioskFairIds.every((id) => !Object.hasOwn(artifact.cards.find((card) => card.id === id), "title")), "accepted trade-fair kiosk cards add no image title");
 assert.match(advertisingCss, /\.masonry-grid \{[\s\S]*?--masonry-gap: 15px;/, "mobile grid uses the 15px gap band");
-assert.match(advertisingCss, /\.detail-page \.project-index \{[\s\S]*?--masonry-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
+assert.match(advertisingCss, /\.detail-page \.masonry-section \{[\s\S]*?--masonry-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
 assert.match(advertisingCss, /@media \(min-width: 751px\)[\s\S]*?--masonry-outer: 25px;/, "middle no-script outer band starts at 751px");
 assert.match(advertisingCss, /@media \(min-width: 961px\)[\s\S]*?--masonry-gap: 25px;/, "middle gap band starts at 961px");
 assert.match(advertisingCss, /@media \(min-width: 1201px\)[\s\S]*?--masonry-gap: 35px;[\s\S]*?--masonry-outer: 35px;/, "wide no-script viewport uses 35px gap and outer bands");
@@ -86,7 +86,7 @@ assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const 
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "Masonry owns the complete photo and skeleton height");
 assert.match(await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8"), /createMasonry\(root, host\.positions, \(\) => host\.pixelHeight/, "each masonry host sizes Masonry from its own pixel height");
-// Owner 2026-10-27 mở lại nút quay lại kiểu Pinterest (detail R10): cùng kiểu image-action, chung đường với Escape.
+// Owner 2026-10-27 reopened the Pinterest-style back button (detail R10): same image-action style, sharing the path with Escape.
 assert.match(index, /class="detail-view__image-action detail-view__back"[^>]*data-detail-back/, "photo Back reuses the image-action control");
 assert.match(runtime, /data-detail-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
 assert.match(index, /data-detail-description-box[\s\S]*data-detail-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-detail-description-bar aria-hidden="true"/,
@@ -123,7 +123,7 @@ assert.match(css, /\.masonry-grid__cta-frame[\s\S]*?opacity:\s*var\(--masonry-ct
 assert.match(css, /\.masonry-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
 assert.doesNotMatch(advertisingCss, /grid-template-columns|column-count/, "product CSS does not create a second column algorithm");
 assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no image captions");
-// Owner 2026-11-09: card masonry chính và related có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình).
+// Owner 2026-11-09: the main and related masonry cards have names (real mouse hover on Advertising, always shown on Projects).
 assert.doesNotMatch(runtime, /if \(!related\) \{\s*const title = figure\.appendChild/, "related cards are no longer excluded from the title");
 assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "masonry-card__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
 // Owner 2026-11-10 (media-card R3): every card UI sits inside the media; a real mouse shows the Pinterest shade and the name on hover, touch shows neither.
@@ -142,7 +142,7 @@ assert.doesNotMatch(index + runtime, /data-detail-tag-reset|masonrySuggestionSlo
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
 assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.5\);/, "portal keeps the owner 0.5 overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
-// Owner 2026-10-26: nút gợi ý dùng lớp tối 0,5 luôn hiện, không dùng token portal.
+// Owner 2026-10-26: the suggestion button uses an always-visible 0.5 dark layer, not the portal token.
 assert.match(css, /\.detail-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");
 assert.match(css, /detail-view__suggestion-links \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/, "suggestions use one full-width row per button");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the white surface");
@@ -158,7 +158,7 @@ assert.doesNotMatch(advertisingCss, /masonry-grid \.masonry-card figcaption|\[da
 assert.match(advertisingCss, /\.masonry-card \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");
 assert.doesNotMatch(advertisingCss, /\.masonry-card \{[^}]*contain:\s*layout paint;/s, "tile paint containment cannot clip the focus-visible outline");
 assert.match(advertisingCss, /masonry-card__media--natural[\s\S]*?background: transparent;/, "natural media has no frame surface");
-// Khung đã theo tỷ lệ gốc của media; ảnh phủ đúng khung thay vì height auto theo pixel làm tròn của file đang tải (lằn đáy 0,5px).
+// The frame already follows the media's original aspect ratio; the image fills the frame exactly instead of height auto from the rounded pixels of the file being loaded (0.5px bottom seam).
 assert.match(advertisingCss, /\.masonry-card img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
 assert.match(advertisingCss, /masonry-card img\.is-masonry-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
 assert.match(siteCss, /\.media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom\s*\{[\s\S]*?transform: scale\(1\.15\);/, "inactive advertising media inherits the shared project-card hover zoom");
@@ -225,7 +225,7 @@ assert.ok(sameCategory.slice(scoredIds.length).every((card) => card.category ===
 const samplingRelated = selectRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
 assert.ok(samplingRelated.some((card) => card.id === samplingCrossGroup.id), "authored sampling tag must cross category groups");
 assert.ok(samplingRelated.every((card) => card.id !== samplingHero.id), "hero cannot appear in related results");
-// Láng giềng mang tag giữ thứ tự tầng điểm; card mang tag còn lại xếp theo cụm, sourceOrder, ID.
+// A neighbor carrying the tag keeps the score tier order; the remaining tag-carrying cards are arranged by cluster, sourceOrder, ID.
 const neighbourIds = new Set(sameCategory.map((card) => card.id));
 const taggedNeighbours = samplingRelated.filter((card) => neighbourIds.has(card.id));
 const taggedRest = samplingRelated.slice(taggedNeighbours.length);
@@ -388,11 +388,11 @@ assert.ok(scrollbarDesktopColumns <= 3, "related columns respect the responsive 
 assert.ok(scrollbarDesktopLayout.primary.span <= scrollbarDesktopColumns, "primary is recomputed for the accepted column count");
 assertNoOverlap(scrollbarDesktopLayout, "scrollbar desktop related layout");
 
-// Placeholder nền của detail không tải khi detail ẩn; runtime gán nguồn thật rồi mới đổi sang eager.
+// The detail's background placeholder does not load while detail is hidden; the runtime assigns the real source then switches to eager.
 assert.match(index, /<img data-detail-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
 assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loading = "eager";/, "photo background goes eager after the real source is set");
 
-// Viewer "Xem lớn hơn" không có vệt sáng và fade-in 0,45s: markFrame của script head phải bỏ qua dialog (loading-glass R5).
+// The "Xem lớn hơn" viewer has no shimmer and no 0.45s fade-in: the head script's markFrame must skip the dialog (loading-glass R5).
 assert.match(index, /!frame\.closest\("[^"]*\[data-detail-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
 
 // Built layout cache (plan T4 step 3.1): 5 whole-band files and one file per filter and band, every one importable, on

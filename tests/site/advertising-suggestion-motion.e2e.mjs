@@ -101,14 +101,14 @@ try {
   assert(alternate, "fixture has an alternate suggestion");
   const activeLink = page.locator(`[data-masonry-suggestion-tag="${activeTag}"]`);
   const inactiveLink = page.locator(`[data-masonry-suggestion-tag="${alternate}"]`);
-  // Lớp tối chỉ tính khi thật sự hiện: opacity khác 1 thì trả về opacity để assert màu fail.
+  // The dark layer counts only when really shown: if opacity is not 1, return the opacity so the color assert fails.
   const inactiveOverlay = () => inactiveLink.evaluate((link) => {
     const after = getComputedStyle(link, "::after");
     return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
   });
-  // Lớp tối chờ ảnh nền settle (spec chờ ảnh S3): đọc sau khi nút đã is-media-settled.
+  // The dark layer waits for the background image to settle (image-wait spec S3): read after the button is is-media-settled.
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
-  // Chờ animation media-fade-in 0.45s của lớp tối chạy xong: đọc sớm thì opacity chưa đúng 1.
+  // Wait for the dark layer's 0.45s media-fade-in animation to finish: reading early, opacity is not yet exactly 1.
   await page.waitForFunction((link) => getComputedStyle(link, "::after").opacity === "1", await inactiveLink.elementHandle());
   const inactiveNormal = await inactiveOverlay();
   assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "settled inactive suggestion shows the 0.5 overlay");
@@ -130,12 +130,12 @@ try {
     borderWidth: "1px",
     labelColor: "rgb(32, 33, 32)",
   }, "active suggestion is white with black text and border");
-  // Vệt sáng chờ ảnh (media-delivery R6): ::before của nút, dưới nhãn.
-  // unsettle: gỡ is-media-settled trong cùng evaluate với lần đọc, vì ảnh slide khác load có thể gắn lại class giữa hai lần.
+  // Shimmer waiting for the image (media-delivery R6): the button's ::before, under the label.
+  // unsettle: remove is-media-settled in the same evaluate as the read, because another slide's image loading may reattach the class between two reads.
   const sweep = (link, unsettle = false) => link.evaluate((node, unsettle) => {
     if (unsettle) node.classList.remove("is-media-settled");
     const style = getComputedStyle(node, "::before");
-    // Tắt transition opacity của ảnh để đọc giá trị đích thay vì frame đang chạy.
+    // Turn off the image's opacity transition to read the target value instead of an in-flight frame.
     const image = node.querySelector("img");
     image.style.transition = "none";
     const opacity = Number(getComputedStyle(image).opacity);
@@ -144,12 +144,12 @@ try {
   }, unsettle);
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
   assert.equal((await sweep(inactiveLink)).animation, "none", "loaded suggestion stops the sweep");
-  // Đọc lúc không có cú đẩy: animation đẩy ảnh cũ ghi đè opacity CSS trong 0.9s chuyển ảnh.
+  // Read when there is no push: the push animation of the old image overrides the CSS opacity during the 0.9s image change.
   await page.waitForFunction((link) => !link.querySelector('[data-masonry-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
   const inactiveSweep = await sweep(inactiveLink, true);
-  // Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): chưa settle thì ::after trong suốt.
-  // Kết thúc transition opacity 250ms của lớp tối rồi mới đọc giá trị đích, không dựa mốc thời gian.
-  // Gỡ class lại trong cùng evaluate: ảnh slide khác load có thể gắn lại is-media-settled giữa hai lần đọc.
+  // The dark layer shows only once the background image is decoded (image-wait spec S3): before settle ::after is transparent.
+  // Wait for the dark layer's 250ms opacity transition to end then read the target value, not relying on a time mark.
+  // Remove the class again in the same evaluate: another slide's image loading may reattach is-media-settled between two reads.
   const unsettledOverlay = await inactiveLink.evaluate((link) => {
     link.classList.remove("is-media-settled");
     document.getAnimations().filter((animation) => animation.effect?.target === link && animation.effect.pseudoElement === "::after")
@@ -192,7 +192,7 @@ try {
   }));
   assert.equal(hoverStyle.filter, "none", "hover does not darken through a filter");
   assert.doesNotMatch(hoverStyle.media, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover no longer zooms the photo");
-  // Gạch chân dùng chung rule với portal và nav: 3px, cách chữ 4px, scaleX 0.3s.
+  // The underline shares a rule with portal and nav: 3px, 4px from the text, scaleX 0.3s.
   const underline = (tag) => page.locator(`[data-masonry-suggestion-tag="${tag}"] .detail-view__suggestion-label > span`)
     .evaluate((span) => {
       const style = getComputedStyle(span, "::after");
@@ -211,7 +211,7 @@ try {
     const style = getComputedStyle(link.querySelector(".card-media__image"));
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   });
-  // Card bỏ zoom, hover phủ lớp tối 20% như Pinterest (media-card R3, owner 2026-10-19).
+  // Card drops zoom, hover overlays a 20% dark layer like Pinterest (media-card R3, owner 2026-10-19).
   assert.doesNotMatch(relatedMedia.transform, /matrix\(1\.15, 0, 0, 1\.15/, "related card no longer zooms its media");
   assert(hasSharedMediaTiming(relatedMedia), "related card media keeps the 600ms ease-out transform contract");
   await page.mouse.move(0, 0);
@@ -260,8 +260,8 @@ try {
   }, offscreenTag);
   await page.evaluate((tag) => document.querySelector(`[data-masonry-suggestion-tag="${tag}"]`).click(), offscreenTag);
   await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, offscreenTag);
-  // Cú đẩy đang chạy lúc cụm ra viewport hoặc nút được bật thì dừng tại chỗ (R6), layer "next" có thể còn trong DOM
-  // nhưng nút bật ẩn ảnh (CSS transition opacity); điều cần giữ là không animation slideshow nào của hàng đó còn chạy.
+  // A push running when the cluster leaves the viewport or the button is turned on stops in place (R6); the "next" layer may still be in the DOM
+  // but the on button hides the image (CSS opacity transition); what must hold is that no slideshow animation of that row is still running.
   const runningLayers = tag => page.evaluate(id => [...document.querySelectorAll(`[data-masonry-suggestion-tag="${id}"] img`)]
     .flatMap(image => image.getAnimations()).filter(animation => animation.constructor === Animation && animation.playState === "running").length, tag);
   await page.waitForTimeout(200);
@@ -296,7 +296,7 @@ try {
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
-  // Link đã tải bỏ vệt; unsettle để đọc loading style.
+  // A loaded link drops the shimmer; unsettle to read the loading style.
   const reducedSweep = await reduced.locator(`[data-masonry-suggestion-tag="${reducedAlternate}"]`)
     .evaluate((link) => {
       link.classList.remove("is-media-settled");

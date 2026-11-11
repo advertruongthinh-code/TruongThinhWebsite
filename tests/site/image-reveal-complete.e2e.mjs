@@ -1,12 +1,12 @@
-// Ảnh chỉ hiện khi tải xong (progressive-loading R3, R9; owner 2026-10-31): proxy chậm trước BASE_URL.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-reveal-complete.e2e.mjs
+// An image shows only once fully loaded (progressive-loading R3, R9; owner 2026-10-31): a slow proxy in front of BASE_URL.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-reveal-complete.e2e.mjs
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
-// JXL đi 20 KB/s theo khúc 2 KB để ảnh còn tải dở đủ lâu mà thấy nếu bị lộ sớm.
+// JXL goes at 20 KB/s in 2 KB chunks so the image is still half-loaded long enough to be seen if it leaks early.
 const CHUNK = 2048;
 const CHUNK_MS = 100;
 const jxlRequests = new Map();
@@ -31,12 +31,12 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 try {
   const context = await browser.newContext({ serviceWorkers: "allow", viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-  // Site không còn đăng ký Service Worker; /sw.js chỉ để gỡ bản đã cài từ trước.
+  // The site no longer registers a Service Worker; /sw.js only removes a previously installed one.
   await page.goto(`${origin}/vi/residential/`, { waitUntil: "load" });
   await page.waitForTimeout(1500);
   assert.equal(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length), 0, "site registers no Service Worker");
 
-  // Trang tĩnh: khung hero settle sau load của ảnh (load rồi decode); server nhận một request cho file đó.
+  // Static page: the hero frame settles after the image load (load then decode); the server receives one request for that file.
   await page.addInitScript(() => {
     window.__heroTrace = {};
     document.addEventListener("load", ({ target }) => {
@@ -57,7 +57,7 @@ try {
   assert.ok(hero.settled >= hero.load, `hero settles only after load ${JSON.stringify(hero)}`);
   assert.equal(jxlRequests.get(hero.src), 1, `hero file requested once ${JSON.stringify([...jxlRequests])}`);
 
-  // Advertising: blur trên ảnh card chỉ bắt đầu tan khi ảnh đã tải xong.
+  // Advertising: the blur on the card image starts to clear only once the image has finished loading.
   await page.addInitScript(() => {
     window.__blurTrace = [];
     const tick = () => {
@@ -75,10 +75,10 @@ try {
   const blur = await page.evaluate(() => window.__blurTrace);
   assert.ok(blur.every(({ complete }) => complete), `card blur dissolves before the photo finishes ${JSON.stringify(blur.slice(0, 5))}`);
 
-  // Viewer: hiện ảnh primary đang có, chỉ đổi sang bản gốc khi bản gốc đã tải xong.
-  // Card có bản gốc rộng hơn 1600 nên primary ở 1440px lấy cỡ 1600, viewer phải đổi sang bản gốc.
+  // Viewer: show the existing primary image, switch to the original only once the original has finished loading.
+  // The card has an original wider than 1600, so the primary at 1440px takes the 1600 size and the viewer must switch to the original.
   await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")]
-    // data-srcset có từ build; srcset chỉ có sau lazysizes, proxy chậm thì card đầu chưa chắc có (không phụ thuộc thứ tự nội dung).
+    // data-srcset exists from the build; srcset only exists after lazysizes, and with a slow proxy the first card may not have it yet (independent of content order).
     .find((card) => card.querySelector("img")?.getAttribute("data-srcset")?.includes("-1600.jxl")).querySelector("a").click());
   await page.waitForFunction(() => {
     const image = document.querySelector("[data-detail-image]");

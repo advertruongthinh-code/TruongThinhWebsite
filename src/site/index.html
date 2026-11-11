@@ -30,7 +30,7 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
+        // motion.js (defer) runs before DOMContentLoaded, so a slow network still keeps the veil.
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
@@ -38,8 +38,8 @@
       Trường Thịnh — Hơn 20 năm vững tay nghề
     </title>
     <script>
-      // page-home R3: chọn slide hero đầu ngay trong head, trước CSS, rồi preload để ảnh tải song song với CSS như
-      // một src có sẵn; script xáo sau .hero-slides chỉ chạy khi parse xong. URL khớp <picture> build sinh (media-delivery R2).
+      // page-home R3: pick the first hero slide right in the head, before CSS, then preload so the image loads in parallel with CSS like
+      // a ready-made src; the reorder script after .hero-slides only runs once parsing is done. The URL matches the <picture> the build generates (media-delivery R2).
       (() => {
         const slides = [
           ["home-hero-office-reception-20261024", 3072],
@@ -56,8 +56,8 @@
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
         document.documentElement.dataset.heroFirst = first;
-        // Preload đúng ứng viên <picture> sẽ chọn: JXL nếu trình duyệt giải mã được ảnh 1x1, không thì WebP của img.
-        // Phone (source media đầu tiên) chỉ WebP tới 960, không bản gốc (owner 2026-11-07).
+        // Preload exactly the <picture> candidate that will be chosen: JXL if the browser can decode a 1x1 image, otherwise the img's WebP.
+        // Phone (the first source media) only gets WebP up to 960, not the original (owner 2026-11-07).
         const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
         const preload = (format, widths) => document.head.append(Object.assign(document.createElement("link"), {
           rel: "preload", as: "image", type: `image/${format}`, href: `${path}.${format}`, imageSizes: "100vw",
@@ -412,10 +412,10 @@
             </figure>
           </div>
           <script type="module">
-            // page-home R3: xáo toàn bộ slide mỗi lần tải, slide head đã preload đứng đầu. DOM đổi theo nên z-order,
-            // :first-child (reduced motion) và slide đầu của motion.js khớp ảnh chiếu đầu; chỉ ảnh đầu nhận src ở đây.
-            // Module nên không chặn parser (chữ hero vẽ cùng lần đầu như trước), vẫn chạy trước motion.js (defer).
-            // Route mềm không có preload: motion.js chạy lại bản sao classic (có currentScript), slide đầu chọn tại chỗ.
+            // page-home R3: reorder all slides on every load, the preloaded head slide stays first. The DOM changes with it so z-order,
+            // :first-child (reduced motion) and the first slide of motion.js match the first displayed image; only the first image receives src here.
+            // A module so it does not block the parser (the hero text paints in the same first paint as before), still runs before motion.js (defer).
+            // A soft route has no preload: motion.js reruns the classic copy (with currentScript), and the first slide is chosen in place.
             (() => {
               const slides = document.currentScript?.previousElementSibling ?? document.querySelector(".hero-slides");
               const first = document.documentElement.dataset.heroFirst;
@@ -427,9 +427,9 @@
                   slide.classList.toggle("is-active", !index);
                 });
               let image = slides.querySelector("img");
-              // ResizeObserver đầu trang theo dõi ảnh này (lúc parse còn data-srcset) và ghi sizes theo crop, có thể trước
-              // cả script này; lệch preload sizes="100vw" là tải hai lần. Bản sao không bị theo dõi, sizes trả về 100vw
-              // như ảnh src có sẵn (media-delivery R2).
+              // The page-top ResizeObserver tracks this image (while parsing it still has data-srcset) and writes sizes by crop, possibly before
+              // this script even runs; a mismatch with the preload sizes="100vw" means loading twice. The copy is not tracked, sizes returns to 100vw
+              // like an image with src already present (media-delivery R2).
               image.replaceWith((image = image.cloneNode()));
               image.setAttribute("fetchpriority", "high");
               [...image.parentElement.querySelectorAll(":scope > source"), image].forEach((node) => {

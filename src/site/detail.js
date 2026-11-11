@@ -20,7 +20,7 @@
     };
   }
 
-  // Trang chạy runtime masonry quảng cáo: Sản phẩm quảng cáo và Công trình (projects R2, cùng hero, motion, lưới).
+  // Page that runs the advertising masonry runtime: Advertising products and Projects (projects R2, same hero, motion, grid).
   const isCatalogNamespace = (namespace) => namespace === "advertising-products" || namespace === "projects";
   let activePage;
   let advertisingCarouselModulesPromise;
@@ -94,7 +94,7 @@
 
   const ensureAdvertisingDependencies = () => {
     if (advertisingDependenciesPromise) return advertisingDependenciesPromise;
-    // Tải song song; script async=false vẫn chạy theo đúng thứ tự khai báo.
+    // Load in parallel; scripts with async=false still execute in declaration order.
     advertisingDependenciesPromise = Promise.all(ADVERTISING_DEPENDENCIES.map(
       (dependency) => loadAdvertisingDependency(dependency).catch((error) => {
         if (!dependency.optional) throw error;
@@ -108,9 +108,9 @@
     return advertisingDependenciesPromise;
   };
 
-  // Vendor, module catalog và artifact tải cùng lúc. Route mềm gọi ngay lúc bấm link để mạng chạy song song với veil phủ
-  // thay vì nối đuôi sau veil (Shell R6). Artifact import cùng lúc với runtime: runtime import lại đúng URL này nên dùng
-  // chung module, không tải hai lần; nếu chờ runtime tải xong mới import thì artifact trễ một vòng mạng.
+  // Vendor, catalog module and artifact load together. A soft route calls this the moment the link is clicked so the network runs in parallel with the veil
+  // instead of queuing behind it (Shell R6). The artifact imports at the same time as the runtime: the runtime re-imports this exact URL so it shares
+  // the module and nothing loads twice; if the import waited for the runtime to finish loading, the artifact would lag a network round trip.
   const loadAdvertisingCatalog = () => Promise.all([
     ensureAdvertisingDependencies(),
     import("/masonry/runtime.mjs").then((runtime) => {
@@ -118,7 +118,7 @@
       return runtime;
     }),
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
-    // Vào thẳng URL photo thì detail (mô tả, related) cần ngay: tải cùng artifact, runtime dùng chung module.
+    // Landing directly on a photo URL needs the detail (description, related) immediately: load it with the artifact; the runtime shares the module.
     location.pathname.includes("/p/") ? import("/advertising-products/catalog-detail.mjs").catch(() => {}) : null,
   ]).then(([, runtime]) => runtime);
 
@@ -301,14 +301,14 @@
         });
     }
 
-    // Trang Công trình (projects R2): chính runtime masonry quảng cáo với artifact công trình nhúng trong trang, không
-    // detail view; không tải catalog-artifact, catalog-detail của trang quảng cáo.
+    // Projects page (projects R2): the advertising masonry runtime itself, with the projects artifact embedded in the page, no
+    // detail view; it does not load the advertising page's catalog-artifact or catalog-detail.
     const projectArtifact = container.dataset.barbaNamespace === "projects"
       && container.querySelector("script[data-project-artifact]");
     if (projectArtifact) {
-      // Parse trong chuỗi promise: JSON hỏng đi vào nhánh lỗi (thẻ tĩnh), không lan lên shell rồi tải lại trang mãi.
+      // Parse inside the promise chain: broken JSON goes down the error branch (static cards) instead of bubbling up to the shell and reloading the page forever.
       const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent));
-      // Dòng "đang cập nhật" theo bộ lọc đang chọn (runtime đổi aria-current khi lọc tại chỗ).
+      // The "updating" line follows the active filter (the runtime changes aria-current when filtering in place).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");
       state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/masonry/runtime.mjs")])
@@ -336,7 +336,7 @@
           console.error("[projects] catalog mount failed", error);
           const grid = container.querySelector("[data-project-grid]");
           const fallback = grid?.querySelector("noscript");
-          if (fallback && !grid.querySelector(".project-tile")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
+          if (fallback && !grid.querySelector(".masonry-card")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
         });
     }
 
@@ -370,12 +370,12 @@
       targets.forEach((target) => observer.observe(target));
     };
 
-    // Vị trí ẩn của dòng trong mask do motion.js tính; thiếu thì giữ 2em.
+    // The row's hidden position inside the mask is computed by motion.js; fall back to 2em when missing.
     const hiddenY = (index, line) => window.TruongThinhMotion?.maskHiddenY?.(index, line) ?? "2em";
     const SplitText = window.SplitText;
     if (gsap && !reduceMotion) {
       state.gsapContext = gsap.context(() => {
-        // Không có SplitText thì chữ giữ nguyên và hiện đủ; media và hero motion vẫn chạy.
+        // Without SplitText the text stays as is and fully visible; media and hero motion still run.
         const splitRoute = Boolean(SplitText) && new Set([
           "advertising-products",
           "projects",
@@ -403,7 +403,7 @@
         const heroMediaZoom = container.querySelector(
           "[data-motion-hero-media]",
         );
-        // About giữ title không split, nên không có nhóm word hero để tween.
+        // About keeps its title unsplit, so there is no hero word group to tween.
         const heroWordGroup = wordGroups.find((group) =>
           group.hasAttribute("data-motion-hero-title"),
         );
@@ -421,8 +421,8 @@
           if (advertisingHeroSettled) item.style.transition = "none";
           item.classList.add("is-motion-inview");
         };
-        // Intro hero đếm delay từ lúc veil bắt đầu mở (first-load-parity R2): mở trực tiếp còn chờ catalog, font
-        // lâu hơn chuyển mềm, đếm từ mount thì chữ chạy dưới veil.
+        // The hero intro counts its delay from when the veil starts opening (first-load-parity R2): a direct open still waits for the catalog and fonts
+        // longer than a soft transition, and counting from mount would make the text run under the veil.
         let startedAt = performance.now();
         const afterIntroStart = (callback) => introStart.then(() => {
           if (activePage === state) callback();
@@ -519,8 +519,8 @@
             },
           });
           state.splitInstances.set(group, split);
-          // Thay autoSplit của SplitText: nó split lại cả khi group bị ẩn (width 0), như CTA của grid lúc mở detail
-          // Advertising, tốn hơn 50ms trên A05s cũ rồi lại split khi Back (decision phone-frame-budget).
+          // Replaces SplitText's autoSplit: it re-splits even when the group is hidden (width 0), like the grid CTA when opening the Advertising detail,
+          // costing over 50ms on an old A05s and splitting again on Back (decision phone-frame-budget).
           let width = group.offsetWidth;
           let timer;
           const observer = new ResizeObserver(() => {
@@ -613,8 +613,8 @@
           return new Promise((resolve) => {
             resolveRebuild = resolve;
             const groups = [...lineGroups, ...wordGroups];
-            // Split mỗi group ép một lần layout; chia thành nhiều task khoảng 8ms để không long task > 50ms trên phone Android
-            // khi vào trang (decision phone-frame-budget). rebuildFrame giữ giá trị tới khi xong để cancel được.
+            // Each group split forces one layout; split into several ~8ms tasks to avoid long tasks > 50ms on Android phones
+            // when entering the page (decision phone-frame-budget). rebuildFrame keeps the value until done so it can be cancelled.
             const prepareBatch = (index) => {
               const deadline = performance.now() + 8;
               do prepareTextGroup(groups[index++]);
@@ -689,8 +689,8 @@
         motionItems.forEach((item) => {
           item.style.setProperty("--motion-delay", `${getDelay(item)}s`);
         });
-        // Một khối được đặt vào layout mới (cụm CTA chuyển giữa masonry và detail, đổi ảnh detail): chữ và nút về
-        // trạng thái chưa hiện rồi chờ lần vào view kế tiếp, như lần đầu ở masonry (advertising-cta-center-parallax R9).
+        // A block is placed into a new layout (the CTA cluster moves between masonry and detail, or the detail image changes): text and buttons return to the
+        // not-yet-revealed state and wait for the next view entry, like the first time in masonry (advertising-cta-center-parallax R9).
         state.rearmMotion = (root) => {
           if (settled || !root) return;
           [...lineGroups, ...wordGroups].filter((group) => root.contains(group)).forEach((group) => {
@@ -712,7 +712,7 @@
           const markReady = () => item.classList.add("is-motion-ready");
           if (item.complete) markReady();
           else {
-            // Ảnh lỗi cũng phải hiện để thấy alt, nên error đánh dấu sẵn sàng như load.
+            // A failed image must still show so its alt is visible, so error marks it ready just like load.
             item.addEventListener("load", markReady, { once: true, signal: abort.signal });
             item.addEventListener("error", markReady, { once: true, signal: abort.signal });
           }
@@ -739,8 +739,8 @@
         if (heroWrapperZoom && heroSettled) {
           settleHeroItem(heroWrapperZoom);
         } else if (heroWrapperZoom) {
-          // Intro zoom xong, hoặc resize giữa intro, thì bỏ transition: qua mốc 1024px transform đổi, title phải về
-          // chỗ ngay như trang khác.
+          // Once the intro zoom ends, or on resize mid-intro, drop the transition: past the 1024px breakpoint the transform changes and the title must snap back
+          // to its place like on other pages.
           const stopZoom = (event) => {
             if (event.type === "transitionend" && event.target !== heroWrapperZoom) return;
             heroWrapperZoom.style.transition = "none";
@@ -801,7 +801,7 @@
       track.addEventListener("dragstart", (event) => event.preventDefault(), {
         signal: abort.signal,
       });
-      // Region focus được: mũi tên chuyển ảnh khi Swiper chạy; trước đó track cuộn native bằng phím.
+      // Focusable region: arrow keys switch images when Swiper is running; before that, the track scrolls natively with the keyboard.
       track.addEventListener(
         "keydown",
         (event) => {
@@ -813,8 +813,8 @@
         { signal: abort.signal },
       );
 
-      // Kéo, vuốt, chấm phân trang như gallery Espacio: Swiper cùng tham số họ dùng (detail-pages R7).
-      // Tải Swiper khi gallery cách viewport một màn hình để không tranh mạng với hero.
+      // Drag, swipe and pagination dots like the Espacio gallery: Swiper with the same parameters they use (detail-pages R7).
+      // Load Swiper when the gallery is one screen away from the viewport so it does not compete with the hero for network.
       const observer = new IntersectionObserver(
         (entries) => {
           if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -833,7 +833,7 @@
                   600: { spaceBetween: 20 },
                 },
                 grabCursor: true,
-                // Cả track (khe dưới caption, hàng chấm) nhận kéo, không chỉ wrapper ảnh: kéo từ đó không bôi đen caption.
+                // The whole track (gap under the caption, dot row) accepts drag, not just the image wrapper: dragging from there does not select the caption text.
                 touchEventsTarget: "container",
                 edgeSwipeDetection: true,
                 watchOverflow: true,
@@ -844,7 +844,7 @@
                 },
               }));
             })
-            // Swiper tải lỗi: giữ track cuộn native.
+            // Swiper failed to load: keep the track natively scrollable.
             .catch(() => {});
         },
         { rootMargin: "100% 0px" },

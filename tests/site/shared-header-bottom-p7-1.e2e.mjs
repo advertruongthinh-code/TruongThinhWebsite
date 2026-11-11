@@ -17,7 +17,7 @@ async function scrollTo(page, target) {
   await page.waitForTimeout(80);
 }
 
-// Advertising khôi phục history scroll khi catalog mount; chỉ cuộn sau đó.
+// Advertising restores history scroll when the catalog mounts; scroll only after that.
 const catalogSettled = page => page.waitForFunction(() => {
   const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
   return !skeleton || skeleton.dataset.masonryCtaReady === "true";
@@ -45,7 +45,7 @@ try {
         assert(await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
           `${label}: downward scroll must hide header before bottom`);
 
-        // motion.md: ẩn dừng trong 1.25 chiều cao viewport tính từ cuối trang.
+        // motion.md: hide pause within 1.25 viewport heights from the page bottom.
         const bottomZone = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight * 1.25);
         await scrollTo(page, Math.ceil(bottomZone) + 20);
         assert(!await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),

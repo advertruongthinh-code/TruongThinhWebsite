@@ -13,12 +13,12 @@ const results = [], errors = [];
 const ready = async page => {
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.() && window.TruongThinhMasonry.getBrowseState().seed);
   await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
-  // Direct-load veil phủ trang và header cho đến khi trang mount xong.
+  // Direct-load veil covers the page and header until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
 };
-// WebKit headless trên Linux vẽ bằng phần mềm: các bậc backdrop-filter của Kính làm rAF dừng giữa lúc veil mở sau Back
-// (đo 14/40 lượt kẹt, tắt backdrop-filter 0/16; tắt riêng filter, blend, will-change vẫn kẹt). Ca này kiểm route,
-// seed và scroll, không kiểm Kính nên tắt backdrop-filter ở WebKit; Safari thật kiểm bằng iPhone (glass-surface R7).
+// Headless WebKit on Linux paints in software: the Kính backdrop-filter rungs make rAF stall while the veil opens after Back
+// (measured 14/40 runs stuck, 0/16 with backdrop-filter off; turning off only filter, blend or will-change still stuck). This case checks route,
+// seed and scroll, not Kính, so backdrop-filter is off in WebKit; real Safari is checked on an iPhone (glass-surface R7).
 const stripBackdropFilter = (page, engine) => engine === webkit ? page.addInitScript(() => {
   document.addEventListener("DOMContentLoaded", () => {
     const style = document.createElement("style");
@@ -72,7 +72,7 @@ try {
   const pendingTarget = await page.evaluate(() => {
     window.__pendingBrowseScrollTime = null;
     window.addEventListener("scroll", () => { window.__pendingBrowseScrollTime = performance.now(); }, { once: true });
-    // html có scroll-behavior: smooth; cuộn tức thì để đọc link đang hiện ngay trong frame này.
+    // html has scroll-behavior: smooth; scroll instantly to read the visible link right in this frame.
     window.scrollTo({ top: 900, behavior: "instant" });
     const link = [...document.querySelectorAll('[data-masonry-card] a')].find(node => {
       const r = node.getBoundingClientRect(); return r.top >= 10 && r.top < innerHeight - 100;
@@ -111,7 +111,7 @@ try {
   await page.reload({ waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, beforeReload.browse.seed);
   results.push({ case: "reload", seed: (await read(page)).browse.seed });
-  // Chặn shell script để chạy fallback native-language của HTML thật.
+  // Block the shell script to run the real HTML's native-language fallback.
   const nativePage = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   let blockedMotion = 0, nativeRequests = 0;
   nativePage.on("request", request => { if (request.isNavigationRequest() && request.frame() === nativePage.mainFrame()) nativeRequests++; });
@@ -131,7 +131,7 @@ try {
   assert.equal(await nativePage.evaluate(() => sessionStorage.getItem("tt-advertising-visit-seed-handoff-v1")), null);
   results.push({ case: "native-locale", injection: "abort motion.js in both documents", blockedMotion, nativeRequests, seed: seedBeforeFallback });
   await nativePage.close();
-  // Bộ CI adv-browse cài Chromium và WebKit; đặt RANDOM_BROWSE_ENGINES để chạy một engine.
+  // The adv-browse CI suite installs Chromium and WebKit; set RANDOM_BROWSE_ENGINES to run a single engine.
   for (const engine of (process.env.RANDOM_BROWSE_ENGINES || "chromium,webkit").split(",").map((name) => ({ chromium, webkit })[name])) {
     const earlyBrowser = engine === chromium ? browser : await engine.launch({ headless: true });
     try {
@@ -144,8 +144,8 @@ try {
           await restingPage.goto(base + "/vi/advertising-products/", {waitUntil:"networkidle"}); await ready(restingPage);
           const restingSeed = (await read(restingPage)).browse.seed;
           const restingOrigin = await restingPage.evaluate(() => performance.timeOrigin);
-          // Header điện thoại đi theo cuộn (phone-header-scroll) nên có lúc đã rời chỗ logo khi chuột bấm;
-          // ca này kiểm route và Back giữ vị trí, nên bấm logo bằng click() của DOM.
+          // The phone header follows the scroll (phone-header-scroll), so it may have left the logo's spot when the mouse clicks;
+          // this case checks route and Back keeping position, so click the logo with the DOM's click().
           await restingPage.evaluate(() => {
             scrollTo({top:80,behavior:"instant"});
             const node = document.querySelector("#header-logo");
@@ -187,7 +187,7 @@ try {
       await earlyPage.close();
     } finally { if (earlyBrowser !== browser) await earlyBrowser.close(); }
   }
-  // Slug nhóm cũ và slug cụm cho cùng filter; URL đổi sang path trang cụm theo locale (taxonomy R4).
+  // The old group slug and the cluster slug give the same filter; the URL switches to the cluster page path by locale (taxonomy R4).
   for (const slug of ["print-decals", "printing-decals", "in-an-decal"]) {
     await page.goto(base + "/vi/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
     const sample = await read(page);
@@ -199,7 +199,7 @@ try {
   }
   await page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, seedBeforeFallback, "ordinary direct URL starts a new visit");
-  // Fetch failure mong đợi ở trên được ghi riêng; không bao giờ giấu lỗi WebGL.
+  // The expected fetch failure above is recorded separately; never hide a WebGL error.
   const unexpected = errors.filter(error => !error.includes("net::ERR_FAILED"));
   assert.deepEqual(unexpected, [], "no runtime/renderer errors");
   await page.screenshot({ path: output + "/random-grid.png", fullPage: false });

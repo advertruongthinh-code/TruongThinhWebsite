@@ -1,8 +1,8 @@
-// Chụp markup Advertising dựng lúc runtime vào scripts/docs/captures/ cho build-design-system.mjs (docs/specs/design-system.md R3).
-// Cách dùng: pnpm dev, rồi node scripts/docs/capture-design-system.mjs [baseUrl]; PLAYWRIGHT_EXECUTABLE_PATH ghi đè browser.
+// Capture the Advertising markup built at runtime into scripts/docs/captures/ for build-design-system.mjs (docs/specs/design-system.md R3).
+// Usage: pnpm dev, then node scripts/docs/capture-design-system.mjs [baseUrl]; PLAYWRIGHT_EXECUTABLE_PATH overrides the browser.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
-// Do pnpm dev (prepare:site) dựng, script này vốn đã cần nó.
+// Built by pnpm dev (prepare:site), which this script already needs.
 import { ADVERTISING_CATALOG_ARTIFACT } from '../../.site-output/advertising-products/catalog-artifact.mjs';
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8787';
@@ -10,9 +10,9 @@ const OUT = 'scripts/docs/captures';
 const GRID = '/vi/advertising-products/';
 const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-26';
 const CLIP = '/__design_system__/clip.mp4';
-// MediaCard lấy bốn card hàng đầu của grid với seed cố định (grid ảo chỉ giữ card gần viewport), rồi biến chúng
-// thành 1 item, 3 item, 11 item và một video cover cộng một ảnh (docs/specs/media-card.md).
-// Catalog live chỉ có card một ảnh, nên MediaCard lặp ảnh của chính mỗi card làm item phụ, như fixture e2e.
+// MediaCard takes the first four cards of the grid with a fixed seed (the virtual grid keeps only cards near the viewport), then turns them
+// into 1 item, 3 items, 11 items and a video cover plus one image (docs/specs/media-card.md).
+// The live catalog only has single-image cards, so MediaCard repeats each card's own image as the extra items, like the e2e fixture.
 function mediaCardArtifact(ids) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const [, dots, counter, video] = ids.map((id) => artifact.cards.find((card) => card.id === id));
@@ -25,34 +25,34 @@ function mediaCardArtifact(ids) {
   return artifact;
 }
 
-// Mỗi capture: route, element giữ lại, setup tùy chọn; cards giữ các grid card đó trong một hàng; artifact thay catalog;
-// focus đánh dấu child mà frame preview cuộn tới (mặc định: chính element).
+// Each capture: route, element to keep, optional setup; cards keeps those grid cards in one row; artifact replaces the catalog;
+// focus marks the child the preview frame scrolls to (default: the element itself).
 const CAPTURES = [
   { name: 'Filter', route: GRID, select: '.project-filters' },
   { name: 'MediaCard', route: GRID, select: '[data-project-grid]', firstRow: 4, artifact: mediaCardArtifact },
   { name: 'Masonry', route: GRID, select: '[data-project-grid]' },
-  { name: 'Skeleton', route: GRID, select: '.project-index', focus: '[data-masonry-cta-frame]',
+  { name: 'Skeleton', route: GRID, select: '.masonry-section', focus: '[data-masonry-cta-frame]',
     setup: (page) => page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)) },
   { name: 'Primary', route: PHOTO, select: '.detail-view__primary' },
   { name: 'Suggestion', route: PHOTO, select: '.detail-view__suggestion' },
   { name: 'Viewer', route: PHOTO, select: '.detail-dialog', setup: (page) => page.click('.detail-view__expand') },
-  // Kính ở khung ảnh chính trang chi tiết; hạt runtime là blob URL nên build gán hạt thay thế (spec design-system R3.9).
+  // Glass on the main detail-page image frame; the runtime grain is a blob URL so the build assigns a substitute grain (spec design-system R3.9).
   { name: 'Glass', route: PHOTO, select: '.detail-view__hero-frame' },
-  // Dải chấm gallery do detail.js dựng khi khối vào khung.
+  // The gallery dot strip is built by detail.js when the block enters the frame.
   { name: 'Gallery', route: '/vi/residential/', select: '.detail-gallery',
     setup: (page) => page.locator('.detail-gallery').scrollIntoViewIfNeeded() },
 ];
 
-// Chạy trong page: element cộng một bản sao nông của từng ancestor, để descendant selector vẫn khớp.
+// Runs in the page: the element plus a shallow copy of each ancestor, so descendant selectors still match.
 function snapshot({ select, cards, focus }) {
   const target = document.querySelector(select);
   if (!target) throw new Error(`missing ${select}`);
   (focus ? target.querySelector(focus) : target).setAttribute('data-ds-focus', '');
   let node = target.cloneNode(true);
-  // LazySizes giữ URL thật trong data-src đến khi card gần viewport.
+  // LazySizes keeps the real URL in data-src until the card is near the viewport.
   node.querySelectorAll('img[data-src]').forEach((img) => img.setAttribute('src', img.dataset.src));
   if (cards) {
-    // Grid card được đặt absolute; xếp các card giữ lại thẳng hàng từ gốc với grid gap.
+    // Grid cards are absolutely positioned; line the kept cards up straight from the origin with the grid gap.
     const kept = cards.map((id) => {
       const card = node.querySelector(`[data-masonry-card="${id}"]`);
       if (!card) throw new Error(`missing card ${id}`);
@@ -76,24 +76,24 @@ function snapshot({ select, cards, focus }) {
   return { html: node.outerHTML, htmlClass: document.documentElement.className, bodyClass: document.body.className };
 }
 
-// Thuộc tính lazy và responsive sẽ trỏ preview về site; build-design-system.mjs viết lại src và poster.
-// Video chỉ giữ poster, để clip fixture không lọt vào design-system/.
+// Lazy and responsive attributes would point the preview at the site; build-design-system.mjs rewrites src and poster.
+// Videos keep only the poster, so the fixture clip does not leak into design-system/.
 const clean = (html) => html
-  // Ảnh primary đổi sang URL tuyệt đối khi lên bản gốc; giữ đường dẫn site để build chép WebP.
+  // The primary image switches to an absolute URL when moving to the original; keep the site path so the build copies the WebP.
   .replaceAll(BASE, '')
   .replace(/<source\b[^>]*>/g, '')
   .replace(/(<video\b[^>]*?)\ssrc="[^"]*"/g, '$1')
   .replace(/\s(?:srcset|sizes|data-srcset|data-sizes|loading)="[^"]*"/g, '')
   .replace(/\sclass="([^"]*)"/g, (_, c) => ` class="${c.split(/\s+/).filter((name) => !/^(lazy\w*|ls-is-cached)$/.test(name)).join(' ')}"`)
   .replace(/\s(?:data-masonry-flow-(?:batch|phase|anchor-permutation))="[^"]*"/g, '')
-  // Grain của Kính là blob URL, mất cùng page.
+  // The Kính grain is a blob URL, lost together with the page.
   .replace(/--glass-grain(?:-white)?: url\(blob:[^)]*\);\s?/g, '');
 
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
 mkdirSync(OUT, { recursive: true });
 const openPage = async (route) => {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-  // Visit seed cố định giữ thứ tự card ổn định giữa các lần capture.
+  // A fixed visit seed keeps the card order stable between captures.
   await page.addInitScript(() => sessionStorage.setItem('tt-advertising-visit-seed-handoff-v1', JSON.stringify({
     version: 1, url: location.href.split('#')[0], seed: 'design-system', expiresAt: Date.now() + 60000 })));
   return page;

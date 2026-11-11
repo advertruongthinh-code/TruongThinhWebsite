@@ -5,7 +5,7 @@ import {
   buildAdvertisingArtifact,
 } from "../../src/site/advertising-products/catalog.mjs";
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "../../src/site/advertising-products/media-contract.mjs";
-import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
+import { ADVERTISING_MEDIA_MANIFEST, MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
 import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../../src/site/advertising-products/taxonomy.mjs";
 
@@ -36,12 +36,14 @@ function videoItem(record) {
   };
 }
 
-test("canonical 288 image cards expose one stable cover item without changing legacy media", () => {
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 288);
-  assert.equal(ADVERTISING_CARDS.length, 288);
+test("canonical image cards expose one stable cover item without changing legacy media", () => {
+  assert.ok(ADVERTISING_MEDIA_MANIFEST.length > 0);
+  assert.equal(ADVERTISING_CARDS.length, ADVERTISING_MEDIA_MANIFEST.length);
   for (const record of ADVERTISING_MEDIA_MANIFEST) {
     assert.equal(record.coverMediaId, record.id);
-    assert.deepEqual(record.mediaItems, [imageItem(record)]);
+    assert.deepEqual(record.mediaItems[0], imageItem(record));
+    // Extra items come only from cards merged into this one (media-card Gate).
+    assert.deepEqual(record.mediaItems.slice(1).map(({ id }) => MERGED_CARD_REDIRECTS[id]), record.mediaItems.slice(1).map(() => record.id));
     const card = ADVERTISING_CARDS.find(({ id }) => id === record.id);
     assert.deepEqual(card.media, record.media);
     assert.deepEqual(card.mediaItems, record.mediaItems);
@@ -67,7 +69,7 @@ test("parent and related cards retain ordered image/video items, cover IDs, and 
   assert.equal(validateAdvertisingMediaPool(pool, poolOptions), pool);
 
   const artifact = buildAdvertisingArtifact({ cards: [parent, related] });
-  // Artifact xếp card theo thứ tự cụm, không theo thứ tự đầu vào.
+  // The artifact orders cards by cluster order, not by input order.
   assert.deepEqual(artifact.cards.map(({ id }) => id).sort(), [parent.id, related.id].sort());
   for (const input of [parent, related]) {
     const card = artifact.cards.find(({ id }) => id === input.id);

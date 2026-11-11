@@ -1,4 +1,4 @@
-// CTA cuối masonry ở cuối related của detail (advertising-cta-center-parallax R9). Hero chọn từ masonry lúc chạy.
+// The masonry's closing CTA at the end of detail's related (advertising-cta-center-parallax R9). The hero is chosen from masonry at run time.
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -10,7 +10,7 @@ const ready = (page) => page.waitForFunction(() => document.querySelector("[data
   && !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"),
 null, { timeout: 20000 });
 
-// Cuộn tới cuối, chờ reveal và parallax về 0, đo chân chữ dòng cuối như advertising-continuation.
+// Scroll to the end, wait for reveal and parallax to return to 0, measure the baseline of the last text line like advertising-continuation.
 const measureEnd = (page) => page.evaluate(async () => {
   const motion = window.TruongThinhMotion;
   const lastScroll = document.documentElement.scrollHeight - innerHeight;
@@ -56,8 +56,8 @@ const measureEnd = (page) => page.evaluate(async () => {
   };
 });
 
-// Đưa tag lên viewport, bấm, lấy mẫu mỗi frame 900ms. Trả khung giao primary, số khung có animation translate,
-// số khung đi vòng (3 keyframe), đường đi của từng khung, và số card related còn lại.
+// Bring the tag into the viewport, click, sample every frame for 900ms. Returns the frames intersecting primary, the number of frames with a translate animation,
+// the number of frames that detour (3 keyframes), the path of each frame, and the number of related cards left.
 const toggleTag = async (page, tag) => {
   await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo(0, 0));
   await page.waitForTimeout(800);
@@ -89,7 +89,7 @@ const toggleTag = async (page, tag) => {
       if (performance.now() - begin < 900) requestAnimationFrame(tick);
       else {
         const p1 = box(primary);
-        // Đường đi của từng khung, tính từ góc primary, để Node kiểm bằng slab test xem khung nào phải đi vòng.
+        // The path of each frame, measured from the primary corner, so Node can use a slab test to check which frames must detour.
         state.moves = [...before].filter(([frame]) => frame.isConnected).map(([frame, r]) => {
           const a = box(frame);
           return { from: { x: r.left - p0.left, y: r.top - p0.top }, to: { x: a.left - p1.left, y: a.top - p1.top },
@@ -125,43 +125,43 @@ try {
     await ready(page);
     const end = await measureEnd(page);
     const label = `${locale} ${viewport.width}x${viewport.height}`;
-    assert.equal(end.host, "detail", `${label}: batch chưa chuyển sang detail`);
-    assert.ok(end.inCanvas, `${label}: CTA không nằm trong canvas detail`);
-    assert.ok(end.frames > 0, `${label}: batch không có khung`);
-    assert.ok(end.infoCta, `${label}: mất nút CTA trong info primary`);
-    assert.ok(Math.abs(end.arc - end.viewportWidth) <= 1, `${label}: Kính cung không trải hết viewport ${end.arc}/${end.viewportWidth}`);
-    assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${label}: đáy batch không sát footer ${JSON.stringify(end)}`);
-    assert.ok(Math.abs(end.batchBottom - end.ctaBottom) <= 1.5, `${label}: đáy batch khác đáy CTA ${JSON.stringify(end)}`);
-    assert.ok(Math.abs(end.parallax) <= 0.5, `${label}: parallax chưa về 0 ở cuối trang`);
+    assert.equal(end.host, "detail", `${label}: batch has not moved to detail`);
+    assert.ok(end.inCanvas, `${label}: CTA is not in the detail canvas`);
+    assert.ok(end.frames > 0, `${label}: batch has no frames`);
+    assert.ok(end.infoCta, `${label}: CTA button in primary info is missing`);
+    assert.ok(Math.abs(end.arc - end.viewportWidth) <= 1, `${label}: Kính arc does not span the viewport ${end.arc}/${end.viewportWidth}`);
+    assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${label}: batch bottom is not flush with the footer ${JSON.stringify(end)}`);
+    assert.ok(Math.abs(end.batchBottom - end.ctaBottom) <= 1.5, `${label}: batch bottom differs from CTA bottom ${JSON.stringify(end)}`);
+    assert.ok(Math.abs(end.parallax) <= 0.5, `${label}: parallax has not returned to 0 at the end of the page`);
     const shortWindow = Math.abs(end.ctaBottom - end.linkBottom - end.gap) <= 1;
-    assert.ok(shortWindow || Math.abs(end.baseline - end.viewportHeight / 2) <= 1, `${label}: chân chữ lệch giữa viewport ${JSON.stringify(end)}`);
-    assert.ok(end.ctaTop >= end.primaryBottom - 1, `${label}: CTA chồng primary`);
+    assert.ok(shortWindow || Math.abs(end.baseline - end.viewportHeight / 2) <= 1, `${label}: baseline is off the viewport center ${JSON.stringify(end)}`);
+    assert.ok(end.ctaTop >= end.primaryBottom - 1, `${label}: CTA overlaps primary`);
 
-    // Bật tag: khung batch trượt cùng related, không khung nào giao primary (R9, R10).
+    // Toggle the tag: batch frames slide with related, no frame intersects primary (R9, R10).
     const tag = await page.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
     if (tag) {
       const sample = await toggleTag(page, tag);
-      assert.deepEqual(sample.overlaps, [], `${label}: khung batch giao primary khi đổi tag`);
-      assert.ok(sample.slid > 0, `${label}: đổi tag mà không khung batch nào trượt ${JSON.stringify(sample)}`);
+      assert.deepEqual(sample.overlaps, [], `${label}: batch frame intersects primary when the tag changes`);
+      assert.ok(sample.slid > 0, `${label}: tag changed but no batch frame slid ${JSON.stringify(sample)}`);
       const after = await measureEnd(page);
-      assert.ok(Math.abs(after.batchBottom - after.footerTop) <= 1.5, `${label}: sau đổi tag đáy batch lệch footer`);
-      assert.ok(Math.abs(after.batchBottom - after.ctaBottom) <= 1.5, `${label}: sau đổi tag chiều cao canvas lệch CTA`);
-      console.log(`${label}: tag ${tag}, ${sample.slid} khung trượt, ${sample.detoured} khung đi vòng`);
+      assert.ok(Math.abs(after.batchBottom - after.footerTop) <= 1.5, `${label}: after the tag change batch bottom is off the footer`);
+      assert.ok(Math.abs(after.batchBottom - after.ctaBottom) <= 1.5, `${label}: after the tag change canvas height is off the CTA`);
+      console.log(`${label}: tag ${tag}, ${sample.slid} frames slid, ${sample.detoured} frames detoured`);
     }
 
-    // Back về masonry: CTA về grid.
+    // Back to masonry: the CTA returns to the grid.
     await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("[data-masonry-cta-skeleton][data-masonry-cta-ready]");
     const grid = await page.evaluate(() => ({
       inGrid: Boolean(document.querySelector("[data-project-grid] [data-masonry-cta-skeleton]")),
-      ctaInIndex: Boolean(document.querySelector(".project-index [data-masonry-grid-cta]")),
+      ctaInIndex: Boolean(document.querySelector(".masonry-section [data-masonry-grid-cta]")),
     }));
-    assert.ok(grid.inGrid && grid.ctaInIndex, `${label}: CTA không ở grid khi duyệt masonry`);
-    console.log(`${label}: ${end.relatedCards} card related, ${end.frames} khung batch, chân chữ ${(end.baseline - end.viewportHeight / 2).toFixed(2)}px`);
+    assert.ok(grid.inGrid && grid.ctaInIndex, `${label}: CTA is not in the grid when browsing masonry`);
+    console.log(`${label}: ${end.relatedCards} related cards, ${end.frames} batch frames, baseline ${(end.baseline - end.viewportHeight / 2).toFixed(2)}px`);
     await page.close();
   }
 
-  // Mở detail từ masonry rồi Back trong cùng trang: host đổi qua lại.
+  // Open detail from masonry then Back on the same page: the host switches back and forth.
   const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   page.on("pageerror", (error) => errors.push(`soft: ${error.message}`));
   await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
@@ -170,7 +170,7 @@ try {
   await page.locator("[data-masonry-card] a").first().click();
   await ready(page);
   assert.equal(await page.getAttribute("[data-masonry-cta-skeleton]", "data-masonry-cta-host"), "detail");
-  // Cụm CTA chuyển sang detail chờ lần vào view như lần đầu ở masonry: chưa hiện khi còn dưới màn, hiện khi cuộn tới (R9).
+  // The CTA group moved to detail waits for its first view entry like the first time in masonry: not shown while below the screen, shown when scrolled to (R9).
   const ctaReveal = () => page.evaluate(() => {
     const cta = document.querySelector("[data-masonry-grid-cta]");
     return { link: cta.querySelector("[data-motion-fade]").classList.contains("is-motion-inview"),
@@ -178,9 +178,9 @@ try {
       below: cta.getBoundingClientRect().top > innerHeight };
   });
   const armed = await ctaReveal();
-  assert.ok(armed.below && !armed.link && armed.lineY > 0, `detail: CTA đã hiện trước khi vào view ${JSON.stringify(armed)}`);
+  assert.ok(armed.below && !armed.link && armed.lineY > 0, `detail: CTA was shown before entering view ${JSON.stringify(armed)}`);
   const revealed = await measureEnd(page).then(ctaReveal);
-  assert.ok(revealed.link && revealed.lineY < 0, `detail: CTA không hiện khi vào view ${JSON.stringify(revealed)}`);
+  assert.ok(revealed.link && revealed.lineY < 0, `detail: CTA is not shown on entering view ${JSON.stringify(revealed)}`);
   await page.goBack();
   await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaHost === "grid"
     && document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 10000 });
@@ -189,10 +189,10 @@ try {
     const cta = document.querySelector("[data-masonry-grid-cta]").getBoundingClientRect();
     return Math.abs(grid.bottom - cta.bottom);
   });
-  assert.ok(gridHeight <= 1.5, "Back: chiều cao grid khác đáy CTA");
+  assert.ok(gridHeight <= 1.5, "Back: grid height differs from CTA bottom");
   await page.close();
 
-  // Tìm ca khung batch có đường thẳng cắt primary: phải đi vòng (R10). Gặp related rỗng thì CTA ngay dưới primary.
+  // Find a case where a batch frame has a straight line crossing primary: it must detour (R10). When related is empty the CTA sits right under primary.
   const heroes = await (async () => {
     const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     await list.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
@@ -210,30 +210,30 @@ try {
     await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(search);
     const tags = await search.$$eval("[data-masonry-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.masonrySuggestionTag));
-    // Mọi tag của hero: ca cần đi vòng thường đến từ tag thu hẹp related mạnh (cột cạnh primary trống ra).
+    // Every tag of the hero: cases needing a detour usually come from a tag that sharply narrows related (the column next to primary empties).
     for (const searchTag of tags) {
       if (detourCase && emptyCase) break;
       for (let pass = 0; pass < 2; pass++) {
         const sample = await toggleTag(search, searchTag);
         assert.deepEqual(sample.overlaps, [], `${hero} tag ${searchTag}: khung batch giao primary`);
         const needs = sample.moves.filter((move) => planDetourPath(move));
-        assert.deepEqual(needs.filter((move) => !move.detoured), [], `${hero} tag ${searchTag}: khung cắt primary mà không đi vòng`);
+        assert.deepEqual(needs.filter((move) => !move.detoured), [], `${hero} tag ${searchTag}: frame crosses primary without detouring`);
         if (needs.length && !detourCase) detourCase = `${hero} ${searchTag}`;
         if (!sample.related && !emptyCase) {
           const end = await measureEnd(search);
-          assert.ok(end.frames > 0 && end.ctaTop >= end.primaryBottom - 1, `${hero} tag ${searchTag}: related rỗng mà CTA sai chỗ`);
-          assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${hero} tag ${searchTag}: related rỗng, đáy batch lệch footer`);
+          assert.ok(end.frames > 0 && end.ctaTop >= end.primaryBottom - 1, `${hero} tag ${searchTag}: related is empty but the CTA is misplaced`);
+          assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, `${hero} tag ${searchTag}: related is empty, batch bottom is off the footer`);
           emptyCase = `${hero} ${searchTag}`;
         }
       }
     }
     await search.close();
   }
-  assert.ok(detourCase, `không ca nào trong ${heroes.length} hero có khung batch cần đi vòng primary`);
-  console.log(`khung batch đi vòng: ${detourCase}; related rỗng: ${emptyCase || "không gặp"}`);
+  assert.ok(detourCase, `none of the ${heroes.length} heroes has a batch frame that must detour around primary`);
+  console.log(`batch frames detoured: ${detourCase}; related empty: ${emptyCase || "not encountered"}`);
 
-  // F5 thẳng vào detail rồi cuộn tới cuối: Kính reveal của khung batch hay card related còn trong DOM khi cung đang thấy
-  // làm Chrome bỏ blur các bậc của cung, lòng cung mất rồi hiện lại (owner 2026-11-09; skeleton R4 áp cho mọi masonry).
+  // F5 straight into detail then scroll to the end: the Kính reveal of the batch frame or a related card still in the DOM while the arc is visible
+  // makes Chrome drop the arc's step blurs, so the arc interior disappears then reappears (owner 2026-11-09; skeleton R4 applies to every masonry).
   {
     const context = await browser.newContext({ viewport: { width: 1569, height: 912 } });
     await context.addInitScript(() => {
@@ -262,25 +262,25 @@ try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
     });
     const overlap = await fresh.evaluate(() => window.__ttArcOverlap.max);
-    // Chừa vài frame: observer của cung báo vào view sau frame cung lộ; reveal 0.6s thì lộ cả reveal.
-    assert.ok(overlap <= 100, `detail F5: Kính reveal còn trong DOM ${Math.round(overlap)}ms khi cung đang thấy`);
+    // Leave a few frames: the arc's observer reports entering view after the arc frame is exposed; a 0.6s reveal exposes the whole reveal.
+    assert.ok(overlap <= 100, `detail F5: Kính reveal still in the DOM ${Math.round(overlap)}ms while the arc is visible`);
     await context.close();
   }
 
-  // Giảm chuyển động: đổi tag đặt khung thẳng, CTA vẫn sát footer.
+  // Reduced motion: changing the tag places frames directly, the CTA stays flush with the footer.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
   await reduced.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
   await ready(reduced);
   const reducedTag = await reduced.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
   if (reducedTag) {
     const sample = await toggleTag(reduced, reducedTag);
-    assert.equal(sample.slid, 0, "reduced motion vẫn trượt khung batch");
+    assert.equal(sample.slid, 0, "reduced motion still slides batch frames");
     const end = await measureEnd(reduced);
-    assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, "reduced motion: đáy batch lệch footer");
+    assert.ok(Math.abs(end.batchBottom - end.footerTop) <= 1.5, "reduced motion: batch bottom is off the footer");
   }
   await reduced.close();
   assert.deepEqual(errors, []);
-  console.log("related CTA: detail và masonry dùng chung một CTA");
+  console.log("related CTA: detail and masonry share a single CTA");
 } finally {
   await browser.close();
 }

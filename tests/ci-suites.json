@@ -205,7 +205,8 @@
         "node tests/site/advertising-remount-no-cache.e2e.mjs",
         "node tests/site/advertising-fast-fling.e2e.mjs",
         "node tests/site/advertising-detached-cards.e2e.mjs",
-        "node tests/site/advertising-primary-flow-colors.e2e.mjs"
+        "node tests/site/advertising-primary-flow-colors.e2e.mjs",
+        "node tests/site/masonry-first-build.e2e.mjs"
       ]
     },
     "adv-detail": {
@@ -222,7 +223,12 @@
         "node tests/site/advertising-slideshow-p75.e2e.mjs",
         "node tests/site/advertising-return-p74.e2e.mjs",
         "node tests/site/advertising-viewer-touch.e2e.mjs",
-        "node tests/site/advertising-viewer-stale-image.e2e.mjs",
+        "node tests/site/advertising-viewer-stale-image.e2e.mjs"
+      ]
+    },
+    "adv-related": {
+      "specs": ["advertising-detail", "advertising-cta-center-parallax"],
+      "tests": [
         "node tests/site/advertising-related-detour.e2e.mjs",
         "node tests/site/advertising-related-cta.e2e.mjs"
       ]

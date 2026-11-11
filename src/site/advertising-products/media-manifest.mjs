@@ -321,8 +321,35 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
   }),
 })));
 
-export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => Object.freeze({
-  ...record,
-  coverMediaId: record.id,
-  mediaItems: Object.freeze([Object.freeze({ id: record.id, kind: "image", ...record.media })]),
-})));
+// Multi-media cards (media-card Gate, owner picked each group): cover card id -> ids of the cards merged into it,
+// in display order. A merged id stops being a card; its media becomes an item of the cover card and its old
+// p/<id> URL redirects to the cover card (MERGED_CARD_REDIRECTS).
+const MERGED_CARD_MEDIA = Object.freeze({
+  "led-displays-lightboxes-43": ["led-displays-lightboxes-48"],
+  "led-displays-lightboxes-44": ["led-displays-lightboxes-49"],
+  "led-displays-lightboxes-45": ["led-displays-lightboxes-50"],
+  "led-displays-lightboxes-46": ["led-displays-lightboxes-51"],
+});
+
+export const MERGED_CARD_REDIRECTS = Object.freeze(Object.fromEntries(Object.entries(MERGED_CARD_MEDIA)
+  .flatMap(([coverId, mergedIds]) => mergedIds.map((id) => [id, coverId]))));
+
+// The cover item keeps the card's legacy media; a merged item needs a distinct alt, so it takes its own photo description.
+const mediaItemOf = (record, merged) => Object.freeze({ id: record.id, kind: "image", ...record.media,
+  ...(merged ? { altVi: record.descriptionVi, altEn: record.descriptionEn } : {}) });
+const recordById = new Map(authoredMedia.map((record) => [record.id, record]));
+const nextOrderByCategory = new Map();
+
+export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia
+  .filter((record) => !MERGED_CARD_REDIRECTS[record.id])
+  .map((record) => {
+    const records = [record, ...(MERGED_CARD_MEDIA[record.id] ?? []).map((id) => recordById.get(id))];
+    const sourceOrder = nextOrderByCategory.get(record.category) ?? 0;
+    nextOrderByCategory.set(record.category, sourceOrder + 1);
+    return Object.freeze({
+      ...record,
+      sourceOrder,
+      coverMediaId: record.id,
+      mediaItems: Object.freeze(records.map((item, index) => mediaItemOf(item, index > 0))),
+    });
+  }));

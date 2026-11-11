@@ -21,7 +21,7 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const runnerSha256 = hash(await fs.readFile(new URL(import.meta.url)));
 const sourceCatalogSha256 = hash(await fs.readFile("src/site/advertising-products/catalog.mjs"));
 const assets = {};
-// Mọi script/style được serve, sao từ src/site, cộng artifact generated, và chính Git candidate.
+// Every script/style served, copied from src/site, plus generated artifacts, and the Git candidate itself.
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 const candidate = () => ({ head: git("rev-parse", "HEAD"), dirty: git("status", "--porcelain", "--", "src/site") });
 const startCandidate = candidate();
@@ -39,8 +39,8 @@ const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercia
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
-// Resize và đổi route chọn lại candidate srcset; browser hủy request ảnh bị thay
-// (Chromium báo net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
+// Resize and route changes re-pick the srcset candidate; the browser cancels the replaced image request
+// (Chromium reports net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
 const supersededImage=request=>request.resourceType()==='image'&&['net::ERR_ABORTED','NS_BINDING_ABORTED'].includes(request.failure()?.errorText);
 async function saveRecord(record){results.push(record);await fs.appendFile(dir+'/observations.jsonl',JSON.stringify(record)+'\n');}
 async function textFixture(context,size){await context.addInitScript(size=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.style.fontSize=`${size}px`,{once:true}),size);}
@@ -56,7 +56,7 @@ function measure(options = {}) {
       paint.push({node,opacity:Number(s.opacity),minimum:languageDim?0.449:0.999,visibility:s.visibility});
       const x=["hidden","clip","auto","scroll"].includes(s.overflowX),y=["hidden","clip","auto","scroll"].includes(s.overflowY);
       if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel")&&s.overflowX==="auto"});
-      // Swiper đã chạy: track overflow visible, slide dịch bằng transform nên không có port cuộn; slide ngoài khung là carousel đúng thiết kế.
+      // Swiper is running: track overflow is visible, slides shift by transform so there is no scroll port; slides outside the frame are the intended carousel behavior.
       else if(a.matches('.detail-gallery__track.swiper-initialized'))ports.push({node,box:b,x:false,y:false,rail:true});
       if(s.clipPath!=="none") {
         const tokens=s.clipPath.match(/^inset\(([^)]+)\)$/)?.[1].trim().split(/\s+/);
@@ -78,7 +78,7 @@ function measure(options = {}) {
     while(walker.nextNode()) {
       if(!walker.currentNode.textContent.trim())continue;
       if(walker.currentNode.parentElement.closest('.sr-only'))continue;
-      // Nhãn ẩn khỏi mắt bằng clip rect(0) 1px (nhãn Hotline, Văn phòng của footer điện thoại) còn trong cây trợ năng; số bên cạnh vẫn được đo.
+      // Labels hidden from sight via clip rect(0) 1px (Hotline, Office labels of the phone footer) remain in the accessibility tree; the adjacent number is still measured.
       const hiddenLabel=(()=>{for(let a=walker.currentNode.parentElement;a&&a!==document.body;a=a.parentElement){const r=a.getBoundingClientRect();if(getComputedStyle(a).clip==='rect(0px, 0px, 0px, 0px)'&&r.width<=1&&r.height<=1)return true;}return false;})();
       if(hiddenLabel)continue;
       const label=walker.currentNode.parentElement.closest('.detail-view__image-action > span');
@@ -87,7 +87,7 @@ function measure(options = {}) {
       }
       const range=document.createRange();range.selectNodeContents(walker.currentNode);
       const clips=chain(walker.currentNode.parentElement);
-      // Mục rail ngoài khung nhìn ngang chưa tới lượt hiện (opacity 0, lệch dọc tới khi vuốt); lượt 'reached rail item' đo lại khi mục đã vào khung.
+      // A rail item outside the horizontal viewport has not had its turn to appear (opacity 0, vertical offset until swiped); the 'reached rail item' pass re-measures once the item is in frame.
       const inRailView=r=>!options.viewportOnly||!clips.ports.some(p=>p.rail)||r.right>0&&r.left<innerWidth;
       const ranges=[...range.getClientRects()].filter(r=>r.width>0&&r.height>0&&(!options.viewportOnly||r.bottom>0&&r.top<innerHeight)&&inRailView(r));
       if(ranges.length)paint.push(...clips.paint);
@@ -124,7 +124,7 @@ function faultsFor(measured) {
 }
 const intersection = (a,b) => a&&b ? Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)) : 0;
 async function ready(page, options = {}) {
-  // Direct load phủ trang bằng route veil đục cho đến khi phase enter gỡ route-enter.
+  // Direct load covers the page with an opaque route veil until the enter phase removes route-enter.
   if(!options.noScript)await page.waitForFunction(() => (document.documentElement.classList.contains("motion-ready")||document.documentElement.classList.contains("motion-fallback"))&&!document.documentElement.classList.contains("route-enter"));
   if(options.noScript) {
     let loaded=false;
@@ -144,7 +144,7 @@ async function ready(page, options = {}) {
       return document.getAnimations().some(a=>a.playState==='running'&&a.effect?.getTiming().iterations!==Infinity&&inView(a.effect?.target))
         || Boolean(window.gsap?.globalTimeline.getChildren(true,true,false).some(t=> {
           for(let parent=t;parent;parent=parent.parent)if(parent.repeat?.()===-1||parent.paused?.()||parent.timeScale?.()===0)return false;
-          // Dòng reveal đang chờ (delay 0.3s) nằm ở y=2em dưới mép khung nhìn; tính cả mask chứa nó để chưa coi là đã yên.
+          // The pending reveal line (delay 0.3s) sits at y=2em below the viewport edge; include the mask containing it so it is not yet considered settled.
           return t.targets().some(e=>inView(e)||inView(e.parentElement))&&(t.isActive()||t.parent&&t.totalProgress()<1&&t.parent.time()<t.endTime());
         }));
     },options);
@@ -167,7 +167,7 @@ async function recordState(page, engine, label, options = {}) {
 async function checkBody(page,engine,label,options={}) {
   const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.masonry-card__title')),explicitHidden:Boolean(e.closest('[hidden]')),
     inactivePhoto:Boolean(e.closest('.detail-view')&&!document.body.classList.contains('is-detail')),
-    inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-masonry-grid-cta],.detail-process')&&document.body.classList.contains('is-detail')),
+    inactiveGrid:Boolean(e.closest('.detail-index-hero,.masonry-section,.detail-cta[data-masonry-grid-cta],.detail-process')&&document.body.classList.contains('is-detail')),
     silentMediaAudio:e.matches('[data-detail-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
   const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.silentMediaAudio);
@@ -187,7 +187,7 @@ async function checkBody(page,engine,label,options={}) {
     const node=page.locator(bodySelector).nth(index);
     const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel')));
     if(!rail)continue;
-    // Swiper chạy: slide dịch bằng transform nên đưa slide vào khung trước; focus hay scrollIntoView sau đó không còn kéo section overflow hidden.
+    // Swiper is running: slides shift by transform so bring the slide into the frame first; focus or scrollIntoView afterwards no longer drags the overflow hidden section.
     await node.evaluate(e=>{const track=e.closest('.detail-gallery__track');if(track?.swiper)track.swiper.slideTo([...track.swiper.slides].indexOf(e.closest('.detail-gallery__item')),0);});
     await node.evaluate(e=>(e.closest('a,button,[tabindex]')||e).focus());
     if(options.noScript)await node.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center',inline:'center'}));
@@ -211,7 +211,7 @@ async function checkMenu(page,engine,label) {
   }
   await checkControls(page,engine,`${label}: menu head`,'#site-menu .menu-head a,#site-menu .menu-head button');
   await nav.locator('a').last().focus();
-  // Native modal traversal có thể ghé browser chrome giữa điểm dừng cuối và đầu.
+  // Native modal traversal may visit browser chrome between the last and first stops.
   await page.keyboard.press('Tab');
   const boundary=await page.evaluate(()=>({tag:document.activeElement.tagName,node:document.activeElement.className,hasFocus:document.hasFocus(),inside:document.querySelector('#site-menu').contains(document.activeElement)}));
   await saveRecord({kind:'focus',engine,label,boundary,faults:boundary.tag==='BODY'||boundary.inside?[]:['Tab reached background DOM']});
@@ -258,7 +258,7 @@ async function checkCtaReflow(page,engine,label) {
   const heading=page.locator('[data-masonry-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
   const original=await heading.evaluate(e=>e.style.fontSize);
   try {
-    // Cô lập text/font reflow khỏi thay đổi footer và viewport; runtime refit heading theo CTA.
+    // Isolate text/font reflow from footer and viewport changes; the runtime refits the heading to the CTA.
     await heading.evaluate(e=>e.style.fontSize=`${parseFloat(getComputedStyle(e).fontSize)*1.5}px`);
     await page.locator('[data-masonry-grid-cta]').scrollIntoViewIfNeeded();await ready(page);
     await recordState(page,engine,`${label}: CTA text reflow`,{selector:'[data-masonry-grid-cta] h2,[data-masonry-grid-cta] a',viewportOnly:true});
@@ -374,7 +374,7 @@ async function runAboutHistory(browser,engine) {
       await page.locator('[data-menu-open]').click();
       await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu a[href="${destination}"]`).first().click();
-      // Menu còn slug nhóm cũ; runtime đổi URL sang slug cụm theo locale (taxonomy R4).
+      // The menu still has the old group slug; the runtime changes the URL to the cluster slug per locale (taxonomy R4).
       await waitForDestination(page,`${base}/${locale}/advertising-products/?category=${locale==='en'?'displays-booths':'standee-ke-trung-bay'}`);
       const after=await documentSnapshot(page);
       assert.notEqual(after.timeOrigin,before.timeOrigin,'About query route uses native navigation');
@@ -503,7 +503,7 @@ async function runStates(browser,engine) {
       const locale=route.startsWith('/vi/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
       await page.waitForURL(url=>url.pathname===route.replace(/^\/(vi|en)\//,`/${locale}/`));await recordState(page,engine,`history locale ${route}`);
       assert.equal(new URL(page.url()).search,original.search,'locale preserves search');assert.equal(new URL(page.url()).hash,'','locale clears hash');assert.equal(await page.evaluate(()=>document.documentElement.lang),locale,'DOM locale updates');
-      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): document mới, không thêm entry history.
+      // Changing language reloads the target page like F5 (site-shell R5): new document, no extra history entry.
       const historyAfter=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin}));
       assert.equal(historyAfter.length,historyBefore.length,'locale replaces the current history entry');assert.notEqual(historyAfter.timeOrigin,historyBefore.timeOrigin,'locale reloads the page like F5');
       await page.waitForFunction(()=>!document.querySelector('#site-menu').open);
@@ -553,7 +553,7 @@ for (const engine of (process.env.LAYOUT_ENGINES || "chromium,firefox,webkit").s
   page.on("response",r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   if(!['states','body','interactions','advertising-states','history','about-history'].includes(scope))for (const viewport of viewports) for (const route of routes) {
     await page.setViewportSize(viewport);
-    // Route product redirect trong trang, và Firefox khi đó resolve goto bằng null; giữ document response đầu tiên.
+    // The product route redirects within the page, and Firefox then resolves goto as null; keep the first document response.
     try { const [response]=await Promise.all([page.waitForResponse(r=>r.url()===base+route&&r.request().isNavigationRequest()),page.goto(base+route,{waitUntil:"networkidle"})]);assert.equal(response.status(),200);await ready(page);
       for (const textSize of [100,200]) {
         await page.evaluate(size=>document.documentElement.style.fontSize=`${size/100*16}px`,textSize);

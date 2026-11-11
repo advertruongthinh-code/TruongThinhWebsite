@@ -56,7 +56,7 @@ function readSuggestions() {
     links: [links.x, links.y, links.width, links.height].map(rounded),
     buttons,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    // Input của geometry primary: lần lệch kế tiếp phải chỉ ra input nào đổi (issue #507).
+    // Primary geometry inputs: the next mismatch must show which input changed (issue #507).
     inputs: {
       scrollY,
       innerHeight,
@@ -67,8 +67,8 @@ function readSuggestions() {
   };
 }
 
-// Sau khi đổi tag, related dựng lại qua nhiều task; issue #507 có lần CI đọc lúc cả khối còn lệch 61px. Đọc lại mỗi
-// frame tới khi geometry đứng yên 5 frame liền rồi mới so; lệch thật vẫn đứng yên và assert vẫn đỏ.
+// After a tag change, related remounts over several tasks; in issue #507 CI once read while the whole block was still off by 61px. Re-read every
+// frame until geometry holds still for 5 consecutive frames, then compare; a real mismatch stays still and the assert still fails.
 async function readSettled(page) {
   await page.evaluate(`window.__ttReadSuggestions = ${readSuggestions}; window.__ttSettle = { last: "", still: 0 };`);
   await page.waitForFunction(() => {
@@ -130,7 +130,7 @@ try {
   for (const locale of ["vi", "en"]) {
     await page.setViewportSize({ width: 1569, height: 912 });
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
-    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
     await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
       && document.querySelector("[data-masonry-related-card]:not([hidden])"));
     const split = await page.evaluate(readSuggestions);
@@ -152,7 +152,7 @@ try {
     assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
-    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
     await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
       && document.querySelector("[data-masonry-related-card]:not([hidden])"));
     const secondDesktop = await page.evaluate(readSuggestions);
@@ -183,7 +183,7 @@ try {
     assert(new Set(narrow.buttons.map(({ rect }) => rect[1])).size > 1, `${locale}: stacked mobile must wrap`);
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-390x844.png`) });
 
-    // Full-span chỉ xếp chồng khi viewport dọc; viewport ngang luôn split (detail spec R2).
+    // Full-span stacks only in portrait viewports; landscape viewports always split (detail spec R2).
     await page.setViewportSize({ width: 954, height: 1000 });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout === "pinterest");
     await page.setViewportSize({ width: 1165, height: 910 });

@@ -1,4 +1,4 @@
-// Sân masonry dùng chung (masonry-reuse bước 7): thứ tự chọn card dựng thật trong một frame.
+// Shared masonry yard (masonry-reuse step 7): the order in which cards are picked to be really built in one frame.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { pickMounts } from "../../src/site/masonry/host.mjs";

@@ -1,5 +1,5 @@
-// Flow chờ ảnh primary mang 4 màu của chính ảnh, lô dưới CTA giữ preset (advertising-skeleton R3, owner 2026-10-31).
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-primary-flow-colors.e2e.mjs
+// The primary image-wait Flow carries the image's own 4 colors, the batch below the CTA keeps the preset (advertising-skeleton R3, owner 2026-10-31).
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-primary-flow-colors.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -13,7 +13,7 @@ try {
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
   const link = page.locator("[data-masonry-card] > a").first();
   await link.waitFor();
-  // Giữ ảnh primary chưa về để Flow chờ ảnh còn trên khung lúc kiểm.
+  // Keep the primary image from arriving so the image-wait Flow stays on the frame during the check.
   await page.route("**/assets/content/**", async (route) => {
     if (route.request().resourceType() === "image") await new Promise((resolve) => setTimeout(resolve, 6000));
     await route.continue().catch(() => {});

@@ -74,7 +74,7 @@ const browseState = () => historyPage.evaluate(() => {
       .map((node) => node.dataset.masonrySuggestionTag),
   };
 });
-// Thứ tự grid random theo mỗi lượt vào, nên mở card single-photo nào render đầu tiên.
+// Grid order is random on each visit, so which single-photo card renders first varies; open that one.
 const firstCard = historyPage.locator("[data-masonry-card]:not(:has(.card-media--carousel)) > a").first();
 const openedId = await firstCard.evaluate((node) => node.parentElement.dataset.masonryCard);
 await firstCard.click();

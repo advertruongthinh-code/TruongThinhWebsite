@@ -4,10 +4,10 @@
 <script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>
 <script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready");</script>
 <style>
-      /* Chỉ trang 404: số lớn và một dòng chữ căn giữa, theo mẫu 404 của Espacio (không dải logo, owner 2026-10-12). */
-      /* Trang vừa khít một màn hình, không cuộn (owner 2026-10-12): container cao đúng 100svh, footer nằm đáy,
-         cụm chữ căn giữa phần còn lại dưới header; số 404 co theo chiều cao để màn hình thấp vẫn vừa.
-         :not([hidden]) vì Barba leave ẩn container cũ bằng hidden; display flex đè lên thì trang kế bị lệch parallax. */
+      /* 404 page only: a large number and one centered line of text, following Espacio's 404 (no logo strip, owner 2026-10-12). */
+      /* The page fits one screen exactly, no scrolling (owner 2026-10-12): the container is exactly 100svh tall, the footer sits at the bottom,
+         the text group is centered in the remainder under the header; the 404 number shrinks with height so a short screen still fits.
+         :not([hidden]) because Barba leave hides the old container with hidden; display flex overriding that would offset the next page's parallax. */
       [data-barba-namespace="not-found"]:not([hidden]) {
         display: flex;
         flex-direction: column;
@@ -43,9 +43,9 @@
         text-transform: uppercase;
       }
 
-      /* Cụm chữ như Espacio đo frame (owner 2026-10-12): cả cụm zoom 1.1 về 1 trong 2.5s --ease từ lúc trang bắt đầu lộ;
-         câu rồi số hiện dần nguyên khối 1s expo.out, trễ 0.3s và 0.6s, không tách từ.
-         Dừng ở frame đầu dưới veil, chạy khi veil bắt đầu mở (body.is-transitioning) hoặc khi route-enter đã gỡ. */
+      /* Text group like Espacio, frame-measured (owner 2026-10-12): the whole group zooms from 1.1 to 1 over 2.5s --ease from when the page starts to reveal;
+         the sentence then the number fade in as whole blocks over 1s expo.out, delayed 0.3s and 0.6s, with no word splitting.
+         Paused at the first frame under the veil, runs when the veil starts opening (body.is-transitioning) or when route-enter has been removed. */
       @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
         html:not(.motion-fallback) .not-found__copy {
           animation: not-found-zoom 2.5s var(--ease) both;

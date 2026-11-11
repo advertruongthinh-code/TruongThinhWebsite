@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
+import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, loadBlockContent, newsListRoutes } from "../site/block-pages.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 
@@ -16,15 +17,17 @@ export const ROUTES = new Map([
   ["/vi/advertising-products/", "advertising-products/index.html"],
   ["/en/advertising-products/", "advertising-products/index.html"],
   ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/vi/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
-  // Trang cụm, sản phẩm Advertising (taxonomy R4): build ghi sẵn file theo slug từng locale.
+  // Advertising cluster and product pages (taxonomy R4): the build pre-writes a file per slug per locale.
   ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
   // Trang card (media-seo R1).
   ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
-  // Trang công trình và bài News dựng từ khối (projects R3, news R3).
+  // Old URL of a card merged into a multi-media card: redirect page to the cover card (media-card Gate).
+  ...Object.keys(MERGED_CARD_REDIRECTS).flatMap((id) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${id}/`, `${locale}/advertising-products/p/${id}/index.html`])),
+  // Project and News article pages built from blocks (projects R3, news R3).
   ...blockRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))),
-  // Trang toàn bộ công trình và trang lọc theo mảng (projects R2).
+  // The all-projects page and the filter-by-sector pages (projects R2).
   ...projectListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
-  // Trang danh sách News, trang nhóm và trang phân trang (news R2).
+  // The News list page, group pages and paginated pages (news R2).
   ...newsListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).news),
   ["/vi/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
@@ -156,7 +159,7 @@ function handler(root) {
       if (request.method === "HEAD") response.end();
       else createReadStream(resolved.file, { start, end }).pipe(response);
     } catch {
-      // Giống demo (not_found_handling = "404-page"): 404.html gần nhất theo path (en, cụm Advertising), thiếu file thì về text.
+      // Same as the demo (not_found_handling = "404-page"): the nearest 404.html by path (en, Advertising cluster), falling back to text when the file is missing.
       let page;
       for (let directory = pathname.replace(/[^/]*$/, ""); !page && directory; directory = directory.replace(/[^/]*\/$/, "")) {
         try {

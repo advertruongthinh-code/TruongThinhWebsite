@@ -1,8 +1,8 @@
-// Lõi CMS dùng chung cho editor và bản xem trước (cms-editor R3, R4, R8). Script classic, không module: bản xem trước
-// nạp nó đồng bộ cuối <body>, lúc DOM còn đúng thứ tự nguồn, trước module xáo hero và script defer của site.
+// CMS core shared by the editor and the preview (cms-editor R3, R4, R8). Classic script, not a module: the preview
+// loads it synchronously at the end of <body>, while the DOM still has source order, before the hero shuffle module and the site's deferred scripts.
 (() => {
-  // Danh sách thêm, xóa, sắp lại được theo trang (R4): [container, item, nhãn, xáo]. Danh sách xáo (hero, page-home
-  // R3) đổi thứ tự mỗi lần tải nên chỉ thêm, xóa.
+  // Lists that can be added to, removed from and reordered per page (R4): [container, item, label, shuffled]. Shuffled lists (hero, page-home
+  // R3) change order on every load so they only allow add and remove.
   const LISTS = {
     home: [
       [".hero-slides", ".hero-slide", "Ảnh hero", true],
@@ -19,7 +19,7 @@
     ],
   };
   LISTS.commercial = LISTS.residential;
-  // Bản sao aria-hidden của marquee: không sửa riêng, dựng lại từ nhóm đứng trước sau mỗi lần áp nháp.
+  // The marquee's aria-hidden copy: not edited on its own, rebuilt from the preceding group after each draft apply.
   const MIRRORS = '.marquee-line[aria-hidden="true"], .client-logo-marquee__group[aria-hidden="true"]';
   const PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><rect width="100%" height="100%" fill="#e9e6df"/>'
@@ -29,7 +29,7 @@
   const isText = (node) => node.hasAttribute("data-en")
     || (!node.children.length && node.textContent.trim() && !node.closest("script, style, svg"));
 
-  // Gắn khóa theo thứ tự nguồn trong <main>; editor (DOMParser) và bản xem trước (DOM thật) ra cùng khóa.
+  // Attach keys by source order inside <main>; the editor (DOMParser) and the preview (real DOM) produce the same keys.
   function stamp(doc, page) {
     const main = doc.querySelector("main");
     if (!main) return;
@@ -73,7 +73,7 @@
 
   function setImage(doc, key, image, locale) {
     nodes(doc, key).forEach((img) => {
-      // Ảnh mới không có biến thể JXL, srcset: bỏ <source> và srcset để trình duyệt hiện đúng file đã chọn.
+      // A new image has no JXL variant, srcset: drop <source> and srcset so the browser shows exactly the chosen file.
       if (img.parentElement?.tagName === "PICTURE") img.parentElement.querySelectorAll("source").forEach((s) => s.remove());
       ["srcset", "data-srcset", "sizes", "data-sizes"].forEach((name) => img.removeAttribute(name));
       img.setAttribute(img.hasAttribute("data-src") ? "data-src" : "src", image.src || PLACEHOLDER);
@@ -86,7 +86,7 @@
     });
   }
 
-  // Mục mới clone từ mục gốc: khóa con thêm hậu tố @id, chữ và ảnh để trống (R4).
+  // A new item is cloned from the original item: child keys get an @id suffix, text and image are left blank (R4).
   function cloneItem(template, id, locale) {
     const clone = template.cloneNode(true);
     clone.dataset.cmsItem = id;
@@ -129,8 +129,8 @@
     });
   }
 
-  // Dấu chỗ gốc của một khóa (R10): danh sách là số mục, ảnh là đường dẫn, chữ là chữ gộp khoảng trắng. Editor (DOMParser)
-  // ghi dấu lúc sửa, Worker (linkedom) so với HTML nguồn lúc lưu và lúc phục vụ; khóa trỏ sang chỗ khác thì dấu lệch.
+  // The original anchor of a key (R10): for a list it is the item count, for an image the path, for text the whitespace-collapsed text. The editor (DOMParser)
+  // writes the anchor at edit time, the Worker (linkedom) compares it with the source HTML at save and at serve time; a key pointing elsewhere makes the anchor mismatch.
   function anchorOf(doc, key) {
     if (/^l\d/.test(key)) return doc.querySelectorAll(`[data-cms-list="${key}"] > [data-cms-item]`).length || undefined;
     const node = doc.querySelector(`[data-cms-key="${key}"]`);
@@ -139,7 +139,7 @@
     return (node.tagName === "META" ? node.getAttribute("content") || "" : node.textContent).replace(/\s+/g, " ").trim();
   }
 
-  // Áp nháp lên document: danh sách trước để khóa của mục mới tồn tại, rồi chữ, ảnh, bản sao marquee.
+  // Apply the draft to the document: lists first so keys of new items exist, then text, images, marquee copies.
   function apply(doc, draft, locale) {
     if (!draft) return;
     Object.entries(draft.list || {}).forEach(([key, order]) => applyList(doc, key, order, draft.clone || {}, locale));
@@ -148,10 +148,10 @@
     mirror(doc);
   }
 
-  // Vá catalog Sản phẩm Quảng cáo theo sửa đổi card (R7). Runtime nhận Promise qua hook có sẵn
-  // window.__TT_ADVERTISING_ARTIFACT__; hàm tự chứa (không dùng biến ngoài) vì Worker chèn nguyên mã nguồn của nó vào
-  // trang public (R10). Đổi sản phẩm chính là đổi cụm: card nhận sourceOrder cuối cụm mới, hạng xếp lại theo runtime.
-  // Không nạp catalog-detail.mjs (nặng): runtime vẫn nạp lười và chỉ gắn trường card còn thiếu (related của card đã sửa).
+  // Patch the Advertising Products catalog by card edits (R7). The runtime receives a Promise through the existing hook
+  // window.__TT_ADVERTISING_ARTIFACT__; the function is self-contained (uses no outer variables) because the Worker inlines its source into
+  // the public page (R10). Changing the main product means changing the cluster: the card gets the last sourceOrder of the new cluster, rank is rearranged by the runtime.
+  // Does not load catalog-detail.mjs (heavy): the runtime still loads it lazily and only attaches the card fields that are missing (related of an edited card).
   async function patchCatalog(edits) {
     const [{ default: base }, { scheduleRank }] = await Promise.all(
       ["/advertising-products/catalog-artifact.mjs", "/masonry/layout.mjs"].map((href) => import(href)),
@@ -189,7 +189,7 @@
     return { ...base, cards: moved ? scheduleRank(cards, base.categories.map((entry) => entry.slug)) : cards };
   }
 
-  // Nháp (chưa lưu) và bản đã lưu (cache của GET /api/admin/content, R8): bản xem trước áp nháp, không có thì bản đã lưu.
+  // Draft (unsaved) and saved copy (cache of GET /api/admin/content, R8): the preview applies the draft, falling back to the saved copy.
   const draftKey = (page) => `tt-cms-draft:${page}`;
   const savedKey = (page) => `tt-cms-saved:${page}`;
   const read = (key) => {
@@ -202,23 +202,23 @@
   const readDraft = (page) => read(draftKey(page));
   const readSaved = (page) => read(savedKey(page));
 
-  // globalThis: Worker (không có window) nạp cùng file để áp nội dung đã lưu y như bản xem trước (R10).
+  // globalThis: the Worker (no window) loads the same file to apply saved content exactly like the preview (R10).
   globalThis.TTCms = { LISTS, PLACEHOLDER, stamp, apply, setText, mirror, anchorOf, patchCatalog, draftKey, savedKey, readDraft, readSaved };
 
-  // Bản xem trước trong iframe của /admin/: gắn khóa, áp nháp, rồi nạp overlay. Ngoài iframe admin thì không làm gì.
+  // Preview in the /admin/ iframe: attach keys, apply the draft, then load the overlay. Outside the admin iframe do nothing.
   if (typeof document === "undefined") return;
   const boot = document.currentScript?.dataset.cmsBoot;
   if (!boot || !window.frameElement?.hasAttribute("data-cms-preview")) return;
   const locale = document.documentElement.dataset.routeLocale === "en" ? "en" : "vi";
   const edits = readDraft(boot) ?? readSaved(boot);
   globalThis.TTCms.page = boot;
-  // Trang Sản phẩm Quảng cáo: chỉ sửa card (R7), runtime dựng card từ catalog đã vá; trang khác gắn khóa và áp nháp.
+  // Advertising Products page: only card edits (R7), the runtime builds cards from the patched catalog; other pages attach keys and apply the draft.
   if (boot === "advertising") window.__TT_ADVERTISING_ARTIFACT__ = patchCatalog(edits?.cards);
   else {
     stamp(document, boot);
     apply(document, edits, locale);
   }
-  // Giữ instance Locomotive để overlay cuộn tới chỗ đang sửa sau khi tải lại (smooth scroll bỏ qua scrollIntoView).
+  // Keep the Locomotive instance so the overlay scrolls to the spot being edited after reload (smooth scroll ignores scrollIntoView).
   let Loco;
   Object.defineProperty(window, "LocomotiveScroll", {
     configurable: true,

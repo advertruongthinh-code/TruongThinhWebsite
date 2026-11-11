@@ -6,11 +6,12 @@ import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising
 import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
 import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.mjs";
 import { projectListPages } from "../../scripts/site/project-list.mjs";
+import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
-  // 22 route cố định (EN mobile-retail thành trang cụm) cộng hai locale của mỗi trang cụm, sản phẩm, card, công trình, bài News và trang danh sách News.
+  // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article, the News list page and each merged card redirect.
   const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));
-  assert.equal(ROUTES.size, 21 + (ADVERTISING_PAGES.length + ADVERTISING_CARDS.length + projects.length + news.length + newsListPages(news).length + projectListPages(projects).length) * 2);
+  assert.equal(ROUTES.size, 21 + (ADVERTISING_PAGES.length + ADVERTISING_CARDS.length + projects.length + news.length + newsListPages(news).length + projectListPages(projects).length + Object.keys(MERGED_CARD_REDIRECTS).length) * 2);
   for (const [route, source] of ROUTES) {
     const locale = route.startsWith("/en/") ? "en" : "vi";
     const original = await readFile(new URL(`../../.site-output/${source}`, import.meta.url), "utf8");

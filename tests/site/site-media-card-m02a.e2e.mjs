@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { ADVERTISING_CATALOG_DETAIL } from "../../.site-output/advertising-products/catalog-detail.mjs";
+import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -19,10 +20,10 @@ const { chromium } = await import("playwright");
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
   crowded = false, twoVideos = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
-  assert.equal(artifact.cards.length, 285, "fixture retains all legacy cards");
+  assert.equal(artifact.cards.length, ADVERTISING_MEDIA_MANIFEST.length, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
   assert(card && card.media.width * 2 === card.media.height * 3);
-  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  // Keep only the legacy image as cover so the fixture does not depend on temporary media (images, videos, video cover).
   card.mediaItems = [{ id: cardId, kind: "image", ...card.media }];
   card.coverMediaId = cardId;
   card.mediaItems.push({
@@ -35,15 +36,15 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     altVi: "Video kiểm thử tổng hợp", altEn: "Synthetic test video",
   });
   if (videoCover) card.coverMediaId = videoId;
-  // Video thứ hai khác nguồn và khác tổng thời lượng, để đổi giữa hai video thấy được giờ của video nào đang hiện.
+  // The second video has a different source and a different total duration, so switching between the two videos shows which video's time is displayed.
   if (twoVideos) {
     card.mediaItems.push({ ...card.mediaItems[1], id: `${videoId}-2`, src: `${fixturePrefix}clip-audio-3x2-b.mp4`,
       durationSeconds: 4 });
   }
-  // Nhiều media hơn một dòng thumbnail và mô tả dài hơn vùng mô tả, để dãy và mô tả phải cuộn.
+  // More media than one thumbnail row and a description longer than the description area, so the strip and description must scroll.
   if (crowded) {
     card.mediaItems.push(...Array.from({ length: 6 }, (_, index) => ({ ...card.mediaItems[0], id: `${cardId}-extra-${index}` })));
-    // Artifact chỉ giữ phần grid (static-release R1), mô tả nằm ở catalog-detail.
+    // The artifact keeps only the grid part (static-release R1), the description lives in catalog-detail.
     card.descriptionVi = card.descriptionEn = Array(8).fill(ADVERTISING_CATALOG_DETAIL[cardId].descriptionEn).join(" ");
   }
   if (singleton) {
@@ -51,8 +52,8 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     card.coverMediaId = videoId;
   }
   const related = artifact.cards.filter((item) => item.category === card.category && item.id !== card.id);
-  // Related chỉ giữ ảnh legacy cộng một ảnh thay thế, để card luôn có chấm: media tạm có card 5 item, thêm một là
-  // 6 item thành bộ đếm, không còn chấm để chọn.
+  // Related keeps only the legacy image plus one replacement image so the card always has dots: temp media has a card with 5 items, adding one makes
+  // 6 items turn into a counter, leaving no dots to choose.
   if (relatedMedia) {
     related.forEach((item) => {
       const cover = { id: item.id, kind: "image", ...item.media };
@@ -70,7 +71,7 @@ async function openFixture(page, locale, { videoCover = false, direct = false, p
     { singleton, relatedMedia, hasAudio, wideVideo, crowded, twoVideos });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
-    // Trả 206 theo Range để Chrome coi clip là seekable, thanh tua mới đổi được currentTime.
+    // Return 206 for Range so Chrome treats the clip as seekable, otherwise the seek bar cannot change currentTime.
     const body = await readFile(clip);
     const [start, end = body.length - 1] = (/bytes=(\d+)-(\d*)/.exec(route.request().headers().range || "") || [])
       .slice(1).filter(Boolean).map(Number);
@@ -139,7 +140,7 @@ async function primaryState(page) {
   });
 }
 
-// Variant AVIF/width responsive tính là source WebP gốc của chúng.
+// AVIF/responsive-width variants count as their original WebP source.
 function mediaPath(value) {
   if (!value) return "";
   const pathname = new URL(value, base).pathname;
@@ -149,8 +150,8 @@ function mediaPath(value) {
 }
 
 async function assertPrimary(page, card, expectedId, locale) {
-  // Chờ layer của media đích hiện liên tục 700ms, hết animation trong hero, theo cùng rule visibility mà
-  // primaryState đọc: layer cũ có thể cùng ảnh, và layer mới chỉ bắt đầu lộ sau mốc giải mã 100ms (loading-glass R4).
+  // Wait for the target media layer to show continuously for 700ms, past the animation in the hero, by the same visibility rule that
+  // primaryState reads: the old layer may be the same image, and the new layer only starts revealing after the 100ms decode mark (loading-glass R4).
   const target = card.mediaItems.find((item) => item.id === expectedId);
   await page.evaluate(() => { window.__ttPrimaryStableSince = null; });
   await page.waitForFunction(({ kind, src }) => {
@@ -187,7 +188,7 @@ async function assertPrimary(page, card, expectedId, locale) {
   } else {
     assert.equal(active.alt, locale === "en" ? expected.altEn : expected.altVi);
   }
-  // Nút mở lớn hiện cả với video (primary-video-player R8).
+  // The expand button also shows for video (primary-video-player R8).
   assert.equal(state.expandHidden, false, "image and video keep the expand action");
   return state;
 }
@@ -249,7 +250,7 @@ test("M02a selected image opens image viewer bound to that image", async () => {
   });
 });
 
-// Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín (advertising-detail R9, owner 2026-10-26).
+// When the viewer opens, the primary frame under the backdrop keeps only the fully covering zoom blur (advertising-detail R9, owner 2026-10-26).
 const underViewer = (page) => page.evaluate(() => {
   const frame = document.querySelector(".detail-view__hero-frame");
   const shown = (selector) => getComputedStyle(frame.querySelector(selector)).display !== "none";
@@ -258,7 +259,7 @@ const underViewer = (page) => page.evaluate(() => {
     glass: shown(":scope > .glass-surface") };
 });
 
-// Viewer thuộc Advertising nên không có vệt sáng hay fade-in của khung chờ ảnh nội dung (loading-glass R5).
+// The viewer belongs to Advertising so it has no light streak or fade-in of the content image placeholder frame (loading-glass R5).
 const viewerMediaGate = (page) => page.evaluate(() => ({
   frame: document.querySelector(".detail-dialog__viewport").classList.contains("media-frame"),
   animations: document.getAnimations().map(({ animationName }) => animationName).filter((name) => /^media-/.test(name)),
@@ -290,8 +291,8 @@ async function withPage(locale, execute) {
   } finally { await context.close(); await browser.close(); }
 }
 
-// Chờ hết CSS transition đang chạy (hover, fade) thay vì ngủ cố định: hai frame cho style recalculation khởi động
-// transition, rồi chờ không còn transition nào chạy (kể cả pha delay).
+// Wait for running CSS transitions (hover, fade) to finish instead of a fixed sleep: two frames for style recalculation to start the
+// transition, then wait until no transition is running (including the delay phase).
 const settleTransitions = async (page) => {
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await page.waitForFunction(() => !document.getAnimations()
@@ -352,8 +353,8 @@ test("M02a native video volume and custom audio button stay synchronized", async
   });
 });
 
-// Player primary theo trang pin Pinterest: không controls gốc, video lặp, bấm video phát/dừng, thanh dưới hiện khi
-// hover hoặc đang dừng, thanh tua, thời gian, thanh âm lượng mở khi trỏ vào cụm tiếng.
+// Primary player per the Pinterest pin page: no native controls, looping video, click the video to play/pause, bottom bar shows on
+// hover or while paused, seek bar, time, volume bar opens when pointing at the sound cluster.
 const playerState = (page) => page.evaluate(() => {
   const player = document.querySelector("[data-detail-player]");
   const video = document.querySelector("[data-detail-video]");
@@ -361,7 +362,7 @@ const playerState = (page) => page.evaluate(() => {
   return { hidden: player.hidden, controls: video.controls, loop: video.loop, paused: video.paused,
     muted: video.muted, volume: video.volume, currentTime: video.currentTime,
     bar: opacity(".video-player__bar"),
-    // Không có nút phát giữa video, kể cả khi dừng (primary-video-player R1, R9; owner 2026-10-25).
+    // No center play button on the video, even when paused (primary-video-player R1, R9; owner 2026-10-25).
     centerIcons: player.querySelectorAll("[data-detail-play-surface] svg").length,
     playLabel: player.querySelector("[data-detail-play]").getAttribute("aria-label"),
     time: player.querySelector(".video-player__time").textContent.replace(/\s+/g, " ").trim(),
@@ -375,7 +376,7 @@ const playerState = (page) => page.evaluate(() => {
 test("M02a primary video player: surface toggles playback, bar shows on hover or pause, seek and time", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
-    // Màn chuyển route phủ trang lúc vào; chờ nó hết để hover chạm tới player.
+    // The route transition screen covers the page on entry; wait for it to end so hover reaches the player.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
       && !document.querySelector("[data-detail-video]").paused);
     const frame = page.locator(".detail-view__hero-frame");
@@ -386,7 +387,7 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     assert.equal(state.controls, false, "no native controls");
     assert.equal(state.loop, true, "video loops like the Pinterest closeup");
     assert.equal(state.bar, 0, "bar hidden while playing without hover");
-    // Nút mở lớn nằm ngoài player nên vẫn hiện khi cụm player mờ đi (R9).
+    // The expand button sits outside the player so it still shows when the player cluster fades (R9).
     assert.deepEqual(await page.locator("[data-detail-expand]").evaluate((node) =>
       [node.hidden, getComputedStyle(node).opacity]), [false, "1"], "expand stays visible while the bar hides");
     assert.equal(state.centerIcons, 0, "no center play icon");
@@ -408,22 +409,22 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     state = await playerState(page);
     assert(Math.abs(state.currentTime - 1.5) < 0.3, `clicking the middle of the bar seeks: ${state.currentTime}`);
     await progress.press("ArrowLeft");
-    // Lệnh bàn phím chờ `seeked` của lệnh bấm thanh nếu lệnh đó còn chạy (R2).
+    // A keyboard command waits for the `seeked` of the bar-click command if that command is still running (R2).
     await page.waitForFunction((before) => document.querySelector("[data-detail-video]").currentTime < before,
       state.currentTime);
     await page.locator("[data-detail-play]").click();
-    // `paused` đổi ngay khi gọi play(), nhãn chỉ đổi ở sự kiện `play` sau đó: chờ nhãn, không đọc một lần.
+    // `paused` changes immediately on play(), the label only changes at the later `play` event: wait for the label, do not read once.
     await page.waitForFunction(() => !document.querySelector("[data-detail-video]").paused
       && document.querySelector("[data-detail-play]").getAttribute("aria-label") === "Pause");
-    // Bấm chuột để focus lại trên nút nhưng không phải focus bàn phím: chuột rời khung thì cụm vẫn ẩn (R9).
+    // A mouse click refocuses the button but it is not keyboard focus: when the mouse leaves the frame the cluster stays hidden (R9).
     await page.mouse.move(box.x + box.width + 40, box.y + 10);
     await settleTransitions(page);
     assert.equal((await playerState(page)).bar, 0, "a mouse click leaves no keyboard focus, so the bar hides again");
   });
 });
 
-// Nạp lại nguồn lúc đang phát làm video dừng mà không bắn `pause` (chỉ `abort`, `emptied`); player vẫn phải đổi sang
-// trạng thái dừng: thanh hiện, nút phát trên thanh (primary-video-player R9).
+// Reloading the source while playing stops the video without firing `pause` (only `abort`, `emptied`); the player must still switch to the
+// paused state: bar shows, play button on the bar (primary-video-player R9).
 test("M02a primary shows the paused bar when a source reload stops the video", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -443,8 +444,8 @@ test("M02a primary shows the paused bar when a source reload stops the video", a
   });
 });
 
-// Kéo tua (primary-video-player R2): video dừng khi kéo, khung theo núm, mỗi lần một lệnh tua; ngoài đoạn đã tải thì
-// giữ frame, thả tay mới tua; thả tay thì phát tiếp nếu trước đó đang phát.
+// Drag seek (primary-video-player R2): the video pauses while dragging, the frame follows the thumb, one seek command at a time; outside the loaded range
+// keep the frame, seek only on release; on release resume playing if it was playing before.
 async function dragProgress(page, from, to, { buffered = null, during } = {}) {
   await page.evaluate((end) => {
     const video = document.querySelector("[data-detail-video]");
@@ -491,7 +492,7 @@ test("M02a primary scrub shows frames under the thumb, pauses while dragging and
   });
 });
 
-// Video đang dừng vẫn kéo núm xem trước được, thả tay thì đứng ở frame dưới núm (owner 2026-10-26: phone và PC).
+// A paused video can still be scrubbed with preview, on release it stays at the frame under the thumb (owner 2026-10-26: phone and PC).
 test("M02a paused primary scrub shows frames under the thumb and stays paused on release", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -532,8 +533,8 @@ test("M02a primary scrub past the buffered range holds the frame and seeks on re
   });
 });
 
-// Thả tay khi lệnh tua lúc kéo còn chạy: lệnh thả chờ `seeked` rồi mới tua, không chồng lệnh; thả đúng chỗ lệnh kéo
-// cuối đang tua thì không tua lần hai (R2; A04s 2026-10-26).
+// Release while a drag seek command is still running: the release command waits for `seeked` before seeking, no overlapping commands; releasing exactly where the last
+// drag command is seeking does not seek a second time (R2; A04s 2026-10-26).
 test("M02a primary release during an in-flight scrub seek waits for seeked", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -558,7 +559,7 @@ test("M02a primary release during an in-flight scrub seek waits for seeked", asy
         const seeking = video.seeking;
         progress.value = String(target);
         progress.dispatchEvent(new Event("change"));
-        // currentTime đổi ngay khi gửi lệnh, trước event `seeking`: chờ hết lệnh tua (seeking false) rồi mới đọc.
+        // currentTime changes immediately on sending the command, before the `seeking` event: wait for the seek command to finish (seeking false) before reading.
         const done = () => audit.seeks > 0 && !audit.inFlight && !video.seeking && !video.paused
           && video.currentTime >= target - 0.05;
         const poll = () => done() ? resolve({ ...audit, seeking, time: video.currentTime, target }) : requestAnimationFrame(poll);
@@ -573,15 +574,15 @@ test("M02a primary release during an in-flight scrub seek waits for seeked", asy
   });
 });
 
-// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát có drop-shadow
-// hai lớp trên lớp riêng, thanh tua có box-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
+// Two-layer shadow D (primary-video-player R4) and solid thumb (R5): the bar no longer has a gradient strip, the icon and play button have a two-layer drop-shadow
+// on their own layer, the seek bar has a two-layer box-shadow, the time and the unselected hint button text have a two-layer text-shadow.
 test("M02a primary player and suggestion text carry the two-layer shadow and solid thumbs", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
     const drop = "drop-shadow(rgba(0, 0, 0, 0.5) 0px 0px 2px) drop-shadow(rgba(0, 0, 0, 0.4) 0px 0px 12px)";
-    // Thanh tua vẽ bóng bằng box-shadow ở đường tua và núm, không filter (A04s 2026-10-26), số chỉnh cho nhìn như
-    // drop-shadow cũ; Chromium bỏ rule -moz.
+    // The seek bar draws its shadow with box-shadow on the track and thumb, no filter (A04s 2026-10-26), numbers tuned to look like the
+    // old drop-shadow; Chromium drops the -moz rule.
     const seekShadows = ["-webkit-slider-runnable-track", "-webkit-slider-thumb"]
       .map((pseudo) => `.video-player__progress::${pseudo}`);
     const read = () => page.evaluate(() => {
@@ -590,16 +591,16 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
         .filter((link) => (link.getAttribute("aria-pressed") === "true") === pressed)
         .map((link) => [getComputedStyle(link.querySelector(".detail-view__suggestion-label")).textShadow,
           getComputedStyle(link, "::after").backgroundColor]);
-      // getComputedStyle không đọc được ::-webkit-slider-thumb, nên đọc rule trong stylesheet.
+      // getComputedStyle cannot read ::-webkit-slider-thumb, so read the rule in the stylesheet.
       const rules = [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]);
       const thumbs = rules
         .filter((rule) => rule.selectorText?.includes("video-player__range::-webkit-slider-thumb") && rule.style.backgroundColor)
         .map((rule) => rule.style.backgroundColor);
       const seek = Object.fromEntries(rules.filter((rule) => rule.style?.boxShadow)
         .map((rule) => [rule.selectorText, rule.style.boxShadow]));
-      // Nút mang icon có drop-shadow là lớp riêng để bóng chỉ vẽ một lần (owner 2026-10-26 "Giữ bóng, tách lớp").
+      // A button carrying an icon with drop-shadow is its own layer so the shadow draws once (owner 2026-10-26 "Giữ bóng, tách lớp").
       const tileStep = rules.find((rule) => rule.selectorText === ".masonry-card > .detail-view__media-step");
-      // Mũi tên card và icon play thumbnail dùng cùng drop-shadow hai lớp D (S4); chevron card đọc từ rule vì chỉ hiện khi hover.
+      // The card arrow and the play thumbnail icon use the same two-layer drop-shadow D (S4); the card chevron is read from the rule because it shows only on hover.
       const dropOf = (selector) => rules.find((rule) => rule.selectorText === selector)?.style.filter;
       const layers = [style(".video-player__button").willChange,
         getComputedStyle(document.querySelector(".detail-view__media-thumbs svg").parentElement).willChange,
@@ -658,7 +659,7 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     assert.deepEqual([state.muted, state.volume, state.volumeValue], [false, 0.4, 0.4],
       "sound button restores the last volume");
     assert.equal(await page.locator("[data-detail-audio-toggle]").getAttribute("aria-label"), "Mute");
-    // Kéo thanh bằng chuột rồi rời cụm tiếng: cột thu lại (trước đây focus của thanh giữ cột mở mãi); bàn phím vẫn mở được.
+    // Drag the bar with the mouse then leave the sound cluster: the column retracts (previously bar focus kept the column open forever); the keyboard can still open it.
     await page.locator("[data-detail-audio-toggle]").hover();
     const slider = await volume.boundingBox();
     await page.mouse.move(slider.x + slider.width / 2, slider.y + slider.height * 0.8);
@@ -668,11 +669,11 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
     await settleTransitions(page);
     assert.equal((await playerState(page)).volumeOpen, false, "leaving after a mouse drag collapses the slider");
-    // Thứ tự Tab theo hàng: phát, thanh tua, nút tiếng (owner 2026-10-25).
+    // Tab order by row: play, seek bar, sound button (owner 2026-10-25).
     await page.locator("[data-detail-play]").focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
-    // Thanh trượt nằm trước nút tiếng và chỉ focus được khi cột đã mở (transition 150ms).
+    // The slider sits before the sound button and can be focused only once the column is open (150ms transition).
     await settleTransitions(page);
     await page.keyboard.press("Shift+Tab");
     await settleTransitions(page);
@@ -681,8 +682,8 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
   });
 });
 
-// Màn hình cảm ứng (primary-video-player R1): một hàng 40px giờ, thanh tua, tiếng; không nút phát trên thanh,
-// nút tiếng chỉ bật/tắt, không mở cột âm lượng.
+// Touch screens (primary-video-player R1): one 40px row of time, seek bar, sound; no play button on the bar,
+// the sound button only toggles, and does not open the volume column.
 test("M02a touch primary video uses one 40px row with the play button, no center icon and no volume column", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi", { videoCover: true, direct: true });
@@ -722,18 +723,18 @@ test("M02a touch primary video uses one 40px row with the play button, no center
   });
 });
 
-// Ngón đặt trên thanh tua chỉ tua, không kéo dải media (primary-video-player R10, owner 2026-10-24).
+// A finger on the seek bar only seeks, it does not drag the media strip (primary-video-player R10, owner 2026-10-24).
 test("M02a touch seek drag moves the video, not the media strip", async () => {
   await withPage("vi", async (page) => {
     const card = await openFixture(page, "vi", { videoCover: true, direct: true });
-    // Màn chuyển route phủ trang lúc vào; chờ nó hết để ngón chạm tới thanh tua.
+    // The route transition screen covers the page on entry; wait for it to end so the finger reaches the seek bar.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
       && document.querySelector("[data-detail-video]").readyState >= 2);
     const view = page.locator("[data-detail-view]");
     assert.equal(await view.getAttribute("data-masonry-active-media-id"), videoId);
     assert(card.mediaItems.length > 1, "the card has more than one media");
     const track = await page.locator("[data-detail-progress]").boundingBox();
-    // Dừng video và về 0 để chỉ cú kéo làm giây đổi.
+    // Pause the video and go to 0 so only the drag changes the seconds.
     const before = await page.evaluate(() => {
       const video = document.querySelector("[data-detail-video]");
       video.pause();
@@ -745,8 +746,8 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
     let x = track.x + 4;
     let strip = false;
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y, id: 1 }] });
-    // Kéo 60% thanh, quá slop 10px của dải. Kéo tới cuối thanh thì video loop đã dừng vẫn tự tua về 0 khi seek xong
-    // (Chrome), nên giây đọc lại là 0 (CI đỏ 0 -> 0, thanh 115px mà kéo 120px).
+    // Drag 60% of the bar, past the strip 10px slop. Dragging to the bar end makes a stopped looping video seek back to 0 on its own once seek completes
+    // (Chrome), so the read seconds are 0 (CI red 0 -> 0, bar 115px but dragged 120px).
     for (let step = 0; step < 12; step += 1) {
       x += track.width * 0.6 / 12;
       await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y, id: 1 }] });
@@ -763,10 +764,10 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
   });
 });
 
-// Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
-// mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur.
-// Khung primary cao theo media (primary-video-player R6): video vừa khít khung ở 1440×900. Viewport thấp chặn khung theo
-// chiều cao, nên video 3:2 hay 16:9 còn vùng dư hai bên cho nền blur.
+// Media strip per the Pinterest pin: the frame keeps the cover ratio so switching media does not resize primary, related stays still;
+// the arrows and the viewed thumbnail follow position, media of a different ratio has a zoom blur backdrop.
+// The primary frame is as tall as the media (primary-video-player R6): the video fits the frame exactly at 1440×900. A short viewport caps the frame by
+// height, so a 3:2 or 16:9 video leaves spare area on both sides for the blur backdrop.
 const cappedViewport = { width: 1440, height: 560 };
 
 const stripState = (page) => page.evaluate(() => {
@@ -780,8 +781,8 @@ const stripState = (page) => page.evaluate(() => {
     thumbs: [...view.querySelectorAll("[data-detail-media-select]")].map((node) => node.getAttribute("aria-current") === "true" ? 1 : 0).join("") };
 });
 
-// Card dọc bốn ảnh cùng tỷ lệ: media hẹp hơn khung nên có nền zoom blur; bấm thumbnail trượt thẳng tới media đó, nền
-// blur trượt cùng dải (media-card R6, owner 2026-10-19). Primary không có hàng chấm, thumbnail góc vuông (owner 2026-10-24).
+// A portrait card with four images of the same ratio: media narrower than the frame so it has a zoom blur backdrop; clicking a thumbnail slides straight to that media, the
+// blur backdrop slides with the strip (media-card R6, owner 2026-10-19). Primary has no dot row, thumbnails have square corners (owner 2026-10-24).
 test("M02a primary thumbnails jump straight to a media without dots and the blur backdrop mirrors the strip live", async () => {
   await withPage("en", async (page) => {
     const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
@@ -889,7 +890,7 @@ test("M02a video stands still in the strip, its sound fades between play and pau
     const sliding = out.filter(({ strip }) => strip);
     assert(sliding.length >= 20, `video to image slides over many frames: ${sliding.length}`);
     assert(sliding.every(({ laneVideos }) => laneVideos === 0), "no video plays inside the strip");
-    // Tiếng chạy nốt và nhỏ dần trong lúc hình đứng trên dải, về 0 thì video dừng.
+    // Sound keeps playing and fades while the picture stays on the strip, at 0 the video stops.
     const fading = sliding.filter(({ paused }) => !paused);
     const span = fading.at(-1).at - fading[0].at;
     assert(span > 600 && fading[0].volume > 0.9, `the sound fades over the slide rhythm from the viewer volume: ${span}`);
@@ -911,15 +912,15 @@ test("M02a video stands still in the strip, its sound fades between play and pau
   });
 });
 
-// Nền kính sống và thanh tua vẽ theo frame video chứ không theo mỗi lần màn làm tươi; nền đứng yên dưới viewer (A04s
-// 2026-10-26: thanh tua theo rAF đẩy primary video lên 44 frame/s cho clip 24 frame/s).
+// The live glass backdrop and the seek bar draw per video frame rather than per screen refresh; the backdrop stays still under the viewer (A04s
+// 2026-10-26: a rAF-driven seek bar pushed primary video to 44 frames/s for a 24 frames/s clip).
 test("M02a live blur backdrop and seek bar redraw once per video frame, the backdrop stands still under the viewer", async () => {
   await withPage("en", async (page) => {
     await page.setViewportSize(cappedViewport);
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-detail-video]").paused);
-    // Đếm lượt vẽ lên canvas nền và frame video trong 1 s (headless làm tươi 30 lần/s, clip 24 fps: vẽ theo rAF thì số
-    // lượt vẽ vượt số frame).
+    // Count draws onto the backdrop canvas and video frames in 1 s (headless refreshes 30 times/s, 24 fps clip: drawing per rAF makes the number of
+    // draws exceed the number of frames).
     const count = () => page.evaluate(() => new Promise((resolve) => {
       const video = document.querySelector("[data-detail-video]");
       const live = document.querySelector(".detail-view__live-background");
@@ -962,7 +963,7 @@ test("M02a live blur backdrop and seek bar redraw once per video frame, the back
   });
 });
 
-// Người xem chỉnh tiếng giữa lúc fade thì thắng (primary-video-player R11): fade dừng, mức vừa chọn giữ nguyên.
+// A viewer adjusting sound mid-fade wins (primary-video-player R11): the fade stops, the level just chosen is kept.
 test("M02a a volume change during the sound fade wins and stays", async () => {
   await withPage("en", async (page) => {
     await page.setViewportSize(cappedViewport);
@@ -1004,7 +1005,7 @@ test("M02a blur backdrop has no vignette: its edges are as opaque as its centre"
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => document.querySelector("[data-detail-video]").readyState >= 2
       && !document.documentElement.classList.contains("route-enter"));
-    // Ẩn media và Kính rồi chụp nền blur trên hai màu nền khung: chỗ nào nền blur trong suốt thì hai ảnh khác nhau.
+    // Hide media and Glass then capture the blur backdrop over two frame background colors: wherever the blur backdrop is transparent the two images differ.
     await page.addStyleTag({ content: `.detail-view__hero-frame { background: var(--test-frame) !important; }
       .detail-view__hero-frame > :not([data-detail-background], .detail-view__live-background) { visibility: hidden !important; }` });
     const frame = page.locator(".detail-view__hero-frame");
@@ -1026,7 +1027,7 @@ test("M02a blur backdrop has no vignette: its edges are as opaque as its centre"
       const [black, green] = [await pixels("#000"), await pixels("#0f0")];
       return Math.max(...green.map((value, index) => value - black[index]));
     };
-    // Dừng video để nền realtime đứng yên giữa hai lần chụp.
+    // Pause the video so the realtime backdrop stays still between the two captures.
     await page.evaluate(() => document.querySelector("[data-detail-video]").pause());
     await page.waitForTimeout(200);
     assert(await seeThrough() < 8, "the live video backdrop reaches the frame edge");
@@ -1070,8 +1071,8 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
   });
 });
 
-// Nút vuông trắng (primary-video-player R7): mũi tên, nút mở lớn, nút viewer cùng ô 36px; thanh tua PC thẳng đáy nút mở
-// lớn và dừng trước nút đó 8px.
+// White square buttons (primary-video-player R7): arrow, expand button, viewer button share a 36px cell; the PC seek bar is flush with the bottom of the expand
+// button and stops 8px before it.
 test("M02a primary arrows, expand and viewer buttons are 36px white squares and the player is one row beside expand", async () => {
   await withPage("en", async (page) => {
     const card = await openFixture(page, "en", { videoCover: true, direct: true });
@@ -1086,7 +1087,7 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     const white = [36, 36, "0px", "0px", "rgb(255, 255, 255)"];
     assert.deepEqual(await square('[data-detail-media-step="-1"]'), white, "media arrow");
     assert.deepEqual(await square("[data-detail-expand]"), white, "expand button on the video");
-    // Việc 2 (owner 2026-10-25): phát, giờ, thanh tua, tiếng cùng một hàng; hàng thẳng đáy nút mở lớn, tiếng dừng trước nó 8px.
+    // Task 2 (owner 2026-10-25): play, time, seek bar, sound in one row; the row is flush with the bottom of the expand button, sound stops 8px before it.
     const edges = await page.evaluate(() => {
       const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
       const parts = ["[data-detail-play]", ".video-player__time", "[data-detail-progress]",
@@ -1124,8 +1125,8 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
   });
 });
 
-// Mở lớn video trong viewer (primary-video-player R8): chính video primary vào viewer, phát tiếp đúng giây trên nền
-// blur, không phóng to được (owner 2026-10-25), đóng thì về khung primary vẫn phát.
+// Expand video in the viewer (primary-video-player R8): the primary video itself enters the viewer, continuing at the exact second over the
+// blur backdrop, not zoomable (owner 2026-10-25), on close it returns to the primary frame still playing.
 const videoClock = (page) => page.evaluate(() => {
   const video = document.querySelector("[data-detail-video]");
   return { time: video.currentTime, at: performance.now(), paused: video.paused,
@@ -1133,7 +1134,7 @@ const videoClock = (page) => page.evaluate(() => {
     inPrimary: Boolean(video.closest(".detail-view__hero-frame")),
     scale: new DOMMatrix(getComputedStyle(video).transform === "none" ? undefined : getComputedStyle(video).transform).a };
 });
-// Giây video theo đồng hồ trang: chênh với giây dự kiến (giây trước + thời gian trôi × tốc độ phát).
+// Video seconds by the page clock: the difference from the expected seconds (previous seconds + elapsed time × playback rate).
 const clockDrift = (before, after, rate) => Math.abs(after.time - before.time - (after.at - before.at) / 1000 * rate);
 
 test("M02a expand opens the playing primary video in the blurred viewer without zoom and returns it on close", async () => {
@@ -1141,7 +1142,7 @@ test("M02a expand opens the playing primary video in the blurred viewer without 
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
       && !document.querySelector("[data-detail-video]").paused);
-    // Tốc độ 0.5 để clip 3s không lặp về 0 giữa ca; giây chỉ đi tới.
+    // Rate 0.5 so a 3s clip does not loop back to 0 mid-case; seconds only move forward.
     await page.evaluate(() => {
       const video = document.querySelector("[data-detail-video]");
       video.playbackRate = 0.5;
@@ -1199,7 +1200,7 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
       "tapping the video pauses it");
     assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false,
       "tapping the video does not open the viewer");
-    // Màn cảm ứng ẩn nút viewer và dãy thumbnail viewer khỏi mắt, vẫn còn cho screen reader (viewer R8).
+    // Touch screens hide the viewer button and viewer thumbnail row from sight, still available to screen readers (viewer R8).
     await page.locator("[data-detail-expand]").tap();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]").dataset.viewerState
       === "open");
@@ -1209,8 +1210,8 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
   });
 });
 
-// Dãy thumbnail dưới viewer thay hai mũi tên (R8, owner 2026-10-25): đổi media của card bằng dải trượt; video về primary,
-// đóng thì primary đứng ở media vừa xem.
+// The thumbnail row under the viewer replaces the two arrows (R8, owner 2026-10-25): change the card media with a sliding strip; video goes to primary,
+// on close primary stays at the media just viewed.
 test("M02a viewer thumbnails slide from the video to the image and closing keeps primary on that image", async () => {
   await withPage("en", async (page) => {
     const card = await openFixture(page, "en", { videoCover: true, direct: true });
@@ -1251,7 +1252,7 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
   });
 });
 
-// Dãy thumbnail viewer tự ẩn khi chuột đứng yên 3s, rê chuột thì hiện; mũi tên trái phải đổi media như bấm thumbnail
+// The viewer thumbnail row auto-hides when the mouse is still for 3s, moving the mouse shows it; the left/right arrows change media like clicking a thumbnail
 // (owner 2026-10-26).
 test("M02a viewer strip hides while the mouse rests and arrow keys step the media", async () => {
   await withPage("en", async (page) => {
@@ -1264,7 +1265,7 @@ test("M02a viewer strip hides while the mouse rests and arrow keys step the medi
     const opacity = () => page.locator("[data-detail-viewer-thumbs]")
       .evaluate((node) => Number(getComputedStyle(node).opacity));
     assert.equal(await opacity(), 1, "the strip shows when the viewer opens");
-    // Tín hiệu trạng thái `data-viewer-idle` do hẹn giờ 3s của runtime đặt; chờ nó rồi chờ fade xong.
+    // The `data-viewer-idle` state signal is set by the runtime 3s timer; wait for it then wait for the fade to finish.
     const idle = (expected) => page.waitForFunction((expected) => document.querySelector("[data-detail-viewer-thumbs]")
       .hasAttribute("data-viewer-idle") === expected, expected, { timeout: 10_000 });
     await idle(true);
@@ -1285,8 +1286,8 @@ test("M02a viewer strip hides while the mouse rests and arrow keys step the medi
   });
 });
 
-// Đổi từ video sang video (việc 3, owner 2026-10-25): suốt lúc dải trượt, giờ, tổng và thanh tua đứng ở video cũ; video mới
-// bắt đầu chạy (`playing`) thì mới đổi sang giờ, tổng của video mới. Áp dụng cho dải primary và viewer.
+// Switching from video to video (task 3, owner 2026-10-25): while the strip slides, the time, total and seek bar stay on the old video; the new video
+// switches the time and total to the new video only once it starts playing (`playing`). Applies to the primary strip and the viewer.
 const sampleVideoSwitch = (page, selector) => page.evaluate(async (selector) => {
   const video = document.querySelector("[data-detail-video]");
   const player = document.querySelector("[data-detail-player]");
@@ -1294,7 +1295,7 @@ const sampleVideoSwitch = (page, selector) => page.evaluate(async (selector) => 
     progress: Number(player.querySelector("[data-detail-progress]").value) });
   const before = read();
   let started = false;
-  // Video cũ đang phát không bắn lại `playing`; chỉ video mới sau khi đổi nguồn mới bắn.
+  // The old playing video does not fire `playing` again; only the new video fires it after the source changes.
   video.addEventListener("playing", () => { started = true; }, { once: true });
   document.querySelector(selector).click();
   const held = [];
@@ -1332,8 +1333,8 @@ test("M02a switching between two videos holds the old time until the new video p
   });
 });
 
-// Dãy thumbnail một dòng, mô tả cuộn (owner 2026-10-24): còn nội dung thì mép mờ về trắng; thanh cuộn mô tả chỉ hiện khi
-// hover, kéo được, chữ căn đều; cảm ứng không có thanh.
+// Thumbnail row on one line, description scrolls (owner 2026-10-24): while content remains the edge fades to white; the description scrollbar shows only on
+// hover, is draggable, text is justified; touch has no scrollbar.
 const scrollHints = (page) => page.evaluate(() => {
   const strip = document.querySelector("[data-detail-media-thumbs]");
   const scroll = document.querySelector("[data-detail-description-scroll]");
@@ -1369,7 +1370,7 @@ test("M02a crowded primary keeps one thumbnail row and scrolls the description b
     const description = await page.locator("[data-detail-description-scroll]").boundingBox();
     await page.mouse.move(description.x + description.width / 2, description.y + description.height / 2);
     await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-detail-description-bar]")).opacity === "1");
-    // Wheel và End trong mô tả còn chữ chỉ cuộn mô tả, Locomotive không cuộn trang theo.
+    // Wheel and End within a description that still has text scroll only the description, Locomotive does not scroll the page along.
     const primaryTop = () => page.locator("[data-detail-primary]").evaluate((node) => node.getBoundingClientRect().top);
     const topBefore = await primaryTop();
     await page.mouse.wheel(0, 120);
@@ -1461,11 +1462,18 @@ for (const [locale, videoCover] of [["en", false], ["vi", true]]) {
   });
 }
 
-// "Vừa xem" (media-card): chữ có bóng D; lớp đen 0.7 chỉ hiện khi media của card sẵn sàng, nên card còn mờ chờ ảnh
-// (data-masonry-media-loading) có nền trong suốt, gỡ attribute thì về 0.7 (spec chờ ảnh S3).
+// "Vừa xem" (media-card): text has shadow D; the 0.7 black layer shows only when the card media is ready, so a card still faded waiting for its image
+// (data-masonry-media-loading) has a transparent background, removing the attribute returns it to 0.7 (spec wait-for-image S3).
 test("M02a Just viewed label keeps its text shadow and the black layer waits for the card media", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi");
+    // Let the card's own image finish first: its reveal clears data-masonry-media-loading, which would otherwise race
+    // the attribute this test sets by hand.
+    await page.waitForFunction((id) => {
+      const card = document.querySelector(`[data-masonry-card="${id}"]`);
+      return card && !card.hasAttribute("data-masonry-media-loading")
+        && [...card.querySelectorAll("img")].every((image) => image.complete);
+    }, cardId, { timeout: 10_000 });
     const state = await page.evaluate(async (id) => {
       const card = document.querySelector(`[data-masonry-card="${id}"]`);
       const media = card.querySelector(".card-media");

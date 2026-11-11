@@ -1,5 +1,5 @@
-// advertising-detail R10: detail ảnh không có hero nên header luôn thu gọn; primary nằm ngay dưới header đó.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-photo-header.e2e.mjs
+// advertising-detail R10: a photo detail has no hero, so the header always stays collapsed; primary sits right under it.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-photo-header.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -9,7 +9,8 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const header = () => {
   const node = document.querySelector(".site-header");
   return { collapsed: node.classList.contains("is-collapsed"), height: Math.round(node.getBoundingClientRect().height),
-    background: getComputedStyle(node).backgroundColor };
+    // The white surface is painted by ::before since the 0.3s header beat (site-shell R2).
+    background: getComputedStyle(node, "::before").backgroundColor };
 };
 try {
   for (const [width, height, mobile, expected, gutter] of [[390, 844, true, 71, 15], [1440, 900, false, 81, 35]]) {

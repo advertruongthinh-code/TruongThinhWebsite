@@ -107,7 +107,7 @@ Then chuyển 301 sang đường dẫn mới
 
 ## UI
 
-Thiết kế danh sách, thẻ bài và trang bài qua Design System và Impeccable, owner duyệt trước khi code.
+Danh sách và thẻ bài: [Danh sách News](../../design-system/components/NewsList/README.md); thân bài: [Khối công trình và News](../../design-system/components/Blocks/README.md). Thiết kế mới qua Design System và Impeccable, owner duyệt trước khi code.
 
 ## Kiểm tra
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
+import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -54,14 +55,14 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
     : "?category=signage-raised-letters";
   await page.goto(`${base}/${locale}/advertising-products/${search}`,
     { waitUntil: "domcontentloaded" });
-  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+  // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   const selector = `[data-masonry-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
     await page.locator("[data-detail-related-grid]").scrollIntoViewIfNeeded();
-    // Cuộn mượt của site chỉ đi khoảng 60px mỗi lần và thứ tự related xáo theo lượt xem: card có lúc nằm ở vị trí 36,
-    // cần 32 lần (đo 2026-10-26), nên ngân sách 32 lần đỏ chập chờn. 120 lần phủ hết trang (khoảng 5.400px).
+    // The site smooth scroll moves only about 60px per step and related order is shuffled by view count: a card sometimes sits at position 36,
+    // needing 32 steps (measured 2026-10-26), so a 32-step budget flaked red. 120 steps cover the whole page (about 5,400px).
     for (let attempt = 0; attempt < 120 && await page.locator(selector).count() === 0; attempt += 1) {
       await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
       await page.waitForTimeout(80);
@@ -211,7 +212,7 @@ async function runCard(locale, count, surface, width) {
       && Math.abs(initial.indicator.height - (count >= 6 ? 39.2 : 40)) <= 1,
     `${label} pill row must sit at the bottom inside the media: ${JSON.stringify(initial)}`);
     assertPillRow(initial, label);
-    // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
+    // From 6 media the strip has only a counter (owner 2026-10-18); switch media by swiping, no button in the strip.
     assert.equal(initial.controls.length, count >= 6 ? 0 : count);
     // Owner 2026-11-10: dots or the counter sit in a Pinterest counter pill (charcoal 0.8, radius 12px), centred in the row;
     // the dots pill is 16px tall, the counter pill 4px 8px around 12px text.
@@ -285,8 +286,8 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
-test("R6-R3 public legacy catalog keeps 285 image-only cards", () => {
-  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 285);
+test("R6-R3 public legacy catalog keeps one image-only card per manifest record", () => {
+  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, ADVERTISING_MEDIA_MANIFEST.length);
   assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
     && card.mediaItems[0].kind === "image"));
 });

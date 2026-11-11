@@ -1,13 +1,13 @@
-// Trang Công trình (projects R2): dựng trên khung trang Sản phẩm quảng cáo, chạy chính runtime masonry của trang đó
-// (masonry/runtime.mjs) với bộ thẻ công trình, không có detail view. Mỗi bộ lọc có trang riêng crawl được; artifact
-// nhúng trong trang nên runtime đổi lọc tại chỗ.
+// Projects page (projects R2): built on the Advertising products page shell, running that page's own masonry runtime
+// (masonry/runtime.mjs) with the project card set, no detail view. Each filter has its own crawlable page; the artifact
+// is embedded in the page so the runtime changes the filter in place.
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from "./block-pages.mjs";
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const ROOT_NAME = { vi: "Công trình", en: "Projects" };
-// Kicker hero (giữ nguyên ở mọi bộ lọc, owner 2026-11-08) và khẩu hiệu; chỉ chữ nhấn của dòng hai đậm nghiêng (owner 2026-11-08), như em của hero Kinh doanh.
+// Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
 const SLOGAN = { first: { vi: "Những công trình", en: "Projects" }, lead: { vi: "truyền", en: "that" }, accent: { vi: "cảm hứng", en: "inspire" } };
 const CTA = [{ vi: "Không gian tiếp theo", en: "The next space" }, { vi: "dành cho bạn", en: "is yours" }];
@@ -16,8 +16,8 @@ const IMAGE_WIDTHS = [240, 480, 960];
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 const filterHref = (filter) => `/vi/projects/${filter.slug ? `${filter.slug}/` : ""}`;
 
-// Trang "Tất cả", trang mảng có công trình, trang loại luôn có (loại trống thì noindex). Hàng lọc chỉ hiện bộ lọc
-// có công trình, cộng bộ lọc của chính trang đang xem.
+// The "Tất cả" page, sector pages that have projects, and type pages always exist (an empty type is noindex). The filter row shows only filters
+// that have projects, plus the filter of the page being viewed.
 export const projectListPages = (projects) => {
   const filters = [
     { slug: null, label: { vi: "Tất cả", en: "All" }, name: ROOT_NAME, match: () => true },
@@ -31,8 +31,8 @@ export const projectListPages = (projects) => {
 export const projectListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
 export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, projectListSource(listPage)]));
 
-// Bộ thẻ công trình theo khuôn artifact của runtime masonry quảng cáo (projects R2): mảng là category, loại là cụm
-// (clusterIds) để lọc; thẻ chỉ có ảnh như thẻ quảng cáo, mang sẵn link trang chi tiết và màu chủ đạo ảnh bìa (build tính).
+// Project card set in the Advertising masonry runtime artifact shape (projects R2): sector is the category, type is the cluster
+// (clusterIds) for filtering; cards carry only an image like Advertising cards, with the detail page link and the cover image dominant color (computed at build) built in.
 export const buildProjectArtifact = (projects, colors = {}) => {
   const categories = [
     ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], slugVi: PROJECT_FILTERS[sector], slugEn: PROJECT_FILTERS[sector], titleVi: SECTOR_LABEL[sector].vi, titleEn: SECTOR_LABEL[sector].en })),
@@ -43,8 +43,8 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     const category = PROJECT_FILTERS[project.sector];
     const sourceOrder = nextSourceOrder.get(category) ?? 0;
     nextSourceOrder.set(category, sourceOrder + 1);
-    // Thẻ nhiều media (owner 2026-11-09, media-card R1): ảnh người soạn chọn cho thẻ (`card.media`, khít khung thẻ, kiểm ở
-    // kindFieldErrors) theo thứ tự đã chọn; không chọn thì thẻ chỉ có ảnh bìa.
+    // Multi-media card (owner 2026-11-09, media-card R1): images the editor picked for the card (`card.media`, fitting the card frame, checked in
+    // kindFieldErrors) in the chosen order; if none are chosen the card has only the cover image.
     const picked = project.card?.media ?? [project.cover];
     const mediaItems = picked.map((image, index) => ({ id: index ? `${project.id}-${index}` : project.id, kind: "image", src: image.src, width: image.width, height: image.height, altVi: image.altVi, altEn: image.altEn }));
     const { id: _id, kind: _kind, ...media } = mediaItems[0];
@@ -73,19 +73,19 @@ const srcset = ({ src, width }) => {
   return [...IMAGE_WIDTHS.filter((size) => size < width).map((size) => `${stem}-${size}.webp ${size}w`), `${src} ${width}w`].join(", ");
 };
 
-// Thẻ tĩnh trong noscript như trang quảng cáo: không JavaScript vẫn thấy công trình và link (SEO).
+// Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO).
 const noscriptCard = (project) => [
-  `<figure class="project-tile"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="project-tile__media">`,
+  `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
   `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" loading="lazy" decoding="async" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" />`,
   "</div></a></figure>",
 ].join("");
 
 const line = (text, className) => `<span class="detail-hero-line-mask"><span class="${className}" data-motion-word-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span></span>`;
 
-// Phần lưới (grid, batch skeleton, CTA đuôi) lấy nguyên từ khung trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh và chữ CTA:
-// một contract DOM masonry cho hai trang, thêm attribute ở trang quảng cáo thì trang Công trình có theo (masonry-reuse bước 9).
+// The grid part (grid, batch skeleton, tail CTA) is taken as-is from the Advertising page shell, changing only labels, static cards and CTA text:
+// one masonry DOM contract for both pages; an attribute added on the Advertising page carries over to the Projects page (masonry-reuse step 9).
 const indexSection = (template, projects) => {
-  const sections = template.match(/<section\s+class="project-index"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
+  const sections = template.match(/<section\s+class="masonry-section"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
   if (sections.length !== 1) throw new Error(`advertising frame anchor "index section" matched ${sections.length} times`);
   return [
     [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
@@ -96,8 +96,8 @@ const indexSection = (template, projects) => {
 };
 
 const main = ({ filter, projects }, artifact, template) => {
-  // Mọi trang: kicker cố định là p, khẩu hiệu là h1; bộ lọc chỉ khác title, mô tả và URL. Hàng lọc theo contract DOM của
-  // catalog-runtime (giống trang quảng cáo, bỏ viewer và chip sản phẩm).
+  // Every page: the kicker is fixed as p, the slogan is h1; filters differ only in title, description and URL. The filter row follows the DOM contract of
+  // catalog-runtime (like the Advertising page, without the viewer and product chips).
   const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
@@ -119,14 +119,14 @@ const main = ({ filter, projects }, artifact, template) => {
       </main>`;
 };
 
-// Mỗi điểm neo của khung phải khớp đúng số lần; khung quảng cáo đổi thì build dừng thay vì ra trang hỏng.
+// Each shell anchor must match exactly the expected number of times; if the Advertising shell changes, the build stops instead of producing a broken page.
 const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
   const count = typeof pattern === "string" ? html.split(pattern).length - 1 : (html.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? []).length;
   if (count !== expected) throw new Error(`advertising frame anchor "${name}" matched ${count} times`);
   return typeof pattern === "string" ? html.split(pattern).join(typeof replacement === "function" ? replacement() : replacement) : html.replace(new RegExp(pattern.source, `${pattern.flags}g`), replacement);
 };
 
-// artifact: buildProjectArtifact, giống nhau ở mọi trang lọc; runtime đổi lọc tại chỗ.
+// artifact: buildProjectArtifact, identical on every filter page; the runtime changes the filter in place.
 export const renderProjectListPage = (template, listPage, artifact) => {
   const { filter, path: listPath, projects } = listPage;
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
@@ -143,9 +143,9 @@ export const renderProjectListPage = (template, listPage, artifact) => {
   return [
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(description.vi)}${middle}${escapeHtml(description.en)}"`, "meta description"],
-    [/<script>\s*\/\/ Vào thẳng detail[\s\S]*?<\/script>\s*/, "", "advertising photo script"],
+    [/<script>\s*\/\/ Direct entry into detail[\s\S]*?<\/script>\s*/, "", "advertising photo script"],
     ['data-barba-namespace="advertising-products"', 'data-barba-namespace="projects"', "namespace"],
-    // Khung Sản phẩm quảng cáo: chuyển mục hiện tại của navbar và menu sang Công trình.
+    // Advertising products shell: switch the current navbar and menu item to Projects.
     [' aria-current="page"', "", "menu current page", 2],
     ['<li class="selected">', "<li>", "nav selected"],
     ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
