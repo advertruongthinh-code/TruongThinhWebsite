@@ -171,7 +171,7 @@ And request http://127.0.0.1:8787/ trả 404
 | Path | `Cache-Control` | Lý do |
 | --- | --- | --- |
 | `/assets/vendor/*` | `public, max-age=31536000, immutable` | Tên có version |
-| `/assets/content/*`, `/assets/brand/*` | `public, max-age=86400, stale-while-revalidate=604800` | Tên không có hash; ảnh thay cùng tên lộ ra trong một ngày |
+| `/assets/content/*`, `/assets/brand/*` | `public, max-age=86400, stale-while-revalidate=604800` | Tên không có hash: ảnh thay cùng tên vẫn hiện bản cũ tới hết `max-age` và lượt mở kế tiếp, nên thay ảnh phải đổi tên file ([media-delivery](media-delivery.md)) |
 | HTML, CSS, JS app, `*.mjs` | Mặc định Cloudflare (`max-age=0, must-revalidate`, ETag) | Đổi mỗi deploy, tên không có version |
 
 ```gherkin

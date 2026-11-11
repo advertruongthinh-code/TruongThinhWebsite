@@ -138,8 +138,8 @@ pixel thật. Alt VI và `data-en-alt` cho ảnh nội dung; ảnh trang trí `a
 
 Thêm hoặc thay ảnh: chạy R1; sửa HTML, hoặc `media-manifest.mjs` với Advertising
 ([masonry R2](advertising-masonry.md#r2-catalog-và-artifact)); xem crop ở năm viewport
-([crop](../../design-system/content.md#crop-và-con-người)); chạy `pnpm qa:static`, `pnpm qa:site`; chỉ xóa file cũ khi
-không route nào dùng. Thay ảnh, crop hoặc giảm chất lượng thấy được cần owner duyệt. Phase tĩnh không có upload: thêm
+([crop](../../design-system/content.md#crop-và-con-người)); chạy `pnpm qa:static`, `pnpm qa:site`; thay nội dung ảnh thì dùng tên
+file mới vì trình duyệt giữ ảnh cũ cùng tên ([R9](static-release.md#r9-cache-header)); chỉ xóa file cũ khi không route nào dùng. Thay ảnh, crop hoặc giảm chất lượng thấy được cần owner duyệt. Phase tĩnh không có upload: thêm
 ảnh là sửa source, build và phát hành lại.
 
 ```gherkin
