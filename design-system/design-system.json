@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-11T01:20:00Z",
+    "at": "2026-11-11T17:35:00Z",
     "via": "Claude Code",
-    "note": "Thêm component Khối công trình và News, Danh sách News (#783); comment tiếng Anh, bundle.css và preview NotFound theo main (#806)"
+    "note": "Dải News trang chủ trong NewsList (#825); cắt nội dung bỏ suggestionPosition, ảnh biển văn phòng 1K, viền tối primary (bundle.css, MediaCard, Masonry, Skeleton, content.md)"
   }
 }
