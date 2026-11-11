@@ -8,7 +8,7 @@ import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.
 import { projectListPages } from "../../scripts/site/project-list.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
-  // 22 route cố định (EN mobile-retail thành trang cụm) cộng hai locale của mỗi trang cụm, sản phẩm, card, công trình, bài News và trang danh sách News.
+  // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article and the News list page.
   const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));
   assert.equal(ROUTES.size, 21 + (ADVERTISING_PAGES.length + ADVERTISING_CARDS.length + projects.length + news.length + newsListPages(news).length + projectListPages(projects).length) * 2);
   for (const [route, source] of ROUTES) {

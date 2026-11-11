@@ -1,7 +1,7 @@
 import { shuffleWithSeed } from "./random-order.mjs";
 const decks = new Map();
 
-// Giữ tập mẫu của mỗi nhóm ổn định trong vòng đời document này.
+// Keep each group's sample set stable for the lifetime of this document.
 export function suggestionDeck(key, cards) {
   if (!decks.has(key)) {
     decks.set(key, shuffleWithSeed(cards, Math.random(), key).slice(0, 9));
@@ -9,15 +9,15 @@ export function suggestionDeck(key, cards) {
   return decks.get(key);
 }
 
-// Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision phone-frame-budget).
+// A slide under the viewer or an open menu only makes backdrop blur recompute every frame (decision phone-frame-budget).
 const covered = () => document.querySelector("dialog[open]") !== null;
 
-// Nhịp lấy theo hero trang chủ (motion.js): mỗi ảnh giữ 5s, đếm bằng một animation không keyframe trên ảnh (owner bỏ
-// zoom out 2026-10-10) nên pause khi khuất là nhịp dừng theo. Chuyển kiểu đẩy ngang (owner chọn D+B 2026-10-10): ảnh mới trượt vào
-// từ phải, đẩy ảnh cũ sang trái 0.9s power3.inOut; nút sau lệch nút trước 0.4s thành sóng. Bộ một ảnh đẩy sang
-// chính nó để vòng vẫn lặp.
-// Đẩy ngang của nút suggestion (design-system/motion.md): media mới vào từ phía direction, media cũ lùi 35% và mờ 0.4.
-// Dải media của card và primary dùng lại nhịp PUSH_TIMING, không lùi, không mờ (media-card R3, owner 2026-10-19).
+// Timing follows the home hero (motion.js): each image holds 5s, counted by one keyframe-less animation on the image (owner dropped
+// zoom out 2026-10-10), so pausing when hidden stops the timing too. Horizontal push transition (owner chose D+B 2026-10-10): the new image slides in
+// from the right, pushing the old image left over 0.9s power3.inOut; each later button is offset 0.4s from the previous one to form a wave. A one-image set pushes
+// itself so the loop still repeats.
+// Horizontal push of the suggestion button (design-system/motion.md): new media enters from the direction side, old media recedes 35% and fades 0.4.
+// The card and primary media strips reuse the PUSH_TIMING timing, with no recede and no fade (media-card R3, owner 2026-10-19).
 export const PUSH_TIMING = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
 function pushSlide(incoming, outgoing, direction = 1) {
   return {
@@ -33,9 +33,9 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   const clocks = new Map();
   let stopped = false;
   const clock = (image, delay = 0) => image.animate([], { duration: 5000, fill: "forwards", delay });
-  // Cả cụm chung một trạng thái hiện/khuất: dừng từng nút theo viewport làm nút dưới màn hình lệch sóng (điện thoại).
-  // IntersectionObserver báo sau layout của frame; đo rect lúc mount và mỗi scroll ép layout giữa task mở detail.
-  // Chưa có entry đầu thì coi là khuất: đồng hồ dừng tới frame kế.
+  // The whole cluster shares one shown/hidden state: pausing each button by viewport throws off the wave for buttons below the screen (phone).
+  // IntersectionObserver reports after the frame's layout; measuring rects at mount and on every scroll forces layout in the middle of the open-detail task.
+  // Without a first entry yet, treat it as hidden: the clock stops until the next frame.
   let offscreenState = true;
   const clear = () => {
     pending.forEach(({ image, animation, pushOut, previousClock }) => {
@@ -59,7 +59,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const index = deck.findIndex(card => card.id === current?.dataset.masonrySuggestionPhoto);
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
-    // Eager bỏ "auto" khỏi sizes; ghim width của button trước khi request bắt đầu.
+    // Eager drops "auto" from sizes; pin the button width before the request starts.
     if (next.srcset) next.sizes = `${Math.ceil(button.getBoundingClientRect().width)}px`;
     next.loading = "eager";
     next.dataset.masonrySuggestionImageLayer = "next";
@@ -77,7 +77,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     button.insertBefore(next, current?.nextSibling || null);
     const previousClock = state.previousClock = clocks.get(button);
     const nextClock = clock(next);
-    // Bù phần trễ do poll 200ms và decode để nhịp 0.4s giữa các nút không trôi sau mỗi vòng.
+    // Compensate for the delay from the 200ms poll and decode so the 0.4s timing between buttons does not drift each loop.
     const late = (previousClock?.currentTime ?? 0) - 5000 - (previousClock?.effect?.getTiming().delay || 0);
     if (late > 0 && late < 5000) nextClock.currentTime = late;
     clocks.set(button, nextClock);
@@ -93,7 +93,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     }, { once: true });
     onVisibility();
   };
-  // Giữ mỗi ảnh đúng 5s theo đồng hồ của chính nút: đồng hồ bị pause khi nút khuất thì nhịp cũng dừng, như timeline hero.
+  // Hold each image exactly 5s by the button's own clock: when the clock is paused as the button goes hidden the timing stops too, like the hero timeline.
   const timer = setInterval(() => {
     root.querySelectorAll("[data-masonry-suggestion-tag]").forEach(button => {
       const time = clocks.get(button);
@@ -123,8 +123,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   preference.addEventListener("change", onVisibility, { signal });
-  // Đồng hồ đầu của nút thứ i trễ 0.4s * i để cả cụm chuyển ảnh lệch nhịp từ trên xuống. Dùng delay, không lùi
-  // currentTime về âm: play() sau pause sẽ tua animation có currentTime âm về 0.
+  // The first clock of button i is delayed 0.4s * i so the whole cluster changes images staggered from top to bottom. Use delay, do not wind
+  // currentTime negative: play() after pause would rewind an animation with negative currentTime to 0.
   if (!isReduced()) root.querySelectorAll("[data-masonry-suggestion-tag]").forEach((button, index) => {
     const current = button.querySelector('[data-masonry-suggestion-image-layer="current"]');
     if (!current) return;

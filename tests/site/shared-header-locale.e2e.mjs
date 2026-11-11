@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 
-// Hồi quy shell: nhãn cuộn và Back sau khi đổi ngôn ngữ tại chỗ, header ngôn ngữ cũ không lộ, ctrl+click không ghim header.
+// Shell regression: scroll cue label and Back after an in-place language switch, the old-language header must not show, ctrl+click must not pin the header.
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -18,7 +18,7 @@ try {
     await ready(page);
     await page.locator("[data-menu-open]").click();
     await page.waitForFunction(() => document.querySelector("#site-menu").open);
-    // Ghi mỗi frame tới lúc trang tải lại: menu đóng trên veil thì header ngôn ngữ cũ không được lộ (owner 2026-11-10).
+    // Record every frame until the page reloads: with the menu closed on the veil, the old-language header must not show (owner 2026-11-10).
     await page.evaluate(() => {
       const header = document.querySelector("[data-site-header]");
       const frames = [];
@@ -44,7 +44,7 @@ try {
     await page.close();
   }
 
-  // Back đầu tiên sau đổi ngôn ngữ tại chỗ trên Advertising: ngôn ngữ trang phải khớp locale của URL.
+  // First Back after an in-place language switch on Advertising: the page language must match the URL locale.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(`${baseUrl}/vi/advertising-products/`);

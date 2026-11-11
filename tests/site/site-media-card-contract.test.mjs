@@ -67,7 +67,7 @@ test("parent and related cards retain ordered image/video items, cover IDs, and 
   assert.equal(validateAdvertisingMediaPool(pool, poolOptions), pool);
 
   const artifact = buildAdvertisingArtifact({ cards: [parent, related] });
-  // Artifact xếp card theo thứ tự cụm, không theo thứ tự đầu vào.
+  // The artifact orders cards by cluster order, not by input order.
   assert.deepEqual(artifact.cards.map(({ id }) => id).sort(), [parent.id, related.id].sort());
   for (const input of [parent, related]) {
     const card = artifact.cards.find(({ id }) => id === input.id);

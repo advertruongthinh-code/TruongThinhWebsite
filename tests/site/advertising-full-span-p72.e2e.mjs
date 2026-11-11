@@ -16,7 +16,7 @@ try {
       [756, "kiosk-posm", "kiosk-posm-09", true],
       [954, "signage-raised-letters", "signage-raised-letters-07", true],
     ]) {
-      // Viewport dọc: primary full-span chỉ xếp chồng khi viewport không phải ngang.
+      // Portrait viewport: the full-span primary only stacks when the viewport is not landscape.
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       try {
         await page.goto(`${origin}/${locale}/advertising-products/?category=${category}&photo=${photo}`);
@@ -48,7 +48,7 @@ try {
         assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1, `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
-          // Trần chừa gap và 50px related lộ dưới primary (advertising-detail R4).
+          // Ceiling leaves room for the gap and the 50px of related exposed below the primary (advertising-detail R4).
           assert(Math.abs(state.primaryBottom - (1000 - state.gap - 50)) <= 1, `${label}: tall image does not reach available viewport cap`);
           assert(state.imageWidth < state.frameWidth - 1, `${label}: side overflow is absent`);
           assert(Math.abs(state.imageLeft - state.frameLeft - (state.frameWidth - state.imageWidth) / 2) <= 1,

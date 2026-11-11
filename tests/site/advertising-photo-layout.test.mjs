@@ -108,7 +108,7 @@ test("full-span portrait primary caps height and leaves side overflow only", () 
     headerHeight: 72.59375, imageWidth: 400, imageHeight: 1000,
     descriptionHeight: 120,
   });
-  // Chừa gap và 50px để related lộ dưới primary (advertising-detail R4).
+  // Leave a gap and 50px so related peeks out below primary (advertising-detail R4).
   closeTo(geometry.height, 800 - geometry.top - geometry.gap - geometry.belowPeek);
   closeTo(geometry.imageZoneHeight, 800 - geometry.top - geometry.gap - geometry.belowPeek - 120 - geometry.internalGap);
   closeTo(geometry.imageHeight, geometry.imageZoneHeight);
@@ -183,7 +183,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // Mọi viewport chừa peek, kể cả primary full-span (advertising-detail R4).
+    // Every viewport leaves the peek, even a full-span primary (advertising-detail R4).
     closeTo(
       geometry.heightCap,
       sample.height - geometry.top - sample.gap - sample.peek - 7,

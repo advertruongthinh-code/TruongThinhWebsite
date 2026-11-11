@@ -1,4 +1,4 @@
-// Kính trong Chromium (docs/specs/glass-surface.md R1-R4, R8): cung ở cuối masonry, Kính đều quanh primary.
+// Kính in Chromium (docs/specs/glass-surface.md R1-R4, R8): the arc at the end of masonry, even Kính around primary.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -9,9 +9,9 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-// Pha Kính tăng của reveal 0.6s: 0 tới 0.26s (loading-glass-and-page-entry R2).
+// Rising Kính phase of the 0.6s reveal: 0 to 0.26s (loading-glass-and-page-entry R2).
 const GLASS_RISE_MS = 260;
-// GPU compositing (SwiftShader) như Chrome thật; software compositing blur backdrop của từng layer riêng.
+// GPU compositing (SwiftShader) like real Chrome; software compositing blurs the backdrop of each layer separately.
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
   args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 
@@ -23,8 +23,8 @@ const arcState = () => {
   const copy = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
   const tint = glass.querySelector(".glass-surface__tint");
-  // Element được render có box riêng mang backdrop filter; Kính đều của photo view ẩn và
-  // ::backdrop của viewer đóng không được render.
+  // A rendered element has its own box carrying the backdrop filter; the photo view's even Kính is hidden and
+  // the ::backdrop of a closed viewer is not rendered.
   const owners = [...new Set([...document.querySelectorAll("*")].filter((node) => node.checkVisibility())
     .flatMap((node) => [null, "::before", "::after"]
     .filter((pseudo) => !["none", ""].includes(getComputedStyle(node, pseudo).backdropFilter))
@@ -63,7 +63,7 @@ try {
     try {
       await page.goto(`${origin}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
-      // Lazy card phía trên có thể làm trang lớn thêm, nên cuộn đến cuối cho đến khi nó settle.
+      // A lazy card above can make the page grow, so scroll to the end until it settles.
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
         const end = await page.evaluate(() => document.documentElement.scrollHeight);
         if (end === last) break;
@@ -75,19 +75,19 @@ try {
       const state = await page.evaluate(arcState);
       check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
       check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
-      // Các band step và core của cung.
+      // The arc's band steps and core.
       check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full"]),
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
-      // PC (nhánh không cảm ứng): chín bậc; bậc 0 bắt đầu ở mép ngoài dải, bậc 8 ở off_8 = radius + band - (7.7 / 9)(4 / 3) band (đoạn lấn 1/3 dải, owner 2026-11-01),
-      // nên sLast - s0 = (7.7 / 9)(4 / 3) band, cả hai trên apex yIn.
+      // PC (non-touch branch): nine steps; step 0 starts at the band's outer edge, step 8 at off_8 = radius + band - (7.7 / 9)(4 / 3) band (the overlap is 1/3 of the band, owner 2026-11-01),
+      // so sLast - s0 = (7.7 / 9)(4 / 3) band, both on the apex yIn.
       check(state.visibleSteps === 9, `${label}: R2 desktop arc shows ${state.visibleSteps} band steps, not 9`);
       const band = (state.sLast - state.s0) / ((7.7 / 9) * (4 / 3));
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      // R2: apex ở -15% cụm CTA (trên mép tiêu đề), phone giữ +35%; chỉ nâng để giữ hai ramp trắng thuần
-      // (mỗi ramp 0.35 độ rộng card) trên đáy batch.
+      // R2: apex at -15% of the CTA cluster (above the title edge), phone keeps +35%; only raised to keep the two pure-white ramps
+      // (each ramp 0.35 of the card width) on the batch bottom.
       const phone = await page.evaluate(() => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
       const apexShare = phone ? 0.35 : -0.15;
       check(Math.abs(yIn - Math.min(state.clusterTop + apexShare * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
@@ -98,27 +98,27 @@ try {
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
       check(Math.abs(state.centreY - yIn - 3.5 * width) <= 1 || state.centreY - yIn > 3.5 * width,
         `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 3.5 viewport widths`);
-      // R3: trắng về 0 ở 0.85 bề rộng dải ngoài cung, còn tint (trừ phần grain) ở biên cung.
+      // R3: white falls to 0 at 0.85 of the band width outside the arc, while the tint (minus grain) remains at the arc edge.
       const radius = state.centreY - yIn;
       const [lastAlpha, lastPx] = state.tintStops.at(-1);
       const atArc = state.tintStops.find(([, px]) => Math.abs(px - radius) < 0.5)?.[0];
       check(lastAlpha === 0 && Math.abs(lastPx - (radius + 0.85 * band)) <= 1, `${label}: R3 white does not reach 0 at 0.85 band (${lastAlpha} at ${lastPx}, radius ${radius})`);
       check(atArc > 0.5 && atArc < 0.55, `${label}: R3 tint at the arc is ${atArc}, not about 0.55`);
-      // R4: grain của cung là white noise blend bình thường (layer blend làm mất blur của các step trong Chromium).
+      // R4: the arc's grain is white noise with normal blend (a layer blend makes the steps lose blur in Chromium).
       check(state.grain.every((url) => url.startsWith("url(blob:")) && state.grainBlend === "normal", `${label}: R4 grain missing`);
-      // R3, R4: hàng cuối trên đáy batch (các góc nằm trên vòng tròn trắng thuần) vẫn trắng
-      // trong 1/255 và không có grain.
+      // R3, R4: the last row on the batch bottom (corners lie on the pure-white circle) stays white
+      // within 1/255 and has no grain.
       const shot = await page.screenshot({ clip: { x: 0, y: Math.floor(state.batchBottomOnScreen) - 1, width, height: 1 } });
       const { data } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       const darkest = data.reduce((min, value) => Math.min(min, value), 255);
       check(darkest >= 254, `${label}: R3 batch bottom is not pure white (darkest channel ${darkest})`);
-      // Đường trên của footer (0.18 ink trên nền trắng) vẫn nằm trên các layer cung chạy dưới nó.
+      // The footer's top line (0.18 ink on a white background) still sits above the arc layers running beneath it.
       const footerTop = await page.evaluate(() => document.querySelector(".site-footer").getBoundingClientRect().top);
       const line = await page.screenshot({ clip: { x: 0, y: footerTop, width, height: 1 } });
       const lineData = (await sharp(line).removeAlpha().raw().toBuffer()).reduce((min, value) => Math.min(min, value), 255);
       check(lineData <= 230, `${label}: footer top line hidden by the arc Kính (darkest channel ${lineData})`);
       if (width === 1440) {
-        // R2: sọc đen và trắng dưới core, dưới copy CTA, bị blur mất (cạnh sắc nhảy khoảng 255).
+        // R2: black and white stripes under the core, under the CTA copy, are lost to blur (a sharp edge jumps about 255).
         const stripesTop = await page.evaluate(() => {
           const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
           const bottom = document.querySelector(".masonry-section > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
@@ -142,7 +142,7 @@ try {
     }
   }
 
-  // Phone (cảm ứng, spec S5): vẫn hai lớp, lõi 28px của CSS (không inline 100px), một bậc band hiện với phần tăng 25.3px.
+  // Phone (touch, spec S5): still two layers, the CSS 28px core (not inline 100px), one band step shown with a 25.3px increment.
   {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
     const page = await context.newPage();
@@ -172,7 +172,7 @@ try {
     }
   }
 
-  // Kính đều quanh primary: chỉ bật khi photo contained còn chỗ.
+  // Even Kính around primary: only turns on when the contained photo has room.
   for (const [width, height, photo, overflow] of [[1440, 900, "kiosk-posm-09", true], [390, 844, "kiosk-posm-28", false]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     try {
@@ -185,7 +185,7 @@ try {
           backdrop: [...(glass?.children || [])].some((layer) => getComputedStyle(layer).backdropFilter !== "none"),
           filter: getComputedStyle(document.querySelector("[data-detail-background]")).filter };
       });
-      // Photo tự mang blur, nên không backdrop-filter nào có thể in tile seam vào primary (thumbnail hover của tab).
+      // The photo carries its own blur, so no backdrop-filter can print a tile seam into primary (the tab's hover thumbnail).
       check(state.shape === "even" && state.layers === 2 && !state.backdrop
         && state.filter === "blur(100px) saturate(1.7) brightness(1.04)", `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
       check(state.flag === String(overflow) && state.display === (overflow ? "block" : "none"),
@@ -194,8 +194,8 @@ try {
       await page.close();
     }
   }
-  // Primary đổi ảnh chạy đúng motion card tải chậm (loading-glass-and-page-entry R4): ảnh cũ ẩn ngay dưới skeleton, Kính
-  // ba bậc tăng, ảnh hiện dưới Kính, Kính tan. Ảnh tải chậm (related) và ảnh có sẵn (Back) cùng chuỗi, cùng nhịp với card.
+  // Changing primary's image runs exactly the slow-loading card motion (loading-glass-and-page-entry R4): the old image is hidden right under the skeleton, Kính
+  // rises in three steps, the image appears under Kính, Kính fades. A slow-loading image (related) and a ready one (Back) share one sequence, same rhythm as the card.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
@@ -204,7 +204,7 @@ try {
         if (slow) await new Promise((resolve) => setTimeout(resolve, 800));
         await route.continue();
       });
-      // Nhịp mỗi Kính reveal lúc gắn: delay, duration, easing của từng lớp Kính, ảnh và skeleton dưới nó.
+      // Rhythm of each reveal Kính at attach time: delay, duration, easing of each Kính layer, the image and the skeleton beneath it.
       await page.addInitScript(() => {
         window.__ttRevealTimings = [];
         new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((glass) => {
@@ -221,7 +221,7 @@ try {
           });
         }))).observe(document, { childList: true, subtree: true });
       });
-      // detailId: ảnh của card đã dựng, không phải ảnh mặc định của index.html tải dưới view còn ẩn.
+      // detailId: the image of an already-built card, not index.html's default image loaded under the still-hidden view.
       const settled = () => page.waitForFunction(() => {
         const photo = document.querySelector("[data-detail-image]");
         return photo.dataset.detailId && photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
@@ -230,7 +230,7 @@ try {
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
       await settled();
       await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] a"));
-      // Ghi mỗi frame của khung primary từ lúc đổi ảnh tới khi Kính gỡ.
+      // Record every frame of the primary frame from the image change until Kính is removed.
       const record = (action) => page.evaluate((action) => new Promise((resolve) => {
         const frame = document.querySelector(".detail-view__hero-frame");
         const photo = frame.querySelector("[data-detail-image]");
@@ -245,7 +245,7 @@ try {
           if ((frames.some((entry) => entry.glass) && !glass) || performance.now() - started > 8000) resolve(frames);
           else requestAnimationFrame(tick);
         };
-        // Card related có cover ảnh: video không có Kính reveal (loading-glass R4).
+        // A related card with a cover image: video has no reveal Kính (loading-glass R4).
         if (action === "related") [...document.querySelectorAll("[data-masonry-related-card]")]
           .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click();
         else history.back();
@@ -255,13 +255,13 @@ try {
         const skeleton = frames.findIndex((entry) => entry.skeleton);
         const glass = frames.findIndex((entry) => entry.glass);
         return {
-          // Thời gian skeleton đứng trước Kính (ms): đếm frame thì rAF thưa làm hụt.
+          // Time the skeleton stands before Kính (ms): counting frames would miss it when rAF is sparse.
           waiting: skeleton >= 0 && glass >= 0 ? frames[glass].at - frames[skeleton].at : 0,
-          // Skeleton gắn trước hoặc cùng frame Kính; ảnh mới chưa lộ trước Kính, Kính bắt đầu từ không nhòe.
+          // Skeleton attaches before or in the same frame as Kính; the new image is not exposed before Kính, and Kính starts unblurred.
           order: skeleton >= 0 && glass >= skeleton && frames.slice(skeleton, glass + 1).every((entry) => entry.photo === 0)
             && frames[glass].level < 0.2,
-          // Pha Kính tăng (0 tới 0.26s của animation): ảnh không bao giờ đậm hơn Kính đang phủ. Lọc theo currentTime của
-          // animation chứ không theo frame được lấy mẫu: rAF thưa thì mẫu "đỉnh" rơi vào pha Kính đã tan.
+          // Rising Kính phase (0 to 0.26s of the animation): the image is never denser than the Kính covering it. Filter by the animation's currentTime of
+          // the animation, not by sampled frame: with sparse rAF the "peak" sample lands in the phase where Kính has already faded.
           underGlass: frames.filter((entry) => entry.glass && entry.time <= GLASS_RISE_MS)
             .every((entry) => entry.photo <= entry.level + 0.02),
           settled: frames.at(-1).photo === 1 && !frames.at(-1).skeleton,
@@ -277,9 +277,9 @@ try {
       check(cached.order && cached.underGlass && cached.settled, `cached primary differs from the slow sequence ${JSON.stringify(cached)}`);
       const timings = await page.evaluate(() => window.__ttRevealTimings);
       const primary = timings.filter(({ host }) => host === "primary").map(({ timing }) => JSON.stringify(timing));
-      // Lần mở trang, related (tải chậm) và Back (có sẵn) cùng một nhịp.
+      // On page open, related (slow-loading) and Back (ready) share one rhythm.
       check(primary.length >= 3 && new Set(primary).size === 1, `cached and slow primary reveals use different timing ${primary.join(" | ")}`);
-      // Card tải chậm trên masonry (progressive-loading R9): không Kính, ảnh mờ ngay từ đầu, ảnh về thì blur tan rồi gỡ.
+      // Slow-loading card on masonry (progressive-loading R9): no Kính, blurred image from the start, when the image arrives the blur fades then is removed.
       slow = true;
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm`);
       await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 });

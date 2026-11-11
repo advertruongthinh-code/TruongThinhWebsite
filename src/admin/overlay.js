@@ -1,4 +1,4 @@
-// Overlay trong bản xem trước: chọn, sửa tại chỗ placeholder và báo editor (cms-editor R3). cms-core.js nạp file này.
+// Overlay in the preview: select, edit placeholders in place and notify the editor (cms-editor R3). cms-core.js loads this file.
 (() => {
   const editor = window.parent?.TTEditor;
   if (!editor || !window.TTCms) return;
@@ -18,11 +18,11 @@
   const hoverBox = box("hover");
   const selectedBox = box("selected");
   const visible = (node) => node.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true;
-  // Trang Sản phẩm Quảng cáo (R7): chọn cả card (ô lưới, gợi ý, khung ảnh chính của trang chi tiết), khóa "card:<id>".
+  // Advertising Products page (R7): select a whole card (grid cell, suggestion, main image frame of the detail page), key "card:<id>".
   const cardsMode = window.TTCms.page === "advertising";
   const cardPath = () => decodeURIComponent(location.pathname.match(/\/advertising-products\/p\/([^/]+)\/$/)?.[1] ?? "");
   const cardOf = (node) => {
-    // Card gợi ý là item masonry nhưng không phải một card: không có khóa card:<id>.
+    // A suggestion card is a masonry item but not a card: it has no card:<id> key.
     const tile = node.closest("[data-masonry-item]:not([data-masonry-kind=\"suggestion\"])");
     if (tile) return tile.dataset.masonryItem;
     return node.closest("[data-detail-primary]") ? cardPath() || null : null;
@@ -39,7 +39,7 @@
     list: node.closest("[data-cms-list]")?.dataset.cmsList ?? null,
     item: node.closest("[data-cms-item]")?.dataset.cmsItem ?? null,
   });
-  // Phần tử trên cùng tại điểm bấm có khóa (hoặc card) và đang hiện (slide hero ẩn có opacity 0 nên bị bỏ qua).
+  // Topmost element at the click point that has a key (or card) and is visible (a hidden hero slide has opacity 0 so is skipped).
   const pick = (x, y) => {
     for (const node of document.elementsFromPoint(x, y)) {
       if (cardsMode) {
@@ -52,7 +52,7 @@
     }
     return null;
   };
-  // Thả media từ panel Media (R6): vào danh sách là thêm mục, vào ảnh lẻ là đổi ảnh, vào card là thêm media cho card.
+  // Dropping media from the Media panel (R6): onto a list adds an item, onto a single image replaces the image, onto a card adds media to the card.
   const MEDIA_TYPE = "application/x-tt-media";
   const dropTarget = (x, y) => {
     if (cardsMode) return pick(x, y);
@@ -85,7 +85,7 @@
     } else node.scrollIntoView({ block: "center" });
   };
 
-  // Chữ đang tách dòng (SplitText) phải gộp lại trước khi đổi, tách lại sau khi ngừng gõ.
+  // Text being split into lines (SplitText) must be merged back before changing, and split again after typing stops.
   const rebuildSoon = () => {
     clearTimeout(rebuildTimer);
     rebuildTimer = setTimeout(() => split()?.rebuildSplitText?.(), 250);
@@ -106,18 +106,18 @@
     split()?.revertSplitText?.();
     inline = byKey(key);
     if (!inline) return;
-    // Bỏ khoảng trắng thụt dòng của HTML nguồn để con trỏ nằm cuối chữ thấy được.
+    // Drop the indentation whitespace of the source HTML so the caret sits visibly at the end of the text.
     inline.textContent = inline.textContent.replace(/\s+/g, " ").trim();
     inline.contentEditable = "plaintext-only";
     inline.focus();
     getSelection()?.selectAllChildren(inline);
     getSelection()?.collapseToEnd();
-    // Listener gỡ khi kết thúc để lần sửa sau cùng chỗ không cộng dồn.
+    // The listener is removed on finish so the next edit in the same place does not accumulate.
     inlineListeners = new AbortController();
     const { signal } = inlineListeners;
     inline.addEventListener("input", () => editor.onInlineInput(key, inline?.textContent ?? ""), { signal });
     inline.addEventListener("blur", finishInline, { signal });
-    // Phím gõ không lan ra site: Locomotive cuộn trang khi gặp phím cách, mũi tên ngoài input.
+    // Typed keys do not propagate to the site: Locomotive scrolls the page on space, arrows outside an input.
     ["keyup", "keypress"].forEach((type) => inline.addEventListener(type, (event) => event.stopPropagation(), { signal }));
     inline.addEventListener("keydown", (event) => {
       event.stopPropagation();
@@ -128,10 +128,10 @@
     }, { signal });
   };
 
-  // Chế độ sửa chặn link, kéo gallery, Barba; chế độ xem trả lại tương tác của site.
+  // Edit mode blocks links, gallery dragging, Barba; view mode gives the site its interactions back.
   const block = (event) => {
     if (!editMode || inline?.contains(event.target)) return;
-    // preventDefault giữ focus nên chỗ đang sửa tại chỗ không tự blur: kết thúc tay.
+    // preventDefault keeps focus so the in-place edit does not blur by itself: finish it manually.
     inline?.blur();
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -155,8 +155,8 @@
     event.stopImmediatePropagation();
     editor.onDropMedia(src, target.selection);
   }, true);
-  // Chế độ xem vẫn không chuyển trang (link, Barba): iframe rời bản xem trước thì mất nháp và overlay. Riêng link mở
-  // trang chi tiết card do runtime Sản phẩm Quảng cáo xử lý tại chỗ (đổi path, không tải trang) nên vẫn cho bấm.
+  // View mode still does not navigate pages (links, Barba): the iframe leaving the preview loses the draft and the overlay. Only links opening a
+  // card detail page are handled in place by the Advertising Products runtime (path change, no page load) so they stay clickable.
   const stayOnPreview = (event) => {
     const href = event.target.closest?.("a[href]")?.getAttribute("href");
     if (!href || href.startsWith("#") || (cardsMode && /\/advertising-products\/p\//.test(href))) return;
@@ -205,7 +205,7 @@
   };
   document.documentElement.classList.add("tt-cms-edit");
 
-  // Báo editor khi runtime site đã chạy (Locomotive, SplitText xong), để cuộn tới chỗ đang sửa không bị reset về đầu.
+  // Tell the editor when the site runtime has started (Locomotive, SplitText done), so scrolling to the place being edited is not reset to the top.
   const ready = () => editor.onPreviewReady(window);
   const start = performance.now();
   const wait = () => (window.__ttMotionRuntimeHealthy || performance.now() - start > 4000 ? setTimeout(ready, 150) : setTimeout(wait, 100));

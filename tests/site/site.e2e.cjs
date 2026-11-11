@@ -16,13 +16,13 @@ const ADVERTISING_CATEGORY_SLUGS = ["kiosk-posm", "mobile-retail", "signage-rais
 const CANONICAL_ROUTES = [
   ...ROUTES,
   ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
-  // Trang cụm, sản phẩm (taxonomy R4) mà rail hai tầng trang gốc link tới.
+  // Cluster and product pages (taxonomy R4) that the root page's two-tier rail links to.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_PAGES
     .map((page) => `/vi/advertising-products/${page.vi}/`),
-  // Trang card (media-seo R1) mà link card trên masonry trỏ tới.
+  // Card pages (media-seo R1) that the card links on masonry point to.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
     .map((card) => `/vi/advertising-products/p/${card.id}/`),
-  // Trang công trình, tin tức và trang lọc của chúng: cùng nguồn với serve-static-parity.
+  // Project and news pages and their filter pages: same source as serve-static-parity.
   ...(() => {
     const blocks = require("../../scripts/site/block-pages.mjs");
     const { projectListRoutes } = require("../../scripts/site/project-list.mjs");
@@ -278,7 +278,7 @@ function assertPersistentNavigationContracts() {
         (menuSource.match(/class="menu-group"/g) || []).length === 6 &&
         (menuSource.match(/class="menu-group__title"/g) || []).length === 6 &&
         (menuSource.match(/class="menu-group__links"/g) || []).length === 6 &&
-        // Sáu nhóm (site-shell R4); số công trình, nhóm quảng cáo tiêu biểu theo menu.json nên chỉ chặn dưới.
+        // Six groups (site-shell R4); the project count and featured advertising groups follow menu.json, so only a lower bound is checked.
         (menuSource.match(/class="menu-option"/g) || []).length >= 20 &&
         !/<a\b[^>]*href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
         /class="menu-appointment"[\s\S]*?data-menu-calendar viewBox="0 0 58\.09 57\.82"/.test(menuSource) &&
@@ -286,7 +286,7 @@ function assertPersistentNavigationContracts() {
       `${relativePath} must own locale, appointment, and six groups inside the full menu only`,
     );
     assert(
-      // Header giữ nhãn đầy đủ; full menu tách tiêu đề nhỏ/lớn nên nhãn đầy đủ nằm ở aria-label.
+      // The header keeps the full label; the full menu splits small/large titles, so the full label lives in aria-label.
       (source.match(/(?:data-vi|\saria-label)="Sản phẩm Quảng cáo"/g) || []).length >=
         2 &&
         (source.match(/data-en(?:-aria-label)?="Advertising products"/g) || []).length >= 2,
@@ -504,7 +504,7 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    // Intro WAAPI (compositor) và timeline GSAP dự phòng cùng một timeline đã duyệt: power4.out, 0/0.3/1.5s.
+    // WAAPI intro (compositor) and the fallback GSAP timeline share one approved timeline: power4.out, 0/0.3/1.5s.
     /\(1 - \(1 - index \/ 40\) \*\* 5\)[\s\S]*\[headerLogo, \[\{ transform: "scale\(0\)" \}, \{ transform: "none" \}\], 0, 1500\][\s\S]*"#header-menu-items > ul > li"[\s\S]*\{ transform: "translateY\(-150px\)" \}, \{ transform: "none" \}\], 300 \+ index \* 100, 1500\][\s\S]*\[toggle, \[\{ transform: "scaleX\(0\)" \}, \{ transform: "none" \}\], 1500, 1000\][\s\S]*const playsHeaderIntro = !settledStartup && !softNavigation;[\s\S]*: gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
@@ -568,7 +568,7 @@ function assertPersistentNavigationContracts() {
       /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      // brand.md Motion: each strip flips around its own axis parallel to the left edge, only transform and opacity.
       /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
@@ -652,7 +652,7 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      // Chữ logo, nav, hamburger đổi màu ngay, không tween, cả lúc cuộn lẫn chuyển trang (owner 2026-11-09).
+      // Logo text, nav and hamburger change color immediately, no tween, both while scrolling and while changing page (owner 2026-11-09).
       /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
@@ -662,7 +662,7 @@ function assertPersistentNavigationContracts() {
         motionSource,
       ) &&
       /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
-      // brand.md Motion: mỗi dải lật quanh trục riêng song song cạnh trái, chỉ transform và opacity.
+      // brand.md Motion: each strip flips around its own axis parallel to the left edge, only transform and opacity.
       /band\.style\.perspectiveOrigin = origin;[\s\S]*?const turn = \(angle\) => `rotate3d\(0\.5, -0\.866, 0, \$\{angle\}deg\)`;[\s\S]*?const delay = \(bands\.length - 1 - index\) \* 80;/.test(
         motionSource,
       ) &&
@@ -820,7 +820,7 @@ function assertPersistentNavigationContracts() {
   assert(
     /querySelectorAll\("img"\)[\s\S]*draggable\s*=\s*false/.test(detailSource) &&
       /dragstart[\s\S]*preventDefault/.test(detailSource) &&
-      // Swiper bỏ qua nút chuột phụ (detail-pages R7).
+      // Swiper ignores secondary mouse buttons (detail-pages R7).
       /new Swiper\(track,/.test(detailSource),
     "Gallery still allows native image drag or is not driven by Swiper",
   );
@@ -919,7 +919,7 @@ function monitorPage(page) {
   };
 
   page.on("console", (message) => {
-    // Ghi chú hiệu năng GPU driver của Chromium (software GL trong CI) không phải page diagnostic.
+    // Chromium GPU driver performance notes (software GL in CI) are not page diagnostics.
     if (/^\[\.WebGL-[^\]]+\]GL Driver Message \([^)]*\bPerformance\b/.test(message.text())) return;
     if (["error", "warning", "warn"].includes(message.type())) {
       diagnostics.consoleErrors.push(`${message.type()}: ${message.text()}`);
@@ -932,7 +932,7 @@ function monitorPage(page) {
     try {
       const isSameOrigin = new URL(request.url()).origin === BASE_ORIGIN;
       if (!isSameOrigin && !trackedExternalTypes.has(request.resourceType())) return;
-      // Ảnh, video bị hủy khi rời trang hoặc gỡ card (ERR_ABORTED) là hành vi trình duyệt, không phải lỗi tải.
+      // Images and videos aborted when leaving the page or removing a card (ERR_ABORTED) are browser behavior, not load errors.
       if (
         request.failure()?.errorText === "net::ERR_ABORTED" &&
         ["image", "media"].includes(request.resourceType())
@@ -960,8 +960,8 @@ function monitorPage(page) {
   return diagnostics;
 }
 
-// Locomotive (từ 981px) đi một nấc cố định mỗi lượt lăn (scroll-feel R1), dưới 981px cuộn native:
-// lăn từng nấc tới khi header thu gọn (quá 100px) hoặc mở lại.
+// Locomotive (from 981px) moves one fixed notch per wheel turn (scroll-feel R1); below 981px scrolling is native:
+// wheel notch by notch until the header collapses (past 100px) or reopens.
 async function wheelUntilCollapsed(page, collapsed = true) {
   for (let tick = 0; tick < 8; tick += 1) {
     await page.mouse.wheel(0, collapsed ? 220 : -220);
@@ -1304,9 +1304,9 @@ async function steppedScroll(page, viewport) {
         new Promise((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(resolve)),
         );
-      // Quét track từng bề rộng một để mọi ảnh lazy (gallery Nhà ở 36 ảnh) đều vào vùng tải.
+      // Sweep the track one width at a time so every lazy image (the 36-image Residential gallery) enters the load zone.
       for (const track of tracks) {
-        // Gallery tải Swiper khi gần viewport (detail-pages R7): chờ rồi trượt qua từng ảnh.
+        // The gallery loads Swiper near the viewport (detail-pages R7): wait, then slide past each image.
         for (let wait = 0; !track.swiper && wait < 120; wait += 1) await paint();
         if (track.swiper) {
           for (let index = 0; index < track.swiper.slides.length; index += 1) {
@@ -1404,8 +1404,8 @@ async function inspectRequiredImages(page) {
       () =>
         [...document.images]
           .filter((image) => {
-            // Required = đã render; ảnh LazySizes mà cửa sổ masonry ảo mount trước khi
-            // cuộn (masonry R7, R8) thành required khi nó giao viewport.
+            // Required = rendered; a LazySizes image that the virtual masonry window mounts before
+            // scrolling (masonry R7, R8) becomes required when it intersects the viewport.
             const source = image.getAttribute("src") || image.dataset.src;
             if (!source || source.startsWith("data:") || !image.getClientRects().length) return false;
             if (!image.classList.contains("lazyload")) return true;
@@ -1576,7 +1576,7 @@ async function runPageCase(
       error: error instanceof Error ? error.message : String(error),
       ...(failureScreenshot ? { screenshot: failureScreenshot } : {}),
     });
-    // Kèm dòng gọi trong file này để biết waitForFunction nào hết giờ khi đọc log CI.
+    // Include the call line in this file to know which waitForFunction timed out when reading the CI log.
     const at = error?.stack?.split("\n").find((line) => line.includes("site.e2e.cjs"))?.trim() ?? "";
     console.error(`FAIL ${name}\n${error instanceof Error ? error.message : error}\n${at}`);
   } finally {
@@ -1596,7 +1596,7 @@ async function runSmokeMatrix() {
 }
 
 async function runPortalAlignmentChecks() {
-  // Portal ba tầng dùng chung token chữ toàn site (page-home R5): trang chủ và loại hình trang con.
+  // The three-tier portal shares the site-wide text tokens (page-home R5): the home page and the sub-page types.
   for (const [label, path] of [["root", ""], ["residential", "residential/"], ["commercial", "commercial/"]]) {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
@@ -1620,7 +1620,7 @@ async function runPortalAlignmentChecks() {
                 const lowerRect = lower.getBoundingClientRect();
                 const titleStyle = getComputedStyle(title);
                 const lowerStyle = getComputedStyle(lower);
-                // Portal không kicker (loại hình Commercial, owner 2026-10-27): bỏ các số đo kicker.
+                // Portal without a kicker (Commercial type, owner 2026-10-27): drop the kicker measurements.
                 const upperRect = upper?.getBoundingClientRect();
                 const upperStyle = upper && getComputedStyle(upper);
                 const kicker = upper
@@ -1687,7 +1687,7 @@ async function runPortalAlignmentChecks() {
               );
               return image
                   ? {
-                    // src fallback gốc; currentSrc là variant AVIF/WebP responsive.
+                    // Original fallback src; currentSrc is the responsive AVIF/WebP variant.
                     src: new URL(image.getAttribute("src"), location.href).pathname,
                     declaredWidth: Number(image.getAttribute("width")),
                     declaredHeight: Number(image.getAttribute("height")),
@@ -1766,7 +1766,7 @@ async function runPortalAlignmentChecks() {
             `Portal kicker must be all or none in a group at ${route}: ${JSON.stringify(state.cards)}`,
           );
           if (path) {
-            // Trang con khớp token chữ portal trang chủ ở cùng bề rộng card.
+            // Sub-pages match the home portal's text tokens at the same card width.
             assert(
               state.cards.every((card) => card.titleWeight === "600" && (!card.hasKicker || card.upperWeight === "700") && card.lowerWeight === "700"),
               `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
@@ -1990,7 +1990,7 @@ async function runHeaderParityChecks() {
         );
         assert(
           expanded.navDisplay === (mobile ? "none" : "grid") &&
-            // R2: nav sẽ wrap thì bị ẩn, để header giữ một hàng.
+            // R2: when the nav would wrap it is hidden, so the header keeps one row.
             (mobile || expanded.navRows === 1) &&
             Math.abs(expanded.navFont - 16) <= 0.1 &&
             Math.abs(expanded.navLine - 22.4) <= 0.2 &&
@@ -2018,23 +2018,23 @@ async function runHeaderParityChecks() {
               expanded.navListMargin.every((value) => Math.abs(value - 16) <= 0.1) &&
               Math.abs(
                 expanded.navListLeft -
-                  // Lệch trái -10% chỉ trên 1400px; tới 1400 nav canh giữa để 4 nhãn VI không bị ẩn.
+                  // Offset left -10% only above 1400px; up to 1400 the nav is centered so the 4 VI labels are not hidden.
                   (viewport.width > 1400 ? expanded.nav.width * -0.1 : 0),
               ) <= 1,
             `Header vertical or x rhythm drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
           );
         }
-        // Laptop 1280/1366 phải thấy đủ 4 mục navbar (trước đây bị ẩn từ 1201 tới ~1340px).
+        // Laptops 1280/1366 must show all 4 navbar items (previously hidden from 1201 to ~1340px).
         assert(
           viewport.width <= 1200 || !expanded.navHidden,
           `Navbar is hidden at ${viewport.width}`,
         );
         const expectedBrandWidth = expectedBrandHeaderWidth(viewport.width);
         const expectedBrandHeight = expectedBrandHeaderHeight(viewport.width);
-        // Logo bám mép trên vùng padding, cùng khoảng với mép trái.
+        // The logo hugs the top edge of the padding area, the same distance as the left edge.
         const expectedBrandX = desktop ? 35 : mobile ? 15 : 25;
         const expectedBrandY = expectedBrandX;
-        // Nav ẩn theo R2 (is-space-hidden) thì chỉ còn logo và nút menu.
+        // When the nav is hidden by R2 (is-space-hidden), only the logo and the menu button remain.
         const navShown = !mobile && !expanded.navHidden;
         const brandClearance = navShown
           ? expanded.firstLink.left - expanded.brand.right
@@ -2093,7 +2093,7 @@ async function runHeaderParityChecks() {
               style.paddingBottom,
               style.paddingLeft,
             ].map(Number.parseFloat),
-            // Nền header vẽ ở ::before để co cùng nhịp FLIP (owner 2026-11-09).
+            // The header background is drawn on ::before so it shrinks in the same FLIP beat (owner 2026-11-09).
             background: getComputedStyle(header, "::before").backgroundColor,
             border: Number.parseFloat(style.borderBottomWidth),
             overflow:
@@ -2147,8 +2147,8 @@ async function runHeaderParityChecks() {
     "header direct intro and soft-navigation persistence",
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     async (page) => {
-      // Intro header chạy bằng WAAPI (motion.js createHeaderIntro): ghi lại mọi lời gọi animate() trên logo, mục nav và
-      // nút menu để kiểm trạng thái đầu, delay và thời lượng như timeline GSAP cũ (motion.md).
+      // The header intro runs on WAAPI (motion.js createHeaderIntro): record every animate() call on the logo, nav items and
+      // menu button to check the initial state, delay and duration like the old GSAP timeline (motion.md).
       await page.addInitScript(() => {
         window.__ttHeaderIntroAnimations = [];
         const animate = Element.prototype.animate;
@@ -2195,7 +2195,7 @@ async function runHeaderParityChecks() {
         logo?.from === "scale(0)" && nav.every((entry) => entry?.from === "translateY(-150px)") && toggle?.from === "scaleX(0)",
         `Direct header intro never exposed its audited start state: ${JSON.stringify(intro.animations)}`,
       );
-      // Intro: logo 1.5s, nav tại 0.3s cách nhau 0.1s, hamburger tại 1.5s trong 1s, cùng đường cong power4.out (motion.md).
+      // Intro: logo 1.5s, nav at 0.3s spaced 0.1s apart, hamburger at 1.5s for 1s, same power4.out curve (motion.md).
       assert(
         logo.delay === 0 && logo.duration === 1_500 &&
           nav.every((entry, index) => entry.delay === 300 + index * 100 && entry.duration === 1_500) &&
@@ -2293,8 +2293,8 @@ async function runHeaderParityChecks() {
         (frame) =>
           frame.values.every((value) => value === "rgb(47, 47, 47)"),
       );
-      // Owner 2026-11-09: lockup, chữ, nav, hamburger đổi màu cùng một frame, không tween, ngay lúc nhịp FLIP 0.3s bắt
-      // đầu (frame đầu sau khi cuộn), cùng nền trắng.
+      // Owner 2026-11-09: lockup, text, nav and hamburger change color in the same frame, no tween, right as the 0.3s FLIP beat starts
+      // (first frame after scrolling), with the same white background.
       assert(
         firstChanged >= 0 &&
           Math.max(...changed) === firstChanged &&
@@ -2308,8 +2308,8 @@ async function runHeaderParityChecks() {
 
   await runPageCase(
     "header scroll direction pointer and interaction motion",
-    // 961 tới 980px: cuộn native (Locomotive từ 981px). Navbar bốn mục (#708) chỉ hiện từ khoảng 1040px nên phần
-    // hover và link đang chọn đổi viewport sang 1100px.
+    // 961 to 980px: native scroll (Locomotive from 981px). The four-item navbar (#708) only shows from about 1040px, so the
+    // hover and active-link part switches the viewport to 1100px.
     { route: "/vi/residential/", viewport: { width: 970, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -2514,7 +2514,7 @@ async function runHeaderParityChecks() {
       await page.waitForTimeout(80);
       await page.evaluate(() => scrollTo(0, 700));
       await page.waitForTimeout(1_050);
-      // Điện thoại: header khuất bằng transform đi theo cuộn (phone-header-scroll R2), không dùng is-hidden.
+      // Phone: the header hides via a transform that follows scrolling (phone-header-scroll R2), not is-hidden.
       const headerHidden = (element) => element.getBoundingClientRect().bottom <= 0;
       assert(
         await page.locator("[data-site-header]").evaluate(headerHidden),
@@ -2825,7 +2825,7 @@ async function runPersistentBarbaNavigationChecks() {
         );
       }
 
-      // About là native document load (shell R6), nên đọc soft-route trace trước.
+      // About is a native document load (shell R6), so read the soft-route trace first.
       const trace = await page.evaluate(() => window.__ttRouteTrace || []);
       await openMenu(page);
       const aboutLink = await findRouteLink(page, "#site-menu", "/vi/about/");
@@ -2860,8 +2860,8 @@ async function runPersistentBarbaNavigationChecks() {
       const coverMs = trace[coveredIndex].time - trace[transitionIndex].time;
       const revealMs =
         trace[finishedIndex].time - trace[revealStartedIndex].time;
-      // Cover 0.75s power4.inOut (motion.md) đạt opacity 0.99 ở khoảng 0.62s; is-transitioning gắn sau khi tween
-      // đã chạy vài frame nên đo được ngắn hơn.
+      // The 0.75s power4.inOut cover (motion.md) reaches opacity 0.99 at about 0.62s; is-transitioning attaches after the tween
+      // has run a few frames, so the measured value is shorter.
       assert(
         coverMs >= 450 && coverMs <= 1_000,
         `Route cover took ${coverMs.toFixed(0)}ms`,
@@ -2934,7 +2934,7 @@ async function runEspacioRouteLogoTimingChecks() {
           ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
         )}`,
       );
-      // logo-route-crossfade R1, R2: tới Residential (hero ảnh) mark CMYK chỉ khi veil phủ kín, rồi về trắng.
+      // logo-route-crossfade R1, R2: going to Residential (photo hero) the mark turns CMYK only once the veil fully covers, then back to white.
       assert(
         ordinaryTrace.every((sample) => !sample.transitioning || !sample.brandColor || sample.veil >= 0.99) &&
           !ordinaryTrace.at(-1)?.brandColor,
@@ -2989,7 +2989,7 @@ async function runEspacioRouteLogoTimingChecks() {
       const advertisingStart = advertisingTrace.findIndex(
         (sample) => sample.namespace === "advertising-products",
       );
-      // logo-route-crossfade R1, R3: trang đích mount dưới veil đã phủ kín nên mark đã CMYK, rồi giữ CMYK khi veil mở.
+      // logo-route-crossfade R1, R3: the destination page mounts under an already fully covering veil so the mark is already CMYK, then stays CMYK as the veil opens.
       const cmykMark = (sample) =>
         sample.colorState &&
         sample.fills[1]?.[0] >= 245 &&
@@ -3023,9 +3023,9 @@ async function runEspacioRouteLogoTimingChecks() {
     async (page) => {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/");
-      // Ảnh tải theo biến thể srcset AVIF/WebP (media-delivery R3).
+      // Images load by AVIF/WebP srcset variant (media-delivery R3).
       await page.route(/residential-detail-x1(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
-        // Ảnh chậm hơn cả lượt route: veil phủ 0.75s, giữ phủ kín tối thiểu 1s (logo-route-crossfade R2), rồi mở.
+        // Image slower than the whole route: veil covers for 0.75s, holds fully covered for at least 1s (logo-route-crossfade R2), then opens.
         await new Promise((resolve) => setTimeout(resolve, 3_200));
         delayedHeroReleased = true;
         await requestRoute.continue();
@@ -3103,7 +3103,7 @@ async function runEspacioScrollCueChecks() {
           }));
           const startedAt = performance.now();
           const deadline = startedAt + 4_600;
-          // Độ phân giải đo: GSAP chỉ đổi opacity mỗi frame, runner bận có frame 100ms nên hai chữ có thể đổi cùng frame.
+          // Measurement resolution: GSAP only changes opacity each frame, a busy runner has 100ms frames so two letters may change in the same frame.
           let resolution = 0;
           let lastFrame = startedAt;
           const trackFrame = (now) => {
@@ -3150,7 +3150,7 @@ async function runEspacioScrollCueChecks() {
           gsap.globalTimeline.timeScale(originalTimeScale);
         }
       });
-      // Trung bình nằm trong 25-80ms; từng khoảng chỉ được lệch thêm đúng độ phân giải đo của lần chạy đó.
+      // The average lies within 25-80ms; each interval may deviate only by the measurement resolution of that run.
       const isUniform = (intervals) => {
         const mean = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
         const slack = Math.max(0, timing.resolution - 17);
@@ -3374,7 +3374,7 @@ async function runEspacioTypographyChecks() {
                     .slice(0, 80),
                   size: Number.parseFloat(style.fontSize),
                   weight: Number.parseFloat(style.fontWeight),
-                  // Tiêu đề gallery nét mảnh 300 theo mẫu Espacio, owner duyệt (detail-pages R7).
+                  // Gallery title thin weight 300 following the Espacio sample, owner approved (detail-pages R7).
                   galleryTitle: Boolean(element.closest(".detail-gallery > h2")),
                 };
               });
@@ -3399,7 +3399,7 @@ async function runEspacioTypographyChecks() {
                 document.documentElement.scrollWidth -
                 document.documentElement.clientWidth,
               lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle),
-              // Phụ đề portal co theo bề rộng card để giữ một dòng (page-home R5), không theo sàn 12.5px.
+              // Portal subtitle shrinks with the card width to stay on one line (page-home R5), not following the 12.5px floor.
               tinyText: visibleText.filter((item) => item.size < 12.5 && item.selector !== "span.portal-subtitle"),
               roles: {
                 nav: readRole("#header-menu-items a"),
@@ -3441,7 +3441,7 @@ async function runEspacioTypographyChecks() {
             );
           }
           if (route === "/vi/" || route === "/en/") {
-            // Cỡ tiêu đề portal theo bề rộng card (page-home R5): 1440px đo 37px cap-height.
+            // Portal title size follows the card width (page-home R5): 1440px measures 37px cap-height.
             const portalRange =
               viewport.width === 1440 ? [35, 47] : [31, 46];
             assert(
@@ -3459,7 +3459,7 @@ async function runEspacioTypographyChecks() {
               `Detail label cap-height drifted on ${route}: ${JSON.stringify(state.roles.detailLabel)}`,
             );
           }
-          // Dải quy trình chỉ có ở trang detail (detail-pages R8), trang chủ không còn editorial.
+          // The process strip exists only on the detail page (detail-pages R8); the home page no longer has editorial.
           if (state.roles.editorial) {
             assert(
               state.roles.editorial.weight >= 500 &&
@@ -3691,7 +3691,7 @@ async function runHistoryNavigationChecks() {
         const header = page.locator("[data-site-header]");
         const expectAutoHidden = async (label) => {
           await page.mouse.move(100, 700);
-          // Shell R3 chỉ ẩn khi quá 0.5 x viewport; smooth scroll dịch ~43px mỗi bước wheel 100px.
+          // Shell R3 hides only past 0.5 x viewport; smooth scroll moves ~43px per 100px wheel step.
           for (let index = 0; index < 20; index += 1) {
             await page.mouse.wheel(0, 100);
             await page.waitForTimeout(70);
@@ -3770,8 +3770,8 @@ async function runBfcacheCleanupCheck() {
   );
 }
 
-// Preview local gửi `no-store` (static-release R8) nên Chrome không cho vào bfcache; probe thay bằng
-// header mặc định của Cloudflare cho HTML để đo đúng như production.
+// The local preview sends `no-store` (static-release R8) so Chrome does not admit it to bfcache; the probe substitutes
+// Cloudflare's default HTML headers to measure exactly as production does.
 async function useProductionCacheHeaders(context) {
   await context.route("**/*", async (route) => {
     const response = await route.fetch();
@@ -4053,7 +4053,7 @@ async function runLanguagePersistenceCheck() {
               !element.matches(".hero-word"),
           );
           return {
-            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
+            // The full menu splits small/large titles; a link's full name is the aria-label.
             projectLabels: [
               document
                 .querySelector('[data-site-header] a[href="/vi/advertising-products/"]')
@@ -4089,7 +4089,7 @@ async function runLanguagePersistenceCheck() {
           const image = document.querySelector("img[data-en-alt]");
           const labelled = document.querySelector("[data-en-aria-label]");
           return {
-            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
+            // The full menu splits small/large titles; a link's full name is the aria-label.
             projectLabels: [
               document
                 .querySelector('[data-site-header] a[href="/en/advertising-products/"]')
@@ -4175,7 +4175,7 @@ async function runLanguageScrollRetentionCheck() {
     { route: "/vi/residential/?qa=scroll", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      // Owner 2026-11-08 (site-shell R5): đổi ngôn ngữ chạy lại toàn bộ motion như F5, tức tải lại trang đích.
+      // Owner 2026-11-08 (site-shell R5): switching language reruns all motion like F5, i.e. reloads the destination page.
       const switchLocale = async (expectedUrl) => {
         const expectedLanguage = expectedUrl.startsWith("/en/") ? "en" : "vi";
         const before = await page.evaluate(() => ({
@@ -4302,7 +4302,7 @@ async function runLocaleResponsivePreferenceChecks() {
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
-        // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5): về đầu trang, intro chạy lại.
+        // Switching language reloads the destination page like F5 (site-shell R5): back to the page top, intro reruns.
         await Promise.all([
           page.waitForEvent("load", { timeout: 10_000 }),
           page
@@ -4358,7 +4358,7 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
             const label = link?.matches("[data-vi], [data-en]")
               ? link
               : link?.querySelector("[data-vi], [data-en]");
-            // Full menu tách tiêu đề nhỏ/lớn: tên đầy đủ nằm ở aria-label.
+            // The full menu splits small/large titles: a link's full name is in aria-label.
             return normalize(link?.getAttribute("aria-label") || label?.textContent || link?.textContent || "");
           };
           const title = document.querySelector("title[data-en]");
@@ -4377,8 +4377,8 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
           };
         });
         assert(rendered.locale === expected.locale, `${expected.route}: wrong rendered locale`);
-        // Case này chứng minh D1 SSR thắng static fallback; chỉ CMS Worker với D1 mới serve nó
-        // (cms.md, CMS dormant). Với static preview, copy data-en tĩnh phải còn sống thay vào đó.
+        // This case proves D1 SSR beats the static fallback; only the CMS Worker with D1 serves it
+        // (cms.md, CMS dormant). On the static preview, the static data-en copy must stay alive instead.
         if (expected.requiresStaticFallbackMismatch && process.env.TT_E2E_D1 !== "1") {
           assert(
             rendered.title === rendered.sourceTitle && rendered.description === rendered.sourceDescription,
@@ -4549,7 +4549,7 @@ async function runMenuChecks() {
         const expectedMenuHostWidth = desktopLogo ? 260.981741 : 230.299324;
         const expectedMenuLockupWidth = expectedMenuHostWidth;
         const expectedMenuHeight = desktopLogo ? 67.515625 : 59.578125;
-        // `.brand` căn start trong hàng header (style.css), nên lockup nằm trên padding đỉnh.
+        // `.brand` aligns to start in the header row (style.css), so the lockup sits above the top padding.
         const headerPadding = desktopLogo ? 35 : viewport.width <= 750 ? 15 : 25;
         const expectedHeaderPosition = [headerPadding, headerPadding];
         const expectedMenuPosition = [desktopLogo ? 35 : 25, desktopLogo ? 35 : 25];
@@ -4608,7 +4608,7 @@ async function runMenuChecks() {
           `${viewport.width}x${viewport.height}: header or full-menu lockup differs from live Espacio geometry ${JSON.stringify(menuContract.brandParity)}`,
         );
         assert(
-          // Sáu nhóm (site-shell R4); công trình, nhóm quảng cáo tiêu biểu theo menu.json nên mục con chỉ chặn dưới.
+          // Six groups (site-shell R4); projects and featured advertising groups follow menu.json, so child items are only bounded below.
           menuContract.childGroupCount === 6 &&
             menuContract.childItemCount >= 20 &&
             menuContract.fragmentLinkCount === 0 &&
@@ -4622,7 +4622,7 @@ async function runMenuChecks() {
             ]),
           `${viewport.width}x${viewport.height}: menu groups or non-fragment child routes do not match the contract`,
         );
-        // Cột 3/2/1 (site-shell R4): nhóm cuối mỗi hàng không có vạch.
+        // Columns 3/2/1 (site-shell R4): the last group in each row has no divider.
         const dividerIndexes = viewport.width >= 961
           ? [0, 1, 3, 4]
           : viewport.width >= 579
@@ -4691,7 +4691,7 @@ async function runMenuChecks() {
         await page.keyboard.press("Enter");
         await page.waitForTimeout(1_900);
         page.off("request", captureNavigation);
-        // Shell R6: parent title hiện tại về đỉnh tại chỗ và đóng menu.
+        // Shell R6: the current parent title returns to the top in place and closes the menu.
         const currentTitleState = await page.locator("#site-menu").evaluate(
           (dialog) => ({
             open: dialog.open,
@@ -4749,12 +4749,12 @@ async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidt
   });
 }
 
-// Masonry R4/R7: cửa sổ runtime là layout organic đã seed cho lượt vào này.
+// Masonry R4/R7: the runtime window is the organic layout seeded for this visit.
 async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
-// `width` tính cửa sổ cho layout viewport mà trang chưa resize tới.
+// `width` computes the window for a layout viewport that the page has not been resized to yet.
 async function advertisingWindow(page, filter, width = null) {
   const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "catalog-artifact.mjs")).href);
   const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
@@ -4769,9 +4769,9 @@ async function advertisingWindow(page, filter, width = null) {
     .items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
 }
 
-// Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
-// slide 0.4s, nên mẫu lấy từ phía test chỉ thấy card đã settle. `fromMotion`: tính giờ từ frame đầu card có
-// transform (slide bắt đầu), vì runner bận có thể chưa dựng layout mới sau 20ms kể từ cú bấm.
+// Sample the masonry morph inside the page, timing from the triggering event: one CDP round trip under heavy load can be longer than
+// the 0.4s slide, so a sample taken from the test side would only see settled cards. `fromMotion`: time from the first frame the card has a
+// transform (slide starts), since a busy runner may not have built the new layout 20ms after the click.
 const armMorphSamples = (page, { event = "click", delays, id = null, notCategory = null, fromMotion = false }) => page.evaluate(
   ({ event, delays, id, notCategory, fromMotion }) => {
     const grid = document.querySelector("[data-project-grid]");
@@ -4804,7 +4804,7 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
           if (samples.filter(Boolean).length === delays.length) resolve(samples);
         }, delay));
         if (!fromMotion) return start();
-        // Hết 1,5s vẫn chưa trượt thì lấy mẫu luôn để assert báo đúng card đứng yên.
+        // If it has not slid after 1.5s, sample anyway so the assert reports the card that stood still.
         const deadline = performance.now() + 1_500;
         const wait = () => {
           const transform = sample().transform;
@@ -4848,11 +4848,11 @@ async function runAdvertisingFilterCheck() {
           },
         ),
       }));
-      // Thứ tự random theo lượt vào, nên chọn card đã mount cũng mở cửa sổ của filter riêng nó.
+      // Random order per visit, so picking an already-mounted card also opens its own filter's window.
       const categories = ["displays-booths", "mobile-retail", "signage", "office-signs", "led-displays", "printing-decals"];
       const windows = {};
       for (const category of categories) windows[category] = await advertisingWindow(page, category);
-      // Card đứng yên chỗ cũ trong layout filter thì không có morph để đo; chọn card phải dời chỗ.
+      // A card that stays at its old spot in the filter layout has no morph to measure; pick a card that must move.
       const survivorTile = before.tiles.find((tile) => windows[tile.category]?.some((entry) =>
         entry.id === tile.id && Math.hypot(entry.x - tile.left, entry.y - tile.top) > 2));
       assert(survivorTile, `No mounted card survives into its filter window: ${JSON.stringify(windows)}`);
@@ -4964,7 +4964,7 @@ async function runAdvertisingFilterCheck() {
         `Filter cohort escaped old/new virtual-window union: ${JSON.stringify(cohortSnapshots)}`);
       assert(visible.length > 0, `${filterSlug} filter did not mount a top-page destination window`);
       assert(
-        // Cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), nên so với cửa sổ filter thay vì category.
+        // A cluster includes cards with a secondary product in the cluster (taxonomy R1), so compare with the filter window instead of the category.
         visible.every((tile) => expectedWindow.includes(tile.id)),
         `A non-${filterSlug} tile remained visible`,
       );
@@ -4987,7 +4987,7 @@ async function runAdvertisingFilterCheck() {
         "Active filter did not expose aria-current=true",
       );
       const nextSlug = categories.find((category) => category !== filterSlug);
-      // Card có sản phẩm phụ thuộc cả hai cụm (taxonomy R1) đã mount sẵn; seed ngẫu nhiên mỗi lượt nên chọn card chỉ có ở cụm kế.
+      // A card with a product belonging to both clusters (taxonomy R1) is already mounted; the seed is random each visit, so pick a card that exists only in the next cluster.
       const nextId = (await advertisingWindowIds(page, nextSlug)).find((id) => !expectedWindow.includes(id));
       const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid, id) =>
         Boolean(grid.querySelector(`[data-masonry-card="${id}"]`)), nextId,
@@ -5064,7 +5064,7 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      // Thứ tự card là ngẫu nhiên theo seed nên không có id cố định nào chắc chắn nằm trong cửa sổ ảo; lấy tile đang mount.
+      // Card order is random by seed, so no fixed id is certain to be in the virtual window; take a tile that is mounted.
       await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
         const style = getComputedStyle(grid.querySelector(".masonry-card"));
@@ -5286,7 +5286,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
           ? await (async () => {
-              // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): cùng seed, cùng cache với runtime.
+              // The grid is laid out randomly per visit (masonry R4): same seed, same cache as the runtime.
               const layout = await expectedGridLayout({
                 artifact: runtimeContract.artifact,
                 layoutViewportWidth: state.layoutViewportWidth,
@@ -5559,8 +5559,8 @@ async function runAdvertisingRapidFilterCheck() {
         grid.closest('[data-barba-namespace="advertising-products"]')
           ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        // Runtime đọc tọa độ nhìn thấy trong frame sau click, nên card đang trượt đã đi thêm một frame (tới ~14px ở đỉnh
-        // tốc độ) so với `before`; lấy thêm mẫu ở frame này để gốc morph khớp một trong hai.
+        // The runtime reads visible coordinates in the frame after the click, so a sliding card has moved one more frame (up to ~14px at peak
+        // speed) relative to `before`; take another sample in this frame so the morph origin matches one of the two.
         const frameRect = grid.getBoundingClientRect();
         const beforeFrame = [...grid.querySelectorAll(".masonry-card")]
           .filter((tile) => !tile.hidden)
@@ -5581,7 +5581,7 @@ async function runAdvertisingRapidFilterCheck() {
           .filter((item) => !item.element.hidden && item.element.dataset.masonryCategory === "mobile-retail")
           .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
         if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
-        // Giữ transition transform của card theo dõi: hết chuyển động phải là "finished", bị cắt ngang là "idle".
+        // Keep tracking the card's transform transition: when motion ends it must be "finished", when cut off it is "idle".
         grid.__rapidMorph = trackedItem.element.getAnimations().find((animation) => animation.transitionProperty === "transform");
         if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a transform transition on the tracked item");
         grid.__rapidOldTransitionEnds = 0;
@@ -5615,8 +5615,8 @@ async function runAdvertisingRapidFilterCheck() {
         };
       }, trackedId);
       const origin = await capture();
-      // Runner không GPU raster vùng mới sau cú cuộn xa, frame có thể trễ vài trăm ms; đo giữa chừng theo thời gian
-      // của chính transition thay vì đồng hồ.
+      // A runner without GPU rasterizes the new area late after a long scroll, frames can lag a few hundred ms; measure mid-way by the transition's own time
+      // instead of the clock.
       await page.waitForFunction(() => {
         const morph = document.querySelector("[data-project-grid]").__rapidMorph;
         return morph?.playState !== "running" || morph.currentTime >= 100;
@@ -5626,7 +5626,7 @@ async function runAdvertisingRapidFilterCheck() {
         const grid = document.querySelector("[data-project-grid]");
         return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-masonry-card="${id}"]`)?.style.transform;
       }, trackedId, { timeout: 2_000 }).catch(() => {});
-      // Cú cuộn xa chỉ giữ chỗ bằng card tạm trước, card thật dựng dần theo ngân sách frame (masonry R7).
+      // A long scroll jump first holds places with placeholder cards, real cards build gradually under the frame budget (masonry R7).
       await page.waitForFunction(() => !document.querySelector(".masonry-ghost"), null, { timeout: 3_000 }).catch(() => {});
       const settled = await capture();
       await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
@@ -5645,7 +5645,7 @@ async function runAdvertisingRapidFilterCheck() {
       const nearestOrigin = Math.min(...[...before, ...beforeFrame].map((slot) => Math.hypot(seededOrigin.x - slot.x, seededOrigin.y - slot.y)));
       const travel = Math.hypot(settled.target.x - seededOrigin.x, settled.target.y - seededOrigin.y);
       const progressed = Math.hypot(during.visual.x - seededOrigin.x, during.visual.y - seededOrigin.y);
-      // Frame trễ trên runner có thể nhảy qua giữa chừng; transition phải đi trọn từ gốc tới đích trong 0.4s.
+      // A lagging frame on a runner may jump past the midpoint; the transition must travel fully from origin to target within 0.4s.
       const [morphX, morphY] = (morph.to.match(/-?[\d.]+(?=px)/g) || []).map(Number);
       const morphGap = Math.hypot(seededOrigin.x + morphX - settled.target.x, seededOrigin.y + morphY - settled.target.y);
       const membershipChanged = membersBeforeScroll.length !== settled.members.length ||
@@ -5658,8 +5658,8 @@ async function runAdvertisingRapidFilterCheck() {
         (!afterStaleEnd.transform || afterStaleEnd.transform === "none");
       assert(
         origin.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          // Mẫu "during" chỉ có nghĩa khi bắt được giữa chừng; frame trễ trên runner có thể làm transition 0.4s chạy xong
-          // trước lần đo (morph "finished"), lúc đó transform đã về none. Ca bị cắt ngang vẫn đỏ ở settled.morph và morphGap.
+          // The "during" sample only means something when caught mid-way; a lagging frame on a runner may let the 0.4s transition finish
+          // before the measurement (morph "finished"), at which point the transform is none. A cut-off case still goes red at settled.morph and morphGap.
           (during.morph === "finished" || (during.transform && during.transform !== "none")) &&
           nearestOrigin <= 3 && travel > 1 && progressed > 2 && morph.duration === 400 && morphGap <= 2 &&
           membershipChanged && settled.morph === "finished" &&
@@ -5966,7 +5966,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
                     )
                   : Math.abs(textRects[0].left - headingRect.left) <= 2 &&
                     Math.abs(textRects[1].right - headingRect.right) <= 2),
-              // Máy có hover: gạch chân là ::after chạy như nav (taxonomy R3); máy cảm ứng giữ text-decoration.
+              // Devices with hover: the underline is an ::after that runs like nav (taxonomy R3); touch devices keep text-decoration.
               activeUnderlineVisible: matchMedia("(hover: hover) and (pointer: fine)").matches
                 ? activeFilterAfter.transform === "matrix(1, 0, 0, 1, 0, 0)" && activeFilterAfter.height === "3px"
                 : activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
@@ -5981,7 +5981,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               kickerLeadsTitle:
                 kickerRect.top < headingRect.top &&
                 kickerRect.bottom <= headingRect.top + 1,
-              // Nhãn cụm dài làm rail tablet xuống nhiều dòng và mọc lên trên; rail vẫn phải nằm dưới tiêu đề hoặc trong 40% dưới hero.
+              // A long cluster label makes the tablet rail wrap to several lines and grow upward; the rail must still sit below the title or in the bottom 40% of the hero.
               filtersAreLower: filtersRect.top >= Math.min(headingRect.bottom, heroRect.top + heroRect.height * 0.6),
               viewportMinusFifty:
                 heroRect.top <= 1 &&
@@ -6085,7 +6085,7 @@ async function runAdvertisingGridFocusedChecks() {
   const thresholdWidths = [...new Set([...contractBoundaryWidths, ...columnBoundaryWidths])]
     .flatMap((width) => [width - 1, width, width + 1]);
   const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
-  // Bản thuật toán do unit test advertising-products-layout ghim; ở đây chỉ kiểm artifact đi cùng compiler.
+  // The algorithm version is pinned by the advertising-products-layout unit test; here only check that the artifact shipped with the compiler.
   assert(artifact.layoutAlgorithmVersion === MASONRY_LAYOUT_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${MASONRY_LAYOUT_VERSION}`);
   assert(
     artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
@@ -6133,18 +6133,18 @@ async function runAdvertisingGridFocusedChecks() {
             tiles,
             outerToken: Number.parseFloat(getComputedStyle(grid.closest(".masonry-section")).getPropertyValue("--masonry-outer")),
             gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--masonry-gap")),
-            // Tên card chỉ hiện khi hover chuột thật (owner 2026-11-09), không chiếm chỗ; ngoài nó không còn caption.
+            // The card name shows only on a real mouse hover (owner 2026-11-09), takes no space; otherwise there is no caption.
             captionCount: grid.querySelectorAll("figcaption:not(.masonry-card__title)").length,
           };
         });
         const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
         const expectedGap = measured.viewportWidth <= 960 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
-        // advertising-masonry R5: không có bề rộng tối đa, C = min(4, max(2, floor((W + G) / (220 + G)))).
+        // advertising-masonry R5: no max width, C = min(4, max(2, floor((W + G) / (220 + G)))).
         const expectedGridWidth = measured.viewportWidth - 2 * expectedOuter;
         const expectedEffectiveOuter = expectedOuter;
         const expectedColumns = Math.min(4, Math.max(2, Math.floor((expectedGridWidth + expectedGap) / (220 + expectedGap))));
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
-        // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
+        // The grid is laid out in the visit's random order (random browse): rebuild with the same seed as the runtime.
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
         const expectedLayout = await expectedGridLayout({ artifact, layoutViewportWidth: measured.viewportWidth, seed });
         /** @type {Map<string, any>} */
@@ -6162,7 +6162,7 @@ async function runAdvertisingGridFocusedChecks() {
         assert(Math.abs(measured.width - expectedGridWidth) <= 0.05, `${width}px grid width expected ${expectedGridWidth}, got ${measured.width}`);
         assert(expectedColumns >= 2 && expectedColumns <= 4, `${width}px expected column contract escaped 2..4: ${expectedColumns}`);
         assert(expectedLayout.columns === expectedColumns, `${width}px compiler columns expected ${expectedColumns}, got ${expectedLayout.columns}`);
-        // Card tỷ lệ vàng trải 2 cột ở lưới từ 3 cột (R5); bề rộng từng card so với placement ở phép kiểm dưới.
+        // A golden-ratio card spans 2 columns in a grid of 3+ columns (R5); each card's width is compared with its placement in the check below.
         assert(measured.tiles.every((tile) => [1, 2].some((span) => Math.abs(tile.width - (span * expectedCardWidth + (span - 1) * expectedGap)) <= 0.05)), `${width}px card width is neither one nor two columns: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
         assert(measured.gapToken === expectedGap, `${width}px gap token expected ${expectedGap}, got ${measured.gapToken}`);
         assert(measured.overflow <= 1 && withinGrid, `${width}px horizontal overflow or out-of-grid tile: ${JSON.stringify({ overflow: measured.overflow, withinGrid })}`);
@@ -6171,7 +6171,7 @@ async function runAdvertisingGridFocusedChecks() {
         assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
         const drifted = measured.tiles.find((tile) => {
           const expected = expectedById.get(tile.id);
-          // Card cắt mép dưới (R6, tối đa CROP_CAP) giữ tỷ lệ ảnh gốc khi cộng lại phần cắt mediaBleed.
+          // A card cropped at the bottom edge (R6, at most CROP_CAP) keeps the original image ratio when the crop mediaBleed is added back.
           return !(expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
             Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
@@ -6181,7 +6181,7 @@ async function runAdvertisingGridFocusedChecks() {
             Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
         });
         assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
-        // So le giờ là điểm chấm lúc build, không phải luật cứng (advertising-masonry R6): kiểm không lỗ, khe đúng, cắt trong trần.
+        // Staggering is now a build-time score, not a hard rule (advertising-masonry R6): check no holes, correct gaps, crop within the cap.
         const verified = verifyLayout(expectedLayout);
         assert(verified.ok, `${width}px replayed layout fails verifyLayout: ${JSON.stringify(verified.errors.slice(0, 5))}`);
 
@@ -6190,8 +6190,8 @@ async function runAdvertisingGridFocusedChecks() {
         );
         await page.locator('[data-masonry-filter="displays-booths"]').click();
         await page.locator('[data-masonry-filter="all"]').click();
-        // Chờ lưới settle (hết transform, hết fade, không còn animation, vị trí đứng yên giữa hai lần đọc) thay cho
-        // 450ms cố định: runner bận còn để card kiosk ở chỗ cũ, card đang mờ dần chưa rời DOM khi đọc.
+        // Wait for the grid to settle (no transform, no fade, no animation left, positions still between two reads) instead of
+        // a fixed 450ms: a busy runner still leaves the kiosk card at its old spot, and a fading card has not left the DOM at read time.
         await page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]");
           const tiles = [...grid.querySelectorAll(".masonry-card")];
@@ -6345,16 +6345,16 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
-      // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
+      // Tab order follows the browse visit's random order (R4): rebuild with the same seed and pool as the runtime.
       const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
       const layout = await expectedGridLayout({ artifact, layoutViewportWidth, seed });
       const expected = layout.placements.map((placement) => placement.card);
-      // Trần cửa sổ ảo: số card lớn nhất mà getVirtualWindow trả ở bất kỳ vị trí cuộn nào. Locomotive cuộn mượt (lerp) và
-      // runtime nhận vị trí qua site:scroll lệch vài ms so với lúc test đọc gridTop, nên so với đoạn cuộn vừa đo sẽ flake;
-      // ảo hóa mất giới hạn thì domCount vượt trần này xa (cả danh sách).
+      // Virtual window ceiling: the largest number of cards getVirtualWindow returns at any scroll position. Locomotive scrolls smoothly (lerp) and
+      // the runtime receives the position via site:scroll a few ms off from when the test reads gridTop, so comparing with the just-measured scroll range would flake;
+      // if virtualization lost its limit, domCount would exceed this ceiling by far (the whole list).
       let maxWindowCount = 0;
       for (let top = 0; top <= layout.totalPixelHeight; top += 4) {
-        // Vùng giữ (gỡ khi ra xa hơn hai viewport) là trần số card đang mount (advertising-masonry R7).
+        // The keep zone (removed when more than two viewports away) is the ceiling on mounted cards (advertising-masonry R7).
         maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900, releaseOverscan: 1800 }).retained.length);
       }
       const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
@@ -6401,7 +6401,7 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
         `Advertising virtual-list semantics drifted: ${JSON.stringify(states.filter((state, index) =>
           state.gridRole !== "list" || state.activeRole !== "listitem" || state.activePosition !== index + 1 || state.activeSetSize !== expected.length))}`,
       );
-      // Frontier lùi phụ thuộc tốc độ lerp nên dựng chắc chắn: kéo trang về đầu, card cuối đang focus phải được giữ lại (R7).
+      // The backward frontier depends on the lerp speed so build it deterministically: pull the page to the top, the last focused card must be kept (R7).
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       await page.waitForFunction(
         (id) => !document.querySelector(`[data-project-grid] [data-masonry-card="${id}"]`),
@@ -6434,14 +6434,14 @@ async function runAdvertisingMediaEntranceChecks() {
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
   const artifact = buildAdvertisingArtifact();
-  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed, cùng cache với runtime.
+  // The grid is laid out randomly per visit (masonry R4): the deepest card is taken from the layout rebuilt with the same seed, same cache as the runtime.
   const deepestTarget = async (page) => {
     const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
     const layout = await expectedGridLayout({ artifact, layoutViewportWidth: 1440, seed });
     return layout.placements.reduce((deepest, placement) =>
       placement.y > deepest.y ? placement : deepest);
   };
-  // Ảnh tải theo biến thể srcset (media-delivery R3): quy URL biến thể về path WebP gốc để so.
+  // Images load by srcset variant (media-delivery R3): normalize variant URLs to the original WebP path to compare.
   const basePath = (url) => new URL(url, "http://localhost").pathname
     .replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
 
@@ -6454,8 +6454,8 @@ async function runAdvertisingMediaEntranceChecks() {
         const diagnostics = monitorPage(page);
         let targetImageDelayed = false;
         let target = null;
-        // Preview gửi no-store (static-release R8), demo cache ảnh nội dung một ngày (_headers). Card vào lại cần ảnh
-        // có sẵn như demo nên đổi header qua CDP Fetch; page.route sẽ làm Playwright tắt HTTP cache.
+        // The preview sends no-store (static-release R8), the demo caches content images for a day (_headers). A re-entering card needs the image
+        // to be available like the demo, so change the header via CDP Fetch; page.route would make Playwright disable the HTTP cache.
         const cdp = await page.context().newCDPSession(page);
         cdp.on("Fetch.requestPaused", async ({ requestId, request, responseStatusCode, responseHeaders = [] }) => {
           if (target !== null && basePath(request.url) === basePath(target.card.media.src)) {
@@ -6522,7 +6522,7 @@ async function runAdvertisingMediaEntranceChecks() {
                   complete: image.complete,
                   naturalWidth: image.naturalWidth,
                   intersectsViewport: tileRect.bottom > 0 && tileRect.top < innerHeight,
-                  // Reveal Kính chạy opacity ảnh bằng Web Animations, không bằng CSS transition (loading glass R2).
+                  // Reveal Kính runs image opacity with Web Animations, not CSS transitions (loading glass R2).
                   opacityAnimations: image.getAnimations()
                     .filter((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame))
                     .map((animation) => {
@@ -6537,7 +6537,7 @@ async function runAdvertisingMediaEntranceChecks() {
                   readyAt = performance.now();
                 }
               }
-              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối và blur đã gỡ, không theo mốc cố định.
+              // A heavily loaded machine makes frames sparse: sample until the image reaches its final opacity and the blur is removed, not on a fixed mark.
               if (
                 (readyAt < 0 && performance.now() - startedAt < 6_000) ||
                 (readyAt >= 0 && trace.at(-1).imageOpacity < 0.999 && performance.now() - readyAt < 3_000)
@@ -6548,18 +6548,18 @@ async function runAdvertisingMediaEntranceChecks() {
           });
           return trace.slice(1);
         }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
-        // Ảnh đã ready mà chưa hiện hết vì đang chạy fade opacity (frame thưa có thể không rơi giữa fade).
+        // The image is ready but not fully shown because the opacity fade is running (a sparse frame may not fall mid-fade).
         const fading = trace.find((sample) => sample.intersectsViewport && sample.imageReady &&
           sample.imageOpacity < 0.98 && sample.opacityAnimations.length > 0);
         const final = trace.at(-1);
-        // Nhịp 0.6s (design-system motion.md, ảnh trong card): ảnh hiện 0.13s đến 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
+        // 0.6s rhythm (design-system motion.md, image in card): the image shows 0.13s to 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
-        // progressive-loading R9: ảnh kịp mờ thì ở opacity cuối dưới blur, không fade riêng ảnh.
+        // progressive-loading R9: an image that is in time to blur sits at final opacity under the blur, with no separate image fade.
         const underBlur = trace.some((sample) => sample.blur);
         assert(
           targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            // Dưới blur ảnh thở giữa 0.45 và 1 (spec chờ ảnh S2), không fade riêng ảnh.
+            // Under the blur the image breathes between 0.45 and 1 (spec image-wait S2), no separate image fade.
             (underBlur ? trace.filter((sample) => sample.blur).every((sample) => sample.imageOpacity >= 0.44)
               : fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
                 fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") &&
@@ -6609,7 +6609,7 @@ async function runAdvertisingMediaEntranceChecks() {
                     ready: image.classList.contains("is-masonry-media-ready"),
                     intersectsViewport: rect.bottom > 0 && rect.top < innerHeight,
                     shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
-                    // Skeleton là canvas, Kính reveal có data-glass-reveal, ảnh chờ tải mang blur (progressive-loading R9).
+                    // The skeleton is a canvas, the reveal Kính has data-glass-reveal, an image waiting to load carries a blur (progressive-loading R9).
                     overlay: Boolean(tile.querySelector("canvas, [data-glass-reveal]"))
                       || image.style.filter.startsWith("blur("),
                     animations: tile.getAnimations({ subtree: true })
@@ -6630,23 +6630,23 @@ async function runAdvertisingMediaEntranceChecks() {
             }
             return { events, samples, decodeMs: readyAt - mountedAt };
           }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
-          // loading-glass R3: card vào lại sau khi ra hẳn viewport (kể cả ảo hóa gắn lại) hiện ảnh thẳng ở opacity
-          // cuối, không skeleton, Kính hay crossfade. Ảo hóa tạo img mới, ảnh lấy từ cache vẫn cần giải mã nên được
-          // trống lúc giải mã: một tới ba frame, tới 300ms trên máy cloud bận; trần 500ms bắt lỗi chờ thứ khác. Runner
-          // bận có một frame dài 590ms, nên trống tối đa ba frame cũng tính là giải mã dù quá 500ms.
+          // loading-glass R3: a card re-entering after fully leaving the viewport (including virtualization remount) shows the image directly at final
+          // opacity, with no skeleton, Kính or crossfade. Virtualization creates a new img, and a cached image still needs decoding so it is
+          // blank while decoding: one to three frames, up to 300ms on a busy cloud machine; the 500ms ceiling catches a wait on something else. A busy runner
+          // has one 590ms long frame, so a blank of up to three frames also counts as decoding even past 500ms.
           const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           const firstReady = visible.findIndex((sample) => sample.ready);
           const blankFrames = replay.samples.findIndex((sample) => sample.ready);
-          // Cú nhảy xa là vuốt nhanh: card thay chỗ card tạm nên ảnh hiện dần 0.45s bằng một animation opacity
-          // (loading-glass R10); ảnh cache chưa giải mã xong lúc card thật gắn vào luồng ảnh mờ, nên lớp mờ còn trong lúc dần.
-          // Ngoài đoạn dần đó vẫn không skeleton, Kính hay transition CSS.
+          // A long jump is a fast swipe: the card replaces a placeholder card so the image fades in over 0.45s with one opacity animation
+          // (loading-glass R10); a cached image not yet decoded when the real card attaches goes into the blurred-image flow, so the blur layer remains during the fade.
+          // Outside that fade there is still no skeleton, Kính or CSS transition.
           const fading = (sample) => sample.animations === 1;
           assert(
             firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
                 (sample.opacity >= 0.999 || fading(sample))) && sample.shellOpacity >= 0.999 && (!sample.overlay || (sample.ready && fading(sample))) &&
                 (sample.animations === 0 || fading(sample))) &&
-              // Runner không GPU có thể trễ frame dài hơn cửa sổ lấy mẫu: animation còn chạy là chưa hết dần, không phải kẹt.
+              // A runner without GPU may lag a frame longer than the sampling window: an animation still running means the fade is not done, not stuck.
               (visible.at(-1).opacity >= 0.999 || fading(visible.at(-1))) &&
               replay.events.length === 0,
             `${locale} media re-entry cycle ${cycle} replayed its entrance instead of showing at once: ${JSON.stringify(replay)}`,
@@ -6745,7 +6745,7 @@ async function runAdvertisingMediaFocusedChecks() {
   );
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = artifact.categories.map((category) => category.slug);
-  // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
+  // The number of cards per group is decided by the catalog (taxonomy adds images); here check media is not duplicated, rank is contiguous, FIFO.
   const expectedCounts = Object.fromEntries(categoryOrder.map((slug) => [slug, artifact.cards.filter((card) => card.category === slug).length]));
   const expectedMediaPaths = new Set(
     artifact.cards.map((card) => new URL(card.media.src, "http://localhost").pathname),
@@ -6768,14 +6768,14 @@ async function runAdvertisingMediaFocusedChecks() {
       filter: category.slug,
       layoutViewportWidth: 1440,
     });
-    // Layout cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), xếp theo sourceOrder rồi id.
+    // The cluster layout includes cards with a secondary product in the cluster (taxonomy R1), ordered by sourceOrder then id.
     const pool = artifact.cards.filter((card) => matchesFilter(card, category.slug))
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
     assert(
       cards.length === expectedCounts[category.slug] &&
         cards.every((card, index) => card.sourceOrder === index) &&
         layout.placements.length === pool.length &&
-        // Thứ tự xếp là FIFO theo nguồn; thứ tự nhìn (theo top) có thể lệch khi card hai cột hạ xuống đáy cao hơn (R5).
+        // Layout order is FIFO by source; the visual order (by top) may differ when a two-column card drops to a lower bottom (R5).
         layout.diagnostics.placementOrder.every((id, index) => id === pool[index].id) &&
         new Set(layout.placements.map(({ card }) => card.id)).size === pool.length &&
         pool.every(({ id }) => layout.placements.some(({ card }) => card.id === id)),
@@ -6795,7 +6795,7 @@ async function runAdvertisingMediaFocusedChecks() {
         .every((rank, index) => rank === index),
     `All layout did not retain all ${expectedCardCount} ranked cards`,
   );
-  // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
+  // The grid is laid out in the visit's random order (random browse): rebuild with the same seed and pool as the runtime.
   const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
     artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
   });
@@ -6843,7 +6843,7 @@ async function runAdvertisingMediaFocusedChecks() {
       overscan: state.viewportHeight,
       releaseOverscan: 2 * state.viewportHeight,
     });
-    // Vùng dựng phải có mặt đủ; card đã dựng chỉ được còn lại trong vùng giữ (hai viewport), theo thứ tự layout (masonry R7).
+    // The build zone must be fully present; built cards may only remain in the keep zone (two viewports), in layout order (masonry R7).
     const expected = windowed.retained;
     const expectedById = new Map(expected.map((placement) => [placement.card.id, placement]));
     const domIds = state.tiles.map((tile) => tile.id);
@@ -6874,8 +6874,8 @@ async function runAdvertisingMediaFocusedChecks() {
       `${label} virtual window, geometry, or source-text safety failed: ${JSON.stringify({ checks, state, expected: expected.map((placement) => placement.card.id) })}`);
   };
 
-  // Cuộn, resize và filter dựng lại cửa sổ qua rAF rồi chạy transition 0.4s; máy tải thì lệch hơn vài trăm ms.
-  // Đợi lưới khớp layout mong đợi, hết hạn thì ném đúng lỗi lệch cuối cùng.
+  // Scroll, resize and filter rebuild the window via rAF and then run the 0.4s transition; a loaded machine lags by a few hundred ms more.
+  // Wait for the grid to match the expected layout; on timeout throw the last mismatch error.
   const settledGridState = async (page, layout, label, timeout = 5_000) => {
     const deadline = Date.now() + timeout;
     for (;;) {
@@ -6897,7 +6897,7 @@ async function runAdvertisingMediaFocusedChecks() {
       const diagnostics = monitorPage(page);
       const mediaRequestPaths = new Set();
       const mediaResponseStatuses = new Map();
-      // Trình duyệt tải variant responsive (name.jxl, name-480.webp, name-1600.jxl...); quy về file gốc của card.
+      // The browser loads responsive variants (name.jxl, name-480.webp, name-1600.jxl...); normalize to the card's original file.
       const originalPath = (pathname) => pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
       const mediaPath = (url) => originalPath(new URL(url).pathname);
       page.on("request", (request) => {
@@ -6929,9 +6929,9 @@ async function runAdvertisingMediaFocusedChecks() {
       const naturalHoverScale = await hoverTile.locator(".masonry-card__foreground").evaluate((image) =>
         new DOMMatrixReadOnly(getComputedStyle(image).transform).a,
       );
-      // media-card R3: card không zoom media khi hover, chỉ phủ lớp tối (kiểm ở site-media-card-m01b).
+      // media-card R3: a card does not zoom its media on hover, it only overlays darkness (checked in site-media-card-m01b).
       assert(naturalHoverScale === 1, `Natural advertising hover scale is ${naturalHoverScale}`);
-      // Rời chuột khỏi lưới: card gắn lại dưới con trỏ chạy lớp tối hover (R3), không phải hiệu ứng vào của ảnh.
+      // Moving the mouse off the grid: a card re-attached under the pointer runs the hover darkness (R3), not the image's entrance effect.
       await page.mouse.move(0, 0);
       const initialTileIds = initial.tiles.map((tile) => tile.id);
       let timeOrigin = await page.evaluate(() => performance.timeOrigin);
@@ -6951,15 +6951,15 @@ async function runAdvertisingMediaFocusedChecks() {
             document.documentElement.lang === expected &&
             location.pathname === `/${expected}/advertising-products/` &&
             !document.querySelector("#site-menu")?.hasAttribute("open") &&
-            // Chờ chuyển trang đổi ngôn ngữ xong: trang còn thu phóng và menu chưa nhận click.
+            // Wait for the language-switch page change to finish: the page is still scaling and the menu does not accept clicks yet.
             !document.body.classList.contains("is-transitioning"),
           language,
           { timeout: 6_000 },
         );
         await page.waitForTimeout(500);
         const localized = await settledGridState(page, pageLayout, `${language} locale round-trip`);
-        // Đổi ngôn ngữ tải lại trang như F5 (site-shell R5, #735) nhưng giữ seed qua handoff (advertising-masonry):
-        // trang mới, cùng thứ tự card.
+        // Switching language reloads the page like F5 (site-shell R5, #735) but keeps the seed through the handoff (advertising-masonry):
+        // new page, same card order.
         const reloadedOrigin = await page.evaluate(() => performance.timeOrigin);
         assert(
           JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
@@ -6977,7 +6977,7 @@ async function runAdvertisingMediaFocusedChecks() {
           category.slug,
           { timeout: 3_000 },
         );
-        // Card chỉ được đặt cố định khi transition chạy hết (R6); runner bận làm việc đó muộn hơn 400ms.
+        // A card is pinned only once the transition runs fully (R6); a busy runner does that later than 400ms.
         await page.waitForFunction(
           () => [...document.querySelectorAll("[data-project-grid] .masonry-card")].every((tile) => !tile.style.transform),
           null,
@@ -6986,7 +6986,7 @@ async function runAdvertisingMediaFocusedChecks() {
         const filteredLayout = await browseLayout(page, category.slug, 1440);
         const filtered = await settledGridState(page, filteredLayout, `${category.slug} filter`);
         assert(
-          // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
+          // A cluster has its own page so the URL is the cluster page path, no more ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
             filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
             filtered.tiles.every((tile) => matchesFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
@@ -7050,7 +7050,7 @@ async function runAdvertisingMediaFocusedChecks() {
         `Stepped lazy sweep did not load exactly the ${expectedCardCount} approved media paths with HTTP 200: ${JSON.stringify({ requested: [...requested], expected: [...expectedMediaPaths], badResponses })}`,
       );
 
-      // Con trỏ còn nằm ở nút filter vừa bấm: card gắn lại dưới nó chạy lớp tối hover 600ms (R3), không phải hiệu ứng vào.
+      // The pointer is still on the filter button just clicked: a card re-attached under it runs the 600ms hover darkness (R3), not the entrance effect.
       await page.mouse.move(0, 0);
       await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
       await page.waitForFunction(
@@ -7074,7 +7074,7 @@ async function runAdvertisingMediaFocusedChecks() {
           runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
         };
       }, replayFixtureId);
-      // loading-glass R3, masonry R8: card đã tải ảnh gắn lại thì hiện ảnh ngay, không chạy lại hiệu ứng vào.
+      // loading-glass R3, masonry R8: a card whose image already loaded shows the image immediately on re-attach, without rerunning the entrance effect.
       assert(
         !replay.oldConnected && !replay.sameNode && replay.ready &&
           replay.opacity >= 0.999 && replay.runningAnimations === 0,
@@ -7101,7 +7101,7 @@ async function runAdvertisingMediaFocusedChecks() {
         `Virtual card did not receive focus before deep scroll: ${JSON.stringify({ focusedId, focusedBefore })}`,
       );
       const focusedTarget = gridTop + Math.max(0, pageLayout.totalPixelHeight - 900);
-      // html có scroll-behavior: smooth; cuộn tức thì để cửa sổ ảo đo đúng tại focusedTarget.
+      // html has scroll-behavior: smooth; scroll instantly so the virtual window measures correctly at focusedTarget.
       await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), focusedTarget);
       await page.waitForTimeout(400);
       const focusedWindowCount = getVirtualWindow(pageLayout, {
@@ -7132,7 +7132,7 @@ async function runAdvertisingMediaFocusedChecks() {
 async function runAdvertisingCompatibilityChecks() {
   const { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const categoryTitles = new Map(ADVERTISING_LEGACY_CATEGORIES.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
-  // Trang tương thích chuyển tới trang cụm mới theo slug của locale (taxonomy R4); EN mobile-retail là chính trang cụm.
+  // The compatibility page redirects to the new cluster page by the locale's slug (taxonomy R4); EN mobile-retail is the cluster page itself.
   const clusterPath = (slug, locale) => `/${locale}/advertising-products/${ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"]}/`;
   for (const locale of ["vi", "en"]) {
     for (const slug of ADVERTISING_CATEGORY_SLUGS) {
@@ -7174,7 +7174,7 @@ async function runAdvertisingCompatibilityChecks() {
   }
 }
 
-// Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
+// Replaced by the AD-BROWSE-R1 photo detail; CAROUSEL_ONLY aliases the compatibility to avoid assertions on the retired composition.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const { compileMasonryLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
@@ -7182,7 +7182,7 @@ async function runAdvertisingThreeThousandCardProbe() {
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
   const interCardGap = 35;
-  // R5: masonry rộng bằng viewport trừ hai lề, không còn bề rộng tối đa.
+  // R5: masonry is as wide as the viewport minus two margins, with no max width.
   const cardWidth = (viewport.width - 70 - interCardGap * 3) / 4;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
@@ -7204,7 +7204,7 @@ async function runAdvertisingThreeThousandCardProbe() {
       sourceOrder: index,
       media: {
         src: svg(cardWidth, mediaPixelHeight, ["#8ba9bf", "#c0aa88", "#8da88d", "#b38b8b"][column]),
-        // Media contract đòi width/height nguyên dương; nhân 4 rồi làm tròn để giữ tỷ lệ gốc.
+        // The media contract requires positive integer width/height; multiply by 4 then round to keep the original ratio.
         width: Math.round(cardWidth * 4),
         height: Math.round(mediaPixelHeight * 4),
         altVi: "Mẫu kiểm tra ảo hóa",
@@ -7225,8 +7225,8 @@ async function runAdvertisingThreeThousandCardProbe() {
   });
   const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
-  // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-  // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+  // The grid is laid out in the browse visit's random order (R4): rebuild with the same seed and pool as the runtime.
+  // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
   const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
     artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
   });
@@ -7236,7 +7236,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
     return gridTop + target.y;
   };
-  // html có scroll-behavior: smooth; cuộn instant để vị trí có ngay.
+  // html has scroll-behavior: smooth; scroll instantly so the position is available immediately.
   const scrollInstant = (page, top) => page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), top);
   await runPageCase(
     "advertising 3000-card virtual window",
@@ -7277,7 +7277,7 @@ async function runAdvertisingThreeThousandCardProbe() {
       const initialGeometryHeight = await page.locator("[data-project-grid]").evaluate((grid) => Number.parseFloat(grid.style.height));
       assert(initialGeometryHeight > 200_000, `3000-card injection did not reach runtime: grid height ${initialGeometryHeight}`);
       const deepLayout = await browseLayout(page, "all", await page.evaluate(() => document.documentElement.clientWidth));
-      // Card sâu là card ở vị trí trình bày 2800 của lượt duyệt, không phải id cố định.
+      // The deep card is the card at presentation position 2800 of the browse visit, not a fixed id.
       const deepId = deepLayout.placements[2800].card.id;
       const target = await scrollTargetFor(page, deepLayout, deepId);
       await scrollInstant(page, target);
@@ -7386,7 +7386,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
           duplicateLines: document.querySelectorAll("[data-motion-lines] .motion-line .motion-line").length > 0,
         };
       });
-      // Đổi ngôn ngữ tải lại trang đích như F5 (site-shell R5); artifact tiêm lại qua addInitScript.
+      // Switching language reloads the destination page like F5 (site-shell R5); the artifact is re-injected via addInitScript.
       const switchLanguage = async (language) => {
         const before = await page.evaluate(() => performance.timeOrigin);
         await openMenu(page);
@@ -7399,7 +7399,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
             (expected) => document.documentElement.lang === expected &&
               location.pathname.startsWith(`/${expected}/advertising-products/`) &&
               window.TruongThinhMasonry?.getBrowseState &&
-              // Trang vừa tải: rail filter hiện xong (entrance) trước khi test cuộn xuống grid.
+              // Page just loaded: the filter rail finishes showing (entrance) before the test scrolls down to the grid.
               [...document.querySelectorAll("[data-masonry-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
               !document.documentElement.classList.contains("route-enter") &&
               !document.body.classList.contains("is-transitioning"),
@@ -7412,14 +7412,14 @@ async function runAdvertisingLocaleLifecycleChecks() {
         assert(await page.evaluate(() => performance.timeOrigin) !== before, "locale switch must reload the page like F5");
       };
       const virtualizeKiosk = async () => {
-        // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
+        // Random order per browse visit (advertising-masonry R4): rebuild the layout with the same seed to know the kiosk position.
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
-        // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+        // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
         const layout = await expectedGridLayout({
           artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
-        // Cuộn tới placement xa kiosk nhất để kiosk chắc chắn rời DOM ảo hóa.
+        // Scroll to the placement farthest from the kiosk so the kiosk surely leaves the virtualized DOM.
         const far = layout.placements.reduce((best, placement) => (Math.abs(placement.y - kiosk.y) > Math.abs(best.y - kiosk.y) ? placement : best));
         const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
         await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), gridTop + far.y);
@@ -7488,7 +7488,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
       });
       assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
-      // Focus một tile bị filter loại (kiosk thuộc displays-booths); sau khi tải lại, tile đầu trong DOM tùy vị trí cuộn.
+      // Focus a tile removed by the filter (kiosk belongs to displays-booths); after reload, the first tile in the DOM depends on the scroll position.
       await page.locator('[data-masonry-card="kiosk-posm-01"] a').focus();
       await page.evaluate(() => document.querySelector('[data-masonry-filter="mobile-retail"]')?.click());
       await page.waitForTimeout(250);
@@ -7602,7 +7602,7 @@ async function runResidentialHeroTextCheck() {
               contentCenter,
               textCenters: textRects.map((value) => value.left + value.width / 2),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
-              // Phone không hiện kicker (hero-typography R2): kicker chỉ còn hộp 1px cho trình đọc màn hình.
+              // Phone shows no kicker (hero-typography R2): the kicker is only a 1px box for screen readers.
               kickerHidden: kicker.getBoundingClientRect().width <= 1,
               verticalOrder:
                 (window.innerWidth <= 750 || kickerTextRect.bottom < textRects[0].top) &&
@@ -7636,7 +7636,7 @@ async function runResidentialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              // Slideshow like the home page (detail-pages R5): slide count follows the content, no zoom into the page itself.
               hero.slideCount > 1 &&
               hero.mediaCount === 0 &&
               hero.motionToggleCount === 1 &&
@@ -7654,7 +7654,7 @@ async function runResidentialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-              // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+              // Short line pairs gather evenly in the middle, the kicker follows line 1 (hero-typography R2).
               Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
                 Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 112.1),
@@ -7770,15 +7770,15 @@ async function runCommercialHeroTextCheck() {
                 Number.parseFloat(style.fontSize),
               ),
               contentCenter,
-              // Phone treo dấu chấm (.text-hang-end): tâm tính theo phần chữ, không gồm dấu.
-              // Dòng có chữ nhấn (em) gồm nhiều [data-en]: tâm lấy từ mép trái phần đầu tới mép phải phần cuối.
+              // Phone hangs the period (.text-hang-end): center computed from the text part, excluding the punctuation.
+              // A line with emphasized text (em) contains several [data-en]: the center runs from the left edge of the first part to the right edge of the last part.
               letterCenters: sources.map((source) => {
                 const parts = [...source.querySelectorAll("[data-en]")];
                 const values = (parts.length ? parts : [source]).map(textRect);
                 return (values[0].left + values.at(-1).right) / 2;
               }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
-              // Phone không hiện kicker (hero-typography R2): kicker chỉ còn hộp 1px cho trình đọc màn hình.
+              // Phone shows no kicker (hero-typography R2): the kicker is only a 1px box for screen readers.
               kickerHidden: kicker.getBoundingClientRect().width <= 1,
               verticalOrder:
                 (window.innerWidth <= 750 || kickerTextRect.bottom < textRects[0].top) &&
@@ -7812,7 +7812,7 @@ async function runCommercialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              // Slideshow like the home page (detail-pages R5): slide count follows the content, no zoom into the page itself.
               hero.slideCount > 1 &&
               hero.mediaCount === 0 &&
               hero.motionToggleCount === 1 &&
@@ -7830,7 +7830,7 @@ async function runCommercialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-                // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+                // Short line pairs gather evenly in the middle, the kicker follows line 1 (hero-typography R2).
               Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
                 Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 92.1),
@@ -7868,13 +7868,13 @@ async function runGalleryCheck() {
       await gotoRoute(page, "/vi/commercial/");
       const track = page.locator("[data-gallery-track]");
       await track.scrollIntoViewIfNeeded();
-      // R7: Swiper tải khi gallery gần viewport.
+      // R7: Swiper loads when the gallery is near the viewport.
       await page.waitForFunction(
         () => document.querySelector("[data-gallery-track]")?.swiper?.initialized,
         null,
         { timeout: 8_000 },
       );
-      // R7: ảnh cùng chiều cao, rộng theo tỷ lệ thật, caption dưới ảnh, không nút prev/next.
+      // R7: images share one height, width follows the real ratio, caption under the image, no prev/next buttons.
       const layout = await track.evaluate((element) =>
         [...element.querySelectorAll(".detail-gallery__item")].map((item) => {
           const img = item.querySelector("img");
@@ -7917,9 +7917,9 @@ async function runGalleryCheck() {
         .boundingBox();
       assert(imageBox, "Gallery image has no mouse target");
       const startX = imageBox.x + imageBox.width * 0.72;
-      // Giữa phần visible của ảnh; scroll-padding dưới sticky header có thể để tâm của nó dưới fold.
+      // Middle of the image's visible part; scroll-padding under the sticky header can put its center below the fold.
       const y = (Math.max(imageBox.y, 0) + Math.min(imageBox.y + imageBox.height, viewport.height)) / 2;
-      // R7: hover ảnh như Espacio, không zoom, con trỏ grab.
+      // R7: image hover like Espacio, no zoom, grab cursor.
       await page.mouse.move(startX, y);
       await page.waitForTimeout(650);
       const hover = await page.locator("[data-gallery-track] img").first().evaluate((image) => ({
@@ -7947,7 +7947,7 @@ async function runGalleryCheck() {
       );
       assert(drag.nativeDrags === 0, `Gallery emitted ${drag.nativeDrags} dragstart events`);
 
-      // R7: kéo bắt đầu ở khe giữa caption và hàng chấm (ngoài track) không bôi đen caption (owner báo 2026-10-17).
+      // R7: a drag starting in the gap between caption and dot row (outside the track) does not select the caption (owner report 2026-10-17).
       const captionBox = await page.locator("[data-gallery-track] figcaption").nth(1).boundingBox();
       assert(captionBox, "Gallery caption has no mouse target");
       const captionY = captionBox.y + captionBox.height + 8;
@@ -7959,7 +7959,7 @@ async function runGalleryCheck() {
       assert(selected === "", `Gallery drag selected text: ${JSON.stringify(selected)}`);
       await page.waitForTimeout(700);
 
-      // R7: chấm tròn 8px như Espacio, bấm chấm tới ảnh.
+      // R7: 8px round dots like Espacio, clicking a dot goes to the image.
       const dots = await pagination.evaluateAll((bullets) => bullets.map((bullet) => {
         const style = getComputedStyle(bullet);
         return [bullet.getBoundingClientRect().width, style.borderRadius, style.opacity];
@@ -8038,7 +8038,7 @@ async function runEarlyHeroAccessibilityCheck() {
         };
       });
       releaseMotion();
-      // Direct load giữ hero dưới route-enter veil thay vì fade nội dung.
+      // Direct load keeps the hero under the route-enter veil instead of fading the content.
       assert(
         (early.opacity <= 0.01 || early.veilOpacity >= 0.99) && early.visibility === "visible",
         `Early hero is not opacity-held and AX-visible: ${JSON.stringify(early)}`,
@@ -8119,7 +8119,7 @@ async function runDetailHeroEntryChecks() {
         });
         const trace = await page.evaluate(() => window.__ttDirectHeroTrace);
         const start = trace.samples[0];
-        // Zoom chạy khi veil mở; runner bận làm lúc bắt đầu trễ vài trăm ms nên đo từ frame đầu scale giảm.
+        // Zoom runs when the veil opens; a busy runner starts a few hundred ms late so measure from the first frame where scale decreases.
         const moving = trace.samples.find((sample) => sample.scale < start.scale - 0.005);
         const middle = trace.samples.find((sample) => moving && sample.elapsed >= moving.elapsed + 350);
         const end = trace.samples.at(-1);
@@ -8218,7 +8218,7 @@ async function runDetailHeroEntryChecks() {
   }
 }
 
-// fonts.ready bỏ qua subset unicode-range chưa được yêu cầu; subset đến muộn rewrap các hàng filter.
+// fonts.ready skips unicode-range subsets not yet requested; a late subset rewraps the filter rows.
 async function projectFinalGeometry(page) {
   let previous = await readProjectFinalGeometry(page);
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -8365,8 +8365,8 @@ async function homeFinalGeometry(page) {
   });
 }
 
-// Phone: cỡ title hero co theo từng câu nhờ motion.js đo (hero-typography R2); không có motion.js thì về cỡ chung, nên
-// bỏ qua hộp title khi so geometry ở bề rộng phone.
+// Phone: the hero title size shrinks per sentence as motion.js measures (hero-typography R2); without motion.js it falls back to the shared size, so
+// skip the title box when comparing geometry at phone width.
 const phoneTitleRects = (width) => (width <= 750 ? ["content", "heading"] : []);
 
 function assertHomeGeometryMatch(normal, fallback, label, skip = []) {
@@ -8404,7 +8404,7 @@ async function runMotionAbortFailOpenChecks() {
             releaseRoute = resolve;
           });
         });
-        // Route đang giữ mà case fail sớm sẽ làm context.close() treo; luôn nhả route.
+        // A route held while the case fails early would hang context.close(); always release the route.
         try {
           const target = await findRouteLink(
             page,
@@ -8412,7 +8412,7 @@ async function runMotionAbortFailOpenChecks() {
             "/vi/residential/",
           );
           await target.evaluate((element) => element.click());
-          // Có giới hạn: route không tới thì báo trạng thái trang thay vì treo tới timeout của job CI.
+          // Bounded: if the route never arrives, report the page state instead of hanging until the CI job timeout.
           let stalled;
           const seenOrStalled = await Promise.race([
             routeSeen.then(() => "seen"),
@@ -8590,7 +8590,7 @@ async function runMotionAbortFailOpenChecks() {
           heading?.name?.value === "để thương hiệu luôn trong tầm mắt",
           `Fail-open h1 missing from AX tree: ${JSON.stringify(heading?.name?.value)}`,
         );
-        // Grid mount cửa sổ ảo (masonry R7): so category đã mount, không so số lượng.
+        // Grid mounts a virtual window (masonry R7): compare the mounted category, not the count.
         const filterState = await page.evaluate(() => {
           const categories = [
             ...document.querySelectorAll("[data-project-grid] [data-masonry-category]"),
@@ -8680,7 +8680,7 @@ async function runMotionAbortFailOpenChecks() {
         await page.waitForFunction(() =>
           document.documentElement.classList.contains("motion-fallback"),
         );
-        // Chờ catalog Advertising dựng xong: catalog gắn sau khi đã cuộn sẽ kéo trang từ 640 về khoảng 132.
+        // Wait for the Advertising catalog to finish building: a catalog attached after scrolling pulls the page from 640 back to about 132.
         await page.evaluate(() => window.TruongThinhDetail?.mount());
         await page.evaluate(() => {
           document.documentElement.style.scrollBehavior = "auto";
@@ -8742,7 +8742,7 @@ async function runMotionAbortFailOpenChecks() {
         timeout: 20_000,
       });
       await page.waitForFunction(() => document.body, null, { timeout: 3_000 });
-      // Quá watchdog 2.5 s cũ, trang vẫn phải bị veil, không fail open.
+      // Past the old 2.5 s watchdog, the page must still be under the veil, no fail open.
       await page.waitForTimeout(2_800);
       const waiting = await page.evaluate(() => ({
         routeEnter: document.documentElement.classList.contains("route-enter"),
@@ -8783,7 +8783,7 @@ async function runMotionAbortFailOpenChecks() {
           window.__ttLateFilterLayoutEvents += 1;
         });
       });
-      // Cụm đầu rail nằm ở hàng một; bấm cụm ở hàng dưới thì trang cuộn và header ẩn trước khi mở menu.
+      // The first cluster in the rail sits in row one; clicking a cluster in the lower row scrolls the page and hides the header before opening the menu.
       await page.locator('[data-masonry-filter="signage"]').click();
       await page.waitForFunction(
         () =>
@@ -9080,7 +9080,7 @@ async function runSlowMotionBootCheck() {
         lang: document.documentElement.lang,
         headerSamples: window.__ttTakeoverHeaderTrace.samples,
       }));
-      // Runtime swap locale tại chỗ, nên không handler fail-open nào được request trang.
+      // The runtime swaps the locale in place, so no fail-open handler may be requested the page.
       assert(
         targetRequests.length === 0,
         `Locale switch after claim requested the page: ${JSON.stringify(targetRequests)}`,
@@ -9118,7 +9118,7 @@ async function runHeroCarouselLifecycleCheck() {
           motionToggleCount: hero.querySelectorAll("[data-motion-toggle]").length,
           scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
         }));
-        // detail-pages R5: cùng slideshow và nút dừng như trang chủ, không còn zoom vào trang 1.2 riêng.
+        // detail-pages R5: same slideshow and stop button as the home page, no separate 1.2 zoom into the page.
         assert(
           state.slideCount > 1 &&
             state.mediaCount === 0 &&
@@ -9152,8 +9152,8 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3, detail-pages R5: mọi slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide floor(0,2n) làm
-  // ảnh đầu và preload; các lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
+  // page-home R3, detail-pages R5: every slide is shuffled by Math.random. The first call (head script) picks slide floor(0.2n) as the
+  // first image and preload; later calls are descending keys so the remaining slides are reversed. A DPR 1.75 phone checks that sizes does not deviate from preload.
   for (const [route, viewport] of [
     ["/vi/", { width: 1440, height: 900 }],
     ["/vi/", { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true }],
@@ -9196,7 +9196,7 @@ async function runHeroCrossFadeContinuityChecks() {
           `Hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
         const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-(?:240|480|960|1600|2048))?\\.(?:avif|webp|jxl)$`).test(path));
-        // Bản gốc tải thêm khi trang rảnh (progressive-loading R10) không phải tải trùng; bản vừa khung chỉ một request.
+        // The original, loaded additionally when the page is idle (progressive-loading R10), is not a duplicate load; the frame-fit version is a single request.
         const fitted = firstImageRequests.filter((path) => /-(?:240|480|960|1600|2048)\.\w+$/.test(path));
         assert(fitted.length <= 1 && firstImageRequests.length - fitted.length <= 1 && firstImageRequests.length,
           `First hero image requested once: ${firstImageRequests.join(" ")}`);
@@ -9267,7 +9267,7 @@ async function runHeroCrossFadeContinuityChecks() {
               }
               samples.push(current);
               times.push(now);
-              // Mỗi slide 5s, timeScale 4: 1,25s một slide, cộng 1,2s dư để thấy lần quay vòng.
+              // Each slide 5s, timeScale 4: 1.25s per slide, plus 1.2s spare to see the loop around.
               if (now - startedAt < slides.length * 1_250 + 1_200) requestAnimationFrame(sample);
               else resolve();
             };
@@ -9279,7 +9279,7 @@ async function runHeroCrossFadeContinuityChecks() {
           for (let frame = 1; frame < samples.length; frame += 1) {
             const previous = samples[frame - 1];
             const current = samples[frame];
-            // Quy về một frame 60fps: runner bận rơi frame thì zoom đều cũng nhảy xa hơn giữa hai mẫu.
+            // Normalize to one 60fps frame: a busy runner dropping frames makes even zoom jump farther between two samples.
             const frameScale = 1_000 / 60 / Math.max(1_000 / 60, times[frame] - times[frame - 1]);
             current.forEach((sample, index) => {
               if (sample.opacity > 0.01 || previous[index].opacity > 0.01) {
@@ -9333,7 +9333,7 @@ async function runHeroCrossFadeContinuityChecks() {
 
 async function runWhiteOverlayMediaFallbackCheck() {
   const viewport = { width: 1440, height: 900 };
-  // Slide 0 đọc từ index.html, không ghi cứng tên ảnh hero (content-independent-tests R1).
+  // Slide 0 is read from index.html, with no hard-coded hero image name (content-independent-tests R1).
   const heroAsset = `**/${path.basename(
     fs.readFileSync(path.join(SITE_ROOT, "index.html"), "utf8").match(/data-slide="0"[\s\S]*?data-src="([^"]+)"/)[1],
   )}`;
@@ -9416,9 +9416,9 @@ async function runWhiteOverlayMediaFallbackCheck() {
         const mediaSeen = new Promise((resolve) => {
           markMediaSeen = resolve;
         });
-        // Gate variant AVIF/WebP responsive nào browser chọn cho asset này.
+        // Gate which responsive AVIF/WebP variant the browser picks for this asset.
         const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
-        // Hero trang chủ chọn ảnh đầu bằng Math.random (page-home R3); ghim slide 0 để gate đúng asset.
+        // The home hero picks its first image with Math.random (page-home R3); pin slide 0 so the gate has the right asset.
         if (testCase.surface === ".hero") await page.addInitScript(() => { Math.random = () => 0; });
         await page.route(new RegExp(`/${assetName}(?:-(?:240|480|960|1600|2048))?\\.(?:webp|avif|jxl)$`), async (route) => {
           markMediaSeen();
@@ -9539,7 +9539,7 @@ async function runHomeHeroTypesettingChecks() {
             const heading = document.querySelector(".hero h1");
             const lines = [...heading.querySelectorAll(".hero-line-mask")];
             const rects = lines.map((line) => line.getBoundingClientRect());
-            // hero-typography R2: cỡ chữ nằm ở từng dòng, dòng 2 kéo lên 0,2em.
+            // hero-typography R2: font size lives on each line, line 2 pulled up 0.2em.
             const fontSize = Number.parseFloat(getComputedStyle(lines[1]).fontSize);
             return {
               lines: lines.map((line) => line.textContent.replace(/\s+/g, " ").trim()),
@@ -9633,7 +9633,7 @@ async function runHomeHeroIntroReadabilityCheck() {
       );
       const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 2_750);
 
-      // Phủ cả cửa sổ 250-850ms thay vì đếm mẫu: runner bận chạy dưới 60fps nên số frame ít hơn.
+      // Cover the whole 250-850ms window instead of counting samples: a busy runner running under 60fps has fewer frames.
       assert(
         solidSamples[0]?.elapsed <= 320 &&
           solidSamples.at(-1).elapsed >= 780 &&
@@ -9941,7 +9941,7 @@ async function runHomeMotionRegressionCheck() {
             };
           }),
           portalSubtitleCount: subtitles.length,
-          // Runtime bọc ảnh portal trong media frame và chọn variant (media-delivery R1); đọc src authored.
+          // The runtime wraps the portal image in a media frame and picks a variant (media-delivery R1); read the authored src.
           portalSources: [...document.querySelectorAll("#dich-vu .service-portal img")].map(
             (image) => new URL(image.getAttribute("src"), location.href).pathname,
           ),
@@ -9969,7 +9969,7 @@ async function runHomeMotionRegressionCheck() {
             hasIndex: Boolean(document.querySelector(".hero-index")),
             hasKicker: Boolean(document.querySelector(".hero-kicker")),
             sources: [...document.querySelectorAll(".hero-slide img")].map(
-              // currentSrc là variant AVIF/WebP runtime (media-delivery R1); so src authored.
+              // currentSrc is the runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
               (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
           },
@@ -9978,7 +9978,7 @@ async function runHomeMotionRegressionCheck() {
               document.querySelector(".heritage-rows"),
             ).maxWidth,
             sources: [...document.querySelectorAll(".heritage-image img")].map(
-              // currentSrc là variant AVIF/WebP runtime (media-delivery R1); so src authored.
+              // currentSrc is the runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
               (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
             frames: [...document.querySelectorAll(".heritage-image")].map(
@@ -10018,15 +10018,15 @@ async function runHomeMotionRegressionCheck() {
           contract.routeShell.headerDisplay !== "none" &&
           contract.routeShell.headerVisibility === "visible" &&
           contract.routeShell.headerOpacity === "1" &&
-          // Design System Header: lockup mở rộng 260.97 x 67.52 trên 1200px.
+          // Design System Header: expanded lockup 260.97 x 67.52 above 1200px.
           contract.routeShell.brandLockup[0] === 261 &&
           contract.routeShell.brandLockup[1] === 68,
         `Route veil can hide the persistent site header: ${JSON.stringify(contract.routeShell)}`,
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Danh sách ảnh hero do qa:content đối chiếu với mảng slides (content-independent-tests R2); ở đây chỉ kiểm bất biến:
-      // mọi slide đã nhận src ảnh nội dung, không trùng.
+      // The hero image list is cross-checked by qa:content against the slides array (content-independent-tests R2); here only check the invariant:
+      // every slide received a content image src, no duplicates.
       assert(
         contract.hero.sources.length > 1 &&
           new Set(contract.hero.sources).size === contract.hero.sources.length &&
@@ -10072,7 +10072,7 @@ async function runHomeMotionRegressionCheck() {
       assert(
         contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
           contract.media.every(
-            // Khung ảnh đang chờ tải nhận overflow: clip từ .media-gate (media-delivery R6), đã tải thì hidden; cả hai đều cắt mask.
+            // An image frame waiting to load gets overflow: clip from .media-gate (media-delivery R6), hidden once loaded; both clip the mask.
             ({ overflow, height }) =>
               (overflow === "hidden" || overflow === "clip") && Math.abs(height - 420) <= 1,
           ),
@@ -10121,7 +10121,7 @@ async function runHomeMotionRegressionCheck() {
         portal.lineY > portal.lineFontSize * 1.5,
         "Portal title animated when only its card entered",
       );
-      // page-home R5: portal dịch vụ mang kicker, title và subtitle.
+      // page-home R5: the service portal carries kicker, title and subtitle.
       assert(portal.subtitleTop !== null, "Portal subtitle is missing");
 
       for (
@@ -10325,7 +10325,7 @@ async function runSharedMediaHoverPortalChecks() {
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, route);
-        // Gallery không zoom (detail-pages R7, runGalleryCheck).
+        // Gallery has no zoom (detail-pages R7, runGalleryCheck).
         const triggers = page.locator(".detail-duo figure, .detail-cta");
         const count = await triggers.count();
         assert(count >= 2, `Expected duo and CTA hover targets on ${route}`);
@@ -11167,7 +11167,7 @@ async function runBrandColorMotionCheck() {
               window.__ttWhiteSurfaceLogoTrace.samples.push({
                 elapsed,
                 fills: paths.map((path) => getComputedStyle(path).fill),
-                // Lớp lật: mỗi dải một mặt cũ (đen) và một mặt mới (CMYK).
+                // Flip layer: each strip has an old face (black) and a new face (CMYK).
                 front: [
                   ...document.querySelectorAll(
                     "#header-logo .brand-lockup__mark-flip > span > span:first-child",
@@ -11187,8 +11187,8 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              // Lật bắt đầu sau nhịp header (0.1s) kể từ lúc trang mount, có lúc mount muộn: lấy mẫu tới khi lớp lật
-              // đã dựng rồi gỡ (trần 2.5s) thay vì dừng cứng ở 1.15s.
+              // The flip starts after the header beat (0.1s) from page mount, sometimes mounting late: sample until the flip layer
+              // is built and then removed (ceiling 2.5s) instead of stopping hard at 1.15s.
               const flipGone = !document.querySelector("#header-logo .brand-lockup__mark-flip");
               const trace = window.__ttWhiteSurfaceLogoTrace;
               trace.seen ||= !flipGone;
@@ -11224,8 +11224,8 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        // Từng dải lật từ đen sang CMYK, cyan trước, đen xong cuối ở 0.68s rồi lớp lật bị gỡ. Lấy mẫu đã gắn
-        // animation: runner bận có frame đã dựng lớp lật nhưng animation chưa gắn (totals 0).
+        // Each strip flips from black to CMYK, cyan first, black finishing last at 0.68s, then the flip layer is removed. Sample once the
+        // animation is attached: a busy runner has a frame where the flip layer is built but the animation is not yet attached (totals 0).
         const flipping = trace.find(
           ({ fills, front, back, totals }) =>
             JSON.stringify(front) === JSON.stringify(black) &&
@@ -11535,7 +11535,7 @@ async function runBrandColorMotionCheck() {
             [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
               (path) => getComputedStyle(path).fill,
             ),
-            // Mặt cũ của lớp lật cũng là màu đang hiển thị khi mark lật.
+            // The old face of the flip layer is also the color displayed while the mark flips.
             [
               ...document.querySelectorAll(
                 "#header-logo .brand-lockup__mark-flip > span > span:first-child",
@@ -11610,7 +11610,7 @@ async function runBrandColorMotionCheck() {
         });
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
-      // Chờ lượt lật sang CMYK chạy xong hẳn: trong nhịp header chưa có lớp lật nhưng mark còn giữ màu cũ.
+      // Wait for the flip to CMYK to fully finish: within the header beat there is no flip layer yet but the mark still holds the old color.
       await page.waitForFunction(
         (expected) =>
           document
@@ -11631,7 +11631,7 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-inverse"),
       );
-      // Lớp lật dựng sau nhịp header 0.1s (brand.md Motion).
+      // The flip layer is built after the 0.1s header beat (brand.md Motion).
       await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
       await page.evaluate(() => {
         window.__ttFlipRoot = document.querySelector("#header-logo .brand-lockup__mark-flip");
@@ -11647,8 +11647,8 @@ async function runBrandColorMotionCheck() {
           .querySelector("[data-site-header]")
           ?.classList.contains("is-brand-color"),
       );
-      // Đổi hướng lúc lật dở (owner 2026-11-09): lượt về trắng là lượt sang CMYK chạy lùi, nên đổi hướng chỉ tua ngược
-      // từ chỗ đang dừng, cùng lớp lật, mọi animation chạy tới lại.
+      // Direction change mid-flip (owner 2026-11-09): the return to white is the CMYK pass run backward, so changing direction only rewinds
+      // from where it paused, on the same flip layer, and every animation runs back to the end.
       await page.waitForTimeout(30);
       const reversed = await readMark();
       assert(
@@ -11817,7 +11817,7 @@ async function runBrandColorMotionCheck() {
               "#header-logo .brand-lockup__mark path",
             ),
           ].map((path) => getComputedStyle(path).fill);
-          // Chờ lớp CMYK lật xong để vị trí cuộn đã ổn định trước khi rời trang.
+          // Wait for the CMYK layer flip to finish so the scroll position is stable before leaving the page.
           return (
             JSON.stringify(fills) === JSON.stringify(expected) &&
             !document.querySelector(".brand-lockup__mark-flip")
@@ -12072,7 +12072,7 @@ async function runBrandHeaderBboxMatrixChecks() {
               scaleX: matrix.a,
               scaleY: matrix.d,
             });
-            // Locomotive cần vài nấc lăn mới qua 100px để thu gọn, runner bận trễ thêm: cửa sổ đủ cả nấc lăn và tween.
+            // Locomotive needs a few wheel notches to pass 100px and collapse, a busy runner lags further: the window covers both the wheel notches and the tween.
             if (elapsed < 2_000) requestAnimationFrame(sample);
             else probe.done = true;
           };
@@ -12354,11 +12354,11 @@ async function runFooterRuntimeChecks() {
           });
           await page.waitForTimeout(350);
           const state = await readFooterRuntimeState(page);
-          // Giá trị khớp footer-consistency.e2e.mjs; Advertising browse bỏ gap vì skeleton batch lấp chỗ đó.
+          // Value matches footer-consistency.e2e.mjs; Advertising browse drops the gap because the skeleton batch fills that space.
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              // Đệm dọc desktop 3.5vw (1440px: 50.4px), điện thoại dọc 32px; không chừa làn floating CTA.
+              // Desktop vertical padding 3.5vw (1440px: 50.4px), portrait phone 32px; no lane left for the floating CTA.
               Math.abs(state.spacing.paddingBottom - (viewport.width <= 750 ? 32 : 50.4)) <= 0.1 &&
               state.address &&
               state.social.every(
@@ -12573,7 +12573,7 @@ async function runHeritageResponsiveClippingChecks() {
   }
 }
 
-// Bbox, lockup, footer có mode riêng (BRAND_HEADER_BBOX, BRAND_LOCKUP, FOOTER); resize khi menu mở ở MENU_RESIZE.
+// Bbox, lockup and footer have their own modes (BRAND_HEADER_BBOX, BRAND_LOCKUP, FOOTER); resize with the menu open is in MENU_RESIZE.
 async function runBrandShellFocusedChecks() {
   await runResponsiveResizeRegressionChecks();
   assertBrandShellSourceContracts();
@@ -12607,7 +12607,7 @@ async function runReducedMotionChecks() {
         if (route === "/vi/") {
           const readCloseIcon = () => page.locator(".menu-close__icon").evaluate((icon) => {
             const style = getComputedStyle(icon);
-            // Dialog đóng là display:none, nơi transform resolved là "none"; đọc cái computed.
+            // A closed dialog is display:none, where the resolved transform is "none"; read the computed one.
             const matrix = icon.computedStyleMap().get("transform").toMatrix();
             return {
               opacity: Number.parseFloat(style.opacity),
@@ -12670,7 +12670,7 @@ async function runReducedMotionChecks() {
 }
 
 async function runP13NavbarChecks() {
-  // Navbar bốn mục (#708) ẩn ở 1201 tới khoảng 1320px vì đè logo (#719), nên đo ở 1440px.
+  // The four-item navbar (#708) is hidden from 1201 to about 1320px because it overlaps the logo (#719), so measure at 1440px.
   const viewport = { width: 1440, height: 912 };
   const parentRoutes = ["residential", "commercial", "advertising-products"];
   const setLogicalScroll = async (page, value) => {
@@ -12810,7 +12810,7 @@ async function runP13NavbarChecks() {
       await setLogicalScroll(page, 700);
       const before = await readNavigationState(page);
       await link.click();
-      // masonry R3: navbar Advertising khi đang ở một nhóm thêm history entry về All, bỏ nhóm và tag, cùng document.
+      // masonry R3: when in a group, the Advertising navbar adds a history entry back to All, dropping group and tag, in the same document.
       await page.waitForFunction(() => !new URL(location.href).searchParams.has("category"));
       const after = await readNavigationState(page);
       const query = new URL(after.url).searchParams;
@@ -12879,8 +12879,8 @@ async function runP13NavbarChecks() {
       await gotoRoute(page, "/vi/advertising-products/?category=kiosk-posm");
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
-      // Menu trỏ thẳng trang cụm (taxonomy R4).
-      // Nhóm trong menu là 5 nhóm nhiều sản phẩm nhất theo menu.json (#703), không cố định mobile-retail.
+      // The menu points straight to the cluster page (taxonomy R4).
+      // The groups in the menu are the 5 groups with the most products per menu.json (#703), not a fixed mobile-retail.
       const link = page.locator(
         '#site-menu .menu-option[href="/vi/advertising-products/in-an-decal/"]',
       ).first();
@@ -12990,7 +12990,7 @@ async function runP13NavbarChecks() {
         () => document.body.classList.contains("is-detail"),
       );
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-      // Màn cảm ứng ẩn nút "Xem lớn hơn", chạm ảnh primary để mở viewer (viewer-touch-zoom R7).
+      // Touch screens hide the "Xem lớn hơn" button, tap the primary image to open the viewer (viewer-touch-zoom R7).
       const hit = await page.locator("[data-detail-primary]").evaluate((primary) => {
         const rect = primary.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
@@ -13015,7 +13015,7 @@ async function runP13NavbarChecks() {
     },
   );
 
-  // Detail ảnh luôn ở dạng thu gọn ở mọi scrollY (advertising-detail R10); ẩn, hiện theo chiều cuộn như Residential.
+  // The image detail is always collapsed at every scrollY (advertising-detail R10); hidden and shown with scroll direction like Residential.
   const exercisePhysicalHeader = async (page, route, touch, alwaysCollapsed = false) => {
     await gotoRoute(page, route);
     if (/\/p\/[^/]+\/$/.test(new URL(route, "https://invalid.local").pathname)) {
@@ -13023,7 +13023,7 @@ async function runP13NavbarChecks() {
         () => document.body.classList.contains("is-detail"),
       );
     }
-    // Điện thoại cảm ứng: header đi theo quãng cuộn bằng translateY, không có is-hidden (phone-header-scroll R2).
+    // Touch phone: the header follows the scroll distance via translateY, with no is-hidden (phone-header-scroll R2).
     const snapshot = () => page.locator("[data-site-header]").evaluate((header) => ({
       collapsed: header.classList.contains("is-collapsed"),
       hidden: header.classList.contains("is-hidden") || header.getBoundingClientRect().bottom <= 0,
@@ -13039,7 +13039,7 @@ async function runP13NavbarChecks() {
         type: "touchStart",
         touchPoints: [{ x, y: fromY }],
       });
-      // Swipe có kiểm soát test direction mà không vọt qua vùng header compact.
+      // Controlled swipe tests the direction without overshooting the compact header zone.
       for (let step = 1; step <= 12; step += 1) {
         await cdp.send("Input.dispatchTouchEvent", {
           type: "touchMove",
@@ -13069,7 +13069,7 @@ async function runP13NavbarChecks() {
         await touchSwipe(fromY, toY);
       } else {
         await page.mouse.move(5, 700);
-        // Locomotive đi 43px mỗi lượt lăn bất kể delta (scroll-feel R1).
+        // Locomotive moves 43px per wheel turn regardless of delta (scroll-feel R1).
         const repetitions = Math.ceil(distance / 43);
         for (let index = 0; index < repetitions; index += 1) {
           await page.mouse.wheel(0, direction === "down" ? distance : -distance);
@@ -13363,13 +13363,13 @@ async function main() {
       await runAdvertisingDependencyRecoveryChecks();
       await runAdvertisingHistoryRemountChecks();
       await runAdvertisingFilterCheck();
-      // Lọc nhanh kèm cuộn chạy ở mode RAPID_FILTER (suite adv-grid).
+      // Fast filtering with scroll runs in the RAPID_FILTER mode (adv-grid suite).
       await runAdvertisingNoOpScrollCheck();
       await runAdvertisingDirectFailureCheck();
       await runPublicSelectionCheck();
       await runDelayedDetailFallbackChecks();
     } else if (process.env.TT_E2E_M1_ONLY === "1") {
-      // Hero detail, carousel, cross-fade, wheel có mode riêng (DETAIL_HERO, HERO_CONTINUITY, WHEEL).
+      // Hero detail, carousel, cross-fade and wheel have their own modes (DETAIL_HERO, HERO_CONTINUITY, WHEEL).
       await runPersistentBarbaNavigationChecks();
       await runEarlyHeroAccessibilityCheck();
       await runGalleryCheck();

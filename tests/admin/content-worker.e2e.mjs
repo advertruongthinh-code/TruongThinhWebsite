@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 
-// Lưu nội dung editor vào D1 local và Worker áp khi phục vụ trang (cms-editor R8, R10). Chạy tay khi `pnpm cms:dev` đang
-// mở (cần wrangler, D1 local), không thuộc CI: BASE_URL=http://127.0.0.1:8788 node tests/admin/content-worker.e2e.mjs.
-// Test dọn lại D1 (lưu nháp rỗng) khi xong.
+// Save editor content to local D1 and the Worker applies it when serving pages (cms-editor R8, R10). Run by hand while `pnpm cms:dev` is
+// open (needs wrangler, local D1), not part of CI: BASE_URL=http://127.0.0.1:8788 node tests/admin/content-worker.e2e.mjs.
+// The test cleans D1 again (saves an empty draft) when done.
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8788";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -29,7 +29,7 @@ try {
   await page.locator(".tree__item", { hasText: "Nhà ở" }).click();
   await page.waitForFunction(() => document.querySelector("iframe[data-cms-preview]")?.contentWindow?.TTCmsOverlay, null, { timeout: 30_000 });
 
-  // Sửa h1 trong editor rồi Lưu: D1 có bản mới, trang VI và EN do Worker phục vụ đổi theo.
+  // Edit the h1 in the editor then Save: D1 has the new version, the VI and EN pages served by the Worker change accordingly.
   await frame().locator("main h1").first().click();
   const props = page.locator(".panel--props");
   await props.locator("textarea").nth(0).fill("Nhà lưu thật");
@@ -42,7 +42,7 @@ try {
   assert.match(await html("/en/residential/"), /Saved home/);
   assert.doesNotMatch(await html("/vi/residential/"), /data-cms-key/);
 
-  // Title của editor ghi bằng HTMLRewriter (có thoát): chữ đóng thẻ title không thành script trên trang public.
+  // The editor's title is written with HTMLRewriter (escaped): text closing the title tag does not become a script on the public page.
   const homeBase = (await api("home")).body.updatedAt;
   const attack = "</title><script>window.pwned=1</script>";
   assert.equal((await api("home", "PUT", { edits: { text: { title: { vi: attack, en: "Safe title" } } }, baseUpdatedAt: homeBase })).status, 200);
@@ -52,15 +52,15 @@ try {
   assert.equal(await page.evaluate(() => [window.pwned, document.title]).then(([pwned, title]) => pwned === undefined && title), attack);
   await page.goto(`${baseUrl}/admin/`);
   await reset("home", {});
-  assert.notEqual(await page.evaluate(() => fetch("/vi/").then((response) => response.headers.get("etag"))), null, "nháp rỗng: giữ ETag file tĩnh");
+  assert.notEqual(await page.evaluate(() => fetch("/vi/").then((response) => response.headers.get("etag"))), null, "empty draft: keeps the static file ETag");
 
-  // Ghi có điều kiện: PUT dựa trên phiên bản cũ nhận 409, D1 giữ bản đã lưu.
+  // Conditional write: a PUT based on an old version gets 409, D1 keeps the saved version.
   const stale = await api("residential", "PUT", { edits: {}, baseUpdatedAt: "2000-01-01T00:00:00.000Z" });
   assert.equal(stale.status, 409);
   assert.ok(Object.values((await api("residential")).body.edits.text).some((value) => value.vi === "Nhà lưu thật"));
   assert.equal((await api("residential", "PUT", { edits: { text: { t1: { vi: "", en: "x" } } }, baseUpdatedAt: null })).status, 400);
 
-  // Card Sản phẩm Quảng cáo: Worker chèn catalog đã vá, trang card p/<id> có khối tĩnh mới cho bot.
+  // Advertising Products card: the Worker injects the patched catalog, and the card page p/<id> has a new static block for bots.
   const id = "signage-raised-letters-01";
   const etag = await page.evaluate((url) => fetch(url).then((response) => response.headers.get("etag")), `/en/advertising-products/p/${id}/`);
   const card = {
@@ -71,7 +71,7 @@ try {
   };
   assert.equal((await reset("advertising", { cards: { [id]: card } })).status, 200);
   const cardPage = await html(`/en/advertising-products/p/${id}/`);
-  // Trình duyệt đã xem bản trước khi lưu hỏi lại bằng ETag cũ: phải nhận bản mới, không phải 304.
+  // A browser that viewed the pre-save version asks again with the old ETag: it must get the new version, not 304.
   const revalidated = await page.evaluate(async ([url, tag]) => {
     const response = await fetch(url, { headers: { "if-none-match": tag }, cache: "no-store" });
     return { status: response.status, etag: response.headers.get("etag"), body: await response.text() };
@@ -80,7 +80,7 @@ try {
   assert.equal(revalidated.etag, null);
   assert.match(revalidated.body, /Saved card/);
   const residential = await page.evaluate((url) => fetch(url).then((response) => response.headers.get("etag")), "/vi/residential/");
-  assert.equal(residential, null, "trang có nội dung editor không giữ ETag của file tĩnh");
+  assert.equal(residential, null, "a page with editor content does not keep the static file's ETag");
   assert.match(cardPage, /<title[^>]*>Saved card — Trường Thịnh/);
   assert.match(cardPage, /data-masonry-card-static><h1[^>]*>Saved card<\/h1><p[^>]*>Saved description<\/p><figure><img src="\/assets\/content\/projects\/home-hero-walnut-bedroom\.webp"/);
   await page.goto(`${baseUrl}/vi/advertising-products/`);

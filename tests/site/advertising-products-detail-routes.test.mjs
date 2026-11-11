@@ -33,7 +33,7 @@ for (const slug of slugs) {
   const path = "advertising-products/" + slug + "/index.html";
   assert.ok(existsSync(output(path)), slug + " legacy static route is missing");
   const html = await readFile(output(path), "utf8");
-  // Trang tương thích chuyển tới trang cụm mới (taxonomy R4).
+  // The compatibility page redirects to the new cluster page (taxonomy R4).
   const cluster = ADVERTISING_CATEGORIES.find(({ legacySlug }) => legacySlug === slug);
   const targets = { vi: "/vi/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
   assert.match(html, new RegExp('<link rel="canonical" href="' + targets.vi + '" data-en-href="' + targets.en + '">'));

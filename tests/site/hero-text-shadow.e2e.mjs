@@ -1,5 +1,5 @@
-// hero-typography R6: chữ trắng trên ảnh có bóng hai lớp D, nới mask cho quầng 12px (hero có bóng từ owner 2026-11-01); chữ ink
-// trên giấy (hero Sản phẩm quảng cáo) không bóng.
+// hero-typography R6: white text on an image has a two-layer D shadow, the mask is widened for the 12px halo (hero shadow since owner 2026-11-01); ink text
+// on paper (Advertising products hero) has no shadow.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -28,7 +28,7 @@ try {
     const el = document.querySelector(selector);
     if (!el) return null;
     const style = getComputedStyle(el);
-    // Mask dòng trong khối chữ: clip-path phải chừa đủ quầng 12px mỗi cạnh.
+    // Line mask inside the text block: clip-path must leave the full 12px halo on each edge.
     const mask = el.querySelector(".hero-line-mask, .line-mask, .detail-hero-line-mask, .motion-line-mask");
     const clip = mask ? getComputedStyle(mask).clipPath : null;
     return { shadow: style.textShadow, clip };
@@ -43,8 +43,8 @@ try {
       else if (got.shadow !== SHADOW_D) failures.push(`/${route} ${selector}: text-shadow "${got.shadow}"`);
       else if (got.clip && got.clip !== "none") {
         const insets = [...got.clip.matchAll(/-?[\d.]+px/g)].map((m) => Number.parseFloat(m[0]));
-        // inset âm: mỗi cạnh nới ra ngoài hộp ít nhất bằng bán kính quầng.
-        if (insets.length && insets.some((v) => v > -12)) failures.push(`/${route} ${selector}: mask clip "${got.clip}" cắt quầng 12px`);
+        // negative inset: each edge extends beyond the box by at least the halo radius.
+        if (insets.length && insets.some((v) => v > -12)) failures.push(`/${route} ${selector}: mask clip "${got.clip}" cuts the 12px halo`);
       }
     }
   }

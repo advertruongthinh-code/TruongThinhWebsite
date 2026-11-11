@@ -66,7 +66,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
           const saved = JSON.parse(sessionStorage.getItem(key) || "[]");
           saved.push(observation); sessionStorage.setItem(key, JSON.stringify(saved.slice(-20)));
           console.debug("FLOW_NATIVE_EVENT " + JSON.stringify(observation));
-          // Listener pagehide của runtime có thể đăng ký sau observer; disposal đến sau vẫn ghi vào observation.
+          // The runtime pagehide listener may register after the observer; a later disposal is still recorded in the observation.
           if (kind === "pagehide") window.__flowLedger.onDispose = () => {
             observation.nativeDisposals = window.__flowLedger.nativeDisposals;
             sessionStorage.setItem(key, JSON.stringify(saved.slice(-20)));
@@ -96,8 +96,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       });
       return visible.length && visible.every(node => getComputedStyle(node).opacity === "1");
     });
-    // Chờ runtime dựng lại batch theo viewport mới (chữ ký đổi) rồi thêm hai frame; CPU bận làm frame dài,
-    // nên chờ cố định có thể đọc trạng thái nửa chừng.
+    // Wait for the runtime to rebuild the batch for the new viewport (the signature changes) then two more frames; a busy CPU makes long frames,
+    // so a fixed wait could read a half-finished state.
     const resizeTo = async (size) => {
       const signature = () => document.querySelector("[data-masonry-cta-skeleton]").dataset.masonryCtaSignature;
       const before = await page.evaluate(signature);
@@ -135,7 +135,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await fs.writeFile(output + "/" + engine + "-height.json", JSON.stringify(changed, null, 2));
       assert.equal(current.width, previousHeight.width, "height-only probe retains layout width");
       assert.equal(current.coordinateHash, previousHeight.coordinateHash, "height-only probe retains real grid geometry");
-      // Phần đuôi ngắn hơn một phần tư card gộp vào frame phía trên (spec skeleton).
+      // A tail shorter than a quarter of a card merges into the frame above (skeleton spec).
       const mergedAbove = sample => current.samples.some(other => other.column === sample.column && other.depth === sample.depth - 1);
       assert.ok(removed.every(sample => sample.top >= current.boundary || mergedAbove(sample)),
         "removed tail slots must lie beyond the new boundary or merge into the frame above");
@@ -145,9 +145,9 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.ok(visiblePairs.length, "height-only probe has common visible pairs");
       for (const sample of common) {
         const old = previousHeight.samples.find(entry => entry.slot === sample.slot);
-        // Frame draw ở lần vào đầu tiên; đã draw thì giữ nguyên draw.
+        // The frame draws on first entry; once drawn, the draw is kept.
         if (old.assignment[1]) assert.deepEqual(sample.assignment, old.assignment, "common slot assignment remains stable");
-        // Slot đã hiện xong (opacity 1) không được chạy lại entry; slot chưa vào lần đầu (đáy màn hình) được vào.
+        // A slot already fully shown (opacity 1) must not rerun its entry; a slot not yet entered (bottom of the screen) must enter.
         if (sample.visible && old.visible && old.opacity === "1") assert.equal(sample.opacity, "1", "common visible slot must not replay entry");
       }
       previousHeight = current;
@@ -162,7 +162,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     const portraitLedger = await ledger();
     assert.ok(portraitLedger.live <= 12 && portraitLedger.peak <= 12, "phone budget applies during allocation transitions");
     await page.evaluate(() => window.__observeFlowNativeEvents());
-    // Đổi width/orientation giữ các slot chung; slot thừa vẫn theo geometry.
+    // Changing width/orientation keeps the shared slots; surplus slots still follow geometry.
     await resizeTo({ width: 838, height: 390 }); await page.waitForTimeout(800);
     const orientation = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")].map(node => ({
       slot: node.dataset.masonryCtaSlot, common: window.__lifecycleFrames.has(node.dataset.masonryCtaSlot),
@@ -171,10 +171,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(orientation.filter(frame => frame.common).every(frame => frame.same), "orientation preserves common outer slots");
     assert.ok((await ledger()).peak <= 12, "838px phone landscape stays within the 12-context budget");
     await resizeTo({ width: 390, height: 844 }); await page.waitForTimeout(500);
-    // html có scroll-behavior smooth: cuộn mặc định còn trượt khi lệnh cuộn sau chạy, Chromium chạy nốt phần trượt cũ.
+    // html has scroll-behavior smooth: a default scroll still glides when the next scroll command runs, and Chromium finishes the old glide.
     await page.locator("[data-masonry-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
     await page.waitForTimeout(700);
-    // Batch vẽ trên một canvas chung (R5): mất context thì frame tĩnh dưới khung hiện, khôi phục thì vẽ tiếp.
+    // The batch draws on one shared canvas (R5): on context loss the static frame under the frame shows, on restore drawing resumes.
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()
       && entry.canvas?.closest("[data-masonry-cta-skeleton]")).length), 1, "batch uses one shared WebGL context");
     await page.evaluate(() => {
@@ -202,7 +202,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.waitForFunction(phase => window.__lossRecord.phase !== phase, restoredPhase);
     assert.equal(await page.evaluate(() => window.__lossOuter === document.querySelector('[data-masonry-cta-slot="' + window.__lossSlot + '"]')), true);
     assert.ok(await page.evaluate(() => window.__lossRecord.generation >= 2), "restored resource generation is new");
-    // Ra hẳn rồi vào lại: khung đã hiện giữ nguyên, không chạy lại reveal Kính (R4).
+    // Leave fully then re-enter: the frame already shown stays, and the Kính reveal does not rerun (R4).
     await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(250);
     assert.ok(await page.evaluate(() => document.querySelectorAll("[data-masonry-cta-frame].is-entry-ready").length) > 0, "revealed frames stay revealed off screen");
     await page.locator("[data-masonry-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
@@ -230,7 +230,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     });
     const cycles = [];
     for (let cycle = 0; cycle < 20; cycle++) {
-      // Input route/filter thật, cộng thay đổi geometry viewport; không có override remount controller.
+      // Real route/filter input plus viewport geometry changes; no override remounts the controller.
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.waitForFunction(() => window.scrollY === 0);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -247,10 +247,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.ok(sample.live <= 12 && sample.peak <= 12, "twenty filter/resize cycles never increase phone context budget");
     }
     const finalLedger = await ledger();
-    // Lease media card có thể cấp trễ trong mười vòng đầu; nửa sau không được tăng thêm.
+    // The media card lease may be granted late in the first ten rounds; the second half must not grow.
     assert.ok(finalLedger.live <= Math.max(...cycles.slice(0, 10).map(cycle => cycle.live)), "settled live contexts do not accumulate");
     assert.ok(finalLedger.allocations <= 12, "phone native allocations plateau within the 12-context budget");
-    // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
+    // Barba route exit releases the lease, while the document-owned cache remains.
     const softEntry = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
     await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
     await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);

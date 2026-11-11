@@ -26,7 +26,7 @@ for (const file of ["motion.js", "style.css", "detail.css", "masonry/runtime.mjs
   assert.equal(assets[file].source, assets[file].served, `${file} source/served provenance`);
 }
 
-// Fixture boundary này chỉ đổi metric hiển thị. Nó không phải evidence toolbar native.
+// This boundary fixture only changes the displayed metrics. It is not evidence of a native toolbar.
 function installVisibleFixture() {
   const native = window.visualViewport;
   const viewport = new EventTarget();
@@ -162,7 +162,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
             return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
           }) };
       });
-      // Màn cảm ứng ẩn nút khỏi mắt (viewer R8) nhưng còn trong cây trợ năng: gọi như TalkBack, không click chuột.
+      // A touch screen hides the button from view (viewer R8) but it stays in the accessibility tree: call it like TalkBack, not with a mouse click.
       await page.locator("[data-detail-zoom-in]").evaluate(button => button.click());
       await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       const beforeZoom = await geometry();

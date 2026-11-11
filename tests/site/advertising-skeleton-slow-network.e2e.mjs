@@ -1,5 +1,5 @@
-// Card chờ ảnh khi mạng chậm (progressive-loading R9): ảnh tự mờ thay skeleton Flow; ảnh card bị giữ 8s như Slow 3G.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-skeleton-slow-network.e2e.mjs
+// Card waiting for its image on a slow network (progressive-loading R9): the image blurs itself in place of the Flow skeleton; card images are held 8s like Slow 3G.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-skeleton-slow-network.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -18,7 +18,7 @@ const open = async (device) => {
   });
   return { context, page, slow };
 };
-// Card trong viewport: ảnh chưa tải mà không blur hoặc không có màu chủ đạo là ô trống; card không còn khung skeleton hay canvas Flow.
+// Card in the viewport: an image not yet loaded without blur or without a dominant color is an empty cell; the card has no skeleton frame or Flow canvas.
 const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") => page.evaluate((selector) =>
   [...document.querySelectorAll(selector)].filter((card) => {
     const { top, bottom } = card.getBoundingClientRect();
@@ -29,16 +29,16 @@ const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") 
       id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
       blur: Boolean(image?.style.filter.startsWith("blur(")),
-      // Card mờ chờ ảnh thì thở: runtime gắn data-masonry-media-loading lên card (spec chờ ảnh S2).
+      // A blurred card waiting for its image breathes: the runtime sets data-masonry-media-loading on the card (waiting-for-image spec S2).
       marked: card.hasAttribute("data-masonry-media-loading"),
-      // Blur tan (animate WAAPI) còn blur inline nhưng thở đã dừng.
+      // The blur clears (WAAPI animate) with inline blur still present but breathing stopped.
       revealing: Boolean(image?.getAnimations().some((animation) => animation.animationName === undefined)),
       color: Boolean(card.querySelector(".card-media")?.style.backgroundColor),
       glass: Boolean(card.querySelector(".glass-surface")),
       skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton], canvas")),
     };
   }), selector);
-// Số card tạm (loading-glass R10) đang giao viewport.
+// Number of temporary cards (loading-glass R10) intersecting the viewport.
 const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll(".masonry-ghost")].filter((ghost) => {
   const { top, bottom } = ghost.getBoundingClientRect();
   return bottom > 0 && top < innerHeight;
@@ -48,15 +48,15 @@ const assertNoBlank = (label, states) => {
   assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
   assert.deepEqual(states.filter(({ blur, marked, revealing }) => blur !== marked && !revealing), [],
     `${label}: every blurred card is marked to breathe, and only those (a card revealing has stopped breathing)`);
-  // Ảnh chưa nhận byte nào thì blur chưa có gì để vẽ: khung tô màu chủ đạo của ảnh (owner 2026-10-31).
+  // An image that has received no bytes has nothing for the blur to draw: the frame is filled with the image's dominant color (owner 2026-10-31).
   assert.deepEqual(states.filter(({ loaded, color }) => !loaded && !color), [], `${label}: loading cards without dominant color`);
-  // Kính backdrop-filter trên card làm rớt FPS khi kéo thanh cuộn (owner 2026-10-31).
+  // Backdrop-filter Kính on cards drops FPS when dragging the scrollbar (owner 2026-10-31).
   assert.deepEqual(states.filter(({ glass }) => glass), [], `${label}: cards still carry Kính`);
   assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
 };
 
 try {
-  // Lúc tải trang: ảnh card đầu mờ từ frame đầu, không animate vào, không bị thay node.
+  // On page load: the first card image is blurred from the first frame, does not animate in, and its node is not replaced.
   for (const [label, device] of [["phone", phone], ["desktop", { viewport: { width: 1440, height: 900 } }]]) {
     const { context, page } = await open(device);
     await page.addInitScript(() => {
@@ -67,7 +67,7 @@ try {
         for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img[style*='blur(']")) {
           if (!ids.has(image)) ids.set(image, ++next);
           window.__blurTrace.push([image.closest("[data-masonry-card]").dataset.masonryCard, ids.get(image),
-            // Thở (CSS animation media-breathe) không phải animate vào; chỉ đếm animation khác (WAAPI).
+            // Breathing (CSS animation media-breathe) is not an animate-in; count only other (WAAPI) animations.
             image.getAnimations().filter((animation) => animation.animationName !== "media-breathe").length]);
         }
         if (performance.now() < 3000) requestAnimationFrame(tick);
@@ -90,7 +90,7 @@ try {
     await context.close();
   }
 
-  // PC tắt cache, kéo thanh cuộn nhanh lên xuống (owner 2026-10-27): card lướt qua không thành ô trống, không dựng Flow.
+  // PC with cache off, dragging the scrollbar quickly up and down (owner 2026-10-27): cards flying past do not become empty cells and no Flow is built.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
     const cdp = await context.newCDPSession(page);
@@ -103,14 +103,14 @@ try {
     await page.mouse.move(thumb.x + thumb.width / 2, thumb.y + thumb.height / 2);
     await page.mouse.down();
     for (const y of [700, 200, 850, 400]) await page.mouse.move(1437, y, { steps: 6 });
-    // Giữa lúc kéo nhanh, viewport có thể chỉ còn card tạm (loading-glass R10): card tạm phủ cũng là không trống.
+    // During a fast drag the viewport may hold only temporary cards (loading-glass R10): a covering temporary card also counts as not empty.
     const dragging = await cardStates(page);
     if (dragging.length) assertNoBlank("desktop scrollbar drag", dragging);
     else assert.ok(await ghostsInView(page), "desktop scrollbar drag: ghost cards cover the viewport");
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
-    // Hết cuộn, card tạm trong viewport còn lên card thật dần theo ngân sách frame (loading-glass R10); card vừa dựng nhận
-    // blur ở IntersectionObserver của frame kế.
+    // After scrolling stops, temporary cards in the viewport are still upgraded to real cards gradually within the frame budget (loading-glass R10); a newly built card receives
+    // its blur in the next frame's IntersectionObserver.
     await page.waitForFunction(() => ![...document.querySelectorAll(".masonry-ghost")].some((ghost) => {
       const { top, bottom } = ghost.getBoundingClientRect();
       return bottom > 0 && top < innerHeight;
@@ -120,7 +120,7 @@ try {
     await context.close();
   }
 
-  // PC cao: hơn 12 card cùng chờ ảnh đều mờ.
+  // Tall PC: more than 12 cards waiting for images are all blurred.
   {
     const { context, page } = await open({ viewport: { width: 1920, height: 1400 } });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
@@ -136,12 +136,12 @@ try {
     await context.close();
   }
 
-  // Giảm chuyển động: ảnh vẫn mờ khi chờ nhưng không thở (spec chờ ảnh S2).
+  // Reduced motion: the image is still blurred while waiting but does not breathe (waiting-for-image spec S2).
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"));
-    // Reset toàn cục của reduced motion cắt animation còn một lượt 0.01ms: thở đứng ở opacity 1, không lặp.
+    // The global reduced-motion reset cuts animations to a single 0.01ms iteration: breathing stops at opacity 1 and does not repeat.
     await page.waitForTimeout(500);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img[style*='blur(']")]
       .map((image) => getComputedStyle(image))
@@ -150,7 +150,7 @@ try {
     await context.close();
   }
 
-  // Thở dừng đúng lúc blur tan: opacity đi từ giá trị đang thở về 1, không frame nào nhảy quá 0.1 so với frame trước.
+  // Breathing stops exactly when the blur clears: opacity goes from the breathing value to 1, with no frame jumping more than 0.1 from the previous one.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
     await page.addInitScript(() => {
@@ -169,19 +169,19 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
     const jumps = await page.evaluate(() => [...window.__opacityTrace.values()]
-      // Chỉ ảnh đã mờ rồi nét lại trong lúc đo (có cả frame blur lẫn frame hết blur).
+      // Only images that were blurred then sharpened during the measurement (having both blur frames and no-blur frames).
       .filter((trace) => trace.some(([, blurred]) => blurred) && trace.some(([, blurred], i) => !blurred && trace.slice(0, i).some(([, was]) => was)))
-      // Bỏ các frame trước lúc ảnh bắt đầu mờ (opacity 0 chờ lazyload).
+      // Drop frames before the image starts to blur (opacity 0 waiting for lazyload).
       .map((trace) => trace.slice(trace.findIndex(([, blurred]) => blurred)))
-      // Card vừa ra khỏi viewport thì bỏ skeleton ngay (không ai thấy bước nhảy), nên chỉ tính cặp frame mà card còn trong viewport.
+      // When a card leaves the viewport its skeleton is dropped immediately (nobody sees the jump), so only count frame pairs where the card is still in the viewport.
       .map((trace) => trace.slice(1).reduce((max, [opacity, , visible], i) => (visible && trace[i][2] ? Math.max(max, Math.abs(opacity - trace[i][0])) : max), 0)));
     assert.ok(jumps.length, "opacity trace: some card went from blurred to sharp");
     assert.ok(jumps.every((jump) => jump <= 0.1), `opacity trace: no frame jumps over 0.1 when breathing stops ${JSON.stringify(jumps)}`);
     await context.close();
   }
 
-  // Điện thoại: mở detail từ masonry đã cuộn nhảy về y=0 mà không có scrollend; ảnh card related mờ lúc chờ,
-  // tải xong vẫn tan mà không cần người xem cuộn thêm.
+  // Phone: opening detail from a scrolled masonry jumps back to y=0 without scrollend; related card images blur while waiting,
+  // and still clear once loaded without the viewer scrolling further.
   {
     const { context, page, slow } = await open(phone);
     slow.on = false;
@@ -215,8 +215,8 @@ try {
       + JSON.stringify(await cardStates(page, "[data-masonry-related-card]"))));
     await context.close();
   }
-  // PC Slow 4G tắt cache, mở detail từ masonry (owner 2026-11-01): card related giữ chỗ trước, batch CTA nối sau,
-  // như masonry; không có frame nào batch đã hiện trong canvas detail mà chưa có card related.
+  // PC Slow 4G with cache off, opening detail from masonry (owner 2026-11-01): related cards reserve their place first, the CTA batch follows,
+  // like masonry; no frame of the batch is shown in the detail canvas without a related card.
   {
     const { context, page, slow } = await open({ viewport: { width: 1440, height: 900 } });
     slow.on = false;

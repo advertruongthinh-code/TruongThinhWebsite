@@ -19,7 +19,7 @@ const outputDir = process.env.SITE_MEDIA_OUTPUT_DIR;
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-// Card fixture bỏ media tạm (media tạm đặt video làm cover card 06), chỉ giữ ảnh legacy làm cover như artifact canonical.
+// The card fixture drops the temporary media (the temporary media sets a video as the cover of card 06), keeping only the legacy image as cover like the canonical artifact.
 function legacyFixtureArtifact() {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === fixtureId);
@@ -77,8 +77,8 @@ function wideFixtureArtifact() {
   return artifact;
 }
 
-// Chờ hết CSS transition đang chạy (hover, fade) thay vì ngủ cố định: hai frame cho style recalculation khởi động
-// transition, rồi chờ không còn transition nào chạy (kể cả pha delay).
+// Wait for all running CSS transitions to end instead of a fixed sleep: two frames for style recalculation to start the
+// transition, then wait until no transition is running (including the delay phase).
 const settleTransitions = async (page) => {
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await page.waitForFunction(() => !document.getAnimations()
@@ -145,7 +145,7 @@ async function setup(page, locale, videoCover = false) {
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+  // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -167,7 +167,7 @@ async function setupSingleton(page, item) {
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+  // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -179,7 +179,7 @@ async function setupSingleton(page, item) {
 async function setupMany(page, locale) {
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, manyImageArtifact());
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+  // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -207,7 +207,7 @@ async function setupMany(page, locale) {
   return card;
 }
 
-// Đổi media đẩy ngang 0.9s (media-card R3): chờ mọi animation hữu hạn trong card xong rồi mới đo trạng thái tĩnh.
+// Horizontal-push media change 0.9s (media-card R3): wait for every finite animation in the card to finish before measuring the static state.
 function settlePush(card) {
   return card.evaluate((node) => Promise.all(node.getAnimations({ subtree: true })
     .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
@@ -387,7 +387,7 @@ async function run(viewport, touch, locale) {
     if (outputDir) await writeFile(path.join(outputDir, `media-ratio-${locale}.json`),
       JSON.stringify({ dimensions, beforeRect: before.rect, afterRect: after.rect, withinFrame }, null, 2));
     assert(dimensions.cover.width > 0 && dimensions.video.width > 0 && dimensions.poster.width > 0
-      // Variant responsive làm tròn mỗi cạnh về pixel nguyên, nên so ratio trong mức làm tròn đó.
+      // Responsive variants round each side to whole pixels, so compare the ratio within that rounding.
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.video.width / dimensions.video.height) < 0.01
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.poster.width / dimensions.poster.height) < 0.01
       && withinFrame
@@ -526,7 +526,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
       window.__m01bBubbledClicks = 0;
       node.addEventListener("click", () => { window.__m01bBubbledClicks += 1; });
     });
-    // CDP touch thật tạo pointer event mà runtime lắng nghe.
+    // Real CDP touch creates the pointer events the runtime listens to.
     const client = await context.newCDPSession(page);
     const touchPath = async (from, to, id) => {
       await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: from, y: point.y, id }] });
@@ -546,7 +546,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
     assert(compatibility.prevented && compatibility.bubbled === 0,
       `touch swipe compatibility click must be suppressed: ${JSON.stringify(compatibility)}`);
     assert.equal(await swipeTouch(point.x2, point.x1, 62), fixtureId);
-    // Tap mới trong guard 400ms cũ vẫn phải mở detail của media đang active.
+    // A new tap within the old 400ms guard must still open the detail of the active media.
     await touchPath(point.x1, point.x1, 63);
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await context.close(); await browser.close(); }
@@ -565,7 +565,7 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     });
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(true));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -588,7 +588,7 @@ test("M01b synthetic video cover starts muted with poster", async () => {
         legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
         legacyRect: { width: oldRect.width, height: oldRect.height },
         videoReadyState: active.readyState,
-        // Media đang mờ chờ tải cố ý tràn khung 24px mỗi phía (loading-glass R1, khung cắt phần tràn).
+        // Media dimmed while waiting to load deliberately overflows the frame by 24px on each side (loading-glass R1, the frame clips the overflow).
         bleed: active.style.filter.startsWith("blur(") ? 24 : 0,
         frame: { left: frame.left, top: frame.top, right: frame.right, bottom: frame.bottom },
         videoRect: { left: activeRect.left, top: activeRect.top, right: activeRect.right, bottom: activeRect.bottom } };
@@ -652,7 +652,7 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
   } finally { await browser.close(); }
 });
 
-// R5: card chỉ có video, video và poster cùng lỗi thì skeleton không chạy mãi mà hiện dấu báo lỗi; detail cũng vậy.
+// R5: a card with only a video, where the video and poster both fail: the skeleton does not run forever but shows the error mark; detail does the same.
 test("M01b video-only card with failed video and poster shows the load-error indicator in card and detail", async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -742,7 +742,7 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -807,11 +807,11 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const artifact = fixtureArtifact(true);
     const imageSrc = artifact.cards.find((item) => item.id === fixtureId).media.src;
     await page.route(`**${fixturePrefix}*`, (route) => route.fulfill({ status: 404, body: "" }));
-    // Làm hỏng source và mọi variant responsive (name-480.jxl v.v.) mà browser có thể chọn.
+    // Break the source and every responsive variant (name-480.jxl etc.) the browser may choose.
     await page.route(`**${imageSrc.replace(/\.[^.]+$/, "")}*`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -832,7 +832,7 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
       controlsHidden: node.querySelector("[data-masonry-media-indicator]").hidden,
       mediaLoaded: node.dataset.masonryMediaLoaded || null,
     }));
-    // R5: hết media hiện được thì dấu báo lỗi thay skeleton, điều khiển ẩn, status đọc lỗi.
+    // R5: when no displayable media remains the error mark replaces the skeleton, controls are hidden, status reads the error.
     assert(state.activeId === fixtureId && state.imageSelected === "true" && state.status === "Couldn't load media" && state.error && !state.skeleton
       && state.controlsHidden && state.mediaLoaded !== "true",
     `all-failed terminal state must stop without recursion: ${JSON.stringify(state)}`);
@@ -860,7 +860,7 @@ test("M01b failed next image restores the last valid card image", async () => {
     });
     await page.route(`**${fixturePrefix}missing-image.webp`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -992,8 +992,8 @@ test("M01b stale poster failure does not override a newer image selection", asyn
     const probeResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     releasePoster();
     await probeResponse;
-    // Dải đẩy chỉ chạy sau khi ảnh bìa decode xong (whenMediaReady), có thể muộn hơn 100ms: chờ video ẩn tối đa 3s rồi
-    // mới đọc trạng thái; poster cũ ghi đè lựa chọn mới thì video vẫn hiện và assert dưới bắt được.
+    // The push strip runs only after the cover image finishes decoding (whenMediaReady), possibly later than 100ms: wait up to 3s for the video to hide, then
+    // read the state; an old poster overriding the new choice keeps the video visible and the assert below catches it.
     await card.evaluate((node) => new Promise((resolve) => {
       const stop = Date.now() + 3_000;
       const poll = () => (node.querySelector("video")?.hidden || Date.now() > stop ? resolve() : setTimeout(poll, 50));
@@ -1037,7 +1037,7 @@ test("M01b stale image error preserves newer selection and failed reselect falls
       await route.fulfill({ status: 404, body: "" });
     });
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -1096,7 +1096,7 @@ async function runNumericIndicator(locale, viewport, mobile) {
     });
     assert.equal(initial.layers, 1, "eleven items are not instantiated eagerly");
     assert.equal(initial.dots, 0, "six or more items use no dot controls");
-    // Owner 2026-10-18: từ 6 media dải chỉ còn bộ đếm ở chỗ hàng chấm, đổi media bằng mũi tên hover hoặc vuốt.
+    // Owner 2026-10-18: from 6 media the strip keeps only a counter in place of the dot row; change media with hover arrows or swipe.
     assert.equal(initial.stripButtons, 0, "the strip carries only the counter");
     assert(initial.centerOffset <= 1, `counter sits centred where the dots would be: ${JSON.stringify(initial)}`);
     assert.equal(initial.activeId, fixtureId);
@@ -1163,7 +1163,7 @@ test("M01b five media still use dot controls", async () => {
     artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 5;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -1174,8 +1174,8 @@ test("M01b five media still use dot controls", async () => {
   } finally { await browser.close(); }
 });
 
-// Owner 2026-10-18: hover card nhiều media hiện mũi tên theo vị trí như pin Pinterest, card không zoom media;
-// cảm ứng không có mũi tên.
+// Owner 2026-10-18: hovering a multi-media card shows arrows by position like a Pinterest pin, the card does not zoom media;
+// touch has no arrows.
 test("M01b hover arrows step card media by position and the card media never zooms", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
@@ -1218,7 +1218,7 @@ test("M01b hover arrows step card media by position and the card media never zoo
   } finally { await browser.close(); }
 });
 
-// Card ba media cùng tỷ lệ (bản sao cover) cho lớp tối hover, dải liền và vuốt kéo (media-card R3, owner 2026-10-19).
+// A three-media card of the same ratio (cover copies) for the hover dark layer, continuous strip and swipe drag (media-card R3, owner 2026-10-19).
 async function setupThree(context) {
   const page = await context.newPage();
   const artifact = manyImageArtifact();
@@ -1236,7 +1236,7 @@ async function setupThree(context) {
   return { page, card, items };
 }
 
-// Ghi từng frame: vị trí (so với canvas), opacity, trạng thái giải mã của mọi layer đang hiện.
+// Record every frame: position (relative to the canvas), opacity, decode state of every visible layer.
 const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, action }) => {
   const media = node.querySelector(".card-media");
   const frames = [];
@@ -1262,7 +1262,7 @@ test("M01b hover shows the Pinterest shade at once, hides just viewed, and media
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const { page, card, items } = await setupThree(context);
-    // Nhãn "Vừa xem" do masonry gắn khi đóng detail; test gắn đúng node runtime tạo để đo phần hover.
+    // The "Vừa xem" label is attached by masonry when detail closes; the test attaches the exact node the runtime created to measure the hover part.
     await card.locator(".card-media").evaluate((media) => {
       const marker = Object.assign(document.createElement("span"), { className: "card-media__just-viewed",
         textContent: "Just viewed" });
@@ -1319,7 +1319,7 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
     const drag = async (distance) => {
       await touch("touchStart", start);
       for (let step = 1; step <= 6; step++) await touch("touchMove", start - distance * step / 6);
-      // Chrome gom touchmove theo frame: chờ hai frame để lần move cuối tới handler rồi mới đo (CI đỏ, dải ở move thứ năm).
+      // Chrome batches touchmove per frame: wait two frames so the last move reaches the handler before measuring (CI red, strip at the fifth move).
       return card.locator(".card-media").evaluate(async (media) => {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const box = media.getBoundingClientRect();
@@ -1363,7 +1363,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
       ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
       : "?category=signage-raised-letters";
     await page.goto(`${base}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -1371,7 +1371,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
     if (!related) await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-detail-related-grid]").scrollIntoViewIfNeeded();
-      // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).
+      // Same budget as site-media-card-r6: smooth scroll about 60px each time, related shuffles per view (red 1/3 cases 2026-10-26).
       for (let i = 0; i < 120 && await page.locator(selector).count() === 0; i += 1) {
         await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
         await page.waitForTimeout(80);

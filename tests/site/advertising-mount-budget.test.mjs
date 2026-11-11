@@ -1,4 +1,4 @@
-// Ngân sách dựng card theo frame (advertising-masonry R7): quota theo chi phí đo, vuốt cực nhanh chỉ giữ chỗ.
+// Per-frame card mount budget (advertising-masonry R7): quota by measured cost; very fast swipes only reserve space.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { breathePhase, createDetachedCards, createMountBudget, detachedCapacity } from "../../src/site/masonry/mount-budget.mjs";
@@ -67,7 +67,7 @@ test("quota follows the card cost measured from the frame interval, not only the
   const { state, read } = clock();
   const pending = [];
   const budget = createMountBudget(read, (callback) => pending.push(callback));
-  // Một frame: xét cửa sổ, dựng `count` card tốn `jsMs` JS, frame kế tới sau `interval` ms (gồm style, layout, paint).
+  // One frame: evaluate the window, mount `count` cards costing `jsMs` of JS; the next frame arrives after `interval` ms (including style, layout, paint).
   const frame = (count, jsMs, interval) => {
     budget.begin(0, 700);
     if (count) budget.record(count, jsMs);
@@ -80,7 +80,7 @@ test("quota follows the card cost measured from the frame interval, not only the
   assert.ok(budget.quota() > 5, "cheap cards (0.5ms each, frame barely longer) fit many per frame");
   for (let index = 0; index < 60; index += 1) frame(10, 1, 16.7 + 1);
   assert.equal(budget.quota(), 8, "a hard ceiling of 8 per frame even when the measured cost is tiny");
-  // A04s: JS chỉ 0.5ms một card nhưng 8 card làm frame dài thêm 32ms; chi phí thật là 4ms một card.
+  // A04s: JS is only 0.5ms per card but 8 cards stretch the frame by 32ms; the real cost is 4ms per card.
   for (let index = 0; index < 60; index += 1) frame(8, 4, 16.7 + 32);
   assert.equal(budget.quota(), 1, "cards whose style and layout stretch the frame mount one per frame");
   for (let index = 0; index < 60; index += 1) frame(0, 0, 16.7);

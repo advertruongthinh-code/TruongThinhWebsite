@@ -3,15 +3,15 @@ import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-// Tap thứ hai của double tap: chạm xuống trong 300ms và 40px từ tap trước (advertising-viewer-touch-zoom R4).
+// The second tap of a double tap: touches down within 300ms and 40px of the previous tap (advertising-viewer-touch-zoom R4).
 const isSecondTap = (last, event) => last && event.timeStamp - last.time <= 300
   && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 40;
-// Ngón tay di quá 10px mới là kéo; dưới mức đó vẫn là tap, ảnh không pan (R3, R4).
+// A finger moving past 10px is a drag; below that it is still a tap and the image does not pan (R3, R4).
 const TOUCH_SLOP = 10;
-// Hai ngón chỉ xoay khi vặn quá 20° trước khi zoom đổi quá 20%; pinch zoom thường không xoay (R11).
+// Two fingers rotate only when twisted past 20° before the zoom changes by more than 20%; an ordinary pinch zoom does not rotate (R11).
 const TWIST_THRESHOLD = 20;
 const ZOOM_LOCK = 1.2;
-// Xoay vector (x, y) một góc `degrees` theo chiều kim đồng hồ của màn hình, như CSS rotate().
+// Rotate vector (x, y) by `degrees` clockwise on screen, like CSS rotate().
 const rotate = (x, y, degrees) => {
   const radians = degrees * Math.PI / 180;
   return [x * Math.cos(radians) - y * Math.sin(radians), x * Math.sin(radians) + y * Math.cos(radians)];
@@ -43,15 +43,15 @@ export function createDetailViewer({
   const parent = dialog.parentNode;
   const nextSibling = dialog.nextSibling;
   let record = null;
-  // Phần tử đang hiện trong viewer: ảnh, hoặc chính video primary mượn vào (primary-video-player R8).
+  // The element currently shown in the viewer: an image, or the primary video itself borrowed in (primary-video-player R8).
   let media = expandedImage;
-  // Khung video ở primary lúc mở; cuộn trang khóa nên khung này còn đúng khi đóng, resize thì bỏ (đóng không bay).
+  // The video frame on the primary at open; page scroll is locked so this frame is still right on close, dropped on resize (so close does not fly).
   let sourceRect = null;
   let home = null;
   let homeParent = null;
   let slide = null;
   let scale = 1;
-  // Góc xoay ảnh theo độ; tự do khi đang pinch, ngoài ra luôn là bội 90 (R11).
+  // Image rotation angle in degrees; free during a pinch, otherwise always a multiple of 90 (R11).
   let angle = 0;
   let fitWidth = 1;
   let fitHeight = 1;
@@ -63,7 +63,7 @@ export function createDetailViewer({
   let tap = null;
   let swipe = null;
   let heroTap = null;
-  // Tap gần nhất trên ảnh hoặc primary; tap kế trong cửa sổ double tap bị nuốt (R4, R7).
+  // The latest tap on the image or primary; the next tap within the double tap window is swallowed (R4, R7).
   let lastTap = null;
   let ownEntry = false;
   let skipPop = false;
@@ -75,7 +75,7 @@ export function createDetailViewer({
   let resizeFrame = 0;
   let fitGeometryKey = "";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  // Màn cảm ứng ẩn nút viewer (R8) nên Fit không chừa lề cho nút: ảnh chạm cạnh màn hình, cả khi xoay ngang.
+  // A touch screen hides the viewer buttons (R8) so Fit leaves no margin for them: the image touches the screen edge, in landscape too.
   const touchScreen = matchMedia("(hover: none) and (pointer: coarse)");
 
   document.body.append(dialog);
@@ -85,8 +85,8 @@ export function createDetailViewer({
     imageAnimation?.cancel();
     imageAnimation = null;
   };
-  // Fit, Cover và Max là các điểm dừng cho button và wheel; bản thân scale liên tục. Cover được đo cùng với
-  // fit để resize vẫn biết scale đang ở điểm dừng nào.
+  // Fit, Cover and Max are stops for the buttons and wheel; scale itself is continuous. Cover is measured together with
+  // fit so a resize still knows which stop the scale is at.
   const stops = () => [1, cover, 2 * cover];
   const near = (value, stop) => Math.abs(value - stop) <= stop * 0.01;
   const atFit = () => near(scale, 1);
@@ -106,10 +106,10 @@ export function createDetailViewer({
       right: bounds.right - left - width, bottom: bounds.bottom - top - height,
     })) dialog.style.setProperty(`--viewer-visible-${edge}`, `${Math.max(0, value)}px`);
   };
-  // Ở 90° và 270° ảnh nằm ngang thành dọc nên khung vừa và cover tính theo chiều đã đổi (R11).
+  // At 90° and 270° a landscape image becomes portrait, so fit and cover are computed on the swapped dimensions (R11).
   const sideways = () => Math.abs(Math.round(angle / 90)) % 2 === 1;
   const visualSize = () => (sideways() ? [fitHeight, fitWidth] : [fitWidth, fitHeight]);
-  // `previousWidth`: giữ nguyên kích thước ảnh đang hiện khi đổi góc, scale tính lại theo khung mới.
+  // `previousWidth`: keep the displayed image size when the angle changes, the scale is recomputed for the new frame.
   const measureFit = (previousWidth) => {
     const stop = previousWidth ? -1 : stops().findIndex((value) => near(scale, value));
     fitGeometryKey = geometryKey();
@@ -141,12 +141,12 @@ export function createDetailViewer({
     };
   };
   const updateControls = () => {
-    // Status aria-live thông báo giá trị đã đổi ở cuối một pinch, không phải mỗi frame của nó.
+    // The aria-live status announces the changed value at the end of a pinch, not on every frame of it.
     const status = `${Math.round(scale * 100)}%`;
     if (!pinch && zoomStatus.textContent !== status) zoomStatus.value = zoomStatus.textContent = status;
     zoomOutButton.disabled = atFit();
     zoomInButton.disabled = atMax();
-    // Video trong viewer không phóng to được (primary-video-player R8, owner 2026-10-25).
+    // A video in the viewer cannot be zoomed (primary-video-player R8, owner 2026-10-25).
     zoomInButton.hidden = zoomOutButton.hidden = media === video;
     media.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
     const active = document.activeElement;
@@ -199,7 +199,7 @@ export function createDetailViewer({
     const transform = getComputedStyle(media).transform;
     return new DOMMatrix(transform === "none" ? undefined : transform);
   };
-  // Đổi góc và đo lại khung; trả frame đang hiện quy về kích thước phần tử mới để animation không nhảy.
+  // Change the angle and re-measure the frame; return the displayed frame normalized to the new element size so the animation does not jump.
   const turnTo = (degrees, from = displayed()) => {
     if (degrees === angle) return from;
     const width = fitWidth;
@@ -207,7 +207,7 @@ export function createDetailViewer({
     measureFit(width);
     return from.scale(width / fitWidth);
   };
-  // Đưa ảnh tới `target` ở góc hiện tại; điểm ảnh dưới `anchor` (đọc từ frame `matrix`) giữ chỗ khi target > Fit.
+  // Bring the image to `target` at the current angle; the image point under `anchor` (read from frame `matrix`) stays put when target > Fit.
   const moveTo = (target, anchor, matrix = displayed()) => {
     if (target > 1 && Number.isFinite(anchor?.clientX) && Number.isFinite(anchor?.clientY)) {
       const bounds = viewport.getBoundingClientRect();
@@ -228,7 +228,7 @@ export function createDetailViewer({
     const nextScale = clamp(target, 1, 2 * cover);
     if (nextScale !== scale) moveTo(nextScale, anchor);
   };
-  // Một gesture trong lúc zoom animation tiếp tục từ frame đang trên màn hình; khi đang mở thì bắt đầu từ Fit.
+  // A gesture during a zoom animation continues from the frame on screen; while opening it starts from Fit.
   const adoptDisplayed = () => {
     if (!imageAnimation) return;
     if (dialog.dataset.viewerState === "zooming") {
@@ -242,7 +242,7 @@ export function createDetailViewer({
     dialog.dataset.viewerState = "open";
     renderTransform();
   };
-  // Quay lại trong [Fit, Max] và hít góc về bội 90 sau gesture; `anchor` đứng yên, Fit căn lại giữa (R2, R11).
+  // Return within [Fit, Max] and snap the angle to a multiple of 90 after the gesture; `anchor` stays still, Fit re-centers (R2, R11).
   const settle = (anchor) => {
     const snapped = ((Math.round(angle / 90) * 90) % 360 + 360) % 360;
     const target = clamp(scale, 1, 2 * cover);
@@ -260,7 +260,7 @@ export function createDetailViewer({
   const startPinch = () => {
     const { clientX, clientY, distance, twist } = midpoint();
     const bounds = viewport.getBoundingClientRect();
-    // Điểm ảnh dưới trung điểm, trong hệ tọa độ ảnh chưa xoay và chưa scale.
+    // The image point under the midpoint, in the unrotated, unscaled image coordinate system.
     const [localX, localY] = rotate((clientX - bounds.left - bounds.width / 2 - panX) / scale,
       (clientY - bounds.top - bounds.height / 2 - panY) / scale, -angle);
     pinch = { scale, angle, distance, twist, clientX, clientY, localX, localY, turning: null };
@@ -271,14 +271,14 @@ export function createDetailViewer({
     const max = 2 * cover;
     const ratio = distance / pinch.distance;
     const turn = ((twist - pinch.twist + 540) % 360) - 180;
-    // Vặn quá ngưỡng thì xoay theo tay, tính từ ngưỡng nên không giật; zoom đổi rõ trước thì khóa xoay cả gesture (R11).
+    // Twisting past the threshold rotates with the hand, measured from the threshold so it does not jump; if the zoom clearly changed first, rotation is locked for the whole gesture (R11).
     if (pinch.turning === null) {
       if (Math.abs(turn) >= TWIST_THRESHOLD) pinch.turning = Math.sign(turn) * TWIST_THRESHOLD;
       else if (ratio > ZOOM_LOCK || ratio < 1 / ZOOM_LOCK) pinch.turning = false;
     }
     if (pinch.turning) angle = pinch.angle + turn - pinch.turning;
     const raw = pinch.scale * ratio;
-    // Vượt giới hạn, ảnh đi theo một phần ba chuyển động của ngón tay, tối đa vượt 15%.
+    // Past the limit, the image follows one third of the finger movement, at most 15% over.
     scale = raw > max ? Math.min(max + (raw - max) / 3, max * 1.15)
       : raw < 1 ? Math.max(1 - (1 - raw) / 3, 0.85) : raw;
     const [x, y] = rotate(scale * pinch.localX, scale * pinch.localY, angle);
@@ -294,7 +294,7 @@ export function createDetailViewer({
     if (value === 1) dialog.style.removeProperty("--viewer-backdrop-opacity");
     else dialog.style.setProperty("--viewer-backdrop-opacity", `${value}`);
   };
-  // Swipe để đóng (R9): ở Fit ảnh theo ngón tay theo chiều dọc và backdrop mờ dần theo khoảng cách.
+  // Swipe to close (R9): at Fit the image follows the finger vertically and the backdrop fades with the distance.
   const moveSwipe = (event) => {
     const dx = event.clientX - swipe.x;
     const dy = event.clientY - swipe.y;
@@ -334,8 +334,8 @@ export function createDetailViewer({
     delete dialog.dataset.viewerState;
     delete dialog.dataset.viewerSwipe;
     setBackdropOpacity(1);
-    // Đóng bằng bất cứ thứ gì ngoài Back: bỏ history entry của viewer để lần Back kế tiếp rời detail (R10).
-    // Một flag, không phải state key: router có thể ghi đè state của entry khi viewer đang mở.
+    // Closing by anything other than Back: drop the viewer's history entry so the next Back leaves detail (R10).
+    // A flag, not a state key: the router may overwrite the entry's state while the viewer is open.
     if (ownEntry) {
       ownEntry = false;
       skipPop = true;
@@ -352,14 +352,14 @@ export function createDetailViewer({
     expandedImage.removeAttribute("src");
     if (!restoreFocus || !expandButton.isConnected) return;
     expandButton.focus({ preventScroll: true });
-    // Resize khi đang mở có thể để focus target đã khôi phục nằm ngoài màn hình; căn giữa nó ngay lập tức.
+    // A resize while open may leave the restored focus target off screen; center it immediately.
     const { top, height } = getVisibleViewport();
     const bounds = expandButton.getBoundingClientRect();
     if (bounds.top < top || bounds.bottom > top + height) {
       scroll?.setLogicalScroll?.(scroll.getLogicalScroll() + bounds.top + bounds.height / 2 - top - height / 2);
     }
   };
-  // Image đang tải bản gốc cho viewer (showImage); null khi không chờ.
+  // The image loading the original for the viewer (showImage); null when not waiting.
   let pendingOriginal = null;
   // A photo opens only once the primary has it (owner 2026-11-11): the viewer starts from that picture, never from
   // the one its <img> kept from the last open, which Chrome keeps painting until a new src loads.
@@ -389,7 +389,7 @@ export function createDetailViewer({
     const from = getComputedStyle(media).transform;
     runMotion(from, target, 250, "cubic-bezier(0.55, 0, 0, 1)", "closing", () => finishClose(restoreFocus));
   };
-  // Mượn chính video và player của primary, chuyển liền trong một task nên video không dừng; detach trả về đúng chỗ.
+  // Borrow the primary's own video and player, moved in a single task so the video does not stop; detach returns it to the exact place.
   const attachVideo = () => {
     pendingOriginal = null;
     homeParent = video.parentNode;
@@ -407,8 +407,8 @@ export function createDetailViewer({
     expandedImage.hidden = false;
     media = expandedImage;
   };
-  // Bản gốc chỉ hiện khi tải xong (progressive-loading R3): viewer hiện ảnh primary đang có, tải bản gốc riêng, load
-  // xong mới đổi src.
+  // The original shows only once loaded (progressive-loading R3): the viewer shows the existing primary image, loads the original separately, and swaps src
+  // only after the load finishes.
   const mediaBase = (url) => new URL(url, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
   const swapOriginal = () => {
     if (!pendingOriginal) return;
@@ -451,7 +451,7 @@ export function createDetailViewer({
     runMotion(sourceTransform() || target, target, 300, "cubic-bezier(0.55, 0, 0, 1)", "opening");
     closeButton.focus({ preventScroll: true });
   };
-  // Mọi nút, input đang hiện theo thứ tự DOM, để Tab tới được dãy thumbnail và player của video.
+  // Every visible button and input in DOM order, so Tab reaches the thumbnail row and the video player.
   const visibleControls = () => [...dialog.querySelectorAll("button, input")]
     .filter((control) => !control.disabled && !control.hidden && control.getClientRects().length > 0
       && getComputedStyle(control).visibility !== "hidden");
@@ -461,14 +461,14 @@ export function createDetailViewer({
     slide.animations.forEach((animation) => animation.cancel());
     slide = null;
   };
-  // Dãy thumbnail viewer đổi media của card (R8): lớp trượt mang media cũ ra, media mới trượt vào như dải primary.
-  // `apply` đổi primary sang media mới; video phải về primary trước khi primary đổi nguồn.
+  // The viewer thumbnail row changes the card's media (R8): a sliding layer carries the old media out, the new media slides in like the primary strip.
+  // `apply` switches the primary to the new media; the video must return to the primary before the primary changes source.
   const slideTo = (nextRecord, step, apply) => {
     if (!dialog.open || dialog.dataset.viewerState === "closing") return;
     endSlide();
     cancelMotion();
     dialog.dataset.viewerState = "open";
-    // Video: canvas vẽ frame đang hiện, chưa có frame thì poster; ảnh: bản sao của ảnh.
+    // Video: a canvas draws the currently shown frame, the poster if there is no frame yet; image: a copy of the image.
     const ghost = media === expandedImage ? expandedImage.cloneNode()
       : video.readyState < 2 ? Object.assign(document.createElement("img"), { src: video.poster, alt: "" })
         : Object.assign(document.createElement("canvas"), { width: video.videoWidth, height: video.videoHeight });
@@ -510,9 +510,9 @@ export function createDetailViewer({
   };
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
-  // Màn cảm ứng mở viewer bằng một tap trên primary photo (R7); chạm video thì phát hoặc dừng, mở bằng nút mở lớn.
+  // A touch screen opens the viewer with one tap on the primary photo (R7); touching the video plays or pauses, open with the expand button.
   heroFrame?.addEventListener("pointerdown", (event) => {
-    // Chạm nút trong khung (quay lại, đổi media) không mở viewer.
+    // Touching a button in the frame (back, change media) does not open the viewer.
     heroTap = event.pointerType === "touch" && event.isPrimary && record?.media.kind !== "video"
       && !event.target.closest("button") ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
@@ -523,7 +523,7 @@ export function createDetailViewer({
     if (heroTap?.id !== event.pointerId) return;
     heroTap = null;
     open();
-    // Thói quen double tap: tap thứ hai rơi vào viewer vừa mở và bị nuốt, không zoom.
+    // Double tap habit: the second tap lands in the just-opened viewer and is swallowed, no zoom.
     lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   }, { signal: controller.signal });
   heroImage?.addEventListener("load", syncExpand, { signal: controller.signal });
@@ -554,13 +554,13 @@ export function createDetailViewer({
       return;
     }
     const closing = dialog.dataset.viewerState === "closing";
-    // Ngón thứ ba bị bỏ qua: nó không kéo cũng không kết thúc pinch.
+    // The third finger is ignored: it neither drags nor ends the pinch.
     if (event.pointerType === "touch" && touches.size === 2) return;
-    // Video không pinch, không chạm zoom: chạm video chỉ phát hoặc dừng qua player (R8).
+    // A video has no pinch and no touch zoom: touching the video only plays or pauses via the player (R8).
     if (event.pointerType === "touch" && !closing && media !== video && viewport.contains(event.target)) {
       touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (touches.size === 2) {
-        // Hai ngón không bao giờ đóng viewer và kết thúc mọi drag, swipe hay tap một ngón.
+        // Two fingers never close the viewer and end every drag, swipe or one-finger tap.
         backdropPress = false;
         if (swipe?.active) {
           delete dialog.dataset.viewerSwipe;
@@ -573,7 +573,7 @@ export function createDetailViewer({
         event.preventDefault();
         return;
       }
-      // Tap thứ hai của double tap chỉ đổi zoom một lần với tap đầu: không pan, không vuốt, không đóng (R4).
+      // The second tap of a double tap changes zoom only once with the first tap: no pan, no swipe, no close (R4).
       if (isSecondTap(lastTap, event)) {
         lastTap = null;
         tap = null;
@@ -598,7 +598,7 @@ export function createDetailViewer({
     renderTransform();
     event.preventDefault();
   }, { signal: controller.signal });
-  // Chỉ đóng khi tap backdrop; một touch swipe bắt đầu ở đó (vd. giữa lúc zoom) không bắn click.
+  // Close only on a backdrop tap; a touch swipe that starts there (e.g. mid zoom) does not fire a click.
   dialog.addEventListener("click", (event) => {
     if (backdropPress && (event.target === dialog || event.target === viewport)) close();
     backdropPress = false;
@@ -631,7 +631,7 @@ export function createDetailViewer({
       const anchor = pinch;
       pinch = null;
       const [rest] = touches;
-      // Một ngón còn lại trong [Fit, Max] ở góc bội 90 tiếp tục pan; còn lại ảnh bật về và nó bị bỏ qua.
+      // A remaining finger within [Fit, Max] at a multiple-of-90 angle keeps panning; otherwise the image snaps back and the finger is ignored.
       if (rest && scale >= 1 && scale <= 2 * cover && angle % 90 === 0) {
         if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY, moved: true };
         renderTransform();
@@ -647,7 +647,7 @@ export function createDetailViewer({
     if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
     tap = null;
     lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
-    // Một tap: Fit zoom lên Cover quanh điểm tap, mọi scale khác trả về Fit (R4).
+    // One tap: Fit zooms to Cover around the tap point, any other scale returns to Fit (R4).
     setScale(atFit() ? cover : 1, event);
   };
   dialog.addEventListener("pointerup", endPointer, { signal: controller.signal });
@@ -696,14 +696,14 @@ export function createDetailViewer({
   window.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resize, { passive: true, signal: controller.signal });
-  // Router của site hỏi hàm này trước khi route một popstate, nên Back khi viewer đang mở chỉ đóng nó (R10).
+  // The site router asks this function before routing a popstate, so Back while the viewer is open only closes it (R10).
   const popState = () => {
     if (skipPop) {
       skipPop = false;
       return true;
     }
     if (!ownEntry || !dialog.open) return false;
-    // Back giữa animation đóng cũng ăn entry của viewer; nếu không finishClose sẽ history.back() thêm lần nữa.
+    // Back during the close animation also consumes the viewer's entry; otherwise finishClose would call history.back() once more.
     ownEntry = false;
     if (dialog.dataset.viewerState !== "closing") close();
     return true;

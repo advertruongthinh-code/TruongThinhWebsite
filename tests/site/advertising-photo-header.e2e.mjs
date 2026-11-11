@@ -1,5 +1,5 @@
-// advertising-detail R10: detail ảnh không có hero nên header luôn thu gọn; primary nằm ngay dưới header đó.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-photo-header.e2e.mjs
+// advertising-detail R10: photo detail has no hero so the header is always collapsed; primary sits right under that header.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-photo-header.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
