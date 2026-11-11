@@ -204,7 +204,8 @@
         "node tests/site/advertising-remount-no-cache.e2e.mjs",
         "node tests/site/advertising-fast-fling.e2e.mjs",
         "node tests/site/advertising-detached-cards.e2e.mjs",
-        "node tests/site/advertising-primary-flow-colors.e2e.mjs"
+        "node tests/site/advertising-primary-flow-colors.e2e.mjs",
+        "node tests/site/masonry-first-build.e2e.mjs"
       ]
     },
     "adv-detail": {

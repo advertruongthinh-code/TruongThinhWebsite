@@ -1869,6 +1869,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const phoneScrollWait = () => scrollActive && performance.now() - lastScrollAt < PHONE_SCROLL_SETTLE_MS
     ? PHONE_REVEAL_SCROLL_IDLE_MS : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
   let pendingScroll = false;
+  // First grid build on a direct load (advertising-masonry R7): only on-screen cards and the first 8 build in that task; the CTA batch
+  // waits for its own task (`ctaDeferred`), so no task of the first build blocks input over 50ms on the A04s.
+  let firstBuild = false;
+  let ctaDeferred = false;
   let lastMeasuredGridWidth = 0;
   let lastLayoutViewportWidth = 0;
   let lastGeometrySignature = "";
@@ -2111,7 +2115,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       keep.add(id);
       mount.add(id);
     }
-    return { keep, mount, visiblePlacements, scrollTop, viewportHeight: visible.height };
+    // Grid-relative bottom of the visible region (scrollTop clamps at the grid top).
+    const visibleBottom = currentVisualY + visible.top + visible.height - gridTop;
+    return { keep, mount, visiblePlacements, scrollTop, viewportHeight: visible.height, visibleBottom };
   };
   const sameMembers = (left, right) => left.size === right.size && [...left].every((item) => right.has(item));
   const coordinateChanged = (nextPositions) => [...gridHost.rendered.entries()].some(([id, node]) => {
@@ -3079,7 +3085,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
-    if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    if (ctaDeferred) gridHost.pixelHeight = geometry.totalPixelHeight;
+    else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
     // The grid changing height makes the browser clamp the scroll (at page bottom); cards must start from where they are visible on
     // screen, otherwise they fly off by exactly the clamp amount then snap back (measured on PC, round 26).
     if (origins?.gridTop !== undefined) {
@@ -3094,7 +3101,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridHost.cancelGhosts();
     // Normal scroll keeps cards in the hysteresis zone and builds within the frame budget; motion layout (animate) builds and removes by
     // the build zone as before (R7).
-    const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight } = virtualWindow({ hysteresis: !animate });
+    const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight, visibleBottom } = virtualWindow({ hysteresis: !animate });
     const fastScroll = gridHost.budget.begin(currentVisualY, viewportHeight);
     const currentKeep = new Set(gridHost.rendered.keys());
     const membershipChanged = [...mount].some((id) => !currentKeep.has(id))
@@ -3120,7 +3127,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       gridHost.ghosts.clear();
       gridHost.detached.clear();
     }
-    if (!animate && hasLaidOut) {
+    if (firstBuild) {
+      // The rest of the window shows temp cards and mounts within the frame budget after the entry slide (mountGhosts).
+      allowed = new Set(visiblePlacements.filter((placement) => placement.index < 8
+        || (placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop)).map((placement) => placement.card.id));
+    } else if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
       const placementOf = new Map(visiblePlacements.map((placement) => [placement.card.id, placement]));
@@ -3153,8 +3164,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridHost.ghosts.prune(keep);
     // If temp cards still await building, build in the next frame; if that frame already has a scroll rAF running right after, one renderWindow is
     // enough, so reschedule for the next frame so no pass is lost.
+    // While cards slide (motion layout), placing new cards would snap the sliding ones: settleMotion runs the pass after the slide.
     const mountGhosts = () => {
-      if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
+      if (gridHost.motionFrame || performance.now() < motionUntil) pendingScroll = true;
+      else if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
       else renderWindow({ scrolling: true });
     };
     for (const [node, { card: { id }, x }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
@@ -4892,7 +4905,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         lastResizeAt = now;
         if (dragging) cancelCtaSlides(ctaSlideNodes());
         measure({ animate: !dragging, origins });
-      } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
+      } else if (!ctaDeferred && (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight)) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
@@ -5238,6 +5251,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   if (!browseHistory.current.photo) {
     geometryPending = true;
     await layoutCachePending(filter);
+    // Replay the layout in its own task; the first build below takes it from the geometry cache (R7, 50ms gate on the A04s).
+    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
+    await nextTask();
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
   }
@@ -5278,10 +5294,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   } else {
     // Unknown ?photo= id goes back to the grid, which index.html hid before the first layout.
     document.body.classList.remove("is-detail");
+    // A restore deep in the grid needs the CTA batch's height before the scroll is set: build it in this task as before.
+    ctaDeferred = !(browseHistory.current.grid.scrollY > 0) && !browseHistory.current.grid.focusId;
+    firstBuild = true;
     measure({ animate: true });
+    firstBuild = false;
     restoreGridEntry(browseHistory.current, "direct");
   }
   browseHistory.persistCurrent();
+  if (!ctaDeferred) return cleanup;
+  // Page motion awaits this mount: let it run in the next task, then the CTA batch below the grid in the task after.
+  await nextTask();
+  setTimeout(() => {
+    ctaDeferred = false;
+    if (controller.signal.aborted || activePhotoId || !geometry) return;
+    renderCtaSkeleton();
+    window.dispatchEvent(new CustomEvent("site:layout"));
+  });
   return cleanup;
 }
 
