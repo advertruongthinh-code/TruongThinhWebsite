@@ -95,7 +95,7 @@ export const MEDIA_COLORS = Object.freeze({
  "kiosk-posm-72-ke-trung-bay-20261026": ["#783818","#e8b98f","#c6936b","#a7683c","#7b3f1e"],
  "kiosk-posm-73-ke-trung-bay-20261026": ["#b89868","#f0e2c9","#c6a276","#9b7c56","#604b22"],
  "kiosk-posm-74-backdrop-20261111": ["#d8c8c8","#dac9c1","#b3947a","#4959a3","#152767"],
- "kiosk-posm-75-backdrop-20261111": ["#e8d8c8","#e9d1be","#bda995","#9b855e","#514c30"],
+ "kiosk-posm-75-spa-20261111": ["#e8d8c8","#e4cabd","#c5a78d","#a18256","#5d5429"],
  "kiosk-posm-76-backdrop-20261111": ["#282838","#ddc092","#a4896b","#916830","#413a3a"],
  "led-displays-lightboxes-01-single-colour-matrix-led-signs": ["#585858","#a5a9ae","#b7683d","#5d5653","#5b301a"],
  "led-displays-lightboxes-01-single-colour-matrix-led-signs-audit-a075-v1": ["#180808","#ab7e4e","#bb2523","#5c311a","#2c160c"],
