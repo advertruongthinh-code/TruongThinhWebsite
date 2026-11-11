@@ -30,6 +30,21 @@ const FACTS_COLUMNS = { 2: "blk-facts--2", 3: "blk-facts--3", 4: "blk-facts--4" 
 const BANNER_COLUMNS = { 1: "blk-banners--1", 2: "blk-banners--2", 3: "blk-banners--3" };
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
+// Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
+// project-slider: the other projects of the page's sector, in projects.json order (projects R3).
+// news-cards: 3 other posts, the page's group first (a project maps its sector to the matching group), newest first (news R3, projects R5).
+const SECTOR_NEWS_GROUP = { residential: "nha-o", commercial: "kinh-doanh" };
+const NEWS_CARD_COUNT = 3;
+const autoProjectIds = (ctx, page) => [...ctx.projects.values()].filter((project) => project.sector === page.sector && project.id !== page.id).map((project) => project.id);
+const autoNewsIds = (ctx, page) => {
+  const group = page.group ?? SECTOR_NEWS_GROUP[page.sector];
+  return [...ctx.news.values()]
+    .filter((post) => post.id !== page.id)
+    .toSorted((left, right) => Number(right.group === group) - Number(left.group === group) || right.published.localeCompare(left.published) || left.id.localeCompare(right.id))
+    .slice(0, NEWS_CARD_COUNT)
+    .map((post) => post.id);
+};
+
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
 const BLOCKS = {
   "hero-project": {
@@ -120,12 +135,12 @@ const BLOCKS = {
   "project-slider": {
     ids: "projects",
     // Cards staggered high and low like the home rail (ProjectReel); click opens the project page.
-    render: (block, ctx) => {
+    render: (block, ctx, page) => {
       const variants = ["high", "low"];
       return [
         '<section class="blk blk-projects section-gap" data-header-tone="ink">',
         '  <div class="blk-projects__track">',
-        ...block.projectIds.map((id, index) => {
+        ...(block.projectIds ?? autoProjectIds(ctx, page)).map((id, index) => {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
@@ -152,10 +167,10 @@ const BLOCKS = {
   },
   "news-cards": {
     ids: "news",
-    render: (block, ctx) => [
+    render: (block, ctx, page) => [
       '<section class="blk blk-news-cards section-gap" data-header-tone="ink">',
       '  <div class="blk-news-cards__grid">',
-      ...block.newsIds.map((id) => {
+      ...(block.newsIds ?? autoNewsIds(ctx, page)).map((id) => {
         const post = ctx.news.get(id);
         return `    <a class="blk-news-card" href="/vi/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">${image(post.cover)}${localized("span", post.title, ' class="blk-news-card__title"')}</a>`;
       }),
@@ -236,6 +251,8 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
       const field = spec.ids === "projects" ? "projectIds" : "newsIds";
       const pool = spec.ids === "projects" ? projects : news;
       const list = block[field];
+      // No ids: picked at build (autoProjectIds, autoNewsIds).
+      if (list === undefined) continue;
       if (!Array.isArray(list) || list.length < 1) errors.push(`${where}.${field}: needs at least one id`);
       else for (const id of list) if (!pool.has(id) || id === page.id) errors.push(`${where}.${field}: id ${id} not found or points to this page`);
     }
@@ -254,4 +271,4 @@ export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].fla
 });
 
 // Call only with data that passed validateBlockPage.
-export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx)).join("\n");
+export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx, page)).join("\n");

@@ -84,3 +84,26 @@ test("duplicate page id or slug in one file is reported", () => {
     "content/projects.json: duplicate slugVi can-ho-mau",
   ]);
 });
+
+test("strip and News blocks without ids pick their items at build", () => {
+  const post = (id, group, published) => ({ id, group, published, slugVi: id, slugEn: id, title: t(id, id), cover: photo });
+  const project = (id, sector) => ({ id, sector, slugVi: id, slugEn: id, title: t(id, id), cover: photo });
+  const auto = {
+    projects: new Map(["a", "b", "c", "d"].map((id, index) => [id, project(id, index === 2 ? "commercial" : "residential")])),
+    news: new Map([post("old-home", "nha-o", "2026-01-01"), post("new-trend", "xu-huong", "2026-03-01"), post("new-home", "nha-o", "2026-02-01"), post("self", "nha-o", "2026-04-01"), post("older-trend", "xu-huong", "2025-12-01")].map((item) => [item.id, item])),
+  };
+  const links = (html) => [...html.matchAll(/href="\/vi\/(?:projects|news)\/([^/]+)\//g)].map((match) => match[1]);
+  // Project page: other projects of the same sector in data order, then News of the matching group first.
+  const page = { ...project("a", "residential"), blocks: [{ type: "project-slider" }, { type: "news-cards" }] };
+  assert.deepEqual(links(renderBlocks(page, auto)), ["b", "d", "self", "new-home", "old-home"]);
+  // News post: never itself, same group first, newest first, filled up to 3 from other groups.
+  const article = { ...post("self", "nha-o", "2026-04-01"), blocks: [{ type: "news-cards" }] };
+  assert.deepEqual(links(renderBlocks(article, auto)), ["new-home", "old-home", "new-trend"]);
+});
+
+test("strip and News blocks may omit ids", async () => {
+  const page = fixture();
+  delete page.blocks[10].projectIds;
+  delete page.blocks[13].newsIds;
+  assert.deepEqual(await validateBlockPage(page, ctx), []);
+});

@@ -88,11 +88,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "tu-ao-am-tuong",
-          "nha-pho-giu-mat"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -186,11 +182,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "quay-ke-cua-hang",
-          "chon-tu-bep"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -308,11 +300,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "bo-goc-noi-that",
-          "chon-tu-bep"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -427,11 +415,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "man-hinh-led-san-khau",
-          "quay-ke-cua-hang"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -546,11 +530,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "chon-tu-bep",
-          "bo-goc-noi-that"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -653,11 +633,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "mo-quan-ca-phe",
-          "bien-hieu-mat-tien"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -760,11 +736,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "bien-hieu-mat-tien",
-          "quay-ke-cua-hang"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
@@ -879,11 +851,7 @@
       },
       {
         "id": "related",
-        "type": "news-cards",
-        "newsIds": [
-          "nha-pho-giu-mat",
-          "tu-ao-am-tuong"
-        ]
+        "type": "news-cards"
       },
       {
         "id": "all-news",
