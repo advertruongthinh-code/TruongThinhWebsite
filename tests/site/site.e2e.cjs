@@ -2773,42 +2773,33 @@ async function runPersistentBarbaNavigationChecks() {
             ),
           `Header left the viewport while entering ${destination}: ${JSON.stringify(state.headerTrace.slice(0, 4))}`,
         );
-        const coverIndex = state.headerTrace.findIndex(
-          (sample) => sample.veilOpacity >= 0.99,
+        // logo-route-crossfade R1: on click the header text holds its tone; once the veil covers it switches at once to
+        // ink, before the veil starts to open. No color tween at any point (site-shell R2, owner 2026-11-09).
+        const trace = state.headerTrace;
+        const coverIndex = trace.findIndex((sample) => sample.veilOpacity >= 0.99);
+        const openIndex = trace.findIndex(
+          (sample, index) => index > coverIndex && sample.veilOpacity < 0.99,
         );
-        const startsLight = state.headerTrace[0]?.tone.some((value) => value > 80);
-        const partialIndex = state.headerTrace.findIndex(
-          (sample, index) =>
-            index < coverIndex &&
-            sample.tone.every((value) => value > 48 && value < 254),
+        const isInk = (sample) => sample.tone.every((value) => Math.abs(value - 47) <= 1);
+        const inkIndex = trace.findIndex(
+          (sample, index) => index >= coverIndex && sample.ink && isInk(sample),
         );
-        const settledIndex = state.headerTrace.findIndex(
-          (sample) => sample.tone.every((value) => Math.abs(value - 47) <= 1),
-        );
-        const monotonicCover = state.headerTrace
-          .slice(0, coverIndex + 1)
-          .every(
-            (sample, index, samples) =>
-              index === 0 ||
-              sample.tone.every(
-                (value, toneIndex) => value <= samples[index - 1].tone[toneIndex] + 2,
-              ),
+        const holdsTone = trace
+          .slice(0, coverIndex)
+          .every((sample) =>
+            sample.tone.every((value, toneIndex) => Math.abs(value - trace[0].tone[toneIndex]) <= 1),
           );
+        const noTween = trace.every((sample) =>
+          sample.tone.every((value) => Math.abs(value - 47) <= 1 || value >= 254),
+        );
         assert(
           coverIndex >= 0 &&
-            state.headerTrace
-              .slice(0, coverIndex + 1)
-              .every((sample) => sample.ink) &&
-            (!startsLight ||
-              (state.headerTrace[0].tone.some(
-                (value) => Math.abs(value - 47) > 1,
-              ) &&
-                partialIndex >= 0 &&
-                settledIndex > partialIndex &&
-                settledIndex <= coverIndex &&
-                monotonicCover)),
-          `Header route tone did not tween monotonically and settle before reveal for ${destination}: ${JSON.stringify(
-            { coverIndex, monotonicCover, partialIndex, settledIndex, trace: state.headerTrace.slice(0, 12) },
+            holdsTone &&
+            noTween &&
+            inkIndex >= 0 &&
+            (openIndex < 0 || inkIndex < openIndex),
+          `Header route tone did not hold, then switch to ink under the closed veil for ${destination}: ${JSON.stringify(
+            { coverIndex, openIndex, inkIndex, holdsTone, noTween, trace: trace.map((sample) => [Math.round(sample.time), sample.veilOpacity, sample.ink ? 1 : 0, sample.tone.join("/")].join(" ")) },
           )}`,
         );
         const firstHidden = state.trace.find((sample) => sample.outgoingHidden);
@@ -5292,11 +5283,17 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
                 layoutViewportWidth: state.layoutViewportWidth,
                 seed: state.seed,
               });
+              const scrollTop = Math.max(0, state.scrollY - state.gridTop);
+              const visibleBottom = state.scrollY + state.viewportHeight - state.gridTop;
+              // The first build mounts only the first 8 cards and the cards on screen; the rest of the window mounts after the
+              // entry slide (advertising-masonry R7).
               const ids = runtimeContract.getVirtualWindow(layout, {
-                scrollTop: Math.max(0, state.scrollY - state.gridTop),
+                scrollTop,
                 viewportHeight: state.viewportHeight,
                 overscan: state.viewportHeight,
-              }).items.map((placement) => placement.card.id);
+              }).items.filter((placement) => placement.index < 8
+                || (placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop))
+                .map((placement) => placement.card.id);
               return {
                 ids,
                 minHeight: layout.totalPixelHeight,
@@ -8172,12 +8169,15 @@ async function runDetailHeroEntryChecks() {
                 getComputedStyle(target).transform,
               );
               const elapsed = performance.now() - startedAt;
-              window.__ttSoftHeroTrace.samples.push({
+              const { samples } = window.__ttSoftHeroTrace;
+              samples.push({
                 elapsed,
                 inview: target.classList.contains("is-motion-inview"),
                 scale: matrix.a,
               });
-              if (elapsed >= 2_700) {
+              // Sample 2.7s past the first moving frame (the zoom starts once the veil hold ends), capped at 6s.
+              const moving = samples.find((item) => item.scale < samples[0].scale - 0.005);
+              if ((moving && elapsed >= moving.elapsed + 2_700) || elapsed >= 6_000) {
                 window.__ttSoftHeroTrace.done = true;
                 return;
               }
@@ -8200,13 +8200,17 @@ async function runDetailHeroEntryChecks() {
         });
         const trace = await page.evaluate(() => window.__ttSoftHeroTrace);
         const start = trace.samples[0];
-        const middle = trace.samples.find((sample) => sample.elapsed >= 350);
+        // The new container is in the DOM while the veil still covers for its minimum 1s hold (logo-route-crossfade R2);
+        // the entrance mounts when the hold ends, so measure the zoom from its first moving frame.
+        const moving = trace.samples.find((sample) => sample.scale < start.scale - 0.005);
+        const middle = trace.samples.find((sample) => moving && sample.elapsed >= moving.elapsed + 350);
         const end = trace.samples.at(-1);
         assert(
           start.scale >= 1.18 &&
-            middle.scale < start.scale &&
+            moving?.elapsed <= 2_000 &&
+            middle?.scale < start.scale &&
             middle.scale > 1.01,
-          `${entry.label} soft entry missed its painted start: ${JSON.stringify({ start, middle })}`,
+          `${entry.label} soft entry missed its painted start: ${JSON.stringify({ start, moving, middle })}`,
         );
         assert(
           end.inview && end.scale <= 1.01,
@@ -8988,7 +8992,7 @@ async function runDelayedDetailFallbackChecks() {
 
 async function runSlowMotionBootCheck() {
   await runPageCase(
-    "slow motion never fails open and switches locale in place after claim",
+    "slow motion never fails open and reloads the switched locale after claim",
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route("**/*motion.js*", async (route) => {
@@ -9043,6 +9047,22 @@ async function runSlowMotionBootCheck() {
         };
         sample();
       });
+      const response = await navigation;
+      assert(response && !navigationError, `Claim-race load failed: ${navigationError}`);
+      // The runtime takeover keeps the header visible and settles once, before any locale switch hides it (site-shell R5).
+      await page.waitForFunction(() => window.__ttTakeoverHeaderTrace?.done, null, {
+        timeout: 4_000,
+      });
+      const takeover = await page.evaluate(() => window.__ttTakeoverHeaderTrace.samples);
+      assert(
+        takeover.length > 30 &&
+          takeover.every(
+            (sample) => sample.display !== "none" && sample.opacity >= 0.99 && sample.visible,
+          ),
+        `Runtime takeover did not settle once: ${JSON.stringify(takeover.slice(0, 8))}`,
+      );
+      await waitForNavigationCleanup(page);
+      const historyLength = await page.evaluate(() => history.length);
       const targetRequests = [];
       page.on("request", (request) => {
         const url = new URL(request.url());
@@ -9052,10 +9072,7 @@ async function runSlowMotionBootCheck() {
           canonicalPathname(url.href) === "/en/" &&
           url.search === "?claim-release=1"
         ) {
-          targetRequests.push({
-            resourceType: request.resourceType(),
-            url: request.url(),
-          });
+          targetRequests.push(request.resourceType());
         }
       });
       await page.locator("[data-menu-open]").click();
@@ -9068,35 +9085,30 @@ async function runSlowMotionBootCheck() {
           url.hash === "",
         { timeout: 8_000 },
       );
-      const response = await navigation;
-      assert(response && !navigationError, `Claim-race load failed: ${navigationError}`);
-      await waitForNavigationCleanup(page);
-      await page.waitForFunction(() => window.__ttTakeoverHeaderTrace?.done, null, {
-        timeout: 4_000,
-      });
-      const state = await page.evaluate(() => ({
-        claimed: window.__ttMotionBoot?.claimed,
-        fallback: window.__ttMotionBoot?.fallback,
+      // site-shell R5: after the claim the runtime switches with location.replace and the page reloads like F5; the
+      // fail-open handler would use location.assign and add a history entry.
+      await page.waitForFunction(() => document.body, null, { timeout: 4_000 });
+      await page.waitForTimeout(1_000);
+      const reloaded = await page.evaluate(() => ({
+        historyLength: history.length,
         lang: document.documentElement.lang,
-        headerSamples: window.__ttTakeoverHeaderTrace.samples,
+        fallback: window.__ttMotionBoot?.fallback,
+        fallbackClass: document.documentElement.classList.contains("motion-fallback"),
       }));
-      // The runtime swaps the locale in place, so no fail-open handler may be requested the page.
       assert(
-        targetRequests.length === 0,
-        `Locale switch after claim requested the page: ${JSON.stringify(targetRequests)}`,
+        targetRequests.length === 1 &&
+          targetRequests[0] === "document" &&
+          reloaded.historyLength === historyLength &&
+          reloaded.lang === "en" &&
+          reloaded.fallback !== true &&
+          !reloaded.fallbackClass,
+        `Locale switch after claim did not reload in place of the entry: ${JSON.stringify({ targetRequests, historyLength, reloaded })}`,
       );
-      assert(
-        state.claimed === true &&
-          state.fallback === false &&
-          state.lang === "en" &&
-          state.headerSamples.length > 30 &&
-          state.headerSamples.every(
-            (sample) =>
-              sample.display !== "none" &&
-              sample.opacity >= 0.99 &&
-              sample.visible,
-          ),
-        `Runtime takeover did not settle once: ${JSON.stringify(state)}`,
+      // motion.js is still delayed on the reloaded page: it waits for the runtime again instead of failing open.
+      await page.waitForFunction(
+        () => window.__ttMotionBoot?.claimed === true && window.__ttMotionRuntimeHealthy === true,
+        null,
+        { timeout: 8_000 },
       );
     },
   );
