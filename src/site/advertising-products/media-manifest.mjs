@@ -330,10 +330,11 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
 // in display order. A merged id stops being a card; its media becomes an item of the cover card and its old
 // p/<id> URL redirects to the cover card (MERGED_CARD_REDIRECTS).
 const MERGED_CARD_MEDIA = Object.freeze({
-  "led-displays-lightboxes-43": ["led-displays-lightboxes-48"],
-  "led-displays-lightboxes-44": ["led-displays-lightboxes-49"],
-  "led-displays-lightboxes-45": ["led-displays-lightboxes-50"],
-  "led-displays-lightboxes-46": ["led-displays-lightboxes-51"],
+  "led-displays-lightboxes-43": ["led-displays-lightboxes-48", "led-displays-lightboxes-44", "led-displays-lightboxes-49",
+    "led-displays-lightboxes-45", "led-displays-lightboxes-50", "led-displays-lightboxes-46", "led-displays-lightboxes-51"],
+  "signage-raised-letters-29": ["signage-raised-letters-30", "signage-raised-letters-31", "signage-raised-letters-32"],
+  "kiosk-posm-14": ["kiosk-posm-16"],
+  "office-signs-wayfinding-03": ["office-signs-wayfinding-54"],
   "kiosk-posm-74": ["kiosk-posm-75", "kiosk-posm-76"],
   "print-decals-37": ["print-decals-38", "print-decals-39"],
   "office-signs-wayfinding-56": ["office-signs-wayfinding-57", "office-signs-wayfinding-58"],
