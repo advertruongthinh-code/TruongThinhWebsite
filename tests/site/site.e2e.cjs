@@ -8601,7 +8601,9 @@ async function runMotionAbortFailOpenChecks() {
           heading?.name?.value === "để thương hiệu luôn trong tầm mắt",
           `Fail-open h1 missing from AX tree: ${JSON.stringify(heading?.name?.value)}`,
         );
-        // Grid mounts a virtual window (masonry R7): compare the mounted category, not the count.
+        // Grid mounts a virtual window (masonry R7) in random order per visit (masonry R4), so the first
+        // window may hold no kiosk tile; it only needs other tiles for the filter to remove. The filtered
+        // check below proves kiosk tiles appear.
         const filterState = await page.evaluate(() => {
           const categories = [
             ...document.querySelectorAll("[data-project-grid] [data-masonry-category]"),
@@ -8612,7 +8614,7 @@ async function runMotionAbortFailOpenChecks() {
           };
         });
         assert(
-          filterState.otherTiles > 0 && filterState.kioskTiles > 0,
+          filterState.otherTiles > 0,
           `Fail-open fixture cannot prove filtering: ${JSON.stringify(filterState)}`,
         );
         await page.locator('[data-masonry-filter="displays-booths"]').click();
