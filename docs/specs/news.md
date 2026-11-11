@@ -44,14 +44,15 @@ bắt buộc đủ VI và EN; bài một ngôn ngữ (R5) làm khi có CMS. Mụ
 News là kênh bài tư vấn và xu hướng viết để lên Google, người đọc thấy rõ bài trước sau (owner 2026-11-09). Bố cục theo
 Espacio `/en/news`: thẻ lớn bài mới nhất dính ở cột trái cách header 40px, cả khi cuộn mượt (sticky của Locomotive) lẫn cuộn
 native (CSS sticky), nhả ra ở đáy lưới; ảnh thẻ lớn co chiều cao (cắt cover) để thẻ vừa màn hình laptop thấp; cột phải lưới 2x2
-rồi các thẻ hàng ngang, nhóm và ngày sát trên tiêu đề; phone, tablet một cột. Mỗi thẻ một ảnh bìa 3:2, nhóm, ngày đăng, tiêu đề;
+rồi các thẻ hàng ngang; phone, tablet một cột, thẻ hàng ngang ảnh 30% cách chữ 35px. Mỗi thẻ chỉ một ảnh bìa 3:2 và tiêu đề, không nhóm, không ngày (owner 2026-11-11: chỉ tiêu đề, không kicker);
 ảnh thẻ lớn tải ngay (LCP), thẻ khác lazy. Rê chuột hoặc focus bàn phím thì gạch chân chạy theo bề rộng chữ tiêu đề, kể cả nhiều
 dòng, như navbar; không phóng to ảnh. Bài mới nhất trước, mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được.
 Hàng lọc chỉ có "Tất cả" và các năm có bài (`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô
 tả cho SEO nhưng không hiện thành nút lọc, người đọc vào qua nhãn nhóm ở đầu bài. Id và slug bài không được là `page`, slug
 nhóm hay số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
-Đầu trang danh sách và trang bài (tiêu đề, hàng lọc hoặc nhóm và ngày) là dải tối tràn mép như hero các trang tĩnh, chữ trắng,
-header dạng inverse (owner 2026-11-08); trang Công trình (projects R2) dùng chung đầu trang này.
+Đầu trang danh sách theo Espacio `/en/news` (owner 2026-11-11): nền trắng, `h1` lớn chữ hoa căn giữa, không kicker, hàng lọc
+căn giữa chữ xám, mục đang chọn gạch chân; header dạng ink. Đầu trang bài (nhóm, ngày, tiêu đề) vẫn là dải tối tràn mép như hero
+các trang tĩnh, chữ trắng, header dạng inverse (owner 2026-11-08).
 
 ```gherkin
 Given có 30 bài tiếng Việt
@@ -76,7 +77,7 @@ Then cuối bài có 3 bài khác cùng nhóm, mới nhất trước, và link t
 ### R4. News trên các trang khác
 
 Khối News chỉ có ở trang chủ (owner 2026-11-11), theo trang chủ espaciohomedesign.com/en: ngay dưới hero, 3 bài mới nhất
-thành 3 cột (phone một cột), mỗi bài ảnh bìa nhỏ bên trái, bên phải là nhóm chữ hoa, tiêu đề và chữ "Đọc tiếp" chỉ hiện khi rê
+thành 3 cột (phone một cột), mỗi bài ảnh bìa nhỏ bên trái, bên phải là tiêu đề (không nhóm, owner 2026-11-11) và chữ "Đọc tiếp" chỉ hiện khi rê
 chuột hoặc focus; cả bài là một link (`renderHomeNews` trong `scripts/site/block-pages.mjs`, chỗ đặt `<!-- home-news -->` trong
 `src/site/index.html`). Trang Nhà ở, Kinh doanh, Advertising và trang chi tiết công trình không có khối News. Cuối bài News vẫn
 có khối 3 bài (R3). News chỉ có trong hamburger menu, không trên navbar, không ở footer (owner duyệt 2026-10-12).

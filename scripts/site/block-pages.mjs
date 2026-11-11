@@ -140,26 +140,23 @@ export const newsListPages = (news) => {
 export const newsListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
 export const newsListRoutes = (news) => newsListPages(news).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, newsListSource(listPage)]));
 
-// News card following Espacio /en/news: one cover image, group and date, title; large (first post), regular and horizontal variants.
+// News card following Espacio /en/news: one cover image and the title only (owner 2026-11-11: title, no kicker); large (first post), regular and horizontal variants.
 // Classes are written out in full so the orphan-selectors test sees where each CSS variant is produced. The large card is above the fold, so its image
 // loads immediately (LCP); the other cards are lazy. The title text is wrapped in an inline span so the hover underline follows the text width.
 const NEWS_CARD_VARIANT = { main: " blk-news-card--main", row: " blk-news-card--row" };
 const newsCard = (post, variant = "") => {
-  const group = NEWS_GROUPS[post.group];
-  const [year, month, day] = post.published.split("-");
   // The large card image is the LCP: load early, sizes set to half the page on desktop so an oversized variant is not fetched.
   const loading = variant === "main" ? 'loading="eager" fetchpriority="high" sizes="(max-width: 960px) 100vw, 50vw"' : 'loading="lazy"';
   return [
     `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
     `<img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" ${loading} />`,
-    `<span class="blk-news-card__meta"><span data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span> · <time datetime="${post.published}">${day}/${month}/${year}</time></span>`,
     `<span class="blk-news-card__title"><span class="blk-news-card__text" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span></span>`,
     "</a>",
   ].join("");
 };
 
 // Home News strip (news R4, owner 2026-11-11: News only on the home page, like espaciohomedesign.com/en right under the hero):
-// the 3 newest posts in 3 columns, each a small cover on the left, group, title and a "Read more" that shows on hover or focus.
+// the 3 newest posts in 3 columns, each a small cover on the left, the title (no group, owner 2026-11-11) and a "Read more" that shows on hover or focus.
 export const renderHomeNews = (news) => {
   const posts = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id)).slice(0, 3);
   if (!posts.length) return "";
@@ -168,12 +165,10 @@ export const renderHomeNews = (news) => {
     '  <h2 class="sr-only" id="home-news-title" data-en="News">Tin tức</h2>',
     '  <div class="home-news__grid">',
     ...posts.map((post) => {
-      const group = NEWS_GROUPS[post.group];
       return [
         `    <a class="home-news__item" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
         `      <span class="home-news__media"><img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" loading="lazy" /></span>`,
         '      <span class="home-news__text">',
-        `        <span class="home-news__group" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span>`,
         `        <span class="home-news__title" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span>`,
         '        <span class="home-news__more" data-en="Read more">Đọc tiếp</span>',
         "      </span>",
@@ -199,7 +194,8 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
   ].join("\n    ");
   const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
   const main = [
-    '<header class="blk blk-article-head section-gap" data-header-tone="inverse">',
+    // White head with a large centred title and centred filters like Espacio /en/news; no kicker (owner 2026-11-11).
+    '<header class="blk blk-article-head blk-article-head--list section-gap" data-header-tone="ink">',
     `  <h1 class="blk-article-head__title" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
     `  <nav class="blk-news-filter" aria-label="${escapeHtml(filterLabel.vi)}" data-en-aria-label="${escapeHtml(filterLabel.en)}">${chipLinks}</nav>`,
     "</header>",

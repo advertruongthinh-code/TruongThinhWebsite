@@ -3875,6 +3875,41 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   color: inherit;
 }
 
+/* News list head like Espacio /en/news (measured 2026-11-11 at 1440 and 390): white, a large centred uppercase title (112px at 1440,
+   line-height 1.4), the filter row centred about 144px below in grey bold capitals, the current one ink and underlined; no kicker. */
+.blk-article-head--list {
+  padding-top: calc(var(--header-row-height) + clamp(3rem, 8vw, 7rem));
+  padding-bottom: 0;
+  background: none;
+  color: var(--ink);
+  text-align: center;
+}
+
+.blk-article-head--list .blk-article-head__title {
+  max-width: none;
+  font-size: clamp(3rem, 14vw, 7rem);
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.blk-article-head--list .blk-news-filter {
+  justify-content: center;
+  gap: 1rem 3.125rem;
+  margin-top: clamp(3rem, 10vw, 9rem);
+}
+
+.blk-article-head--list .blk-news-filter__chip {
+  color: var(--muted);
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.blk-article-head--list .blk-news-filter__chip[aria-current="true"] {
+  color: var(--ink);
+  text-decoration-thickness: 2px;
+}
+
 .blk-article-head__meta {
   margin: 0 0 1.25rem;
   color: rgb(255 255 255 / 0.72);
@@ -4199,7 +4234,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* News list (news R2): group filter row, date and group on the card, pagination bar. */
+/* News list (news R2): year filter row, pagination bar. */
 .blk-news-filter {
   display: flex;
   flex-wrap: wrap;
@@ -4221,20 +4256,6 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 .blk-news-pager a[aria-current="page"] {
   text-decoration: underline;
   text-underline-offset: 0.35em;
-}
-
-.blk-news-card__meta {
-  display: block;
-  margin-top: 1rem;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.blk-news-card__meta + .blk-news-card__title {
-  margin-top: 0.5rem;
 }
 
 .blk-news-pager {
@@ -4313,8 +4334,9 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   grid-row: span 2;
 }
 
-.blk-news-card--row .blk-news-card__meta {
-  margin-top: 0;
+/* Espacio rows: the title starts about 17px below the cover top (1440 and 390). */
+.blk-news-card--row .blk-news-card__title {
+  margin-top: 17px;
 }
 
 /* The large card while sticky must fit the screen (laptop 1366x650, 1536x730): the image shrinks in height, cover crop, the title always fully shown. */
@@ -4347,9 +4369,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 
   .blk-news-list__quad .blk-news-card {
     display: grid;
-    grid-template-columns: 1fr 2fr;
     grid-template-rows: auto 1fr;
-    column-gap: 15px;
     align-content: start;
   }
 
@@ -4357,13 +4377,16 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
     grid-row: span 2;
   }
 
-  .blk-news-list__quad .blk-news-card__meta,
-  .blk-news-card--row .blk-news-card__meta {
-    margin-top: 0;
+  .blk-news-list__quad .blk-news-card__title,
+  .blk-news-card--row .blk-news-card__title {
+    margin-top: 17px;
   }
 
+  /* Phone rows like Espacio at 390: cover 30% of the row, title 35px to its right. */
+  .blk-news-list__quad .blk-news-card,
   .blk-news-card--row {
-    column-gap: 15px;
+    grid-template-columns: 30% 1fr;
+    column-gap: 35px;
   }
 }
 
@@ -4421,15 +4444,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   flex-direction: column;
 }
 
-.home-news__group {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
-
 .home-news__title {
-  margin-block: 1.2rem;
+  margin-block: 0 1.2rem;
   font-size: 1.2rem;
   line-height: 1.4;
 }
