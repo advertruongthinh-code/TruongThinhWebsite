@@ -49,7 +49,8 @@ Thứ tự bảo trì nội dung: Advertising, Commercial, Residential.
 ## Crop và con người
 
 - Advertising (masonry, primary, viewer ở mức fit) giữ trọn ảnh. Chỉ nền nút
-  suggestion được cover crop (`suggestionPosition`).
+  suggestion được cover crop, luôn cắt đều quanh tâm; không ảnh nào có điểm lấy
+  nét riêng, chủ thể phải nằm giữa khung (owner 2026-11-11).
 - Route khác có thể `object-fit: cover`. Giữ chủ thể trong vùng giữa khoảng 60%
   ngang và 70% dọc, không đặt tay, dụng cụ, mép đồ quan trọng sát 10% biên.
   Kiểm crop ở 320, 390, 768, 1024, 1440px trước khi đổi `object-position`.
