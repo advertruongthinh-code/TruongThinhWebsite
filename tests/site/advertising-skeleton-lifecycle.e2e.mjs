@@ -215,6 +215,9 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.locator("[data-menu-open]").evaluate(node => node.focus({preventScroll:true}));
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.body.classList.contains("menu-open"));
+    // Runtime parks Flow in the frame after the body class changes (skeletonPauseObserver, decision phone-frame-budget);
+    // when the class is set inside a frame, that is the next frame, so read the ledger after it.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     const parkedMenu = await ledger();
     assert.equal(parkedMenu.running, 0, "menu overlay parks all loops");
     await page.waitForTimeout(350);
