@@ -61,10 +61,10 @@ test("taxonomy R3, R5: each product with 10 or more cards has a chip and its own
     assert.equal(vi, `/vi/advertising-products/${page.vi}/`, id);
     assert.equal(en, `/en/advertising-products/${page.en}/`, id);
   }
-  // Placeholder cards (sourceId "placeholder:") keep three products at exactly the threshold until real photos arrive.
-  const placeholders = artifact.cards.filter((card) => card.media.sourceId.startsWith("placeholder:"));
-  assert.deepEqual(placeholders.flatMap((card) => card.productIds).sort(),
-    ["displays-booths/backdrops", "office-signs/awards-plaques", "printing-decals/packaging-cards-tickets"]);
+  // The 2026-11-10 placeholders are gone; their three products each keep one owner-approved card with three media (taxonomy R5).
+  assert.equal(artifact.cards.filter((card) => card.media.sourceId.startsWith("placeholder:")).length, 0);
+  assert.deepEqual(["kiosk-posm-74", "print-decals-37", "office-signs-wayfinding-56"]
+    .map((id) => artifact.cards.find((card) => card.id === id)?.mediaItems?.length), [3, 3, 3]);
   const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
   assert.match(clusterPage, /<link rel="canonical" href="\/vi\/advertising-products\/in-an-decal\/"/);
   // noscript links only generated pages: a product under the threshold has no dead link

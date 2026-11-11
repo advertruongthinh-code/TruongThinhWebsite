@@ -286,11 +286,16 @@ const MEDIA_ROWS = [
   ["kiosk-posm-71","kiosk-posm",70,"kiosk-posm-product-05","Kiosk bán hàng tại trung tâm thương mại","Shopping-centre retail kiosks","owner-approved:2026-10-26:chatgpt-6adf2d98","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-71-ke-trung-bay-20261026.webp",3072,2048],
   ["kiosk-posm-72","kiosk-posm",71,"kiosk-posm-product-03","Tủ trưng bày theo yêu cầu","Custom display cabinets","owner-approved:2026-10-26:chatgpt-6adf2bb9","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-72-ke-trung-bay-20261026.webp",3072,2048],
   ["kiosk-posm-73","kiosk-posm",72,"kiosk-posm-product-04","Kệ trang trí theo yêu cầu","Custom display shelving","owner-approved:2026-10-26:chatgpt-6adf10b0","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-73-ke-trung-bay-20261026.webp",2048,3072],
-  // PLACEHOLDER cards (owner 2026-11-10): keep three products at the 10-card minimum until real multi-media is generated.
-  // Find them by the sourceId prefix "placeholder:"; replace the row, files and photo-tags entries together (advertising-taxonomy R5).
-  ["kiosk-posm-74","kiosk-posm",73,"kiosk-posm-product-14","Backdrop sự kiện","Event backdrops","placeholder:2026-11-10:kiosk-posm-74","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-74-placeholder-20261110.webp",1200,800],
-  ["print-decals-37","print-decals",36,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","placeholder:2026-11-10:print-decals-37","/assets/content/projects/advertising/print-decals/print-decals-37-placeholder-20261110.webp",1000,1000],
-  ["office-signs-wayfinding-56","office-signs-wayfinding",55,"office-signs-wayfinding-product-13","Kỷ niệm chương","Award plaques","placeholder:2026-11-10:office-signs-wayfinding-56","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-56-placeholder-20261110.webp",800,1200],
+  // Owner-approved multi-media cards (2026-11-11) replacing the 2026-11-10 placeholders; the extra rows merge into the first (MERGED_CARD_MEDIA).
+  ["kiosk-posm-74","kiosk-posm",73,"kiosk-posm-product-14","Backdrop sự kiện","Event backdrops","owner-approved:2026-11-11:chatgpt-6af44824","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-74-backdrop-20261111.webp",1536,1024],
+  ["kiosk-posm-75","kiosk-posm",74,"kiosk-posm-product-14","Backdrop sự kiện","Event backdrops","owner-approved:2026-11-11:chatgpt-6af46231","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-75-spa-20261111.webp",1536,1024],
+  ["kiosk-posm-76","kiosk-posm",75,"kiosk-posm-product-14","Backdrop sự kiện","Event backdrops","owner-approved:2026-11-11:chatgpt-6af450a2","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-76-backdrop-20261111.webp",1536,1024],
+  ["print-decals-37","print-decals",36,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","owner-approved:2026-11-11:chatgpt-6af42a94","/assets/content/projects/advertising/print-decals/print-decals-37-bao-bi-20261111.webp",1254,1254],
+  ["print-decals-38","print-decals",37,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","owner-approved:2026-11-11:chatgpt-6af4580c","/assets/content/projects/advertising/print-decals/print-decals-38-bao-bi-20261111.webp",1254,1254],
+  ["print-decals-39","print-decals",38,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","owner-approved:2026-11-11:chatgpt-6af4474f","/assets/content/projects/advertising/print-decals/print-decals-39-bao-bi-20261111.webp",1254,1254],
+  ["office-signs-wayfinding-56","office-signs-wayfinding",55,"office-signs-wayfinding-product-13","Kỷ niệm chương","Award plaques","owner-approved:2026-11-11:chatgpt-6af42b8d","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-56-ky-niem-chuong-20261111.webp",1024,1536],
+  ["office-signs-wayfinding-57","office-signs-wayfinding",56,"office-signs-wayfinding-product-13","Kỷ niệm chương","Award plaques","owner-approved:2026-11-11:chatgpt-6af437e0","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-57-ky-niem-chuong-20261111.webp",1024,1536],
+  ["office-signs-wayfinding-58","office-signs-wayfinding",57,"office-signs-wayfinding-product-13","Kỷ niệm chương","Award plaques","owner-approved:2026-11-11:chatgpt-6af43840","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-58-ky-niem-chuong-20261111.webp",1024,1536],
 ];
 
 const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
@@ -329,6 +334,9 @@ const MERGED_CARD_MEDIA = Object.freeze({
   "led-displays-lightboxes-44": ["led-displays-lightboxes-49"],
   "led-displays-lightboxes-45": ["led-displays-lightboxes-50"],
   "led-displays-lightboxes-46": ["led-displays-lightboxes-51"],
+  "kiosk-posm-74": ["kiosk-posm-75", "kiosk-posm-76"],
+  "print-decals-37": ["print-decals-38", "print-decals-39"],
+  "office-signs-wayfinding-56": ["office-signs-wayfinding-57", "office-signs-wayfinding-58"],
 });
 
 export const MERGED_CARD_REDIRECTS = Object.freeze(Object.fromEntries(Object.entries(MERGED_CARD_MEDIA)

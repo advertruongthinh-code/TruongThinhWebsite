@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -149,11 +149,8 @@ trong cụm. Cụm luôn có trang. Chip và trang tính lúc build từ số ca
 
 Sản phẩm tụt dưới 10 thì build không sinh trang nữa; URL cũ dưới trang cụm lấy `404.html` của thư mục cụm: trả 404, canonical
 trang cụm, chuyển tới trang cụm ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)). Phase CMS thay bằng 301 (Gate còn mở).
-Placeholder (owner 2026-11-10): ba sản phẩm từng có đúng 9 card (`displays-booths/backdrops`, `printing-decals/packaging-cards-tickets`,
-`office-signs/awards-plaques`) mỗi sản phẩm có một card placeholder (ảnh gradient phẳng, cỡ tùy chỉnh) để đủ 10. Tìm bằng
-`sourceId` bắt đầu `placeholder:` trong `media-manifest.mjs` (id `kiosk-posm-74`, `print-decals-37`, `office-signs-wayfinding-56`,
-file `*-placeholder-20261110.webp`, mục cùng id trong `photo-tags.mjs`). Khi có ảnh multi-media thật, thay card, xóa file, mục và
-test khóa danh sách này; sản phẩm phải còn đủ 10 card, nếu không chip và trang mất.
+Ba sản phẩm từng có đúng 9 card (`displays-booths/backdrops`, `printing-decals/packaging-cards-tickets`, `office-signs/awards-plaques`)
+có thêm một card nhiều media 3 ảnh owner duyệt 2026-11-11 (`kiosk-posm-74`, `print-decals-37`, `office-signs-wayfinding-56`, [media-card R7](media-card.md#r7-gộp-card-thành-card-nhiều-media)) để đủ 10.
 
 Ràng buộc cho phase CMS (người dùng tự upload ảnh, gắn hoặc tạo tag):
 
@@ -268,7 +265,7 @@ Không đổi typography hay layout ngoài rail.
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo mọi sản phẩm, hạng trong filter và lọc sản phẩm) |
 | R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path, link sản phẩm tĩnh); `advertising-rail-two-tier.e2e.mjs` (gherkin ở 1440px, chip trên điện thoại) |
 | R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm) |
-| R5 | `advertising-pages.test.mjs` (chip và trang từ 10 card, ba placeholder, 404 cụm); `advertising-rail-two-tier.e2e.mjs` (bấm chip sang trang sản phẩm) |
+| R5 | `advertising-pages.test.mjs` (chip và trang từ 10 card, ba card thay placeholder có 3 media, 404 cụm); `advertising-rail-two-tier.e2e.mjs` (bấm chip sang trang sản phẩm) |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
 | R7 | `advertising-pages.test.mjs` (Kỷ niệm chương đứng trước, nút gợi ý theo sản phẩm), `advertising-products-static.test.mjs` (thứ tự theo tầng); chưa có test điểm vector (T8) |
 | R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |
