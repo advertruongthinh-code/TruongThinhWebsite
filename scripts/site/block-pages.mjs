@@ -158,6 +158,33 @@ const newsCard = (post, variant = "") => {
   ].join("");
 };
 
+// Home News strip (news R4, owner 2026-11-11: News only on the home page, like espaciohomedesign.com/en right under the hero):
+// the 3 newest posts in 3 columns, each a small cover on the left, group, title and a "Read more" that shows on hover or focus.
+export const renderHomeNews = (news) => {
+  const posts = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id)).slice(0, 3);
+  if (!posts.length) return "";
+  return [
+    '<section class="home-news section-gap" aria-labelledby="home-news-title" data-header-tone="ink">',
+    '  <h2 class="sr-only" id="home-news-title" data-en="News">Tin tức</h2>',
+    '  <div class="home-news__grid">',
+    ...posts.map((post) => {
+      const group = NEWS_GROUPS[post.group];
+      return [
+        `    <a class="home-news__item" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
+        `      <span class="home-news__media"><img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" loading="lazy" /></span>`,
+        '      <span class="home-news__text">',
+        `        <span class="home-news__group" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</span>`,
+        `        <span class="home-news__title" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span>`,
+        '        <span class="home-news__more" data-en="Read more">Đọc tiếp</span>',
+        "      </span>",
+        "    </a>",
+      ].join("\n");
+    }),
+    "  </div>",
+    "</section>",
+  ].join("\n");
+};
+
 // List page frame (News, Projects) built on the About page: SEO head, namespace, language-switch link, h1 and filter row.
 const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body, noindex = false }) => {
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;

@@ -32,15 +32,13 @@ const figure = (media, className) => `<figure class="${className}">${image(media
 
 // Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
 // project-slider: the other projects of the page's sector, in projects.json order (projects R3).
-// news-cards: 3 other posts, the page's group first (a project maps its sector to the matching group), newest first (news R3, projects R5).
-const SECTOR_NEWS_GROUP = { residential: "nha-o", commercial: "kinh-doanh" };
+// news-cards: 3 other posts, the page's group first, newest first (news R3).
 const NEWS_CARD_COUNT = 3;
 const autoProjectIds = (ctx, page) => [...ctx.projects.values()].filter((project) => project.sector === page.sector && project.id !== page.id).map((project) => project.id);
 const autoNewsIds = (ctx, page) => {
-  const group = page.group ?? SECTOR_NEWS_GROUP[page.sector];
   return [...ctx.news.values()]
     .filter((post) => post.id !== page.id)
-    .toSorted((left, right) => Number(right.group === group) - Number(left.group === group) || right.published.localeCompare(left.published) || left.id.localeCompare(right.id))
+    .toSorted((left, right) => Number(right.group === page.group) - Number(left.group === page.group) || right.published.localeCompare(left.published) || left.id.localeCompare(right.id))
     .slice(0, NEWS_CARD_COUNT)
     .map((post) => post.id);
 };

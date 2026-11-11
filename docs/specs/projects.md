@@ -134,13 +134,14 @@ Then bị chặn và thấy ảnh nào còn thiếu điểm chấm
 
 ### R5. Liên kết qua lại
 
-Mỗi công trình gợi ý 2 đến 3 bài News liên quan ([news R4](news.md)); bài News nhắc tới công trình thì link tới trang công
-trình. Đường dẫn `/vi/projects/<slug>/`, `/en/projects/<slug>/`; đổi slug sau khi đăng có redirect 301.
+Trang công trình không có khối News (owner 2026-11-11, News chỉ ở trang chủ, [news R4](news.md#r4-news-trên-các-trang-khác)); bài
+News nhắc tới công trình thì link tới trang công trình. Đường dẫn `/vi/projects/<slug>/`, `/en/projects/<slug>/`; đổi slug sau
+khi đăng có redirect 301.
 
 ```gherkin
-Given bài News nhóm Không gian kinh doanh nói về thiết kế quán cà phê
-When mở trang một công trình quán cà phê
-Then thấy bài đó trong phần bài liên quan
+Given bài News nói về thiết kế quán cà phê nhắc tới công trình Quán cà phê sân vườn
+When mở bài
+Then tên công trình trong bài là link tới trang công trình đó
 ```
 
 ## Giao diện và dữ liệu

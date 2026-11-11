@@ -75,9 +75,11 @@ Then cuối bài có 3 bài khác cùng nhóm, mới nhất trước, và link t
 
 ### R4. News trên các trang khác
 
-Trang chủ có khối 3 bài mới nhất như Espacio. Trang Residential, Commercial, Advertising và trang chi tiết công trình gợi ý 2
-đến 3 bài liên quan (cùng nhóm, rồi theo tag và điểm embedding nếu có). News chỉ có trong hamburger menu, không trên navbar,
-không ở footer (owner duyệt 2026-10-12).
+Khối News chỉ có ở trang chủ (owner 2026-11-11), theo trang chủ espaciohomedesign.com/en: ngay dưới hero, 3 bài mới nhất
+thành 3 cột (phone một cột), mỗi bài ảnh bìa nhỏ bên trái, bên phải là nhóm chữ hoa, tiêu đề và chữ "Đọc tiếp" chỉ hiện khi rê
+chuột hoặc focus; cả bài là một link (`renderHomeNews` trong `scripts/site/block-pages.mjs`, chỗ đặt `<!-- home-news -->` trong
+`src/site/index.html`). Trang Nhà ở, Kinh doanh, Advertising và trang chi tiết công trình không có khối News. Cuối bài News vẫn
+có khối 3 bài (R3). News chỉ có trong hamburger menu, không trên navbar, không ở footer (owner duyệt 2026-10-12).
 
 ```gherkin
 Given owner đăng một bài mới
