@@ -3,6 +3,8 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { renderProjectReel } from '../site/project-reel.mjs';
+import { renderBlocks } from '../site/blocks.mjs';
+import { renderNewsListPage } from '../site/block-pages.mjs';
 
 const OUT = 'design-system';
 // Links in the preview do not navigate: claude.ai stops the live preview when the frame leaves the page (spec design-system R3.5).
@@ -18,6 +20,9 @@ const frame = (markup, { cls = '', bg = 'var(--paper)', height }) =>
 // start: regex for the opening tag; open: shows the dialog exactly as motion.js leaves it (open, is-active); htmlClass: extra class on the root; frames: one framed copy per state class;
 // endStyle: final inline values set by motion.js that the CSS has no fallback for;
 // boot: false drops motion-fallback where it would override a state class (header tone).
+const BLOCKS_PREVIEW = 'scripts/docs/blocks-preview.json';
+const blocksPreview = JSON.parse(readFileSync(BLOCKS_PREVIEW, 'utf8'));
+const blocksPreviewContext = { projects: new Map(blocksPreview.projects.map((p) => [p.id, p])), news: new Map(blocksPreview.news.map((p) => [p.id, p])) };
 const COMPONENTS = [
   { name: 'Header', group: 'Shell', height: 420, file: 'src/site/index.html', start: /<header class="site-header"/, boot: false,
     frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-surface is-ink is-brand-color', height: 140 }] },
@@ -36,6 +41,14 @@ const COMPONENTS = [
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
     also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
+  // Project and News blocks (layout-library R1): rendered from the fixed blocks-preview.json, independent of site content.
+  // The block hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
+  { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.blk-hero { height: 720px; }',
+    markup: `<main id="noi-dung">\n${renderBlocks(blocksPreview.page, blocksPreviewContext)}\n</main>` },
+  // News list page (news R2) is built on the About page frame like the build; the preview takes the <main> part.
+  { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,
+    markup: extract(renderNewsListPage(readFileSync('src/site/about/index.html', 'utf8'), { path: '/news/', base: '/news/', number: 1, count: 2,
+      years: ['2026'], posts: blocksPreview.news }), /<main id="noi-dung"/) },
   { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
     also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
   { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-timeline/,
