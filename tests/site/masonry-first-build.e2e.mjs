@@ -54,7 +54,7 @@ try {
             return card && { id, top: parseFloat(card.style.top), height: card.offsetHeight, index: Number(card.getAttribute("aria-posinset")) };
           }),
           viewportBottom: innerHeight - gridTop,
-          ctaTop: getComputedStyle(grid.closest(".project-index") || grid).getPropertyValue("--masonry-cta-top"),
+          ctaTop: getComputedStyle(grid.closest(".masonry-section") || grid).getPropertyValue("--masonry-cta-top"),
         };
       });
       assert.equal(result.scrollY, 0, `${label}: page stays at the top`);
