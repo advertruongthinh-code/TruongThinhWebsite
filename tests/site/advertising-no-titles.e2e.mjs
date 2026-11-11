@@ -34,7 +34,7 @@ try {
         infoLabel: document.querySelector("[data-detail-info]")?.getAttribute("aria-label") || "",
         tiles: [...document.querySelectorAll(".masonry-grid .masonry-card")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
-          imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
+          imageHeight: tile.querySelector(".masonry-card__media")?.getBoundingClientRect().height || 0,
         })),
       }));
       assert.ok(evidence.captions.length === evidence.cardCount && evidence.captions.every((caption) => caption.title && caption.opacity === "0" && caption.position === "absolute"),
@@ -64,7 +64,7 @@ try {
         })),
         relatedTiles: [...document.querySelectorAll("[data-masonry-related-card]")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
-          imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
+          imageHeight: tile.querySelector(".masonry-card__media")?.getBoundingClientRect().height || 0,
         })),
       }));
       assert.equal(detail.titleCount, 0, `${locale} ${viewport.width}px: active detail has no image title`);

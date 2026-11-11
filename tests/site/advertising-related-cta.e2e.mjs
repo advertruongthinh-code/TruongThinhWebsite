@@ -154,7 +154,7 @@ try {
     await page.waitForSelector("[data-masonry-cta-skeleton][data-masonry-cta-ready]");
     const grid = await page.evaluate(() => ({
       inGrid: Boolean(document.querySelector("[data-project-grid] [data-masonry-cta-skeleton]")),
-      ctaInIndex: Boolean(document.querySelector(".project-index [data-masonry-grid-cta]")),
+      ctaInIndex: Boolean(document.querySelector(".masonry-section [data-masonry-grid-cta]")),
     }));
     assert.ok(grid.inGrid && grid.ctaInIndex, `${label}: CTA không ở grid khi duyệt masonry`);
     console.log(`${label}: ${end.relatedCards} card related, ${end.frames} khung batch, chân chữ ${(end.baseline - end.viewportHeight / 2).toFixed(2)}px`);

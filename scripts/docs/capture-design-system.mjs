@@ -31,7 +31,7 @@ const CAPTURES = [
   { name: 'Filter', route: GRID, select: '.project-filters' },
   { name: 'MediaCard', route: GRID, select: '[data-project-grid]', firstRow: 4, artifact: mediaCardArtifact },
   { name: 'Masonry', route: GRID, select: '[data-project-grid]' },
-  { name: 'Skeleton', route: GRID, select: '.project-index', focus: '[data-masonry-cta-frame]',
+  { name: 'Skeleton', route: GRID, select: '.masonry-section', focus: '[data-masonry-cta-frame]',
     setup: (page) => page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)) },
   { name: 'Primary', route: PHOTO, select: '.detail-view__primary' },
   { name: 'Suggestion', route: PHOTO, select: '.detail-view__suggestion' },

@@ -1050,7 +1050,7 @@ const setCardVideoSource = (video, attach) => {
 function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
   onPendingChange = () => {}) {
   const figure = document.createElement("figure");
-  figure.className = "project-tile masonry-card";
+  figure.className = "masonry-card";
   figure.dataset[related ? "masonryRelatedCard" : "masonryCard"] = record.id;
   figure.dataset.masonryCategory = record.category;
   const link = document.createElement("a");
@@ -1058,7 +1058,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   link.className = "card-interactive";
   link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
-  media.className = "project-tile__media masonry-card__media--natural card-media";
+  media.className = "masonry-card__media masonry-card__media--natural card-media";
   // Màu chủ đạo của ảnh lấp khung khi ảnh chưa nhận byte nào; ảnh mờ rồi nét phủ lên trên (progressive-loading R9).
   const color = cardColor(record);
   if (color) media.style.backgroundColor = color;
@@ -1481,7 +1481,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
   const siteFooter = container.querySelector("footer.site-footer");
-  const gridSection = grid.closest(".project-index");
+  const gridSection = grid.closest(".masonry-section");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
   const photoView = container.querySelector("[data-detail-view]");
   // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
@@ -2899,7 +2899,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // (advertising-cta-center-parallax R9). Giữ node nên renderer Flow, band theo slot và cỡ chữ đã đo không mất.
   const ctaInDetail = () => ctaBatch.host === "detail";
   // Sân của batch. Sang detail: chạy lại motion vào view sau lần đặt chỗ ở canvas (R9). Về masonry giữ trạng thái
-  // đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại. Ở grid cụm kế thừa biến từ .project-index.
+  // đã hiện: cuộn về chỗ cũ mà CTA đang trong màn hình thì không ẩn rồi chạy lại. Ở grid cụm kế thừa biến từ .masonry-section.
   const moveCtaNodes = (host) => ctaBatch.attach(host, host === "detail" && photoCanvas
     ? { skeletonParent: photoCanvas, clusterParent: photoCanvas, replay: true }
     : { skeletonParent: grid, clusterParent: gridSectionStyleTarget });
@@ -2937,7 +2937,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const room = viewportHeight / 2 - footerHeight - gap;
     const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
     // Ở detail biến đặt thẳng trên cụm CTA (nơi duy nhất dùng chúng), không trên canvas: biến kế thừa đổi trên canvas
-    // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .project-index khi đo masonry.
+    // làm tính lại style cả related. Ở grid runtime ghi khoảng giữa lên .masonry-section khi đo masonry.
     const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
     setStyleVar(ctaVarHost, "--masonry-cta-top", `${ctaTop}px`);
     if (detailHost) {
@@ -3245,7 +3245,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const layoutViewportWidth = document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
-    const projectIndex = grid.closest(".project-index");
+    const projectIndex = grid.closest(".masonry-section");
     projectIndex?.style.setProperty("--masonry-outer", `${outer}px`);
     projectIndex?.style.setProperty("--masonry-gap", `${interCardGap}px`);
     grid.style.setProperty("--masonry-gap", `${interCardGap}px`);

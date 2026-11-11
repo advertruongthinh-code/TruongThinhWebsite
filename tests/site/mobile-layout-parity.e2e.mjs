@@ -167,7 +167,7 @@ async function recordState(page, engine, label, options = {}) {
 async function checkBody(page,engine,label,options={}) {
   const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.masonry-card__title')),explicitHidden:Boolean(e.closest('[hidden]')),
     inactivePhoto:Boolean(e.closest('.detail-view')&&!document.body.classList.contains('is-detail')),
-    inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-masonry-grid-cta],.detail-process')&&document.body.classList.contains('is-detail')),
+    inactiveGrid:Boolean(e.closest('.detail-index-hero,.masonry-section,.detail-cta[data-masonry-grid-cta],.detail-process')&&document.body.classList.contains('is-detail')),
     silentMediaAudio:e.matches('[data-detail-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
   const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.silentMediaAudio);

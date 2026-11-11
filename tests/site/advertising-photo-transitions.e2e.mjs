@@ -2012,7 +2012,7 @@ try {
         ready: skeleton?.dataset.masonryCtaReady === "true",
         signature: skeleton?.dataset.masonryCtaSignature || null,
         // Kính dạng cung trên grid section sở hữu blur và trắng ở biên (glass-surface.md R2-R3).
-        skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
+        skeletonGlass: (({ glass = skeleton?.closest(".masonry-section")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
           hidden: glass.hidden,
           tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
           blur: getComputedStyle([...glass.querySelectorAll(".glass-surface__step")].at(-1)).backdropFilter,
@@ -2355,7 +2355,7 @@ try {
           transform: style.transform,
         };
       };
-      const glass = skeleton.closest(".project-index").querySelector(":scope > .glass-surface[data-glass-shape=arc]");
+      const glass = skeleton.closest(".masonry-section").querySelector(":scope > .glass-surface[data-glass-shape=arc]");
       return {
         skeleton: stateOf(skeleton),
         glass: glass && { hidden: glass.hidden, tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage },

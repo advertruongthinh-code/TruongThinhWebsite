@@ -336,7 +336,7 @@
           console.error("[projects] catalog mount failed", error);
           const grid = container.querySelector("[data-project-grid]");
           const fallback = grid?.querySelector("noscript");
-          if (fallback && !grid.querySelector(".project-tile")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
+          if (fallback && !grid.querySelector(".masonry-card")) grid.insertAdjacentHTML("afterbegin", fallback.textContent);
         });
     }
 

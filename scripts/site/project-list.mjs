@@ -75,7 +75,7 @@ const srcset = ({ src, width }) => {
 
 // Thẻ tĩnh trong noscript như trang quảng cáo: không JavaScript vẫn thấy công trình và link (SEO).
 const noscriptCard = (project) => [
-  `<figure class="project-tile"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="project-tile__media">`,
+  `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
   `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" loading="lazy" decoding="async" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" />`,
   "</div></a></figure>",
 ].join("");
@@ -85,7 +85,7 @@ const line = (text, className) => `<span class="detail-hero-line-mask"><span cla
 // Phần lưới (grid, batch skeleton, CTA đuôi) lấy nguyên từ khung trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh và chữ CTA:
 // một contract DOM masonry cho hai trang, thêm attribute ở trang quảng cáo thì trang Công trình có theo (masonry-reuse bước 9).
 const indexSection = (template, projects) => {
-  const sections = template.match(/<section\s+class="project-index"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
+  const sections = template.match(/<section\s+class="masonry-section"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
   if (sections.length !== 1) throw new Error(`advertising frame anchor "index section" matched ${sections.length} times`);
   return [
     [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
