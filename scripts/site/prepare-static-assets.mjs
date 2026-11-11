@@ -14,7 +14,7 @@ import "./sync-brand-lockup.mjs";
 import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
@@ -331,6 +331,13 @@ for (const sector of SECTORS) {
   const cta = { type: "cta-arrow", text: more, hrefVi: `/vi/projects/${PROJECT_FILTERS[sector]}/`, hrefEn: `/en/projects/${PROJECT_FILTERS[sector]}/` };
   const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }, cta] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
+}
+// Home News strip under the hero (news R4).
+{
+  const file = path.join(outputRoot, "index.html");
+  const html = await readFile(file, "utf8");
+  if (!html.includes("<!-- home-news -->")) throw new Error("index.html lost <!-- home-news -->");
+  await writeFile(file, html.replace("<!-- home-news -->", () => renderHomeNews(blockContent.news)), "utf8");
 }
 const frameTemplates = new Map();
 for (const [kind, pages] of Object.entries(blockContent)) {

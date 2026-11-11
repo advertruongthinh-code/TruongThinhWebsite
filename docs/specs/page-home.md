@@ -19,7 +19,7 @@ tests:
   - tests/site/hero-slideshow.test.mjs
   - tests/site/project-reel.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Trang chủ
@@ -36,13 +36,14 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 ### R1. Section và nội dung
 
-`main#noi-dung` có một `h1` (hero) và bảy section theo bảng; section 2 đến 5 có `h2` `.sr-only`, closer có
+`main#noi-dung` có một `h1` (hero) và tám section theo bảng; section News và section 2 đến 5 có `h2` `.sr-only`, closer có
 `h2` hiện, marquee dùng `aria-label`. Sau `main` là lời mời dùng chung với ba trang detail rồi footer
 ([shell R10](site-shell.md#r10-floating-cta-và-footer)); cột Tone là `data-header-tone` ([shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop)).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
 | --- | --- | --- | --- | --- |
 | 1 | `.hero#top` | Mười ảnh slideshow (tính từ HTML), `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
+| News | `.home-news` | 3 bài News mới nhất theo trang chủ Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)), build chèn vào `<!-- home-news -->` | Trang từng bài | ink |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
@@ -54,7 +55,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 ```gherkin
 Given output đã build
 When mở /vi/ và đọc main
-Then có một h1 và bảy section theo thứ tự hero, #dich-vu, #tay-nghe, #nang-luc, #du-an, closer, marquee
+Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, #du-an, closer, marquee
 And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
 ```
 

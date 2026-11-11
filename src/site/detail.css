@@ -4381,3 +4381,80 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   text-align: center;
   color: var(--muted);
 }
+
+/* Home News strip (news R4) following espaciohomedesign.com/en, measured 2026-11-11 at 1440 and 390: 3 columns 70px apart; each item a
+   cover column (38%, 31.5% on phone) and text 20px apart; the cover keeps at least 5:6 and stretches when the text is taller. */
+.home-news__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 70px;
+  padding-inline: var(--gutter);
+}
+
+.home-news__item {
+  display: grid;
+  grid-template-columns: 38% 1fr;
+  column-gap: 20px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home-news__media {
+  position: relative;
+}
+
+.home-news__media::before {
+  content: "";
+  display: block;
+  padding-top: 120%;
+}
+
+.home-news__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-news__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-news__group {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.home-news__title {
+  margin-block: 1.2rem;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.home-news__more {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.home-news__item:hover .home-news__more,
+.home-news__item:focus-visible .home-news__more {
+  opacity: 1;
+}
+
+@media (max-width: 960px) {
+  .home-news__grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .home-news__item {
+    grid-template-columns: 31.5% 1fr;
+  }
+}
