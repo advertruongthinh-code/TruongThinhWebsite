@@ -6,7 +6,7 @@ source:
 tests:
   - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # Thư viện layout trang và khối
@@ -63,8 +63,8 @@ của Claude, owner duyệt từng dòng `[CẦN LÀM RÕ: owner đánh dấu gi
 | `gallery-carousel` | `layout-galeria` | Tới 12 ảnh hoặc video, chú thích | Bộ ảnh công trình | Giữ |
 | `facts-grid` | `layout-bloque-facts` 2, 3, 4 cột | Ô đánh số: nhãn, mô tả | Thông tin công trình, quy trình 6 bước | Giữ |
 | `banner-links` | `layout-bloque-banners` 1, 2, 3 cột | Ảnh, tiêu đề, link | Dẫn sang ba mảng dịch vụ | Giữ |
-| `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm | Trang chủ, cuối bài, trang dịch vụ | Giữ |
-| `project-slider` | `layout-slider-proyectos` | Tất cả công trình cùng nhóm, tự lấy | Residential, Commercial, cuối trang công trình | Giữ |
+| `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm khi không ghi `newsIds` (`autoNewsIds`) | Trang chủ, cuối bài, trang dịch vụ | Giữ |
+| `project-slider` | `layout-slider-proyectos` | Tất cả công trình cùng mảng, tự lấy khi không ghi `projectIds` (`autoProjectIds`) | Residential, Commercial, cuối trang công trình | Giữ |
 | `cta-arrow` | `layout-ctas` | Một dòng chữ, link, mũi tên | Xem toàn bộ công trình, xem tất cả News | Giữ |
 | `quote` | `layout-quote` | Trích dẫn, người nói | Bài News | Giữ |
 | `statement` | `layout-bloque-compromiso` | Câu tuyên bố chữ lớn, ảnh | Trang chủ, About | Giữ |

@@ -4,11 +4,12 @@ status: planned
 source:
   - src/site/content/news.json
 tests:
+  - tests/site/blocks.test.mjs
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # News
@@ -62,7 +63,7 @@ And hàng lọc chỉ có "Tất cả" và các năm, trang năm có noindex
 ### R3. Trang bài
 
 Theo mẫu Bài News của [layout-library R2](layout-library.md): tiêu đề, khối nội dung theo chuỗi người soạn ghép, cuối bài là
-khối 3 bài cùng nhóm (`news-cards`) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
+khối 3 bài (`news-cards`, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, mới nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài mới nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
 Bài có ngày đăng và ngày cập nhật hiển thị khớp dữ liệu cấu trúc, tác giả là người duyệt. Dữ liệu cấu trúc `BlogPosting`,
 `BreadcrumbList`, `VideoObject` khi có video, theo [SEO](seo.md); ảnh, video trong bài theo [tải ảnh](media-delivery.md).
 
@@ -113,7 +114,7 @@ Danh sách và thẻ bài: [Danh sách News](../../design-system/components/News
 
 | R | Test hoặc command |
 | --- | --- |
-| R2, R3 | `node --test tests/site/block-pages.test.mjs`; `node scripts/ci/suites.mjs block-pages` (thẻ lớn dính khi lăn wheel) |
+| R2, R3 | `node --test tests/site/block-pages.test.mjs tests/site/blocks.test.mjs` (R3: tự lấy 3 bài); `node scripts/ci/suites.mjs block-pages` (thẻ lớn dính khi lăn wheel) |
 | R1, R4, R5 | chưa có test; viết khi owner mở slice code |
 
 ## Gate còn mở

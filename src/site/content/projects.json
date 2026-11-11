@@ -201,14 +201,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm không gian nhà ở",
-          "en": "More residential spaces"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/residential/",
-        "hrefEn": "/en/residential/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -423,14 +427,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm không gian nhà ở",
-          "en": "More residential spaces"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/residential/",
-        "hrefEn": "/en/residential/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -643,14 +651,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm không gian kinh doanh",
-          "en": "More commercial spaces"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/commercial/",
-        "hrefEn": "/en/commercial/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -829,14 +841,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm không gian kinh doanh",
-          "en": "More commercial spaces"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/commercial/",
-        "hrefEn": "/en/commercial/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -1050,14 +1066,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình cafe và nhà hàng",
-          "en": "More cafe and restaurant projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/cafe-nha-hang/",
-        "hrefEn": "/en/projects/cafe-nha-hang/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -1278,14 +1298,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình căn hộ",
-          "en": "More apartment projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/can-ho/",
-        "hrefEn": "/en/projects/can-ho/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -1506,14 +1530,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình căn hộ",
-          "en": "More apartment projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/can-ho/",
-        "hrefEn": "/en/projects/can-ho/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -1734,14 +1762,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình showroom và cửa hàng",
-          "en": "More showroom and store projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/showroom-cua-hang/",
-        "hrefEn": "/en/projects/showroom-cua-hang/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -1962,14 +1994,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình showroom và cửa hàng",
-          "en": "More showroom and store projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/showroom-cua-hang/",
-        "hrefEn": "/en/projects/showroom-cua-hang/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -2190,14 +2226,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình homestay và khách sạn",
-          "en": "More homestay and hotel projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/homestay-hotel/",
-        "hrefEn": "/en/projects/homestay-hotel/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -2418,14 +2458,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình homestay và khách sạn",
-          "en": "More homestay and hotel projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/homestay-hotel/",
-        "hrefEn": "/en/projects/homestay-hotel/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -2646,14 +2690,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình homestay và khách sạn",
-          "en": "More homestay and hotel projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/homestay-hotel/",
-        "hrefEn": "/en/projects/homestay-hotel/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -2874,14 +2922,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình cafe và nhà hàng",
-          "en": "More cafe and restaurant projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/cafe-nha-hang/",
-        "hrefEn": "/en/projects/cafe-nha-hang/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -3102,14 +3154,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình văn phòng",
-          "en": "More office projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/van-phong/",
-        "hrefEn": "/en/projects/van-phong/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -3330,14 +3386,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình showroom và cửa hàng",
-          "en": "More showroom and store projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/showroom-cua-hang/",
-        "hrefEn": "/en/projects/showroom-cua-hang/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -3558,14 +3618,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình văn phòng",
-          "en": "More office projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/van-phong/",
-        "hrefEn": "/en/projects/van-phong/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -3883,14 +3947,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình nhà phố",
-          "en": "More townhouse projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/nha-pho/",
-        "hrefEn": "/en/projects/nha-pho/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   },
@@ -4208,14 +4276,18 @@
         }
       },
       {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
         "id": "more",
         "type": "cta-arrow",
         "text": {
-          "vi": "Xem thêm công trình nhà phố",
-          "en": "More townhouse projects"
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
         },
-        "hrefVi": "/vi/projects/nha-pho/",
-        "hrefEn": "/en/projects/nha-pho/"
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
       }
     ]
   }
