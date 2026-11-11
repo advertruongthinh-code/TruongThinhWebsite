@@ -220,10 +220,10 @@ export const renderNewsListPage = (template, listPage) => {
 const isSize = (value) => Number.isSafeInteger(value) && value > 0;
 const cardErrors = (card, at) => {
   if (card === undefined) return [];
-  if (!isSize(card?.width) || !isSize(card?.height)) return [`${at}: card.width, card.height phải là số nguyên dương`];
-  if (!Array.isArray(card.media) || !card.media.length) return [`${at}: card.media phải có ít nhất một ảnh`];
+  if (!isSize(card?.width) || !isSize(card?.height)) return [`${at}: card.width and card.height must be positive integers`];
+  if (!Array.isArray(card.media) || !card.media.length) return [`${at}: card.media must have at least one image`];
   return card.media.flatMap((media, index) => [
-    ...(media?.src && media.altVi && media.altEn ? [] : [`${at}: card.media[${index}] thiếu src, altVi hoặc altEn`]),
+    ...(media?.src && media.altVi && media.altEn ? [] : [`${at}: card.media[${index}] is missing src, altVi or altEn`]),
     ...(isSize(media?.width) && isSize(media?.height) && BigInt(media.width) * BigInt(card.height) === BigInt(media.height) * BigInt(card.width)
       ? [] : [`${at}: card.media[${index}] khác tỷ lệ khung thẻ ${card.width}x${card.height}`]),
   ]);

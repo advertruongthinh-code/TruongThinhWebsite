@@ -74,7 +74,7 @@ function watch(page) {
 async function advertisingReady(page, route = "advertising-products/") {
   await page.goto(url(route), { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), undefined, { timeout: 12_000 });
-  // Veil vào trang còn nhận hit test tới khi gỡ; chạm và elementFromPoint chỉ đo khi veil đã gỡ.
+  // The page-entry veil still receives hit tests until removed; touch and elementFromPoint are measured only once the veil is removed.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
     && !document.body.classList.contains("is-transitioning"));
 }
@@ -320,7 +320,7 @@ try {
       photoIdentity: detail.primaryId === photoId && forward.primaryId === photoId
         && forward.photo === photoId && back.photo === null,
       localeCategorySeedTag: [grid, detail, back, forward].every((item) =>
-        // Lưới ở trang cụm (taxonomy slugVi), detail ở /p/<id>/ (advertising-detail R1).
+        // The grid on a cluster page (taxonomy slugVi), detail at /p/<id>/ (advertising-detail R1).
         new URL(item.url).pathname === (item.photo
           ? `/vi/advertising-products/p/${photoId}/`
           : `/vi/advertising-products/${ADVERTISING_CLUSTERS.find((cluster) => cluster.id === "signage").slugVi}/`)
@@ -343,7 +343,7 @@ try {
   await runCase(browser, "viewer-two-finger-image-pinch", async (page, context) => {
     await advertisingReady(page, `vi/advertising-products/?photo=${photoId}`);
     await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.naturalWidth > 0);
-    // Màn cảm ứng ẩn nút expand khỏi mắt, chạm ảnh primary mở viewer (viewer touch R7, R8).
+    // A touch screen hides the expand button from view, tapping the primary image opens the viewer (viewer touch R7, R8).
     await page.locator("[data-detail-image]").tap();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
     const image = page.locator("[data-detail-expanded-image]");

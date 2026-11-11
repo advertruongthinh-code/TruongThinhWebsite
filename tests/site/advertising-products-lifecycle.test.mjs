@@ -221,7 +221,7 @@ assert.equal(
   ),
   false,
 );
-// Trang Công trình (projects R2) dùng chung runtime: khác gốc là chuyển trang, slug lạ dưới /projects/ là trang chi tiết.
+// The Projects page (projects R2) shares the runtime: a different root is a page change, an unknown slug under /projects/ is a detail page.
 const projectPages = [{ filter: "all", vi: "", en: "" }, { filter: "kinh-doanh", vi: "kinh-doanh", en: "kinh-doanh" }];
 assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/advertising-products/", projectPages), false, "Projects to Advertising is a page change");
 assert.equal(isQueryOnlyNavigation("https://example.test/vi/advertising-products/", "https://example.test/vi/projects/"), false, "Advertising to Projects is a page change");

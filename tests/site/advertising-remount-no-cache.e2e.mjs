@@ -1,11 +1,11 @@
-// Cuộn nhảy liên tục khi tắt cache (loading-glass R1, R3, R6): card ảo hóa gắn lại không để khung trắng, card bị gỡ
-// không giữ request ảnh. Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-remount-no-cache.e2e.mjs
+// Continuous jump scrolling with cache off (loading-glass R1, R3, R6): a re-mounted virtualized card leaves no blank frame, a removed card
+// holds no image request. Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-remount-no-cache.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
-// Chờ cache 150ms (REMOUNT_CACHE_WAIT_MS) cộng vài frame trễ khi máy CI bận.
+// Wait for the 150ms cache (REMOUNT_CACHE_WAIT_MS) plus a few lagging frames when the CI machine is busy.
 const MAX_WHITE_MS = 400;
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {
@@ -17,7 +17,7 @@ try {
   await cdp.send("Network.emulateNetworkConditions",
     { offline: false, latency: 60, downloadThroughput: 6e6 / 8, uploadThroughput: 1e6 });
   await page.addInitScript(() => {
-    // Card trắng: giao viewport, ảnh chưa hiện, không có skeleton. Ghi độ dài từng quãng trắng.
+    // Blank card: intersects the viewport, image not shown, no skeleton. Record the length of each blank stretch.
     const since = new WeakMap();
     window.__whiteMs = [];
     window.__pendingRemoved = 0;
@@ -36,9 +36,9 @@ try {
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-    // Card bị gỡ mà img còn đang tải nghĩa là request vẫn chạy sau khi card rời DOM.
+    // A card removed while its img is still loading means the request keeps running after the card leaves the DOM.
     new MutationObserver((records) => records.forEach(({ removedNodes }) => removedNodes.forEach((node) => {
-      // Card chỉ bị dời chỗ trong DOM thì vẫn nối, không tính.
+      // A card only moved within the DOM is still connected; do not count it.
       if (node.dataset?.masonryCard === undefined || node.isConnected) return;
       window.__pendingRemoved += [...node.querySelectorAll("img")].filter((image) => !image.complete).length;
     }))).observe(document, { childList: true, subtree: true });
@@ -47,7 +47,7 @@ try {
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.waitForTimeout(1500);
   const limit = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
-  // Nhảy như kéo thanh cuộn: đoạn đi liền, có lúc dừng ngắn giữa chừng để card kịp mount rồi bị gỡ khi đang tải.
+  // Jump like dragging the scrollbar: a continuous run with brief pauses in between so cards can mount and then be removed while loading.
   let seed = 7;
   const random = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   let y = 0;

@@ -1,7 +1,7 @@
-// Card related không đi qua primary, và không lòn dưới suggestion đang ghim, khi xếp lại (advertising-cta-center-parallax R10,
+// Related cards do not pass through primary, and do not tuck under the pinned suggestion, when rearranged (advertising-cta-center-parallax R10,
 // advertising-detail R5).
-// Lấy mẫu rect mỗi frame lúc bật, tắt tag suggestion và resize 1569 -> 820 -> 1569; hero chọn từ masonry lúc chạy.
-// Test phải gặp ít nhất một ca card từ cột cạnh primary xuống dưới primary có chạy đường vòng, không thì fail.
+// Sample rects every frame while toggling the suggestion tag on and off and resizing 1569 -> 820 -> 1569; the hero is picked from the masonry at runtime.
+// The test must meet at least one case of a card going from the column beside primary to below primary with a detour running, otherwise it fails.
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -12,8 +12,8 @@ const detourTarget = 3;
 
 const CARDS = "[data-masonry-related-card]:not([hidden]), [data-masonry-suggestion-card]:not([hidden])";
 
-// Bắt đầu lấy mẫu; resolve sau frame rAF đầu để thao tác không ăn vào cửa sổ đo.
-// Lấy mẫu tới khi hết animation "related-detour" và Masonry đứng yên, trần `cap` ms.
+// Start sampling; resolve after the first rAF frame so the action does not fall into the measurement window.
+// Sample until the "related-detour" animation ends and Masonry is still, capped at `cap` ms.
 const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promise((started) => {
   const primary = document.querySelector(".detail-view__primary");
   const grid = document.querySelector("[data-detail-related-grid]");
@@ -50,7 +50,7 @@ const startSampler = (page, cap) => page.evaluate(({ cap, cards }) => new Promis
     frames += 1;
     if (frames === 1) started();
     still = moving ? 0 : still + 1;
-    // Chờ ít nhất 6 frame để thao tác kịp kích hoạt motion, rồi dừng khi đứng yên 6 frame liền.
+    // Wait at least 6 frames for the action to trigger motion, then stop after 6 consecutive still frames.
     if (performance.now() - start < cap && (frames < 12 || still < 6)) requestAnimationFrame(tick);
     else { state.after = snapshot(); state.primaryAfter = box(primary); state.done = true; }
   };
@@ -62,7 +62,7 @@ const collect = async (page) => {
   return page.evaluate(() => window.__detourSample);
 };
 
-// Số card đi từ cột cạnh primary (trái >= mép phải primary) xuống dưới primary (trên >= đáy primary).
+// Number of cards going from the column beside primary (left >= primary's right edge) to below primary (top >= primary's bottom).
 const besideToBelow = ({ before, after, primaryBefore, primaryAfter }) => Object.keys(after || {}).filter((id) =>
   before[id] && before[id].x >= primaryBefore.right - 1 && after[id].y >= primaryAfter.bottom - 1).length;
 
@@ -74,7 +74,7 @@ const openDetail = async (page, locale, hero) => {
   await page.waitForTimeout(500);
 };
 
-// Sau khi xếp xong mọi card nằm đúng left/top inline của Masonry (sai số 1px) và không còn animation đi vòng.
+// After arranging, every card sits at Masonry's exact inline left/top (1px tolerance) and no detour animation remains.
 const assertSettled = async (page, label) => {
   await page.waitForTimeout(500);
   const wrong = await page.evaluate((cards) => {
@@ -88,7 +88,7 @@ const assertSettled = async (page, label) => {
       return Math.abs(dx) > 1 || Math.abs(dy) > 1 || detour ? [{ id: node.dataset.masonryRelatedItem, dx, dy, detour }] : [];
     });
   }, CARDS);
-  assert.deepEqual(wrong, [], `${label}: card chưa về đúng placement`);
+  assert.deepEqual(wrong, [], `${label}: card not back at its exact placement`);
 };
 
 const browser = await chromium.launch({ headless: true });
@@ -98,7 +98,7 @@ try {
   await probe.waitForSelector("[data-masonry-card]");
   const heroes = (await probe.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard))).slice(0, heroLimit);
   await probe.close();
-  assert.ok(heroes.length, "masonry không có card");
+  assert.ok(heroes.length, "masonry has no cards");
 
   const detourHeroes = [];
   const errors = [];
@@ -115,9 +115,9 @@ try {
         await startSampler(page, 1500);
         await page.locator(`[data-masonry-suggestion-tag="${tag}"]`).click();
         const sample = await collect(page);
-        const label = `${hero} tag ${tag} lượt ${pass + 1}`;
-        assert.ok(sample.primary, `${label}: không thấy primary hoặc related grid`);
-        assert.ok(sample.sampled > 0, `${label}: không lấy mẫu được card nào`);
+        const label = `${hero} tag ${tag} pass ${pass + 1}`;
+        assert.ok(sample.primary, `${label}: primary or related grid not found`);
+        assert.ok(sample.sampled > 0, `${label}: no card could be sampled`);
         assert.deepEqual(sample.overlaps, [], `${label}: card giao primary`);
         if (besideToBelow(sample) && sample.detours) heroDetour = true;
         await assertSettled(page, label);
@@ -133,10 +133,10 @@ try {
     if (heroDetour) detourHeroes.push(hero);
     await page.close();
   }
-  assert.ok(detourHeroes.length, `không hero nào trong ${heroes.length} hero có card từ cột cạnh primary xuống dưới primary chạy đường vòng`);
+  assert.ok(detourHeroes.length, `none of the ${heroes.length} heroes has a card going from the column beside primary to below primary with a detour`);
 
-  // Phone 384px: primary hết cột (pinterest), suggestion ghim ở cột trái ngay dưới primary. Card không giao primary,
-  // không lòn dưới suggestion; phải gặp ít nhất một ca card đi vòng suggestion.
+  // Phone 384px: primary spans the full column (pinterest), the suggestion pins in the left column right under primary. Cards do not intersect primary,
+  // do not tuck under the suggestion; at least one case of a card detouring around the suggestion must occur.
   let phoneDetours = 0;
   for (const hero of heroes.slice(0, 3)) {
     const phone = await browser.newPage({ viewport: { width: 384, height: 854 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
@@ -148,18 +148,18 @@ try {
         await startSampler(phone, 1500);
         await phone.locator(`[data-masonry-suggestion-tag="${tag}"]`).tap();
         const sample = await collect(phone);
-        const label = `phone ${hero} tag ${tag} lượt ${pass + 1}`;
+        const label = `phone ${hero} tag ${tag} pass ${pass + 1}`;
         assert.deepEqual(sample.overlaps, [], `${label}: card giao primary`);
-        assert.deepEqual(sample.pinnedOverlaps, [], `${label}: card lòn dưới suggestion`);
+        assert.deepEqual(sample.pinnedOverlaps, [], `${label}: card tucks under the suggestion`);
         phoneDetours += sample.detours;
         await assertSettled(phone, label);
       }
     }
     await phone.close();
   }
-  assert.ok(phoneDetours, "phone: không ca nào card đi vòng suggestion");
+  assert.ok(phoneDetours, "phone: no case of a card detouring around the suggestion");
 
-  // Giảm chuyển động: không có animation đi vòng.
+  // Reduced motion: no detour animation.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
   await openDetail(reduced, "vi", heroes[0]);
   const reducedTag = await reduced.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
@@ -168,11 +168,11 @@ try {
     await reduced.locator(`[data-masonry-suggestion-tag="${reducedTag}"]`).click();
     const { overlaps, detours } = await collect(reduced);
     assert.deepEqual(overlaps, []);
-    assert.equal(detours, 0, "reduced motion vẫn chạy đường vòng");
+    assert.equal(detours, 0, "reduced motion still runs the detour");
   }
   await reduced.close();
   assert.deepEqual(errors, []);
-  console.log(`related detour: ${detourHeroes.length} hero có ca cột cạnh xuống dưới primary (${detourHeroes.join(", ")}), không frame nào giao primary`);
+  console.log(`related detour: ${detourHeroes.length} heroes with a beside-column to below-primary case (${detourHeroes.join(", ")}), no frame intersects primary`);
 } finally {
   await browser.close();
 }

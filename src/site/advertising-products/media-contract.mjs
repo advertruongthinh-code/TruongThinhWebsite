@@ -6,7 +6,7 @@ export const ADVERTISING_MEDIA_CATEGORY_COUNTS = Object.freeze({
   "led-displays-lightboxes": 18,
   "print-decals": 16,
 });
-// Số đếm category baseline vẫn dùng được cho fixture và consumer cũ; chúng không phải ràng buộc kích thước pool.
+// Category baseline counts remain usable for fixtures and old consumers; they are not a size constraint on the pool.
 
 const isNonEmptyString = (value) => typeof value === "string" && value.length > 0;
 const isPositiveNumber = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -43,7 +43,7 @@ export function validateAdvertisingCardMedia(record) {
     throw new Error(`${record.id} coverMediaId must name one media item`);
   }
   const ids = new Set();
-  // Alt riêng từng media cho SEO (media-seo R3): khóa theo ngôn ngữ, giữ id media đầu tiên để báo lỗi.
+  // Per-media alt for SEO (media-seo R3): keyed by language, keeping the first media id to report errors.
   const altOwners = new Map();
   let cardWidth = 0n;
   let cardHeight = 0n;
@@ -191,7 +191,7 @@ export function validateAdvertisingMediaPool(records, options) {
     });
   }
 
-  // Bốn loại tỷ lệ xét ở cấp cụm; card thuộc mọi cụm của các sản phẩm nó gắn.
+  // Four aspect-ratio classes are considered at cluster level; a card belongs to every cluster of the products it is attached to.
   for (const [clusterId, ratios] of ratiosByCluster) {
     if (!ratios.some((ratio) => ratio < 0.9)) errors.push(`${clusterId} missing portrait ratio`);
     if (!ratios.some((ratio) => ratio >= 0.9 && ratio <= 1.1)) errors.push(`${clusterId} missing near-square ratio`);
@@ -207,13 +207,13 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PRODUCT_TEXT_FIELDS = ["label", "title", "intro"];
 const CLUSTER_TEXT_FIELDS = [...PRODUCT_TEXT_FIELDS, "description"];
 
-// Kiểm cụm và sản phẩm (spec advertising-taxonomy R2); trả danh sách lỗi để gộp với lỗi của pool.
+// Check clusters and products (spec advertising-taxonomy R2); returns a list of errors to merge with the pool's errors.
 function validateAdvertisingTaxonomy(clusters, products) {
   const errors = [];
   const clusterIds = new Set(clusters.map((cluster) => cluster.id));
   const entries = [...clusters, ...products];
   for (const entry of entries) {
-    // Sản phẩm dùng intro làm meta description; cụm có description riêng.
+    // Products use the intro as meta description; clusters have their own description.
     const textFields = Object.hasOwn(entry, "cluster") ? PRODUCT_TEXT_FIELDS : CLUSTER_TEXT_FIELDS;
     for (const locale of ["Vi", "En"]) {
       if (!SLUG.test(entry[`slug${locale}`] ?? "")) errors.push(`${entry.id} slug${locale} must be lowercase ASCII words joined by hyphens`);

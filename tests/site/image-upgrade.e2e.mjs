@@ -1,5 +1,5 @@
-// Ảnh trong màn hình lên bản gốc sau khi bản vừa khung đã hiện (progressive-loading R10).
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-upgrade.e2e.mjs
+// Images on screen upgrade to the original after the frame-fit version has shown (progressive-loading R10).
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-upgrade.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
@@ -24,15 +24,15 @@ const pathOf = (page, selector) => page.evaluate((selector) => {
 }, selector);
 
 try {
-  // Trang tĩnh: hero hiện bản vừa khung trước, trang ngừng cuộn thì đổi sang bản gốc, bản gốc tải đúng một lần.
+  // Static page: the hero shows the frame-fit version first, when scrolling stops it switches to the original, and the original loads exactly once.
   {
     const { page, originals } = await open();
     await page.goto(`${base}/vi/residential/`, { waitUntil: "load" });
     const hero = ".detail-hero .hero-slide.is-active img";
     await page.waitForFunction((selector) => document.querySelector(selector)?.closest(".is-media-settled"), hero);
     assert.match(await pathOf(page, hero), VARIANT, "hero shows its fitted variant first");
-    // Cuộn xuống liên tục 3s: mỗi lần đổi lên bản gốc (srcset chỉ còn một URL không có bề rộng) phải xảy ra khi trang
-    // đã đứng yên ít nhất 200ms. Đo theo vị trí cuộn thật, vì lúc intro hero trang chưa nhận cuộn.
+    // Scroll down continuously for 3s: each switch to the original (srcset left with a single URL with no width) must happen when the page
+    // has been still for at least 200ms. Measure by the real scroll position, since the page has not received scroll during the hero intro.
     await page.evaluate(() => {
       window.__upgradeTrace = [];
       let movedAt = performance.now();
@@ -67,7 +67,7 @@ try {
     await page.close();
   }
 
-  // Advertising: card masonry là khung nhỏ nên giữ bản vừa khung; ảnh lớn của detail (khung lớn) lên bản gốc.
+  // Advertising: masonry cards are small frames so they keep the frame-fit version; the large detail image (large frame) upgrades to the original.
   {
     const { page, originals } = await open();
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
@@ -78,14 +78,14 @@ try {
     assert.ok(cards.length && cards.every((pathname) => VARIANT.test(pathname)), `masonry cards stay on their variant ${JSON.stringify(cards)}`);
     assert.deepEqual(originals.filter(({ pathname }) => cards.some((card) => card.replace(VARIANT, "") === pathname.replace(/\.\w+$/, ""))), [],
       "no masonry card requests its original");
-    // Mở detail bằng click (route mềm) để primary dùng lại cùng img khi mở media sau.
+    // Open detail by click (soft route) so the primary reuses the same img when media opens later.
     await page.locator("[data-masonry-card] > a").first().click();
     const primary = "[data-detail-image]";
     await page.waitForFunction((selector) => {
       const image = document.querySelector(selector);
       return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
     }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
-    // Primary dùng lại một img: mở media khác thì ảnh hiện phải là media đó, không phải bản gốc của media trước.
+  // The primary reuses one img: opening other media must show that media, not the previous media's original.
     await page.goBack();
     await page.locator("[data-masonry-card] > a").nth(1).click();
     await page.waitForTimeout(2000);
@@ -97,14 +97,14 @@ try {
     assert.equal(shown.current, shown.src, "the primary shows the media it was given");
     await page.close();
   }
-  // Card related và card gợi ý ở detail là card masonry: giữ bản vừa khung dù card dọc cao quá 60% viewport (PC owner
-  // 1920x940: card related 436px lên bản gốc làm đứng 200-480ms mỗi lần giải mã, 2026-11-09).
+  // Related and suggestion cards in detail are masonry cards: they keep the frame-fit version even when a portrait card is taller than 60% of the viewport (owner's PC
+  // 1920x940: a 436px related card upgrading to the original froze 200-480ms on each decode, 2026-11-09).
   {
     const { page } = await open({ viewport: { width: 1920, height: 940 } });
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
     await page.locator("[data-masonry-card] > a").first().click();
     await page.waitForTimeout(6000);
-    // Ảnh gốc nhỏ (không có variant lớn hơn khung) vẫn là ứng viên đúng; chỉ bản gốc lớn hơn nhiều so với khung là nâng sai.
+    // A small original (no variant larger than the frame) is still a valid candidate; only an original much larger than the frame is a wrong upgrade.
     const cards = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card] img, [data-masonry-suggestion-card] img")]
       .filter((image) => image.currentSrc && image.clientWidth > 0).map((image) => ({ pathname: new URL(image.currentSrc).pathname,
         oversized: image.naturalWidth > 1.5 * image.clientWidth * devicePixelRatio })));
@@ -112,8 +112,8 @@ try {
     assert.ok(cards.length && !upgraded.length, `related cards stay on their variant ${JSON.stringify(upgraded)}`);
     await page.close();
   }
-  // Phone trang chủ: 9 slide hoãn tải variant lớn nhất 2048, không tải bản gốc (media-delivery R2, owner 2026-10-31);
-  // slide gốc nhỏ hơn 2048 không có variant 2048 nên bản gốc là ứng viên lớn nhất.
+  // Phone home: 9 slides defer the largest 2048 variant and do not load the original (media-delivery R2, owner 2026-10-31);
+  // an original slide smaller than 2048 has no 2048 variant, so the original is the largest candidate.
   {
     const { page } = await open({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true });
     await page.goto(`${base}/vi/`, { waitUntil: "load" });

@@ -33,7 +33,7 @@ const measure = page => page.evaluate(() => {
 const ready = async page => {
   await page.waitForFunction(()=>document.fonts.status==='loaded');
   await page.waitForFunction(() => window.TruongThinhMotion && document.documentElement.classList.contains('motion-ready'));
-  // Veil route-enter còn chặn wheel; chờ hết như mobile-layout-parity.
+  // The route-enter veil still blocks the wheel; wait until it is gone, as in mobile-layout-parity.
   await page.waitForFunction(() => !document.documentElement.classList.contains('route-enter'));
 };
 const engines = {chromium,firefox,webkit,chrome:chromium,msedge:chromium};
@@ -41,11 +41,11 @@ for (const engine of (process.env.SCROLLBAR_ENGINES||Object.keys(engines).join('
 const type=engines[engine];
 const channel=['chrome','msedge'].includes(engine)?engine:undefined;
 const browser = await type.launch({ headless:true, channel, ignoreDefaultArgs:['--hide-scrollbars'] });
-// So với document native không style của chính browser, gồm cả mặc định headless.
+// Compared against the browser's own unstyled native document, including headless defaults.
 const control=await browser.newPage({viewport:{width:390,height:844}});
 await control.setContent('<!doctype html><html><body><p style="height:3000px">Native control</p></body></html>');
 const nativeDefault=await control.evaluate(()=>({width:getComputedStyle(document.documentElement).scrollbarWidth,color:getComputedStyle(document.documentElement).getPropertyValue('scrollbar-color')}));
-// Giữ cửa sổ control native sống đến khi browser teardown (bug context-close cửa sổ cuối của Firefox).
+// Keep the native control window alive until browser teardown (Firefox's last-window context-close bug).
 const record = (name,m) => results.push({engine,version:browser.version(),case:name,...m});
 try {
   const page = await browser.newPage({ viewport:{width:1440,height:900} });
@@ -74,7 +74,7 @@ try {
     near(hover[selector].w,idle[selector].w,`${selector} width`);
   }
   await page.mouse.move(600,300);
-  // Locomotive dịch một bước cố định mỗi wheel event (0.4x ngoài Windows), nên gửi vài nấc.
+  // Locomotive moves a fixed step per wheel event (0.4x outside Windows), so send a few notches.
   for (let notch=0;notch<3;notch++) await page.mouse.wheel(0,500);
   await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll()>100);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.c-scrollbar')).opacity) === 0);
@@ -100,8 +100,8 @@ try {
   await page.waitForFunction(()=>window.TruongThinhMotion.getLogicalScroll()<=1);
   record('drag endpoints',await measure(page));
   await page.mouse.up(); await page.mouse.move(600,300);
-  // Thả thumb giữa lúc lerp chưa tới đích: trang phải trượt tiếp tới đích rồi lăn chuột chỉ đi một nấc,
-  // không đứng giữa chừng rồi nhảy cả quãng còn lại ở nấc lăn đầu tiên (owner 2026-11-09).
+  // Releasing the thumb before lerp reaches the target: the page must keep sliding to the target and then one wheel notch moves exactly one step,
+  // not stand midway and then jump the whole remaining distance on the first wheel notch (owner 2026-11-09).
   const fastThumb = await page.locator('.c-scrollbar_thumb').boundingBox();
   await page.mouse.move(fastThumb.x+fastThumb.width/2,fastThumb.y+fastThumb.height/2);
   await page.mouse.down();
@@ -143,9 +143,9 @@ try {
   near((await measure(page)).y,locked.y,'menu restores scroll');
   assert.ok(await page.locator('[data-menu-open]').evaluate(e => e===document.activeElement),'menu restores focus');
   record('menu lock/release',await measure(page));
-  // Route mềm giữ document không gutter suốt lúc đổi trang: scrollbar native không được lóe lên rồi ẩn (giật ngang).
-  // Đọc class ở mỗi lần đổi (microtask) thay vì chờ frame, vì khoảng hở giữa gỡ trang cũ và mount trang mới có khi lọt
-  // giữa hai frame.
+  // A soft route keeps the document gutter-free throughout the page change: the native scrollbar must not flash then hide (horizontal jerk).
+  // Read the class on every change (microtask) instead of waiting for a frame, because the gap between removing the old page and mounting the new one can fall
+  // between two frames.
   await page.goto(`${base}/vi/`); await ready(page);
   await page.evaluate(() => {
     window.__routeGutters = new Set();
@@ -199,7 +199,7 @@ try {
   await page.setViewportSize({width:1440,height:900});
   await page.goto(`${base}/vi/about/`); await ready(page);
   await page.locator('[data-site-header] a[href="/vi/residential/"]').click();
-  // Biên About là navigation native (L04H), nên body có thể null trong chốc lát.
+  // The About edge is a native navigation (L04H), so body may be null briefly.
   await page.waitForFunction(()=>location.pathname==='/vi/residential/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'soft route owns one scrollbar');
   await page.goBack();

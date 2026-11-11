@@ -1,4 +1,4 @@
-/* Plus Jakarta Sans variable tự host (OFL), copy từ @fontsource-variable bởi prepare-static-assets. Face khai báo sau thắng khi unicode-range chồng nhau: vietnamese đứng sau latin-ext để chữ Việt không kéo file latin-ext. */
+/* Plus Jakarta Sans variable, self-hosted (OFL), copied from @fontsource-variable by prepare-static-assets. The later-declared face wins when unicode-range overlaps: vietnamese comes after latin-ext so Vietnamese text does not pull in the latin-ext file. */
 @font-face {
   font-family: "Plus Jakarta Sans";
   font-style: normal;
@@ -77,16 +77,16 @@
   --media-hover-easing: ease-out;
   --media-hover-transform: transform var(--media-hover-duration) var(--media-hover-easing);
   --tracking-display: 0.001px;
-  /* Cỡ tiêu đề CTA dùng chung: Giữ nghề, CTA trang con, CTA Advertising (detail-pages R10). */
+  /* Shared CTA heading size: "Giữ nghề", child page CTA, Advertising CTA (detail-pages R10). */
   --cta-title-size: clamp(3.2rem, 6vw, 7rem);
-  /* Chữ portal dùng chung toàn site (owner 2026-10-17): cqw tính theo card khi var() được dùng. */
+  /* Site-wide shared portal text (owner 2026-10-17): cqw is computed per card when var() is used. */
   --portal-title-size: min(4rem, 12cqw);
   --portal-kicker-size: min(1.125rem, 4.2cqw);
   --portal-subtitle-size: min(1rem, 3.8cqw);
-  /* Bóng chữ hai lớp D trên ảnh có chữ trắng (hero-typography R6); reach là bán kính quầng ngoài để nới mask. */
+  /* Two-layer text shadow D on images with white text (hero-typography R6); reach is the outer halo radius used to widen the mask. */
   --text-shadow-d: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.4);
   --text-shadow-reach: 12px;
-  /* Vệt sáng tâm trắng 20%, 17 điểm màu raised cosine; khung ảnh và nút suggestion dùng chung (media-delivery R6). */
+  /* Light streak with a white 20% center, 17 raised-cosine color stops; shared by the image frame and the suggestion button (media-delivery R6). */
   --media-sweep-gradient: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.76%) 45.625%, rgb(255 255 255 / 2.93%) 46.25%, rgb(255 255 255 / 6.17%) 46.875%, rgb(255 255 255 / 10%) 47.5%, rgb(255 255 255 / 13.83%) 48.125%, rgb(255 255 255 / 17.07%) 48.75%, rgb(255 255 255 / 19.24%) 49.375%, rgb(255 255 255 / 20%) 50%, rgb(255 255 255 / 19.24%) 50.625%, rgb(255 255 255 / 17.07%) 51.25%, rgb(255 255 255 / 13.83%) 51.875%, rgb(255 255 255 / 10%) 52.5%, rgb(255 255 255 / 6.17%) 53.125%, rgb(255 255 255 / 2.93%) 53.75%, rgb(255 255 255 / 0.76%) 54.375%, transparent 55%);
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
@@ -116,7 +116,7 @@
   contain: strict;
 }
 
-/* Biểu tượng gốc của autoscroll chuột giữa (scroll-feel R6). */
+/* Original middle-mouse autoscroll icon (scroll-feel R6). */
 .autoscroll-origin {
   position: fixed;
   z-index: 10000;
@@ -149,7 +149,7 @@ html {
   color: var(--ink);
   overflow-x: hidden;
   scroll-behavior: smooth;
-  /* Native focus và anchor scroll dừng bên dưới hàng sticky header. */
+  /* Native focus and anchor scroll stop below the sticky header row. */
   scroll-padding-top: calc(var(--header-row-height) + var(--gutter) + 0.5rem);
 }
 
@@ -167,7 +167,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* html có overflow-x riêng nên overflow của body không lan lên viewport; khóa cả html. */
+/* html has its own overflow-x so body overflow does not propagate to the viewport; lock html too. */
 html:has(> body.menu-open),
 body.menu-open {
   overflow: hidden;
@@ -179,7 +179,7 @@ img {
   height: auto;
 }
 
-/* Wrapper responsive build-time không được thêm layout box quanh ảnh nội dung. */
+/* The build-time responsive wrapper must not add a layout box around content images. */
 picture {
   display: contents;
 }
@@ -213,12 +213,12 @@ a {
   color: white;
 }
 
-/* Giữ thumb overlay chạm tới được phía trên glass surface của header cố định. */
+/* Keep the overlay thumb reachable above the fixed header glass surface. */
 .c-scrollbar {
   z-index: 1001;
 }
 
-/* Giữ rail touch và drag dùng được mà không lộ scrollbar ngang. */
+/* Keep the touch and drag rail usable without exposing a horizontal scrollbar. */
 :where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
@@ -261,7 +261,7 @@ body.is-transitioning .route-veil {
   pointer-events: auto;
 }
 
-/* Direct load giữ header dưới veil đến khi nó lộ ra; route mềm giữ nó phía trên. */
+/* Direct load keeps the header under the veil until it is revealed; a soft route keeps it above. */
 html.route-enter .site-header {
   z-index: 998;
 }
@@ -287,14 +287,14 @@ html.route-enter .site-header {
   border-bottom: 0 solid transparent;
   background: transparent;
   color: white;
-  /* Nhịp header: logo FLIP, navbar và nền 0.3s; nền, viền, chữ (.is-surface, .is-ink) đổi một lần, không fade: thu gọn
-     thì ngay lúc bắt đầu nhịp, mở ra thì hết nhịp; mark lật ngay lúc bắt đầu (owner 2026-11-09, brand.md Motion). */
+  /* Header rhythm: logo FLIP, navbar and background 0.3s; background, border, text (.is-surface, .is-ink) change once, no fade: collapsing
+     happens right at the start of the rhythm, expanding at its end; the mark flips right at the start (owner 2026-11-09, brand.md Motion). */
   transition: transform 1s cubic-bezier(0, 0, 0.1, 0.99);
 }
 
-/* Nền và viền header: lớp ::before kéo lên khỏi màn hình, đáy trùng đáy header. Thu gọn hoặc mở ra: motion.js đặt
-   --header-surface-shift bằng phần header vừa đổi cao rồi về 0 trong 0.3s, nền co hoặc giãn cùng logo và navbar;
-   mở ra thì nền giữ tới hết nhịp mới tắt; chỉ transform. */
+/* Header background and border: the ::before layer pulled up off screen, its bottom matching the header bottom. Collapse or expand: motion.js sets
+   --header-surface-shift to the height the header just changed then back to 0 in 0.3s, the background shrinks or grows with the logo and navbar;
+   on expanding the background is kept until the end of the rhythm before turning off; transform only. */
 .site-header::before {
   position: absolute;
   z-index: -1;
@@ -336,7 +336,7 @@ html.route-enter .site-header {
   transform: translateY(-100%);
 }
 
-/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
+/* Phone: transform follows the finger so the transform transition is removed (phone-header-scroll R3). */
 .site-header.is-follow {
   transition: none;
 }
@@ -373,7 +373,7 @@ html.route-enter .site-header {
   fill: currentColor;
 }
 
-/* Lớp lật màu mark do motion.js chèn lúc đổi màu, gỡ khi lật xong (brand.md Motion). Mỗi mặt là lớp GPU riêng. */
+/* Mark color flip layer inserted by motion.js on color change, removed when the flip finishes (brand.md Motion). Each face is its own GPU layer. */
 #header-logo {
   position: relative;
 }
@@ -395,7 +395,7 @@ html.route-enter .site-header {
   backface-visibility: hidden;
 }
 
-/* Lớp bóng của từng mặt: cùng hình dải, chỉ chạy opacity (brand.md Motion). */
+/* Shadow layer of each face: same strip shape, opacity only (brand.md Motion). */
 .brand-lockup__mark-flip > span > span > span {
   position: absolute;
   inset: 0;
@@ -862,7 +862,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   opacity: 0;
   overflow-x: hidden;
   overflow-y: scroll;
-  /* Sáu nhóm: PC ba trên, ba dưới (site-shell R4). */
+  /* Six groups: PC three on top, three below (site-shell R4). */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: minmax(min-content, 1fr);
   align-content: stretch;
@@ -1063,8 +1063,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   grid-template-columns: 100%;
   grid-template-rows: 100%;
   overflow: hidden;
-  /* Hero cao cố định nhưng chữ đổi cỡ sau khi mount (fitHeroLines, SplitText); WebKit lấy node trong hero làm
-     scroll anchor nên Back về trang đã cuộn bị lệch 23px. Loại hero khỏi việc chọn anchor. */
+  /* The hero has a fixed height but the text changes size after mount (fitHeroLines, SplitText); WebKit takes a node in the hero as
+     scroll anchor so Back to a scrolled page is off by 23px. Exclude the hero from anchor selection. */
   overflow-anchor: none;
   background: var(--media-loading-surface);
   color: white;
@@ -1106,16 +1106,16 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   will-change: transform;
 }
 
-/* Màn dọc (điện thoại) cắt hai bên ảnh hero; slide nào có chủ thể lệch thì đặt --hero-portrait-x để giữ chủ thể trong khung. */
+/* Portrait screens (phone) crop both sides of the hero image; a slide whose subject is off-center sets --hero-portrait-x to keep the subject in frame. */
 @media (max-aspect-ratio: 1/1) {
   .hero-slide img {
     object-position: var(--hero-portrait-x, 50%) 50%;
   }
 }
 
-/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): phủ đều 0,2; độ tối tổng ở mép trên 0,7, nhạt dần
-   trong 36% chiều cao hero tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
-   lớp mép = (tổng - 0,2) / 0,8: 0,625 và 0,375. Mép trên dài và mịn: stop theo đường cosine, đầu và cuối dốc 0, không mép gắt. */
+/* Owner 2026-10-26, every hero (home, Residential, Commercial, About): uniform overlay 0.2; total darkness at the top edge 0.7, fading
+   over 36% of the hero height to exactly the 0.2 of the uniform overlay, at the bottom edge 0.5; no left edge layer. The edge layer stacks on the uniform overlay so the alpha
+   of the edge layer = (total - 0.2) / 0.8: 0.625 and 0.375. The top edge is long and smooth: stops follow a cosine curve, slope 0 at start and end, no hard edge. */
 .hero-shade {
   z-index: 1;
   background:
@@ -1136,8 +1136,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
-/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero có bóng (owner 2026-11-01; nút CUỘN là button nên cần rule riêng, UA đặt text-shadow none cho form control); CTA lưới
-   trang Sản phẩm quảng cáo (chữ ink trên nền giấy) không áp. */
+/* White text on images: two-layer shadow D next to the existing dark layer (hero-typography R6). The hero has a shadow (owner 2026-11-01; the "CUỘN" button is a button so it needs its own rule, UA sets text-shadow none for form controls); the grid CTA
+   of the Advertising products page (ink text on paper background) does not apply. */
 .hero:not(.detail-index-hero),
 .hero:not(.detail-index-hero) .scroll-cue,
 .portal-copy,
@@ -1146,7 +1146,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-shadow: var(--text-shadow-d);
 }
 
-/* Không JavaScript thì script xáo không gán src cho slide nào; hero trang chủ hiện ảnh cố định (page-home R12). */
+/* Without JavaScript the shuffle script assigns no src to any slide; the home hero shows a fixed image (page-home R12). */
 @media (scripting: none) {
   .hero[data-hero-intro] .hero-slides {
     background: center / cover url("/assets/content/projects/home-hero-lobby-wall-art.webp");
@@ -1168,7 +1168,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
-/* Trang cụm, sản phẩm: kicker là h1, khẩu hiệu là p.hero-title giữ cùng hình. */
+/* Cluster and product pages: the kicker is h1, the slogan is p.hero-title keeping the same look. */
 .hero h1:where(:not(.hero-kicker)),
 .hero p:where(.hero-title),
 .legacy-copy h2 {
@@ -1188,7 +1188,7 @@ em {
   font-weight: 600;
 }
 
-/* Trang chủ: hai dòng đậm 700, dòng 2 "Làm khác" thêm nghiêng (owner 2026-10-24). */
+/* Home: two lines bold 700, line 2 "Làm khác" additionally italic (owner 2026-10-24). */
 .hero[data-hero-intro] h1 > .hero-line-mask:first-child,
 .hero[data-hero-intro] h1 em {
   font-weight: 700;
@@ -1209,8 +1209,8 @@ em {
   display: block;
 }
 
-/* Dòng chữ đang ẩn hoặc đang trồi lên: không bóng, mép dưới mask không nới vùng bóng, chữ chỉ hiện từ đáy mực
-   như trước khi có bóng (hero-typography R6). motion.js gỡ class khi reveal xong, bóng hiện dần sau đó. */
+/* A line that is hidden or rising: no shadow, the mask bottom edge does not widen the shadow area, text shows only from the ink bottom
+   as before shadows existed (hero-typography R6). motion.js removes the class when the reveal finishes, the shadow fades in afterwards. */
 .is-text-masked {
   --mask-shadow-bottom: 0px;
   text-shadow: none;
@@ -1254,7 +1254,7 @@ em {
     transform: none;
   }
 
-  /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
+  /* A font size change must not keep the ink allowance measured at the old size. */
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
       calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
@@ -1270,8 +1270,8 @@ em {
   }
 }
 
-/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
-   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
+/* Hero right column, right above the floating CTA (shown on the first screen, 47px tall) and flush with the button right edge.
+   When the hero is taller than the viewport (min-height, short landscape screen) add the surplus so the button stays on the first screen, above the CTA. */
 .motion-toggle {
   --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
   position: absolute;
@@ -1285,7 +1285,7 @@ em {
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 50%;
-  /* Owner 2026-10-26: nền 0,4, hover 0,7 (trước 0,42 và 0,72). */
+  /* Owner 2026-10-26: background 0.4, hover 0.7 (previously 0.42 and 0.72). */
   background: rgba(20, 21, 20, 0.4);
   color: white;
   cursor: pointer;
@@ -1301,7 +1301,7 @@ em {
   }
 }
 
-/* Từ 750px trở xuống CTA là nút vuông 57px cách mép phải 15px: nút dừng thẳng trục giữa với CTA. */
+/* At 750px and below the CTA is a 57px square button 15px from the right edge: the pause button is aligned on the center axis with the CTA. */
 @media (max-width: 750px) {
   .motion-toggle {
     right: calc(15px + (57px - 2.75rem) / 2);
@@ -1390,7 +1390,7 @@ em {
   gap: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
-/* Năm bước quy trình cùng một hàng: mỗi bước ảnh trên, chữ dưới; tới 980px thành rail vuốt ngang. */
+/* Five process steps in one row: each step image on top, text below; up to 980px it becomes a horizontal swipe rail. */
 .detail-process-editorial {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -1414,7 +1414,7 @@ em {
 }
 
 .detail-process-editorial .editorial-item h3 {
-  /* Cột hẹp nhất ở 981px còn khoảng 165px: "CONSULTATION" vẫn lọt một dòng. */
+  /* The narrowest column at 981px is about 165px: "CONSULTATION" still fits on one line. */
   font-size: clamp(1rem, 1.4vw, 1.25rem);
 }
 
@@ -1486,7 +1486,7 @@ em {
   object-position: 58% 50%;
 }
 
-/* Ảnh Hậu mãi: giữ bản lề và tay cầm tua vít trong khung hẹp. */
+/* After-sales image: keep the hinge and screwdriver handle within the narrow frame. */
 .editorial-item:last-of-type img {
   object-position: 70% 50%;
 }
@@ -1613,7 +1613,7 @@ em {
 .portal-title-mask,
 .portal-title__quiet,
 .portal-title__strong {
-  /* clip-path trên inline bọc block con làm mất cả dòng chữ; block để mask có box thật */
+  /* clip-path on an inline wrapping a child block loses the whole line of text; make it block so the mask has a real box */
   display: block;
   overflow: visible;
   clip-path: inset(
@@ -1644,7 +1644,7 @@ em {
   transform: none;
 }
 
-/* Năng lực cùng token chữ portal toàn site; copy giữ đủ ngắn để vừa một dòng (page-home R5). */
+/* Capabilities use the same site-wide portal text token; copy stays short enough to fit one line (page-home R5). */
 #nang-luc .portal-copy .portal-title-mask {
   font-size: var(--portal-title-size);
   white-space: nowrap;
@@ -1699,7 +1699,7 @@ em {
   opacity: 1;
 }
 
-/* Portal ba tầng (trang chủ, loại hình trang con): kicker, tiêu đề luôn ở tâm card, tagline. */
+/* Three-tier portal (home, child page types): kicker, title always at the card center, tagline. */
 :is(#dich-vu, #loai-hinh) .portal-copy {
   --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   --portal-upper-gap: 0.85rem;
@@ -1708,7 +1708,7 @@ em {
   transform: none;
 }
 
-/* Tiêu đề hai dòng, không kicker (loại hình Commercial, owner 2026-10-27): tagline lùi theo nửa khối hai dòng. */
+/* Two-line title, no kicker (Commercial type, owner 2026-10-27): the tagline retreats by half of the two-line block. */
 #loai-hinh .portal-copy:has(.portal-line + .portal-line) {
   --portal-title-half-line: calc(var(--portal-title-size) * 1.08);
 }
@@ -1720,7 +1720,7 @@ em {
   line-height: 1.08;
 }
 
-/* hai dòng tiêu đề đã là block nên <br> thừa */
+/* the two title lines are already blocks so <br> is redundant */
 .portal-copy strong br {
   display: none;
 }
@@ -1728,7 +1728,7 @@ em {
 :is(#dich-vu, #loai-hinh) .portal-title__quiet,
 :is(#dich-vu, #loai-hinh) .portal-title__strong {
   position: absolute;
-  /* 8px cố định như tagline: "KHU LÀM VIỆC" vẫn vừa khi chữ gốc 200% ở 320px. */
+  /* Fixed 8px like the tagline: "KHU LÀM VIỆC" still fits when the root text is 200% at 320px. */
   right: 8px;
   left: 8px;
   display: block;
@@ -1754,7 +1754,7 @@ em {
 :is(#dich-vu, #loai-hinh) .portal-copy small {
   position: absolute;
   top: calc(50% + var(--portal-title-half-line) + var(--portal-lower-gap));
-  /* 8px cố định: tagline dài (EN Commercial) vẫn một dòng khi chữ gốc 200% (page-home R5). */
+  /* Fixed 8px: a long tagline (EN Commercial) still fits one line when the root text is 200% (page-home R5). */
   right: 8px;
   left: 8px;
   display: flex;
@@ -1815,7 +1815,7 @@ em {
   overflow-x: visible;
 }
 
-/* Hàng dài hơn khung (EN "our commitment" ở 981-1282px) xuống dòng thay vì tràn mép trái. */
+/* A row longer than the frame (EN "our commitment" at 981-1282px) wraps instead of overflowing the left edge. */
 .heritage-row {
   display: flex;
   width: fit-content;
@@ -1853,9 +1853,9 @@ em {
   }
 }
 
-/* 681-1299px: dấu dưới Ệ, Ạ và móc Ẩ chạm ảnh hàng kề. Hàng cách thêm 0.2em; 981-1279px hàng 1 (Kinh
-   nghiệm) và hàng 2 (Sáng tạo) dịch ngang để dấu nằm ngoài ảnh, translate cộng vào transform canh gutter.
-   Số đo bằng Playwright, VI và EN; từ 1300px không cần. */
+/* 681-1299px: the dot below Ệ, Ạ and the hook of Ẩ touch the image in the adjacent row. Rows spaced an extra 0.2em; at 981-1279px row 1 (Kinh
+   nghiệm) and row 2 (Sáng tạo) shift horizontally so the marks sit outside the image, translate adds to the gutter-aligning transform.
+   Measured with Playwright, VI and EN; not needed from 1300px. */
 @media (min-width: 681px) and (max-width: 1299px) {
   .heritage-row + .heritage-row {
     margin-top: 0.2em;
@@ -1896,7 +1896,7 @@ em {
   will-change: transform;
 }
 
-/* Chữ nối (và, là, trong, từng) nhỏ còn nửa trên PC, phone giữ đều cỡ; cách ảnh bằng margin ảnh như từ khóa. */
+/* Small connecting words (và, là, trong, từng) are half size on PC, phone keeps uniform size; spaced from the image by the image margin like keywords. */
 @media (min-width: 681px) {
   .heritage-text--minor {
     font-size: 0.5em;
@@ -2070,12 +2070,12 @@ em {
   position: relative;
   display: flex;
   width: min(calc(100% - 70px), 1500px);
-  /* min-height: khối cao theo chữ khi không có fit bằng JS (scroll-feel R5). */
+  /* min-height: the block is as tall as its text when there is no JS fit (scroll-feel R5). */
   min-height: 600px;
   padding-block: 30px;
   margin-right: auto;
   margin-left: auto;
-  /* clip, không hidden: lớp bấm -100vmax của .legacy-link không tạo vùng cuộn ẩn. */
+  /* clip, not hidden: the -100vmax click layer of .legacy-link does not create a hidden scroll area. */
   overflow: clip;
   background: var(--media-loading-surface);
   color: white;
@@ -2102,17 +2102,17 @@ em {
 }
 
 .legacy-shade {
-  /* Owner 2026-10-26: 0,5 (trước 0,2). */
+  /* Owner 2026-10-26: 0.5 (previously 0.2). */
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision phone-frame-budget). */
+/* Do not use `+ *`: a rule adjacent to a universal subject makes every Advertising card insertion into the grid restyle the whole page (decision phone-frame-budget). */
 .legacy-closer + section {
   margin-top: 90px;
 }
 
-/* Cả khối bấm được (Giữ nghề, CTA trang con); label dùng lại subtitle của service portal.
-   Vùng chữ là containing block nên lớp bấm tràn ra -100vmax, overflow: clip của khối cắt đúng mép. */
+/* The whole block is clickable ("Giữ nghề", child page CTA); the label reuses the subtitle of the service portal.
+   The text area is the containing block so the click layer spills out -100vmax, and the block overflow: clip cuts at exactly its edge. */
 .legacy-link::before {
   position: absolute;
   z-index: 1;
@@ -2120,7 +2120,7 @@ em {
   content: "";
 }
 
-/* Cao hết khối (không margin dọc auto) để grid 1fr auto 1fr dùng chung với CTA trang con đặt tiêu đề ở tâm (detail.css). */
+/* Full block height (no auto vertical margin) so the 1fr auto 1fr grid is shared with the child page CTA which centers the title (detail.css). */
 .legacy-copy {
   position: relative;
   z-index: 1;
@@ -2147,18 +2147,18 @@ em {
 }
 
 .legacy-copy h2 {
-  /* Không có eyebrow: tiêu đề vẫn ở hàng giữa của grid CTA chung. */
+  /* No eyebrow: the title stays in the middle row of the shared CTA grid. */
   grid-row: 2;
   container-type: inline-size;
 }
 
-/* Hai dòng chốt (hero-typography R1): giữ cỡ token, chỉ co khi dòng dài nhất không vừa khung. */
+/* Two closing lines (hero-typography R1): keep the token size, shrink only when the longest line does not fit the frame. */
 .legacy-copy h2[data-hero-fit] > .line-mask {
   white-space: nowrap;
   font-size: min(1em, calc(100cqi / var(--hero-line-em)));
 }
 
-/* Không có motion.js (chữ phóng to, chưa đo): trần cỡ để từ dài nhất vừa khung, dòng được xuống hàng. */
+/* Without motion.js (text enlarged, unmeasured): cap the size so the longest word fits the frame, lines wrap. */
 .legacy-copy h2:not([data-hero-fit]) > .line-mask {
   font-size: min(1em, calc(100cqi / 5));
 }
@@ -2217,7 +2217,7 @@ em {
   min-width: max-content;
   align-items: center;
   gap: 2.8rem;
-  /* chừa đúng một gap ở cuối để chỗ nối hai dòng lặp cách đều */
+  /* leave exactly one gap at the end so the join of the two repeated lines is evenly spaced */
   padding-inline-end: 2.8rem;
   animation: marquee 25s linear infinite;
   font-size: clamp(1.5rem, 2.8vw, 3.2rem);
@@ -2246,7 +2246,7 @@ em {
   animation-play-state: paused;
 }
 
-/* Khung ảnh nội dung chờ bằng vệt sáng tới khi script head thêm .is-media-settled sau load và decode; không JavaScript thì không có .media-gate nên ảnh hiện như thường. */
+/* The content image frame waits with a light streak until the head script adds .is-media-settled after load and decode; without JavaScript there is no .media-gate so the image shows normally. */
 .media-gate .media-frame:not(.is-media-settled) {
   overflow: clip;
   background-color: var(--media-loading-surface);
@@ -2257,8 +2257,8 @@ em {
   opacity: 0;
 }
 
-/* Dải rộng 400% khung trượt -75% tới 0 nên vệt vào từ ngoài mép trái và ra hẳn mép phải; chỉ animate transform.
-   Dải trắng tâm 20% rộng như bản gốc, 17 điểm màu theo raised cosine nên mép mờ dần, không gãy (docs/specs/media-delivery.md R6). */
+/* A strip 400% of the frame wide slides -75% to 0 so the streak enters from beyond the left edge and exits fully past the right edge; animate transform only.
+   The white strip with 20% center is as wide as the original, 17 raised-cosine color stops so the edge fades out, no break (docs/specs/media-delivery.md R6). */
 .media-gate .media-frame:not(.is-media-settled)::before {
   position: absolute;
   inset: 0 auto 0 0;
@@ -2301,18 +2301,18 @@ em {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Không lướt; cả lớp sáng tối nhẹ chu kỳ 2s. */
+  /* No sweep; the whole layer gently brightens and darkens on a 2s cycle. */
   .media-gate .media-frame:not(.is-media-settled)::before {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 10%);
-    /* !important để thắng reset animation toàn cục của reduced motion bên dưới. */
+    /* !important to win over the global reduced-motion animation reset below. */
     animation: media-breathe 2s ease-in-out infinite !important;
   }
 }
 
-/* Ảnh lỗi tải (media-delivery R8): script head thêm .is-media-error lên khung. Khung giữ tỷ lệ, nền xám phẳng, biểu tượng 24px và một dòng
-   chữ nằm dưới nội dung khung (z-index -1 trong isolation) nên chữ hero, portal, CTA vẫn ở trên. Card và primary Advertising dùng chung dấu này, runtime tự quyết trạng thái lỗi theo media đang chọn (media-card R5). */
+/* Image load error (media-delivery R8): the head script adds .is-media-error to the frame. The frame keeps its ratio, flat gray background, 24px icon and a line of
+   text under the frame content (z-index -1 within isolation) so hero, portal, CTA text stay on top. Cards and the Advertising primary share this marker, the runtime decides the error state per the selected media (media-card R5). */
 .media-gate .is-media-error:not(picture, .client-logo-marquee *) {
   --media-error-surface: #e4e4e2;
   --media-error-ink: #5c5c5a;
@@ -2347,7 +2347,7 @@ em {
   content: "Couldn't load";
 }
 
-/* Hero, CTA, portal mang chữ trắng nên giữ nền tối như trước khi có dấu báo lỗi để chữ vẫn đọc được. */
+/* Hero, CTA, portal carry white text so they keep the dark background as before the error marker, so the text stays readable. */
 .media-gate :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer).is-media-error {
   --media-error-surface: var(--media-loading-surface);
   --media-error-ink: #b8b8b6;
@@ -2366,9 +2366,9 @@ em {
   }
 }
 
-/* Bốn cột: địa chỉ | Hotline Zalo | số bàn | mạng xã hội xếp ngang (owner 12/10). Cột co theo nội dung, giãn
-   đều giữa hai biên gutter nên thẳng mép logo và nội dung trang. Đệm dọc rộng cho footer thoáng; floating CTA
-   không hiện cùng footer nên không chừa làn nút. Điện thoại xếp hai số thành hàng, cách 16px. */
+/* Four columns: address | Hotline Zalo | landline | social networks laid out horizontally (owner 12/10). Columns shrink to content, spread
+   evenly between the two gutter edges so they align with the logo and page content edges. Wide vertical padding for an airy footer; the floating CTA
+   does not show with the footer so no button lane is reserved. Phone stacks the two numbers into rows, 16px apart. */
 .site-footer {
   display: grid;
   grid-template-columns: repeat(4, auto);
@@ -2420,7 +2420,7 @@ em {
   display: contents;
 }
 
-/* Icon thay nhãn chữ trên màn hình; nhãn giữ cho trình đọc màn hình. */
+/* Icons replace text labels on screen; the labels are kept for screen readers. */
 .site-footer span {
   position: absolute;
   width: 1px;
@@ -2438,22 +2438,22 @@ em {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: 0.65rem;
-  /* Từ 1440px một dòng chữ cao 36px (1.6rem x 1.4), bằng icon mạng xã hội. */
+  /* From 1440px a text line is 36px tall (1.6rem x 1.4), equal to the social icon. */
   font-size: clamp(1.125rem, 1.8vw, 1.6rem);
   font-weight: 500;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
 }
 
-/* Địa chỉ cùng cỡ chữ với hai số. */
+/* The address has the same font size as the two numbers. */
 .footer-address {
   grid-area: 1 / 1;
   max-width: 18em;
 }
 
-/* Hotline (cũng là số Zalo) rồi số bàn, mỗi số một cột, cùng độ đậm 500, chữ số tabular. Link có
-   draggable="false", user-select text và không kéo đi để kéo chuột bôi đen copy được số; motion.js chặn
-   tel: khi click kết thúc một lần bôi đen. */
+/* Hotline (also the Zalo number) then the landline, one number per column, same weight 500, tabular digits. Links have
+   draggable="false", user-select text and do not drag away so dragging the mouse can select and copy the number; motion.js blocks
+   tel: when a click ends a text selection. */
 .footer-hotline {
   grid-area: 1 / 2;
 }
@@ -2474,7 +2474,7 @@ em {
   white-space: nowrap;
 }
 
-/* Icon cao bằng một dòng chữ để căn giữa dòng đầu. */
+/* Icon as tall as one text line to center on the first line. */
 .footer-icon {
   width: 1.3em;
   height: 1.4em;
@@ -2606,8 +2606,8 @@ em {
   }
 }
 
-/* Tới 1400px, 4 nhãn tiếng Việt không đủ chỗ cho kiểu lệch trái -10% của màn rộng: canh giữa, khe co lại như
-   Espacio dưới 1200px, để navbar không bị ẩn trên laptop 1280/1366. */
+/* Up to 1400px, the 4 Vietnamese labels lack room for the wide screen left-offset -10% style: center, the gap shrinks like
+   Espacio under 1200px, so the navbar is not hidden on a 1280/1366 laptop. */
 @media (min-width: 961px) and (max-width: 1400px) {
   .desktop-nav {
     width: calc(100% + 30px);
@@ -2644,7 +2644,7 @@ em {
   }
 }
 
-/* Trên 1200px khe cột header là 70px: cho nav lấn 50px mỗi bên, chừa 20px tới logo và nút menu. */
+/* Above 1200px the header column gap is 70px: let the nav extend 50px each side, leaving 20px to the logo and menu button. */
 @media (min-width: 1201px) and (max-width: 1400px) {
   .desktop-nav {
     width: calc(100% + 100px);
@@ -2708,8 +2708,8 @@ em {
   }
 }
 
-/* Điện thoại dọc và ngang: header đầu trang cao bằng header thu gọn, chỉ nền, viền và màu đổi khi qua 100px;
-   lockup cùng cỡ nên FLIP scale không chạy (phone-header-scroll R6). */
+/* Phone portrait and landscape: the page-top header is as tall as the collapsed header, only background, border and color change past 100px;
+   the lockup is the same size so the FLIP scale does not run (phone-header-scroll R6). */
 @media (hover: none) and (pointer: coarse) and (max-width: 750px),
   (hover: none) and (pointer: coarse) and (max-height: 750px) {
   .site-header {
@@ -2745,7 +2745,7 @@ em {
     min-height: 38rem;
   }
 
-  /* Hero trang chủ theo luồng chữ nhưng vẫn phủ kín màn hình; chữ phóng to đẩy hero cao thêm. */
+  /* The home hero follows the text flow but still fills the screen; enlarged text pushes the hero taller. */
   .hero[data-hero-intro] {
     min-height: max(38rem, 100svh);
   }
@@ -2760,7 +2760,7 @@ em {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
   }
 
-  /* Rail vuốt ngang để năm bước vẫn một hàng; hai class để thắng .editorial-strip tới 680px. */
+  /* Horizontal swipe rail so the five steps stay in one row; two classes to win over .editorial-strip up to 680px. */
   .editorial-strip.detail-process-editorial {
     grid-template-columns: none;
     grid-auto-flow: column;
@@ -2914,7 +2914,7 @@ em {
     width: 100%;
   }
 
-  /* Cột chữ phủ gần hết số lớn trên phone: số nhạt hơn để chữ đọc trước. */
+  /* The text column covers most of the big number on phone: the number is lighter so the text reads first. */
   .editorial-number {
     color: rgb(31 31 31 / 5%);
   }
@@ -2943,13 +2943,13 @@ em {
     font-size: 1rem;
   }
 
-  /* Khoảng trên dưới chỉ còn section-gap như các section khác trên phone. */
+  /* The top and bottom spacing is only section-gap like other sections on phone. */
   .heritage-montage {
     padding: 0 20px;
   }
 
-  /* Cỡ chữ 6.5vw bằng motto Espacio cùng bề rộng nên mỗi hàng vừa một dòng (hàng rộng nhất EN
-     "our commitment ... to" chiếm 97% khung ở 320px). line-height 1.2 cộng row-gap chỉ còn tác dụng nếu hàng wrap. */
+  /* Font size 6.5vw equal to the Espacio motto at the same width so each row fits one line (the widest EN row
+     "our commitment ... to" takes 97% of the frame at 320px). line-height 1.2 plus row-gap only matters if the row wraps. */
   .heritage-row {
     font-size: 6.5vw;
     margin-block: 0.06em;
@@ -2958,8 +2958,8 @@ em {
     line-height: 1.2;
   }
 
-  /* Ảnh theo em của hàng để giữ tỉ lệ chữ/ảnh như PC 1440px (100px chữ, ảnh 187x144).
-     Khoảng cách chữ/ảnh dùng column-gap nên ảnh đầu dòng thẳng mép trái với chữ. */
+  /* Image follows the row em to keep the text/image ratio of PC at 1440px (100px text, 187x144 image).
+     The text/image gap uses column-gap so the image at the line start is flush with the text on the left edge. */
   .heritage-image {
     top: -0.1em;
     width: 1.875em;
@@ -3024,8 +3024,8 @@ em {
   }
 }
 
-/* Footer gọn trên điện thoại: chữ và icon nhỏ lại. Điện thoại ngang: địa chỉ hàng trên, hai số cạnh nhau
-   hàng dưới, icon xếp ngang bên phải. Điện thoại dọc: địa chỉ rồi hai số ở cột trái, icon xếp dọc cột phải. */
+/* Compact footer on phone: smaller text and icons. Phone landscape: address in the top row, the two numbers side by side
+   in the bottom row, icons laid out horizontally on the right. Phone portrait: address then two numbers in the left column, icons stacked in the right column. */
 @media (max-width: 750px) {
   .site-footer {
     column-gap: 24px;
@@ -3095,20 +3095,20 @@ em {
     flex-direction: column;
   }
 
-  /* Cột hẹp: pretty ngắt sau "Hưng Phú," thay vì cắt đôi tên. */
+  /* Narrow column: pretty breaks after "Hưng Phú," instead of splitting the name in two. */
   .footer-address strong {
     text-wrap: pretty;
   }
 
-  /* Cột 1fr có bề rộng cố định: cỡ chữ thường số vừa một dòng, phóng chữ 200% thì số xuống dòng thay vì tràn ngang. */
+  /* The 1fr column has a fixed width: at normal text size the number fits one line, at 200% text the number wraps instead of overflowing horizontally. */
   .footer-hotline strong,
   .footer-office strong {
     white-space: normal;
   }
 }
 
-/* Tablet ngang 751-1023px không đủ chỗ cho bốn cột: hai số xếp chồng ở cột giữa. Hàng hai 1fr hút phần cao dư của
-   địa chỉ hai dòng để hai số luôn cách 16px. */
+/* Landscape tablet 751-1023px lacks room for four columns: the two numbers stack in the middle column. The two-row 1fr absorbs the spare height of
+   the two-line address so the two numbers are always 16px apart. */
 @media (min-width: 751px) and (max-width: 1023px) {
   .site-footer {
     grid-template-columns: repeat(3, auto);
@@ -3128,14 +3128,14 @@ em {
   }
 }
 
-/* Desktop thấp (laptop 1366×768): đệm dọc gọn để CTA Advertising giữ cỡ tiêu đề. */
+/* Short desktop (1366×768 laptop): compact vertical padding so the Advertising CTA keeps its heading size. */
 @media (min-width: 751px) and (max-height: 799px) {
   .site-footer {
     padding-block: 24px;
   }
 }
 
-/* Cửa sổ thấp: dòng cách 10px; khi nằm ngang thì đệm và cột icon gọn lại để footer không cao quá 38.2%
+/* Short window: lines 10px apart; in landscape the padding and icon column tighten so the footer is no taller than 38.2%
    viewport. */
 @media (max-height: 640px) {
   .site-footer {
@@ -3234,7 +3234,7 @@ em {
     transition-duration: 0.01ms !important;
   }
 
-  /* Transition 0.01ms làm giá trị đổi trễ một frame: fitHeritageGaps đo sai khoảng dòng motto cũ. */
+  /* Transition 0.01ms makes the value change one frame late: fitHeritageGaps mismeasures the old motto line gap. */
   .heritage-row {
     transition: none !important;
   }
@@ -3261,7 +3261,7 @@ em {
   }
 }
 
-/* Giữ geometry hero đã settle; toggle không có gì để điều khiển khi không có motion. */
+/* Keep the settled hero geometry; the toggle has nothing to control when there is no motion. */
 html.motion-fallback .motion-toggle {
   visibility: hidden;
 }
@@ -3340,7 +3340,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   visibility: visible;
 }
 
-/* Giữ nghề block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
+/* "Giữ nghề" block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
 @media (max-width: 960px) {
   .legacy-closer {
     min-height: 400px;

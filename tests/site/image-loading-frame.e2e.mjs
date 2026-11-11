@@ -1,5 +1,5 @@
-// Evidence P8/P9: frame reserved, vệt sáng (media-delivery R6), ảnh card tự mờ hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
+// Evidence P8/P9: frame reserved, light sweep (media-delivery R6), card image self-blur or skeleton and Kính reveal, request counts and geometry while images load.
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -37,8 +37,8 @@ const open = async ({ delay = DELAY, javaScriptEnabled = true, viewport = viewpo
   return { context, page, counts };
 };
 
-// Native lazy không bao giờ tải slide carousel đỗ sang bên, nên chỉ cột visible mới phải settle.
-// Chỉ ảnh content tĩnh; grid/viewer Advertising và logo client có loader riêng.
+// Native lazy never loads carousel slides parked to the side, so only the visible columns must settle.
+// Static content images only; the Advertising grid/viewer and client logos have their own loaders.
 const snapshot = page => page.evaluate(() => { const seen = new Map(); return [...document.querySelectorAll("img")]
   .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-detail-view]") && img.getClientRects().length)
   .map(img => {
@@ -53,7 +53,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
       ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, sweep: /^media-(sweep|breathe)$/.test(getComputedStyle(frame, "::before").animationName), settled: frame.classList.contains("is-media-settled"), imageOpacity: Number(getComputedStyle(img).opacity), opacity,
     };
   }); });
-// Timer phía Node để việc walk cũng chạy khi tắt JavaScript.
+// Node-side timer so the walk also runs with JavaScript off.
 const scrollThrough = async page => {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   const step = (page.viewportSize()?.height || 800) / 2;
@@ -63,7 +63,7 @@ const scrollThrough = async page => {
   }
   await page.waitForTimeout(500);
 };
-// firstScreen giới hạn việc chờ ở ảnh trong viewport hiện tại (không scroll walk).
+// firstScreen limits the wait to images in the current viewport (no scroll walk).
 const settle = async (page, firstScreen = false) => {
   for (const started = Date.now(); Date.now() - started < 30_000; await page.waitForTimeout(250)) {
     if (await page.evaluate(firstScreen => [...document.querySelectorAll('img[src^="/assets/content/"]')]
@@ -75,14 +75,14 @@ const settle = async (page, firstScreen = false) => {
   throw new Error("visible content images did not settle");
 };
 const attributes = ({ src, alt, loading, priority }) => JSON.stringify([src, alt, loading, priority]);
-// Attribute như đã ship trong HTML, parse native để entity decode giống như DOM.
+// Attributes as shipped in the HTML, parsed natively so entity decoding matches the DOM.
 const rawAttributes = page => page.evaluate(async () => [...new DOMParser()
   .parseFromString(await (await fetch(location.href)).text(), "text/html").images]
   .map(img => JSON.stringify([img.getAttribute("src"), img.getAttribute("alt"), img.getAttribute("loading"), img.getAttribute("fetchpriority")])))
   .then(list => new Set(list));
 
 try {
-  // P8: frame reserve box cuối trước khi request xong, rồi giữ nó.
+  // P8: the frame reserves its final box before the request finishes, then keeps it.
   for (const route of routes) {
     for (const viewport of viewports) {
       const { context, page, counts } = await open({ viewport });
@@ -91,7 +91,7 @@ try {
       const raw = await rawAttributes(page);
       await scrollThrough(page);
       await settle(page);
-      // Khung settle sau load và decode() bất đồng bộ; chờ thêm cho fade 0.45s chạy xong.
+      // The frame settles after load and the async decode(); wait extra for the 0.45s fade to finish.
       await page.waitForFunction(() => [...document.images].every(img => !img.complete || !img.naturalWidth
         || img.closest(".is-media-settled") || !img.closest("[class]")), null, { timeout: 5000 }).catch(() => {});
       await page.waitForTimeout(600);
@@ -101,12 +101,12 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Slide hero trang chủ, Nhà ở, Kinh doanh nhận src bằng script sau .hero-slides (page-home R3, detail-pages R5) nên không có raw src để so sánh.
+        // The home, Residential and Commercial hero slides get src from a script after .hero-slides (page-home R3, detail-pages R5) so there is no raw src to compare.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;
         if (done.columnVisible) assert.ok(done.ready, `${label}: ${item.src} finishes loading`);
-        // Opacity sau settle còn do reveal của detail.js quyết, nên chỉ kiểm khung đã settle và hết vệt.
+        // Opacity after settle is also decided by detail.js's reveal, so only check that the frame settled and the sweep is gone.
         if (done.ready) assert.ok(done.settled && !done.sweep, `${label}: ${item.src} settles and drops the sweep once decoded`);
         assert.ok(Math.abs(done.w - item.w) <= 1 && Math.abs(done.h - item.h) <= 1,
           `${label}: ${item.src} keeps its box ${item.w}x${item.h} -> ${done.w}x${done.h}`);
@@ -120,7 +120,7 @@ try {
     }
   }
 
-  // R6: chụp mỗi 100ms trong lúc ảnh tải dở, không ảnh chưa xong nào được lộ ra.
+  // R6: capture every 100ms while an image is half loaded, no unfinished image may show.
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
     await page.goto(base + "/vi/residential/", { waitUntil: "domcontentloaded" });
@@ -136,22 +136,22 @@ try {
     await context.close();
   }
 
-  // R6: reduced motion không lướt, khung sáng tối nhẹ.
+  // R6: reduced motion has no sweep, the frame brightens and dims gently.
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
     const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate .media-frame:not(.is-media-settled)")]
       .map(frame => { const style = getComputedStyle(frame, "::before"); return `${style.animationName} ${style.animationDuration} ${style.animationIterationCount}`; }));
-    // Reset reduced motion toàn cục không được cắt nhịp thở 2s còn 0.01ms.
+    // The global reduced-motion reset must not cut the 2s breathing rhythm down to 0.01ms.
     assert.ok(frames.length && frames.every(value => value === "media-breathe 2s infinite"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
     results.push({ case: "r6-reduced-motion", frames: frames.length });
     await context.close();
   }
 
-  // R6: vệt dừng ở giữa khung 1440×600, độ sáng mượt, không mép sắc hay điểm gãy.
+  // R6: the sweep stops mid-frame at 1440×600, brightness is smooth, no sharp edge or kink.
   {
-    // Lấy gradient thật từ khung đang chờ rồi vẽ lại trên probe đứng yên.
+    // Take the real gradient from the waiting frame then redraw it on a still probe.
     const { context, page } = await open({ viewport: { width: 1440, height: 900 }, delay: 3000 });
     await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
     await page.evaluate(() => {
@@ -163,14 +163,14 @@ try {
     const { data, info } = await sharp(await page.locator("#sweep-probe").screenshot()).raw().toBuffer({ resolveWithObject: true });
     const row = Array.from({ length: info.width }, (_, x) => data[(300 * info.width + x) * info.channels]);
     const peak = Math.max(...row), center = row.indexOf(peak);
-    // Dither gradient khác nhau giữa headless shell, Chrome và Edge (nhiễu 1-2 mức sáng, 0.0417 slope mỗi mức ở bước 24px);
-    // trung bình trượt 48px bỏ nhiễu đó mà vẫn giữ điểm gãy thật (đoạn dốc 0.3 mức/px vẫn ra 0.15).
+    // Gradient dither differs between headless shell, Chrome and Edge (1-2 levels of brightness noise, 0.0417 slope per level at 24px steps);
+    // a 48px sliding average removes that noise while keeping a real kink (a 0.3 level/px slope still yields 0.15).
     const smooth = row.map((_, x) => { const part = row.slice(Math.max(0, x - 24), x + 24); return part.reduce((a, b) => a + b, 0) / part.length; });
     const slopes = [];
     for (let x = 24; x < smooth.length; x += 24) slopes.push((smooth[x] - smooth[x - 24]) / 24);
     const maxStep = Math.max(...row.slice(1).map((value, x) => Math.abs(value - row[x])));
     const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
-    // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
+    // Chromium dithers gradients so neighboring pixels can be off by 1 level in reverse; check rise and fall with that tolerance.
     const monotonic = row.every((value, x) => x === 0 || (x <= center ? value >= row[x - 1] - 1 : value <= row[x - 1] + 1));
     assert.ok(peak >= 84 && peak <= 87 && Math.min(...row) === 43, `sweep peak ${peak} within 84-87 on #2b2c2b`);
     assert.ok(monotonic && maxStep <= 1, `sweep rises then falls without hard edges (max step ${maxStep})`);
@@ -179,7 +179,7 @@ try {
     await context.close();
   }
 
-  // R2: variant đủ nét cho phần ảnh hiện ra sau crop cover, hoặc ảnh gốc; không request trùng.
+  // R2: a variant sharp enough for the part of the image shown after cover crop, or the original; no duplicate request.
   for (const [route, selector, viewport] of [
     ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 1 }],
     ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 2 }],
@@ -194,7 +194,7 @@ try {
       const { width, height } = img.getBoundingClientRect();
       const shown = Math.max(width, height * img.getAttribute("width") / img.getAttribute("height")) * devicePixelRatio;
       const variant = Number(img.currentSrc.match(/-(\d+)\.\w+$/)?.[1]);
-      // Phone chỉ tải WebP tới cỡ 960 (owner 2026-11-07, media-delivery): đủ nét là đạt 0.9x hoặc đã ở cỡ trần 960.
+      // Phone loads WebP only up to size 960 (owner 2026-11-07, media-delivery): sharp enough means reaching 0.9x or already at the 960 ceiling.
       const cap = matchMedia("(hover: none) and (pointer: coarse)").matches ? 960 : Infinity;
       return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= Math.min(0.9 * shown, cap) };
     }), selector);
@@ -205,7 +205,7 @@ try {
     await context.close();
   }
 
-  // P8: no-script vẫn hiện mọi ảnh.
+  // P8: no-script still shows every image.
   for (const route of routes.filter(route => route.startsWith("/vi/"))) {
     const { context, page } = await open({ delay: false, javaScriptEnabled: false });
     await page.goto(base + route, { waitUntil: "load" });
@@ -217,9 +217,9 @@ try {
     await context.close();
   }
 
-  // R8: ảnh tĩnh lỗi tải thì khung settle ngay, vẽ dấu báo lỗi, ảnh ẩn, khung giữ kích thước như lúc tải bình thường.
+  // R8: a static image that fails to load settles the frame at once, draws the error mark, hides the image, and the frame keeps its size as in a normal load.
   {
-    // Ảnh nền hero, CTA, portal có ca riêng bên dưới (nền tối, chữ trắng).
+    // Hero, CTA and portal background images have their own case below (dark background, white text).
     const overlay = ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
     const measure = async block => {
       const { context, page } = await open({ delay: 0 });
@@ -239,16 +239,16 @@ try {
     };
     const normal = new Map((await measure(false)).map(item => [item.key, item]));
     const failed = await measure(true);
-    assert.ok(failed.length > 0, "about: có ảnh tĩnh để thử lỗi tải");
-    assert.deepEqual(failed.filter(item => !item.broken), [], "about: mọi ảnh bị chặn đều ở trạng thái lỗi");
-    assert.deepEqual(failed.filter(item => !item.settled || !item.errored || item.visibility !== "hidden"), [], "about: ảnh lỗi settle ngay, khung có is-media-error, ảnh ẩn");
-    assert.deepEqual(failed.filter(item => item.line !== '"Không tải được"' || item.surface !== "rgb(228, 228, 226)"), [], "about: khung ảnh lỗi vẽ một dòng chữ trên nền xám phẳng");
-    assert.deepEqual(failed.filter(item => !item.hasAlt), [], "about: ảnh lỗi vẫn có thuộc tính alt");
-    assert.deepEqual(failed.filter(item => { const ref = normal.get(item.key); return ref && (Math.abs(ref.w - item.w) > 1 || Math.abs(ref.h - item.h) > 1); }).map(item => item.key), [], "about: khung ảnh lỗi giữ kích thước như khi ảnh tải được");
+    assert.ok(failed.length > 0, "about: has static images to test load errors");
+    assert.deepEqual(failed.filter(item => !item.broken), [], "about: every blocked image is in the error state");
+    assert.deepEqual(failed.filter(item => !item.settled || !item.errored || item.visibility !== "hidden"), [], "about: a failed image settles at once, the frame has is-media-error, the image is hidden");
+    assert.deepEqual(failed.filter(item => item.line !== '"Không tải được"' || item.surface !== "rgb(228, 228, 226)"), [], "about: the failed image frame draws one line of text on a flat gray background");
+    assert.deepEqual(failed.filter(item => !item.hasAlt), [], "about: a failed image still has the alt attribute");
+    assert.deepEqual(failed.filter(item => { const ref = normal.get(item.key); return ref && (Math.abs(ref.w - item.w) > 1 || Math.abs(ref.h - item.h) > 1); }).map(item => item.key), [], "about: the failed image frame keeps its size as when the image loads");
     results.push({ case: "r8-image-error", images: failed.length });
   }
 
-  // R8: hero, CTA, portal lỗi tải vẽ dấu báo lỗi trên nền tối (chữ trắng vẫn đọc được), EN đổi dòng chữ.
+  // R8: hero, CTA and portal load failures draw the error mark on a dark background (white text stays readable), EN changes the text.
   for (const [route, line] of [["/vi/", '"Không tải được"'], ["/en/residential/", '"Couldn\'t load"']]) {
     const { context, page } = await open({ delay: 0 });
     await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
@@ -257,13 +257,13 @@ try {
     await page.waitForTimeout(500);
     const frames = await page.evaluate(() => [...document.querySelectorAll(".hero-slide.is-active, .about-hero__media, .service-portal, .detail-cta, .legacy-closer")]
       .map(frame => ({ name: frame.className.split(" ")[0], errored: frame.classList.contains("is-media-error"), line: getComputedStyle(frame, "::before").content, surface: getComputedStyle(frame, "::before").backgroundColor })));
-    assert.ok(frames.length > 0, `${route}: có khung overlay để thử lỗi tải`);
-    assert.deepEqual(frames.filter(item => !item.errored || item.line !== line || item.surface !== "rgb(43, 44, 43)"), [], `${route}: khung overlay vẽ dấu báo lỗi trên nền tối`);
+    assert.ok(frames.length > 0, `${route}: has overlay frames to test load errors`);
+    assert.deepEqual(frames.filter(item => !item.errored || item.line !== line || item.surface !== "rgb(43, 44, 43)"), [], `${route}: the overlay frame draws the error mark on a dark background`);
     results.push({ case: "r8-overlay-error", route, frames: frames.length });
     await context.close();
   }
 
-  // P8: Barba navigation và Back giữ cùng frame contract.
+  // P8: Barba navigation and Back keep the same frame contract.
   {
     const { context, page } = await open();
     await page.goto(base + "/vi/", { waitUntil: "load" });
@@ -284,14 +284,14 @@ try {
     await context.close();
   }
 
-  // P9: card Advertising, geometry và viewer trong khi ảnh đang tải.
+  // P9: Advertising cards, geometry and viewer while images load.
   const primaryReveals = [];
   for (const viewport of viewports) {
-    // Delay dài hơn để entry layout settle khi ảnh card còn đang bay.
+    // Longer delay so the entry layout settles while the card image is still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    // Reveal Kính (loading-glass-and-page-entry R2, R4; glass-surface R6) và blur ảnh card (progressive-loading R9):
-    // ghi lại từng lần gắn.
+    // Kính reveal (loading-glass-and-page-entry R2, R4; glass-surface R6) and card image blur (progressive-loading R9):
+    // record each attach.
     await page.evaluate(() => {
       window.__ttRevealGlass = [];
       window.__ttCardBlur = [];
@@ -302,7 +302,7 @@ try {
       new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
         window.__ttRevealGlass.push({
-          // Card related cũng nằm trong photo view; Kính của nó là Kính card, không phải primary.
+          // Related cards are also in the photo view; its Kính is the card Kính, not the primary's.
           host: node.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary",
           card: node.closest("[data-masonry-card]")?.dataset.masonryCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
@@ -326,7 +326,7 @@ try {
       filters: [...document.querySelectorAll("[data-masonry-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
-    // Ảnh card chờ tải hiện dưới blur của chính nó thay skeleton Flow (progressive-loading R9).
+    // A card image waiting to load shows under its own blur instead of the Flow skeleton (progressive-loading R9).
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur('].lazyloading"));
     const loading = await page.evaluate(() => {
       const image = document.querySelector("[data-project-grid] img[style*='blur('].lazyloading");
@@ -334,7 +334,7 @@ try {
       return { blur: filter.startsWith("blur("), animationName, opacity: Number(opacity),
         marked: image.closest("[data-masonry-card]").hasAttribute("data-masonry-media-loading") };
     });
-    // Ảnh chờ thở bằng media-breathe (opacity 1 → 0.45 → 1) cùng lúc mờ (spec chờ ảnh S2).
+    // A waiting image breathes with media-breathe (opacity 1 → 0.45 → 1) while blurred (image-wait spec S2).
     assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
       { blur: true, animationName: "media-breathe", opacity: true, marked: true },
       `${viewport.width}px: loading card blurs its own image and breathes as it enters view`);
@@ -350,10 +350,10 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // Blur tan trong 0.6 s sau khi ảnh cuối tải xong, rồi bị gỡ.
+    // The blur dissolves within 0.6 s after the last image finishes loading, then is removed.
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur`));
-    // Tải xong thì thở dừng: không còn attribute, animation hay opacity dở dang (spec chờ ảnh S2).
+    // When loading finishes the breathing stops: no attribute, animation or half-done opacity remains (image-wait spec S2).
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.hasAttribute("data-masonry-media-loading")
         || [...card.querySelectorAll("img")].some((image) => getComputedStyle(image).animationName !== "none")).length), 0,
@@ -361,15 +361,15 @@ try {
     assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
-    // Card đã tải xong rời viewport hiện lại ngay: không blur, không skeleton (R3).
+    // A card that finished loading and left the viewport shows again at once: no blur, no skeleton (R3).
     const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.masonryCard));
     const blursBefore = await page.evaluate(() => window.__ttCardBlur.length);
     const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
     await scrollTo(4000);
     await page.waitForTimeout(600);
-    // Lấy mẫu mỗi frame trong 1 s sau khi cuộn về: card đã tải gắn lại không có frame nào mang skeleton hay opacity
-    // dở dang (mờ dần), bản cache hiện thẳng ở opacity cuối (R3).
+    // Sample every frame for 1 s after scrolling back: a loaded card reattached has no frame carrying a skeleton or half-done
+    // opacity (fading), the cached copy shows straight at final opacity (R3).
     const fades = await page.evaluate(async (ids) => {
       const seen = [];
       window.TruongThinhMotion.setLogicalScroll(0);
@@ -404,7 +404,7 @@ try {
       `${viewport.width}px: a re-entering loaded card shows without skeleton`);
     const reentryBlur = (await page.evaluate(() => window.__ttCardBlur)).slice(blursBefore).filter((card) => loadedIds.includes(card));
     assert.deepEqual(reentryBlur, [], `${viewport.width}px: a re-entering loaded card starts no blur`);
-    // Card vừa tải xong ngay lúc này vẫn reveal từ skeleton của nó; để chúng settle trước.
+    // A card that just finished loading still reveals from its skeleton; let them settle first.
     await page.waitForTimeout(700);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-loading-skeleton]")]
       .filter((frame) => frame.parentElement.querySelector("img")?.naturalWidth > 0)
@@ -412,13 +412,13 @@ try {
         Math.round(frame.getBoundingClientRect().top)])), [],
     `${viewport.width}px: a loaded card re-enters without a skeleton`);
 
-    // Viewer: skeleton và aria-busy theo photo hiện tại, kể cả hero swap nhanh.
+    // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-detail-image]").parentElement;
       return { photo: window.TruongThinhMasonry.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")),
         glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-detail-image]").currentSrc };
     });
-    // Kính reveal là của ảnh; card mở bằng video (media tạm nhiều media) không có skeleton ảnh nên chọn card mở bằng ảnh.
+    // The Kính reveal belongs to the image; a card opened with video (temporary multi-media) has no image skeleton so pick a card opened with an image.
     await page.locator("[data-masonry-card]:not(:has(video)) a").first().click();
     await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.parentElement.getAttribute("aria-busy") === "true"
       && document.querySelector("[data-detail-image]").parentElement.querySelector("[data-masonry-loading-skeleton]"));
@@ -439,13 +439,13 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: phone và PC cùng Kính ba bậc, cùng nhịp 0.6s như card.
+    // loading-glass-and-page-entry R4: phone and PC share the same three-step Kính, the same 0.6s timing as cards.
     assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
       `${viewport.width}px: the primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
-    // Như card: skeleton vẫn thấy qua Kính, bậc Kính không có nền xám phẳng phủ lên skeleton.
+    // Like cards: the skeleton still shows through the Kính, the Kính steps have no flat gray fill over the skeleton.
     assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
-    // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
+    // Back to the first image also swaps the image in place through the Kính (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id
       && !document.querySelector("[data-detail-image]").parentElement.hasAttribute("aria-busy"), first.photo);
@@ -457,13 +457,13 @@ try {
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
-  // Phone và PC cùng chuỗi Kính trên primary: số lượt, số bậc, thời lượng, thuộc tính animate.
+  // Phone and PC share the same Kính chain on the primary: pass count, step count, duration, animate attribute.
   assert.deepEqual(primaryReveals[0], primaryReveals[1], `phone primary reveals match PC ${JSON.stringify(primaryReveals)}`);
-  // Barba dựng container ngoài document: ảnh load xong trước khi gắn vào vẫn phải settle, không kẹt vệt sáng.
+  // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });
     await page.goto(base + "/vi/", { waitUntil: "load" });
-    // Click sớm thì ảnh có thể load sau khi gắn vào nên không tái hiện lỗi; chờ như người xem thật.
+    // Click early and the image may load after attaching so the load error is not reproduced; wait like a real viewer.
     await page.waitForTimeout(2000);
     await page.locator(`a[href="${route}"]`).first().click();
     await page.waitForFunction(() => document.querySelector(".detail-hero .hero-slide.is-active picture"));

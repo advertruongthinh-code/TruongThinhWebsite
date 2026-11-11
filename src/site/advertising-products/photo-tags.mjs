@@ -673,8 +673,8 @@ const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
   "kiosk-posm-74": {"descriptionVi":"Ảnh backdrop sự kiện đang cập nhật.","descriptionEn":"Event backdrop photo coming soon.","source":"/assets/content/projects/advertising/kiosk-posm/kiosk-posm-74-placeholder-20261110.webp","sha256":"f441e4e4bcfab6327e64bc7e86689161898bc90d4d977815d88dcd82d62a1c44","provenance":"PLACEHOLDER flat gradient generated in-repo, not a real photo; replace with owner-approved multi-media when the ChatGPT image limit resets (owner 2026-11-10)."},
 });
 
-// Sản phẩm theo thứ hạng (spec advertising-taxonomy R1, R8): sản phẩm chính đứng đầu, sản phẩm phụ theo độ nổi bật
-// trong ảnh. Ảnh không có ở đây lấy sản phẩm suy ra từ productKey cũ.
+// Products by rank (spec advertising-taxonomy R1, R8): the main product first, secondary products by prominence
+// in the image. An image not listed here gets its product inferred from the old productKey.
 const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "kiosk-posm-01": ["displays-booths/exhibition-booths", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-05": ["displays-booths/retail-kiosks","displays-booths/display-shelves-cabinets","signage/light-boxes"],
@@ -850,7 +850,7 @@ export function attachPhotoMetadata(records) {
     const metadata = PHOTO_METADATA_BY_RECORD_ID[record.id];
     const tagIds = PHOTO_TAG_IDS_BY_RECORD_ID[record.id];
     if (!metadata || !tagIds) throw new Error(`Missing authored photo metadata: ${record.id}`);
-    // Ảnh mới chỉ mang productKey cũ vẫn tự có sản phẩm mới qua tag variant.
+    // A new image carrying only the old productKey still gets the new product through the variant tag.
     const productIds = PRODUCT_IDS_BY_RECORD_ID[record.id] ?? [productIdByLegacyKey.get(record.productKey)];
     return Object.freeze({
       ...record,

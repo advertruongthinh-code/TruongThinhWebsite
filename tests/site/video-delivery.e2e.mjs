@@ -6,11 +6,11 @@ import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
-// Video thích ứng (video-delivery R3, R4, R5): card phát master.m3u8 bằng hls.js chặn ở bậc 480, detail tiếp đúng giây ở
-// bậc đầu playlist, viewer giữ instance; không có Media Source hoặc thiếu hlsSrc thì phát file cố định; mạng nhanh lên thì
-// phần bậc thấp phía trước được thay mà không khựng. Chromium của Playwright không có H.264 nên thang là bản AV1 nhỏ
-// (bậc 640, 240, 480 của clip 6 s, chỉ hình) trong fixtures/video-ladder, sinh bằng ffmpeg libsvtav1 từ
-// site-media-card-clip-audio.mp4 lặp hai lần, `-g 12`, HLS fMP4 segment 2 s một file mỗi bậc.
+// Adaptive video (video-delivery R3, R4, R5): the card plays master.m3u8 with hls.js capped at rung 480, detail continues from the exact second at
+// the first playlist rung, the viewer keeps the instance; without Media Source or without hlsSrc it plays the fixed file; when the network speeds up,
+// the low-rung part ahead is replaced without stalling. Playwright's Chromium has no H.264, so the ladder is a small AV1 build
+// (rungs 640, 240, 480 of a 6 s clip, video only) in fixtures/video-ladder, generated with ffmpeg libsvtav1 from
+// site-media-card-clip-audio.mp4 looped twice, `-g 12`, HLS fMP4 with 2 s segments, one file per rung.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const ladder = path.join(root, "tests/site/fixtures/video-ladder");
@@ -20,8 +20,8 @@ const filePrefix = "/__video_delivery__/";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-// Server thang có giới hạn băng thông đổi được giữa lượt (0 là không giới hạn), gửi từng mảnh mỗi 50 ms để hls.js đo được
-// băng thông; page.route trả cả thân một lần nên không giả lập được mạng chậm.
+// Ladder server with a bandwidth limit that can change between runs (0 means unlimited), sending a piece every 50 ms so hls.js can measure
+// bandwidth; page.route returns the whole body at once so it cannot simulate a slow network.
 let kbps = 0;
 const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "range" };
 const server = http.createServer(async (request, response) => {
@@ -47,9 +47,9 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 after(() => server.close());
 const hlsSrc = `http://127.0.0.1:${server.address().port}/master.m3u8`;
 
-// Mọi card thành một video để luôn có card video trong màn, không phụ thuộc seed của grid. Khung card 640x396 (w/h 1.616,
-// ngay dưới tỷ lệ vàng) giữ mọi card một cột như lưới trước luật hai cột (masonry R5): clip 16:9 thì card nào cũng trải
-// hai cột, số video cùng tải đổi và pha phát của video R4 chọn đổi theo; test này đo thang bậc, không đo hình học.
+// Turn every card into a video so a video card is always on screen, independent of the grid seed. Card frame 640x396 (w/h 1.616,
+// just under the golden ratio) keeps every card one column wide like the grid before the two-column rule (masonry R5): with a 16:9 clip every card spans
+// two columns, the number of videos loading together changes and the R4 play phase picks differently; this test measures the rung ladder, not geometry.
 function fixtureArtifact(hls) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
@@ -85,7 +85,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
   }, { artifact: fixtureArtifact(hls), mediaSource });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
-  // Hero Advertising chiếm màn đầu; intro và smooth scroll cần mount xong mới nhận wheel, rồi cuộn để card vào màn.
+  // The Advertising hero fills the first screen; intro and smooth scroll must finish mounting before they accept wheel, then scroll so cards enter the screen.
   await page.waitForTimeout(2500);
   await page.mouse.move(8, 450);
   for (let moved = 0; moved < 1500; moved += 250) {
@@ -95,7 +95,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
   return { browser, page, requests };
 }
 
-// Card video đang phát trong màn, kèm nguồn và bậc hiện tại.
+// The playing video card on screen, with its source and current rung.
 const playingCard = (page) => page.waitForFunction(() => {
   const video = [...document.querySelectorAll("[data-masonry-card] video")].find((node) => !node.paused && node.currentTime > 0.3);
   return video && { id: video.closest("[data-masonry-card]").dataset.masonryCard, source: video.dataset.videoSource,
@@ -117,7 +117,7 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
     }, null, { timeout: 15000, polling: 50 }).then((handle) => handle.jsonValue());
     assert.equal(detail.source, hlsSrc, "primary loads master.m3u8 through hls.js");
     assert.equal(detail.width, 640, "primary starts at the first rung of the playlist");
-    // Cận trên theo thời gian thật đã trôi từ lúc lấy mẫu card (máy tải cao làm chuyển route lâu hơn một mốc cố định).
+    // Upper bound based on the real time elapsed since the card was sampled (a loaded machine makes the route change take longer than a fixed mark).
     const elapsed = (Date.now() - sampledAt) / 1000;
     assert(detail.time >= card.time - 0.2 && detail.time < card.time + elapsed + 0.5,
       `primary continues from the card time: ${card.time} -> ${detail.time} after ${elapsed}s`);
@@ -139,7 +139,7 @@ test("R3, R5: without Media Source or without hlsSrc the card plays the fixed fi
       const card = await playingCard(page);
       assert(card.currentSrc.endsWith("/card.mp4"), `${JSON.stringify(options)}: card plays cardSrc: ${card.currentSrc}`);
       assert(!requests.some((url) => /\.m3u8/.test(url)), `${JSON.stringify(options)}: no playlist request`);
-      // hls.js chỉ tải khi artifact có hlsSrc và trình duyệt có Media Source (R3); catalog chưa có video không tải.
+      // hls.js only loads when the artifact has hlsSrc and the browser has Media Source (R3); a catalog without video does not load it.
       assert(!requests.some((url) => /hls\.light/.test(url)), `${JSON.stringify(options)}: hls.js never loads`);
     } finally {
       await browser.close();
@@ -151,7 +151,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
   kbps = 60;
   const { browser, page } = await open();
   try {
-    // Mạng chậm: hls.js xuống bậc thấp nhất (ảnh rộng 242 px) sau segment đầu ở bậc 480 rồi tải hết clip.
+    // Slow network: hls.js drops to the lowest rung (image 242 px wide) after the first segment at rung 480, then loads the whole clip.
     const id = await page.waitForFunction(() => {
       const video = [...document.querySelectorAll("[data-masonry-card] video")].find((node) => !node.paused
         && node.videoWidth && node.videoWidth < 480 && node.buffered.length && node.buffered.end(node.buffered.length - 1) > node.duration - 0.1);
@@ -168,7 +168,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
       video.addEventListener("waiting", () => log.waiting.push({ start: performance.now() }));
       video.addEventListener("playing", () => { const last = log.waiting.at(-1); if (last && !last.end) last.end = performance.now(); });
     }, id);
-    // Mạng nhanh lên, rồi một video khác trên trang tải xong segment (gherkin R4).
+    // Network speeds up, then another video on the page finishes a segment (gherkin R4).
     kbps = 0;
     await page.evaluate(async (src) => {
       const { setVideoSource } = await import("/media-lib/video-source.mjs");

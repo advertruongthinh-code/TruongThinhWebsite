@@ -31,7 +31,7 @@ try {
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
     await page.locator(`[data-masonry-filter="${category}"]`).click();
     await page.waitForFunction(value => window.TruongThinhMasonry.getBrowseState().category === value, category);
-    // Chờ khối CTA đứng yên giữa hai lần đọc thay cho 650ms cố định: runner bận còn đang chuyển khi đọc.
+    // Wait for the CTA block to hold still between two reads instead of a fixed 650ms: a busy runner is still transitioning at read time.
     await page.waitForFunction(() => {
       const cta = document.querySelector("[data-masonry-grid-cta]");
       const key = `${cta?.getBoundingClientRect().bottom}:${cta?.offsetHeight}:${document.querySelector("footer.site-footer")?.getBoundingClientRect().top}`;

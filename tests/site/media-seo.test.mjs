@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 
-// Kiểm output của pnpm prepare:site (media-seo R1, R6).
+// Checks the output of pnpm prepare:site (media-seo R1, R6).
 const ORIGIN = "https://truongthinhads.vn";
 const page = (locale, id) => readFile(new URL(`../../.site-output/${locale}/advertising-products/p/${id}/index.html`, import.meta.url), "utf8");
 const cardUrl = (locale, id) => `${ORIGIN}/${locale}/advertising-products/p/${id}/`;

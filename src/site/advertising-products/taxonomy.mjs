@@ -1,10 +1,10 @@
-// Dữ liệu phân loại Advertising (spec advertising-taxonomy R1, R2): cụm, sản phẩm, slug và chữ VI/EN.
-// Id nội bộ là slug EN lúc tạo; slug đổi về sau thì giữ id. Thứ tự mảng là thứ tự rail.
-// railVi, railEn: tên ngắn trên rail (owner chọn 2026-10-17); h1, kicker và title SEO vẫn dùng label,
-// title đầy đủ.
-// legacySlug là slug nhóm cũ, `?category=` cũ vẫn lọc đúng cụm (R4).
-// Ngưỡng R5 (owner 2026-11-10) đếm số media gắn sản phẩm: từ ngưỡng này sản phẩm có chip trong hàng chip của cụm
-// và luôn có trang riêng; dưới ngưỡng thì không chip, không trang.
+// Advertising taxonomy data (spec advertising-taxonomy R1, R2): clusters, products, slugs and VI/EN text.
+// The internal id is the EN slug at creation time; if a slug changes later the id is kept. Array order is rail order.
+// railVi, railEn: short names on the rail (owner chose 2026-10-17); h1, kicker and SEO title still use the full label,
+// title.
+// legacySlug is the old group slug, so an old `?category=` still filters the right cluster (R4).
+// The R5 threshold (owner 2026-11-10) counts the media attached to a product: from this threshold a product has a chip in its cluster's chip row
+// and always has its own page; below the threshold it has no chip and no page.
 export const ADVERTISING_PRODUCT_THRESHOLD = 10;
 
 export const ADVERTISING_CLUSTERS = Object.freeze([
@@ -76,7 +76,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   },
 ]);
 
-// Giới thiệu của sản phẩm dùng luôn làm meta description (noi-dung-trang trong plan).
+// A product's introduction doubles as the meta description (noi-dung-trang in the plan).
 export const ADVERTISING_PRODUCTS = Object.freeze([
   {
     id: "signage/aluminium-signs-facades", cluster: "signage", slugVi: "bang-hieu-alu-mat-dung", slugEn: "aluminium-signs-facades",

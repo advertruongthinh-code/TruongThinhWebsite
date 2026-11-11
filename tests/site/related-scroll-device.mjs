@@ -1,5 +1,5 @@
-// Kiểm tra scroll history của related card: case PC emulator cộng touch Android thật qua adb input.
-// Dùng: node tests/site/related-scroll-device.mjs [--skip-emulator] [--skip-device]
+// Check the scroll history of the related card: a PC emulator case plus real Android touch through adb input.
+// Usage: node tests/site/related-scroll-device.mjs [--skip-emulator] [--skip-device]
 import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -28,7 +28,7 @@ function runEmulator() {
   try {
     execFileSync(process.execPath, ["tests/site/advertising-photo-transitions.e2e.mjs"], { cwd: root, stdio: "ignore",
       env: { ...process.env, BASE_URL: base, CASE: "m02b-related-history-just-viewed-and-scroll", PHOTO_TRANSITIONS_OUTPUT_DIR: dir } });
-  } catch { /* Lỗi được đọc từ file kết quả bên dưới. */ }
+  } catch { /* The error is read from the result file below. */ }
   const results = JSON.parse(readFileSync(path.join(dir, "cp3-transition-e2e-results.json"), "utf8"));
   for (const item of results.results) {
     const evidence = Array.isArray(item.evidence) ? item.evidence.find((entry) => entry.profile) : null;
@@ -48,7 +48,7 @@ async function runDevice() {
   const browser = await chromium.connectOverCDP(cdp);
   const page = browser.contexts()[0]?.pages()[0] || await browser.contexts()[0].newPage();
   if (args.includes("--rotate")) {
-    // Khóa landscape thật, khôi phục cài đặt rotation đã lưu khi thoát.
+    // Lock real landscape, restore the saved rotation setting on exit.
     const setting = (name, value) => adbRun(serial, "shell", "settings", value === undefined ? "get" : "put", "system", name, ...(value === undefined ? [] : [value]));
     const saved = ["accelerometer_rotation", "user_rotation"].map((name) => [name, setting(name)]);
     process.on("exit", () => saved.forEach(([name, value]) => setting(name, value)));
@@ -60,7 +60,7 @@ async function runDevice() {
   const orientation = await page.evaluate(() => (innerWidth > innerHeight ? "landscape" : "portrait"));
   log(`device ${model} (${serial}) ${orientation}; screen stays awake only while unlocked`);
 
-  // Map CSS px sang touchscreen px bằng một tap hiệu chỉnh trên overlay full-viewport tạm.
+  // Map CSS px to touchscreen px with one calibration tap on a temporary full-viewport overlay.
   const [screenW, screenH] = adbRun(serial, "shell", "wm", "size").match(/(\d+)x(\d+)/).slice(1).map(Number);
   const [touchW, touchH] = orientation === "landscape" ? [Math.max(screenW, screenH), Math.min(screenW, screenH)] : [Math.min(screenW, screenH), Math.max(screenW, screenH)];
   await page.goto(`http://localhost:${port}/vi/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });

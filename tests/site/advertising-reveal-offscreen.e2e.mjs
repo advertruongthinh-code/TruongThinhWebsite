@@ -1,4 +1,4 @@
-// Hồi quy: card rời viewport khi đang chờ decode() phải hiện ảnh, không kẹt opacity 0 thành lỗ trống
+// Regression: a card that leaves the viewport while waiting on decode() must show its image, not stay stuck at opacity 0 as an empty hole
 // (docs/specs/loading-glass-and-page-entry.md R6).
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -9,7 +9,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   const width = 1440, height = 900;
   const page = await browser.newPage({ viewport: { width, height } });
-  // Decode chậm như phone Android để card kịp rời viewport trước khi decode xong.
+  // Decode as slowly as an Android phone so the card leaves the viewport before decode finishes.
   await page.addInitScript(() => {
     const decode = HTMLImageElement.prototype.decode;
     HTMLImageElement.prototype.decode = function () {

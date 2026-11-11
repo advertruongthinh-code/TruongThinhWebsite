@@ -172,7 +172,7 @@ export default {
 
 async function handleRequest(request, env) {
   const url = new URL(request.url);
-  // CMS chỉ mở trên subdomain admin.* (production: admin.truongthinhads.vn) hoặc host loopback khi chạy local.
+  // The CMS opens only on the admin.* subdomain (production: admin.truongthinhads.vn) or a loopback host when running locally.
   const adminHost = url.hostname.startsWith("admin.");
   if (adminHost && url.pathname === "/") return redirectWithQuery(url, "/admin/");
   if (/^\/(?:api\/)?admin(?:\/|$)/.test(url.pathname) && !adminHost && !LOOPBACK.has(url.hostname)) {
@@ -277,7 +277,7 @@ async function renderRoute(request, env, url, route) {
   const localizedContent = record ? parseLocalizedContent(record.content_json) : null;
   const content = localizedContent?.[route.locale] || null;
   if (record && !content) return new Response("Not Found", { status: 404 });
-  // Nội dung editor đã lưu (cms-editor R10) áp trước pipeline locale; title, description của editor thắng SEO cũ.
+  // Saved editor content (cms-editor R10) applies before the locale pipeline; the editor title and description win over the old SEO.
   let saved = null;
   try {
     if (env.DB && EDITOR_PAGES.has(route.pageId)) saved = await savedPage(env, route.pageId, source);
@@ -300,7 +300,7 @@ async function renderRoute(request, env, url, route) {
   ).toString();
   const headers = new Headers(source.headers);
   headers.delete("content-length");
-  // Thân trang khác file tĩnh khi có nội dung editor: bỏ ETag của file để trình duyệt không giữ bản cũ qua 304.
+  // The page body differs from the static file when editor content exists: drop the file ETag so the browser does not keep the old copy across 304.
   if (saved) headers.delete("etag");
   headers.set("content-type", "text/html; charset=UTF-8");
   headers.set("content-language", route.locale);
@@ -325,9 +325,9 @@ async function renderRoute(request, env, url, route) {
     rewriter = rewriter.on("a[href]", new LocaleLink("vi"));
   }
 
-  // Attribute tiếng Anh tĩnh làm shell fallback khi không có SSR. Áp field D1
-  // sau đó để route locale canonical không bị chúng đảo ngược.
-  // Title của editor ghi bằng HTMLRewriter (có thoát chữ), không qua linkedom: <title> là thẻ chữ thô (R10).
+  // Static English attributes serve as the shell fallback when there is no SSR. Apply the D1 fields
+  // afterwards so the canonical locale route is not reversed by them.
+  // The editor title is written via HTMLRewriter (with escaping), not through linkedom: <title> is a raw text element (R10).
   if (editorText.title) {
     rewriter = rewriter.on("title", new LocalizedText(seo.title, editorText.title.vi, editorText.title.en));
   } else if (content) {
@@ -361,13 +361,13 @@ async function renderRoute(request, env, url, route) {
   return rewriter.transform(new Response(saved ? saved.html : source.body, { headers }));
 }
 
-// ---------- Nội dung editor CMS (cms-editor R8, R10) ----------
+// ---------- CMS editor content (cms-editor R8, R10) ----------
 
 const EDITOR_PAGES = new Set(["home", "residential", "commercial", "about"]);
 const ADVERTISING_HTML_PATH = /^\/(?:vi|en)\/advertising-products\//;
 const ADVERTISING_CARD_PATH = /^\/(vi|en)\/advertising-products\/p\/([a-z0-9][a-z0-9-]{0,99})\/$/;
 const MAX_CONTENT_BODY = 512 * 1024;
-// Nháp rỗng (lưu sau khi bỏ hết sửa đổi) coi như chưa có nội dung: phục vụ HTML tĩnh, không nạp linkedom.
+// An empty draft (saved after removing all edits) counts as no content: serve static HTML, do not load linkedom.
 const hasEdits = (edits) => Object.values(edits).some((value) => value && Object.keys(value).length);
 const loadContent = () => import("./content.mjs");
 
@@ -401,7 +401,7 @@ async function handleContent(request, env, url, actor) {
     const result = { page, edits: null, stale: [], updatedAt: row?.updated_at ?? null, updatedBy: row?.updated_by ?? null };
     if (!row) return json(result);
     const edits = JSON.parse(row.edits_json);
-    // Trang thường: trả phần còn khớp HTML nguồn hiện tại, khóa lệch vào stale để editor báo (R10).
+    // Normal page: return the part that still matches the current source HTML, put mismatched keys in stale so the editor reports it (R10).
     if (page === "advertising") return json({ ...result, edits });
     const { fresh, stale } = content.freshEdits(await sourceHtml(env, url, page), page, edits, JSON.parse(row.anchors_json));
     return json({ ...result, edits: fresh, stale });
@@ -427,8 +427,8 @@ async function handleContent(request, env, url, actor) {
     if (result.error) return json({ error: result.error }, 400);
     anchors = result.anchors;
   } else {
-    // Card phải có trang tĩnh p/<id>: id lạ không được chèn vào <head> mọi trang Sản phẩm Quảng cáo. Chỉ kiểm card mới
-    // so với bản đã lưu (card cũ đã kiểm lúc lưu trước) để số subrequest không tăng theo tổng số card.
+    // A card must have a static page p/<id>: an unknown id must not be inserted into the <head> of every Advertising Products page. Check only new cards
+    // against the saved version (old cards were checked at the earlier save) so the subrequest count does not grow with the total card count.
     const known = new Set(Object.keys(row ? JSON.parse(row.edits_json).cards ?? {} : {}));
     for (const id of Object.keys(body.edits.cards).filter((entry) => !known.has(entry))) {
       const card = await env.ASSETS.fetch(new Request(new URL(`/vi/advertising-products/p/${id}/`, url.origin), { method: "HEAD" }));
@@ -437,7 +437,7 @@ async function handleContent(request, env, url, actor) {
   }
   const updatedAt = new Date().toISOString();
   const values = [JSON.stringify(body.edits), JSON.stringify(anchors), updatedAt, actor];
-  // Ghi có điều kiện theo phiên bản editor đã dựa vào: hai người lưu cùng lúc thì người sau nhận 409, không ghi đè ngầm.
+  // Conditional write by the editor version it was based on: when two people save at once the later one gets 409, with no silent overwrite.
   const write = baseUpdatedAt
     ? env.DB.prepare("UPDATE page_edits SET edits_json = ?, anchors_json = ?, updated_at = ?, updated_by = ? WHERE page = ? AND updated_at = ?")
       .bind(...values, page, baseUpdatedAt)
@@ -448,15 +448,15 @@ async function handleContent(request, env, url, actor) {
     const current = await pageEdits(env, page);
     return json({ error: "Conflict", updatedAt: current?.updated_at ?? null, updatedBy: current?.updated_by ?? null }, 409);
   }
-  // Nội dung đã lên web: audit lỗi thì ghi log, không trả 500 (editor sẽ giữ nháp rồi nhận 409 với chính bản mình).
+  // Content is already live: if the audit fails, log it and do not return 500 (the editor keeps the draft and then gets 409 on its own version).
   const keys = page === "advertising" ? Object.keys(body.edits.cards) : Object.keys(anchors);
   await logAudit(env, actor, "content.save", "page_edits", page, { bytes: values[0].length, keys, previous: row?.updated_at ?? null })
     .catch((error) => console.error("content.save audit failed", error));
   return json({ page, updatedAt, updatedBy: actor });
 }
 
-// Trang Sản phẩm Quảng cáo có card đã sửa: chèn script vá catalog đầu <head>; trang card p/<id> sửa luôn khối tĩnh
-// (tên, mô tả, ảnh cho bot không chạy JS), title, description, og:image.
+// An Advertising Products page with an edited card: insert the catalog patch script at the start of <head>; the card page p/<id> also edits the static block
+// (name, description, image for bots that do not run JS), title, description, og:image.
 let cardsCache = { updatedAt: null, cards: null };
 async function withCardEdits(response, request, env, url) {
   const isHtml = (entry) => entry.headers.get("content-type")?.includes("text/html");
@@ -466,8 +466,8 @@ async function withCardEdits(response, request, env, url) {
   if (row && cardsCache.updatedAt !== row.updated_at) cardsCache = { updatedAt: row.updated_at, cards: JSON.parse(row.edits_json).cards };
   const cards = row ? cardsCache.cards : null;
   if (!cards || !Object.keys(cards).length) return response;
-  // ETag của file tĩnh không đổi khi lưu card: trình duyệt hỏi lại bằng ETag cũ nhận 304 và giữ bản cũ. Lấy lại bản đầy
-  // đủ rồi bỏ ETag ở bản đã vá.
+  // The static file ETag does not change when a card is saved: a browser revalidating with the old ETag gets 304 and keeps the old copy. Fetch the full
+  // copy again, then drop the ETag from the patched version.
   let page = response;
   if (response.status === 304) page = await env.ASSETS.fetch(new Request(url, { method: request.method }));
   if (page.status !== 200 || !isHtml(page)) return response;
@@ -490,7 +490,7 @@ function safeDecode(value) {
   }
 }
 
-// File p/<id> đã dịch sẵn theo locale lúc build: ghi chữ đúng locale, cập nhật luôn data-vi, data-en đã nhúng.
+// The p/<id> file is already translated per locale at build: write text in the right locale and also update the embedded data-vi, data-en.
 function cardPageRewriter(rewriter, card, id, lang, origin) {
   const cover = card.mediaItems.find((item) => item.id === card.coverMediaId) ?? card.mediaItems[0];
   const figures = card.mediaItems.map((item) => `<figure><img src="${escapeAttribute(item.src)}" width="${item.width}" height="${item.height}" loading="lazy" decoding="async" alt="${escapeAttribute(item[`alt${lang}`])}" data-en-alt="${escapeAttribute(item.altEn)}" /></figure>`).join("");
@@ -670,7 +670,7 @@ class LocaleLink {
     if (element.hasAttribute("data-language-option")) return;
     const href = element.getAttribute("href");
     if (!href || !href.startsWith("/") || href.startsWith("//")) return;
-    // Route hệ thống không có tiền tố locale (handleRequest phục vụ trực tiếp); gắn /vi, /en sẽ thành 404.
+    // System routes have no locale prefix (handleRequest serves them directly); attaching /vi, /en would give 404.
     if (/^\/(?:media|admin|api)(?:[/?#]|$)|^\/(?:robots\.txt|sitemap\.xml)(?:[?#]|$)/.test(href)) return;
     const path = href.replace(/^\/(?:vi|en)(?=\/|$)/, "");
     element.setAttribute("href", `/${this.locale}${path || "/"}`);
@@ -1107,7 +1107,7 @@ async function serveMedia(request, env, url) {
   const headers = new Headers();
   headers.set("content-type", media.content_type);
   headers.set("cache-control", "public, max-age=0, must-revalidate");
-  // Logo SVG từ CMS: mở trực tiếp /media/<id> không được chạy script trên origin của site.
+  // CMS SVG logo: opening /media/<id> directly must not run scripts on the site origin.
   if (media.content_type === "image/svg+xml") {
     headers.set("content-security-policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
     headers.set("x-content-type-options", "nosniff");
@@ -1131,7 +1131,7 @@ function hasAllowedOrigin(request, url) {
   const origin = request.headers.get("origin");
   if (!origin) return false;
   try {
-    // So với origin của chính request: CMS ở admin.* khác PUBLIC_ORIGIN (www).
+    // Compare against the origin of the request itself: the CMS at admin.* differs from PUBLIC_ORIGIN (www).
     return new URL(origin).origin === url.origin;
   } catch {
     return false;
@@ -1153,8 +1153,8 @@ async function requireAdmin(request, env) {
   return actor && assertedEmail === actor && allowed.has(actor) ? actor : null;
 }
 
-// Đăng nhập dev cho `pnpm cms:dev`: cần biến CMS_LOCAL_ADMIN_EMAIL và host loopback.
-// Production không đặt biến này và không nhận request host loopback, nên vẫn chỉ qua Access.
+// Dev login for `pnpm cms:dev`: needs the CMS_LOCAL_ADMIN_EMAIL variable and a loopback host.
+// Production does not set this variable and does not accept loopback host requests, so it still goes only through Access.
 const LOOPBACK = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 function localDevAdmin(request, env) {
@@ -1321,7 +1321,7 @@ function isSafeSvg(bytes) {
   if (svg.length > 256 * 1024 || !/^\s*<svg\b[^>]*>/i.test(svg) || !/<\/svg>\s*$/i.test(svg)) {
     return false;
   }
-  // Namespace SVG chuẩn là định danh, không phải tài nguyên ngoài cần tải.
+  // The standard SVG namespace is an identifier, not an external resource to fetch.
   svg = svg.replace(/\sxmlns\s*=\s*(["'])http:\/\/www\.w3\.org\/2000\/svg\1/gi, " ");
   return !/(<\/?(?:script|foreignObject|iframe|object|embed|image|animate|set|use|a)\b|[\s/\"']on\w+\s*=|\sstyle\s*=|javascript:|data:|https?:|\b(?:href|xlink:href)\s*=|url\s*\(|@import|<!doctype|<!entity|<\?)/i.test(svg);
 }

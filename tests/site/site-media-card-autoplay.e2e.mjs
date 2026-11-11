@@ -5,9 +5,9 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
-// Lịch phát video card (media-card R4, owner 2026-10-24): masonry phát tắt tiếng mọi card video hiện quá 1/2 chiều cao
-// dưới navbar, tính lại ngay khi đang cuộn; hover không làm card phát; related trong detail tự phát như masonry (owner
-// 2026-10-25); reduced motion chỉ phát card dưới chuột; mỗi card chạy playlist video của nó rồi lặp.
+// Card video playback schedule (media-card R4, owner 2026-10-24): masonry plays every video card muted when more than 1/2 of its height shows
+// below the navbar, recomputed immediately while scrolling; hover does not make a card play; related in detail autoplays like masonry (owner
+// 2026-10-25); reduced motion only plays the card under the cursor; each card runs its video playlist then loops.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const fixturePrefix = "/__site_media_card_autoplay__/";
@@ -16,8 +16,8 @@ const clip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio.mp4
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-// Mọi card thành card video để lịch phát luôn có ứng viên, không phụ thuộc seed của grid. playlist: video, ảnh,
-// video thứ hai, để kiểm card bỏ qua ảnh khi chạy playlist.
+// Every card becomes a video card so the schedule always has candidates, independent of the grid seed. playlist: video, image,
+// second video, to check the card skips the image while running its playlist.
 function fixtureArtifact(playlist = false) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
@@ -46,7 +46,7 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
   const page = await browser.newPage({ viewport: { width, height }, isMobile: touch, hasTouch: touch, reducedMotion });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
-    // Trả 206 theo Range để Chrome coi clip là seekable, giây video mới chuyển được giữa card và detail.
+    // Return 206 for Range so Chrome treats the clip as seekable, so the video second can carry over between card and detail.
     const body = await readFile(clip);
     const [start, end = body.length - 1] = (/bytes=(\d+)-(\d*)/.exec(route.request().headers().range || "") || [])
       .slice(1).filter(Boolean).map(Number);
@@ -59,14 +59,14 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.waitForFunction(() => document.querySelectorAll("[data-masonry-card] video").length >= 4);
-  // Intro hero và smooth scroll cần mount xong mới nhận wheel.
+  // The hero intro and smooth scroll must finish mounting before they accept wheel.
   await page.waitForTimeout(2500);
-  // Con trỏ nằm ở lề trái, ngoài mọi card, để hover không chen vào lịch phát.
+  // The pointer sits at the left margin, outside every card, so hover does not interfere with the schedule.
   if (!touch) await page.mouse.move(8, height / 2);
   return { browser, page };
 }
 
-// visibleRatio: phần video hiện dưới navbar chia chiều cao video.
+// visibleRatio: the part of the video showing below the navbar divided by the video height.
 const videoState = (page, selector = "[data-masonry-card]") => page.evaluate((cardSelector) => {
   const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
   const videos = [...document.querySelectorAll(`${cardSelector} video`)].filter((video) => video.checkVisibility());
@@ -88,7 +88,7 @@ const videoState = (page, selector = "[data-masonry-card]") => page.evaluate((ca
 
 async function scroll(page, touch, distance = 4000) {
   if (touch) await page.evaluate((dy) => scrollBy(0, dy), distance);
-  // Smooth scroll desktop chỉ trôi theo từng nhịp wheel (hero Advertising còn hãm cuộn), nên cần nhiều nhịp.
+  // Desktop smooth scroll only drifts per wheel tick (the Advertising hero also damps scrolling), so many ticks are needed.
   else for (let moved = 0; moved < distance; moved += 250) {
     await page.mouse.wheel(0, 250);
     await page.waitForTimeout(120);
@@ -96,7 +96,7 @@ async function scroll(page, touch, distance = 4000) {
 }
 
 async function settle(page) {
-  // Smooth scroll desktop còn trôi thêm một lúc; chờ Locomotive gỡ class đang cuộn rồi thêm vài frame cho lịch phát.
+  // Desktop smooth scroll keeps drifting a while; wait for Locomotive to remove the scrolling class then a few more frames for the playback schedule.
   await page.waitForTimeout(300);
   await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 10000 });
   await page.waitForTimeout(300);
@@ -107,8 +107,8 @@ async function scrollAndSettle(page, touch, distance = 4000) {
   await settle(page);
 }
 
-// Mọi video hiện quá 1/2 chiều cao dưới navbar phát tắt tiếng, còn lại dừng. margin cho lúc đang cuộn: lịch tính trong
-// frame trước lúc đo nên video sát ngưỡng có thể lệch một frame.
+// Every video showing more than 1/2 of its height below the navbar plays muted, the rest pause. margin for while scrolling: the schedule is computed in
+// the frame before measuring so a video right at the threshold can be off by one frame.
 function assertHalfVisiblePlaying(state, label, margin = 0) {
   assert(state.playing.length >= 3, `${label}: every half-visible card plays, not two slots: ${JSON.stringify(state.playing)}`);
   assert(state.playing.every((video) => video.muted && video.visibleRatio > 0.5 - margin),
@@ -124,8 +124,8 @@ async function playingSettled(page, selector = "[data-masonry-card]") {
   return videoState(page, selector);
 }
 
-// Lịch khởi động mỗi frame một video (R4), nên nhiều card cùng hiện cần vài frame mới phát đủ: chờ tới khi không còn
-// video quá 1/2 đang chờ, quá 5s thì trả trạng thái lúc đó cho assert.
+// The schedule starts one video per frame (R4), so several cards showing together need a few frames to all play: wait until no
+// video over 1/2 is still waiting, after 5s return the state at that moment for the assert.
 async function allStarted(page, selector) {
   await playingSettled(page, selector);
   for (const until = Date.now() + 5000; Date.now() < until; await page.waitForTimeout(100)) {
@@ -144,8 +144,8 @@ for (const touch of [false, true]) {
       const state = await allStarted(page);
       assert.equal(state.playbackButtons, 0, "card video has no playback button");
       assertHalfVisiblePlaying(state, `${label} settled`);
-      // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vị trí mới. Touch nhảy 900px một lần nên nhiều card cùng hiện,
-      // lịch khởi động mỗi frame một video (R4): chờ như allStarted thay vì mốc 150ms (đỏ 2/2 lượt chạy cả bộ 2026-10-26).
+      // While scrolling (not stopped) the playback schedule has changed with the new position. Touch jumps 900px at once so many cards show together,
+      // the schedule starts one video per frame (R4): wait like allStarted instead of the 150ms mark (red 2/2 runs of the full suite 2026-10-26).
       await scroll(page, touch, 900);
       const moving = touch ? await allStarted(page) : (await page.waitForTimeout(150), await videoState(page));
       assertHalfVisiblePlaying(moving, `${label} while scrolling`, 0.1);
@@ -160,7 +160,7 @@ test("R4 desktop: a single-video card loops its video", async () => {
   try {
     await scrollAndSettle(page, false);
     const first = await playingSettled(page);
-    // Clip fixture dài 3s; chờ hết một vòng.
+    // The fixture clip is 3s long; wait for one full loop.
     await page.waitForTimeout(4500);
     const next = await videoState(page);
     assert.deepEqual(next.playing.map((video) => video.id).sort(), first.playing.map((video) => video.id).sort(),
@@ -173,10 +173,10 @@ test("R4 desktop: a card plays its video playlist in order, skips images and loo
   try {
     await scrollAndSettle(page, false);
     const first = await playingSettled(page);
-    // Card vào lịch từ lúc đang cuộn nên có thể đã sang video 2; chọn card đang ở video 1.
+    // The card entered the schedule while scrolling so it may already be on video 2; pick the card that is on video 1.
     const card = first.playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
     assert(card, `a playing card is on its first video: ${JSON.stringify(first.playing)}`);
-    // Mọi card hiện quá 1/2 cùng phát nên Chromium headless giải mã chậm, clip 3s có lúc chạy tới 6s.
+    // Every card showing over 1/2 plays together so headless Chromium decodes slowly, a 3s clip sometimes runs to 6s.
     await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
       ?.dataset.masonryActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 15000 });
     await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
@@ -190,7 +190,7 @@ test("R4 desktop: hovering a masonry card at half visible or less does not play 
   try {
     await scrollAndSettle(page, false);
     let target;
-    // Tìm một card video hiện một phần (từ 1/2 trở xuống) để rê chuột vào phần đang hiện.
+    // Find a video card showing partly (1/2 or less) to hover over the visible part.
     for (let step = 0; step < 10 && !target; step += 1) {
       target = (await playingSettled(page)).paused.find((video) => video.visibleRatio > 0.15 && video.visibleRatio <= 0.45);
       if (!target) await scrollAndSettle(page, false, 250);
@@ -239,8 +239,8 @@ test("R4 reduced motion: no autoplay on scroll, hover still plays", async () => 
   } finally { await browser.close(); }
 });
 
-// Card và detail giữ đúng media và giây video khi đi qua lại (owner 2026-10-18): card sang detail, Back về masonry.
-// Đổi ngôn ngữ tải lại trang như F5 (owner 2026-11-08) nên không còn giữ media, giây.
+// Card and detail keep the same media and video second when going back and forth (owner 2026-10-18): card to detail, Back to masonry.
+// A language change reloads the page like F5 (owner 2026-11-08) so it no longer keeps media or second.
 test("R4 desktop: the viewed media and video time carry from card to detail and back to masonry", async () => {
   const { browser, page } = await open({ playlist: true });
   const detail = () => page.evaluate(() => {
@@ -282,7 +282,7 @@ test("R4 desktop: the viewed media and video time carry from card to detail and 
 
     for (let step = 0; step < 2; step += 1) {
       await page.locator('[data-detail-media-step="1"]').click();
-      // Dải gỡ khi media đích đã vào hẳn khung và photoVideo đã nhận video đích (media-card R6).
+      // The strip releases when the target media has fully entered the frame and photoVideo has received the target video (media-card R6).
       await page.waitForFunction(() => !document.querySelector(".detail-view__strip"));
     }
     assert.equal((await detail()).mediaId, `${id}-autoplay-video-2`);

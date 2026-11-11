@@ -6,12 +6,12 @@
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
-  // Id riêng mỗi lần mount: lúc Barba chuyển trang, container cũ (ẩn) còn trong DOM cùng lưới News.
+  // Unique id per mount: when Barba switches pages, the old (hidden) container is still in the DOM with the News grid.
   let newsGridCount = 0;
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
-  // Điện thoại cả dọc lẫn ngang: header đi theo quãng cuộn (phone-header-scroll R1).
+  // Phones in both portrait and landscape: the header follows the scroll distance (phone-header-scroll R1).
   const headerFollowMedia = window.matchMedia(
     "(hover: none) and (pointer: coarse) and (max-width: 750px), (hover: none) and (pointer: coarse) and (max-height: 750px)",
   );
@@ -24,10 +24,10 @@
   const runtimeAbort = new AbortController();
   const originalText = new WeakMap();
   const originalAttributes = new WeakMap();
-  // Trang gốc Advertising và trang cụm, sản phẩm (taxonomy R4) cùng một trang masonry.
+  // The Advertising root page and cluster and product pages (taxonomy R4) are the same masonry page.
   const isAdvertisingPath = (pathname) =>
     /^\/(?:vi|en)\/advertising-products(?:\/(?:[^/]+\/){0,2})?$/.test(pathname);
-  // Detail: trang card (media-seo R1) hoặc ?photo= cũ.
+  // Detail: card page (media-seo R1) or the old ?photo=.
   const isAdvertisingPhotoUrl = (url) =>
     url.searchParams.has("photo") || /^\/(?:vi|en)\/advertising-products\/p\//.test(url.pathname);
   const localeScrollStateKey = (url) =>
@@ -49,29 +49,29 @@
   ];
 
   if (!header || !routeVeil || !dialog || !openButton || !closeButton) return;
-  // Mark cỡ nhỏ (brand.md Logo): header, menu dựng lại 4 dải theo lưới device pixel để đáy
-  // nằm đúng pixel, khe sọc và chu kỳ dải là số nguyên pixel; mark gốc khe 7.48 đơn vị.
-  // ponytail: giả định mép trên svg nằm trên pixel nguyên (đúng ở DPR 1); DPR lẻ có thể lệch dưới 1 device pixel.
+  // Small-size mark (brand.md Logo): the header and menu rebuild the 4 strips on the device-pixel grid so the bottom
+  // lands on a pixel, and the stripe gap and strip period are whole pixels; the original mark has a 7.48-unit gap.
+  // ponytail: assumes the svg top edge sits on a whole pixel (true at DPR 1); a fractional DPR may be off by under 1 device pixel.
   const brandLockups = [...document.querySelectorAll("[data-site-header] .brand-lockup, #site-menu .brand-lockup")];
   const brandMarkDeviceHeight = new WeakMap();
   const snapBrandMark = (svg) => {
     const paths = [...svg.querySelectorAll(".brand-lockup__mark > path")];
     const deviceHeight = brandMarkDeviceHeight.get(svg);
     if (paths.length !== 4 || !deviceHeight) return;
-    // Đơn vị mark sang device pixel: viewBox cao 153.667, mark scale 0.62.
+    // Mark units to device pixels: viewBox height 153.667, mark scale 0.62.
     const unit = (deviceHeight * 0.62) / 153.667;
-    // Đáy dịch tối đa nửa device pixel về pixel gần nhất; giữ chiều cao, bề rộng mark gốc.
+    // The bottom shifts at most half a device pixel to the nearest pixel; keep the height and the original mark width.
     const base = Math.round(deviceHeight);
     const width = (2 * deviceHeight) / Math.sqrt(3);
     const gap = Math.max(2, Math.round(7.48 * unit));
     const period = Math.round((width + gap) / 4);
-    // Điểm trên đường song song cạnh trái, đi từ chân x tới cạnh phải tam giác.
+    // Point on the line parallel to the left edge, going from the foot x to the triangle's right edge.
     const toRightEdge = (x) => {
       const t = (width - x) / 2;
       return [x + t, base - t * Math.sqrt(3)];
     };
     paths.forEach((path, index) => {
-      // DOM: đen, vàng, magenta, cyan; cyan là dải trái nhất.
+      // DOM: black, yellow, magenta, cyan; cyan is the leftmost strip.
       const band = 3 - index;
       const left = band * period;
       const right = band === 3 ? width : left + period - gap;
@@ -81,7 +81,7 @@
   };
   if (typeof ResizeObserver !== "undefined") {
     const brandMarkObserver = new ResizeObserver((entries) => entries.forEach((entry) => {
-      // devicePixelContentBoxSize đã làm tròn; cần chiều cao thật để biết pixel nào là đáy.
+      // devicePixelContentBoxSize is already rounded; the real height is needed to know which pixel is the bottom.
       const deviceHeight = entry.contentRect.height * window.devicePixelRatio;
       if (!deviceHeight) return;
       brandMarkDeviceHeight.set(entry.target, deviceHeight);
@@ -104,7 +104,7 @@
     const hiddenByBreakpoint = getComputedStyle(desktopNavList).display === "none";
     const items = [...desktopNavList.children];
     const listRect = desktopNavList.getBoundingClientRect();
-    // Logo đo theo box layout, bỏ transform: lúc intro scale(0) rect rộng 0 nên nav đè logo mà không bị ẩn.
+    // The logo is measured by layout box, ignoring transform: during intro scale(0) the rect has 0 width so the nav overlaps the logo without being hidden.
     const logoParent = headerLogo?.offsetParent;
     const logoRight = logoParent
       && logoParent.getBoundingClientRect().left + logoParent.clientLeft + headerLogo.offsetLeft + headerLogo.offsetWidth;
@@ -160,7 +160,7 @@
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
-  // Mount dưới veil chờ lúc veil bắt đầu mở để đếm delay intro hero (first-load-parity R2).
+  // Mount under the waiting veil when the veil starts opening, to count the hero intro delay (first-load-parity R2).
   let resolveRouteReveal;
   const startRouteReveal = () => {
     resolveRouteReveal?.();
@@ -169,11 +169,11 @@
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
-  // Route mềm: header ở tone veil (chữ đậm, mark CMYK) từ lúc veil phủ kín tới lúc veil bắt đầu mở, kể cả khi trang
-  // đích mount dưới veil (logo-route-crossfade R1, R2).
+  // Soft route: the header is in veil tone (bold text, CMYK mark) from when the veil fully covers until it starts opening, even when the
+  // destination page mounts under the veil (logo-route-crossfade R1, R2).
   let routeVeilInk = false;
-  // Veil phủ kín ít nhất 1s (owner 2026-11-09), dài hơn một lượt lật mark, kể cả khi trang đích có sẵn trong cache: chữ đậm và mark CMYK
-  // hiện đủ lâu trên veil, navbar không chớp (owner 2026-11-09, logo-route-crossfade R2).
+  // The veil covers fully for at least 1s (owner 2026-11-09), longer than one mark flip, even when the destination page is already cached: bold text and CMYK mark
+  // show long enough on the veil, the navbar does not flicker (owner 2026-11-09, logo-route-crossfade R2).
   const routeVeilHold = 1000;
   let routeVeilCoveredAt;
   let pageHeaderInk = false;
@@ -195,16 +195,16 @@
   const getPageChildren = () =>
     pageState ? [...pageState.container.children] : [];
 
-  // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
-  // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
+  // Hero text (hero-typography R2): measure the longest line in em; CSS only shrinks the text when the frame width divided by this number is smaller than
+  // the shared size, so resize needs no re-measure. Re-measure on language change or when fonts finish loading.
   const fitHeroLines = () => {
     document
       .querySelectorAll(".hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker), .legacy-copy h2")
       .forEach((title) => {
         title.setAttribute("data-hero-fit", "");
-        // Wrapper hero có thể đang scale (zoom lúc vào trang); đổi rect về px layout.
+        // The hero wrapper may be scaling (zoom on page entry); convert the rect to layout px.
         const scale = title.getBoundingClientRect().width / (title.offsetWidth || 1) || 1;
-        // Một cỡ chữ cho cả title: dòng dài nhất vừa khung, hai dòng giữ cùng nhịp.
+        // One font size for the whole title: the longest line fits the frame, the two lines keep the same rhythm.
         const widths = [];
         title.querySelectorAll(":scope > :is(.hero-line-mask, .detail-hero-line-mask, .line-mask)").forEach((line) => {
           let left = Infinity;
@@ -222,18 +222,18 @@
           if (right > left && size) widths.push((right - left) / scale / size);
         });
         if (!widths.length) return;
-        // Chừa 1%: hinting làm bề rộng chữ không co đúng tỷ lệ cỡ chữ, dòng vừa sát khung có thể tràn 1-2px.
-        // Hero ghi lên hero-content để kicker cùng đọc được (detail.css); CTA legacy ghi lên chính h2.
+        // Leave 1%: hinting makes text width not shrink exactly in proportion to font size, so a line fitting tight to the frame could overflow by 1-2px.
+        // Hero writes to hero-content so the kicker can read it too (detail.css); the legacy CTA writes to the h2 itself.
         const host = title.closest(".hero-content") || title;
         host.style.setProperty("--hero-line-em", (Math.max(...widths) * 1.01).toFixed(3));
-        // Hai dòng lồng nhau một phần như hero trang chủ EN (hero-typography R2): cặp dòng rộng tổng hai dòng trừ 30%
-        // dòng ngắn; CSS dồn hai dòng vào giữa khi khung rộng hơn cặp.
+        // Two partially nested lines like the EN home hero (hero-typography R2): the pair's line width is the sum of both lines minus 30% of the
+        // short line; CSS pushes the two lines to the middle when the frame is wider than the pair.
         if (widths.length === 2) {
           const pair = widths[0] + widths[1] - 0.3 * Math.min(...widths);
           host.style.setProperty("--hero-pair-em", (pair * 1.01).toFixed(3));
         }
-        // Kicker cách đỉnh nét chữ thật của dòng 1 như nhau ở mọi hero, kể cả chữ có dấu chồng (Ể): dòng 1 thấp hơn
-        // "Ể" bao nhiêu em thì kicker kéo xuống bấy nhiêu (detail.css).
+        // The kicker sits the same distance from the real ink top of line 1 in every hero, including text with stacked diacritics ("Ể"): the kicker is pulled down
+        // by as many em as line 1 sits lower than "Ể" (detail.css).
         const firstLine = title.firstElementChild;
         if (host !== title && maskContext && firstLine) {
           const style = getComputedStyle(firstLine.querySelector("*") || firstLine);
@@ -248,7 +248,7 @@
 
   const measureTextMasks = () => {
     if (!maskContext) return;
-    // Đọc hết rồi mới ghi: ghi biến mask xen giữa các lần getComputedStyle ép style recalc mỗi mask (phone).
+    // Read everything first, then write: writing mask variables between getComputedStyle calls forces a style recalc per mask (phone).
     const overflows = [...document.querySelectorAll(textMaskSelector)].map((mask) => {
       const line = mask.firstElementChild || mask;
       const style = getComputedStyle(line);
@@ -259,8 +259,8 @@
         `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
       const metrics = maskContext.measureText(line.textContent.trim());
       const capMetrics = maskContext.measureText("H");
-      // Sàn 0.24em: đủ cho phần hộp nội dung chữ vượt line box (khoảng 0.14em) cộng độ nâng 0.1em của
-      // .heritage-line / .line-mask > span, nên mask không cắt hộp chữ ở màn ngang thấp.
+      // Floor 0.24em: enough for the part of the text content box exceeding the line box (about 0.14em) plus the 0.1em lift of
+      // .heritage-line / .line-mask > span, so the mask does not clip the text box on a short landscape screen.
       const topOverflow = Math.max(
         fontSize * 0.24,
         metrics.actualBoundingBoxAscent -
@@ -282,9 +282,9 @@
       mask.style.setProperty("--mask-ink-overflow-bottom", `${bottom}px`);
     });
   };
-  // Vị trí ẩn của dòng chữ trong mask: tụt hẳn dưới mép clip-path (đáy mask, mực dưới, vùng bóng cố định
-  // --text-shadow-reach). Chỉ tụt 2em thì chữ nhỏ (kicker portal) lộ phần đỉnh chữ qua vùng bóng 12px.
-  // Cận 0.6em + 8px phủ mực đo sau bằng measureTextMasks; chữ lớn vẫn lấy 2em như cũ.
+  // Hidden position of a text line in the mask: dropped fully below the clip-path edge (mask bottom, bottom ink, fixed shadow zone
+  // --text-shadow-reach). Dropping only 2em lets small text (portal kicker) show the top of the glyphs through the 12px shadow zone.
+  // Bound 0.6em + 8px covers the ink measured later by measureTextMasks; large text still takes 2em as before.
   const maskHiddenY = (_, line) => {
     const size = Number.parseFloat(getComputedStyle(line).fontSize) || 16;
     const mask = line.parentElement;
@@ -295,20 +295,20 @@
     ) || 0;
     return Math.max(2 * size, mask.offsetHeight + 0.6 * size + 8 + reach);
   };
-  // Chữ đã về chỗ: mở lại vùng bóng dưới mask, bóng hiện dần 0.6s (owner 2026-10-26).
+  // Text back in place: reopen the shadow zone below the mask, the shadow fades in over 0.6s (owner 2026-10-26).
   const openTextMask = (line) => {
     const mask = line.parentElement;
     if (!mask?.classList.contains("is-text-masked")) return;
     mask.classList.remove("is-text-masked");
     mask.animate([{ textShadow: "none" }, {}], { duration: 600, easing: "ease-out" });
   };
-  // onComplete của tween reveal.
+  // onComplete of the reveal tween.
   function openTextMasks() {
     this.targets().forEach(openTextMask);
   }
-  // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
-  // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
-  // lấy ở trạng thái cuối animation (.heritage-line nâng 0.1em khi motion bật).
+  // Motto (page-home R7): the ink of a character in the column of the adjacent line's image must be at least
+  // max(0.1em, 6px) from the image; if short, only that pair of lines is spread. Ink per character is measured with canvas, text positions
+  // are taken at the animation's end state (.heritage-line lifts 0.1em when motion is on).
   const fitHeritageGaps = () => {
     if (!maskContext) return false;
     const root = document.documentElement;
@@ -325,7 +325,7 @@
       const inks = [];
       rows.forEach((row, rowIndex) => {
         row.querySelectorAll(".heritage-image").forEach((image) => {
-          // Tâm lấy từ rect, kích thước từ layout box để bỏ scale lúc reveal.
+          // Center from the rect, size from the layout box to drop the scale during reveal.
           const { left, top, width, height } = image.getBoundingClientRect();
           const dx = (width - image.offsetWidth) / 2;
           const dy = (height - image.offsetHeight) / 2;
@@ -337,7 +337,7 @@
           const style = getComputedStyle(line);
           const fontSize = Number.parseFloat(style.fontSize);
           maskContext.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-          // Bỏ transform đang chạy của dòng chữ, thay bằng vị trí cuối.
+          // Drop the text line's running transform, replacing it with the final position.
           const shift = line.getBoundingClientRect().top - mask.getBoundingClientRect().top + lift * fontSize;
           const range = document.createRange();
           [...line.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).forEach((node) => {
@@ -347,7 +347,7 @@
               range.setStart(node, index);
               range.setEnd(node, index + 1);
               const box = range.getBoundingClientRect();
-              // Motto luôn text-transform uppercase.
+              // Motto is always text-transform uppercase.
               const metrics = maskContext.measureText(text[index].toUpperCase());
               const baseline = box.top - shift + metrics.fontBoundingBoxAscent;
               const top = baseline - metrics.actualBoundingBoxAscent;
@@ -360,7 +360,7 @@
       const rowGapAdd = rows.map(() => 0);
       images.forEach((image) => {
         const fontSize = Number.parseFloat(getComputedStyle(rows[image.row]).fontSize);
-        // +1px cho viền antialias của dấu.
+        // +1px for the antialiased edge of the diacritic.
         const need = Math.max(0.1 * fontSize, 6) + 1;
         inks.forEach((ink) => {
           if (ink.right <= image.left || ink.left >= image.right) return;
@@ -369,7 +369,7 @@
           if (add <= 0) return;
           const upper = below ? image.row : ink.row;
           const lower = below ? ink.row : image.row;
-          // Cùng hàng là dòng wrap trên phone: giãn row-gap của hàng; khác hàng: giãn margin hàng dưới.
+          // Same row is a wrapped line on phone: spread the row's row-gap; different row: spread the lower row's margin.
           if (upper === lower) rowGapAdd[upper] = Math.max(rowGapAdd[upper], add);
           else if (lower === upper + 1) marginAdd[lower] = Math.max(marginAdd[lower], add);
         });
@@ -385,8 +385,8 @@
   };
   let textMaskFrame;
   let heroFitPending = false;
-  // Gộp các lần gọi cùng frame (font loadingdone, layout update, đổi trang) thành một lượt đo.
-  // Layout update không đo lại chữ hero (xem fitHeroLines): đo ép style cả trang, long task khi mở detail trên phone.
+  // Merge calls in the same frame (font loadingdone, layout update, page change) into one measure pass.
+  // Layout update does not re-measure hero text (see fitHeroLines): measuring forces a whole-page style recalc, a long task when opening detail on phone.
   const scheduleTextMaskMeasurement = (fitHero = true) => {
     heroFitPending ||= Boolean(fitHero);
     if (textMaskFrame) return;
@@ -395,7 +395,7 @@
       if (heroFitPending) fitHeroLines();
       heroFitPending = false;
       measureTextMasks();
-      // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
+      // When the motto line gap changes, page height changes: update smooth scroll and header tone.
       if (fitHeritageGaps()) requestLayoutUpdate();
     });
   };
@@ -416,7 +416,7 @@
       ["aria-label", "enAriaLabel"],
       ["alt", "enAlt"],
       ["content", "enContent"],
-      // Link trang cụm Advertising: slug EN khác slug VI nên không đổi được chỉ bằng tiền tố locale.
+      // Advertising cluster page link: the EN slug differs from the VI slug so it cannot be changed with just the locale prefix.
       ["href", "enHref"],
     ].forEach(([attribute, dataKey]) => {
       const nodes = [
@@ -495,7 +495,7 @@
     applyLanguage(currentLanguage, false, !translatedByServer);
   };
 
-  // Chữ logo, nav, hamburger đổi màu ngay, không motion (owner 2026-11-09), cả lúc cuộn lẫn lúc chuyển trang.
+  // Logo text, nav, hamburger change color immediately, no motion (owner 2026-11-09), both while scrolling and during page transitions.
   const colorHeader = (color) => {
     currentHeaderColor = color;
     header.querySelectorAll("#header-logo, .desktop-nav a, .menu-button").forEach((target) => target.style.setProperty("color", color));
@@ -521,7 +521,7 @@
     if (!sizeChanged || afterRect.width <= 0 || afterRect.height <= 0) return;
 
     gsap.killTweensOf(headerLogo, "transform");
-    // Intro WAAPI của logo che transform inline của FLIP; beforeRect đã gồm scale của intro.
+    // The logo's WAAPI intro covers the inline transform of FLIP; beforeRect already includes the intro scale.
     headerLogo.getAnimations()
       .filter((animation) => animation.effect?.getKeyframes().some((frame) => "transform" in frame))
       .forEach((animation) => animation.cancel());
@@ -559,16 +559,16 @@
     });
   }
 
-  // Nền và viền header vẽ ở ::before (style.css), chạy chung nhịp FLIP 0.3s expo.out, chỉ transform. Cỡ lớn nhất của
-  // nền: logo lớn nhất cách đều cạnh trên và cạnh dưới (owner 2026-11-09), nên lúc header mở, đáy nền thấp hơn đáy
-  // header đúng phần surfaceExtra. Thu gọn: nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar. Mở ra: nền trắng và
-  // chữ ink giữ (headerSurfaceHeld), nền giãn từ cao cũ tới cỡ lớn nhất; hết 0.3s nền tắt và chữ đổi ngay, không fade.
+  // Header background and border are drawn in ::before (style.css), running on the same 0.3s expo.out FLIP beat, transform only. The largest size of
+  // the background: the largest logo is equidistant from the top and bottom edges (owner 2026-11-09), so when the header opens the background bottom sits lower than the
+  // header bottom by exactly surfaceExtra. Collapse: the background starts at the largest size then shrinks with the logo and navbar. Open: white background and
+  // ink text held (headerSurfaceHeld), the background stretches from the old height to the largest size; after 0.3s the background turns off and the text changes immediately, no fade.
   const surfaceExtra = () => {
     const top = Number.parseFloat(getComputedStyle(header).paddingTop) || 0;
     return headerLogo instanceof HTMLElement ? Math.max(0, 2 * top + headerLogo.offsetHeight - header.offsetHeight) : 0;
   };
-  // killTweensOf(header, "--header-surface-shift") không bắt được tween biến CSS: giữ tham chiếu để dừng tween cũ,
-  // nếu không onComplete của nhịp trước nhả nền giữa nhịp mới.
+  // killTweensOf(header, "--header-surface-shift") cannot catch a CSS-variable tween: keep a reference to stop the old tween,
+  // otherwise the previous beat's onComplete releases the background in the middle of the new beat.
   let headerSurfaceTween;
   function playHeaderSurfaceMotion(heightBefore, extraBefore) {
     if (!hasGsap) return;
@@ -620,14 +620,14 @@
     header.style.removeProperty("transform");
   };
 
-  // Nhịp header (brand.md Motion): logo FLIP, navbar và nền chạy chung 0.3s expo.out; nền, viền, chữ đổi ngay lúc bắt
-  // đầu nhịp và mark lật cùng lúc (owner 2026-11-09). Đổi tone không thu gọn (section nền trắng): mark lật sau 0.1s,
-  // 0.1s cũng là nhịp stagger nav lúc intro.
+  // Header beat (brand.md Motion): logo FLIP, navbar and background run together on 0.3s expo.out; background, border, text change immediately at the start
+  // of the beat and the mark flips at the same time (owner 2026-11-09). A tone change without collapse (white-background section): the mark flips after 0.1s,
+  // 0.1s is also the nav stagger beat during the intro.
   const headerBeat = 0.3;
   const headerSettle = 0.1;
-  // Header thu gọn hoặc mở ra: mark lật ngay (updateHeader đặt 0).
+  // Header collapsing or opening: the mark flips immediately (updateHeader sets 0).
   let headerMarkLeadFor = headerSettle;
-  // Mở ra: nền trắng, viền, chữ ink giữ tới hết nhịp 0.3s (playHeaderSurfaceMotion nhả).
+  // Opening: white background, border, ink text held until the 0.3s beat ends (playHeaderSurfaceMotion releases).
   let headerSurfaceHeld = false;
   let headerSurfaceLast = [false, false];
   const paintHeaderSurface = (ink, collapsed) => {
@@ -652,11 +652,11 @@
     const activeSection = toneRanges.find(
       ({ top, bottom }) => top <= probeY && bottom > probeY,
     )?.section;
-    // Detail ảnh Advertising không có hero nên header luôn thu gọn (advertising-detail R10).
+    // Advertising photo detail has no hero so the header is always collapsed (advertising-detail R10).
     const collapsed = scrollY > 100 || document.body.classList.contains("is-detail");
-    // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
+    // The page's own tone, ignoring the route pin layer; playRouteEnter reads it to change the mark when the veil opens.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
-    // Route mềm (routeMarkHeld): tone veil chỉ trong lúc veil phủ kín; vào thẳng trang: tới khi trang đích sẵn sàng.
+    // Soft route (routeMarkHeld): veil tone only while the veil fully covers; direct entry: until the destination page is ready.
     const ink = (routeTransitionActive && (routeMarkHeld ? routeVeilInk : !routeDestinationReady)) || pageHeaderInk;
     const collapsedChanged =
       lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
@@ -664,14 +664,14 @@
       collapsedChanged && headerLogo instanceof HTMLElement
         ? headerLogo.getBoundingClientRect()
         : null;
-    // Padding đổi ngay (không transition layout); nav và nút menu trượt bằng transform từ vị trí cũ.
+    // Padding changes immediately (no layout transition); nav and menu button slide by transform from the old position.
     const slideBefore = collapsedChanged ? headerSlideTargets().map((el) => [el, el.getBoundingClientRect().top]) : null;
     const heightBefore = collapsedChanged ? header.offsetHeight : 0;
     const extraBefore = collapsedChanged ? surfaceExtra() : 0;
     header.classList.toggle("is-collapsed", collapsed);
-    // Thu gọn (owner 2026-11-09): nền, viền và màu chữ đổi một lần ngay lúc logo FLIP và navbar bắt đầu chạy, không fade;
-    // nền hiện ở cao cũ rồi co cùng logo, navbar 0.3s (playHeaderSurfaceMotion). Mở ra: nền trắng, chữ ink giữ và giãn
-    // theo navbar 0.3s, hết nhịp mới tắt. Cả hai chiều mark lật ngay lúc bắt đầu.
+    // Collapse (owner 2026-11-09): background, border and text color change once right when the logo FLIP and navbar start running, no fade;
+    // the background shows at the old height then shrinks with the logo and navbar over 0.3s (playHeaderSurfaceMotion). Open: white background, ink text held and stretching
+    // with the navbar over 0.3s, turning off only when the beat ends. In both directions the mark flips right at the start.
     if (collapsedChanged) headerSurfaceHeld = !collapsed && hasGsap && !reduceMotion && header.classList.contains("is-surface");
     paintHeaderSurface(ink, collapsed);
     if (collapsedChanged) headerMarkLeadFor = 0;
@@ -689,9 +689,9 @@
 
     const pageHeight = document.documentElement.scrollHeight;
     const maxScroll = Math.max(0, pageHeight - window.innerHeight);
-    // Floating CTA chỉ ở màn đầu: cuối mỗi trang đã có nút Zalo riêng (lời mời trang chủ,
-    // `.detail-cta`) nên nút nổi không lặp lại ở đó (owner 12/10). Ẩn cả khi footer lọt vào
-    // viewport (trang ngắn như 404) để footer không phải chừa làn nút.
+    // Floating CTA only on the first screen: the end of each page already has its own Zalo button (home invitation,
+    // `.detail-cta`) so the floating button does not repeat there (owner 12/10). Also hidden when the footer enters the
+    // viewport (short pages like 404) so the footer does not have to reserve a button lane.
     const footerTop =
       toneRanges.find(({ section }) => section.classList.contains("site-footer"))?.top ?? Infinity;
     const nextCtaShown = scrollY <= window.innerHeight && scrollY + window.innerHeight <= footerTop;
@@ -714,12 +714,12 @@
     if (routeTransitionActive) {
       showHeader();
     } else if (document.body.classList.contains("menu-open")) {
-      // Khóa cuộn: không tính delta (phone-header-scroll R4).
+      // Scroll locked: do not count delta (phone-header-scroll R4).
     } else if (follow) {
-      // Lệch đúng bằng quãng cuộn, kẹp trong [0, chiều cao header] và không quá scrollY;
-      // dừng cuộn thì giữ nguyên (phone-header-scroll R2, R3).
+      // Offset exactly equals the scroll distance, clamped to [0, header height] and no more than scrollY;
+      // when scrolling stops it stays as is (phone-header-scroll R2, R3).
       if (headerFollowStale) {
-        // Đo lại chiều cao; header đang khuất hẳn thì giữ khuất hẳn theo chiều cao mới.
+        // Re-measure the height; a header that is fully hidden stays fully hidden at the new height.
         const height = header.offsetHeight;
         if (headerOffset >= headerFollowHeight) headerOffset = height;
         headerFollowHeight = height;
@@ -765,8 +765,8 @@
   const headerMarkPaths = [...(headerMark?.querySelectorAll("path") || [])];
   const markBlack = headerMarkPaths.map(() => "rgb(43, 42, 41)");
   let headerMarkFlip;
-  // Trục lật của mỗi dải: điểm giữa đoạn chân dải, theo hệ tọa độ path. Đường qua điểm này song song cạnh trái
-  // tam giác cũng đi qua trung điểm cạnh phải của dải. Cache theo `d` vì snapBrandMark có thể dựng lại path.
+  // Flip axis of each strip: the midpoint of the strip's foot segment, in path coordinates. The line through this point parallel to the triangle's left edge
+  // also passes through the midpoint of the strip's right edge. Cached by `d` because snapBrandMark may rebuild the path.
   const bandAxis = new Map();
   const readBandAxis = (path) => {
     const d = path.getAttribute("d");
@@ -779,7 +779,7 @@
     }
     return bandAxis.get(d);
   };
-  // Màu đang hiển thị của từng dải khi lật dở: dải đã quay mặt mới ra thì lấy màu mới, chưa thì màu cũ.
+  // Currently displayed color of each strip mid-flip: a strip whose new face has just turned out takes the new color, otherwise the old one.
   const readFlipFaces = () => headerMarkFlip.bands.map(({ front, back }) => {
     const timing = front.getAnimations()[0]?.effect.getComputedTiming();
     return timing && timing.progress !== null && timing.progress < 1 ? front.dataset.fill : back.dataset.fill;
@@ -790,9 +790,9 @@
     headerMark.style.removeProperty("visibility");
     headerMarkFlip = undefined;
   };
-  // Gỡ lớp lật khi mọi mặt chạy xong. Mỗi lần tua ngược thì `gen` tăng, lượt chờ cũ bỏ qua.
-  // Lật xong: gỡ lớp lật, hoặc nếu giữa chừng màu đích sang màu thứ ba (`flip.next`) thì lật tiếp từ màu vừa tới,
-  // sau khi hết nhịp header của lần đổi đó.
+  // Remove the flip layer when all faces finish running. Each rewind increments `gen`, and the old wait is ignored.
+  // Flip done: remove the flip layer, or if midway the target color switches to a third color (`flip.next`), flip on from the color just reached,
+  // after the header beat of that change ends.
   const advanceHeaderMarkFlip = (flip) => {
     if (headerMarkFlip !== flip) return;
     const next = flip.next;
@@ -815,8 +815,8 @@
       () => {},
     );
   };
-  // Lượt lật là một đoạn motion chạy tới (`front` sang `back`, cyan trước) hoặc chạy lùi (`back` về `front`, đen trước).
-  // Đổi đích về đầu kia lúc đang lật: tua ngược ngay từ chỗ đang dừng, như tua băng (owner 2026-11-09).
+  // A flip pass is a motion segment running forward (`front` to `back`, cyan first) or backward (`back` to `front`, black first).
+  // Changing the target back to the other end mid-flip: rewind immediately from where it stands, like a tape rewind (owner 2026-11-09).
   const runHeaderMarkFlip = (flip, rate) => {
     flip.next = undefined;
     flip.dest = rate > 0 ? flip.back : flip.front;
@@ -825,16 +825,16 @@
     flip.gen += 1;
     settleHeaderMarkFlip(flip);
   };
-  // Bóng mặt dải lúc nghiêng: màu và độ đậm lớn nhất, đạt khi mặt xoay ra cạnh (90 độ).
+  // Strip face shadow while tilted: color and maximum strength, reached when the face turns edge-on (90 degrees).
   const headerFlipShade = "#000";
   const headerFlipShadeMax = 0.5;
-  // Dựng lớp lật và lật từng dải từ `from` sang `target`. `backward` (về trắng): dựng lượt lật từ `target` sang `from`
-  // rồi chạy lùi từ cuối, nên đen lật trước, cyan sau cùng, đúng là trắng sang CMYK tua ngược (owner 2026-11-09).
+  // Build the flip layer and flip each strip from `from` to `target`. `backward` (to white): build the flip pass from `target` to `from`
+  // then run backward from the end, so black flips first and cyan last, exactly white to CMYK rewound (owner 2026-11-09).
   const flipHeaderMark = (from, target, backward) => {
     const front = backward ? target : from;
     const back = backward ? from : target;
-    // Khung lớp lật trùng khung mark, tính theo % của #header-logo: tỉ lệ không phụ thuộc scale FLIP đang chạy,
-    // và header thu gọn hoặc mở ra giữa lúc lật thì lớp co giãn theo lockup, không giữ cỡ cũ tràn khỏi header.
+    // The flip layer frame coincides with the mark frame, computed as a % of #header-logo: the ratio does not depend on the running FLIP scale,
+    // and when the header collapses or opens mid-flip the layer scales with the lockup instead of keeping the old size and overflowing the header.
     const logoRect = headerLogo.getBoundingClientRect();
     const markRect = headerMark.getBoundingClientRect();
     const box = headerMark.getBBox();
@@ -849,8 +849,8 @@
       width: percent(markRect.width, logoRect.width),
       height: percent(markRect.height, logoRect.height),
     });
-    // Mỗi mặt có thêm lớp bóng cùng hình dải: tối dần khi mặt xoay ra cạnh, sáng lại khi quay tới (owner 2026-11-09:
-    // dải mảnh xoay quanh trục dọc dải trông như quét, bóng cho mắt thấy chiều sâu). Bóng chỉ chạy opacity.
+    // Each face has an extra shadow layer of the strip's shape: darkening as the face turns edge-on, brightening again as it turns toward the viewer (owner 2026-11-09:
+    // a thin strip rotating about its vertical axis looks like a sweep, the shadow gives the eye depth). The shadow runs opacity only.
     const svg = (fill, d) => `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"><path fill="${fill}" d="${d}"/></svg>`;
     const face = (path, fill) => {
       const layer = document.createElement("span");
@@ -863,7 +863,7 @@
       const [axisX, axisY] = readBandAxis(path);
       const origin = `${((axisX - box.x) / box.width) * 100}% ${((axisY - box.y) / box.height) * 100}%`;
       const band = document.createElement("span");
-      // Phối cảnh đặt ngay trên trục từng dải, dải lật tại chỗ; cỡ phối cảnh theo cỡ mark.
+      // The perspective sits right on each strip's axis, the strip flips in place; perspective size follows the mark size.
       band.style.perspective = `${width * 6}px`;
       band.style.perspectiveOrigin = origin;
       const frontFace = face(path, front[index]);
@@ -873,20 +873,20 @@
       root.append(band);
       return { front: frontFace, back: backFace };
     });
-    // SVG không chứa được lớp HTML; lớp lật nằm trong #header-logo nên cùng chịu FLIP scale.
+    // An SVG cannot contain an HTML layer; the flip layer sits inside #header-logo so it takes the same FLIP scale.
     headerLogo.prepend(root);
     headerMark.style.visibility = "hidden";
     const flip = { root, bands, front, back, dest: target, gen: 0, animations: [] };
     headerMarkFlip = flip;
-    // Trục song song cạnh trái tam giác (lên 60 độ). DOM: đen, vàng, magenta, cyan; cyan lật trước, mỗi dải lệch 80ms.
-    // Mọi mặt cùng kết thúc ở mốc cuối của lượt (endDelay), nên chạy lùi từ cuối hay tua ngược giữa chừng thì các dải
-    // vẫn giữ đúng lệch 80ms, theo thứ tự ngược lại.
+    // Axis parallel to the triangle's left edge (up at 60 degrees). DOM: black, yellow, magenta, cyan; cyan flips first, each strip offset by 80ms.
+    // All faces end at the pass's final mark (endDelay), so whether running backward from the end or rewinding midway the strips
+    // keep exactly the 80ms offset, in reverse order.
     const total = (bands.length - 1) * 80 + 440;
     const turn = (angle) => `rotate3d(0.5, -0.866, 0, ${angle}deg)`;
     const shade = (layer, keyframes, timing) => flip.animations.push(layer.lastElementChild.animate(keyframes, timing));
     bands.forEach(({ front, back }, index) => {
       const delay = (bands.length - 1 - index) * 80;
-      // Mặt sau dùng đúng đường cong đối xứng của mặt trước, cùng 220ms: chạy lùi trông như chạy tới, không khựng đầu lượt.
+      // The back face uses exactly the mirrored curve of the front face, same 220ms: running backward looks like running forward, no stall at the start of the pass.
       const frontTiming = { delay, duration: 220, endDelay: total - delay - 220, easing: "cubic-bezier(0.5, 0, 0.75, 0)", fill: "both" };
       const backTiming = { delay: delay + 220, duration: 220, endDelay: total - delay - 440, easing: "cubic-bezier(0.25, 1, 0.5, 1)", fill: "both" };
       shade(front, [{ opacity: 0 }, { opacity: headerFlipShadeMax }], frontTiming);
@@ -912,10 +912,10 @@
     settleHeaderMarkFlip(flip);
   };
   let headerMarkLead;
-  // Chờ hết nhịp header rồi mới chạy `run`. `from`: màu mark lúc vào nhịp 1; không có thì các dải đang lật
-  // đứng yên ở góc hiện tại trong lúc chờ.
+  // Wait for the header beat to end before running `run`. `from`: the mark color on entering beat 1; if absent, the strips that are mid-flip
+  // rest at their current angle while waiting.
   const leadHeaderMark = (className, run, from) => {
-    // Không chờ nhịp (veil phủ kín hoặc bắt đầu mở): lật ngay trong frame này.
+    // Not waiting for the beat (veil fully covering or starting to open): flip immediately in this frame.
     if (!hasGsap || !headerMarkLeadFor) {
       run();
       return;
@@ -926,16 +926,16 @@
     });
     headerMarkLead = { className, call, from };
   };
-  // Đổi lớp màu mark; từng dải lật quanh trục dọc dải, song song cạnh trái tam giác, cyan trước đen sau (brand.md Motion).
-  // Bốn dải là lớp HTML riêng chỉ chạy transform, opacity nên GPU tự chạy, cuộn bận main thread không làm giật.
-  // `tween`: từng dải tween màu thay vì lật (đổi hướng cuộn trong nhịp 1). Chuyển trang luôn lật (logo-route-crossfade).
+  // Change the mark color layer; each strip flips about the strip's vertical axis, parallel to the triangle's left edge, cyan first and black last (brand.md Motion).
+  // The four strips are separate HTML layers running only transform and opacity so the GPU runs them itself, and a busy main thread while scrolling does not cause jank.
+  // `tween`: each strip tweens its color instead of flipping (direction change within beat 1). Page transitions always flip (logo-route-crossfade).
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
   ) => {
     const flipping = headerMarkFlip;
     const leading = headerMarkLead;
-    // Đang chờ hết nhịp header để lật tới đúng màu này: chờ tiếp.
+    // Waiting for the header beat to end to flip to exactly this color: keep waiting.
     if (leading && rise && !tween && leading.className === className) return;
     if (leading) {
       leading.call.kill();
@@ -943,32 +943,32 @@
     }
     header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add(className);
-    // Dừng tween màu đang chạy và gỡ fill inline trước khi đọc màu đích theo class.
+    // Stop the running color tween and remove the inline fill before reading the target color by class.
     if (hasGsap) gsap.killTweensOf(headerMarkPaths);
     headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
     const target = headerMarkPaths.map((path) => getComputedStyle(path).fill);
     const same = (colors) => colors.every((color, index) => color === target[index]);
     if (leading?.from && rise && !tween && !reduceMotion) {
-      // Đổi hướng trong nhịp 1, lớp lật chưa dựng: về đúng màu lúc vào nhịp thì mark chỉ tween về cùng chữ, không lật;
-      // sang màu khác thì coi như nhịp 1 chưa chạy, lật từ màu cũ.
+      // Direction change within beat 1, flip layer not yet built: back to the color at beat entry, the mark just tweens back to the same text, no flip;
+      // to a different color, treat beat 1 as not having run and flip from the old color.
       if (same(leading.from)) tween = { duration: headerBeat, ease: "expo.out" };
       else from = leading.from;
     }
-    // Về trắng thì chạy lùi, đen lật trước (owner 2026-11-09); sang màu khác thì chạy tới, cyan trước.
+    // To white runs backward, black flips first (owner 2026-11-09); to another color runs forward, cyan first.
     const backward = className === "is-brand-inverse";
-    // Đang lật mà đích là một đầu của lượt lật: chạy tới hoặc tua ngược từ chỗ đang dừng (đích đang tới thì lật tiếp).
-    // Sang màu thứ ba: lượt đang chạy lật cho xong, rồi lật tiếp sang màu đó sau nhịp header của lần đổi này.
+    // Mid-flip and the target is one end of the flip pass: run forward or rewind from where it stands (if the target is approaching, keep flipping).
+    // To a third color: the running pass finishes flipping, then flips on to that color after the header beat of this change.
     if (flipping && rise && !tween && !reduceMotion) {
       const rate = same(flipping.back) ? 1 : same(flipping.front) ? -1 : 0;
       if (rate) runHeaderMarkFlip(flipping, rate);
       else flipping.next = { target, at: performance.now() + headerMarkLeadFor * 1000, backward };
       return;
     }
-    // Chuyển trang hoặc vẽ ngay khi đang lật: lớp cũ là mặt đang hiển thị của từng dải.
+    // Page transition or immediate draw while flipping: the old layer is the currently displayed face of each strip.
     if (flipping) from = readFlipFaces();
     stopHeaderMarkFlip();
     if (tween && hasGsap && !reduceMotion && headerMark) {
-      // Cùng màu thì không có motion. Tween fill tuyến tính giữa hai màu đặc cùng hình chính là crossfade hai lớp.
+      // Same color means no motion. A linear fill tween between two solid colors of the same shape is exactly a crossfade of two layers.
       if (same(from)) return;
       gsap.fromTo(
         headerMarkPaths,
@@ -978,9 +978,9 @@
       return;
     }
     if (!rise || reduceMotion || !headerMark || !(headerLogo instanceof HTMLElement)) return;
-    // Mark đã đúng màu (ví dụ CMYK lúc bấm link trên nền trắng): không lật.
+    // Mark already the right color (for example CMYK when clicking a link on a white background): no flip.
     if (same(from)) return;
-    // Nhịp 1: mark giữ màu cũ; nhịp 2: header đã xong về mắt, các dải lật thẳng sang màu đích.
+    // Beat 1: the mark keeps its old color; beat 2: the header is visually done, the strips flip straight to the target color.
     headerMarkPaths.forEach((path, index) => path.style.setProperty("fill", from[index]));
     leadHeaderMark(className, () => {
       headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
@@ -990,7 +990,7 @@
   function syncHeaderBrandSurface(whiteSurface) {
     if (whiteSurface) {
       if (lastHeaderWhiteSurface === undefined) {
-        // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
+        // Opening a page on a white background: CMYK grows over the black layer.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
         lastHeaderWhiteSurface !== true ||
@@ -1002,7 +1002,7 @@
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
-      // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
+      // Opening a page on an image background: draw white immediately, no motion.
       paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined });
     }
     lastHeaderWhiteSurface = whiteSurface;
@@ -1011,7 +1011,7 @@
     routeDestinationReady = true;
     const destinationWhiteSurface =
       container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
-    // Route mềm giữ mark CMYK dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
+    // A soft route keeps the CMYK mark under the veil and changes to the destination page's tone when the veil opens (playRouteEnter).
     if (!routeMarkHeld) syncHeaderBrandSurface(destinationWhiteSurface);
     return destinationWhiteSurface;
   };
@@ -1030,7 +1030,7 @@
     header.classList.remove("is-hidden");
     header.classList.add("is-route-pinned");
     routeDestinationReady = false;
-    // Lúc bấm, chữ và mark giữ màu; đổi khi veil phủ kín (inkRouteHeader).
+    // On click, text and mark keep their color; they change when the veil fully covers (inkRouteHeader).
     routeMarkHeld = true;
     routeVeilInk = false;
     void header.offsetHeight;
@@ -1050,13 +1050,13 @@
     });
   };
 
-  // Locomotive phát "scroll" đồng bộ trong update()/scrollTo() với y cũ; header theo y đó thì đổi thu gọn rồi đổi lại
-  // trong cùng task và chạy FLIP logo dù trạng thái cuối không đổi (photo view về masonry bằng navbar, owner 2026-11-08).
-  // setPageScroll tự gọi updateHeader với y đích ở cuối.
+  // Locomotive emits "scroll" synchronously in update()/scrollTo() with the old y; the header following that y would collapse then switch back
+  // in the same task and run the logo FLIP even though the end state is unchanged (photo view returning to masonry via navbar, owner 2026-11-08).
+  // setPageScroll itself calls updateHeader with the target y at the end.
   let pageScrollSetting = false;
   const setPageScroll = (state, scrollY, { instant = false } = {}) => {
     const target = Math.max(0, Number(scrollY) || 0);
-    // Về đầu trang không cần clamp: không đọc scrollHeight, nên không ép layout trong task gọi nó.
+    // Going to the top needs no clamp: it does not read scrollHeight, so it does not force layout in the task that calls it.
     const nextScroll = target && Math.min(
       target,
       Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
@@ -1064,16 +1064,16 @@
     state.smoothScrollY = nextScroll;
     if (state.smoothScroll) try {
       pageScrollSetting = true;
-      // Không truyền behavior thì `html { scroll-behavior: smooth }` trượt native scroll lệch về 0 qua nhiều frame;
-      // Chrome bỏ qua style inline mới đặt với scrollTo(0, 0) vì không cập nhật style cho tọa độ này.
+      // Without passing behavior, `html { scroll-behavior: smooth }` slides native scroll off toward 0 over many frames;
+      // Chrome ignores newly set inline style with scrollTo(0, 0) because it does not update style for this coordinate.
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      // Điều hướng bằng query có thể thay một detail ngắn bằng grid cao hơn nhiều.
+      // Navigating by query can replace a short detail with a much taller grid.
       state.smoothScroll.update();
       state.smoothScroll.scrollTo(nextScroll, {
         duration: 0,
         disableLerp: true,
       });
-      // Locomotive 4.1.4 có thể hoãn một scroll zero-duration thêm một frame.
+      // Locomotive 4.1.4 may defer a zero-duration scroll by one more frame.
       if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
     } finally {
@@ -1082,8 +1082,8 @@
       window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
     lastScrollY = nextScroll;
-    // Scroll tức thì về đầu trang (mở detail Advertising) đo header ở frame kế, trước paint, để style và layout
-    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision phone-frame-budget).
+    // An instant scroll to the top (opening Advertising detail) measures the header in the next frame, before paint, so the new page's style and layout
+    // run only once instead of being forced again in the card-tap task (decision phone-frame-budget).
     if (instant && !nextScroll && !state.smoothScroll) {
       cancelAnimationFrame(state.headerSyncFrame);
       state.headerSyncFrame = requestAnimationFrame(() => {
@@ -1100,7 +1100,7 @@
   viewportProbe.className = "site-viewport-metrics";
   viewportProbe.setAttribute("aria-hidden", "true");
   if (!viewportProbe.isConnected) document.body.append(viewportProbe);
-  // Resolve đơn vị viewport CSS native; số đo hiển thị không bao giờ sở hữu geometry persistent.
+  // Resolve native CSS viewport units; displayed measurements never own persistent geometry.
   const getViewportMetrics = () => {
     const visible = window.visualViewport;
     return {
@@ -1161,7 +1161,7 @@
       return;
     }
     window.scrollTo({ top: 0, behavior: "instant" });
-    // News R2: mốc dính đọc lúc bật smooth (luôn từ 981px) để không lệch khi header đổi cao theo breakpoint.
+    // News R2: the sticky mark is read when smooth is enabled (always from 981px) so it does not drift when the header height changes with the breakpoint.
     const newsMain = state.container.querySelector(".blk-news-list__main[data-scroll-sticky]");
     if (newsMain) {
       const stickyTop = Math.round(Number.parseFloat(getComputedStyle(newsMain).top) || 0);
@@ -1175,7 +1175,7 @@
       smartphone: { smooth: false },
       tablet: { smooth: false, breakpoint: 981 },
     });
-    // Locomotive 4.1.4 bỏ timestamp bắt đầu của keyboard và chỉ đặt flag cho stop().
+    // Locomotive 4.1.4 drops the keyboard's start timestamp and only sets a flag for stop().
     const smooth = state.smoothScroll;
     const core = smooth.scroll;
     if (core.scrollbarThumb) {
@@ -1184,7 +1184,7 @@
         window.cancelAnimationFrame(thumbMoveFrame);
         thumbMoveFrame = undefined;
       };
-      // Thay RAF vendor không có guard tại ranh giới instance, giữ một đường input.
+      // Replacing the vendor RAF has no guard at the instance boundary; keep a single input path.
       window.removeEventListener("mousemove", core.moveScrollBar);
       core.moveScrollBar = (event) => {
         if (core.stop || !core.isDraggingScrollbar) return;
@@ -1195,15 +1195,15 @@
           const { clientY } = event;
           const { top } = core.scrollbarBCR;
           const y = clientY - top;
-          // Pixel CSS cuối cùng với tới được phải chạm giới hạn document.
+          // The final CSS pixel reached must hit the document limit.
           core.instance.delta.y = Math.max(0, Math.min(core.instance.limit.y,
             y >= core.scrollbarHeight - 1 ? core.instance.limit.y
               : y / core.scrollbarHeight * core.instance.limit.y));
         });
       };
       window.addEventListener("mousemove", core.moveScrollBar);
-      // Vendor thả thumb là dừng vòng lerp dù chưa tới đích: trang đứng giữa chừng, nấc lăn kế tiếp trượt nốt cả
-      // quãng còn lại thành cú nhảy. Listener đăng ký sau releaseScrollBar của vendor nên chạy sau nó; trượt tiếp tới đích.
+      // When the vendor releases the thumb it stops the lerp loop even though it has not reached the target: the page stands midway, and the next wheel notch slides the whole
+      // remaining distance as a jump. The listener registers after the vendor's releaseScrollBar so it runs after it; keep sliding to the target.
       const glideAfterThumbRelease = () => {
         if (core.stop || core.isScrolling || core.isDraggingScrollbar) return;
         if (Math.abs(core.instance.delta.y - core.instance.scroll.y) >= 0.5) core.startScrolling();
@@ -1238,7 +1238,7 @@
       };
       const start = smooth.start.bind(smooth);
       smooth.start = () => {
-        // Bỏ callback thumb-move được xếp hàng ngay trước overlay lock.
+        // Drop the thumb-move callback queued right before the overlay lock.
         core.instance.delta = { ...core.instance.scroll };
         start();
       };
@@ -1274,8 +1274,8 @@
       "has-scroll-scrolling",
       "has-scroll-dragging",
     );
-    // Giữa hai trang (route), giữ overflow hidden của has-scroll-smooth tới khi trang mới init lại:
-    // nếu bỏ, scrollbar native hiện vài frame rồi ẩn, layout giật một bề rộng scrollbar.
+    // Between two pages (route), keep has-scroll-smooth's overflow hidden until the new page re-inits:
+    // otherwise the native scrollbar shows for a few frames then hides, and the layout jerks by one scrollbar width.
     document.documentElement.classList.toggle("has-scroll-smooth", keepNativeHidden);
     state.container.style.removeProperty("transform");
     state.container.style.removeProperty("will-change");
@@ -1284,9 +1284,9 @@
       element.style.removeProperty("will-change");
     });
     document.body.style.removeProperty("height");
-    // html có scroll-behavior: smooth; khôi phục vị trí phải tức thì, nếu không scrollY trượt dần từ 0 và
-    // lần đổi mode kế tiếp (resize nhanh qua mốc 981px) đọc nhầm vị trí giữa chừng.
-    // Đọc vị trí mới nhất mỗi lần gọi: các frame dọn dẹp chạy sau destroy, khi viewer có thể đã đặt lại scroll.
+    // html has scroll-behavior: smooth; restoring position must be instant, otherwise scrollY slides gradually from 0 and
+    // the next mode change (fast resize across the 981px mark) misreads a mid-slide position.
+    // Read the latest position on every call: cleanup frames run after destroy, when the viewer may have reset the scroll.
     window.scrollTo({ top: state.smoothScrollY, behavior: "instant" });
   };
 
@@ -1321,7 +1321,7 @@
     state.container
       .querySelectorAll(".hero-slide img[data-src]")
       .forEach((image) => {
-        // Wrapper <picture> build-time mang variant hoãn dưới dạng data-srcset.
+        // The build-time <picture> wrapper carries the deferred variant as data-srcset.
         [...image.parentElement.querySelectorAll(":scope > source"), image].forEach((node) => {
           if (!node?.dataset.srcset) return;
           node.srcset = node.dataset.srcset;
@@ -1363,7 +1363,7 @@
       });
   };
 
-  // Vệt sáng chờ ảnh dừng khi khung ra ngoài viewport; khung đã settle thì thôi theo dõi (media-delivery R6).
+  // The waiting shimmer stops when the frame leaves the viewport; a settled frame is no longer watched (media-delivery R6).
   const pauseOffscreenMediaSweeps = (state) => {
     const observer = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
       if (target.classList.contains("is-media-settled")) observer.unobserve(target);
@@ -1375,13 +1375,13 @@
     state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
   };
 
-  // Intro header (logo, mục menu, nút menu) chạy bằng WAAPI trên compositor: long task của mount và đo chữ ngay sau
-  // khi tải không làm logo khựng (decision phone-frame-budget). power4.out của GSAP lấy mẫu vào linear(), cùng
-  // thời lượng, delay và stagger như timeline GSAP cũ; trình duyệt chưa có linear() vẫn chạy timeline GSAP.
+  // Header intro (logo, menu items, menu button) runs with WAAPI on the compositor: the mount's long task and text measurement right after
+  // load do not stall the logo (decision phone-frame-budget). GSAP's power4.out is sampled into linear(), with the same
+  // duration, delay and stagger as the old GSAP timeline; a browser without linear() still runs the GSAP timeline.
   const compositorEase = window.CSS?.supports?.("animation-timing-function", "linear(0, 1)")
     ? `linear(${Array.from({ length: 41 }, (_, index) => (1 - (1 - index / 40) ** 5).toFixed(4)).join(", ")})`
     : "";
-  // Cùng API timeline mà mount và route dùng: play, paused, progress(1) để nhảy tới cuối, kill.
+  // The same timeline API that mount and route use: play, paused, progress(1) to jump to the end, kill.
   const createHeaderIntro = () => {
     const toggle = header.querySelector("#header-toggle-svg");
     if (toggle) toggle.style.transformOrigin = "center";
@@ -1391,7 +1391,7 @@
         .map((item, index) => [item, [{ transform: "translateY(-150px)" }, { transform: "none" }], 300 + index * 100, 1500]),
       [toggle, [{ transform: "scaleX(0)" }, { transform: "none" }], 1500, 1000],
     ].filter(([node]) => node);
-    // fill backwards giữ giá trị đầu trong lúc chờ như from() của GSAP; xong thì trả về style gốc.
+    // fill backwards holds the initial value while waiting like GSAP's from(); when done it returns to the original style.
     const animations = steps.map(([node, keyframes, delay, duration]) => {
       const animation = node.animate(keyframes, { delay, duration, easing: compositorEase, fill: "backwards" });
       animation.pause();
@@ -1453,7 +1453,7 @@
     clientLogoObserver?.observe(clientLogoTrack);
     if (!hasGsap || reduceMotion) {
       state.container.querySelector("[data-motion-toggle]")?.setAttribute("hidden", "");
-      // Theo dõi thay đổi preference live để CSS và motion runtime tiếp tục mà không cần reload.
+      // Watch live preference changes so CSS and the motion runtime continue without a reload.
       const syncReducedPause = () =>
         document.body.classList.toggle(
           "motion-paused",
@@ -1511,7 +1511,7 @@
         if (!(scrollCueLabel instanceof HTMLElement)) return;
         scrollCueTimeline?.kill();
         if (scrollCueTimeline) timelines.delete(scrollCueTimeline);
-        // revert() ghi lại HTML lúc split (ngôn ngữ cũ); giữ text translateTree vừa đặt.
+        // revert() restores the HTML from split time (old language); keep the text translateTree just set.
         const label = scrollCueLabel.textContent;
         scrollCueSplit?.revert();
         scrollCueLabel.textContent = label;
@@ -1523,7 +1523,7 @@
             })).chars
           : [...scrollCueLabel.textContent].flatMap((character, index) => {
               if (index === 0) scrollCueLabel.replaceChildren();
-              // Khoảng trắng giữ dạng plain text, khớp char split của SplitText ở các route khác.
+              // Whitespace stays plain text, matching SplitText's char split on other routes.
               if (/\s/.test(character)) {
                 scrollCueLabel.append(character);
                 return [];
@@ -1703,9 +1703,9 @@
       const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
       timelines.add(intro);
       const playsHeaderIntro = !settledStartup && !softNavigation;
-      // Direct load chạy intro header một lần khi veil bắt đầu lộ; soft navigation bỏ qua.
+      // A direct load runs the header intro once when the veil starts to reveal; soft navigation skips it.
       if (playsHeaderIntro) {
-        // FLIP collapse từ scroll lúc mount sẽ thành giá trị cuối của intro và để logo bị scale.
+        // the FLIP collapse from scroll at mount time would become the intro's final value and leave the logo scaled.
         gsap.killTweensOf(headerLogo, "x,y,scaleX,scaleY");
         gsap.set(headerLogo, { clearProps: "transform,transformOrigin" });
       }
@@ -1740,12 +1740,12 @@
           0.9,
         );
       }
-      // Chạy khi veil bắt đầu mở, sau long task của mount, nên không mất phần mở đầu của intro (first-load-parity R2).
+      // Runs when the veil starts opening, after the mount's long task, so the start of the intro is not lost (first-load-parity R2).
       intro.pause();
       state.introStart.then(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
       else window.requestAnimationFrame(() => headerIntro.play());
-      // Thứ tự slide do script sau .hero-slides xáo (page-home R3); slides[0] là ảnh chiếu đầu.
+      // Slide order is set by a reorder script after .hero-slides (page-home R3); slides[0] is the first image shown.
       const slides = selectAll(".hero-slide");
       const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(
@@ -1794,7 +1794,7 @@
           timeline.fromTo(
             slide.querySelector("img"),
             { scale: 1.06 },
-            // Zoom kéo dài qua cả crossfade (5s hiện + 1.6s fade), để ảnh cũ còn chuyển động tới khi mờ hẳn.
+            // The zoom lasts through the crossfade (5s shown + 1.6s fade), so the old image keeps moving until fully faded.
             { scale: 1, duration: 6.6, ease: "sine.inOut" },
             introOffset,
           );
@@ -1813,7 +1813,7 @@
             );
         }
         if (next !== slide) {
-          // Ảnh mới bắt đầu zoom từ frame đầu crossfade, chồng lên phần zoom còn lại của ảnh cũ.
+          // The new image starts zooming from the first crossfade frame, overlapping the remaining zoom of the old image.
           timeline
             .to(
               next,
@@ -1945,8 +1945,8 @@
     lastDirection = "";
 
     const heroMedia = container.querySelector(".hero-slides, .about-hero__media");
-    // Barba dựng container bằng DOMParser nên script xáo slide hero (page-home R3) không chạy; chạy bản sao
-    // classic, đồng bộ trước khi mount đọc slide.
+    // Barba builds the container with DOMParser so the hero slide reorder script (page-home R3) does not run; run a classic copy,
+    // synchronously, before mount reads the slides.
     const heroShuffle = softNavigation && heroMedia?.nextElementSibling;
     if (heroShuffle?.tagName === "SCRIPT") {
       heroShuffle.replaceWith(Object.assign(document.createElement("script"), { textContent: heroShuffle.textContent }));
@@ -1961,8 +1961,8 @@
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
-    // News R2: thẻ lớn dính cột trái. Smooth scroll dời container bằng transform nên CSS sticky không chạy; dùng sticky
-    // của Locomotive, nhả ra ở đáy lưới; mốc dính (data-scroll-offset) đặt trong initSmoothScroll. Native scroll vẫn dùng CSS.
+    // News R2: the large card sticks to the left column. Smooth scroll moves the container by transform so CSS sticky does not work; use Locomotive's
+    // sticky, released at the grid bottom; the sticky mark (data-scroll-offset) is set in initSmoothScroll. Native scroll still uses CSS.
     const newsMain = container.querySelector(".blk-news-list__main");
     if (newsMain) {
       const grid = newsMain.parentElement;
@@ -1976,7 +1976,7 @@
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
-    // Cỡ chữ hero chốt trước khi SplitText tách từ và motion đọc vị trí.
+    // Hero font size is fixed before SplitText splits words and motion reads positions.
     fitHeroLines();
     startRouteReveal();
     const introStart = routeInFlight || document.documentElement.classList.contains("route-enter")
@@ -1984,7 +1984,7 @@
       : Promise.resolve();
     state.introStart = introStart;
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation, introStart });
-    // Motion trang là task riêng, không cộng vào task render của catalog.
+    // Page motion is its own task, not added to the catalog's render task.
     if (softNavigation) await nextTask();
     if (
       pageState !== state ||
@@ -2121,9 +2121,9 @@
     return menuClosePromise;
   };
 
-  // Timeline mở menu dựng một lần (lúc rảnh sau tải trang, hoặc lần mở đầu) rồi chỉ play(0): dựng lại mỗi lần mở
-  // làm GSAP xóa rồi đọc lại style từng phần tử, long task 60-90ms trên A04s. fromTo trong timeline paused vẫn đặt
-  // ngay trạng thái đầu, nên reverse về 0 là trạng thái chờ mở lần sau. Menu nằm ngoài container Barba, giữ qua route.
+  // The menu-open timeline is built once (when idle after page load, or on first open) then only play(0): rebuilding on every open
+  // makes GSAP clear then re-read each element's style, a 60-90ms long task on the A04s. fromTo in a paused timeline still sets
+  // the initial state immediately, so reversing to 0 is the waiting state for the next open. The menu sits outside the Barba container and survives routes.
   const buildMenuTimeline = () => {
     if (menuTimeline) return menuTimeline;
     const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
@@ -2153,7 +2153,7 @@
         { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
         0,
       )
-      // Hết shutter, bắt đầu chữ menu; route đóng menu tại đây khi reverse (coverRouteFromMenu).
+      // Shutter done, menu text begins; a route closes the menu here when reversing (coverRouteFromMenu).
       .addLabel("content")
       .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
       .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
@@ -2168,9 +2168,9 @@
 
   const openMenu = () => {
     if (dialog.open || routeInFlight) return;
-    // Tâm scale là giữa màn hình theo tọa độ từng child. "50vw 50vh" tính từ đỉnh child nên khi đã cuộn sâu tâm nằm
-    // xa phía trên màn hình, cả lưới bay lên như card bị trộn (A04s, scrollY 3677: card dịch 315-354px). Đo trước
-    // showModal, lúc layout còn sạch; đóng giữ nguyên origin này.
+    // The scale origin is the middle of the screen in each child's coordinates. "50vw 50vh" counts from the child's top so when scrolled deep the origin sits
+    // far above the screen, and the whole grid flies up as if cards were dealt again (A04s, scrollY 3677: cards shifted 315-354px). Measure before
+    // showModal, while layout is still clean; closing keeps this origin.
     const pageOrigins = getPageChildren().map((child) => {
       const rect = child.getBoundingClientRect();
       return `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
@@ -2197,8 +2197,8 @@
     }
     menuPageTween?.kill();
     buildMenuTimeline().timeScale(1.15).play(0);
-    // will-change giữ raster scale của trang sau cố định: không có nó, mỗi frame scale mới bắt GPU raster lại cả trang
-    // (A04s: GPU bận 1.1-1.45s trong 2s mở menu). Gỡ ở finishClose.
+    // will-change keeps the next page's raster scale fixed: without it, each new scale frame makes the GPU re-raster the whole page
+    // (A04s: GPU busy 1.1-1.45s in the 2s menu open). Removed in finishClose.
     menuPageTween = window.gsap.fromTo(getPageChildren(), { scale: 1, willChange: "transform" }, {
       scale: 0.9,
       duration: 0.7,
@@ -2227,18 +2227,18 @@
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
-    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; mark lật sang đúng màu (logo-route-crossfade R2).
+    // The destination page tone read when the veil opens may drift while layout is still changing; the mark flips to the right color (logo-route-crossfade R2).
     if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk);
     routeMarkHeld = false;
     routeVeilInk = false;
     setRouteVeil(0);
-    // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
+    // An intro that never ran leaves the header at its from() start value.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
   };
 
-  // Veil phủ kín (owner 2026-11-09): chữ, nav, hamburger đổi ngay sang đậm, không motion; mark đang trắng thì lật sang
-  // CMYK từ đúng lúc đó, đang CMYK thì giữ (logo-route-crossfade R1).
+  // Veil fully covering (owner 2026-11-09): text, nav, hamburger switch to bold immediately, no motion; a white mark flips to
+  // CMYK from exactly then, a CMYK mark stays (logo-route-crossfade R1).
   const inkRouteHeader = () => {
     if (!routeMarkHeld) return;
     routeVeilInk = true;
@@ -2276,14 +2276,14 @@
     return fade;
   };
 
-  // Route từ full menu: menu reverse cùng lúc veil phủ. Shutter trắng trùng veil và trang cũ nằm dưới veil, nên
-  // đóng menu ngay khi veil phủ kín và chữ menu đã reverse xong, không chờ shutter và page scale.
+  // Route from the full menu: the menu reverses at the same time the veil covers. The white shutter coincides with the veil and the old page sits under the veil, so
+  // close the menu as soon as the veil fully covers and the menu text has finished reversing, without waiting for the shutter and page scale.
   const coverRouteFromMenu = () => {
     const covered = coverRoute();
     const closing = closeMenu(false);
     if (dialog.open && hasGsap && !reduceMotion && menuTimeline) {
       const contentGone = new Promise((resolve) => window.gsap.delayedCall(
-        // timeScale() âm khi timeline đang reverse.
+        // timeScale() is negative while the timeline is reversing.
         Math.max(0, menuTimeline.time() - menuTimeline.labels.content) / Math.abs(menuTimeline.timeScale()),
         resolve,
       ));
@@ -2301,7 +2301,7 @@
       clearRouteEntry();
       return;
     }
-    // Veil chờ cả font để chữ hero không đổi font sau khi lộ; font lỗi vẫn làm ready xong (progressive-loading R4).
+    // The veil also waits for fonts so hero text does not change font after being revealed; a failed font still completes ready (progressive-loading R4).
     await document.fonts.ready;
     const hold = routeMarkHeld && routeVeilInk ? routeVeilCoveredAt + routeVeilHold - performance.now() : 0;
     if (hold > 0) await new Promise((resolve) => setTimeout(resolve, hold));
@@ -2313,8 +2313,8 @@
     startRouteReveal();
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
-      // Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích từ đó (logo-route-crossfade R2);
-      // routeMarkHeld giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
+      // Veil starts opening: text switches immediately to the destination page's tone, the mark flips to the destination page's color from then (logo-route-crossfade R2);
+      // routeMarkHeld holds until clearRouteEntry so updateHeader while the veil opens does not redraw the mark.
       routeVeilInk = false;
       updateToneRanges();
       updateHeader();
@@ -2355,10 +2355,10 @@
   };
 
   const syncAttributes = (current, next) => {
-    // style trong menu là trạng thái đầu GSAP của timeline mở dựng một lần (buildMenuTimeline): xóa nó khi chuyển
-    // trang thì lần mở sau chữ menu hiện ngay trên trang trước khi shutter phủ. Header trong HTML không có style inline;
-    // style trong header là state runtime (màu chữ, FLIP, mark ẩn khi lớp lật chạy): xóa giữa lúc lật thì mark CMYK gốc
-    // hiện lại dưới mặt trắng, lộ viền màu mờ quanh từng dải trên veil trắng (owner 2026-11-09).
+    // The style in the menu is the GSAP start state of the open timeline built once (buildMenuTimeline): clearing it on page change
+    // would make the menu text show immediately on the previous page before the shutter covers on the next open. The header in HTML has no inline style;
+    // the style in the header is runtime state (text color, FLIP, mark hidden while the flip layer runs): clearing it mid-flip makes the original CMYK mark
+    // reappear under the white face, exposing a faint colored edge around each strip on the white veil (owner 2026-11-09).
     const keep = (name) => name === "open" || (name === "style" && (dialog.contains(current) || header.contains(current)));
     [...current.attributes].forEach(({ name }) => {
       if (!keep(name) && !next.hasAttribute(name)) current.removeAttribute(name);
@@ -2371,7 +2371,7 @@
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    // Lớp lật do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    // The flip layer is inserted at runtime by paintHeaderMark and the new page's HTML lacks it; skip it when comparing trees.
     const currentChildren = [...current.children].filter(
       (child) => !child.classList.contains("brand-lockup__mark-flip"),
     );
@@ -2461,8 +2461,8 @@
     if (nextProfile) document.body.dataset.detailHeroProfile = nextProfile;
     else delete document.body.dataset.detailHeroProfile;
 
-    // Class `is-*` của header (màu mark, tone, nền) là state runtime; HTML trang mới không có nên giữ lại, nếu không chữ
-    // logo nháy trắng một frame trên veil (owner 2026-11-09). Style inline trong header syncAttributes đã giữ.
+    // The header's `is-*` classes (mark color, tone, background) are runtime state; the new page's HTML lacks them so keep them, otherwise the logo
+    // text flashes white for one frame on the veil (owner 2026-11-09). The inline style in the header is already kept by syncAttributes.
     const brandClasses = [...header.classList].filter((name) => name.startsWith("is-"));
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
@@ -2472,7 +2472,7 @@
     );
     header.classList.add(...brandClasses);
     if (!persistentReady) return false;
-    // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
+    // syncAttributes just reset the mark's `d` to the original from the new page's HTML.
     brandLockups.forEach(snapBrandMark);
     setLanguageFromDocument();
     return true;
@@ -2575,18 +2575,18 @@
         await closeMenu(false);
         return true;
       }
-      // Owner 2026-11-08: đổi ngôn ngữ chạy lại toàn bộ motion như F5. Veil phủ rồi tải trang đích từ đầu
-      // (route-enter của head-inline mở veil, intro chạy lại, cuộn về đầu); replace để không thêm entry history.
-      // Owner 2026-11-10: không cho thấy header ngôn ngữ cũ khi menu đóng lại trên veil; trang đích tải lại hiện header mới.
-      // replace() bỏ trang cũ khỏi history nên bfcache không trả lại header đang ẩn.
+      // Owner 2026-11-08: a language switch reruns all motion like F5. The veil covers then the destination page loads from scratch
+      // (head-inline's route-enter opens the veil, the intro reruns, scroll returns to top); replace so no history entry is added.
+      // Owner 2026-11-10: do not show the old-language header when the menu closes back on the veil; the reloaded destination page shows the new header.
+      // replace() removes the old page from history so bfcache does not return the hidden header.
       header.style.visibility = "hidden";
       await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
-      // Trang cụm, sản phẩm Advertising: link ngôn ngữ đã mang path đúng slug của locale đích.
-      // Trang chi tiết công trình, News có slug VI, EN khác nhau: dùng link khi link locale hiện tại
-      // trỏ đúng trang đang xem (lọc tại chỗ chưa cập nhật link thì giữ cách đổi tiền tố).
+      // Advertising cluster and product pages: the language link already carries the path with the destination locale's slug.
+      // Project detail and News pages have different VI and EN slugs: use the link when the current locale's link
+      // points at the page being viewed (in-place filtering has not updated the link, so keep the prefix swap).
       const pathOf = (link) => link && new URL(link.href).pathname;
       const linksMatchPage = pathOf(document.querySelector(`[data-language-option="${currentLanguage}"][href]`)) === url.pathname;
       const option = (isAdvertisingPath(url.pathname) || linksMatchPage)
@@ -2667,14 +2667,14 @@
         && persistentAdvertisingLink
         && !link.target
         && !link.hasAttribute("download")
-        // Detail hoặc trang cụm, sản phẩm cùng locale về masonry tại chỗ (taxonomy R4).
+        // Detail or a cluster, product page in the same locale back to masonry in place (taxonomy R4).
         && isAdvertisingPath(window.location.pathname)
         && destination.pathname.slice(0, 4) === window.location.pathname.slice(0, 4)
         && destination.search === ""
         && destination.pathname !== `${window.location.pathname}${window.location.search}`
         && window.TruongThinhMasonry?.getAdapter?.()
       ) {
-        // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
+        // From photo, the navbar returns to the exact spot on the source masonry; from a filtered masonry it returns to All at the top.
         const fromGrid = !isAdvertisingPhotoUrl(new URL(window.location.href));
         const navigateToAdvertisingParent = (instant = false) => {
           if (window.TruongThinhMasonry?.navigateQuery?.(
@@ -2718,7 +2718,7 @@
         destination.pathname === window.location.pathname &&
         destination.search === window.location.search;
       if (!sameDocument) {
-        // Ctrl/Shift/Meta+click mở tab mới, không có route nào clear lớp ghim.
+        // Ctrl/Shift/Meta+click opens a new tab, no route clears the pin layer.
         if (
           plainPrimaryClick &&
           !isExcludedRoute(destination) &&
@@ -2777,7 +2777,7 @@
     { signal: runtimeAbort.signal },
   );
 
-  // Padding header đổi dần khi thu gọn: đo lại chiều cao sau transition (phone-header-scroll R2).
+  // Header padding changes gradually on collapse: re-measure height after the transition (phone-header-scroll R2).
   header.addEventListener(
     "transitionend",
     (event) => {
@@ -2809,8 +2809,8 @@
     },
     { passive: true, signal: runtimeAbort.signal },
   );
-  // Autoscroll chuột giữa kiểu Chrome (scroll-feel R6): Locomotive chặn autoscroll native nên đẩy delta
-  // qua đúng đường của wheel; Locomotive không chạy hoặc đang khóa thì để trình duyệt tự lo.
+  // Chrome-style middle-mouse autoscroll (scroll-feel R6): Locomotive blocks native autoscroll so push the delta
+  // through the wheel's own path; if Locomotive is not running or is locked, leave it to the browser.
   let autoscroll;
   let swallowClick = false;
   const autoscrollDeadZone = 15;
@@ -2828,14 +2828,14 @@
       return;
     }
     const distance = autoscroll.mouseY - autoscroll.y;
-    // Công thức autoscroll của Chrome: 0.000008 × |d|^2.2 nhân 5000 của FixedVelocityCurve, không có trần.
+    // Chrome's autoscroll formula: 0.000008 × |d|^2.2 times FixedVelocityCurve's 5000, no cap.
     const speed = Math.abs(distance) <= autoscrollDeadZone ? 0
       : Math.sign(distance) * 0.04 * Math.abs(distance) ** 2.2;
     document.documentElement.dataset.autoscroll = speed < 0 ? "up" : speed > 0 ? "down" : "idle";
     const seconds = Math.min(0.1, (time - (autoscroll.time ?? time)) / 1000);
     autoscroll.time = time;
     if (speed && seconds) {
-      // updateDelta trừ deltaY × multiplier như một sự kiện wheel đảo chiều của virtual-scroll.
+      // updateDelta subtracts deltaY × multiplier like a reversed wheel event from virtual-scroll.
       core.updateDelta({ deltaX: 0, deltaY: -speed * seconds / core.multiplier });
       if (!core.isScrolling) core.startScrolling();
     }
@@ -2843,7 +2843,7 @@
   };
   document.addEventListener("mousedown", (event) => {
     if (autoscroll) {
-      // Cú nhấn dừng autoscroll không tới link hay nút bên dưới.
+      // The tap that stops autoscroll does not reach the link or button underneath.
       stopAutoscroll();
       swallowClick = true;
       event.preventDefault();
@@ -2858,7 +2858,7 @@
     const origin = document.createElement("div");
     origin.className = "autoscroll-origin";
     origin.setAttribute("aria-hidden", "true");
-    // Làm tròn theo pixel màn hình để cạnh icon không rơi vào nửa pixel ở tỉ lệ 125%, 150%.
+    // Round to screen pixels so the icon edge does not fall on a half pixel at 125%, 150% scale.
     const snap = (value) => Math.round(value * window.devicePixelRatio) / window.devicePixelRatio;
     origin.style.left = `${snap(event.clientX)}px`;
     origin.style.top = `${snap(event.clientY)}px`;
@@ -2873,7 +2873,7 @@
     autoscroll.mouseY = event.clientY;
     if (Math.abs(event.clientY - autoscroll.y) > autoscrollDeadZone) autoscroll.moved = true;
   }, { passive: true, signal: runtimeAbort.signal });
-  // Nhả chuột giữa trong vùng chết thì vào chế độ dính; đã kéo ra ngoài thì dừng.
+  // Releasing the middle button inside the dead zone enters sticky mode; if dragged outside, it stops.
   document.addEventListener("mouseup", (event) => {
     if (autoscroll && event.button === 1 && autoscroll.moved) stopAutoscroll();
   }, { signal: runtimeAbort.signal });
@@ -2911,7 +2911,7 @@
   });
 
   setLanguageFromDocument();
-  // Observer đo sau layout đầu tiên; đọc nó ở đây từng ép layout đó chạy bên trong task này.
+  // The observer measures after the first layout; reading it here used to force that layout to run inside this task.
   if (typeof ResizeObserver === "undefined") measureDesktopNav();
   const directUrl = new URL(window.location.href);
   window.history.replaceState(
@@ -2948,7 +2948,7 @@
     }
     hardNavigate(intent.href);
   };
-  // Kéo chuột bôi đen số điện thoại footer để copy thì không mở link tel: (owner 12/10).
+  // Dragging the mouse to select the footer phone number to copy does not open the tel: link (owner 12/10).
   document.addEventListener("click", (event) => {
     if (event.target instanceof Element && event.target.closest(".footer-hotline, .footer-office")
       && getSelection().toString()) event.preventDefault();
@@ -2972,7 +2972,7 @@
       || link.hasAttribute("download")
     ) return;
     const destination = new URL(link.href, window.location.href);
-    // Rail trỏ tới trang cụm (taxonomy R4); cùng gốc /<locale>/advertising-products thì vẫn xếp hàng lọc tại chỗ.
+    // The rail points to a cluster page (taxonomy R4); the same /<locale>/advertising-products root still queues in-place filtering.
     const advertisingRoot = (pathname) => pathname.split("/").slice(0, 3).join("/");
     if (
       destination.origin !== window.location.origin
@@ -2985,7 +2985,7 @@
       href: destination.href,
     };
   }, { capture: true, signal: runtimeAbort.signal });
-  // Mount và Barba đọc layout; sau frame đầu tiên layout đó đã xong, nên script này vẫn là task ngắn.
+  // Mount and Barba read layout; after the first frame that layout is done, so this script is still a short task.
   const afterFirstFrame = new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve)));
   if (enteredViaRoute) prepareRouteDestination(directContainer);
   const directMount = afterFirstFrame.then(() => mountPage(directContainer, {
@@ -3035,7 +3035,7 @@
 
   window.addEventListener("popstate", (event) => {
     const advertising = window.TruongThinhMasonry;
-    // Back khi photo viewer đang mở chỉ đóng viewer (advertising-viewer-touch-zoom R10).
+    // Back while the photo viewer is open only closes the viewer (advertising-viewer-touch-zoom R10).
     if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();
       return;
@@ -3043,7 +3043,7 @@
     const previousHref = advertising?.getCurrentHref?.() || window.barba?.history?.current?.url;
     const nextHref = window.location.href;
     if (!advertising?.canHandlePopState?.(previousHref, nextHref)) {
-      // Barba ép native load cho traversal trong lúc transition đang chạy.
+      // Barba forces a native load for traversal while a transition is running.
       if (window.barba?.transitions?.isRunning
         && isAdvertisingPath(location.pathname)) {
         event.stopImmediatePropagation();
@@ -3083,7 +3083,7 @@
               name: "persistent-shell",
               sync: false,
               beforeLeave(data) {
-                // Đích Advertising: tải catalog song song với veil phủ; lỗi để beforeEnter và mount xử lý như cũ.
+                // Advertising destination: load the catalog in parallel with the veil covering; errors are left to beforeEnter and mount to handle as before.
                 advertisingCatalogLoad = isAdvertisingPath(data.next.url.path)
                   ? window.TruongThinhDetail?.loadAdvertisingCatalog?.().catch(() => {})
                   : undefined;
@@ -3094,18 +3094,18 @@
               },
               async leave(data) {
                 await coverRouteFromMenu();
-                // Chờ catalog trước khi unmount: gỡ smooth scroll làm scrollbar native hiện và đẩy header sang trái
-                // suốt lúc chờ mạng.
+                // Wait for the catalog before unmount: removing smooth scroll makes the native scrollbar appear and push the header left
+                // during the network wait.
                 await advertisingCatalogLoad;
-                // Unmount chạy ngoài frame vừa kết thúc veil.
+                // Unmount runs outside the frame that just ended the veil.
                 await nextTask();
-                // Trang mới mount lại smooth scroll ngay sau; giữ scrollbar native ẩn qua khoảng hở (site-shell R9).
+                // The new page re-mounts smooth scroll right after; keep the native scrollbar hidden across the gap (site-shell R9).
                 unmountPage({ keepNativeHidden: true });
                 data.current.container.hidden = true;
               },
               async beforeEnter(data) {
-                // Mỗi bước nặng (unmount, đồng bộ document, mount) là một task riêng để không long task > 50ms
-                // trên phone Android (decision phone-frame-budget).
+                // Each heavy step (unmount, document sync, mount) is its own task so there is no long task > 50ms
+                // on Android phones (decision phone-frame-budget).
                 await nextTask();
                 if (!syncDocumentState(data.next.html)) {
                   const fallbackUrl = new URL(
@@ -3151,9 +3151,9 @@
             },
           ],
         });
-        // Barba coi mọi status khác 200 là lỗi rồi tải lại cả document, nên Back về trang 404 mất veil phủ và chạy
-        // lại intro header. Trang 404 của site (status 404) vẫn đi route mềm như mọi trang khác (Shell R6).
-        // barba.request là API nội bộ của bản vendor 2.10.3; nâng Barba thì chạy lại not-found-routes.e2e.mjs.
+        // Barba treats every status other than 200 as an error and reloads the whole document, so Back to the 404 page loses the veil and reruns
+        // the header intro. The site's 404 page (status 404) still takes the soft route like any other page (Shell R6).
+        // barba.request is an internal API of the vendored 2.10.3; when upgrading Barba, rerun not-found-routes.e2e.mjs.
         const barbaRequest = window.barba.request;
         window.barba.request = (href, timeout, onError, cache, headers) =>
           barbaRequest(href, timeout, (url, error) => error?.status === 404 || onError(url, error), cache, headers)
