@@ -50,7 +50,7 @@ const COMPONENTS = [
     .map(([name, height, pad, size, group = 'Advertising']) => ({ name, group, height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
   // The sweep shows until the image settles; the preview has no head script, so the frame and button stay in the waiting state.
   // src uses single quotes so localizeImages skips it: the frame still matches the /assets/content/ selector but the image never shows.
-  { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /Khung ảnh nội dung chờ bằng vệt sáng/, htmlClass: 'media-gate',
+  { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /The content image frame waits with a light streak/, htmlClass: 'media-gate',
     markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
       + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials.webp\' width="1536" height="1024" alt=""></figure>\n'
       + '<div class="detail-view__suggestion-links">\n'
