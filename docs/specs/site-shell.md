@@ -19,8 +19,9 @@ tests:
   - tests/site/advertising-route-preload.e2e.mjs
   - tests/site/reduced-motion-live.e2e.mjs
   - tests/site/route-veil-header.e2e.mjs
+  - tests/site/projects-back-scroll.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-11-09
+updated: 2026-11-11
 ---
 
 # Shell website
@@ -157,7 +158,7 @@ Then tại DOMContentLoaded có motion-fallback, không còn route-enter, nội 
 reduced motion, menu đóng, có thư viện; còn lại scroll native. Mọi trang dùng chung cấu hình này, parallax chỉ ở hero
 ([cảm giác cuộn](scroll-feel.md)). Qua 981px hai chiều thì hủy, dựng lại, giữ logical scroll tức thì (không theo
 `scroll-behavior: smooth`), nên kéo cửa sổ nhanh qua lại mốc này không về đầu trang. Route mềm: Back/Forward khôi phục
-vị trí đã nhớ theo index history; điều hướng mới về 0. Tải trực tiếp: URL bỏ hash, giữ vị trí trình duyệt hoặc vị trí lưu khi đổi ngôn
+vị trí đã nhớ theo index history; điều hướng mới về 0. Back/Forward lúc transition còn chạy thì Barba tải native; nếu đích là lưới masonry (Advertising, Công trình theo namespace của entry Barba) entry được đánh dấu để trang tải lại khôi phục vị trí cuộn và thứ tự card từ history state (Công trình hụt bước này tới 2026-11-11, Checkpoint B trên A04s). Tải trực tiếp: URL bỏ hash, giữ vị trí trình duyệt hoặc vị trí lưu khi đổi ngôn
 ngữ. `scroll-padding-top` của `html` bằng hàng header cộng gutter để focus, anchor không bị che.
 
 ```gherkin
@@ -268,7 +269,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R5 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
-| R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
+| R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `projects-back-scroll.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |
 | R10 | `footer-consistency.e2e.mjs`, `TT_E2E_FOOTER_ONLY`, `shared-header-menu-p7.test.mjs` |
 | R11 | `mobile-viewport-stability.e2e.mjs`; Android thật: `mobile-viewport-android-record.mjs` |
