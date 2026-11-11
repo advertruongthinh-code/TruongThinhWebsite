@@ -10,7 +10,10 @@ const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 // Slow mode holds every image response for a while, so the next card's photo is still loading when the viewer opens.
 let slow = false;
+// Every image path the page fetched, so the test can pick a card B whose photo is not already in the page.
+const fetched = new Set();
 const proxy = createServer(async (request, response) => {
+  fetched.add(new URL(request.url, base).pathname);
   const upstream = await fetch(base + request.url, { headers: { accept: request.headers.accept || "*/*" } });
   const headers = Object.fromEntries([...upstream.headers].filter(([name]) => !["content-encoding", "content-length", "transfer-encoding"].includes(name)));
   const body = Buffer.from(await upstream.arrayBuffer());
@@ -40,6 +43,7 @@ try {
     const context = device ? browser.contexts()[0] : await browser.newContext({ viewport, hasTouch: touch });
     const page = await context.newPage();
     slow = false;
+    fetched.clear();
     await page.goto(`${origin}/vi/advertising-products/`);
     await page.locator("[data-project-grid] [data-masonry-card] a").first().click();
     const loaded = () => {
@@ -59,13 +63,21 @@ try {
 
     // Card B from the related grid, with slow images: zoom before its photo arrives.
     slow = true;
-    const nextId = await page.evaluate(() => {
+    // The "you may like" tiles can already have fetched a related card's larger file; such a photo would be
+    // complete at once, so skip any card with a file of its photo fetched other than its related thumbnail.
+    const nextId = await page.evaluate((fetchedPaths) => {
       const current = document.querySelector("[data-detail-image]").dataset.detailId;
-      const card = [...document.querySelectorAll("[data-masonry-related-card]")]
-        .find((node) => node.dataset.masonryRelatedCard !== current && node.querySelector(":scope > a"));
-      card.querySelector(":scope > a").click();
-      return card.dataset.masonryRelatedCard;
-    });
+      const card = [...document.querySelectorAll("[data-masonry-related-card]")].find((node) => {
+        const thumb = node.querySelector(":scope > a img");
+        if (node.dataset.masonryRelatedCard === current || !thumb) return false;
+        const thumbPath = new URL(thumb.currentSrc || thumb.src).pathname;
+        const stem = thumbPath.replace(/(?:-\d+)?\.\w+$/, "");
+        return !fetchedPaths.some((file) => file !== thumbPath && file.startsWith(stem));
+      });
+      card?.querySelector(":scope > a").click();
+      return card?.dataset.masonryRelatedCard;
+    }, [...fetched]);
+    assert.ok(nextId, `${label}: a related card whose photo was not fetched yet`);
     await page.waitForFunction((id) => document.querySelector("[data-detail-image]").dataset.detailId === id, nextId);
     assert.ok(await page.evaluate(() => !document.querySelector("[data-detail-image]").complete),
       `${label}: card B photo must still be loading for this test`);
