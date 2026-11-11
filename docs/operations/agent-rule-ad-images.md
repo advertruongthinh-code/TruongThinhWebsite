@@ -119,9 +119,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      bố cục, người, chữ, thương hiệu;
    - không dùng từ headline, title, caption trong prompt vì model in chữ vào ảnh;
      ảnh không chữ ghi rõ không có chữ ở bất kỳ đâu (owner chốt 2026-10-17);
-   - chuỗi ảnh một không gian: gen lần lượt, ảnh chính trước; ảnh sau kèm ảnh đã gen
-     làm neo, ghi neo là góc máy nào trên bản vẽ, món chung giữ y hệt; prompt nêu ảnh
-     mới thấy gì (trái, giữa, phải) theo mặt bằng và bảng thống kê (owner 2026-11-09);
+   - chuỗi ảnh một không gian theo [Ảnh công trình mẫu](sample-project-images.md);
    - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
      giữ nguyên và phần sửa (owner chốt 2026-10-17); ảnh đã sửa hai lần mà còn
      lỗi thì tạo mới từ đầu, vì sửa chồng làm ảnh xuống cấp (owner chốt 2026-10-18);

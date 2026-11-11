@@ -37,6 +37,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/media-delivery.md#r5-chuẩn-file-ảnh) |
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
 | Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-ad-images.md#chấm-điểm) |
+| Chuỗi ảnh một không gian | [Ảnh công trình mẫu](operations/sample-project-images.md) |
 | Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
 | Masonry, catalog, renderer Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [cache bố cục](specs/masonry-layout-cache.md), [skeleton](specs/advertising-skeleton.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |
