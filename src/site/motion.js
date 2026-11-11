@@ -2124,8 +2124,11 @@
   // The menu-open timeline is built once (when idle after page load, or on first open) then only play(0): rebuilding on every open
   // makes GSAP clear then re-read each element's style, a 60-90ms long task on the A04s. fromTo in a paused timeline still sets
   // the initial state immediately, so reversing to 0 is the waiting state for the next open. The menu sits outside the Barba container and survives routes.
-  const buildMenuTimeline = () => {
-    if (menuTimeline) return menuTimeline;
+  // Each fromTo target costs GSAP about 3ms of style parsing on a 6x-throttled CPU, so building all of it in one idle callback was a
+  // 220-270ms long task on the A04s Advertising page. The build is a list of one-target steps (index * stagger keeps the stagger timing)
+  // run while idle time remains; opening the menu runs whatever is left at once.
+  let menuTimelineSteps;
+  const createMenuTimelineSteps = () => {
     const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
     const menuBrand = dialog.querySelector(".menu-brand");
     const menuLanguage = dialog.querySelector(".menu-language");
@@ -2142,27 +2145,40 @@
         ".menu-group__number, .menu-group__title, .menu-option",
       ),
     ];
-    menuTimeline = window.gsap
-      .timeline({
-        paused: true,
-        onComplete: () => closeButton.focus({ preventScroll: true }),
-      })
-      .fromTo(
-        shutters,
-        { height: 0 },
-        { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
-        0,
-      )
-      // Shutter done, menu text begins; a route closes the menu here when reversing (coverRouteFromMenu).
-      .addLabel("content")
-      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
-      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
-      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
-      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4)
-      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
-      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
-      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
-      .timeScale(1.15);
+    const timeline = window.gsap.timeline({
+      paused: true,
+      onComplete: () => closeButton.focus({ preventScroll: true }),
+    });
+    const steps = [];
+    const fromTo = (targets, from, { stagger = 0, ...to }, position) => {
+      [targets].flat().filter(Boolean).forEach((target, index) => {
+        steps.push(() => timeline.fromTo(target, { ...from }, { ...to }, position + index * stagger));
+      });
+    };
+    fromTo(shutters, { height: 0 }, { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 }, 0);
+    // Shutter done, menu text begins; a route closes the menu here when reversing (coverRouteFromMenu).
+    steps.push(() => timeline.addLabel("content"));
+    fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15);
+    fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15);
+    fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15);
+    fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4);
+    fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05);
+    fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1);
+    fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35);
+    steps.push(() => { menuTimeline = timeline.timeScale(1.15); });
+    return steps;
+  };
+  const requestIdle = window.requestIdleCallback?.bind(window) ?? ((run) => window.setTimeout(() => {
+    const end = performance.now() + 10;
+    run({ timeRemaining: () => end - performance.now() });
+  }));
+  // With a deadline: run steps while idle time remains, then continue in the next idle period. Without one: finish now.
+  const buildMenuTimeline = (deadline) => {
+    if (menuTimeline) return menuTimeline;
+    menuTimelineSteps ||= createMenuTimelineSteps();
+    do menuTimelineSteps.shift()();
+    while (menuTimelineSteps.length && (!deadline || deadline.timeRemaining() > 3));
+    if (!menuTimeline) requestIdle(buildMenuTimeline);
     return menuTimeline;
   };
 
@@ -2207,7 +2223,7 @@
     });
   };
   if (hasGsap && !reduceMotion) {
-    (window.requestIdleCallback || window.setTimeout)(() => buildMenuTimeline());
+    requestIdle(buildMenuTimeline);
   }
 
   const setRouteVeil = (opacity) => {
