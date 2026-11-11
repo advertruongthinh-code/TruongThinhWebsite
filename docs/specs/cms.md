@@ -10,7 +10,7 @@ tests:
   - tests/worker/worker-static-contract.cjs
   - tests/worker/advertising-detail-route.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
-updated: 2026-11-01
+updated: 2026-11-11
 ---
 
 # CMS Worker, admin và D1
@@ -228,7 +228,7 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, đổi domain khi owner chưa mở phase
 ([khóa Wrangler](../decisions/wrangler-deferred-until-cms.md)). Mỗi slice giữ route tĩnh đọc được khi CMS không chạy;
-không page builder đa dụng, không multi-tenant, không thay source tĩnh.
+không page builder đa dụng, không multi-tenant, không thay source tĩnh. Lưu card từ admin phải kèm cache bố cục masonry ([contract](masonry-layout-cache.md#r6-contract-cho-cms-chưa-làm)).
 
 ### Điều kiện mở CMS phase
 

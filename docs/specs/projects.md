@@ -12,7 +12,7 @@ tests:
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # Công trình nhà ở và kinh doanh
@@ -56,7 +56,7 @@ khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Proj
 nhúng trong trang (`buildProjectArtifact`), nên lưới, batch skeleton, kính cung và CTA đuôi, motion thẻ, cuộn, lọc, tải ảnh, ảo hóa
 giống hệt; mảng là category, loại là cụm (`clusterIds`), thẻ xếp ngẫu nhiên mỗi lần vào. Khác trang quảng cáo: không detail view,
 related, gợi ý, chip sản phẩm (`viewer: false`), trang không nhúng khung detail ẩn; bấm thẻ đi thẳng tới trang chi tiết công trình. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
-mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09). Bố cục lấy từ cache tính lúc build, nhúng trong artifact (`layouts`, mọi bộ lọc trên 5 dải bề rộng, [masonry R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)); không có file cache riêng.
+mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09). Bố cục lấy từ cache tính lúc build, nhúng trong artifact (`layouts`, mọi bộ lọc trên 5 dải bề rộng, [cache bố cục R3](masonry-layout-cache.md#r3-file-cache)); không có file cache riêng.
 Thẻ có tên công trình (`titleVi`/`titleEn`, đổi theo ngôn ngữ) nằm trên trái trong media như mọi card masonry (owner
 2026-11-10, thay tên dưới media của 2026-11-09): chuột thật hiện tên và lớp tối Pinterest khi hover, cảm ứng không hiện
 tên; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media),
