@@ -47,30 +47,41 @@ async function scrollLogicalTargetIntoView(page, selector) {
   }, selector);
 }
 
-// Gap between each depth-0 skeleton frame and the real card above it in the same column(s). The grid mounts only cards
-// near the viewport, so each frame is scrolled into view before the card above it is read, then the scroll is restored.
-async function frontierGaps(page) {
+// Gap between each column's first skeleton frame and the real card above it. The first frame is not always depth 0: when the
+// lowest column's frame stretches level with a taller neighbor, a two-column frame lands one depth down and is the neighbor's first
+// frame (skeleton R1). The grid mounts only cards near the viewport, so each frame is scrolled into view before the card above it
+// is read, then the scroll is restored.
+async function frontierGaps(page, columns, gap) {
   const logicalScroll = () => page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY);
   const scrollTo = (y) => page.evaluate((target) => {
     if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
   }, y);
   const restore = await logicalScroll();
-  const frames = await page.evaluate(() => [...document.querySelectorAll('[data-masonry-cta-skeleton] [data-masonry-cta-frame][data-masonry-cta-depth="0"]')]
-    .map((frame) => ({ left: Number.parseFloat(frame.style.left), width: Number.parseFloat(frame.style.width),
-      top: Number.parseFloat(frame.style.top), span: Number(frame.dataset.masonryCtaSpan) || 1 })));
+  const frames = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-skeleton] [data-masonry-cta-frame]")]
+    .map((frame) => ({ column: Number(frame.dataset.masonryCtaColumn), left: Number.parseFloat(frame.style.left),
+      width: Number.parseFloat(frame.style.width), top: Number.parseFloat(frame.style.top),
+      span: Number(frame.dataset.masonryCtaSpan) || 1 })));
   const gaps = [];
-  for (const frame of frames) {
+  for (let column = 0; column < columns; column += 1) {
+    const first = frames.filter((frame) => frame.column <= column && column < frame.column + frame.span)
+      .sort((a, b) => a.top - b.top)[0];
+    if (!first) {
+      gaps.push({ column, gap: null });
+      continue;
+    }
+    const width = (first.width - (first.span - 1) * gap) / first.span;
+    const cell = { left: first.left + (column - first.column) * (width + gap), width, top: first.top };
     const gridTop = await page.evaluate(() => document.querySelector("[data-project-grid]").getBoundingClientRect().top
       + (window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY));
-    await scrollTo(gridTop + frame.top - 200);
-    gaps.push({ span: frame.span, gap: await page.waitForFunction(({ left, width, top }) => {
+    await scrollTo(gridTop + cell.top - 200);
+    gaps.push({ column, gap: await page.waitForFunction(({ left, width, top }) => {
       const grid = document.querySelector("[data-project-grid]");
       // A wide card spans several columns, so a column ends at any card whose box covers it, not only one starting there.
       const covering = [...grid.querySelectorAll(".masonry-card:not([hidden])")]
         .filter((tile) => tile.offsetLeft <= left + 2 && tile.offsetLeft + tile.offsetWidth >= left + width - 2
           && tile.offsetTop < top);
       return covering.length ? top - Math.max(...covering.map((tile) => tile.offsetTop + tile.offsetHeight)) : null;
-    }, frame, { timeout: 5_000 }).then((handle) => handle.jsonValue()).catch(() => null) });
+    }, cell, { timeout: 5_000 }).then((handle) => handle.jsonValue()).catch(() => null) });
   }
   await scrollTo(restore);
   return gaps;
@@ -628,7 +639,7 @@ try {
         throw new Error(`${locale} ${viewport.width}x${viewport.height}: skeleton readiness failed`, { cause: error });
       });
       const state = await snapshot(page);
-      state.frontierGaps = await frontierGaps(page);
+      state.frontierGaps = await frontierGaps(page, state.columns, state.gridGap);
       (evidence.viewportBoundaries ||= []).push({ locale, viewport,
         layoutViewportWidth: state.layoutViewportWidth, nativeGutter: state.nativeGutter,
         glassLeft: state.glassLeft, glassRight: state.glassRight });
@@ -664,8 +675,7 @@ try {
         `${locale} ${viewport.width}x${viewport.height}: tail solver emitted an invalid CTA height`);
       assert(Math.min(...state.frameState.map(({ top }) => top)) < state.ctaBottom - state.ctaHeight,
         `${locale} ${viewport.width}x${viewport.height}: skeleton starts at the CTA row instead of continuing the real-card frontier`);
-      // Two columns that end level can share one wide depth-0 frame, so the frames' spans, not their count, cover the row.
-      assert(state.frontierGaps.reduce((sum, { span }) => sum + span, 0) === state.columns
+      assert(state.frontierGaps.length === state.columns
         && state.frontierGaps.every(({ gap }) => gap !== null && Math.abs(gap - state.gridGap) <= 2),
       `${locale} ${viewport.width}x${viewport.height}: skeleton does not join each real-card column at the shared gap ${JSON.stringify(state.frontierGaps)}`);
       assert(state.copyBottom <= state.ctaHeight + 1,
