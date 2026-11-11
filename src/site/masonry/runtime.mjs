@@ -907,7 +907,6 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
     }
     image.src = responsiveSource(record.media.src);
     image.alt = "";
-    if (record.media.suggestionPosition) image.style.objectPosition = record.media.suggestionPosition;
   } else if (native) {
     // data-sizes lets sizeLazyImage write sizes from the solver; with sizes "auto", parseFloat gives NaN so the first write always runs.
     if (srcset) {

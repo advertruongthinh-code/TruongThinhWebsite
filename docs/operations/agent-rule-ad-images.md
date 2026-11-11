@@ -63,7 +63,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      người bán đứng trong quầy, quay về phía khách (owner chốt 2026-10-14);
    - ngành kinh doanh khớp bối cảnh thật (không quầy khách sạn trong hội chợ);
    - đo vùng hiển thị thật của slot trong code khi ảnh bị cover crop hoặc có chữ
-     đè, rồi ghi vị trí chủ thể theo vùng đó;
+     đè, rồi ghi vị trí chủ thể theo vùng đó; chủ thể luôn giữa khung;
    - chữ trên biển, hộp đèn, decal là tên gọi hấp dẫn bằng từ ghép kèm một dòng
      phụ (slogan, motto), không ghi một từ trơn; thiết kế bắt mắt, đọc rõ từ xa
      theo tinh thần "để thương hiệu luôn trong tầm mắt" (không in câu này); chữ
