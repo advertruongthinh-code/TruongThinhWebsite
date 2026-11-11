@@ -6460,7 +6460,13 @@ async function runAdvertisingMediaEntranceChecks() {
             targetImageDelayed = true;
             await new Promise((resolve) => setTimeout(resolve, 180));
           }
-          const { body } = await cdp.send("Fetch.getResponseBody", { requestId });
+          // A response still paused when the case closes its page has nobody left to answer; any other error is real.
+          const response = await cdp.send("Fetch.getResponseBody", { requestId }).catch((error) => {
+            if (/has been closed/.test(error.message)) return null;
+            throw error;
+          });
+          if (!response) return;
+          const { body } = response;
           await cdp.send("Fetch.fulfillRequest", {
             requestId,
             responseCode: responseStatusCode,
