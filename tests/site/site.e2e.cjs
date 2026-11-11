@@ -1289,15 +1289,10 @@ async function steppedScroll(page, viewport) {
     await page.mouse.wheel(0, distance);
     await page.waitForTimeout(viewport.width >= 981 ? 80 : 35);
     await page.evaluate(async () => {
+      // A wheel step can be taller than the gallery (instant scroll under reduced motion), so a track the page already
+      // passed counts too: it is brought back into view before the sweep.
       const tracks = [...document.querySelectorAll("[data-gallery-track]")].filter(
-        (track) => {
-          const rect = track.getBoundingClientRect();
-          return (
-            !track.dataset.qaLazySwept &&
-            rect.bottom > 0 &&
-            rect.top < innerHeight
-          );
-        },
+        (track) => !track.dataset.qaLazySwept && track.getBoundingClientRect().top < innerHeight,
       );
       if (!tracks.length) return;
       const paint = () =>
@@ -1306,6 +1301,10 @@ async function steppedScroll(page, viewport) {
         );
       // Sweep the track one width at a time so every lazy image (the 36-image Residential gallery) enters the load zone.
       for (const track of tracks) {
+        if (track.getBoundingClientRect().bottom <= 0) {
+          track.scrollIntoView({ block: "center", behavior: "instant" });
+          await paint();
+        }
         // The gallery loads Swiper near the viewport (detail-pages R7): wait, then slide past each image.
         for (let wait = 0; !track.swiper && wait < 120; wait += 1) await paint();
         if (track.swiper) {
@@ -1313,7 +1312,7 @@ async function steppedScroll(page, viewport) {
             track.swiper.slideTo(index, 0);
             await paint();
           }
-          track.dataset.qaLazySwept = "true";
+          track.dataset.qaLazySwept = "swiper";
           continue;
         }
         for (let left = 0; left < track.scrollWidth; left += track.clientWidth) {
@@ -1321,7 +1320,7 @@ async function steppedScroll(page, viewport) {
           await paint();
         }
         track.scrollTo({ left: track.scrollWidth, behavior: "instant" });
-        track.dataset.qaLazySwept = "true";
+        track.dataset.qaLazySwept = "native";
       }
       await paint();
     });
@@ -1379,6 +1378,8 @@ async function assertPrimaryGallerySweep(page) {
     return {
       trackCount: tracks.length,
       unsweptTracks: tracks.filter((track) => !track.dataset.qaLazySwept).length,
+      sweepModes: tracks.map((track) => track.dataset.qaLazySwept || "none"),
+      swiperReady: tracks.map((track) => Boolean(track.swiper)),
       unloaded: tracks.flatMap((track, trackIndex) =>
         [...track.querySelectorAll('img[loading="lazy"]')]
           .map((image, imageIndex) => ({

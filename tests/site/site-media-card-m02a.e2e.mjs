@@ -1467,6 +1467,13 @@ for (const [locale, videoCover] of [["en", false], ["vi", true]]) {
 test("M02a Just viewed label keeps its text shadow and the black layer waits for the card media", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi");
+    // Let the card's own image finish first: its reveal clears data-masonry-media-loading, which would otherwise race
+    // the attribute this test sets by hand.
+    await page.waitForFunction((id) => {
+      const card = document.querySelector(`[data-masonry-card="${id}"]`);
+      return card && !card.hasAttribute("data-masonry-media-loading")
+        && [...card.querySelectorAll("img")].every((image) => image.complete);
+    }, cardId, { timeout: 10_000 });
     const state = await page.evaluate(async (id) => {
       const card = document.querySelector(`[data-masonry-card="${id}"]`);
       const media = card.querySelector(".card-media");
