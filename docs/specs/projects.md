@@ -93,7 +93,7 @@ chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang c�
 route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
 hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
 Cỡ chữ và khối đo theo trang con `/en/projects/` của Espacio ở 1440 và 390 (2026-11-11, owner "phải giống"): tiêu đề mục 64px
-(40px phone) dòng 1.4, đoạn văn nét thường, ô thông số tràn mép có vạch dọc (phone một cột canh giữa, vạch ngang), cặp ảnh tràn
+(40px phone) dòng 1.4, chữ thường nét 500 như mọi chữ hiện trên site (Espacio silka 400 tương đương Plus Jakarta 500), ô thông số tràn mép có vạch dọc (phone một cột canh giữa, vạch ngang), cặp ảnh tràn
 mép hai nửa bằng nhau cách 35px, thẻ dải công trình trên phone 200 × 300px so le 120px, dòng "Xem toàn bộ công trình" 16px với mũi tên
 200px (150px phone); số đo chi tiết ở [Blocks](../../design-system/components/Blocks/README.md). Hero giữ kiểu hero trang tĩnh (owner 2026-11-08).
 
