@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
+import { CROP_CAP } from "../../src/site/masonry/replay.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -377,9 +378,18 @@ async function run(viewport, touch, locale) {
       return { cover: { width: cover.naturalWidth, height: cover.naturalHeight },
         video: { width: video.videoWidth, height: video.videoHeight },
         poster: { width: poster.naturalWidth, height: poster.naturalHeight },
+        fit: getComputedStyle(video).objectFit,
         frame: { left: frame.left, top: frame.top, right: frame.right, bottom: frame.bottom },
         videoRect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } };
     });
+    // The main grid may trim a card at the bottom of a column by up to CROP_CAP of its media height; the video then
+    // covers the shorter frame (advertising-masonry R5). Random card order puts the fixture there on some loads.
+    const videoWidth = dimensions.videoRect.right - dimensions.videoRect.left;
+    const videoHeight = dimensions.videoRect.bottom - dimensions.videoRect.top;
+    const fullHeight = videoWidth * dimensions.video.height / dimensions.video.width;
+    const trimmed = videoHeight < fullHeight - 1;
+    const heightFits = videoHeight <= fullHeight + 1 && videoHeight >= fullHeight * (1 - CROP_CAP) - 1
+      && (!trimmed || dimensions.fit === "cover");
     const withinFrame = dimensions.videoRect.left >= dimensions.frame.left - 1
       && dimensions.videoRect.top >= dimensions.frame.top - 1
       && dimensions.videoRect.right <= dimensions.frame.right + 1
@@ -391,9 +401,8 @@ async function run(viewport, touch, locale) {
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.video.width / dimensions.video.height) < 0.01
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.poster.width / dimensions.poster.height) < 0.01
       && withinFrame
-      && Math.abs((dimensions.videoRect.right - dimensions.videoRect.left)
-        / (dimensions.videoRect.bottom - dimensions.videoRect.top) - dimensions.video.width / dimensions.video.height) < 0.02,
-    `actual image, video, poster ratios must match without crop: ${JSON.stringify(dimensions)}`);
+      && heightFits,
+    `actual image, video, poster ratios must match, cropped only by a grid trim (trimmed ${trimmed}): ${JSON.stringify(dimensions)}`);
     assert.equal(after.duration, null, "cards show no video duration pill (media-card R2, owner 2026-11-10)");
     assert.equal(await card.locator(`[data-masonry-media-select="${videoId}"][aria-current="true"]`).count(), 1,
       "video indicator tracks active media");
