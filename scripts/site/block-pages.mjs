@@ -260,10 +260,11 @@ export const projectTypeHref = (type, locale) => `/${locale}/projects/${type}/`;
 const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
 
 // Featured items of the site menu (content/menu.json, CMS-editable): projects in the chosen order; advertising
-// product groups follow the chosen list, an empty list picks the group with the most cards (ties keep catalog order).
+// product groups follow the chosen list, an empty list picks the group with the most cards (ties go by slug A-Z, so a
+// card-count change elsewhere cannot flip tied groups via catalog order).
 export const menuFeatured = (menu, { projects, categories, cards }) => {
   const count = (slug) => cards.filter((card) => card.category === slug).length;
-  const groups = menu.featuredProductGroups.length ? menu.featuredProductGroups : categories.map((category) => category.slug).toSorted((left, right) => count(right) - count(left));
+  const groups = menu.featuredProductGroups.length ? menu.featuredProductGroups : categories.map((category) => category.slug).toSorted((left, right) => count(right) - count(left) || left.localeCompare(right));
   return {
     projects: menu.featuredProjects.map((id) => projects.find((project) => project.id === id)),
     productGroups: groups.map((slug) => categories.find((category) => category.slug === slug)),
