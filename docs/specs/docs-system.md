@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-11-08
+updated: 2026-11-10
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -9,6 +9,7 @@ source:
 tests:
   - scripts/docs/check-docs.mjs
   - tests/tooling/docs-malformed-link.test.mjs
+  - tests/tooling/docs-sync-local.test.mjs
 notion: none
 ---
 
@@ -74,16 +75,16 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
 | home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
-| masonry | `masonry.md` | phần chung mọi masonry: `masonry-host.mjs`, `mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
+| masonry | `masonry.md` | phần chung mọi masonry: `masonry/host.mjs`, `masonry/mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
-| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
-| adv-detail | `advertising-detail.md` | `suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
-| adv-viewer | `advertising-viewer-touch-zoom.md` | `photo-viewer.mjs` | |
+| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `masonry/skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
+| adv-detail | `advertising-detail.md` | `masonry/suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
+| adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
-| glass | `glass-surface.md` | `glass-surface.mjs` | |
-| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
-| progressive | `progressive-loading.md` | `sw.js`, `media-colors.mjs` | |
-| video | `video-delivery.md` | `build-video-ladder.mjs`, `video-source.mjs` | |
+| glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
+| media | `media-delivery.md` | biến thể ảnh, `media-lib/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
+| progressive | `progressive-loading.md` | `sw.js`, `media-lib/colors.mjs` | |
+| video | `video-delivery.md` | `build-video-ladder.mjs`, `media-lib/video-source.mjs` | |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, `_headers`, `404.html`, demo Cloudflare | |
 | ci-suites | `ci-test-suites.md` | `ci.yml`, `tests/ci-suites.json`, `scripts/ci/` | |
 | content-tests | `content-independent-tests.md` | `content-contract.mjs` | |
@@ -136,15 +137,15 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | Check | Fail khi |
 | --- | --- |
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
-| sync | PR đổi file thuộc `source` của spec mà không đổi spec đó, và mô tả PR không có dòng `Spec: không đổi - <lý do>` |
+| sync | Branch đổi file thuộc `source` của spec mà không đổi spec đó, và cả mô tả PR lẫn commit message trên branch không có dòng `Spec: không đổi - <lý do>` |
 | budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
-Given PR sửa src/site/advertising-products/layout-core.mjs
+Given PR sửa src/site/masonry/layout.mjs
 And không sửa docs/specs/advertising-masonry.md
-And mô tả PR không có dòng "Spec: không đổi - ..."
-When CI chạy pnpm qa:docs
+And mô tả PR và commit message trên branch không có dòng "Spec: không đổi - ..."
+When agent chạy pnpm qa:docs ở máy mình, hoặc CI chạy trên PR
 Then check sync fail và nêu tên spec cần cập nhật
 ```
 
@@ -152,8 +153,11 @@ Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter
 `_template.md` không tham gia. Ownership chỉ quét `src/site/`; source ngoài đó
 (như `src/worker/` của `cms.md`) khai `source:` để sync áp dụng. Sync chạy trong workflow `docs.yml` trên mọi PR,
 kể cả khi chỉ sửa mô tả PR; script đọc mô tả PR qua API lúc chạy, nên re-run một lần đỏ cũ sau khi sửa mô tả cũng
-đọc bản mới. PR của Dependabot (chỉ nâng version action) bỏ qua sync. PR template có mục "Spec" để agent ghi spec đã cập
-nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như CI ([R10 static-release](static-release.md#r10-gate-ci)).
+đọc bản mới. Chạy ở máy agent (không có `DOCS_BASE`, không có `CI`), sync so với `origin/main` và đọc commit message
+trên branch, nên agent thấy spec nào cần sửa hoặc miễn trước khi push, không phải sau khi PR đỏ; `pnpm qa:suite --changed`
+chạy check này trước ([ci-test-suites R6](ci-test-suites.md#r6-chạy-local-cùng-lệnh-với-ci)). Dòng miễn trong commit
+message có hiệu lực cho cả PR và không mất khi mô tả PR bị viết lại. PR của Dependabot (chỉ nâng version action) bỏ qua
+sync. PR template có mục "Spec" để agent ghi spec đã cập nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như CI ([R10 static-release](static-release.md#r10-gate-ci)).
 
 ### R5-R7. Design System, Impeccable và publish
 

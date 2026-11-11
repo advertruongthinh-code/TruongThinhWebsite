@@ -43,47 +43,47 @@ When catalog.mjs nạp
 Then validateAdvertisingCardMedia ném lỗi "ratio must match the card", không crop, không làm tròn
 ```
 
-### R2. Canvas và dải điều khiển
+### R2. Canvas và hàng pill trong media
 
-Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `layout-core.mjs`), kể cả khi cover là video. Card từ hai item có
-thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`), tính ngay trong lần xếp đầu ở masonry và related;
-dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
-đúng item đó. Nhãn thời lượng video ở góc trên trái canvas. Đổi media, tải chậm hay lỗi không
-đổi khung card, canvas hay dải (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
-[masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột theo R5 đó, canvas, dải và tên rộng theo hai cột. Masonry Công trình ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình))
-thêm tên card ở đáy, dưới dải: `figcaption.advertising-tile__title` cao `captionPixelHeight` = 10px trên chữ + một dòng
-`0.8rem × 1.4` + 7px cho gạch chân (34,92px khi chữ gốc 16px, tính theo cỡ chữ gốc lúc mount), có trong hình học ngay lần
-xếp đầu và trong batch skeleton; card tạm chỉ phủ phần media.
+Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `masonry/layout.mjs`), kể cả khi cover là video. Mọi UI của card nằm trong media (owner 2026-11-10): card cao đúng bằng media ở masonry, bộ lọc, related và Công trình; batch skeleton và card
+tạm cũng không chừa chỗ dưới media. Hàng pill cao 40px sát đáy, trong canvas: chấm hoặc bộ đếm ở giữa, pill cách đáy card 12px như hàng nút dưới của pin Pinterest khi hover (owner 2026-11-10). Card không có nhãn thời lượng video
+(owner 2026-11-10). Card một item không có hàng pill; item đó là video hoặc ảnh khác `record.media` thì card hiện đúng
+item đó. Đổi media, tải chậm hay lỗi không đổi khung
+card, canvas hay hàng pill (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
+[masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới
+từ 3 cột theo R5 đó, canvas và hàng pill rộng theo hai cột.
 
 ```gherkin
-Given card nhiều media, cover 16:9, cột rộng 172.5px ở viewport 390px
+Given card 5 media, cover video 16:9, viewport 384px
 When masonry xếp lần đầu
-Then canvas 172.5×97.03px, card cao thêm 44px cho dải chấm dưới canvas
-And chuyển sang video chậm tải thì khung card, canvas, dải lệch tối đa 1px
+Then card cao đúng bằng canvas, hàng pill nằm trong canvas
+And pill chấm ở giữa hàng, không có nhãn thời lượng
+And chuyển sang video chậm tải thì khung card, canvas, hàng pill lệch tối đa 1px
 ```
 
 ### R3. Đổi media trên card
 
-2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
+2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 16×40px tên "Xem media i trên N" / "Show media i of N", chấm đang
 xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item: dải chỉ có bộ đếm `i/N`
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải. Chấm hoặc bộ đếm nằm trong một pill
-giữa dải cùng dáng nhãn thời lượng (cao 24px, bo 8px), màu than `rgba(32,33,32,0.9)` như bộ đếm "2/8" của Pinterest; chấm
-đảo màu (thường trắng 40%, đang xem trắng), bộ đếm chữ trắng 12px 500. Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
+giữa dải học Pinterest (owner 2026-11-10, đo bộ đếm "5/14" và chấm carousel trên pinterest.com): nền than
+`rgba(51,51,51,0.8)`, bo 12px; pill chấm gọn cao 16px, chấm 8px cách nhau 16px tâm tới tâm; pill bộ đếm padding 4px 8px,
+chữ trắng 12px thường, số thường (không `tabular-nums`: số 1 dạng bảng của Plus Jakarta Sans có chân, owner thấy lạ), line-height 1.6 (cao khoảng 27px). Chấm đảo màu (thường trắng 40%, đang xem trắng). Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
 về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
 ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
-ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Hover theo Pinterest, chỉ
-chuột thật, mọi card masonry Advertising và related kể cả card một media: lớp tối phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
-hover của site. Masonry chính và related (owner 2026-11-09) dùng lớp đen đều `--media-hover-overlay` `0.353`, tối bằng trung bình theo
-chiều cao của `.hero-shade`: lớp mép trên tích phân `0,1125`, lớp mép dưới `0,375 × 0,42 / 2 = 0,0788` (hai lớp không chồng
-nhau), phủ đều `0,2`, nên `1 - 0,8 × (1 - 0,1125 - 0,0788) = 0,353`; trên lớp tối hiện tên card (`titleVi`/`titleEn`) chữ
-trắng `0.8rem` 700 chữ hoa có bóng D, giữa canvas đúng chỗ "Vừa xem", chừa 40px hai mép cho mũi tên, `aria-hidden` vì
-alt đã là tên; cảm ứng không có tên. Link card lấy tên từ đó qua `aria-labelledby`; id tên ở related có tiền tố `advertising-related-title-` (lưới chính `advertising-title-`) nên không trùng khi một card hiện ở cả hai. Nút gợi ý trong detail giữ lớp đen 30%. Masonry Công trình không lớp tối, tên dưới media (R2); card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Chữ "Vừa xem" có bóng D
+ở bất kỳ đâu, chỉ vuốt. Card không zoom media khi hover. Tên card (`titleVi`/`titleEn`, `figcaption.masonry-card__title`) nằm trên trái trong media như tên board của pin Pinterest (owner 2026-11-10, đo trên pinterest.com): chữ trắng `1rem` 700, dòng 24px, cách mép trên 24px (giữa phần phẳng 48px của lớp tối), cách mép trái và phải 28px, chữ hoa có bóng D, một dòng rồi dấu ba chấm, `aria-hidden`
+vì alt đã là tên; dưới tên là lớp tối học nguyên Pinterest (`--media-shade-card`: 48px trên phẳng `rgba(17,17,17,0.4)`,
+rồi nhạt tuyến tính về 0 ở đáy card; đo trên pin Pinterest 2026-11-10). Mọi card masonry (chính, bộ lọc, related, Công
+trình) như nhau (owner 2026-11-10, thay quy tắc cũ "Advertising không có tên card"). Chuột thật: tên và lớp tối chỉ hiện
+khi hover, cùng lúc, không motion. Cảm ứng: ảnh sạch, không tên, không lớp tối, chỉ còn chấm hoặc bộ đếm. Link card lấy tên từ đó qua `aria-labelledby`; id tên ở related có tiền tố
+`advertising-related-title-` (lưới chính `advertising-title-`) nên không trùng khi một card hiện ở cả hai. Nút gợi ý
+trong detail giữ lớp đen 30%. Card đang mang "Vừa xem" thì nhãn đó mờ dần khi hover và hiện lại khi rời chuột. Chữ "Vừa xem" có bóng D
 (`--text-shadow-d`) và hiện ngay; lớp đen `0.7` chỉ hiện khi media đang hiện của card đã sẵn sàng (không còn
-`data-advertising-media-loading`), cùng nhịp `0.6s` của blur tan (owner 2026-11-01). Video
-vẫn chạy dưới lớp tối; mũi tên, chấm, nhãn thời lượng nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
+`data-masonry-media-loading`), cùng nhịp `0.6s` của blur tan (owner 2026-11-01). Video
+vẫn chạy dưới lớp tối; mũi tên, chấm, bộ đếm nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
 liền trượt ngang: media mới vào từ mép canvas phía đi tới, media cũ ra hết mép bên kia, hai media dính
 nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
 ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
@@ -102,9 +102,9 @@ And vuốt trái trên ảnh đổi sang 4/11, click ngay sau vuốt không mở
 ```gherkin
 Given card 3 media đang ở item 1, chuột thật
 When hover card rồi bấm "Media tiếp"
-Then lớp tối 0.353 và tên card hiện dần, item 2 vào từ mép phải canvas, item 1 ra hết mép trái, opacity cả hai luôn là 1
+Then lớp tối Pinterest và tên card hiện ngay cùng lúc, item 2 vào từ mép phải canvas, item 1 ra hết mép trái, opacity cả hai luôn là 1
 And ở mọi frame hai media phủ kín canvas, không lộ nền
-And rời chuột thì lớp tối mờ dần; card mang "Vừa xem" thì nhãn mờ đi khi hover, hiện lại khi rời chuột
+And rời chuột thì hai lớp đó ẩn ngay; card mang "Vừa xem" thì nhãn mờ đi khi hover, hiện lại khi rời chuột
 
 Given card 3 media trên cảm ứng
 When kéo ngang 30% canvas rồi nhấc tay chậm
@@ -120,8 +120,7 @@ Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto
 H.264 4:2:0, layer luôn tắt tiếng; detail và viewer dùng `hlsSrc` từ bậc đầu hoặc `src`. Card vào DOM
 khi còn cách màn hình một viewport (ảo hóa), nên video tải và giải mã sẵn trước khi tới lượt phát (đo PC: video
 khởi động giữa lúc cuộn làm một Commit 82ms). Lướt quá 3000px/s (kéo thanh cuộn, chuột giữa) thì card video chỉ có poster, gắn nguồn khi cuộn chậm lại, mỗi frame một card.
-Card video theo Pinterest: không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
-không đếm ngược. Luôn tắt tiếng. Masonry: mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau; còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
+Card video theo Pinterest: không nút phát, không icon loa, không nhãn thời lượng (owner 2026-11-10). Luôn tắt tiếng. Masonry: mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau; còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
 theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về
 video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát, không tự trượt. Related trong detail tự phát như masonry, chuột vào hay rời card không đổi lịch phát. Touch tự phát như desktop ở masonry và related; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc
 card rời cửa sổ ảo hóa thì video tạm dừng.
@@ -228,16 +227,16 @@ And trong lúc video phát, nền blur đổi theo frame video
 | Data | `mediaItems[]`: `id`, `kind`, `src`, `sourceId`, `width`, `height`, `altVi`, `altEn`, `source`, `sha256`, `provenance`; video thêm `posterSrc`, `posterWidth`, `posterHeight`, `durationSeconds`, `hasAudio`, tùy chọn `cardSrc`, `hlsSrc` | R1, R4 |
 | Data | `coverMediaId` | Cover và tỷ lệ canvas (R1, R2) |
 | Hàm | `validateAdvertisingCardMedia`, `validateAdvertisingMediaPool` (`media-contract.mjs`) | Chặn dữ liệu sai khi catalog nạp |
-| Hàm | `mediaControlStripHeight`, `layoutMedia` (`layout-core.mjs`) | Dải 44px, tỷ lệ cover |
-| Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`catalog-runtime.mjs`) | R3–R6 |
-| Attribute | `data-advertising-active-media-id` trên card và `[data-advertising-photo-view]` | Media đang xem; click card đọc để mở detail |
-| Attribute | `data-advertising-media-select`, `-prev`, `-next`, `-count`, `-duration`, `-loading`, `-item` | Hook test và control card |
-| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-advertising-photo-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
+| Hàm | `layoutMedia` (`masonry/layout.mjs`) | Tỷ lệ cover; card cao đúng bằng media (R2) |
+| Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`masonry/runtime.mjs`) | R3–R6 |
+| Attribute | `data-masonry-active-media-id` trên card và `[data-detail-view]` | Media đang xem; click card đọc để mở detail |
+| Attribute | `data-masonry-media-select`, `-prev`, `-next`, `-count`, `-loading`, `-item` | Hook test và control card |
+| Attribute | `data-detail-media-select`, `data-detail-audio-toggle`, `data-detail-video`, `data-detail-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-detail-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
 | History | `grid.mediaId`, `detail.mediaId` trong state history | Khôi phục media theo entry (R6) |
 
 ## UI
 
-[MediaCard](../../design-system/components/MediaCard/README.md) (dải, chấm, bộ đếm, nhãn thời lượng),
+[MediaCard](../../design-system/components/MediaCard/README.md) (hàng pill, chấm, bộ đếm),
 [ảnh trong card](../../design-system/motion.md#ảnh-trong-card), [ảnh Advertising](../../design-system/advertising-images.md).
 
 ## Kiểm tra
@@ -247,8 +246,8 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
-| R2 | `advertising-products-layout.test.mjs` (dải 44px, chỗ tên Công trình); `advertising-skeleton-flow.test.mjs` (skeleton chừa tên); `block-pages.e2e.mjs` (tên Công trình luôn hiện, đúng chỗ chừa); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
-| R3 | `advertising-card-interactions.e2e.mjs` (lớp tối `--media-hover-overlay` và tên chỉ khi chuột thật, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
+| R2 | `advertising-products-layout.test.mjs` (mọi card cao đúng bằng media, không dải dưới canvas); `advertising-skeleton-flow.test.mjs` (skeleton không chừa tên); `block-pages.e2e.mjs` (tên Công trình trong media); `site-media-card-r6.e2e.mjs` (hàng pill trong canvas, ca 384px 5 media có video không chồng pill, rect ổn định, singleton) |
+| R3 | `advertising-card-interactions.e2e.mjs` (chuột thật: lớp tối Pinterest và tên khi hover; cảm ứng: không tên, không lớp tối, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp hover không motion, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
@@ -262,7 +261,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
-  timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.
+  timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn hàng pill thì kiểm riêng trước khi chọn fallback.
   Chưa có code ngoài Advertising. Owner xác nhận ranh giới; Thread code khi mở lại.
 - Lịch phát (R4): giải mã nhiều video một lúc có thể làm giật khi cuộn trên A04s, đo lại trên máy thật.
 - Player primary (R6) trên cảm ứng: dải nút luôn hiện, thanh âm lượng chỉ mở khi focus cụm tiếng là mặc định Thread chọn,
@@ -279,8 +278,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Ngưỡng vuốt (10px chốt hướng,
   nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
-- Chấm 8px theo UI chấm Gallery, test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
-  của Gallery để giữ vùng bấm 20×44px.
+- Chấm 8px theo UI chấm Gallery, test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 8px như Gallery và chấm
+  carousel Pinterest, vùng bấm còn 16×40px (trước 20×44px) để pill gọn và gần đáy như owner muốn (2026-11-10).
 - Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
   dùng lại đúng dấu này ở thread riêng.
 - Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã
@@ -292,8 +291,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 
 - **Media-card**: card có identity, một hoặc nhiều media và đích detail.
 - **Cover**: item `coverMediaId` chọn làm mặt trước và tỷ lệ canvas của card.
-- **Canvas**: vùng media giữ tỷ lệ cover, không gồm dải điều khiển.
-- **Dải điều khiển**: hàng 44px dưới canvas chứa chấm hoặc bộ đếm.
+- **Canvas**: vùng media giữ tỷ lệ cover; card cao đúng bằng canvas.
+- **Hàng pill**: hàng 40px sát đáy trong canvas, chứa chấm hoặc bộ đếm.
 - **Fixture synthetic**: dữ liệu và file giả chèn trong test, không phải media thật.
 - **Số nguyên an toàn**: số nguyên JavaScript biểu diễn chính xác (`Number.isSafeInteger`).
 - **Scroll settle**: lúc cuộn đã dừng đủ lâu để tính lại ứng viên.

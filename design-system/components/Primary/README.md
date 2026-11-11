@@ -1,15 +1,15 @@
 # Primary ảnh Advertising
 
-Nguồn: `src/site/advertising-products/detour-path.mjs`; CSS `.advertising-photo-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
+Nguồn: `src/site/masonry/detour-path.mjs`; CSS `.detail-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
 
 Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, mô tả, CTA trao
 đổi và suggestion. Markup khung tĩnh trong `advertising-products/index.html`
-(`.advertising-photo-view__primary`), runtime điền nội dung.
+(`.detail-view__primary`), runtime điền nội dung.
 
 ## Bố cục
 
-- Rộng `min(3, số cột)` cột masonry (`computeAdvertisingPhotoGeometry` trong
-  `layout-core.mjs`).
+- Rộng `min(3, số cột)` cột masonry (`computeDetailGeometry` trong
+  `masonry/layout.mjs`).
 - Bốn cột hoặc màn hình ngang (`split`): ảnh bên trái, chữ một cột bên phải,
   cao bằng viewport trừ header và gutter; bốn cột thì trừ thêm 50px để lộ hàng
   ảnh dưới. Hai hoặc ba cột trên màn hình dọc (`pinterest`): ảnh trên, chữ
@@ -19,6 +19,9 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   [Kính](../Glass/README.md) dạng phủ đều.
 - Nút `Xem lớn hơn` vuông 48px, viền 1px, neo phải trong vùng ảnh; mở
   [Viewer](../Viewer/README.md). Màn cảm ứng ẩn nút này, chạm đúp ảnh để mở. Video có thêm nút tiếng.
+  Ảnh chưa tải xong thì nút khóa, nền vẫn trắng, không hover: icon là vòng loading hai cung
+  quay 0.7s một vòng; tải xong vòng phanh lại, hai cung uốn thành hai mũi tên phóng to.
+  Màn cảm ứng nút vẫn ẩn, chạm ảnh lúc đang tải không mở viewer.
 - Cột chữ: nhãn nhóm, mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
   [Suggestion](../Suggestion/README.md). Không có tiêu đề ảnh.
 - Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:

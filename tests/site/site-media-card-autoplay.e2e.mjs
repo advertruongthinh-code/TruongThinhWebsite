@@ -57,8 +57,8 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(playlist));
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
-  await page.waitForFunction(() => document.querySelectorAll("[data-advertising-card] video").length >= 4);
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
+  await page.waitForFunction(() => document.querySelectorAll("[data-masonry-card] video").length >= 4);
   // Intro hero và smooth scroll cần mount xong mới nhận wheel.
   await page.waitForTimeout(2500);
   // Con trỏ nằm ở lề trái, ngoài mọi card, để hover không chen vào lịch phát.
@@ -67,7 +67,7 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
 }
 
 // visibleRatio: phần video hiện dưới navbar chia chiều cao video.
-const videoState = (page, selector = "[data-advertising-card]") => page.evaluate((cardSelector) => {
+const videoState = (page, selector = "[data-masonry-card]") => page.evaluate((cardSelector) => {
   const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
   const videos = [...document.querySelectorAll(`${cardSelector} video`)].filter((video) => video.checkVisibility());
   const describe = (video) => {
@@ -75,14 +75,14 @@ const videoState = (page, selector = "[data-advertising-card]") => page.evaluate
     const top = Math.max(rect.top, navBottom);
     const bottom = Math.min(rect.bottom, innerHeight);
     const card = video.closest(cardSelector);
-    return { id: card.dataset.advertisingCard ?? card.dataset.advertisingRelatedCard,
-      mediaId: card.dataset.advertisingActiveMediaId, muted: video.muted, visibleRatio: (bottom - top) / rect.height,
+    return { id: card.dataset.masonryCard ?? card.dataset.masonryRelatedCard,
+      mediaId: card.dataset.masonryActiveMediaId, muted: video.muted, visibleRatio: (bottom - top) / rect.height,
       x: rect.left + rect.width / 2, y: (top + bottom) / 2 };
   };
   return {
     playing: videos.filter((video) => !video.paused).map(describe),
     paused: videos.filter((video) => video.paused).map(describe),
-    playbackButtons: document.querySelectorAll("[data-advertising-media-playback]").length,
+    playbackButtons: document.querySelectorAll("[data-masonry-media-playback]").length,
   };
 }, selector);
 
@@ -117,7 +117,7 @@ function assertHalfVisiblePlaying(state, label, margin = 0) {
     `${label}: videos more than half visible are not paused: ${JSON.stringify(state.paused.filter((video) => video.visibleRatio > 0.5))}`);
 }
 
-async function playingSettled(page, selector = "[data-advertising-card]") {
+async function playingSettled(page, selector = "[data-masonry-card]") {
   await page.waitForFunction((cardSelector) => [...document.querySelectorAll(`${cardSelector} video`)]
     .some((video) => !video.paused), selector, { timeout: 5000 });
   await page.waitForTimeout(300);
@@ -177,10 +177,10 @@ test("R4 desktop: a card plays its video playlist in order, skips images and loo
     const card = first.playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
     assert(card, `a playing card is on its first video: ${JSON.stringify(first.playing)}`);
     // Mọi card hiện quá 1/2 cùng phát nên Chromium headless giải mã chậm, clip 3s có lúc chạy tới 6s.
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)
-      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 15000 });
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)
-      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video`, card.id, { timeout: 15000 });
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
+      ?.dataset.masonryActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 15000 });
+    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
+      ?.dataset.masonryActiveMediaId === `${id}-autoplay-video`, card.id, { timeout: 15000 });
     assert((await videoState(page)).playing.some((video) => video.id === card.id), "the card keeps playing after the loop");
   } finally { await browser.close(); }
 });
@@ -205,10 +205,10 @@ test("R4 desktop: hovering a masonry card at half visible or less does not play 
 
 test("R4 desktop: related cards in detail autoplay like masonry and the pointer does not change it", async () => {
   const { browser, page } = await open();
-  const related = "[data-advertising-related-card]";
+  const related = "[data-masonry-related-card]";
   try {
-    await page.locator("[data-advertising-card] > a").first().click();
-    await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+    await page.locator("[data-masonry-card] > a").first().click();
+    await page.waitForFunction(() => document.body.classList.contains("is-detail"));
     await page.mouse.move(8, 450);
     await page.locator(related).first().waitFor();
     await page.locator(related).first().scrollIntoViewIfNeeded();
@@ -244,51 +244,51 @@ test("R4 reduced motion: no autoplay on scroll, hover still plays", async () => 
 test("R4 desktop: the viewed media and video time carry from card to detail and back to masonry", async () => {
   const { browser, page } = await open({ playlist: true });
   const detail = () => page.evaluate(() => {
-    const view = document.querySelector("[data-advertising-photo-view]");
-    const video = view.querySelector("[data-advertising-photo-video]");
-    return { mediaId: view.dataset.advertisingActiveMediaId, time: video.currentTime };
+    const view = document.querySelector("[data-detail-view]");
+    const video = view.querySelector("[data-detail-video]");
+    return { mediaId: view.dataset.masonryActiveMediaId, time: video.currentTime };
   });
   const card = (id) => page.evaluate((cardId) => {
-    const node = document.querySelector(`[data-advertising-card="${cardId}"]`);
-    return { mediaId: node.dataset.advertisingActiveMediaId, time: node.advertisingActiveVideo?.()?.currentTime ?? null };
+    const node = document.querySelector(`[data-masonry-card="${cardId}"]`);
+    return { mediaId: node.dataset.masonryActiveMediaId, time: node.advertisingActiveVideo?.()?.currentTime ?? null };
   }, id);
   const seekCard = (id, time) => page.evaluate(({ cardId, seconds }) => {
-    document.querySelector(`[data-advertising-card="${cardId}"]`).advertisingActiveVideo().currentTime = seconds;
+    document.querySelector(`[data-masonry-card="${cardId}"]`).advertisingActiveVideo().currentTime = seconds;
   }, { cardId: id, seconds: time });
   const seekDetail = (time) => page.evaluate(async (seconds) => {
-    const video = document.querySelector("[data-advertising-photo-video]");
+    const video = document.querySelector("[data-detail-video]");
     video.pause();
     video.currentTime = seconds;
     await new Promise((resolve) => video.addEventListener("seeked", resolve, { once: true }));
   }, time);
   const openCard = async (id) => {
-    await page.locator(`[data-advertising-card="${id}"] > a`).click();
-    await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 1);
+    await page.locator(`[data-masonry-card="${id}"] > a`).click();
+    await page.waitForFunction(() => document.body.classList.contains("is-detail"));
+    await page.waitForFunction(() => document.querySelector("[data-detail-video]").readyState >= 1);
   };
   try {
     await scrollAndSettle(page, false);
     const { id } = (await playingSettled(page)).playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
     const cardSource = await page.evaluate((cardId) =>
-      document.querySelector(`[data-advertising-card="${cardId}"]`).advertisingActiveVideo().currentSrc, id);
+      document.querySelector(`[data-masonry-card="${cardId}"]`).advertisingActiveVideo().currentSrc, id);
     assert(cardSource.endsWith("/card.mp4"), `card plays cardSrc: ${cardSource}`);
     await seekCard(id, 1.2);
     await openCard(id);
-    const detailSource = await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").currentSrc);
+    const detailSource = await page.evaluate(() => document.querySelector("[data-detail-video]").currentSrc);
     assert(detailSource.endsWith("/clip.mp4"), `detail plays src: ${detailSource}`);
     let state = await detail();
     assert.equal(state.mediaId, `${id}-autoplay-video`, "detail opens on the card's media");
     assert(state.time >= 1.2 && state.time < 3, `detail video continues from the card time: ${state.time}`);
 
     for (let step = 0; step < 2; step += 1) {
-      await page.locator('[data-advertising-photo-media-step="1"]').click();
+      await page.locator('[data-detail-media-step="1"]').click();
       // Dải gỡ khi media đích đã vào hẳn khung và photoVideo đã nhận video đích (media-card R6).
-      await page.waitForFunction(() => !document.querySelector(".advertising-photo-view__strip"));
+      await page.waitForFunction(() => !document.querySelector(".detail-view__strip"));
     }
     assert.equal((await detail()).mediaId, `${id}-autoplay-video-2`);
     await seekDetail(2);
     await page.goBack();
-    await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"));
+    await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
     state = await card(id);
     assert.equal(state.mediaId, `${id}-autoplay-video-2`, "Back leaves the card on the media viewed in detail");
     assert(state.time >= 1.9, `the card video resumes from the detail time: ${state.time}`);

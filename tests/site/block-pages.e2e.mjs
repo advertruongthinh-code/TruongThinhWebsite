@@ -42,7 +42,7 @@ try {
       const response = await page.goto(`${origin}${route}`, { waitUntil: "load" });
       assert.ok(response?.ok(), `${at}: HTTP ${response?.status()}`);
       // Runtime lưới Công trình mount sau import động; chờ nó đặt card (tối đa 8s) rồi mới đo.
-      await page.waitForFunction(() => !document.querySelector("script[data-project-artifact]") || document.querySelector("[data-project-grid].advertising-grid"), null, { timeout: 8000 }).catch(() => {});
+      await page.waitForFunction(() => !document.querySelector("script[data-project-artifact]") || document.querySelector("[data-project-grid].masonry-grid"), null, { timeout: 8000 }).catch(() => {});
       const state = await page.evaluate(() => ({
         h1: document.querySelectorAll("main h1").length,
         lang: document.documentElement.lang,
@@ -52,9 +52,9 @@ try {
           .slice(0, 3).map((element) => `${element.tagName}.${[...element.classList].join(".")}`).join(", "),
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
         // Trang Công trình: runtime masonry quảng cáo đã mount (loại chưa có công trình thì lưới rỗng).
-        masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].advertising-grid")),
+        masonry: !document.querySelector("script[data-project-artifact]") || Boolean(document.querySelector("[data-project-grid].masonry-grid")),
         // Chip loại chưa có công trình mang hidden thì phải không hiển thị (CSS rail không được đè).
-        hiddenChipsShown: [...document.querySelectorAll("[data-advertising-filter][hidden]")].filter((chip) => getComputedStyle(chip).display !== "none").length,
+        hiddenChipsShown: [...document.querySelectorAll("[data-masonry-filter][hidden]")].filter((chip) => getComputedStyle(chip).display !== "none").length,
         emptyLine: document.querySelector(".projects-empty") ? getComputedStyle(document.querySelector(".projects-empty")).display !== "none" : false,
       }));
       assert.equal(state.h1, 1, `${at}: một h1`);
@@ -83,37 +83,33 @@ try {
         assert.ok(reached.ok(), `${at}: ${target} HTTP ${reached.status()}`);
       }
       if (captions) {
-        // projects R2 (owner 2026-11-09): tên luôn hiện dưới media ở mọi viewport, chỗ của nó đã chừa trong hình học card
-        // và batch skeleton; không lớp tối, không zoom; gạch chân 3px chỉ khi hover chuột thật hoặc focus bàn phím.
+        // projects R2, media-card R3 (owner 2026-11-10): the name sits top left inside the media, same as every masonry
+        // card. Touch never shows it; a real mouse shows it on hover with the Pinterest shade. The card is exactly as tall
+        // as its media, and skeleton frames reserve no caption space.
         await page.evaluate(() => document.querySelector("[data-project-grid]").scrollIntoView());
-        await page.waitForSelector("[data-advertising-card] .advertising-tile__title", { timeout: 5000 });
+        await page.waitForSelector("[data-masonry-card] .masonry-card__title", { timeout: 5000 });
         const titles = Object.fromEntries(projects.map((project) => [project.id, project.title[locale]]));
         const grid = await page.evaluate(() => {
           const host = document.querySelector("[data-project-grid]");
-          const frames = [...host.querySelectorAll("[data-advertising-cta-frame]")].map((frame) => ({
-            column: frame.dataset.advertisingCtaColumn, top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
+          const frames = [...host.querySelectorAll("[data-masonry-cta-frame]")].map((frame) => ({
+            column: frame.dataset.masonryCtaColumn, top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
           }));
           return {
-            captionHeight: 17 + 1.12 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize),
-            gap: Number.parseFloat(getComputedStyle(host).getPropertyValue("--advertising-gap")),
+            gap: Number.parseFloat(getComputedStyle(host).getPropertyValue("--masonry-gap")),
             strides: frames.flatMap((frame, index) => {
               const next = frames.slice(index + 1).find((other) => other.column === frame.column);
               return next ? [next.top - frame.top - frame.height] : [];
             }),
-            cards: [...host.querySelectorAll("[data-advertising-card]")].map((tile) => {
-              const title = tile.querySelector(".advertising-tile__title");
-              const media = tile.querySelector(".advertising-card-media");
-              const strip = tile.querySelector(".advertising-card-media__indicator:not([hidden])");
+            cards: [...host.querySelectorAll("[data-masonry-card]")].map((tile) => {
+              const title = tile.querySelector(".masonry-card__title");
+              const media = tile.querySelector(".card-media").getBoundingClientRect();
               const box = tile.getBoundingClientRect();
               const titleBox = title.getBoundingClientRect();
-              const style = getComputedStyle(title);
               return {
-                id: tile.dataset.advertisingCard, text: title.textContent, hidden: title.getAttribute("aria-hidden"),
-                shown: style.display !== "none" && style.opacity === "1" && style.visibility === "visible", nowrap: style.whiteSpace,
-                titleHeight: titleBox.height, belowMedia: titleBox.top - (strip ?? media).getBoundingClientRect().bottom, belowTitle: box.bottom - titleBox.bottom,
-                overlay: getComputedStyle(media, "::after").content,
-                // Chiều cao chữ thật (padding CSS + một dòng) phải vừa chỗ chừa, không bị cắt; label của link là tên thẻ.
-                fits: title.scrollHeight <= title.clientHeight, label: tile.querySelector(".advertising-card-interactive")?.getAttribute("aria-labelledby") === title.id,
+                id: tile.dataset.masonryCard, text: title.textContent, hidden: title.getAttribute("aria-hidden"),
+                inside: titleBox.top >= media.top + 7.5 && titleBox.left >= media.left + 7.5 && titleBox.right <= media.right - 7.5,
+                flush: Math.abs(box.height - media.height) <= 0.5,
+                label: tile.querySelector(".card-interactive")?.getAttribute("aria-labelledby") === title.id,
               };
             }),
           };
@@ -121,33 +117,23 @@ try {
         assert.ok(grid.cards.length > 0, `${at}: chưa có thẻ công trình`);
         for (const card of grid.cards) {
           assert.equal(card.text, titles[card.id], `${at}: tên thẻ ${card.id} theo ngôn ngữ`);
-          assert.ok(card.shown && card.nowrap === "nowrap" && card.hidden === "true", `${at}: tên ${card.id} luôn hiện, một dòng: ${JSON.stringify(card)}`);
-          assert.ok(Math.abs(card.titleHeight - grid.captionHeight) <= 0.5 && Math.abs(card.belowMedia) <= 0.5 && Math.abs(card.belowTitle) <= 0.5,
-            `${at}: tên ${card.id} nằm đúng chỗ chừa dưới media: ${JSON.stringify(card)}`);
-          assert.equal(card.overlay, "none", `${at}: thẻ ${card.id} không có lớp tối`);
-          assert.ok(card.fits && card.label, `${at}: tên ${card.id} vừa chỗ chừa và là tên link: ${JSON.stringify(card)}`);
+          assert.ok(card.inside && card.flush && card.hidden === "true" && card.label,
+            `${at}: tên ${card.id} nằm trong media, card cao đúng bằng media, là tên link: ${JSON.stringify(card)}`);
         }
-        assert.ok(grid.strides.every((stride) => Math.abs(stride - grid.gap - grid.captionHeight) <= 0.5),
-          `${at}: batch skeleton chừa chỗ tên như thẻ thật: ${JSON.stringify(grid)}`);
-        const card = page.locator("[data-advertising-card]").first();
-        const hoverState = () => card.evaluate((tile) => ({
-          underline: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector(".advertising-tile__title"), "::after").transform).a,
-          zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a,
-          overlay: getComputedStyle(tile.querySelector(".advertising-card-media"), "::after").content,
-        }));
+        assert.ok(grid.strides.every((stride) => Math.abs(stride - grid.gap) <= 0.5),
+          `${at}: batch skeleton không chừa chỗ tên: ${JSON.stringify(grid)}`);
+        const card = page.locator("[data-masonry-card]").first();
+        const shownState = () => card.evaluate((tile) => {
+          const scrim = getComputedStyle(tile.querySelector(".card-media"), "::after");
+          return { title: getComputedStyle(tile.querySelector(".masonry-card__title")).opacity, band: scrim.opacity,
+            shade: scrim.backgroundImage.startsWith("linear-gradient(rgba(17, 17, 17, 0.4) 48px"), zoom: new DOMMatrixReadOnly(getComputedStyle(tile.querySelector("img")).transform).a };
+        });
         if (options.viewport.width > 960) {
+          assert.deepEqual(await shownState(), { title: "0", band: "0", shade: true, zoom: 1 }, `${at}: chuột thật, chưa hover thì không hiện tên`);
           await card.hover();
-          await page.waitForTimeout(700);
-          assert.deepEqual(await hoverState(), { underline: 1, zoom: 1, overlay: "none" }, `${at}: hover chỉ chạy gạch chân`);
-          await page.mouse.move(0, 0);
-          await page.waitForTimeout(700);
-          assert.equal((await hoverState()).underline, 0, `${at}: rời chuột thì gạch chân thu lại`);
-          await page.keyboard.press("Tab");
-          await card.locator("a").focus();
-          await page.waitForTimeout(700);
-          assert.equal((await hoverState()).underline, 1, `${at}: focus bàn phím chạy gạch chân`);
+          assert.deepEqual(await shownState(), { title: "1", band: "1", shade: true, zoom: 1 }, `${at}: hover hiện tên và lớp tối Pinterest cùng lúc`);
         } else {
-          assert.deepEqual(await hoverState(), { underline: 0, zoom: 1, overlay: "none" }, `${at}: cảm ứng không có gạch chân`);
+          assert.deepEqual(await shownState(), { title: "0", band: "0", shade: true, zoom: 1 }, `${at}: cảm ứng không hiện tên, không lớp tối`);
         }
       }
       if (switched && options.viewport.width > 960) {

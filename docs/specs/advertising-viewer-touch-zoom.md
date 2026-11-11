@@ -2,13 +2,15 @@
 title: Viewer Advertising theo cử chỉ tay
 status: live
 source:
-  - src/site/advertising-products/photo-viewer.mjs
+  - src/site/masonry/detail-viewer.mjs
+  - src/site/media-lib/loading-expand-icon.mjs
 tests:
   - tests/site/advertising-viewer-touch.e2e.mjs
-  - tests/site/advertising-photo-view.e2e.mjs
+  - tests/site/detail-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
+  - tests/site/advertising-viewer-stale-image.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -152,6 +154,7 @@ phát hoặc dừng, không mở viewer; nút mở lớn hiện và mở video v
 ([primary-video-player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Khung
 primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
 [media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
+Ảnh primary chưa tải xong thì chạm không mở viewer, như nút bị khóa ở [detail R9](advertising-detail.md#r9-viewer) (owner 2026-11-11).
 
 ```gherkin
 Given detail của một ảnh trên điện thoại dọc
@@ -244,15 +247,15 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-advertising-photo-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
-| DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
-| DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
-| DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
-| DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
-| CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
-| Hàm public | `TruongThinhAdvertising.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
-| DOM hook | `[data-advertising-photo-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |
-| Hàm public | `createAdvertisingPhotoViewer` | Giữ option; trả thêm `popState` (R10); chạm nghe trên khung của `heroImage` (R7) |
+| DOM hook | `[data-detail-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
+| DOM hook | `[data-detail-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
+| DOM hook | `[data-detail-zoom-in]`, `-zoom-out` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
+| DOM hook | `[data-detail-expand]`, `[data-detail-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
+| DOM hook | `.detail-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
+| CSS | `--viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
+| Hàm public | `TruongThinhMasonry.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
+| DOM hook | `[data-detail-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |
+| Hàm public | `createDetailViewer` | Giữ option; trả thêm `popState` (R10); chạm nghe trên khung của `heroImage` (R7) |
 
 Pointer Events thuần, không thêm thư viện gesture. Page pinch ngoài viewer giữ
 nguyên vì meta viewport không đổi. Xoay chỉ đổi `transform` của ảnh, không đổi
@@ -268,8 +271,9 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
 | R | Test hoặc command |
 | --- | --- |
+| R7 (ảnh chưa tải) | `node tests/site/advertising-viewer-stale-image.e2e.mjs`; phone thật thêm `DEVICE_CDP=http://127.0.0.1:9222 PROXY_PORT=8790` sau `adb reverse tcp:8790 tcp:8790` |
 | R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, ngưỡng xoay 20°, vùng chết pan 10px, chạm đúp, double-click desktop, vuốt đóng, back |
-| R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
+| R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/detail-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
 | R1–R6 | phone Android thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm; R7 đến R10 thêm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` và vuốt `adb shell input swipe` 30% chiều cao; ngang qua CDP override 800×360 hoặc đặt máy ngang; pinch và xoay hai ngón R11 thử tay. R1 đến R10 đạt trên phone Android thật (SM-A057F) |
 

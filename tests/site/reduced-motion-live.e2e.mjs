@@ -14,14 +14,14 @@ try {
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForFunction(() => !document.body.classList.contains("motion-paused"));
-  const frame = page.locator("[data-advertising-cta-slot]").first();
+  const frame = page.locator("[data-masonry-cta-slot]").first();
   await frame.scrollIntoViewIfNeeded();
   await page.waitForFunction(() =>
-    document.querySelector('[data-advertising-cta-slot][data-advertising-flow-state="running"]'));
+    document.querySelector('[data-masonry-cta-slot][data-masonry-flow-state="running"]'));
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.waitForFunction(() => document.body.classList.contains("motion-paused"));
-  assert.equal(await frame.getAttribute("data-advertising-flow-state"), "paused", "reduce pauses the skeleton again");
+  assert.equal(await frame.getAttribute("data-masonry-flow-state"), "paused", "reduce pauses the skeleton again");
   console.log("reduced-motion-live: pass");
 } finally {
   await browser.close();

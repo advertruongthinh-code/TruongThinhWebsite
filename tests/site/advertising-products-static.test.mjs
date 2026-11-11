@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, columnsForWidth, compileAdvertisingProductLayout as compileAdvertisingLayout } from "../../src/site/advertising-products/layout-core.mjs";
+import { readdir, readFile } from "node:fs/promises";
+import vm from "node:vm";
+import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
+import { bandKey } from "../../src/site/masonry/replay.mjs";
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
-  read("src/site/advertising-products/catalog-runtime.mjs"),
+  read("src/site/masonry/runtime.mjs"),
   Promise.all(["src/site/advertising-products/index.html", "src/site/head-inline.js"].map(read)).then((sources) => sources.join("\n")),
   read("src/site/detail.css"),
   read("src/site/style.css"),
@@ -14,27 +16,31 @@ const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all
   Promise.all(["src/site/motion.js", "src/site/detail.js", "src/site/index.html"].map(read)).then((sources) => sources.join("\n")),
 ]);
 const artifact = buildAdvertisingArtifact();
-const advertisingGridStart = css.indexOf(".advertising-grid {");
-const advertisingGridEnd = [css.indexOf(".advertising-photo-view", advertisingGridStart), css.indexOf(".advertising-detail {", advertisingGridStart)]
+const advertisingGridStart = css.indexOf(".masonry-grid {");
+const advertisingGridEnd = [css.indexOf(".detail-view", advertisingGridStart), css.indexOf(".advertising-detail {", advertisingGridStart)]
   .filter((index) => index > advertisingGridStart)
   .sort((left, right) => left - right)[0] ?? css.length;
 const advertisingCss = css.slice(advertisingGridStart, advertisingGridEnd);
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
-let compileAdvertisingRelatedLayout;
-let selectAdvertisingRelated;
-let selectAdvertisingSuggestions;
+let compileRelatedLayout;
+let selectRelated;
+let selectSuggestions;
 try {
-  ({ compileAdvertisingRelatedLayout, selectAdvertisingRelated, selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ compileRelatedLayout, selectRelated, selectSuggestions } = await import("../../src/site/masonry/runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
 
 // Rail sinh lúc build từ taxonomy.mjs (taxonomy R3), nên đọc HTML đã build.
 const builtIndex = await read(".site-output/advertising-products/index.html");
-assert.equal((builtIndex.match(/data-advertising-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
-assert.deepEqual([...builtIndex.matchAll(/data-advertising-filter="([^"]+)"/g)].map(([, slug]) => slug),
+assert.equal((builtIndex.match(/data-masonry-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
+assert.deepEqual([...builtIndex.matchAll(/data-masonry-filter="([^"]+)"/g)].map(([, slug]) => slug),
   ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six clusters keep taxonomy order");
+// The build wraps plain content images in <picture>; images the runtime owns (data-masonry-*, data-detail-*, data-viewer-*)
+// must stay bare, or the detail hero frame stops being the parent the runtime inserts its skeleton into (plan T8, B5).
+assert.doesNotMatch(builtIndex, /<picture>(?:(?!<\/picture>)[\s\S])*?<img\b[^>]*\sdata-(?:masonry|detail|viewer)-/,
+  "runtime-owned images are not wrapped in <picture> by the build");
 // Ngoại lệ duy nhất: chọn và xáo slide hero trang chủ (page-home R3), không phải grid.
 assert.doesNotMatch(sharedScripts.replace("const first = Math.floor(Math.random() * slides.length);", "")
   .replace("[slide.dataset.slide === first ? -1 : Math.random(), slide]", ""),
@@ -45,11 +51,13 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
 assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
-assert.match(prepare, /compileAdvertisingLayout/, "prepare step uses the pure layout compiler for preflight");
-assert.match(prepare, /\[320, 390, 768, 1024, 1440, 1920, 2560\]/, "public preflight covers every required viewport width");
+assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/replay\.mjs"/, "the layout cache replay is preloaded with the runtime");
+assert.doesNotMatch(builtIndex, /packer\.mjs/, "public pages never load the build-side layout packer (advertising-masonry R6)");
+assert.match(prepare, /buildLayoutCache(?:Memo)?\(\{ cards: artifact\.cards, filters: PUBLIC_GRID_FILTERS/, "prepare step builds and self-checks the masonry layout cache for every public filter (static-release R2)");
+assert.ok(prepare.indexOf("buildLayoutCacheMemo({") < prepare.indexOf("await rm(outputRoot"), "layout cache self-check precedes destructive output cleanup");
 assert.ok(prepare.indexOf("const artifact = buildAdvertisingArtifact();") < prepare.indexOf("await rm(outputRoot"), "artifact validation precedes destructive output cleanup");
 assert.match(runtime, /catalog-artifact\.mjs/, "runtime reads generated artifact");
-assert.equal(artifact.layoutAlgorithmVersion, ADVERTISING_LAYOUT_ALGORITHM_VERSION);
+assert.equal(artifact.layoutAlgorithmVersion, MASONRY_LAYOUT_VERSION);
 assert.deepEqual(artifact.settings, {}, "public artifact has no Auto threshold setting");
 assert.ok(!Object.hasOwn(artifact, "layouts"), "artifact has no fixed-column layout table");
 assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "layoutSpan")), "public content no longer requires or exposes span choices");
@@ -57,37 +65,43 @@ assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "fitMode") && !Obj
 const kioskFairIds = ["kiosk-posm-25", "kiosk-posm-26", "kiosk-posm-27", "kiosk-posm-28", "kiosk-posm-29", "kiosk-posm-30"];
 assert.ok(kioskFairIds.every((id) => artifact.cards.some((card) => card.id === id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
 assert.ok(kioskFairIds.every((id) => !Object.hasOwn(artifact.cards.find((card) => card.id === id), "title")), "accepted trade-fair kiosk cards add no image title");
-assert.match(advertisingCss, /\.advertising-grid \{[\s\S]*?--advertising-gap: 15px;/, "mobile grid uses the 15px gap band");
-assert.match(advertisingCss, /\.detail-page \.project-index \{[\s\S]*?--advertising-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--advertising-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
-assert.match(advertisingCss, /@media \(min-width: 751px\)[\s\S]*?--advertising-outer: 25px;/, "middle no-script outer band starts at 751px");
-assert.match(advertisingCss, /@media \(min-width: 961px\)[\s\S]*?--advertising-gap: 25px;/, "middle gap band starts at 961px");
-assert.match(advertisingCss, /@media \(min-width: 1201px\)[\s\S]*?--advertising-gap: 35px;[\s\S]*?--advertising-outer: 35px;/, "wide no-script viewport uses 35px gap and outer bands");
-assert.match(runtime, /advertisingSpacing\(layoutViewportWidth\)[\s\S]*?--advertising-outer[\s\S]*?--advertising-gap[\s\S]*?grid\.clientWidth/, "runtime resolves spacing from document client width before measuring the grid");
-assert.match(index, /data-project-grid[\s\S]*?<div[^>]+data-advertising-cta-skeleton[^>]+aria-hidden="true"[\s\S]*?<\/div>\s*<\/div>\s*<section\s+class="detail-cta"/, "the CTA overlays the continuation in the same project section outside the product list");
+assert.match(advertisingCss, /\.masonry-grid \{[\s\S]*?--masonry-gap: 15px;/, "mobile grid uses the 15px gap band");
+assert.match(advertisingCss, /\.detail-page \.project-index \{[\s\S]*?--masonry-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
+assert.match(advertisingCss, /@media \(min-width: 751px\)[\s\S]*?--masonry-outer: 25px;/, "middle no-script outer band starts at 751px");
+assert.match(advertisingCss, /@media \(min-width: 961px\)[\s\S]*?--masonry-gap: 25px;/, "middle gap band starts at 961px");
+assert.match(advertisingCss, /@media \(min-width: 1201px\)[\s\S]*?--masonry-gap: 35px;[\s\S]*?--masonry-outer: 35px;/, "wide no-script viewport uses 35px gap and outer bands");
+assert.match(runtime, /masonrySpacing\(layoutViewportWidth\)[\s\S]*?--masonry-outer[\s\S]*?--masonry-gap[\s\S]*?grid\.clientWidth/, "runtime resolves spacing from document client width before measuring the grid");
+assert.match(index, /data-project-grid[\s\S]*?<div[^>]+data-masonry-cta-skeleton[^>]+aria-hidden="true"[\s\S]*?<\/div>\s*<\/div>\s*<section\s+class="detail-cta"/, "the CTA overlays the continuation in the same project section outside the product list");
 assert.doesNotMatch(index, /class="detail-cta__skeleton"/, "legacy three-column decoration is removed");
-assert.match(runtime, /[gG]eometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
+assert.match(runtime, /[gG]eometry\.columnBottoms[\s\S]*?dataset\.masonryCtaFrame/, "CTA continuation starts from the compiled column frontiers");
 assert.doesNotMatch(runtime + advertisingCss, /skeleton-dev|skeleton-flow-devtools|createSkeletonFlowDevtools/, "temporary skeleton editor must not ship");
 assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-flow-devtools.mjs", import.meta.url)), false, "temporary editor module is removed, not merely disabled");
+// Module folders must stay outside every Worker-first route (wrangler.toml), or the CMS Worker answers their URLs instead of static assets.
+const workerFirstPrefixes = [...(await read("wrangler.toml")).matchAll(/^\s*"(\/[^"*]+)\*?",?\s*$/gm)].map((match) => match[1]);
+for (const folder of ["masonry", "media-lib"]) {
+  assert.equal(existsSync(new URL(`../../src/site/${folder}/`, import.meta.url)), true, `${folder} module folder exists`);
+  assert.deepEqual(workerFirstPrefixes.filter((prefix) => `/${folder}/`.startsWith(prefix)), [], `/${folder}/ is served as a static asset, not by the Worker`);
+}
 assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "Masonry owns the complete photo and skeleton height");
-assert.match(await readFile(new URL("../../src/site/advertising-products/masonry-host.mjs", import.meta.url), "utf8"), /createMasonry\(root, host\.positions, \(\) => host\.pixelHeight/, "each masonry host sizes Masonry from its own pixel height");
+assert.match(await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8"), /createMasonry\(root, host\.positions, \(\) => host\.pixelHeight/, "each masonry host sizes Masonry from its own pixel height");
 // Owner 2026-10-27 mở lại nút quay lại kiểu Pinterest (detail R10): cùng kiểu image-action, chung đường với Escape.
-assert.match(index, /class="advertising-photo-view__image-action advertising-photo-view__back"[^>]*data-advertising-photo-back/, "photo Back reuses the image-action control");
-assert.match(runtime, /data-advertising-photo-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
-assert.match(index, /data-advertising-photo-description-box[\s\S]*data-advertising-photo-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-advertising-photo-description-bar aria-hidden="true"/,
+assert.match(index, /class="detail-view__image-action detail-view__back"[^>]*data-detail-back/, "photo Back reuses the image-action control");
+assert.match(runtime, /data-detail-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
+assert.match(index, /data-detail-description-box[\s\S]*data-detail-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-detail-description-bar aria-hidden="true"/,
   "detail R3 exposes a labelled description scroller and a decorative scrollbar");
-const photoInfoMarkup = index.slice(index.indexOf("data-advertising-photo-info"), index.indexOf("data-advertising-photo-related aria-label"));
-const relatedGridMarkup = index.slice(index.indexOf("data-advertising-photo-related-grid"), index.indexOf("class=\"advertising-photo-dialog\""));
-assert.doesNotMatch(photoInfoMarkup, /data-advertising-photo-suggestion/, "R15 primary info no longer owns the suggestion block");
-assert.match(relatedGridMarkup, /data-advertising-photo-suggestion/, "R15 keeps the synthetic suggestion inside the related grid");
-assert.match(css, /\.advertising-photo-view__primary\s*\{[^}]*height:\s*var\(--advertising-photo-primary-height\);/,
+const photoInfoMarkup = index.slice(index.indexOf("data-detail-info"), index.indexOf("data-detail-related aria-label"));
+const relatedGridMarkup = index.slice(index.indexOf("data-detail-related-grid"), index.indexOf("class=\"detail-dialog\""));
+assert.doesNotMatch(photoInfoMarkup, /data-detail-suggestion/, "R15 primary info no longer owns the suggestion block");
+assert.match(relatedGridMarkup, /data-detail-suggestion/, "R15 keeps the synthetic suggestion inside the related grid");
+assert.match(css, /\.detail-view__primary\s*\{[^}]*height:\s*var\(--detail-primary-height\);/,
   "full-span primary follows its measured natural height");
-assert.doesNotMatch(css, /\[data-advertising-photo-layout="pinterest"\][\s\S]*?\.advertising-photo-view__primary\s*\{[^}]*block-size:\s*100dvh;/,
+assert.doesNotMatch(css, /\[data-detail-layout="pinterest"\][\s\S]*?\.detail-view__primary\s*\{[^}]*block-size:\s*100dvh;/,
   "full-span primary is not forced to fill the viewport");
-assert.match(css, /advertising-photo-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*overscroll-behavior:\s*auto;/s,
+assert.match(css, /detail-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*overscroll-behavior:\s*auto;/s,
   "info itself never scrolls or traps vertical scroll; only the description scrolls");
-assert.match(css, /\.advertising-photo-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
+assert.match(css, /\.detail-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
   "description scrolls behind its own scrollbar instead of the native one");
 assert.match(runtime, /primary\.span\s*===\s*(?:primary\.columns|layout\.columns|relatedLayout\.layout\.columns|columns)[\s\S]*?["']pinterest["']/,
   "Pinterest mode derives from primary span equalling total columns");
@@ -97,69 +111,73 @@ for (const token of ["data-fade-start", "data-fade-end", "setPointerCapture", "l
 assert.match(runtime, /kind:\s*["']suggestion["']/, "suggestion is identified as a synthetic grid card");
 assert.match(runtime, /rank:\s*0/, "synthetic suggestion owns rank zero");
 assert.match(runtime, /sourceOrder:\s*0/, "synthetic suggestion owns sourceOrder zero");
-assert.match(index, /data-advertising-photo-expand[\s\S]*?<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/, "photo expand uses the simple two-arrow icon");
-assert.doesNotMatch(index, /data-advertising-photo-zoom-reset|data-advertising-photo-viewer-step/,
+assert.match(index, /data-detail-expand[\s\S]*?<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/, "photo expand uses the simple two-arrow icon");
+assert.doesNotMatch(index, /data-detail-zoom-reset|data-detail-viewer-step/,
   "the viewer has no reset button and no arrows; a thumbnail strip changes media (owner 2026-10-25)");
-assert.match(css, /\[data-advertising-photo-background\][^{]*\{[^}]*filter:\s*blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/, "primary background owns its static blur so tab thumbnails do not split the glass");
+assert.match(css, /\[data-detail-background\][^{]*\{[^}]*filter:\s*blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/, "primary background owns its static blur so tab thumbnails do not split the glass");
 assert.doesNotMatch(runtime, /photoBackground\.style\.filter|filter:\s*"blur\(/, "photo overflow motion leaves blur ownership to the shared glass surface");
-  assert.match(css, /\.advertising-photo-view__image-action\s*\{[^}]*?width:\s*36px;[^}]*?height:\s*36px;/, "photo expand is a 36px square (primary-video-player R7)");
-  assert.doesNotMatch(index, /data-advertising-photo-expand[^>]*>\s*<span/, "photo expand has no text label, only its icon");
-assert.match(css, /\.advertising-grid__cta-skeleton[\s\S]*?position:\s*absolute;[\s\S]*?pointer-events:\s*none;/, "CTA skeleton is a non-interactive spatial layer in the grid");
-assert.match(css, /\.advertising-grid__cta-frame[\s\S]*?opacity:\s*var\(--advertising-cta-frame-opacity\);/, "each continuation frame owns its progressive spatial fade");
-assert.match(css, /\.advertising-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
+  assert.match(css, /\.detail-view__image-action\s*\{[^}]*?width:\s*36px;[^}]*?height:\s*36px;/, "photo expand is a 36px square (primary-video-player R7)");
+  assert.doesNotMatch(index, /data-detail-expand[^>]*>\s*<span/, "photo expand has no text label, only its icon");
+assert.match(css, /\.masonry-grid__cta-skeleton[\s\S]*?position:\s*absolute;[\s\S]*?pointer-events:\s*none;/, "CTA skeleton is a non-interactive spatial layer in the grid");
+assert.match(css, /\.masonry-grid__cta-frame[\s\S]*?opacity:\s*var\(--masonry-cta-frame-opacity\);/, "each continuation frame owns its progressive spatial fade");
+assert.match(css, /\.masonry-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
 assert.doesNotMatch(advertisingCss, /grid-template-columns|column-count/, "product CSS does not create a second column algorithm");
 assert.doesNotMatch(index, /<figcaption\b/, "Advertising no-script cards have no image captions");
 // Owner 2026-11-09: card masonry chính và related có tên (hover chuột thật ở Advertising, luôn hiện ở Công trình).
 assert.doesNotMatch(runtime, /if \(!related\) \{\s*const title = figure\.appendChild/, "related cards are no longer excluded from the title");
-assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "advertising-tile__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
-assert.match(siteCss, /--media-hover-overlay:\s*rgba\(0, 0, 0, 0\.353\);/, "hover overlay token matches the hero-shade average darkness");
-assert.match(advertisingCss, /\.advertising-grid \.advertising-card-media::after,\s*\[data-advertising-related-card\] \.advertising-card-media::after \{\s*background: var\(--media-hover-overlay\);/, "main and related masonry hover overlay use the shared token");
-assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.advertising-grid:not\(\.advertising-grid--captioned\) \.advertising-tile__title,\s*\[data-advertising-related-card\] \.advertising-tile__title \{[^}]*opacity: 0;/, "related cards show the same real-mouse title as the main grid");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-card-media::after \{\s*content: none;/, "project cards have no hover overlay");
-assert.match(advertisingCss, /\.advertising-tile__title \{\s*display: none;\s*\}\s*@media \(hover: hover\) and \(pointer: fine\)/, "advertising title only exists for a real mouse");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title \{[^}]*height: var\(--advertising-caption-height\);[^}]*white-space: nowrap;/, "project caption fills the reserved one-line height");
-assert.match(advertisingCss, /\.advertising-grid--captioned \.advertising-tile__title::after \{[^}]*height: 3px;[^}]*transform: scaleX\(0\);[^}]*transform-origin: right center;[^}]*transition: transform 0\.3s cubic-bezier\(0\.4, 0, 0, 1\);/, "project caption underline matches the navbar link underline");
-assert.match(sharedScripts, /viewer: false,\s*captions: true,/, "projects masonry mounts with captions");
-assert.doesNotMatch(runtime, /data-advertising-photo-title/, "photo runtime does not render an image title");
-assert.doesNotMatch(index, /data-advertising-photo-title|id="du-an-title"/, "Advertising markup has no image or grid title");
-assert.match(index, /data-advertising-photo-info[^>]*aria-label="Thông tin ảnh sản phẩm quảng cáo"/, "photo information retains an accessible region label");
-assert.match(photoInfoMarkup, /data-advertising-photo-description[\s\S]*?data-advertising-photo-cta/, "CTA remains in primary information after the description pager");
-assert.doesNotMatch(index + runtime, /data-advertising-photo-tag-reset|advertisingSuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
+assert.match(runtime, /const title = figure\.appendChild\(document\.createElement\("figcaption"\)\);\s*title\.className = "masonry-card__title";\s*title\.id = `\$\{related \? "advertising-related-title" : "advertising-title"\}-\$\{record\.id\}`;[\s\S]{0,200}?aria-hidden[\s\S]{0,300}?setAttribute\("aria-labelledby", title\.id\)/, "main-grid and related cards get a title with distinct id prefixes; the link takes its name from it (aria-labelledby) so the visible label is in the accessible name");
+// Owner 2026-11-10 (media-card R3): every card UI sits inside the media; a real mouse shows the Pinterest shade and the name on hover, touch shows neither.
+assert.match(siteCss, /--media-shade-card: linear-gradient\(180deg, rgba\(17, 17, 17, 0\.4\) 48px, rgba\(17, 17, 17, 0\) 100%\);/, "card shade copies Pinterest: flat 0.4 over 48px, linear fade to the bottom");
+assert.match(advertisingCss, /\.masonry-card \.card-media::after \{\s*background: var\(--media-shade-card\);\s*transition: none;\s*\}/, "card shade has no motion and keeps the base opacity 0");
+assert.match(advertisingCss, /\.masonry-card__title \{[^}]*position: absolute;[^}]*top: 24px;[^}]*left: 28px;[^}]*font-size: 1rem;[^}]*font-weight: 700;[^}]*line-height: 1\.5;[^}]*opacity: 0;[^}]*-webkit-line-clamp: 1;/, "card name copies Pinterest's board name: 16px bold, 24px line, 24px from the top, 28px from the side, one line, hidden by default");
+assert.match(advertisingCss, /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.masonry-card:hover \.card-media::after,\s*\.masonry-card:hover \.masonry-card__title \{\s*opacity: 1;/, "only real-mouse hover shows the shade and the name");
+assert.doesNotMatch(advertisingCss + runtime, /card-media__duration|advertisingMediaDuration/, "cards show no video duration pill");
+assert.doesNotMatch(advertisingCss, /masonry-grid--captioned|--masonry-caption-height/, "no card reserves a caption strip below the media");
+assert.doesNotMatch(sharedScripts, /captions: true/, "projects masonry has no caption option");
+assert.doesNotMatch(runtime, /data-detail-title/, "photo runtime does not render an image title");
+assert.doesNotMatch(index, /data-detail-title|id="du-an-title"/, "Advertising markup has no image or grid title");
+assert.match(index, /data-detail-info[^>]*aria-label="Thông tin ảnh sản phẩm quảng cáo"/, "photo information retains an accessible region label");
+assert.match(photoInfoMarkup, /data-detail-description[\s\S]*?data-detail-cta/, "CTA remains in primary information after the description pager");
+assert.doesNotMatch(index + runtime, /data-detail-tag-reset|masonrySuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
 assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.5\);/, "portal keeps the owner 0.5 overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
 // Owner 2026-10-26: nút gợi ý dùng lớp tối 0,5 luôn hiện, không dùng token portal.
-assert.match(css, /\.advertising-photo-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");
-assert.match(css, /advertising-photo-view__suggestion-links \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/, "suggestions use one full-width row per button");
+assert.match(css, /\.detail-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");
+assert.match(css, /detail-view__suggestion-links \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/, "suggestions use one full-width row per button");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?border-color: var\(--ink\);[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the ink border and white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] img \{[\s\S]*?opacity: 0 !important;[\s\S]*?transform: none !important;/, "active suggestion hides and resets the full-frame photo");
-assert.match(css, /suggestion-link\[aria-pressed="true"\] \.advertising-photo-view__suggestion-label \{\s*color: var\(--ink\);\s*text-shadow: none;\s*\}/, "active suggestion keeps a readable ink fallback without text clipping or the two-layer shadow");
-assert.doesNotMatch(css, /--advertising-suggestion-image|background-clip:\s*text/, "active suggestion uses plain ink text without an image mask");
+assert.match(css, /suggestion-link\[aria-pressed="true"\] \.detail-view__suggestion-label \{\s*color: var\(--ink\);\s*text-shadow: none;\s*\}/, "active suggestion keeps a readable ink fallback without text clipping or the two-layer shadow");
+assert.doesNotMatch(css, /--masonry-suggestion-image|background-clip:\s*text/, "active suggestion uses plain ink text without an image mask");
 assert.doesNotMatch(css, /suggestion-link:hover:not\(\[aria-pressed="true"\]\)::after\s*\{[^}]*filter:/, "inactive suggestion hover does not change overlay darkness");
 assert.doesNotMatch(siteCss, /service-portal:hover \.portal-shade\s*\{[^}]*background:/, "portal hover does not change overlay darkness");
 assert.match(css, /suggestion-link \{[\s\S]*?transition: background-color 250ms ease-out, border-color 250ms ease-out;/, "active state crossfades its surface and border without layout change");
-assert.match(css, /advertising-photo-view__info \[data-advertising-photo-description\] \{[\s\S]*?font-size: 1rem;/, "description text scales with the root font size without redesigning the category eyebrow");
-assert.doesNotMatch(advertisingCss, /advertising-grid \.advertising-tile figcaption|\[data-advertising-related-card\] figcaption/, "Advertising CSS reserves no caption space");
-assert.match(advertisingCss, /\.advertising-tile \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");
-assert.doesNotMatch(advertisingCss, /\.advertising-tile \{[^}]*contain:\s*layout paint;/s, "tile paint containment cannot clip the focus-visible outline");
-assert.match(advertisingCss, /advertising-tile__media--natural[\s\S]*?background: transparent;/, "natural media has no frame surface");
+assert.match(css, /detail-view__info \[data-detail-description\] \{[\s\S]*?font-size: 1rem;/, "description text scales with the root font size without redesigning the category eyebrow");
+assert.doesNotMatch(advertisingCss, /masonry-grid \.masonry-card figcaption|\[data-masonry-related-card\] figcaption/, "Advertising CSS reserves no caption space");
+assert.match(advertisingCss, /\.masonry-card \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");
+assert.doesNotMatch(advertisingCss, /\.masonry-card \{[^}]*contain:\s*layout paint;/s, "tile paint containment cannot clip the focus-visible outline");
+assert.match(advertisingCss, /masonry-card__media--natural[\s\S]*?background: transparent;/, "natural media has no frame surface");
 // Khung đã theo tỷ lệ gốc của media; ảnh phủ đúng khung thay vì height auto theo pixel làm tròn của file đang tải (lằn đáy 0,5px).
-assert.match(advertisingCss, /\.advertising-tile img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
-assert.match(advertisingCss, /advertising-tile img\.is-advertising-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
+assert.match(advertisingCss, /\.masonry-card img[\s\S]*?display: block;[\s\S]*?width: 100%;[\s\S]*?height: 100%;/, "natural media fills its intrinsic-ratio frame without a sub-pixel gap");
+assert.match(advertisingCss, /masonry-card img\.is-masonry-media-ready[\s\S]*?opacity: 1;/, "natural media keeps the accepted entrance state");
 assert.match(siteCss, /\.media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom\s*\{[\s\S]*?transform: scale\(1\.15\);/, "inactive advertising media inherits the shared project-card hover zoom");
-assert.doesNotMatch(advertisingCss, /object-fit|advertising-tile__backplate|data-media-fit|media--canvas/, "Advertising browse media has no crop, canvas, fit, or backplate selectors");
+// Edge trim (advertising-masonry R5, owner 2026-11-10): images and videos cover the frame, which is shorter than the natural ratio
+// by at most 5%; no other fit mode, canvas or backplate.
+assert.match(advertisingCss, /\.masonry-card video\.masonry-card__foreground \{[^}]*object-fit: cover;/, "bled media covers its frame without distortion");
+assert.equal(advertisingCss.match(/object-fit/g)?.length, 1, "cover on tile media is the only fit rule");
+assert.doesNotMatch(advertisingCss, /masonry-card__backplate|data-media-fit|media--canvas/, "Advertising browse media has no canvas, fit, or backplate selectors");
 assert.ok(!existsSync(new URL("../../src/site/advertising-products/catalog-artifact.mjs", import.meta.url)), "source tree does not contain a generated artifact");
 
 const categoryOrder = artifact.categories.map((entry) => entry.slug);
 const samplingHero = artifact.cards.find((card) => card.id === "kiosk-posm-07");
 const samplingCrossGroup = artifact.cards.find((card) => card.id === "mobile-retail-04");
 assert.ok(samplingHero && samplingCrossGroup, "authored sampling fixtures are missing");
-const suggestions = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: samplingHero.id, tagRegistry: artifact.tagRegistry });
+const suggestions = selectSuggestions({ cards: artifact.cards, heroId: samplingHero.id, tagRegistry: artifact.tagRegistry });
 assert.ok(suggestions.length > 0 && suggestions.length <= 4, "suggestion tile should expose no more than four contextual labels with valid media");
 assert.deepEqual(
   suggestions.map(({ card, tag }) => [tag.id, card.id]),
-  selectAdvertisingSuggestions({ cards: artifact.cards, heroId: samplingHero.id, tagRegistry: artifact.tagRegistry }).map(({ card, tag }) => [tag.id, card.id]),
+  selectSuggestions({ cards: artifact.cards, heroId: samplingHero.id, tagRegistry: artifact.tagRegistry }).map(({ card, tag }) => [tag.id, card.id]),
   "suggestion labels and representative photos must remain stable for a hero ID",
 );
 assert.ok(suggestions.every(({ card, tag }) => card.tagIds.includes(tag.id)
@@ -168,7 +186,7 @@ for (const { card, tag } of suggestions) {
   const alternativeExists = artifact.cards.some((candidate) => candidate.id !== samplingHero.id && candidate.tagIds.includes(tag.id));
   if (alternativeExists) assert.notEqual(card.id, samplingHero.id, `suggestion ${tag.id} should not reuse the hero when another representative exists`);
 }
-const externalActive = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: samplingHero.id, activeTag: "format-square", tagRegistry: artifact.tagRegistry });
+const externalActive = selectSuggestions({ cards: artifact.cards, heroId: samplingHero.id, activeTag: "format-square", tagRegistry: artifact.tagRegistry });
 const externalActiveSlot = externalActive.find(({ tag }) => tag.id === "format-square");
 assert.equal(externalActive.length, 4, "an active URL tag keeps the fixed four suggestion slots");
 assert.ok(externalActiveSlot, "an active URL tag outside the normal product/use list stays visible for toggle-off");
@@ -176,27 +194,27 @@ assert.ok(externalActiveSlot.card.media.src, "an externally active tag keeps its
 assert.equal(new Set(externalActive.map(({ tag }) => tag.id)).size, 4, "an active URL tag appears once among four unique suggestion slots");
 assert.deepEqual(
   externalActive.map(({ card, tag }) => [tag.id, card.id]),
-  selectAdvertisingSuggestions({ cards: artifact.cards, heroId: samplingHero.id, activeTag: "format-square", tagRegistry: artifact.tagRegistry })
+  selectSuggestions({ cards: artifact.cards, heroId: samplingHero.id, activeTag: "format-square", tagRegistry: artifact.tagRegistry })
     .map(({ card, tag }) => [tag.id, card.id]),
   "active URL slots remain deterministic without prepending the active tag",
 );
-const mobileSuggestions = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: samplingCrossGroup.id, tagRegistry: artifact.tagRegistry });
+const mobileSuggestions = selectSuggestions({ cards: artifact.cards, heroId: samplingCrossGroup.id, tagRegistry: artifact.tagRegistry });
 const mobileAuthoredTags = new Set(samplingCrossGroup.tagIds);
 assert.ok(mobileSuggestions.every(({ card, tag }) => mobileAuthoredTags.has(tag.id)
   || card.category === samplingCrossGroup.category), "fallback suggestions must stay inside the hero category");
 assert.ok(mobileSuggestions.every(({ card, tag }) => card.category === samplingCrossGroup.category
   || mobileAuthoredTags.has(tag.id)
   || tag.group === "use"), "cross-category representatives require a hero-authored or shared-use tag");
-assert.match(runtime, /advertising-photo-view__suggestion-links[\s\S]*advertising-photo-view__suggestion-link[\s\S]*advertising-photo-view__suggestion-label/, "suggestion tile renders the approved link and label hooks");
-assert.match(runtime, /function createPhotoMedia[\s\S]*advertising-card-media__image/, "grid and suggestion media share one media helper");
-assert.match(runtime, /link\.className = "advertising-card-interactive";[\s\S]*advertising-card-media[\s\S]*createPhotoMedia\(record, locale[,)]/, "grid and related cards keep media still on hover (owner 2026-10-18)");
-assert.match(runtime, /advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media[\s\S]*createPhotoMedia\(card, locale, \{ suggestion: true \}\)/, "suggestion buttons reuse the shared media interaction");
+assert.match(runtime, /detail-view__suggestion-links[\s\S]*detail-view__suggestion-link[\s\S]*detail-view__suggestion-label/, "suggestion tile renders the approved link and label hooks");
+assert.match(runtime, /function createPhotoMedia[\s\S]*card-media__image/, "grid and suggestion media share one media helper");
+assert.match(runtime, /link\.className = "card-interactive";[\s\S]*card-media[\s\S]*createPhotoMedia\(record, locale[,)]/, "grid and related cards keep media still on hover (owner 2026-10-18)");
+assert.match(runtime, /detail-view__suggestion-link card-interactive card-media[\s\S]*createPhotoMedia\(card, locale, \{ suggestion: true \}\)/, "suggestion buttons reuse the shared media interaction");
 assert.doesNotMatch(runtime, /startSuggestionMotion|advertising-suggestion-image|scale\(1\.06\)/, "suggestions do not run a second hover or slideshow motion provider");
 assert.match(runtime, /"internal-gap": primary\.internalGap/, "detail runtime passes the span-three internal gap to CSS");
 assert.match(siteCss, /media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom[\s\S]*?media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):focus-visible \.media-hover-zoom[\s\S]*?transform: scale\(1\.15\)/, "inactive grid and suggestion media share the same hover and focus zoom contract");
-assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*advertising-card-media__image[\s\S]*transform: none !important;/, "shared media zoom has a reduced-motion path");
+assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*card-media__image[\s\S]*transform: none !important;/, "shared media zoom has a reduced-motion path");
 assert.match(runtime, /const nextTag = browseHistory\.current\.tag === tag \? null : tag/, "clicking the current suggestion tag should toggle it off through replaceState history");
-const sameCategory = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id });
+const sameCategory = selectRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id });
 assert.ok(sameCategory.length > 0 && sameCategory.every((card) => card.id !== samplingHero.id
   && (card.category === samplingHero.category || card.productIds.includes(samplingHero.productIds[0]))));
 const scoredIds = samplingHero.related.flat();
@@ -204,7 +222,7 @@ assert.deepEqual(sameCategory.slice(0, scoredIds.length).map((card) => card.id),
   "reset/no-tag order follows the build-time score tiers (taxonomy R7)");
 assert.ok(sameCategory.slice(scoredIds.length).every((card) => card.category === samplingHero.category),
   "unscored same-category cards come last");
-const samplingRelated = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
+const samplingRelated = selectRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
 assert.ok(samplingRelated.some((card) => card.id === samplingCrossGroup.id), "authored sampling tag must cross category groups");
 assert.ok(samplingRelated.every((card) => card.id !== samplingHero.id), "hero cannot appear in related results");
 // Láng giềng mang tag giữ thứ tự tầng điểm; card mang tag còn lại xếp theo cụm, sourceOrder, ID.
@@ -222,7 +240,7 @@ assert.deepEqual(
 );
 assert.equal(new Set(samplingRelated.map((card) => card.id)).size, samplingRelated.length, "duplicate tag IDs cannot duplicate related cards");
 assert.deepEqual(
-  selectAdvertisingRelated({
+  selectRelated({
     cards: artifact.cards.map((card) => card.id === samplingCrossGroup.id ? { ...card, tagIds: [...card.tagIds, "use-sampling"] } : card),
     categoryOrder,
     heroId: samplingHero.id,
@@ -231,14 +249,14 @@ assert.deepEqual(
   samplingRelated.map((card) => card.id),
   "duplicate authored tags do not alter stable related order",
 );
-assert.deepEqual(selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "no-result" }), [], "unknown/no-result tag yields a real empty state");
+assert.deepEqual(selectRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "no-result" }), [], "unknown/no-result tag yields a real empty state");
 let relatedSolverCards;
-const relatedLayout = compileAdvertisingRelatedLayout({
+const relatedLayout = compileRelatedLayout({
   cards: artifact.cards,
   categoryOrder,
   compile(options) {
     relatedSolverCards = options.cards;
-    return compileAdvertisingLayout(options);
+    return compileMasonryLayout(options);
   },
   datasetVersion: artifact.datasetVersion,
   heroId: samplingHero.id,
@@ -277,7 +295,7 @@ const assertNoOverlap = (compiled, label) => {
     }
   }
 };
-const zeroRelatedLayout = compileAdvertisingRelatedLayout({
+const zeroRelatedLayout = compileRelatedLayout({
   cards: artifact.cards,
   categoryOrder,
   datasetVersion: artifact.datasetVersion,
@@ -286,7 +304,7 @@ const zeroRelatedLayout = compileAdvertisingRelatedLayout({
   settings: artifact.settings,
   tag: "no-result",
 });
-const oneRelatedLayout = compileAdvertisingRelatedLayout({
+const oneRelatedLayout = compileRelatedLayout({
   cards: [samplingHero, sameCategory[0]],
   categoryOrder,
   datasetVersion: artifact.datasetVersion,
@@ -302,7 +320,7 @@ assertNoOverlap(zeroRelatedLayout, "zero-related layout");
 assertNoOverlap(oneRelatedLayout, "one-related layout");
 assertNoOverlap(relatedLayout, "many-related layout");
 
-const sparsePeek = compileAdvertisingRelatedLayout({
+const sparsePeek = compileRelatedLayout({
   cards: artifact.cards.filter((card) => ["kiosk-posm-01", "kiosk-posm-13"].includes(card.id)), categoryOrder, datasetVersion: artifact.datasetVersion,
   heroId: "kiosk-posm-01", tag: "product-kiosk-posm-product-01",
   layoutViewportWidth: 1569, viewportHeight: 912, headerHeight: 102.515625,
@@ -313,7 +331,7 @@ assert.equal(sparsePeek.layout.columns, 4, "D14 sparse fixture keeps four column
 assert.equal(sparsePeek.photoPlacements[0].y, 0, "D14 single photo stays alongside primary");
 assert.ok(sparsePeek.photoPlacements[0].x >= sparsePeek.primary.width + sparsePeek.primary.gap - 0.1,
   "D14 single photo occupies column four without requiring a second photo below");
-const tabletSpan3 = compileAdvertisingRelatedLayout({
+const tabletSpan3 = compileRelatedLayout({
   cards: artifact.cards, categoryOrder, datasetVersion: artifact.datasetVersion,
   heroId: "mobile-retail-04", tag: "use-sampling",
   layoutViewportWidth: 810, viewportHeight: 1180, headerHeight: 132.78125,
@@ -339,7 +357,7 @@ assert.ok(tabletSpan3.layout.diagnostics.attempts.reduce((total, attempt) => tot
   "tablet span3 attempts stay within the fixed search budget");
 assert.equal(tabletSpan3.layout.diagnostics.budget, 300000, "tablet span3 reports the aggregate search budget");
 assertNoOverlap(tabletSpan3, "tablet span3 related photos");
-const singleColumnPeek = compileAdvertisingRelatedLayout({
+const singleColumnPeek = compileRelatedLayout({
   cards: artifact.cards, categoryOrder, datasetVersion: artifact.datasetVersion,
   heroId: samplingHero.id, columns: 1, layoutViewportWidth: 390, viewportHeight: 844,
   headerHeight: 87.5, settings: artifact.settings,
@@ -351,13 +369,13 @@ assert.equal(singleColumnPeek.layout.columnBottoms[0], Math.max(...singleColumnP
   "one-column frontier contains only real photos");
 
 let scrollbarDesktopColumns;
-const scrollbarDesktopLayout = compileAdvertisingRelatedLayout({
+const scrollbarDesktopLayout = compileRelatedLayout({
   cards: artifact.cards,
   categoryOrder,
   columns: 3,
   compile(options) {
     scrollbarDesktopColumns = options.columns;
-    return compileAdvertisingLayout(options);
+    return compileMasonryLayout(options);
   },
   datasetVersion: artifact.datasetVersion,
   heroId: samplingHero.id,
@@ -371,10 +389,67 @@ assert.ok(scrollbarDesktopLayout.primary.span <= scrollbarDesktopColumns, "prima
 assertNoOverlap(scrollbarDesktopLayout, "scrollbar desktop related layout");
 
 // Placeholder nền của detail không tải khi detail ẩn; runtime gán nguồn thật rồi mới đổi sang eager.
-assert.match(index, /<img data-advertising-photo-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
+assert.match(index, /<img data-detail-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
 assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loading = "eager";/, "photo background goes eager after the real source is set");
 
 // Viewer "Xem lớn hơn" không có vệt sáng và fade-in 0,45s: markFrame của script head phải bỏ qua dialog (loading-glass R5).
-assert.match(index, /!frame\.closest\("[^"]*\[data-advertising-photo-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
+assert.match(index, /!frame\.closest\("[^"]*\[data-detail-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
 
-console.log(`[advertising-products-static] ${ADVERTISING_LAYOUT_ALGORITHM_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);
+// Built layout cache (plan T4 step 3.1): 5 whole-band files and one file per filter and band, every one importable, on
+// this layout version, and each one-filter file equal to its slice of the band file.
+const cacheRoot = new URL("../../.site-output/advertising-products/layout-cache/", import.meta.url);
+const bandFiles = (await readdir(cacheRoot)).filter((name) => name.endsWith(".mjs")).sort();
+assert.deepEqual(bandFiles, ["2-15.mjs", "3-15.mjs", "3-25.mjs", "4-25.mjs", "4-35.mjs"], "one cache file per width band");
+let filterFileCount = 0;
+for (const bandFile of bandFiles) {
+  const band = (await import(new URL(bandFile, cacheRoot))).default;
+  assert.equal(band.version, MASONRY_LAYOUT_VERSION, `${bandFile} is built for the current layout version`);
+  const dir = new URL(`${bandFile.replace(".mjs", "")}/`, cacheRoot);
+  const filterFiles = (await readdir(dir, { recursive: true })).filter((name) => name.endsWith(".mjs"));
+  assert.deepEqual(filterFiles.map((name) => name.replace(".mjs", "")).sort(), Object.keys(band.filters).sort(), `${bandFile} has one file per filter`);
+  for (const name of filterFiles) {
+    const single = (await import(new URL(name, dir))).default;
+    const filter = name.replace(".mjs", "");
+    assert.equal(single.version, MASONRY_LAYOUT_VERSION);
+    assert.equal(single.band, band.band);
+    assert.deepEqual(single.filters, { [filter]: band.filters[filter] }, `${bandFile} ${filter} matches its band slice`);
+    filterFileCount += 1;
+  }
+}
+assert.equal(filterFileCount, 160, "160 one-filter cache files");
+
+// Head preload of the one-filter cache file (plan T4b): every grid page starts it from an inline script before the deferred
+// vendor scripts; card pages and Projects pages start none.
+const preloadScripts = (html) => [...html.matchAll(/<script>(\(\(\)=>\{const w=document\.documentElement\.clientWidth;[\s\S]*?)<\/script>/g)].map(([, code]) => code);
+const preloadHref = (code, clientWidth) => {
+  let href = null;
+  const link = {};
+  vm.runInNewContext(code, {
+    document: { documentElement: { clientWidth }, head: { append: (node) => { href = node.href; } }, createElement: () => link },
+  });
+  return href;
+};
+const gridPages = [["advertising-products/index.html", "all"], ...["vi", "en"].flatMap((locale) => [[`${locale}/advertising-products/index.html`, "all"],
+  ...ADVERTISING_PAGES.map((page) => [`${locale}/advertising-products/${page[locale]}/index.html`, page.filter])])];
+for (const [file, filter] of gridPages) {
+  const html = await read(`.site-output/${file}`);
+  const scripts = preloadScripts(html);
+  assert.equal(scripts.length, 1, `${file} has exactly one cache preload script`);
+  assert.ok(html.indexOf(scripts[0]) < html.indexOf('<script defer src="/assets/vendor/'), `${file} preloads before the deferred scripts`);
+  assert.ok(html.indexOf(scripts[0]) < html.indexOf("<title"), `${file} preloads before the title`);
+  assert.ok(!html.includes("layout-cache-preload"), `${file} keeps no build marker`);
+  for (const width of [320, 384, 719, 720, 960, 961, 1004, 1005, 1200, 1201, 1440, 2560]) {
+    assert.equal(preloadHref(scripts[0], width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/${filter}.mjs`, `${file} ${width}px picks the band the runtime picks`);
+  }
+  assert.ok(existsSync(new URL(`../../.site-output${preloadHref(scripts[0], 1440)}`, import.meta.url)), `${file} preloads a file that exists`);
+}
+const everyWidth = preloadScripts(builtIndex)[0];
+for (let width = 320; width <= 2560; width += 1) {
+  assert.equal(preloadHref(everyWidth, width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/all.mjs`, `${width}px: preload band equals bandKey`);
+}
+assert.equal(preloadHref(everyWidth, 0), null, "an unmeasured viewport preloads nothing");
+const cardPage = await read(`.site-output/vi/advertising-products/p/${artifact.cards[0].id}/index.html`);
+assert.equal(preloadScripts(cardPage).length, 0, "a direct card page starts no grid cache preload");
+assert.equal(preloadScripts(await read(".site-output/vi/projects/index.html")).length, 0, "the Projects page embeds its layouts and starts no cache preload");
+
+console.log(`[advertising-products-static] ${MASONRY_LAYOUT_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

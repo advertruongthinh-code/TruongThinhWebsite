@@ -2,7 +2,7 @@
 title: Debug Chrome trên Android thật qua USB
 type: operations
 status: connection-verified
-updated: 2026-11-08
+updated: 2026-11-10
 related_specs:
   - ../specs/site-shell.md
 ---
@@ -197,8 +197,10 @@ Sau khi xong phiên test, gỡ đúng forwarding vừa tạo; giữ mapping khá
 & $androidAdb -s $androidSerial reverse --remove tcp:8790
 ```
 
-Nếu thay bằng Chrome Port forwarding8790, tắt đúng mapping đó. Tắt USB debugging
-trên điện thoại khi không còn dùng phiên debug.
+Nếu thay bằng Chrome Port forwarding8790, tắt đúng mapping đó. Đóng tab đã mở,
+dừng server của phiên. Không khóa điện thoại (owner 2026-10-31): giữ
+`svc power stayon usb`, không gửi phím power/sleep, không tắt màn hình, không tắt
+USB debugging, để thread sau kết nối được mà owner không phải mở khóa.
 
 ## Chú thích thuật ngữ
 

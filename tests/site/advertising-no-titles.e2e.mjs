@@ -19,20 +19,20 @@ try {
       const page = await browser.newPage({ viewport });
       const browseUrl = `${baseUrl}/${locale}/advertising-products/?category=${categoryLabel}`;
       await page.goto(browseUrl, { waitUntil: "networkidle" });
-      await page.waitForSelector("[data-advertising-card]");
+      await page.waitForSelector("[data-masonry-card]");
       const evidence = await page.evaluate(() => ({
         // Owner 2026-11-09: mỗi card masonry có một tên ẩn (aria-hidden), chỉ hiện khi hover chuột thật, không chiếm chỗ.
-        captions: [...document.querySelectorAll(".advertising-grid figcaption")].map((caption) => ({
-          title: caption.matches(".advertising-tile__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
+        captions: [...document.querySelectorAll(".masonry-grid figcaption")].map((caption) => ({
+          title: caption.matches(".masonry-card__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
           position: getComputedStyle(caption).position,
         })),
-        cardCount: document.querySelectorAll(".advertising-grid [data-advertising-card]").length,
-        photoTitles: document.querySelectorAll("[data-advertising-photo-title]").length,
+        cardCount: document.querySelectorAll(".masonry-grid [data-masonry-card]").length,
+        photoTitles: document.querySelectorAll("[data-detail-title]").length,
         gridTitle: document.querySelectorAll("#du-an-title").length,
-        currentFilter: document.querySelector("[data-advertising-filter][aria-current=\"true\"]")?.getAttribute("data-advertising-filter"),
-        imageAlts: [...document.querySelectorAll(".advertising-grid img")].map((image) => image.getAttribute("alt") || ""),
-        infoLabel: document.querySelector("[data-advertising-photo-info]")?.getAttribute("aria-label") || "",
-        tiles: [...document.querySelectorAll(".advertising-grid .advertising-tile")].map((tile) => ({
+        currentFilter: document.querySelector("[data-masonry-filter][aria-current=\"true\"]")?.getAttribute("data-masonry-filter"),
+        imageAlts: [...document.querySelectorAll(".masonry-grid img")].map((image) => image.getAttribute("alt") || ""),
+        infoLabel: document.querySelector("[data-detail-info]")?.getAttribute("aria-label") || "",
+        tiles: [...document.querySelectorAll(".masonry-grid .masonry-card")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
           imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
         })),
@@ -47,22 +47,22 @@ try {
       assert.ok(evidence.tiles.length > 0 && evidence.tiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: tile reserves caption height`);
 
       await page.goto(`${browseUrl}&photo=kiosk-posm-01`, { waitUntil: "networkidle" });
-      await page.waitForSelector("[data-advertising-photo-view]:not([hidden])");
-      await page.waitForSelector("[data-advertising-related-card]");
+      await page.waitForSelector("[data-detail-view]:not([hidden])");
+      await page.waitForSelector("[data-masonry-related-card]");
       const detail = await page.evaluate(() => ({
-        titleCount: document.querySelectorAll("[data-advertising-photo-title]").length,
-        description: document.querySelector("[data-advertising-photo-description]")?.textContent?.trim() || "",
-        imageAlt: document.querySelector("[data-advertising-photo-image]")?.getAttribute("alt") || "",
-        infoLabel: document.querySelector("[data-advertising-photo-info]")?.getAttribute("aria-label") || "",
-        relatedCardCount: document.querySelectorAll("[data-advertising-related-card]").length,
+        titleCount: document.querySelectorAll("[data-detail-title]").length,
+        description: document.querySelector("[data-detail-description]")?.textContent?.trim() || "",
+        imageAlt: document.querySelector("[data-detail-image]")?.getAttribute("alt") || "",
+        infoLabel: document.querySelector("[data-detail-info]")?.getAttribute("aria-label") || "",
+        relatedCardCount: document.querySelectorAll("[data-masonry-related-card]").length,
         // Owner 2026-11-09: card related có tên ẩn như masonry chính; id có tiền tố riêng nên không trùng card cùng id ở lưới chính.
-        relatedCaptions: [...document.querySelectorAll("[data-advertising-related-card] figcaption")].map((caption) => ({
-          title: caption.matches(".advertising-tile__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
+        relatedCaptions: [...document.querySelectorAll("[data-masonry-related-card] figcaption")].map((caption) => ({
+          title: caption.matches(".masonry-card__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
           position: getComputedStyle(caption).position, id: caption.id,
-          labelled: caption.closest("[data-advertising-related-card]").querySelector("a")?.getAttribute("aria-labelledby") === caption.id,
+          labelled: caption.closest("[data-masonry-related-card]").querySelector("a")?.getAttribute("aria-labelledby") === caption.id,
           unique: document.querySelectorAll(`[id="${caption.id}"]`).length === 1,
         })),
-        relatedTiles: [...document.querySelectorAll("[data-advertising-related-card]")].map((tile) => ({
+        relatedTiles: [...document.querySelectorAll("[data-masonry-related-card]")].map((tile) => ({
           height: tile.getBoundingClientRect().height,
           imageHeight: tile.querySelector(".project-tile__media")?.getBoundingClientRect().height || 0,
         })),
@@ -80,7 +80,7 @@ try {
       await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
       // Trang tương thích chuyển thẳng tới trang cụm theo slug của locale (taxonomy R4).
       await page.waitForURL(new RegExp(`/${locale}/advertising-products/${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}/$`));
-      await page.waitForSelector("[data-advertising-card]");
+      await page.waitForSelector("[data-masonry-card]");
       await page.close();
     }
   }

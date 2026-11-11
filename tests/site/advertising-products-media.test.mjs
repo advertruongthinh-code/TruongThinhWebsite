@@ -14,7 +14,7 @@ import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/ph
 import {
   ADVERTISING_CLUSTERS,
   ADVERTISING_PRODUCTS,
-  ADVERTISING_THIN_PRODUCT_THRESHOLD,
+  ADVERTISING_PRODUCT_THRESHOLD,
 } from "../../src/site/advertising-products/taxonomy.mjs";
 
 const categoryEntries = Object.entries(ADVERTISING_MEDIA_CATEGORY_COUNTS);
@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 285);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 288);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 285);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 288);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -382,11 +382,11 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 25 products in plan order with a thin-page threshold of 9", () => {
+test("taxonomy has six clusters and 25 products in plan order with a product threshold of 10", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
-  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 9);
+  assert.equal(ADVERTISING_PRODUCT_THRESHOLD, 10);
 });
 
 test("every old product tag becomes a variant that maps to its plan product", () => {
@@ -416,24 +416,24 @@ test("card products start with the plan map and R8 relabels, then ranked seconda
 });
 
 test("filter matches every product and cluster on the card by rank, and ?category= accepts old and new slugs", async () => {
-  const { advertisingFilterRank, matchesAdvertisingFilter } = await import("../../src/site/advertising-products/layout-core.mjs");
+  const { filterRank, matchesFilter } = await import("../../src/site/masonry/layout.mjs");
   const previousWindow = globalThis.window;
   globalThis.window = {};
-  const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+  const { parseBrowseLocation, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
   globalThis.window = previousWindow;
   // Gherkin R1: card hiện ở mọi sản phẩm và mọi cụm của nó; hạng 0 là sản phẩm chính.
   const decal = ADVERTISING_CARDS.find(({ id }) => id === "print-decals-21");
   assert.deepEqual(decal.productIds.slice(0, 2), ["printing-decals/decals-banners-canvas", "office-signs/room-signs"]);
   for (const [filter, rank] of [["printing-decals", 0], ["printing-decals/decals-banners-canvas", 0], ["office-signs", 1], ["office-signs/room-signs", 1]]) {
-    assert.ok(matchesAdvertisingFilter(decal, filter), filter);
-    assert.equal(advertisingFilterRank(decal, filter), rank, filter);
+    assert.ok(matchesFilter(decal, filter), filter);
+    assert.equal(filterRank(decal, filter), rank, filter);
   }
-  assert.ok(!matchesAdvertisingFilter(decal, "mobile-retail"));
-  assert.equal(advertisingFilterRank(decal, "all"), 0);
+  assert.ok(!matchesFilter(decal, "mobile-retail"));
+  assert.equal(filterRank(decal, "all"), 0);
   assert.deepEqual(Object.fromEntries(ADVERTISING_CLUSTERS.map(({ legacySlug, id }) => [legacySlug, id])), clusterByCategory);
   const artifact = buildAdvertisingArtifact();
   const schema = { cards: artifact.cards, categories: artifact.categories };
-  const browseAt = (locale, category) => parseAdvertisingBrowseLocation(
+  const browseAt = (locale, category) => parseBrowseLocation(
     `https://example.test/${locale}/advertising-products/?category=${encodeURIComponent(category)}`, schema).category;
   for (const cluster of ADVERTISING_CLUSTERS) {
     for (const slug of [cluster.legacySlug, cluster.id, cluster.slugVi, cluster.slugEn]) {
@@ -441,7 +441,7 @@ test("filter matches every product and cluster on the card by rank, and ?categor
       assert.equal(browseAt("en", slug), cluster.id, slug);
     }
     for (const [locale, slug] of [["vi", cluster.slugVi], ["en", cluster.slugEn]]) {
-      const url = serializeAdvertisingBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
+      const url = serializeBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
       assert.equal(url.searchParams.get("category"), slug);
     }
   }

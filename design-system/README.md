@@ -26,8 +26,8 @@ Một theme sáng; website không có dark theme.
 - **Text:** `ink` cho chữ chính, `muted` cho metadata, label phụ, filter chưa chọn. `line` cho đường phân cách nhẹ.
 - **Accent:** `orange` cho focus ring và điểm nhấn hành động; `orange-accent` chỉ cho hover hoặc chữ từ 24px
   (tương phản 3.6:1); `blue` cho nền `::selection` và indicator route.
-- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.5) phủ ảnh portal; `media-hover-overlay`
-  (0.353, tối bằng trung bình `.hero-shade`) phủ card masonry Advertising khi chuột thật hover; nút gợi ý chưa
+- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.5) phủ ảnh portal; `media-shade-card` là lớp
+  tối học Pinterest dưới tên card masonry, chỉ hiện khi chuột thật hover; nút gợi ý chưa
   active dùng lớp tối 0.5 riêng; bốn token `media-control-*`, `control-disabled-*` là trạng thái control viewer Advertising.
 - **CTA:** `cta-black` chỉ dùng cho floating CTA.
 - **Logo:** bốn token `logo-mark-*` chỉ dùng trong mark ([Brand](brand.md)).
@@ -68,7 +68,7 @@ chữ dòng trên.
   1024, 1440px.
 - **Header:** ba track độc lập cho brand, nav và nút menu ([Header](components/Header/README.md#hình-học)).
 - **Detail:** project grid tối đa 1500px, bốn cột desktop, gap theo gutter.
-- **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
+- **Advertising:** masonry tính bằng `masonry/layout.mjs`, không dùng CSS grid
   ([Masonry](components/Masonry/README.md#hình-học)).
 - **Footer:** Hotline trên số Văn phòng, trụ sở, mạng xã hội; icon thay nhãn chữ, không logo. Lời mời và CTA nằm
   trước footer ([Footer](components/Footer/README.md)).

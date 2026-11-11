@@ -26,7 +26,7 @@ document.documentElement.classList.add("media-gate");
     if (!image.getAttribute("src")?.startsWith("/assets/content/")) return;
     const parent = image.parentElement;
     const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
-    if (frame && !frame.closest("[data-project-grid], [data-advertising-photo-view], [data-advertising-photo-dialog], .client-logo-marquee")) frame.classList.add("media-frame");
+    if (frame && !frame.closest("[data-project-grid], [data-detail-view], [data-detail-dialog], .client-logo-marquee")) frame.classList.add("media-frame");
   };
   // Ảnh trong màn hình lên bản gốc sau khi bản vừa khung đã hiện (progressive-loading R10, owner 2026-10-31): tải bản gốc
   // riêng, decode xong mới đổi; chỉ chạy khi trang ngừng cuộn và không ảnh nào trong màn hình còn đang tải, mỗi lượt một ảnh.

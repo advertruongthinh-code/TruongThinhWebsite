@@ -1,5 +1,5 @@
-// Rail công trình trang chủ (page-home R8): validate dữ liệu và markup sinh ra.
-// Chạy sau pnpm prepare:site: node --test tests/site/project-reel.test.mjs
+// Home page project rail (page-home R8): validates the data and the generated markup.
+// Run after pnpm prepare:site: node --test tests/site/project-reel.test.mjs
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";

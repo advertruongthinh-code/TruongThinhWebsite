@@ -208,7 +208,6 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       placement.y,
       placement.pixelWidth,
       placement.mediaPixelHeight,
-      placement.captionPixelHeight,
       placement.pixelHeight,
     ];
     if (numericFields.some((value) => !finite(value)) || placement.y < 0) {
@@ -239,7 +238,13 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       add("invalid-ratio", { ids: [id], columns: cardColumns });
     } else {
       const expectedMediaHeight = placement.pixelWidth * mediaHeight / mediaWidth;
-      if (Math.abs(placement.mediaPixelHeight - expectedMediaHeight) > EPSILON) {
+      // Edge trim (masonry R5): single-column, non-suggestion cards only, at most 0.25 gap and 5% of natural media.
+      const bleed = placement.mediaBleed ?? 0;
+      if (bleed && (layout.staggerBasis !== "image-height" || span !== 1 || placement.card?.kind === "suggestion"
+        || bleed < 0 || bleed > Math.min(0.25 * interCardGap, 0.05 * expectedMediaHeight) + EPSILON)) {
+        add("bleed-limit", { ids: [id], columns: cardColumns, allowed: Math.min(0.25 * interCardGap, 0.05 * expectedMediaHeight), actual: bleed });
+      }
+      if (Math.abs(placement.mediaPixelHeight + bleed - expectedMediaHeight) > EPSILON) {
         add("natural-ratio", {
           ids: [id],
           columns: cardColumns,
@@ -250,11 +255,8 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     }
     if (
       placement.mediaPixelHeight <= 0 ||
-      placement.captionPixelHeight < 0 ||
-      placement.pixelHeight <= 0 ||
-      Math.abs(
-        placement.pixelHeight - (placement.mediaPixelHeight + placement.captionPixelHeight)
-      ) > EPSILON
+      // Card UI sits inside the media (media-card R2): the card is exactly as tall as its media.
+      Math.abs(placement.pixelHeight - placement.mediaPixelHeight) > EPSILON
     ) {
       add("vertical-bounds", { ids: [id], columns: cardColumns });
     }
@@ -301,6 +303,7 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
   }
   for (const columnCards of byColumn) columnCards.sort(compareCards);
 
+  const imageHeightLayout = layout.staggerBasis === "image-height";
   for (const card of orderedCards) {
     if (card.span === 1) {
       const sequence = byColumn[card.left];
@@ -347,21 +350,16 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
     const highBottom = Math.max(leftBottom, rightBottom);
     const lowBottom = Math.min(leftBottom, rightBottom);
     const expected = highBottom + interCardGap;
+    // Hole-free grid (masonry R5): a two-column card sits on level bottoms (the cache trims the longer column first).
+    if (imageHeightLayout && highBottom - lowBottom > EPSILON) {
+      add("hole", { ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean), columns: bridgeColumns, actual: highBottom - lowBottom });
+    }
     if (Math.abs(card.y - expected) > EPSILON) {
       add("bridge-top", {
         ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean),
         columns: bridgeColumns,
         expected,
         actual: card.y,
-      });
-    }
-    const excessGap = Math.max(0, card.y - lowBottom - interCardGap);
-    if (excessGap > 0.5 * cardWidth + EPSILON) {
-      add("bridge-cavity", {
-        ids: [leftPrevious?.id, rightPrevious?.id, card.id].filter(Boolean),
-        columns: bridgeColumns,
-        allowed: 0.5 * cardWidth + EPSILON,
-        actual: excessGap,
       });
     }
   }
@@ -414,7 +412,8 @@ export function inspectAdvertisingGrid({ layout, placements } = {}) {
       const card = sequence.at(-1);
       return card ? { ...card, contributionBottom: card.bottom } : null;
     }).filter(Boolean);
-    if (terminals.length > 1) {
+    // A grid whose last card in some column spans two columns may end uneven: the skeleton batch fills below every column.
+    if (terminals.length > 1 && terminals.every((card) => card.span === 1)) {
       const spread = Math.max(...terminals.map((card) => card.contributionBottom)) - Math.min(...terminals.map((card) => card.contributionBottom));
       const allowed = Math.max(...terminals.map((card) => card.pixelHeight)) + interCardGap;
       if (spread > allowed + EPSILON) add("terminal-fill", { ids: terminals.map((card) => card.id), actual: spread, allowed });

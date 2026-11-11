@@ -1,5 +1,5 @@
 {
-  "_note": "Dữ liệu cố định cho preview Design System Blocks và NewsList (scripts/docs/build-design-system.mjs); không đổi theo nội dung site.",
+  "_note": "Fixed data for the Design System Blocks and NewsList previews (scripts/docs/build-design-system.mjs); does not follow site content.",
   "page": {
     "blocks": [
       {

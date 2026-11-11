@@ -2,8 +2,8 @@
 title: CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ, parallax, CTA cuối related
 status: live
 source:
-  - src/site/advertising-products/cta-batch.mjs
-  - src/site/advertising-products/detour-path.mjs
+  - src/site/masonry/cta-batch.mjs
+  - src/site/masonry/detour-path.mjs
 tests:
   - tests/site/advertising-continuation.e2e.mjs
   - tests/site/advertising-related-cta.e2e.mjs
@@ -51,16 +51,16 @@ And nút "Trao đổi ý tưởng" nằm dưới dòng cuối một khoảng gi�
 
 ### R2. Batch skeleton dưới CTA co giãn
 
-CTA phủ lên batch skeleton, bắt đầu một khoảng giữa dưới đáy masonry thật (`--advertising-cta-top`) và kết thúc ngay trên
+CTA phủ lên batch skeleton, bắt đầu một khoảng giữa dưới đáy masonry thật (`--masonry-cta-top`) và kết thúc ngay trên
 footer; đáy CTA là đáy batch ([skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)). Mỗi lần dựng,
 `renderCtaSkeleton` lấy `vh` là chiều cao layout viewport ([shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi)),
 tính khoảng từ chân chữ dòng cuối tới đáy batch `D = max(vh/2 − footer, khoảng giữa + phần dưới chân chữ)` rồi ghi chiều cao
-CTA `--advertising-cta-tail-height` bằng số lớn nhất trong ba số: `0.25` bề rộng card cộng 1px, `vh − khoảng giữa − footer`,
+CTA `--masonry-cta-tail-height` bằng số lớn nhất trong ba số: `0.25` bề rộng card cộng 1px, `vh − khoảng giữa − footer`,
 `D + phần trên chân chữ`. Vì vậy vị trí cuối của chân chữ không phụ thuộc số card thật phía trên, nút cách đáy batch ít nhất
 một khoảng giữa, và đoạn từ đáy masonry thật tới đáy batch ít nhất bằng viewport trừ footer. Khung cuối mỗi cột kéo tới
 đáy batch theo [skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry).
 
-Khi duyệt masonry, footer không có khoảng phía trên (`body.is-advertising-browse:not(.is-advertising-photo)` đặt
+Khi duyệt masonry, footer không có khoảng phía trên (`body.is-masonry-browse:not(.is-detail)` đặt
 `--footer-top-gap: 0px`) vì batch đã lấp chỗ đó; detail không có batch và giữ khoảng trên footer của site.
 
 ```gherkin
@@ -171,7 +171,7 @@ cỡ, và khi font tải xong.
 Batch và cỡ tiêu đề theo chiều cao layout viewport (`svh` từ 980px trở xuống), nên thanh địa chỉ ẩn, hiện không dựng lại
 skeleton. Vị trí chân chữ đặt bằng CSS theo `50dvh`, nên đúng sau khi thanh địa chỉ đứng yên; mọi `resize` vẫn tính
 lại parallax R6 theo `innerHeight` mới, nếu không cụm chữ giữ độ lệch cũ (A05s cũ 11/10: cao hơn đường giữa 5.5px). Sau lần đo đầu, runtime gắn
-`data-advertising-cta-settled` ở khung hình kế; từ đó khoảng dưới cụm chữ đổi bằng transition `margin-bottom` thay vì nhảy,
+`data-masonry-cta-settled` ở khung hình kế; từ đó khoảng dưới cụm chữ đổi bằng transition `margin-bottom` thay vì nhảy,
 trừ khi giảm chuyển động.
 
 ```gherkin
@@ -183,14 +183,14 @@ And khi thanh địa chỉ đứng yên, chân chữ dòng cuối nằm trên đ
 
 ### R9. CTA cuối related ở detail
 
-Batch `[data-advertising-cta-skeleton]`, cụm `[data-advertising-grid-cta]` và Kính cung là một bộ node, không clone. Mở
-detail (`renderPhoto`) runtime dọn batch grid rồi chuyển cả ba sang canvas `[data-advertising-photo-canvas]`; về masonry
-(`restoreGridEntry`) dọn rồi chuyển về grid. Batch mang `data-advertising-cta-host="grid" | "detail"`. Ở detail
+Batch `[data-masonry-cta-skeleton]`, cụm `[data-masonry-grid-cta]` và Kính cung là một bộ node, không clone. Mở
+detail (`renderPhoto`) runtime dọn batch grid rồi chuyển cả ba sang canvas `[data-detail-canvas]`; về masonry
+(`restoreGridEntry`) dọn rồi chuyển về grid. Batch mang `data-masonry-cta-host="grid" | "detail"`. Ở detail
 `renderCtaSkeleton` lấy hình học từ `relatedLayout.layout`; `columnBottoms` đã tính phần primary chiếm, nên batch nối
 tiếp các cột related, cột chỉ có primary bắt đầu một khoảng giữa dưới primary, cột trống (cột 4 khi related rỗng ở
-`split`) bắt đầu từ đầu cột. R1-R8 áp dụng nguyên: `--advertising-cta-top` ghi lên canvas, canvas cao bằng đáy CTA
-(`--advertising-photo-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
-chế độ (`body.is-advertising-browse .site-footer`), `.advertising-photo-view` không đệm dưới. CTA trong info primary
+`split`) bắt đầu từ đầu cột. R1-R8 áp dụng nguyên: `--masonry-cta-top` ghi lên canvas, canvas cao bằng đáy CTA
+(`--detail-canvas-height`), related grid giữ chiều cao của related. Footer không có khoảng phía trên ở cả hai
+chế độ (`body.is-masonry-browse .site-footer`), `.detail-view` không đệm dưới. CTA trong info primary
 vẫn giữ (owner 2026-10-31); related rỗng thì CTA nằm một khoảng giữa dưới primary. Lúc mở detail CTA dựng ở task ngay sau task gắn related
 (pha cuối của [detail R7](advertising-detail.md#r7-related); chung task thì 111ms trên A04s); các pha trước, kể cả resize, không dựng batch,
 nên card related giữ chỗ trước rồi batch nối sau như masonry (owner 2026-11-01). Sau đó batch dựng lại mỗi lần related xếp lại; xếp lại có chuyển động thì khung batch,
@@ -201,7 +201,7 @@ rồi reveal khi vào viewport như lần đầu ở masonry; không vậy thì 
 Given detail ở 1569x912 hoặc 390x844, cuộn tới cuối trang
 Then chân chữ dòng cuối của tiêu đề CTA nằm trên đường giữa viewport, sai số 1px
 And batch nối tiếp các cột related, đáy batch là đáy CTA ngay trên footer
-And data-advertising-cta-host là "detail", info primary vẫn có nút của nó
+And data-masonry-cta-host là "detail", info primary vẫn có nút của nó
 When mở detail từ masonry rồi cuộn tới CTA
 Then tiêu đề CTA chạy line reveal, nút fade vào như lần đầu ở masonry
 ```
@@ -209,7 +209,7 @@ Then tiêu đề CTA chạy line reveal, nút fade vào như lần đầu ở ma
 ### R10. Card related không đi qua primary
 
 Tọa độ related grid; primary chiếm `[0, pw] × [0, ph]`. Hộp `w × h` góc trên trái `p` đè primary khi `p` thuộc
-`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
+`Z = (−w, pw) × (−h, ph)` (khoảng mở). `planDetourPath` (`masonry/detour-path.mjs`) kiểm đoạn cũ tới mới cắt `Z` bằng slab test;
 cỡ hộp là số lớn hơn của cỡ cũ và mới. Cắt thì card đi hai đoạn qua góc vuông `C = (x điểm bên cạnh, y điểm phía dưới)`
 (owner 2026-10-31), tổng `0.4s ease`, keyframe góc theo tỷ lệ độ dài; không cắt thì trượt thẳng. Điểm đầu nằm trong `Z`
 (resize làm primary lớn lên) thì card xuất phát ngay dưới primary mới. Card cần vòng được Masonry đặt tức thì ở đích rồi
@@ -229,19 +229,19 @@ Then ở mọi frame trong 0.4s hộp của card không giao hộp primary, card
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Runtime | `renderCtaSkeleton` (`catalog-runtime.mjs`, nội bộ) | Tính `D`, ghi `--advertising-cta-top`, `--advertising-cta-tail-height`, dựng batch (R2, R5) |
+| Runtime | `renderCtaSkeleton` (`masonry/runtime.mjs`, nội bộ) | Tính `D`, ghi `--masonry-cta-top`, `--masonry-cta-tail-height`, dựng batch (R2, R5) |
 | Runtime | `measureCtaCopy`, `fitGridCtaHeading` | Trả `{ baseline, below }` của cụm chữ; ghi `font-size` inline cho tiêu đề (R1, R3) |
 | Runtime | `syncCtaParallax` | Ghi `transform` của `.detail-cta__copy`, không vượt mép trên CTA (R6, R7) |
 | Runtime | `scheduleResize`, `refreshFontGeometry`, `ResizeObserver` trên cụm chữ, CTA, footer | Đo lại và dựng lại (R8) |
-| CSS var | `--advertising-cta-footer-height`, `--advertising-cta-copy-below` trên CTA | Runtime ghi; CSS đặt chân chữ theo `50dvh` trừ footer (R1) |
-| DOM hook | `data-advertising-cta-settled` trên `.detail-cta[data-advertising-grid-cta]` | Bật transition vị trí sau lần đo đầu (R8) |
-| CSS | `.detail-cta[data-advertising-grid-cta]`, `.detail-cta__copy`, `h2` (`detail.css`) | Vị trí cụm, cỡ chữ theo breakpoint, đệm, `margin-bottom` âm (R1, R3, R6) |
-| CSS | `body.is-advertising-browse .site-footer` (`detail.css`) | `--footer-top-gap: 0px` (R2, R9) |
-| Module | `createCtaBatch` (`cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `arcInView`, `clear`; ghi `data-advertising-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
-| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
+| CSS var | `--masonry-cta-footer-height`, `--masonry-cta-copy-below` trên CTA | Runtime ghi; CSS đặt chân chữ theo `50dvh` trừ footer (R1) |
+| DOM hook | `data-masonry-cta-settled` trên `.detail-cta[data-masonry-grid-cta]` | Bật transition vị trí sau lần đo đầu (R8) |
+| CSS | `.detail-cta[data-masonry-grid-cta]`, `.detail-cta__copy`, `h2` (`detail.css`) | Vị trí cụm, cỡ chữ theo breakpoint, đệm, `margin-bottom` âm (R1, R3, R6) |
+| CSS | `body.is-masonry-browse .site-footer` (`detail.css`) | `--footer-top-gap: 0px` (R2, R9) |
+| Module | `createCtaBatch` (`masonry/cta-batch.mjs`): `attach`, `placed`, `rearmOnPlace`, `arcInView`, `clear`; ghi `data-masonry-cta-host` | Ba node CTA là một bộ; truy vấn, observer cung, motion vào view tính từ gốc batch ở mọi sân (R9) |
+| Module | `planAroundPinned`, `planDetourPath`, `segmentCrossesBox` (`masonry/detour-path.mjs`) | Đường đi quanh item ghim (primary, suggestion ghim) cho card related và khung batch, một luật (R10) |
 | CSS | `.site-footer` trong `@media (max-width: 750px), (max-height: 640px)` và `(max-width: 750px) and (orientation: portrait)` (`style.css`) | Footer gọn (R4) |
 
-Spec không sở hữu file: code nằm trong `catalog-runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
+Spec không sở hữu file: code nằm trong `masonry/runtime.mjs` ([masonry](advertising-masonry.md)), `detail.css`
 ([trang con](detail-pages.md)), `style.css` ([shell](site-shell.md)), dùng `createSkeletonFlowFrameLayout`
 ([skeleton](advertising-skeleton.md)) và `arcGlassGeometry` ([Kính](glass-surface.md)); sửa hành vi ở đó thì cập nhật cả
 spec này.

@@ -541,27 +541,27 @@
 
 /* Hai hàng 1fr bằng nhau quanh tiêu đề: eyebrow và nút treo hai bên, tiêu đề nằm đúng tâm khối (owner 17/10).
    Khối Giữ nghề trang chủ (.legacy-copy) dùng chung bố cục này (owner 2026-10-27). */
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy,
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy,
 .legacy-copy {
   display: grid;
   grid-template-rows: 1fr auto 1fr;
 }
 
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy p {
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy p {
   align-self: end;
 }
 
 /* Hộp tiêu đề đã ở tâm; dời cả cụm để nét chữ nhìn thấy (đỉnh chữ hoa tới chân chữ) ở tâm khối (owner 17/10).
    Hệ số đo bằng Playwright: chữ chưa split nằm thấp 0.1em; route split nhấc dòng lên 0.1em sau reveal (detail.js). */
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy {
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy {
   top: calc(var(--cta-title-size) * -0.1);
 }
 
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy:has(> h2 > .motion-line-mask) {
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy:has(> h2 > .motion-line-mask) {
   top: calc(var(--cta-title-size) * 0.03);
 }
 
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy a,
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy a,
 .legacy-copy > p {
   align-self: start;
   justify-self: center;
@@ -664,7 +664,7 @@
 
 .detail-index-hero .project-filter:hover,
 .detail-index-hero .project-filter:focus-visible,
-.detail-index-hero .project-filter[aria-current="true"] {
+.detail-index-hero .project-filter:is([aria-current="true"], [aria-busy="true"]) {
   color: var(--ink);
   text-decoration-line: underline;
   text-decoration-thickness: 3px;
@@ -682,11 +682,11 @@
   transition: color 0.3s ease-out;
 }
 
-.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) {
   color: var(--ink);
 }
 
-.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child {
   text-decoration: underline 2px;
   text-underline-offset: 4px;
   text-decoration-skip-ink: none;
@@ -700,8 +700,8 @@
     position: relative;
   }
 
-  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"]),
-  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]),
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child {
     text-decoration: none;
   }
 
@@ -723,8 +723,8 @@
     height: 2px;
   }
 
-  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"])::after,
-  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child::after {
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"])::after,
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) > span:first-child::after {
     transform: scaleX(1);
     transform-origin: left center;
   }
@@ -812,7 +812,7 @@
   background: #d9d7d0;
 }
 
-.project-tile:not(.advertising-tile) img {
+.project-tile:not(.masonry-card) img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -820,12 +820,12 @@
 }
 
 /* Ảnh bìa kiosk: chữ hộp đèn lệch phải, dịch khung cắt 3:4 sang phải để giữ đủ chữ. */
-.project-tile:not(.advertising-tile) img[src*="advertising-kiosk-posm-cover"] {
+.project-tile:not(.masonry-card) img[src*="advertising-kiosk-posm-cover"] {
   object-position: 58% 50%;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .project-tile:not(.advertising-tile):hover img {
+  .project-tile:not(.masonry-card):hover img {
     transform: scale(1.15);
   }
 }
@@ -1418,8 +1418,8 @@ html.motion-fallback [data-motion-hero-media] {
   will-change: auto;
 }
 
-.advertising-grid {
-  --advertising-gap: 15px;
+.masonry-grid {
+  --masonry-gap: 15px;
   position: relative;
   overflow: clip;
   overflow-clip-margin: 8px;
@@ -1429,14 +1429,14 @@ html.motion-fallback [data-motion-hero-media] {
   margin-left: 0;
 }
 
-body.is-advertising-browse .advertising-grid {
+body.is-masonry-browse .masonry-grid {
   overflow: visible;
 }
 
 .detail-page .project-index {
   position: relative;
-  --advertising-outer: 15px;
-  width: calc(100% - (2 * var(--advertising-outer)));
+  --masonry-outer: 15px;
+  width: calc(100% - (2 * var(--masonry-outer)));
 }
 
 /* Lúc mở detail, grid giữ style và layout đã tính thay vì display: none, nên Back không phải dựng lại cả grid trong task popstate (decision phone-frame-budget). */
@@ -1448,42 +1448,42 @@ body.is-advertising-browse .advertising-grid {
 
 @media (min-width: 751px) {
   .detail-page .project-index {
-    --advertising-outer: 25px;
+    --masonry-outer: 25px;
   }
 }
 
 @media (min-width: 961px) {
-  .advertising-grid {
-    --advertising-gap: 25px;
+  .masonry-grid {
+    --masonry-gap: 25px;
   }
 }
 
 @media (min-width: 1201px) {
-  .advertising-grid {
-    --advertising-gap: 35px;
+  .masonry-grid {
+    --masonry-gap: 35px;
   }
 
   .detail-page .project-index {
-    --advertising-outer: 35px;
+    --masonry-outer: 35px;
   }
 }
 
-.advertising-tile {
+.masonry-card {
   position: absolute;
   contain: layout;
   margin: 0;
 }
 
-.advertising-tile > a {
+.masonry-card > a {
   display: block;
   height: 100%;
   color: inherit;
   text-decoration: none;
 }
 
-.advertising-tile .project-tile__media {
+.masonry-card .project-tile__media {
   position: relative;
-  height: var(--advertising-media-height, 100%);
+  height: var(--masonry-media-height, 100%);
   aspect-ratio: auto;
   overflow: hidden;
   background: #e9e6df;
@@ -1493,11 +1493,11 @@ body.is-advertising-browse .advertising-grid {
   box-shadow: inset 0 0 0 1px var(--paper);
 }
 
-.advertising-card-media {
+.card-media {
   overflow: hidden;
 }
 
-.advertising-card-media__just-viewed {
+.card-media__just-viewed {
   position: absolute;
   z-index: 5;
   inset: 0;
@@ -1517,10 +1517,9 @@ body.is-advertising-browse .advertising-grid {
     background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
-   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. Masonry chính và related dùng lớp tối
-   bằng hero (--media-hover-overlay, owner 2026-11-09), nút gợi ý giữ 30%; lưới Công trình không có lớp tối. */
-.advertising-card-media::after {
+/* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
+   above it and video keeps playing underneath. */
+.card-media::after {
   position: absolute;
   z-index: 1;
   inset: 0;
@@ -1531,117 +1530,59 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
-.advertising-grid .advertising-card-media::after,
-[data-advertising-related-card] .advertising-card-media::after {
-  background: var(--media-hover-overlay);
+/* Masonry cards (main grid, Projects, related; owner 2026-11-10): every card UI sits inside the media. A real mouse shows the
+   Pinterest hover shade (--media-shade-card) and the card name on hover, at once and without motion. Touch shows neither:
+   the image stays clean apart from the pill row. */
+.masonry-card .card-media::after {
+  background: var(--media-shade-card);
+  transition: none;
 }
 
-.advertising-grid--captioned .advertising-card-media::after {
-  content: none;
-}
-
-/* Tên card (owner 2026-11-09). Advertising, cả related: chỉ chuột thật, chữ trắng giữa canvas trên lớp tối, đúng chỗ
-   "Vừa xem" (nhãn đó mờ đi khi hover); chừa 40px hai mép cho mũi tên đổi media. */
-.advertising-tile__title {
-  display: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .advertising-tile:hover .advertising-card-media::after {
-    opacity: 1;
-  }
-
-  .advertising-tile:hover .advertising-card-media__just-viewed {
-    opacity: 0;
-  }
-
-  .advertising-grid:not(.advertising-grid--captioned) .advertising-tile__title,
-  [data-advertising-related-card] .advertising-tile__title {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 0;
-    left: 0;
-    display: grid;
-    height: var(--advertising-media-height);
-    box-sizing: border-box;
-    padding: 0.5rem 40px;
-    place-items: center;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center;
-    text-shadow: var(--text-shadow-d);
-    text-transform: uppercase;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--media-hover-duration) var(--media-hover-easing);
-  }
-
-  .advertising-tile:hover .advertising-tile__title {
-    opacity: 1;
-  }
-}
-
-/* Công trình (projects R2): tên luôn hiện dưới media như /en/projects của Espacio, một dòng cắt "…" để hình học
-   card cố định; runtime chừa --advertising-caption-height (10px trên chữ, 7px dưới cho gạch chân). Hover chuột thật
-   hoặc focus bàn phím chạy gạch chân 3px như link navbar (.desktop-nav a::after). */
-.advertising-grid--captioned .advertising-tile__title {
+/* Card name as Pinterest's board name on pin hover (measured 2026-11-10): 16px bold on a 24px line, centred in the 48px flat
+   part of the shade (top 24px), 28px from the card edges, one line then an ellipsis. Hidden until hover; it stays the
+   link's accessible name (aria-labelledby). */
+.masonry-card__title {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  display: block;
-  max-width: 100%;
-  height: var(--advertising-caption-height);
-  box-sizing: border-box;
-  padding: 10px 0 7px;
+  z-index: 2;
+  top: 24px;
+  right: 28px;
+  left: 28px;
+  display: -webkit-box;
   overflow: hidden;
-  color: var(--ink);
-  font-size: 0.8rem;
+  color: #fff;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.4;
-  text-overflow: ellipsis;
+  line-height: 1.5;
+  text-shadow: var(--text-shadow-d);
   text-transform: uppercase;
-  white-space: nowrap;
+  opacity: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   pointer-events: none;
 }
 
-.advertising-grid--captioned .advertising-tile__title::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right center;
-  background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
-}
-
-.advertising-grid--captioned .advertising-tile > a:focus-visible ~ .advertising-tile__title::after {
-  transform: scaleX(1);
-  transform-origin: left center;
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .advertising-grid--captioned .advertising-tile:hover .advertising-tile__title::after {
-    transform: scaleX(1);
-    transform-origin: left center;
+  .masonry-card:hover .card-media::after,
+  .masonry-card:hover .masonry-card__title {
+    opacity: 1;
+  }
+
+  .masonry-card:hover .card-media__just-viewed {
+    opacity: 0;
   }
 }
 
-.advertising-card-media__image {
+.card-media__image {
   transition: opacity var(--media-hover-duration) var(--media-hover-easing),
     var(--media-hover-transform);
 }
 
 /* Dải liền khi đổi media (media-card R3): lane không chạy fade lúc tải; lane cạnh nằm tuyệt đối, runtime dời bằng translate. */
-.advertising-card-media__image--lane {
+.card-media__image--lane {
   transition: none;
 }
 
-.advertising-card-media__image--beside {
+.card-media__image--beside {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1649,13 +1590,13 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
-.advertising-card-media > .advertising-grid__cta-frame {
+.card-media > .masonry-grid__cta-frame {
   z-index: 1;
   inset: 0;
-  --advertising-cta-frame-opacity: 1;
+  --masonry-cta-frame-opacity: 1;
 }
 
-.advertising-card-media--carousel {
+.card-media--carousel {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1664,68 +1605,73 @@ body.is-advertising-browse .advertising-grid {
 
 /* Mọi item cùng tỷ lệ với canvas (media-card R1) nên phủ đúng canvas; width auto trước đây
    co ảnh về đúng giá trị sizes do lazysizes đo, ảnh hiện nhỏ hơn cột. */
-.advertising-card-media--carousel [data-advertising-media-item] {
+.card-media--carousel [data-masonry-media-item] {
   display: block;
   flex: none;
   width: 100%;
   height: 100%;
 }
 
-.advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden] {
+.card-media--carousel > img[hidden],
+.card-media--carousel > video[hidden] {
   display: none;
 }
 
-/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
-.advertising-card-media__duration {
+/* Pill row at the bottom inside the media (owner 2026-11-10): the dots or the n/N counter, centred. Cards show no video
+   duration pill. */
+.card-media__indicator {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.9);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
-  pointer-events: none;
-}
-
-.advertising-card-media__indicator {
-  position: absolute;
-  bottom: var(--advertising-caption-height, 0px);
+  right: 0;
+  bottom: 0;
   left: 0;
   z-index: 3;
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 44px;
+  align-items: center;
+  height: var(--card-pill-row);
   box-sizing: border-box;
-  color: var(--ink);
-  background: var(--paper);
+  padding: 0 8px;
   pointer-events: none;
 }
 
-/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
-   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
-.advertising-card-media__pill {
-  display: flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 2px;
-  border-radius: 8px;
-  color: #fff;
-  background: rgba(32, 33, 32, 0.9);
+/* The pill sits 12px above the card edge, like the buttons along the bottom of a hovered Pinterest pin (measured
+   2026-11-10): the dots pill is centred in the 40px row, the taller counter pill rests on a 12px bottom inset. */
+.masonry-card {
+  --card-pill-row: 40px;
 }
 
-.advertising-card-media__dot {
+.card-media__indicator:has(.card-media__count) {
+  height: auto;
+  padding-bottom: 12px;
+}
+
+/* Dots or the counter sit in a pill copied from Pinterest's "5/14" carousel counter (measured 2026-11-10): charcoal
+   rgba(51, 51, 51, 0.8), radius 12px, white 12px regular text, padding 4px 8px. The dots pill is compact like Pinterest's
+   carousel dots: 8px dots every 16px, 16px tall; the 16x40px dot hit areas fill the row. */
+.card-media__pill {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 16px;
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(51, 51, 51, 0.8);
+}
+
+.card-media__pill:has(.card-media__count) {
+  height: auto;
+  padding: 4px 8px;
+}
+
+.card-media__pill:empty {
+  display: none;
+}
+
+.card-media__dot {
   display: grid;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 44px;
+  flex: 0 0 16px;
+  width: 16px;
+  height: var(--card-pill-row);
   padding: 0;
   place-items: center;
   border: 0;
@@ -1735,7 +1681,7 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Chấm 8px theo UI chấm của Gallery (bullet Swiper, owner 2026-10-17), đảo màu trên pill: chấm thường trắng 40%, chấm đang xem trắng. */
-.advertising-card-media__dot::before {
+.card-media__dot::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -1744,50 +1690,50 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.4;
 }
 
-.advertising-card-media__dot[aria-current="true"]::before {
+.card-media__dot[aria-current="true"]::before {
   opacity: 1;
 }
 
-/* Chữ như nhãn thời lượng: 12px, 500, số đều. */
-.advertising-card-media__count {
-  padding: 0 4px;
+/* Counter text as on Pinterest: 12px regular, 1.6 line height. Proportional figures: the tabular "1" of Plus Jakarta Sans
+   carries a foot serif that looks odd in "1/11" (owner 2026-11-10). */
+.card-media__count {
   font-size: 0.75rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
-.advertising-card-media__dot:focus-visible {
+.card-media__dot:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.advertising-tile .advertising-tile__media--natural {
+.masonry-card .masonry-card__media--natural {
   background: transparent;
 }
 
-/* Media phủ đúng khung: height auto lấy tỷ lệ từ số pixel làm tròn của file đang tải (480w: 437x245), thấp hơn khung
-   tới 0,5px, nên một hàng pixel nền màu chủ đạo lộ ra ở đáy thành lằn tối (owner 2026-11-09). Khung đã đúng tỷ lệ gốc nên
-   height 100% chỉ giãn dưới 0,5px, không cắt ảnh. */
-.advertising-tile img,
-.advertising-tile video.advertising-tile__foreground {
+/* Media covers the frame exactly: height auto takes its ratio from the rounded pixels of the loaded file (480w: 437x245), up to
+   0.5px shorter than the frame, so a row of dominant-colour fill showed as a dark line at the bottom (owner 2026-11-09). Cover, not
+   stretch: an edge-trimmed card (advertising-masonry R5) is up to 5% shorter than its natural ratio; media crops evenly, no distortion. */
+.masonry-card img,
+.masonry-card video.masonry-card__foreground {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.advertising-tile img {
+.masonry-card img {
   opacity: 0;
 }
 
-.advertising-tile img.is-advertising-media-ready {
+.masonry-card img.is-masonry-media-ready {
   opacity: 1;
 }
 
 /* Card chờ ảnh thở bằng chính keyframe media-breathe của Vệt sáng (style.css); runtime gắn
-   data-advertising-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). Chỉ layer đang mờ thở: layer tạo theo
+   data-masonry-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). Chỉ layer đang mờ thở: layer tạo theo
    nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
-[data-advertising-media-loading] .advertising-tile__foreground[style*="blur("] {
+[data-masonry-media-loading] .masonry-card__foreground[style*="blur("] {
   animation: media-breathe 2s ease-in-out infinite;
   /* Pha chung với card tạm (runtime ghi --breathe-phase), nên đổi từ card tạm sang card mờ không nhảy độ sáng. */
   animation-delay: var(--breathe-phase, 0s);
@@ -1795,7 +1741,7 @@ body.is-advertising-browse .advertising-grid {
 
 /* Card tạm giữ chỗ card chưa dựng kịp khi vuốt nhanh (advertising-masonry R7): màu chủ đạo của ảnh bìa, thở như card
    chờ ảnh. Lớp nằm đầu grid, dưới mọi card, không nhận chạm. */
-.advertising-ghost-layer {
+.masonry-ghost-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1803,7 +1749,7 @@ body.is-advertising-browse .advertising-grid {
   contain: strict;
 }
 
-.advertising-ghost {
+.masonry-ghost {
   position: absolute;
   contain: strict;
   background: #e9e6df;
@@ -1811,21 +1757,21 @@ body.is-advertising-browse .advertising-grid {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-ghost {
+  .masonry-ghost {
     animation: none;
   }
 }
 
-[data-advertising-media-loading] .advertising-card-media__just-viewed {
+[data-masonry-media-loading] .card-media__just-viewed {
   background-color: transparent;
 }
 
-.advertising-tile > a:focus-visible {
+.masonry-card > a:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 4px;
 }
 
-.advertising-grid__cta-skeleton {
+.masonry-grid__cta-skeleton {
   position: absolute;
   inset: 0 0 auto;
   display: block;
@@ -1835,7 +1781,7 @@ body.is-advertising-browse .advertising-grid {
 
 /* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. Lớp compositor riêng
    để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s cũ, vòng 22). */
-.advertising-grid__cta-shared-flow {
+.masonry-grid__cta-shared-flow {
   position: absolute;
   top: 0;
   left: 0;
@@ -1847,7 +1793,7 @@ body.is-advertising-browse .advertising-grid {
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
-   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do glass-surface.mjs
+   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do masonry/glass-surface.mjs
    đặt inline qua --glass-step-blur, thắng các rule này); saturate() và brightness() nhân nhau, nên mỗi step
    mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
    chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
@@ -1872,7 +1818,7 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-/* Band step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
+/* Band step của arc vượt số đếm đã fit của thiết bị này (masonry/glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -1906,7 +1852,7 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.06;
 }
 
-/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
+/* Runtime arc đặt từng layer (masonry/glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
    trên PC runtime đặt inline --glass-full-blur: 100px cho core (chín bậc của dải đã mang blur tới trần 100px). */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
@@ -1914,8 +1860,8 @@ body.is-advertising-browse .advertising-grid {
   --glass-step-saturate: 1;
   --glass-step-brightness: 1;
   --glass-full-blur: 28px;
-  left: calc(-1 * var(--advertising-outer));
-  width: calc(100% + (2 * var(--advertising-outer)));
+  left: calc(-1 * var(--masonry-outer));
+  width: calc(100% + (2 * var(--masonry-outer)));
 }
 
 .glass-surface[data-glass-shape="arc"] > i {
@@ -1925,7 +1871,7 @@ body.is-advertising-browse .advertising-grid {
 /* Trên các layer WebGL của skeleton trong trang composited (smooth scroll), Chromium bỏ blur của step dưới một
    sibling blended, nên mép card lộ sắc nét qua arc. White noise với blending normal làm sáng thêm
    0.12 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.06 của nó trừ khỏi tint
-   (glass-surface.mjs). */
+   (masonry/glass-surface.mjs). */
 .glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
   background-image: var(--glass-grain-white, none);
   mix-blend-mode: normal;
@@ -1933,16 +1879,16 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Layer của arc chạy 2px dưới footer; footer xếp trên chúng để đường viền trên của nó còn nguyên. */
-body.is-advertising-browse .site-footer {
+body.is-masonry-browse .site-footer {
   position: relative;
   z-index: 1;
 }
 
-.advertising-grid__cta-skeleton[hidden] {
+.masonry-grid__cta-skeleton[hidden] {
   display: none;
 }
 
-.advertising-grid__cta-frame {
+.masonry-grid__cta-frame {
   position: absolute;
   display: block;
   box-sizing: border-box;
@@ -1950,7 +1896,7 @@ body.is-advertising-browse .site-footer {
   transition: opacity 600ms ease-out;
 }
 
-.advertising-grid__cta-surface {
+.masonry-grid__cta-surface {
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -1958,7 +1904,7 @@ body.is-advertising-browse .site-footer {
   background: #a9abad;
 }
 
-.advertising-grid__cta-flow {
+.masonry-grid__cta-flow {
   position: absolute;
   inset: -8%;
   display: block;
@@ -1967,81 +1913,81 @@ body.is-advertising-browse .site-footer {
   transform: scale(1.08);
 }
 
-.advertising-grid__cta-surface::after {
+.masonry-grid__cta-surface::after {
   position: absolute;
   inset: 0;
   content: "";
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(32, 33, 32, 0.1));
 }
 
-.advertising-grid__cta-frame.is-entry-ready {
-  opacity: var(--advertising-cta-frame-opacity);
+.masonry-grid__cta-frame.is-entry-ready {
+  opacity: var(--masonry-cta-frame-opacity);
 }
 
 /* Frame batch vào dưới Kính từ runtime, nên lấy opacity cuối ngay (skeleton R4). */
-.advertising-grid__cta-frame[data-advertising-cta-frame] {
+.masonry-grid__cta-frame[data-masonry-cta-frame] {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-grid__cta-frame {
-    opacity: var(--advertising-cta-frame-opacity);
+  .masonry-grid__cta-frame {
+    opacity: var(--masonry-cta-frame-opacity);
     transition: none;
   }
 }
 
-.advertising-photo-view {
+.detail-view {
   /* Arc Kính của CTA cuối related trải ra mép viewport như ở masonry (CTA R9): lề ngoài của detail là gutter. */
-  --advertising-outer: var(--gutter);
-  --advertising-safe-top: env(safe-area-inset-top, 0px);
-  --advertising-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --masonry-outer: var(--gutter);
+  --masonry-safe-top: env(safe-area-inset-top, 0px);
+  --masonry-safe-bottom: env(safe-area-inset-bottom, 0px);
   width: calc(100% - (2 * var(--gutter)));
   margin: 0 auto;
-  padding: var(--advertising-photo-top, 8rem) 0 0;
+  padding: var(--detail-top, 8rem) 0 0;
 }
 
-.advertising-photo-view[hidden],
-.advertising-photo-view [hidden] {
+.detail-view[hidden],
+.detail-view [hidden] {
   display: none;
 }
 
-.advertising-photo-view__canvas {
+.detail-view__canvas {
   position: relative;
-  min-height: var(--advertising-photo-canvas-height, 0px);
+  min-height: var(--detail-canvas-height, 0px);
 }
 
-.advertising-photo-view__primary {
+.detail-view__primary {
   position: absolute;
   z-index: 1;
   top: 0;
   left: 0;
   display: grid;
-  width: var(--advertising-photo-primary-width);
-  height: var(--advertising-photo-primary-height);
-  grid-template-columns: var(--advertising-photo-image-zone-width) var(--advertising-photo-description-width);
+  width: var(--detail-primary-width);
+  height: var(--detail-primary-height);
+  grid-template-columns: var(--detail-image-zone-width) var(--detail-description-width);
   grid-template-rows: minmax(0, 1fr);
-  gap: var(--advertising-photo-internal-gap, 16px);
+  gap: var(--detail-internal-gap, 16px);
   align-items: start;
 }
 
-[data-advertising-photo-layout="pinterest"] .advertising-photo-view__primary {
+[data-detail-layout="pinterest"] .detail-view__primary {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: var(--advertising-photo-image-zone-height) var(--advertising-photo-description-height);
+  grid-template-rows: var(--detail-image-zone-height) var(--detail-description-height);
 }
 
-.advertising-photo-view__hero,
-.advertising-photo-view__info,
-.advertising-photo-view__related,
-.advertising-photo-view__related-grid {
+.detail-view__hero,
+.detail-view__info,
+.detail-view__related,
+.detail-view__related-grid {
   overflow: clip;
   overflow-clip-margin: 8px;
   min-width: 0;
 }
 
-.advertising-photo-view__hero {
+.detail-view__hero {
   display: flex;
-  width: var(--advertising-photo-image-zone-width);
-  height: var(--advertising-photo-image-zone-height);
+  width: var(--detail-image-zone-width);
+  height: var(--detail-image-zone-height);
   align-items: center;
   justify-content: center;
   margin: 0;
@@ -2050,7 +1996,7 @@ body.is-advertising-browse .site-footer {
   touch-action: pan-y;
 }
 
-.advertising-photo-view__hero-frame {
+.detail-view__hero-frame {
   position: relative;
   flex: none;
   width: 100%;
@@ -2059,28 +2005,28 @@ body.is-advertising-browse .site-footer {
   background: var(--media-loading-surface);
 }
 
-.advertising-photo-view__hero-frame > .glass-surface {
+.detail-view__hero-frame > .glass-surface {
   display: none;
 }
 
-[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame > .glass-surface,
-.advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] {
+[data-detail-glass="true"] .detail-view__hero-frame > .glass-surface,
+.detail-view__hero-frame > .glass-surface[data-glass-reveal] {
   display: block;
 }
 
 /* Kính reveal phủ photo và skeleton nhưng ở dưới image action. */
-.advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] > i {
+.detail-view__hero-frame > .glass-surface[data-glass-reveal] > i {
   z-index: 2;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-image] {
+.detail-view__hero [data-detail-image] {
   position: absolute;
   z-index: 2;
   top: 50%;
   left: 50%;
   display: block;
-  width: var(--advertising-photo-image-width);
-  height: var(--advertising-photo-image-height);
+  width: var(--detail-image-width);
+  height: var(--detail-image-height);
   max-width: none;
   max-height: none;
   aspect-ratio: auto;
@@ -2089,24 +2035,24 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Skeleton nằm trên photo và dưới image action; photo chờ dưới nó đến khi decode xong. */
-.advertising-photo-view__hero-frame > .advertising-grid__cta-frame {
+.detail-view__hero-frame > .masonry-grid__cta-frame {
   z-index: 2;
   inset: 0;
-  --advertising-cta-frame-opacity: 1;
+  --masonry-cta-frame-opacity: 1;
 }
 
-.advertising-photo-view__hero-frame[data-advertising-photo-loading] > :is([data-advertising-photo-image], [data-advertising-photo-background]) {
+.detail-view__hero-frame[data-detail-loading] > :is([data-detail-image], [data-detail-background]) {
   opacity: 0;
 }
 
 /* Video nằm cùng hộp contain với ảnh trong khung cover, nền trong suốt để zoom blur (poster) hiện ở vùng dư. */
-.advertising-photo-view__hero [data-advertising-photo-video] {
+.detail-view__hero [data-detail-video] {
   position: absolute;
   z-index: 2;
   top: 50%;
   left: 50%;
-  width: var(--advertising-photo-image-width);
-  height: var(--advertising-photo-image-height);
+  width: var(--detail-image-width);
+  height: var(--detail-image-height);
   object-fit: contain;
   transform: translate(-50%, -50%);
 }
@@ -2114,7 +2060,7 @@ body.is-advertising-browse .site-footer {
 /* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên trắng 36px góc vuông (owner 2026-10-24) cách mép
    16px, chevron nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem
    trắng, còn lại trắng 0.5. */
-.advertising-photo-view__media-step {
+.detail-view__media-step {
   position: absolute;
   z-index: 4;
   top: 50%;
@@ -2133,23 +2079,23 @@ body.is-advertising-browse .site-footer {
   transition: opacity 100ms ease-out;
 }
 
-.advertising-photo-view__media-step:hover {
+.detail-view__media-step:hover {
   background: #f6f6f3;
 }
 
-.advertising-photo-view__media-step:active {
+.detail-view__media-step:active {
   transform: translateY(-50%) scale(0.9);
 }
 
-.advertising-photo-view__media-step--prev {
+.detail-view__media-step--prev {
   left: 16px;
 }
 
-.advertising-photo-view__media-step--next {
+.detail-view__media-step--next {
   right: 16px;
 }
 
-.advertising-photo-view__media-step svg {
+.detail-view__media-step svg {
   width: 16px;
   height: 16px;
   fill: none;
@@ -2157,71 +2103,72 @@ body.is-advertising-browse .site-footer {
   stroke-width: 2;
 }
 
-.advertising-photo-view__media-step[hidden] {
+.detail-view__media-step[hidden] {
   display: none;
 }
 
-/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
-.advertising-tile > .advertising-photo-view__media-step {
+/* Multi-media masonry card arrows as on the Pinterest grid (measured 2026-10-18): 32px hit areas at the left and right edges,
+   from the top of the canvas down to the pill row, thin white 16px chevron (centre 16px from the edge), no background,
+   above the hover layer; a light shadow keeps the chevron readable on bright media; the button is its own layer so the shadow
+   paints once (primary-video-player R4). */
+.masonry-card > .detail-view__media-step {
   top: 0;
   will-change: transform;
   width: 32px;
-  height: calc(100% - 44px - var(--advertising-caption-height, 0px));
+  height: calc(100% - var(--card-pill-row));
   border-radius: 0;
   background: transparent;
   color: #fff;
   transform: none;
 }
 
-.advertising-tile > .advertising-photo-view__media-step--prev {
+.masonry-card > .detail-view__media-step--prev {
   left: 0;
 }
 
-.advertising-tile > .advertising-photo-view__media-step--next {
+.masonry-card > .detail-view__media-step--next {
   right: 0;
 }
 
-.advertising-tile > .advertising-photo-view__media-step svg {
+.masonry-card > .detail-view__media-step svg {
   width: 16px;
   height: 16px;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
 @media (hover: hover) {
-  :is(.advertising-photo-view__hero-frame, .advertising-tile):hover > .advertising-photo-view__media-step {
+  :is(.detail-view__hero-frame, .masonry-card):hover > .detail-view__media-step {
     opacity: 1;
   }
 }
 
 /* Cảm ứng không hover: đổi media bằng vuốt, mũi tên vô hình không được chặn chạm vào media. */
 @media (hover: none) {
-  .advertising-photo-view__media-step {
+  .detail-view__media-step {
     display: none;
   }
 }
 
-.advertising-photo-view__media-step:focus-visible {
+.detail-view__media-step:focus-visible {
   opacity: 1;
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
 /* Dải media khi đổi media (media-card R6): hộp cắt đúng BBox contain; media thật ẩn tới khi dải dừng. */
-.advertising-photo-view__strip {
+.detail-view__strip {
   position: absolute;
   z-index: 2;
   top: 50%;
   left: 50%;
-  width: var(--advertising-photo-image-width);
-  height: var(--advertising-photo-image-height);
+  width: var(--detail-image-width);
+  height: var(--detail-image-height);
   overflow: hidden;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-.advertising-photo-view__strip-media {
+.detail-view__strip-media {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2229,25 +2176,25 @@ body.is-advertising-browse .site-footer {
   object-fit: contain;
 }
 
-.advertising-photo-view__hero-frame[data-advertising-photo-sliding] :is([data-advertising-photo-image], [data-advertising-photo-video]) {
+.detail-view__hero-frame[data-detail-sliding] :is([data-detail-image], [data-detail-video]) {
   visibility: hidden;
 }
 
-.advertising-photo-view__hero [hidden] {
+.detail-view__hero [hidden] {
   display: none;
 }
 
 /* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng, không nút phát
    giữa video. Mọi nút một hàng [phát][giờ][thanh tua][tiếng] (owner 2026-10-25). Thanh âm lượng thêm theo owner. Không
    dải gradient: icon, thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
-.advertising-video-player {
+.video-player {
   position: absolute;
   z-index: 3;
   inset: 0;
   color: #fff;
 }
 
-.advertising-video-player__surface {
+.video-player__surface {
   position: absolute;
   inset: 0;
   display: grid;
@@ -2259,7 +2206,7 @@ body.is-advertising-browse .site-footer {
   cursor: pointer;
 }
 
-.advertising-video-player svg {
+.video-player svg {
   display: block;
   fill: currentColor;
 }
@@ -2268,11 +2215,11 @@ body.is-advertising-browse .site-footer {
    núm (bên dưới). drop-shadow là filter, mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ: A04s 2026-10-26 viewer
    video rơi 8 frame mỗi 8 s, bỏ bóng thanh và icon thì 0. Nút icon là lớp riêng (will-change) để bóng icon chỉ vẽ một lần,
    không vẽ lại theo thanh tua hay giờ (owner 2026-10-26 chọn "Giữ bóng, tách lớp"). */
-.advertising-video-player__button svg {
+.video-player__button svg {
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
-.advertising-video-player__bar {
+.video-player__bar {
   position: absolute;
   inset: auto 0 0;
   box-sizing: border-box;
@@ -2285,25 +2232,25 @@ body.is-advertising-browse .site-footer {
   transition: opacity 200ms ease-out;
 }
 
-.advertising-video-player__bar > * {
+.video-player__bar > * {
   pointer-events: auto;
 }
 
 /* Chuột rời video thì ẩn; đang dừng hoặc đang focus bàn phím thì luôn hiện (cảm ứng: khối hover none bên dưới). */
 @media (hover: hover) {
-  .advertising-photo-view__hero-frame:hover .advertising-video-player__bar,
-  .advertising-photo-dialog__video:hover .advertising-video-player__bar {
+  .detail-view__hero-frame:hover .video-player__bar,
+  .detail-dialog__video:hover .video-player__bar {
     opacity: 1;
   }
 }
 
 
-.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__bar,
-.advertising-video-player:has(:focus-visible) .advertising-video-player__bar {
+.video-player[data-masonry-video-paused="true"] .video-player__bar,
+.video-player:has(:focus-visible) .video-player__bar {
   opacity: 1;
 }
 
-.advertising-video-player__button {
+.video-player__button {
   display: grid;
   width: 36px;
   height: 36px;
@@ -2318,26 +2265,26 @@ body.is-advertising-browse .site-footer {
   will-change: transform;
 }
 
-.advertising-video-player__button svg {
+.video-player__button svg {
   width: 16px;
   height: 16px;
 }
 
-.advertising-video-player__stroke {
+.video-player__stroke {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-width: 2;
 }
 
-.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__icon-pause,
-.advertising-video-player[data-advertising-video-paused="false"] .advertising-video-player__icon-play,
-.advertising-video-player[data-advertising-video-muted="true"] .advertising-video-player__icon-sound,
-.advertising-video-player[data-advertising-video-muted="false"] .advertising-video-player__icon-muted {
+.video-player[data-masonry-video-paused="true"] .video-player__icon-pause,
+.video-player[data-masonry-video-paused="false"] .video-player__icon-play,
+.video-player[data-masonry-video-muted="true"] .video-player__icon-sound,
+.video-player[data-masonry-video-muted="false"] .video-player__icon-muted {
   display: none;
 }
 
-.advertising-video-player__time {
+.video-player__time {
   margin: 0 0 0 20px;
   font-size: 1rem;
   font-weight: 700;
@@ -2347,15 +2294,15 @@ body.is-advertising-browse .site-footer {
   text-shadow: var(--text-shadow-d);
 }
 
-.advertising-video-player__total {
+.video-player__total {
   opacity: 0.6;
 }
 
-.advertising-video-player__volume {
+.video-player__volume {
   position: relative;
 }
 
-.advertising-video-player__range {
+.video-player__range {
   --range-fill: 0%;
   width: 100%;
   height: 16px;
@@ -2365,7 +2312,7 @@ body.is-advertising-browse .site-footer {
   appearance: none;
 }
 
-.advertising-video-player__progress {
+.video-player__progress {
   width: auto;
   min-width: 0;
   height: 36px;
@@ -2373,19 +2320,19 @@ body.is-advertising-browse .site-footer {
   margin: 0 8px 0 12px;
 }
 
-.advertising-video-player__range::-webkit-slider-runnable-track {
+.video-player__range::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 999px;
   background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
 }
 
-.advertising-video-player__range::-moz-range-track {
+.video-player__range::-moz-range-track {
   height: 4px;
   border-radius: 999px;
   background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
 }
 
-.advertising-video-player__range::-webkit-slider-thumb {
+.video-player__range::-webkit-slider-thumb {
   width: 12px;
   height: 12px;
   margin-top: -4px;
@@ -2396,7 +2343,7 @@ body.is-advertising-browse .site-footer {
   appearance: none;
 }
 
-.advertising-video-player__range::-moz-range-thumb {
+.video-player__range::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border: 0;
@@ -2407,30 +2354,30 @@ body.is-advertising-browse .site-footer {
 /* Bóng thanh tua (R4) vẽ bằng box-shadow ở đường tua và núm, không filter (lý do ở icon bên trên). Số chỉnh để nhìn như
    drop-shadow D cũ (so ảnh 2026-10-26, owner muốn giữ visual): drop-shadow loang gấp đôi box-shadow cùng số, nhạt theo độ
    trong của đường tua và lộ qua phần trong đó; lớp đen dưới gradient trắng thay phần bóng lộ ấy. */
-.advertising-video-player__progress::-webkit-slider-runnable-track {
+.video-player__progress::-webkit-slider-runnable-track {
   background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
     linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
 }
 
-.advertising-video-player__progress::-moz-range-track {
+.video-player__progress::-moz-range-track {
   background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
     linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
 }
 
-.advertising-video-player__progress::-webkit-slider-thumb {
+.video-player__progress::-webkit-slider-thumb {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
-.advertising-video-player__progress::-moz-range-thumb {
+.video-player__progress::-moz-range-thumb {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
 /* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
    thanh tua ngang để không thao tác nhầm. Viên nền đen 0.5 (owner 2026-10-26) nằm sát nút nên di chuột lên không mất hover. Chỉ focus-visible
    giữ cột mở: focus do chuột không giữ, nên kéo bằng chuột xong rời đi thì cột thu lại (owner 2026-10-24). */
-.advertising-video-player__volume-pop {
+.video-player__volume-pop {
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -2448,81 +2395,81 @@ body.is-advertising-browse .site-footer {
   transition: opacity 150ms ease-out, visibility 150ms;
 }
 
-.advertising-video-player__volume:is(:hover, :has(:focus-visible)) .advertising-video-player__volume-pop {
+.video-player__volume:is(:hover, :has(:focus-visible)) .video-player__volume-pop {
   opacity: 1;
   visibility: visible;
 }
 
-.advertising-video-player__volume-range {
+.video-player__volume-range {
   width: 16px;
   height: 100%;
   writing-mode: vertical-lr;
   direction: rtl;
 }
 
-.advertising-video-player__volume-range::-webkit-slider-runnable-track {
+.video-player__volume-range::-webkit-slider-runnable-track {
   width: 4px;
   height: 100%;
   margin: 0 auto;
   background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
 }
 
-.advertising-video-player__volume-range::-moz-range-track {
+.video-player__volume-range::-moz-range-track {
   width: 4px;
   height: 100%;
   background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
 }
 
-.advertising-video-player__volume-range::-webkit-slider-thumb {
+.video-player__volume-range::-webkit-slider-thumb {
   margin: 0 0 0 -4px;
 }
 
 /* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, cùng hàng như PC nhưng nút 40px; nút tiếng chỉ bật/tắt,
    không cột âm lượng. */
 @media (hover: none) {
-  .advertising-video-player__bar {
+  .video-player__bar {
     padding: 0 4px 4px;
     opacity: 1;
   }
 
   /* Nút mở lớn hiện với video ở primary (R8): hàng dừng trước nút đó như PC. */
-  .advertising-photo-view__hero-frame .advertising-video-player__bar {
+  .detail-view__hero-frame .video-player__bar {
     padding-right: 60px;
   }
 
-  .advertising-video-player__volume-pop {
+  .video-player__volume-pop {
     display: none;
   }
 
-  .advertising-video-player__time {
+  .video-player__time {
     margin-left: 4px;
     font-size: 0.875rem;
     line-height: 40px;
   }
 
-  .advertising-video-player__progress {
+  .video-player__progress {
     height: 40px;
   }
 
-  .advertising-video-player__button {
+  .video-player__button {
     width: 40px;
     height: 40px;
     margin: 0;
   }
 
-  .advertising-video-player__button svg {
+  .video-player__button svg {
     width: 18px;
     height: 18px;
   }
 }
 
-.advertising-video-player :is(button, input):focus-visible {
+.video-player :is(button, input):focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-background],
-.advertising-photo-view__live-background {
+.detail-view__hero [data-detail-background],
+.detail-view__live-background {
   position: absolute;
   z-index: 0;
   inset: 0;
@@ -2534,24 +2481,24 @@ body.is-advertising-browse .site-footer {
   user-select: none;
 }
 
-[data-advertising-photo-glass="false"] .advertising-photo-view__hero :is([data-advertising-photo-background], .advertising-photo-view__live-background) {
+[data-detail-glass="false"] .detail-view__hero :is([data-detail-background], .detail-view__live-background) {
   display: none;
 }
 
 /* Viewer mở (advertising-detail R9, owner 2026-10-26): khung primary dưới nền viewer chỉ còn zoom blur phủ kín, kể cả media
    vừa khít khung, không còn media sắc nét; video đã sang viewer, canvas nền sống giữ frame lúc mở. */
-[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > [data-advertising-photo-image] {
+[data-detail-expanded] .detail-view__hero-frame > [data-detail-image] {
   visibility: hidden;
 }
 
-[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > :is([data-advertising-photo-background], .advertising-photo-view__live-background:not([hidden]), .glass-surface) {
+[data-detail-expanded] .detail-view__hero-frame > :is([data-detail-background], .detail-view__live-background:not([hidden]), .glass-surface) {
   display: block;
 }
 
 /* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
    tile khi re-raster trang (thumbnail hover tab), clamp blur ở mép tile và giữ đường nối đến khi
    repaint đầy đủ. Cùng số với .glass-surface__step--full; Kính phía trên chỉ giữ tint và grain. */
-.advertising-photo-view__hero [data-advertising-photo-background] {
+.detail-view__hero [data-detail-background] {
   filter: blur(100px) saturate(1.7) brightness(1.04);
   /* Blur lấy mẫu trong suốt ngoài mép ảnh nên mép khung lộ nền xám thành vignette; tràn mép 2 lần bán kính blur như
      canvas nền realtime để mép đặc như giữa (owner 2026-10-19). */
@@ -2564,7 +2511,7 @@ body.is-advertising-browse .site-footer {
 
 
 /* Nút vuông trắng chỉ icon (primary-video-player R7): tên qua aria-label, không bung chữ khi hover. */
-.advertising-photo-view__image-action {
+.detail-view__image-action {
   position: absolute;
   z-index: 3;
   bottom: 16px;
@@ -2581,18 +2528,23 @@ body.is-advertising-browse .site-footer {
   transition: background-color 150ms ease-out;
 }
 
-.advertising-photo-view__expand {
+.detail-view__expand {
   right: 16px;
 }
 
+/* Locked until the primary photo has loaded (advertising-detail R9): the icon spins as a loader, the button stays white. */
+.detail-view__expand:disabled {
+  cursor: progress;
+}
+
 /* Nút quay lại kiểu Pinterest góc trên trái (detail R10), hiện cả màn cảm ứng. */
-.advertising-photo-view__back {
+.detail-view__back {
   top: 16px;
   bottom: auto;
   left: 16px;
 }
 
-.advertising-photo-view__image-action svg {
+.detail-view__image-action svg {
   width: 16px;
   height: 16px;
   fill: none;
@@ -2603,28 +2555,28 @@ body.is-advertising-browse .site-footer {
 }
 
 @media (hover: hover) {
-  .advertising-photo-view__image-action:hover {
+  .detail-view__image-action:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
 
-.advertising-photo-view__image-action:focus-visible {
+.detail-view__image-action:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-view__image-action:active {
+.detail-view__image-action:not(:disabled):active {
   background: var(--media-control-active);
 }
 
-.advertising-photo-view__info {
+.detail-view__info {
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
-  width: var(--advertising-photo-description-width);
-  height: var(--advertising-photo-description-height);
+  width: var(--detail-description-width);
+  height: var(--detail-description-height);
   min-height: 0;
   margin: 0;
   overflow: clip;
@@ -2633,23 +2585,23 @@ body.is-advertising-browse .site-footer {
   touch-action: pan-y;
 }
 
-.advertising-photo-view__info > * {
+.detail-view__info > * {
   flex-shrink: 0;
   max-width: 100%;
 }
 
-.advertising-photo-view__info:focus-visible {
+.detail-view__info:focus-visible {
   outline: 1px solid var(--ink);
   outline-offset: -1px;
 }
 
-.advertising-photo-view__info [data-advertising-photo-description] {
+.detail-view__info [data-detail-description] {
   max-width: 100%;
   margin: 0;
 }
 
 /* Dãy thumbnail một dòng vừa số thumbnail nguyên (60px, gap 8px), thừa thì cuộn ngang (owner 2026-10-24). */
-.advertising-photo-view__media-thumbs {
+.detail-view__media-thumbs {
   --scroll-fade-direction: to right;
   --scroll-fade-size: 60px;
   display: flex;
@@ -2662,22 +2614,22 @@ body.is-advertising-browse .site-footer {
 
 /* Còn nội dung phía sau thì phần tử cuối trong khung mờ về trắng, đã cuộn thì phần tử đầu mờ; dùng cho dãy thumbnail và
    mô tả (owner 2026-10-24), runtime gắn data-fade-start, data-fade-end theo vị trí cuộn. */
-:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll):is([data-fade-start], [data-fade-end]) {
+:is(.detail-view__media-thumbs, .detail-view__description-scroll):is([data-fade-start], [data-fade-end]) {
   mask-image: linear-gradient(var(--scroll-fade-direction), var(--scroll-fade-from, #000), #000 var(--scroll-fade-size),
     #000 calc(100% - var(--scroll-fade-size)), var(--scroll-fade-to, #000));
 }
 
-:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-start] {
+:is(.detail-view__media-thumbs, .detail-view__description-scroll)[data-fade-start] {
   --scroll-fade-from: transparent;
 }
 
-:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-end] {
+:is(.detail-view__media-thumbs, .detail-view__description-scroll)[data-fade-end] {
   --scroll-fade-to: transparent;
 }
 
 /* Thumbnail theo pin Pinterest (đo 2026-10-18): 60px, góc vuông (owner 2026-10-24), đang xem có viền 1px tối và viền trong
    1px trắng. */
-.advertising-photo-view__media-thumbs button {
+.detail-view__media-thumbs button {
   position: relative;
   flex: 0 0 60px;
   width: 60px;
@@ -2689,7 +2641,7 @@ body.is-advertising-browse .site-footer {
   cursor: pointer;
 }
 
-.advertising-photo-view__media-thumbs button[aria-current="true"]::after {
+.detail-view__media-thumbs button[aria-current="true"]::after {
   position: absolute;
   inset: 0;
   border: 1px solid rgb(51, 51, 46);
@@ -2697,12 +2649,12 @@ body.is-advertising-browse .site-footer {
   content: "";
 }
 
-.advertising-photo-view__media-thumbs button:focus-visible {
+.detail-view__media-thumbs button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 
-.advertising-photo-view__media-thumbs img {
+.detail-view__media-thumbs img {
   display: block;
   width: 100%;
   height: 100%;
@@ -2710,11 +2662,11 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Thumbnail video là lớp riêng để bóng icon phát chỉ vẽ một lần (primary-video-player R4). */
-.advertising-photo-view__media-thumbs button:has(> svg) {
+.detail-view__media-thumbs button:has(> svg) {
   will-change: transform;
 }
 
-.advertising-photo-view__media-thumbs svg {
+.detail-view__media-thumbs svg {
   position: absolute;
   inset: 50% auto auto 50%;
   width: 20px;
@@ -2727,14 +2679,14 @@ body.is-advertising-browse .site-footer {
 /* Mô tả cuộn dọc thay cho phân trang (owner 2026-10-24), chữ căn đều, mép mờ như dãy thumbnail. Thanh cuộn theo player
    (rãnh 4px, viên 4px dài theo lượng chữ) chỉ hiện khi hover hoặc focus bàn phím, fade 150ms, kéo được; màn hình cảm ứng
    không có thanh, vuốt để cuộn. */
-.advertising-photo-view__description {
+.detail-view__description {
   position: relative;
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
 }
 
-.advertising-photo-view__description-scroll {
+.detail-view__description-scroll {
   --scroll-fade-direction: to bottom;
   --scroll-fade-size: 1lh;
   height: 100%;
@@ -2743,7 +2695,7 @@ body.is-advertising-browse .site-footer {
   scrollbar-width: none;
 }
 
-.advertising-photo-view__description-bar {
+.detail-view__description-bar {
   position: absolute;
   top: 0;
   right: 0;
@@ -2754,8 +2706,8 @@ body.is-advertising-browse .site-footer {
   transition: opacity 150ms ease-out;
 }
 
-.advertising-photo-view__description-bar::before,
-.advertising-photo-view__description-bar::after {
+.detail-view__description-bar::before,
+.detail-view__description-bar::after {
   position: absolute;
   top: 0;
   left: 4px;
@@ -2764,36 +2716,36 @@ body.is-advertising-browse .site-footer {
   content: "";
 }
 
-.advertising-photo-view__description-bar::before {
+.detail-view__description-bar::before {
   bottom: 0;
   background: rgba(32, 33, 32, 0.16);
 }
 
-.advertising-photo-view__description-bar::after {
+.detail-view__description-bar::after {
   height: var(--thumb-height);
   background: rgba(32, 33, 32, 0.6);
   transform: translateY(var(--thumb-top));
 }
 
-.advertising-photo-view__description:is(:hover, :has(:focus-visible)) > .advertising-photo-view__description-bar,
-.advertising-photo-view__description-bar[data-dragging] {
+.detail-view__description:is(:hover, :has(:focus-visible)) > .detail-view__description-bar,
+.detail-view__description-bar[data-dragging] {
   opacity: 1;
 }
 
 @media (hover: hover) {
-  .advertising-photo-view__description:has(> .advertising-photo-view__description-bar:not([hidden]))
-    > .advertising-photo-view__description-scroll {
+  .detail-view__description:has(> .detail-view__description-bar:not([hidden]))
+    > .detail-view__description-scroll {
     padding-right: 16px;
   }
 }
 
 @media (hover: none) {
-  .advertising-photo-view__description-bar {
+  .detail-view__description-bar {
     display: none;
   }
 }
 
-.advertising-photo-view__cta {
+.detail-view__cta {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
@@ -2810,7 +2762,7 @@ body.is-advertising-browse .site-footer {
   text-decoration: none;
 }
 
-.advertising-photo-view__cta svg {
+.detail-view__cta svg {
   width: 20px;
   height: 20px;
   flex: 0 0 20px;
@@ -2822,37 +2774,37 @@ body.is-advertising-browse .site-footer {
   transition: transform 250ms ease-out;
 }
 
-.advertising-photo-view__cta:is(:hover, :focus-visible) svg {
+.detail-view__cta:is(:hover, :focus-visible) svg {
   transform: translate(2px, -2px);
 }
 
-.advertising-photo-view__cta:focus-visible {
+.detail-view__cta:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 4px;
 }
 
-.advertising-photo-view__related {
+.detail-view__related {
   position: absolute;
   z-index: 0;
   inset: 0;
   pointer-events: none;
 }
 
-.advertising-photo-view__related-grid {
+.detail-view__related-grid {
   position: relative;
   width: 100%;
-  height: var(--advertising-photo-related-height, 0px);
-  min-height: var(--advertising-photo-related-height, 0px);
+  height: var(--detail-related-height, 0px);
+  min-height: var(--detail-related-height, 0px);
 }
 
-[data-advertising-related-card] {
+[data-masonry-related-card] {
   position: absolute;
   overflow: visible;
   pointer-events: auto;
 }
 
 
-.advertising-photo-view__suggestion h2 {
+.detail-view__suggestion h2 {
   max-width: none;
   margin: 1rem 0 0;
   font-size: 0.875rem;
@@ -2861,7 +2813,7 @@ body.is-advertising-browse .site-footer {
   letter-spacing: normal;
 }
 
-.advertising-photo-view__suggestion-links {
+.detail-view__suggestion-links {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
@@ -2869,7 +2821,7 @@ body.is-advertising-browse .site-footer {
   margin-top: 8px;
 }
 
-.advertising-photo-view__suggestion {
+.detail-view__suggestion {
   position: absolute;
   overflow: hidden;
   width: 100%;
@@ -2877,7 +2829,7 @@ body.is-advertising-browse .site-footer {
   touch-action: pan-y;
 }
 
-[data-advertising-photo-layout="split"] .advertising-photo-view__info .advertising-photo-view__suggestion {
+[data-detail-layout="split"] .detail-view__info .detail-view__suggestion {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
@@ -2886,7 +2838,7 @@ body.is-advertising-browse .site-footer {
   overflow: visible;
 }
 
-.advertising-photo-view__suggestion-link {
+.detail-view__suggestion-link {
   position: relative;
   box-sizing: border-box;
   display: grid;
@@ -2903,15 +2855,15 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Nút chưa bật chờ ảnh nền bằng vệt sáng chung của ảnh nội dung (style.css), dưới overlay và nhãn. */
-.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
+.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
   background-color: var(--media-loading-surface);
 }
 
-.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) img {
+.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) img {
   opacity: 0;
 }
 
-.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
+.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
   position: absolute;
   z-index: 1;
   inset: 0 auto 0 0;
@@ -2922,12 +2874,12 @@ body.is-advertising-browse .site-footer {
   pointer-events: none;
 }
 
-.media-gate .advertising-photo-view__suggestion-link.is-media-settled > img {
+.media-gate .detail-view__suggestion-link.is-media-settled > img {
   animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
+  .media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 10%);
@@ -2936,19 +2888,19 @@ body.is-advertising-browse .site-footer {
   }
 }
 
-.advertising-photo-view__suggestion-link[aria-pressed="true"] {
+.detail-view__suggestion-link[aria-pressed="true"] {
   border-color: var(--ink);
   background: var(--white);
 }
 
-.advertising-photo-view__suggestion-link:focus-visible {
+.detail-view__suggestion-link:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
 /* Lớp tối 0,5 hiện khi ảnh nền đã giải mã, hover không đổi (owner 2026-10-26, giữa hai mức 0,4 và 0,6 của Pinterest). Nút gợi ý cũng mang class
-   advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
-.advertising-photo-view__suggestion-link::after {
+   card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
+.detail-view__suggestion-link::after {
   position: absolute;
   z-index: 1;
   inset: 0;
@@ -2958,25 +2910,25 @@ body.is-advertising-browse .site-footer {
   content: "";
 }
 
-.advertising-photo-view__suggestion-link[aria-pressed="true"]::after {
+.detail-view__suggestion-link[aria-pressed="true"]::after {
   opacity: 0;
 }
 
 /* Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): lúc chờ chỉ có vệt sáng, nhãn trắng mang bóng D. */
-.media-gate .advertising-photo-view__suggestion-link:not(.is-media-settled)::after {
+.media-gate .detail-view__suggestion-link:not(.is-media-settled)::after {
   opacity: 0;
 }
 
-.media-gate .advertising-photo-view__suggestion-link.is-media-settled:not([aria-pressed="true"])::after {
+.media-gate .detail-view__suggestion-link.is-media-settled:not([aria-pressed="true"])::after {
   animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.advertising-photo-view__suggestion-link[aria-pressed="true"] img {
+.detail-view__suggestion-link[aria-pressed="true"] img {
   opacity: 0 !important;
   transform: none !important;
 }
 
-.advertising-photo-view__suggestion-link img {
+.detail-view__suggestion-link img {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -2986,11 +2938,11 @@ body.is-advertising-browse .site-footer {
   transition: opacity 250ms ease-out, var(--media-hover-transform);
 }
 
-.advertising-photo-view__suggestion-link [data-advertising-suggestion-image-layer="next"] {
+.detail-view__suggestion-link [data-masonry-suggestion-image-layer="next"] {
   z-index: 0;
 }
 
-.advertising-photo-view__suggestion-label {
+.detail-view__suggestion-label {
   position: relative;
   z-index: 2;
   display: grid;
@@ -3009,24 +2961,24 @@ body.is-advertising-browse .site-footer {
   text-shadow: var(--text-shadow-d);
 }
 
-.advertising-photo-view__suggestion-link[aria-pressed="true"] .advertising-photo-view__suggestion-label {
+.detail-view__suggestion-link[aria-pressed="true"] .detail-view__suggestion-label {
   color: var(--ink);
   text-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-card-media__image {
+  .card-media__image {
     transition: none !important;
     transform: none !important;
   }
 
-  .advertising-photo-view__suggestion-link [data-advertising-suggestion-image-layer] {
+  .detail-view__suggestion-link [data-masonry-suggestion-image-layer] {
     animation: none !important;
     transform: none !important;
   }
 }
 
-.advertising-photo-dialog {
+.detail-dialog {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -3042,37 +2994,37 @@ body.is-advertising-browse .site-footer {
   color: var(--white);
 }
 
-.advertising-photo-dialog::backdrop {
+.detail-dialog::backdrop {
   /* Mọi máy cùng lớp tối 0,85 và Kính blur (advertising-detail R9; owner 2026-10-26 bỏ ngoại lệ phone không blur). */
   background: rgba(32, 33, 32, 0.85);
   backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
   /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
-  opacity: var(--advertising-viewer-backdrop-opacity, 1);
+  opacity: var(--viewer-backdrop-opacity, 1);
 }
 
-.advertising-photo-dialog:not([data-advertising-viewer-swipe])::backdrop {
+.detail-dialog:not([data-viewer-swipe])::backdrop {
   transition: opacity 200ms ease-in-out;
 }
 
-.advertising-photo-dialog[data-advertising-viewer-state="opening"]::backdrop {
-  animation: advertising-photo-viewer-backdrop-in 300ms cubic-bezier(0.55, 0, 0, 1) both;
+.detail-dialog[data-viewer-state="opening"]::backdrop {
+  animation: detail-viewer-backdrop-in 300ms cubic-bezier(0.55, 0, 0, 1) both;
 }
 
-.advertising-photo-dialog[data-advertising-viewer-state="closing"]::backdrop {
-  animation: advertising-photo-viewer-backdrop-out 250ms cubic-bezier(0.55, 0, 0, 1) both;
+.detail-dialog[data-viewer-state="closing"]::backdrop {
+  animation: detail-viewer-backdrop-out 250ms cubic-bezier(0.55, 0, 0, 1) both;
 }
 
-@keyframes advertising-photo-viewer-backdrop-in {
+@keyframes detail-viewer-backdrop-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes advertising-photo-viewer-backdrop-out {
-  from { opacity: var(--advertising-viewer-backdrop-opacity, 1); }
+@keyframes detail-viewer-backdrop-out {
+  from { opacity: var(--viewer-backdrop-opacity, 1); }
   to { opacity: 0; }
 }
 
-.advertising-photo-dialog__viewport {
+.detail-dialog__viewport {
   position: absolute;
   inset: 0 0 auto;
   height: var(--site-layout-viewport-height, 100vh);
@@ -3087,11 +3039,11 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Ảnh, host video và lớp trượt chồng cùng một ô. */
-.advertising-photo-dialog__viewport > * {
+.detail-dialog__viewport > * {
   grid-area: 1 / 1;
 }
 
-.advertising-photo-dialog__viewport :is(img, video, canvas) {
+.detail-dialog__viewport :is(img, video, canvas) {
   display: block;
   width: auto;
   height: auto;
@@ -3104,8 +3056,8 @@ body.is-advertising-browse .site-footer {
   user-select: none;
 }
 
-.advertising-photo-dialog__close,
-.advertising-photo-dialog__controls button {
+.detail-dialog__close,
+.detail-dialog__controls button {
   display: inline-grid;
   width: 36px;
   height: 36px;
@@ -3120,39 +3072,39 @@ body.is-advertising-browse .site-footer {
   transition: background-color 150ms ease-out;
 }
 
-.advertising-photo-dialog__close,
-.advertising-photo-dialog__controls button {
+.detail-dialog__close,
+.detail-dialog__controls button {
   background: #fff;
 }
 
 @media (hover: hover) {
-  .advertising-photo-dialog__close:not(:disabled):hover,
-  .advertising-photo-dialog__controls button:not(:disabled):hover {
+  .detail-dialog__close:not(:disabled):hover,
+  .detail-dialog__controls button:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
 
-.advertising-photo-dialog__close:focus-visible,
-.advertising-photo-dialog__controls button:focus-visible {
+.detail-dialog__close:focus-visible,
+.detail-dialog__controls button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-dialog__close:not(:disabled):active,
-.advertising-photo-dialog__controls button:not(:disabled):active {
+.detail-dialog__close:not(:disabled):active,
+.detail-dialog__controls button:not(:disabled):active {
   background: var(--media-control-active);
 }
 
-.advertising-photo-dialog__controls button:disabled {
+.detail-dialog__controls button:disabled {
   color: #91918c;
   background: #f3f3f1;
   cursor: default;
   transition: none;
 }
 
-.advertising-photo-dialog__close svg,
-.advertising-photo-dialog__controls button svg {
+.detail-dialog__close svg,
+.detail-dialog__controls button svg {
   width: 16px;
   height: 16px;
   fill: none;
@@ -3162,18 +3114,18 @@ body.is-advertising-browse .site-footer {
   stroke-width: 2;
 }
 
-.advertising-photo-dialog__close {
+.detail-dialog__close {
   position: absolute;
-  top: calc(var(--advertising-viewer-visible-top, 0px) + max(1rem, env(safe-area-inset-top)));
-  left: calc(var(--advertising-viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
+  top: calc(var(--viewer-visible-top, 0px) + max(1rem, env(safe-area-inset-top)));
+  left: calc(var(--viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
   z-index: 2;
 }
 
 /* Dãy thumbnail dưới viewer thay hai mũi tên (primary-video-player R8, owner 2026-10-25): cùng dãy với primary, nằm giữa
    đáy trong lề 80px của Fit, rộng theo số thumbnail và chừa chỗ cho cột nút zoom bên phải. */
-.advertising-photo-dialog__thumbs {
+.detail-dialog__thumbs {
   position: absolute;
-  bottom: calc(var(--advertising-viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
+  bottom: calc(var(--viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
   left: 50%;
   z-index: 2;
   width: max-content;
@@ -3182,19 +3134,19 @@ body.is-advertising-browse .site-footer {
   transition: opacity 0.3s ease, translate 0.3s ease;
 }
 
-.advertising-photo-dialog__thumbs button:focus-visible {
+.detail-dialog__thumbs button:focus-visible {
   outline-color: #fff;
 }
 
 /* Chuột đứng yên thì dãy thu xuống và mờ đi (owner 2026-10-26). */
-.advertising-photo-dialog__thumbs[data-advertising-viewer-idle] {
+.detail-dialog__thumbs[data-viewer-idle] {
   opacity: 0;
   translate: -50% 1rem;
   pointer-events: none;
 }
 
 /* Host video trong viewer: nền ngoài video không nhận chuột để bấm vẫn đóng viewer; player phủ đúng khung Fit. */
-.advertising-photo-dialog__video {
+.detail-dialog__video {
   position: relative;
   display: grid;
   width: 100%;
@@ -3203,34 +3155,34 @@ body.is-advertising-browse .site-footer {
   pointer-events: none;
 }
 
-.advertising-photo-dialog__video > * {
+.detail-dialog__video > * {
   pointer-events: auto;
 }
 
 /* Viewer PC không có nút mở lớn: thanh tua chạy tới lề phải như lề trái. */
 @media (hover: hover) {
-  .advertising-photo-dialog__video .advertising-video-player__bar {
+  .detail-dialog__video .video-player__bar {
     padding-right: 16px;
   }
 }
 
-.advertising-photo-dialog__video > .advertising-video-player {
+.detail-dialog__video > .video-player {
   inset: auto;
   top: 50%;
   left: 50%;
-  width: var(--advertising-viewer-fit-width);
-  height: var(--advertising-viewer-fit-height);
+  width: var(--viewer-fit-width);
+  height: var(--viewer-fit-height);
   translate: -50% -50%;
 }
 
-.advertising-photo-dialog__ghost {
+.detail-dialog__ghost {
   pointer-events: none;
 }
 
-.advertising-photo-dialog__controls {
+.detail-dialog__controls {
   position: absolute;
-  right: calc(var(--advertising-viewer-visible-right, 0px) + max(1rem, env(safe-area-inset-right)));
-  bottom: calc(var(--advertising-viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
+  right: calc(var(--viewer-visible-right, 0px) + max(1rem, env(safe-area-inset-right)));
+  bottom: calc(var(--viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
   z-index: 2;
   display: inline-flex;
   flex-direction: column;
@@ -3238,7 +3190,7 @@ body.is-advertising-browse .site-footer {
   gap: 0.5rem;
 }
 
-.advertising-photo-dialog__controls output {
+.detail-dialog__controls output {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -3250,14 +3202,14 @@ body.is-advertising-browse .site-footer {
   border: 0;
 }
 
-.advertising-photo-dialog[hidden],
-.advertising-photo-dialog [hidden] {
+.detail-dialog[hidden],
+.detail-dialog [hidden] {
   display: none;
 }
 
-.detail-cta[data-advertising-grid-cta] {
+.detail-cta[data-masonry-grid-cta] {
   width: 100%;
-  height: var(--advertising-cta-tail-height, calc(100svh - var(--header-collapsed-row-height) - 20px));
+  height: var(--masonry-cta-tail-height, calc(100svh - var(--header-collapsed-row-height) - 20px));
   min-height: 0;
   padding: 0 var(--gutter);
   place-items: end center;
@@ -3265,43 +3217,43 @@ body.is-advertising-browse .site-footer {
   color: var(--ink);
 }
 
-body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
+body.is-masonry-browse .detail-cta[data-masonry-grid-cta] {
   position: absolute;
-  top: var(--advertising-cta-top);
+  top: var(--masonry-cta-top);
   left: 0;
 }
 
 /* Batch lấp khoảng trống trên footer. Đặt biến trên footer, không trên body: biến kế thừa đổi trên body làm
    mở detail và Back restyle cả trang (decision phone-frame-budget). */
-body.is-advertising-browse .site-footer {
+body.is-masonry-browse .site-footer {
   --footer-top-gap: 0px;
 }
 
 /* CTA nằm trên batch skeleton: không lớp tối, không bấm cả khối (chỉ nút). */
-.detail-cta[data-advertising-grid-cta]::after,
-.detail-cta[data-advertising-grid-cta] .legacy-link::before {
+.detail-cta[data-masonry-grid-cta]::after,
+.detail-cta[data-masonry-grid-cta] .legacy-link::before {
   content: none;
 }
 
 /* Baseline heading cuối nằm ở tâm dynamic viewport tại giới hạn cuộn,
    hoặc link giữ một gap phía trên đáy batch khi cửa sổ quá thấp. */
-.detail-cta[data-advertising-grid-cta] .detail-cta__copy {
+.detail-cta[data-masonry-grid-cta] .detail-cta__copy {
   z-index: 2;
   width: min(78rem, 100%);
-  margin-bottom: calc(max(50dvh - var(--advertising-cta-footer-height, 0px),
-    var(--advertising-gap) + var(--advertising-cta-copy-below, 0px)) - var(--advertising-cta-copy-below, 0px));
+  margin-bottom: calc(max(50dvh - var(--masonry-cta-footer-height, 0px),
+    var(--masonry-gap) + var(--masonry-cta-copy-below, 0px)) - var(--masonry-cta-copy-below, 0px));
 }
 
 @media (prefers-reduced-motion: no-preference) {
   /* Sau lần đặt đầu tiên, thay đổi kích thước thanh địa chỉ trượt mượt thay vì nhảy. */
-  .detail-cta[data-advertising-grid-cta][data-advertising-cta-settled] .detail-cta__copy {
+  .detail-cta[data-masonry-grid-cta][data-masonry-cta-settled] .detail-cta__copy {
     transition: margin-bottom 0.4s ease-out;
   }
 }
 
 /* Khi CTA chỉ cao bằng copy (text 200%, landscape), padding top giữ
    dấu của dòng đầu trong overflow clip của CTA. */
-.detail-cta[data-advertising-grid-cta] h2 {
+.detail-cta[data-masonry-grid-cta] h2 {
   padding-top: 0.15em;
   /* Cỡ riêng, không theo --cta-title-size: chữ to hơn làm cụm CTA cao và Kính phủ hết batch (owner 17/10). */
   font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
@@ -3310,42 +3262,42 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Runtime fit size đồng bộ; transition của reduced-motion sẽ báo size cũ. */
-.detail-cta[data-advertising-grid-cta] h2,
-.detail-cta[data-advertising-grid-cta] h2 * {
+.detail-cta[data-masonry-grid-cta] h2,
+.detail-cta[data-masonry-grid-cta] h2 * {
   transition: none !important;
 }
 
 /* Dòng split thêm 0.12em mask padding và nằm 0.1em cao hơn sau reveal (detail.js),
    nên link vẫn nằm cách dòng cuối nhìn thấy một gap. */
-.detail-cta[data-advertising-grid-cta] h2:has(> .motion-line-mask) {
+.detail-cta[data-masonry-grid-cta] h2:has(> .motion-line-mask) {
   margin-bottom: -0.22em;
 }
 
-.detail-cta[data-advertising-grid-cta] .detail-cta__copy a {
+.detail-cta[data-masonry-grid-cta] .detail-cta__copy a {
   display: flex;
   width: max-content;
-  margin: var(--advertising-gap) auto 0;
+  margin: var(--masonry-gap) auto 0;
 }
 
 @media (max-width: 750px) {
-  .detail-cta[data-advertising-grid-cta] h2 {
+  .detail-cta[data-masonry-grid-cta] h2 {
     font-size: clamp(1.7rem, 8.8vw, 2rem);
   }
 }
 
 @media (max-width: 750px) and (max-height: 640px) {
-  .detail-cta[data-advertising-grid-cta] h2 {
+  .detail-cta[data-masonry-grid-cta] h2 {
     font-size: clamp(1.3rem, 5.13vw, 2rem);
   }
 }
 
 @media (min-width: 751px) and (max-height: 640px) {
-  .detail-cta[data-advertising-grid-cta] h2 {
+  .detail-cta[data-masonry-grid-cta] h2 {
     font-size: clamp(1.3rem, 4.5svh, 2.5rem);
   }
 }
 
-body.is-advertising-browse .floating-cta {
+body.is-masonry-browse .floating-cta {
   display: none;
 }
 
@@ -3465,43 +3417,43 @@ body.is-advertising-browse .floating-cta {
   }
 }
 
-body.is-advertising-photo .detail-index-hero,
-body.is-advertising-photo .project-index,
-body.is-advertising-photo .detail-process {
+body.is-detail .detail-index-hero,
+body.is-detail .project-index,
+body.is-detail .detail-process {
   display: none;
 }
 
 /* Vào thẳng detail: main rỗng tới khi runtime lộ photo view, margin của footer lọt qua làm trang lệch 64px rồi
    footer trượt khỏi màn hình (CLS 0,44, issue #649). Giữ footer dưới mép viewport ngay từ lần vẽ đầu. */
-body.is-advertising-photo .page-shell > main {
+body.is-detail .page-shell > main {
   min-height: 100vh;
 }
 
-body.is-advertising-photo .desktop-nav a[aria-current="page"],
-body.is-advertising-photo #site-menu[open] a[aria-current="page"] {
+body.is-detail .desktop-nav a[aria-current="page"],
+body.is-detail #site-menu[open] a[aria-current="page"] {
   pointer-events: auto;
 }
 
-body.is-advertising-photo .desktop-nav a[aria-current="page"]::after,
-body.is-advertising-photo .menu-group__title[aria-current="page"] > span::before {
+body.is-detail .desktop-nav a[aria-current="page"]::after,
+body.is-detail .menu-group__title[aria-current="page"] > span::before {
   transform: scaleX(0);
 }
 
-body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::after {
+body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
   transform-origin: left center;
 }
 
 @media (max-width: 750px) {
-  .advertising-photo-view__image-action {
+  .detail-view__image-action {
     bottom: 8px;
   }
 
-  .advertising-photo-view__expand {
+  .detail-view__expand {
     right: 8px;
   }
 
-  .advertising-photo-view__back {
+  .detail-view__back {
     top: 8px;
     bottom: auto;
     left: 8px;
@@ -3513,14 +3465,14 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
    lại khi có keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
   /* Như manipulation nhưng không pan-x: vuốt ngang kéo dải media theo ngón tay (media-card R6). */
-  .advertising-photo-view__hero-frame {
+  .detail-view__hero-frame {
     touch-action: pan-y pinch-zoom;
   }
 
-  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible, [data-advertising-photo-expand-video]),
-  .advertising-photo-dialog__close:not(:focus-visible),
-  .advertising-photo-dialog__controls button:not(:focus-visible),
-  .advertising-photo-dialog__thumbs:not(:focus-within) {
+  .detail-view__image-action.detail-view__expand:not(:focus-visible, [data-detail-expand-video]),
+  .detail-dialog__close:not(:focus-visible),
+  .detail-dialog__controls button:not(:focus-visible),
+  .detail-dialog__thumbs:not(:focus-within) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -3535,55 +3487,55 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-photo-view__image-action,
-  .advertising-photo-dialog__close,
-  .advertising-photo-dialog__controls button,
-  .advertising-photo-dialog__thumbs {
+  .detail-view__image-action,
+  .detail-dialog__close,
+  .detail-dialog__controls button,
+  .detail-dialog__thumbs {
     transition: none !important;
   }
 
-  .advertising-photo-dialog::backdrop {
+  .detail-dialog::backdrop {
     animation: none !important;
     opacity: 1 !important;
   }
 
-  .advertising-photo-dialog__viewport img {
+  .detail-dialog__viewport img {
     transition: none !important;
   }
 
-  .advertising-grid__cta-frame {
+  .masonry-grid__cta-frame {
     transition: none !important;
   }
 }
 
-.advertising-detail__carousel {
+.detail-carousel {
   width: 100%;
   overflow: hidden;
 }
 
-.advertising-detail__carousel-track {
+.detail-carousel-track {
   display: flex;
   align-items: flex-start;
   transition-property: transform !important;
 }
 
-.advertising-detail__carousel-slide img {
+.detail-carousel-slide img {
   width: 100%;
-  aspect-ratio: var(--advertising-media-ratio);
+  aspect-ratio: var(--masonry-media-ratio);
   background: #e9e6df;
   object-fit: contain;
 }
 
-[data-advertising-carousel-state="native"] .advertising-detail__carousel {
+[data-masonry-carousel-state="native"] .detail-carousel {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
 }
 
-[data-advertising-carousel-state="native"] .advertising-detail__carousel-track {
-  gap: var(--advertising-carousel-gap);
+[data-masonry-carousel-state="native"] .detail-carousel-track {
+  gap: var(--masonry-carousel-gap);
 }
 
-.advertising-detail__carousel-pagination.swiper-pagination {
+.detail-carousel-pagination.swiper-pagination {
   position: static;
   display: flex;
   width: 100%;
@@ -3594,7 +3546,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   padding-top: 32px;
 }
 
-.advertising-detail__carousel-pagination .swiper-pagination-bullet {
+.detail-carousel-pagination .swiper-pagination-bullet {
   width: 6px;
   height: 6px;
   margin: 0 !important;
@@ -3602,21 +3554,21 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   opacity: 1;
 }
 
-.advertising-detail__carousel-pagination .swiper-pagination-bullet-active {
+.detail-carousel-pagination .swiper-pagination-bullet-active {
   background: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-detail__carousel-track {
+  .detail-carousel-track {
     transition-duration: 0.01ms !important;
   }
 
-  .advertising-grid .advertising-tile {
+  .masonry-grid .masonry-card {
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .advertising-tile img {
+  .masonry-card img {
     opacity: 1;
     transform: none !important;
     transition: none !important;

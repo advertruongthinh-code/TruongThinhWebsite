@@ -2,7 +2,7 @@
 title: Kính dùng chung cho mọi bề mặt glass
 status: live
 source:
-  - src/site/advertising-products/glass-surface.mjs
+  - src/site/masonry/glass-surface.mjs
 tests:
   - tests/site/glass-surface.test.mjs
   - tests/site/advertising-audit.test.mjs
@@ -34,7 +34,7 @@ mặt nào tự viết `backdrop-filter`. Component có hai dạng:
 | Cung | Kính cuối masonry Advertising, nền cho cụm CTA trên batch skeleton |
 | Phủ đều | Vùng dư quanh ảnh primary khi ảnh contain còn chỗ trống; primary đang mở, chỉ trong lúc ảnh hiện ([R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Card chờ ảnh không dùng Kính (R7) |
 
-Nền tối của viewer phóng to (`.advertising-photo-dialog::backdrop`) là lớp làm
+Nền tối của viewer phóng to (`.detail-dialog::backdrop`) là lớp làm
 tối để xem ảnh, không phải component Kính ([detail R9](advertising-detail.md#r9-viewer)).
 
 ```gherkin
@@ -193,8 +193,8 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi các bậc chỉ phủ dải (PC chín, phone ba với hai bậc ngoài ẩn bằng `hidden`); lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như ba bậc chồng, nhẹ hơn); kính phủ đều quanh primary không có bậc, chỉ tint và hạt nhiễu, còn ảnh nền primary tự mang `filter: blur(100px) saturate(1.7) brightness(1.04)` vì Chrome chụp backdrop theo từng raster tile khi chụp thumbnail lúc rê chuột lên tab, kẹp blur ở mép tile và để lại đường nối tới lần repaint đầy đủ; bề mặt hiện/tan (R6) ba bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
 | CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): ba bậc `16.07`, `54.84`, `82.07px` (mức `16.07`, `57.14`, `100px`), dạng cung phone `4.5`, `11.12`, `25.3px`, chín bậc PC và lõi `100px` do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.1935`, `1.0132`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung phone `28px` (PC đặt inline `100px`, R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Hai ảnh hạt nhiễu 160×160 cùng nhiễu, xám cho overlay và trắng theo alpha cho dạng cung (`--glass-grain-white`), sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
-| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung PC 9, phone 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `desktopArcSteps({radius, band})` mức nhòe và bán kính bật, tắt của chín bậc PC; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC lõi và 9 bậc band, phone lõi và 1 bậc band; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
-| Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung primary trong lúc ảnh hiện |
+| Runtime | `masonry/glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung PC 9, phone 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `desktopArcSteps({radius, band})` mức nhòe và bán kính bật, tắt của chín bậc PC; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC lõi và 9 bậc band, phone lõi và 1 bậc band; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
+| Runtime | `masonry/runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-detail-glass`; gắn kính hiện/tan cuối khung primary trong lúc ảnh hiện |
 
 ## UI
 

@@ -2,8 +2,8 @@
 title: Skeleton cuối masonry Advertising
 status: live
 source:
-  - src/site/advertising-products/skeleton-flow.mjs
-  - src/site/advertising-products/skeleton-flow-worker.mjs
+  - src/site/masonry/skeleton-flow.mjs
+  - src/site/masonry/skeleton-flow-worker.mjs
   - scripts/site/image-palette.mjs
 tests:
   - tests/site/advertising-skeleton-flow.test.mjs
@@ -29,16 +29,17 @@ chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-load
 
 ### R1. Batch nối tiếp masonry
 
-Khung `.advertising-grid__cta-frame[data-advertising-cta-frame]` nằm trong `[data-advertising-cta-skeleton]`
+Khung `.masonry-grid__cta-frame[data-masonry-cta-frame]` nằm trong `[data-masonry-cta-skeleton]`
 (`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
 hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
-thật (`canSpanTwoColumns`, `spanSlots` ở `layout-core.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
-khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; band mặc định (w/h tối đa 1.39) đều giữ một
-cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
-(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (canvas và dải, chừa tên). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
+thật (`canSpanTwoColumns`, `spanSlots` ở `masonry/layout.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
+khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; không để lỗ
+([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): hai đáy chênh nhau thì khung một cột cuối của cột ngắn hơn
+(trong batch) kéo dài đúng phần chênh, đáy là card thật hay khung hai cột thì khung hai cột chỉ đặt khi hai đáy bằng nhau.
+Masonry không còn lỗ, nên batch không có khung lấp lỗ. Hai trang lưới chính (Sản phẩm quảng cáo và Công trình) đặt `data-skeleton-ratios="landscape:0.72 square:1 portrait:1.32 wide:0.5"` nên có khung ngang `wide` trải hai cột từ lưới 3 cột; batch cuối related ở detail (`spanSkeleton: false`) bỏ mọi band trải hai cột. Band mặc định (w/h tối đa 1.39) đều giữ một cột. Trang đổi band và số khung bằng attribute trên batch: `data-skeleton-ratios="landscape:0.72 square:1 wide:0.5"`
+(id:cao/rộng), `data-skeleton-count` (tối đa N khung, cột có thể dừng trước đáy batch; mặc định lấp tới đáy), tỷ lệ dưới `0.1` bị bỏ. Card tạm chờ dựng phủ đúng khung card thật kể cả card hai cột (card cao đúng bằng media, [media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media)). Batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đuôi theo [CTA R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn).
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng khung nhân một band; mặc định ba band ngang `0.72`, vuông
-`1`, đứng `1.32`; lưới có tên dưới card (trang Công trình, [projects R2](projects.md#r2-trang-toàn-bộ-công-trình)) chừa thêm
-chiều cao tên dưới mỗi khung như card thật (`captionHeight`). Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
+`1`, đứng `1.32`; khung không chừa chỗ tên vì tên nằm trong media ở mọi lưới, kể cả trang Công trình. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
 đầu. Khung cuối mỗi cột kéo tới đáy batch (khung hai cột chỉ kéo khi là khung cuối của cả hai cột); phần còn lại ngắn
 hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
@@ -50,6 +51,7 @@ cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch có 
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột
 When runtime dựng batch
 Then khung đầu mỗi cột cách card thật một khoảng giữa, đáy khung cuối mỗi cột trùng đáy batch
+And không khung nào để lỗ phía trên nó, kể cả khung hai cột; batch của related không có khung hai cột
 And không khung nào thấp hơn 0.25 bề rộng card, không hai khung liền cùng band trong một cột
 ```
 
@@ -63,7 +65,7 @@ tăng `hướng × speed / 100 × 1.2 × min(dt, 0.05s)`. Không có WebGL: khun
 (`staticBackground`), không vẽ khung CPU, không vòng lặp.
 
 ```gherkin
-Given module skeleton-flow.mjs đã nạp
+Given module masonry/skeleton-flow.mjs đã nạp
 When đọc SKELETON_FLOW_PRESETS
 Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 ```
@@ -124,7 +126,7 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 
 ### R5. WebGL context
 
-Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.advertising-grid__cta-skeleton`:
+Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.masonry-grid__cta-skeleton`:
 7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
@@ -144,7 +146,7 @@ program và noise; nhả renderer thì worker trả context (`loseContext`), mai
 mới ở pha đã lưu. Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (tạo context thứ 5 thì context cũ nhất bị thu hồi mà
 main thread không được báo), nên trên PC worker có đúng một
 context WebGL: mỗi khung vẽ một lượt vào context đó rồi chuyển hình sang canvas của khung bằng `bitmaprenderer`
-(`data-advertising-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
+(`data-masonry-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
 giữ context riêng mỗi khung nhưng xếp tối đa 4 khung mỗi worker, nên 12 khung chạy trên 3 worker; context chung trên A04s
 làm fps SurfaceFlinger tụt dưới 60 và khoảng giữa hai lần vẽ p95 vượt `33ms` nên không dùng. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
 worker lỗi thì về renderer main thread: ngân sách 12 context tính cả context đang dùng và đang rảnh, context giữ theo
@@ -167,8 +169,8 @@ Then batch chỉ dùng một context, tổng không lúc nào quá 12, không l�
 
 ### R6. CTA, Kính và footer trên batch
 
-CTA `section.detail-cta[data-advertising-grid-cta]` đặt tại `--advertising-cta-top` (đáy masonry cộng một khoảng
-giữa), cao `--advertising-cta-tail-height`; chân chữ, cỡ tiêu đề, parallax theo
+CTA `section.detail-cta[data-masonry-grid-cta]` đặt tại `--masonry-cta-top` (đáy masonry cộng một khoảng
+giữa), cao `--masonry-cta-tail-height`; chân chữ, cỡ tiêu đề, parallax theo
 [CTA giữa viewport](advertising-cta-center-parallax.md). Kính dạng cung đặt theo đáy batch, đáy card thật, bề rộng card
 và cụm CTA (`arcGlassGeometry`): card phía trên vẫn nét, nhòe tăng vào cụm CTA, đáy batch trắng tuyệt đối
 ([Kính R2–R3](glass-surface.md#r2-dạng-cung-nền-cho-cụm-cta-nhòe-tăng-dần)). Khi duyệt masonry footer không có khoảng
@@ -214,12 +216,12 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-advertising-cta-skeleton]` (`data-advertising-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
-| DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
+| DOM hook | `[data-masonry-cta-skeleton]` (`data-masonry-cta-ready`, `-columns`, `-signature`) | Hộp batch; test đọc trạng thái |
+| DOM hook | `[data-masonry-cta-frame]` với `data-masonry-cta-slot`, `-column` (cột trái), `-span`, `-depth`, `-ratio-band`, `data-masonry-flow-state`; canvas `data-masonry-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
-| CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
-| Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
+| CSS | `--masonry-cta-top`, `--masonry-cta-tail-height`, `--masonry-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`masonry/skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `masonry/runtime.mjs` gọi |
+| Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`masonry/runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI
 
@@ -230,7 +232,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
+| R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, 200 seed x 3 và 4 cột x đáy ngẫu nhiên không lỗ và không lặp band, related không khung hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |

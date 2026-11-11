@@ -18,25 +18,25 @@ const product = "signage/raised-letters";
 const productPath = "/vi/advertising-products/bang-hieu-quang-cao/chu-noi/";
 
 const railState = (page) => page.evaluate(() => ({
-  current: [...document.querySelectorAll('[aria-current="true"][data-advertising-filter], [aria-current="true"][data-advertising-product]')]
-    .map((node) => node.dataset.advertisingFilter || node.dataset.advertisingProduct),
-  chips: [...document.querySelectorAll("[data-advertising-chips]:not([hidden])")].map((node) => node.dataset.advertisingChips),
+  current: [...document.querySelectorAll('[aria-current="true"][data-masonry-filter], [aria-current="true"][data-masonry-product]')]
+    .map((node) => node.dataset.masonryFilter || node.dataset.masonryProduct),
+  chips: [...document.querySelectorAll("[data-masonry-chips]:not([hidden])")].map((node) => node.dataset.masonryChips),
   path: location.pathname,
-  cards: [...document.querySelectorAll("[data-advertising-card]")].length,
+  cards: [...document.querySelectorAll("[data-masonry-card]")].length,
 }));
 
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-  await page.waitForSelector("[data-advertising-card]");
+  await page.waitForSelector("[data-masonry-card]");
   const html = await (await page.request.get(`${baseUrl}/vi/advertising-products/`)).text();
-  assert.match(html, new RegExp(`href="${productPath}"[^>]*data-advertising-product="${product}"`), "HTML tĩnh đã chứa link sản phẩm");
+  assert.match(html, new RegExp(`href="${productPath}"[^>]*data-masonry-product="${product}"`), "HTML tĩnh đã chứa link sản phẩm");
   assert.deepEqual((await railState(page)).chips, [], "Tất cả không có hàng chip");
 
   // Rail vào màn bằng GSAP (trượt lên); hover sau khi nó đứng yên.
-  await page.waitForFunction(() => !document.querySelector('[data-advertising-filter="signage"]').style.transform
-    && getComputedStyle(document.querySelector('[data-advertising-filter="signage"]')).opacity === "1");
-  await page.hover('[data-advertising-filter="signage"]');
+  await page.waitForFunction(() => !document.querySelector('[data-masonry-filter="signage"]').style.transform
+    && getComputedStyle(document.querySelector('[data-masonry-filter="signage"]')).opacity === "1");
+  await page.hover('[data-masonry-filter="signage"]');
   await page.waitForTimeout(400);
   assert.equal(await page.locator(".rail-panel").count(), 0, "hover cụm không có danh sách sản phẩm");
   // Hover desktop: gạch chân ::after chạy vào như nav header (taxonomy R3); mục khác vẫn thu về 0.
@@ -44,11 +44,11 @@ try {
     const after = getComputedStyle(document.querySelector(s), "::after");
     return { transform: after.transform, height: after.height };
   }, selector);
-  assert.deepEqual(await underline('[data-advertising-filter="signage"]'), { transform: "matrix(1, 0, 0, 1, 0, 0)", height: "3px" }, "hover cụm: gạch chân 3px đầy");
-  assert.equal((await underline('[data-advertising-filter="printing-decals"]')).transform, "matrix(0, 0, 0, 1, 0, 0)", "cụm không hover: gạch chân thu về 0");
+  assert.deepEqual(await underline('[data-masonry-filter="signage"]'), { transform: "matrix(1, 0, 0, 1, 0, 0)", height: "3px" }, "hover cụm: gạch chân 3px đầy");
+  assert.equal((await underline('[data-masonry-filter="printing-decals"]')).transform, "matrix(0, 0, 0, 1, 0, 0)", "cụm không hover: gạch chân thu về 0");
   const documents = [];
   page.on("request", (request) => { if (request.resourceType() === "document") documents.push(request.url()); });
-  await page.locator('[data-advertising-filter="signage"]').click();
+  await page.locator('[data-masonry-filter="signage"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   // Bấm cụm: hàng chip vừa hiện chạy entrance (opacity 0 trước khi vào); kicker đứng yên (taxonomy R3, owner 2026-11-08).
   const entrance = () => page.evaluate(() => ({
@@ -60,7 +60,7 @@ try {
   assert.equal(clusterEntrance.kickerText, "Sản phẩm tiêu biểu", "kicker không đổi khi lọc cụm");
   assert.equal(clusterEntrance.kicker, 0, "kicker không chạy entrance vì không đổi chữ");
   assert.ok(clusterEntrance.chips.length > 1 && clusterEntrance.chips.every((count) => count === 1), "mỗi chip của cụm vừa hiện có entrance");
-  const chip = `.rail-chips:not([hidden]) [data-advertising-product="${product}"]`;
+  const chip = `.rail-chips:not([hidden]) [data-masonry-product="${product}"]`;
   await page.hover(chip);
   await page.waitForTimeout(400);
   assert.deepEqual(await underline(`${chip} > span`), { transform: "matrix(1, 0, 0, 1, 0, 0)", height: "2px" }, "hover chip: gạch chân 2px đầy");
@@ -73,7 +73,7 @@ try {
   assert.deepEqual(afterChip.current, ["signage", product], "cụm và chip cùng đánh dấu");
   assert.deepEqual(afterChip.chips, ["signage"], "hàng chip của cụm đang chọn hiện");
   const productIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(product)).map((card) => card.id));
-  const shown = await page.evaluate(() => [...document.querySelectorAll(".advertising-grid [data-advertising-card]")].map((node) => node.dataset.advertisingCard));
+  const shown = await page.evaluate(() => [...document.querySelectorAll(".masonry-grid [data-masonry-card]")].map((node) => node.dataset.masonryCard));
   assert.ok(shown.length && shown.every((id) => productIds.has(id)), "masonry chỉ còn card của sản phẩm");
   // Từ 1025px rail một hàng nâng lên, chip nằm chỗ rail cũ, chữ "Cuộn xuống" vẫn hiện bên dưới chip.
   const stack = await page.evaluate(() => {
@@ -87,11 +87,11 @@ try {
 
   // Neo dọc (owner 2026-10-17): cụm một hàng và cụm nhiều hàng có hàng chip đầu cùng một vị trí.
   const firstRowTop = async (cluster) => {
-    await page.locator(`[data-advertising-filter="${cluster}"]`).click();
-    await page.waitForFunction((c) => !document.querySelector(`[data-advertising-chips="${c}"]`).hidden
-      && [...document.querySelectorAll(`[data-advertising-chips="${c}"] .rail-chip`)].every((chip) => !chip.getAnimations().length), cluster);
+    await page.locator(`[data-masonry-filter="${cluster}"]`).click();
+    await page.waitForFunction((c) => !document.querySelector(`[data-masonry-chips="${c}"]`).hidden
+      && [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].every((chip) => !chip.getAnimations().length), cluster);
     return page.evaluate((c) => {
-      const chips = [...document.querySelectorAll(`[data-advertising-chips="${c}"] .rail-chip`)].map((chip) => chip.getBoundingClientRect());
+      const chips = [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].map((chip) => chip.getBoundingClientRect());
       return { top: Math.round(Math.min(...chips.map((r) => r.top))), rows: new Set(chips.map((r) => Math.round(r.top))).size,
         scroll: window.TruongThinhMotion.getLogicalScroll() };
     }, cluster);
@@ -102,30 +102,30 @@ try {
   assert.ok(manyRows.rows > 1, "Biển văn phòng nhiều hàng chip");
   assert.equal(manyRows.top, oneRow.top, `hàng chip đầu cố định dọc: ${JSON.stringify({ oneRow, manyRows })}`);
 
-  await page.locator('[data-advertising-filter="signage"]').click();
+  await page.locator('[data-masonry-filter="signage"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
-  await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
+  await page.locator('.rail-chips:not([hidden]) [data-masonry-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
-  // Menu đủ ngưỡng trang R5 (taxonomy) nên chip sang trang sản phẩm riêng; kicker vẫn đứng yên.
+  // Mọi sản phẩm có chip đều có trang riêng (taxonomy R5) nên chip sang trang sản phẩm riêng; kicker vẫn đứng yên.
   const menus = "printing-decals/menus";
   const menuUrl = "/vi/advertising-products/in-an-decal/menu/";
   const menuIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(menus)).map((card) => card.id));
-  await page.locator('[data-advertising-filter="printing-decals"]').click();
+  await page.locator('[data-masonry-filter="printing-decals"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/in-an-decal/");
-  await page.locator(`.rail-chips:not([hidden]) [data-advertising-product="${menus}"]`).click();
+  await page.locator(`.rail-chips:not([hidden]) [data-masonry-product="${menus}"]`).click();
   await page.waitForFunction((target) => location.pathname === target, menuUrl);
   await page.waitForTimeout(800);
-  const menuShown = await page.evaluate(() => [...document.querySelectorAll(".advertising-grid [data-advertising-card]")].map((node) => node.dataset.advertisingCard));
-  assert.ok(menuIds.size >= 9, "Menu đủ 9 ảnh");
+  const menuShown = await page.evaluate(() => [...document.querySelectorAll(".masonry-grid [data-masonry-card]")].map((node) => node.dataset.masonryCard));
+  assert.ok(menuIds.size >= 10, "Menu đủ 10 card");
   assert.deepEqual(menuShown.sort(), [...menuIds].sort(), "masonry chỉ còn card Menu");
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
   assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).trim(), "Sản phẩm tiêu biểu", "kicker không đổi khi lọc sản phẩm");
-  await page.locator('[data-advertising-filter="all"]').click();
+  await page.locator('[data-masonry-filter="all"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "về Tất cả thì hàng chip ẩn");
 
   // Đang lọc và đã cuộn xuống: bấm "Sản phẩm quảng cáo" trên navbar thì về Tất cả và lên đầu trang.
-  await page.locator('[data-advertising-filter="office-signs"]').click();
+  await page.locator('[data-masonry-filter="office-signs"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/");
   await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
   await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll() > 300);
@@ -136,7 +136,7 @@ try {
   assert.deepEqual(documents, [], "chip, Tất cả và navbar không tải document");
   // Tải thẳng trang sản phẩm: filter đặt sẵn, canonical là chính trang đó.
   await page.goto(`${baseUrl}${menuUrl}`, { waitUntil: "networkidle" });
-  await page.waitForSelector("[data-advertising-card]");
+  await page.waitForSelector("[data-masonry-card]");
   assert.equal(await page.evaluate(() => location.pathname), menuUrl);
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), menuUrl);
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
@@ -149,8 +149,8 @@ try {
   // Reduced motion: kicker và chip vào thẳng trạng thái cuối, không animation.
   const calm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
   await calm.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-  await calm.waitForSelector("[data-advertising-card]");
-  await calm.locator('[data-advertising-filter="signage"]').click();
+  await calm.waitForSelector("[data-masonry-card]");
+  await calm.locator('[data-masonry-filter="signage"]').click();
   await calm.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   assert.equal(await calm.evaluate(() => [
     ...document.querySelectorAll("[data-motion-hero-kicker], .rail-chips:not([hidden]) .rail-chip"),
@@ -159,13 +159,13 @@ try {
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await phone.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-  await phone.waitForSelector("[data-advertising-card]");
-  await phone.locator('[data-advertising-filter="office-signs"]').scrollIntoViewIfNeeded();
-  await phone.locator('[data-advertising-filter="office-signs"]').tap();
+  await phone.waitForSelector("[data-masonry-card]");
+  await phone.locator('[data-masonry-filter="office-signs"]').scrollIntoViewIfNeeded();
+  await phone.locator('[data-masonry-filter="office-signs"]').tap();
   await phone.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/");
-  const chips = phone.locator('[data-advertising-chips="office-signs"]');
+  const chips = phone.locator('[data-masonry-chips="office-signs"]');
   assert.equal(await chips.evaluate((node) => getComputedStyle(node).overflowX), "auto", "hàng chip cuộn ngang");
-  await chips.locator('[data-advertising-product="office-signs/room-signs"]').tap();
+  await chips.locator('[data-masonry-product="office-signs/room-signs"]').tap();
   await phone.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/bien-phong-ban/");
   const phoneState = await railState(phone);
   assert.deepEqual(phoneState.current, ["office-signs", "office-signs/room-signs"]);
@@ -176,7 +176,7 @@ try {
   assert.ok(inView, "chip đang chọn nằm trong khung");
   // Máy cảm ứng giữ text-decoration, không có gạch chân ::after chạy (taxonomy R3).
   const phoneUnderline = await phone.evaluate(() => {
-    const cluster = document.querySelector('[data-advertising-filter="office-signs"]');
+    const cluster = document.querySelector('[data-masonry-filter="office-signs"]');
     return { line: getComputedStyle(cluster).textDecorationLine, after: getComputedStyle(cluster, "::after").content };
   });
   assert.deepEqual(phoneUnderline, { line: "underline", after: "none" }, "điện thoại: cụm đang chọn gạch chân bằng text-decoration");

@@ -164,10 +164,10 @@ Then gallery có thêm figure với ảnh đó, lọc "Đang dùng" có ảnh đ
 Trang gốc, cụm, sản phẩm và trang card `p/<id>` dùng một bản xem trước `advertising.html?path=<route>`: script đầu
 `<head>` đổi URL sang route thật (`history.replaceState`, runtime định tuyến theo path); `cms-core.js` (boot
 `advertising`) gán `window.__TT_ADVERTISING_ARTIFACT__` là Promise catalog đã vá, hook có sẵn của `loadArtifact` trong
-`catalog-runtime.mjs`. `patchCatalog` nạp `catalog-artifact.mjs`, `layout-core.mjs` (không nạp `catalog-detail.mjs`:
+`masonry/runtime.mjs`. `patchCatalog` nạp `catalog-artifact.mjs`, `masonry/layout.mjs` (không nạp `catalog-detail.mjs`:
 runtime gắn lười từng trường còn thiếu, card sửa nhận `related`), áp sửa đổi: `clusterIds`, `tagIds` theo sản phẩm mới,
 `media` là ảnh bìa; đổi sản phẩm chính sang cụm khác thì card nhận `sourceOrder` cuối cụm mới và hạng xếp lại bằng
-`scheduleAdvertisingRank`. Overlay chọn card trên lưới, gợi ý, hoặc ảnh chính của trang chi tiết; chế độ xem cho bấm
+`scheduleRank`. Overlay chọn card trên lưới, gợi ý, hoặc ảnh chính của trang chi tiết; chế độ xem cho bấm
 link `p/` vì runtime mở chi tiết tại chỗ. Thuộc tính sửa: tên, mô tả VI/EN (rời ô thì tải lại), sản phẩm (thêm theo cụm
 của taxonomy, bỏ, đặt sản phẩm chính; cụm theo sản phẩm chính), media (thêm từ thư viện, xóa, lên xuống, ảnh bìa, alt
 VI/EN), "Khôi phục card gốc". Nháp chung `advertising`: `cards: { id: { titleVi, titleEn, descriptionVi, descriptionEn,

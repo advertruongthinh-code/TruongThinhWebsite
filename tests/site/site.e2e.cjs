@@ -634,7 +634,7 @@ function assertPersistentNavigationContracts() {
     "Desktop nav focus must match the live outline-only state without opening the hover underline",
   );
   assert(
-    /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-advertising-photo"\);/.test(motionSource) &&
+    /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-detail"\);/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
       /directionStartY - scrollY > 150/.test(motionSource) &&
       /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(
@@ -4725,34 +4725,48 @@ async function runMenuChecks() {
   }
 }
 
+// Main-grid expectation on the runtime path (advertising-masonry R6): the built cache variant
+// variantIndex(seed, variants.length) placed by replayLayout; no cache, a pool signature mismatch or a failed replay
+// means stackLayout. `layouts` maps band -> { filters } like artifact.layouts; omitted, it reads the built band file
+// in .site-output; null means a cacheless artifact (injected test fixtures). Related masonry keeps compileMasonryLayout.
+async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed, layouts = artifact.layouts }) {
+  const { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+  const { filterRank, matchesFilter, normalizeMasonrySettings } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
+  const band = bandKey(layoutViewportWidth);
+  const settings = normalizeMasonrySettings(artifact.settings);
+  const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
+  const bandCache = layouts === undefined
+    ? (await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "layout-cache", `${band.replace(":", "-")}.mjs`)).href)).default
+    : layouts?.[band];
+  const entry = bandCache?.filters?.[filter];
+  const replayed = entry?.variants?.length && entry.sig === poolSignature(pool) && replayLayout({
+    entries: entry.variants[variantIndex(seed, entry.variants.length)], cards: artifact.cards, layoutViewportWidth, filter, settings,
+  });
+  return replayed || stackLayout({
+    order: shuffleWithSeed(pool, seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
+    layoutViewportWidth, filter, settings,
+  });
+}
+
 // Masonry R4/R7: cửa sổ runtime là layout organic đã seed cho lượt vào này.
 async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
 // `width` tính cửa sổ cho layout viewport mà trang chưa resize tới.
-function advertisingWindow(page, filter, width = null) {
-  return page.evaluate(async ({ filter, width }) => {
-    const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-    const { advertisingFilterRank, compileAdvertisingProductLayout, getVirtualWindow, matchesAdvertisingFilter, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
-    const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    const geometry = compileAdvertisingProductLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth: width ?? document.documentElement.clientWidth,
-      settings: normalizeAdvertisingProductSettings(artifact.settings),
-      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-    return getVirtualWindow(geometry, {
-      scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
-      viewportHeight: innerHeight, overscan: innerHeight,
-    }).items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
-  }, { filter, width });
+async function advertisingWindow(page, filter, width = null) {
+  const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "catalog-artifact.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const state = await page.evaluate(() => ({
+    seed: window.TruongThinhMasonry.getBrowseState().seed,
+    layoutViewportWidth: document.documentElement.clientWidth,
+    scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
+    viewportHeight: innerHeight,
+  }));
+  const geometry = await expectedGridLayout({ artifact, filter, layoutViewportWidth: width ?? state.layoutViewportWidth, seed: state.seed });
+  return getVirtualWindow(geometry, { scrollTop: state.scrollTop, viewportHeight: state.viewportHeight, overscan: state.viewportHeight })
+    .items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
 }
 
 // Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
@@ -4764,9 +4778,9 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
     let pickedId = id;
     const sample = () => {
       const tile = pickedId
-        ? grid.querySelector(`[data-advertising-card="${pickedId}"]`)
-        : [...grid.querySelectorAll(".advertising-tile")].find((item) => !item.hidden && item.dataset.advertisingCategory !== notCategory);
-      pickedId ||= tile?.dataset.advertisingCard;
+        ? grid.querySelector(`[data-masonry-card="${pickedId}"]`)
+        : [...grid.querySelectorAll(".masonry-card")].find((item) => !item.hidden && item.dataset.masonryCategory !== notCategory);
+      pickedId ||= tile?.dataset.masonryCard;
       const style = tile ? getComputedStyle(tile) : null;
       const rect = tile?.getBoundingClientRect();
       const gridRect = grid.getBoundingClientRect();
@@ -4814,19 +4828,19 @@ async function runAdvertisingFilterCheck() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
         { timeout: 3_000 },
       );
       const before = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
-        tiles: [...grid.querySelectorAll("[data-advertising-category]")].map(
+        tiles: [...grid.querySelectorAll("[data-masonry-category]")].map(
           (tile) => {
             const rect = tile.getBoundingClientRect();
             const gridRect = grid.getBoundingClientRect();
             return {
-              id: tile.dataset.advertisingCard,
-              category: tile.dataset.advertisingCategory,
+              id: tile.dataset.masonryCard,
+              category: tile.dataset.masonryCategory,
               left: rect.left - gridRect.left,
               top: rect.top - gridRect.top,
               transform: getComputedStyle(tile).transform,
@@ -4847,7 +4861,7 @@ async function runAdvertisingFilterCheck() {
       await page.evaluate(() => {
         const grid = document.querySelector("[data-project-grid]");
         const snapshots = [];
-        const capture = () => snapshots.push([...grid.querySelectorAll(".advertising-tile")].map((tile) => tile.dataset.advertisingCard));
+        const capture = () => snapshots.push([...grid.querySelectorAll(".masonry-card")].map((tile) => tile.dataset.masonryCard));
         const observer = new MutationObserver(capture);
         observer.observe(grid, { childList: true });
         capture();
@@ -4857,12 +4871,12 @@ async function runAdvertisingFilterCheck() {
         });
       });
       await armMorphSamples(page, { delays: [0, 160], id: survivorId, fromMotion: true });
-      await page.locator(`[data-advertising-filter="${filterSlug}"]`).click();
+      await page.locator(`[data-masonry-filter="${filterSlug}"]`).click();
       await page.waitForFunction(
         (slug) => {
           return (
             document
-              .querySelector(`[data-advertising-filter="${slug}"]`)
+              .querySelector(`[data-masonry-filter="${slug}"]`)
               ?.getAttribute("aria-current") === "true"
           );
         },
@@ -4870,7 +4884,7 @@ async function runAdvertisingFilterCheck() {
         { timeout: 3_000 },
       );
       const captureTrajectory = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
+        const tile = grid.querySelector(`[data-masonry-card="${id}"]`);
         const style = tile ? getComputedStyle(tile) : null;
         const rect = tile?.getBoundingClientRect();
         const gridRect = grid.getBoundingClientRect();
@@ -4919,13 +4933,13 @@ async function runAdvertisingFilterCheck() {
       const after = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
         width: grid.clientWidth,
-        tiles: [...grid.querySelectorAll("[data-advertising-category]")].map(
+        tiles: [...grid.querySelectorAll("[data-masonry-category]")].map(
           (tile) => {
             const rect = tile.getBoundingClientRect();
             const gridRect = grid.getBoundingClientRect();
             return {
-              id: tile.dataset.advertisingCard,
-              category: tile.dataset.advertisingCategory,
+              id: tile.dataset.masonryCard,
+              category: tile.dataset.masonryCategory,
               left: rect.left - gridRect.left,
               top: rect.top - gridRect.top,
               right: rect.right - gridRect.left,
@@ -4968,7 +4982,7 @@ async function runAdvertisingFilterCheck() {
       assert(noOverlap, `Filtered ${filterSlug} geometry overflowed or overlapped`);
       assert(
         (await page
-          .locator(`[data-advertising-filter="${filterSlug}"]`)
+          .locator(`[data-masonry-filter="${filterSlug}"]`)
           .getAttribute("aria-current")) === "true",
         "Active filter did not expose aria-current=true",
       );
@@ -4976,11 +4990,11 @@ async function runAdvertisingFilterCheck() {
       // Card có sản phẩm phụ thuộc cả hai cụm (taxonomy R1) đã mount sẵn; seed ngẫu nhiên mỗi lượt nên chọn card chỉ có ở cụm kế.
       const nextId = (await advertisingWindowIds(page, nextSlug)).find((id) => !expectedWindow.includes(id));
       const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid, id) =>
-        Boolean(grid.querySelector(`[data-advertising-card="${id}"]`)), nextId,
+        Boolean(grid.querySelector(`[data-masonry-card="${id}"]`)), nextId,
       );
       assert(!categoryOriginMounted, `${nextId} must not be mounted before category-to-category filter morph`);
       await armMorphSamples(page, { delays: [180], id: nextId });
-      await page.locator(`[data-advertising-filter="${nextSlug}"]`).click();
+      await page.locator(`[data-masonry-filter="${nextSlug}"]`).click();
       const [categoryDuring] = await readMorphSamples(page);
       assert(
         categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
@@ -4990,10 +5004,10 @@ async function runAdvertisingFilterCheck() {
       );
       await page.waitForTimeout(450);
       await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug, fromMotion: true });
-      await page.locator('[data-advertising-filter="all"]').click();
+      await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForFunction(
         () =>
-          document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
+          document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
       );
@@ -5018,8 +5032,8 @@ async function runAdvertisingFilterCheck() {
         `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
       );
       await page.waitForTimeout(450);
-      const beforeResize = await page.locator("[data-project-grid] .advertising-tile").evaluateAll((tiles) =>
-        tiles.map((tile) => ({ id: tile.dataset.advertisingCard, x: Number.parseFloat(tile.style.left), y: Number.parseFloat(tile.style.top) })),
+      const beforeResize = await page.locator("[data-project-grid] .masonry-card").evaluateAll((tiles) =>
+        tiles.map((tile) => ({ id: tile.dataset.masonryCard, x: Number.parseFloat(tile.style.left), y: Number.parseFloat(tile.style.top) })),
       );
       const resizeWindow = await advertisingWindow(page, "all", 1200);
       const resizeTarget = resizeWindow.find((placement) =>
@@ -5044,16 +5058,16 @@ async function runAdvertisingFilterCheck() {
     async (page) => {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
-      await page.locator('[data-advertising-filter="mobile-retail"]').click();
+      await page.locator('[data-masonry-filter="mobile-retail"]').click();
       await page.waitForFunction(
-        () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
+        () => document.querySelector('[data-masonry-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
       );
       // Thứ tự card là ngẫu nhiên theo seed nên không có id cố định nào chắc chắn nằm trong cửa sổ ảo; lấy tile đang mount.
-      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile"), null, { timeout: 3_000 });
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const style = getComputedStyle(grid.querySelector(".advertising-tile"));
+        const style = getComputedStyle(grid.querySelector(".masonry-card"));
         return { duration: style.transitionDuration, transform: style.transform };
       });
       assert(
@@ -5071,7 +5085,7 @@ async function runAdvertisingFilterCheck() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/?category=mobile-retail");
       await page.waitForFunction(
-        () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
+        () => document.querySelector('[data-masonry-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
       );
@@ -5081,7 +5095,7 @@ async function runAdvertisingFilterCheck() {
           window.__ttPendingScrollLayoutEvents += 1;
         });
       });
-      await page.locator('[data-advertising-filter="all"]').click();
+      await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForTimeout(50);
       const target = await page.locator("[data-project-grid]").evaluate((grid) =>
         grid.getBoundingClientRect().top + window.scrollY + 3000,
@@ -5097,7 +5111,7 @@ async function runAdvertisingFilterCheck() {
         const gridTop = grid.getBoundingClientRect().top + window.scrollY;
         const localScroll = y - gridTop;
         const expected = { top: Math.max(0, localScroll - innerHeight), bottom: localScroll + innerHeight * 2 };
-        const tiles = [...grid.querySelectorAll(".advertising-tile")].map((tile) => ({
+        const tiles = [...grid.querySelectorAll(".masonry-card")].map((tile) => ({
           top: Number.parseFloat(tile.style.top),
           bottom: Number.parseFloat(tile.style.top) + Number.parseFloat(tile.style.height),
           instant: getComputedStyle(tile).transitionDuration.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01),
@@ -5105,7 +5119,7 @@ async function runAdvertisingFilterCheck() {
         return {
           count: tiles.length,
           scrollY: window.scrollY,
-          active: document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current"),
+          active: document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current"),
           expected,
           intersectsExpectedRange: tiles.some((tile) => tile.top >= expected.top && tile.top < expected.bottom),
           instant: tiles.every((tile) => tile.instant),
@@ -5145,7 +5159,7 @@ async function runPublicSelectionCheck({ advertisingOnly = false } = {}) {
             caption: "main figcaption",
             nav: "[data-site-header] a",
             menu: "#site-menu a",
-            filter: "[data-advertising-filter]",
+            filter: "[data-masonry-filter]",
             button: "[data-menu-open]",
           };
           return Object.fromEntries(
@@ -5188,17 +5202,14 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     const { buildAdvertisingArtifact } = await import(
       pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
     );
-    const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-      pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-    );
-    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+    const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
     const artifact = buildAdvertisingArtifact();
     if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
     assert(
       artifact.cards.length === expectedCardCount,
       `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
     );
-    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow, shuffleWithSeed };
+    runtimeContract = { artifact, getVirtualWindow };
   }
   const cases = [
     { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
@@ -5233,10 +5244,10 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         await Promise.all([waitForCanonicalPath(page, destination), link.click()]);
         await page.waitForFunction(
           () => {
-            const grid = document.querySelector("[data-project-grid].advertising-grid");
+            const grid = document.querySelector("[data-project-grid].masonry-grid");
             return Boolean(
               document.body.classList.contains("is-transitioning") &&
-              grid?.querySelector(".advertising-tile") &&
+              grid?.querySelector(".masonry-card") &&
               window.gsap?.version === "3.15.0" &&
               typeof window.SplitText === "function" &&
               typeof window.Masonry === "function" &&
@@ -5251,7 +5262,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           const artifactPath = "/advertising-products/catalog-artifact.mjs";
           const artifact = cardCount === null ? null : await import(artifactPath);
           return {
-            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+            grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
             masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
@@ -5259,9 +5270,9 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             rawNoScript: grid?.textContent.trim().startsWith("<figure") || false,
             noscript: grid?.querySelector("noscript") !== null,
             path: window.location.pathname,
-            tiles: grid?.querySelectorAll(".advertising-tile").length || 0,
-            tileIds: [...(grid?.querySelectorAll(".advertising-tile") || [])].map(
-              (tile) => tile.getAttribute("data-advertising-card"),
+            tiles: grid?.querySelectorAll(".masonry-card").length || 0,
+            tileIds: [...(grid?.querySelectorAll(".masonry-card") || [])].map(
+              (tile) => tile.getAttribute("data-masonry-card"),
             ),
             gridHeight: Number.parseFloat(Reflect.get(grid || {}, "style")?.height || "0"),
             gridTop: grid ? grid.getBoundingClientRect().top + window.scrollY : 0,
@@ -5270,21 +5281,16 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             viewportHeight: window.innerHeight,
             artifactCards: artifact?.ADVERTISING_CATALOG_ARTIFACT?.cards?.length ?? null,
             transitioning: document.body.classList.contains("is-transitioning"),
-            seed: window.TruongThinhAdvertising?.getBrowseState?.()?.seed ?? null,
+            seed: window.TruongThinhMasonry?.getBrowseState?.()?.seed ?? null,
           };
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
-          ? (() => {
-              const layout = runtimeContract.compileAdvertisingLayout({
-                cards: runtimeContract.artifact.cards,
-                categoryOrder: runtimeContract.artifact.categories.map((category) => category.slug),
-                datasetVersion: runtimeContract.artifact.datasetVersion,
-                filter: "all",
+          ? await (async () => {
+              // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): cùng seed, cùng cache với runtime.
+              const layout = await expectedGridLayout({
+                artifact: runtimeContract.artifact,
                 layoutViewportWidth: state.layoutViewportWidth,
-                // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): dựng lại cùng seed với runtime.
-                presentationOrder: runtimeContract.shuffleWithSeed(runtimeContract.artifact.cards, state.seed, "grid:all")
-                  .map(({ id }) => id),
-                organicOrder: true,
+                seed: state.seed,
               });
               const ids = runtimeContract.getVirtualWindow(layout, {
                 scrollTop: Math.max(0, state.scrollY - state.gridTop),
@@ -5398,18 +5404,18 @@ async function runAdvertisingHistoryRemountChecks() {
           await Promise.all([waitForPath(page, destination), link.click()]);
         };
         const catalogState = () => page.evaluate(() => {
-          const grid = document.querySelector("[data-project-grid].advertising-grid");
+          const grid = document.querySelector("[data-project-grid].masonry-grid");
           return {
-            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+            grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
             masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
             raw: grid?.textContent.trim().startsWith("<figure") || false,
-            tiles: grid?.querySelectorAll(".advertising-tile").length || 0,
+            tiles: grid?.querySelectorAll(".masonry-card").length || 0,
           };
         });
         const assertCatalog = async (label) => {
-          await page.waitForFunction(() => document.querySelectorAll("[data-project-grid].advertising-grid .advertising-tile").length > 0);
+          await page.waitForFunction(() => document.querySelectorAll("[data-project-grid].masonry-grid .masonry-card").length > 0);
           const state = await catalogState();
           assert(
             state.grids === 1 && state.tiles > 0 && state.masonry && state.lazySizes && state.splitText && !state.raw,
@@ -5428,7 +5434,7 @@ async function runAdvertisingHistoryRemountChecks() {
           const state = await page.evaluate(() => ({
             path: window.location.pathname,
             containers: [...document.querySelectorAll("[data-barba=container]")].map((container) => container.dataset.barbaNamespace),
-            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+            grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
           }));
           throw new Error(`Advertising history traversal failed: ${error.message}; state=${JSON.stringify(state)}`);
         }
@@ -5447,10 +5453,10 @@ async function runAdvertisingNoOpScrollCheck() {
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, "/vi/advertising-products/");
-        await page.waitForFunction(() => document.querySelectorAll(".advertising-tile").length > 0);
+        await page.waitForFunction(() => document.querySelectorAll(".masonry-card").length > 0);
         const state = await page.evaluate(async () => {
           const grid = document.querySelector("[data-project-grid]");
-          const ids = () => [...grid.querySelectorAll(".advertising-tile")].map((tile) => tile.dataset.advertisingCard).sort().join(",");
+          const ids = () => [...grid.querySelectorAll(".masonry-card")].map((tile) => tile.dataset.masonryCard).sort().join(",");
           const before = ids();
           const calls = { layouts: 0, reloadItems: 0, events: 0 };
           const masonry = window.Masonry.data(grid);
@@ -5520,8 +5526,8 @@ async function runAdvertisingRapidFilterCheck() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0 &&
-          document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
+        () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0 &&
+          document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
       );
@@ -5531,11 +5537,11 @@ async function runAdvertisingRapidFilterCheck() {
         window.dispatchEvent(new Event("scroll"));
       });
       await page.waitForTimeout(50);
-      await page.locator('[data-advertising-filter="printing-decals"]').evaluate((control) => control.click());
+      await page.locator('[data-masonry-filter="printing-decals"]').evaluate((control) => control.click());
       await page.waitForTimeout(120);
       const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
         const gridRect = grid.getBoundingClientRect();
-        const before = [...grid.querySelectorAll(".advertising-tile")]
+        const before = [...grid.querySelectorAll(".masonry-card")]
           .filter((tile) => !tile.hidden)
           .map((tile) => {
             const rect = tile.getBoundingClientRect();
@@ -5543,7 +5549,7 @@ async function runAdvertisingRapidFilterCheck() {
           });
         const blockRapidTransitionEnd = (event) => {
           if (event.propertyName === "transform" &&
-              event.target?.dataset?.advertisingCategory === "mobile-retail") {
+              event.target?.dataset?.masonryCategory === "mobile-retail") {
             event.stopImmediatePropagation();
           }
         };
@@ -5551,20 +5557,20 @@ async function runAdvertisingRapidFilterCheck() {
         grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
         const scrollBefore = window.scrollY;
         grid.closest('[data-barba-namespace="advertising-products"]')
-          ?.querySelector('[data-advertising-filter="mobile-retail"]')?.click();
+          ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
         // Runtime đọc tọa độ nhìn thấy trong frame sau click, nên card đang trượt đã đi thêm một frame (tới ~14px ở đỉnh
         // tốc độ) so với `before`; lấy thêm mẫu ở frame này để gốc morph khớp một trong hai.
         const frameRect = grid.getBoundingClientRect();
-        const beforeFrame = [...grid.querySelectorAll(".advertising-tile")]
+        const beforeFrame = [...grid.querySelectorAll(".masonry-card")]
           .filter((tile) => !tile.hidden)
           .map((tile) => {
             const rect = tile.getBoundingClientRect();
             return { x: rect.left - frameRect.left, y: rect.top - frameRect.top };
           });
-        const membersBeforeScroll = [...grid.querySelectorAll(".advertising-tile")]
+        const membersBeforeScroll = [...grid.querySelectorAll(".masonry-card")]
           .filter((tile) => !tile.hidden)
-          .map((tile) => tile.dataset.advertisingCard);
+          .map((tile) => tile.dataset.masonryCard);
         const scrollTarget = Math.min(
           document.documentElement.scrollHeight - innerHeight,
           scrollBefore + Math.round(innerHeight * 2),
@@ -5572,7 +5578,7 @@ async function runAdvertisingRapidFilterCheck() {
         const gridDocumentTop = grid.getBoundingClientRect().top + window.scrollY;
         const futureCenter = Math.max(0, scrollTarget - gridDocumentTop) + innerHeight * 0.5;
         const trackedItem = Reflect.get(window, "Masonry").data(grid).items
-          .filter((item) => !item.element.hidden && item.element.dataset.advertisingCategory === "mobile-retail")
+          .filter((item) => !item.element.hidden && item.element.dataset.masonryCategory === "mobile-retail")
           .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
         if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
         // Giữ transition transform của card theo dõi: hết chuyển động phải là "finished", bị cắt ngang là "idle".
@@ -5589,18 +5595,18 @@ async function runAdvertisingRapidFilterCheck() {
           duration: grid.__rapidMorph.effect.getComputedTiming().duration,
           to: grid.__rapidMorph.effect.getKeyframes().at(-1).transform,
         };
-        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.advertisingCard };
+        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.masonryCard };
       });
       const { before, beforeFrame, membersBeforeScroll, morph, scrollTarget, trackedId } = rapidStart;
       const capture = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const tile = [...grid.querySelectorAll(".advertising-tile")]
-          .find((item) => !item.hidden && item.dataset.advertisingCard === id);
+        const tile = [...grid.querySelectorAll(".masonry-card")]
+          .find((item) => !item.hidden && item.dataset.masonryCard === id);
         const gridRect = grid.getBoundingClientRect();
         const rect = tile?.getBoundingClientRect();
         const style = tile ? getComputedStyle(tile) : null;
         return {
           duration: style?.transitionDuration,
-          members: [...grid.querySelectorAll(".advertising-tile")].map((item) => item.dataset.advertisingCard),
+          members: [...grid.querySelectorAll(".masonry-card")].map((item) => item.dataset.masonryCard),
           morph: grid.__rapidMorph?.playState,
           staleTransitionEnds: grid.__rapidOldTransitionEnds || 0,
           transform: style?.transform,
@@ -5618,16 +5624,16 @@ async function runAdvertisingRapidFilterCheck() {
       const during = await capture();
       await page.waitForFunction((id) => {
         const grid = document.querySelector("[data-project-grid]");
-        return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-advertising-card="${id}"]`)?.style.transform;
+        return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-masonry-card="${id}"]`)?.style.transform;
       }, trackedId, { timeout: 2_000 }).catch(() => {});
       // Cú cuộn xa chỉ giữ chỗ bằng card tạm trước, card thật dựng dần theo ngân sách frame (masonry R7).
-      await page.waitForFunction(() => !document.querySelector(".advertising-ghost"), null, { timeout: 3_000 }).catch(() => {});
+      await page.waitForFunction(() => !document.querySelector(".masonry-ghost"), null, { timeout: 3_000 }).catch(() => {});
       const settled = await capture();
       await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
         if (!grid.__blockRapidTransitionEnd) return;
         grid.removeEventListener("transitionend", grid.__blockRapidTransitionEnd, true);
         delete grid.__blockRapidTransitionEnd;
-        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
+        const tile = grid.querySelector(`[data-masonry-card="${id}"]`);
         tile?.dispatchEvent(new TransitionEvent("transitionend", {
           bubbles: true,
           propertyName: "transform",
@@ -5679,7 +5685,7 @@ async function runAdvertisingDirectFailureCheck() {
       await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.abort("failed"));
       await gotoRoute(page, "/vi/advertising-products/?direct-vendor-failure=1");
       await page.waitForFunction(
-        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
         { timeout: 6_000 },
       );
@@ -5687,7 +5693,7 @@ async function runAdvertisingDirectFailureCheck() {
         const grid = document.querySelector("[data-project-grid]");
         return {
           boots: Number(window.name),
-          fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+          fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
           hidden: grid?.hidden,
           raw: grid?.textContent.trim().startsWith("<figure") || false,
           transitioning: document.body.classList.contains("is-transitioning"),
@@ -5736,7 +5742,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               );
               const words = [...(title?.querySelectorAll(".motion-word") || [])];
               const filters = [
-                ...document.querySelectorAll("[data-advertising-filter]"),
+                ...document.querySelectorAll("[data-masonry-filter]"),
               ];
               const kickerMatrix = matrix(kicker);
               const wrapperMatrix = matrix(wrapper);
@@ -6020,7 +6026,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
-          const kioskFilter = page.locator('[data-advertising-filter="displays-booths"]');
+          const kioskFilter = page.locator('[data-masonry-filter="displays-booths"]');
           await kioskFilter.focus();
           assert(
             await kioskFilter.evaluate((filter) => document.activeElement === filter),
@@ -6028,8 +6034,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           );
 
           if (viewport.width <= 390) {
-            const firstFilter = page.locator('[data-advertising-filter="all"]');
-            const lastFilter = page.locator('[data-advertising-filter="mobile-retail"]');
+            const firstFilter = page.locator('[data-masonry-filter="all"]');
+            const lastFilter = page.locator('[data-masonry-filter="mobile-retail"]');
             await firstFilter.focus();
             for (let index = 0; index < 6; index += 1) {
               await page.keyboard.press("Tab");
@@ -6050,7 +6056,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             assert(mobileFilters.isScrollable && mobileFilters.lastFits, `${locale} ${viewport.width}x${viewport.height}: keyboard focus did not bring the final mobile filter into view`);
             await page.keyboard.press("Enter");
             await page.waitForFunction(
-              () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
+              () => document.querySelector('[data-masonry-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
               null,
               { timeout: 3_000 },
             );
@@ -6070,11 +6076,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout, isAdvertisingWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { MASONRY_LAYOUT_VERSION, isWideMedia } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
+  const { verifyLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
   const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
   const contractBoundaryWidths = [750, 960, 1200];
   const columnBoundaryWidths = [500, 735, 990];
@@ -6082,7 +6086,7 @@ async function runAdvertisingGridFocusedChecks() {
     .flatMap((width) => [width - 1, width, width + 1]);
   const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
   // Bản thuật toán do unit test advertising-products-layout ghim; ở đây chỉ kiểm artifact đi cùng compiler.
-  assert(artifact.layoutAlgorithmVersion === ADVERTISING_LAYOUT_ALGORITHM_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${ADVERTISING_LAYOUT_ALGORITHM_VERSION}`);
+  assert(artifact.layoutAlgorithmVersion === MASONRY_LAYOUT_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${MASONRY_LAYOUT_VERSION}`);
   assert(
     artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
     "Advertising artifact retained legacy canvas or span authoring fields",
@@ -6095,18 +6099,18 @@ async function runAdvertisingGridFocusedChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, "/vi/advertising-products/");
         await page.waitForFunction(
-          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
           null,
           { timeout: 3_000 },
         );
         await page.evaluate(() => document.fonts?.ready);
         const measured = await page.locator("[data-project-grid]").evaluate((grid) => {
           const gridBounds = grid.getBoundingClientRect();
-          const tiles = [...grid.querySelectorAll(".advertising-tile")].map((tile) => {
+          const tiles = [...grid.querySelectorAll(".masonry-card")].map((tile) => {
             const rect = tile.getBoundingClientRect();
             const media = tile.querySelector(".project-tile__media");
             return {
-              id: tile.dataset.advertisingCard,
+              id: tile.dataset.masonryCard,
               left: Number.parseFloat(tile.style.left),
               top: Number.parseFloat(tile.style.top),
               width: Number.parseFloat(tile.style.width),
@@ -6116,7 +6120,7 @@ async function runAdvertisingGridFocusedChecks() {
               mediaWidth: media?.getBoundingClientRect().width ?? 0,
               mediaHeight: media?.getBoundingClientRect().height ?? 0,
               images: media?.querySelectorAll("img").length ?? 0,
-              backplates: media?.querySelectorAll(".advertising-tile__backplate").length ?? 0,
+              backplates: media?.querySelectorAll(".masonry-card__backplate").length ?? 0,
               fitMode: media?.getAttribute("data-media-fit"),
             };
           });
@@ -6127,10 +6131,10 @@ async function runAdvertisingGridFocusedChecks() {
             width: gridBounds.width,
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
             tiles,
-            outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--advertising-outer")),
-            gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--advertising-gap")),
+            outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--masonry-outer")),
+            gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--masonry-gap")),
             // Tên card chỉ hiện khi hover chuột thật (owner 2026-11-09), không chiếm chỗ; ngoài nó không còn caption.
-            captionCount: grid.querySelectorAll("figcaption:not(.advertising-tile__title)").length,
+            captionCount: grid.querySelectorAll("figcaption:not(.masonry-card__title)").length,
           };
         });
         const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
@@ -6141,21 +6145,12 @@ async function runAdvertisingGridFocusedChecks() {
         const expectedColumns = Math.min(4, Math.max(2, Math.floor((expectedGridWidth + expectedGap) / (220 + expectedGap))));
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
         // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const expectedLayout = compileAdvertisingLayout({
-          cards: artifact.cards,
-          categoryOrder,
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: measured.viewportWidth,
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
-        });
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        const expectedLayout = await expectedGridLayout({ artifact, layoutViewportWidth: measured.viewportWidth, seed });
         /** @type {Map<string, any>} */
         const expectedById = new Map();
         expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
-        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isAdvertisingWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1 || (expectedLayout.columns >= 3 && isWideMedia(placement.card.media))), `${width}px compiler lost 2..4 columns or spans a non-golden-ratio photo (R5)`);
         const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
           Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
           Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
@@ -6174,30 +6169,33 @@ async function runAdvertisingGridFocusedChecks() {
         assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
         assert(noOverlap, `${width}px grid has overlapping runtime tiles`);
         assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
-        assert(measured.tiles.every((tile) => {
+        const drifted = measured.tiles.find((tile) => {
           const expected = expectedById.get(tile.id);
-          return expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
+          // Card cắt mép dưới (R6, tối đa CROP_CAP) giữ tỷ lệ ảnh gốc khi cộng lại phần cắt mediaBleed.
+          return !(expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
             Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
-            Math.abs(tile.mediaWidth / tile.mediaHeight - expected.card.media.width / expected.card.media.height) <= 0.01 &&
+            Math.abs(tile.mediaWidth / (tile.mediaHeight + (expected.mediaBleed ?? 0)) - expected.card.media.width / expected.card.media.height) <= 0.01 &&
             Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
             tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
-            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05;
-        }), `${width}px runtime geometry drifted from v6 shared layout`);
-        const oracle = inspectAdvertisingGrid({ layout: expectedLayout, placements: expectedLayout.placements });
-        assert(oracle.valid, `${width}px full v6 layout violates one-column stagger/anti-brick oracle: ${JSON.stringify(oracle.violations)}`);
+            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
+        });
+        assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
+        // So le giờ là điểm chấm lúc build, không phải luật cứng (advertising-masonry R6): kiểm không lỗ, khe đúng, cắt trong trần.
+        const verified = verifyLayout(expectedLayout);
+        assert(verified.ok, `${width}px replayed layout fails verifyLayout: ${JSON.stringify(verified.errors.slice(0, 5))}`);
 
         const firstPass = await page.locator("[data-project-grid]").evaluate((grid) =>
-          [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+          [...grid.querySelectorAll(".masonry-card")].map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`),
         );
-        await page.locator('[data-advertising-filter="displays-booths"]').click();
-        await page.locator('[data-advertising-filter="all"]').click();
+        await page.locator('[data-masonry-filter="displays-booths"]').click();
+        await page.locator('[data-masonry-filter="all"]').click();
         // Chờ lưới settle (hết transform, hết fade, không còn animation, vị trí đứng yên giữa hai lần đọc) thay cho
         // 450ms cố định: runner bận còn để card kiosk ở chỗ cũ, card đang mờ dần chưa rời DOM khi đọc.
         await page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]");
-          const tiles = [...grid.querySelectorAll(".advertising-tile")];
-          const key = tiles.map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`).join();
+          const tiles = [...grid.querySelectorAll(".masonry-card")];
+          const key = tiles.map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`).join();
           const settled = !grid.getAnimations({ subtree: true }).length &&
             tiles.every((tile) => getComputedStyle(tile).transform === "none" && getComputedStyle(tile).opacity === "1") &&
             key === window.__ttGridKey;
@@ -6205,7 +6203,7 @@ async function runAdvertisingGridFocusedChecks() {
           return settled;
         }, null, { polling: 100, timeout: 5_000 });
         const secondPass = await page.locator("[data-project-grid]").evaluate((grid) =>
-          [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+          [...grid.querySelectorAll(".masonry-card")].map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`),
         );
         assert(JSON.stringify(secondPass) === JSON.stringify(firstPass), `${width}px filter round-trip changed the loaded deterministic prefix: ${JSON.stringify({ firstPass, secondPass })}`);
         assertDiagnostics(diagnostics);
@@ -6243,7 +6241,7 @@ async function runAdvertisingGridFocusedChecks() {
           const grid = document.querySelector("[data-project-grid]");
           const index = grid?.closest(".project-index");
           if (!grid || !index) return false;
-          const outer = Number.parseFloat(getComputedStyle(index).getPropertyValue("--advertising-outer"));
+          const outer = Number.parseFloat(getComputedStyle(index).getPropertyValue("--masonry-outer"));
           const expectedOuter = document.documentElement.clientWidth <= 750 ? 15 : document.documentElement.clientWidth <= 1200 ? 25 : 35;
           const expectedWidth = Math.min(document.documentElement.clientWidth - 2 * expectedOuter, 1500);
           return outer === expectedOuter && Math.abs(grid.getBoundingClientRect().width - expectedWidth) <= 0.05;
@@ -6257,7 +6255,7 @@ async function runAdvertisingGridFocusedChecks() {
             left: bounds.left,
             right: document.documentElement.clientWidth - bounds.right,
             width: bounds.width,
-            outerToken: Number.parseFloat(getComputedStyle(index).getPropertyValue("--advertising-outer")),
+            outerToken: Number.parseFloat(getComputedStyle(index).getPropertyValue("--masonry-outer")),
           };
         });
         const expectedOuter = measured.clientWidth <= 750 ? 15 : measured.clientWidth <= 1200 ? 25 : 35;
@@ -6290,13 +6288,13 @@ async function runAdvertisingGridFocusedChecks() {
       }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
         constructs: window.__ttMasonryConstructs,
-        fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+        fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
       assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
@@ -6318,13 +6316,13 @@ async function runAdvertisingGridFocusedChecks() {
       }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
         constructs: window.__ttMasonryConstructs,
-        fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+        fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
       assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
@@ -6332,30 +6330,11 @@ async function runAdvertisingGridFocusedChecks() {
   );
 }
 
-async function advertisingArtifactScrollTarget(page, artifact, id) {
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  const layout = compileAdvertisingLayout({
-    cards: artifact.cards,
-    categoryOrder: artifact.categories.map((category) => category.slug),
-    datasetVersion: artifact.datasetVersion,
-    filter: "all",
-    layoutViewportWidth,
-  });
-  const target = layout.placements.find((placement) => placement.card.id === id);
-  if (!target) throw new Error(`artifact placement missing: ${id}`);
-  const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
-  return gridTop + target.y;
-}
-
 async function runAdvertisingKeyboardVirtualizationCheck() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const artifact = buildAdvertisingArtifact();
 
   await runPageCase(
@@ -6364,20 +6343,11 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
     async (page) => {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
-      await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
+      await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
       // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-      const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-      const layout = compileAdvertisingLayout({
-        cards: artifact.cards,
-        categoryOrder: artifact.categories.map((category) => category.slug),
-        datasetVersion: artifact.datasetVersion,
-        settings: artifact.settings,
-        filter: "all",
-        layoutViewportWidth,
-        presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-        organicOrder: true,
-      });
+      const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+      const layout = await expectedGridLayout({ artifact, layoutViewportWidth, seed });
       const expected = layout.placements.map((placement) => placement.card);
       // Trần cửa sổ ảo: số card lớn nhất mà getVirtualWindow trả ở bất kỳ vị trí cuộn nào. Locomotive cuộn mượt (lerp) và
       // runtime nhận vị trí qua site:scroll lệch vài ms so với lúc test đọc gridTop, nên so với đoạn cuộn vừa đo sẽ flake;
@@ -6388,16 +6358,16 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
         maxWindowCount = Math.max(maxWindowCount, getVirtualWindow(layout, { scrollTop: top, viewportHeight: 900, overscan: 900, releaseOverscan: 1800 }).retained.length);
       }
       const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
-        const activeItem = document.activeElement?.closest("[data-advertising-card]");
+        const activeItem = document.activeElement?.closest("[data-masonry-card]");
         const gridTop = grid.getBoundingClientRect().top + window.scrollY;
         return {
-          activeId: activeItem?.getAttribute("data-advertising-card"),
+          activeId: activeItem?.getAttribute("data-masonry-card"),
           activeRole: activeItem?.getAttribute("role"),
           activePosition: Number(activeItem?.getAttribute("aria-posinset")),
           activeSetSize: Number(activeItem?.getAttribute("aria-setsize")),
           gridRole: grid.getAttribute("role"),
-          domCount: grid.querySelectorAll(".advertising-tile").length,
-          mountedPositions: [...grid.querySelectorAll(".advertising-tile")]
+          domCount: grid.querySelectorAll(".masonry-card").length,
+          mountedPositions: [...grid.querySelectorAll(".masonry-card")]
             .map((item) => item.getAttribute("aria-posinset"))
             .filter((value) => value !== null)
             .map(Number),
@@ -6406,7 +6376,7 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
         };
       });
 
-      await page.locator(`[data-advertising-card="${expected[0].id}"] a`).focus();
+      await page.locator(`[data-masonry-card="${expected[0].id}"] a`).focus();
       const states = [];
       for (let index = 0; index < expected.length; index += 1) {
         if (index > 0) {
@@ -6434,7 +6404,7 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       // Frontier lùi phụ thuộc tốc độ lerp nên dựng chắc chắn: kéo trang về đầu, card cuối đang focus phải được giữ lại (R7).
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       await page.waitForFunction(
-        (id) => !document.querySelector(`[data-project-grid] [data-advertising-card="${id}"]`),
+        (id) => !document.querySelector(`[data-project-grid] [data-masonry-card="${id}"]`),
         expected.at(-2).id,
       );
       const endState = await readState();
@@ -6463,23 +6433,11 @@ async function runAdvertisingMediaEntranceChecks() {
   const { buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
-  );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed với runtime.
+  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed, cùng cache với runtime.
   const deepestTarget = async (page) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const layout = compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      filter: "all",
-      layoutViewportWidth: 1440,
-      presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-      organicOrder: true,
-    });
+    const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+    const layout = await expectedGridLayout({ artifact, layoutViewportWidth: 1440, seed });
     return layout.placements.reduce((deepest, placement) =>
       placement.y > deepest.y ? placement : deepest);
   };
@@ -6518,7 +6476,7 @@ async function runAdvertisingMediaEntranceChecks() {
         await cdp.send("Fetch.enable", { patterns: [{ urlPattern: "*/assets/content/*", requestStage: "Response" }] });
         await gotoRoute(page, route);
         await page.waitForFunction(
-          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
           null,
           { timeout: 6_000 },
         );
@@ -6527,7 +6485,7 @@ async function runAdvertisingMediaEntranceChecks() {
           (grid) => grid.getBoundingClientRect().top + window.scrollY,
         );
         const initiallyMounted = await page.locator(
-          `[data-advertising-card="${target.card.id}"]`,
+          `[data-masonry-card="${target.card.id}"]`,
         ).count();
         assert(
           initiallyMounted === 0,
@@ -6551,15 +6509,15 @@ async function runAdvertisingMediaEntranceChecks() {
           window.scrollTo({ top: scrollTop, behavior: "instant" });
           await new Promise((resolve) => {
             const sample = () => {
-              const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
-              const image = tile?.querySelector(".advertising-tile__foreground");
+              const tile = document.querySelector(`[data-masonry-card="${targetId}"]`);
+              const image = tile?.querySelector(".masonry-card__foreground");
               if (tile && image instanceof HTMLImageElement) {
                 const imageStyle = getComputedStyle(image);
                 const tileRect = tile.getBoundingClientRect();
                 trace.push({
                   elapsed: performance.now() - startedAt,
                   imageOpacity: Number.parseFloat(imageStyle.opacity),
-                  imageReady: image.classList.contains("is-advertising-media-ready"),
+                  imageReady: image.classList.contains("is-masonry-media-ready"),
                   currentSrc: image.currentSrc,
                   complete: image.complete,
                   naturalWidth: image.naturalWidth,
@@ -6574,7 +6532,7 @@ async function runAdvertisingMediaEntranceChecks() {
                   shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
                   blur: image.style.filter.startsWith("blur("),
                 });
-                if (image.classList.contains("is-advertising-media-ready") && image.naturalWidth && !trace.at(-1).blur
+                if (image.classList.contains("is-masonry-media-ready") && image.naturalWidth && !trace.at(-1).blur
                   && readyAt < 0) {
                   readyAt = performance.now();
                 }
@@ -6612,7 +6570,7 @@ async function runAdvertisingMediaEntranceChecks() {
         const captureReplay = async (cycle) => {
           await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), gridTop);
           await page.waitForFunction(
-            (targetId) => !document.querySelector(`[data-advertising-card="${targetId}"]`),
+            (targetId) => !document.querySelector(`[data-masonry-card="${targetId}"]`),
             target.card.id,
             { timeout: 6_000 },
           );
@@ -6620,8 +6578,8 @@ async function runAdvertisingMediaEntranceChecks() {
             const events = [];
             const capture = (event) => {
               if (
-                event.target?.classList?.contains("advertising-tile__foreground") &&
-                event.target.closest("[data-advertising-card]")?.dataset.advertisingCard === targetId &&
+                event.target?.classList?.contains("masonry-card__foreground") &&
+                event.target.closest("[data-masonry-card]")?.dataset.masonryCard === targetId &&
                 event.propertyName === "opacity"
               ) {
                 events.push(event.type);
@@ -6637,18 +6595,18 @@ async function runAdvertisingMediaEntranceChecks() {
             let readyAt = -1;
             await new Promise((resolve) => {
               const sample = () => {
-                const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
-                const image = tile?.querySelector(".advertising-tile__foreground");
+                const tile = document.querySelector(`[data-masonry-card="${targetId}"]`);
+                const image = tile?.querySelector(".masonry-card__foreground");
                 if (tile && image) {
                   if (mountedAt < 0) mountedAt = performance.now();
                   if (
                     readyAt < 0 &&
-                    image.classList.contains("is-advertising-media-ready")
+                    image.classList.contains("is-masonry-media-ready")
                   ) readyAt = performance.now();
                   const rect = tile.getBoundingClientRect();
                   samples.push({
                     opacity: Number.parseFloat(getComputedStyle(image).opacity),
-                    ready: image.classList.contains("is-advertising-media-ready"),
+                    ready: image.classList.contains("is-masonry-media-ready"),
                     intersectsViewport: rect.bottom > 0 && rect.top < innerHeight,
                     shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
                     // Skeleton là canvas, Kính reveal có data-glass-reveal, ảnh chờ tải mang blur (progressive-loading R9).
@@ -6697,8 +6655,8 @@ async function runAdvertisingMediaEntranceChecks() {
             const events = [];
             const capture = (event) => {
               if (
-                event.target?.classList?.contains("advertising-tile__foreground") &&
-                event.target.closest("[data-advertising-card]")?.dataset.advertisingCard === targetId &&
+                event.target?.classList?.contains("masonry-card__foreground") &&
+                event.target.closest("[data-masonry-card]")?.dataset.masonryCard === targetId &&
                 event.propertyName === "opacity"
               ) {
                 events.push(event.type);
@@ -6708,7 +6666,7 @@ async function runAdvertisingMediaEntranceChecks() {
             window.scrollBy(0, 24);
             await new Promise((resolve) => setTimeout(resolve, 180));
             document.removeEventListener("transitionrun", capture, true);
-            const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
+            const tile = document.querySelector(`[data-masonry-card="${targetId}"]`);
             const rect = tile?.getBoundingClientRect();
             return {
               events,
@@ -6733,7 +6691,7 @@ async function runAdvertisingMediaEntranceChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, route);
         await page.waitForFunction(
-          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
           null,
           { timeout: 6_000 },
         );
@@ -6747,15 +6705,15 @@ async function runAdvertisingMediaEntranceChecks() {
         );
         await page.waitForFunction(
           (targetId) => document.querySelector(
-            `[data-advertising-card="${targetId}"] .advertising-tile__foreground.is-advertising-media-ready`,
+            `[data-masonry-card="${targetId}"] .masonry-card__foreground.is-masonry-media-ready`,
           ),
           target.card.id,
           { timeout: 6_000 },
         );
         const state = await page.locator(
-          `[data-advertising-card="${target.card.id}"]`,
+          `[data-masonry-card="${target.card.id}"]`,
         ).evaluate((tile) => {
-          const image = tile.querySelector(".advertising-tile__foreground");
+          const image = tile.querySelector(".masonry-card__foreground");
           const imageStyle = getComputedStyle(image);
           return {
             reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -6782,10 +6740,9 @@ async function runAdvertisingMediaFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(
-    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  const { compileMasonryLayout, getVirtualWindow, matchesFilter } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href
   );
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = artifact.categories.map((category) => category.slug);
   // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
@@ -6804,7 +6761,7 @@ async function runAdvertisingMediaFocusedChecks() {
     const cards = artifact.cards
       .filter((card) => card.category === category.slug)
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
-    const layout = compileAdvertisingLayout({
+    const layout = compileMasonryLayout({
       cards: artifact.cards,
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
@@ -6812,7 +6769,7 @@ async function runAdvertisingMediaFocusedChecks() {
       layoutViewportWidth: 1440,
     });
     // Layout cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), xếp theo sourceOrder rồi id.
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, category.slug))
+    const pool = artifact.cards.filter((card) => matchesFilter(card, category.slug))
       .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
     assert(
       cards.length === expectedCounts[category.slug] &&
@@ -6825,7 +6782,7 @@ async function runAdvertisingMediaFocusedChecks() {
       `${category.slug} count or pool order drifted`,
     );
   }
-  const rankedLayout = compileAdvertisingLayout({
+  const rankedLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder,
     datasetVersion: artifact.datasetVersion,
@@ -6839,29 +6796,18 @@ async function runAdvertisingMediaFocusedChecks() {
     `All layout did not retain all ${expectedCardCount} ranked cards`,
   );
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder,
-      datasetVersion: artifact.datasetVersion,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
 
   const readGridState = (page) => page.locator("[data-project-grid]").evaluate((grid) => {
     const bounds = grid.getBoundingClientRect();
-    const tiles = [...grid.querySelectorAll(".advertising-tile:not([hidden])")].map((tile) => {
+    const tiles = [...grid.querySelectorAll(".masonry-card:not([hidden])")].map((tile) => {
       const rect = tile.getBoundingClientRect();
-      const image = tile.querySelector(".advertising-tile__foreground");
+      const image = tile.querySelector(".masonry-card__foreground");
       return {
-        id: tile.dataset.advertisingCard,
-        category: tile.dataset.advertisingCategory,
+        id: tile.dataset.masonryCard,
+        category: tile.dataset.masonryCategory,
         left: Number.parseFloat(tile.style.left),
         top: Number.parseFloat(tile.style.top),
         width: Number.parseFloat(tile.style.width),
@@ -6875,7 +6821,7 @@ async function runAdvertisingMediaFocusedChecks() {
     });
     return {
       tiles,
-      totalDomCount: grid.querySelectorAll(".advertising-tile").length,
+      totalDomCount: grid.querySelectorAll(".masonry-card").length,
       gridTop: bounds.top + window.scrollY,
       gridWidth: bounds.width,
       gridHeight: Number.parseFloat(grid.style.height),
@@ -6884,7 +6830,7 @@ async function runAdvertisingMediaFocusedChecks() {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       rawHtmlText: /(?:<|&lt;)figure\b/i.test(grid.textContent),
       noscript: grid.querySelector("noscript") !== null,
-      activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.getAttribute("data-advertising-filter"),
+      activeFilter: document.querySelector('[data-masonry-filter][aria-current="true"]')?.getAttribute("data-masonry-filter"),
       categoryQuery: new URLSearchParams(location.search).get("category"),
       pathname: location.pathname,
     };
@@ -6968,7 +6914,7 @@ async function runAdvertisingMediaFocusedChecks() {
       });
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
         { timeout: 6_000 },
       );
@@ -6976,11 +6922,11 @@ async function runAdvertisingMediaFocusedChecks() {
       const initial = await readGridState(page);
       const pageLayout = await browseLayout(page, "all", 1440);
       assertGridState(initial, pageLayout, "initial direct load");
-      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile__foreground")?.classList.contains("is-advertising-media-ready"));
-      const hoverTile = page.locator("[data-project-grid] .advertising-tile").first();
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card__foreground")?.classList.contains("is-masonry-media-ready"));
+      const hoverTile = page.locator("[data-project-grid] .masonry-card").first();
       await hoverTile.hover();
       await page.waitForTimeout(700);
-      const naturalHoverScale = await hoverTile.locator(".advertising-tile__foreground").evaluate((image) =>
+      const naturalHoverScale = await hoverTile.locator(".masonry-card__foreground").evaluate((image) =>
         new DOMMatrixReadOnly(getComputedStyle(image).transform).a,
       );
       // media-card R3: card không zoom media khi hover, chỉ phủ lớp tối (kiểm ở site-media-card-m01b).
@@ -7025,15 +6971,15 @@ async function runAdvertisingMediaFocusedChecks() {
 
       for (const category of artifact.categories) {
         await page.evaluate(() => window.scrollTo(0, 0));
-        await page.locator(`[data-advertising-filter="${category.slug}"]`).click();
+        await page.locator(`[data-masonry-filter="${category.slug}"]`).click();
         await page.waitForFunction(
-          (slug) => document.querySelector(`[data-advertising-filter="${slug}"]`)?.getAttribute("aria-current") === "true",
+          (slug) => document.querySelector(`[data-masonry-filter="${slug}"]`)?.getAttribute("aria-current") === "true",
           category.slug,
           { timeout: 3_000 },
         );
         // Card chỉ được đặt cố định khi transition chạy hết (R6); runner bận làm việc đó muộn hơn 400ms.
         await page.waitForFunction(
-          () => [...document.querySelectorAll("[data-project-grid] .advertising-tile")].every((tile) => !tile.style.transform),
+          () => [...document.querySelectorAll("[data-project-grid] .masonry-card")].every((tile) => !tile.style.transform),
           null,
           { timeout: 3_000 },
         );
@@ -7043,15 +6989,15 @@ async function runAdvertisingMediaFocusedChecks() {
           // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
             filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
-            filtered.tiles.every((tile) => matchesAdvertisingFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
+            filtered.tiles.every((tile) => matchesFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
           `${category.slug} filter retained a wrong category or URL state`,
         );
       }
 
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.locator('[data-advertising-filter="all"]').click();
+      await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForFunction(
-        () => document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
+        () => document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
       );
@@ -7064,14 +7010,14 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.waitForTimeout(500);
       await page.waitForFunction(() => {
-        const card = document.querySelector("[data-project-grid] .advertising-tile");
-        const image = card?.querySelector(".advertising-tile__foreground");
-        return image?.classList.contains("is-advertising-media-ready")
+        const card = document.querySelector("[data-project-grid] .masonry-card");
+        const image = card?.querySelector(".masonry-card__foreground");
+        return image?.classList.contains("is-masonry-media-ready")
           && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
       });
-      const replayFixtureId = await page.locator("[data-project-grid] .advertising-tile").first().evaluate((card) => {
+      const replayFixtureId = await page.locator("[data-project-grid] .masonry-card").first().evaluate((card) => {
         window.__ttAdvertisingOneShotNode = card;
-        return card.dataset.advertisingCard;
+        return card.dataset.masonryCard;
       });
       const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
       const step = 450;
@@ -7109,21 +7055,21 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
       await page.waitForFunction(
         (id) => {
-          const current = document.querySelector(`[data-project-grid] [data-advertising-card="${id}"]`);
-          const image = current?.querySelector(".advertising-tile__foreground");
+          const current = document.querySelector(`[data-project-grid] [data-masonry-card="${id}"]`);
+          const image = current?.querySelector(".masonry-card__foreground");
           return current && current !== window.__ttAdvertisingOneShotNode
-            && image?.classList.contains("is-advertising-media-ready");
+            && image?.classList.contains("is-masonry-media-ready");
         },
         replayFixtureId,
         { timeout: 3_000 },
       );
       const replay = await page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const current = grid.querySelector(`[data-advertising-card="${id}"]`);
-        const image = current?.querySelector(".advertising-tile__foreground");
+        const current = grid.querySelector(`[data-masonry-card="${id}"]`);
+        const image = current?.querySelector(".masonry-card__foreground");
         return {
           oldConnected: window.__ttAdvertisingOneShotNode?.isConnected,
           sameNode: current === window.__ttAdvertisingOneShotNode,
-          ready: image?.classList.contains("is-advertising-media-ready"),
+          ready: image?.classList.contains("is-masonry-media-ready"),
           opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
           runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
         };
@@ -7136,19 +7082,19 @@ async function runAdvertisingMediaFocusedChecks() {
       );
       await page.waitForFunction(
         () => {
-          const image = document.querySelector("[data-project-grid] .advertising-tile__foreground");
+          const image = document.querySelector("[data-project-grid] .masonry-card__foreground");
           return image && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
         },
         null,
         { timeout: 2_000 },
       );
-      const focusedCard = page.locator("[data-project-grid] .advertising-tile").first();
-      const focusedId = await focusedCard.getAttribute("data-advertising-card");
+      const focusedCard = page.locator("[data-project-grid] .masonry-card").first();
+      const focusedId = await focusedCard.getAttribute("data-masonry-card");
       await focusedCard.evaluate((card) => card.setAttribute("data-qa-focus-retention", "true"));
       await focusedCard.locator("a").focus();
       const focusedBefore = await page.locator("[data-project-grid]").evaluate((grid) => ({
-        activeId: document.activeElement?.closest("[data-advertising-card]")?.getAttribute("data-advertising-card"),
-        retained: grid.querySelector("[data-qa-focus-retention]")?.getAttribute("data-advertising-card"),
+        activeId: document.activeElement?.closest("[data-masonry-card]")?.getAttribute("data-masonry-card"),
+        retained: grid.querySelector("[data-qa-focus-retention]")?.getAttribute("data-masonry-card"),
       }));
       assert(
         focusedId && focusedBefore.activeId === focusedId && focusedBefore.retained === focusedId,
@@ -7164,12 +7110,12 @@ async function runAdvertisingMediaFocusedChecks() {
         overscan: 900,
       }).items.length;
       const focusedState = await page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const retained = grid.querySelector(`[data-advertising-card="${id}"]`);
+        const retained = grid.querySelector(`[data-masonry-card="${id}"]`);
         return {
-          activeId: document.activeElement?.closest("[data-advertising-card]")?.getAttribute("data-advertising-card"),
+          activeId: document.activeElement?.closest("[data-masonry-card]")?.getAttribute("data-masonry-card"),
           retained: retained?.getAttribute("data-qa-focus-retention"),
           connected: retained?.isConnected,
-          totalDomCount: grid.querySelectorAll(".advertising-tile").length,
+          totalDomCount: grid.querySelectorAll(".masonry-card").length,
         };
       }, focusedId);
       assert(
@@ -7202,7 +7148,7 @@ async function runAdvertisingCompatibilityChecks() {
               !url.searchParams.has("category") && !/\/p\/[^/]+\/$/.test(url.pathname) && !url.searchParams.has("tag"),
             `${locale}/${slug} did not cleanly replace to its cluster page: ${url}`,
           );
-          const photoState = await page.locator("[data-advertising-photo-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.advertisingPhotoId || null }));
+          const photoState = await page.locator("[data-detail-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.detailId || null }));
           assert(photoState.hidden && !photoState.active, `compatibility route must leave the reusable photo view inactive: ${JSON.stringify(photoState)}`);
           assertDiagnostics(diagnostics);
         },
@@ -7231,15 +7177,13 @@ async function runAdvertisingCompatibilityChecks() {
 // Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
+  const { compileMasonryLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
   const interCardGap = 35;
   // R5: masonry rộng bằng viewport trừ hai lề, không còn bề rộng tối đa.
   const cardWidth = (viewport.width - 70 - interCardGap * 3) / 4;
-  const captionPixelHeight = 0;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
   const patterns = [[2, 3, 4], [3, 5, 2], [4, 2, 5], [5, 4, 3]];
@@ -7251,7 +7195,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     const phases = [0, deltas[0] * quantum, (deltas[0] + deltas[1]) * quantum, (deltas[0] + deltas[1] + deltas[2]) * quantum];
     const bottom = (row + 1) * rowStep + phases[column];
     const top = row ? bottoms[index - 4] + interCardGap : 0;
-    const mediaPixelHeight = bottom - top - captionPixelHeight;
+    const mediaPixelHeight = bottom - top;
     bottoms.push(bottom);
     return {
       id: `benchmark-${String(index).padStart(4, "0")}`,
@@ -7271,7 +7215,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     };
   });
   const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
-  const feasibleLayout = compileAdvertisingLayout({
+  const feasibleLayout = compileMasonryLayout({
     cards: artifact.cards,
     categoryOrder: artifact.categories.map((category) => category.slug),
     datasetVersion: artifact.datasetVersion,
@@ -7282,21 +7226,10 @@ async function runAdvertisingThreeThousandCardProbe() {
   const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
-  const browseLayout = async (page, filter, layoutViewportWidth) => {
-    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
-    return compileAdvertisingLayout({
-      cards: artifact.cards,
-      categoryOrder: artifact.categories.map((category) => category.slug),
-      datasetVersion: artifact.datasetVersion,
-      settings: artifact.settings,
-      filter,
-      layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
-        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
-      organicOrder: true,
-    });
-  };
+  // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+  const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
+    artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+  });
   const scrollTargetFor = async (page, layout, id) => {
     const target = layout.placements.find((placement) => placement.card.id === id);
     if (!target) throw new Error(`artifact placement missing: ${id}`);
@@ -7315,25 +7248,25 @@ async function runAdvertisingThreeThousandCardProbe() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
-        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
         { timeout: 3_000 },
       );
       const composition = await page.locator("[data-project-grid]").evaluate((grid, injectedArtifact) => {
         const records = new Map(injectedArtifact.cards.map((card) => [card.id, card]));
-        return [...grid.querySelectorAll(".advertising-tile")].slice(0, 28).map((tile) => {
-          const record = records.get(tile.dataset.advertisingCard);
+        return [...grid.querySelectorAll(".masonry-card")].slice(0, 28).map((tile) => {
+          const record = records.get(tile.dataset.masonryCard);
           const media = tile.querySelector(".project-tile__media");
-          const foreground = tile.querySelector(".advertising-tile__foreground");
+          const foreground = tile.querySelector(".masonry-card__foreground");
           const bounds = media.getBoundingClientRect();
           return {
             id: record.id,
             expectedRatio: record.media.width / record.media.height,
             renderedRatio: bounds.width / bounds.height,
-            layoutSpan: Number(tile.dataset.advertisingSpan),
+            layoutSpan: Number(tile.dataset.masonrySpan),
             fitAttribute: media.getAttribute("data-media-fit"),
-            backplates: media.querySelectorAll(".advertising-tile__backplate").length,
-            foregrounds: media.querySelectorAll(".advertising-tile__foreground").length,
+            backplates: media.querySelectorAll(".masonry-card__backplate").length,
+            foregrounds: media.querySelectorAll(".masonry-card__foreground").length,
             foregroundAlt: foreground?.alt,
             foregroundFit: foreground ? getComputedStyle(foreground).objectFit : null,
           };
@@ -7350,10 +7283,10 @@ async function runAdvertisingThreeThousandCardProbe() {
       await scrollInstant(page, target);
       await page.waitForTimeout(600);
       const nearFrontier = await page.locator("[data-project-grid]").evaluate((grid, deepId) => {
-        const tiles = [...grid.querySelectorAll(".advertising-tile")];
+        const tiles = [...grid.querySelectorAll(".masonry-card")];
         const rectangles = tiles.map((tile) => {
           const rect = tile.getBoundingClientRect();
-          return { id: tile.dataset.advertisingCard, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+          return { id: tile.dataset.masonryCard, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
         });
         const overlap = rectangles.some((first, index) => rectangles.slice(index + 1).some((second) =>
           Math.min(first.right, second.right) - Math.max(first.left, second.left) > 0.5 &&
@@ -7361,15 +7294,15 @@ async function runAdvertisingThreeThousandCardProbe() {
         ));
         return {
           count: tiles.length,
-          has2800: Boolean(grid.querySelector(`[data-advertising-card="${deepId}"]`)),
-          ids: tiles.map((tile) => tile.dataset.advertisingCard),
-          hasEarly: Boolean(grid.querySelector('[data-advertising-card="tt-0000"]')),
+          has2800: Boolean(grid.querySelector(`[data-masonry-card="${deepId}"]`)),
+          ids: tiles.map((tile) => tile.dataset.masonryCard),
+          hasEarly: Boolean(grid.querySelector('[data-masonry-card="tt-0000"]')),
           height: Number.parseFloat(grid.style.height),
           gridTop: grid.getBoundingClientRect().top + window.scrollY,
           scrollY: window.scrollY,
           overflow: document.documentElement.scrollWidth - innerWidth,
           overlap,
-          prefix: tiles.slice(0, 24).map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+          prefix: tiles.slice(0, 24).map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`),
         };
       }, deepId);
       const expectedDeepWindow = getVirtualWindow(deepLayout, {
@@ -7383,13 +7316,13 @@ async function runAdvertisingThreeThousandCardProbe() {
       assert(nearFrontier.scrollY >= target - 2, "deep scroll position was not retained");
       assert(nearFrontier.overflow <= 1 && !nearFrontier.overlap, "deep virtual window has overflow or overlap");
 
-      await page.locator('[data-advertising-filter="mobile-retail"]').click();
-      await page.locator('[data-advertising-filter="all"]').click();
+      await page.locator('[data-masonry-filter="mobile-retail"]').click();
+      await page.locator('[data-masonry-filter="all"]').click();
       await scrollInstant(page, target);
       await page.waitForTimeout(600);
       const afterFilter = await page.locator("[data-project-grid]").evaluate((grid) => ({
         scrollY: window.scrollY,
-        prefix: [...grid.querySelectorAll(".advertising-tile")].slice(0, 24).map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+        prefix: [...grid.querySelectorAll(".masonry-card")].slice(0, 24).map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`),
       }));
       assert(afterFilter.scrollY >= target - 2, "filter round-trip shifted deep scroll position");
       assert(JSON.stringify(afterFilter.prefix) === JSON.stringify(nearFrontier.prefix), "filter round-trip changed the remounted deterministic window");
@@ -7401,9 +7334,9 @@ async function runAdvertisingThreeThousandCardProbe() {
       await scrollInstant(page, resizedTarget);
       await page.waitForTimeout(500);
       const afterResize = await page.locator("[data-project-grid]").evaluate((grid, deepId) => ({
-        count: grid.querySelectorAll(".advertising-tile").length,
+        count: grid.querySelectorAll(".masonry-card").length,
         overflow: document.documentElement.scrollWidth - innerWidth,
-        has2800: Boolean(grid.querySelector(`[data-advertising-card="${deepId}"]`)),
+        has2800: Boolean(grid.querySelector(`[data-masonry-card="${deepId}"]`)),
       }), deepId);
       assert(afterResize.count > 0 && afterResize.count < 120 && afterResize.overflow <= 1 && afterResize.has2800, `resize lost the bounded deep virtual window: ${JSON.stringify(afterResize)}`);
       assertDiagnostics(diagnostics);
@@ -7413,8 +7346,6 @@ async function runAdvertisingThreeThousandCardProbe() {
 
 async function runAdvertisingLocaleLifecycleChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
-  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
     const kiosk = index < 3;
     const primaryKiosk = index === 0;
@@ -7467,9 +7398,9 @@ async function runAdvertisingLocaleLifecycleChecks() {
           .waitForFunction(
             (expected) => document.documentElement.lang === expected &&
               location.pathname.startsWith(`/${expected}/advertising-products/`) &&
-              window.TruongThinhAdvertising?.getBrowseState &&
+              window.TruongThinhMasonry?.getBrowseState &&
               // Trang vừa tải: rail filter hiện xong (entrance) trước khi test cuộn xuống grid.
-              [...document.querySelectorAll("[data-advertising-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
+              [...document.querySelectorAll("[data-masonry-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&
               !document.documentElement.classList.contains("route-enter") &&
               !document.body.classList.contains("is-transitioning"),
             language,
@@ -7482,16 +7413,10 @@ async function runAdvertisingLocaleLifecycleChecks() {
       };
       const virtualizeKiosk = async () => {
         // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
-        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-        const layout = compileAdvertisingLayout({
-          cards: artifact.cards,
-          categoryOrder: artifact.categories.map((category) => category.slug),
-          datasetVersion: artifact.datasetVersion,
-          settings: artifact.settings,
-          filter: "all",
-          layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
-          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
-          organicOrder: true,
+        const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
+        // Artifact chèn vào trang không khai báo cache: runtime xếp stackLayout (advertising-masonry R6).
+        const layout = await expectedGridLayout({
+          artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
         // Cuộn tới placement xa kiosk nhất để kiosk chắc chắn rời DOM ảo hóa.
@@ -7499,18 +7424,18 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
         await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), gridTop + far.y);
         await page
-          .waitForFunction(() => !document.querySelector('[data-advertising-card="kiosk-posm-01"]'))
+          .waitForFunction(() => !document.querySelector('[data-masonry-card="kiosk-posm-01"]'))
           .catch((error) => {
             throw new Error(`virtualized kiosk did not leave the DOM: ${error.message}`);
           });
         await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), Math.max(0, gridTop + kiosk.y - 100));
         await page
-          .waitForFunction(() => Boolean(document.querySelector('[data-advertising-card="kiosk-posm-01"]')))
+          .waitForFunction(() => Boolean(document.querySelector('[data-masonry-card="kiosk-posm-01"]')))
           .catch(async (error) => {
             const state = await page.locator("[data-project-grid]").evaluate((grid) => ({
               rectTop: grid.getBoundingClientRect().top,
               scrollY: window.scrollY,
-              rendered: [...grid.querySelectorAll(".advertising-tile")].slice(0, 8).map((tile) => tile.dataset.advertisingCard),
+              rendered: [...grid.querySelectorAll(".masonry-card")].slice(0, 8).map((tile) => tile.dataset.masonryCard),
             }));
             throw new Error(`virtualized kiosk did not remount: ${error.message}; ${JSON.stringify(state)}`);
           });
@@ -7546,35 +7471,35 @@ async function runAdvertisingLocaleLifecycleChecks() {
       await switchLanguage("en");
       await virtualizeKiosk();
       const localizedCard = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
+        const card = grid.querySelector('[data-masonry-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
-        const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
+        const image = card?.querySelector(".masonry-card__foreground");
+        return { filter: document.querySelector('[data-masonry-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.masonry-card__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
       assert(localizedCard.filter === "All" && localizedCard.title === "Exhibition booths" && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or hover title did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
       const localizedViCard = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
+        const card = grid.querySelector('[data-masonry-card="kiosk-posm-01"]');
         const link = card?.querySelector("a");
-        const image = card?.querySelector(".advertising-tile__foreground");
-        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.advertising-tile__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
+        const image = card?.querySelector(".masonry-card__foreground");
+        return { filter: document.querySelector('[data-masonry-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.masonry-card__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
       assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       // Focus một tile bị filter loại (kiosk thuộc displays-booths); sau khi tải lại, tile đầu trong DOM tùy vị trí cuộn.
-      await page.locator('[data-advertising-card="kiosk-posm-01"] a').focus();
-      await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
+      await page.locator('[data-masonry-card="kiosk-posm-01"] a').focus();
+      await page.evaluate(() => document.querySelector('[data-masonry-filter="mobile-retail"]')?.click());
       await page.waitForTimeout(250);
       const filterFocus = await page.evaluate(() => {
         const active = document.activeElement;
-        const zero = [...document.querySelectorAll(".advertising-tile")].filter((tile) => {
+        const zero = [...document.querySelectorAll(".masonry-card")].filter((tile) => {
           if (tile.hidden) return false;
           const rect = tile.getBoundingClientRect();
           return Math.abs(rect.left) < 0.5 && Math.abs(rect.top) < 0.5;
         }).length;
-        return { active: active?.getAttribute("data-advertising-filter"), zero };
+        return { active: active?.getAttribute("data-masonry-filter"), zero };
       });
       assert(filterFocus.active === "mobile-retail" && filterFocus.zero === 0, `focused filter left stale fallback tile: ${JSON.stringify(filterFocus)}`);
       assertDiagnostics(diagnostics);
@@ -8668,8 +8593,8 @@ async function runMotionAbortFailOpenChecks() {
         // Grid mount cửa sổ ảo (masonry R7): so category đã mount, không so số lượng.
         const filterState = await page.evaluate(() => {
           const categories = [
-            ...document.querySelectorAll("[data-project-grid] [data-advertising-category]"),
-          ].map((tile) => tile.dataset.advertisingCategory);
+            ...document.querySelectorAll("[data-project-grid] [data-masonry-category]"),
+          ].map((tile) => tile.dataset.masonryCategory);
           return {
             kioskTiles: categories.filter((category) => category === "displays-booths").length,
             otherTiles: categories.filter((category) => category !== "displays-booths").length,
@@ -8679,38 +8604,38 @@ async function runMotionAbortFailOpenChecks() {
           filterState.otherTiles > 0 && filterState.kioskTiles > 0,
           `Fail-open fixture cannot prove filtering: ${JSON.stringify(filterState)}`,
         );
-        await page.locator('[data-advertising-filter="displays-booths"]').click();
+        await page.locator('[data-masonry-filter="displays-booths"]').click();
         await page.waitForFunction(
           () =>
             document
-              .querySelector('[data-advertising-filter="displays-booths"]')
+              .querySelector('[data-masonry-filter="displays-booths"]')
               ?.getAttribute("aria-current") === "true",
         );
         const filteredState = await page.evaluate(() => ({
           visible: [
             ...document.querySelectorAll(
-              "[data-project-grid] [data-advertising-category]",
+              "[data-project-grid] [data-masonry-category]",
             ),
           ]
             .filter((tile) => !tile.hidden)
-            .map((tile) => tile.dataset.advertisingCategory),
+            .map((tile) => tile.dataset.masonryCategory),
         }));
         assert(
           filteredState.visible.length > 0 &&
             filteredState.visible.every((category) => category === "displays-booths"),
           `Fail-open filter did not isolate kiosk tiles: ${JSON.stringify(filteredState)}`,
         );
-        await page.locator('[data-advertising-filter="all"]').click();
+        await page.locator('[data-masonry-filter="all"]').click();
         await page.waitForFunction(
           () =>
             document
-              .querySelector('[data-advertising-filter="all"]')
+              .querySelector('[data-masonry-filter="all"]')
               ?.getAttribute("aria-current") === "true" &&
             [
               ...document.querySelectorAll(
-                "[data-project-grid] [data-advertising-category]",
+                "[data-project-grid] [data-masonry-category]",
               ),
-            ].some((tile) => !tile.hidden && tile.dataset.advertisingCategory !== "displays-booths"),
+            ].some((tile) => !tile.hidden && tile.dataset.masonryCategory !== "displays-booths"),
         );
         await page.locator("[data-menu-open]").click();
         await waitForMenuState(page, true);
@@ -8859,11 +8784,11 @@ async function runMotionAbortFailOpenChecks() {
         });
       });
       // Cụm đầu rail nằm ở hàng một; bấm cụm ở hàng dưới thì trang cuộn và header ẩn trước khi mở menu.
-      await page.locator('[data-advertising-filter="signage"]').click();
+      await page.locator('[data-masonry-filter="signage"]').click();
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-advertising-filter="signage"]')
+            .querySelector('[data-masonry-filter="signage"]')
             ?.getAttribute("aria-current") === "true" &&
           window.__ttLateFilterLayoutEvents === 1,
       );
@@ -8891,9 +8816,9 @@ async function runDelayedDetailFallbackChecks() {
   const waitForAdvertisingCatalog = async (page) => {
     await page.waitForFunction(
       () => {
-        const grid = document.querySelector("[data-project-grid].advertising-grid");
+        const grid = document.querySelector("[data-project-grid].masonry-grid");
         return Boolean(
-          grid?.querySelector(".advertising-tile") &&
+          grid?.querySelector(".masonry-card") &&
           typeof window.Masonry === "function" &&
           window.lazySizes?.loader &&
           typeof window.SplitText === "function" &&
@@ -8914,7 +8839,7 @@ async function runDelayedDetailFallbackChecks() {
         const layout = window.Masonry.prototype.layout;
         window.__ttDelayedDetailMasonryProbe = true;
         window.Masonry.prototype.layout = function (...args) {
-          if (this.element?.matches?.("[data-project-grid].advertising-grid")) {
+          if (this.element?.matches?.("[data-project-grid].masonry-grid")) {
             window.__ttDelayedDetailMasonryLayouts += 1;
           }
           return layout.apply(this, args);
@@ -8926,24 +8851,24 @@ async function runDelayedDetailFallbackChecks() {
       const control = document.querySelector(selector);
       if (!(control instanceof HTMLElement)) throw new Error(`Missing filter: ${selector}`);
       control.click();
-    }, `[data-advertising-filter="${category}"]`);
+    }, `[data-masonry-filter="${category}"]`);
     await page.waitForFunction(() => window.__ttDelayedDetailMasonryLayouts >= 1, null, { timeout: 3_000 });
     return page.evaluate((activeCategory) => {
       const tiles = [
         ...document.querySelectorAll(
-          "[data-project-grid] [data-advertising-category]",
+          "[data-project-grid] [data-masonry-category]",
         ),
       ];
       return {
         active: document
-          .querySelector(`[data-advertising-filter="${activeCategory}"]`)
+          .querySelector(`[data-masonry-filter="${activeCategory}"]`)
           ?.getAttribute("aria-current"),
         masonryLayouts: window.__ttDelayedDetailMasonryLayouts,
         total: tiles.length,
-        unique: new Set(tiles.map((tile) => tile.dataset.advertisingCard)).size === tiles.length,
+        unique: new Set(tiles.map((tile) => tile.dataset.masonryCard)).size === tiles.length,
         visible: tiles
           .filter((tile) => !tile.hidden)
-          .map((tile) => tile.dataset.advertisingCategory),
+          .map((tile) => tile.dataset.masonryCategory),
       };
     }, category);
   };
@@ -12874,7 +12799,7 @@ async function runP13NavbarChecks() {
       const route = "/vi/advertising-products/?category=mobile-retail&campaign=retained";
       await gotoRoute(page, route);
       await page.evaluate(() => {
-        if (!window.TruongThinhAdvertising?.replaceTag?.("use-sampling")) {
+        if (!window.TruongThinhMasonry?.replaceTag?.("use-sampling")) {
           throw new Error("Advertising tag setup failed");
         }
       });
@@ -12967,7 +12892,7 @@ async function runP13NavbarChecks() {
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({
         activeFilter: document
-          .querySelector('[data-advertising-filter="printing-decals"]')
+          .querySelector('[data-masonry-filter="printing-decals"]')
           ?.getAttribute("aria-current"),
         historyLength: history.length,
         url: location.href,
@@ -12988,14 +12913,14 @@ async function runP13NavbarChecks() {
       const route = "/vi/advertising-products/?category=kiosk-posm&tag=use-sampling&photo=kiosk-posm-07";
       await gotoRoute(page, route);
       await page.waitForFunction(
-        () => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07",
+        () => document.querySelector("[data-detail-view]")?.dataset.detailId === "kiosk-posm-07",
       );
       const before = await readNavigationState(page);
       const link = await findRouteLink(page, "[data-site-header]", route);
       await link.click();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       await page.waitForFunction(
-        () => !document.body.classList.contains("is-advertising-photo"),
+        () => !document.body.classList.contains("is-detail"),
       );
       const after = await readNavigationState(page);
       assert(
@@ -13013,10 +12938,10 @@ async function runP13NavbarChecks() {
     { route: "/vi/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await page.route("**/advertising-products/catalog-runtime.mjs*", (request) => request.abort());
+      await page.route("**/masonry/runtime.mjs*", (request) => request.abort());
       await gotoRoute(page, "/vi/advertising-products/?photo=kiosk-posm-07");
       const unavailable = await page.evaluate(() => ({
-        adapter: Boolean(window.TruongThinhAdvertising?.getAdapter?.()),
+        adapter: Boolean(window.TruongThinhMasonry?.getAdapter?.()),
         motion: Boolean(window.TruongThinhMotion),
       }));
       assert(
@@ -13041,7 +12966,7 @@ async function runP13NavbarChecks() {
         `Dependency fallback raised a runtime error: ${JSON.stringify(diagnostics)}`,
       );
       assert(
-        diagnostics.requestFailures.some((failure) => failure.includes("catalog-runtime.mjs")),
+        diagnostics.requestFailures.some((failure) => failure.includes("masonry/runtime.mjs")),
         `Catalog dependency failure was not observed: ${JSON.stringify(diagnostics)}`,
       );
     },
@@ -13062,11 +12987,11 @@ async function runP13NavbarChecks() {
         "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
       );
       await page.waitForFunction(
-        () => document.body.classList.contains("is-advertising-photo"),
+        () => document.body.classList.contains("is-detail"),
       );
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       // Màn cảm ứng ẩn nút "Xem lớn hơn", chạm ảnh primary để mở viewer (viewer-touch-zoom R7).
-      const hit = await page.locator("[data-advertising-photo-primary]").evaluate((primary) => {
+      const hit = await page.locator("[data-detail-primary]").evaluate((primary) => {
         const rect = primary.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
@@ -13084,7 +13009,7 @@ async function runP13NavbarChecks() {
       );
       await page.touchscreen.tap(hit.x, hit.y);
       await page.waitForFunction(
-        () => document.querySelector("[data-advertising-photo-dialog]")?.open,
+        () => document.querySelector("[data-detail-dialog]")?.open,
       );
       assertDiagnostics(diagnostics);
     },
@@ -13095,7 +13020,7 @@ async function runP13NavbarChecks() {
     await gotoRoute(page, route);
     if (/\/p\/[^/]+\/$/.test(new URL(route, "https://invalid.local").pathname)) {
       await page.waitForFunction(
-        () => document.body.classList.contains("is-advertising-photo"),
+        () => document.body.classList.contains("is-detail"),
       );
     }
     // Điện thoại cảm ứng: header đi theo quãng cuộn bằng translateY, không có is-hidden (phone-header-scroll R2).

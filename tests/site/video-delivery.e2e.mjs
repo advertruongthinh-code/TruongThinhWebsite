@@ -84,7 +84,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
     if (!mediaSource) delete window.MediaSource;
   }, { artifact: fixtureArtifact(hls), mediaSource });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   // Hero Advertising chiếm màn đầu; intro và smooth scroll cần mount xong mới nhận wheel, rồi cuộn để card vào màn.
   await page.waitForTimeout(2500);
   await page.mouse.move(8, 450);
@@ -97,8 +97,8 @@ async function open({ hls = true, mediaSource = true } = {}) {
 
 // Card video đang phát trong màn, kèm nguồn và bậc hiện tại.
 const playingCard = (page) => page.waitForFunction(() => {
-  const video = [...document.querySelectorAll("[data-advertising-card] video")].find((node) => !node.paused && node.currentTime > 0.3);
-  return video && { id: video.closest("[data-advertising-card]").dataset.advertisingCard, source: video.dataset.videoSource,
+  const video = [...document.querySelectorAll("[data-masonry-card] video")].find((node) => !node.paused && node.currentTime > 0.3);
+  return video && { id: video.closest("[data-masonry-card]").dataset.masonryCard, source: video.dataset.videoSource,
     currentSrc: video.currentSrc, width: video.videoWidth, time: video.currentTime };
 }, null, { timeout: 30000, polling: 50 }).then((handle) => handle.jsonValue());
 
@@ -110,9 +110,9 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
     const sampledAt = Date.now();
     assert.equal(card.source, hlsSrc, "card loads master.m3u8 through hls.js");
     assert.equal(card.width, 480, "card is capped at the 480 rung");
-    await page.locator(`[data-advertising-card="${card.id}"] > a`).click();
+    await page.locator(`[data-masonry-card="${card.id}"] > a`).click();
     const detail = await page.waitForFunction(() => {
-      const video = document.querySelector("[data-advertising-photo-video]");
+      const video = document.querySelector("[data-detail-video]");
       return video.videoWidth && !video.paused && { source: video.dataset.videoSource, width: video.videoWidth, time: video.currentTime };
     }, null, { timeout: 15000, polling: 50 }).then((handle) => handle.jsonValue());
     assert.equal(detail.source, hlsSrc, "primary loads master.m3u8 through hls.js");
@@ -121,10 +121,10 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
     const elapsed = (Date.now() - sampledAt) / 1000;
     assert(detail.time >= card.time - 0.2 && detail.time < card.time + elapsed + 0.5,
       `primary continues from the card time: ${card.time} -> ${detail.time} after ${elapsed}s`);
-    const src = await page.locator("[data-advertising-photo-video]").evaluate((video) => video.src);
-    await page.locator("[data-advertising-photo-expand]").click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").closest("dialog[open]"));
-    const viewer = await page.locator("[data-advertising-photo-video]").evaluate((video) => ({ src: video.src, paused: video.paused }));
+    const src = await page.locator("[data-detail-video]").evaluate((video) => video.src);
+    await page.locator("[data-detail-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-video]").closest("dialog[open]"));
+    const viewer = await page.locator("[data-detail-video]").evaluate((video) => ({ src: video.src, paused: video.paused }));
     assert.deepEqual(viewer, { src, paused: false }, "the viewer plays the same hls.js source without reloading");
   } finally {
     await browser.close();
@@ -153,12 +153,12 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
   try {
     // Mạng chậm: hls.js xuống bậc thấp nhất (ảnh rộng 242 px) sau segment đầu ở bậc 480 rồi tải hết clip.
     const id = await page.waitForFunction(() => {
-      const video = [...document.querySelectorAll("[data-advertising-card] video")].find((node) => !node.paused
+      const video = [...document.querySelectorAll("[data-masonry-card] video")].find((node) => !node.paused
         && node.videoWidth && node.videoWidth < 480 && node.buffered.length && node.buffered.end(node.buffered.length - 1) > node.duration - 0.1);
-      return video?.closest("[data-advertising-card]").dataset.advertisingCard;
+      return video?.closest("[data-masonry-card]").dataset.masonryCard;
     }, null, { timeout: 45000, polling: 50 }).then((handle) => handle.jsonValue());
     await page.evaluate((cardId) => {
-      const video = document.querySelector(`[data-advertising-card="${cardId}"] video:not([hidden])`);
+      const video = document.querySelector(`[data-masonry-card="${cardId}"] video:not([hidden])`);
       const log = window.__ladderLog = { frames: [], waiting: [] };
       const frame = (now, meta) => {
         log.frames.push({ now, time: meta.mediaTime, width: meta.width });
@@ -171,7 +171,7 @@ test("R4: when the network speeds up the low rung ahead is replaced at 480 witho
     // Mạng nhanh lên, rồi một video khác trên trang tải xong segment (gherkin R4).
     kbps = 0;
     await page.evaluate(async (src) => {
-      const { setVideoSource } = await import("/advertising-products/video-source.mjs");
+      const { setVideoSource } = await import("/media-lib/video-source.mjs");
       setVideoSource(document.createElement("video"), { hlsSrc: src }, { file: "", capWidth: 480 });
     }, hlsSrc);
     await page.waitForTimeout(4000);

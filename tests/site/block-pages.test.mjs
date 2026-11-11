@@ -101,7 +101,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
     ["/projects/showroom-cua-hang/", 0], ["/projects/cafe-nha-hang/", 1], ["/projects/van-phong/", 1],
   ]);
   const { buildProjectArtifact } = await import("../../scripts/site/project-list.mjs");
-  const { validateAdvertisingCards } = await import("../../src/site/advertising-products/layout-core.mjs");
+  const { validateMasonryCards } = await import("../../src/site/masonry/layout.mjs");
   const projects = [
     { id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" },
       // Thẻ nhiều media: ảnh người soạn chọn cho thẻ (card.media), theo thứ tự đã chọn.
@@ -109,7 +109,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
     { id: "b", sector: "residential", type: "can-ho", slugVi: "b", slugEn: "b-en", title: { vi: "B", en: "B" }, cover: { src: "/b.webp", width: 200, height: 300, altVi: "b", altEn: "b" } },
   ];
   const artifact = buildProjectArtifact(projects, { a: "rgb(1 2 3)" });
-  assert.doesNotThrow(() => validateAdvertisingCards(artifact.cards, { categoryOrder: artifact.categories.map((entry) => entry.slug), requireNonEmpty: true }));
+  assert.doesNotThrow(() => validateMasonryCards(artifact.cards, { categoryOrder: artifact.categories.map((entry) => entry.slug), requireNonEmpty: true }));
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/vi/projects/a/", en: "/en/projects/a-en/" });
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").mediaItems.map((item) => item.src), ["/a4.webp", "/a2.webp"]);
   assert.equal(artifact.cards.find((card) => card.id === "a").media.src, "/a4.webp");
@@ -149,7 +149,7 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   const script = html(null).match(/<script type="application\/json" data-project-artifact>([\s\S]*?)<\/script>/)[1];
   assert.ok(!script.includes("</"), "no </ inside the artifact script");
   assert.equal(JSON.parse(script).cards[0].titleVi, "A </script><b>");
-  const chip = (page, filter) => page.match(new RegExp(`<a class="project-filter"[^>]*data-advertising-filter="${filter}"[^>]*>`))[0];
+  const chip = (page, filter) => page.match(new RegExp(`<a class="project-filter"[^>]*data-masonry-filter="${filter}"[^>]*>`))[0];
   assert.match(chip(html(null), "can-ho"), / hidden/, "an empty type has no chip on the root page");
   assert.doesNotMatch(chip(html(null), "van-phong"), / hidden/, "a type with projects keeps its chip");
   assert.doesNotMatch(chip(html("can-ho"), "can-ho"), / hidden/, "an empty type keeps its own chip on its page");

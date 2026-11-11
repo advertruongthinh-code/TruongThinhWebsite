@@ -12,7 +12,7 @@ tests:
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-10
+updated: 2026-11-11
 ---
 
 # Công trình nhà ở và kinh doanh
@@ -52,16 +52,15 @@ Bấm thẻ mở trang chi tiết (R3), không mở viewer ảnh như Advertisin
 Bản đầu (owner 2026-11-08): `/<locale>/projects/` và trang lọc `/<locale>/projects/nha-o/`, `/kinh-doanh/`. Trang giống trang
 Sản phẩm quảng cáo (owner 2026-11-08): dựng trên khung trang đó (`scripts/site/project-list.mjs`; phần lưới, batch skeleton, CTA đuôi lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ CTA, nên một contract DOM masonry cho hai trang): hero nền trắng, kicker "Công trình tiêu biểu" (EN "Our featured projects") và
 khẩu hiệu hai dòng "Những công trình / truyền cảm hứng" (EN "Projects / that inspire"), chỉ chữ nhấn "cảm hứng" ("inspire") đậm nghiêng (owner 2026-11-08), hàng lọc canh giữa, dòng "Cuộn xuống", masonry giống 1:1 trang quảng cáo
-(owner 2026-11-08): chạy chính runtime [masonry Advertising](advertising-masonry.md) (`catalog-runtime.mjs`) với artifact công trình
+(owner 2026-11-08): chạy chính runtime [masonry Advertising](advertising-masonry.md) (`masonry/runtime.mjs`) với artifact công trình
 nhúng trong trang (`buildProjectArtifact`), nên lưới, batch skeleton, kính cung và CTA đuôi, motion thẻ, cuộn, lọc, tải ảnh, ảo hóa
 giống hệt; mảng là category, loại là cụm (`clusterIds`), thẻ xếp ngẫu nhiên mỗi lần vào. Khác trang quảng cáo: không detail view,
 related, gợi ý, chip sản phẩm (`viewer: false`), trang không nhúng khung detail ẩn; bấm thẻ đi thẳng tới trang chi tiết công trình. Kicker và khẩu hiệu giữ nguyên ở mọi bộ lọc (owner 2026-11-08); khẩu hiệu là h1, bộ lọc chỉ khác title,
-mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09).
-Thẻ có tên công trình (`titleVi`/`titleEn`, đổi theo ngôn ngữ) luôn hiện dưới media ở mọi viewport (owner 2026-11-09), như
-`/en/projects` của Espacio: chữ hoa 700 `0.8rem` màu ink, cách media 10px, canh trái, một dòng cắt "…" để hình học thẻ cố
-định; masonry và batch skeleton chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-dải-điều-khiển)). Chuột thật
-hover hoặc focus bàn phím chạy gạch chân 3px như link navbar (`.desktop-nav a::after`: cách chữ 4px, `scaleX` từ phải
-sang trái, `0.3s cubic-bezier(0.4, 0, 0, 1)`); thẻ không có lớp tối, không zoom. Link thẻ lấy tên từ tên hiển thị qua
+mô tả và URL. Thẻ có ảnh bìa ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới từ 3 cột như [masonry R5](advertising-masonry.md#r5-hình-học-masonry) (owner 2026-11-09). Bố cục lấy từ cache tính lúc build, nhúng trong artifact (`layouts`, mọi bộ lọc trên 5 dải bề rộng, [cache bố cục R3](masonry-layout-cache.md#r3-file-cache)); không có file cache riêng.
+Thẻ có tên công trình (`titleVi`/`titleEn`, đổi theo ngôn ngữ) nằm trên trái trong media như mọi card masonry (owner
+2026-11-10, thay tên dưới media của 2026-11-09): chuột thật hiện tên và lớp tối Pinterest khi hover, cảm ứng không hiện
+tên; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media),
+[R3](media-card.md#r3-đổi-media-trên-card)). Thẻ không zoom. Link thẻ lấy tên từ tên hiển thị qua
 `aria-labelledby` (tên hiển thị `aria-hidden` để không đọc lặp). Màu chờ ảnh là màu chủ đạo ảnh bìa (build tính bằng sharp). CTA đuôi
 "Không gian tiếp theo dành cho bạn". Không JavaScript thì thẻ tĩnh trong noscript. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;
@@ -79,7 +78,7 @@ Then còn 25 thẻ và trang chi tiết công trình đó mở ra
 
 Given /en/projects/ trên điện thoại 390px
 When lưới dựng xong
-Then mỗi thẻ hiện tên tiếng Anh một dòng ngay dưới media, thẻ cao bằng media cộng phần tên đã chừa, không lớp tối
+Then thẻ cao đúng bằng media, tên tiếng Anh không hiện trên cảm ứng nhưng là tên link của thẻ
 ```
 
 ### R3. Trang chi tiết công trình
@@ -156,7 +155,7 @@ Trang toàn bộ công trình dùng [Masonry](../../design-system/components/Mas
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ luôn hiện, chỗ chừa trong thẻ và skeleton, gạch chân khi hover, focus, không lớp tối, không zoom) |
+| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom) |
 | R4, R5 | chưa có test |
 
 ## Gate còn mở

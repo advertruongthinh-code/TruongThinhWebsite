@@ -34,7 +34,7 @@ const thresholdsFile = path.join(sourceRoot, "assets/content/jxl-thresholds.json
 const thresholds = JSON.parse(await readFile(thresholdsFile, "utf8").catch(() => "{}"));
 // Màu của ảnh Advertising: [màu chủ đạo card tô khi ảnh chưa nhận byte nào (progressive-loading R9), 4 màu Flow chờ ảnh
 // primary sáng tới tối (advertising-skeleton R3)].
-const colorsFile = path.join(sourceRoot, "advertising-products/media-colors.mjs");
+const colorsFile = path.join(sourceRoot, "media-lib/colors.mjs");
 const colors = { ...(await import(pathToFileURL(colorsFile)).catch(() => ({}))).MEDIA_COLORS };
 const colorKey = (file) => file.includes(`${path.sep}advertising${path.sep}`) && path.basename(file, ".webp");
 const hex = ([r, g, b]) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;

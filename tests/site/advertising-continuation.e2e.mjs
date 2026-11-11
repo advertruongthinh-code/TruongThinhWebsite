@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
 import { createHash } from "node:crypto";
 
-import { SKELETON_FLOW_PRESETS } from "../../src/site/advertising-products/skeleton-flow.mjs";
+import { SKELETON_FLOW_PRESETS } from "../../src/site/masonry/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
@@ -20,7 +20,7 @@ const flowPresetIds = new Set(SKELETON_FLOW_PRESETS.map(({ id }) => id));
 const output = path.join(root, ".tmp/mobile-skeleton-correction", "continuation-" + new Date().toISOString().replace(/[:.]/g, "-"));
 await fs.mkdir(output, { recursive: true });
 const evidence = { baseUrl, source: {}, performance: {} };
-for (const file of ["motion.js", "advertising-products/catalog-runtime.mjs", "advertising-products/skeleton-flow.mjs", "style.css"]) {
+for (const file of ["motion.js", "masonry/runtime.mjs", "masonry/skeleton-flow.mjs", "style.css"]) {
   evidence.source[file] = createHash("sha256").update(await fs.readFile(path.join(root, "src/site", file))).digest("hex");
 }
 
@@ -48,9 +48,9 @@ async function scrollLogicalTargetIntoView(page, selector) {
 }
 
 async function ready(page) {
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+  await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
   await page.waitForFunction(() => {
-    const frame = document.querySelector("[data-advertising-cta-frame]");
+    const frame = document.querySelector("[data-masonry-cta-frame]");
     if (!frame) return false;
     const rect = frame.getBoundingClientRect();
     const motion = window.TruongThinhMotion;
@@ -61,7 +61,7 @@ async function ready(page) {
   });
   // Resize dựng lại batch và có thể đẩy khung ra ngoài viewport sau lần căn đầu, nên căn lại mỗi nhịp chờ.
   await page.waitForFunction(() => {
-    const frame = document.querySelector("[data-advertising-cta-frame]");
+    const frame = document.querySelector("[data-masonry-cta-frame]");
     if (!frame) return false;
     const rect = frame.getBoundingClientRect();
     if (rect.bottom <= 0 || rect.top >= innerHeight) {
@@ -72,19 +72,19 @@ async function ready(page) {
     return frame.classList.contains("is-looping");
   });
   await page.waitForFunction(() => {
-    const visible = [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    const visible = [...document.querySelectorAll("[data-masonry-cta-frame]")]
       .filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
       });
-    const running = visible.filter((frame) => frame.dataset.advertisingFlowState === "running").length;
+    const running = visible.filter((frame) => frame.dataset.masonryFlowState === "running").length;
     return document.documentElement.clientWidth <= 750
       ? running >= 1
-        && visible.every((frame) => ["running", "paused"].includes(frame.dataset.advertisingFlowState))
-      : visible.every((frame) => frame.dataset.advertisingFlowState === "running");
+        && visible.every((frame) => ["running", "paused"].includes(frame.dataset.masonryFlowState))
+      : visible.every((frame) => frame.dataset.masonryFlowState === "running");
   });
   await page.waitForFunction(() => {
-    const frame = document.querySelector("[data-advertising-cta-frame]");
+    const frame = document.querySelector("[data-masonry-cta-frame]");
     const transform = frame && new DOMMatrixReadOnly(getComputedStyle(frame).transform);
     return transform && Math.abs(transform.m42) <= 0.1;
   });
@@ -92,19 +92,19 @@ async function ready(page) {
 
 // Frame nhận assignment khi lần đầu vào view (skeleton R3), nên chỉ frame đã draw mới có assignment.
 async function flowAssignments(page) {
-  return page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
-    .filter((frame) => frame.querySelector("[data-advertising-flow-preset]"))
+  return page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")]
+    .filter((frame) => frame.querySelector("[data-masonry-flow-preset]"))
     .map((frame) => {
-      const canvas = frame.querySelector("[data-advertising-flow-preset]");
+      const canvas = frame.querySelector("[data-masonry-flow-preset]");
       return {
         // Runtime giữ assignment theo slot; column:depth đổi chủ khi resize đổi số cột.
-        slot: frame.dataset.advertisingCtaSlot,
-        preset: canvas?.dataset.advertisingFlowPreset,
-        speedScale: Number(canvas?.dataset.advertisingFlowSpeedScale),
-        anchorPermutation: canvas?.dataset.advertisingFlowAnchorPermutation,
-        phase: Number(canvas?.dataset.advertisingFlowPhase),
-        direction: Number(canvas?.dataset.advertisingFlowDirection),
-        ratioBand: frame.dataset.advertisingCtaRatioBand,
+        slot: frame.dataset.masonryCtaSlot,
+        preset: canvas?.dataset.masonryFlowPreset,
+        speedScale: Number(canvas?.dataset.masonryFlowSpeedScale),
+        anchorPermutation: canvas?.dataset.masonryFlowAnchorPermutation,
+        phase: Number(canvas?.dataset.masonryFlowPhase),
+        direction: Number(canvas?.dataset.masonryFlowDirection),
+        ratioBand: frame.dataset.masonryCtaRatioBand,
       };
     })
     .sort((left, right) => Number(left.slot) - Number(right.slot)));
@@ -152,11 +152,11 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
     ? { width: 390, height: 844 }
     : { width: 1440, height: 900 });
   await page.goto(`${baseUrl}${canonicalPath}${query}`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   const sourceUrl = new URL(page.url());
   // URL ghi slug cụm theo locale, browse state giữ id cụm (taxonomy R4).
   const sourceBrowse = await page.evaluate(() => {
-    const { category, photo, tag } = window.TruongThinhAdvertising.getBrowseState();
+    const { category, photo, tag } = window.TruongThinhMasonry.getBrowseState();
     return { category, photo, tag };
   });
   const selector = mobile
@@ -178,30 +178,30 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
   }
   await link.click();
   await page.waitForFunction((path) => location.pathname === path && location.search === "", canonicalPath);
-  await page.waitForFunction(() => document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true");
+  await page.waitForFunction(() => document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true");
 
   await page.evaluate(() => history.back());
   await page.waitForFunction((href) => location.href === href, sourceUrl.href);
   await page.waitForFunction((expected) => {
-    const browse = window.TruongThinhAdvertising?.getBrowseState?.();
+    const browse = window.TruongThinhMasonry?.getBrowseState?.();
     return browse?.category === expected.category
       && browse.photo === expected.photo
       && browse.tag === expected.tag;
   }, sourceBrowse);
   if (!sourceBrowse.photo) {
-    await page.waitForFunction((filter) => document.querySelector(`[data-advertising-filter="${filter}"]`)?.getAttribute("aria-current") === "true", sourceBrowse.category);
+    await page.waitForFunction((filter) => document.querySelector(`[data-masonry-filter="${filter}"]`)?.getAttribute("aria-current") === "true", sourceBrowse.category);
   }
   await page.evaluate(() => history.forward());
   await page.waitForFunction((path) => location.pathname === path && location.search === "", canonicalPath);
-  await page.waitForFunction(() => document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true");
+  await page.waitForFunction(() => document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true");
 }
 
 async function snapshot(page) {
   return page.evaluate(() => {
     const grid = document.querySelector("[data-project-grid]");
     const section = grid?.closest(".project-index");
-    const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-    const cta = document.querySelector("[data-advertising-grid-cta]");
+    const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+    const cta = document.querySelector("[data-masonry-grid-cta]");
     const footer = document.querySelector("footer.site-footer");
     const gridRect = grid?.getBoundingClientRect();
     // Kính (glass-surface.md): cung trên grid section, Kính đều trong primary frame.
@@ -209,21 +209,21 @@ async function snapshot(page) {
     const glassRect = glass?.getBoundingClientRect();
     const glassTint = glass?.querySelector(".glass-surface__tint");
     const glassFilters = (host) => [...(host?.querySelectorAll(".glass-surface__step") || [])].map((step) => getComputedStyle(step).backdropFilter);
-    const photoGlass = document.querySelector(".advertising-photo-view__hero-frame > .glass-surface");
+    const photoGlass = document.querySelector(".detail-view__hero-frame > .glass-surface");
     const ctaRect = cta?.getBoundingClientRect();
     const copyRect = cta.querySelector(".detail-cta__copy").getBoundingClientRect();
     const rootStyle = getComputedStyle(document.documentElement);
     const headerClearance = (Number.parseFloat(rootStyle.getPropertyValue("--header-collapsed-row-height")) || 0) + 20;
-    const frameRects = [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    const frameRects = [...document.querySelectorAll("[data-masonry-cta-frame]")]
       .map((frame) => frame.getBoundingClientRect());
     const footerRect = footer.getBoundingClientRect();
-    const frameState = [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    const frameState = [...document.querySelectorAll("[data-masonry-cta-frame]")]
       .map((frame) => {
         const rect = frame.getBoundingClientRect();
         return {
-          column: Number(frame.dataset.advertisingCtaColumn),
-          depth: Number(frame.dataset.advertisingCtaDepth),
-          band: frame.dataset.advertisingCtaRatioBand,
+          column: Number(frame.dataset.masonryCtaColumn),
+          depth: Number(frame.dataset.masonryCtaDepth),
+          band: frame.dataset.masonryCtaRatioBand,
           top: rect.top - gridRect.top,
           bottom: rect.bottom - gridRect.top,
           ratio: rect.height / rect.width,
@@ -231,10 +231,10 @@ async function snapshot(page) {
       });
     const frameBottoms = frameRects.map((rect) => rect.bottom - gridRect.top);
     const deepestFrameBottom = Math.max(ctaRect.top, ...frameRects.map((rect) => rect.bottom));
-    const firstFrames = [...skeleton.querySelectorAll('[data-advertising-cta-frame][data-advertising-cta-depth="0"]')];
+    const firstFrames = [...skeleton.querySelectorAll('[data-masonry-cta-frame][data-masonry-cta-depth="0"]')];
     const frontierGaps = firstFrames.map((frame) => {
       const left = Number.parseFloat(frame.style.left);
-      const terminal = Math.max(-Infinity, ...[...grid.querySelectorAll(".advertising-tile:not([hidden])")]
+      const terminal = Math.max(-Infinity, ...[...grid.querySelectorAll(".masonry-card:not([hidden])")]
         .filter((tile) => Math.abs(tile.offsetLeft - left) <= 2)
         .map((tile) => tile.offsetTop + tile.offsetHeight));
       return Number.isFinite(terminal) ? Number.parseFloat(frame.style.top) - terminal : null;
@@ -255,14 +255,14 @@ async function snapshot(page) {
       glassTop: Math.min(...[...(glass?.children || [])].map((layer) => Number.parseFloat(layer.style.top)).filter(Number.isFinite)),
       glassEnd: (Number.parseFloat(glassTint?.style.top) || 0) + (Number.parseFloat(glassTint?.style.height) || 0) - 2,
       boundaryBottom: Number.parseFloat(skeleton.style.height) || 0,
-      realBottom: Number.parseFloat(skeleton.dataset.advertisingCtaRealBottom) || 0,
+      realBottom: Number.parseFloat(skeleton.dataset.masonryCtaRealBottom) || 0,
       cardWidth: frameRects[0]?.width || 0,
       boundaryMask: getComputedStyle(skeleton).maskImage,
       boundaryBlur: glassFilters(glass),
-      photoGlassActive: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoGlass === "true",
+      photoGlassActive: document.querySelector("[data-detail-view]")?.dataset.detailGlass === "true",
       photoGlassDisplay: photoGlass ? getComputedStyle(photoGlass).display : "",
       photoGlassBlur: glassFilters(photoGlass),
-      photoBackgroundFilter: (() => { const background = document.querySelector("[data-advertising-photo-background]"); return background ? getComputedStyle(background).filter : ""; })(),
+      photoBackgroundFilter: (() => { const background = document.querySelector("[data-detail-background]"); return background ? getComputedStyle(background).filter : ""; })(),
       glassLeft: glassRect?.left ?? NaN,
       glassRight: glassRect?.right ?? NaN,
       glassBackground: glassTint ? getComputedStyle(glassTint).backgroundImage : "",
@@ -276,23 +276,23 @@ async function snapshot(page) {
       footerTopGap: Number.parseFloat(getComputedStyle(footer).marginBlockStart) || 0,
       footerGap: footerRect.top - ctaRect.bottom,
       frameCount: frameBottoms.length,
-      columns: Number(skeleton.dataset.advertisingCtaColumns),
-      frontierCoverage: Math.min(...Array.from({ length: Number(skeleton.dataset.advertisingCtaColumns) }, (_, column) =>
+      columns: Number(skeleton.dataset.masonryCtaColumns),
+      frontierCoverage: Math.min(...Array.from({ length: Number(skeleton.dataset.masonryCtaColumns) }, (_, column) =>
         Math.max(...frameState.filter((frame) => frame.column === column).map((frame) => frame.bottom))
           + (Number.parseFloat(getComputedStyle(grid).gap) || 0)))
         - (Number.parseFloat(skeleton.style.height) || 0),
       physicalLines: cta.querySelectorAll("h2 > .motion-line-mask").length,
-      looping: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => frame.classList.contains("is-looping")).length,
-      flowCanvases: document.querySelectorAll("[data-advertising-cta-frame] canvas[data-advertising-flow-preset]").length,
-      liveWebglContexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-cta-frame] canvas[data-advertising-flow-backend="webgl"]').length,
-      flowPresets: [...document.querySelectorAll("[data-advertising-flow-preset]")].map((canvas) => canvas.dataset.advertisingFlowPreset),
+      looping: [...document.querySelectorAll("[data-masonry-cta-frame]")].filter((frame) => frame.classList.contains("is-looping")).length,
+      flowCanvases: document.querySelectorAll("[data-masonry-cta-frame] canvas[data-masonry-flow-preset]").length,
+      liveWebglContexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-cta-frame] canvas[data-masonry-flow-backend="webgl"]').length,
+      flowPresets: [...document.querySelectorAll("[data-masonry-flow-preset]")].map((canvas) => canvas.dataset.masonryFlowPreset),
       frameState,
       frontierGaps,
-      flowStates: [...document.querySelectorAll("[data-advertising-cta-frame]")].map((frame) => {
+      flowStates: [...document.querySelectorAll("[data-masonry-cta-frame]")].map((frame) => {
         const rect = frame.getBoundingClientRect();
         return {
           inViewport: rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth,
-          state: frame.dataset.advertisingFlowState,
+          state: frame.dataset.masonryFlowState,
           staticImage: Boolean(frame.querySelector("canvas"))
             && getComputedStyle(frame.querySelector("canvas")).backgroundImage.startsWith("url("),
         };
@@ -309,8 +309,8 @@ async function snapshot(page) {
 
 async function collectFlowWindow(page) {
   return page.evaluate(async () => {
-    const surface = document.querySelector("[data-advertising-cta-frame].is-looping .advertising-grid__cta-surface");
-    const canvas = document.querySelector(".advertising-grid__cta-shared-flow") ?? surface.querySelector("canvas");
+    const surface = document.querySelector("[data-masonry-cta-frame].is-looping .masonry-grid__cta-surface");
+    const canvas = document.querySelector(".masonry-grid__cta-shared-flow") ?? surface.querySelector("canvas");
     const grid = document.querySelector("[data-project-grid]");
     const digest = () => {
       const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -348,10 +348,10 @@ async function collectFlowWindow(page) {
 
 async function skeletonEntryContract(page) {
   return page.evaluate(() => {
-    const frame = document.querySelector("[data-advertising-cta-frame]");
-    const media = document.querySelector("[data-advertising-card] .advertising-card-media__image");
-    const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-    const surface = frame?.querySelector(".advertising-grid__cta-surface");
+    const frame = document.querySelector("[data-masonry-cta-frame]");
+    const media = document.querySelector("[data-masonry-card] .card-media__image");
+    const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+    const surface = frame?.querySelector(".masonry-grid__cta-surface");
     if (!frame || !media) throw new Error("entry contract requires one skeleton frame and one grid media card");
     const transitionFor = (node, property) => {
       const style = getComputedStyle(node);
@@ -388,7 +388,7 @@ async function skeletonEntryContract(page) {
       },
       skeleton: styleState(skeleton),
       surface: styleState(surface),
-      stagger: [...document.querySelectorAll("[data-advertising-cta-frame]")]
+      stagger: [...document.querySelectorAll("[data-masonry-cta-frame]")]
         .map((node) => transitionFor(node, "opacity")?.delay),
     };
   });
@@ -399,13 +399,13 @@ async function exitSkeletonViewport(page) {
     if (!window.TruongThinhMotion?.setLogicalScroll?.(0)) window.scrollTo(0, 0);
   });
   await page.waitForFunction(() =>
-    !document.querySelector("[data-advertising-cta-frame].is-looping"));
+    !document.querySelector("[data-masonry-cta-frame].is-looping"));
   await page.waitForTimeout(750);
-  return page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  return page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     const style = getComputedStyle(frame);
     return {
       opacity: Number(style.opacity),
-      targetOpacity: Number(style.getPropertyValue("--advertising-cta-frame-opacity")),
+      targetOpacity: Number(style.getPropertyValue("--masonry-cta-frame-opacity")),
       transformY: new DOMMatrixReadOnly(style.transform).m42,
     };
   });
@@ -421,7 +421,7 @@ async function firstEntryReveals(browser, scrollTarget) {
     const born = new Map();
     new MutationObserver((records) => {
       for (const record of records) {
-        if (!record.target.matches?.("[data-advertising-cta-frame]")) continue;
+        if (!record.target.matches?.("[data-masonry-cta-frame]")) continue;
         for (const node of record.addedNodes) {
           if (!node.dataset || !("glassReveal" in node.dataset)) continue;
           const tint = document.querySelector(".glass-surface[data-glass-shape=arc] .glass-surface__tint")?.getBoundingClientRect();
@@ -436,20 +436,20 @@ async function firstEntryReveals(browser, scrollTarget) {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
     // Trang nền trong headless không chạy rAF nên entry không bắt đầu.
     await page.bringToFront();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     await page.evaluate((target) => {
       const motion = window.TruongThinhMotion;
-      const frameTop = document.querySelector("[data-advertising-cta-frame]").getBoundingClientRect().top;
+      const frameTop = document.querySelector("[data-masonry-cta-frame]").getBoundingClientRect().top;
       // Frame đầu chỉ ló 40px ở đáy viewport: Kính cung nằm dưới frame nên chắc chắn ngoài viewport (chiều cao batch ngẫu nhiên).
       const top = target === "first-frame" ? (motion?.getLogicalScroll?.() ?? scrollY) + frameTop - (innerHeight - 40) : document.documentElement.scrollHeight;
       if (!motion?.setLogicalScroll?.(top)) window.scrollTo(0, top);
     }, scrollTarget);
-    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-entry-ready"));
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-entry-ready"));
     // Reveal 0.6s cộng thời gian settle; chờ hết rồi mới đọc vòng đời.
     await page.waitForTimeout(1_200);
     return await page.evaluate(() => ({
       ...window.__ttFirstEntry,
-      leftover: document.querySelectorAll("[data-advertising-cta-frame] [data-glass-reveal]").length,
+      leftover: document.querySelectorAll("[data-masonry-cta-frame] [data-glass-reveal]").length,
     }));
   } finally {
     await context.close();
@@ -458,7 +458,7 @@ async function firstEntryReveals(browser, scrollTarget) {
 
 // Rời hẳn vùng nhìn thấy rồi vào lại: khung hiện ngay và Kính reveal không chạy lại (skeleton R4).
 async function reenterSkeletonViewport(page, label) {
-  await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonReenterReveals = 0;
     window.__ttSkeletonReenterObserver = new MutationObserver((records) => {
       window.__ttSkeletonReenterReveals += records.filter((record) => [...record.addedNodes]
@@ -471,16 +471,16 @@ async function reenterSkeletonViewport(page, label) {
     const target = current + rect.top - Math.max(0, (innerHeight - rect.height) / 2);
     if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
   });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await page.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-looping"));
   await page.waitForTimeout(750);
-  const result = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  const result = await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonReenterObserver.disconnect();
     const style = getComputedStyle(frame);
     const result = {
       reveals: window.__ttSkeletonReenterReveals,
       entryReady: frame.classList.contains("is-entry-ready"),
       opacity: Number(style.opacity),
-      targetOpacity: Number(style.getPropertyValue("--advertising-cta-frame-opacity")),
+      targetOpacity: Number(style.getPropertyValue("--masonry-cta-frame-opacity")),
       transformY: new DOMMatrixReadOnly(style.transform).m42,
     };
     delete window.__ttSkeletonReenterObserver;
@@ -495,13 +495,13 @@ async function reenterSkeletonViewport(page, label) {
 
 const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() => {
   // Khung batch chạy Flow trên canvas chung của batch (advertising-skeleton R5); renderer riêng chỉ còn cho skeleton media card.
-  window.__ttFlowLive = (frame) => frame.dataset.advertisingFlowState === "running"
-    && (frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl"
-      || Boolean(frame.closest(".advertising-grid__cta-skeleton")?.querySelector(".advertising-grid__cta-shared-flow")));
+  window.__ttFlowLive = (frame) => frame.dataset.masonryFlowState === "running"
+    && (frame.querySelector("canvas")?.dataset.masonryFlowBackend === "webgl"
+      || Boolean(frame.closest(".masonry-grid__cta-skeleton")?.querySelector(".masonry-grid__cta-shared-flow")));
   // Canvas chung vẽ nhiều khung mỗi tick bằng scissor: một tick là một lần clear, không đếm theo drawArrays.
   const nativeClear = WebGLRenderingContext.prototype.clear;
   WebGLRenderingContext.prototype.clear = function patchedClear(...args) {
-    if (this.canvas?.matches?.(".advertising-grid__cta-shared-flow")) {
+    if (this.canvas?.matches?.(".masonry-grid__cta-shared-flow")) {
       window.__ttSkeletonPaints[this.canvas.isConnected ? "connected" : "detached"] += 1;
       this.canvas.__ttSkeletonPaints = (this.canvas.__ttSkeletonPaints || 0) + 1;
     }
@@ -512,16 +512,16 @@ const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() =>
   window.__ttSkeletonTraceEnabled = true;
   const nativeDrawArrays = WebGLRenderingContext.prototype.drawArrays;
   WebGLRenderingContext.prototype.drawArrays = function patchedDrawArrays(...args) {
-    if (this.canvas?.matches?.(".advertising-grid__cta-flow")) {
+    if (this.canvas?.matches?.(".masonry-grid__cta-flow")) {
       const key = this.canvas.isConnected ? "connected" : "detached";
       window.__ttSkeletonPaints[key] += 1;
       this.canvas.__ttSkeletonPaints = (this.canvas.__ttSkeletonPaints || 0) + 1;
       if (this.canvas.isConnected && window.__ttSkeletonTraceEnabled) {
-        const frame = this.canvas.closest("[data-advertising-cta-frame]");
+        const frame = this.canvas.closest("[data-masonry-cta-frame]");
         window.__ttSkeletonPaintTimeline.push({
           at: performance.now(),
           slot: frame
-            ? `${frame.dataset.advertisingCtaColumn}:${frame.dataset.advertisingCtaDepth}`
+            ? `${frame.dataset.masonryCtaColumn}:${frame.dataset.masonryCtaDepth}`
             : "unknown",
         });
       }
@@ -540,7 +540,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
     : null;
   observer?.observe({ type: "longtask", buffered: false });
   const paintsBefore = window.__ttSkeletonPaints.connected;
-  const activeCanvases = [...document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-cta-frame].is-looping canvas[data-advertising-flow-backend="webgl"]')];
+  const activeCanvases = [...document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-cta-frame].is-looping canvas[data-masonry-flow-backend="webgl"]')];
   const perFrameBefore = activeCanvases.map(canvas => canvas.__ttSkeletonPaints || 0);
   const activeFrameCount = activeCanvases.length;
   const started = performance.now();
@@ -556,7 +556,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
   const elapsed = performance.now() - started;
   const paints = window.__ttSkeletonPaints.connected - paintsBefore;
   const frames = activeCanvases.map((canvas, index) => ({
-    slot: canvas.closest("[data-advertising-cta-frame]")?.dataset.advertisingCtaSlot ?? "shared",
+    slot: canvas.closest("[data-masonry-cta-frame]")?.dataset.masonryCtaSlot ?? "shared",
     connected: canvas.isConnected,
     paints: (canvas.__ttSkeletonPaints || 0) - perFrameBefore[index],
     fps: ((canvas.__ttSkeletonPaints || 0) - perFrameBefore[index]) * 1000 / elapsed,
@@ -665,7 +665,7 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      // Context không cảm ứng là PC: core 100px và chín bậc (glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
+      // Context không cảm ứng là PC: core 100px và chín bậc (masonry/glass-surface.mjs, S5); bậc 4.5 đầu và ba bậc cuối.
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
       assert.deepEqual([blurs[0], blurs[1], ...blurs.slice(-3)], ["100", "4.5", "33.83", "49.85", "73.44"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
@@ -714,7 +714,7 @@ try {
         const motion = window.TruongThinhMotion;
         const lastScroll = document.documentElement.scrollHeight - innerHeight;
         // R6: cuộn 100px gần cuối làm copy CTA dịch 90px.
-        const copyNode = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+        const copyNode = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
         const copyTopAt = async (y) => {
           if (!motion?.setLogicalScroll?.(y)) window.scrollTo(0, y);
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -726,7 +726,7 @@ try {
         await new Promise((resolve) => setTimeout(resolve, 900));
         const parallaxEnd = new DOMMatrixReadOnly(getComputedStyle(copyNode).transform).m42;
         // Line reveal dừng cao hơn layout box 0.1em.
-        const headingNode = document.querySelector("[data-advertising-grid-cta] h2");
+        const headingNode = document.querySelector("[data-masonry-grid-cta] h2");
         const fontSize = Number.parseFloat(getComputedStyle(headingNode).fontSize);
         const lines = [...headingNode.querySelectorAll(".motion-line")];
         for (let wait = 0; wait < 40 && lines.some((line) =>
@@ -741,10 +741,10 @@ try {
         const baseline = probe.getBoundingClientRect().top;
         probe.remove();
         const lastLineBottom = lastLine.getBoundingClientRect().bottom;
-        const cta = document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect();
+        const cta = document.querySelector("[data-masonry-grid-cta]").getBoundingClientRect();
         const footer = document.querySelector("footer.site-footer").getBoundingClientRect();
-        const heading = document.querySelector("[data-advertising-grid-cta] h2").getBoundingClientRect();
-        const link = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy a").getBoundingClientRect();
+        const heading = document.querySelector("[data-masonry-grid-cta] h2").getBoundingClientRect();
+        const link = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy a").getBoundingClientRect();
         return { ctaTop: cta.top, ctaBottom: cta.bottom, headingTop: heading.top, headingBottom: heading.bottom,
           baseline, lastLineBottom, fontSize, parallaxStep, parallaxEnd,
           linkTop: link.top, linkBottom: link.bottom, footerBottom: footer.bottom, viewportHeight: innerHeight,
@@ -775,7 +775,7 @@ try {
   const parallaxOffset = () => page.evaluate(async () => {
     // Rule reduced-motion toàn cục để lại transition 0.01ms, nên đọc sau một khoảng chờ ngắn.
     await new Promise((resolve) => setTimeout(resolve, 200));
-    const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+    const copy = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
     const offset = () => new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
     // Cuộn còn đang trượt thì offset chưa tới đích: chờ tới khi hai lần đọc liên tiếp khớp.
     let last = offset();
@@ -799,10 +799,10 @@ try {
   await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
   await ready(page);
   const beforeFilterAssignments = await flowAssignments(page);
-  const beforeFilter = await page.locator("[data-advertising-cta-skeleton]").getAttribute("data-advertising-cta-signature");
-  await scrollLogicalTargetIntoView(page, '[data-advertising-filter="displays-booths"]');
-  await page.locator('[data-advertising-filter="displays-booths"]').click();
-  await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, beforeFilter);
+  const beforeFilter = await page.locator("[data-masonry-cta-skeleton]").getAttribute("data-masonry-cta-signature");
+  await scrollLogicalTargetIntoView(page, '[data-masonry-filter="displays-booths"]');
+  await page.locator('[data-masonry-filter="displays-booths"]').click();
+  await page.waitForFunction((signature) => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature !== signature, beforeFilter);
   await ready(page);
   const filteredAssignments = await flowAssignments(page);
   assertFlowBatch(filteredAssignments, "filter lifecycle");
@@ -813,16 +813,16 @@ try {
   assert.equal(await page.evaluate(() => window.__ttSkeletonPaints.detached), detachedPaints,
     "skeleton geometry rebuild left a detached canvas RAF loop");
 
-  const beforeResizeSignature = await page.locator("[data-advertising-cta-skeleton]")
-    .getAttribute("data-advertising-cta-signature");
-  const beforeResizeColumns = await page.locator("[data-advertising-cta-skeleton]")
-    .getAttribute("data-advertising-cta-columns");
+  const beforeResizeSignature = await page.locator("[data-masonry-cta-skeleton]")
+    .getAttribute("data-masonry-cta-signature");
+  const beforeResizeColumns = await page.locator("[data-masonry-cta-skeleton]")
+    .getAttribute("data-masonry-cta-columns");
   await page.setViewportSize({ width: 1000, height: 1000 });
   await page.waitForFunction((signature) =>
-    document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature,
+    document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature !== signature,
   beforeResizeSignature);
   await ready(page);
-  const narrowSignature = await page.locator("[data-advertising-cta-skeleton]").getAttribute("data-advertising-cta-signature");
+  const narrowSignature = await page.locator("[data-masonry-cta-skeleton]").getAttribute("data-masonry-cta-signature");
   const narrowAssignments = await flowAssignments(page);
   evidence.assignmentTransitions = { filteredAssignments, narrowAssignments };
   assertFlowBatch(narrowAssignments, "N4 to N3 logical batches");
@@ -836,9 +836,9 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   // Band đổi được khi đổi cỡ (skeleton R1) nên chữ ký và số khung không quay về cũ: chờ đúng số cột.
   await page.waitForFunction(({ signature, columns }) => {
-    const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-    return skeleton?.dataset.advertisingCtaColumns === columns
-      && skeleton.dataset.advertisingCtaSignature !== signature;
+    const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
+    return skeleton?.dataset.masonryCtaColumns === columns
+      && skeleton.dataset.masonryCtaSignature !== signature;
   }, { signature: narrowSignature, columns: beforeResizeColumns });
   await ready(page);
   const roundTripBySlot = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
@@ -856,10 +856,10 @@ try {
   assert.notEqual(assignmentSignature(reloadAssignments), assignmentSignature(filteredAssignments),
     "reload reused the previous Flow batch");
 
-  await page.locator("[data-advertising-card] a").first().evaluate((node) => node.click());
-  await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+  await page.locator("[data-masonry-card] a").first().evaluate((node) => node.click());
+  await page.waitForFunction(() => document.body.classList.contains("is-detail"));
   await page.evaluate(() => history.back());
-  await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"));
+  await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
   await ready(page);
   const historyAssignments = await flowAssignments(page);
   assertFlowBatch(historyAssignments, "detail/history lifecycle");
@@ -867,9 +867,9 @@ try {
     "photo Back starts a new page state and draws again (skeleton R3)");
 
   await page.evaluate(() => history.forward());
-  await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+  await page.waitForFunction(() => document.body.classList.contains("is-detail"));
   await page.evaluate(() => history.back());
-  await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"));
+  await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
   await ready(page);
   const secondHistoryAssignments = await flowAssignments(page);
   assertFlowBatch(secondHistoryAssignments, "native Back/Forward lifecycle");
@@ -888,7 +888,7 @@ try {
     "skeleton loop changes grid height");
 
   const lossSupported = await page.evaluate(() => {
-    const canvas = document.querySelector(".advertising-grid__cta-shared-flow");
+    const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
     const gl = canvas?.getContext("webgl") || canvas?.getContext("experimental-webgl");
     const extension = gl?.getExtension("WEBGL_lose_context");
     if (!extension) return false;
@@ -899,14 +899,14 @@ try {
   assert(lossSupported, "Chromium does not expose WEBGL_lose_context for the restore regression");
   await page.waitForTimeout(250);
   const paintsWhileLost = await page.evaluate(() =>
-    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0);
+    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0);
   await page.waitForTimeout(250);
   assert.equal(await page.evaluate(() =>
-    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), paintsWhileLost,
+    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), paintsWhileLost,
     "skeleton kept issuing WebGL draws while its context was lost");
   await page.evaluate(() => window.__ttSkeletonLossExtension.restoreContext());
   await page.waitForFunction((before) =>
-    (document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0) > before,
+    (document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0) > before,
   paintsWhileLost);
 
   await page.setViewportSize({ width: 1569, height: 912 });
@@ -919,7 +919,7 @@ try {
     "viewport resize changed the Flow assignment of an existing slot");
   stableAssignments = resizedAssignments;
   await page.evaluate(() => {
-    const bounds = [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    const bounds = [...document.querySelectorAll("[data-masonry-cta-frame]")]
       .map(frame => frame.getBoundingClientRect());
     const firstVisibleScroll = Math.max(...bounds.map(rect => rect.top)) - innerHeight;
     const lastVisibleScroll = Math.min(...bounds.map(rect => rect.bottom));
@@ -931,22 +931,22 @@ try {
   await page.bringToFront();
   // Flow chỉ chạy khung đang thấy (R4); chiều cao batch ngẫu nhiên nên không phải lúc nào mọi khung cũng lọt 912px.
   await page.waitForFunction(() => {
-    const inView = [...document.querySelectorAll("[data-advertising-cta-frame]")].filter(frame => {
+    const inView = [...document.querySelectorAll("[data-masonry-cta-frame]")].filter(frame => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight;
     });
-    return inView.length > 0 && inView.every(frame => frame.dataset.advertisingFlowState === "running"
+    return inView.length > 0 && inView.every(frame => frame.dataset.masonryFlowState === "running"
       && window.__ttFlowLive(frame));
   });
   const desktopScene = await page.evaluate(() => {
-    const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
+    const frames = [...document.querySelectorAll("[data-masonry-cta-frame]")];
     return { width: innerWidth, height: innerHeight, frames: frames.length,
       top: Math.min(...frames.map(frame => frame.getBoundingClientRect().top)),
       bottom: Math.max(...frames.map(frame => frame.getBoundingClientRect().bottom)),
       fullyVisible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.top >= -1 && rect.bottom <= innerHeight + 1;}).length,
       visible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.bottom > 0 && rect.top < innerHeight;}).length,
       running: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.bottom > 0 && rect.top < innerHeight
-        && frame.dataset.advertisingFlowState === "running" && window.__ttFlowLive(frame);}).length };
+        && frame.dataset.masonryFlowState === "running" && window.__ttFlowLive(frame);}).length };
   });
   assert.deepEqual([desktopScene.width, desktopScene.height], [1569, 912], "R4 desktop uses the accepted viewport");
   evidence.performance.desktop = { scene: desktopScene };
@@ -972,16 +972,16 @@ try {
   await ready(mobilePerformancePage);
   await mobilePerformancePage.waitForTimeout(1000);
   const mobileVisible = await mobilePerformancePage.evaluate(() => {
-    const visible = [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
+    const visible = [...document.querySelectorAll("[data-masonry-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight;
     });
     return {
       count: visible.length,
-      running: visible.filter((frame) => frame.dataset.advertisingFlowState === "running").length,
+      running: visible.filter((frame) => frame.dataset.masonryFlowState === "running").length,
       staticFallbacks: visible.filter((frame) => frame.querySelector("canvas")
         && getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none").length,
-      contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
+      contexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]').length,
     };
   });
   assert(mobileVisible.count > 2 && mobileVisible.running >= 1 && mobileVisible.contexts === 1,
@@ -989,7 +989,7 @@ try {
   assert.equal(mobileVisible.staticFallbacks, mobileVisible.count,
     "A54 viewport contains a blank preset fallback");
   const mobilePerformanceState = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll(".advertising-grid__cta-shared-flow").length,
+    contexts: document.querySelectorAll(".masonry-grid__cta-shared-flow").length,
     devicePixelRatio,
   }));
   await mobilePerformancePage.waitForTimeout(1000);
@@ -1002,10 +1002,10 @@ try {
   evidence.performance.mobile = { profile: "A54 emulation, 360x800 DPR3; physical gate remains separate", probes: mobileProbes, medianFps };
   assert.ok(mobileProbes.every(probe => probe.activeFrameCount >= 1 && probe.activeFrameCount <= 2), "R10 all three probes keep the two-context budget");
   await mobilePerformancePage.evaluate(() => {
-    window.__ttMobileRenderers = [...document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]')];
+    window.__ttMobileRenderers = [...document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]')];
     window.__ttMobileTransitionCount = 0;
     window.__ttMobileTransitionListener = (event) => {
-      if (event.propertyName === "opacity" && event.target.matches?.(".advertising-grid__cta-flow")) {
+      if (event.propertyName === "opacity" && event.target.matches?.(".masonry-grid__cta-flow")) {
         window.__ttMobileTransitionCount += 1;
       }
     };
@@ -1013,21 +1013,21 @@ try {
     Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  await mobilePerformancePage.waitForFunction(() => !document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await mobilePerformancePage.waitForFunction(() => !document.querySelector("[data-masonry-cta-frame].is-looping"));
   await mobilePerformancePage.evaluate(() => {
     delete document.hidden;
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-looping"));
   await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
-  await mobilePerformancePage.waitForFunction(() => !document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await mobilePerformancePage.waitForFunction(() => !document.querySelector("[data-masonry-cta-frame].is-looping"));
   await mobilePerformancePage.emulateMedia({ reducedMotion: "no-preference" });
-  await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-looping"));
   const retainedMobile = await mobilePerformancePage.evaluate(() => {
     document.removeEventListener("transitionrun", window.__ttMobileTransitionListener);
     const result = {
       sameCanvases: window.__ttMobileRenderers.length > 0 && window.__ttMobileRenderers.every((canvas) => canvas.isConnected),
-      contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
+      contexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]').length,
       transitions: window.__ttMobileTransitionCount,
     };
     delete window.__ttMobileRenderers;
@@ -1040,11 +1040,11 @@ try {
   await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
   await mobilePerformancePage.reload({ waitUntil: "networkidle" });
   await mobilePerformancePage.waitForFunction(() =>
-    document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
   const freshReduced = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
+    contexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]').length,
     // Frame draw ở lần vào đầu tiên, nên chỉ frame trong view mới phải hiện still.
-    staticFrames: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
+    staticFrames: [...document.querySelectorAll("[data-masonry-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight;
     }).every((frame) => frame.querySelector("canvas")
@@ -1059,8 +1059,8 @@ try {
   await mobilePerformancePage.setViewportSize({ width: 360, height: 800 });
   await ready(mobilePerformancePage);
   const resizedMobile = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
-    blanks: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
+    contexts: document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-flow-backend="webgl"]').length,
+    blanks: [...document.querySelectorAll("[data-masonry-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight && (!frame.querySelector("canvas")
         || getComputedStyle(frame.querySelector("canvas")).backgroundImage === "none");
@@ -1094,7 +1094,7 @@ try {
   }));
   assert.deepEqual(await page.evaluate(() => ({ ...window.__ttSkeletonPaints })), pausedPaints,
     "offscreen skeleton has zero connected and detached WebGL paints");
-  assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-advertising-flow-preset]")]
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-masonry-flow-preset]")]
     .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
@@ -1121,7 +1121,7 @@ try {
   await assertSlotsKept(page, stableAssignments,
     "second viewport replay changed Flow assignments within one page load");
 
-  await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonVisibilityReplayCount = 0;
     window.__ttSkeletonVisibilityListener = new MutationObserver((records) => {
       window.__ttSkeletonVisibilityReplayCount += records.filter((record) => [...record.addedNodes]
@@ -1134,20 +1134,20 @@ try {
       Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
       document.dispatchEvent(new Event("visibilitychange"));
     });
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-cta-frame].is-looping"));
+    await page.waitForFunction(() => !document.querySelector("[data-masonry-cta-frame].is-looping"));
     await page.evaluate(() => {
       delete document.hidden;
       document.dispatchEvent(new Event("visibilitychange"));
     });
-    await page.waitForFunction(() => !document.hidden && document.querySelector("[data-advertising-cta-frame].is-looping"));
+    await page.waitForFunction(() => !document.hidden && document.querySelector("[data-masonry-cta-frame].is-looping"));
   }
-  const visibilityReplay = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  const visibilityReplay = await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonVisibilityListener.disconnect();
     const result = {
       count: window.__ttSkeletonVisibilityReplayCount,
       entryReady: frame.classList.contains("is-entry-ready"),
       opacity: Number(getComputedStyle(frame).opacity),
-      targetOpacity: Number(getComputedStyle(frame).getPropertyValue("--advertising-cta-frame-opacity")),
+      targetOpacity: Number(getComputedStyle(frame).getPropertyValue("--masonry-cta-frame-opacity")),
     };
     delete window.__ttSkeletonVisibilityListener;
     delete window.__ttSkeletonVisibilityReplayCount;
@@ -1160,16 +1160,16 @@ try {
     "page visibility resume changed Flow assignments or ratio bands");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-cta-frame].is-looping")
-    && document.querySelector(".advertising-grid__cta-surface")?.getAnimations().length === 0
-    && document.querySelector("[data-advertising-cta-frame]")?.dataset.advertisingFlowState === "paused");
-  const reducedState = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
+  await page.waitForFunction(() => !document.querySelector("[data-masonry-cta-frame].is-looping")
+    && document.querySelector(".masonry-grid__cta-surface")?.getAnimations().length === 0
+    && document.querySelector("[data-masonry-cta-frame]")?.dataset.masonryFlowState === "paused");
+  const reducedState = await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     const style = getComputedStyle(frame);
-    const canvas = document.querySelector(".advertising-grid__cta-shared-flow");
+    const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
     return {
       opacity: Number(style.opacity),
       paints: canvas?.__ttSkeletonPaints || 0,
-      targetOpacity: Number(style.getPropertyValue("--advertising-cta-frame-opacity")),
+      targetOpacity: Number(style.getPropertyValue("--masonry-cta-frame-opacity")),
       transformY: new DOMMatrixReadOnly(style.transform).m42,
     };
   });
@@ -1178,15 +1178,15 @@ try {
     "reduced motion skeleton is not immediately visible");
   assert(Math.abs(reducedState.transformY) <= 0.1, "reduced motion skeleton retains an entry transform");
   assert.equal(await page.evaluate(() =>
-    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), reducedState.paints,
+    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), reducedState.paints,
   "reduced motion skeleton kept advancing WebGL");
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
+  await page.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-looping"));
 
   for (let attempt = 0; attempt < 20; attempt += 1) {
     await page.evaluate(async () => {
-      window.TruongThinhAdvertising.unmount();
-      await window.TruongThinhAdvertising.mount();
+      window.TruongThinhMasonry.unmount();
+      await window.TruongThinhMasonry.mount();
     });
     await ready(page);
   }
@@ -1202,7 +1202,7 @@ try {
 
   await page.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-01`, { waitUntil: "networkidle" });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+  await page.waitForFunction(() => document.body.classList.contains("is-detail"));
   const navLink = page.locator('.desktop-nav a[aria-current="page"]');
   await navLink.waitFor();
   await page.waitForFunction(() => {
@@ -1230,14 +1230,14 @@ try {
   await page.goto(`${baseUrl}/en/advertising-products/`, { waitUntil: "networkidle" });
   // Trang nền trong headless không chạy rAF nên route-enter không gỡ.
   await page.bringToFront();
-  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   // Direct load phủ route veil đến khi phase enter gỡ route-enter; nút menu bị veil chặn click trước đó.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.locator("[data-menu-open]").click();
   await page.locator('#site-menu .menu-group__title[href="/en/advertising-products/"]').click();
   assert.equal(new URL(page.url()).pathname, "/en/advertising-products/", "parent nav changed canonical locale route");
   assert.equal(new URL(page.url()).search, "", "parent nav added query state");
-  assert.equal(await page.locator('[data-advertising-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
+  assert.equal(await page.locator('[data-masonry-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
   // Lần vào đầu tiên: reveal chạy khi Kính cung ngoài viewport, không chạy khi cung đang giao viewport.
   const revealedEntry = await firstEntryReveals(browser, "first-frame");
   assert(revealedEntry.added.length >= 1, "first entry: frame did not play the Kinh reveal");

@@ -2,7 +2,7 @@
 title: Detail Advertising
 status: live
 source:
-  - src/site/advertising-products/suggestion-slideshow.mjs
+  - src/site/masonry/suggestion-slideshow.mjs
 tests:
   - tests/site/advertising-photo-layout.test.mjs
   - tests/site/advertising-full-span-p72.e2e.mjs
@@ -18,7 +18,7 @@ tests:
   - tests/site/related-scroll-device.mjs
   - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Detail Advertising
@@ -35,11 +35,11 @@ card, seed ở [masonry](advertising-masonry.md); skeleton chờ ảnh ở [load
 ### R1. URL và vào detail
 
 URL detail là path `p/<id>` (id ổn định của card), tùy chọn `?tag=<tag-id>`; nhóm luôn là nhóm của ảnh
-(`parseAdvertisingBrowseLocation`). `?photo=<id>` cũ vẫn mở và đổi sang path; id lạ thì về masonry; `tag` lạ thì bỏ;
+(`parseBrowseLocation`). `?photo=<id>` cũ vẫn mở và đổi sang path; id lạ thì về masonry; `tag` lạ thì bỏ;
 khi mount, runtime ghi URL chuẩn bằng `replaceState`. Bấm card masonry ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card))
 hoặc card related gọi `openPhoto`: lưu entry hiện tại (masonry: nhóm, card, scroll) rồi push entry detail mới ở Y=0;
 primary mở media đang active trên card. Bấm lại ảnh đang xem không làm gì. Tải thẳng hoặc F5 URL detail mở media cover.
-Body có `is-advertising-photo`: masonry, hero, project index, CTA masonry, quy trình ẩn; gạch chân mục Advertising trên
+Body có `is-detail`: masonry, hero, project index, CTA masonry, quy trình ẩn; gạch chân mục Advertising trên
 navbar ẩn trừ khi hover, focus. Không clone ảnh, veil hay khóa cuộn ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)).
 
 ```gherkin
@@ -51,12 +51,12 @@ And không có clone ảnh giữa card và primary
 
 ### R2. Hình học primary
 
-`computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
+`computeDetailGeometry` (`masonry/layout.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
 thu gọn (R10) trừ gap, safe area và `50px` để related lộ dưới, ở mọi viewport kể cả primary chiếm hết cột (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên dưới primary luôn còn gap và `50px` related. Ảnh `contain` trong vùng;
-dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
+dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
 ```gherkin
@@ -102,7 +102,7 @@ Then A ẩn ngay, skeleton phủ khung primary, B hiện dưới Kính rồi Kí
 
 ### R5. Suggestion
 
-`selectAdvertisingSuggestions` chọn tối đa bốn tag nhóm `product`, `variant` hoặc `use` có ảnh, mỗi nhãn một nút: tag gắn
+`selectSuggestions` chọn tối đa bốn tag nhóm `product`, `variant` hoặc `use` có ảnh, mỗi nhãn một nút: tag gắn
 trên ảnh trước (sản phẩm đứng đầu), sau đó tag có ảnh cùng nhóm theo thứ tự băm `fnv1a32("<photo>:<tag>")`; tag đang chọn luôn có chỗ. Thứ tự cố định theo photo, không theo
 locale; bật, tắt tag không đổi vị trí nút. Mỗi nút một dòng, nhãn VI/EN, `aria-pressed`; nút đang bật nền trắng, chữ và viền
 đen, không ảnh. Bấm nút bật tag (bấm lại thì tắt) bằng `replaceTag`: `replaceState`, không thêm entry, giữ ảnh primary, đổi
@@ -119,7 +119,7 @@ And resize 844×390 xuống 844×340 thì mọi frame card suggestion ở cột 
 
 ### R6. Slideshow suggestion
 
-`suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
+`masonry/suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`), ảnh không zoom (owner bỏ 10/10)
 (`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` (giữa hai mức `0.4` và `0.6` của Pinterest) chỉ hiện khi ảnh nền của nút đã giải mã (`is-media-settled`), cùng ảnh fade `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`; lúc chờ chỉ có vệt sáng và nhãn trắng mang bóng D; slideshow giải mã ảnh kế trước khi đẩy nên lớp tối không tắt giữa hai ảnh; hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không có lớp tối, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
@@ -137,14 +137,14 @@ And nút đang bật giữ nguyên ảnh
 
 ### R7. Related
 
-`selectAdvertisingRelated`: không tag thì pool và thứ tự theo tầng điểm của [taxonomy R7](advertising-taxonomy.md#r7-related-có-thể-bạn-thích); có tag thì
+`selectRelated`: không tag thì pool và thứ tự theo tầng điểm của [taxonomy R7](advertising-taxonomy.md#r7-related-có-thể-bạn-thích); có tag thì
 card mang tag trong các tầng đó trước, rồi card mang tag còn lại theo thứ tự nhóm; pool rỗng thì related trống, không thông báo.
-`compileAdvertisingRelatedLayout` xáo trong từng tầng theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>:<tầng>`, xếp bằng
-solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn: `split` thử đặt
+`compileRelatedLayout` xáo trong từng tầng theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>:<tầng>`, xếp bằng
+solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn, mọi card related một cột đúng tỷ lệ gốc kể cả ảnh từ tỷ lệ vàng, không cắt ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): `split` thử đặt
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`, không card nào đi qua primary; cuối related là CTA cuối masonry ([CTA R9, R10](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)). Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-detail` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
@@ -171,14 +171,14 @@ And không frame nào vẽ ở Y của entry khác
 
 ### R9. Viewer
 
-Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
-logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
+Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#detail-dialog` bằng `showModal` sau khi khóa cuộn
+logic (`createDetailViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer mọi máy là lớp tối `0.85` màu `rgba(32, 33, 32)` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
 điện thoại cũng blur ([gate phone Android](../decisions/phone-frame-budget.md) đo lại khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
-cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
+cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Ảnh primary chưa tải xong thì nút `Xem lớn hơn` bị khóa (`disabled`, nền vẫn trắng, con trỏ `progress`): icon là vòng loading hai cung quay `0.7s` một vòng; tải xong thì mở lại ngay, không chờ Kính tan: vòng giữ tốc độ rồi phanh trong phần tư vòng cuối, dừng khi hai cung nằm ở góc phải trên và trái dưới, mỗi cung uốn thẳng thành một mũi tên của icon phóng to (`380ms`, `media-lib/loading-expand-icon.mjs`); reduced motion và màn cảm ứng (nút ẩn) không quay, đổi icon tức thì; viewer không bao giờ hiện ảnh của lần mở trước: đóng viewer thì ảnh trong viewer bị gỡ `src` (owner 2026-11-11). Video không khóa. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
 còn media sắc nét; video là frame lúc mở, đứng yên. Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 
 ```gherkin
@@ -191,7 +191,7 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 ### R10. Navbar và Escape trên detail
 
 Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
-Nút quay lại `←` (như nút quay lại của Pinterest; `[data-advertising-photo-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
+Nút quay lại `←` (như nút quay lại của Pinterest; `[data-detail-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
 Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px. Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin
@@ -238,20 +238,20 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-advertising-photo-view]` với `data-advertising-photo-id`, `-photo-layout` (`split`/`pinterest`), `data-advertising-primary-span`, `-photo-glass`; body `is-advertising-photo`, `data-advertising-photo-active` | Runtime ghi (R1, R2); CSS, test đọc |
-| DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-box\|description-scroll\|description\|description-bar\|cta\|player]` | Markup `index.html`, runtime điền (R2–R4) |
-| DOM hook | `[data-advertising-photo-suggestion]`, `[data-advertising-suggestion-tag]` (`aria-pressed`), `[data-advertising-suggestion-image-layer]`; `[data-advertising-photo-related-grid]`, `[data-advertising-related-card]`; mọi item masonry thêm `[data-masonry-item]` (id card, gợi ý là `suggestion`) và `[data-masonry-kind]` (`photo`, `video`, `multi`, `suggestion`) | Suggestion, slideshow, related (R5–R7) |
-| DOM hook | `dialog#advertising-photo-dialog`, `data-advertising-viewer-state` (`opening`/`closing`) | Viewer (R9) |
-| CSS var | `--advertising-photo-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |
-| URL | `?category=&photo=&tag=` (`serializeAdvertisingBrowseLocation`) | URL chuẩn (R1) |
+| DOM hook | `[data-detail-view]` với `data-detail-id`, `-photo-layout` (`split`/`pinterest`), `data-masonry-primary-span`, `-photo-glass`; body `is-detail`, `data-detail-active` | Runtime ghi (R1, R2); CSS, test đọc |
+| DOM hook | `[data-detail-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-box\|description-scroll\|description\|description-bar\|cta\|player]` | Markup `index.html`, runtime điền (R2–R4) |
+| DOM hook | `[data-detail-suggestion]`, `[data-masonry-suggestion-tag]` (`aria-pressed`), `[data-masonry-suggestion-image-layer]`; `[data-detail-related-grid]`, `[data-masonry-related-card]`; mọi item masonry thêm `[data-masonry-item]` (id card, gợi ý là `suggestion`) và `[data-masonry-kind]` (`photo`, `video`, `multi`, `suggestion`) | Suggestion, slideshow, related (R5–R7) |
+| DOM hook | `dialog#detail-dialog`, `data-viewer-state` (`opening`/`closing`) | Viewer (R9) |
+| CSS var | `--detail-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |
+| URL | `?category=&photo=&tag=` (`serializeBrowseLocation`) | URL chuẩn (R1) |
 | Storage | history state `advertisingBrowse`: `category`, `photo`, `tag`, `seed`, `directPhotoRootId`, `grid`, `detail` | Theo entry (R8, R10) |
-| Hàm public | `parseAdvertisingBrowseLocation`, `selectAdvertisingSuggestions`, `selectAdvertisingRelated`, `compileAdvertisingRelatedLayout`, `createAdvertisingBrowseHistoryController` (`catalog-runtime.mjs`); `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Thuần, test unit gọi (R1, R2, R5, R7, R8) |
+| Hàm public | `parseBrowseLocation`, `selectSuggestions`, `selectRelated`, `compileRelatedLayout`, `createBrowseHistoryController` (`masonry/runtime.mjs`); `computeDetailGeometry` (`masonry/layout.mjs`) | Thuần, test unit gọi (R1, R2, R5, R7, R8) |
 | Hàm public | `suggestionDeck(key, cards)`, `mountSuggestionSlides(root, {cards, createImage, isReduced, signal})` → cleanup | Slideshow (R6) |
-| Hàm public | `createAdvertisingPhotoViewer` (`photo-viewer.mjs`): `close`, `setRecord`, `cleanup` | Viewer (R9) |
-| Hàm public | `window.TruongThinhAdvertising.navigatePhoto`, `navigateQuery(href, {reason})`, `handlePopState`, `captureDetail`, `replaceTag` | `motion.js` gọi (R8, R10) |
+| Hàm public | `createDetailViewer` (`masonry/detail-viewer.mjs`): `close`, `setRecord`, `cleanup` | Viewer (R9) |
+| Hàm public | `window.TruongThinhMasonry.navigatePhoto`, `navigateQuery(href, {reason})`, `handlePopState`, `captureDetail`, `replaceTag` | `motion.js` gọi (R8, R10) |
 | Event | `site:layout` (phát sau khi dựng detail), `languagechange`, `site:scroll` | Shell, R11, R6 |
 
-Code detail nằm trong file của spec khác: `catalog-runtime.mjs`, `layout-core.mjs` ([masonry](advertising-masonry.md)), `photo-viewer.mjs` ([viewer chạm](advertising-viewer-touch-zoom.md)), `detail.css` ([trang con](detail-pages.md)), `motion.js` ([shell](site-shell.md)); sửa hành vi detail ở đó thì cập nhật cả spec này.
+Code detail nằm trong file của spec khác: `masonry/runtime.mjs`, `masonry/layout.mjs` ([masonry](advertising-masonry.md)), `masonry/detail-viewer.mjs` ([viewer chạm](advertising-viewer-touch-zoom.md)), `detail.css` ([trang con](detail-pages.md)), `motion.js` ([shell](site-shell.md)); sửa hành vi detail ở đó thì cập nhật cả spec này.
 
 ## UI
 
@@ -265,14 +265,14 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `advertising-products-lifecycle.test.mjs` (parse, URL chuẩn); `CASE=m02b-grid-detail-no-clone-no-jump`, `m02b-direct-reload-cover` |
-| R2 | `advertising-photo-layout.test.mjs` (span, split, 28%, cao thêm); `advertising-full-span-p72.e2e.mjs`; `advertising-primary-p14.e2e.mjs`; `PHOTO_VIEW_P13_GEOMETRY_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` |
+| R2 | `advertising-photo-layout.test.mjs` (span, split, 28%, cao thêm); `advertising-full-span-p72.e2e.mjs`; `advertising-primary-p14.e2e.mjs`; `PHOTO_VIEW_P13_GEOMETRY_ONLY=1 node tests/site/detail-view.e2e.mjs` |
 | R3 | `advertising-suggestion-info.e2e.mjs` (vùng cuộn khi chữ 200%); `advertising-primary-p14.e2e.mjs` (CTA, chữ vừa, cuộn tới cuối); `site-media-card-m02a.e2e.mjs` (thanh hover, mép mờ, cảm ứng không thanh) |
 | R4 | `CASE=delayed-image-resize-latest-wins`; test của [loading glass](loading-glass-and-page-entry.md#kiểm-tra) |
 | R5 | `advertising-suggestion-layout.e2e.mjs` (bốn chỗ); `advertising-suggestion-conditional.e2e.mjs` (split, pinterest, resize); `advertising-suggestion-info.e2e.mjs`; `CASE=related-suggestions-replace-state` |
 | R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-suggestion-wave.e2e.mjs` (412×780, nút dưới mép màn hình); `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
 | R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`, `related-tap-defers-related`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
-| R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle`; `site-media-card-m02a.e2e.mjs`: khung primary dưới viewer ảnh và video chỉ còn zoom blur, đóng thì media hiện lại |
+| R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/detail-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle`; `site-media-card-m02a.e2e.mjs`: khung primary dưới viewer ảnh và video chỉ còn zoom blur, đóng thì media hiện lại |
 | R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `advertising-photo-header.e2e.mjs` (header thu gọn, 390px và 1440px); `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
 | R11 | `CASE=active-photo-locale-switch` |
 | R12 | `advertising-primary-p14.e2e.mjs` (reduced motion); `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs` |

@@ -1,4 +1,4 @@
-/* Giao diện editor CMS (cms-editor R1). Không thuộc Design System của site public. */
+/* CMS editor UI (cms-editor R1). Not part of the public site's Design System. */
 :root {
   color-scheme: light;
   --ink: #17212b;
@@ -32,7 +32,7 @@ button { cursor: pointer; }
 .is-primary { border-color: var(--accent) !important; background: var(--accent) !important; color: #fff !important; }
 
 .dock { position: absolute; inset: var(--bar) 0 0 0; }
-/* Tab ẩn của themeLight chỉ đạt 1.9:1; nâng lên trên 4.5:1 (cms-editor UI). */
+/* themeLight's hidden tab only reaches 1.9:1; raise to above 4.5:1 (cms-editor UI). */
 .dock .dv-theme-light, .dock .dockview-theme-light {
   --dv-activegroup-hiddenpanel-tab-color: var(--muted);
   --dv-inactivegroup-visiblepanel-tab-color: var(--muted);
@@ -119,8 +119,8 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .media-row__cover { color: var(--muted); font-size: 13px; }
 .media-row__actions { display: grid; gap: 4px; }
 
-/* Bổ sung dock (cms-editor R11): tab ghim, dải kéo ra mép, panel trượt ra từ dải tự ẩn, menu tab. z-index vượt sash và
-   overlay của Dockview (tới 1001). */
+/* Dock additions (cms-editor R11): pinned tab, drag strip at the edge, panel sliding out of an auto-hidden strip, tab menu. z-index exceeds Dockview's sash and
+   overlay (up to 1001). */
 .dock .dv-default-tab.is-pinned .dv-default-tab-action { visibility: visible; color: var(--accent); }
 .dock .dv-default-tab-action svg { display: block; width: 12px; height: 12px; }
 .dock-edge-actions { display: flex; align-items: center; justify-content: center; height: 100%; padding: 4px; }

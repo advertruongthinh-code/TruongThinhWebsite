@@ -159,7 +159,7 @@ async function readProbe(page) {
     const container = document.querySelector('[data-barba="container"]');
     const hero = container?.querySelector(".detail-index-hero");
     return {
-      activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter || null,
+      activeFilter: document.querySelector('[data-masonry-filter][aria-current="true"]')?.dataset.masonryFilter || null,
       containerIdentityStable: container === probe.originalContainer,
       heroIdentityStable: hero === probe.originalHero,
       heroClassDrops: probe.heroClassDrops,
@@ -184,7 +184,7 @@ async function runDelayedAdapterCase(browser) {
   let releaseCatalog;
   const catalogGate = new Promise((resolve) => { releaseCatalog = resolve; });
   let interceptedCatalogRequests = 0;
-  await page.route("**/advertising-products/catalog-runtime.mjs", async (route) => {
+  await page.route("**/masonry/runtime.mjs", async (route) => {
     interceptedCatalogRequests += 1;
     await catalogGate;
     await route.continue();
@@ -197,12 +197,12 @@ async function runDelayedAdapterCase(browser) {
     // Chữ hero chờ veil mở (first-load-parity R2), nên lúc này chỉ mới tách từ.
     await waitForHeroPrepared(page);
     assert.equal(interceptedCatalogRequests, 1, "fixture did not hold the first catalog-runtime import");
-    assert.equal(await page.evaluate(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.())), false,
+    assert.equal(await page.evaluate(() => Boolean(window.TruongThinhMasonry?.getAdapter?.())), false,
       "fixture released the Advertising adapter before the pre-ready click");
     await installHeroOnceProbe(page);
 
-    await page.locator('[data-advertising-filter="displays-booths"]').dispatchEvent("click");
-    await page.locator('[data-advertising-filter="printing-decals"]').dispatchEvent("click");
+    await page.locator('[data-masonry-filter="displays-booths"]').dispatchEvent("click");
+    await page.locator('[data-masonry-filter="printing-decals"]').dispatchEvent("click");
     const queryStarted = await page.evaluate(() => window.__ttHeroOnceProbe.queryCalls.length > 0);
     if (queryStarted) {
       await page.waitForFunction(() => {
@@ -212,8 +212,8 @@ async function runDelayedAdapterCase(browser) {
       });
     }
     releaseCatalog();
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-    await page.waitForFunction(() => document.querySelector('[data-advertising-filter="printing-decals"]')?.getAttribute("aria-current") === "true");
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
+    await page.waitForFunction(() => document.querySelector('[data-masonry-filter="printing-decals"]')?.getAttribute("aria-current") === "true");
     await waitForHeroSettled(page);
 
     return {
@@ -232,16 +232,16 @@ async function runReadyLoopCase(browser) {
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await runEndHomeSequence(page);
 
     for (let index = 0; index < 10; index += 1) {
       const filter = index % 2 === 0 ? "displays-booths" : "all";
-      await page.locator(`[data-advertising-filter="${filter}"]`).click();
+      await page.locator(`[data-masonry-filter="${filter}"]`).click();
       await page.waitForFunction((expected) => (
-        document.querySelector(`[data-advertising-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
+        document.querySelector(`[data-masonry-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
       ), filter);
     }
 
@@ -261,15 +261,15 @@ async function runRouteEntryCase(browser) {
     await page.goto(`${baseUrl}/vi/`, { waitUntil: "networkidle" });
     await page.locator('.site-header a[href="/vi/advertising-products/"]').click();
     await page.waitForURL(`${baseUrl}/vi/advertising-products/`);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await runEndHomeSequence(page);
 
     for (const filter of ["displays-booths", "all", "signage", "all"]) {
-      await page.locator(`[data-advertising-filter="${filter}"]`).click();
+      await page.locator(`[data-masonry-filter="${filter}"]`).click();
       await page.waitForFunction((expected) => (
-        document.querySelector(`[data-advertising-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
+        document.querySelector(`[data-masonry-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
       ), filter);
     }
 
@@ -283,7 +283,7 @@ async function runRouteReturnCase(browser, locale) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
     await page.locator(`.site-header a[href="/${locale}/residential/"]`).click();
@@ -294,11 +294,11 @@ async function runRouteReturnCase(browser, locale) {
     ));
     await page.locator(`.site-header a[href="/${locale}/advertising-products/"]`).click();
     await page.waitForURL(`${baseUrl}/${locale}/advertising-products/`);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
-    await page.locator('[data-advertising-filter="displays-booths"]').click();
+    await page.locator('[data-masonry-filter="displays-booths"]').click();
     await page.waitForFunction(() => (
-      document.querySelector('[data-advertising-filter="displays-booths"]')?.getAttribute("aria-current") === "true"
+      document.querySelector('[data-masonry-filter="displays-booths"]')?.getAttribute("aria-current") === "true"
     ));
     return await readProbe(page);
   } finally {
@@ -308,18 +308,18 @@ async function runRouteReturnCase(browser, locale) {
 
 async function runFailedAdapterFallbackCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.route("**/advertising-products/catalog-runtime.mjs", (route) => route.abort("failed"));
+  await page.route("**/masonry/runtime.mjs", (route) => route.abort("failed"));
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => (
-      document.querySelector('[data-barba-namespace="advertising-products"]')?.dataset.advertisingFallback === "failed"
+      document.querySelector('[data-barba-namespace="advertising-products"]')?.dataset.masonryFallback === "failed"
     ));
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
       return url.pathname === "/vi/advertising-products/standee-ke-trung-bay/"
         && ["document", "fetch", "xhr"].includes(request.resourceType());
     });
-    await page.locator('[data-advertising-filter="displays-booths"]').click({ noWaitAfter: true });
+    await page.locator('[data-masonry-filter="displays-booths"]').click({ noWaitAfter: true });
     const request = await fallbackRequest;
     return { resourceType: request.resourceType(), url: request.url() };
   } finally {
@@ -332,14 +332,14 @@ async function runPendingAdapterFailureCase(browser) {
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   let rejectCatalog;
   const catalogGate = new Promise((resolve) => { rejectCatalog = resolve; });
-  await page.route("**/advertising-products/catalog-runtime.mjs", async (route) => {
+  await page.route("**/masonry/runtime.mjs", async (route) => {
     await catalogGate;
     await route.abort("failed");
   });
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     await waitForHeroPrepared(page);
-    await page.locator('[data-advertising-filter="displays-booths"]').dispatchEvent("click");
+    await page.locator('[data-masonry-filter="displays-booths"]').dispatchEvent("click");
     const trafficBeforeReject = [...queryTraffic];
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());

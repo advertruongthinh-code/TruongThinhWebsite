@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 
-// Hồi quy shell: nhãn cuộn và Back sau khi đổi ngôn ngữ tại chỗ, ctrl+click không ghim header.
+// Hồi quy shell: nhãn cuộn và Back sau khi đổi ngôn ngữ tại chỗ, header ngôn ngữ cũ không lộ, ctrl+click không ghim header.
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -17,8 +17,24 @@ try {
     await page.goto(`${baseUrl}/vi/${route}/`);
     await ready(page);
     await page.locator("[data-menu-open]").click();
+    await page.waitForFunction(() => document.querySelector("#site-menu").open);
+    // Ghi mỗi frame tới lúc trang tải lại: menu đóng trên veil thì header ngôn ngữ cũ không được lộ (owner 2026-11-10).
+    await page.evaluate(() => {
+      const header = document.querySelector("[data-site-header]");
+      const frames = [];
+      const tick = () => {
+        const closed = !document.querySelector("#site-menu").open;
+        if (closed) frames.push(getComputedStyle(header).visibility);
+        sessionStorage.setItem("tt-test-locale-header", JSON.stringify(frames));
+        requestAnimationFrame(tick);
+      };
+      document.querySelector('#site-menu [data-language-option="en"]').addEventListener("click", () => requestAnimationFrame(tick));
+    });
     await page.locator('#site-menu [data-language-option="en"]').click();
     await page.waitForFunction(() => document.documentElement.lang === "en");
+    const oldHeader = await page.evaluate(() => JSON.parse(sessionStorage.getItem("tt-test-locale-header") || "[]"));
+    assert.ok(oldHeader.every(visibility => visibility === "hidden"), `${route}: old-language header stays hidden while the menu closes ${JSON.stringify(oldHeader)}`);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("[data-site-header]")).visibility), "visible", `${route}: new-language header shows after reload`);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     const label = await page.locator("[data-scroll-cue-label]").evaluate(node => ({
       text: node.textContent.trim(), aria: node.getAttribute("aria-label"),
@@ -33,9 +49,9 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(`${baseUrl}/vi/advertising-products/`);
     await ready(page);
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile a[href*='/p/']"));
-    const photo = await page.locator("[data-project-grid] .advertising-tile a[href*='/p/']").first().getAttribute("href");
-    await page.evaluate(href => window.TruongThinhAdvertising.navigateQuery(href), photo);
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card a[href*='/p/']"));
+    const photo = await page.locator("[data-project-grid] .masonry-card a[href*='/p/']").first().getAttribute("href");
+    await page.evaluate(href => window.TruongThinhMasonry.navigateQuery(href), photo);
     await page.waitForFunction(() => /\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
     await page.locator("[data-menu-open]").click();
     await page.locator('#site-menu [data-language-option="en"]').click();

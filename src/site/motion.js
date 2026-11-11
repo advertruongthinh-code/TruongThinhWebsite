@@ -653,7 +653,7 @@
       ({ top, bottom }) => top <= probeY && bottom > probeY,
     )?.section;
     // Detail ảnh Advertising không có hero nên header luôn thu gọn (advertising-detail R10).
-    const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
+    const collapsed = scrollY > 100 || document.body.classList.contains("is-detail");
     // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
     // Route mềm (routeMarkHeld): tone veil chỉ trong lúc veil phủ kín; vào thẳng trang: tới khi trang đích sẵn sàng.
@@ -1268,7 +1268,7 @@
     if (logicalScrollLock) state.smoothScroll.stop();
   };
 
-  const clearSmoothScrollStyles = (state, scrollY, keepNativeHidden = false) => {
+  const clearSmoothScrollStyles = (state, keepNativeHidden = false) => {
     document.documentElement.classList.remove(
       "has-scroll-init",
       "has-scroll-scrolling",
@@ -1286,18 +1286,18 @@
     document.body.style.removeProperty("height");
     // html có scroll-behavior: smooth; khôi phục vị trí phải tức thì, nếu không scrollY trượt dần từ 0 và
     // lần đổi mode kế tiếp (resize nhanh qua mốc 981px) đọc nhầm vị trí giữa chừng.
-    window.scrollTo({ top: scrollY, behavior: "instant" });
+    // Đọc vị trí mới nhất mỗi lần gọi: các frame dọn dẹp chạy sau destroy, khi viewer có thể đã đặt lại scroll.
+    window.scrollTo({ top: state.smoothScrollY, behavior: "instant" });
   };
 
   const destroySmoothScroll = (state, { keepNativeHidden = false } = {}) => {
-    const scrollY = state.smoothScrollY;
     keepNativeHidden &&= Boolean(state.smoothScroll);
     if (state.smoothScroll) {
       state.smoothScroll.stop();
       state.smoothScroll.destroy();
       state.smoothScroll = undefined;
     }
-    clearSmoothScrollStyles(state, scrollY, keepNativeHidden);
+    clearSmoothScrollStyles(state, keepNativeHidden);
 
     let cleanupFrames = 2;
     const finishNativeCleanup = () => {
@@ -1308,7 +1308,7 @@
       ) {
         return;
       }
-      clearSmoothScrollStyles(state, scrollY, keepNativeHidden);
+      clearSmoothScrollStyles(state, keepNativeHidden);
       cleanupFrames -= 1;
       if (cleanupFrames > 0) {
         window.requestAnimationFrame(finishNativeCleanup);
@@ -2577,6 +2577,9 @@
       }
       // Owner 2026-11-08: đổi ngôn ngữ chạy lại toàn bộ motion như F5. Veil phủ rồi tải trang đích từ đầu
       // (route-enter của head-inline mở veil, intro chạy lại, cuộn về đầu); replace để không thêm entry history.
+      // Owner 2026-11-10: không cho thấy header ngôn ngữ cũ khi menu đóng lại trên veil; trang đích tải lại hiện header mới.
+      // replace() bỏ trang cũ khỏi history nên bfcache không trả lại header đang ẩn.
+      header.style.visibility = "hidden";
       await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
@@ -2669,12 +2672,12 @@
         && destination.pathname.slice(0, 4) === window.location.pathname.slice(0, 4)
         && destination.search === ""
         && destination.pathname !== `${window.location.pathname}${window.location.search}`
-        && window.TruongThinhAdvertising?.getAdapter?.()
+        && window.TruongThinhMasonry?.getAdapter?.()
       ) {
         // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
         const fromGrid = !isAdvertisingPhotoUrl(new URL(window.location.href));
         const navigateToAdvertisingParent = (instant = false) => {
-          if (window.TruongThinhAdvertising?.navigateQuery?.(
+          if (window.TruongThinhMasonry?.navigateQuery?.(
             destination.href,
             { reason: "navbar" },
           )) {
@@ -2937,7 +2940,7 @@
     clearPendingAdvertisingFilter();
     if (!intent) return;
     const control = directContainer.querySelector(
-      `[data-advertising-filter="${CSS.escape(intent.filter)}"]`,
+      `[data-masonry-filter="${CSS.escape(intent.filter)}"]`,
     );
     if (control instanceof HTMLElement) {
       control.click();
@@ -2951,9 +2954,9 @@
       && getSelection().toString()) event.preventDefault();
   });
   document.addEventListener("click", (event) => {
-    if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
+    if (!advertisingFilterQueueEnabled || window.TruongThinhMasonry?.getAdapter?.()) return;
     const control = event.target instanceof Element
-      ? event.target.closest("[data-advertising-filter]")
+      ? event.target.closest("[data-masonry-filter]")
       : null;
     const link = control?.closest("a[href]");
     if (
@@ -2978,7 +2981,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     pendingAdvertisingFilter = {
-      filter: control.dataset.advertisingFilter || "all",
+      filter: control.dataset.masonryFilter || "all",
       href: destination.href,
     };
   }, { capture: true, signal: runtimeAbort.signal });
@@ -3005,7 +3008,7 @@
     const grid = directContainer.querySelector("[data-project-grid]");
     grid?.replaceChildren();
     if (grid) grid.hidden = true;
-    directContainer.dataset.advertisingFallback = "failed";
+    directContainer.dataset.masonryFallback = "failed";
     document.documentElement.classList.add("motion-fallback");
     clearRouteEntry();
   };
@@ -3031,7 +3034,7 @@
   }
 
   window.addEventListener("popstate", (event) => {
-    const advertising = window.TruongThinhAdvertising;
+    const advertising = window.TruongThinhMasonry;
     // Back khi photo viewer đang mở chỉ đóng viewer (advertising-viewer-touch-zoom R10).
     if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();

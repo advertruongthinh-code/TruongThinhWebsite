@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { planAroundPinned, planDetourPath, segmentCrossesBox } from "../../src/site/advertising-products/detour-path.mjs";
+import { planAroundPinned, planDetourPath, segmentCrossesBox } from "../../src/site/masonry/detour-path.mjs";
 
 // Fixture cố định: primary 3 cột ở 1569px, card một cột.
 const zone = { width: 1140, height: 640 };

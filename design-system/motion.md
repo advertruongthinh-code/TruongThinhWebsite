@@ -28,9 +28,9 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 
 | Motion | Thông số | Bề mặt UI |
 | --- | --- | --- |
-| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), tên card masonry Công trình ([Masonry](components/Masonry/README.md#tên-card-công-trình)), neo trái theo chữ. Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
+| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), neo trái theo chữ. Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
 | Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Project reel](components/ProjectReel/README.md), portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
-| Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`suggestion-slideshow.mjs`) |
+| Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`masonry/suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005` | [Hero](components/Hero/README.md) About (`data-motion-hero-media`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
 | Kính reveal | Năm bậc trong `0.6s`, chỉ opacity | [Media card](components/MediaCard/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md) ([Kính](components/Glass/README.md)) |
@@ -162,7 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
-| Card masonry Advertising | Không zoom; chuột thật: lớp `media-hover-overlay` (0.353) và tên card trắng hiện `600ms ease-out` (`--media-hover-*`), cả related; card Công trình không lớp tối ([Media card](components/MediaCard/README.md)) |
+| Card masonry (chính, related, Công trình) | Không zoom; chuột thật: lớp tối `media-shade-card` và tên card hiện cùng lúc, không motion; cảm ứng: không tên, không lớp tối ([Media card](components/MediaCard/README.md)) |
 | Nút Suggestion | Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong, hover không đổi; [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không có lớp tối, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
@@ -175,7 +175,7 @@ outline. Touch không cần hover để mở ảnh.
 ### Kicker và hàng chip khi đổi filter
 
 Bấm cụm hoặc chip trên [rail](components/Filter/README.md) chạy lại hai entrance có sẵn của Advertising (không thêm
-nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opacity` và `transform`:
+nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opacity` và `transform`:
 
 - Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
   `--ease`, không delay.
@@ -263,7 +263,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
   bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
-  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
+  (power3.inOut) (`masonry/suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Lớp tối `0.5` chỉ hiện khi ảnh nền giải mã xong; hover hoặc focus bàn phím chỉ chạy gạch chân dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối (chỉ hiện khi media sẵn sàng) và nhãn `Vừa xem` / `Just viewed` có bóng D.

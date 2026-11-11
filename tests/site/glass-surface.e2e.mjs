@@ -20,7 +20,7 @@ const arcState = () => {
   const box = glass.getBoundingClientRect();
   const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full)")];
   const top = (node) => Number.parseFloat(node.style.top);
-  const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+  const copy = document.querySelector("[data-masonry-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
   const tint = glass.querySelector(".glass-surface__tint");
   // Element được render có box riêng mang backdrop filter; Kính đều của photo view ẩn và
@@ -39,8 +39,8 @@ const arcState = () => {
     centreY: top(steps[0]) + Number.parseFloat(steps[0].style.maskImage.match(/circle at [\d.]+px ([\d.]+)px/)[1]),
     clusterTop: copy.querySelector("h2").getBoundingClientRect().top - box.top - parallax,
     clusterBottom: copy.getBoundingClientRect().bottom - box.top - parallax,
-    realBottom: Number(document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaRealBottom),
-    cardWidth: document.querySelector("[data-advertising-cta-frame]").getBoundingClientRect().width,
+    realBottom: Number(document.querySelector("[data-masonry-cta-skeleton]").dataset.masonryCtaRealBottom),
+    cardWidth: document.querySelector("[data-masonry-cta-frame]").getBoundingClientRect().width,
     batchBottom: top(tint) + Number.parseFloat(tint.style.height) - 2,
     batchBottomOnScreen: box.top + top(tint) + Number.parseFloat(tint.style.height) - 2,
     grain: [getComputedStyle(glass).getPropertyValue("--glass-grain"), getComputedStyle(glass).getPropertyValue("--glass-grain-white")],
@@ -62,7 +62,7 @@ try {
     page.on("pageerror", (error) => errors.push(String(error)));
     try {
       await page.goto(`${origin}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
-      await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+      await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
       // Lazy card phía trên có thể làm trang lớn thêm, nên cuộn đến cuối cho đến khi nó settle.
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
         const end = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -120,7 +120,7 @@ try {
       if (width === 1440) {
         // R2: sọc đen và trắng dưới core, dưới copy CTA, bị blur mất (cạnh sắc nhảy khoảng 255).
         const stripesTop = await page.evaluate(() => {
-          const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
+          const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
           const bottom = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
           const node = Object.assign(document.createElement("div"), { id: "glass-stripes" });
           Object.assign(node.style, { position: "absolute", left: "0", width: "300px", height: "200px",
@@ -148,7 +148,7 @@ try {
     const page = await context.newPage();
     try {
       await page.goto(`${origin}/vi/advertising-products/`, { waitUntil: "networkidle" });
-      await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+      await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
         const end = await page.evaluate(() => document.documentElement.scrollHeight);
         if (end === last) break;
@@ -179,11 +179,11 @@ try {
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=${photo}`, { waitUntil: "networkidle" });
       await page.waitForTimeout(1500);
       const state = await page.evaluate(() => {
-        const glass = document.querySelector(".advertising-photo-view__hero-frame > .glass-surface");
+        const glass = document.querySelector(".detail-view__hero-frame > .glass-surface");
         return { shape: glass?.dataset.glassShape, display: glass && getComputedStyle(glass).display,
-          layers: glass?.children.length, flag: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass,
+          layers: glass?.children.length, flag: document.querySelector("[data-detail-view]").dataset.detailGlass,
           backdrop: [...(glass?.children || [])].some((layer) => getComputedStyle(layer).backdropFilter !== "none"),
-          filter: getComputedStyle(document.querySelector("[data-advertising-photo-background]")).filter };
+          filter: getComputedStyle(document.querySelector("[data-detail-background]")).filter };
       });
       // Photo tự mang blur, nên không backdrop-filter nào có thể in tile seam vào primary (thumbnail hover của tab).
       check(state.shape === "even" && state.layers === 2 && !state.backdrop
@@ -210,10 +210,10 @@ try {
         new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((glass) => {
           if (!glass.matches?.(".glass-surface[data-glass-reveal]")) return;
           const host = glass.parentElement;
-          const nodes = [...glass.children, host.querySelector("[data-advertising-photo-image]") ?? host.querySelector("img"),
-            host.querySelector("[data-advertising-loading-skeleton]")];
+          const nodes = [...glass.children, host.querySelector("[data-detail-image]") ?? host.querySelector("img"),
+            host.querySelector("[data-masonry-loading-skeleton]")];
           window.__ttRevealTimings.push({
-            host: glass.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
+            host: glass.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary",
             timing: nodes.map((node) => node?.getAnimations().map((animation) => {
               const { delay, duration, easing } = animation.effect.getComputedTiming();
               return [delay, duration, easing];
@@ -221,32 +221,32 @@ try {
           });
         }))).observe(document, { childList: true, subtree: true });
       });
-      // advertisingPhotoId: ảnh của card đã dựng, không phải ảnh mặc định của index.html tải dưới view còn ẩn.
+      // detailId: ảnh của card đã dựng, không phải ảnh mặc định của index.html tải dưới view còn ẩn.
       const settled = () => page.waitForFunction(() => {
-        const photo = document.querySelector("[data-advertising-photo-image]");
-        return photo.dataset.advertisingPhotoId && photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
+        const photo = document.querySelector("[data-detail-image]");
+        return photo.dataset.detailId && photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
           && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
       }, null, { timeout: 20000 });
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
       await settled();
-      await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] a"));
+      await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] a"));
       // Ghi mỗi frame của khung primary từ lúc đổi ảnh tới khi Kính gỡ.
       const record = (action) => page.evaluate((action) => new Promise((resolve) => {
-        const frame = document.querySelector(".advertising-photo-view__hero-frame");
-        const photo = frame.querySelector("[data-advertising-photo-image]");
+        const frame = document.querySelector(".detail-view__hero-frame");
+        const photo = frame.querySelector("[data-detail-image]");
         const opacity = (node) => (node ? Number(getComputedStyle(node).opacity) : 0);
         const frames = [];
         const started = performance.now();
         const tick = () => {
           const glass = frame.querySelector(".glass-surface[data-glass-reveal]");
           const tint = glass?.querySelector(".glass-surface__tint");
-          frames.push({ skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")), glass: Boolean(glass),
+          frames.push({ skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")), glass: Boolean(glass),
             level: opacity(tint), photo: opacity(photo), at: performance.now(), time: tint?.getAnimations()[0]?.currentTime ?? 0 });
           if ((frames.some((entry) => entry.glass) && !glass) || performance.now() - started > 8000) resolve(frames);
           else requestAnimationFrame(tick);
         };
         // Card related có cover ảnh: video không có Kính reveal (loading-glass R4).
-        if (action === "related") [...document.querySelectorAll("[data-advertising-related-card]")]
+        if (action === "related") [...document.querySelectorAll("[data-masonry-related-card]")]
           .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click();
         else history.back();
         requestAnimationFrame(tick);
@@ -285,7 +285,7 @@ try {
       await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 });
       check(!(await page.evaluate(() => window.__ttRevealTimings.some(({ host }) => host === "card"))), "loading card wears Kính");
       slow = false;
-      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile")
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card")
         && !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 })
         .catch(() => check(false, "card blur stays after the photo loaded"));
     } finally {

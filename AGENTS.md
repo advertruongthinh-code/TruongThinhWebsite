@@ -59,7 +59,8 @@ cache hay untracked worktree.
 ## STATE và living docs
 
 - Living-docs gate: đổi file thuộc `source:` của spec thì sửa spec đó trong cùng PR,
-  hoặc ghi `Spec: không đổi - <lý do>` trong mô tả PR. `pnpm qa:docs` (CI) kiểm link,
+  hoặc ghi `Spec: không đổi - <lý do>` trong commit message hoặc mô tả PR. Chạy `pnpm qa:docs` (hoặc
+  `pnpm qa:suite --changed`) trước khi push: nó so với `origin/main` và nêu spec nào cần sửa hay miễn. `pnpm qa:docs` kiểm link,
   budget dòng, ownership, sync và drift. Thay command, tooling, decision ngoài spec
   thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
@@ -67,7 +68,7 @@ cache hay untracked worktree.
   publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
   Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
   Đổi file hoặc selector trong dòng `Nguồn:` của README component thì sửa README đó, hoặc ghi
-  `Design System: không đổi - <lý do>` trong mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
+  `Design System: không đổi - <lý do>` trong commit message hoặc mô tả PR ([R6](docs/specs/design-system.md#r6-dòng-nguồn-và-gate-component)).
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
@@ -78,7 +79,7 @@ cache hay untracked worktree.
 
 ## Viết và phản hồi
 
-- Code viết bằng tiếng Anh: identifier, chuỗi, tên file và hàm; text hiển thị trên UI, tên file và ID hiện có giữ nguyên. Code comment viết tiếng Việt, giữ technical term và các từ trong phụ lục `## Chú thích thuật ngữ` của docs. Áp dụng cho code mới và code sửa. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
+- Code viết hoàn toàn bằng tiếng Anh: identifier, chuỗi, tên file, hàm và mọi code comment (JS, CSS, HTML comment, shell, PowerShell, workflow YAML, test). Không thuộc code nên giữ nguyên: text hiển thị trên UI, chuỗi i18n, dữ liệu nội dung, slug và URL tiếng Việt, tên file và ID hiện có. Áp dụng cho code mới và code sửa; comment tiếng Việt gặp trong file đang sửa thì dịch luôn. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
 - Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, việc đang chờ (không đoán thời gian khi không có số đo), lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 

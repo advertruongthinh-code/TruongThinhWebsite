@@ -12,8 +12,8 @@ import {
   readSkeletonBatchConfig,
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
-} from "../../src/site/advertising-products/skeleton-flow.mjs";
-import { compileAdvertisingProductLayout, isAdvertisingWideMedia } from "../../src/site/advertising-products/layout-core.mjs";
+} from "../../src/site/masonry/skeleton-flow.mjs";
+import { isWideMedia, placementAt } from "../../src/site/masonry/layout.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
@@ -23,11 +23,11 @@ const cssRule = (selector, occurrence = 0) => {
   assert(match, `missing CSS rule ${selector}`);
   return match[1];
 };
-const skeletonRule = cssRule("\\.advertising-grid__cta-skeleton");
-const frameRule = cssRule("^\\.advertising-grid__cta-frame");
-const surfaceRule = cssRule("\\.advertising-grid__cta-surface");
-const flowRule = cssRule("\\.advertising-grid__cta-flow");
-const legacyWashRules = [...detailCss.matchAll(/\.advertising-grid__cta-skeleton::after\s*\{([\s\S]*?)\n\}/gm)]
+const skeletonRule = cssRule("\\.masonry-grid__cta-skeleton");
+const frameRule = cssRule("^\\.masonry-grid__cta-frame");
+const surfaceRule = cssRule("\\.masonry-grid__cta-surface");
+const flowRule = cssRule("\\.masonry-grid__cta-flow");
+const legacyWashRules = [...detailCss.matchAll(/\.masonry-grid__cta-skeleton::after\s*\{([\s\S]*?)\n\}/gm)]
   .map((match) => match[1]);
 
 assert.doesNotMatch(skeletonRule, /(?:-webkit-)?mask-image/i,
@@ -42,7 +42,7 @@ assert.doesNotMatch(surfaceRule, /\banimation\b/i,
   "R6 forbids floating, scale, and hover-like skeleton surface motion");
 assert.doesNotMatch(flowRule, /\bfilter\s*:/i,
   "R6 forbids a local blur/filter on each skeleton card");
-// R8-R10 glass đã chuyển sang component Kính dùng chung: tests/site/glass-surface.test.mjs.
+// R8-R10 glass moved to the shared Kính component: tests/site/glass-surface.test.mjs.
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
@@ -105,10 +105,10 @@ if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
 assert.deepEqual(r10ContractFailures, [],
   "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
 
-// R3: mỗi frame draw assignment riêng khi lần đầu vào view.
+// R3: each frame draws its own assignment on first entering view.
 const draw = (seed, neighbors = []) => drawSkeletonFlowAssignment({ neighbors, random: seededRandom(seed) });
 assert.deepEqual(draw(20260921), draw(20260921), "a seeded draw must be deterministic");
-// R3: Flow chờ ảnh primary nhận 4 màu của ảnh thay màu preset; field, pha, chiều vẫn bốc như thường.
+// R3: Flow waits for the primary image to take its 4 colours instead of the preset colours; field, phase and direction are drawn as usual.
 const imageColors = ["#f0e0d0", "#a08060", "#605040", "#201810"];
 const tinted = drawSkeletonFlowAssignment({ colors: imageColors, random: seededRandom(20260921) });
 assert.deepEqual(tinted.preset.colors, imageColors, "image colours replace the preset colours");
@@ -205,46 +205,29 @@ for (const frame of frameLayout) {
 }
 assert(Math.min(...continuationBottoms.map((bottom) => bottom + frameLayoutInput.gap)) >= frameLayoutInput.boundaryBottom,
   "the adaptive batch must reach its visual boundary");
-// Lưới Công trình (projects R2): khung giữ band cho phần media và chừa chỗ tên bên dưới như card thật.
-const captionedFrames = createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: 34.92 });
-const captionedBottoms = frameLayoutInput.columnBottoms.slice();
-for (const frame of captionedFrames) {
-  assert.equal(frame.top, captionedBottoms[frame.column] + frameLayoutInput.gap,
-    "a captioned skeleton starts one gap below the previous card or frame including its caption");
-  if (frame !== captionedFrames.findLast(({ column }) => column === frame.column)) {
-    assert.ok([0.72, 1, 1.32].some((ratio) => Math.abs(frame.height - ratio * frameLayoutInput.cardWidth) < 1e-9),
-      "a captioned skeleton paints only the media band");
-  }
-  captionedBottoms[frame.column] = frame.top + frame.height + 34.92;
-}
-assert.throws(() => createSkeletonFlowFrameLayout({ ...frameLayoutInput, captionHeight: -1 }), TypeError,
-  "a negative caption height is rejected");
-// Masonry R5: card cuối 2:1 trải cột 0-1 ở 1440px; batch nối tiếp ngay dưới nó ở cả hai cột, cùng chỗ tên như card
-// thật. Band khung (h/w 0.72, 1, 1.32) đều dưới tỷ lệ vàng nên theo cùng luật mọi khung rộng một cột.
-const wideTail = [[1, 1], [3, 4], [1, 1], [4, 5], [2, 1]].map(([width, height], index) => ({
-  id: `wide-tail-${index}`, category: "wide-tail", sourceOrder: index, rank: index,
-  media: { src: `/wide-tail-${index}.webp`, width: width * 100, height: height * 100 },
-}));
-const wideTailLayout = compileAdvertisingProductLayout({ cards: wideTail, categoryOrder: ["wide-tail"],
-  layoutViewportWidth: 1440, captionPixelHeight: 34.92, presentationOrder: wideTail.map(({ id }) => id) });
-const wideTailCard = wideTailLayout.placements.find(({ card }) => card.id === "wide-tail-4");
-assert.deepEqual([wideTailCard.left, wideTailCard.width], [0, 2], "the 2:1 tail card spans two columns");
+// Masonry R5: a 2:1 card from the main-grid cache spans level columns 0-1 at 1440px; the batch continues right below it in
+// both columns. Frame bands (h/w 0.72, 1, 1.32) are all below the golden ratio, so the same rule keeps every frame one column wide.
+const wideTailCardWidth = (1440 - 2 * 35 - 3 * 35) / 4;
+const wideTailCard = placementAt({ id: "wide-tail", media: { src: "/wide-tail.webp", width: 200, height: 100 } },
+  0, 2, 400, wideTailCardWidth, 35);
+const wideTailBottom = wideTailCard.y + wideTailCard.pixelHeight;
+const wideTailLayout = { columns: 4, cardWidth: wideTailCardWidth, interCardGap: 35, columnBottoms: [wideTailBottom, wideTailBottom, 700, 650] };
 const wideTailFrames = createSkeletonFlowFrameLayout({
   columnBottoms: wideTailLayout.columnBottoms, columns: wideTailLayout.columns, cardWidth: wideTailLayout.cardWidth,
-  gap: wideTailLayout.interCardGap, captionHeight: 34.92, boundaryBottom: 2_400,
+  gap: wideTailLayout.interCardGap, boundaryBottom: 2_400,
 });
 for (const column of [0, 1]) {
   assert.equal(wideTailFrames.find((frame) => frame.column === column).top,
     wideTailCard.y + wideTailCard.pixelHeight + wideTailLayout.interCardGap,
-    `column ${column}: the batch starts one gap below the spanning card and its caption`);
+    `column ${column}: the batch starts one gap below the spanning card`);
 }
 for (const frame of wideTailFrames) {
   if (frame === wideTailFrames.findLast(({ column }) => column === frame.column)) continue;
-  assert.equal(isAdvertisingWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
+  assert.equal(isWideMedia({ width: wideTailLayout.cardWidth, height: frame.height }), false,
     "no skeleton band reaches the golden ratio, so frames stay one column like real non-wide cards");
 }
-// R1: band ngang từ tỷ lệ vàng theo luật span của card thật (masonry-reuse bước 5): hai cột khi lưới >= 3 cột, không
-// chồng khung, khung cuối mỗi cột vẫn chạm đáy batch; lưới 2 cột giữ một cột. Số khung và band đọc từ attribute.
+// R1: landscape bands from the golden ratio follow the real-card span rule (masonry-reuse step 5): two columns on grids of 3+ columns, no
+// overlapping frames, the last frame of every column still reaches the batch bottom; 2-column grids keep one column. Frame count and bands come from attributes.
 const wideConfig = readSkeletonBatchConfig({ skeletonRatios: "landscape:0.72 square:1 portrait:1.32 wide:0.5" });
 assert.deepEqual(wideConfig.ratios.map(({ id }) => id), ["landscape", "square", "portrait", "wide"]);
 assert.equal(readSkeletonBatchConfig({ skeletonRatios: "wide:x" }).ratios.length, 3, "a bad ratio list keeps the default bands");
@@ -270,9 +253,43 @@ for (const [columns, seed] of [[2, "wide"], [4, "wide"], [3, "z0"], [5, "z0"], [
     assert.equal(own.at(-1).top + own.at(-1).height, 1_800, `column ${column} ends on the batch bottom`);
     assert(own.slice(1).every((frame, index) => frame.band !== own[index].band),
       `column ${column} has no two frames of one band in a row, counting two-column frames`);
+    // Masonry R5: no holes; each frame sits exactly one gap below the frame (or real card) above it in every column it covers.
+    own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-9,
+      `column ${column}: frame ${frame.slot} leaves no hole above it`));
   }
 }
-// Hai khung mỏng cuối cột không chặn nhau: cả hai cùng gộp vào khung phía trên (lỗi review #769).
+// Plan T6: 200 seeds x 3 and 4 columns x random column bottoms. Every column ends on the batch bottom, each frame sits exactly
+// one gap below what is above it in every column it covers (no holes, no filler frames), no band repeats in a column, and
+// the wide band spans two columns at least once in 20 seeds on a 4-column grid.
+const randomFrom = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+let wideSpanSeeds = 0;
+for (const columns of [3, 4]) {
+  for (let seed = 0; seed < 200; seed += 1) {
+    const random = randomFrom(seed * 7 + columns);
+    const bottoms = Array.from({ length: columns }, () => 100 + Math.round(random() * 300));
+    const boundaryBottom = 1_800 + Math.round(random() * 400);
+    const frames = createSkeletonFlowFrameLayout({ columnBottoms: bottoms, columns, cardWidth: 240, gap: 20,
+      boundaryBottom, ratios: wideConfig.ratios, seed: `t6-${columns}-${seed}` });
+    assert(frames.every(({ slot }) => !slot.startsWith("h")), "no hole filler frames exist");
+    if (columns === 4 && seed < 20 && frames.some(({ span }) => span === 2)) wideSpanSeeds += 1;
+    for (let column = 0; column < columns; column += 1) {
+      const own = frames.filter((frame) => column >= frame.column && column < frame.column + frame.span);
+      const label = `columns ${columns} seed ${seed} column ${column}`;
+      assert.equal(own.at(-1).top + own.at(-1).height, boundaryBottom, `${label} ends on the batch bottom`);
+      own.forEach((frame, index) => assert(Math.abs(frame.top - ((index ? own[index - 1].top + own[index - 1].height : bottoms[column]) + 20)) < 1e-6,
+        `${label}: frame ${frame.slot} leaves no hole above it`));
+      assert(own.slice(1).every((frame, index) => frame.band !== own[index].band), `${label} repeats a band in a row`);
+    }
+  }
+}
+assert(wideSpanSeeds > 0, "the wide band spans two columns for some of the first 20 seeds on a 4-column grid");
+// A related batch passes spanSkeleton false: no frame spans two columns, the wide band stays out.
+for (let seed = 0; seed < 20; seed += 1) {
+  const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
+    boundaryBottom: 1_800, ratios: wideConfig.ratios, seed: `related-${seed}`, spanSkeleton: false });
+  assert(frames.every(({ span, band }) => span === 1 && band !== "wide"), "a related batch has no two-column frame");
+}
+// Two thin frames at a column end do not block each other: both merge into the frame above (review #769).
 for (const boundaryBottom of [1_040, 1_200, 1_500]) {
   const frames = createSkeletonFlowFrameLayout({ columnBottoms: [120, 180, 150, 210], columns: 4, cardWidth: 240, gap: 20,
     boundaryBottom, ratios: wideConfig.ratios });
@@ -327,7 +344,7 @@ for (let depth = 0; depth < 3; depth += 1) {
   assert(row.slice(1).every((frame, index) => frame.band !== row[index].band),
     `aligned skeleton row ${depth} must vary adjacent ratio bands across columns`);
 }
-// Slot là thứ tự khung nối tiếp masonry, nên resize đổi số cột vẫn giữ item k là khung k (owner 10/10).
+// Slots are the order of frames continuing the masonry, so a resize that changes the column count still keeps item k as frame k (owner 10/10).
 assert.ok(frameLayout.every(({ slot }, index) => index === 0 || Number(slot) > Number(frameLayout[index - 1].slot)),
   "skeleton slots increase in masonry order");
 const twoColumnLayout = createSkeletonFlowFrameLayout({
@@ -336,7 +353,7 @@ const twoColumnLayout = createSkeletonFlowFrameLayout({
   columns: 2,
   bandAssignments: new Map(frameLayout.map(({ slot, band }) => [slot, band])),
 });
-// Slot chung giữ band, trừ khi cột mới đặt nó ngay dưới khung cùng band (R1).
+// A shared slot keeps its band, unless the new column puts it right below a frame of the same band (R1).
 for (const frame of twoColumnLayout) {
   const old = frameLayout.find(({ slot }) => slot === frame.slot);
   const above = twoColumnLayout.filter(({ column, depth }) => column === frame.column && depth === frame.depth - 1)[0];
@@ -356,7 +373,7 @@ assert.equal(
   fourColumnResize.find(({ slot }) => slot === "0:1")?.band,
   "a persistent skeleton slot keeps its ratio band when the grid changes from four to three columns",
 );
-// R5: still khớp màu của frame live và chuyển theo phase.
+// R5: the still matches the colour of the live frame and follows the phase.
 const still = renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21);
 assert.equal(still.length, 48 * 32 * 4);
 assert.deepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21), "a still is deterministic");

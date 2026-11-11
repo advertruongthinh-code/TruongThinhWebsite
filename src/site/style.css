@@ -64,10 +64,9 @@
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
   --media-label-overlay: rgba(0, 0, 0, 0.5);
-  /* Lớp tối đều khi hover card masonry Advertising (owner 2026-11-09), tối bằng .hero-shade trung bình theo chiều cao:
-     lớp mép trên tích phân 0,1125, lớp mép dưới 0,375 × 0,42 / 2 = 0,0788 (không chồng nhau), phủ đều 0,2, nên
-     độ sáng còn lại trung bình 0,8 × (1 - 0,1125 - 0,0788) = 0,647 và alpha đều 1 - 0,647 = 0,353. */
-  --media-hover-overlay: rgba(0, 0, 0, 0.353);
+  /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
+     48px, then a linear fade to transparent at the bottom edge of the card. */
+  --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -224,7 +223,7 @@ a {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .advertising-detail__carousel)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .detail-carousel)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -1143,7 +1142,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .hero:not(.detail-index-hero) .scroll-cue,
 .portal-copy,
 .legacy-copy,
-.detail-cta:not([data-advertising-grid-cta]) {
+.detail-cta:not([data-masonry-grid-cta]) {
   text-shadow: var(--text-shadow-d);
 }
 
@@ -1773,13 +1772,13 @@ em {
   white-space: nowrap;
 }
 
-.advertising-photo-view__suggestion-label > span {
+.detail-view__suggestion-label > span {
   position: relative;
 }
 
 #dich-vu .portal-subtitle::after,
 .legacy-link .portal-subtitle::after,
-.advertising-photo-view__suggestion-label > span::after {
+.detail-view__suggestion-label > span::after {
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -1796,7 +1795,7 @@ em {
 #dich-vu .service-portal:focus-visible .portal-subtitle::after,
 .legacy-closer:hover .portal-subtitle::after,
 .legacy-link:is(:hover, :focus-visible) .portal-subtitle::after,
-.advertising-photo-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .advertising-photo-view__suggestion-label > span::after {
+.detail-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .detail-view__suggestion-label > span::after {
   transform: scaleX(1);
   transform-origin: left center;
 }

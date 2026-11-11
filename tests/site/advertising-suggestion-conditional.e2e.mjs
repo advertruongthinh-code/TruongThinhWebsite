@@ -14,16 +14,16 @@ try {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-view]')?.dataset.advertisingPhotoLayout === "split");
+  await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "split");
   const first = await page.evaluate(() => {
-    const suggestion = document.querySelector('[data-advertising-photo-suggestion]');
+    const suggestion = document.querySelector('[data-detail-suggestion]');
     window.__originalSuggestion = suggestion;
     return {
-      count: document.querySelectorAll('[data-advertising-photo-suggestion]').length,
-      inInfo: Boolean(suggestion?.closest('[data-advertising-photo-info]')),
-      inRelated: Boolean(suggestion?.closest('[data-advertising-photo-related-grid]')),
-      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.advertisingSuggestionTag,
-      firstRelated: document.querySelector('[data-advertising-photo-related-grid]')?.firstElementChild?.hasAttribute('data-advertising-related-card'),
+      count: document.querySelectorAll('[data-detail-suggestion]').length,
+      inInfo: Boolean(suggestion?.closest('[data-detail-info]')),
+      inRelated: Boolean(suggestion?.closest('[data-detail-related-grid]')),
+      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.masonrySuggestionTag,
+      firstRelated: document.querySelector('[data-detail-related-grid]')?.firstElementChild?.hasAttribute('data-masonry-related-card'),
     };
   });
   assert.equal(first.count, 1, "split layout duplicates suggestion UI");
@@ -31,20 +31,20 @@ try {
   assert.equal(first.inRelated, false, "split layout must not place suggestion in related grid");
   assert.equal(first.firstRelated, true, "split related grid must start with a real photo card");
   assert.equal(first.pressed, "format-square", "split layout lost the active tag");
-  await page.locator('[data-advertising-suggestion-tag="format-square"]').focus();
+  await page.locator('[data-masonry-suggestion-tag="format-square"]').focus();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-view]')?.dataset.advertisingPhotoLayout === "pinterest");
+  await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "pinterest");
   await page.waitForTimeout(500);
   const full = await page.evaluate(() => {
-    const suggestion = document.querySelector('[data-advertising-photo-suggestion]');
+    const suggestion = document.querySelector('[data-detail-suggestion]');
     return {
       sameNode: suggestion === window.__originalSuggestion,
-      count: document.querySelectorAll('[data-advertising-photo-suggestion]').length,
-      inRelated: Boolean(suggestion?.closest('[data-advertising-photo-related-grid]')),
-      firstRelated: suggestion === document.querySelector('[data-advertising-photo-related-grid]')?.firstElementChild,
-      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.advertisingSuggestionTag,
-      focused: document.activeElement?.dataset.advertisingSuggestionTag,
+      count: document.querySelectorAll('[data-detail-suggestion]').length,
+      inRelated: Boolean(suggestion?.closest('[data-detail-related-grid]')),
+      firstRelated: suggestion === document.querySelector('[data-detail-related-grid]')?.firstElementChild,
+      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.masonrySuggestionTag,
+      focused: document.activeElement?.dataset.masonrySuggestionTag,
       search: location.search,
     };
   });
@@ -57,14 +57,14 @@ try {
   assert.equal(new URLSearchParams(full.search).get("tag"), "format-square", "resize changed tag history");
 
   await page.setViewportSize({ width: 1569, height: 912 });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-view]')?.dataset.advertisingPhotoLayout === "split");
+  await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "split");
   const restored = await page.evaluate(() => {
-    const suggestion = document.querySelector('[data-advertising-photo-suggestion]');
+    const suggestion = document.querySelector('[data-detail-suggestion]');
     return {
       sameNode: suggestion === window.__originalSuggestion,
-      inInfo: Boolean(suggestion?.closest('[data-advertising-photo-info]')),
-      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.advertisingSuggestionTag,
-      focused: document.activeElement?.dataset.advertisingSuggestionTag,
+      inInfo: Boolean(suggestion?.closest('[data-detail-info]')),
+      pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.masonrySuggestionTag,
+      focused: document.activeElement?.dataset.masonrySuggestionTag,
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
   });
@@ -79,25 +79,25 @@ try {
   });
   await page.waitForFunction(() => (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) > 2000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-view]')?.dataset.advertisingPhotoLayout === "pinterest");
+  await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "pinterest");
   await page.waitForTimeout(500);
-  assert.equal(await page.evaluate(() => document.activeElement?.dataset.advertisingSuggestionTag), "format-square",
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.masonrySuggestionTag), "format-square",
     "deep-scroll split-to-full resize lost focus within suggestion UI");
 
   await page.goto(`${baseUrl}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-02`, { waitUntil: "networkidle" });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-view]')?.dataset.advertisingPhotoLayout === "pinterest");
-  const focusedSuggestion = page.locator('[data-advertising-photo-suggestion] [data-advertising-suggestion-tag]').first();
+  await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "pinterest");
+  const focusedSuggestion = page.locator('[data-detail-suggestion] [data-masonry-suggestion-tag]').first();
   await focusedSuggestion.focus();
-  const focusedTag = await focusedSuggestion.getAttribute("data-advertising-suggestion-tag");
+  const focusedTag = await focusedSuggestion.getAttribute("data-masonry-suggestion-tag");
   await page.evaluate(() => {
     const bottom = document.documentElement.scrollHeight - innerHeight;
     if (!window.TruongThinhMotion?.setLogicalScroll?.(bottom)) window.scrollTo(0, bottom);
   });
-  await page.waitForFunction(() => document.querySelector('[data-advertising-photo-suggestion]')?.getBoundingClientRect().bottom < 0);
+  await page.waitForFunction(() => document.querySelector('[data-detail-suggestion]')?.getBoundingClientRect().bottom < 0);
   await page.waitForTimeout(500);
   const retainedFocus = await page.evaluate(() => ({
-    tag: document.activeElement?.dataset.advertisingSuggestionTag,
-    hidden: document.querySelector('[data-advertising-photo-suggestion]')?.hidden,
+    tag: document.activeElement?.dataset.masonrySuggestionTag,
+    hidden: document.querySelector('[data-detail-suggestion]')?.hidden,
   }));
   assert.equal(retainedFocus.tag, focusedTag, "focused suggestion lost keyboard focus when virtualized offscreen");
   assert.equal(retainedFocus.hidden, false, "focused suggestion was hidden while keyboard focus remained inside it");

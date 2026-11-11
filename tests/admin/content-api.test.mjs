@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-// Đường lưu và phục vụ nội dung editor trong Worker (cms-editor R8, R10) chạy trong CI: D1 và ASSETS giả trong bộ nhớ.
-// HTMLRewriter là global của Workers, Node không có: thay bằng bản không đổi gì (phần rewrite do content-worker.e2e kiểm).
+// Editor content save and serve path in the Worker (cms-editor R8, R10) runs in CI: fake in-memory D1 and ASSETS.
+// HTMLRewriter is a Workers global that Node lacks: replaced with a no-op version (the rewrite part is checked by content-worker.e2e).
 globalThis.HTMLRewriter = class {
   on() {
     return this;
@@ -53,7 +53,7 @@ function fakeDb({ raceOnUpdate = false } = {}) {
   return db;
 }
 
-// ASSETS: trang nguồn có ETag; trang card tĩnh trả 304 khi ETag khớp, như Workers Static Assets.
+// ASSETS: the source page has an ETag; the static card page returns 304 when the ETag matches, like Workers Static Assets.
 function fakeAssets() {
   return {
     async fetch(request) {
@@ -77,7 +77,7 @@ const call = (environment, path, method = "GET", body, headers = {}) => worker.f
 }), environment);
 const text = { t0: { vi: "Chào mới", en: "New hello" } };
 
-test("content API: 501 không D1, 404 trang lạ, 405, 400 JSON hoặc nháp sai, 413 body quá lớn", async () => {
+test("content API: 501 without D1, 404 unknown page, 405, 400 bad JSON or draft, 413 oversized body", async () => {
   assert.equal((await call({ ...env(), DB: undefined }, "/api/admin/content/home")).status, 501);
   const environment = env();
   assert.equal((await call(environment, "/api/admin/content/blog")).status, 404);
@@ -89,7 +89,7 @@ test("content API: 501 không D1, 404 trang lạ, 405, 400 JSON hoặc nháp sai
   assert.equal(large.status, 413);
 });
 
-test("content API: lưu, đọc lại, 409 khi base cũ hoặc ghi đua, audit có khóa", async () => {
+test("content API: save, read back, 409 on stale base or racing write, audit has keys", async () => {
   const db = fakeDb();
   const environment = env(db);
   const saved = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: null, anchors: { t0: "Xin chào" } });
@@ -100,16 +100,16 @@ test("content API: lưu, đọc lại, 409 khi base cũ hoặc ghi đua, audit c
   const stale = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: "2000-01-01T00:00:00.000Z" });
   assert.equal(stale.status, 409);
   assert.equal((await stale.json()).updatedBy, "admin@localhost");
-  // Hai người cùng base: UPDATE có điều kiện không đổi dòng nào thì 409, không ghi đè ngầm.
+  // Two people on the same base: a conditional UPDATE that changes no row gives 409, never a silent overwrite.
   const race = env(fakeDb({ raceOnUpdate: true }));
   race.DB.rows.set("residential", db.rows.get("residential"));
   assert.equal((await call(race, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: updatedAt })).status, 409);
-  // Dấu editor thấy lúc sửa khác nguồn hiện tại: trang đã đổi bản, không lưu.
+  // The mark the editor saw when editing differs from the current source: the page changed version, do not save.
   const drift = await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: updatedAt, anchors: { t0: "Chữ cũ" } });
   assert.equal(drift.status, 400);
 });
 
-test("trang VI có nội dung đã lưu: bỏ ETag file tĩnh; nháp rỗng thì phục vụ nguyên file tĩnh", async () => {
+test("VI page with saved content: drops static-file ETag; empty draft serves the static file unchanged", async () => {
   const environment = env();
   await call(environment, "/api/admin/content/residential", "PUT", { edits: { text }, baseUpdatedAt: null });
   const page = await call(environment, "/vi/residential/");
@@ -123,7 +123,7 @@ test("trang VI có nội dung đã lưu: bỏ ETag file tĩnh; nháp rỗng thì
   assert.doesNotMatch(await empty.text(), /Chào mới|data-cms-key/);
 });
 
-test("card đã sửa: trang p/<id> hỏi lại bằng ETag cũ nhận bản mới, id lạ không 500, card ngoài catalog bị từ chối", async () => {
+test("edited card: p/<id> page revalidated with old ETag gets the new version, unknown id is not 500, card outside catalog is rejected", async () => {
   const environment = env();
   const card = {
     titleVi: "Tên", titleEn: "Name", descriptionVi: "Mô tả", descriptionEn: "Description",

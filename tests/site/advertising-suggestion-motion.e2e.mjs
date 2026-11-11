@@ -16,13 +16,13 @@ const activeTag = "format-square";
 const detailCss = await readFile(path.join(root, "src/site/detail.css"), "utf8");
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
-let selectAdvertisingSuggestions;
+let selectSuggestions;
 try {
-  ({ selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ selectSuggestions } = await import("../../src/site/masonry/runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
-const delayedActiveSlots = selectAdvertisingSuggestions({
+const delayedActiveSlots = selectSuggestions({
   cards: ADVERTISING_CARDS,
   heroId: "kiosk-posm-01",
   activeTag: "use-sampling",
@@ -43,17 +43,17 @@ assert.equal(delayedActiveSlots.length, 4, "initial D17 selection remains four s
 assert(delayedActiveSlots.some(({ tag }) => tag.id === "use-sampling"), "initial D17 slots include an active tag that normally ranks after four candidates");
 
 function snapshotSuggestions() {
-  return [...document.querySelectorAll("[data-advertising-suggestion-tag]")].map((link) => {
+  return [...document.querySelectorAll("[data-masonry-suggestion-tag]")].map((link) => {
     const rect = link.getBoundingClientRect();
     const owner = link.parentElement.getBoundingClientRect();
     return {
-      tag: link.dataset.advertisingSuggestionTag,
-      index: link.dataset.advertisingSuggestionIndex,
-      representative: link.dataset.advertisingSuggestionRepresentative,
+      tag: link.dataset.masonrySuggestionTag,
+      index: link.dataset.masonrySuggestionIndex,
+      representative: link.dataset.masonrySuggestionRepresentative,
       pressed: link.getAttribute("aria-pressed"),
       rect: [rect.x - owner.x, rect.y - owner.y, rect.width, rect.height].map((value) => Math.round(value * 10) / 10),
-      photos: [...link.querySelectorAll("[data-advertising-suggestion-image-layer]")]
-        .map((image) => ({ layer: image.dataset.advertisingSuggestionImageLayer, photo: image.dataset.advertisingSuggestionPhoto })),
+      photos: [...link.querySelectorAll("[data-masonry-suggestion-image-layer]")]
+        .map((image) => ({ layer: image.dataset.masonrySuggestionImageLayer, photo: image.dataset.masonrySuggestionPhoto })),
     };
   });
 }
@@ -81,8 +81,8 @@ try {
     if (message.type() === "error") pageErrors.push(message.text());
   });
   await page.goto(`${baseUrl}/vi/advertising-products/?photo=${heroId}&tag=${activeTag}`, { waitUntil: "networkidle" });
-  await page.locator(`[data-advertising-suggestion-tag="${activeTag}"]`).scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+  await page.locator(`[data-masonry-suggestion-tag="${activeTag}"]`).scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4);
   const initial = await page.evaluate(snapshotSuggestions);
   assert.equal(initial.length, 4, "D17 renders four fixed suggestion buttons");
   assert.equal(new Set(initial.map((item) => item.tag)).size, 4, "D17 does not duplicate suggestion tag IDs");
@@ -92,15 +92,15 @@ try {
   assert.equal(active.pressed, "true", "initial URL tag is pressed");
   assert.equal(active.photos.length, 1, "active suggestion keeps one inert representative layer");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.waitForFunction((tag) => !document.querySelector(`[data-advertising-suggestion-tag="${tag}"] [data-advertising-suggestion-image-layer="next"]`), activeTag);
+  await page.waitForFunction((tag) => !document.querySelector(`[data-masonry-suggestion-tag="${tag}"] [data-masonry-suggestion-image-layer="next"]`), activeTag);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  assert.equal(await page.locator(`[data-advertising-suggestion-tag="${activeTag}"] [data-advertising-suggestion-image-layer="next"]`).count(), 0,
+  assert.equal(await page.locator(`[data-masonry-suggestion-tag="${activeTag}"] [data-masonry-suggestion-image-layer="next"]`).count(), 0,
     "active suggestion does not start a hidden slideshow");
 
   const alternate = initial.find((item) => item.tag !== activeTag)?.tag;
   assert(alternate, "fixture has an alternate suggestion");
-  const activeLink = page.locator(`[data-advertising-suggestion-tag="${activeTag}"]`);
-  const inactiveLink = page.locator(`[data-advertising-suggestion-tag="${alternate}"]`);
+  const activeLink = page.locator(`[data-masonry-suggestion-tag="${activeTag}"]`);
+  const inactiveLink = page.locator(`[data-masonry-suggestion-tag="${alternate}"]`);
   // Lớp tối chỉ tính khi thật sự hiện: opacity khác 1 thì trả về opacity để assert màu fail.
   const inactiveOverlay = () => inactiveLink.evaluate((link) => {
     const after = getComputedStyle(link, "::after");
@@ -116,7 +116,7 @@ try {
     "image-backed inactive suggestion has no visible black border");
   const activeStyle = await activeLink.evaluate((link) => {
     const style = getComputedStyle(link);
-    const label = getComputedStyle(link.querySelector(".advertising-photo-view__suggestion-label"));
+    const label = getComputedStyle(link.querySelector(".detail-view__suggestion-label"));
     return {
       background: style.backgroundColor,
       borderColor: style.borderColor,
@@ -145,7 +145,7 @@ try {
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
   assert.equal((await sweep(inactiveLink)).animation, "none", "loaded suggestion stops the sweep");
   // Đọc lúc không có cú đẩy: animation đẩy ảnh cũ ghi đè opacity CSS trong 0.9s chuyển ảnh.
-  await page.waitForFunction((link) => !link.querySelector('[data-advertising-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
+  await page.waitForFunction((link) => !link.querySelector('[data-masonry-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
   const inactiveSweep = await sweep(inactiveLink, true);
   // Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): chưa settle thì ::after trong suốt.
   // Kết thúc transition opacity 250ms của lớp tối rồi mới đọc giá trị đích, không dựa mốc thời gian.
@@ -163,37 +163,37 @@ try {
   assert.equal((await sweep(activeLink)).animation, "none", "active suggestion has no sweep behind its hidden photo");
   await activeLink.hover();
   await page.waitForTimeout(650);
-  const activeHoverMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".advertising-card-media__image")].map((image) => {
+  const activeHoverMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".card-media__image")].map((image) => {
     const style = getComputedStyle(image);
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   }));
   assert.equal(activeHoverMedia.length, 1, "active hover keeps one inert representative layer");
-  assert.equal(await activeLink.locator(".advertising-photo-view__suggestion-label > span").evaluate((span) => getComputedStyle(span, "::after").transform),
+  assert.equal(await activeLink.locator(".detail-view__suggestion-label > span").evaluate((span) => getComputedStyle(span, "::after").transform),
     "matrix(0, 0, 0, 1, 0, 0)", "active suggestion hover keeps the underline hidden");
   assert(activeHoverMedia.every(({ transform }) => transform === "none"),
     "active suggestion hover keeps media transform inert");
   await page.mouse.move(0, 0);
   await activeLink.focus();
   await page.waitForTimeout(650);
-  const activeFocusMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".advertising-card-media__image")].map((image) => {
+  const activeFocusMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".card-media__image")].map((image) => {
     const style = getComputedStyle(image);
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction };
   }));
   assert(activeFocusMedia.every(({ transform }) => transform === "none"),
     "active suggestion keyboard focus keeps media transform inert");
-  await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).hover();
+  await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).hover();
   await page.waitForTimeout(650);
   assert.equal(await inactiveOverlay(), inactiveNormal, "inactive suggestion hover keeps the same overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion hover has no visible black border");
-  const hoverStyle = await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).evaluate((link) => ({
+  const hoverStyle = await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).evaluate((link) => ({
     filter: getComputedStyle(link, "::after").filter,
-    media: getComputedStyle(link.querySelector(".advertising-card-media__image")).transform,
+    media: getComputedStyle(link.querySelector(".card-media__image")).transform,
   }));
   assert.equal(hoverStyle.filter, "none", "hover does not darken through a filter");
   assert.doesNotMatch(hoverStyle.media, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover no longer zooms the photo");
   // Gạch chân dùng chung rule với portal và nav: 3px, cách chữ 4px, scaleX 0.3s.
-  const underline = (tag) => page.locator(`[data-advertising-suggestion-tag="${tag}"] .advertising-photo-view__suggestion-label > span`)
+  const underline = (tag) => page.locator(`[data-masonry-suggestion-tag="${tag}"] .detail-view__suggestion-label > span`)
     .evaluate((span) => {
       const style = getComputedStyle(span, "::after");
       return { transform: style.transform, height: style.height, bottom: style.bottom, duration: style.transitionDuration,
@@ -204,11 +204,11 @@ try {
   assert.deepEqual([hovered.height, hovered.bottom, hovered.duration, hovered.easing],
     ["3px", "-4px", "0.3s", "cubic-bezier(0.4, 0, 0, 1)"], "suggestion underline reuses the nav and portal underline");
   assert.equal(Math.round(parseFloat(hovered.width)), Math.round(hovered.text), "underline spans the label text only");
-  const relatedLink = page.locator("[data-advertising-related-card] > a").first();
+  const relatedLink = page.locator("[data-masonry-related-card] > a").first();
   await relatedLink.focus();
   await page.waitForTimeout(650);
   const relatedMedia = await relatedLink.evaluate((link) => {
-    const style = getComputedStyle(link.querySelector(".advertising-card-media__image"));
+    const style = getComputedStyle(link.querySelector(".card-media__image"));
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   });
   // Card bỏ zoom, hover phủ lớp tối 20% như Pinterest (media-card R3, owner 2026-10-19).
@@ -217,14 +217,14 @@ try {
   await page.mouse.move(0, 0);
   await page.waitForTimeout(650);
   assert.equal((await underline(alternate)).transform, "matrix(0, 0, 0, 1, 0, 0)", "underline retracts when hover leaves");
-  await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).focus();
+  await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).focus();
   await page.waitForTimeout(650);
   assert.equal((await underline(alternate)).transform, "matrix(1, 0, 0, 1, 0, 0)", "suggestion keyboard focus draws the underline");
   assert.equal(await inactiveOverlay(), inactiveNormal, "suggestion keyboard focus keeps the same overlay");
   assert.match(detailCss, /suggestion-link:focus-visible \{[\s\S]*?outline: 2px solid var\(--ink\);/, "focus has a dedicated ring");
   assert.doesNotMatch(detailCss, /aria-pressed="true"[^}]*background-clip:\s*text/s,
     "active suggestion text is not image-masked");
-  await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
+  await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).click();
   await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, alternate);
   const changed = await page.evaluate(snapshotSuggestions);
   assert.deepEqual(
@@ -234,7 +234,7 @@ try {
   );
   assert.equal(changed.filter((item) => item.pressed === "true")[0]?.tag, alternate, "alternate is only active suggestion");
 
-  await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).press("Enter");
+  await page.locator(`[data-masonry-suggestion-tag="${alternate}"]`).press("Enter");
   await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
   const cleared = await page.evaluate(snapshotSuggestions);
   assert.deepEqual(
@@ -250,31 +250,31 @@ try {
   await page.setViewportSize({ width: 390, height: 568 });
   const offscreenTag = initial.at(-1).tag;
   await page.evaluate(() => {
-    document.querySelector("[data-advertising-photo-suggestion]").style.marginTop = "1000px";
-    document.querySelector("[data-advertising-photo-info]").scrollTop = 0;
+    document.querySelector("[data-detail-suggestion]").style.marginTop = "1000px";
+    document.querySelector("[data-detail-info]").scrollTop = 0;
   });
   await page.waitForFunction((tag) => {
-    const info = document.querySelector("[data-advertising-photo-info]").getBoundingClientRect();
-    const button = document.querySelector(`[data-advertising-suggestion-tag="${tag}"]`).getBoundingClientRect();
+    const info = document.querySelector("[data-detail-info]").getBoundingClientRect();
+    const button = document.querySelector(`[data-masonry-suggestion-tag="${tag}"]`).getBoundingClientRect();
     return button.top >= info.bottom;
   }, offscreenTag);
-  await page.evaluate((tag) => document.querySelector(`[data-advertising-suggestion-tag="${tag}"]`).click(), offscreenTag);
+  await page.evaluate((tag) => document.querySelector(`[data-masonry-suggestion-tag="${tag}"]`).click(), offscreenTag);
   await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, offscreenTag);
   // Cú đẩy đang chạy lúc cụm ra viewport hoặc nút được bật thì dừng tại chỗ (R6), layer "next" có thể còn trong DOM
   // nhưng nút bật ẩn ảnh (CSS transition opacity); điều cần giữ là không animation slideshow nào của hàng đó còn chạy.
-  const runningLayers = tag => page.evaluate(id => [...document.querySelectorAll(`[data-advertising-suggestion-tag="${id}"] img`)]
+  const runningLayers = tag => page.evaluate(id => [...document.querySelectorAll(`[data-masonry-suggestion-tag="${id}"] img`)]
     .flatMap(image => image.getAnimations()).filter(animation => animation.constructor === Animation && animation.playState === "running").length, tag);
   await page.waitForTimeout(200);
   assert.equal(await runningLayers(offscreenTag), 0, "offscreen active row has no hidden slideshow");
-  await page.locator(`[data-advertising-suggestion-tag="${offscreenTag}"]`).scrollIntoViewIfNeeded();
+  await page.locator(`[data-masonry-suggestion-tag="${offscreenTag}"]`).scrollIntoViewIfNeeded();
   await page.waitForTimeout(200);
   assert.equal(await runningLayers(offscreenTag), 0, "onscreen active row stays static");
 
-  await page.evaluate(() => window.TruongThinhAdvertising.unmount());
+  await page.evaluate(() => window.TruongThinhMasonry.unmount());
   await page.waitForTimeout(6_000);
   const cleaned = await page.evaluate(() => ({
-    nextLayers: document.querySelectorAll('[data-advertising-suggestion-image-layer="next"]').length,
-    animations: [...document.querySelectorAll("[data-advertising-suggestion-image-layer]")]
+    nextLayers: document.querySelectorAll('[data-masonry-suggestion-image-layer="next"]').length,
+    animations: [...document.querySelectorAll("[data-masonry-suggestion-image-layer]")]
       .flatMap((image) => image.getAnimations()).length,
   }));
   assert.deepEqual(cleaned, { nextLayers: 0, animations: 0 }, "unmount removes D12 animation work");
@@ -283,21 +283,21 @@ try {
 
   const reduced = await browser.newPage({ viewport: { width: 820, height: 1180 }, reducedMotion: "reduce" });
   await reduced.goto(`${baseUrl}/en/advertising-products/?photo=${heroId}&tag=${activeTag}`, { waitUntil: "networkidle" });
-  await reduced.locator(`[data-advertising-suggestion-tag="${activeTag}"]`).scrollIntoViewIfNeeded();
-  await reduced.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+  await reduced.locator(`[data-masonry-suggestion-tag="${activeTag}"]`).scrollIntoViewIfNeeded();
+  await reduced.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4);
   const reducedState = await reduced.evaluate(snapshotSuggestions);
   assert(reducedState.every((item) => item.photos.length === 1), "reduced motion has no second image layer");
   assert(reducedState.every((item) => item.photos[0].photo === item.representative), "reduced motion keeps representatives static");
   const reducedAlternate = reducedState.find((item) => item.tag !== activeTag).tag;
-  await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`).hover();
-  const reducedMedia = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"] .advertising-card-media__image`).evaluate((image) => {
+  await reduced.locator(`[data-masonry-suggestion-tag="${reducedAlternate}"]`).hover();
+  const reducedMedia = await reduced.locator(`[data-masonry-suggestion-tag="${reducedAlternate}"] .card-media__image`).evaluate((image) => {
     const style = getComputedStyle(image);
     return { transform: style.transform, duration: style.transitionDuration };
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
   // Link đã tải bỏ vệt; unsettle để đọc loading style.
-  const reducedSweep = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
+  const reducedSweep = await reduced.locator(`[data-masonry-suggestion-tag="${reducedAlternate}"]`)
     .evaluate((link) => {
       link.classList.remove("is-media-settled");
       const name = getComputedStyle(link, "::before").animationName;
@@ -309,8 +309,8 @@ try {
 
   const direct = await browser.newPage({ viewport: { width: 820, height: 1180 } });
   await direct.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-01&tag=use-sampling`, { waitUntil: "networkidle" });
-  await direct.waitForSelector('[data-advertising-suggestion-tag="use-sampling"][aria-pressed="true"]');
-  assert.equal(await direct.locator("[data-advertising-suggestion-tag]").count(), 4, "direct URL keeps four fixed D17 slots");
+  await direct.waitForSelector('[data-masonry-suggestion-tag="use-sampling"][aria-pressed="true"]');
+  assert.equal(await direct.locator("[data-masonry-suggestion-tag]").count(), 4, "direct URL keeps four fixed D17 slots");
   await direct.close();
 } finally {
   await browser.close();

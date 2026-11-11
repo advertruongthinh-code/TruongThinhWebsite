@@ -1,10 +1,10 @@
 # Viewer ảnh Advertising
 
-Nguồn: `src/site/advertising-products/photo-viewer.mjs`; CSS `.advertising-photo-dialog`; spec [Viewer zoom](../../../docs/specs/advertising-viewer-touch-zoom.md).
+Nguồn: `src/site/masonry/detail-viewer.mjs`; CSS `.detail-dialog`; spec [Viewer zoom](../../../docs/specs/advertising-viewer-touch-zoom.md).
 
 Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
-[Primary](../Primary/README.md), hoặc chạm ảnh primary trên màn cảm ứng. Markup `dialog.advertising-photo-dialog` tĩnh,
-`photo-viewer.mjs` điều khiển zoom và pan.
+[Primary](../Primary/README.md), hoặc chạm ảnh primary trên màn cảm ứng. Markup `dialog.detail-dialog` tĩnh,
+`masonry/detail-viewer.mjs` điều khiển zoom và pan.
 
 ## Hành vi
 

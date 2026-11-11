@@ -58,7 +58,7 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
   const box = e => e.getBoundingClientRect().toJSON(), viewport = visualViewport;
   const selectors = '#site-menu[open] .menu-nav a,main h1,main h2,main h3,main p,main a,main button,main figcaption,.site-footer p,.site-footer a';
   const exclusions=[];
-  const subjects = [...document.querySelectorAll(selectedFilter ? `[data-advertising-filter="${selectedFilter}"]` : selectors)].filter(e => {
+  const subjects = [...document.querySelectorAll(selectedFilter ? `[data-masonry-filter="${selectedFilter}"]` : selectors)].filter(e => {
     if(e.matches('.scroll-cue.is-hidden')&&scrollY>200){exclusions.push({node:e.className,reason:'accepted scroll cue hidden after scrollY200'});return false;}
     const r = box(e); return r.width > 0 && r.height > 0 && r.bottom > viewport.offsetTop && r.top < viewport.offsetTop+viewport.height && !e.closest('.sr-only');
   });
@@ -70,7 +70,7 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
       const s = getComputedStyle(a), r = box(a), node = a.id || a.className;
       paint.push({node, opacity:Number(s.opacity), visibility:s.visibility});
       const x=['hidden','clip','auto','scroll'].includes(s.overflowX), y=['hidden','clip','auto','scroll'].includes(s.overflowY);
-      if(x||y) list.push({node,box:r,x,y,rail:a.matches('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')&&s.overflowX==='auto'});
+      if(x||y) list.push({node,box:r,x,y,rail:a.matches('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel')&&s.overflowX==='auto'});
       if(s.clipPath!=='none') {
         const tokens=s.clipPath.match(/^inset\(([^)]+)\)$/)?.[1].trim().split(/\s+/);
         if(tokens&&tokens.length<=4&&tokens.every(t=>/^-?[\d.]+(px|%)$/.test(t)||t==='0')) {
@@ -88,7 +88,7 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
     while(walker.nextNode()) {
       const parent=walker.currentNode.parentElement;
       if(!walker.currentNode.textContent.trim()||parent.closest('.sr-only'))continue;
-      const label=parent.closest('.advertising-photo-view__image-action > span');
+      const label=parent.closest('.detail-view__image-action > span');
       if(label&&!label.parentElement.matches(':focus-visible'))continue;
       const range=document.createRange();range.selectNodeContents(walker.currentNode);
       const clipping=ports(parent);
@@ -113,13 +113,13 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
     const a=box(title),b=box(filters);
     if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)faults.push('title/filter overlap');
   }
-  const dialog=document.querySelector('#advertising-photo-dialog');
-  const viewerButtons=[...document.querySelectorAll('#advertising-photo-dialog button:not([data-advertising-photo-viewer-select])')];
-  if(viewerStage&&(!dialog?.open||dialog.dataset.advertisingViewerState!=='open'||viewerButtons.length!==3))faults.push('viewer must be open with three controls');
+  const dialog=document.querySelector('#detail-dialog');
+  const viewerButtons=[...document.querySelectorAll('#detail-dialog button:not([data-detail-viewer-select])')];
+  if(viewerStage&&(!dialog?.open||dialog.dataset.viewerState!=='open'||viewerButtons.length!==3))faults.push('viewer must be open with three controls');
   const controls=(dialog?.open?viewerButtons:[]).map(e=> {
     const r=box(e), hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
     const name=e.getAttribute('aria-label')||e.textContent.trim();
-    const id=['close','zoom-in','zoom-out'].find(id=>e.hasAttribute(`data-advertising-photo-${id}`));
+    const id=['close','zoom-in','zoom-out'].find(id=>e.hasAttribute(`data-detail-${id}`));
     const expectedDisabled=viewerStage==='fit'&&id==='zoom-out';
     const inside=r.left>=viewport.offsetLeft-1&&r.right<=viewport.offsetLeft+viewport.width+1&&r.top>=viewport.offsetTop-1&&r.bottom<=viewport.offsetTop+viewport.height+1;
     const svg=e.querySelector('svg'),paint=[];for(let a=svg||e;a&&a!==document.body;a=a.parentElement){const s=getComputedStyle(a);paint.push({node:a.className.baseVal??a.className,opacity:Number(s.opacity),visibility:s.visibility});}
@@ -156,14 +156,14 @@ const recordLayout = async (label, selectedFilter = null) => {
 const sample = async label => {
   const data = await evaluate(`(() => {
     const ids=window.__ttViewportRecordingIds ||= new WeakMap();
-    const subjects=[...document.querySelectorAll('.hero,.advertising-photo-view__primary,[data-advertising-photo-image],[data-advertising-photo-description-scroll],[data-advertising-photo-related-grid],[data-advertising-cta-skeleton],[data-advertising-grid-cta],.site-footer,[data-advertising-cta-frame]')];
+    const subjects=[...document.querySelectorAll('.hero,.detail-view__primary,[data-detail-image],[data-detail-description-scroll],[data-detail-related-grid],[data-masonry-cta-skeleton],[data-masonry-grid-cta],.site-footer,[data-masonry-cta-frame]')];
     return {utc:new Date().toISOString(),url:location.href,hidden:document.hidden,fonts:document.fonts.status,
       width:document.documentElement.clientWidth,height:innerHeight,y:scrollY,documentHeight:document.documentElement.scrollHeight,
       visual:{width:visualViewport.width,height:visualViewport.height,top:visualViewport.offsetTop,left:visualViewport.offsetLeft,scale:visualViewport.scale},
       layout:window.TruongThinhMotion?.getViewportMetrics?.(),orientation:screen.orientation?.type,
-      dialog:{open:!!document.querySelector('#advertising-photo-dialog')?.open,state:document.querySelector('#advertising-photo-dialog')?.dataset.advertisingViewerState},
-      nodes:subjects.filter(e=>e.getBoundingClientRect().width>0).map(e=>{if(!ids.has(e))ids.set(e,(window.__ttViewportRecordingNext=(window.__ttViewportRecordingNext||0)+1));const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{id:ids.get(e),key:e.dataset.advertisingCtaSlot||e.dataset.advertisingPhotoId||e.className,left:r.left,top:r.top+scrollY,width:r.width,height:r.height,display:s.display,transform:s.transform,position:s.position,preset:e.querySelector('canvas')?.dataset.advertisingFlowPreset,reveal:e.className};}),
-      controls:[...document.querySelectorAll('#advertising-photo-dialog button')].filter(e=>!e.disabled&&!e.hidden).map(e=>{const r=e.getBoundingClientRect();return{left:r.left,top:r.top,width:r.width,height:r.height}})
+      dialog:{open:!!document.querySelector('#detail-dialog')?.open,state:document.querySelector('#detail-dialog')?.dataset.viewerState},
+      nodes:subjects.filter(e=>e.getBoundingClientRect().width>0).map(e=>{if(!ids.has(e))ids.set(e,(window.__ttViewportRecordingNext=(window.__ttViewportRecordingNext||0)+1));const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{id:ids.get(e),key:e.dataset.masonryCtaSlot||e.dataset.detailId||e.className,left:r.left,top:r.top+scrollY,width:r.width,height:r.height,display:s.display,transform:s.transform,position:s.position,preset:e.querySelector('canvas')?.dataset.masonryFlowPreset,reveal:e.className};}),
+      controls:[...document.querySelectorAll('#detail-dialog button')].filter(e=>!e.disabled&&!e.hidden).map(e=>{const r=e.getBoundingClientRect();return{left:r.left,top:r.top,width:r.width,height:r.height}})
     };
   })()`);
   samples.push({ label, ...data }); return data;
@@ -239,7 +239,7 @@ try {
     }
     actions.push({ kind: "native-toolbar-cycles", route, validCycles, requiredCycles: 3 });
     if(layoutOracles) {
-      const filterState=await evaluate("({photo:document.body.classList.contains('is-advertising-photo'),filters:[...document.querySelectorAll('[data-advertising-filter]')].map(e=>({id:e.dataset.advertisingFilter,hidden:e.getBoundingClientRect().width===0}))})");
+      const filterState=await evaluate("({photo:document.body.classList.contains('is-detail'),filters:[...document.querySelectorAll('[data-masonry-filter]')].map(e=>({id:e.dataset.masonryFilter,hidden:e.getBoundingClientRect().width===0}))})");
       if(filterState.photo) {
         assert.ok(filterState.filters.length===7&&filterState.filters.every(e=>e.hidden),'photo mode keeps the seven grid filters inactive');
         actions.push({kind:'inactive-photo-filters',route,filters:filterState.filters});
@@ -247,7 +247,7 @@ try {
       const filters=filterState.photo?[]:filterState.filters.map(e=>e.id);
       if(filters.length)assert.deepEqual([...filters].sort(),['all','signage','displays-booths','printing-decals','led-displays','office-signs','mobile-retail'].sort(),'All and six known category filters on Android');
       for(const filter of filters) {
-        await evaluate(`(() => {const e=document.querySelector('[data-advertising-filter="${filter}"]');e.focus();e.scrollIntoView({behavior:'instant',block:'center',inline:'center'});})()`);
+        await evaluate(`(() => {const e=document.querySelector('[data-masonry-filter="${filter}"]');e.focus();e.scrollIntoView({behavior:'instant',block:'center',inline:'center'});})()`);
         await recordLayout(`${route}-reached-filter-${filter}`,filter);
       }
     }
@@ -261,7 +261,7 @@ try {
       actions.push({ kind: "navigation-toolbar-state", route, toolbar, entry, initialHeight: initial.visual.height, before: before.visual, after: after.visual });
     }
     if (process.argv.includes("--native-pinch") && /advertising-products\/standee-ke-trung-bay\/$/.test(route)) {
-      await evaluate("(() => {const frame=document.querySelector('[data-advertising-cta-frame]');window.TruongThinhMotion.setLogicalScroll(frame.getBoundingClientRect().top+scrollY-100)})()");
+      await evaluate("(() => {const frame=document.querySelector('[data-masonry-cta-frame]');window.TruongThinhMotion.setLogicalScroll(frame.getBoundingClientRect().top+scrollY-100)})()");
       await pause(1500);
       const before = await sample(`${route}-native-pinch-before`);
       await call("Input.synthesizePinchGesture", { x: before.visual.width * .5, y: before.visual.height * .5, scaleFactor: 2, gestureSourceType: "touch" });
@@ -274,16 +274,16 @@ try {
       await pause(700); await sample(`${route}-native-pinch-reset`);
     }
     if (route.includes("photo=")) {
-      await evaluate("document.querySelector('[data-advertising-photo-expand]').click()"); await pause(600);
+      await evaluate("document.querySelector('[data-detail-expand]').click()"); await pause(600);
       await sample("viewer-open"); await shot("viewer-open");
       await recordLayout(`${route}-viewer-open`);
-      await evaluate("document.querySelector('[data-advertising-photo-zoom-in]').click()"); await sample("viewer-zoom");
+      await evaluate("document.querySelector('[data-detail-zoom-in]').click()"); await sample("viewer-zoom");
       // Touch dừng zoom đang chạy tại chỗ (viewer touch zoom R6), nên để zoom settle trước.
-      for (let i = 0; i < 30 && await evaluate("document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState") !== "open"; i++) await pause(100);
+      for (let i = 0; i < 30 && await evaluate("document.querySelector('#detail-dialog').dataset.viewerState") !== "open"; i++) await pause(100);
       await swipe("up"); await swipe("down"); await shot("viewer-after-touch");
       await recordLayout(`${route}-viewer-after-touch`);
-      await evaluate("document.querySelector('[data-advertising-photo-close]').click()"); await pause(500);
-      assert.equal(await evaluate("document.querySelector('#advertising-photo-dialog').open"),false,'viewer closes on Android');
+      await evaluate("document.querySelector('[data-detail-close]').click()"); await pause(500);
+      assert.equal(await evaluate("document.querySelector('#detail-dialog').open"),false,'viewer closes on Android');
     }
   }
   metadata.status = "observed";

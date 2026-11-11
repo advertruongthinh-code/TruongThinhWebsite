@@ -40,7 +40,7 @@ const open = async ({ delay = DELAY, javaScriptEnabled = true, viewport = viewpo
 // Native lazy không bao giờ tải slide carousel đỗ sang bên, nên chỉ cột visible mới phải settle.
 // Chỉ ảnh content tĩnh; grid/viewer Advertising và logo client có loader riêng.
 const snapshot = page => page.evaluate(() => { const seen = new Map(); return [...document.querySelectorAll("img")]
-  .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-advertising-photo-view]") && img.getClientRects().length)
+  .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-detail-view]") && img.getClientRects().length)
   .map(img => {
     const frame = img.parentElement.tagName === "PICTURE" ? img.parentElement.parentElement : img.parentElement;
     let opacity = 1;
@@ -67,7 +67,7 @@ const scrollThrough = async page => {
 const settle = async (page, firstScreen = false) => {
   for (const started = Date.now(); Date.now() - started < 30_000; await page.waitForTimeout(250)) {
     if (await page.evaluate(firstScreen => [...document.querySelectorAll('img[src^="/assets/content/"]')]
-      .filter(img => img.getClientRects().length && !img.closest("[data-project-grid], [data-advertising-photo-view]")
+      .filter(img => img.getClientRects().length && !img.closest("[data-project-grid], [data-detail-view]")
         && img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth
         && (!firstScreen || (img.getBoundingClientRect().bottom > 0 && img.getBoundingClientRect().top < innerHeight)))
       .every(img => img.complete), firstScreen)) return;
@@ -228,7 +228,7 @@ try {
       await scrollThrough(page);
       await page.waitForTimeout(500);
       const images = await page.evaluate(overlay => [...document.querySelectorAll("img")]
-        .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-advertising-photo-view]") && img.getClientRects().length && !img.matches(overlay))
+        .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-detail-view]") && img.getClientRects().length && !img.matches(overlay))
         .map(img => {
           const frame = img.parentElement.tagName === "PICTURE" ? img.parentElement.parentElement : img.parentElement;
           const box = img.getBoundingClientRect();
@@ -297,16 +297,16 @@ try {
       window.__ttCardBlur = [];
       new MutationObserver((records) => records.forEach(({ target, oldValue }) => {
         if (!target.style.filter.startsWith("blur(") || oldValue?.includes("blur(")) return;
-        window.__ttCardBlur.push(target.closest("[data-advertising-card]")?.dataset.advertisingCard);
+        window.__ttCardBlur.push(target.closest("[data-masonry-card]")?.dataset.masonryCard);
       })).observe(document.body, { attributes: true, attributeFilter: ["style"], attributeOldValue: true, subtree: true });
       new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
         window.__ttRevealGlass.push({
           // Card related cũng nằm trong photo view; Kính của nó là Kính card, không phải primary.
-          host: node.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
-          card: node.closest("[data-advertising-card]")?.dataset.advertisingCard,
+          host: node.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary",
+          card: node.closest("[data-masonry-card]")?.dataset.masonryCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
-          skeleton: Boolean(node.parentElement.querySelector("[data-advertising-loading-skeleton]")),
+          skeleton: Boolean(node.parentElement.querySelector("[data-masonry-loading-skeleton]")),
           flat: [...node.querySelectorAll(".glass-surface__step")].some((step) => getComputedStyle(step).backgroundColor !== "rgba(0, 0, 0, 0)"),
           end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
             .map((animation) => animation.effect.getComputedTiming().endTime))),
@@ -317,13 +317,13 @@ try {
       }))).observe(document.body, { childList: true, subtree: true });
     });
     const revealGlass = (host) => page.evaluate((name) => window.__ttRevealGlass.filter((glass) => glass.host === name), host);
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.()?.seed
-      && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.waitForFunction(() => window.TruongThinhMasonry?.getBrowseState?.()?.seed
+      && document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const geometry = () => page.evaluate(() => ({
-      cards: [...document.querySelectorAll("[data-advertising-card]")].map(node => [node.dataset.advertisingCard, node.style.left, node.style.top]),
-      cta: document.querySelector("[data-advertising-grid-cta]")?.offsetTop,
+      cards: [...document.querySelectorAll("[data-masonry-card]")].map(node => [node.dataset.masonryCard, node.style.left, node.style.top]),
+      cta: document.querySelector("[data-masonry-grid-cta]")?.offsetTop,
       footer: document.querySelector("footer.site-footer")?.offsetTop,
-      filters: [...document.querySelectorAll("[data-advertising-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
+      filters: [...document.querySelectorAll("[data-masonry-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
     // Ảnh card chờ tải hiện dưới blur của chính nó thay skeleton Flow (progressive-loading R9).
@@ -332,7 +332,7 @@ try {
       const image = document.querySelector("[data-project-grid] img[style*='blur('].lazyloading");
       const { filter, opacity, animationName } = getComputedStyle(image);
       return { blur: filter.startsWith("blur("), animationName, opacity: Number(opacity),
-        marked: image.closest("[data-advertising-card]").hasAttribute("data-advertising-media-loading") };
+        marked: image.closest("[data-masonry-card]").hasAttribute("data-masonry-media-loading") };
     });
     // Ảnh chờ thở bằng media-breathe (opacity 1 → 0.45 → 1) cùng lúc mờ (spec chờ ảnh S2).
     assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
@@ -354,16 +354,16 @@ try {
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur`));
     // Tải xong thì thở dừng: không còn attribute, animation hay opacity dở dang (spec chờ ảnh S2).
-    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-      .filter((card) => card.hasAttribute("data-advertising-media-loading")
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((card) => card.hasAttribute("data-masonry-media-loading")
         || [...card.querySelectorAll("img")].some((image) => getComputedStyle(image).animationName !== "none")).length), 0,
       `${viewport.width}px: loaded cards stop breathing`);
     assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
     // Card đã tải xong rời viewport hiện lại ngay: không blur, không skeleton (R3).
-    const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-      .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.advertisingCard));
+    const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.masonryCard));
     const blursBefore = await page.evaluate(() => window.__ttCardBlur.length);
     const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
     await scrollTo(4000);
@@ -376,22 +376,22 @@ try {
       const startedAt = performance.now();
       while (performance.now() - startedAt < 1000) {
         await new Promise(requestAnimationFrame);
-        for (const card of document.querySelectorAll("[data-project-grid] [data-advertising-card]")) {
+        for (const card of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
           const { top, bottom } = card.getBoundingClientRect();
-          if (!ids.includes(card.dataset.advertisingCard) || bottom <= 0 || top >= innerHeight) continue;
+          if (!ids.includes(card.dataset.masonryCard) || bottom <= 0 || top >= innerHeight) continue;
           const opacity = Number.parseFloat(getComputedStyle(card.querySelector("img")).opacity);
-          if (card.querySelector("[data-advertising-loading-skeleton]") || (opacity > 0.02 && opacity < 0.98)) {
-            seen.push({ id: card.dataset.advertisingCard, opacity, at: Math.round(performance.now() - startedAt) });
+          if (card.querySelector("[data-masonry-loading-skeleton]") || (opacity > 0.02 && opacity < 0.98)) {
+            seen.push({ id: card.dataset.masonryCard, opacity, at: Math.round(performance.now() - startedAt) });
           }
         }
       }
       return seen;
     }, loadedIds);
     assert.deepEqual(fades.slice(0, 5), [], `${viewport.width}px: a re-entering loaded card shows at once, no skeleton or fade`);
-    const inView = () => page.evaluate((ids) => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-      .filter((card) => ids.includes(card.dataset.advertisingCard))
+    const inView = () => page.evaluate((ids) => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((card) => ids.includes(card.dataset.masonryCard))
       .filter((card) => { const { top, bottom } = card.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
-      .map((card) => ({ id: card.dataset.advertisingCard, skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton]")),
+      .map((card) => ({ id: card.dataset.masonryCard, skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton]")),
         opacity: getComputedStyle(card.querySelector("img")).opacity })), loadedIds);
     let reentry = [];
     for (let tries = 0; tries < 50; tries += 1) {
@@ -406,33 +406,33 @@ try {
     assert.deepEqual(reentryBlur, [], `${viewport.width}px: a re-entering loaded card starts no blur`);
     // Card vừa tải xong ngay lúc này vẫn reveal từ skeleton của nó; để chúng settle trước.
     await page.waitForTimeout(700);
-    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-loading-skeleton]")]
       .filter((frame) => frame.parentElement.querySelector("img")?.naturalWidth > 0)
-      .map((frame) => [frame.closest("[data-advertising-card]").dataset.advertisingCard, frame.parentElement.querySelector("img").className,
+      .map((frame) => [frame.closest("[data-masonry-card]").dataset.masonryCard, frame.parentElement.querySelector("img").className,
         Math.round(frame.getBoundingClientRect().top)])), [],
     `${viewport.width}px: a loaded card re-enters without a skeleton`);
 
     // Viewer: skeleton và aria-busy theo photo hiện tại, kể cả hero swap nhanh.
     const viewer = () => page.evaluate(() => {
-      const frame = document.querySelector("[data-advertising-photo-image]").parentElement;
-      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),
-        glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
+      const frame = document.querySelector("[data-detail-image]").parentElement;
+      return { photo: window.TruongThinhMasonry.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")),
+        glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-detail-image]").currentSrc };
     });
     // Kính reveal là của ảnh; card mở bằng video (media tạm nhiều media) không có skeleton ảnh nên chọn card mở bằng ảnh.
-    await page.locator("[data-advertising-card]:not(:has(video)) a").first().click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.parentElement.getAttribute("aria-busy") === "true"
-      && document.querySelector("[data-advertising-photo-image]").parentElement.querySelector("[data-advertising-loading-skeleton]"));
+    await page.locator("[data-masonry-card]:not(:has(video)) a").first().click();
+    await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.parentElement.getAttribute("aria-busy") === "true"
+      && document.querySelector("[data-detail-image]").parentElement.querySelector("[data-masonry-loading-skeleton]"));
     const first = await viewer();
     assert.ok(first.photo && first.skeleton, `${viewport.width}px: viewer shows the skeleton while primary loads`);
-    await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] > a"));
+    await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] > a"));
     const relatedId = await page.evaluate(() => {
-      const card = [...document.querySelectorAll("[data-advertising-related-card]")].find(node => node.querySelector("a") && !node.querySelector("video") && node.getBoundingClientRect().height);
+      const card = [...document.querySelectorAll("[data-masonry-related-card]")].find(node => node.querySelector("a") && !node.querySelector("video") && node.getBoundingClientRect().height);
       card.querySelector("a").click();
-      return card.dataset.advertisingRelatedCard;
+      return card.dataset.masonryRelatedCard;
     });
-    await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id, relatedId);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-image]").parentElement.hasAttribute("aria-busy")
-      && document.querySelector("[data-advertising-photo-image]").complete, null, { timeout: 30_000 });
+    await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id, relatedId);
+    await page.waitForFunction(() => !document.querySelector("[data-detail-image]").parentElement.hasAttribute("aria-busy")
+      && document.querySelector("[data-detail-image]").complete, null, { timeout: 30_000 });
     await page.waitForTimeout(DELAY + 300);
     const swapped = await viewer();
     assert.equal(swapped.photo, relatedId);
@@ -447,12 +447,12 @@ try {
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
     // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
     await page.goBack();
-    await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id
-      && !document.querySelector("[data-advertising-photo-image]").parentElement.hasAttribute("aria-busy"), first.photo);
+    await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id
+      && !document.querySelector("[data-detail-image]").parentElement.hasAttribute("aria-busy"), first.photo);
     primaryReveals.push(await revealGlass("primary"));
     await page.goBack();
-    await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-photo-view] [data-advertising-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
+    await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();

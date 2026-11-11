@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
-const { planDetourPath } = await import("../../src/site/advertising-products/detour-path.mjs");
+const { planDetourPath } = await import("../../src/site/masonry/detour-path.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
-const ready = (page) => page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingDetailReady === "true"
+const ready = (page) => page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
   && !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"),
 null, { timeout: 20000 });
 
@@ -16,7 +16,7 @@ const measureEnd = (page) => page.evaluate(async () => {
   const lastScroll = document.documentElement.scrollHeight - innerHeight;
   if (!motion?.setLogicalScroll?.(lastScroll)) window.scrollTo(0, lastScroll);
   await new Promise((resolve) => setTimeout(resolve, 1200));
-  const heading = document.querySelector("[data-advertising-grid-cta] h2");
+  const heading = document.querySelector("[data-masonry-grid-cta] h2");
   const fontSize = Number.parseFloat(getComputedStyle(heading).fontSize);
   const lines = [...heading.querySelectorAll(".motion-line")];
   for (let wait = 0; wait < 40 && lines.some((line) =>
@@ -30,15 +30,15 @@ const measureEnd = (page) => page.evaluate(async () => {
   leaf.append(probe);
   const baseline = probe.getBoundingClientRect().top;
   probe.remove();
-  const batch = document.querySelector("[data-advertising-cta-skeleton]");
-  const cta = document.querySelector("[data-advertising-grid-cta]");
+  const batch = document.querySelector("[data-masonry-cta-skeleton]");
+  const cta = document.querySelector("[data-masonry-grid-cta]");
   const footer = document.querySelector("footer.site-footer").getBoundingClientRect();
   const link = cta.querySelector(".detail-cta__copy a").getBoundingClientRect();
-  const primary = document.querySelector(".advertising-photo-view__primary").getBoundingClientRect();
+  const primary = document.querySelector(".detail-view__primary").getBoundingClientRect();
   return {
-    host: batch.dataset.advertisingCtaHost,
-    inCanvas: Boolean(cta.closest("[data-advertising-photo-canvas]")),
-    frames: batch.querySelectorAll("[data-advertising-cta-frame]").length,
+    host: batch.dataset.masonryCtaHost,
+    inCanvas: Boolean(cta.closest("[data-detail-canvas]")),
+    frames: batch.querySelectorAll("[data-masonry-cta-frame]").length,
     batchBottom: batch.getBoundingClientRect().bottom,
     ctaTop: cta.getBoundingClientRect().top,
     ctaBottom: cta.getBoundingClientRect().bottom,
@@ -46,10 +46,10 @@ const measureEnd = (page) => page.evaluate(async () => {
     linkBottom: link.bottom,
     baseline, viewportHeight: innerHeight,
     primaryBottom: primary.bottom,
-    infoCta: Boolean(document.querySelector("[data-advertising-photo-cta]")?.getClientRects().length),
+    infoCta: Boolean(document.querySelector("[data-detail-cta]")?.getClientRects().length),
     parallax: new DOMMatrixReadOnly(getComputedStyle(cta.querySelector(".detail-cta__copy")).transform).m42,
-    gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-advertising-photo-view]")).getPropertyValue("--advertising-photo-gap")),
-    relatedCards: document.querySelectorAll("[data-advertising-related-card]:not([hidden])").length,
+    gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
+    relatedCards: document.querySelectorAll("[data-masonry-related-card]:not([hidden])").length,
     arc: (() => { const glass = document.querySelector('.glass-surface[data-glass-shape="arc"]');
       return glass && !glass.hidden ? glass.getBoundingClientRect().width : 0; })(),
     viewportWidth: document.documentElement.clientWidth,
@@ -62,8 +62,8 @@ const toggleTag = async (page, tag) => {
   await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo(0, 0));
   await page.waitForTimeout(800);
   await page.evaluate(() => new Promise((started) => {
-    const primary = document.querySelector("[data-advertising-photo-primary]");
-    const frames = () => [...document.querySelectorAll("[data-advertising-cta-frame]")];
+    const primary = document.querySelector("[data-detail-primary]");
+    const frames = () => [...document.querySelectorAll("[data-masonry-cta-frame]")];
     const box = (node) => node.getBoundingClientRect();
     const p0 = box(primary);
     const before = new Map(frames().map((frame) => [frame, box(frame)]));
@@ -77,7 +77,7 @@ const toggleTag = async (page, tag) => {
         const r = box(frame);
         const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
         const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
-        if (x > 0.5 && y > 0.5) state.overlaps.push({ slot: frame.dataset.advertisingCtaFrame, x, y });
+        if (x > 0.5 && y > 0.5) state.overlaps.push({ slot: frame.dataset.masonryCtaFrame, x, y });
         for (const animation of frame.getAnimations()) {
           const keyframes = animation.effect?.getKeyframes?.() || [];
           if (!keyframes[0]?.translate) continue;
@@ -99,13 +99,13 @@ const toggleTag = async (page, tag) => {
         state.overlaps = state.overlaps.slice(0, 5);
         state.slid = state.slid.size;
         state.detoured = state.detoured.size;
-        state.related = document.querySelectorAll("[data-advertising-related-card]:not([hidden])").length;
+        state.related = document.querySelectorAll("[data-masonry-related-card]:not([hidden])").length;
         state.done = true;
       }
     };
     requestAnimationFrame(tick);
   }));
-  await page.locator(`[data-advertising-suggestion-tag="${tag}"]`).dispatchEvent("click");
+  await page.locator(`[data-masonry-suggestion-tag="${tag}"]`).dispatchEvent("click");
   await page.waitForFunction(() => window.__ctaSample?.done, null, { timeout: 5000 });
   return page.evaluate(() => window.__ctaSample);
 };
@@ -114,8 +114,8 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await probe.waitForSelector("[data-advertising-card]");
-  const hero = await probe.$eval("[data-advertising-card]", (node) => node.dataset.advertisingCard);
+  await probe.waitForSelector("[data-masonry-card]");
+  const hero = await probe.$eval("[data-masonry-card]", (node) => node.dataset.masonryCard);
   await probe.close();
   const errors = [];
   for (const [locale, viewport] of [["vi", { width: 1569, height: 912 }], ["en", { width: 390, height: 844 }]]) {
@@ -138,7 +138,7 @@ try {
     assert.ok(end.ctaTop >= end.primaryBottom - 1, `${label}: CTA chồng primary`);
 
     // Bật tag: khung batch trượt cùng related, không khung nào giao primary (R9, R10).
-    const tag = await page.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
+    const tag = await page.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
     if (tag) {
       const sample = await toggleTag(page, tag);
       assert.deepEqual(sample.overlaps, [], `${label}: khung batch giao primary khi đổi tag`);
@@ -151,10 +151,10 @@ try {
 
     // Back về masonry: CTA về grid.
     await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector("[data-advertising-cta-skeleton][data-advertising-cta-ready]");
+    await page.waitForSelector("[data-masonry-cta-skeleton][data-masonry-cta-ready]");
     const grid = await page.evaluate(() => ({
-      inGrid: Boolean(document.querySelector("[data-project-grid] [data-advertising-cta-skeleton]")),
-      ctaInIndex: Boolean(document.querySelector(".project-index [data-advertising-grid-cta]")),
+      inGrid: Boolean(document.querySelector("[data-project-grid] [data-masonry-cta-skeleton]")),
+      ctaInIndex: Boolean(document.querySelector(".project-index [data-masonry-grid-cta]")),
     }));
     assert.ok(grid.inGrid && grid.ctaInIndex, `${label}: CTA không ở grid khi duyệt masonry`);
     console.log(`${label}: ${end.relatedCards} card related, ${end.frames} khung batch, chân chữ ${(end.baseline - end.viewportHeight / 2).toFixed(2)}px`);
@@ -165,14 +165,14 @@ try {
   const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   page.on("pageerror", (error) => errors.push(`soft: ${error.message}`));
   await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("[data-advertising-card] a");
+  await page.waitForSelector("[data-masonry-card] a");
   await page.waitForTimeout(800);
-  await page.locator("[data-advertising-card] a").first().click();
+  await page.locator("[data-masonry-card] a").first().click();
   await ready(page);
-  assert.equal(await page.getAttribute("[data-advertising-cta-skeleton]", "data-advertising-cta-host"), "detail");
+  assert.equal(await page.getAttribute("[data-masonry-cta-skeleton]", "data-masonry-cta-host"), "detail");
   // Cụm CTA chuyển sang detail chờ lần vào view như lần đầu ở masonry: chưa hiện khi còn dưới màn, hiện khi cuộn tới (R9).
   const ctaReveal = () => page.evaluate(() => {
-    const cta = document.querySelector("[data-advertising-grid-cta]");
+    const cta = document.querySelector("[data-masonry-grid-cta]");
     return { link: cta.querySelector("[data-motion-fade]").classList.contains("is-motion-inview"),
       lineY: new DOMMatrixReadOnly(getComputedStyle(cta.querySelector("h2 .motion-line")).transform).m42,
       below: cta.getBoundingClientRect().top > innerHeight };
@@ -182,11 +182,11 @@ try {
   const revealed = await measureEnd(page).then(ctaReveal);
   assert.ok(revealed.link && revealed.lineY < 0, `detail: CTA không hiện khi vào view ${JSON.stringify(revealed)}`);
   await page.goBack();
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaHost === "grid"
-    && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true", null, { timeout: 10000 });
+  await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaHost === "grid"
+    && document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 10000 });
   const gridHeight = await page.evaluate(() => {
     const grid = document.querySelector("[data-project-grid]").getBoundingClientRect();
-    const cta = document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect();
+    const cta = document.querySelector("[data-masonry-grid-cta]").getBoundingClientRect();
     return Math.abs(grid.bottom - cta.bottom);
   });
   assert.ok(gridHeight <= 1.5, "Back: chiều cao grid khác đáy CTA");
@@ -196,8 +196,8 @@ try {
   const heroes = await (async () => {
     const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     await list.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await list.waitForSelector("[data-advertising-card]");
-    const ids = await list.$$eval("[data-advertising-card]", (nodes) => nodes.map((node) => node.dataset.advertisingCard));
+    await list.waitForSelector("[data-masonry-card]");
+    const ids = await list.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard));
     await list.close();
     return ids.slice(0, Number(process.env.CTA_DETOUR_HEROES || 20));
   })();
@@ -209,7 +209,7 @@ try {
     search.on("pageerror", (error) => errors.push(`${hero}: ${error.message}`));
     await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(search);
-    const tags = await search.$$eval("[data-advertising-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.advertisingSuggestionTag));
+    const tags = await search.$$eval("[data-masonry-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.masonrySuggestionTag));
     // Mọi tag của hero: ca cần đi vòng thường đến từ tag thu hẹp related mạnh (cột cạnh primary trống ra).
     for (const searchTag of tags) {
       if (detourCase && emptyCase) break;
@@ -243,7 +243,7 @@ try {
         const arcInView = Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight;
         const state = window.__ttArcOverlap;
         const now = performance.now();
-        state.since = arcInView && document.querySelector("[data-advertising-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
+        state.since = arcInView && document.querySelector("[data-masonry-cta-skeleton] .glass-surface[data-glass-reveal]") ? (state.since ?? now) : null;
         state.max = Math.max(state.max, state.since == null ? 0 : now - state.since);
         requestAnimationFrame(tick);
       };
@@ -271,7 +271,7 @@ try {
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
   await reduced.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
   await ready(reduced);
-  const reducedTag = await reduced.$eval("[data-advertising-suggestion-tag]", (node) => node.dataset.advertisingSuggestionTag).catch(() => null);
+  const reducedTag = await reduced.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
   if (reducedTag) {
     const sample = await toggleTag(reduced, reducedTag);
     assert.equal(sample.slid, 0, "reduced motion vẫn trượt khung batch");

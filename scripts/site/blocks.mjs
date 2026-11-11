@@ -1,6 +1,6 @@
-// Bộ khối dùng chung cho trang công trình và News (layout-library R1, R4): kiểm dữ liệu JSON rồi dựng HTML tĩnh.
-// Chữ VI nằm trong thẻ, EN nằm ở data-en như các trang hiện có; build localeHtml đổi sang EN.
-// Cùng dữ liệu luôn ra cùng HTML; chữ chỉ là chữ thường, mọi ký tự HTML bị escape.
+// Shared block set for project pages and News (layout-library R1, R4): validates JSON data then builds static HTML.
+// VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
+// The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -10,10 +10,10 @@ export const ZALO_HREF = "https://zalo.me/0949131050";
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE_SRC = /^\/assets\/content\/[a-z0-9/-]+\.webp$/;
-// ponytail: chỉ link nội bộ /vi|/en hoặc Zalo; mở rộng khi CMS cần link ngoài có kiểm.
+// ponytail: only internal /vi|/en links or Zalo; extend when the CMS needs checked external links.
 const SAFE_HREF = /^(?:\/(?:vi|en)\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
-// ponytail: chữ v1 chỉ là đoạn thường tách bằng dòng trống; đậm, nghiêng, link trong đoạn làm khi CMS cần.
+// ponytail: v1 text is just plain paragraphs split by blank lines; bold, italic, in-paragraph links when the CMS needs them.
 const paragraphs = (text) => text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
 const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</${tag}>`;
 const localizedParagraphs = (text, attributes = "") => {
@@ -23,14 +23,14 @@ const localizedParagraphs = (text, attributes = "") => {
 };
 const image = (media, attributes = 'loading="lazy"') =>
   `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
-// Class viết đủ chữ để test orphan-selectors thấy nơi sinh ra từng biến thể CSS.
+// Classes are written out in full so the orphan-selectors test sees where each CSS variant is generated.
 const IMAGE_POSITION = { wide: "blk-image--wide", "left-2-3": "blk-image--left-2-3", "right-2-3": "blk-image--right-2-3", "left-1-2": "blk-image--left-1-2", "right-1-2": "blk-image--right-1-2" };
 const PAIR_LAYOUT = { equal: "blk-pair--equal", "left-large": "blk-pair--left-large", "right-large": "blk-pair--right-large" };
 const FACTS_COLUMNS = { 2: "blk-facts--2", 3: "blk-facts--3", 4: "blk-facts--4" };
 const BANNER_COLUMNS = { 1: "blk-banners--1", 2: "blk-banners--2", 3: "blk-banners--3" };
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
-// Mỗi khối: các trường bắt buộc theo kiểu và hàm dựng HTML. ctx có danh sách công trình, bài News để khối tự lấy.
+// Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
 const BLOCKS = {
   "hero-project": {
     text: ["titleLine1", "titleLine2"],
@@ -39,7 +39,7 @@ const BLOCKS = {
     render: (block) => [
       '<section class="blk-hero" data-header-tone="light">',
       `  <figure class="blk-hero__media">${image(block.image, 'fetchpriority="high"')}</figure>`,
-      // Lớp phủ tối dùng chung với hero các trang tĩnh (style.css .hero-shade, owner 2026-11-08).
+      // Dark overlay shared with the static page heroes (style.css .hero-shade, owner 2026-11-08).
       '  <div class="hero-shade" aria-hidden="true"></div>',
       '  <div class="blk-hero__copy">',
       `    <h1 class="blk-hero__title">${localized("span", block.titleLine1)} ${localized("span", block.titleLine2, ' class="blk-hero__line2"')}</h1>`,
@@ -86,7 +86,7 @@ const BLOCKS = {
   },
   "gallery-carousel": {
     mediaList: { images: [2, 12] },
-    // Dùng đúng khung Gallery của trang Nhà ở để detail.js gắn Swiper (detail-pages R5).
+    // Uses exactly the Homes page Gallery frame so detail.js attaches Swiper (detail-pages R5).
     render: (block) => [
       '<section class="detail-gallery blk-gallery section-gap" data-gallery data-header-tone="ink">',
       '  <div class="detail-gallery__track" data-gallery-track>',
@@ -119,7 +119,7 @@ const BLOCKS = {
   },
   "project-slider": {
     ids: "projects",
-    // Thẻ so le cao thấp như rail trang chủ (ProjectReel); bấm mở trang công trình.
+    // Cards staggered high and low like the home rail (ProjectReel); click opens the project page.
     render: (block, ctx) => {
       const variants = ["high", "low"];
       return [
@@ -174,54 +174,54 @@ const BLOCKS = {
 };
 export const BLOCK_TYPES = Object.keys(BLOCKS);
 
-// Kiểm một trang (công trình hoặc bài News). Trả danh sách lỗi, không dừng ở lỗi đầu.
+// Validate one page (project or News post). Returns the error list, does not stop at the first error.
 export async function validateBlockPage(page, { siteRoot, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
   const { default: sharp } = await import("sharp");
   const errors = [];
   const text = (value, where) => {
-    if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: thiếu chữ VI`);
-    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: thiếu chữ EN`);
-    else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: số đoạn VI và EN khác nhau`);
+    if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
+    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
+    else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
   const media = async (value, where) => {
-    if (!value || !IMAGE_SRC.test(value.src ?? "")) return errors.push(`${where}: src phải là /assets/content/<kebab-case>.webp`);
-    for (const field of ["altVi", "altEn"]) if (typeof value[field] !== "string" || !value[field].trim()) errors.push(`${where}: thiếu ${field}`);
+    if (!value || !IMAGE_SRC.test(value.src ?? "")) return errors.push(`${where}: src must be /assets/content/<kebab-case>.webp`);
+    for (const field of ["altVi", "altEn"]) if (typeof value[field] !== "string" || !value[field].trim()) errors.push(`${where}: missing ${field}`);
     const file = path.join(siteRoot, value.src);
-    if (!existsSync(file)) return errors.push(`${where}: không có file ${value.src}`);
+    if (!existsSync(file)) return errors.push(`${where}: file not found ${value.src}`);
     const { width, height } = await sharp(file).metadata();
-    if (value.width !== width || value.height !== height) errors.push(`${where}: width/height phải là ${width}x${height}`);
+    if (value.width !== width || value.height !== height) errors.push(`${where}: width/height must be ${width}x${height}`);
   };
-  const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: link không hợp lệ`); };
+  const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
-  if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id phải kebab-case`);
-  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} phải kebab-case không dấu`);
+  if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
+  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
   text(page?.title, `${at}.title`);
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
-  if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: cần ít nhất một khối`];
+  if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: needs at least one block`];
 
   const blockIds = new Set();
   for (const [index, block] of page.blocks.entries()) {
     const where = `${at}.blocks[${index}]`;
     const spec = BLOCKS[block?.type];
-    if (!spec) { errors.push(`${where}: kiểu khối lạ ${block?.type}`); continue; }
-    if (!KEBAB.test(block.id ?? "")) errors.push(`${where}: id khối phải kebab-case`);
-    else if (blockIds.has(block.id)) errors.push(`${where}: trùng id khối ${block.id}`);
+    if (!spec) { errors.push(`${where}: unknown block type ${block?.type}`); continue; }
+    if (!KEBAB.test(block.id ?? "")) errors.push(`${where}: block id must be kebab-case`);
+    else if (blockIds.has(block.id)) errors.push(`${where}: duplicate block id ${block.id}`);
     blockIds.add(block.id);
     for (const field of spec.text ?? []) text(block[field], `${where}.${field}`);
     for (const field of spec.optionalText ?? []) if (block[field] !== undefined) text(block[field], `${where}.${field}`);
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
     for (const field of spec.href ?? []) href(block[field], `${where}.${field}`);
-    for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: phải là ${allowed.join(", ")}`);
+    for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: must be ${allowed.join(", ")}`);
     for (const [field, [min, max]] of Object.entries(spec.mediaList ?? {})) {
       const list = block[field];
-      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: cần ${min} đến ${max} ảnh`); continue; }
+      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: needs ${min} to ${max} images`); continue; }
       for (const [item, value] of list.entries()) await media(value, `${where}.${field}[${item}]`);
     }
     if (spec.list) {
       const [min, max] = spec.list.items;
       const list = block.items;
-      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.items: cần ${min} đến ${max} mục`); continue; }
+      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.items: needs ${min} to ${max} items`); continue; }
       for (const [item, value] of list.entries()) {
         for (const field of spec.list.text ?? []) text(value?.[field], `${where}.items[${item}].${field}`);
         for (const field of spec.list.media ?? []) await media(value?.[field], `${where}.items[${item}].${field}`);
@@ -230,28 +230,28 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
     }
     if (spec.video) {
       const value = block.video;
-      if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: cần src .mp4, poster .webp, width, height`);
+      if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
     }
     if (spec.ids) {
       const field = spec.ids === "projects" ? "projectIds" : "newsIds";
       const pool = spec.ids === "projects" ? projects : news;
       const list = block[field];
-      if (!Array.isArray(list) || list.length < 1) errors.push(`${where}.${field}: cần ít nhất một id`);
-      else for (const id of list) if (!pool.has(id) || id === page.id) errors.push(`${where}.${field}: id ${id} không có hoặc trỏ chính trang này`);
+      if (!Array.isArray(list) || list.length < 1) errors.push(`${where}.${field}: needs at least one id`);
+      else for (const id of list) if (!pool.has(id) || id === page.id) errors.push(`${where}.${field}: id ${id} not found or points to this page`);
     }
   }
   return errors;
 }
 
-// Map tra cứu giữ bản cuối khi trùng, nên báo trùng id và slug trong một file trước.
+// The lookup Map keeps the last entry on duplicates, so report duplicate id and slug within one file first.
 export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].flatMap((field) => {
   const seen = new Set();
   return pages.flatMap((page) => {
     const duplicate = seen.has(page[field]);
     seen.add(page[field]);
-    return duplicate ? [`${at}: trùng ${field} ${page[field]}`] : [];
+    return duplicate ? [`${at}: duplicate ${field} ${page[field]}`] : [];
   });
 });
 
-// Chỉ gọi với dữ liệu đã qua validateBlockPage.
+// Call only with data that passed validateBlockPage.
 export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx)).join("\n");

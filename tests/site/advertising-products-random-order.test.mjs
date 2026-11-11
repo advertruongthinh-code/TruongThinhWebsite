@@ -3,18 +3,18 @@ import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import {
   columnsForWidth,
-  compileAdvertisingProductLayout,
-  scoreAdvertisingOrganicRhythm,
-  matchesAdvertisingFilter,
-} from "../../src/site/advertising-products/layout-core.mjs";
-import { shuffleWithSeed } from "../../src/site/advertising-products/random-order.mjs";
+  compileMasonryLayout,
+  scoreOrganicRhythm,
+  matchesFilter,
+} from "../../src/site/masonry/layout.mjs";
+import { shuffleWithSeed } from "../../src/site/masonry/random-order.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
 
 const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
 let advertisingRuntime;
 try {
-  advertisingRuntime = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+  advertisingRuntime = await import("../../src/site/masonry/runtime.mjs");
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
@@ -51,7 +51,7 @@ const browseCards = [
 test("existing solver honors a noncanonical presentation order", () => {
   const cards = makeCards(6);
   const presentationOrder = cards.map(card => card.id).reverse();
-  const layout = compileAdvertisingProductLayout({ cards, categoryOrder: ["random-fixture"], layoutViewportWidth: 390, presentationOrder });
+  const layout = compileMasonryLayout({ cards, categoryOrder: ["random-fixture"], layoutViewportWidth: 390, presentationOrder });
   assert.deepEqual(layout.diagnostics.placementOrder, presentationOrder);
 });
 
@@ -67,7 +67,7 @@ test("seeded card shuffle is repeatable per grid scope and preserves pool member
   assert.deepEqual(new Set(first.map(({ id }) => id)), new Set(cards.map(({ id }) => id)));
   assert.deepEqual(cards, original, "shuffling must not mutate canonical catalog records");
 
-  const related = advertisingRuntime.selectAdvertisingRelated({
+  const related = advertisingRuntime.selectRelated({
     cards: browseCards,
     categoryOrder,
     heroId: "hero",
@@ -100,9 +100,9 @@ test("related detail grid randomizes its full tagged pool by visit seed", () => 
     headerHeight: 80,
     tag: "shared",
   };
-  const first = advertisingRuntime.compileAdvertisingRelatedLayout({ ...options, seed: "visit-a" });
-  const repeat = advertisingRuntime.compileAdvertisingRelatedLayout({ ...options, seed: "visit-a" });
-  const nextVisit = advertisingRuntime.compileAdvertisingRelatedLayout({ ...options, seed: "visit-b" });
+  const first = advertisingRuntime.compileRelatedLayout({ ...options, seed: "visit-a" });
+  const repeat = advertisingRuntime.compileRelatedLayout({ ...options, seed: "visit-a" });
+  const nextVisit = advertisingRuntime.compileRelatedLayout({ ...options, seed: "visit-b" });
   const expectedIds = new Set(cards.slice(1).map(({ id }) => id));
   const firstOrder = first.layout.diagnostics.placementOrder;
 
@@ -120,7 +120,7 @@ test("solver follows supplied presentation order without rewriting canonical car
     const category = "pool-" + count;
     const order = shuffleWithSeed(cards, "solver-seed-1", category);
     const expectedIds = order.map(({ id }) => id);
-    const layout = compileAdvertisingProductLayout({
+    const layout = compileMasonryLayout({
       cards,
       categoryOrder: [category],
       columns: 4,
@@ -141,7 +141,7 @@ test("solver follows supplied presentation order without rewriting canonical car
     const cards = makeCards(100, "large-pool");
     const order = shuffleWithSeed(cards, seed, "large-pool").map(({ id }) => id);
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
-      const layout = compileAdvertisingProductLayout({
+      const layout = compileMasonryLayout({
         cards,
         categoryOrder: ["large-pool"],
         columns: columnsForWidth(layoutViewportWidth),
@@ -155,13 +155,15 @@ test("solver follows supplied presentation order without rewriting canonical car
     }
   }
 
+  // Catalog filter pools as large solver inputs. The main grids no longer run this solver: they replay the build-time
+  // cache (variantIndex + replayLayout, masonry-replay tests); the solver only lays out related masonry.
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
-    const eligible = ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, filter));
+    const eligible = ADVERTISING_CARDS.filter((card) => matchesFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
-      const presentationOrder = shuffleWithSeed(eligible, "public-grid-seed", "filter:" + filter)
+      const presentationOrder = shuffleWithSeed(eligible, "solver-pool-seed", "filter:" + filter)
         .map(({ id }) => id);
-      const layout = compileAdvertisingProductLayout({
+      const layout = compileMasonryLayout({
         cards: ADVERTISING_CARDS,
         categoryOrder,
         filter,
@@ -181,7 +183,7 @@ test("solver follows supplied presentation order without rewriting canonical car
     ["invalid-order-0", "unexpected-id", "invalid-order-2"],
     ["invalid-order-0", "invalid-order-1"],
   ]) {
-    assert.throws(() => compileAdvertisingProductLayout({
+    assert.throws(() => compileMasonryLayout({
       cards,
       categoryOrder: ["invalid-order"],
       columns: 2,
@@ -198,7 +200,7 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
   for (let seed = 0; seed < 20; seed += 1) {
     const priority = shuffleWithSeed(ADVERTISING_CARDS, `organic-seed-${seed}`, "grid:all")
       .map(({ id }) => id);
-    const layout = compileAdvertisingProductLayout({
+    const layout = compileMasonryLayout({
       cards: ADVERTISING_CARDS,
       categoryOrder,
       filter: "all",
@@ -206,7 +208,7 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
       presentationOrder: priority,
       organicOrder: true,
     });
-    const actual = scoreAdvertisingOrganicRhythm(layout.placements);
+    const actual = scoreOrganicRhythm(layout.placements);
 
     assert.deepEqual(new Set(layout.placements.map(({ card }) => card.id)), new Set(priority),
       "organic scoring must preserve every canonical card exactly once");
@@ -224,15 +226,16 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
   assert.ok(observedOrders.size >= 2, "20 reload seeds should produce at least two organic layouts");
 });
 
-test("organic solver keeps all six filter pools hard-safe across supported viewport widths", () => {
+test("organic solver keeps catalog-sized pools (one per filter) hard-safe across supported viewport widths", () => {
+  // Solver input sizes only: related masonry runs this solver; the main grids replay the build-time cache instead.
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
-    const eligible = ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, filter));
+    const eligible = ADVERTISING_CARDS.filter((card) => matchesFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
       const presentationOrder = shuffleWithSeed(
-        eligible, "organic-matrix-seed", `filter:${filter}`,
+        eligible, "organic-pool-seed", `filter:${filter}`,
       ).map(({ id }) => id);
-      const layout = compileAdvertisingProductLayout({
+      const layout = compileMasonryLayout({
         cards: ADVERTISING_CARDS,
         categoryOrder,
         filter,
@@ -240,7 +243,7 @@ test("organic solver keeps all six filter pools hard-safe across supported viewp
         presentationOrder,
         organicOrder: true,
       });
-      const actual = scoreAdvertisingOrganicRhythm(layout.placements);
+      const actual = scoreOrganicRhythm(layout.placements);
 
       assert.equal(layout.placements.length, eligible.length, `${filter} at ${layoutViewportWidth}px keeps every image`);
       assert.deepEqual(new Set(layout.placements.map(({ card }) => card.id)), new Set(presentationOrder));
@@ -263,7 +266,7 @@ test("organic solver remains bounded and diagnostic when a future 100-image pool
     const presentationOrder = shuffleWithSeed(cards, seed, category)
       .map(({ id }) => id);
     for (const layoutViewportWidth of [320, 390, 1024]) {
-      const layout = compileAdvertisingProductLayout({
+      const layout = compileMasonryLayout({
         cards,
         categoryOrder: [category],
         filter: category,
@@ -288,13 +291,13 @@ test("related detail solver preserves the complete tagged set and scores its shu
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   const hero = ADVERTISING_CARDS.find((card) => card.tagIds?.length);
   const tag = hero.tagIds.find((id) => !hero.productIds.includes(id));
-  const related = advertisingRuntime.selectAdvertisingRelated({
+  const related = advertisingRuntime.selectRelated({
     cards: ADVERTISING_CARDS,
     categoryOrder,
     heroId: hero.id,
     tag,
   });
-  const first = advertisingRuntime.compileAdvertisingRelatedLayout({
+  const first = advertisingRuntime.compileRelatedLayout({
     cards: ADVERTISING_CARDS,
     categoryOrder,
     heroId: hero.id,
@@ -303,7 +306,7 @@ test("related detail solver preserves the complete tagged set and scores its shu
     viewportHeight: 844,
     seed: "related-layout-seed-a",
   });
-  const second = advertisingRuntime.compileAdvertisingRelatedLayout({
+  const second = advertisingRuntime.compileRelatedLayout({
     cards: ADVERTISING_CARDS,
     categoryOrder,
     heroId: hero.id,
@@ -344,7 +347,7 @@ test("history restores the seed on Back, accepts one exact full-navigation local
       href = new URL(nextHref, href).href;
     },
   };
-  const createController = (navigationType, options = {}) => advertisingRuntime.createAdvertisingBrowseHistoryController({
+  const createController = (navigationType, options = {}) => advertisingRuntime.createBrowseHistoryController({
     cards: browseCards,
     categories: categoryOrder.map((slug) => ({ slug })),
     tagRegistry,
@@ -366,21 +369,21 @@ test("history restores the seed on Back, accepts one exact full-navigation local
   const visitState = structuredClone(state);
   const serializedUrl = new URL(href);
   assert.equal(serializedUrl.searchParams.has("seed"), false, "random seed stays out of the URL contract");
-  assert.equal(advertisingRuntime.readAdvertisingBrowseHistoryState(visitState).seed, "visit-a");
-  assert.equal(advertisingRuntime.readAdvertisingBrowseHistoryState({
+  assert.equal(advertisingRuntime.readBrowseHistoryState(visitState).seed, "visit-a");
+  assert.equal(advertisingRuntime.readBrowseHistoryState({
     from: "barba",
     index: 0,
     states: [{ data: { advertisingBrowse: visitState.advertisingBrowse } }],
   }).seed, "visit-a", "history parser reads Barba's wrapped state after a document reconstruction");
 
   const destinationHref = `https://example.test${serializedUrl.pathname.replace(/^\/vi\//, "/en/")}${serializedUrl.search}`;
-  advertisingRuntime.writeAdvertisingVisitSeedHandoff(sessionStorage, destinationHref, "visit-a", { now });
+  advertisingRuntime.writeVisitSeedHandoff(sessionStorage, destinationHref, "visit-a", { now });
   href = destinationHref;
   state = null;
   createdSeed = "destination-seed";
   const localeReconstruction = createController("navigate");
   assert.equal(localeReconstruction.current.seed, "visit-a", "a fresh locale document consumes the exact one-time seed handoff");
-  assert.equal(sessionStorage.getItem(advertisingRuntime.ADVERTISING_VISIT_SEED_HANDOFF_KEY), null,
+  assert.equal(sessionStorage.getItem(advertisingRuntime.VISIT_SEED_HANDOFF_KEY), null,
     "the locale handoff is removed immediately after its destination consumes it");
 
   href = serializedUrl.href;
@@ -394,12 +397,12 @@ test("history restores the seed on Back, accepts one exact full-navigation local
   assert.equal(backForward.current.seed, "visit-a", "document reconstruction from history restores the entry seed");
   assert.equal(backForward.current.photo, "photo-a");
 
-  advertisingRuntime.writeAdvertisingVisitSeedHandoff(sessionStorage, href, "stale-seed", { now });
+  advertisingRuntime.writeVisitSeedHandoff(sessionStorage, href, "stale-seed", { now });
   createdSeed = "visit-after-reload";
   const reload = createController("reload");
   assert.equal(reload.current.seed, "visit-after-reload", "reload chooses new randomized positions");
   assert.equal(reload.current.photo, "photo-a", "reload keeps the route identity while changing only its seed");
-  assert.equal(sessionStorage.getItem(advertisingRuntime.ADVERTISING_VISIT_SEED_HANDOFF_KEY), null,
+  assert.equal(sessionStorage.getItem(advertisingRuntime.VISIT_SEED_HANDOFF_KEY), null,
     "reload discards a pending locale handoff instead of reusing it");
 
   href = destinationHref;
@@ -408,14 +411,14 @@ test("history restores the seed on Back, accepts one exact full-navigation local
   const directOpen = createController("navigate");
   assert.equal(directOpen.current.seed, "direct-url-seed", "a direct destination open gets a fresh seed without a handoff");
 
-  advertisingRuntime.writeAdvertisingVisitSeedHandoff(sessionStorage, `${href}?different=1`, "wrong-target", { now });
+  advertisingRuntime.writeVisitSeedHandoff(sessionStorage, `${href}?different=1`, "wrong-target", { now });
   createdSeed = "mismatch-seed";
   const mismatch = createController("navigate");
   assert.equal(mismatch.current.seed, "mismatch-seed", "a handoff for another exact URL is rejected");
-  assert.equal(sessionStorage.getItem(advertisingRuntime.ADVERTISING_VISIT_SEED_HANDOFF_KEY), null,
+  assert.equal(sessionStorage.getItem(advertisingRuntime.VISIT_SEED_HANDOFF_KEY), null,
     "mismatched handoffs are consumed and discarded");
 
-  advertisingRuntime.writeAdvertisingVisitSeedHandoff(sessionStorage, href, "expired-seed", { now });
+  advertisingRuntime.writeVisitSeedHandoff(sessionStorage, href, "expired-seed", { now });
   now += 31_000;
   createdSeed = "expired-url-seed";
   const expired = createController("navigate");
@@ -437,7 +440,7 @@ for (const scenario of [
       detail: { anchorId: "photo-b", anchorOffset: 12, scrollY: 789, viewportWidth: 1440 },
       ...scenario.mismatch,
     };
-    const controller = advertisingRuntime.createAdvertisingBrowseHistoryController({
+    const controller = advertisingRuntime.createBrowseHistoryController({
       cards: browseCards,
       categories: categoryOrder.map(slug => ({ slug })),
       tagRegistry,
@@ -466,7 +469,7 @@ for (const scenario of [
 }
 
 test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next photo in for 900ms without zoom, and pauses hidden/reduced/active/covered", async t => {
-  const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
+  const { mountSuggestionSlides } = await import("../../src/site/masonry/suggestion-slideshow.mjs");
   const names = ["document", "innerHeight", "MutationObserver", "IntersectionObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
   let now = 0, nextTick = 0, cadence = 0, tick, reduced = false, active = false, covered = false, intersect;
@@ -478,12 +481,12 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   document.querySelector = selector => selector === "dialog[open]" && covered ? {} : null;
   preference.matches = false;
   const button = {
-    dataset: { advertisingSuggestionTag: "cadence-test" }, isConnected: true,
+    dataset: { masonrySuggestionTag: "cadence-test" }, isConnected: true,
     getAttribute: () => active ? "true" : "false",
     querySelector: () => current,
     insertBefore: next => inserted.push(next),
   };
-  // Slideshow dừng theo cả cụm (một IntersectionObserver trên root), không theo nút lẻ.
+  // The slideshow pauses per cluster (one IntersectionObserver on the root), not per button.
   const root = { hidden: false, querySelectorAll: () => [button] };
   let current;
   const globals = {
@@ -584,7 +587,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
 
 test("stationary browse persistence avoids duplicate native history writes", () => {
   let state = null, writes = 0;
-  const controller = advertisingRuntime.createAdvertisingBrowseHistoryController({
+  const controller = advertisingRuntime.createBrowseHistoryController({
     cards: browseCards, categories: categoryOrder.map(slug => ({ slug })), tagRegistry,
     browserHistory: {
       get state() { return state; },

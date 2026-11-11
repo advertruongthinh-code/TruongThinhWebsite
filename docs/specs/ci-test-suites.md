@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-11-08
+updated: 2026-11-10
 ---
 
 # Bộ test CI chia theo phần website
@@ -59,7 +59,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết |
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
-| `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route |
+| `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route, bấm filter khi cache xếp card đang tải, preload cache từ head |
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `masonry-hosts` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax, advertising-detail, progressive-loading, projects | ma trận chung cho mọi nơi có masonry (Advertising, Công trình, related): vuốt nhanh, vùng giữ card, không lên 4K, Kính reveal không chồng cung, CTA chưa hiện trước khi vào view, F5 |
@@ -167,6 +167,8 @@ Then workflow đỏ, job summary nêu adv-viewer và Deploy demo không chạy
 
 `pnpm qa:suite <id>` chạy một bộ, `pnpm qa:suite --changed` chạy các bộ mà R3 chọn cho thay đổi hiện tại so với
 `origin/main`. CI gọi đúng lệnh này nên agent và runner chạy cùng một thứ. Lệnh tự build, tự mở preview và tự dọn.
+`--changed` chạy `pnpm qa:docs` trước tiên, nên thiếu dòng `Spec: không đổi` hiện ở máy agent trước khi push
+([docs-system R4](docs-system.md#r4-đổi-code-là-đổi-spec)).
 
 ```gherkin
 Given agent vừa sửa src/site/about/index.html

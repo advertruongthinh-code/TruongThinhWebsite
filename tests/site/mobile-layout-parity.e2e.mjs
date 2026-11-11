@@ -55,7 +55,7 @@ function measure(options = {}) {
       const languageDim=a.matches('.menu-language [data-language-option]')&&a.dataset.languageOption!==document.documentElement.lang&&!a.matches('.is-active,:hover,:focus-visible');
       paint.push({node,opacity:Number(s.opacity),minimum:languageDim?0.449:0.999,visibility:s.visibility});
       const x=["hidden","clip","auto","scroll"].includes(s.overflowX),y=["hidden","clip","auto","scroll"].includes(s.overflowY);
-      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel")&&s.overflowX==="auto"});
+      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel")&&s.overflowX==="auto"});
       // Swiper đã chạy: track overflow visible, slide dịch bằng transform nên không có port cuộn; slide ngoài khung là carousel đúng thiết kế.
       else if(a.matches('.detail-gallery__track.swiper-initialized'))ports.push({node,box:b,x:false,y:false,rail:true});
       if(s.clipPath!=="none") {
@@ -81,7 +81,7 @@ function measure(options = {}) {
       // Nhãn ẩn khỏi mắt bằng clip rect(0) 1px (nhãn Hotline, Văn phòng của footer điện thoại) còn trong cây trợ năng; số bên cạnh vẫn được đo.
       const hiddenLabel=(()=>{for(let a=walker.currentNode.parentElement;a&&a!==document.body;a=a.parentElement){const r=a.getBoundingClientRect();if(getComputedStyle(a).clip==='rect(0px, 0px, 0px, 0px)'&&r.width<=1&&r.height<=1)return true;}return false;})();
       if(hiddenLabel)continue;
-      const label=walker.currentNode.parentElement.closest('.advertising-photo-view__image-action > span');
+      const label=walker.currentNode.parentElement.closest('.detail-view__image-action > span');
       if(label&&!label.parentElement.matches(':focus-visible')&&!(matchMedia('(hover: hover)').matches&&label.parentElement.matches(':hover'))) {
         exclusions.push({text:walker.currentNode.textContent.trim(),reason:'accepted collapsed image action label; icon checked separately'});continue;
       }
@@ -91,7 +91,7 @@ function measure(options = {}) {
       const inRailView=r=>!options.viewportOnly||!clips.ports.some(p=>p.rail)||r.right>0&&r.left<innerWidth;
       const ranges=[...range.getClientRects()].filter(r=>r.width>0&&r.height>0&&(!options.viewportOnly||r.bottom>0&&r.top<innerHeight)&&inRailView(r));
       if(ranges.length)paint.push(...clips.paint);
-      for(const r of ranges)bounds.push({left:r.left,right:r.right,top:r.top+logical,bottom:r.bottom+logical,ports:clips.ports,unknown:clips.unknown,control:walker.currentNode.parentElement.closest('[data-advertising-filter]')?.dataset.advertisingFilter});
+      for(const r of ranges)bounds.push({left:r.left,right:r.right,top:r.top+logical,bottom:r.bottom+logical,ports:clips.ports,unknown:clips.unknown,control:walker.currentNode.parentElement.closest('[data-masonry-filter]')?.dataset.masonryFilter});
     }
     const style=getComputedStyle(e);
     return {selector:e.id||e.className,text:e.textContent.trim(),box:rect(e),bounds,paint,exclusions,scrollRail:options.viewportOnly&&options.index===undefined?bounds.some(r=>r.ports.some(p=>p.rail)):e.matches(".project-filters")&&style.overflowX==="auto"&&e.scrollWidth>e.clientWidth};
@@ -165,10 +165,10 @@ async function recordState(page, engine, label, options = {}) {
   return record;
 }
 async function checkBody(page,engine,label,options={}) {
-  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.advertising-tile__title')),explicitHidden:Boolean(e.closest('[hidden]')),
-    inactivePhoto:Boolean(e.closest('.advertising-photo-view')&&!document.body.classList.contains('is-advertising-photo')),
-    inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-advertising-grid-cta],.detail-process')&&document.body.classList.contains('is-advertising-photo')),
-    silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
+  const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only,.masonry-card__title')),explicitHidden:Boolean(e.closest('[hidden]')),
+    inactivePhoto:Boolean(e.closest('.detail-view')&&!document.body.classList.contains('is-detail')),
+    inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-masonry-grid-cta],.detail-process')&&document.body.classList.contains('is-detail')),
+    silentMediaAudio:e.matches('[data-detail-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
   const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.silentMediaAudio);
   await saveRecord({kind:'inventory',engine,label,inventory,faults:missing.map(e=>`active copy has zero width: ${e.node} ${e.text.slice(0,60)}`)});
@@ -185,19 +185,19 @@ async function checkBody(page,engine,label,options={}) {
   }
   for(let index=0;index<await page.locator(bodySelector).count();index++) {
     const node=page.locator(bodySelector).nth(index);
-    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')));
+    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel')));
     if(!rail)continue;
     // Swiper chạy: slide dịch bằng transform nên đưa slide vào khung trước; focus hay scrollIntoView sau đó không còn kéo section overflow hidden.
     await node.evaluate(e=>{const track=e.closest('.detail-gallery__track');if(track?.swiper)track.swiper.slideTo([...track.swiper.slides].indexOf(e.closest('.detail-gallery__item')),0);});
     await node.evaluate(e=>(e.closest('a,button,[tabindex]')||e).focus());
     if(options.noScript)await node.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center',inline:'center'}));
     else await node.scrollIntoViewIfNeeded();
-    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
+    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
     await recordState(page,engine,`${label}: reached rail item ${index}`,{...options,selector:bodySelector,index,viewportOnly:true});
   }
 }
 async function checkMenu(page,engine,label) {
-  const state=()=>page.evaluate(()=>{const b=window.TruongThinhAdvertising?.getBrowseState();return{href:location.href,photo:b&&{category:b.category,photo:b.photo,tag:b.tag,seed:b.seed},length:history.length};});
+  const state=()=>page.evaluate(()=>{const b=window.TruongThinhMasonry?.getBrowseState();return{href:location.href,photo:b&&{category:b.category,photo:b.photo,tag:b.tag,seed:b.seed},length:history.length};});
   const before=await state();
   const opener=page.locator('[data-menu-open]');await opener.focus();await page.keyboard.press('Enter');
   await page.waitForFunction(()=>document.querySelector('#site-menu')?.open&&Number(getComputedStyle(document.querySelector('.menu-nav')).opacity)>.99);
@@ -243,27 +243,27 @@ async function checkControls(page,engine,label,selector,expected=selector.includ
   }
 }
 async function checkDescriptionScroll(page,engine,label) {
-  const scroller=page.locator('[data-advertising-photo-description-scroll]');
+  const scroller=page.locator('[data-detail-description-scroll]');
   await scroller.focus();await scroller.scrollIntoViewIfNeeded();
   await page.keyboard.press('Home');
-  await recordState(page,engine,`${label}: description top`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
+  await recordState(page,engine,`${label}: description top`,{selector:'[data-detail-description]',viewportOnly:true});
   await page.keyboard.press('End');await page.waitForTimeout(300);
-  await recordState(page,engine,`${label}: description end`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
-  const state=await page.evaluate(()=>{const s=document.querySelector('[data-advertising-photo-description-scroll]');return {photo:window.TruongThinhAdvertising.getBrowseState().photo,locale:document.documentElement.lang,text:document.querySelector('[data-advertising-photo-description]').textContent,reached:s.scrollTop+s.clientHeight>=s.scrollHeight-1};});
+  await recordState(page,engine,`${label}: description end`,{selector:'[data-detail-description]',viewportOnly:true});
+  const state=await page.evaluate(()=>{const s=document.querySelector('[data-detail-description-scroll]');return {photo:window.TruongThinhMasonry.getBrowseState().photo,locale:document.documentElement.lang,text:document.querySelector('[data-detail-description]').textContent,reached:s.scrollTop+s.clientHeight>=s.scrollHeight-1};});
   const card=ADVERTISING_CARDS.find(card=>card.id===state.photo),expected=state.locale==='en'?card.descriptionEn:card.descriptionVi;
   assert.equal(state.text.replace(/\s+/g,' ').trim(),expected.replace(/\s+/g,' ').trim(),'whole description is in the scroller');
   await saveRecord({kind:'description-scroll',engine,label,source:expected,faults:state.reached?[]:['description end unreachable by keyboard']});
 }
 async function checkCtaReflow(page,engine,label) {
-  const heading=page.locator('[data-advertising-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
+  const heading=page.locator('[data-masonry-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
   const original=await heading.evaluate(e=>e.style.fontSize);
   try {
     // Cô lập text/font reflow khỏi thay đổi footer và viewport; runtime refit heading theo CTA.
     await heading.evaluate(e=>e.style.fontSize=`${parseFloat(getComputedStyle(e).fontSize)*1.5}px`);
-    await page.locator('[data-advertising-grid-cta]').scrollIntoViewIfNeeded();await ready(page);
-    await recordState(page,engine,`${label}: CTA text reflow`,{selector:'[data-advertising-grid-cta] h2,[data-advertising-grid-cta] a',viewportOnly:true});
+    await page.locator('[data-masonry-grid-cta]').scrollIntoViewIfNeeded();await ready(page);
+    await recordState(page,engine,`${label}: CTA text reflow`,{selector:'[data-masonry-grid-cta] h2,[data-masonry-grid-cta] a',viewportOnly:true});
     assert.deepEqual(await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight})),before,'CTA floor updates without viewport/footer resize');
-    const fit=await page.evaluate(()=>{const cta=document.querySelector('[data-advertising-grid-cta]').getBoundingClientRect(),copy=document.querySelector('[data-advertising-grid-cta] .detail-cta__copy').getBoundingClientRect();return{top:copy.top,bottom:copy.bottom,ctaTop:cta.top,limit:cta.bottom};});
+    const fit=await page.evaluate(()=>{const cta=document.querySelector('[data-masonry-grid-cta]').getBoundingClientRect(),copy=document.querySelector('[data-masonry-grid-cta] .detail-cta__copy').getBoundingClientRect();return{top:copy.top,bottom:copy.bottom,ctaTop:cta.top,limit:cta.bottom};});
     assert.ok(fit.top>=fit.ctaTop-1&&fit.bottom<=fit.limit+1,'reflowed CTA copy fits inside the CTA');
   } finally {await heading.evaluate((e,value)=>e.style.fontSize=value,original);await ready(page);await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));}
 }
@@ -379,7 +379,7 @@ async function runAboutHistory(browser,engine) {
       const after=await documentSnapshot(page);
       assert.notEqual(after.timeOrigin,before.timeOrigin,'About query route uses native navigation');
       assert.equal(after.length,before.length+1,'query route creates one history entry');
-      assert.equal(await page.evaluate(()=>window.TruongThinhAdvertising?.getBrowseState?.().category),'displays-booths','query category preserved');
+      assert.equal(await page.evaluate(()=>window.TruongThinhMasonry?.getBrowseState?.().category),'displays-booths','query category preserved');
       await saveRecord({kind:'about-query',engine,source,destination,before,after,faults:[]});
     }catch(error){await saveRecord({kind:'about-query',engine,source,destination,error:error.message});}
     finally{await context.close();}
@@ -421,8 +421,8 @@ async function runStates(browser,engine) {
       await page.goto(`${base}/${locale}/advertising-products/`,{waitUntil:'networkidle'});await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,textSize);await ready(page);
       await checkCtaReflow(page,engine,`${locale}: ${textSize}px`);
       for(const category of ['all',...ADVERTISING_CATEGORIES.map(({slug})=>slug)]) {
-        await page.locator(`[data-advertising-filter="${category}"]`).click();
-        await page.waitForFunction(category=>window.TruongThinhAdvertising?.getBrowseState().category===category,category);
+        await page.locator(`[data-masonry-filter="${category}"]`).click();
+        await page.waitForFunction(category=>window.TruongThinhMasonry?.getBrowseState().category===category,category);
         await recordState(page,engine,`${locale}: category ${category}`);
         await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));
         await recordState(page,engine,`${locale}: category ${category} first grid`,{selector:bodySelector,viewportOnly:true});
@@ -430,45 +430,45 @@ async function runStates(browser,engine) {
         await recordState(page,engine,`${locale}: category ${category} footer`,{selector:bodySelector,viewportOnly:true});
       }
       await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));await ready(page);
-      await page.locator('[data-advertising-card] a').first().focus();
-      await page.locator('[data-advertising-card] a').first().click();
-      await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising?.getBrowseState().photo));
+      await page.locator('[data-masonry-card] a').first().focus();
+      await page.locator('[data-masonry-card] a').first().click();
+      await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry?.getBrowseState().photo));
       await recordState(page,engine,`${locale}: photo`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active first photo body`);
       await checkDescriptionScroll(page,engine,`${locale}: first photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
-      await page.locator('[data-advertising-suggestion-tag]').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().tag));
+      await page.locator('[data-masonry-suggestion-tag]').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().tag));
       await recordState(page,engine,`${locale}: tag`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active tag body`);
       await checkDescriptionScroll(page,engine,`${locale}: tag photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
-      const tagged=await page.evaluate(()=>window.TruongThinhAdvertising.getBrowseState());
+      const tagged=await page.evaluate(()=>window.TruongThinhMasonry.getBrowseState());
       const tagPool=ADVERTISING_CARDS.filter(card=>card.id!==tagged.photo&&card.tagIds?.includes(tagged.tag));
       if(!tagPool.length) {
-        assert.equal(await page.locator('[data-advertising-related-card]:visible').count(),0,'unique-photo tag has no related photos');
+        assert.equal(await page.locator('[data-masonry-related-card]:visible').count(),0,'unique-photo tag has no related photos');
         await saveRecord({kind:'empty-tag',engine,label:`${locale}: unique tag`,photo:tagged.photo,tag:tagged.tag,expected:[],faults:[]});
-        await page.locator('[data-advertising-suggestion-tag][aria-pressed="true"]').click();
-        await page.waitForFunction(()=>window.TruongThinhAdvertising.getBrowseState().tag===null);
+        await page.locator('[data-masonry-suggestion-tag][aria-pressed="true"]').click();
+        await page.waitForFunction(()=>window.TruongThinhMasonry.getBrowseState().tag===null);
         await recordState(page,engine,`${locale}: clear unique tag`,{selector:bodySelector,viewportOnly:true});
       }
-      const priorPhoto=await page.evaluate(()=>window.TruongThinhAdvertising.getBrowseState().photo);
-      await page.evaluate(()=>{const grid=document.querySelector('[data-advertising-photo-related-grid]'),primary=document.querySelector('[data-advertising-photo-primary]');window.scrollTo({top:grid.getBoundingClientRect().top+scrollY+primary.offsetHeight,behavior:'instant'});});await ready(page);
-      await page.locator('[data-advertising-related-card] > a').first().click();
-      await page.waitForFunction(prior=>window.TruongThinhAdvertising.getBrowseState().photo!==prior,priorPhoto);
+      const priorPhoto=await page.evaluate(()=>window.TruongThinhMasonry.getBrowseState().photo);
+      await page.evaluate(()=>{const grid=document.querySelector('[data-detail-related-grid]'),primary=document.querySelector('[data-detail-primary]');window.scrollTo({top:grid.getBoundingClientRect().top+scrollY+primary.offsetHeight,behavior:'instant'});});await ready(page);
+      await page.locator('[data-masonry-related-card] > a').first().click();
+      await page.waitForFunction(prior=>window.TruongThinhMasonry.getBrowseState().photo!==prior,priorPhoto);
       await recordState(page,engine,`${locale}: related photo`,{selector:bodySelector,viewportOnly:true});
       const detailURL=page.url();
       await checkBody(page,engine,`${locale}: active related photo body`);
       await checkDescriptionScroll(page,engine,`${locale}: related photo`);
-      await page.locator('[data-advertising-photo-expand]').focus();
+      await page.locator('[data-detail-expand]').focus();
       await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');
-      await checkControls(page,engine,`${locale}: expand focused label`,'[data-advertising-photo-expand]',1);
-      assert.equal(await page.locator('[data-advertising-photo-expand]').evaluate(e=>e.matches(':focus-visible')),true,'expand label receives keyboard focus');
-      await page.locator('[data-advertising-photo-expand]').click();
-      await page.waitForFunction(()=>document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState==='open');
-      await checkControls(page,engine,`${locale}: viewer`,'#advertising-photo-dialog button');
-      const viewerURL=page.url();await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#advertising-photo-dialog').open);assert.equal(page.url(),viewerURL,'viewer Escape preserves photo URL');
-      await page.goBack();await page.waitForFunction(prior=>window.TruongThinhAdvertising.getBrowseState().photo===prior,priorPhoto);
-      await recordState(page,engine,`${locale}: Back prior photo`,{selector:bodySelector,viewportOnly:true});await page.goForward();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
+      await checkControls(page,engine,`${locale}: expand focused label`,'[data-detail-expand]',1);
+      assert.equal(await page.locator('[data-detail-expand]').evaluate(e=>e.matches(':focus-visible')),true,'expand label receives keyboard focus');
+      await page.locator('[data-detail-expand]').click();
+      await page.waitForFunction(()=>document.querySelector('#detail-dialog').dataset.viewerState==='open');
+      await checkControls(page,engine,`${locale}: viewer`,'#detail-dialog button');
+      const viewerURL=page.url();await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#detail-dialog').open);assert.equal(page.url(),viewerURL,'viewer Escape preserves photo URL');
+      await page.goBack();await page.waitForFunction(prior=>window.TruongThinhMasonry.getBrowseState().photo===prior,priorPhoto);
+      await recordState(page,engine,`${locale}: Back prior photo`,{selector:bodySelector,viewportOnly:true});await page.goForward();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().photo));
       assert.equal(page.url(),detailURL,'Forward restores detail URL');await recordState(page,engine,`${locale}: Forward photo`,{selector:bodySelector,viewportOnly:true});
       await page.reload({waitUntil:'networkidle'});await recordState(page,engine,`${locale}: photo reload`,{selector:bodySelector,viewportOnly:true});
       await checkMenu(page,engine,`${locale}: photo menu`);
@@ -478,11 +478,11 @@ async function runStates(browser,engine) {
       await page.waitForURL(url=>url.pathname.startsWith(locale==='vi'?'/en/':'/vi/'));assert.equal(new URL(page.url()).search,query,'photo locale preserves category/photo/tag query');await recordState(page,engine,`${locale}: photo locale`,{selector:bodySelector,viewportOnly:true});
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu .menu-group__title[href="/${locale==='vi'?'en':'vi'}/advertising-products/"]`).click();
-      await page.waitForFunction(()=>!window.TruongThinhAdvertising.getBrowseState().photo);
+      await page.waitForFunction(()=>!window.TruongThinhMasonry.getBrowseState().photo);
       await recordState(page,engine,`${locale}: return grid`,{selector:bodySelector,viewportOnly:true});
       const gridURL=page.url();await page.evaluate(()=>window.scrollTo({top:document.querySelector('[data-project-grid]').getBoundingClientRect().top+scrollY,behavior:'instant'}));await ready(page);
-      await page.locator('[data-advertising-card] a').first().focus();await page.locator('[data-advertising-card] a').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().photo));
-      await page.keyboard.press('Escape');await page.waitForFunction(()=>!window.TruongThinhAdvertising.getBrowseState().photo);assert.equal(page.url(),gridURL,'photo Escape returns preceding grid');
+      await page.locator('[data-masonry-card] a').first().focus();await page.locator('[data-masonry-card] a').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhMasonry.getBrowseState().photo));
+      await page.keyboard.press('Escape');await page.waitForFunction(()=>!window.TruongThinhMasonry.getBrowseState().photo);assert.equal(page.url(),gridURL,'photo Escape returns preceding grid');
       if(issues.length)throw Error(issues.join('\n'));
     }catch(e){await saveRecord({kind:'state',engine,label:`${locale}: advertising interaction`,error:e.message,issues:[...issues],measured:await page.evaluate(measure)});await page.screenshot({path:path.join(dir,`${engine}-${locale}-interaction-error-${results.length}.png`)});}
     issues.length=0;
@@ -530,10 +530,10 @@ async function checkFilterRail(page) {
   const rail=page.locator(".hero .project-filters"),failures=[];
   if(!await rail.count()||!await rail.evaluate(e=>getComputedStyle(e).overflowX==="auto"))return failures;
   const original=await rail.evaluate(e=>e.scrollLeft);
-  const controls=rail.locator('[data-advertising-filter]');
+  const controls=rail.locator('[data-masonry-filter]');
   assert.equal(await controls.count(),7,'All and six category controls exist in the filter rail');
   for(const control of await controls.all()) {
-    const id=await control.getAttribute("data-advertising-filter");
+    const id=await control.getAttribute("data-masonry-filter");
     await control.evaluate(e=>{const rail=e.parentElement;rail.scrollLeft=e.offsetLeft-(rail.clientWidth-e.offsetWidth)/2;});
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const measured=await page.evaluate(measure),text=measured.texts.find(t=>t.selector==="project-filters");

@@ -169,7 +169,8 @@
         "TT_E2E_ADVERTISING_PROOF_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_RAPID_FILTER_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-card-interactions.e2e.mjs",
-        "node tests/site/advertising-no-titles.e2e.mjs"
+        "node tests/site/advertising-no-titles.e2e.mjs",
+        "node tests/site/masonry-layout-cache.e2e.mjs"
       ]
     },
     "adv-browse": {
@@ -186,6 +187,8 @@
         "node tests/site/advertising-route-preload.e2e.mjs",
         "node tests/site/advertising-route-footer-p75.e2e.mjs",
         "node tests/site/advertising-rail-two-tier.e2e.mjs",
+        "node tests/site/advertising-layout-cache-pending.e2e.mjs",
+        "node tests/site/advertising-layout-cache-preload.e2e.mjs",
         "node tests/site/advertising-resize-card-width.e2e.mjs"
       ]
     },
@@ -218,6 +221,7 @@
         "node tests/site/advertising-slideshow-p75.e2e.mjs",
         "node tests/site/advertising-return-p74.e2e.mjs",
         "node tests/site/advertising-viewer-touch.e2e.mjs",
+        "node tests/site/advertising-viewer-stale-image.e2e.mjs",
         "node tests/site/advertising-related-detour.e2e.mjs",
         "node tests/site/advertising-related-cta.e2e.mjs"
       ]
@@ -236,27 +240,27 @@
     },
     "adv-view-1": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=1/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=1/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "adv-view-2": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=2/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=2/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "adv-view-3": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=3/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=3/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "adv-view-4": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=4/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=4/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "adv-view-5": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=5/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=5/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "adv-view-6": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
-      "tests": ["PHOTO_VIEW_SHARD=6/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+      "tests": ["PHOTO_VIEW_SHARD=6/6 PHOTO_VIEW_ENGINES=chromium node tests/site/detail-view.e2e.mjs"]
     },
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages", "progressive-loading"],

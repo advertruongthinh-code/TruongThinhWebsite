@@ -21,7 +21,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Phát hành tĩnh
@@ -53,8 +53,8 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 ### R2. Preflight masonry và catalog artifact
 
 Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
-chạy `compileAdvertisingLayout` ở 320, 390, 768, 1024, 1440, 1920, 2560 px với
-filter `all`, sáu cụm và mọi sản phẩm có chip ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-chip-và-trang-mỏng)). Filter có card mà layout báo `needs-media` hoặc thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
+cache bố cục masonry (`buildLayoutCache`, [cache bố cục R2](masonry-layout-cache.md#r2-packer-build)) cho
+filter `all`, sáu cụm và mọi sản phẩm từ 10 card (có chip và trang riêng, [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card)) trên 5 dải bề rộng. Tự kiểm: mọi biến thể giữ lại phải đặt lại được và không lỗ, đủ card của pool, cắt không quá 5% ở đầu, giữa và cuối mỗi dải (dải mở `4:35` kiểm tới 4000 px); sai thì build dừng. Ghi 165 file `advertising-products/layout-cache/` (5 file cả dải, 160 file một filter; build 2026-11-10: một filter tối đa 15,9 KB brotli, cả dải 44 tới 49 KB brotli). Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
@@ -63,9 +63,9 @@ x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ng
 mỗi thư mục cụm có `404.html` dạng trang R7 trỏ trang cụm, cho URL sản phẩm đã mất trang.
 
 ```gherkin
-Given một category có card nhưng layout ở 390 px thiếu vị trí
+Given một filter có biến thể bố cục để lỗ hoặc thiếu card ở một đầu dải
 When chạy pnpm prepare:site
-Then build dừng với lỗi "Advertising public grid preflight failed for <category> at 390px"
+Then build dừng với lỗi "layout-cache: self-check failed <filter> <dải> <bề rộng>px"
 And .site-output/ của lần build trước vẫn còn nguyên
 ```
 
@@ -122,20 +122,20 @@ And thẻ html có lang="en" và data-route-locale="en"
 `<img>` có `src` hoặc `data-src` là WebP dưới `/assets/content/` được bọc
 `<picture>` với source JXL khi có `.jxl` cùng tên; `<img>` giữ WebP. Có `width` thì cả hai mang
 `srcset` (hoặc `data-srcset`) gồm các cỡ nhỏ hơn `width` cộng bản gốc, và `sizes`. Ảnh đã có `srcset`,
-có attribute `data-advertising-*` hoặc thiếu JXL giữ nguyên. Pipeline: [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
+có attribute `data-masonry-*` hoặc thiếu JXL giữ nguyên. Pipeline: [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
 
 ```gherkin
 Given <img src="/assets/content/a.webp" width="1600"> có a.jxl, a-240.*, a-480.*, a-960.* cạnh nó
 When build
 Then ảnh nằm trong <picture> có source JXL với srcset 240w, 480w, 960w, 1600w
 And <img> giữ src a.webp với srcset WebP 240w, 480w, 960w, 1600w
-And <img data-advertising-photo-background> giữ nguyên, không bọc
+And <img data-detail-background> giữ nguyên, không bọc
 ```
 
 ### R7. Sáu trang tương thích Advertising
 
 Mỗi nhóm cũ trong `ADVERTISING_LEGACY_CATEGORIES` có `advertising-products/<slug>/index.html`
-cùng bản VI, EN: tiêu đề, mô tả, `<main data-advertising-compatibility-route>`
+cùng bản VI, EN: tiêu đề, mô tả, `<main data-masonry-compatibility-route>`
 với một link, canonical là trang cụm mới, không ảnh hay carousel. Script đầu trang gọi
 `location.replace` tới trang cụm `/<locale>/advertising-products/<slug cụm theo locale>/`: bỏ `category`, `photo`,
 `tag` cũ, giữ query khác; locale theo path, không khớp thì theo `lang`. Không JavaScript thì `<noscript>` refresh về
@@ -249,8 +249,8 @@ Then job fail và liệt kê file biến thể còn thiếu
 | Hàm public | `ROUTES`, `localeHtml(html, locale)` | Export từ `serve-static-parity.mjs`; build, preview, test dùng chung |
 | Data | `nonPublicSourceAssets` | Path không public (R3), export từ `non-public-source-assets.mjs` |
 | Data | `catalog-artifact.mjs` | Build sinh trong output, runtime Advertising import |
-| Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact`, `compileAdvertisingLayout` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
-| DOM hook | `[data-advertising-compatibility-route]` | `main` của trang tương thích |
+| Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
+| DOM hook | `[data-masonry-compatibility-route]` | `main` của trang tương thích |
 | Attribute | `data-en`, `data-vi`, `data-en-*`, `data-vi-*`, `data-route-locale` | Build và runtime đổi ngôn ngữ |
 
 ## UI

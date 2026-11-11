@@ -16,7 +16,7 @@ const results = [];
 const assets = {};
 const runnerSha256 = createHash("sha256").update(await fs.readFile(new URL(import.meta.url))).digest("hex");
 const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
-for (const file of ["motion.js", "style.css", "detail.css", "advertising-products/catalog-runtime.mjs", "advertising-products/photo-viewer.mjs"]) {
+for (const file of ["motion.js", "style.css", "detail.css", "masonry/runtime.mjs", "masonry/detail-viewer.mjs"]) {
   const source = await fs.readFile(`src/site/${file}`);
   const response = await fetch(`${base}/${file}`);
   const served = Buffer.from(await response.arrayBuffer());
@@ -46,7 +46,7 @@ async function ready(page, photo = false) {
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.evaluate(() => document.fonts.ready);
   if (photo) await page.waitForFunction(() => {
-    const image = document.querySelector("[data-advertising-photo-image]");
+    const image = document.querySelector("[data-detail-image]");
     return image?.complete && image.naturalWidth > 0;
   });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -54,14 +54,14 @@ async function ready(page, photo = false) {
 
 async function snapshot(page) {
   return page.evaluate(() => {
-    const selectors = [".hero", ".advertising-photo-view__primary", "[data-advertising-photo-image]", "[data-advertising-photo-info]", "[data-advertising-photo-description-scroll]", "[data-advertising-photo-related-grid]", "[data-advertising-cta-skeleton]", "[data-advertising-grid-cta]", ".site-footer"];
+    const selectors = [".hero", ".detail-view__primary", "[data-detail-image]", "[data-detail-info]", "[data-detail-description-scroll]", "[data-detail-related-grid]", "[data-masonry-cta-skeleton]", "[data-masonry-grid-cta]", ".site-footer"];
     const scroll = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const rects = Object.fromEntries(selectors.map(selector => {
       const element = document.querySelector(selector);
       const rect = element?.getBoundingClientRect();
       return [selector, rect && rect.width > 0 && rect.height > 0 ? { left: rect.left, top: rect.top + scroll, width: rect.width, height: rect.height } : null];
     }));
-    return { url: location.href, rects, clientWidth: document.documentElement.clientWidth, innerHeight, visibleHeight: visualViewport.height, metrics: window.TruongThinhMotion?.getViewportMetrics?.(), signature: document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature };
+    return { url: location.href, rects, clientWidth: document.documentElement.clientWidth, innerHeight, visibleHeight: visualViewport.height, metrics: window.TruongThinhMotion?.getViewportMetrics?.(), signature: document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature };
   });
 }
 
@@ -130,7 +130,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       await page.setViewportSize({ width: 390, height: 650 });
       await ready(page, true);
       const resized = await snapshot(page);
-      assert.ok(Math.abs(resized.rects[".advertising-photo-view__primary"].height - after.rects[".advertising-photo-view__primary"].height) > 1, "true height resize refits primary");
+      assert.ok(Math.abs(resized.rects[".detail-view__primary"].height - after.rects[".detail-view__primary"].height) > 1, "true height resize refits primary");
       results.push({ engine, case: "true detail resize", resized });
     }
     assert.deepEqual(issues, [], "console/page/network/HTTP issues");
@@ -139,32 +139,32 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await ready(page, true);
       const motion = await page.evaluate(async () => {
-        document.querySelector("[data-advertising-photo-expand]").click();
-        const dialog = document.querySelector("#advertising-photo-dialog");
+        document.querySelector("[data-detail-expand]").click();
+        const dialog = document.querySelector("#detail-dialog");
         const image = dialog.querySelector("img");
         const animation = image.getAnimations()[0];
-        const before = dialog.dataset.advertisingViewerState;
+        const before = dialog.dataset.viewerState;
         window.__changeVisibleViewport(650);
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        return { before, after: dialog.dataset.advertisingViewerState, kept: image.getAnimations().includes(animation), animationState: animation?.playState };
+        return { before, after: dialog.dataset.viewerState, kept: image.getAnimations().includes(animation), animationState: animation?.playState };
       });
       results.push({ engine, case: "toolbar preserves opening motion", motion });
       assert.equal(motion.before, "opening");
       assert.equal(motion.after, "opening", "toolbar must not cancel opening");
       assert.equal(motion.kept, true, "same opening animation remains active");
-      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       const geometry = () => page.evaluate(() => {
-        const image = document.querySelector("[data-advertising-photo-expanded-image]");
+        const image = document.querySelector("[data-detail-expanded-image]");
         const bounds = image.getBoundingClientRect();
         return { width: bounds.width, height: bounds.height, transform: image.style.transform,
-          controls: [...document.querySelectorAll("#advertising-photo-dialog button")].filter(button => !button.disabled && !button.hidden).map(button => {
+          controls: [...document.querySelectorAll("#detail-dialog button")].filter(button => !button.disabled && !button.hidden).map(button => {
             const rect = button.getBoundingClientRect();
             return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
           }) };
       });
       // Màn cảm ứng ẩn nút khỏi mắt (viewer R8) nhưng còn trong cây trợ năng: gọi như TalkBack, không click chuột.
-      await page.locator("[data-advertising-photo-zoom-in]").evaluate(button => button.click());
-      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.locator("[data-detail-zoom-in]").evaluate(button => button.click());
+      await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       const beforeZoom = await geometry();
       await page.evaluate(() => window.__changeVisibleViewport(500));
       await ready(page);
@@ -180,13 +180,13 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       panned.controls.forEach(rect => assert.ok(rect.left >= 195 && rect.right <= 390 && rect.top >= 100 && rect.bottom <= 520, "controls follow visible offsets"));
       await page.evaluate(() => window.__changeVisibleViewport({ width: 390, height: 500, offsetLeft: 0, offsetTop: 0, scale: 1 }));
       const closing = await page.evaluate(async () => {
-        document.querySelector("[data-advertising-photo-close]").click();
+        document.querySelector("[data-detail-close]").click();
         window.__changeVisibleViewport(650);
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        return document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState;
+        return document.querySelector("#detail-dialog").dataset.viewerState;
       });
       assert.equal(closing, "closing", "toolbar preserves closing motion");
-      await page.waitForFunction(() => !document.querySelector("#advertising-photo-dialog").open);
+      await page.waitForFunction(() => !document.querySelector("#detail-dialog").open);
       results.push({ engine, case: "viewer zoom/controls/closing", beforeZoom, afterZoom, panned });
     }
     if (["all", "visibility"].includes(scope)) {
@@ -194,19 +194,19 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/`, { waitUntil: "networkidle" });
       await ready(page);
       await page.evaluate(() => {
-        const frame = document.querySelector("[data-advertising-cta-frame]");
+        const frame = document.querySelector("[data-masonry-cta-frame]");
         window.TruongThinhMotion.setLogicalScroll(frame.getBoundingClientRect().top + scrollY - 100);
         window.__changeVisibleViewport({ width: 190, height: 420, offsetTop: 0, offsetLeft: 0, scale: 2 });
-        window.__viewportFrames = new Map([...document.querySelectorAll("[data-advertising-cta-frame]")].map(frame => [frame.dataset.advertisingCtaSlot, frame]));
+        window.__viewportFrames = new Map([...document.querySelectorAll("[data-masonry-cta-frame]")].map(frame => [frame.dataset.masonryCtaSlot, frame]));
       });
       await page.waitForTimeout(800);
-      await page.waitForFunction(() => document.querySelector('[data-advertising-flow-state="running"]'), { }, { timeout: 3000 });
-      const running = () => page.evaluate(() => [...document.querySelectorAll('[data-advertising-flow-state="running"]')].map(frame => {
+      await page.waitForFunction(() => document.querySelector('[data-masonry-flow-state="running"]'), { }, { timeout: 3000 });
+      const running = () => page.evaluate(() => [...document.querySelectorAll('[data-masonry-flow-state="running"]')].map(frame => {
         const rect = frame.getBoundingClientRect(), visible = visualViewport;
-        return { slot: frame.dataset.advertisingCtaSlot, visible: rect.right > visible.offsetLeft && rect.left < visible.offsetLeft + visible.width && rect.bottom > visible.offsetTop && rect.top < visible.offsetTop + visible.height };
+        return { slot: frame.dataset.masonryCtaSlot, visible: rect.right > visible.offsetLeft && rect.left < visible.offsetLeft + visible.width && rect.bottom > visible.offsetTop && rect.top < visible.offsetTop + visible.height };
       }));
       const before = await snapshot(page), left = await running();
-      results.push({ engine, case: "visibility eligibility before assertions", before, left, state: await page.evaluate(() => ({ life:window.__viewportLife, contexts: window.__viewportContexts.map(({canvas,gl}) => ({slot:canvas.closest("[data-advertising-cta-frame]")?.dataset.advertisingCtaSlot,lost:gl.isContextLost(),connected:canvas.isConnected})), reduced: matchMedia("(prefers-reduced-motion: reduce)").matches, classes: document.body.className, hidden: document.hidden, frames: [...document.querySelectorAll("[data-advertising-cta-frame]")].map(frame => ({ slot: frame.dataset.advertisingCtaSlot, state: frame.dataset.advertisingFlowState, classes: frame.className, rect: frame.getBoundingClientRect().toJSON() })) })) });
+      results.push({ engine, case: "visibility eligibility before assertions", before, left, state: await page.evaluate(() => ({ life:window.__viewportLife, contexts: window.__viewportContexts.map(({canvas,gl}) => ({slot:canvas.closest("[data-masonry-cta-frame]")?.dataset.masonryCtaSlot,lost:gl.isContextLost(),connected:canvas.isConnected})), reduced: matchMedia("(prefers-reduced-motion: reduce)").matches, classes: document.body.className, hidden: document.hidden, frames: [...document.querySelectorAll("[data-masonry-cta-frame]")].map(frame => ({ slot: frame.dataset.masonryCtaSlot, state: frame.dataset.masonryFlowState, classes: frame.className, rect: frame.getBoundingClientRect().toJSON() })) })) });
       assert.ok(left.length > 0 && left.length <= 2, "zoomed visible frames obtain bounded leases");
       assert.ok(left.every(frame => frame.visible), "leases only inside zoomed visible rect");
       await page.evaluate(() => window.__changeVisibleViewport({ offsetLeft: 200, offsetTop: 160 }, "scroll"));
@@ -216,14 +216,14 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       assert.ok(right.every(frame => frame.visible), "panned leases only inside actual visible rect");
       assert.notDeepEqual(right.map(frame => frame.slot), left.map(frame => frame.slot), "pan really changed eligible slots");
       stable(before, after, "visible offset/scale preserves geometry");
-      assert.equal(await page.evaluate(() => [...window.__viewportFrames].every(([slot, frame]) => document.querySelector(`[data-advertising-cta-slot="${slot}"]`) === frame)), true, "pan preserves common frame identity");
+      assert.equal(await page.evaluate(() => [...window.__viewportFrames].every(([slot, frame]) => document.querySelector(`[data-masonry-cta-slot="${slot}"]`) === frame)), true, "pan preserves common frame identity");
       results.push({ engine, case: "offset/scale visibility", before, after, left, right });
     }
     if (["all", "fallback"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.route("**/motion.js", route => route.fulfill({ status: 200, contentType: "application/javascript", body: "/* Deliberate unavailable shell script boundary. */" }));
       await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
-      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.complete && document.querySelector("[data-advertising-photo-related-grid]")?.style.height);
+      await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.complete && document.querySelector("[data-detail-related-grid]")?.style.height);
       await page.evaluate(() => document.fonts.ready);
       const before = await snapshot(page);
       assert.equal(before.metrics, undefined, "no bridge in shell-unavailable fallback");
