@@ -212,7 +212,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 ### R7. Gộp card thành card nhiều media
 
 AI đề xuất nhóm card có media giống nhau, owner chọn từng nhóm; không luật gộp tự động. Nhóm đã chọn ghi trong `MERGED_CARD_MEDIA` (`media-manifest.mjs`): id card bìa trỏ tới các id card gộp vào, theo thứ tự hiển thị; chỉ gộp card cùng tỷ lệ chính xác (R1), không crop. Card gộp vào thôi là card: ảnh của nó thành item sau của card bìa, alt lấy mô tả của chính ảnh đó (item bìa giữ alt cũ); `productIds`, `tagIds` theo card bìa. Ngưỡng [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card) đếm card, nên gộp làm giảm số card của sản phẩm.
-URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail.
+URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail. Đợt 2 (owner 2026-11-11): ba card thay placeholder, mỗi card 3 ảnh mới, id gộp vào chưa từng là card (`kiosk-posm-74`+`75`+`76`, `print-decals-37`+`38`+`39`, `office-signs-wayfinding-56`+`57`+`58`).
 
 ## Giao diện và dữ liệu
 
