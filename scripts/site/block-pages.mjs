@@ -64,7 +64,8 @@ const jsonLd = (kind, page) => {
 const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
   const count = typeof pattern === "string" ? html.split(pattern).length - 1 : (html.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? []).length;
   if (count !== expected) throw new Error(`frame template anchor "${name}" matched ${count} times`);
-  return expected ? html.replace(pattern, replacement) : html;
+  if (!expected) return html;
+  return typeof pattern === "string" ? html.replaceAll(pattern, replacement) : html.replace(pattern, replacement);
 };
 
 // News article head (news R3): group, h1 article title, display date matching the JSON-LD datePublished.
@@ -102,6 +103,13 @@ export const renderBlockPage = (kind, template, page, ctx) => {
     [`data-barba-namespace="${frame}"`, `data-barba-namespace="${KINDS[kind].namespace}"`, "namespace"],
     [`href="/vi/${frame}/" data-language-option="vi"`, `href="${pageHref(kind, "vi", page)}" data-language-option="vi"`, "language vi"],
     [`href="/en/${frame}/" data-language-option="en"`, `href="${pageHref(kind, "en", page)}" data-language-option="en"`, "language en"],
+    // A project page belongs to Projects, not to its sector frame: move the navbar underline and the menu mark to Projects.
+    ...(kind === "projects" ? [
+      [' aria-current="page"', "", "frame current page", 2],
+      ['<li class="selected">', "<li>", "nav selected"],
+      ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
+      ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
+    ] : []),
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${kind === "news" ? articleHead(page) : ""}${renderBlocks(page, ctx)}\n      </main>`, "main"],
     ...(kind === "news" ? [[' aria-current="page"', "", "menu current page"]] : []),
   ].reduce((html, [pattern, replacement, name, expected]) => replaceCounted(html, pattern, replacement, name, expected), template);
