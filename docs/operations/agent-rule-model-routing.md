@@ -1,6 +1,10 @@
 # Model, effort và provider routing rule
 
-Owner duyệt 2026-10-15, thêm provider kie.ai 2026-10-19. Điều phối đặt model, effort và provider cho mọi thread, ghi kèm lý do một dòng trong brief. Model cho phép: `opus`, `sonnet`, `haiku` (5.5); không dùng fable. Subagent dùng mặc định Claude Code, không rule riêng.
+Owner duyệt 2026-10-15, thêm provider kie.ai 2026-10-19. Điều phối đặt model, effort và provider cho mọi thread, ghi kèm lý do một dòng trong brief. Model cho phép: `opus`, `sonnet`, `haiku` (5.5); `fable` chỉ theo mục [Fable](#fable). Subagent dùng mặc định Claude Code, không rule riêng.
+
+## Fable
+
+Owner duyệt 2026-11-11. Khi dùng `fable`, ưu tiên cho nó làm plan chi tiết để model rẻ hơn (worker) implement. Fable chỉ viết code khi owner cho phép. Các vai trò khác như code review: fable chỉ nhảy vào khi owner cho phép.
 
 ## Provider và chế độ
 
