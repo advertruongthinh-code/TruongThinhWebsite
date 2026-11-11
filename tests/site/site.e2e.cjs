@@ -6114,7 +6114,7 @@ async function runAdvertisingGridFocusedChecks() {
           const gridBounds = grid.getBoundingClientRect();
           const tiles = [...grid.querySelectorAll(".masonry-card")].map((tile) => {
             const rect = tile.getBoundingClientRect();
-            const media = tile.querySelector(".project-tile__media");
+            const media = tile.querySelector(".masonry-card__media");
             return {
               id: tile.dataset.masonryCard,
               left: Number.parseFloat(tile.style.left),
@@ -6137,7 +6137,7 @@ async function runAdvertisingGridFocusedChecks() {
             width: gridBounds.width,
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
             tiles,
-            outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--masonry-outer")),
+            outerToken: Number.parseFloat(getComputedStyle(grid.closest(".masonry-section")).getPropertyValue("--masonry-outer")),
             gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--masonry-gap")),
             // The card name shows only on a real mouse hover (owner 2026-11-09), takes no space; otherwise there is no caption.
             captionCount: grid.querySelectorAll("figcaption:not(.masonry-card__title)").length,
@@ -6245,7 +6245,7 @@ async function runAdvertisingGridFocusedChecks() {
         await gotoRoute(page, "/vi/advertising-products/");
         await page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]");
-          const index = grid?.closest(".project-index");
+          const index = grid?.closest(".masonry-section");
           if (!grid || !index) return false;
           const outer = Number.parseFloat(getComputedStyle(index).getPropertyValue("--masonry-outer"));
           const expectedOuter = document.documentElement.clientWidth <= 750 ? 15 : document.documentElement.clientWidth <= 1200 ? 25 : 35;
@@ -6254,7 +6254,7 @@ async function runAdvertisingGridFocusedChecks() {
         });
         const measured = await page.locator("[data-project-grid]").evaluate((grid) => {
           const bounds = grid.getBoundingClientRect();
-          const index = grid.closest(".project-index");
+          const index = grid.closest(".masonry-section");
           return {
             innerWidth: window.innerWidth,
             clientWidth: document.documentElement.clientWidth,
@@ -7262,7 +7262,7 @@ async function runAdvertisingThreeThousandCardProbe() {
         const records = new Map(injectedArtifact.cards.map((card) => [card.id, card]));
         return [...grid.querySelectorAll(".masonry-card")].slice(0, 28).map((tile) => {
           const record = records.get(tile.dataset.masonryCard);
-          const media = tile.querySelector(".project-tile__media");
+          const media = tile.querySelector(".masonry-card__media");
           const foreground = tile.querySelector(".masonry-card__foreground");
           const bounds = media.getBoundingClientRect();
           return {

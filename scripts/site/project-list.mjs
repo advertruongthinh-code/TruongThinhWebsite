@@ -75,7 +75,7 @@ const srcset = ({ src, width }) => {
 
 // Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO).
 const noscriptCard = (project) => [
-  `<figure class="project-tile"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="project-tile__media">`,
+  `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
   `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" loading="lazy" decoding="async" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" />`,
   "</div></a></figure>",
 ].join("");
@@ -85,7 +85,7 @@ const line = (text, className) => `<span class="detail-hero-line-mask"><span cla
 // The grid part (grid, batch skeleton, tail CTA) is taken as-is from the Advertising page shell, changing only labels, static cards and CTA text:
 // one masonry DOM contract for both pages; an attribute added on the Advertising page carries over to the Projects page (masonry-reuse step 9).
 const indexSection = (template, projects) => {
-  const sections = template.match(/<section\s+class="project-index"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
+  const sections = template.match(/<section\s+class="masonry-section"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
   if (sections.length !== 1) throw new Error(`advertising frame anchor "index section" matched ${sections.length} times`);
   return [
     [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
