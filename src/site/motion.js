@@ -1974,6 +1974,13 @@
       newsMain.setAttribute("data-scroll", "");
       newsMain.setAttribute("data-scroll-sticky", "");
       newsMain.setAttribute("data-scroll-target", `#${grid.id}`);
+      // Locomotive reads the sticky range and scroll limit once; the grid still grows for a few frames after init while its cards lay out,
+      // which released the card early and cut the page end short (1366x650). Re-measure whenever the grid height changes.
+      if (typeof ResizeObserver !== "undefined") {
+        const gridObserver = new ResizeObserver(requestLayoutUpdate);
+        gridObserver.observe(grid);
+        state.abort.signal.addEventListener("abort", () => gridObserver.disconnect(), { once: true });
+      }
     }
 
     watchWhiteOverlayMedia(state);

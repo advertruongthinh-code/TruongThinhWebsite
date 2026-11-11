@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { SECTORS, loadBlockContent, renderBlockPage, renderProjectPage } from "../../scripts/site/block-pages.mjs";
+import { SECTORS, loadBlockContent, renderBlockPage, renderHomeNews, renderProjectPage } from "../../scripts/site/block-pages.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
 const templateOf = (sector) => readFileSync(new URL(`../../src/site/${sector}/index.html`, import.meta.url), "utf8");
@@ -68,6 +68,15 @@ test("News article head: group label links to its group page in both languages",
   const post = news[0];
   const html = renderBlockPage("news", readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8"), post, ctx);
   assert.ok(html.includes(`<a class="blk-article-head__group" href="/vi/news/${post.group}/" data-en-href="/en/news/${post.group}/"`), "group link VI and EN");
+  // Espacio article head: white (ink header), "News / group" crumb, then title, then date.
+  assert.match(html, /blk-article-head--post[^>]*data-header-tone="ink"[\s\S]*?blk-article-head__crumb[\s\S]*?<h1[\s\S]*?blk-article-head__date/);
+});
+
+test("home News strip: 3 newest posts, each with group, title and Read more like Espacio", () => {
+  const html = renderHomeNews(news);
+  assert.equal((html.match(/class="home-news__item"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="home-news__group"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="home-news__more"/g) ?? []).length, 3);
 });
 
 test("every page links to News from the hamburger menu only", () => {

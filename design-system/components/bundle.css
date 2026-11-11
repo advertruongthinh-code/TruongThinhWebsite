@@ -7187,10 +7187,13 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   color: inherit;
 }
 
-/* News list head like Espacio /en/news (measured 2026-11-11 at 1440 and 390): white, a large centred uppercase title (112px at 1440,
-   line-height 1.4), the filter row centred about 144px below in grey bold capitals, the current one ink and underlined; no kicker. */
+/* News list head like Espacio /en/news (measured 2026-11-11 at 1440 and 390): white, the title fills the column like Espacio's fillText
+   (900px max, 90% of the column; uppercase, line-height 1.4) about 240px from the page top, the filter row centred about 134px below the title
+   top in bold capitals at 30% opacity, the current one full and underlined; no kicker (owner 2026-11-11). On phone the filter row is one
+   left-aligned line that scrolls sideways. */
 .blk-article-head--list {
-  padding-top: calc(var(--header-row-height) + clamp(3rem, 8vw, 7rem));
+  --fill-width: min(90%, 900px);
+  padding-top: 241px;
   padding-bottom: 0;
   background: none;
   color: var(--ink);
@@ -7198,42 +7201,151 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 }
 
 .blk-article-head--list .blk-article-head__title {
+  --chars: var(--chars-vi);
   max-width: none;
-  font-size: clamp(3rem, 14vw, 7rem);
+  width: var(--fill-width);
+  margin-inline: auto;
+  /* About 0.7em per uppercase glyph in Plus Jakarta Sans 500; capped at Espacio's 112px. */
+  font-size: min(7rem, calc((min(100vw - 2 * var(--gutter), 1370px) * 0.9) / (var(--chars) * 0.7)));
   font-weight: 500;
   line-height: 1.4;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html[lang="en"] .blk-article-head--list .blk-article-head__title {
+  --chars: var(--chars-en);
 }
 
 .blk-article-head--list .blk-news-filter {
   justify-content: center;
-  gap: 1rem 3.125rem;
-  margin-top: clamp(3rem, 10vw, 9rem);
+  gap: 0;
+  width: min(80%, 850px);
+  margin: -38px auto 0;
 }
 
 .blk-article-head--list .blk-news-filter__chip {
-  color: var(--muted);
+  position: relative;
+  margin: 15px 25px;
+  color: #2f2f2f;
   font-size: 1rem;
+  font-weight: 600;
   letter-spacing: 0;
+  opacity: 0.3;
+  transition: opacity 0.3s ease-out;
 }
 
+.blk-article-head--list .blk-news-filter__chip:hover,
 .blk-article-head--list .blk-news-filter__chip[aria-current="true"] {
-  color: var(--ink);
-  text-decoration-thickness: 2px;
+  opacity: 1;
 }
 
-.blk-article-head__meta {
-  margin: 0 0 1.25rem;
-  color: rgb(255 255 255 / 0.72);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+/* Espacio coolLink: a 3px line 4px under the text grows from the left on hover, retracts to the right; the current chip keeps it. */
+.blk-article-head--list .blk-news-filter__chip[aria-current="true"] {
+  text-decoration: none;
+}
+
+.blk-article-head--list .blk-news-filter__chip::before,
+.blk-article-head__news::before,
+.home-news__group::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 3px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  pointer-events: none;
+}
+
+.blk-article-head--list .blk-news-filter__chip:hover::before,
+.blk-article-head--list .blk-news-filter__chip[aria-current="true"]::before,
+.blk-article-head__news:hover::before,
+.home-news__item:hover .home-news__group::before,
+.home-news__item:focus-visible .home-news__group::before {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* News article head like an Espacio article (measured 2026-11-11 at 1440 and 390): white; "Tin tức / group" crumb centred in bold capitals at
+   235px (215px phone), the title 64px (40px phone) regular, line-height 1.4, left-aligned one gutter in from the column, the date centred below. */
+.blk-article-head--post {
+  padding-top: 235px;
+  padding-bottom: 40px;
+  background: none;
+  color: var(--ink);
+}
+
+.blk-article-head__crumb {
+  margin: 0 0 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
   text-transform: uppercase;
 }
 
+.blk-article-head__news,
 .blk-article-head__group {
+  position: relative;
   color: inherit;
-  text-underline-offset: 0.3em;
+  text-decoration: none;
+}
+
+.blk-article-head__slash {
+  margin: 0 7px 0 10px;
+  opacity: 0.2;
+}
+
+.blk-article-head--post .blk-article-head__title {
+  max-width: none;
+  margin: 60px 0 0;
+  padding-inline: var(--gutter);
+  font-size: clamp(2.5rem, 4.45vw, 4rem);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+
+.blk-article-head__date {
+  margin: calc(var(--gutter) + 16px) 0 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@media (max-width: 750px) {
+  .blk-article-head--list {
+    padding-top: 220px;
+  }
+
+  .blk-article-head--post {
+    padding-top: 215px;
+  }
+
+  .blk-article-head--post .blk-article-head__title {
+    margin-top: 30px;
+  }
+
+  .blk-article-head--list .blk-news-filter {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 39px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+
+  .blk-article-head--list .blk-news-filter__chip {
+    font-size: 0.96rem;
+  }
 }
 
 .blk-article-head__title {
@@ -7474,10 +7586,18 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   text-transform: uppercase;
 }
 
-.blk-news-cards__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(1.5rem, 3vw, 3rem);
+/* "Other news" heading at the end of an article like Espacio: centred, 64px regular (40px phone), 50px padding above, 90px (30px phone) to the teasers. */
+.blk-news-cards__title {
+  margin: 0 0 var(--section-gap, 90px);
+  padding-top: 50px;
+  font-size: clamp(2.5rem, 4.45vw, 4rem);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.blk-news-cards .home-news__grid {
+  padding-inline: 0;
 }
 
 .blk-news-card,
@@ -7519,7 +7639,6 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 
   .blk-pair,
-  .blk-news-cards__grid,
   .blk-banners {
     grid-template-columns: 1fr;
   }
@@ -7602,17 +7721,45 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   grid-template-columns: 1fr 1fr;
 }
 
-.blk-news-list .blk-news-card img {
-  aspect-ratio: 3 / 2;
+/* Cover 3:2 in a clipping frame: on hover the image zooms 1.1 in 0.3s like Espacio. In rows the frame spans the row height (cover crop), never
+   below 3:2. */
+.blk-news-card__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
 }
 
+.blk-news-card__media::before {
+  content: "";
+  display: block;
+  padding-top: 66.667%;
+}
+
+.blk-news-list .blk-news-card img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  aspect-ratio: auto;
+  transition: transform 0.3s ease-out;
+}
+
+.blk-news-list .blk-news-card:hover img,
+.blk-news-list .blk-news-card:focus-visible img {
+  transform: scale(1.1);
+}
+
+/* Espacio card titles: 20.8px regular, line-height 1.4, 0.83em above and below; the large card 48px (32px phone) line-height 1.3. */
 .blk-news-list .blk-news-card__title {
+  margin-block: 0.83em;
+  color: #2f2f2f;
   font-size: 1.3rem;
-  line-height: 1.3;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .blk-news-list .blk-news-card--main .blk-news-card__title {
-  font-size: clamp(2rem, 3.33vw, 3rem);
+  font-size: 3rem;
+  line-height: 1.3;
 }
 
 /* A 3px underline running by text width like the navbar: grows from the left, retracts to the right; the inline span's background continues across lines. */
@@ -7628,27 +7775,15 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   background-size: 100% 3px;
 }
 
-/* The image spans two rows; the lower text row stretches (1fr) so group and date sit right above the title. picture is display: contents so
-   <source> becomes an empty grid item, taking a cell and pushing the image and text down a row. */
-.blk-news-card > picture > source {
-  display: none;
-}
-
 .blk-news-card--row {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  grid-template-rows: auto 1fr;
   column-gap: 35px;
-  align-content: start;
+  align-items: stretch;
 }
 
-.blk-news-card--row img {
-  grid-row: span 2;
-}
-
-/* Espacio rows: the title starts about 17px below the cover top (1440 and 390). */
 .blk-news-card--row .blk-news-card__title {
-  margin-top: 17px;
+  align-self: start;
 }
 
 /* The large card while sticky must fit the screen (laptop 1366x650, 1536x730): the image shrinks in height, cover crop, the title always fully shown. */
@@ -7659,8 +7794,13 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
     max-height: calc(100vh - var(--header-collapsed-row-height, 61px) - 80px);
   }
 
-  .blk-news-list .blk-news-card--main img {
+  .blk-news-list .blk-news-card--main .blk-news-card__media {
+    flex: 0 1 auto;
     min-height: 0;
+  }
+
+  .blk-news-list .blk-news-card--main .blk-news-card__title {
+    flex: none;
   }
 }
 
@@ -7674,31 +7814,34 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
+@media (max-width: 750px) {
+  .blk-news-list .blk-news-card--main .blk-news-card__title {
+    font-size: 2rem;
+  }
+}
+
+/* Phone like Espacio at 390: every card after the first is a row (cover a third, title 35px to its right), 15px between cards; the cover
+   stretches to the title height. */
 @media (max-width: 578px) {
+  .blk-news-list__grid,
+  .blk-news-list__side,
+  .blk-news-list__quad {
+    gap: 15px;
+  }
+
   .blk-news-list__quad {
     grid-template-columns: 1fr;
   }
 
   .blk-news-list__quad .blk-news-card {
     display: grid;
-    grid-template-rows: auto 1fr;
-    align-content: start;
-  }
-
-  .blk-news-list__quad .blk-news-card img {
-    grid-row: span 2;
-  }
-
-  .blk-news-list__quad .blk-news-card__title,
-  .blk-news-card--row .blk-news-card__title {
-    margin-top: 17px;
-  }
-
-  /* Phone rows like Espacio at 390: cover 30% of the row, title 35px to its right. */
-  .blk-news-list__quad .blk-news-card,
-  .blk-news-card--row {
-    grid-template-columns: 30% 1fr;
+    grid-template-columns: 1fr 2fr;
     column-gap: 35px;
+    align-items: stretch;
+  }
+
+  .blk-news-list__quad .blk-news-card__title {
+    align-self: start;
   }
 }
 
@@ -7716,8 +7859,10 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   color: var(--muted);
 }
 
-/* Home News strip (news R4) following espaciohomedesign.com/en, measured 2026-11-11 at 1440 and 390: 3 columns 70px apart; each item a
-   cover column (38%, 31.5% on phone) and text 20px apart; the cover keeps at least 5:6 and stretches when the text is taller. */
+/* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com, measured 2026-11-11 at 1440 and 390: 3 columns 70px
+   apart; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
+   the text is taller. Group 16px semibold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
+   semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -7727,14 +7872,15 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 
 .home-news__item {
   display: grid;
-  grid-template-columns: 38% 1fr;
+  grid-template-columns: 1fr 1.5fr;
   column-gap: 20px;
-  color: var(--ink);
+  color: #222;
   text-decoration: none;
 }
 
 .home-news__media {
   position: relative;
+  overflow: hidden;
 }
 
 .home-news__media::before {
@@ -7749,6 +7895,12 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s ease-out;
+}
+
+.home-news__item:hover .home-news__media img,
+.home-news__item:focus-visible .home-news__media img {
+  transform: scale(1.2);
 }
 
 .home-news__text {
@@ -7756,15 +7908,29 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   flex-direction: column;
 }
 
+.home-news__group {
+  position: relative;
+  left: 0.13em;
+  margin-top: 15px;
+  color: #2f2f2f;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
 .home-news__title {
-  margin-block: 0 1.2rem;
+  margin-block: 1.2rem;
   font-size: 1.2rem;
+  font-weight: 400;
   line-height: 1.4;
 }
 
 .home-news__more {
+  margin-bottom: 15px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.4;
   text-transform: uppercase;
   opacity: 0;
   transition: opacity 0.3s ease-out;
@@ -7773,6 +7939,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 .home-news__item:hover .home-news__more,
 .home-news__item:focus-visible .home-news__more {
   opacity: 1;
+  transition-duration: 0.6s;
 }
 
 @media (max-width: 960px) {
@@ -7782,7 +7949,37 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 
   .home-news__item {
-    grid-template-columns: 31.5% 1fr;
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .home-news {
+    --gutter: 15px;
+  }
+}
+
+/* News article text and "see all" link like Espacio: regular weight paragraphs; the link 16px semibold capitals with a 200px arrow (150px phone). */
+[data-barba-namespace="news"] .blk-paragraph p {
+  font-weight: 400;
+}
+
+[data-barba-namespace="news"] .blk-cta__link {
+  color: #2f2f2f;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+[data-barba-namespace="news"] .blk-cta__arrow {
+  width: 12.5rem;
+  height: 2.75rem;
+}
+
+@media (max-width: 750px) {
+  [data-barba-namespace="news"] .blk-cta__arrow {
+    width: 9.375rem;
+    height: 2.0625rem;
   }
 }
 

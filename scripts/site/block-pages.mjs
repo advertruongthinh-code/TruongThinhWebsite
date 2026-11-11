@@ -2,19 +2,14 @@
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { renderBlocks } from "./blocks.mjs";
+import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
+
+export { NEWS_GROUPS };
 
 export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 // The sector is also the sector page directory, used as its frame and namespace.
 export const SECTORS = ["residential", "commercial"];
 const SECTOR_NAME = { residential: "Không gian nhà ở", commercial: "Không gian kinh doanh" };
-// Four News groups (news R1); display names and slugs are final per Keyword Planner, until then use the temporary names.
-export const NEWS_GROUPS = {
-  "nha-o": { vi: "Không gian nhà ở", en: "Residential spaces" },
-  "kinh-doanh": { vi: "Không gian kinh doanh", en: "Commercial spaces" },
-  "xu-huong": { vi: "Xu hướng thiết kế", en: "Design trends" },
-  "quang-cao": { vi: "Sản phẩm quảng cáo", en: "Advertising products" },
-};
 
 // Per page kind: route directory, frame page, namespace, JSON-LD type, parent breadcrumb entry.
 export const KINDS = {
@@ -68,15 +63,17 @@ const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
   return typeof pattern === "string" ? html.replaceAll(pattern, replacement) : html.replace(pattern, replacement);
 };
 
-// News article head (news R3): group, h1 article title, display date matching the JSON-LD datePublished.
+// News article head (news R3) like an Espacio article (measured 2026-11-11): white, centred "Tin tức / group" crumb, large left title,
+// centred date matching the JSON-LD datePublished.
 const articleHead = (page) => {
   const group = NEWS_GROUPS[page.group];
   const [year, month, day] = page.published.split("-");
   return [
-    '<header class="blk blk-article-head section-gap" data-header-tone="inverse">',
+    '<header class="blk blk-article-head blk-article-head--post section-gap" data-header-tone="ink">',
     // The group label links to the group page: group pages have no filter chip on the list page (news R2, owner 2026-11-09).
-    `  <p class="blk-article-head__meta"><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a> · <time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
+    `  <p class="blk-article-head__crumb"><a class="blk-article-head__news" href="/vi/news/" data-en-href="/en/news/" data-en="News">Tin tức</a><span class="blk-article-head__slash" aria-hidden="true">/</span><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a></p>`,
     `  <h1 class="blk-article-head__title" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
+    `  <p class="blk-article-head__date"><time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
     "</header>\n",
   ].join("\n");
 };
@@ -149,14 +146,14 @@ const newsCard = (post, variant = "") => {
   const loading = variant === "main" ? 'loading="eager" fetchpriority="high" sizes="(max-width: 960px) 100vw, 50vw"' : 'loading="lazy"';
   return [
     `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
-    `<img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" ${loading} />`,
+    `<span class="blk-news-card__media"><img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" ${loading} /></span>`,
     `<span class="blk-news-card__title"><span class="blk-news-card__text" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span></span>`,
     "</a>",
   ].join("");
 };
 
 // Home News strip (news R4, owner 2026-11-11: News only on the home page, like espaciohomedesign.com/en right under the hero):
-// the 3 newest posts in 3 columns, each a small cover on the left, the title (no group, owner 2026-11-11) and a "Read more" that shows on hover or focus.
+// the 3 newest posts in 3 columns of teasers (group, title, "Read more" on hover).
 export const renderHomeNews = (news) => {
   const posts = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id)).slice(0, 3);
   if (!posts.length) return "";
@@ -164,17 +161,7 @@ export const renderHomeNews = (news) => {
     '<section class="home-news section-gap" aria-labelledby="home-news-title" data-header-tone="ink">',
     '  <h2 class="sr-only" id="home-news-title" data-en="News">Tin tức</h2>',
     '  <div class="home-news__grid">',
-    ...posts.map((post) => {
-      return [
-        `    <a class="home-news__item" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
-        `      <span class="home-news__media"><img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" loading="lazy" /></span>`,
-        '      <span class="home-news__text">',
-        `        <span class="home-news__title" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span>`,
-        '        <span class="home-news__more" data-en="Read more">Đọc tiếp</span>',
-        "      </span>",
-        "    </a>",
-      ].join("\n");
-    }),
+    ...posts.map(newsTeaser),
     "  </div>",
     "</section>",
   ].join("\n");
@@ -196,7 +183,8 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
   const main = [
     // White head with a large centred title and centred filters like Espacio /en/news; no kicker (owner 2026-11-11).
     '<header class="blk blk-article-head blk-article-head--list section-gap" data-header-tone="ink">',
-    `  <h1 class="blk-article-head__title" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
+    // Espacio fills the title to the column width (fillText); --chars-vi/--chars-en let CSS size each locale's title the same way.
+    `  <h1 class="blk-article-head__title" style="--chars-vi: ${[...h1.vi].length}; --chars-en: ${[...h1.en].length}" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
     `  <nav class="blk-news-filter" aria-label="${escapeHtml(filterLabel.vi)}" data-en-aria-label="${escapeHtml(filterLabel.en)}">${chipLinks}</nav>`,
     "</header>",
     body,

@@ -11,7 +11,7 @@ const photo2 = { src: "/assets/content/projects/kiosk-active-v2.webp", width: 20
 const t = (vi, en) => ({ vi, en });
 
 // The fixture uses all 15 blocks; images are real images already in the site.
-const other = { id: "other", slugVi: "khac", slugEn: "other", title: t("Khác", "Other"), cover: photo2 };
+const other = { id: "other", slugVi: "khac", slugEn: "other", title: t("Khác", "Other"), cover: photo2, group: "nha-o" };
 const fixture = () => ({
   id: "sample",
   slugVi: "can-ho-mau",

@@ -185,9 +185,9 @@ try {
       const range = start.gridBottom - start.gridTop - start.height;
       assert.ok(range > 100, `${at}: the grid must be taller than the large card to have a sticky range: ${JSON.stringify(start)}`);
       // Horizontal card like Espacio: title only (no group or date), starting about 17px below the cover top, not pushed down by a tall image.
-      const rowGaps = await page.$$eval(".blk-news-card--row", (cards) => cards.map((card) => card.querySelector(".blk-news-card__title").getBoundingClientRect().top - card.querySelector("img").getBoundingClientRect().top));
+      const rowGaps = await page.$$eval(".blk-news-card--row", (cards) => cards.map((card) => card.querySelector(".blk-news-card__title").getBoundingClientRect().top - card.querySelector(".blk-news-card__media").getBoundingClientRect().top));
       assert.ok(rowGaps.length && rowGaps.every((gap) => gap >= 15 && gap <= 20), `${at}: title offset of horizontal cards ${rowGaps.join(", ")}`);
-      assert.equal(await page.locator(".blk-news-card__meta, .blk-article-head--list .blk-article-head__meta").count(), 0, `${at}: News list shows the title only`);
+      assert.equal(await page.locator(".blk-news-card__meta, .blk-article-head--list .blk-article-head__crumb").count(), 0, `${at}: News list shows the title only`);
       await page.mouse.move(viewport.width / 2, viewport.height / 2);
       // Wheel notch by notch, wait until still, reach the middle of the sticky range: the grid top has passed the sticky mark by about half the range.
       let mid = start;

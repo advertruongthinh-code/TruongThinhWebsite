@@ -28,6 +28,29 @@ const IMAGE_POSITION = { wide: "blk-image--wide", "left-2-3": "blk-image--left-2
 const PAIR_LAYOUT = { equal: "blk-pair--equal", "left-large": "blk-pair--left-large", "right-large": "blk-pair--right-large" };
 const FACTS_COLUMNS = { 2: "blk-facts--2", 3: "blk-facts--3", 4: "blk-facts--4" };
 const BANNER_COLUMNS = { 1: "blk-banners--1", 2: "blk-banners--2", 3: "blk-banners--3" };
+// Four News groups (news R1); display names and slugs are final per Keyword Planner, until then use the temporary names.
+export const NEWS_GROUPS = {
+  "nha-o": { vi: "Không gian nhà ở", en: "Residential spaces" },
+  "kinh-doanh": { vi: "Không gian kinh doanh", en: "Commercial spaces" },
+  "xu-huong": { vi: "Xu hướng thiết kế", en: "Design trends" },
+  "quang-cao": { vi: "Sản phẩm quảng cáo", en: "Advertising products" },
+};
+
+// News teaser like the espaciohomedesign.com news block (home strip and "Other news" at the end of an article, news R3, R4, measured 2026-11-11):
+// small cover left, group in capitals, title, and "Read more" that fades in on hover. The whole item is one link.
+export const newsTeaser = (post) => {
+  const group = NEWS_GROUPS[post.group];
+  return [
+    `    <a class="home-news__item" href="/vi/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">`,
+    `      <span class="home-news__media">${image(post.cover)}</span>`,
+    '      <span class="home-news__text">',
+    `        ${localized("span", group, ' class="home-news__group"')}`,
+    `        ${localized("span", post.title, ' class="home-news__title"')}`,
+    '        <span class="home-news__more" data-en="Read more">Đọc tiếp</span>',
+    "      </span>",
+    "    </a>",
+  ].join("\n");
+};
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
 // Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
@@ -165,13 +188,12 @@ const BLOCKS = {
   },
   "news-cards": {
     ids: "news",
+    // "Other news" like the end of an Espacio article: centred heading, then the same teasers as the home strip.
     render: (block, ctx, page) => [
       '<section class="blk blk-news-cards section-gap" data-header-tone="ink">',
-      '  <div class="blk-news-cards__grid">',
-      ...(block.newsIds ?? autoNewsIds(ctx, page)).map((id) => {
-        const post = ctx.news.get(id);
-        return `    <a class="blk-news-card" href="/vi/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">${image(post.cover)}${localized("span", post.title, ' class="blk-news-card__title"')}</a>`;
-      }),
+      '  <h2 class="blk-news-cards__title" data-en="Other news">Tin khác</h2>',
+      '  <div class="home-news__grid">',
+      ...(block.newsIds ?? autoNewsIds(ctx, page)).map((id) => newsTeaser(ctx.news.get(id))),
       "  </div>",
       "</section>",
     ].join("\n"),

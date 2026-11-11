@@ -19,7 +19,7 @@ dẫn, liên hệ nhanh, dải công trình, CTA mũi tên, thẻ News liên qua
 | Liên hệ nhanh (`contact-quick`) | Tiêu đề nét 300 trái, nút Zalo nền mực phải | Tiêu đề 64px; nút 14px 700, cao 52px | Tiêu đề 36px, nút xuống dưới |
 | CTA mũi tên (`cta-arrow`) | Chữ hoa 15px 700 canh giữa, mũi tên 144 × 40px | Rê chuột: mũi tên trượt 0.75rem `0.4s` | Như PC |
 | Dải công trình (`project-slider`) | Thẻ dọc so le cao thấp như [Project reel](../ProjectReel/README.md), tên chữ hoa dưới ảnh, track cuộn ngang snap | Thẻ 302.4px, 4 thẻ một màn | Thẻ 296.4px |
-| Thẻ News (`news-cards`) | Lưới thẻ: ảnh bìa, tiêu đề | 3 cột 427.9px, gap 43.2px; tiêu đề 18px | Một cột, gap 24px |
+| Tin khác (`news-cards`) | Tiêu đề căn giữa, 3 thẻ như dải News trang chủ ([NewsList](../NewsList/README.md)) | Tiêu đề 64px; 3 cột 410px, gap 70px | Tiêu đề 40px; một cột, gap 30px |
 | Banner (`banner-links`) | 1 tới 3 ảnh có tiêu đề, bấm sang trang khác | 1, 2 hoặc 3 cột | Một cột |
 
 Khoảng cách giữa khối 90px trên PC, 30px trên phone; lề 35px PC, 15px phone. Hero và đầu bài News nền tối
