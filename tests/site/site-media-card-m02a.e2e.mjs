@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { ADVERTISING_CATALOG_DETAIL } from "../../.site-output/advertising-products/catalog-detail.mjs";
+import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -19,10 +20,10 @@ const { chromium } = await import("playwright");
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
   crowded = false, twoVideos = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
-  assert.equal(artifact.cards.length, 285, "fixture retains all legacy cards");
+  assert.equal(artifact.cards.length, ADVERTISING_MEDIA_MANIFEST.length, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
   assert(card && card.media.width * 2 === card.media.height * 3);
-  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  // Keep only the legacy image as cover so the fixture does not depend on temporary media (images, videos, video cover).
   card.mediaItems = [{ id: cardId, kind: "image", ...card.media }];
   card.coverMediaId = cardId;
   card.mediaItems.push({

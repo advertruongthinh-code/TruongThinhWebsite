@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
+import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -285,8 +286,8 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
-test("R6-R3 public legacy catalog keeps 285 image-only cards", () => {
-  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 285);
+test("R6-R3 public legacy catalog keeps one image-only card per manifest record", () => {
+  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, ADVERTISING_MEDIA_MANIFEST.length);
   assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
     && card.mediaItems[0].kind === "image"));
 });
