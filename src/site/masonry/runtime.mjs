@@ -2084,15 +2084,21 @@ export async function mountMasonry(container = document.querySelector('[data-bar
 
   // `hysteresis`: a card is removed only when it is more than two viewports away, though it is built only within one viewport at most (R7).
   // `mount` is the id that needs a real card; `keep` is the id that must not be removed.
+  let lastWindowY;
   const virtualWindow = ({ hysteresis = false } = {}) => {
     // Reading the rect is one forced layout per frame; caching by currentVisualY drifts while dragging the scrollbar (visual lags logical),
     // so keep the real read; the temp card layer has contain, so dirty layout is left only on newly real cards.
     const gridTop = grid.getBoundingClientRect().top + currentVisualY;
     const visible = getVisibleViewport();
     const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
+    // Smooth scroll (Locomotive, from 981px) moves the page after this frame's pass, so the window paints one scroll step behind; a long
+    // frame makes that step longer than the overscan and opens a gap. Stretch the window ahead by the last step, up to two viewports.
+    const step = hysteresis && lastWindowY !== undefined ? currentVisualY - lastWindowY : 0;
+    lastWindowY = currentVisualY;
+    const lead = Math.max(-2 * visible.height, Math.min(2 * visible.height, step));
     const windowed = getVirtualWindow(geometry, {
-      scrollTop,
-      viewportHeight: visible.height,
+      scrollTop: scrollTop + Math.min(0, lead),
+      viewportHeight: visible.height + Math.abs(lead),
       overscan: visible.height,
       releaseOverscan: hysteresis ? visible.height * 2 : visible.height,
     });
