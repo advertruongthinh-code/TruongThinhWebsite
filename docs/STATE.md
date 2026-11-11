@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-11-08
+- Updated: 2026-11-11
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -12,7 +12,7 @@
 - Nước rút tới CMS: trang Công trình, dải công trình và News dựng từ khối ([spec #691](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/691), #694, #701, sáu trang lọc theo loại #703); hero, kicker trang Công trình đang chỉnh. CMS editor, quyền, publish do thread CMS sở hữu ([CMS](specs/cms.md)).
 - Menu sáu nhóm có Công trình (#704, #705), navbar có Công trình (#708); lỗi chữ menu chồng trang ở lần mở đầu sau khi chuyển trang sửa ở #713.
 - Ảnh: phone chỉ WebP tới 960, PC JXL (WebP dự phòng) tới 4K ([progressive-loading](specs/progressive-loading.md), #690); vuốt nhanh masonry #687, #692. Còn gate R8 trong spec.
-- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt. SEO từ khóa tạm dừng ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
+- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt. SEO từ khóa: bản đồ từ khóa cho trang Công trình và Advertising chờ owner duyệt ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
 - Card nhiều media: runtime, player, viewer đã vào `main` (#434), mỗi card vẫn một ảnh; gộp ảnh làm đợt khác ([card](https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc), [spec](specs/media-card.md)).
 - [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): nhánh `ap7oez` còn trên remote, trạng thái fix skeleton, swipe: unknown.
 
