@@ -11,7 +11,7 @@ try {
     for (const detail of [true, false]) {
       const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
       await page.goto(`${baseUrl}/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
-      // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+      // Direct-load veil blocks pointer input until the page finishes mounting.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       const card = page.locator(detail ? "[data-masonry-related-card]" : "[data-masonry-card]").first();
       await card.scrollIntoViewIfNeeded();
@@ -25,14 +25,14 @@ try {
       const rect = await card.boundingBox();
       await card.hover();
       await page.waitForTimeout(700);
-      // Owner 2026-10-18: card masonry và related không zoom media khi hover hay focus; focus chỉ có viền.
+      // Owner 2026-10-18: masonry and related cards do not zoom media on hover or focus; focus shows only an outline.
       const mediaScale = () => image.evaluate((image) => new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
       assert.equal(await mediaScale(), 1, `${locale} ${detail ? "detail" : "parent"} hover keeps media still`);
       assert.deepEqual(await card.boundingBox(), rect, "Hover must not shift the card frame");
       // Owner 2026-11-10 (media-card R3): real-mouse hover shows the Pinterest shade (48px flat 0.4, linear fade to the bottom) and the white name at once.
       const hovered = await card.evaluate(async (tile) => {
         const scrim = getComputedStyle(tile.querySelector(".card-media"), "::after");
-        // Máy tải cao làm transition hover bắt đầu trễ: chờ lớp tối hiện đủ (tối đa 2s) rồi mới đọc.
+        // A heavily loaded machine delays the hover transition start: wait for the dark layer to fully appear (up to 2s) before reading.
         for (let frame = 0; frame < 120 && scrim.opacity !== "1"; frame += 1) await new Promise(requestAnimationFrame);
         const title = tile.querySelector(".masonry-card__title");
         return { scrim: scrim.backgroundColor, band: scrim.backgroundImage === "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)",
@@ -51,7 +51,7 @@ try {
       const expectedPhoto = await card.locator("a").evaluate(e => (new URL(e.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null));
       await page.keyboard.press("Enter");
       await page.waitForFunction(id => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, expectedPhoto);
-      // Primary dựng ở task sau cú bấm (advertising-detail R7), nên chờ photo view thay vì đọc ngay.
+      // Primary mounts in a task after the click (advertising-detail R7), so wait for the photo view instead of reading immediately.
       await page.waitForFunction(id => document.querySelector(".detail-view")?.dataset.detailId === id, expectedPhoto);
       console.log(`${locale} ${detail ? "detail" : "parent"} hover/focus/Enter passed`);
     }
@@ -63,7 +63,7 @@ try {
     });
     const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
     await page.goto(`${baseUrl}/vi/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
-    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
+    // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     const selector = detail ? "[data-masonry-related-card]" : "[data-masonry-card]";
     const card = page.locator(selector).first();

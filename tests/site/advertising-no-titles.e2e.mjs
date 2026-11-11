@@ -21,7 +21,7 @@ try {
       await page.goto(browseUrl, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-masonry-card]");
       const evidence = await page.evaluate(() => ({
-        // Owner 2026-11-09: mỗi card masonry có một tên ẩn (aria-hidden), chỉ hiện khi hover chuột thật, không chiếm chỗ.
+        // Owner 2026-11-09: every masonry card has a hidden name (aria-hidden), shown only on real mouse hover, taking no space.
         captions: [...document.querySelectorAll(".masonry-grid figcaption")].map((caption) => ({
           title: caption.matches(".masonry-card__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
           position: getComputedStyle(caption).position,
@@ -55,7 +55,7 @@ try {
         imageAlt: document.querySelector("[data-detail-image]")?.getAttribute("alt") || "",
         infoLabel: document.querySelector("[data-detail-info]")?.getAttribute("aria-label") || "",
         relatedCardCount: document.querySelectorAll("[data-masonry-related-card]").length,
-        // Owner 2026-11-09: card related có tên ẩn như masonry chính; id có tiền tố riêng nên không trùng card cùng id ở lưới chính.
+        // Owner 2026-11-09: a related card has a hidden name like the main masonry; its id has its own prefix so it does not collide with the same-id card in the main grid.
         relatedCaptions: [...document.querySelectorAll("[data-masonry-related-card] figcaption")].map((caption) => ({
           title: caption.matches(".masonry-card__title[aria-hidden=\"true\"]"), opacity: getComputedStyle(caption).opacity,
           position: getComputedStyle(caption).position, id: caption.id,
@@ -78,7 +78,7 @@ try {
       assert.ok(detail.relatedTiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: related tile reserves caption height`);
 
       await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
-      // Trang tương thích chuyển thẳng tới trang cụm theo slug của locale (taxonomy R4).
+      // The compatibility page redirects straight to the cluster page by the locale slug (taxonomy R4).
       await page.waitForURL(new RegExp(`/${locale}/advertising-products/${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}/$`));
       await page.waitForSelector("[data-masonry-card]");
       await page.close();

@@ -1,45 +1,45 @@
-// Ngân sách dựng card khi cuộn và card tạm (ghost) giữ chỗ cho card chưa dựng kịp (advertising-masonry R7).
+// Card mount budget while scrolling, and ghost (temporary) cards holding the place of cards not yet mounted (advertising-masonry R7).
 import { mountQuota } from "./layout.mjs";
 
 export const GHOST_FADE_MS = 450;
 export const GHOST_FADE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 const BREATHE_MS = 2000;
-// Vuốt trên một viewport mỗi 100ms thì chỉ giữ chỗ, không dựng card thật.
+// Swiping a viewport every 100ms only holds places and does not mount real cards.
 const FAST_VIEWPORTS_PER_S = 10;
 const JUMP_VIEWPORTS = 2;
-// Một phần ba khoảng frame là phần của việc dựng card; phần còn lại cho style, layout, paint.
+// One third of the frame interval is for mounting cards; the rest is for style, layout, paint.
 const BUDGET_SHARE = 1 / 3;
 const MIN_FRAME_MS = 8;
 const MAX_FRAME_MS = 34;
 const INITIAL_COST_MS = 3;
 const HOLD_FAST_MS = 120;
-// Thời gian đo chỉ gồm phần JS dựng card; style và layout của card chạy sau trong cùng frame nên chưa nằm trong số đo. Trần cứng
-// giữ mỗi frame vài card dù số đo thấp (máy nhanh vẫn dựng hết trong vài frame).
+// The measured time covers only the card-mounting JS; the card's style and layout run later in the same frame so are not yet in the measurement. A hard cap
+// keeps a few cards per frame even when the measurement is low (a fast machine still mounts everything within a few frames).
 const MAX_MOUNTS_PER_FRAME = 8;
 
-// Mọi phần tử đang thở dùng chung pha: delay âm bằng thời điểm hiện tại theo chu kỳ, nên card tạm đổi sang card mờ
-// không nhảy độ sáng.
+// All breathing elements share one phase: a negative delay equal to the current time modulo the cycle, so a ghost card turning into a faded card
+// does not jump in brightness.
 export const breathePhase = (now = performance.now()) => `${-(now % BREATHE_MS)}ms`;
 
-// Chi phí một card và nhịp frame đo ngay trên máy; hàm thuần theo đồng hồ truyền vào để test.
-// Chi phí tính theo khoảng frame: phần JS dựng card chỉ là một phần nhỏ, style, layout và paint của card mới chạy sau
-// trong cùng frame và làm frame kế tới trễ (A04s: JS 0.5ms một card nhưng frame dài thêm vài ms một card).
+// Per-card cost and frame cadence are measured on the device; a pure function of the clock passed in, for tests.
+// Cost is measured by frame interval: the mounting JS is only a small part, the card's style, layout and paint run later in the same frame and
+// delay the next frame (A04s: JS 0.5ms per card but the frame grows several ms longer per card).
 export function createMountBudget(clock = () => performance.now(), nextFrame = (callback) => requestAnimationFrame(callback)) {
   let costMs = INITIAL_COST_MS;
-  // Nhịp frame khi không dựng card: nền để tách chi phí dựng ra khỏi khoảng frame.
+  // Frame cadence when no cards are mounted: the baseline that separates mount cost from the frame interval.
   let frameMs = 1000 / 60;
   let sample = null;
   let lastMount = null;
-  // Ngân sách tính theo frame: một lần dựng là hết phần của frame đó, lần xét thứ hai trong cùng frame (rAF card tạm rồi
-  // tới cuộn, cách nhau vài ms vì lần đầu dựng tốn thời gian) không dựng thêm.
+  // The budget is per frame: one mount uses up that frame's share, and a second check in the same frame (ghost rAF then
+  // scroll, a few ms apart because the first mount took time) mounts no more.
   let spent = false;
   const smooth = (previous, next) => previous + (next - previous) * 0.2;
   const clampFrame = (ms) => Math.min(MAX_FRAME_MS, Math.max(MIN_FRAME_MS, ms));
-  // Khoảng tới frame này: có dựng card ở frame trước thì phần dôi ra so với nhịp nền là chi phí của chúng; không thì là nhịp nền.
+  // Interval up to this frame: if cards were mounted in the previous frame, the excess over the baseline cadence is their cost; otherwise it is the baseline cadence.
   const measure = (elapsed) => {
     const mounted = lastMount;
     lastMount = null;
-    // Quãng nghỉ dài là cuộn đã dừng, không nói gì về nhịp frame.
+    // A long pause means scrolling has stopped, saying nothing about frame cadence.
     if (elapsed >= 100) return;
     if (mounted) {
       const perCard = Math.max(mounted.jsMs, elapsed - frameMs) / mounted.count;
@@ -47,22 +47,22 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
     } else frameMs = smooth(frameMs, clampFrame(elapsed));
   };
   return {
-    // Gọi mỗi lần cửa sổ được xét; trả về true khi đang vuốt rất nhanh.
+    // Called each time the window is evaluated; returns true while swiping very fast.
     begin(y, viewportHeight) {
       const now = clock();
       let fast = false;
       if (sample) {
         const elapsed = now - sample.time;
-        // Gọi lần hai trong cùng một frame (rAF card tạm rồi tới cuộn): không có quãng đường để đo, giữ kết luận trước và mốc cũ.
+        // Second call in the same frame (ghost rAF then scroll): there is no distance to measure, keep the previous conclusion and the old mark.
         if (elapsed < 4) return sample.fast;
         measure(elapsed);
-        // Frame chạy lại vì còn card tạm (không cuộn thêm): đang vuốt nhanh thì vẫn nhanh, chỉ hết nhanh khi đứng yên đủ lâu.
+        // The frame reran because ghost cards remain (no further scrolling): if swiping fast it stays fast, ending only after standing still long enough.
         if (y === sample.y) {
           sample.time = now;
           return sample.fast && now - sample.movedAt < HOLD_FAST_MS;
         }
         const distance = Math.abs(y - sample.y);
-        // Một cú nhảy xa (kéo thanh cuộn, về chỗ cũ) cũng là vuốt nhanh dù sau quãng nghỉ dài: nội dung cũ không còn dùng.
+        // A long jump (dragging the scrollbar, returning to a previous spot) counts as fast swiping even after a long pause: the old content is no longer used.
         fast = distance / elapsed * 1000 > viewportHeight * FAST_VIEWPORTS_PER_S || distance > viewportHeight * JUMP_VIEWPORTS;
       }
       sample = { y, time: now, fast, movedAt: now };
@@ -72,7 +72,7 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
     record(count, jsMs) {
       if (count > 0) {
         lastMount = { count, jsMs };
-        // Hết ngân sách tới đầu frame sau (callback này đăng ký trước mọi rAF dựng tiếp nên chạy trước chúng).
+        // When the budget runs out until the next frame starts (this callback registers before any follow-up mount rAF, so it runs before them).
         if (!spent) nextFrame(() => { spent = false; });
         spent = true;
       }
@@ -80,7 +80,7 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
   };
 }
 
-// Lớp card tạm nằm đầu host (dưới mọi card), cùng hệ tọa độ với card: left, top, width, height theo px.
+// The ghost card layer sits at the top of the host (below all cards), in the same coordinate system as cards: left, top, width, height in px.
 export function createGhostLayer(host) {
   const layer = document.createElement("div");
   layer.className = "masonry-ghost-layer";
@@ -96,7 +96,7 @@ export function createGhostLayer(host) {
     layer,
     ids: () => pending.keys(),
     has: (id) => pending.has(id),
-    // Đặt (hoặc cập nhật) card tạm của một placement.
+    // Place (or update) the ghost card of a placement.
     show(id, placement, color) {
       let element = pending.get(id);
       if (!element) {
@@ -114,7 +114,7 @@ export function createGhostLayer(host) {
       setStyle(element, "height", `${placement.pixelHeight}px`);
       if (color) setStyle(element, "backgroundColor", color);
     },
-    // Card thật thay chỗ: trả phần tử để card crossfade lên trên nó, rồi người gọi gỡ nó.
+    // The real card takes its place: return the element so the card crossfades over it, then the caller removes it.
     take(id) {
       const element = pending.get(id);
       if (!element) return null;
@@ -139,20 +139,20 @@ export function createGhostLayer(host) {
   };
 }
 
-// Sức chứa hàng chờ card vừa gỡ theo RAM máy (navigator.deviceMemory, GB; không có thì coi như 4): máy yếu giữ ít card.
+// Capacity of the queue of recently removed cards by device RAM (navigator.deviceMemory, GB; treated as 4 if absent): weak devices keep fewer cards.
 export const detachedCapacity = (deviceMemory = 4) => {
   if (!(deviceMemory > 0)) return 24;
   if (deviceMemory <= 2) return 8;
   return deviceMemory >= 8 ? 48 : 24;
 };
 
-// Hàng chờ LRU các card vừa gỡ khỏi DOM mà ảnh còn giải mã: quay lại thì gắn đúng node cũ, không trống frame.
+// LRU queue of cards recently removed from the DOM whose image is still decoded: on return, attach the very same old node, no empty frame.
 export function createDetachedCards(capacity) {
   const queue = new Map();
   return {
     get size() { return queue.size; },
     has: (id) => queue.has(id),
-    // Vào hàng chờ (hoặc làm mới); trả các card bị đẩy ra vì quá sức chứa, cũ nhất trước.
+    // Enter the queue (or refresh); returns cards pushed out for exceeding capacity, oldest first.
     put(id, node) {
       queue.delete(id);
       queue.set(id, node);

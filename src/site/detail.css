@@ -6,13 +6,13 @@
   min-height: 44rem;
 }
 
-/* Ảnh hero Residential, Commercial hiện cắt cứng khi giải mã xong như hero Espacio, bỏ fade của khung chờ ảnh.
-   Selector khung chờ ảnh của media-gate cùng specificity với selector này nên giữ !important. */
+/* Residential and Commercial hero images cut in hard once decoded, like the Espacio hero, dropping the image-wait frame fade.
+   The media-gate image-wait frame selector has the same specificity as this one so !important stays. */
 .media-gate .detail-hero .hero-slide img {
   animation: none !important;
 }
 
-/* Không JavaScript thì script xáo không gán src cho slide nào; hero hiện ảnh cố định như trang chủ (detail-pages R11). */
+/* Without JavaScript the shuffle script assigns src to no slide; the hero shows a fixed image like the home page (detail-pages R11). */
 @media (scripting: none) {
   .residential-hero .hero-slides {
     background: center / cover url("/assets/content/projects/residential-hero-kitchen-dining.webp");
@@ -78,7 +78,7 @@
   font-weight: 700;
 }
 
-/* Hero Commercial: chữ thường nhẹ 500 như title hero các trang khác, chữ nhấn (em) đậm 700 nghiêng (owner 2026-10-24). */
+/* Commercial hero: regular text weight 500 light like other page hero titles, accent text (em) bold 700 italic (owner 2026-10-24). */
 .commercial-hero h1 :is(.detail-title__quiet, .detail-title__strong) {
   font-weight: 500;
 }
@@ -88,13 +88,13 @@
   font-weight: 700;
 }
 
-/* Hero Residential: dòng nhấn "năng lượng sống" đậm 700 và nghiêng (owner 2026-10-24). */
+/* Residential hero: the accent line "năng lượng sống" is bold 700 and italic (owner 2026-10-24). */
 .residential-hero h1 .detail-title__strong {
   font-style: italic;
 }
 
-/* Hero Advertising: dòng nhấn "luôn trong tầm mắt" đậm 700 và nghiêng (owner 2026-11-08).
-   Trang cụm, sản phẩm đổi khẩu hiệu thành <p id="page-title"> nên chọn theo id, không theo h1. */
+/* Advertising hero: the accent line "luôn trong tầm mắt" is bold 700 and italic (owner 2026-11-08).
+   Cluster and product pages change the tagline into <p id="page-title"> so select by id, not by h1. */
 .detail-index-hero #page-title .detail-title__strong {
   font-style: italic;
 }
@@ -269,7 +269,7 @@
 .detail-media {
   position: relative;
   aspect-ratio: 16 / 9;
-  /* Media gate đổi overflow sang clip (không tạo BFC, không phải scroll container): flow-root chặn margin âm của ảnh collapse ra ngoài khung, min-height 0 chặn ảnh cao 120% kéo khung cao thêm; nếu không khung đổi vị trí và cỡ lúc settle (CLS). */
+  /* Media gate switches overflow to clip (no BFC, not a scroll container): flow-root stops the image's negative margin from collapsing out of the frame, min-height 0 stops a 120%-tall image from stretching the frame; otherwise the frame changes position and size at settle (CLS). */
   display: flow-root;
   min-height: 0;
   overflow: hidden;
@@ -283,8 +283,8 @@
   object-fit: cover;
 }
 
-/* Như khối mở trang "Interior design" và "Kitchens" của Espacio (owner 2026-10-27): tiêu đề nét mảnh canh trái,
-   đoạn thân cột phải thụt dòng đầu; đoạn dưới ảnh cùng kiểu, tiêu đề gallery canh giữa theo sau. */
+/* Like the Espacio opening blocks "Interior design" and "Kitchens" (owner 2026-10-27): thin-stroke title aligned left,
+   the right column body paragraph indents its first line; the paragraph under the image uses the same style, followed by the centered gallery title. */
 .detail-lead {
   padding: clamp(2rem, 4vw, 4rem) 0;
 }
@@ -304,8 +304,8 @@
   margin-top: clamp(4rem, 9vw, 9rem);
 }
 
-/* Như khối "The balance within the spaces" của Espacio: tiêu đề nét mảnh canh giữa, dải ảnh cùng chiều cao,
-   bề rộng theo tỷ lệ thật của ảnh, caption dưới ảnh (detail-pages R7). */
+/* Like the Espacio block "The balance within the spaces": thin-stroke title centered, image strip of equal height,
+   width following the real image ratio, caption under the image (detail-pages R7). */
 .detail-gallery {
   --gallery-image-height: min(50vw, 45rem);
   padding: 35px 0;
@@ -324,11 +324,11 @@
 .detail-gallery > h2 {
   margin: 0 var(--gutter) clamp(2rem, 4vw, 3.5rem);
   text-align: center;
-  /* Phone: "Không gian / tiêu biểu." thay vì cắt giữa cụm nghiêng. */
+  /* Phone: "Không gian / tiêu biểu." instead of breaking in the middle of the italic phrase. */
   text-wrap: balance;
 }
 
-/* Chưa có Swiper (không JS, tải lỗi): track cuộn native. */
+/* Swiper not yet present (no JS, load failure): the track scrolls natively. */
 .detail-gallery__track {
   padding: 0 var(--gutter);
   overflow-x: auto;
@@ -337,7 +337,7 @@
   scroll-snap-type: x proximity;
 }
 
-/* Swiper chạy: track thụt theo gutter như container Espacio, ảnh tràn ra mép, section cắt. */
+/* Swiper running: the track is indented by the gutter like the Espacio container, images bleed to the edge, the section clips. */
 .detail-gallery__track.swiper-initialized {
   margin: 0 var(--gutter);
   padding: 0;
@@ -353,8 +353,8 @@
   gap: 20px;
 }
 
-/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ.
-   Chấm nằm trong track như Espacio nên kéo từ khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption. */
+/* Swiper dots like Espacio: 8px, 8px apart, normal dot black 20%, active dot bold; space reserved before Swiper paints.
+   Dots sit inside the track like Espacio so dragging from the gap under the caption or the dot row drags the carousel, without selecting the caption. */
 .detail-gallery__pagination {
   --swiper-pagination-color: var(--ink);
   --swiper-pagination-bottom: auto;
@@ -369,7 +369,7 @@
 .detail-gallery__item {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  /* Giảm chuyển động đặt transition 0.01ms cho mọi phần tử: Swiper xóa margin rồi đo ngay, đọc margin cũ nên slide lệch dần. */
+  /* Reduced motion sets transition 0.01ms on every element: Swiper clears margin then measures at once, reading the old margin so slides drift off. */
   transition: none !important;
 }
 
@@ -379,7 +379,7 @@
   background: var(--media-loading-surface);
 }
 
-/* Cao cố định, rộng theo width/height của thẻ img nên khung đúng tỷ lệ trước khi ảnh tải. */
+/* Fixed height, width following the img tag's width/height so the frame has the right ratio before the image loads. */
 .detail-gallery__media img {
   width: auto;
   height: var(--gallery-image-height);
@@ -388,7 +388,7 @@
 }
 
 .detail-gallery__item figcaption {
-  /* Caption không nới figure: bề rộng theo ảnh, chữ dài xuống dòng; ảnh rộng hơn track thì caption chỉ rộng bằng track. */
+  /* The caption does not widen the figure: width follows the image, long text wraps; if the image is wider than the track the caption is only as wide as the track. */
   contain: inline-size;
   max-width: calc(100vw - 2 * var(--gutter));
   margin-top: 10px;
@@ -447,7 +447,7 @@
 
 .process-step h3 {
   margin: auto 0 1rem;
-  /* 5 cột: "Consultation" (~6.2em) phải lọt cột hẹp nhất, cả ở 981px lẫn khung max 1370px. */
+  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1370px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
@@ -501,7 +501,7 @@
   display: grid;
   min-height: 37.5rem;
   place-items: center;
-  /* clip, không hidden: lớp bấm -100vmax của .legacy-link không tạo vùng cuộn ẩn. */
+  /* clip, not hidden: the -100vmax tap layer of .legacy-link creates no hidden scroll area. */
   overflow: clip;
   background: var(--media-loading-surface);
   color: white;
@@ -524,7 +524,7 @@
 
 .detail-cta::after {
   content: "";
-  /* Owner 2026-10-26: 0,5 (trước 0,4). */
+  /* Owner 2026-10-26: 0,5 (was 0,4). */
   background: rgba(0, 0, 0, 0.5);
 }
 
@@ -534,13 +534,13 @@
   width: min(66rem, calc(100% - 3rem));
 }
 
-/* picture là display: contents nên <source> thành grid item rỗng, chiếm một hàng và đẩy copy xuống dưới tâm khối. */
+/* picture is display: contents so <source> becomes an empty grid item, taking one row and pushing the copy below the block center. */
 .detail-cta > picture > source {
   display: none;
 }
 
-/* Hai hàng 1fr bằng nhau quanh tiêu đề: eyebrow và nút treo hai bên, tiêu đề nằm đúng tâm khối (owner 17/10).
-   Khối Giữ nghề trang chủ (.legacy-copy) dùng chung bố cục này (owner 2026-10-27). */
+/* Two equal 1fr rows around the title: eyebrow and button hang on either side, the title sits at the exact block center (owner 17/10).
+   The home "Giữ nghề" block (.legacy-copy) shares this layout (owner 2026-10-27). */
 .detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy,
 .legacy-copy {
   display: grid;
@@ -551,8 +551,8 @@
   align-self: end;
 }
 
-/* Hộp tiêu đề đã ở tâm; dời cả cụm để nét chữ nhìn thấy (đỉnh chữ hoa tới chân chữ) ở tâm khối (owner 17/10).
-   Hệ số đo bằng Playwright: chữ chưa split nằm thấp 0.1em; route split nhấc dòng lên 0.1em sau reveal (detail.js). */
+/* The title box is already at center; shift the whole group so the visible glyphs (capital top to baseline) sit at the block center (owner 17/10).
+   Factors measured with Playwright: unsplit text sits 0.1em low; the split route lifts the line 0.1em after reveal (detail.js). */
 .detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy {
   top: calc(var(--cta-title-size) * -0.1);
 }
@@ -587,7 +587,7 @@
 .detail-cta__copy a,
 .legacy-copy .legacy-link {
   display: inline-flex;
-  /* Vùng chạm 44px như .site-invitation__link; nhãn là .portal-subtitle như link Giữ nghề. */
+  /* 44px tap area like .site-invitation__link; the label is .portal-subtitle like the Giữ nghề link. */
   min-height: 44px;
   align-items: center;
   margin-top: 2rem;
@@ -631,7 +631,7 @@
   bottom: 15vh;
   left: 50%;
   display: flex;
-  /* Đủ rộng để "Tất cả" và sáu tên cụm ngắn nằm một hàng trên PC. */
+  /* Wide enough for "Tất cả" and the six short cluster names to fit in one row on PC. */
   width: min(100%, 62.5rem);
   max-width: none;
   margin: 0;
@@ -642,7 +642,7 @@
   z-index: 3;
 }
 
-/* Chip ẩn (loại chưa có công trình, projects R2) thắng display của rail. */
+/* A hidden chip (type without a project yet, projects R2) beats the rail's display. */
 .detail-index-hero .project-filter[hidden] {
   display: none;
 }
@@ -672,7 +672,7 @@
   text-decoration-skip-ink: none;
 }
 
-/* Rail hai tầng (taxonomy R3). Tầng sản phẩm (hàng chip) chữ thường, nhỏ hơn, gạch chân 2px. */
+/* Two-tier rail (taxonomy R3). The product tier (chip row) is lowercase, smaller, with a 2px underline. */
 .detail-index-hero .rail-chip {
   color: var(--muted);
   font-weight: 500;
@@ -692,8 +692,8 @@
   text-decoration-skip-ink: none;
 }
 
-/* Máy có hover: gạch chân cụm và chip chạy vào từ trái, rút về phải, cùng timing với .desktop-nav a (taxonomy R3).
-   Điện thoại giữ text-decoration ở trên; reduced motion tắt transition bằng reset toàn cục của style.css. */
+/* Hover devices: the cluster and chip underline runs in from the left and out to the right, same timing as .desktop-nav a (taxonomy R3).
+   Phone keeps text-decoration above; reduced motion turns off the transition via the global reset in style.css. */
 @media (hover: hover) and (pointer: fine) {
   .detail-index-hero .project-filter,
   .detail-index-hero .rail-chip > span:first-child {
@@ -730,7 +730,7 @@
   }
 }
 
-/* Sàn chữ 12.5px của site (Espacio typography). */
+/* The site's 12.5px text floor (Espacio typography). */
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
@@ -763,12 +763,12 @@
 }
 
 @media (min-width: 1025px) {
-  /* Rail còn một hàng nên nâng lên một bậc; hàng chip nằm chỗ rail cũ, chữ "Cuộn xuống" vẫn hiện bên dưới (owner 2026-10-17). */
+  /* The rail has one row so it moves up one step; the chip row sits where the old rail was, the "Cuộn xuống" text still shows below (owner 2026-10-17). */
   .detail-index-hero .project-filters {
     bottom: calc(15vh + 3.25rem);
   }
 
-  /* Neo dọc: khung chỉ cao đúng một hàng (14px x 1.4), các hàng chip thêm tràn xuống dưới nên hàng đầu luôn đứng một chỗ (owner 2026-10-17). */
+  /* Vertical anchor: the frame is only one row tall (14px x 1.4), extra chip rows overflow downward so the first row always stays in one place (owner 2026-10-17). */
   .detail-index-hero .rail-chips {
     bottom: 15vh;
     height: 1.225rem;
@@ -788,7 +788,7 @@
   gap: 35px;
 }
 
-/* display: contents không có box riêng, nên khi bật scripting Chromium sẽ layout văn bản fallback thô. */
+/* display: contents has no box of its own, so with scripting on Chromium lays out the raw fallback text. */
 @media (scripting: none) {
   .project-grid > noscript {
     display: contents;
@@ -819,7 +819,7 @@
   transition: transform 0.6s ease-out;
 }
 
-/* Ảnh bìa kiosk: chữ hộp đèn lệch phải, dịch khung cắt 3:4 sang phải để giữ đủ chữ. */
+/* Kiosk cover image: the light-box text leans right, shift the 3:4 crop frame to the right to keep the full text. */
 .project-tile:not(.masonry-card) img[src*="advertising-kiosk-posm-cover"] {
   object-position: 58% 50%;
 }
@@ -849,7 +849,7 @@
     grid-template-columns: 1fr;
   }
 
-  /* Năm bước vẫn một hàng: rail vuốt ngang. */
+  /* Five steps still in one row: the rail swipes horizontally. */
   .detail-process {
     grid-template-columns: none;
     grid-auto-flow: column;
@@ -1018,7 +1018,7 @@
 
 /* Trang About */
 .about-page .about-hero {
-  /* Hero theo luồng chữ tới 980px vẫn phủ kín màn hình. */
+  /* The text-flow hero up to 980px still fills the screen. */
   min-height: max(46rem, 100svh);
 }
 
@@ -1253,7 +1253,7 @@
     );
   }
 
-  /* Inline overflow của SplitText không được ghi đè clip path nhận biết ink. */
+  /* SplitText inline overflow must not override the ink-aware clip path. */
   .detail-page .motion-line-mask {
     overflow: visible !important;
   }
@@ -1439,7 +1439,7 @@ body.is-masonry-browse .masonry-grid {
   width: calc(100% - (2 * var(--masonry-outer)));
 }
 
-/* Lúc mở detail, grid giữ style và layout đã tính thay vì display: none, nên Back không phải dựng lại cả grid trong task popstate (decision phone-frame-budget). */
+/* While detail is open, the grid keeps its style and computed layout instead of display: none, so Back does not rebuild the whole grid in the popstate task (decision phone-frame-budget). */
 .detail-page .project-index[hidden] {
   display: block;
   position: absolute;
@@ -1487,9 +1487,9 @@ body.is-masonry-browse .masonry-grid {
   aspect-ratio: auto;
   overflow: hidden;
   background: #e9e6df;
-  /* Vòng 1px màu giấy vẽ trên nền khung, dưới media: chỗ nào media hụt khung dưới một pixel (làm tròn tỷ lệ, layer
-     composite lệch subpixel, mép khử răng cưa) lộ màu giấy như rãnh giữa card, không lộ màu chủ đạo thành lằn tối
-     (owner 2026-11-09). Không đổi hình học. */
+  /* A 1px paper-color ring painted on the frame background, under the media: wherever media falls short of the frame by under a pixel (ratio rounding, layer
+     composite subpixel offset, anti-aliased edge) the paper color shows like the gutter between cards, instead of the dominant color showing as a dark line
+     (owner 2026-11-09). Geometry unchanged. */
   box-shadow: inset 0 0 0 1px var(--paper);
 }
 
@@ -1504,7 +1504,7 @@ body.is-masonry-browse .masonry-grid {
   display: grid;
   place-items: center;
   padding: 0.5rem;
-  /* Owner 2026-10-26: lớp đen 0,7 (trước 0,72). */
+  /* Owner 2026-10-26: black layer 0,7 (was 0,72). */
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 0.8rem;
@@ -1512,7 +1512,7 @@ body.is-masonry-browse .masonry-grid {
   text-align: center;
   text-shadow: var(--text-shadow-d);
   pointer-events: none;
-  /* Lớp đen chỉ hiện khi media sẵn sàng, cùng nhịp 0.6s của blur tan (spec chờ ảnh S3). */
+  /* The black layer shows only when media is ready, with the same 0.6s timing as the blur dissolving (image-wait spec S3). */
   transition: opacity var(--media-hover-duration) var(--media-hover-easing),
     background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
@@ -1577,7 +1577,7 @@ body.is-masonry-browse .masonry-grid {
     var(--media-hover-transform);
 }
 
-/* Dải liền khi đổi media (media-card R3): lane không chạy fade lúc tải; lane cạnh nằm tuyệt đối, runtime dời bằng translate. */
+/* Continuous strip when changing media (media-card R3): the lane runs no fade while loading; the side lane is absolute, the runtime shifts it by translate. */
 .card-media__image--lane {
   transition: none;
 }
@@ -1589,7 +1589,7 @@ body.is-masonry-browse .masonry-grid {
   height: 100%;
 }
 
-/* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
+/* Media being loaded carries the masonry's last skeleton frame (docs/specs/loading-glass-and-page-entry.md R1). */
 .card-media > .masonry-grid__cta-frame {
   z-index: 1;
   inset: 0;
@@ -1603,8 +1603,8 @@ body.is-masonry-browse .masonry-grid {
   touch-action: pan-y;
 }
 
-/* Mọi item cùng tỷ lệ với canvas (media-card R1) nên phủ đúng canvas; width auto trước đây
-   co ảnh về đúng giá trị sizes do lazysizes đo, ảnh hiện nhỏ hơn cột. */
+/* Every item has the same ratio as the canvas (media-card R1) so it covers the canvas exactly; width auto used to
+   shrink the image to the sizes value lazysizes measured, so the image showed smaller than the column. */
 .card-media--carousel [data-masonry-media-item] {
   display: block;
   flex: none;
@@ -1680,7 +1680,7 @@ body.is-masonry-browse .masonry-grid {
   pointer-events: auto;
 }
 
-/* Chấm 8px theo UI chấm của Gallery (bullet Swiper, owner 2026-10-17), đảo màu trên pill: chấm thường trắng 40%, chấm đang xem trắng. */
+/* 8px dots following the Gallery dot UI (Swiper bullet, owner 2026-10-17), colors inverted on the pill: normal dot white 40%, current dot white. */
 .card-media__dot::before {
   content: "";
   width: 8px;
@@ -1730,22 +1730,22 @@ body.is-masonry-browse .masonry-grid {
   opacity: 1;
 }
 
-/* Card chờ ảnh thở bằng chính keyframe media-breathe của Vệt sáng (style.css); runtime gắn
-   data-masonry-media-loading khi ảnh mờ, gỡ lúc blur tan (spec chờ ảnh S2). Chỉ layer đang mờ thở: layer tạo theo
-   nhu cầu (hàng xóm của dải) trong lúc card còn chờ chưa có blur nên không thở. */
+/* A card waiting for its image breathes using the Light sweep's own media-breathe keyframe (style.css); the runtime sets
+   data-masonry-media-loading while the image is blurred and removes it when the blur dissolves (image-wait spec S2). Only a blurred layer breathes: layers created on
+   demand (strip neighbors) while the card is still waiting have no blur so they do not breathe. */
 [data-masonry-media-loading] .masonry-card__foreground[style*="blur("] {
   animation: media-breathe 2s ease-in-out infinite;
-  /* Pha chung với card tạm (runtime ghi --breathe-phase), nên đổi từ card tạm sang card mờ không nhảy độ sáng. */
+  /* Phase shared with the placeholder card (runtime writes --breathe-phase), so switching from placeholder to blurred card does not jump in brightness. */
   animation-delay: var(--breathe-phase, 0s);
 }
 
-/* Card tạm giữ chỗ card chưa dựng kịp khi vuốt nhanh (advertising-masonry R7): màu chủ đạo của ảnh bìa, thở như card
-   chờ ảnh. Lớp nằm đầu grid, dưới mọi card, không nhận chạm. */
+/* A placeholder card holds the place of a card not built in time during a fast swipe (advertising-masonry R7): the cover image's dominant color, breathing like a card
+   waiting for its image. The layer sits at the start of the grid, under every card, and takes no taps. */
 .masonry-ghost-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  /* Card tạm thêm, bớt mỗi frame cuộn; cô lập layout để grid và trang không tính lại theo (A04s: layout ép mỗi frame). */
+  /* Placeholder cards are added and removed every scroll frame; isolate layout so the grid and page do not recompute (A04s: layout forced every frame). */
   contain: strict;
 }
 
@@ -1779,8 +1779,8 @@ body.is-masonry-browse .masonry-grid {
   overflow: hidden;
 }
 
-/* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. Lớp compositor riêng
-   để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s cũ, vòng 22). */
+/* Shared Flow canvas of the batch (advertising-skeleton R5): the runtime sets height and translateY. Its own compositor layer
+   so shifting the band during a fling does not update the whole page's property tree (PrePaint 53ms on the old A05s, round 22). */
 .masonry-grid__cta-shared-flow {
   position: absolute;
   top: 0;
@@ -1791,15 +1791,15 @@ body.is-masonry-browse .masonry-grid {
   contain: strict;
 }
 
-/* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
-   blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
-   100px (ba band step của arc trên phone: 4.5, 12 và 28px, rule nth-last-child bên dưới; chín bậc của arc trên PC do masonry/glass-surface.mjs
-   đặt inline qua --glass-step-blur, thắng các rule này); saturate() và brightness() nhân nhau, nên mỗi step
-   mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
-   chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
-   Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
-   Chỉ các step sở hữu backdrop-filter. Bản thân box giữ trơn: opacity, mask hay filter trên nó
-   sẽ cắt các step khỏi trang phía sau. */
+/* Kính (docs/specs/glass-surface.md): one component for every glass surface. Backdrop
+   blur stacks cumulatively, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward levels 16.07, 57.14 and a ceiling of
+   100px (the three step bands of the arc on phone: 4.5, 12 and 28px, nth-last-child rules below; the nine steps of the arc on PC are set inline by masonry/glass-surface.mjs
+   through --glass-step-blur, winning over these rules); saturate() and brightness() multiply, so each step
+   carries the cube root of 1.7 and 1.04. The arc sets all four to 1, leaving only blur (owner 10/10): the core
+   stacks the step band in the fade strip at the arc, so the color would be applied twice, making a dark ridge along the arc.
+   Steps count from tint and grain, so the arc's core standing before them shifts nothing.
+   Only the steps own backdrop-filter. The box itself stays plain: opacity, mask or filter on it
+   would cut the steps off from the page behind. */
 .glass-surface {
   --glass-saturate: 1.7;
   --glass-brightness: 1.04;
@@ -1818,7 +1818,7 @@ body.is-masonry-browse .masonry-grid {
   display: block;
 }
 
-/* Band step của arc vượt số đếm đã fit của thiết bị này (masonry/glass-surface.mjs). */
+/* The arc's step band exceeds the fitted count of this device (masonry/glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -1845,15 +1845,15 @@ body.is-masonry-browse .masonry-grid {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Grain mono tĩnh 3% trên mid tone; overlay để nguyên trắng tinh. */
+/* Static mono grain 3% on mid tone; the overlay stays pure white. */
 .glass-surface__grain {
   background: var(--glass-grain, none) 0 0 / var(--glass-grain-size, 160px) repeat;
   mix-blend-mode: overlay;
   opacity: 0.06;
 }
 
-/* Runtime arc đặt từng layer (masonry/glass-surface.mjs); nó trải viewport trên batch. Core giữ 28px của band trên phone;
-   trên PC runtime đặt inline --glass-full-blur: 100px cho core (chín bậc của dải đã mang blur tới trần 100px). */
+/* The arc runtime sets each layer (masonry/glass-surface.mjs); it spans the viewport over the batch. The core keeps the 28px of the band on phone;
+   on PC the runtime sets inline --glass-full-blur: 100px for the core (the strip's nine steps already carry blur up to the 100px ceiling). */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
   --glass-brightness: 1;
@@ -1868,9 +1868,9 @@ body.is-masonry-browse .masonry-grid {
   inset: auto 0;
 }
 
-/* Trên các layer WebGL của skeleton trong trang composited (smooth scroll), Chromium bỏ blur của step dưới một
-   sibling blended, nên mép card lộ sắc nét qua arc. White noise với blending normal làm sáng thêm
-   0.12 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.06 của nó trừ khỏi tint
+/* On the skeleton's WebGL layers in a composited page (smooth scroll), Chromium drops the blur of the step under a
+   blended sibling, so the card edge shows sharply through the arc. White noise with normal blending brightens by an extra
+   0.12 x noise x (1 - backdrop), i.e. the overlay's noise on bright glass; its mean 0.06 is subtracted from the tint
    (masonry/glass-surface.mjs). */
 .glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
   background-image: var(--glass-grain-white, none);
@@ -1878,7 +1878,7 @@ body.is-masonry-browse .masonry-grid {
   opacity: 0.12;
 }
 
-/* Layer của arc chạy 2px dưới footer; footer xếp trên chúng để đường viền trên của nó còn nguyên. */
+/* The arc layers run 2px under the footer; the footer stacks above them so its top border line stays intact. */
 body.is-masonry-browse .site-footer {
   position: relative;
   z-index: 1;
@@ -1924,7 +1924,7 @@ body.is-masonry-browse .site-footer {
   opacity: var(--masonry-cta-frame-opacity);
 }
 
-/* Frame batch vào dưới Kính từ runtime, nên lấy opacity cuối ngay (skeleton R4). */
+/* The batch frame enters under the Kính from the runtime, so it takes the final opacity at once (skeleton R4). */
 .masonry-grid__cta-frame[data-masonry-cta-frame] {
   transition: none;
 }
@@ -1937,7 +1937,7 @@ body.is-masonry-browse .site-footer {
 }
 
 .detail-view {
-  /* Arc Kính của CTA cuối related trải ra mép viewport như ở masonry (CTA R9): lề ngoài của detail là gutter. */
+  /* The CTA arc Kính at the end of related spans to the viewport edge as in masonry (CTA R9): the outer margin of detail is the gutter. */
   --masonry-outer: var(--gutter);
   --masonry-safe-top: env(safe-area-inset-top, 0px);
   --masonry-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -2014,7 +2014,7 @@ body.is-masonry-browse .site-footer {
   display: block;
 }
 
-/* Kính reveal phủ photo và skeleton nhưng ở dưới image action. */
+/* The Kính reveal covers the photo and skeleton but sits under the image action. */
 .detail-view__hero-frame > .glass-surface[data-glass-reveal] > i {
   z-index: 2;
 }
@@ -2034,7 +2034,7 @@ body.is-masonry-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* Skeleton nằm trên photo và dưới image action; photo chờ dưới nó đến khi decode xong. */
+/* The skeleton sits above the photo and under the image action; the waiting photo sits under it until decoded. */
 .detail-view__hero-frame > .masonry-grid__cta-frame {
   z-index: 2;
   inset: 0;
@@ -2045,7 +2045,7 @@ body.is-masonry-browse .site-footer {
   opacity: 0;
 }
 
-/* Video nằm cùng hộp contain với ảnh trong khung cover, nền trong suốt để zoom blur (poster) hiện ở vùng dư. */
+/* The video sits in the same contain box as the image inside the cover frame, with a transparent background so the zoom blur (poster) shows in the spare area. */
 .detail-view__hero [data-detail-video] {
   position: absolute;
   z-index: 2;
@@ -2057,9 +2057,9 @@ body.is-masonry-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên trắng 36px góc vuông (owner 2026-10-24) cách mép
-   16px, chevron nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem
-   trắng, còn lại trắng 0.5. */
+/* The multi-item media strip follows the Pinterest pin (remeasured 2026-10-18): white 36px square-corner arrow (owner 2026-10-24) 16px from the edge,
+   thin-stroke 16px chevron, shown on hover, hover background #f6f6f3, press scales 0.9; 8px dots 8px apart at the bottom, current
+   white, others white 0.5. */
 .detail-view__media-step {
   position: absolute;
   z-index: 4;
@@ -2142,7 +2142,7 @@ body.is-masonry-browse .site-footer {
   }
 }
 
-/* Cảm ứng không hover: đổi media bằng vuốt, mũi tên vô hình không được chặn chạm vào media. */
+/* Touch with no hover: change media by swipe, invisible arrows must not block taps into the media. */
 @media (hover: none) {
   .detail-view__media-step {
     display: none;
@@ -2155,7 +2155,7 @@ body.is-masonry-browse .site-footer {
   outline-offset: 2px;
 }
 
-/* Dải media khi đổi media (media-card R6): hộp cắt đúng BBox contain; media thật ẩn tới khi dải dừng. */
+/* Media strip when changing media (media-card R6): the box clips to exactly the contain BBox; the real media stays hidden until the strip stops. */
 .detail-view__strip {
   position: absolute;
   z-index: 2;
@@ -2184,9 +2184,9 @@ body.is-masonry-browse .site-footer {
   display: none;
 }
 
-/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng, không nút phát
-   giữa video. Mọi nút một hàng [phát][giờ][thanh tua][tiếng] (owner 2026-10-25). Thanh âm lượng thêm theo owner. Không
-   dải gradient: icon, thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
+/* Primary video player following the Pinterest pin page (measured 2026-10-18): no native controls, clicking the video plays/pauses, no play button
+   in the middle of the video. All buttons in one row [play][time][seek bar][sound] (owner 2026-10-25). The volume bar was added per owner. No
+   gradient strip: icons, seek bar and time carry a two-layer shadow D (primary-video-player R4). */
 .video-player {
   position: absolute;
   z-index: 3;
@@ -2211,10 +2211,10 @@ body.is-masonry-browse .site-footer {
   fill: currentColor;
 }
 
-/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg; thanh tua dùng box-shadow ở đường tua và
-   núm (bên dưới). drop-shadow là filter, mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ: A04s 2026-10-26 viewer
-   video rơi 8 frame mỗi 8 s, bỏ bóng thanh và icon thì 0. Nút icon là lớp riêng (will-change) để bóng icon chỉ vẽ một lần,
-   không vẽ lại theo thanh tua hay giờ (owner 2026-10-26 chọn "Giữ bóng, tách lớp"). */
+/* Two-layer shadow D (R4): the same --text-shadow-d values, written as drop-shadow for svg; the seek bar uses box-shadow on the seek line and
+   knob (below). drop-shadow is a filter, so each time the seek bar moves Chrome recomputes the whole blurred shadow layer: A04s 2026-10-26 viewer
+   video dropped 8 frames every 8 s, 0 after removing the bar and icon shadows. The icon button is its own layer (will-change) so the icon shadow paints once,
+   not repainted with the seek bar or time (owner 2026-10-26 chose "Giữ bóng, tách lớp"). */
 .video-player__button svg {
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
@@ -2225,7 +2225,7 @@ body.is-masonry-browse .site-footer {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  /* PC (R7): hàng 36px thẳng đáy nút mở lớn (cách khung 16px), icon tiếng dừng trước nút đó 8px: 16 + 36 + 8. */
+  /* PC (R7): the 36px row aligns to the bottom of the large-open button (16px from the frame), the sound icon stops 8px before that button: 16 + 36 + 8. */
   padding: 0 60px 16px 16px;
   opacity: 0;
   pointer-events: none;
@@ -2236,7 +2236,7 @@ body.is-masonry-browse .site-footer {
   pointer-events: auto;
 }
 
-/* Chuột rời video thì ẩn; đang dừng hoặc đang focus bàn phím thì luôn hiện (cảm ứng: khối hover none bên dưới). */
+/* Mouse leaving the video hides it; while paused or keyboard-focused it always shows (touch: the hover none block below). */
 @media (hover: hover) {
   .detail-view__hero-frame:hover .video-player__bar,
   .detail-dialog__video:hover .video-player__bar {
@@ -2338,7 +2338,7 @@ body.is-masonry-browse .site-footer {
   margin-top: -4px;
   border: 0;
   border-radius: 50%;
-  /* Núm đặc (R5): núm trong suốt để lộ đường tua chạy xuyên qua. */
+  /* Solid knob (R5): a transparent knob lets the seek line run through it. */
   background: #fbfbf9;
   appearance: none;
 }
@@ -2351,9 +2351,9 @@ body.is-masonry-browse .site-footer {
   background: #fbfbf9;
 }
 
-/* Bóng thanh tua (R4) vẽ bằng box-shadow ở đường tua và núm, không filter (lý do ở icon bên trên). Số chỉnh để nhìn như
-   drop-shadow D cũ (so ảnh 2026-10-26, owner muốn giữ visual): drop-shadow loang gấp đôi box-shadow cùng số, nhạt theo độ
-   trong của đường tua và lộ qua phần trong đó; lớp đen dưới gradient trắng thay phần bóng lộ ấy. */
+/* Seek bar shadow (R4) drawn with box-shadow on the seek line and knob, no filter (reason at the icon above). The numbers are tuned to look like
+   the old drop-shadow D (per the 2026-10-26 image, owner wanted to keep the visual): drop-shadow spreads twice as wide as box-shadow with the same numbers, fades with the
+   transparency of the seek line and shows through its transparent part; a black layer under the white gradient replaces that showing shadow. */
 .video-player__progress::-webkit-slider-runnable-track {
   background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
     linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
@@ -2374,9 +2374,9 @@ body.is-masonry-browse .site-footer {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
-/* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
-   thanh tua ngang để không thao tác nhầm. Viên nền đen 0.5 (owner 2026-10-26) nằm sát nút nên di chuột lên không mất hover. Chỉ focus-visible
-   giữ cột mở: focus do chuột không giữ, nên kéo bằng chuột xong rời đi thì cột thu lại (owner 2026-10-24). */
+/* Vertical volume bar (owner 2026-10-18) pops up above the speaker button when the mouse or keyboard focus enters the sound cluster, separate from
+   the horizontal seek bar to avoid misoperation. A black 0.5 pill (owner 2026-10-26) sits against the button so moving the mouse up keeps hover. Only focus-visible
+   keeps the column open: mouse focus does not, so after dragging with the mouse and leaving, the column retracts (owner 2026-10-24). */
 .video-player__volume-pop {
   position: absolute;
   bottom: 100%;
@@ -2424,15 +2424,15 @@ body.is-masonry-browse .site-footer {
   margin: 0 0 0 -4px;
 }
 
-/* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, cùng hàng như PC nhưng nút 40px; nút tiếng chỉ bật/tắt,
-   không cột âm lượng. */
+/* Touch screens (primary-video-player R1): the bar always shows, same row as PC but 40px buttons; the sound button only toggles,
+   no volume column. */
 @media (hover: none) {
   .video-player__bar {
     padding: 0 4px 4px;
     opacity: 1;
   }
 
-  /* Nút mở lớn hiện với video ở primary (R8): hàng dừng trước nút đó như PC. */
+  /* The large-open button shows with a video at the primary (R8): the row stops before that button like PC. */
   .detail-view__hero-frame .video-player__bar {
     padding-right: 60px;
   }
@@ -2485,8 +2485,8 @@ body.is-masonry-browse .site-footer {
   display: none;
 }
 
-/* Viewer mở (advertising-detail R9, owner 2026-10-26): khung primary dưới nền viewer chỉ còn zoom blur phủ kín, kể cả media
-   vừa khít khung, không còn media sắc nét; video đã sang viewer, canvas nền sống giữ frame lúc mở. */
+/* Viewer open (advertising-detail R9, owner 2026-10-26): the primary frame under the viewer backdrop keeps only the full-cover zoom blur, even if the media
+   fits the frame exactly, with no sharp media left; the video went to the viewer, the background canvas keeps the frame at open. */
 [data-detail-expanded] .detail-view__hero-frame > [data-detail-image] {
   visibility: hidden;
 }
@@ -2495,13 +2495,13 @@ body.is-masonry-browse .site-footer {
   display: block;
 }
 
-/* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
-   tile khi re-raster trang (thumbnail hover tab), clamp blur ở mép tile và giữ đường nối đến khi
-   repaint đầy đủ. Cùng số với .glass-surface__step--full; Kính phía trên chỉ giữ tint và grain. */
+/* The primary Kính blurs this static photo with filter, not backdrop-filter: Chrome snapshots a backdrop per raster
+   tile when the page re-rasters (tab hover thumbnail), clamps the blur at tile edges and keeps the seam until
+   a full repaint. Same numbers as .glass-surface__step--full; the Kính above keeps only tint and grain. */
 .detail-view__hero [data-detail-background] {
   filter: blur(100px) saturate(1.7) brightness(1.04);
-  /* Blur lấy mẫu trong suốt ngoài mép ảnh nên mép khung lộ nền xám thành vignette; tràn mép 2 lần bán kính blur như
-     canvas nền realtime để mép đặc như giữa (owner 2026-10-19). */
+  /* The blur samples transparency beyond the image edge so the frame edge shows the gray background as a vignette; overflow the edge by 2x the blur radius like
+     the realtime background canvas so the edge is solid like the middle (owner 2026-10-19). */
   inset: -200px;
   width: calc(100% + 400px);
   height: calc(100% + 400px);
@@ -2510,7 +2510,7 @@ body.is-masonry-browse .site-footer {
 
 
 
-/* Nút vuông trắng chỉ icon (primary-video-player R7): tên qua aria-label, không bung chữ khi hover. */
+/* White square icon-only button (primary-video-player R7): the name comes through aria-label, no text expands on hover. */
 .detail-view__image-action {
   position: absolute;
   z-index: 3;
@@ -2537,7 +2537,7 @@ body.is-masonry-browse .site-footer {
   cursor: progress;
 }
 
-/* Nút quay lại kiểu Pinterest góc trên trái (detail R10), hiện cả màn cảm ứng. */
+/* Pinterest-style back button at the top left (detail R10), also shown on touch screens. */
 .detail-view__back {
   top: 16px;
   bottom: auto;
@@ -2600,7 +2600,7 @@ body.is-masonry-browse .site-footer {
   margin: 0;
 }
 
-/* Dãy thumbnail một dòng vừa số thumbnail nguyên (60px, gap 8px), thừa thì cuộn ngang (owner 2026-10-24). */
+/* A single-row thumbnail strip fits a whole number of thumbnails (60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24). */
 .detail-view__media-thumbs {
   --scroll-fade-direction: to right;
   --scroll-fade-size: 60px;
@@ -2612,8 +2612,8 @@ body.is-masonry-browse .site-footer {
   scrollbar-width: none;
 }
 
-/* Còn nội dung phía sau thì phần tử cuối trong khung mờ về trắng, đã cuộn thì phần tử đầu mờ; dùng cho dãy thumbnail và
-   mô tả (owner 2026-10-24), runtime gắn data-fade-start, data-fade-end theo vị trí cuộn. */
+/* When content remains beyond, the last element in the frame fades to white, once scrolled the first element fades; used for the thumbnail strip and
+   the description (owner 2026-10-24), the runtime sets data-fade-start, data-fade-end by scroll position. */
 :is(.detail-view__media-thumbs, .detail-view__description-scroll):is([data-fade-start], [data-fade-end]) {
   mask-image: linear-gradient(var(--scroll-fade-direction), var(--scroll-fade-from, #000), #000 var(--scroll-fade-size),
     #000 calc(100% - var(--scroll-fade-size)), var(--scroll-fade-to, #000));
@@ -2627,8 +2627,8 @@ body.is-masonry-browse .site-footer {
   --scroll-fade-to: transparent;
 }
 
-/* Thumbnail theo pin Pinterest (đo 2026-10-18): 60px, góc vuông (owner 2026-10-24), đang xem có viền 1px tối và viền trong
-   1px trắng. */
+/* Thumbnails following the Pinterest pin (measured 2026-10-18): 60px, square corners (owner 2026-10-24), the current one has a dark 1px border and an inner
+   white 1px border. */
 .detail-view__media-thumbs button {
   position: relative;
   flex: 0 0 60px;
@@ -2661,7 +2661,7 @@ body.is-masonry-browse .site-footer {
   object-fit: cover;
 }
 
-/* Thumbnail video là lớp riêng để bóng icon phát chỉ vẽ một lần (primary-video-player R4). */
+/* The video thumbnail is its own layer so the play icon shadow paints only once (primary-video-player R4). */
 .detail-view__media-thumbs button:has(> svg) {
   will-change: transform;
 }
@@ -2676,9 +2676,9 @@ body.is-masonry-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* Mô tả cuộn dọc thay cho phân trang (owner 2026-10-24), chữ căn đều, mép mờ như dãy thumbnail. Thanh cuộn theo player
-   (rãnh 4px, viên 4px dài theo lượng chữ) chỉ hiện khi hover hoặc focus bàn phím, fade 150ms, kéo được; màn hình cảm ứng
-   không có thanh, vuốt để cuộn. */
+/* Vertical scrolling description replaces pagination (owner 2026-10-24), justified text, fading edges like the thumbnail strip. The scrollbar follows the player
+   (4px track, 4px thumb sized by amount of text) and shows only on hover or keyboard focus, fades 150ms, draggable; touch screens
+   have no bar, swipe to scroll. */
 .detail-view__description {
   position: relative;
   width: 100%;
@@ -2854,7 +2854,7 @@ body.is-masonry-browse .site-footer {
   transition: background-color 250ms ease-out, border-color 250ms ease-out;
 }
 
-/* Nút chưa bật chờ ảnh nền bằng vệt sáng chung của ảnh nội dung (style.css), dưới overlay và nhãn. */
+/* A button not yet enabled waits for its background image with the shared light sweep of content images (style.css), under the overlay and label. */
 .media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
   background-color: var(--media-loading-surface);
 }
@@ -2883,7 +2883,7 @@ body.is-masonry-browse .site-footer {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 10%);
-    /* !important để thắng reset animation toàn cục của reduced motion. */
+    /* !important to beat the global reduced-motion animation reset. */
     animation: media-breathe 2s ease-in-out infinite !important;
   }
 }
@@ -2898,8 +2898,8 @@ body.is-masonry-browse .site-footer {
   outline-offset: 2px;
 }
 
-/* Lớp tối 0,5 hiện khi ảnh nền đã giải mã, hover không đổi (owner 2026-10-26, giữa hai mức 0,4 và 0,6 của Pinterest). Nút gợi ý cũng mang class
-   card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
+/* Dark layer 0,5 shows once the background image is decoded, hover does not change it (owner 2026-10-26, between Pinterest's 0,4 and 0,6). The suggestion button also carries class
+   card-media, so opacity 1 must be reset: the card's hover dark layer leaves ::after at 0. */
 .detail-view__suggestion-link::after {
   position: absolute;
   z-index: 1;
@@ -2914,7 +2914,7 @@ body.is-masonry-browse .site-footer {
   opacity: 0;
 }
 
-/* Lớp tối chỉ hiện khi ảnh nền đã giải mã (spec chờ ảnh S3): lúc chờ chỉ có vệt sáng, nhãn trắng mang bóng D. */
+/* The dark layer shows only once the background image is decoded (image-wait spec S3): while waiting there is only the light sweep, the white label carries shadow D. */
 .media-gate .detail-view__suggestion-link:not(.is-media-settled)::after {
   opacity: 0;
 }
@@ -2957,7 +2957,7 @@ body.is-masonry-browse .site-footer {
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
-  /* Bóng hai lớp D trên lớp tối sẵn có (primary-video-player R4); nút đang chọn chữ ink trên nền giấy thì không. */
+  /* Two-layer shadow D on the existing dark layer (primary-video-player R4); the selected button with ink text on paper background does not. */
   text-shadow: var(--text-shadow-d);
 }
 
@@ -2995,10 +2995,10 @@ body.is-masonry-browse .site-footer {
 }
 
 .detail-dialog::backdrop {
-  /* Mọi máy cùng lớp tối 0,85 và Kính blur (advertising-detail R9; owner 2026-10-26 bỏ ngoại lệ phone không blur). */
+  /* Every device gets the same 0,85 dark layer and Kính blur (advertising-detail R9; owner 2026-10-26 dropped the no-blur phone exception). */
   background: rgba(32, 33, 32, 0.85);
   backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
-  /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
+  /* The swipe-to-close fade sets a variable on the dialog (advertising-viewer-touch-zoom R9). */
   opacity: var(--viewer-backdrop-opacity, 1);
 }
 
@@ -3038,7 +3038,7 @@ body.is-masonry-browse .site-footer {
   touch-action: none;
 }
 
-/* Ảnh, host video và lớp trượt chồng cùng một ô. */
+/* Image, video host and sliding layer stack in the same cell. */
 .detail-dialog__viewport > * {
   grid-area: 1 / 1;
 }
@@ -3121,8 +3121,8 @@ body.is-masonry-browse .site-footer {
   z-index: 2;
 }
 
-/* Dãy thumbnail dưới viewer thay hai mũi tên (primary-video-player R8, owner 2026-10-25): cùng dãy với primary, nằm giữa
-   đáy trong lề 80px của Fit, rộng theo số thumbnail và chừa chỗ cho cột nút zoom bên phải. */
+/* The thumbnail strip under the viewer replaces the two arrows (primary-video-player R8, owner 2026-10-25): same strip as the primary, centered between
+   the bottom inside Fit's 80px margin, width following the thumbnail count and leaving room for the zoom button column on the right. */
 .detail-dialog__thumbs {
   position: absolute;
   bottom: calc(var(--viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
@@ -3138,14 +3138,14 @@ body.is-masonry-browse .site-footer {
   outline-color: #fff;
 }
 
-/* Chuột đứng yên thì dãy thu xuống và mờ đi (owner 2026-10-26). */
+/* When the mouse is still the strip shrinks down and fades (owner 2026-10-26). */
 .detail-dialog__thumbs[data-viewer-idle] {
   opacity: 0;
   translate: -50% 1rem;
   pointer-events: none;
 }
 
-/* Host video trong viewer: nền ngoài video không nhận chuột để bấm vẫn đóng viewer; player phủ đúng khung Fit. */
+/* Video host in the viewer: the area outside the video takes no mouse so clicking still closes the viewer; the player covers exactly the Fit frame. */
 .detail-dialog__video {
   position: relative;
   display: grid;
@@ -3159,7 +3159,7 @@ body.is-masonry-browse .site-footer {
   pointer-events: auto;
 }
 
-/* Viewer PC không có nút mở lớn: thanh tua chạy tới lề phải như lề trái. */
+/* The PC viewer has no large-open button: the seek bar runs to the right margin like the left. */
 @media (hover: hover) {
   .detail-dialog__video .video-player__bar {
     padding-right: 16px;
@@ -3223,20 +3223,20 @@ body.is-masonry-browse .detail-cta[data-masonry-grid-cta] {
   left: 0;
 }
 
-/* Batch lấp khoảng trống trên footer. Đặt biến trên footer, không trên body: biến kế thừa đổi trên body làm
-   mở detail và Back restyle cả trang (decision phone-frame-budget). */
+/* The batch fills the gap above the footer. Set the variable on the footer, not on body: an inherited variable changed on body makes
+   opening detail and Back restyle the whole page (decision phone-frame-budget). */
 body.is-masonry-browse .site-footer {
   --footer-top-gap: 0px;
 }
 
-/* CTA nằm trên batch skeleton: không lớp tối, không bấm cả khối (chỉ nút). */
+/* The CTA sits on the skeleton batch: no dark layer, the whole block is not clickable (only the button). */
 .detail-cta[data-masonry-grid-cta]::after,
 .detail-cta[data-masonry-grid-cta] .legacy-link::before {
   content: none;
 }
 
-/* Baseline heading cuối nằm ở tâm dynamic viewport tại giới hạn cuộn,
-   hoặc link giữ một gap phía trên đáy batch khi cửa sổ quá thấp. */
+/* The last heading's baseline sits at the center of the dynamic viewport at the scroll limit,
+   or the link keeps a gap above the batch bottom when the window is too short. */
 .detail-cta[data-masonry-grid-cta] .detail-cta__copy {
   z-index: 2;
   width: min(78rem, 100%);
@@ -3245,30 +3245,30 @@ body.is-masonry-browse .site-footer {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Sau lần đặt đầu tiên, thay đổi kích thước thanh địa chỉ trượt mượt thay vì nhảy. */
+  /* After the first placement, address bar resizing slides smoothly instead of jumping. */
   .detail-cta[data-masonry-grid-cta][data-masonry-cta-settled] .detail-cta__copy {
     transition: margin-bottom 0.4s ease-out;
   }
 }
 
-/* Khi CTA chỉ cao bằng copy (text 200%, landscape), padding top giữ
-   dấu của dòng đầu trong overflow clip của CTA. */
+/* When the CTA is only as tall as its copy (text 200%, landscape), padding top keeps
+   the first line's ink mark inside the CTA's overflow clip. */
 .detail-cta[data-masonry-grid-cta] h2 {
   padding-top: 0.15em;
-  /* Cỡ riêng, không theo --cta-title-size: chữ to hơn làm cụm CTA cao và Kính phủ hết batch (owner 17/10). */
+  /* Own size, not following --cta-title-size: bigger text makes the CTA group tall and the Kính covers the whole batch (owner 17/10). */
   font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
   text-wrap: wrap;
   line-height: 1.2;
 }
 
-/* Runtime fit size đồng bộ; transition của reduced-motion sẽ báo size cũ. */
+/* The runtime fits size synchronously; the reduced-motion transition would report the old size. */
 .detail-cta[data-masonry-grid-cta] h2,
 .detail-cta[data-masonry-grid-cta] h2 * {
   transition: none !important;
 }
 
-/* Dòng split thêm 0.12em mask padding và nằm 0.1em cao hơn sau reveal (detail.js),
-   nên link vẫn nằm cách dòng cuối nhìn thấy một gap. */
+/* The split line adds 0.12em of mask padding and sits 0.1em higher after reveal (detail.js),
+   so the link still sits a gap away from the last visible line. */
 .detail-cta[data-masonry-grid-cta] h2:has(> .motion-line-mask) {
   margin-bottom: -0.22em;
 }
@@ -3301,7 +3301,7 @@ body.is-masonry-browse .floating-cta {
   display: none;
 }
 
-/* Hàng intrinsic giữ title, filter và cue tách biệt trên viewport touch thấp. */
+/* The intrinsic row keeps title, filter and cue apart on a short touch viewport. */
 @media (max-width: 980px) {
   .detail-heading h2,
   .detail-gallery__item figcaption,
@@ -3317,7 +3317,7 @@ body.is-masonry-browse .floating-cta {
     height: auto;
     min-height: calc(var(--site-layout-viewport-height) - 50px);
     padding-top: calc(var(--header-row-height) + 25px + 0.5rem);
-    /* Cue là hàng cuối, nên đây là khoảng cách của nó đến đáy hero. */
+    /* The cue is the last row, so this is its distance to the hero bottom. */
     padding-bottom: 30px;
     grid-template-rows: minmax(min-content, 1fr) auto auto;
     row-gap: 1rem;
@@ -3388,7 +3388,7 @@ body.is-masonry-browse .floating-cta {
     justify-content: start;
     gap: 0 1.375rem;
     overflow-x: auto;
-    /* Khung cuộn cắt cả trục dọc: chừa chỗ cho gạch chân 2px. */
+    /* The scroll frame clips the vertical axis too: leave room for the 2px underline. */
     padding: 0.25rem 25px 0.5rem;
     scrollbar-width: none;
   }
@@ -3423,8 +3423,8 @@ body.is-detail .detail-process {
   display: none;
 }
 
-/* Vào thẳng detail: main rỗng tới khi runtime lộ photo view, margin của footer lọt qua làm trang lệch 64px rồi
-   footer trượt khỏi màn hình (CLS 0,44, issue #649). Giữ footer dưới mép viewport ngay từ lần vẽ đầu. */
+/* Direct entry into detail: main is empty until the runtime reveals the photo view, the footer's margin leaks through, shifting the page 64px and then
+   the footer slides off screen (CLS 0,44, issue #649). Keep the footer below the viewport edge from the first paint. */
 body.is-detail .page-shell > main {
   min-height: 100vh;
 }
@@ -3461,10 +3461,10 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 
 }
 
-/* Màn cảm ứng mở, zoom và đóng viewer bằng gesture; button còn lại cho screen reader và hiện
-   lại khi có keyboard focus (advertising-viewer-touch-zoom R7, R8). */
+/* The touch screen opens, zooms and closes the viewer by gesture; the remaining buttons are for screen readers and show
+   again on keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
-  /* Như manipulation nhưng không pan-x: vuốt ngang kéo dải media theo ngón tay (media-card R6). */
+  /* Like manipulation but without pan-x: a horizontal swipe drags the media strip with the finger (media-card R6). */
   .detail-view__hero-frame {
     touch-action: pan-y pinch-zoom;
   }
@@ -3575,8 +3575,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* Ảnh hero đã được script head đánh dấu settled (load và decode xong) thì không chờ motion.js nữa,
-   tránh pha hiện, ẩn, hiện lại khi motion.js chạy. */
+/* A hero image that the head script marked settled (loaded and decoded) does not wait for motion.js,
+   avoiding a show, hide, show flicker when motion.js runs. */
 @media (scripting: enabled) {
   html:not(.motion-fallback)
     .hero:not(
@@ -3624,16 +3624,16 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* Chữ hero theo espacio (hero-typography R2): mỗi dòng một khối, mọi hero chung một cỡ để nhịp dòng giống nhau.
-   Cỡ chung là bề rộng khung chia 12.5 em (câu dài nhất hiện có khoảng 12 em), trần 7rem như số đo espacio, nên
-   không JS hay motion lỗi vẫn hai dòng và cùng hình học. motion.js đo dòng dài nhất theo em vào --hero-line-em và
-   gắn data-hero-fit: dòng nowrap, chỉ co thêm khi câu dài hơn 12.5 em. */
+/* Hero text following espacio (hero-typography R2): each line is one block, every hero shares one size so line rhythm matches.
+   The shared size is the frame width divided by 12.5 em (the longest existing sentence is about 12 em), capped at 7rem like the espacio measurement, so
+   without JS or with a motion failure it is still two lines with the same geometry. motion.js measures the longest line in em into --hero-line-em and
+   sets data-hero-fit: lines are nowrap, shrinking further only when a sentence is longer than 12.5 em. */
 .hero > .hero-content {
   width: min(80%, 62.5rem);
 }
 
-/* Trang chủ: khung chữ rộng hơn nên title lớn hơn các trang khác một bậc (x1,2) trên tablet và PC (owner
-   2026-10-24). Phone giữ khung chung bên dưới. */
+/* Home: the text frame is wider so the title is one step larger than other pages (x1,2) on tablet and PC (owner
+   2026-10-24). Phone keeps the shared frame below. */
 @media (min-width: 751px) {
   .hero[data-hero-intro] > .hero-content {
     width: min(90%, 75rem);
@@ -3671,14 +3671,14 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   font-size: var(--hero-line-size);
 }
 
-/* Kicker cách đỉnh nét chữ title như nhau ở mọi hero (hero-typography R2): khoảng chung tính cho dấu chồng cao nhất,
-   dòng 1 không có dấu đó thì trừ --hero-ink-drop (motion.js đo). */
+/* The kicker sits the same distance from the title glyph top on every hero (hero-typography R2): the shared gap is computed for the tallest stacked accent,
+   line 1 has no such accent so --hero-ink-drop (measured by motion.js) is subtracted. */
 .hero > .hero-content > .hero-kicker {
   margin-bottom: calc(clamp(1.5rem, 3.8vh, 2.2rem) - var(--hero-ink-drop, 0) * var(--hero-line-size, 0px));
 }
 
-/* Hai dòng lồng nhau một phần (hero-typography R2): khi khung rộng hơn cặp dòng thì dồn cặp vào giữa, kicker theo
-   dòng 1. --hero-pair-indent dùng cqi của hero-content, cùng bề rộng với title. */
+/* Two partly nested lines (hero-typography R2): when the frame is wider than the line pair, push the pair to the center, the kicker follows
+   line 1. --hero-pair-indent uses the hero-content's cqi, the same width as the title. */
 .hero > .hero-content:has(> [data-hero-fit]) {
   container-type: inline-size;
 }
@@ -3702,8 +3702,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 }
 
 @media (max-width: 750px) {
-  /* Phone: mỗi title co vừa khung theo dòng dài nhất của nó, không chung cỡ 12.5 em (owner audit 2026-10-18: chữ
-     phone còn nhỏ). Không JS thì --hero-line-em trống, về cỡ chung. */
+  /* Phone: each title shrinks to fit the frame by its longest line, not the shared 12.5 em size (owner audit 2026-10-18: phone
+     text is still small). Without JS --hero-line-em is empty, falling back to the shared size. */
   .hero > .hero-content {
     --hero-line-size: min(7rem, calc(100cqi / var(--hero-line-em, 12.5)));
     width: calc(100% - 64px);
@@ -3713,8 +3713,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
     text-align: center;
   }
-  /* Phone: chỉ title nằm ở tâm hero và không hiện kicker (owner audit 2026-10-18). Kicker ẩn kiểu .sr-only để h1 tên
-     cụm, sản phẩm Advertising vẫn còn cho trình đọc màn hình và SEO. */
+  /* Phone: only the title sits at the hero center and no kicker shows (owner audit 2026-10-18). The kicker is hidden .sr-only style so the h1 naming the
+     Advertising cluster or product stays for screen readers and SEO. */
   .hero > .hero-content > .hero-kicker {
     position: absolute;
     width: 1px;
@@ -3731,8 +3731,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
     top: 50%;
   }
 
-  /* Hero dạng grid: hàng trên và hàng dưới cùng 1fr nên title ở tâm khi đủ chỗ; thiếu chỗ thì hàng giãn theo nội
-     dung, không đè. Hàng trên chừa header và kicker. */
+  /* Grid hero: top and bottom rows are both 1fr so the title is centered when there is room; when short, the rows stretch to the
+     content without overlapping. The top row leaves room for the header and kicker. */
   .hero[data-hero-intro],
   .about-hero,
   .detail-page .detail-index-hero {
@@ -3757,8 +3757,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
     margin-bottom: var(--hero-cue-gap);
   }
 
-  /* Rail và chip neo như PC: rail đứng một chỗ dù có hàng chip hay không, hàng chip đầu nằm chỗ cố định, hàng thêm
-     tràn xuống dưới. Khối neo theo đáy, chừa chỗ cho cue (padding 0.5rem, chữ 0.8rem x 1.4). */
+  /* Rail and chips anchor like PC: the rail stays in one place with or without a chip row, the first chip row sits at a fixed place, extra rows
+     overflow downward. The block anchors by the bottom, leaving room for the cue (padding 0.5rem, text 0.8rem x 1.4). */
   .detail-index-hero > .hero-browse {
     --hero-chip-row: 1.225rem;
     display: flex;
@@ -3783,7 +3783,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* Từ 751px khối rail và chip không tạo hộp: rail và chip vẫn là con trực tiếp của grid hoặc neo absolute như cũ. */
+/* From 751px the rail and chip blocks create no box: the rail and chips remain direct children of the grid or absolute anchors as before. */
 @media (min-width: 751px) {
   .hero-browse {
     display: contents;
@@ -3791,20 +3791,20 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 }
 
 @media (max-width: 680px) {
-  /* Hàng chip phone một dòng cuộn ngang, cao gồm padding 0.25rem + 0.5rem và chữ 0.8125rem x 1.4. */
+  /* The phone chip row is one line scrolling horizontally, tall enough for padding 0.25rem + 0.5rem and text 0.8125rem x 1.4. */
   .detail-index-hero > .hero-browse {
     --hero-chip-row: calc(0.75rem + 0.8125rem * 1.4);
   }
 }
 
-/* Khối trang công trình và News (layout-library R1, scripts/site/blocks.mjs). Học bố cục trang con /en/projects/ của
-   Espacio, theo chữ, màu, khoảng cách của site; cùng khung bề rộng với các khối detail. */
+/* Project and News page blocks (layout-library R1, scripts/site/blocks.mjs). Learns the layout of Espacio's /en/projects/ child pages,
+   following the site's text, color and spacing; same width frame as the detail blocks. */
 .blk {
   width: min(calc(100% - 2 * var(--gutter)), 1370px);
   margin-inline: auto;
 }
 
-/* Nền tối như hero trang tĩnh: màu chờ ảnh của .hero và lớp phủ .hero-shade dùng chung (style.css). */
+/* Dark background like the static page hero: the .hero image-wait color and the shared .hero-shade overlay (style.css). */
 .blk-hero {
   position: relative;
   height: var(--site-layout-viewport-height);
@@ -3859,11 +3859,11 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   text-transform: uppercase;
 }
 
-/* Đầu trang bài News và trang danh sách: dải tối tràn mép như hero các trang tĩnh (nền --media-loading-surface,
-   chữ trắng, header inverse); nội dung giữ cùng cột với các khối .blk bên dưới. */
+/* The head of a News article and the list page: a dark strip bleeding to the edge like the static page hero (background --media-loading-surface,
+   white text, inverse header); content keeps the same column as the .blk blocks below. */
 .blk-article-head {
   width: auto;
-  /* Bỏ margin-top của .section-gap: dải tối sát mép trên như hero; khối kế tiếp vẫn cách bằng .section-gap của nó. */
+  /* Drop the margin-top of .section-gap: the dark strip hugs the top edge like the hero; the next block is still spaced by its own .section-gap. */
   margin: 0;
   padding: calc(var(--header-row-height) + clamp(2rem, 6vw, 5rem)) max(var(--gutter), calc((100% - 1370px) / 2)) clamp(2.5rem, 6vw, 5rem);
   background: var(--media-loading-surface);
@@ -3921,8 +3921,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   text-indent: 4.5em;
 }
 
-/* Dàn chữ trang công trình, News theo Espacio (owner 2026-11-08, đo 75 trang): đoạn văn 24px PC, 20,8px phone, giãn dòng 1,4,
-   cột 600px, thụt dòng đầu 100px PC, 50px phone; phone khối cách nhau 30px, lề 15px. Chỉ trong main của hai namespace. */
+/* Text layout for project and News pages following Espacio (owner 2026-11-08, measured 75 pages): paragraph 24px PC, 20,8px phone, line height 1,4,
+   600px column, first-line indent 100px PC, 50px phone; on phone blocks are 30px apart, margin 15px. Only inside main of the two namespaces. */
 .blk-paragraph p {
   max-width: 37.5rem;
   font-size: 1.5rem;
@@ -4102,7 +4102,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
 
 .blk-projects__track {
   display: grid;
-  /* Thẻ dọc cỡ như Espacio: 4 thẻ trên PC 1440, thẻ thấp lệch xuống so le. */
+  /* Portrait cards sized like Espacio: 4 cards on a 1440 PC, short cards staggered downward. */
   grid-auto-columns: clamp(15rem, 21vw, 19rem);
   grid-auto-flow: column;
   justify-content: start;
@@ -4198,7 +4198,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* Danh sách News (news R2): hàng lọc nhóm, ngày và nhóm trên thẻ, thanh phân trang. */
+/* News list (news R2): group filter row, date and group on the card, pagination bar. */
 .blk-news-filter {
   display: flex;
   flex-wrap: wrap;
@@ -4242,10 +4242,10 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   margin-top: 3rem;
 }
 
-/* Bố cục danh sách theo Espacio /en/news (owner 2026-11-09): hai cột; thẻ lớn bài mới nhất dính ở cột trái, cột phải là lưới
-   2x2 rồi các thẻ hàng ngang (ảnh 1/3, chữ 2/3); ảnh bìa 3:2. Rê chuột thì gạch chân tiêu đề chạy như navbar, không phóng to ảnh.
-   CSS sticky chỉ chạy khi cuộn native (reduced motion, 961-980px); smooth scroll từ 981px dùng sticky của Locomotive
-   (motion.js đọc `top` dưới đây làm mốc dính). */
+/* List layout following Espacio /en/news (owner 2026-11-09): two columns; the large card of the latest post sticks in the left column, the right column is a
+   2x2 grid then horizontal-row cards (image 1/3, text 2/3); cover image 3:2. On hover the title underline runs like the navbar, no image zoom.
+   CSS sticky only runs with native scroll (reduced motion, 961-980px); smooth scroll from 981px uses Locomotive's sticky
+   (motion.js reads the `top` below as the sticky anchor). */
 .blk-news-list__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4281,7 +4281,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   font-size: clamp(2rem, 3.33vw, 3rem);
 }
 
-/* Gạch chân 3px chạy theo bề rộng chữ như navbar: mọc từ trái, thu về phải; nền của span inline nối qua các dòng. */
+/* A 3px underline running by text width like the navbar: grows from the left, retracts to the right; the inline span's background continues across lines. */
 .blk-news-list .blk-news-card__text {
   padding-bottom: 4px;
   background: linear-gradient(currentColor, currentColor) right bottom / 0 3px no-repeat;
@@ -4294,8 +4294,8 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   background-size: 100% 3px;
 }
 
-/* Ảnh chiếm hai hàng; hàng chữ dưới giãn (1fr) để nhóm và ngày nằm sát trên tiêu đề. picture là display: contents nên
-   <source> thành grid item rỗng, chiếm ô và đẩy ảnh, chữ xuống hàng sau. */
+/* The image spans two rows; the lower text row stretches (1fr) so group and date sit right above the title. picture is display: contents so
+   <source> becomes an empty grid item, taking a cell and pushing the image and text down a row. */
 .blk-news-card > picture > source {
   display: none;
 }
@@ -4316,7 +4316,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   margin-top: 0;
 }
 
-/* Thẻ lớn lúc dính phải vừa màn hình (laptop 1366x650, 1536x730): ảnh co chiều cao, cắt cover, tiêu đề luôn đủ. */
+/* The large card while sticky must fit the screen (laptop 1366x650, 1536x730): the image shrinks in height, cover crop, the title always fully shown. */
 @media (min-width: 961px) {
   .blk-news-list .blk-news-card--main {
     display: flex;
@@ -4366,13 +4366,13 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* Khẩu hiệu hero trang Công trình: chỉ chữ nhấn (em) đậm 700 nghiêng, phần còn lại 500 như dòng một (owner 2026-11-08). */
+/* Projects page hero tagline: only the accent text (em) bold 700 italic, the rest 500 like line one (owner 2026-11-08). */
 .projects-title__accent em {
   font-style: italic;
   font-weight: 700;
 }
 
-/* Trang loại chưa có công trình (projects R2): dòng "đang cập nhật"; build và detail.js bật tắt hidden theo bộ lọc. */
+/* Projects page type with no project yet (projects R2): the "đang cập nhật" line; build and detail.js toggle hidden by the filter. */
 .projects-empty {
   margin: 0;
   padding-block: 2rem;

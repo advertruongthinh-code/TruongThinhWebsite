@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 
-// Luồng chính của editor placeholder (cms-editor R1 đến R8) trên preview tĩnh sau `node scripts/cms/build-admin.mjs`:
-// chọn chữ, sửa VI, đổi cỡ, thêm mục gallery bằng ảnh từ Media, nháp còn sau khi tải lại, Lưu chặn ô trống rồi báo chưa
-// nối lưu trữ; panel Media lọc, chi tiết, thả ảnh vào gallery, ghi alt (R6); sửa card Sản phẩm Quảng cáo (R7).
+// Main flow of the placeholder editor (cms-editor R1 to R8) on the static preview after `node scripts/cms/build-admin.mjs`:
+// select text, edit VI, change size, add a gallery item with an image from Media, draft survives a reload, Save blocks empty cells then reports storage
+// is not connected; Media panel filters, detail, dropping an image into the gallery, writing alt (R6); edit an Advertising Products card (R7).
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
@@ -12,15 +12,15 @@ const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_E
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
 page.on("pageerror", (error) => errors.push(String(error)));
-// PUT /api/admin/content/ chưa có ở preview tĩnh (404) và Worker local (501): lỗi tải resource đó là đúng hợp đồng.
+// PUT /api/admin/content/ does not exist on the static preview (404) and the local Worker (501): a resource load error there matches the contract.
 page.on("console", (message) => message.type() === "error" && !message.location().url?.includes("/api/admin/")
   && errors.push(`${message.text()} ${message.location().url ?? ""}`));
 
-// Bản xem trước Sản phẩm Quảng cáo đổi URL sang path thật (replaceState): tìm iframe theo cấp, không theo URL.
+// The Advertising Products preview switches its URL to a real path (replaceState): find the iframe by level, not by URL.
 const frame = () => page.frames().find((entry) => entry.parentFrame() === page.mainFrame());
 const draft = () => page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:residential") || "null"));
-// Bản xem trước sẵn sàng: overlay đã nạp và runtime site đã chạy (cuộn, tách chữ). Worker local chuyển
-// `x.html` sang `x/` (html_handling), static server giữ `.html`: so tên trang không kèm đuôi.
+// Preview ready: the overlay has loaded and the site runtime is running (scroll, text splitting). The local Worker redirects
+// `x.html` to `x/` (html_handling), the static server keeps `.html`: compare page names without the extension.
 const previewReady = (name) => page.waitForFunction((route) => {
   const win = document.querySelector("iframe[data-cms-preview]")?.contentWindow;
   return win?.location.pathname.replace(/(\.html|\/)$/, "").endsWith(route) && win.TTCmsOverlay && win.__ttMotionRuntimeHealthy;
@@ -28,7 +28,7 @@ const previewReady = (name) => page.waitForFunction((route) => {
 const props = page.locator(".panel--props");
 
 try {
-  // Static server không có index thư mục cho /admin/; Worker local thì có.
+  // The static server has no directory index for /admin/; the local Worker does.
   await page.goto(`${baseUrl}/admin/index.html`);
   await page.waitForSelector(".dv-tab");
   assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim()).sort()),
@@ -36,26 +36,26 @@ try {
   await page.locator(".tree__item", { hasText: "Nhà ở" }).click();
   await previewReady("/vi/residential");
 
-  // Tiêu đề SEO nằm trong <head>: mở từ Thuộc tính khi chưa chọn gì, đổi document.title của preview ngay.
+  // The SEO title lives in <head>: open it from Properties with nothing selected, and the preview's document.title changes immediately.
   await props.getByRole("button", { name: "Tiêu đề trang (SEO)" }).click();
   await props.locator("textarea").first().fill("Nhà ở thử SEO");
   assert.equal(await frame().evaluate(() => document.title), "Nhà ở thử SEO");
 
-  // Chọn H1 trong iframe, sửa tiếng Việt: iframe đổi ngay, nháp ghi vào localStorage.
+  // Select the H1 in the iframe, edit Vietnamese: the iframe changes immediately and the draft is written to localStorage.
   await frame().locator("main h1").first().click();
   await props.locator("textarea").first().fill("Thử CMS nhà ở");
   const key = Object.keys((await draft()).text).find((entry) => entry !== "title");
   assert.ok(key, "draft has the edited text key");
   assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
 
-  // Đổi cỡ A04s: khung iframe 384px, tải lại để runtime dựng đúng breakpoint, chữ nháp vẫn hiện.
+  // Change to size A04s: iframe frame 384px, reload so the runtime builds the right breakpoint, the draft text still shows.
   await page.getByRole("button", { name: "A04s 384" }).click();
   assert.equal(await page.$eval("iframe[data-cms-preview]", (node) => node.style.width), "384px");
   await previewReady("/vi/residential");
   assert.equal(await frame().evaluate(() => innerWidth), 384);
   assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
 
-  // Mở danh sách gallery từ một ảnh trong gallery, thêm mục, chọn ảnh từ Media.
+  // Open the gallery list from an image in the gallery, add an item, pick an image from Media.
   const gallery = await frame().evaluate(() => {
     const img = document.querySelector('[data-cms-list] .detail-gallery__item img[data-cms-key]');
     const list = img.closest("[data-cms-list]");
@@ -78,14 +78,14 @@ try {
   }, gallery.list);
   assert.deepEqual(added, { count: gallery.count + 1, src });
 
-  // Tải lại editor: nháp và bố cục còn, trang đang mở giữ nguyên.
+  // Reload the editor: draft and layout remain, the open page stays as is.
   assert.ok(await page.evaluate(() => localStorage.getItem("tt-cms-layout")));
   await page.reload();
   await previewReady("/vi/residential");
   assert.match(await page.textContent("#draft-status"), /Chưa lưu · 4 thay đổi/);
   assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
 
-  // Danh sách hero bị site xáo mỗi lần tải: chỉ thêm, xóa, không có nút sắp xếp.
+  // The hero list is shuffled by the site on each load: only add and delete, no reorder buttons.
   await frame().evaluate(() => {
     const img = document.querySelector('[data-cms-shuffled] img[data-cms-key]');
     const list = img.closest("[data-cms-list]").dataset.cmsList;
@@ -95,7 +95,7 @@ try {
   assert.ok((await props.locator(".list-row").count()) > 1);
   assert.equal(await props.getByTitle("Lên").count(), 0);
 
-  // Chế độ xem không cho link đưa iframe rời bản xem trước; Tải lại vẫn về đúng bản xem trước.
+  // View mode does not let a link take the iframe away from the preview; Reload still returns to the right preview.
   await page.getByRole("button", { name: "Chế độ sửa" }).click();
   await frame().evaluate(() => document.querySelector('a[href="/vi/commercial/"]').click());
   await page.waitForSelector("#toast:not([hidden])");
@@ -105,7 +105,7 @@ try {
   await page.getByRole("button", { name: "Tải lại" }).click();
   await previewReady("/vi/residential");
 
-  // Đóng Xem trước rồi mở lại từ menu Bảng; mở lại Media đã đóng qua "Đổi ảnh".
+  // Close Preview then reopen it from the Panels menu; reopen the closed Media via "Đổi ảnh".
   await page.locator(".dv-tab", { hasText: "Xem trước" }).locator(".dv-default-tab-action").click();
   await page.locator(".dv-tab", { hasText: "Media" }).locator(".dv-default-tab-action").click();
   await page.locator(".topbar__menu > summary").click();
@@ -120,7 +120,7 @@ try {
   await page.locator(".pick").waitFor();
   await page.keyboard.press("Escape");
 
-  // Lưu khi mục mới còn chú thích trống: chặn và báo số ô trống; nhập đủ rồi Lưu khi chưa nối lưu trữ: báo rõ, nháp giữ nguyên.
+  // Save with a new item whose caption is still empty: block and report the number of empty cells; fill in then Save while storage is not connected: report clearly, draft kept as is.
   await page.click("#save");
   await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Còn 1 ô trống"));
   await frame().evaluate((list) => {
@@ -135,8 +135,8 @@ try {
   assert.equal(await page.textContent("#toast"), "Chưa nối lưu trữ, nháp vẫn ở máy này.");
   assert.ok(await draft());
 
-  // Phản hồi của Worker (R8) giả bằng page.route: 400 hiện lỗi, mất kết nối, 409 hỏi trước khi ghi đè (từ chối thì giữ
-  // nháp). PUT gửi kèm dấu chỗ gốc của khóa đã sửa (R10).
+  // Worker responses (R8) faked with page.route: 400 shows an error, connection lost, 409 asks before overwriting (declining keeps
+  // the draft). PUT carries the original placeholders of the edited keys (R10).
   const toastStarts = (prefix) => page.waitForFunction((text) => document.querySelector("#toast").textContent.startsWith(text), prefix);
   const putBodies = [];
   const respond = async (route, reply) => {
@@ -147,7 +147,7 @@ try {
   await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.fulfill({ status: 400, json: { error: "Trang vừa cập nhật" } })));
   await page.click("#save");
   await toastStarts("Lưu chưa được: Trang vừa cập nhật");
-  assert.ok(Object.keys(putBodies[0].anchors).includes(gallery.list), "dấu danh sách gallery");
+  assert.ok(Object.keys(putBodies[0].anchors).includes(gallery.list), "gallery list marker");
   await page.unroute("**/api/admin/content/residential");
   await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.abort()));
   await page.click("#save");
@@ -160,7 +160,7 @@ try {
   await page.unroute("**/api/admin/content/residential");
   assert.ok(await draft());
 
-  // R6: lọc "Chưa dùng", xem chi tiết, kéo thả ảnh vào gallery trong xem trước: thêm mục, ảnh thành "đang dùng".
+  // R6: filter "Chưa dùng", view detail, drag and drop an image into the gallery in the preview: add an item, the image becomes "in use".
   await page.locator(".dv-tab", { hasText: "Media" }).click();
   await page.locator(".panel--media select").nth(1).selectOption("unused");
   const unused = page.locator(".media-tile", { hasText: "Chưa dùng" }).first();
@@ -188,12 +188,12 @@ try {
   await page.locator(".panel--media select").nth(1).selectOption("used");
   await page.locator(".media-tile", { hasText: unusedSrc.split("/").pop() }).first().click();
   await page.locator(".media-detail .uses button", { hasText: "Nhà ở" }).first().waitFor();
-  // Alt sửa ở Media ghi vào nháp của mọi chỗ dùng ảnh đó.
+  // Alt edited in Media is written into the draft of every place that uses the image.
   await page.locator(".media-detail").getByLabel("Alt tiếng Việt").fill("Alt thử từ Media");
   await page.locator(".media-detail").getByRole("button", { name: /Ghi alt vào 1 chỗ dùng/ }).click();
   assert.ok(Object.values((await draft()).image).some((value) => value.src === unusedSrc && value.altVi === "Alt thử từ Media"));
 
-  // R7: trang Sản phẩm Quảng cáo, bấm card trong xem trước, đổi tên (xem trước dựng lại từ catalog đã vá), thêm media.
+  // R7: Advertising Products page, click a card in the preview, rename (the preview rebuilds from the patched catalog), add media.
   await page.locator(".panel--pages .search").fill("advertising-products");
   await page.locator(".tree__item", { hasText: "Sản phẩm quảng cáo" }).first().click();
   await previewReady("/vi/advertising-products");
@@ -214,15 +214,15 @@ try {
   assert.equal(cardDraft.cards[cardId].titleVi, "Card thử CMS");
   assert.equal(cardDraft.cards[cardId].mediaItems.length, 2);
   assert.match(await page.textContent("#draft-status"), /Chưa lưu · 1 thay đổi/);
-  // Trang card p/<id>: mở là chọn sẵn card đó.
+  // Card page p/<id>: opening it preselects that card.
   await page.locator(".panel--pages .search").fill(`p/${cardId}`);
   await page.locator(".tree__item", { hasText: cardId }).click();
   await previewReady(`/p/${cardId}`);
   await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
   assert.equal(await props.getByLabel("Tên tiếng Việt").inputValue(), "Card thử CMS");
 
-  // Lưu thành công (200 giả): bỏ nháp, thanh trên "Đã lưu". Hoàn tác về trước lúc Lưu rồi lưu lại vẫn dựa phiên bản vừa
-  // lưu (không tự gây 409).
+  // Successful save (fake 200): drop the draft, top bar shows "Đã lưu". Undo to before the save then save again still builds on the version just
+  // saved (does not cause a 409 by itself).
   await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS lần hai");
   await props.getByLabel("Tên tiếng Việt").blur();
   await page.route("**/api/admin/content/advertising", (route) => respond(route, (entry) => entry.fulfill({ status: 200, json: { updatedAt: "2026-11-01T01:00:00.000Z", updatedBy: "admin@localhost" } })));
@@ -236,17 +236,17 @@ try {
   await toastStarts("Đã lưu");
   assert.equal(putBodies.at(-1).baseUpdatedAt, "2026-11-01T01:00:00.000Z");
 
-  // R11: ghim tab, kéo panel ra mép thành dải tự ẩn, bấm tab ở dải để trượt ra, ghim mở hẳn, hoàn tác bố cục.
+  // R11: pin a tab, drag a panel to the edge to become an auto-hide strip, click the tab on the strip to slide it out, pin opens it fully, undo the layout.
   await page.click(".topbar__menu summary");
   await page.locator("#panel-menu button", { hasText: "Bố cục mặc định" }).click();
   await page.waitForTimeout(600);
   const tab = (name) => page.locator(".dv-tab", { hasText: name }).first();
-  const groupTabs = () => page.evaluate(() => [...document.querySelectorAll(".dv-groupview")].map((group) => (group.classList.contains("dv-edge-collapsed") ? "[dải]" : "")
+  const groupTabs = () => page.evaluate(() => [...document.querySelectorAll(".dv-groupview")].map((group) => (group.classList.contains("dv-edge-collapsed") ? "[strip]" : "")
     + [...group.querySelectorAll(".dv-tab")].map((item) => item.textContent + (item.querySelector(".is-pinned") ? "*" : "")).join(",")));
   await tab("Nháp").click({ button: "right" });
   await page.locator(".dock-menu button", { hasText: "Ghim tab" }).click();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Nháp*,Media"), "tab ghim đứng đầu nhóm");
+  assert.ok((await groupTabs()).includes("Nháp*,Media"), "the pinned tab leads the group");
   const from = await tab("Media").boundingBox();
   await page.mouse.move(from.x + 10, from.y + 10);
   await page.mouse.down();
@@ -256,7 +256,7 @@ try {
   await page.waitForTimeout(100);
   await page.mouse.up();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("[dải]Media"), "kéo ra mép tạo dải thu gọn");
+  assert.ok((await groupTabs()).includes("[strip]Media"), "dragging to the edge creates a collapsed strip");
   await tab("Media").click();
   await page.locator(".dock-peek .panel--media").waitFor();
   await page.keyboard.press("Escape");
@@ -264,13 +264,13 @@ try {
   await tab("Media").click();
   await page.locator(".dock-peek__button", { hasText: "Ghim" }).click();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Media"), "ghim mở hẳn nhóm mép");
+  assert.ok((await groupTabs()).includes("Media"), "pin fully opens the edge group");
   for (let step = 0; step < 3; step += 1) {
     await page.keyboard.press("Control+Alt+z");
     await page.waitForTimeout(200);
   }
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Media,Nháp"), "hoàn tác về bố cục mặc định");
+  assert.ok((await groupTabs()).includes("Media,Nháp"), "undo returns to the default layout");
   assert.equal(await page.locator(".dv-edge-group").count(), 0);
 
   assert.deepEqual(errors, []);

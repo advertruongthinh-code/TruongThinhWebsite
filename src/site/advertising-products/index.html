@@ -31,7 +31,7 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
+        // motion.js (defer) runs before DOMContentLoaded, so a slow network still keeps the veil.
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
@@ -52,7 +52,7 @@
     data-barba="wrapper"
   >
     <script>
-      // Vào thẳng detail (trang card hoặc ?photo= cũ): ẩn grid trước layout đầu tiên; catalog-runtime giữ hoặc bỏ class.
+      // Direct entry into detail (a card page or the old ?photo=): hide the grid before the first layout; catalog-runtime keeps or drops the class.
       if (/\/advertising-products\/p\/[^/]+\/$/.test(location.pathname) || new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-detail");
     </script>
     <div class="route-veil" aria-hidden="true">

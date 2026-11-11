@@ -1,4 +1,4 @@
-// Trang công trình dựng từ khối (projects R3): node --test tests/site/block-pages.test.mjs
+// Block-built project page (projects R3): node --test tests/site/block-pages.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -41,7 +41,7 @@ test("News list: newest first, 12 per page, year filter pages, group pages kept 
   assert.equal(pages[0].posts[0].id, "p12");
   assert.deepEqual(pages[0].years, ["2026", "2025"]);
   assert.equal(pages[1].posts.length, 2);
-  // Trang năm không cho lập chỉ mục; hàng lọc chỉ có Tất cả và các năm, không có nhóm.
+  // The year page is not indexable; the filter row has only "Tất cả" and the years, no group.
   const { renderNewsListPage } = await import("../../scripts/site/block-pages.mjs");
   const frame = readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8");
   const yearHtml = renderNewsListPage(frame, pages[4]);
@@ -49,7 +49,7 @@ test("News list: newest first, 12 per page, year filter pages, group pages kept 
   assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
   const chips = [...renderNewsListPage(frame, pages[5]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(chips, ["/vi/news/", "/vi/news/2026/", "/vi/news/2025/"]);
-  // Bố cục Espacio: bài đầu là thẻ lớn (ảnh tải ngay cho LCP), 4 bài kế là lưới 2x2, còn lại là thẻ hàng ngang (lazy).
+  // Espacio layout: the first article is a large card (image loads immediately for LCP), the next 4 are a 2x2 grid, the rest are horizontal row cards (lazy).
   const list = renderNewsListPage(frame, pages[0]);
   const main = list.match(/<div class="blk-news-list__main">([\s\S]*?)<\/div>/)[1];
   const quad = list.match(/<div class="blk-news-list__quad">([\s\S]*?)<\/div>/)[1];
@@ -88,7 +88,7 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
     "n: id hoặc slug page trùng đường dẫn nhóm, năm hoặc phân trang",
     "n: id hoặc slug xu-huong trùng đường dẫn nhóm, năm hoặc phân trang",
   ]);
-  // id là thư mục file nguồn news/<id>/index.html: trùng trang nhóm, năm hoặc phân trang thì ghi đè trang danh sách.
+  // id is the source file directory news/<id>/index.html: a clash with a group, year or pagination page would overwrite the list page.
   for (const id of ["page", "kinh-doanh", "2025"]) assert.deepEqual(kindFieldErrors("news", { id, group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), [`n: id hoặc slug ${id} trùng đường dẫn nhóm, năm hoặc phân trang`]);
 });
 
@@ -104,7 +104,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   const { validateMasonryCards } = await import("../../src/site/masonry/layout.mjs");
   const projects = [
     { id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" },
-      // Thẻ nhiều media: ảnh người soạn chọn cho thẻ (card.media), theo thứ tự đã chọn.
+      // Multi-media card: images the editor chose for the card (card.media), in the chosen order.
       card: { width: 3, height: 2, media: [{ src: "/a4.webp", width: 1536, height: 1024, altVi: "a4", altEn: "a4" }, { src: "/a2.webp", width: 3072, height: 2048, altVi: "a2", altEn: "a2" }] } },
     { id: "b", sector: "residential", type: "can-ho", slugVi: "b", slugEn: "b-en", title: { vi: "B", en: "B" }, cover: { src: "/b.webp", width: 200, height: 300, altVi: "b", altEn: "b" } },
   ];
@@ -113,7 +113,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/vi/projects/a/", en: "/en/projects/a-en/" });
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").mediaItems.map((item) => item.src), ["/a4.webp", "/a2.webp"]);
   assert.equal(artifact.cards.find((card) => card.id === "a").media.src, "/a4.webp");
-  // Ảnh có vùng dư so với khung thẻ (khác tỷ lệ) bị chặn.
+  // An image with leftover area relative to the card frame (different ratio) is rejected.
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", id: "x", slugVi: "x", slugEn: "x", card: { width: 3, height: 2, media: [{ src: "/x.webp", width: 200, height: 300, altVi: "x", altEn: "x" }] } }, "p"), ["p: card.media[0] khác tỷ lệ khung thẻ 3x2"]);
   assert.equal(artifact.cards.find((card) => card.id === "b").mediaItems.length, 1);
   assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-hotel", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
@@ -154,7 +154,7 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   assert.doesNotMatch(chip(html(null), "van-phong"), / hidden/, "a type with projects keeps its chip");
   assert.doesNotMatch(chip(html("can-ho"), "can-ho"), / hidden/, "an empty type keeps its own chip on its page");
   assert.match(html("can-ho"), /class="projects-empty"/, "the empty line is in the page; CSS shows it when the grid has no card");
-  // Phần lưới lấy từ khung trang quảng cáo: nội dung quảng cáo phải được thay hết.
+  // The grid part is taken from the Advertising page shell: the advertising content must be fully replaced.
   assert.doesNotMatch(html(null).match(/<main[\s\S]*<\/main>/)[0], /advertising-products\/standee|Dấu ấn tiếp theo/, "no Advertising tile or CTA copy left in the grid");
   assert.match(html(null), /aria-label="Ảnh công trình"[\s\S]*Không gian tiếp theo/, "project label and CTA copy replace the Advertising ones");
   assert.match(html("van-phong"), /class="projects-empty"[^>]* hidden/, "a filter with projects hides the empty line");

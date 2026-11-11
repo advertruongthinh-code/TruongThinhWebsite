@@ -24,7 +24,7 @@ const p5LayoutOnly = process.env.PHOTO_VIEW_P5_LAYOUT_ONLY === "1";
 const viewerControlsOnly = process.env.PHOTO_VIEW_CONTROLS_ONLY === "1";
 const caseLimit = Number.parseInt(process.env.PHOTO_VIEW_CASE_LIMIT || (quick ? "1" : "0"), 10) || Number.POSITIVE_INFINITY;
 const labelFilter = process.env.PHOTO_VIEW_LABEL_FILTER || "";
-// CI chia ma trận viewport: PHOTO_VIEW_SHARD=k/n chạy viewport thứ k, k+n, ...; phần cuối chạy thêm reduced motion và sweep.
+// CI splits the viewport matrix: PHOTO_VIEW_SHARD=k/n runs viewport k, k+n, ...; the last shard also runs reduced motion and the sweep.
 const [shardIndex, shardCount] = (process.env.PHOTO_VIEW_SHARD || "1/1").split("/").map(Number);
 assert(shardIndex >= 1 && shardIndex <= shardCount, `Invalid PHOTO_VIEW_SHARD: ${process.env.PHOTO_VIEW_SHARD}`);
 const lastShard = shardIndex === shardCount;
@@ -59,25 +59,25 @@ function expectedPhotoGeometry(evidence) {
   const gridWidth = evidence.clientWidth - 2 * outer;
   const columns = evidence.relatedColumns;
   const cardWidth = (gridWidth - gap * (columns - 1)) / columns;
-  // Detail spec R10: header luôn thu gọn, cao bằng hàng thu gọn cộng padding 10px hai đầu và viền 1px.
+  // Detail spec R10: the header is always collapsed, as tall as the collapsed row plus 10px padding at both ends and a 1px border.
   const headerHeight = evidence.headerCollapsedRowHeight + 21;
   const top = headerHeight + outer + evidence.safeTop;
   const ratio = evidence.image.naturalWidth / evidence.image.naturalHeight;
   const span = Math.min(3, columns);
   const width = span * cardWidth + (span - 1) * gap;
-  // Detail spec R2: pinterest khi primary chiếm hết cột và viewport dọc; còn lại split.
+  // Detail spec R2: pinterest when primary fills the column and the viewport is portrait; otherwise split.
   const mode = span === columns && evidence.clientWidth <= evidence.windowHeight ? "pinterest" : "split";
   const imageZoneWidth = mode === "split"
     ? Math.max(1, span - 1) * cardWidth + Math.max(0, span - 2) * gap
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
   const available = evidence.windowHeight - top - evidence.safeBottom;
-  // Detail spec R2 (owner 2026-11-07): mọi layout chừa gap và 50px để related lộ dưới primary.
+  // Detail spec R2 (owner 2026-11-07): every layout leaves a gap and 50px so related peeks out below primary.
   const heightCap = available - gap - 50;
-  // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
+  // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, heightCap - gap - 1);
-  // Split: vùng ảnh cao theo media tới heightCap (primary-video-player R6); info cao bằng vùng ảnh, trừ khi nhãn cụm dài
-  // làm sàn info cao hơn (runtime giữ sàn đó).
+  // Split: the media area is as tall as the media up to heightCap (primary-video-player R6); info is as tall as the media area, unless a long cluster label
+  // raises the info floor (the runtime keeps that floor).
   const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
   const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? splitImageZoneHeight
@@ -119,7 +119,7 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+    // Chromium cancels lazy image or video fetches that get replaced (srcset/variant/src change, unmount); not a load error.
     if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
@@ -229,8 +229,8 @@ async function wheelContent(page, deltaY, stage, settlements) {
 
 async function wheelUntilExpandVisible(page, label, settlements) {
   for (let attempt = 1; attempt <= 12; attempt += 1) {
-    // Wheel về phía nút: trang smooth-scroll giữ scrollY native ở 0, nên click của locator
-    // với scrollIntoView native sẽ dịch trang dưới Locomotive thay vì cuộn như người dùng.
+    // Wheel toward the button: the smooth-scroll page keeps native scrollY at 0, so a locator click
+    // with native scrollIntoView would shift the page under Locomotive instead of scrolling like a user.
     const offset = await page.evaluate(() => {
       const rect = document.querySelector("[data-detail-expand]")?.getBoundingClientRect();
       if (!rect) return null;
@@ -365,7 +365,7 @@ async function layoutEvidence(page) {
       canvasRect: serializeRect(canvas),
       viewRect: serializeRect(photoView),
       infoRect: serializeRect(info),
-      // Sàn info như measureInfo của runtime: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
+      // Info floor like the runtime measureInfo: the lines besides the description plus three description lines (or the whole description if shorter).
       infoFloor: info ? (() => {
         const controls = [...info.children].filter((node) => !node.matches("[data-detail-description-box]") && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => sum + node.offsetHeight
@@ -397,7 +397,7 @@ async function layoutEvidence(page) {
         scrollHeight: info.scrollHeight,
         scrollTop: info.scrollTop,
         overflowY: infoStyle.overflowY,
-        // Số dòng mô tả đang thấy: chiều cao vùng cuộn chia line-height (chữ dài hơn thì cuộn bên trong).
+        // Number of description lines visible: scroll area height divided by line-height (longer text scrolls inside).
         descriptionLines: (() => {
           const scroller = info.querySelector("[data-detail-description-scroll]");
           return scroller ? scroller.clientHeight / Number.parseFloat(getComputedStyle(scroller).lineHeight) : null;
@@ -452,11 +452,11 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   if (evidence.infoFloor <= expected.heightCap) assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap despite fitting floors`);
-  // Detail spec R2: vượt cap 28% chỉ khi ba dòng description cùng group và CTA không vừa.
+  // Detail spec R2: exceeds the 28% cap only when three description lines share a group and the CTA does not fit.
   if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
     assert(evidence.info?.descriptionLines < 3.5, `${label}: info exceeds 28% of the viewport with more than three description lines`);
   }
-  // Detail spec R3: info không tự cuộn; chữ dài cuộn trong vùng mô tả.
+  // Detail spec R3: info does not scroll itself; long text scrolls inside the description area.
   assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);
   assert.equal(evidence.info?.tabIndex, 0, `${label}: description region is not keyboard focusable`);
   assert.equal(evidence.info?.role, "region", `${label}: description region role is absent`);
@@ -583,16 +583,16 @@ async function assertDescriptionKeyboardScroll(page, label) {
 async function openDialog(page, { touch = false, label, settlements } = {}) {
   const expand = page.locator("[data-detail-expand]");
   await assertVisible(expand, "expand button");
-  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng. Vào thẳng trang thì
-  // playRouteEnter chờ font rồi mới gắn is-transitioning; html.route-enter còn tới khi veil mở xong (clearRouteEntry).
-  // Reduced motion: mountPageMotion gắn motion-paused sau khi veil mở; chờ trạng thái ổn định đó.
+  // The baseline style before opening must not catch a route transition class mid-flight. On a direct load
+  // playRouteEnter waits for fonts before attaching is-transitioning; html.route-enter stays until the veil finishes opening (clearRouteEntry).
+  // Reduced motion: mountPageMotion attaches motion-paused after the veil opens; wait for that stable state.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
     && !document.body.classList.contains("is-transitioning")
     && (!matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("motion-paused")));
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
-    // Màn cảm ứng mở viewer bằng một tap trên primary photo (viewer touch R7).
+    // Touch screens open the viewer with a single tap on the primary photo (viewer touch R7).
     const button = touch ? document.querySelector("[data-detail-image]").parentElement
       : document.querySelector("[data-detail-expand]");
     window.__ttPhotoViewerBeforeOpen = undefined;
@@ -610,7 +610,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.viewerState || null);
     });
     observer.observe(dialog, { attributes: true, attributeFilter: ["data-viewer-state"] });
-    // Tap mở ở pointerup: lấy mẫu motion sau khi dialog đã mở.
+    // Tap opens on pointerup: sample motion after the dialog has opened.
     const onOpen = () => {
       if (dialog.open) return;
       window.__ttPhotoViewerBeforeOpen = window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
@@ -721,12 +721,12 @@ async function assertDialogFit(page, label, touch = false) {
   assert.equal(evidence.resetCount, 0, `${label}: the viewer has no reset button (owner 2026-10-25)`);
   for (const control of evidence.controls) {
     if (control.hidden) continue;
-    // Viewer touch R8: nút ẩn khỏi mắt trên màn cảm ứng, trừ nút đang có focus bàn phím.
+    // Viewer touch R8: buttons are hidden from sight on touch screens, except the button that has keyboard focus.
     if (touch && !control.focusVisible) {
       assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
       continue;
     }
-    // Nút viewer vuông 36px (primary-video-player R7, owner 2026-10-24).
+    // Viewer button is a 36px square (primary-video-player R7, owner 2026-10-24).
     assert(Math.abs(control.rect.width - 36) <= 1 && Math.abs(control.rect.height - 36) <= 1, `${label}: control is not 36px`);
     assert(control.rect.left >= -1 && control.rect.top >= -1 && control.rect.right <= evidence.innerWidth + 1 && control.rect.bottom <= evidence.innerHeight + 1, `${label}: control is outside browser viewport`);
   }
@@ -797,7 +797,7 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
     const denominator = Math.max(0.001, Math.abs(nextScale / matrix.a - 1));
     const xOffset = limitX > 2 ? Math.min(image.clientWidth * matrix.a * 0.12, limitX / denominator * 0.5) : 0;
     const yOffset = !xOffset && limitY > 2 ? Math.min(image.clientHeight * matrix.a * 0.12, limitY / denominator * 0.5) : 0;
-    // Playwright gửi tọa độ mouse nguyên, khớp PointerEvent.clientX/Y của browser.
+    // Playwright sends integer mouse coordinates, matching the browser PointerEvent.clientX/Y.
     const clientX = Math.round(centerX + xOffset);
     const clientY = Math.round(centerY + yOffset);
     const localX = (clientX - centerX - matrix.m41) / matrix.a;
@@ -816,7 +816,7 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
   }, deltaY);
   await page.mouse.move(anchor.clientX, anchor.clientY);
   await page.mouse.wheel(0, deltaY);
-  // Firefox có thể resolve mouse.wheel trước khi event tới nơi, nên chờ zoom mà nó khởi động kết thúc.
+  // Firefox may resolve mouse.wheel before the event arrives, so wait for the zoom it starts to finish.
   await page.waitForFunction((status) => document.querySelector("[data-detail-zoom-status]")?.textContent !== status
     && document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open", anchor.status);
   const after = await page.evaluate(({ clientX, clientY, localX, localY }) => {
@@ -858,7 +858,7 @@ async function middleClickReset(page, point, label) {
   assert(Math.abs(after.scroll - beforeScroll) <= 1, `${label}: middle-click changed page scroll`);
 }
 
-// Màn cảm ứng giữ nút viewer chỉ cho screen reader (viewer touch R8): bấm chúng như assistive tech.
+// Touch screens keep viewer buttons for screen readers only (viewer touch R8): press them like assistive tech.
 const press = (locator, touch) => (touch ? locator.evaluate((node) => node.click()) : locator.click());
 
 async function clickZoom(page, selector, { reducedMotion, label, touch }) {
@@ -1058,7 +1058,7 @@ async function exerciseDialog(page, options) {
 }
 
 async function assertFocusVisibleAfterResize(page, label) {
-  // Đặt nút gần đỉnh để layout sau resize có thể đẩy nó ra ngoài màn hình.
+  // Put the button near the top so the layout after resize can push it off screen.
   await page.evaluate(() => {
     const motion = window.TruongThinhMotion;
     motion.setLogicalScroll(motion.getLogicalScroll() + document.querySelector("[data-detail-expand]").getBoundingClientRect().top - 90);
@@ -1417,7 +1417,7 @@ function assertOneColumnGrid(evidence, label, { parent = false, related = false 
   const widths = evidence.cards.map((card) => card.inlineWidth);
   assert(widths.every((width) => width > 0), `${label}: a rendered card has no placement width`);
   for (const card of evidence.cards) {
-    // Masonry R5: card có cover w/h >= 1.618 trải hai cột ở lưới từ 3 cột (chính và related); card khác đúng một cột.
+    // Masonry R5: a card with cover w/h >= 1.618 spans two columns in grids of 3+ columns (primary and related); other cards take exactly one column.
     const span = card.span === "2" ? 2 : 1;
     if (span === 2) assert(columns >= 3 && card.image && card.image.naturalWidth * 1000 >= card.image.naturalHeight * 1618,
       `${label}: ${card.id} spans two columns without a golden-ratio cover on a 3+ column grid`);

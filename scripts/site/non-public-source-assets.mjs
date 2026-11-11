@@ -1,4 +1,4 @@
-// File source dưới src/site không đi vào .site-output.
+// Source files under src/site do not go into .site-output.
 export const nonPublicSourceAssets = [
   "advertising-products/catalog.mjs",
   "advertising-products/media-contract.mjs",

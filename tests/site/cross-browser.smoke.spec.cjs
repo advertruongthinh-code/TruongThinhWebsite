@@ -5,7 +5,7 @@ const { test, expect } = require("playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
 
-// Trang dựng từ khối lấy mẫu đầu tiên trong dữ liệu (content-independent-tests R4), không ghi cứng slug.
+// Pages are built from the first sampled block in the data (content-independent-tests R4), no hard-coded slug.
 const content = (kind) => JSON.parse(fs.readFileSync(path.join(__dirname, "../../src/site/content", `${kind}.json`), "utf8"));
 const routes = [
   "/vi/",
@@ -109,17 +109,17 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   await page.mouse.move(400, 400);
   const before = await page.evaluate(() => window.historyWrites);
   const started = Date.now();
-  // Locomotive nhân wheel input với 1 trên Windows và 0.4 ở nơi khác; giữ trọn khoảng cách Windows trong grid.
+  // Locomotive multiplies wheel input by 1 on Windows and 0.4 elsewhere; keep the full Windows distance in the grid.
   for (let step = 0; step < 80; step += 1) {
     await page.mouse.wheel(0, 20);
     await page.waitForTimeout(40);
   }
   await page.waitForTimeout(400);
   const writes = await page.evaluate(() => window.historyWrites) - before;
-  // Scroll persistence bị throttle ghi khoảng 3 lần mỗi giây; giới hạn của Chrome là 20 mỗi giây.
+  // Scroll persistence is throttled to about 3 writes per second; Chrome's limit is 20 per second.
   expect(writes / ((Date.now() - started) / 1_000), "scroll history writes per second").toBeLessThan(5);
   const length = await page.evaluate(() => history.length);
-  // Cuộn quán tính và cửa sổ ảo còn dời card sau wheel cuối; chờ tới khi có card nằm gọn thay vì chụp một lần.
+  // Inertial scroll and the virtual window still move cards after the last wheel; wait until a card sits fully in view instead of capturing once.
   let photo;
   await expect.poll(async () => {
     photo = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")].find((card) => {
@@ -146,7 +146,7 @@ test("crossing the smooth-scroll breakpoint and back keeps the scroll position",
   await page.waitForTimeout(500);
   const before = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
   expect(before).toBeGreaterThan(5_000);
-  // Kéo cửa sổ nhanh qua mốc 981px rồi quay lại: scroll khôi phục phải tức thì, không trượt theo CSS smooth.
+  // Drag the window quickly across the 981px breakpoint and back: restored scroll must be instant, not sliding with CSS smooth.
   await page.setViewportSize({ width: 900, height: 900 });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(1_500);
@@ -158,10 +158,10 @@ test("advertising hero title snaps to its new place on resize, like other pages"
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("/vi/advertising-products/", { waitUntil: "load" });
   await expect(page.locator("html")).not.toHaveClass(/route-enter/);
-  // Chờ intro zoom 2.5s của hero chạy xong.
+  // Wait for the hero's 2.5s intro zoom to finish.
   await page.waitForTimeout(3_500);
   const titleLeft = () => page.evaluate(() => document.querySelector("#page-title").getBoundingClientRect().left);
-  // Qua mốc 1024px, hero đổi từ căn giữa bằng translate sang layout thường.
+  // Past the 1024px breakpoint, the hero switches from translate centering to the normal layout.
   await page.setViewportSize({ width: 1000, height: 900 });
   await page.waitForTimeout(150);
   const early = await titleLeft();
@@ -175,7 +175,7 @@ test("advertising hero title snaps on resize during the intro zoom", async ({ pa
   await expect(page.locator("html")).toHaveClass(/motion-ready/);
   await expect(page.locator("[data-motion-hero-wrapper-zoom]")).toHaveClass(/is-motion-inview/);
   const titleLeft = () => page.evaluate(() => document.querySelector("#page-title").getBoundingClientRect().left);
-  // Resize khi intro zoom 2.5s còn chạy.
+  // Resize while the 2.5s intro zoom is still running.
   await page.setViewportSize({ width: 1000, height: 900 });
   await page.waitForTimeout(150);
   const early = await titleLeft();

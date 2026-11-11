@@ -1,5 +1,5 @@
-// Nav full menu (site-shell R4) dựng từ một nguồn rồi ghi vào mọi trang nguồn có menu, cùng cách sync-brand-lockup.
-// Công trình và nhóm quảng cáo tiêu biểu đọc từ content/menu.json qua menuFeatured (sau này CMS sửa được).
+// Full-menu nav (site-shell R4) built from one source then written into every source page that has the menu, the same way as sync-brand-lockup.
+// Featured projects and advertising groups are read from content/menu.json via menuFeatured (editable by the CMS later).
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const consumers = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navPattern = /( *)<nav\s+class="menu-nav"[\s\S]*?<\/nav>/;
 const desktopListPattern = /(class="desktop-nav"[\s\S]*?\n)( *)<ul>[\s\S]*?<\/ul>/;
-// Navbar (site-shell R4): bốn mục chính theo đúng thứ tự nhóm 01-04 của menu.
+// Navbar (site-shell R4): four main items in the exact order of menu groups 01-04.
 const DESKTOP_LINKS = [
   { href: "/vi/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
   { href: "/vi/commercial/", vi: "Không gian Kinh doanh", en: "Commercial spaces" },
@@ -18,7 +18,7 @@ const DESKTOP_LINKS = [
   { href: "/vi/advertising-products/", vi: "Sản phẩm Quảng cáo", en: "Advertising products" },
 ];
 const FEATURED_PRODUCT_GROUPS = 5;
-// Nhãn menu dài hơn nhãn rail của taxonomy; nhóm mới chưa có nhãn menu thì dùng nhãn rail.
+// Menu labels are longer than the taxonomy rail labels; a new group without a menu label uses its rail label.
 const PRODUCT_GROUP_LABELS = {
   "displays-booths": { vi: "Kiosk & POSM", en: "Kiosk & POSM" },
   "mobile-retail": { vi: "Xe bán hàng", en: "Mobile retail" },
@@ -27,7 +27,7 @@ const PRODUCT_GROUP_LABELS = {
   "led-displays": { vi: "LED, màn hình & hộp đèn", en: "LED, displays & light boxes" },
   "printing-decals": { vi: "In nhanh & decal", en: "Quick print & decals" },
 };
-// Link mạng xã hội chưa có: mục tắt giống footer, có link thì điền vào đây.
+// Social links do not exist yet: the item is off like the footer, fill them in here once they exist.
 const SOCIAL = [
   { label: "Facebook", href: null },
   { label: "TikTok", href: null },
@@ -35,7 +35,7 @@ const SOCIAL = [
 ];
 
 const escapeHtml = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-// Route VI sang EN chỉ đổi tiền tố thì runtime tự đổi; khác slug mới cần data-en-href.
+// A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
 const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== vi.replace(/^\/vi\//, "/en/") ? ` data-en-href="${en}"` : ""}`;
 const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en)} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
 const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
@@ -44,7 +44,7 @@ const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_
 const group = (number, { title, aria, href, options }) => [
   '          <div class="menu-group">',
   `            <span class="menu-group__number">${String(number).padStart(2, "0")}</span>`,
-  // aria-label giữ tên đầy đủ khi tiêu đề chỉ là tên nhóm ngắn.
+  // aria-label keeps the full name when the title is only a short group name.
   `            <a class="menu-group__title" ${hrefAttrs(href.vi, href.en)}${aria ? ` aria-label="${escapeHtml(aria.vi)}" data-en-aria-label="${escapeHtml(aria.en)}"` : ""}>`,
   `              <span data-vi="${escapeHtml(title.vi)}" data-en="${escapeHtml(title.en)}">${escapeHtml(title.vi)}</span>`,
   "            </a>",
@@ -112,9 +112,9 @@ const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING
 for (const relativePath of consumers) {
   const target = path.join(siteRoot, relativePath);
   const source = await readFile(target, "utf8");
-  if (!navPattern.test(source)) throw new Error(`${relativePath} mất <nav class="menu-nav">`);
-  if (!desktopListPattern.test(source)) throw new Error(`${relativePath} mất <ul> của navbar`);
-  // Tiêu đề nhóm của chính trang mang aria-current tĩnh (trang dựng từ khối gỡ nó trong block-pages).
+  if (!navPattern.test(source)) throw new Error(`${relativePath} is missing <nav class="menu-nav">`);
+  if (!desktopListPattern.test(source)) throw new Error(`${relativePath} is missing the navbar <ul>`);
+  // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.
   const section = relativePath.split("/")[1] ? relativePath.split("/")[0] : null;
   const current = section ? nav.replace(`class="menu-group__title" href="/vi/${section}/"`, `class="menu-group__title" href="/vi/${section}/" aria-current="page"`) : nav;
   const markCurrent = (list) => section ? list.replace(`<li><a href="/vi/${section}/"`, `<li class="selected"><a href="/vi/${section}/" aria-current="page"`) : list;

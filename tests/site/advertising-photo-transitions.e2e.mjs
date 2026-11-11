@@ -38,14 +38,14 @@ const provenance = {
   },
 };
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
-// PHOTO_TRANSITIONS_ENGINE=webkit|firefox chạy cả bộ trên engine khác; CI giữ Chromium.
+// PHOTO_TRANSITIONS_ENGINE=webkit|firefox runs the whole suite on another engine; CI keeps Chromium.
 const engine = (await import("playwright"))[process.env.PHOTO_TRANSITIONS_ENGINE || "chromium"];
 const results = [];
 const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
 const mediaCardId = "signage-raised-letters-06";
 const mediaVideoId = `${mediaCardId}-synthetic-video`;
-// Phản chiếu VISIT_SEED_HANDOFF_KEY; module runtime cần window mới import được.
+// Mirrors VISIT_SEED_HANDOFF_KEY; the runtime module needs a window to import.
 const visitSeedHandoffKey = "tt-advertising-visit-seed-handoff-v1";
 const p13BaselineOnly = process.env.PHOTO_TRANSITIONS_P13_BASELINE === "1";
 const p13GateOnly = process.env.PHOTO_TRANSITIONS_P13_GATE === "1";
@@ -63,7 +63,7 @@ const p13RegressionCases = new Set([
   "delayed-image-resize-latest-wins",
   "related-selected-card-shuffle-cleanup",
 ]);
-// Registry của artifact có thêm tag nhóm product (taxonomy R7).
+// The artifact registry also has the product group tag (taxonomy R7).
 const tagLabels = new Map(ADVERTISING_CATALOG_ARTIFACT.tagRegistry.map((tag) => [tag.id, { vi: tag.labelVi, en: tag.labelEn }]));
 
 const href = (route) => new URL(route, baseUrl).href;
@@ -75,9 +75,9 @@ const snapshot = () => ({
   clones: [...document.querySelectorAll("[data-detail-morph]")].map((node) => ({ id: node.dataset.detailId, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() })),
   locked: [document.body.style.overflow, document.documentElement.style.overflow],
 });
-// waitForFunction không chờ giá trị của Promise mà predicate trả về (Promise luôn truthy nên điều kiện xong ngay lần đầu);
-// vòng chờ theo frame vì vậy chạy trong trang bằng evaluate.
-// Smooth scroll giảm tốc dần về đích; chỉ đọc logical position khi nó đã dừng hẳn.
+// waitForFunction does not wait for the value of a Promise the predicate returns (a Promise is always truthy so the condition is met on the first try);
+// the frame-based wait therefore runs in the page via evaluate.
+// Smooth scroll decelerates toward the target; read the logical position only once it has fully stopped.
 async function restingScroll(page) {
   return page.evaluate(() => new Promise((resolve) => {
     const read = () => window.TruongThinhMotion.getLogicalScroll();
@@ -98,10 +98,10 @@ async function settle(page, predicate, argument) {
 async function ready(page, id) {
   await settle(page, (expected) => document.querySelector("[data-detail-view]")?.dataset.detailId === expected && document.querySelector("[data-detail-image]")?.complete, id);
 }
-// Thay các khoảng chờ cố định: detail đang mở đã dựng xong related (dựng qua nhiều task, advertising-detail R7; runtime
-// đặt data-masonry-detail-ready) và primary reveal đã chạy xong (aria-busy gỡ cùng task bắt đầu reveal), không còn animation hữu hạn hay tween GSAP chưa xong,
-// và trạng thái đó giữ nguyên qua hai frame liên tiếp. Chỉ chứng minh "không còn gì chạy"; ca nào cần motion đã bắt đầu
-// thì phải chờ tín hiệu bắt đầu của nó trước.
+// Replaces fixed waits: the open detail has finished building related (built across several tasks, advertising-detail R7; the runtime
+// sets data-masonry-detail-ready) and the primary reveal has finished (aria-busy is removed in the same task the reveal starts), with no finite animation or GSAP tween unfinished,
+// and that state holds across two consecutive frames. It only proves "nothing is running"; a case that needs motion to have started
+// must first wait for its own start signal.
 async function quiet(page) {
   const settled = await page.evaluate(() => new Promise((resolve) => {
     const deadline = performance.now() + 15_000;
@@ -109,7 +109,7 @@ async function quiet(page) {
       const view = document.querySelector("[data-detail-view]");
       if (view && !view.hidden && (view.dataset.masonryDetailReady !== "true"
         || view.querySelector(".detail-view__hero-frame[aria-busy]"))) return true;
-      // media-hover-zoom là zoom 5s chạy nền liên tục trên card đang trong view, không phải chuyển cảnh.
+      // media-hover-zoom is a 5s zoom running continuously in the background on cards in view, not a transition.
       if (document.getAnimations().some((animation) => (animation.playState === "running" || animation.playState === "pending")
         && animation.effect?.getComputedTiming().iterations !== Infinity
         && !animation.effect?.target?.classList.contains("media-hover-zoom"))) return true;
@@ -125,7 +125,7 @@ async function quiet(page) {
   }));
   assert(settled, "page did not settle within 15s");
 }
-// Hover transition (150ms) chạy xong rồi mới đọc màu: chờ animation của chính nút, không chờ số ms cố định.
+// Let the hover transition (150ms) finish before reading the color: wait for the button's own animation, not a fixed number of ms.
 const settleHover = (control) => control.evaluate((node) => Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))));
 async function openA(page) {
   await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
@@ -153,7 +153,7 @@ async function m02bFixture(page, locale, direct = false, seed = null) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === mediaCardId);
   assert(card, "M02b fixture needs the authored card");
-  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  // Keep only the legacy image as cover, so the fixture does not depend on temporary media (which can add images, videos, set a video as cover).
   card.mediaItems = [{ id: mediaCardId, kind: "image", ...card.media }];
   card.coverMediaId = mediaCardId;
   card.mediaItems.push({
@@ -174,7 +174,7 @@ async function m02bFixture(page, locale, direct = false, seed = null) {
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   const target = href(`/${locale}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`);
-  // Ghim visit seed qua runtime handoff để thứ tự related (và virtual reachability) mang tính xác định.
+  // Pin the visit seed through the runtime handoff so the related order (and virtual reachability) is deterministic.
   if (seed) {
     await page.addInitScript(({ key, url, value }) => {
       sessionStorage.setItem(key, JSON.stringify({ version: 1, url, seed: value, expiresAt: Date.now() + 30_000 }));
@@ -208,13 +208,13 @@ async function armNoGridMorphProbe(page) {
     probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; probe.stopped = true; };
     const sample = () => {
       const photo = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
-      // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision phone-frame-budget):
-      // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
+      // Opening from the grid builds detail hidden in the card-touch task and only then shows it (decision phone-frame-budget):
+      // the entry's first frame still paints the old view at the old scroll; only a frame that painted the new entry's view counts.
       const shown = Boolean(photo) === !document.querySelector("[data-detail-view]")?.hidden;
       probe.frames.push({ photo, shown,
         y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
         cloneCount: document.querySelectorAll("[data-detail-morph]").length });
-      // Lấy mẫu tới khi đọc evidence: detail có thể hiện muộn hơn một khung cố định trên máy chậm.
+      // Sample until the evidence is read: detail may show later than a fixed window on a slow machine.
       if (!probe.stopped) requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
@@ -223,7 +223,7 @@ async function armNoGridMorphProbe(page) {
 }
 
 async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
-  // Frame của entry đích chỉ tính khi view đã đổi sang entry đó; chờ probe ghi được ít nhất một frame như vậy.
+  // A frame of the target entry only counts once the view has changed to that entry; wait for the probe to record at least one such frame.
   await page.waitForFunction((photo) => window.__ttM02bProbe.frames.some((entry) => entry.photo === photo && entry.shown), expectedPhoto);
   await quiet(page);
   const evidence = await page.evaluate(() => {
@@ -254,7 +254,7 @@ async function caseRun(name, viewport, fn, { allowedIssues = [], contextOptions 
   if (p13GateOnly) await installSynchronousHandlerProbe(page);
   const issues = [];
   page.on("pageerror", (error) => issues.push(`pageerror:${error.message}`));
-  // Firefox báo request Google Fonts bị navigation hủy (NS_BINDING_ABORTED) là console error.
+  // Firefox reports a Google Fonts request cancelled by navigation (NS_BINDING_ABORTED) as a console error.
   page.on("console", (message) => { if (message.type() === "error" && !/^downloadable font: download failed .*status=2152398850/.test(message.text())) issues.push(`console:${message.text()}`); });
   let stage = "start";
   try {
@@ -369,7 +369,7 @@ async function readInputTimingProbe(page) {
     && window.__ttP13InputTiming?.handlerTaskEndAt !== null, null, { timeout: 2_000 });
   return page.evaluate(() => {
     const probe = window.__ttP13InputTiming;
-    // PerformanceObserver giao entry bất đồng bộ; takeRecords lấy ngay phần chưa giao.
+    // PerformanceObserver delivers entries asynchronously; takeRecords fetches the undelivered ones immediately.
     for (const entry of probe.observer?.takeRecords() ?? []) {
       if (probe.inputAt !== null && entry.startTime >= probe.inputAt - 1) probe.longTasks.push({ startTime: entry.startTime, duration: entry.duration });
     }
@@ -493,7 +493,7 @@ async function installRelatedMediaProbe(page) {
     const sampling = new WeakSet();
     const capture = (image) => {
       const card = image.closest("[data-masonry-related-card]");
-      // Remount từ cache chèn lại cùng một node, nên dedupe theo lần chèn, không theo element.
+      // A remount from cache reinserts the same node, so dedupe by insertion, not by element.
       if (!card || sampling.has(image)) return;
       sampling.add(image);
       const record = { id: card.dataset.masonryRelatedCard, frames: [] };
@@ -506,15 +506,15 @@ async function installRelatedMediaProbe(page) {
           opacity: Number(style.opacity),
           duration: style.transitionDuration,
           easing: style.transitionTimingFunction,
-          // Như stuffing: fade opacity vẫn chạy khi main thread bận không lấy được frame giữa. Ảnh có skeleton
-          // fade bằng crossfade WAAPI thay cho transition CSS.
+          // Like stuffing: the opacity fade still runs when the main thread is busy and cannot take a frame in between. An image with a skeleton
+          // fades with a WAAPI crossfade instead of a CSS transition.
           blur: image.style.filter.startsWith("blur("),
-          // Thở của card chờ ảnh (CSS media-breathe) không phải fade riêng ảnh (spec chờ ảnh S2).
+          // The breathing of a card waiting for its image (CSS media-breathe) is not a fade of the image itself (waiting-for-image spec S2).
           fading: image.getAnimations().some((animation) => animation.playState === "running"
             && animation.animationName !== "media-breathe"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
-        // Card còn skeleton thì media chưa hiện: lấy mẫu tới khi fade xong, kể cả khi fixture giữ ảnh quá 3s.
+        // A card still with a skeleton has no media shown yet: sample until the fade finishes, even when the fixture holds the image past 3s.
         if (card.querySelector("[data-masonry-loading-skeleton]")) record.pending = true;
         const elapsed = performance.now() - started;
         if ((elapsed < 3_000 || (record.pending && Number(style.opacity) < 0.99 && elapsed < 15_000))
@@ -550,7 +550,7 @@ async function installStuffingProbe(page, selector, gridSelector) {
           delay: style.transitionDelay,
           easing: style.transitionTimingFunction,
           animations: node.getAnimations().filter((animation) => animation.playState === "running").length,
-          // Transition transform chạy trên compositor: vẫn trượt đủ 400ms khi main thread bận không lấy được frame giữa.
+          // A transform transition runs on the compositor: it still slides the full 400ms when the main thread is busy and cannot take a frame in between.
           transformTransitionMs: node.getAnimations().find((animation) => animation.transitionProperty === "transform"
             && animation.playState === "running")?.effect.getTiming().duration ?? null,
         };
@@ -561,8 +561,8 @@ async function installStuffingProbe(page, selector, gridSelector) {
       const sample = () => {
         const elapsed = performance.now() - started;
         record.frames.push({ elapsed, ...read() });
-        // Transition chỉ có start time ở frame vẽ đầu tiên sau khi tạo: main thread bận lúc mount related làm card
-        // trượt muộn hơn cửa sổ 460ms (issue #507), nên lấy mẫu tiếp tới khi transition transform xong.
+        // A transition only has a start time at the first frame painted after creation: a busy main thread while mounting related makes the card
+        // slide later than the 460ms window (issue #507), so keep sampling until the transform transition finishes.
         const moving = node.getAnimations().some((animation) => animation.transitionProperty === "transform"
           && animation.playState === "running");
         if ((elapsed < 460 || (moving && elapsed < 3_000)) && node.isConnected) requestAnimationFrame(sample);
@@ -655,8 +655,8 @@ async function readBackdropMorphState(page) {
   });
 }
 
-// Probe lấy mẫu ít nhất 460ms kể từ lúc card được gắn, tới khi card hết trượt. Đợi mẫu kết thúc thay vì mốc cố
-// định sau navigation: máy chậm gắn card muộn hơn mốc đó nên chưa có mẫu nào để so.
+// The probe samples for at least 460ms from when the card is attached, until the card stops sliding. Wait for the sampling to end instead of a fixed
+// mark after navigation: a slow machine attaches the card later than that mark so there would be no sample to compare.
 const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records.length
   && window.__ttP13Stuffing.records.every((record) => record.done));
 
@@ -693,7 +693,7 @@ try {
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       const card = page.locator(`[data-masonry-card="${A}"] > a`);
       await card.scrollIntoViewIfNeeded();
-      // Y của masonry đổi tiếp vài frame sau khi cuộn tới card; chỉ lấy khi đứng yên 5 frame liền.
+      // The masonry Y keeps changing for a few frames after scrolling to the card; only take it after 5 consecutive still frames.
       const gridY = await page.evaluate(() => new Promise((resolve) => {
         let last = NaN;
         let still = 0;
@@ -796,7 +796,7 @@ try {
         { id: mediaCardId, mediaId: mediaVideoId });
       const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       const initialLength = await page.evaluate(() => history.length);
-      await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // tránh vùng mũi tên hover 32px ở mép canvas (media-card R3)
+      await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // avoid the 32px hover arrow area at the canvas edge (media-card R3)
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       const y0 = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.scrollY);
       await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
@@ -804,9 +804,9 @@ try {
       stage(`${locale}-detail-image-Y1`);
       await page.locator(`[data-detail-media-select="${card.coverMediaId}"]`).click();
       await page.waitForFunction((id) => document.querySelector(`[data-detail-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
-      // Y của grid đến từ layout random, nên chọn Y của detail tránh nó.
+      // The grid Y comes from the random layout, so choose a detail Y that avoids it.
       const target = Math.abs(y0 - 480) > 150 ? 480 : 0;
-      // Detail mở mới dựng related qua nhiều task; trước đó trang chỉ cao bằng primary và setLogicalScroll bị kẹp về đáy.
+      // A newly opened detail builds related across several tasks; before that the page is only as tall as the primary and setLogicalScroll is clamped to the bottom.
       await quiet(page);
       await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), target);
       await page.waitForFunction((y) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, target);
@@ -818,13 +818,13 @@ try {
       await page.goBack();
       await page.waitForFunction((y) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && document.querySelector("[data-detail-view]").hidden && Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, y0)
-        .catch(() => {}); // lệch Y thì assert dưới báo giá trị thật
+        .catch(() => {}); // if Y is off, the assert below reports the real value
       await quiet(page);
       await restingScroll(page);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
       const gridMedia = await page.locator(`[data-masonry-card="${mediaCardId}"]`).getAttribute("data-masonry-active-media-id");
-      // Back về masonry từ detail của chính card: card đứng ở media vừa xem trong detail (media-card R6, owner 2026-10-18).
+      // Back to masonry from the card's own detail: the card stands at the media just viewed in detail (media-card R6, owner 2026-10-18).
       assert.equal(gridMedia, card.coverMediaId, `${locale}: Back shows the media last viewed in the detail`);
 
       stage(`${locale}-Forward-detail-image`);
@@ -859,12 +859,12 @@ try {
           return { x: 20, y: Math.max(rect.top + 20, headerBottom + 20) - rect.top };
         });
         await page.evaluate(() => { window.__ttM02bActivation = null; });
-        // Related card ngang cao hơn viewport, nên locator.tap() cuộn nó vào view trước;
-        // html scroll-behavior làm việc đó mượt và còn chạy khi photo reset scroll một task sau.
+        // A landscape related card is taller than the viewport, so locator.tap() scrolls it into view first;
+        // html scroll-behavior makes that smooth, and it still runs when the photo resets scroll one task later.
         if (profile.contextOptions.hasTouch) {
           const box = await link.boundingBox();
           const point = [box.x + position.x, box.y + position.y];
-          // Cùng actionability như tap(): route veil của trang phải rời khỏi điểm đó.
+          // Same actionability as tap(): the page's route veil must leave that point.
           await page.waitForFunction(([node, x, y]) => node.contains(document.elementFromPoint(x, y)), [await link.elementHandle(), ...point]);
           await page.touchscreen.tap(...point);
         } else await link.click({ position });
@@ -873,7 +873,7 @@ try {
         return activation;
       };
       const positionCard = async (selector) => {
-        // Đo card lúc đứng yên: related card vẫn chạy placement 0.4s sau khi photo mở.
+        // Measure the card while still: the related card still runs placement for 0.4s after the photo opens.
         await page.evaluate((target) => new Promise((resolve, reject) => {
           const deadline = performance.now() + 15_000;
           const check = () => {
@@ -914,7 +914,7 @@ try {
       };
       for (const locale of [profile.locale]) {
         stage(`${profile.name}-${locale}-grid-to-A`);
-        // Seed giữ A reachable cho related virtualization trên desktop, nơi related grid ngắn ghim một số card.
+        // The seed keeps A reachable for related virtualization on desktop, where a short related grid pins some cards.
         await m02bFixture(page, locale, false, "m02b-l");
         await page.evaluate(() => {
           document.addEventListener("click", (event) => {
@@ -966,7 +966,7 @@ try {
         await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
         assert.deepEqual(markerFailures, [], `related marker failures: ${JSON.stringify(markerFailures)}`);
         assert.equal(await page.evaluate(() => history.length), initialLength + 2, `${locale}: related history must not add entries`);
-        // Detail nằm trong path trang card (media-seo R1), query không còn tham số nào.
+        // Detail sits in the card page path (media-seo R1), the query no longer has any parameter.
         assert.deepEqual([...new URL(page.url()).searchParams.keys()], [], `${locale}: no marker/media URL parameter`);
 
         stage(`${profile.name}-${locale}-related-virtualization-remount`);
@@ -1026,7 +1026,7 @@ try {
     }
     return evidence;
   });
-  // R7: task tap chỉ ghi history, task kế tiếp chỉ paint primary; related solver và mount card chạy sau.
+  // R7: the tap task only writes history, the next task only paints the primary; the related solver and card mount run afterwards.
   await caseRun("related-tap-defers-related", { width: 412, height: 915 }, async (page) => {
     const visibleRelated = () => [...document.querySelectorAll("[data-masonry-related-card]")].filter((card) => !card.hidden).length;
     await page.goto(href("/vi/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
@@ -1064,9 +1064,9 @@ try {
       await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-masonry-related-card="${id}"] > a`);
-      // Thứ tự related được seed và virtualize; quét xuống rồi lên lại cho đến khi card đích mount.
-      // Mỗi bước 0.6 viewport trong hai frame là vuốt nhanh (advertising-masonry R7): runtime chỉ đặt card tạm. Chờ
-      // card tạm trong viewport được thay bằng card thật rồi mới xét, không thì card đích không bao giờ mount (đỏ ở 390, một cột dài).
+      // The related order is seeded and virtualized; scan down then up again until the target card mounts.
+      // Each step of 0.6 viewport within two frames is a fast swipe (advertising-masonry R7): the runtime only places temporary cards. Wait
+      // for temporary cards in the viewport to be replaced by real cards before judging, otherwise the target card never mounts (red at 390, one long column).
       for (let step = 0, direction = 1; step < 120 && !(await link.count()); step += 1) {
         const moved = await page.evaluate((sign) => {
           const before = window.TruongThinhMotion.getLogicalScroll();
@@ -1080,8 +1080,8 @@ try {
         }), null, { timeout: 5_000 });
         if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
-      // Related còn xếp chỗ sau khi primary sẵn sàng (card đi từ đầu cột, solver đầy đủ ở task sau); WebKit
-      // headless chậm nên test có thể đo giữa chừng. Chờ card đứng yên 5 frame liền rồi mới tính đích cuộn.
+      // Related still places after the primary is ready (cards go from the column start, the full solver in a later task); headless WebKit
+      // is slow so the test may measure midway. Wait for the card to be still for 5 consecutive frames before computing the scroll target.
       await link.evaluate((node) => new Promise((resolve) => {
         let last = NaN;
         let still = 0;
@@ -1093,7 +1093,7 @@ try {
         };
         tick();
       }));
-      // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
+      // Smooth scroll bypasses native scrollIntoView; move the logical scroll to the card instead.
       await link.evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
         window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
       await restingScroll(page);
@@ -1101,19 +1101,19 @@ try {
         const image = document.querySelector(`[data-masonry-related-card="${photoId}"] img`);
         return image?.complete && image.naturalWidth > 0;
       }, id);
-      // Runtime chỉ dời focus khi nó đang ở related (spec R7). Safari/WebKit không focus link khi click chuột,
-      // nên ghi lại lúc click (capture, trước handler runtime) focus có nằm trong related không.
+      // The runtime only moves focus when it is in related (spec R7). Safari/WebKit does not focus a link on mouse click,
+      // so record at click time (capture, before the runtime handler) whether focus is inside related.
       await page.evaluate(() => addEventListener("click", () => {
         window.__ttFocusInRelatedAtClick = Boolean(document.activeElement?.closest("[data-masonry-related-card]"));
       }, { capture: true, once: true }));
-      // Kích hoạt native giữ focus trên card được click, khác với element.click().
+      // Native activation keeps focus on the clicked card, unlike element.click().
       if (scenario.input === "keyboard") {
         await link.focus();
         await link.press("Enter");
       } else await link.click();
       await ready(page, id);
-      // Bấm card related dựng lại related qua nhiều task (advertising-detail R1): chờ card cũ rời related rồi mới đếm,
-      // và đợi related mới dựng xong. Quá 5s vẫn còn thì assert dưới đỏ.
+      // Clicking a related card rebuilds related across several tasks (advertising-detail R1): wait for the old card to leave related before counting,
+      // and wait for the new related to finish building. If it is still there after 5s the assert below goes red.
       await page.waitForFunction((photoId) => !document.querySelector(`[data-masonry-related-card="${photoId}"]`), id, { timeout: 5_000 })
         .catch(() => {});
       await quiet(page);
@@ -1137,7 +1137,7 @@ try {
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-detail-expand]").click();
     const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-detail-${name}]`)]));
-    // Để transition background 150 ms hoàn tất; runner đang tải nặng có thể trễ hơn một lần chờ cố định.
+    // Let the 150 ms background transition finish; a heavily loaded runner may lag more than a fixed wait.
     const read = (control) => control.evaluate(async (node) => {
       await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
       const style = getComputedStyle(node);
@@ -1199,8 +1199,8 @@ try {
     return evidence;
   });
 
-  // L06: trên phone Android ở chế độ ngang, swipe phải ngay sau zoom-in bắt đầu trên backdrop
-  // (ảnh còn ở kích thước fit giữa animation) và đóng viewer ngay khi pointerdown.
+  // L06: on an Android phone in landscape, a right swipe right after zoom-in starting on the backdrop
+  // (the image is still at fit size mid animation) closes the viewer immediately on pointerdown.
   await caseRun("viewer-backdrop-swipe-stays-open", { width: 838, height: 331 }, async (page, stage) => {
     const cdp = await page.context().newCDPSession(page);
     const dialogOpen = () => page.evaluate(() => document.querySelector("#detail-dialog").open);
@@ -1212,7 +1212,7 @@ try {
         await page.evaluate(frame);
       }
       await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-      // Viewer đóng ngay khi pointerdown (state closing); không thì zoom xong về open. Chờ một trong hai rồi mới đọc.
+      // The viewer closes immediately on pointerdown (state closing); otherwise the zoom finishes and returns to open. Wait for one of the two before reading.
       await page.waitForFunction(() => {
         const dialog = document.querySelector("#detail-dialog");
         return !dialog.open || dialog.dataset.viewerState === "open";
@@ -1224,11 +1224,11 @@ try {
       stage(`${locale}-swipe-from-backdrop-mid-zoom`);
       await page.goto(href(`/${locale}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
       await ready(page, "kiosk-posm-37");
-      // Màn cảm ứng chỉ giữ nút expand cho screen reader (viewer touch R7).
+      // A touch screen keeps only the expand button for screen readers (viewer touch R7).
       await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
       await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
-      // Fit trên màn cảm ứng chạm mép trên dưới (viewer touch R8): điểm bắt đầu nằm sát phải ảnh Fit,
-      // là backdrop lúc animation zoom mới chạy và thành ảnh khi zoom xong.
+      // Fit on a touch screen touches the top and bottom edges (viewer touch R8): the start point is right of the Fit image,
+      // which is the backdrop when the zoom animation has just started and becomes the image when the zoom finishes.
       const x = Math.round(await page.evaluate(() => document.querySelector("[data-detail-expanded-image]").getBoundingClientRect().right) + 20);
       await page.evaluate(() => document.querySelector("[data-detail-zoom-in]").click());
       const target = await page.evaluate((x) => document.elementFromPoint(x, 265)?.matches("[data-detail-viewport]"), x);
@@ -1254,7 +1254,7 @@ try {
 
     stage("cached-remount");
     const firstId = parentStuffing.id;
-    // Lần layout đầu có motion 0.4s từ đầu cột; đọc tọa độ gốc sau khi motion dừng.
+    // The first layout has 0.4s of motion from the column start; read the origin coordinates after the motion stops.
     await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)?.getAnimations()
       .every(({ playState }) => playState !== "running"), firstId);
     const initial = await page.locator(`[data-masonry-card="${firstId}"]`).evaluate((node) => {
@@ -1262,7 +1262,7 @@ try {
       const grid = node.closest("[data-project-grid]").getBoundingClientRect();
       return { x: rect.left - grid.left, y: rect.top - grid.top };
     });
-    // Thứ tự trình bày được seed, nên card cuối của catalog có thể nằm gần đỉnh; thay vào đó cuộn tới cuối.
+    // The presentation order is seeded, so the catalog's last card may sit near the top; scroll to the end instead.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForFunction((id) => !document.querySelector(`[data-masonry-card="${id}"]`), firstId);
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), firstId);
@@ -1290,8 +1290,8 @@ try {
     stage("related-prepaint");
     const relatedContext = await browser.newContext({ viewport: { width: 1329, height: 912 }, locale: "vi-VN" });
     const relatedPage = await relatedContext.newPage();
-    // Ảnh related giải mã trước entry đầu của IntersectionObserver thì hiện ngay (loading-glass R3), không fade R2 mà
-    // bước này kiểm; runner bận đảo thứ tự hai sự kiện đó (issue #507). Giữ ảnh tới khi card mang skeleton.
+    // A related image decoded before the IntersectionObserver's first entry shows immediately (loading-glass R3), without the R2 fade that
+    // this step checks; a busy runner swaps the order of those two events (issue #507). Hold the image until the card carries the skeleton.
     const heldMedia = [];
     let mediaReleased = false;
     const mediaPattern = "**/assets/content/**";
@@ -1313,10 +1313,10 @@ try {
     const initialRelatedIds = new Set(relatedState.records.map(({ id }) => id));
     const initialMediaId = relatedState.records[0]?.id;
     assert(initialMediaId, "initial related window has no media fixture");
-    // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
+    // Smooth scroll bypasses native scrollIntoView; move the logical scroll to the card instead.
     await relatedPage.locator(`[data-masonry-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
-    // Ảnh card related chờ tải ở opacity cuối dưới blur của chính nó (progressive-loading R9); ảnh về thì blur tan và bị gỡ.
+    // A related card image waiting to load sits at final opacity under its own blur (progressive-loading R9); when the image arrives the blur clears and is removed.
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] img[style*='blur(']`), initialMediaId);
     mediaReleased = true;
     await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
@@ -1326,11 +1326,11 @@ try {
       return card?.querySelector("img")?.naturalWidth && !card.querySelector("img[style*='blur(']");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
-    // Dưới blur ảnh thở giữa 0.45 và 1; opacity chỉ được animate cùng blur lúc tan (spec chờ ảnh S2), không fade riêng.
+    // Under the blur the image breathes between 0.45 and 1; opacity is only animated together with the blur when it clears (waiting-for-image spec S2), with no separate fade.
     assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => (!frame.fading || frame.blur) && (!frame.blur || frame.opacity >= 0.44))
       && initialMedia.frames.at(-1).opacity >= 0.99,
       `related initial media fades instead of waiting under its blur ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
-    // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
+    // Framing tags are still supported as deep links after the detail chips were removed.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
@@ -1343,14 +1343,14 @@ try {
     await relatedPage.locator('[data-masonry-suggestion-tag="format-portrait"][aria-pressed="true"]').click();
     await relatedPage.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     stage("related-cached-remount");
-    // Deep link theo tag tải lại trang với thứ tự related riêng, nên chọn trong các card đang mount.
-    // loading-glass R3 chỉ áp cho media đã tải xong trước khi ra khỏi viewport, nên chờ card trong màn đầu hiện ảnh.
+    // A tag deep link reloads the page with its own related order, so choose among the currently mounted cards.
+    // loading-glass R3 only applies to media loaded before leaving the viewport, so wait for a card in the first screen to show its image.
     await relatedPage.waitForFunction(() => [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => node.getBoundingClientRect().top < innerHeight)
       .every((node) => node.querySelector(".masonry-card__foreground.is-masonry-media-ready")));
     const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.masonryRelatedCard })));
-    // scrollTo native chạy đua với smooth scroll còn đang giảm tốc trên desktop, nên dời logical position rồi để nó yên.
+    // Native scrollTo races the still-decelerating smooth scroll on desktop, so move the logical position and then leave it alone.
     await relatedPage.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
     await restingScroll(relatedPage);
     await relatedPage.waitForFunction((records) => records.some((record) => (
@@ -1365,10 +1365,10 @@ try {
     await restingScroll(relatedPage);
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] img`), remountMedia.id);
     await relatedPage.waitForFunction(([id, before]) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length > before, [remountMedia.id, recordsBeforeRemount]);
-    // Image decode có thể làm trễ lúc fade bắt đầu, nên chờ fade được lấy mẫu kết thúc thay vì chờ cố định.
+    // Image decode can delay when the fade starts, so wait for the sampled fade to finish instead of a fixed wait.
     await relatedPage.waitForFunction((id) => (window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1)?.frames.at(-1)?.opacity ?? 0) >= 0.99, remountMedia.id);
     const remountedMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1), remountMedia.id);
-    // loading-glass R3: media đã tải hiện thẳng opacity cuối khi gắn lại, không fade (trống lúc giải mã thì được).
+    // loading-glass R3: already-loaded media shows directly at final opacity when reattached, without a fade (blank while decoding is fine).
     assert(remountedMedia?.frames.length && remountedMedia.frames.at(-1).opacity >= 0.99
       && remountedMedia.frames.every(({ opacity, fading }) => !fading && (opacity <= 0.05 || opacity >= 0.99)),
       `related cached remount media faded instead of showing at once ${JSON.stringify(remountedMedia)}`);
@@ -1386,13 +1386,13 @@ try {
 
     stage("filter-interruption-resize");
     await page.evaluate(() => window.scrollTo(0, 0));
-    // Đọc, click và đọc lại trong một task để assertion đo frame đầu đã seed,
-    // không phải tiến trình scroll hay transition sau khi trang nhường một frame.
+    // Read, click and read again in one task so the assertion measures the seeded first frame,
+    // not scroll progress or a transition after the page yields a frame.
     const { beforeFilter, during } = await page.evaluate(() => {
       const visible = () => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
         .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.masonryCard, rect: node.getBoundingClientRect().toJSON() }));
       const beforeFilter = visible();
-      // Thứ tự card ngẫu nhiên theo seed nên lọc theo nhóm của card đầu đang mount, luôn có card được giữ lại để so vị trí.
+      // Card order is random by seed so filter by the group of the first mounted card, always leaving a card kept to compare positions.
       const category = document.querySelector("[data-project-grid] [data-masonry-card]:not([hidden])").dataset.masonryCategory;
       document.querySelector(`[data-masonry-filter="${category}"]`).click();
       return { beforeFilter, during: visible() };
@@ -1409,8 +1409,8 @@ try {
     await page.setViewportSize({ width: 844, height: 390 });
     await page.locator('[data-masonry-filter="all"]').click();
     await page.waitForFunction(() => document.querySelector('[data-masonry-filter][aria-current="true"]')?.dataset.masonryFilter === "all");
-    // Runtime relayout ở rAF sau resize, transition 400ms của card bắt đầu ở frame kế: chờ resize tới rồi qua ba frame
-    // trước khi tin rằng không còn motion nào sắp bắt đầu.
+    // The runtime relayouts at the rAF after resize, and the card's 400ms transition starts the frame after: wait for the resize to arrive and pass three frames
+    // before trusting that no motion is about to start.
     await page.evaluate(async () => {
       await window.__ttResized;
       for (let index = 0; index < 3; index += 1) await new Promise(requestAnimationFrame);
@@ -1437,7 +1437,7 @@ try {
     await ready(page, A);
     const reduced = await page.evaluate(() => ({
       clones: document.querySelectorAll("[data-detail-morph]").length,
-      // Reduced motion rút mọi transition xuống 0.01ms, nên related relayout ngay sau khi mở không phải motion.
+      // Reduced motion cuts every transition to 0.01ms, so the related relayout right after opening is not motion.
       runningTransforms: [...document.querySelectorAll("[data-masonry-card], [data-masonry-related-card]")]
         .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running"
           && Number(animation.effect?.getTiming().duration) > 1).length,
@@ -1452,7 +1452,7 @@ try {
     await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     let relatedY = 0;
     await chooseB(page, async () => {
-      // Related order đã seed có thể đặt B trong view ở đỉnh; cuộn một phần để click bắt đầu khi đã cuộn.
+      // The seeded related order may put B in view at the top; scroll partway so the click starts already scrolled.
       await page.evaluate((id) => {
         if (window.TruongThinhMotion.getLogicalScroll() > 0) return;
         const top = document.querySelector(`[data-masonry-related-card="${id}"]`).getBoundingClientRect().top;
@@ -1469,7 +1469,7 @@ try {
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B);
     assert.equal(new URL(page.url()).searchParams.get("tag"), "use-sampling");
     const scrollStart = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-    // Locomotive dịch một nấc mỗi wheel event, scale theo OS (Windows 108 px, Linux 43 px); ba nấc vượt 100 px.
+    // Locomotive moves one notch per wheel event, scaled by OS (Windows 108 px, Linux 43 px); three notches exceed 100 px.
     for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160);
     await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, scrollStart);
     return { relatedY, detailY, transition, scrollAfterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
@@ -1562,7 +1562,7 @@ try {
       gridY: window.TruongThinhMasonry.getBrowseState().grid.scrollY,
       length: history.length,
     }));
-    // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy.
+    // click() may scroll further when the header covers the related card, so record the Y that the click itself sees.
     await chooseB(page, () => page.evaluate(() => addEventListener("click", () => {
       window.__relatedClickY = window.TruongThinhMotion.getLogicalScroll();
     }, { once: true, capture: true })));
@@ -1605,7 +1605,7 @@ try {
     const evidence = [];
     const networkFailures = [];
     page.on("requestfailed", (request) => {
-      // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+      // Chromium cancels the fetches of lazy images or videos being replaced (srcset/variant/src change, unmount); not a load error.
       if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
       networkFailures.push({ url: request.url(), error: request.failure()?.errorText });
     });
@@ -1640,8 +1640,8 @@ try {
       await link.click();
       await ready(page, id);
       await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
-      // Detail mở mới dựng related qua nhiều task (advertising-detail R7); trước task mount trang chỉ cao bằng primary,
-      // setLogicalScroll(480) bị kẹp đúng về đáy đó (272px ở 1543x884) và không tự lên lại.
+      // A newly opened detail builds related across several tasks (advertising-detail R7); before the mount task the page is only as tall as the primary,
+      // setLogicalScroll(480) is clamped exactly to that bottom (272px at 1543x884) and does not go back up on its own.
       await page.waitForFunction(() => document.querySelector("[data-masonry-related-card]:not([hidden])"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
       await page.waitForFunction(() => Math.abs(window.TruongThinhMasonry.getBrowseState().detail.scrollY - 480) <= 1);
@@ -1702,7 +1702,7 @@ try {
     stage("detail-Back-with-pointer-retained");
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
-    // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy, như case grid dưới.
+    // click() may scroll further when the header covers the related card, so record the Y that the click itself sees, like the grid case below.
     await chooseB(page, () => page.evaluate(() => addEventListener("click", () => {
       window.__relatedClickY = window.TruongThinhMotion.getLogicalScroll();
     }, { once: true, capture: true })));
@@ -1723,7 +1723,7 @@ try {
     const link = page.locator("[data-masonry-card] > a").first();
     const photoId = await link.evaluate((node) => node.closest("[data-masonry-card]").dataset.masonryCard);
     await link.scrollIntoViewIfNeeded();
-    // click() có thể cuộn lần nữa khi header che card, nên ghi lại Y mà chính click thấy.
+    // click() may scroll again when the header covers the card, so record the Y that the click itself sees.
     await page.evaluate(() => addEventListener("click", () => {
       window.__gridClickY = window.TruongThinhMotion.getLogicalScroll();
     }, { once: true, capture: true }));
@@ -1753,7 +1753,7 @@ try {
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-    // Cuộn như click() sẽ làm trước, để vị trí grid mà Back khôi phục chính là vị trí đọc ở đây.
+    // Scroll as click() would, so the grid position that Back restores is the one read here.
     const gridCard = page.locator('[data-masonry-card="' + A + '"] > a');
     await gridCard.scrollIntoViewIfNeeded();
     const gridY = await restingScroll(page);
@@ -1783,7 +1783,7 @@ try {
     await installBackdropMorphProbe(page);
     const read = async (label) => {
       await quiet(page);
-      // Crossfade tại chỗ (loading-glass-and-page-entry R4) có thể fade backdrop; nó phải kết thúc và chỉ đổi opacity.
+      // An in-place crossfade (loading-glass-and-page-entry R4) may fade the backdrop; it must finish and change only opacity.
       await page.waitForFunction(() => !document.querySelector("[data-detail-background]")?.getAnimations()
         .some(({ playState }) => playState === "pending" || playState === "running"), null, { timeout: 5000 });
       const state = await readBackdropMorphState(page);
@@ -1859,8 +1859,8 @@ try {
       const y = window.TruongThinhMotion.getLogicalScroll();
       return { beforeWheel: y, room: document.documentElement.scrollHeight - innerHeight - y };
     });
-    // Locomotive dịch một nấc mỗi wheel event, scale theo OS (Windows 108 px, Linux 43 px); ba nấc vượt 100 px.
-    // Số card related theo seed nên trang có lúc chỉ còn dưới 100 px để cuộn xuống: khi đó cuộn lên.
+    // Locomotive moves one notch per wheel event, scaled by OS (Windows 108 px, Linux 43 px); three notches exceed 100 px.
+    // The related card count is seeded so the page sometimes has under 100 px left to scroll down: then scroll up.
     const direction = room >= 100 ? 1 : -1;
     for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160 * direction);
     await page.waitForFunction(([start, dir]) => (window.TruongThinhMotion.getLogicalScroll() - start) * dir >= 100, [beforeWheel, direction]);
@@ -1894,7 +1894,7 @@ try {
       await page.locator("[data-menu-open]").click();
       await page.waitForFunction(() => document.querySelector("#site-menu")?.open && document.querySelector("#site-menu")?.classList.contains("is-active"));
       await page.locator(`#site-menu [data-language-option="${language}"]`).click();
-      // Đổi ngôn ngữ phủ veil như route mềm (site-shell R5); menu chỉ mở lại khi veil đã gỡ.
+      // A language change covers the veil like a soft route (site-shell R5); the menu only reopens once the veil is removed.
       await page.waitForFunction((expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open
         && !document.body.classList.contains("is-transitioning"), language);
       await ready(page, B);
@@ -2011,7 +2011,7 @@ try {
         semanticIntruders: grid?.querySelectorAll('[role="listitem"]:not([data-masonry-card])').length || 0,
         ready: skeleton?.dataset.masonryCtaReady === "true",
         signature: skeleton?.dataset.masonryCtaSignature || null,
-        // Kính dạng cung trên grid section sở hữu blur và trắng ở biên (glass-surface.md R2-R3).
+        // The arc-shaped Kính on the grid section owns the blur and the white at the edge (glass-surface.md R2-R3).
         skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
           hidden: glass.hidden,
           tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
@@ -2020,7 +2020,7 @@ try {
         skeletonIsTile: skeleton?.classList.contains("masonry-card") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         viewportWidth: innerWidth,
-        // Skeleton container cắt frame của nó (overflow hidden), nên paint kết thúc ở đáy container.
+        // The skeleton container clips its frame (overflow hidden), so the paint ends at the container bottom.
         skeletonClipBottom: skeleton && getComputedStyle(skeleton).overflowY !== "visible"
           ? skeleton.getBoundingClientRect().bottom - gridRect.top : Infinity,
       };
@@ -2032,7 +2032,7 @@ try {
       assert.equal(state.hidden, false, `${label}: skeleton hidden in grid`);
       assert.equal(state.skeletonIsTile, false, `${label}: skeleton entered Masonry items`);
       assert.equal(state.interactiveDescendants, 0, `${label}: skeleton entered focus order`);
-      // P7.1 thay depth cap R11: số frame theo biên glass, ít nhất một frame mỗi cột.
+      // P7.1 replaces the depth cap R11: frame count by the glass boundary, at least one frame per column.
       assert(state.frameStates.length >= state.columns,
         `${label}: skeleton needs a frame in every column: ${state.frameStates.length} frames, ${state.columns} columns`);
       assert.equal(new Set(state.frameStates.map((frame) => frame.column)).size, state.columns, `${label}: incomplete columns`);
@@ -2056,14 +2056,14 @@ try {
           `${label}: adjacent skeleton ratio bands repeat in column ${column}`);
         assert(frames.every((frame) => frame.maskImage === "none"), `${label}: frame retained a local fade mask`);
         assert(frames.every((frame) => frame.borderWidth === "0px"), `${label}: skeleton surface retained a border`);
-        // Skeleton R3: frame draw Flow assignment khi lần đầu vào viewport.
+        // Skeleton R3: the frame draws the Flow assignment on first entering the viewport.
         assert(frames.every((frame) => !frame.inView || (frame.flowBackend === "CANVAS" && frame.flowPreset)), `${label}: WebGL Flow canvas or preset is missing`);
         assert(frames.every((frame) => !frame.flowBackend || frame.flowFilter === "none"), `${label}: Flow canvas retained a local blur/filter ${JSON.stringify(frames.map((frame) => frame.flowFilter))}`);
         assert(frames.slice(1).every((frame, index) => frames[index].top < frame.top), `${label}: frame order in column ${column}`);
       }
       assert(state.skeletonGlass?.hidden === false && /radial-gradient/i.test(state.skeletonGlass.tint) && /blur/.test(state.skeletonGlass.blur),
         `${label}: skeleton lacks the arc Kính: ${JSON.stringify(state.skeletonGlass)}`);
-      // P7.1: frame có thể paint quá đáy grid logic tối đa một inter-card gap.
+      // P7.1: a frame may paint past the logical grid bottom by at most one inter-card gap.
       const gap = state.viewportWidth <= 960 ? 15 : state.viewportWidth <= 1200 ? 25 : 35;
       const overflow = Math.min(state.skeletonClipBottom, Math.max(...state.frameStates.map((frame) => frame.top + frame.height))) - state.gridHeight;
       assert(overflow <= gap + 1, `${label}: skeleton paints ${overflow}px past the grid, more than one ${gap}px gap`);
@@ -2120,7 +2120,7 @@ try {
     assert.equal(await page.locator('[data-masonry-cta-frame]').first().getAttribute("data-scroll-identity"), "retained", "scroll rebuilt unchanged skeleton nodes");
     await page.locator('[data-masonry-filter="displays-booths"]').click();
     await page.waitForFunction((signature) => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaSignature !== signature, initial.signature);
-    // CTA trượt 0.4s cùng card về chỗ mới sau filter (owner 10/10); chỉ đo khi lượt trượt đã xong.
+    // The CTA slides 0.4s with the cards to the new place after a filter (owner 10/10); only measure once the slide has finished.
     await page.waitForFunction(() => document.querySelector("[data-masonry-grid-cta]").getAnimations().length === 0);
     const filtered = await readCta();
     assertCta(filtered, "filtered");
@@ -2151,7 +2151,7 @@ try {
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     await page.locator(`[data-masonry-card="${A}"] > a`).click();
     await ready(page, A);
-    // Detail dùng lại batch cho cuối related (CTA R9): batch rời grid, nằm trong canvas detail.
+    // Detail reuses the batch for the end of related (CTA R9): the batch leaves the grid and sits inside the detail canvas.
     assert.deepEqual(await page.evaluate(() => {
       const skeleton = document.querySelector("[data-masonry-cta-skeleton]");
       return { host: skeleton?.dataset.masonryCtaHost, inGrid: Boolean(skeleton?.closest("[data-project-grid]")),
@@ -2181,7 +2181,7 @@ try {
     assert.equal(compact.expandBorderRadius, "0px");
     assert(Math.abs(compact.expandRect.width - 36) <= 0.1 && Math.abs(compact.expandRect.height - 36) <= 0.1);
     stage("hover-labels");
-    // Software compositing trong CI paint chậm, nên chờ transition hover kết thúc thay vì chờ cố định.
+    // Software compositing in CI paints slowly, so wait for the hover transition to end instead of a fixed wait.
     await expandControl.hover();
     await page.evaluate(frame);
     await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
@@ -2189,7 +2189,7 @@ try {
       label: node.querySelector("span"),
       rect: node.getBoundingClientRect().toJSON(),
     }));
-    // Nút mở lớn chỉ icon, hover không bung chữ (primary-video-player R7).
+    // The expand button is icon-only, hover does not expand its text (primary-video-player R7).
     assert.equal(expandHover.label, null, "expand has no text label");
     assert(Math.abs(expandHover.rect.width - compact.expandRect.width) <= 0.1, "hover widened the expand control");
     assert(Math.abs(expandHover.rect.right - compact.expandRect.right) <= 0.1, "expand control moved its right anchor");
@@ -2277,13 +2277,13 @@ try {
 
   await caseRun("navbar-keeps-picked-group", { width: 1440, height: 900 }, async (page, stage) => {
     const group = ADVERTISING_CARDS.find((card) => card.id === A).category;
-    // URL ghi slug cụm theo locale (taxonomy R4).
+    // The URL carries the cluster slug per locale (taxonomy R4).
     const groupSlug = ADVERTISING_CATEGORIES.find((category) => category.slug === group).slugVi;
     const openFromGroup = async () => {
       await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
-      // Anchor offset đã lưu của A phải khớp giữa các stage: click dưới route veil khiến Playwright
-      // thử lại với căn scroll khác, và html scroll-behavior sẽ để nó dừng giữa chừng khi đang cuộn.
+      // A's saved anchor offset must match across stages: a click under the route veil makes Playwright
+      // retry with a different scroll alignment, and html scroll-behavior lets it stop midway while scrolling.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id)
         .scrollIntoView({ block: "nearest", behavior: "instant" }), A);
@@ -2314,7 +2314,7 @@ try {
 
     stage("related-in-group-centered");
     await openFromGroup();
-    // Mọi ảnh kiosk-posm có sản phẩm chính trong cụm của A.
+    // Every kiosk-posm image has its main product in A's cluster.
     const inGroup = page.locator(`[data-masonry-related-card^="${A.replace(/-\d+$/, "")}-"] > a`).first();
     const C = await inGroup.evaluate((node) => node.parentElement.dataset.masonryRelatedCard);
     await inGroup.scrollIntoViewIfNeeded();

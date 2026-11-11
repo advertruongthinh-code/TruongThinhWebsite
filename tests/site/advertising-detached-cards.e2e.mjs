@@ -1,7 +1,7 @@
-// Hàng chờ card vừa gỡ (advertising-masonry R7, loading-glass R3): cuộn qua rồi quay lại thì gắn lại đúng node cũ, ảnh hiện
-// ngay không trống frame, không motion; vượt sức chứa theo RAM máy thì card cũ nhất bị hủy; card video không vào hàng chờ
-// (nguồn video chỉ gắn khi tạo card, gắn lại node cũ sẽ chỉ còn poster).
-// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-detached-cards.e2e.mjs
+// Queue of just-detached cards (advertising-masonry R7, loading-glass R3): scrolling past and back reattaches the same old node,
+// the image shows at once with no empty frame and no motion; beyond the RAM-based capacity the oldest card is destroyed; video cards do not enter the queue
+// (the video source is attached only when the card is created, so reattaching the old node would leave only the poster).
+// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-detached-cards.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
@@ -11,7 +11,7 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const CAPACITY = 8;
 const fixturePrefix = "/__detached_cards__/";
-// Cứ ba card thì một card thành card video (clip và poster lấy từ fixture media-card).
+// Every third card becomes a video card (clip and poster come from the media-card fixture).
 function videoArtifact() {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   artifact.cards.forEach((card, index) => {
@@ -29,7 +29,7 @@ function videoArtifact() {
 async function scenario(label, fixture) {
   const context = await browser.newContext({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
-  // deviceMemory 2 GB tương ứng sức chứa 8 card.
+  // deviceMemory 2 GB maps to a capacity of 8 cards.
   await page.addInitScript(() => Object.defineProperty(navigator, "deviceMemory", { value: 2, configurable: true }));
   if (fixture) {
     await page.route(`**${fixturePrefix}*`, (route) => route.fulfill({
@@ -42,7 +42,7 @@ async function scenario(label, fixture) {
   await page.waitForTimeout(1500);
   const viewport = await page.evaluate(() => innerHeight);
   const scrollTo = (top) => page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), top);
-  // Cuộn chậm (dưới ngưỡng vuốt nhanh) để card được dựng và gỡ theo đường thường; probe soi mọi frame.
+  // Scroll slowly (below the fast-swipe threshold) so cards are built and detached the normal way; the probe inspects every frame.
   const glide = (from, to, seconds) => page.evaluate(([a, b, ms]) => new Promise((resolve) => {
     const begin = performance.now();
     const frame = (now) => {
@@ -87,8 +87,8 @@ async function scenario(label, fixture) {
   });
   assert.ok(marked.length > CAPACITY, `more cards mounted than the queue holds, ${marked.length}`);
 
-  // Đi xuống 3 viewport: các card đánh dấu nằm phía trên ra ngoài vùng trễ nên bị gỡ, nhiều hơn sức chứa; hàng chờ giữ CAPACITY
-  // card gỡ gần nhất, các card cũ hơn bị hủy.
+  // Go down 3 viewports: the marked cards above fall outside the hysteresis zone and are detached, more than the capacity; the queue keeps the CAPACITY
+  // most recently detached cards, older ones are destroyed.
   await page.evaluate(() => {
     window.__probe.released = new Set();
     new MutationObserver((records) => records.forEach(({ removedNodes }) => removedNodes.forEach((node) => {
@@ -100,7 +100,7 @@ async function scenario(label, fixture) {
   const released = await page.evaluate(() => window.__probe.released.size);
   assert.ok(released > CAPACITY, `more marked cards were released than the queue holds, ${released}`);
 
-  // Quay lại cùng nhịp chậm: card trong hàng chờ gắn lại đúng node, ảnh hiện ngay, không animation.
+  // Scroll back at the same slow pace: queued cards reattach to the exact node, the image shows at once, no animation.
   await page.evaluate(() => { window.__probe.watching = true; });
   await glide(base0 + 3 * viewport, base0, 2);
   await page.waitForTimeout(1500);

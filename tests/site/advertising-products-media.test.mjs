@@ -18,7 +18,7 @@ import {
 } from "../../src/site/advertising-products/taxonomy.mjs";
 
 const categoryEntries = Object.entries(ADVERTISING_MEDIA_CATEGORY_COUNTS);
-// Fixture: mỗi nhóm cũ gắn sản phẩm đầu tiên của một cụm, đủ bốn loại tỷ lệ mỗi cụm.
+// Fixture: each old group attaches the first product of one cluster, covering all four ratio kinds per cluster.
 const clusterByCategory = {
   "kiosk-posm": "displays-booths",
   "mobile-retail": "mobile-retail",
@@ -144,7 +144,7 @@ test("rejects a duplicate slug within one locale but allows the same word across
     data.products[1]["slug" + locale] = data.products[0]["slug" + locale];
     assert.throws(() => validate(makeValidPool(), data), new RegExp("duplicate taxonomy slug" + locale));
   }
-  // Slug VI của sản phẩm trùng slug EN của một cụm vẫn hợp lệ: hai locale là hai không gian URL.
+  // A product's VI slug equal to a cluster's EN slug stays valid: the two locales are two URL spaces.
   const data = taxonomy();
   data.products[0].slugVi = data.clusters[1].slugEn;
   assert.equal(validate(makeValidPool(), data).length, 109);
@@ -171,7 +171,7 @@ test("rejects a cluster that lacks one of the four ratio classes", () => {
     ["landscape", (ratio) => ratio <= 1.1],
     ["extreme", (ratio) => ratio > 0.625 && ratio < 1.6],
   ]) {
-    // Ảnh không đạt điều kiện của cụm signage chuyển sang sản phẩm cụm khác, giữ nguyên số ảnh.
+    // An image failing the signage cluster's condition moves to a product of another cluster, keeping the image count.
     const records = makeValidPool().map((record) => (
       record.category === "signage-raised-letters" && !keep(record.media.width / record.media.height)
         ? { ...record, productIds: [productIdByCategory["kiosk-posm"]] }
@@ -338,7 +338,7 @@ test("artifact retains the tag registry with custom card fixtures", () => {
   assert.equal(artifact.cards.length, 1);
 });
 
-// Bảng map của plan advertising-taxonomy: sản phẩm mới <- số thứ tự sản phẩm cũ trong từng nhóm cũ.
+// Map table of the advertising-taxonomy plan: new product <- old product ordinal within each old group.
 const PLAN_MAP = {
   "signage/aluminium-signs-facades": { "signage-raised-letters": [1, 2, 3] },
   "signage/raised-letters": { "signage-raised-letters": [6, 7, 8, 9] },
@@ -366,7 +366,7 @@ const PLAN_MAP = {
   "mobile-retail/carts": { "mobile-retail": [1, 2, 3, 7, 12] },
   "mobile-retail/mobile-counters": { "mobile-retail": [4, 5, 6, 8, 9, 10, 11] },
 };
-// Bảng sửa nhãn R8 của plan; ảnh không có trong bảng giữ sản phẩm suy ra từ sản phẩm cũ.
+// R8 label-fix table of the plan; an image missing from the table keeps the product derived from the old product.
 const PLAN_RELABELS = {
   "office-signs-wayfinding-02": ["office-signs/wayfinding-building-directories"],
   "office-signs-wayfinding-13": ["office-signs/wayfinding-building-directories"],
@@ -376,7 +376,7 @@ const PLAN_RELABELS = {
   "mobile-retail-05": ["mobile-retail/mobile-counters", "displays-booths/sampling-booths-reception-counters"],
   "print-decals-21": ["printing-decals/decals-banners-canvas", "office-signs/room-signs"],
   "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
-  // Biển neon nay là LED neon, sản phẩm chính Bảng hiệu LED (owner 2026-10-18).
+  // The neon sign is now LED neon, main product "Bảng hiệu LED" (owner 2026-10-18).
   "signage-raised-letters-33": ["led-displays/led-sign-boards"],
 };
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
@@ -403,7 +403,7 @@ test("every old product tag becomes a variant that maps to its plan product", ()
 test("card products start with the plan map and R8 relabels, then ranked secondary products", () => {
   const expectedIds = (record) => PLAN_RELABELS[record.id] ?? [planProductByLegacyKey.get(record.productKey)];
   for (const card of ADVERTISING_CARDS) {
-    // Sản phẩm phụ (taxonomy R1) nối sau, không đổi sản phẩm chính và nhãn R8.
+    // Secondary products (taxonomy R1) are appended after, leaving the main product and the R8 label unchanged.
     assert.deepEqual(card.productIds.slice(0, expectedIds(card).length), expectedIds(card), card.id);
     assert.equal(new Set(card.productIds).size, card.productIds.length, card.id);
     const clusterOf = (productId) => ADVERTISING_PRODUCTS.find((product) => product.id === productId).cluster;
@@ -421,7 +421,7 @@ test("filter matches every product and cluster on the card by rank, and ?categor
   globalThis.window = {};
   const { parseBrowseLocation, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
   globalThis.window = previousWindow;
-  // Gherkin R1: card hiện ở mọi sản phẩm và mọi cụm của nó; hạng 0 là sản phẩm chính.
+  // Gherkin R1: the card shows in every product and every cluster of it; rank 0 is the main product.
   const decal = ADVERTISING_CARDS.find(({ id }) => id === "print-decals-21");
   assert.deepEqual(decal.productIds.slice(0, 2), ["printing-decals/decals-banners-canvas", "office-signs/room-signs"]);
   for (const [filter, rank] of [["printing-decals", 0], ["printing-decals/decals-banners-canvas", 0], ["office-signs", 1], ["office-signs/room-signs", 1]]) {

@@ -1,13 +1,13 @@
-// Đo nghiệm thu video thích ứng (docs/specs/video-delivery.md R6): bản 480 cố định (--base) so với bản HLS (--candidate)
-// trên cùng máy, viewport A04s, cuộn masonry 16 nấc 400 px mỗi nấc chờ 1,5 s, tắt cache; chạy xen kẽ, in tổng. Lượt
-// `switch` chỉ chạy bản HLS: 300 kbps (bậc 480 nhẹ nhất 277 kbps nên hls.js không lên 480; ở 1,6 Mbps card giữ 480) tới khi
-// một card ở nửa dưới màn hình phát dưới bậc 480, rồi bỏ giới hạn và cuộn để card khác tải segment (R4).
-// Chạy: node tests/site/video-delivery-measure.mjs --base <url 98f3963> --candidate <url nhánh> [--runs 9] --h2
-// `--h2` đặt proxy HTTP/2 nén brotli trước mỗi server như Cloudflare: server tĩnh local không nén nên ở 4G chậm artifact
-// 1,1 MB làm card đầu hiện sau 11,6 s thay vì 2,8 s và hls.js 386 KB thay vì 112 KB (đo cloud 2026-10-25). Cần openssl
-// (Windows: thêm C:\Program Files\Git\usr\bin vào PATH).
-// Máy thật: DEVICE_CDP=http://127.0.0.1:9222 (sau adb forward) chạy trên Chrome của điện thoại, giữ viewport máy; proxy
-// nghe cổng 8443, 8444 và script tự adb reverse hai cổng đó, gỡ bằng `adb reverse --remove-all` sau khi đo.
+// Acceptance measurement for adaptive video (docs/specs/video-delivery.md R6): the fixed 480 build (--base) against the HLS build (--candidate)
+// on the same machine, A04s viewport, masonry scrolled in 16 steps of 400 px waiting 1.5 s each, cache off; runs interleaved, totals printed. The
+// `switch` run only covers the HLS build: 300 kbps (the lightest 480 rung is 277 kbps so hls.js does not climb to 480; at 1.6 Mbps the card stays at 480) until
+// a card in the lower half of the screen plays below the 480 rung, then the limit is removed and scrolling makes another card load segments (R4).
+// Run: node tests/site/video-delivery-measure.mjs --base <url 98f3963> --candidate <branch url> [--runs 9] --h2
+// `--h2` puts a brotli-compressing HTTP/2 proxy in front of each server like Cloudflare: the local static server does not compress, so on slow 4G the artifact
+// of 1.1 MB makes the first card appear after 11.6 s instead of 2.8 s and hls.js 386 KB instead of 112 KB (measured on cloud 2026-10-25). Requires openssl
+// (Windows: add C:\Program Files\Git\usr\bin to PATH).
+// Real device: DEVICE_CDP=http://127.0.0.1:9222 (after adb forward) runs on the phone's Chrome, keeping the device viewport; the proxy
+// listens on ports 8443, 8444 and the script runs adb reverse on those two ports itself, removed with `adb reverse --remove-all` after measuring.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import http from "node:http";
@@ -53,7 +53,7 @@ if (process.argv.includes("--h2")) {
   const cert = path.join(os.tmpdir(), "video-delivery-cert.pem");
   execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-subj", "/CN=localhost", "-days", "1", "-keyout", key, "-out", cert], { stdio: "ignore" });
   tls = { key: await fs.readFile(key), cert: await fs.readFile(cert) };
-  // Máy thật: cổng cố định để adb reverse đưa điện thoại về proxy trên PC.
+  // Real device: fixed ports so adb reverse brings the phone back to the proxy on the PC.
   let port = process.env.DEVICE_CDP ? 8443 : 0;
   for (const version of Object.keys(bases)) {
     bases[version] = await proxy(bases[version], port);
@@ -64,10 +64,10 @@ const device = process.env.DEVICE_CDP;
 const browser = device ? await chromium.connectOverCDP(device)
   : await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Lúc card đầu vào DOM (hls.js tải song song artifact nên có thể làm masonry hiện muộn hơn). Mỗi video card: lúc hiện quá
-// 1/2 dưới navbar, lúc phát đầu tiên, các lần `waiting` sau khi đã phát kèm thời lượng.
+// When the first card enters the DOM (hls.js downloads the artifact in parallel so it may delay masonry). For each video card: when it shows past
+// the lower 1/2 under the navbar, at first play, and each later `waiting` after it has played with its duration.
 function watchVideos() {
-  // Giữ đủ request của cả lượt cho phần chẩn đoán video chạy muộn (mặc định trình duyệt chỉ giữ 250).
+  // Keep all requests of the whole run for the video diagnostics that run late (the browser keeps only 250 by default).
   performance.setResourceTimingBufferSize(5000);
   const log = window.__videos = [];
   const nodes = window.__videoNodes = [];
@@ -103,7 +103,7 @@ const open = async (base, network) => {
   await context.addInitScript(watchVideos);
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
-  // Chrome của điện thoại không có ignoreHTTPSErrors của context: bỏ lỗi cert tự ký của proxy qua CDP.
+  // The phone's Chrome has no context-level ignoreHTTPSErrors: skip the proxy's self-signed cert errors via CDP.
   if (device) await cdp.send("Security.setIgnoreCertificateErrors", { ignore: true });
   await cdp.send("Network.enable");
   await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
@@ -126,8 +126,8 @@ const playback = async (base, network) => {
   await scroll(page);
   const { videos, firstCard, late } = await page.evaluate(() => ({
     videos: window.__videos, firstCard: window.__firstCard,
-    // Video chạy sau khi hiện quá 300 ms hoặc không chạy: trạng thái lúc hết lượt (readyState thấp là do tải, cao mà vẫn
-    // dừng là do lịch phát) và các request media của nó [bắt đầu, xong, file] theo đồng hồ trang.
+    // Video that plays after showing for over 300 ms or does not play: its state at the end of the run (low readyState means loading, high but
+    // still paused means scheduling) and its media requests [start, end, file] on the page clock.
     late: window.__videos.flatMap((entry, index) => {
       if (entry.visible === null || (entry.playing !== null && entry.playing - entry.visible <= 300)) return [];
       const node = window.__videoNodes[index];
@@ -155,10 +155,10 @@ const playback = async (base, network) => {
   };
 };
 
-// Đổi bậc (R4): ghi từng frame của card đang phát dưới bậc 480 trong 6 s trước và 6 s sau khi bỏ giới hạn. Luật thay chạy
-// khi một video khác tải segment: cuộn đưa card lên sát navbar để card mới vào cửa sổ render; không video nào tải
-// (`triggered` 0) hoặc video dừng vì card nhiều video đã chuyển sang video kế (`paused`) thì lượt này không tính. `waiting`
-// chỉ tính sau lúc đổi và tách riêng `waiting` lúc lặp về giây 0.
+// Rung switch (R4): record each frame of the card playing below the 480 rung for 6 s before and 6 s after the limit is removed. The replacement rule runs
+// when another video loads a segment: scrolling brings the card close to the navbar so the new card enters the render window; if no video loads
+// (`triggered` 0) or the video paused because a multi-video card moved to the next video (`paused`) this run does not count. `waiting`
+// only counts after the switch and is kept separate from the `waiting` when looping back to second 0.
 const switching = async (base) => {
   const { page, cdp, close } = await open(base, WEAK);
   await page.waitForTimeout(3000);
@@ -204,7 +204,7 @@ const switching = async (base) => {
   await page.waitForTimeout(6000);
   const log = await page.evaluate(() => ({ ...window.__switch, dropped: window.__switch.quality(), at: performance.now(), paused: window.__switchVideo.paused }));
   await close();
-  // Card bắt đầu ở bậc 480 (R3) nên segment đầu (giây 0 tới 2) có thể nét sẵn từ trước khi đổi mạng: chỉ xét từ giây 2.
+  // The card starts at the 480 rung (R3) so the first segment (second 0 to 2) may already be sharp before the network switch: only consider from second 2.
   const lowWidth = log.frames.filter(({ now, time }) => now < before.at && time >= 2).at(-1)?.width;
   const up = log.frames.find(({ now, time, width }) => now >= before.at && time >= 2 && width > lowWidth);
   const after = log.waiting.filter(({ start }) => start >= before.at).map(({ start, end, time }) => ({ loop: time < 0.1, ms: (end ?? log.at) - start }));
@@ -222,7 +222,7 @@ const switching = async (base) => {
 
 const results = [];
 for (let index = 0; index < runs; index += 1) {
-  // Xen kẽ thứ tự hai bản mỗi lượt để nhiễu của máy chia đều.
+  // Alternate the order of the two builds each run so machine noise is spread evenly.
   for (const version of index % 2 ? ["candidate", "base"] : ["base", "candidate"]) {
     const result = await playback(bases[version], SLOW);
     results.push({ scenario: "slow", version, index, ...result });
@@ -234,8 +234,8 @@ for (const version of ["base", "candidate"]) {
   results.push({ scenario: "fast", version, ...result });
   console.log(`fast ${version}: ${JSON.stringify(result)}`);
 }
-// Tối đa 3 lượt tới khi có lượt tính được: có video khác tải, video còn phát và đang dưới bậc 480 lúc đổi mạng (thang H.264
-// có thể đã tự lên 480 trong 6 s chờ).
+// Up to 3 runs until one counts: another video loads, the video is still playing and below the 480 rung at the switch (the H.264 ladder
+// may have climbed to 480 by itself during the 6 s wait).
 let switched;
 for (let attempt = 0; attempt < 3 && !(switched?.triggered && !switched.paused && switched.lowWidth < 480); attempt += 1) {
   switched = await switching(bases.candidate);
@@ -258,6 +258,6 @@ await fs.mkdir(folder, { recursive: true });
 await fs.writeFile(path.join(folder, "runs.json"), JSON.stringify(results, null, 2));
 await fs.writeFile(path.join(folder, "summary.json"), JSON.stringify(summary, null, 2));
 console.log(JSON.stringify(summary, null, 2));
-// browser.close() qua CDP treo trên máy thật (A04s 2026-10-26): kết quả đã ghi nên thoát thẳng.
+// browser.close() over CDP hangs on the real device (A04s 2026-10-26): the result is already written so exit directly.
 if (device) process.exit(0);
 await browser.close();
