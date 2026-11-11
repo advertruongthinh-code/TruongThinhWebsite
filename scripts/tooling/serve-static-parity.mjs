@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
+import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, loadBlockContent, newsListRoutes } from "../site/block-pages.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 
@@ -20,6 +21,8 @@ export const ROUTES = new Map([
   ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
   // Trang card (media-seo R1).
   ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
+  // Old URL of a card merged into a multi-media card: redirect page to the cover card (media-card Gate).
+  ...Object.keys(MERGED_CARD_REDIRECTS).flatMap((id) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${id}/`, `${locale}/advertising-products/p/${id}/index.html`])),
   // Project and News article pages built from blocks (projects R3, news R3).
   ...blockRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))),
   // The all-projects page and the filter-by-sector pages (projects R2).
