@@ -286,10 +286,12 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
+// Merged cards (media-card R7) carry extra images from the cards merged into them; the cover stays the card's own image.
 test("R6-R3 public legacy catalog keeps one image-only card per manifest record", () => {
   assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, ADVERTISING_MEDIA_MANIFEST.length);
-  assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
-    && card.mediaItems[0].kind === "image"));
+  assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length >= 1
+    && card.mediaItems[0].id === card.id
+    && card.mediaItems.every((item) => item.kind === "image")));
 });
 
 async function runSingleton(locale, surface, width, videoCover) {
