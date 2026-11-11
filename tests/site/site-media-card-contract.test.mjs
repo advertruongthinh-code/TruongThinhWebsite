@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   ADVERTISING_CARDS,
@@ -180,4 +181,15 @@ test("legacy image metadata may differ when a video or different image is cover"
   assert.equal(validateAdvertisingCardMedia({ ...record, media: legacy, mediaItems: [image, video], coverMediaId: video.id }).coverMediaId, video.id);
   const otherImage = { ...image, src: "/assets/test/different-cover.webp" };
   assert.equal(validateAdvertisingCardMedia({ ...record, media: legacy, mediaItems: [otherImage, video] }).mediaItems[0], otherImage);
+});
+
+test("masonry media carries no per-image focal point (owner 2026-11-11)", () => {
+  for (const record of ADVERTISING_MEDIA_MANIFEST) {
+    assert.equal(Object.hasOwn(record.media, "suggestionPosition"), false, `${record.id}: media.suggestionPosition`);
+    for (const item of record.mediaItems) {
+      assert.equal(Object.hasOwn(item, "suggestionPosition"), false, `${record.id}/${item.id}: suggestionPosition`);
+    }
+  }
+  const runtime = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(runtime, /media\.suggestionPosition|style\.objectPosition/, "card media is always centred, never positioned per image");
 });

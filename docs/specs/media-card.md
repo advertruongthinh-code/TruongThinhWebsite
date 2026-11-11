@@ -41,6 +41,7 @@ item đó. Đổi media, tải chậm hay lỗi không đổi khung
 card, canvas hay hàng pill (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới
 từ 3 cột theo R5 đó, canvas và hàng pill rộng theo hai cột.
+Media không có ngoại lệ (owner 2026-11-11): không ảnh hay video nào có điểm lấy nét riêng; mọi crop (khung suggestion, trim card hai cột) cắt đều quanh tâm, nên ảnh phải được tạo hoặc chọn với chủ thể nằm giữa khung.
 
 ```gherkin
 Given card 5 media, cover video 16:9, viewport 384px
