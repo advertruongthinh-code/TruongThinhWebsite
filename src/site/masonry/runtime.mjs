@@ -1629,7 +1629,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   window.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
   window.visualViewport?.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resetVisibleViewport, { signal: controller.signal });
-  document.body.classList.add("is-masonry-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
@@ -4640,10 +4639,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (photoView) delete photoView.dataset.masonryDetailReady;
     if (photoImage) delete photoImage.dataset.detailId;
     photoView && (photoView.hidden = true);
-    if (gridSection) {
+    // Force layout now: removing the grid's content-visibility: hidden then adding cards in the same task, Chromium sometimes leaves
+    // the card with no box (enter directly at ?photo= then click navbar), so the measured rect is 0, with no scroll and focus to the card.
+    // A grid that was never hidden (first build of a direct load) skips this extra layout.
+    if (gridSection && (gridSection.hidden || document.body.classList.contains("is-detail"))) {
       gridSection.hidden = false;
-      // Force layout now: removing the grid's content-visibility: hidden then adding cards in the same task, Chromium sometimes leaves
-      // the card with no box (enter directly at ?photo= then click navbar), so the measured rect is 0, with no scroll and focus to the card.
       void gridSection.offsetHeight;
     }
     document.body.classList.remove("is-detail");
@@ -5251,10 +5251,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   if (!browseHistory.current.photo) {
     geometryPending = true;
     await layoutCachePending(filter);
-    // Replay the layout in its own task; the first build below takes it from the geometry cache (R7, 50ms gate on the A04s).
+    // Replay the layout (into the geometry cache) before the build; setup and the first build are separate tasks (R7, 50ms gate on the A04s).
+    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
+    await nextTask();
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
   }
+  // Browse mode takes the CTA cluster out of the flow: set it in the task that gives the grid its height, otherwise a painted frame
+  // between them moves the footer and CTA into view and back (layout shift).
+  document.body.classList.add("is-masonry-browse");
   activeInstance = { adapter, browseHistory, container, cleanup, pages, photoViewer, syncSkeletonMotion };
   if (browseHistory.current.photo) {
     // The grid is hidden under the photo; ensurePhoto measures it on return. Do not solve masonry on the main thread when opening detail
