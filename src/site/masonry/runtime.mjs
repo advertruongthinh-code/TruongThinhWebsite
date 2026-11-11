@@ -5252,8 +5252,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     geometryPending = true;
     await layoutCachePending(filter);
     // Replay the layout in its own task; the first build below takes it from the geometry cache (R7, 50ms gate on the A04s).
-    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
-    await nextTask();
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
   }
