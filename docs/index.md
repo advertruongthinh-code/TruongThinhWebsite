@@ -12,7 +12,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Tech stack, runtime, ownership, deploy | [Architecture](architecture.md#tech-stack), [phát hành tĩnh](specs/static-release.md) |
 | Sửa một phần website | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống): mỗi phần một spec sống |
 | Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo đổi màu khi chuyển trang](specs/logo-route-crossfade.md), [mở trực tiếp giống chuyển trang](specs/first-load-parity.md), [chữ hero và khoảng cách dòng](specs/hero-typography.md), [bộ khối theo Espacio](specs/layout-library.md), [công trình](specs/projects.md), [News](specs/news.md) (planned) |
-| Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang và related](specs/advertising-cta-center-parallax.md), [phân loại](specs/advertising-taxonomy.md) |
+| Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [cache bố cục](specs/masonry-layout-cache.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang và related](specs/advertising-cta-center-parallax.md), [phân loại](specs/advertising-taxonomy.md) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [SEO media](specs/media-seo.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md), [player video primary](specs/primary-video-player.md), [video thích ứng mạng](specs/video-delivery.md), [ảnh JPEG XL progressive và thứ tự tải](specs/progressive-loading.md) (planned) |
 | SEO, Google, bot AI | [SEO](specs/seo.md), planned, tạm dừng tới khi đủ feature website |
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase; [editor placeholder](specs/cms-editor.md) (planned), [dock](specs/cms-dock.md) |
@@ -38,7 +38,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
 | Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-ad-images.md#chấm-điểm) |
 | Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
-| Masonry, catalog, renderer Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md) |
+| Masonry, catalog, renderer Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [cache bố cục](specs/masonry-layout-cache.md), [skeleton](specs/advertising-skeleton.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |
 
 Source chỉ cho thấy implementation hiện tại; owner hoặc spec đã duyệt mới nâng nó thành

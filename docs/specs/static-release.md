@@ -21,7 +21,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-31
+updated: 2026-11-11
 ---
 
 # Phát hành tĩnh
@@ -53,7 +53,7 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 ### R2. Preflight masonry và catalog artifact
 
 Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
-cache bố cục masonry (`buildLayoutCache`, [masonry R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)) cho
+cache bố cục masonry (`buildLayoutCache`, [cache bố cục R2](masonry-layout-cache.md#r2-packer-build)) cho
 filter `all`, sáu cụm và mọi sản phẩm từ 10 card (có chip và trang riêng, [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card)) trên 5 dải bề rộng. Tự kiểm: mọi biến thể giữ lại phải đặt lại được và không lỗ, đủ card của pool, cắt không quá 5% ở đầu, giữa và cuối mỗi dải (dải mở `4:35` kiểm tới 4000 px); sai thì build dừng. Ghi 165 file `advertising-products/layout-cache/` (5 file cả dải, 160 file một filter; build 2026-11-10: một filter tối đa 15,9 KB brotli, cả dải 44 tới 49 KB brotli). Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
