@@ -18,7 +18,7 @@ updated: 2026-11-11
 
 ## Mục đích
 
-Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising; catalog có 284 card, 4 card có hai ảnh (R7), còn lại một ảnh mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
+Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising; catalog có 276 card, 7 card nhiều ảnh (R7), còn lại một ảnh mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 
 ## Hành vi
 
@@ -212,7 +212,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 ### R7. Gộp card thành card nhiều media
 
 AI đề xuất nhóm card có media giống nhau, owner chọn từng nhóm; không luật gộp tự động. Nhóm đã chọn ghi trong `MERGED_CARD_MEDIA` (`media-manifest.mjs`): id card bìa trỏ tới các id card gộp vào, theo thứ tự hiển thị; chỉ gộp card cùng tỷ lệ chính xác (R1), không crop. Card gộp vào thôi là card: ảnh của nó thành item sau của card bìa, alt lấy mô tả của chính ảnh đó (item bìa giữ alt cũ); `productIds`, `tagIds` theo card bìa. Ngưỡng [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card) đếm card, nên gộp làm giảm số card của sản phẩm.
-URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail. Đợt 2 (owner 2026-11-11): ba card thay placeholder, mỗi card 3 ảnh mới, id gộp vào chưa từng là card (`kiosk-posm-74`+`75`+`76`, `print-decals-37`+`38`+`39`, `office-signs-wayfinding-56`+`57`+`58`).
+URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail. Đợt 2 (owner 2026-11-11): ba card thay placeholder, mỗi card 3 ảnh mới, id gộp vào chưa từng là card (`kiosk-posm-74`+`75`+`76`, `print-decals-37`+`38`+`39`, `office-signs-wayfinding-56`+`57`+`58`). Đợt 3 (owner 2026-11-11 20:24): bốn cặp LED neon đợt 1 gộp tiếp thành một card tám ảnh (bìa `led-displays-lightboxes-43`, thứ tự 43, 48, 44, 49, 45, 50, 46, 51; ≥ 6 ảnh nên hiện bộ đếm, R3); bốn ảnh chữ nổi tại xưởng thành một card (`signage-raised-letters-29`+`30`+`31`+`32`); `kiosk-posm-14`+`16`; `office-signs-wayfinding-03`+`54`. Card bìa của một đợt trước (`44`, `45`, `46`) cũng thành card gộp vào và `p/<id>` của nó chuyển về card bìa mới.
 
 ## Giao diện và dữ liệu
 
@@ -245,7 +245,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
-| R7 | `site-media-card-contract.test.mjs` (item sau chỉ từ card đã gộp); `advertising-products-media.test.mjs` (284 card) |
+| R7 | `site-media-card-contract.test.mjs` (item sau chỉ từ card đã gộp); `advertising-products-media.test.mjs` (276 card) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
