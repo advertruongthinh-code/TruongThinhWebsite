@@ -2021,19 +2021,20 @@ body.is-masonry-browse .site-footer {
   z-index: 2;
 }
 
+/* Centred by layout (inset 0 + auto margin), not translate(-50%, -50%): a fractional translate snaps the media edge
+   to a different device pixel than the frame background, leaving a 1px strip of the dark loading fill at the edge. */
 .detail-view__hero [data-detail-image] {
   position: absolute;
   z-index: 2;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   display: block;
   width: var(--detail-image-width);
   height: var(--detail-image-height);
   max-width: none;
   max-height: none;
+  margin: auto;
   aspect-ratio: auto;
   object-fit: contain;
-  transform: translate(-50%, -50%);
 }
 
 /* The skeleton sits above the photo and under the image action; the waiting photo sits under it until decoded. */
@@ -2051,12 +2052,11 @@ body.is-masonry-browse .site-footer {
 .detail-view__hero [data-detail-video] {
   position: absolute;
   z-index: 2;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   width: var(--detail-image-width);
   height: var(--detail-image-height);
+  margin: auto;
   object-fit: contain;
-  transform: translate(-50%, -50%);
 }
 
 /* The multi-item media strip follows the Pinterest pin (remeasured 2026-10-18): white 36px square-corner arrow (owner 2026-10-24) 16px from the edge,
@@ -2161,12 +2161,11 @@ body.is-masonry-browse .site-footer {
 .detail-view__strip {
   position: absolute;
   z-index: 2;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   width: var(--detail-image-width);
   height: var(--detail-image-height);
+  margin: auto;
   overflow: hidden;
-  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
