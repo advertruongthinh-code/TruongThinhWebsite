@@ -731,7 +731,7 @@ function assertPersistentNavigationContracts() {
       motionSource.includes("const menuAppointmentItems = [menuAppointment]") &&
       motionSource.includes('const menuCloseIcon = closeButton.querySelector(".menu-close__icon")') &&
       !motionSource.includes("menuCoverageAt") &&
-      /\.fromTo\(menuBrand,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuLanguageItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuAppointmentItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuCloseIcon,[\s\S]*1\.4\)[\s\S]*\.fromTo\(menuNav,[\s\S]*1\.05\)[\s\S]*\.fromTo\(menuGroups,[\s\S]*1\.1\)[\s\S]*\.fromTo\(menuDetailItems,[\s\S]*1\.35\)/.test(motionSource) &&
+      /\bfromTo\(menuBrand,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuLanguageItems,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuAppointmentItems,[\s\S]*1\.15\)[\s\S]*\bfromTo\(menuCloseIcon,[\s\S]*1\.4\)[\s\S]*\bfromTo\(menuNav,[\s\S]*1\.05\)[\s\S]*\bfromTo\(menuGroups,[\s\S]*1\.1\)[\s\S]*\bfromTo\(menuDetailItems,[\s\S]*1\.35\)/.test(motionSource) &&
       motionSource.includes("const setReducedMenuState = (opened) => {") &&
       (motionSource.match(/setReducedMenuState\(false\);/g) ?? []).length >= 2 &&
       (motionSource.match(/setReducedMenuState\(true\);/g) ?? []).length === 1 &&
