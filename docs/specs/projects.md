@@ -86,12 +86,16 @@ Then thẻ cao đúng bằng media, tên tiếng Anh không hiện trên cảm �
 Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, nền tối
 và lớp phủ .hero-shade như hero các trang tĩnh (owner 2026-11-08), đoạn giới thiệu,
 carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
-ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác và dòng "Xem toàn bộ công trình" tới `/<locale>/projects/`. Dải là khối `project-slider` không ghi `projectIds`: build tự lấy các công trình khác cùng mảng theo thứ tự trong dữ liệu, nên công trình mới tự vào dải mọi trang cùng mảng. Tên chủ nhà
+ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác (tiêu đề nghiêng canh giữa "Công trình khác", EN "Other projects") và dòng "Xem toàn bộ công trình" tới `/<locale>/projects/`. Dải là khối `project-slider` không ghi `projectIds`: build tự lấy các công trình khác cùng mảng theo thứ tự trong dữ liệu, nên công trình mới tự vào dải mọi trang cùng mảng. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
 Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `type`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
 chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang cùng mảng (header, menu, footer), namespace `project`; navbar gạch chân Công trình và menu đánh dấu nhóm Công trình, không phải mảng của khung (owner 2026-11-11),
 route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
 hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
+Cỡ chữ và khối đo theo trang con `/en/projects/` của Espacio ở 1440 và 390 (2026-11-11, owner "phải giống"): tiêu đề mục 64px
+(40px phone) dòng 1.4, đoạn văn nét thường, ô thông số tràn mép có vạch dọc (phone một cột canh giữa, vạch ngang), cặp ảnh tràn
+mép hai nửa bằng nhau cách 35px, thẻ dải công trình trên phone 200 × 300px so le 120px, dòng "Xem toàn bộ công trình" 16px với mũi tên
+200px (150px phone); số đo chi tiết ở [Blocks](../../design-system/components/Blocks/README.md). Hero giữ kiểu hero trang tĩnh (owner 2026-11-08).
 
 ```gherkin
 Given công trình chưa có xác nhận khách đồng ý nêu tên
