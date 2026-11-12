@@ -706,15 +706,6 @@
             itemObserver.observe(item);
           });
         };
-        mediaItems.forEach((item) => {
-          const markReady = () => item.classList.add("is-motion-ready");
-          if (item.complete) markReady();
-          else {
-            // A failed image must still show so its alt is visible, so error marks it ready just like load.
-            item.addEventListener("load", markReady, { once: true, signal: abort.signal });
-            item.addEventListener("error", markReady, { once: true, signal: abort.signal });
-          }
-        });
 
         if (heroKicker && heroSettled) {
           settleHeroItem(heroKicker);

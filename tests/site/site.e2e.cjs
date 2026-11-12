@@ -9522,7 +9522,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
                 ? getComputedStyle(loadingSurface?.querySelector(overlay))
                 : null;
             return (
-              media?.classList.contains("is-overlay-media-ready") &&
+              media?.parentElement.classList.contains("is-media-settled") &&
               media.complete &&
               media.naturalWidth > 0 &&
               Number.parseFloat(getComputedStyle(media).opacity) > 0.99 &&

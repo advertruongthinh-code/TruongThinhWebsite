@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-11T17:35:00Z",
+    "at": "2026-11-12T02:30:00Z",
     "via": "Claude Code",
-    "note": "Dải News trang chủ trong NewsList (#825); cắt nội dung bỏ suggestionPosition, ảnh biển văn phòng 1K, viền tối primary (bundle.css, MediaCard, Masonry, Skeleton, content.md)"
+    "note": "DRY 2.1: ảnh dưới chữ trắng và data-motion-media chỉ chờ .is-media-settled của script head (bundle.css, Hero, LoadSweep, motion.md)"
   }
 }
