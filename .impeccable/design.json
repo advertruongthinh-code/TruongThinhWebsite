@@ -93,31 +93,43 @@
     ],
     "breakpoints": [
       {
-        "name": "1200",
+        "name": "chiều rộng 1440 (min)",
+        "value": "chiều rộng 1440 (min)px"
+      },
+      {
+        "name": "1400",
+        "value": "1400px"
+      },
+      {
+        "name": "1299",
+        "value": "1299px"
+      },
+      {
+        "name": "1279",
+        "value": "1279px"
+      },
+      {
+        "name": "1200/1201",
         "value": "1200px"
       },
       {
-        "name": "1024",
-        "value": "1024px"
+        "name": "1023/1024/1025",
+        "value": "1023px"
       },
       {
         "name": "980/981",
         "value": "980px"
       },
       {
-        "name": "960/961",
+        "name": "960/961,\n  750/751",
         "value": "960px"
       },
       {
-        "name": "750/751",
-        "value": "750px"
-      },
-      {
-        "name": "680",
+        "name": "680/681",
         "value": "680px"
       },
       {
-        "name": "578/579",
+        "name": "578",
         "value": "578px"
       }
     ]

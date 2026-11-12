@@ -8,11 +8,9 @@ import test from "node:test";
 const repo = path.resolve(import.meta.dirname, "../..");
 const ALLOWED = new Set([
   // Created at runtime by vendor libraries (Locomotive Scroll, Swiper).
-  "c-scrollbar", "swiper-pagination", "swiper-pagination-bullet", "swiper-pagination-bullet-active", "swiper-initialized",
-  // Advertising detail carousel, unused by any page (docs/specs/detail-pages.md, Gate).
-  "detail-carousel", "detail-carousel-track", "detail-carousel-slide",
-  "detail-carousel-pagination", "data-masonry-carousel", "data-masonry-carousel-viewport",
-  "data-masonry-carousel-pagination",
+  "c-scrollbar", "swiper-initialized",
+  // Advertising detail carousel script in detail.js, unused by any page (docs/specs/detail-pages.md, Gate).
+  "data-masonry-carousel", "data-masonry-carousel-viewport", "data-masonry-carousel-pagination",
 ]);
 
 const read = (dir, filter) => readdirSync(path.join(repo, dir), { recursive: true })

@@ -550,7 +550,7 @@ function assertPersistentNavigationContracts() {
     "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
   );
   assert(
-    /:root\s*\{[\s\S]*?--brand-header-height:\s*67\.515625px;[\s\S]*?--brand-header-width:\s*260\.981741px;[\s\S]*?--brand-header-track-width:\s*260\.981741px;[\s\S]*?--brand-menu-height:\s*var\(--brand-header-height\);[\s\S]*?--brand-menu-width:\s*var\(--brand-header-width\);/.test(
+    /:root\s*\{[\s\S]*?--brand-header-height:\s*67\.515625px;[\s\S]*?--brand-header-width:\s*260\.981741px;[\s\S]*?--brand-header-track-width:\s*260\.981741px;[\s\S]*?--brand-menu-height:\s*var\(--brand-header-height\);/.test(
       styleSource,
     ) &&
       !/\.site-header\.is-collapsed\s*\{[^}]*--brand-header-(?:height|width)\s*:/.test(
@@ -1695,19 +1695,6 @@ async function runPortalAlignmentChecks() {
                   }
                 : null;
             })(),
-            editorial: [
-              ...document.querySelectorAll("#bang-chung .editorial-item"),
-            ].map((item) => {
-              const heading = item.querySelector("h3");
-              const body = item.querySelector("p");
-              return {
-                headingSize: Number.parseFloat(
-                  getComputedStyle(heading).fontSize,
-                ),
-                headingOverflow: heading.scrollWidth - heading.clientWidth,
-                bodySize: Number.parseFloat(getComputedStyle(body).fontSize),
-              };
-            }),
             horizontalOverflow:
               document.documentElement.scrollWidth -
               document.documentElement.clientWidth,

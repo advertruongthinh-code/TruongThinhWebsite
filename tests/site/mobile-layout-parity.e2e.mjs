@@ -55,7 +55,7 @@ function measure(options = {}) {
       const languageDim=a.matches('.menu-language [data-language-option]')&&a.dataset.languageOption!==document.documentElement.lang&&!a.matches('.is-active,:hover,:focus-visible');
       paint.push({node,opacity:Number(s.opacity),minimum:languageDim?0.449:0.999,visibility:s.visibility});
       const x=["hidden","clip","auto","scroll"].includes(s.overflowX),y=["hidden","clip","auto","scroll"].includes(s.overflowY);
-      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel")&&s.overflowX==="auto"});
+      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters")&&s.overflowX==="auto"});
       // Swiper is running: track overflow is visible, slides shift by transform so there is no scroll port; slides outside the frame are the intended carousel behavior.
       else if(a.matches('.detail-gallery__track.swiper-initialized'))ports.push({node,box:b,x:false,y:false,rail:true});
       if(s.clipPath!=="none") {
@@ -185,14 +185,14 @@ async function checkBody(page,engine,label,options={}) {
   }
   for(let index=0;index<await page.locator(bodySelector).count();index++) {
     const node=page.locator(bodySelector).nth(index);
-    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel')));
+    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters')));
     if(!rail)continue;
     // Swiper is running: slides shift by transform so bring the slide into the frame first; focus or scrollIntoView afterwards no longer drags the overflow hidden section.
     await node.evaluate(e=>{const track=e.closest('.detail-gallery__track');if(track?.swiper)track.swiper.slideTo([...track.swiper.slides].indexOf(e.closest('.detail-gallery__item')),0);});
     await node.evaluate(e=>(e.closest('a,button,[tabindex]')||e).focus());
     if(options.noScript)await node.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center',inline:'center'}));
     else await node.scrollIntoViewIfNeeded();
-    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.detail-carousel'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
+    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
     await recordState(page,engine,`${label}: reached rail item ${index}`,{...options,selector:bodySelector,index,viewportOnly:true});
   }
 }

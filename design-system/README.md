@@ -62,10 +62,10 @@ chữ dòng trên.
 ## Layout
 
 - **Gutter:** `gutter` 35px, 25px ở max-width 1200px, 20px ở max-width 680px.
-- **Nhịp section:** `section-gap` 90px, 70px ở max-width 1200px, 64px ở max-width 680px (khối bằng chứng trang chủ
-  90, 60 ở 980px, 30 ở 680px); `footer-top-gap` 64px, 48px ở max-width 750px.
-- **Breakpoint hay dùng:** 1200, 1024, 980/981, 960/961, 750/751, 680, 578/579 px. Kiểm layout ở 320, 390, 768,
-  1024, 1440px.
+- **Nhịp section:** `section-gap` 90px, 70px ở max-width 1200px, 64px ở max-width 680px; `footer-top-gap` 64px, 48px ở max-width 750px.
+- **Breakpoint hay dùng:** chiều rộng 1440 (min), 1400, 1299, 1279, 1200/1201, 1023/1024/1025, 980/981, 960/961,
+  750/751, 680/681, 578 px; chiều cao 799 và 640 px (footer, hero thấp). Các cặp x/x+1 là `max-width` và `min-width` bù
+  nhau, không phải lỗi. Kiểm layout ở 320, 390, 768, 1024, 1440px.
 - **Header:** ba track độc lập cho brand, nav và nút menu ([Header](components/Header/README.md#hình-học)).
 - **Detail:** project grid tối đa 1500px, bốn cột desktop, gap theo gutter.
 - **Advertising:** masonry tính bằng `masonry/layout.mjs`, không dùng CSS grid

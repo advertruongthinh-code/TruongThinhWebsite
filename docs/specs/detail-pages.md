@@ -288,7 +288,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 
 - Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
-- Không chặn phát hành. Carousel `advertising-product-detail` trong `detail.js` không trang nào dùng; gallery R7 dùng chung loader Swiper.
+- Không chặn phát hành. Carousel `advertising-product-detail` trong `detail.js` không trang nào dùng (CSS `.detail-carousel*` đã xóa, còn mã JS với `data-masonry-carousel*`); gallery R7 dùng chung loader Swiper.
 
 ## Chú thích thuật ngữ
 
