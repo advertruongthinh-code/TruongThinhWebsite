@@ -3975,7 +3975,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       fallback();
       return;
     }
-    frostCopy(photoImage).then((tiny) => {
+    // Copy the 240px background, the same photo already decoded: copying the full-size photo decodes its JXL again on the main thread
+    // (owner PC run 8: a 59 ms long task right before the reveal).
+    frostCopy(photoBackground?.naturalWidth ? photoBackground : photoImage).then((tiny) => {
       if (primaryReveal !== reveal) {
         tiny?.close();
         return;

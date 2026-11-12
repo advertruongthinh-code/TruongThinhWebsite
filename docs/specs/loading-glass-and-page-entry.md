@@ -109,7 +109,7 @@ sẵn hay chưa, để người xem không phân biệt được hai trường h
    bốc assignment, [skeleton](advertising-skeleton.md)) phủ khung, trên ảnh và dưới nút ảnh; khung có `aria-busy="true"`; runtime chờ `decode()`.
 2. Giải mã xong thì lộ như card ở R2: skeleton của primary vẽ trên canvas Flow chung của chính khung (canvas là con cuối của
    `.detail-view__hero-frame`, `z-index: 2`), ảnh và nền vùng dư hiện ngay dưới khung, Flow hóa kính mờ rồi tan trong `0.6s`. Kính mờ đặt bản
-   20px đúng chỗ ảnh nằm `contain` trong khung, vùng dư phủ `cover` như nền mờ (`scale(1.12)`). Khung chưa vào, canvas chưa sẵn hoặc không
+   20px (sao từ ảnh nền 240px đã giải mã, không sao từ ảnh lớn vì giải mã lại JXL trên luồng chính 59ms, đo lượt 8) đúng chỗ ảnh nằm `contain` trong khung, vùng dư phủ `cover` như nền mờ (`scale(1.12)`). Khung chưa vào, canvas chưa sẵn hoặc không
    làm được bản sao thì crossfade. Ảnh có sẵn chỉ làm skeleton đứng ngắn hơn, có khi không tới một frame.
 
 Không có lớp tạm giữ ảnh cũ, không Kính. Xong thì gỡ skeleton và bỏ `aria-busy`. Media video ở primary

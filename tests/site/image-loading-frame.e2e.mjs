@@ -294,7 +294,8 @@ try {
       window.__ttFrost = [];
       const copy = window.createImageBitmap;
       window.createImageBitmap = function (source, ...rest) {
-        if (rest.at(-1)?.resizeWidth === 20) window.__ttFrost.push(source.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary");
+        if (rest.at(-1)?.resizeWidth === 20) window.__ttFrost.push(source.closest("[data-masonry-card], [data-masonry-related-card]") ? "card"
+          : source.matches("[data-detail-background]") ? "primary" : "primary-full");
         return copy.call(this, source, ...rest);
       };
       window.__ttCardBlur = [];
@@ -454,6 +455,8 @@ try {
     assert.deepEqual(await revealGlass("primary"), [], `${viewport.width}px: the primary wears no Kính`);
     const primaryFrost = await frostCopies("primary");
     assert.ok(phoneView ? primaryFrost === 0 : primaryFrost > 0, `${viewport.width}px: primary frosted copies ${primaryFrost}`);
+    // The copy comes from the 240px background: copying the full-size photo decodes its JXL again on the main thread (owner PC run 8: 59 ms).
+    assert.equal(await frostCopies("primary-full"), 0, `${viewport.width}px: primary frost never copies the full-size photo`);
     // Back to the first image also swaps the image in place (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id
