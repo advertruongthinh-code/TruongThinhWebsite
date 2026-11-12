@@ -129,6 +129,11 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`), khi vào viewport và cha có `.is-media-settled` (tải và `decode()` xong, hoặc lỗi) |
 | Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và câu, không split: `scale 1.1 → 1` `2.5s` `--ease` từ lúc veil bắt đầu mở; câu rồi số hiện dần `1s expo.out` trễ `0.3s` và `0.6s` (nhịp Espacio, đo frame 2026-10-12). Trước đó đứng ở frame đầu dưới veil. Reduced motion và script lỗi hiện ngay trạng thái cuối |
 
+Line reveal và word fade có một nguồn timing: `revealLines` và `revealWords` trong `window.TruongThinhMotion`
+(`motion.js`), `detail.js` gọi lại `revealWords`; "vào viewport thì chạy một lần" là `onceInView`. Nơi gọi chỉ
+truyền delay, stagger hoặc trạng thái đầu riêng của mình. Ngoại lệ còn viết tay: word fade của hero trang chủ (nằm
+trong timeline intro) và line reveal của `detail.js` (phải chạy cả khi `motion.js` không tải được).
+
 Route và target:
 
 | Route | Word | Line | Character |
