@@ -1296,8 +1296,9 @@ test("M01b hover shows the Pinterest shade at once, hides just viewed, and media
   } finally { await browser.close(); }
 });
 
-// Task 0.2 safety net for the strip rewrite: rapid next, next, next, previous clicks must end on the third media with one
-// visible layer at rest. The per-frame trace is evidence only; the continuity assert is added by the strip task (4.1).
+// Rapid next, next, next, previous clicks must end on the third media with one visible layer at rest (task 0.2), and the strip must stay
+// continuous (media-card R3, interruptible strip): no jump over 15% of the frame between two frames, and the strip keeps moving right after
+// every same-direction press instead of restarting from rest.
 for (const reduced of [false, true]) {
   test(`M01b rapid hover steps next x3 then previous settle on the third media${reduced ? " with reduced motion" : ""}`, async () => {
     const browser = await launchBrowser();
@@ -1310,10 +1311,18 @@ for (const reduced of [false, true]) {
       await card.locator(".card-media").hover();
       await settleTransitions(page);
       await card.evaluate((node) => {
-        const trace = window.__stripTrace = { frames: [], stripAnimations: 0, stop: false };
+        const trace = window.__stripTrace = { frames: [], clicks: [], stripAnimations: 0, stop: false };
+        node.addEventListener("click", (event) => {
+          const step = event.target.closest?.("[data-masonry-media-hover-step]")?.dataset.masonryMediaHoverStep;
+          if (step) trace.clicks.push({ t: performance.now(), step: Number(step) });
+        }, true);
+        const media = node.querySelector(".card-media");
         const tick = () => {
           const layers = [...node.querySelectorAll("[data-masonry-media-item]:not([hidden])")];
-          trace.frames.push({ t: performance.now(), translates: layers.map((layer) => getComputedStyle(layer).translate) });
+          const box = media.getBoundingClientRect();
+          trace.frames.push({ t: performance.now(), translates: layers.map((layer) => getComputedStyle(layer).translate),
+            lefts: layers.map((layer) => ({ id: layer.dataset.masonryMediaItem,
+              left: (layer.getBoundingClientRect().left - box.left) / box.width })) });
           trace.stripAnimations = Math.max(trace.stripAnimations, node.getAnimations({ subtree: true })
             .filter((animation) => animation.effect?.target?.matches?.("[data-masonry-media-item]")).length);
           if (!trace.stop) requestAnimationFrame(tick);
@@ -1335,6 +1344,31 @@ for (const reduced of [false, true]) {
       assert.equal(await visible.count(), 1, "one visible layer at rest");
       assert.match(await visible.evaluate((node) => getComputedStyle(node).translate), /^(none|0px( 0px)?)$/, "visible layer rests at zero translate");
       if (reduced) assert.equal(trace.stripAnimations, 0, "reduced motion creates no strip animation");
+      else {
+        // A lane's left edge in frame widths. Media in between that never showed get no lane, so lanes are compared frame to frame by id.
+        const frames = trace.frames.map(({ t, lefts }) => ({ t, left: new Map(lefts.map(({ id, left }) => [id, left])) }));
+        for (const { left } of frames) {
+          const edges = [...left.values()].sort((a, b) => a - b);
+          assert(edges.every((edge, index) => !index || Math.abs(edge - edges[index - 1] - 1) < 0.02),
+            `lanes stay joined: ${JSON.stringify(edges)}`);
+        }
+        const shift = (before, after) => {
+          const id = [...after.left.keys()].find((key) => before.left.has(key));
+          return id === undefined ? 0 : after.left.get(id) - before.left.get(id);
+        };
+        for (let index = 1; index < frames.length; index++) {
+          const jump = Math.abs(shift(frames[index - 1], frames[index]));
+          assert(jump <= 0.15, `strip jumps ${jump.toFixed(3)} frames at ${frames[index].t.toFixed(0)}ms`);
+        }
+        assert.equal(trace.clicks.length, 4, "four presses recorded");
+        for (const [index, click] of trace.clicks.entries()) {
+          if (index === 0 || click.step !== trace.clicks[index - 1].step) continue;
+          const after = frames.filter(({ t }) => t > click.t).slice(0, 2);
+          assert.equal(after.length, 2, "frames after the press");
+          const velocity = -shift(after[0], after[1]) * click.step;
+          assert(velocity > 0.001, `strip keeps moving forward right after press ${index + 1}: ${velocity.toFixed(4)}`);
+        }
+      }
       assert.deepEqual(errors, [], "no page errors");
       await context.close();
     } finally { await browser.close(); }

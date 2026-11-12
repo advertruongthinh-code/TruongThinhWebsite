@@ -19,6 +19,7 @@ import {
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } from "./replay.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
+import { moveStrip, placeStrip, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
@@ -928,18 +929,6 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
   return image;
 }
 
-// Continuous media strip (media-card R3, R6, owner 2026-10-19): each lane is nodes of the same slot, placed side by side `width` apart,
-// only translate is shifted, opacity unchanged. Releasing after a drag slides the remaining distance, with a rhythm that shortens with the distance.
-const releaseTiming = (distance, width) => ({ duration: Math.max(200, PUSH_TIMING.duration * Math.min(1, distance / width)),
-  easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
-function placeStrip(lanes, width, offset) {
-  lanes.forEach(({ nodes, slot }) => nodes.forEach((node) => { node.style.translate = `${slot * width + offset}px 0`; }));
-}
-function moveStrip(lanes, width, from, to, timing) {
-  return lanes.flatMap(({ nodes, slot }) => nodes.map((node) => node.animate(
-    { translate: [`${slot * width + from}px 0`, `${slot * width + to}px 0`] }, timing)));
-}
-
 // Displayable media: image decoded, video with a frame or a decoded poster; an error also ends the wait so the strip does not hang.
 function whenMediaReady(node) {
   if (node instanceof HTMLVideoElement) {
@@ -954,51 +943,6 @@ function whenMediaReady(node) {
   if (!(node instanceof HTMLImageElement)) return Promise.resolve();
   node.loading = "eager";
   return node.decode().catch(() => {});
-}
-
-// A swipe drags the strip with the finger (media-card R3, owner 2026-10-19): direction locks after 10px; lifting after dragging past half
-// the frame or at 0.5px/ms moves to the next media, otherwise it snaps back; at the two ends of the strip it moves only 1/3 of the finger distance. With no
-// pointermove (synthetic pointer) velocity is infinite: a horizontal swipe from 10px changes media.
-function trackStripSwipe(target, { accepts = () => true, start = () => {}, width, canStep, drag, release, signal }) {
-  let gesture = null;
-  const offset = (dx) => canStep(dx < 0 ? 1 : -1) ? dx : dx / 3;
-  target.addEventListener("pointerdown", (event) => {
-    if (!event.isPrimary || !accepts(event)) return;
-    const { pointerId: id, clientX: x, clientY: y, timeStamp: t } = event;
-    gesture = { id, x, y, horizontal: null, lastX: x, lastT: t, prevX: x, prevT: t };
-    start(event);
-  }, { signal });
-  target.addEventListener("pointermove", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    const dx = event.clientX - gesture.x;
-    const dy = event.clientY - gesture.y;
-    if (gesture.horizontal === null) {
-      if (Math.hypot(dx, dy) < 10) return;
-      gesture.horizontal = Math.abs(dx) > Math.abs(dy);
-    }
-    if (!gesture.horizontal) return;
-    Object.assign(gesture, { prevX: gesture.lastX, prevT: gesture.lastT, lastX: event.clientX, lastT: event.timeStamp });
-    drag(offset(dx));
-  }, { signal });
-  target.addEventListener("pointerup", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    const { x, y, horizontal, prevX, prevT } = gesture;
-    gesture = null;
-    const dx = event.clientX - x;
-    if (horizontal === false || Math.abs(dx) < 10 || Math.abs(dx) <= Math.abs(event.clientY - y)) {
-      if (horizontal) release(0, offset(dx));
-      return;
-    }
-    const elapsed = horizontal === null ? 0 : event.timeStamp - prevT;
-    const speed = elapsed > 0 ? Math.abs(event.clientX - prevX) / elapsed : Infinity;
-    const step = dx < 0 ? 1 : -1;
-    release(canStep(step) && (Math.abs(dx) > width() / 2 || speed >= 0.5) ? step : 0, offset(dx));
-  }, { signal });
-  target.addEventListener("pointercancel", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    if (gesture.horizontal) release(0, offset(gesture.lastX - gesture.x));
-    gesture = null;
-  }, { signal });
 }
 
 function syncJustViewedMarker(figure, locale, marked) {
@@ -1304,9 +1248,13 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Continuous strip (owner 2026-10-19): old and new media are joined, only the position shifts, clipped at the canvas; the strip slides
     // only after the new media has decoded, so no background shows or fade runs mid-load. A manual drag sets the strip `offset` before release.
+    // Each lane is { nodes, slot, index }; `stripTo` is the offset the strip is heading to; `pendingIndex` is a press waiting for its media
+    // to decode while the strip keeps moving (media-card R3, interruptible strip).
     let lanes = [];
     let laneAnimations = [];
     let slideToken = 0;
+    let stripTo = 0;
+    let pendingIndex = null;
     const canvasWidth = () => media.clientWidth;
     const reducedMotion = () => env.reducedMotion.matches;
     const settleLanes = () => {
@@ -1332,17 +1280,22 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       });
       placeStrip(lanes, canvasWidth(), offset);
     };
-    const runLanes = (from, to, timing) => {
+    const settleWhenDone = () => {
       const token = slideToken;
-      laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
       laneAnimations.at(-1)?.finished.then(() => { if (token === slideToken) settleLanes(); }, () => {});
+    };
+    const runLanes = (from, to, timing) => {
+      stripTo = to;
+      laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
+      settleWhenDone();
     };
     const preloadNeighbors = () => [activeIndex - 1, activeIndex + 1].forEach((index) => {
       if (!items[index]) return;
       const layer = layerFor(index);
       void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-masonry-media-ready"); });
     });
-    const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
+    const slideTo = (index, offset = 0, timing = PUSH_TIMING) => {
+      pendingIndex = null;
       const from = activeIndex;
       const outgoing = layers.get(items[from]?.id);
       settleLanes();
@@ -1353,7 +1306,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
       const direction = activeIndex > from ? 1 : -1;
-      showLanes([{ nodes: [outgoing], slot: 0 }, { nodes: [incoming], slot: direction }], offset);
+      showLanes([{ nodes: [outgoing], slot: 0, index: from }, { nodes: [incoming], slot: direction, index: activeIndex }], offset);
+      stripTo = -direction * canvasWidth();
       const token = slideToken;
       void whenMediaReady(incoming).then(() => {
         if (token !== slideToken) return;
@@ -1361,9 +1315,62 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         runLanes(offset, -direction * canvasWidth(), timing);
       });
     };
+    // Rule 2 of the interruptible strip: lanes already in the strip stay; a target without a lane joins right after the outermost lane in
+    // the direction of travel, so media in between that never showed get no lane. A target that cannot join that way returns false.
+    const steerLanes = (index, incoming) => {
+      const width = canvasWidth();
+      let lane = lanes.find(({ nodes: [node] }) => node === incoming);
+      if (!lane) {
+        const direction = index > activeIndex ? 1 : -1;
+        const outer = lanes.reduce((edge, entry) => (entry.slot - edge.slot) * direction > 0 ? entry : edge);
+        if ((index - outer.index) * direction <= 0) return false;
+        lane = { nodes: [incoming], slot: outer.slot + direction, index };
+        lanes.push(lane);
+        incoming.classList.add("card-media__image--lane", "card-media__image--beside");
+        if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
+      }
+      const toPx = -lane.slot * width;
+      if (index === activeIndex && toPx === stripTo) return true;
+      // setActive pauses the outgoing video and hides its layer; the strip keeps every lane visible until it settles.
+      setActive(index);
+      if (activeIndex !== index) {
+        settleLanes();
+        return true;
+      }
+      lanes.forEach(({ nodes: [node] }) => { node.hidden = false; });
+      onMediaChange(figure.dataset.masonryActiveMediaId);
+      figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
+      const from = stripOffset(lanes, width);
+      slideToken += 1;
+      laneAnimations = retargetStrip(lanes, { toPx, width, sameDirection: Math.sign(stripTo - from) === Math.sign(toPx - from) });
+      stripTo = toPx;
+      settleWhenDone();
+      return true;
+    };
+    // Rule 5: the strip keeps heading to its current target until the new target has decoded; if it settled meanwhile, this is a fresh slide.
+    const retargetMedia = (nextIndex) => {
+      const index = Math.max(0, Math.min(items.length - 1, nextIndex));
+      pendingIndex = index;
+      const incoming = layerFor(index);
+      void whenMediaReady(incoming).then(() => {
+        if (pendingIndex !== index) return;
+        pendingIndex = null;
+        if (!lanes.length || !steerLanes(index, incoming)) slideTo(index);
+      });
+    };
+    // A press while the strip is in flight retargets it; a swipe release (non-zero offset) or reduced motion takes the plain path.
+    const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
+      if (lanes.length && !offset && !reducedMotion()) retargetMedia(index);
+      else slideTo(index, offset, timing);
+    };
+    // Card removed mid-slide (virtualization): drop the pending press and every lane so no translate is left behind.
+    figure.advertisingSettleStrip = () => {
+      pendingIndex = null;
+      settleLanes();
+    };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
-      () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
+      () => selectMedia((pendingIndex ?? activeIndex) + Number(button.dataset.masonryMediaHoverStep))));
     if (hasCarousel) {
       figure.addEventListener("pointerenter", preloadNeighbors);
       // Pointer events include touch; touch-action: pan-y leaves horizontal swipes to this handler.
@@ -1377,7 +1384,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         drag: (offset) => {
           if (reducedMotion()) return;
           showLanes([-1, 0, 1].filter((slot) => items[activeIndex + slot])
-            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot })), offset);
+            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot, index: activeIndex + slot })), offset);
         },
         release: (step, offset) => {
           suppressClickUntil = performance.now() + 400;
@@ -1779,6 +1786,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const observeMediaCard = (node) => mediaObserver.observe(node);
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
+    node.advertisingSettleStrip?.();
     node.querySelectorAll("video").forEach(releaseVideoSource);
     // An img detached from the DOM keeps loading: dragging the scrollbar with no cache piles hundreds of requests from removed cards ahead of the visible
     // image. Drop the source so the browser cancels the request.

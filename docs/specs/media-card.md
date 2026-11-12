@@ -11,7 +11,7 @@ tests:
   - tests/site/site-media-card-playback.e2e.mjs
   - tests/site/strip-swipe-audit.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # Card nhiều media
@@ -77,7 +77,8 @@ vẫn chạy dưới lớp tối; mũi tên, chấm, bộ đếm nằm trên l�
 liền trượt ngang: media mới vào từ mép canvas phía đi tới, media cũ ra hết mép bên kia, hai media dính
 nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
 ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
-giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay.
+Bấm mũi tên hoặc chấm khi dải đang trượt thì dải không nhảy về đích cũ (owner 2026-11-12, plan DRY pha 4): đọc vị trí đang hiện, giữ các làn đang có, làn đích mới nối ngay sau làn ngoài cùng theo hướng đi (media ở giữa chưa từng hiện thì bỏ qua, không có làn); cùng chiều thì chạy tiếp từ vị trí đó tới đích mới trong 0.9s, ngược chiều thì quay đầu trong 0.9s nhân quãng còn lại chia bề rộng canvas (tối thiểu 200ms), cả hai dùng đường cong `cubic-bezier(0.33, 1, 0.68, 1)` của lúc nhấc tay. Đích mới chưa decode thì dải chạy tiếp tới đích đang có, decode xong mới đổi đích; dải đã dừng trước đó thì là một lần trượt mới. Chấm nhảy về media nằm giữa các làn thì trượt mới như cũ. Card rời DOM giữa chừng thì dải dừng, không sót translate. Hàm dùng chung ở `masonry/strip.mjs` (`retargetStrip`). Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 Không có pointermove: dịch ngang từ 10px vẫn đổi media; tap và cuộn dọc không đổi.
@@ -99,6 +100,10 @@ And rời chuột thì hai lớp đó ẩn ngay; card mang "Vừa xem" thì nhã
 Given card 3 media trên cảm ứng
 When kéo ngang 30% canvas rồi nhấc tay chậm
 Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì trượt nốt sang item kế
+
+Given card 5 media, chuột thật, 1440px
+When bấm "Media tiếp" ba lần rồi "Media trước" một lần, cách nhau 60ms
+Then dải không nhảy quá 15% canvas giữa hai frame, vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, dừng ở media thứ ba
 ```
 
 ### R4. Video trên card
@@ -224,6 +229,7 @@ URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, 
 | Hàm | `validateAdvertisingCardMedia`, `validateAdvertisingMediaPool` (`media-contract.mjs`) | Chặn dữ liệu sai khi catalog nạp |
 | Hàm | `layoutMedia` (`masonry/layout.mjs`) | Tỷ lệ cover; card cao đúng bằng media (R2) |
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`masonry/runtime.mjs`) | R3–R6 |
+| Hàm | `retargetStrip`, `placeStrip`, `moveStrip`, `releaseTiming`, `trackStripSwipe` (`masonry/strip.mjs`) | Dải trượt dùng chung (R3, R6) |
 | Attribute | `data-masonry-active-media-id` trên card và `[data-detail-view]` | Media đang xem; click card đọc để mở detail |
 | Attribute | `data-masonry-media-select`, `-prev`, `-next`, `-count`, `-loading`, `-item` | Hook test và control card |
 | Attribute | `data-detail-media-select`, `data-detail-audio-toggle`, `data-detail-video`, `data-detail-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-detail-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
@@ -242,7 +248,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | --- | --- |
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (mọi card cao đúng bằng media, không dải dưới canvas); `advertising-skeleton-flow.test.mjs` (skeleton không chừa tên); `block-pages.e2e.mjs` (tên Công trình trong media); `site-media-card-r6.e2e.mjs` (hàng pill trong canvas, ca 384px 5 media có video không chồng pill, rect ổn định, singleton) |
-| R3 | `advertising-card-interactions.e2e.mjs` (chuột thật: lớp tối Pinterest và tên khi hover; cảm ứng: không tên, không lớp tối, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp hover không motion, "Vừa xem" khi hover, dải liền không fade không lộ nền; bấm mũi tên hover ba lần tới một lần lùi cách 60ms dừng đúng media thứ ba với một lớp, translate 0, reduced motion không tạo animation, vệt vị trí từng frame ghi ở `.tmp/strip-rapid-step/`); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
+| R3 | `advertising-card-interactions.e2e.mjs` (chuột thật: lớp tối Pinterest và tên khi hover; cảm ứng: không tên, không lớp tối, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp hover không motion, "Vừa xem" khi hover, dải liền không fade không lộ nền; bấm mũi tên hover ba lần tới một lần lùi cách 60ms dừng đúng media thứ ba với một lớp, translate 0, dải không nhảy quá 15% canvas giữa hai frame và vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, reduced motion không tạo animation, vệt vị trí từng frame ghi ở `.tmp/strip-rapid-step/`); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
