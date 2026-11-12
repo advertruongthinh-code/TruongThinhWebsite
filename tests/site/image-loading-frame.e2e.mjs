@@ -2,23 +2,18 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import path from "node:path";
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
-const { chromium } = await import("playwright");
-const base = process.env.BASE_URL || "http://127.0.0.1:8787";
+import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 const output = ".tmp/image-loading-frame";
 const DELAY = 1500;
 const routes = ["/vi/", "/en/", "/vi/residential/", "/en/residential/", "/vi/commercial/", "/en/commercial/", "/vi/about/", "/en/about/"];
-const viewports = [{ width: 390, height: 844, isMobile: true, hasTouch: true }, { width: 1440, height: 900 }];
+const viewports = [VIEWPORTS.phone, VIEWPORTS.desktop];
 const isContent = url => new URL(url).pathname.startsWith("/assets/content/") && !url.includes("/client-logos/");
 const results = [];
 await fs.mkdir(output, { recursive: true });
-const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
+const browser = await launchBrowser();
 
 const open = async ({ delay = DELAY, javaScriptEnabled = true, viewport = viewports[0] } = {}) => {
-  const { width, height, ...device } = viewport;
-  const context = await browser.newContext({ viewport: { width, height }, ...device, javaScriptEnabled });
-  const page = await context.newPage();
+  const { context, page } = await openPage(browser, viewport, { javaScriptEnabled });
   const counts = new Map();
   if (delay) await page.route("**/assets/content/**", async route => {
     const url = route.request().url();
@@ -86,7 +81,7 @@ try {
   for (const route of routes) {
     for (const viewport of viewports) {
       const { context, page, counts } = await open({ viewport });
-      await page.goto(base + route, { waitUntil: "domcontentloaded" });
+      await page.goto(BASE_URL + route, { waitUntil: "domcontentloaded" });
       const before = await snapshot(page);
       const raw = await rawAttributes(page);
       await scrollThrough(page);
@@ -123,7 +118,7 @@ try {
   // R6: capture every 100ms while an image is half loaded, no unfinished image may show.
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
-    await page.goto(base + "/vi/residential/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/vi/residential/", { waitUntil: "domcontentloaded" });
     let samples = 0;
     for (let tick = 0; tick < 40; tick++, await page.waitForTimeout(100)) {
       const leaked = await page.evaluate(() => [...document.querySelectorAll('img[src^="/assets/content/"]')]
@@ -140,7 +135,7 @@ try {
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/vi/about/", { waitUntil: "domcontentloaded" });
     const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate .media-frame:not(.is-media-settled)")]
       .map(frame => { const style = getComputedStyle(frame, "::before"); return `${style.animationName} ${style.animationDuration} ${style.animationIterationCount}`; }));
     // The global reduced-motion reset must not cut the 2s breathing rhythm down to 0.01ms.
@@ -152,8 +147,8 @@ try {
   // R6: the sweep stops mid-frame at 1440×600, brightness is smooth, no sharp edge or kink.
   {
     // Take the real gradient from the waiting frame then redraw it on a still probe.
-    const { context, page } = await open({ viewport: { width: 1440, height: 900 }, delay: 3000 });
-    await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
+    const { context, page } = await open({ viewport: VIEWPORTS.desktop, delay: 3000 });
+    await page.goto(BASE_URL + "/vi/about/", { waitUntil: "domcontentloaded" });
     await page.evaluate(() => {
       const frame = document.querySelector(".media-gate .media-frame:not(.is-media-settled)");
       const sweep = getComputedStyle(frame, "::before").backgroundImage;
@@ -186,7 +181,7 @@ try {
     ["/vi/", ".project-card__media img", { ...viewports[0], deviceScaleFactor: 3 }],
   ]) {
     const { context, page, counts } = await open({ viewport });
-    await page.goto(base + route, { waitUntil: "load" });
+    await page.goto(BASE_URL + route, { waitUntil: "load" });
     await scrollThrough(page);
     await settle(page);
     const label = `${route} ${viewport.width}px DPR ${viewport.deviceScaleFactor}`;
@@ -208,7 +203,7 @@ try {
   // P8: no-script still shows every image.
   for (const route of routes.filter(route => route.startsWith("/vi/"))) {
     const { context, page } = await open({ delay: false, javaScriptEnabled: false });
-    await page.goto(base + route, { waitUntil: "load" });
+    await page.goto(BASE_URL + route, { waitUntil: "load" });
     await scrollThrough(page);
     await settle(page);
     const images = await snapshot(page);
@@ -224,7 +219,7 @@ try {
     const measure = async block => {
       const { context, page } = await open({ delay: 0 });
       if (block) await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
-      await page.goto(base + "/vi/about/", { waitUntil: "load" });
+      await page.goto(BASE_URL + "/vi/about/", { waitUntil: "load" });
       await scrollThrough(page);
       await page.waitForTimeout(500);
       const images = await page.evaluate(overlay => [...document.querySelectorAll("img")]
@@ -252,7 +247,7 @@ try {
   for (const [route, line] of [["/vi/", '"Không tải được"'], ["/en/residential/", '"Couldn\'t load"']]) {
     const { context, page } = await open({ delay: 0 });
     await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
-    await page.goto(base + route, { waitUntil: "load" });
+    await page.goto(BASE_URL + route, { waitUntil: "load" });
     await scrollThrough(page);
     await page.waitForTimeout(500);
     const frames = await page.evaluate(() => [...document.querySelectorAll(".hero-slide.is-active, .about-hero__media, .service-portal, .detail-cta, .legacy-closer")]
@@ -266,7 +261,7 @@ try {
   // P8: Barba navigation and Back keep the same frame contract.
   {
     const { context, page } = await open();
-    await page.goto(base + "/vi/", { waitUntil: "load" });
+    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
     await settle(page, true);
     const origin = await page.evaluate(() => performance.timeOrigin);
     await page.evaluate(() => document.querySelector('a[href="/vi/residential/"]').click());
@@ -289,7 +284,7 @@ try {
   for (const viewport of viewports) {
     // Longer delay so the entry layout settles while the card image is still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     // Kính reveal (loading-glass-and-page-entry R2, R4; glass-surface R6) and card image blur (progressive-loading R9):
     // record each attach.
     await page.evaluate(() => {
@@ -462,7 +457,7 @@ try {
   // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });
-    await page.goto(base + "/vi/", { waitUntil: "load" });
+    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
     // Click early and the image may load after attaching so the load error is not reproduced; wait like a real viewer.
     await page.waitForTimeout(2000);
     await page.locator(`a[href="${route}"]`).first().click();

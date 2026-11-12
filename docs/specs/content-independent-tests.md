@@ -89,6 +89,9 @@ cụm"), không ghi id cụ thể. Kỳ vọng như số card liên quan tính t
 Ca cần đúng một nội dung để tái hiện lỗi cũ thì build site với fixture: build nhận đường dẫn fixture thay cho
 nội dung thật, chỉ dùng trong test, không vào bản deploy (owner đồng ý 2026-10-23).
 
+E2E ESM mở trình duyệt, đọc `BASE_URL` và khai cỡ màn hình qua [harness](ci-test-suites.md#r12-harness-test-trình-duyệt),
+nên giá trị đó nằm một chỗ và không lẫn vào assertion nội dung.
+
 ### R5. Chặn tái phát
 
 `tests/tooling/content-literal-guard.test.mjs` quét `tests/site/` và đỏ khi một assertion trên nội dung thật dùng

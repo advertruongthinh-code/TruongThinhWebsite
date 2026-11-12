@@ -33,6 +33,7 @@
     "tests/ci-suites.json",
     "tests/site/fixtures/**",
     "tests/site/advertising-grid-oracle.mjs",
+    "tests/site/harness.mjs",
     ".github/workflows/ci.yml"
   ],
   "suites": {

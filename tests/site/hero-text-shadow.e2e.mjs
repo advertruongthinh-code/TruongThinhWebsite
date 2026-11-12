@@ -1,12 +1,7 @@
 // hero-typography R6: white text on an image has a two-layer D shadow, the mask is widened for the 12px halo (hero shadow since owner 2026-11-01); ink text
 // on paper (Advertising products hero) has no shadow.
 import assert from "node:assert/strict";
-import path from "node:path";
-import process from "node:process";
-
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
-const { chromium } = await import("playwright");
-const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
+import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 
 const SHADOW_D = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
 const withShadow = [
@@ -20,10 +15,9 @@ const withoutShadow = [
 ];
 
 const failures = [];
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-  const page = await context.newPage();
+  const { page } = await openPage(browser, VIEWPORTS.desktop, { reducedMotion: "reduce" });
   const read = (selector) => page.evaluate((selector) => {
     const el = document.querySelector(selector);
     if (!el) return null;
@@ -35,7 +29,7 @@ try {
   }, selector);
 
   for (const { route, selectors } of withShadow) {
-    await page.goto(`${origin}/vi/${route}`, { waitUntil: "load" });
+    await page.goto(`${BASE_URL}/vi/${route}`, { waitUntil: "load" });
     await page.evaluate(() => document.fonts.ready);
     for (const selector of selectors) {
       const got = await read(selector);
@@ -49,7 +43,7 @@ try {
     }
   }
   for (const { route, selectors } of withoutShadow) {
-    await page.goto(`${origin}/vi/${route}`, { waitUntil: "load" });
+    await page.goto(`${BASE_URL}/vi/${route}`, { waitUntil: "load" });
     for (const selector of selectors) {
       const got = await read(selector);
       if (!got) failures.push(`/${route} ${selector}: not found`);

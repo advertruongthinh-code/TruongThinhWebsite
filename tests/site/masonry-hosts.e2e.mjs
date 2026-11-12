@@ -3,10 +3,7 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/masonry-hosts.e2e.mjs
 // MASONRY_HOSTS=advertising,related and MASONRY_VIEWPORTS=1920x940 run a subset.
 import assert from "node:assert/strict";
-import path from "node:path";
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
-const { chromium } = await import("playwright");
-const base = process.env.BASE_URL || "http://127.0.0.1:8787";
+import { BASE_URL, VIEWPORTS as DEVICES, launchBrowser, openPage } from "./harness.mjs";
 const VARIANT = /-(?:240|480|960|1600|2048)\.(?:jxl|webp)$/;
 
 const detailReady = (page) => page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
@@ -17,13 +14,13 @@ const gridReady = (page) => page.waitForFunction(() => document.documentElement.
 // Per host: how to open it, grid root; every masonry item carries the shared data-masonry-item marker (masonry-reuse step 3).
 const HOSTS = {
   advertising: { root: "[data-project-grid]", card: "[data-masonry-item]",
-    open: async (page) => { await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
+    open: async (page) => { await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   projects: { root: "[data-project-grid]", card: "[data-masonry-item]",
-    open: async (page) => { await page.goto(`${base}/vi/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
+    open: async (page) => { await page.goto(`${BASE_URL}/vi/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   // As the owner uses it: click a card on the masonry (soft route, CTA switches to detail). Step 5 reloads the page, i.e. a direct entry.
   related: { root: "[data-detail-related-grid]", card: "[data-masonry-item]",
     open: async (page) => {
-      await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
       await gridReady(page);
       await page.waitForTimeout(800);
       await page.locator("[data-masonry-card]:not([hidden]) > a").first().click();
@@ -31,7 +28,7 @@ const HOSTS = {
     } },
 };
 // 1920x940: the owner's PC screen, where a portrait card taller than 60% of the viewport (threshold for upgrading to the original) occurs.
-const VIEWPORTS = { "1920x940": { width: 1920, height: 940 }, "384x724": { width: 384, height: 724, isMobile: true, hasTouch: true, deviceScaleFactor: 1.875 } };
+const VIEWPORTS = { "1920x940": { width: 1920, height: 940 }, "384x724": DEVICES.a04s };
 const pick = (env, all) => {
   const ids = process.env[env] ? process.env[env].split(",") : Object.keys(all);
   ids.forEach((id) => assert.ok(all[id], `${env}: missing ${id}`));
@@ -94,7 +91,7 @@ const coverage = async (page, ms = 300) => {
   return page.evaluate(() => { window.__masonry.running = false; return window.__masonry.frames; });
 };
 
-const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
+const browser = await launchBrowser();
 const failures = [];
 const check = (label, ok, detail) => { if (!ok) failures.push(`${label}: ${detail}`); };
 try {
@@ -102,10 +99,8 @@ try {
     for (const hostId of pick("MASONRY_HOSTS", HOSTS)) {
       const host = HOSTS[hostId];
       const label = `${hostId} ${viewportId}`;
-      const { width, height, ...device } = VIEWPORTS[viewportId];
-      const context = await browser.newContext({ viewport: { width, height }, ...device });
+      const { context, page } = await openPage(browser, VIEWPORTS[viewportId]);
       await context.addInitScript(firstEntryProbe);
-      const page = await context.newPage();
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
       await host.open(page);
