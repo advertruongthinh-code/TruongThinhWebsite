@@ -260,9 +260,7 @@
     const advertisingHeroSettled = isCatalogNamespace(container.dataset.barbaNamespace)
       && advertisingHeroPlayed.has(container);
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const reduceMotion = window.TruongThinhEnv.reducedMotion.matches;
     const gsap = window.gsap;
     if (
       isCatalogNamespace(container.dataset.barbaNamespace)

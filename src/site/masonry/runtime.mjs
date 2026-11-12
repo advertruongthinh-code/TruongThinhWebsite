@@ -34,7 +34,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { createMasonryHost, isSizeMorph } from "./host.mjs";
+import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import {
@@ -1307,7 +1307,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let laneAnimations = [];
     let slideToken = 0;
     const canvasWidth = () => media.clientWidth;
-    const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reducedMotion = () => env.reducedMotion.matches;
     const settleLanes = () => {
       slideToken += 1;
       laneAnimations.forEach((animation) => animation.cancel());
@@ -1629,7 +1629,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   window.visualViewport?.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resetVisibleViewport, { signal: controller.signal });
   let locale = currentLocale();
-  const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotionQuery = env.reducedMotion;
   let reduced = reducedMotionQuery.matches;
   const geometries = new Map();
   let geometryPending = false;
@@ -2256,7 +2256,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return coordinates;
   };
 
-  const skeletonMotionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+  const skeletonMotionPreference = env.reducedMotion;
   const visibleSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
   const skeletonLeaseByFrame = new Map();

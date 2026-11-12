@@ -1,7 +1,5 @@
 (() => {
-  const reduceMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  );
+  const reduceMotionQuery = window.TruongThinhEnv.reducedMotion;
   const reduceMotion = reduceMotionQuery.matches;
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
