@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-12T13:35:00Z",
+    "at": "2026-11-12T15:05:00Z",
     "via": "Claude Code",
-    "note": "DRY 7.1: menu và navbar dựng lúc build từ menu.json, trang nguồn chỉ giữ mốc (README FullMenu); đầu ra không đổi"
+    "note": "DRY 7.2: khung trang chung trong src/site/partials (README BrandLockup, FullMenu), #876 media không chọn được (bundle.css); đầu ra không đổi hình"
   }
 }
