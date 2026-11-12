@@ -34,7 +34,10 @@ hai file này trỏ về `design-system/`, không chép lại. Hành vi từng p
    motion không có family token, khai trong `tokens.json` `meta.cssOnly` kèm lý do. Literal rải trong selector không
    thuộc check. Type token ghi giá trị thật sau `CSS thật:` trong `usage`; mỗi biểu thức `clamp`, `min`, `max`,
    `calc`, `var` ở đó phải có nguyên văn trong `style.css` hoặc `detail.css`, không thì fail.
-3. Motion là section `motion.md` (format không có nhóm token motion).
+3. Motion là section `motion.md` (format không có nhóm token motion). Thời lượng và đường cong lặp lại ở
+   `style.css` và `detail.css` đọc từ `--dur-*` và `--ease*` ở `:root`; bảng token nằm ở `motion.md` mục Token
+   motion, mỗi token khai trong `tokens.json` `meta.cssOnly`. Giá trị mới lặp từ hai chỗ thì thêm token, không gõ lại
+   literal; giá trị chỉ dùng một lần giữ literal tại chỗ.
 4. Chỉ mô tả Trường Thịnh: số đo là của website Trường Thịnh. Site tham khảo chỉ ghi ở section `Nguồn tham khảo` của
    `README.md` (owner 2026-10-04).
 5. Thiết kế owner đã duyệt nhưng website chưa chạy ghi trong spec sở hữu phần đó (`status: planned` hoặc

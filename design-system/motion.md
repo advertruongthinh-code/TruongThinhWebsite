@@ -21,6 +21,29 @@ Motion owner đã duyệt nhưng chưa có code nằm trong spec sở hữu ph�
   và [ba trang con](../docs/specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời); thư viện animation ở
   [phát hành tĩnh](../docs/specs/static-release.md#r4-font-và-thư-viện-tự-host).
 
+## Token motion
+
+Thời lượng và đường cong lặp lại khai một lần ở `:root` của `style.css`; `style.css` và `detail.css` đọc bằng
+`var(...)`, không gõ lại literal. Từ khóa `ease-out`, `ease`, `ease-in-out`, `linear` giữ nguyên, không có token.
+
+| Token | Giá trị | Dùng cho |
+| --- | --- | --- |
+| `--ease` | `cubic-bezier(0, 0, 0.26, 1)` | Hero kicker, media reveal, zoom hero, rail dự án, mũi tên CTA, 404 |
+| `--ease-underline` | `cubic-bezier(0.4, 0, 0, 1)` | Gạch chân chạy (nav, menu, filter, chip, link, nhãn suggestion, news) |
+| `--ease-expo-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Ảnh decode xong hiện `media-fade-in`, scroll cue |
+| `--ease-card` | `cubic-bezier(0.65, 0, 0.35, 1)` | Nền badge "vừa xem" trên card |
+| `--ease-viewer` | `cubic-bezier(0.55, 0, 0, 1)` | Backdrop viewer mở, đóng |
+| `--dur-fast` | `150ms` | Hover control video, thanh mô tả |
+| `--dur-quick` | `250ms` | Hover nút suggestion, CTA detail, backdrop viewer đóng |
+| `--dur-base` | `300ms` | Hover nền và chữ, gạch chân chạy, backdrop viewer mở |
+| `--dur-card` | `400ms` | Trượt `margin-bottom`, mũi tên CTA |
+| `--dur-fade` | `450ms` | `media-fade-in` |
+| `--dur-hover` | `600ms` | Zoom ảnh hover, reveal, nền badge (`--media-hover-duration` trỏ về đây) |
+
+Giá trị chỉ dùng một lần giữ literal tại chỗ (100ms, 700ms, 1s, 1.6s vệt sáng, 2s thở, 2.5s, 25s, delay) cùng các
+đường cong riêng của header, floating CTA, menu và `.story-link`. Chế độ giảm chuyển động kẹp `0.01ms` ở `style.css`,
+không dùng token. Trang 404 và CSS admin không thuộc phạm vi.
+
 ## Motion theo bề mặt UI
 
 Motion dùng lại ở nhiều bề mặt có tên riêng; bề mặt mới dùng lại đúng rule CSS

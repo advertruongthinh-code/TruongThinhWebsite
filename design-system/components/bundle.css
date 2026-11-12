@@ -20,7 +20,17 @@
   --section-gap: 90px;
   --footer-top-gap: 64px;
   --ease: cubic-bezier(0, 0, 0.26, 1);
-  --media-hover-duration: 600ms;
+  --ease-underline: cubic-bezier(0.4, 0, 0, 1);
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-card: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-viewer: cubic-bezier(0.55, 0, 0, 1);
+  --dur-fast: 150ms;
+  --dur-quick: 250ms;
+  --dur-base: 300ms;
+  --dur-card: 400ms;
+  --dur-fade: 450ms;
+  --dur-hover: 600ms;
+  --media-hover-duration: var(--dur-hover);
   --media-hover-easing: ease-out;
   --media-hover-transform: transform var(--media-hover-duration) var(--media-hover-easing);
   --tracking-display: 0.001px;
@@ -428,7 +438,7 @@ html.route-enter .site-header {
   transform: scaleX(0);
   transform-origin: right center;
   background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .desktop-nav a:hover::after {
@@ -455,7 +465,7 @@ html.route-enter .site-header {
   border: 0;
   background: transparent;
   cursor: pointer;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-button svg {
@@ -469,7 +479,7 @@ html.route-enter .site-header {
 
 .menu-button line {
   transform-origin: center;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-button:hover .top,
@@ -510,8 +520,8 @@ html.route-enter .site-header {
   transform: translateX(130%);
   transition:
     transform 1s cubic-bezier(0.63, 0, 0.08, 1),
-    background 0.3s ease-out,
-    0.6s cubic-bezier(0.42, 0, 0.07, 0.99);
+    background var(--dur-base) ease-out,
+    var(--dur-hover) cubic-bezier(0.42, 0, 0.07, 0.99);
 }
 
 .floating-cta:hover {
@@ -528,7 +538,7 @@ html.route-enter .site-header {
   stroke: currentColor;
   stroke-width: 4;
   stroke-miterlimit: 10;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .floating-cta span {
@@ -536,7 +546,7 @@ html.route-enter .site-header {
   grid-row: 1;
   margin-left: 10px;
   white-space: nowrap;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .floating-cta.show {
@@ -687,7 +697,7 @@ html.route-enter .site-header {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-language button.is-active,
@@ -788,7 +798,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
 
 .menu-close__icon svg line {
   transform-origin: center;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-close:hover .menu-close__icon svg line {
@@ -892,7 +902,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   background: var(--line);
   transform: scaleY(0);
   transform-origin: top;
-  transition: transform 0.3s linear;
+  transition: transform var(--dur-base) linear;
 }
 
 .menu-group:nth-child(3n)::after {
@@ -926,7 +936,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   position: relative;
   color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .menu-group__title > span {
@@ -946,7 +956,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-group__title:hover > span::before,
@@ -990,7 +1000,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-option:hover::before,
@@ -1237,8 +1247,8 @@ em {
   color: white;
   cursor: pointer;
   transition:
-    background-color 0.25s ease,
-    transform 0.25s ease;
+    background-color var(--dur-quick) ease,
+    transform var(--dur-quick) ease;
 }
 
 @media (max-width: 1200px) {
@@ -1299,7 +1309,7 @@ em {
   text-transform: uppercase;
   word-spacing: var(--word-spacing-body);
   transform: translateX(-50%);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 1s var(--ease-expo-out);
 }
 
 .scroll-cue.is-hidden {
@@ -1638,7 +1648,7 @@ em {
 
 .motion-enabled .service-portal .portal-subtitle {
   opacity: 0;
-  transition: opacity 0.3s ease-out var(--portal-subtitle-delay);
+  transition: opacity var(--dur-base) ease-out var(--portal-subtitle-delay);
   will-change: opacity;
 }
 
@@ -1735,7 +1745,7 @@ em {
   content: "";
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 #dich-vu .service-portal:hover .portal-subtitle::after,
@@ -1865,8 +1875,8 @@ em {
   opacity: 0;
   transform: scale(0.9);
   transition:
-    opacity 0.6s var(--ease) 0.6s,
-    transform 0.6s var(--ease) 0.6s;
+    opacity var(--dur-hover) var(--ease) 0.6s,
+    transform var(--dur-hover) var(--ease) 0.6s;
   will-change: transform, opacity;
 }
 
@@ -1913,7 +1923,7 @@ em {
   stroke: currentColor;
   stroke-width: 1;
   transform: translateX(-25%);
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--dur-base) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .story-link:hover svg {
@@ -1939,7 +1949,7 @@ em {
 
 .motion-enabled .project-track {
   translate: 60px 0;
-  transition: translate 0.6s var(--ease);
+  transition: translate var(--dur-hover) var(--ease);
   will-change: transform, translate;
 }
 
@@ -1963,7 +1973,7 @@ em {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .project-card--low,
@@ -1981,7 +1991,7 @@ em {
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 @media (hover: hover) and (min-width: 981px) {
@@ -2040,7 +2050,7 @@ em {
 .legacy-closer > img,
 .legacy-closer > picture > img {
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .legacy-closer:hover > img,
@@ -2084,7 +2094,7 @@ em {
 @media (prefers-reduced-motion: no-preference) {
   .motion-enabled .legacy-copy > p {
     opacity: 0;
-    transition: opacity 0.6s ease-out 0.3s;
+    transition: opacity var(--dur-hover) ease-out 0.3s;
     will-change: opacity;
   }
 
@@ -2222,7 +2232,7 @@ em {
 
 .media-gate .media-frame.is-media-settled > img,
 .media-gate .media-frame.is-media-settled > picture > img {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 @keyframes media-sweep {
@@ -3473,10 +3483,10 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .motion-enabled [data-motion-up],
 .motion-enabled [data-motion-media] {
   opacity: 0;
-  transition-duration: 0.6s;
+  transition-duration: var(--dur-hover);
   transition-delay: var(--motion-delay, 0s);
   transition-property: opacity, transform;
-  transition-timing-function: cubic-bezier(0, 0, 0.26, 1);
+  transition-timing-function: var(--ease);
   will-change: opacity, transform;
 }
 
@@ -3502,8 +3512,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   opacity: 0;
   transform: translate3d(-60px, 0, 0);
   transition:
-    opacity 0.6s cubic-bezier(0, 0, 0.26, 1) var(--motion-delay, 0s),
-    transform 0.6s cubic-bezier(0, 0, 0.26, 1) var(--motion-delay, 0s);
+    opacity var(--dur-hover) var(--ease) var(--motion-delay, 0s),
+    transform var(--dur-hover) var(--ease) var(--motion-delay, 0s);
   will-change: opacity, transform;
 }
 
@@ -3523,7 +3533,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   :root [data-motion-hero-wrapper-zoom] {
     transform: translate(-50%, -50%) scale(1.2);
-    transition: transform 2.5s cubic-bezier(0, 0, 0.26, 1);
+    transition: transform 2.5s var(--ease);
     will-change: transform;
   }
 
@@ -3971,7 +3981,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   font-weight: 700;
   line-height: 1.4;
   text-transform: uppercase;
-  transition: color 0.3s ease-out, text-decoration-color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out, text-decoration-color var(--dur-base) ease-out;
 }
 
 .detail-index-hero .project-filter:hover,
@@ -3991,7 +4001,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) {
@@ -4028,7 +4038,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     transform: scaleX(0);
     transform-origin: right center;
     background: currentColor;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+    transition: transform var(--dur-base) var(--ease-underline);
   }
 
   .detail-index-hero .rail-chip > span:first-child::after {
@@ -4129,7 +4139,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 /* Kiosk cover image: the light-box text leans right, shift the 3:4 crop frame to the right to keep the full text. */
@@ -4828,7 +4838,7 @@ body.is-masonry-browse .masonry-grid {
   pointer-events: none;
   /* The black layer shows only when media is ready, with the same 0.6s timing as the blur dissolving (image-wait spec S3). */
   transition: opacity var(--media-hover-duration) var(--media-hover-easing),
-    background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    background-color var(--dur-hover) var(--ease-card);
 }
 
 /* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
@@ -5207,7 +5217,7 @@ body.is-masonry-browse .site-footer {
   display: block;
   box-sizing: border-box;
   opacity: 0;
-  transition: opacity 600ms ease-out;
+  transition: opacity var(--dur-hover) ease-out;
 }
 
 .masonry-grid__cta-surface {
@@ -5705,7 +5715,7 @@ body.is-masonry-browse .site-footer {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-50%);
-  transition: opacity 150ms ease-out, visibility 150ms;
+  transition: opacity var(--dur-fast) ease-out, visibility var(--dur-fast);
 }
 
 .video-player__volume:is(:hover, :has(:focus-visible)) .video-player__volume-pop {
@@ -5838,7 +5848,7 @@ body.is-masonry-browse .site-footer {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--dur-fast) ease-out;
 }
 
 .detail-view__expand {
@@ -6016,7 +6026,7 @@ body.is-masonry-browse .site-footer {
   width: 12px;
   opacity: 0;
   touch-action: none;
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--dur-fast) ease-out;
 }
 
 .detail-view__description-bar::before,
@@ -6084,7 +6094,7 @@ body.is-masonry-browse .site-footer {
   stroke-linecap: square;
   stroke-linejoin: miter;
   stroke-width: 1.5;
-  transition: transform 250ms ease-out;
+  transition: transform var(--dur-quick) ease-out;
 }
 
 .detail-view__cta:is(:hover, :focus-visible) svg {
@@ -6164,7 +6174,7 @@ body.is-masonry-browse .site-footer {
   overflow: hidden;
   color: var(--white);
   text-decoration: none;
-  transition: background-color 250ms ease-out, border-color 250ms ease-out;
+  transition: background-color var(--dur-quick) ease-out, border-color var(--dur-quick) ease-out;
 }
 
 /* A button not yet enabled waits for its background image with the shared light sweep of content images (style.css), under the overlay and label. */
@@ -6188,7 +6198,7 @@ body.is-masonry-browse .site-footer {
 }
 
 .media-gate .detail-view__suggestion-link.is-media-settled > img {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6219,7 +6229,7 @@ body.is-masonry-browse .site-footer {
   inset: 0;
   background: rgb(0 0 0 / 0.5);
   opacity: 1;
-  transition: opacity 250ms ease-out;
+  transition: opacity var(--dur-quick) ease-out;
   content: "";
 }
 
@@ -6233,7 +6243,7 @@ body.is-masonry-browse .site-footer {
 }
 
 .media-gate .detail-view__suggestion-link.is-media-settled:not([aria-pressed="true"])::after {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 .detail-view__suggestion-link[aria-pressed="true"] img {
@@ -6248,7 +6258,7 @@ body.is-masonry-browse .site-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 250ms ease-out, var(--media-hover-transform);
+  transition: opacity var(--dur-quick) ease-out, var(--media-hover-transform);
 }
 
 .detail-view__suggestion-link [data-masonry-suggestion-image-layer="next"] {
@@ -6320,11 +6330,11 @@ body.is-masonry-browse .site-footer {
 }
 
 .detail-dialog[data-viewer-state="opening"]::backdrop {
-  animation: detail-viewer-backdrop-in 300ms cubic-bezier(0.55, 0, 0, 1) both;
+  animation: detail-viewer-backdrop-in var(--dur-base) var(--ease-viewer) both;
 }
 
 .detail-dialog[data-viewer-state="closing"]::backdrop {
-  animation: detail-viewer-backdrop-out 250ms cubic-bezier(0.55, 0, 0, 1) both;
+  animation: detail-viewer-backdrop-out var(--dur-quick) var(--ease-viewer) both;
 }
 
 @keyframes detail-viewer-backdrop-in {
@@ -6382,7 +6392,7 @@ body.is-masonry-browse .site-footer {
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--dur-fast) ease-out;
 }
 
 .detail-dialog__close,
@@ -6444,7 +6454,7 @@ body.is-masonry-browse .site-footer {
   width: max-content;
   max-width: calc(round(down, 100% - 2 * (2rem + 36px) + 8px, 68px) - 8px);
   translate: -50% 0;
-  transition: opacity 0.3s ease, translate 0.3s ease;
+  transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
 }
 
 .detail-dialog__thumbs button:focus-visible {
@@ -6560,7 +6570,7 @@ body.is-masonry-browse .site-footer {
 @media (prefers-reduced-motion: no-preference) {
   /* After the first placement, address bar resizing slides smoothly instead of jumping. */
   .detail-cta[data-masonry-grid-cta][data-masonry-cta-settled] .detail-cta__copy {
-    transition: margin-bottom 0.4s ease-out;
+    transition: margin-bottom var(--dur-card) ease-out;
   }
 }
 
@@ -7233,7 +7243,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   font-weight: 600;
   letter-spacing: 0;
   opacity: 0.3;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 .blk-article-head--list .blk-news-filter__chip:hover,
@@ -7258,7 +7268,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
   pointer-events: none;
 }
 
@@ -7553,7 +7563,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   height: 2.5rem;
   background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 40'%3E%3Cpath d='M0 20h142M122 1l20 19-20 19' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
-  transition: translate 0.4s var(--ease);
+  transition: translate var(--dur-card) var(--ease);
 }
 
 .blk-cta__link:hover .blk-cta__arrow {
@@ -7740,7 +7750,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   inset: 0;
   height: 100%;
   aspect-ratio: auto;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .blk-news-list .blk-news-card:hover img,
@@ -7766,7 +7776,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-news-list .blk-news-card__text {
   padding-bottom: 4px;
   background: linear-gradient(currentColor, currentColor) right bottom / 0 3px no-repeat;
-  transition: background-size 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: background-size var(--dur-base) var(--ease-underline);
 }
 
 .blk-news-list .blk-news-card:hover .blk-news-card__text,
@@ -7895,7 +7905,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .home-news__item:hover .home-news__media img,
@@ -7933,13 +7943,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   line-height: 1.4;
   text-transform: uppercase;
   opacity: 0;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 .home-news__item:hover .home-news__more,
 .home-news__item:focus-visible .home-news__more {
   opacity: 1;
-  transition-duration: 0.6s;
+  transition-duration: var(--dur-hover);
 }
 
 @media (max-width: 960px) {

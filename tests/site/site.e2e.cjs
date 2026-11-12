@@ -419,7 +419,7 @@ function assertPersistentNavigationContracts() {
       /box-sizing:\s*content-box/.test(storyArrowCss) &&
       /vertical-align:\s*middle/.test(storyArrowCss) &&
       /transform:\s*translateX\(-25%\)/.test(storyArrowCss) &&
-      /transition:\s*0\.3s cubic-bezier\(0\.4, 0, 0\.2, 1\)/.test(storyArrowCss) &&
+      /transition:\s*var\(--dur-base\) cubic-bezier\(0\.4, 0, 0\.2, 1\)/.test(storyArrowCss) &&
       /transform:\s*translateX\(0\)/.test(storyArrowHoverCss),
     "Story arrow must preserve Espacio's SVG geometry, baseline, and hover transition contract",
   );
@@ -612,7 +612,7 @@ function assertPersistentNavigationContracts() {
     "Header nav typography, selected underline, or hamburger geometry drifted",
   );
   assert(
-    /\.menu-group::after\s*\{[\s\S]*?height:\s*100%;[\s\S]*?transform:\s*scaleY\(0\);[\s\S]*?transform-origin:\s*top;[\s\S]*?transition:\s*transform 0\.3s linear;/.test(
+    /\.menu-group::after\s*\{[\s\S]*?height:\s*100%;[\s\S]*?transform:\s*scaleY\(0\);[\s\S]*?transform-origin:\s*top;[\s\S]*?transition:\s*transform var\(--dur-base\) linear;/.test(
       styleSource,
     ) &&
       /\.menu-open \.menu-group::after\s*\{[\s\S]*?transform:\s*scaleY\(1\);/.test(
@@ -717,7 +717,7 @@ function assertPersistentNavigationContracts() {
       /\.menu-language\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?overflow:\s*hidden;/.test(styleSource) &&
       /\.menu-close__icon\s*\{[\s\S]*?position:\s*relative;[\s\S]*?display:\s*block;[\s\S]*?width:\s*25px;[\s\S]*?height:\s*25px;[\s\S]*?overflow:\s*visible;[\s\S]*?transition:\s*none;/.test(styleSource) &&
       /\.menu-close__icon svg\s*\{[\s\S]*?stroke:\s*#2f2f2f;[\s\S]*?stroke-width:\s*3;/.test(styleSource) &&
-      /\.menu-close__icon svg line\s*\{[\s\S]*?transform-origin:\s*center;[\s\S]*?transition:\s*transform 0\.3s ease-out;/.test(styleSource) &&
+      /\.menu-close__icon svg line\s*\{[\s\S]*?transform-origin:\s*center;[\s\S]*?transition:\s*transform var\(--dur-base\) ease-out;/.test(styleSource) &&
       /\.menu-close:hover \.menu-close__icon svg line\s*\{[\s\S]*?transform:\s*rotate\(90deg\);/.test(styleSource) &&
       !/\.menu-close:hover \.menu-close__icon\s*\{/.test(styleSource) &&
       /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-brand\s*\{(?=[^}]*transform:\s*translateY\(-140px\);)(?=[^}]*opacity:\s*0;)[^}]*\}/.test(styleSource) &&
