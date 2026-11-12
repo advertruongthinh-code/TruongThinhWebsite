@@ -44,6 +44,7 @@ Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static
 Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa `svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`, `a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba. Markup này nằm một bản trong `src/site/partials/` (`head.html` favicon và font preload, `boot.html` script khởi động, `styles.html` stylesheet, `route-veil.html`, `header.html`, `floating-cta.html`, `menu.html`, `footer.html`, `scripts.html` script cuối trang). 6 trang nguồn chỉ giữ mốc `<!-- shell:<tên> -->`; `renderShell` (`scripts/site/shell.mjs`, gọi trong `readPageSource`) thay mốc bằng partial lúc build và điền tham số của trang từ bảng `SHELL_PAGES`: nhãn navbar, chữ `sr-only` của logo, chữ và nhãn nút Zalo nổi, route hai link đổi ngôn ngữ, script thêm (Advertising thêm masonry, lazysizes sau SplitText). Title, description, script hero, thẻ `<body>` và `<style>` riêng vẫn ở trang. Thứ tự script giữ nguyên vì script khởi động theo dõi lỗi tải `motion.js`.
 Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback (R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
 nội dung. Header, floating CTA và menu tồn tại qua route mềm (R6).
+Toàn site, media (`img`, `picture`, `video`, `canvas`, `svg`) không bôi đen khi kéo, nhấp đúp, Ctrl+A hay giữ lâu, không kéo ra ảnh ma, không mở menu ảnh trên phone: một khối `:where(...)` specificity 0 cạnh `::selection` trong `style.css`; chữ quanh media vẫn chọn được.
 
 ```gherkin
 Given trang 1440px đã cuộn, header và floating CTA đang hiện
@@ -261,7 +262,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
+| R1 | `pnpm qa:static` (gồm khối media không bôi đen), `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
 | R2 | `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_GEOMETRY_ONLY` |
 | R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`, `TT_E2E_MENU_RESIZE_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
