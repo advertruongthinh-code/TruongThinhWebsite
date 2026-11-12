@@ -24,6 +24,9 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
 - Khung lớn (hero, ảnh lớn detail) hiện xong rồi mới tải bản gốc khi trang ngừng
   cuộn; giải mã xong thì đổi thẳng, không vệt lần nữa
   ([R10](../../../docs/specs/progressive-loading.md#r10-lên-bản-gốc-sau-khi-hiện)).
+- Ảnh dưới chữ trắng (hero, portal, CTA, closer) chờ cùng `.is-media-settled`: chưa có thì
+  ảnh `opacity: 0` và lớp tối ẩn, chữ trắng vẫn hiện; ảnh lỗi giữ lớp tối ẩn. Không script nào
+  khác tự chờ ảnh lần hai.
 - Nút suggestion đang bật nền trắng, không có vệt; nhãn luôn nằm trên vệt.
 - Reduced motion: không lướt; cả lớp sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
 - Không JavaScript: không có class `media-gate` trên root, ảnh hiện như thường.

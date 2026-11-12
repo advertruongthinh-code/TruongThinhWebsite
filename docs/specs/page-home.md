@@ -203,8 +203,8 @@ Then track có is-running, mỗi nhóm 12 logo, khe giữa hai nhóm lệch tố
 ### R10. Ảnh dưới chữ trắng
 
 Hero, portal, closer đặt chữ trắng trên ảnh. Ảnh chưa giải mã xong: khung nền `media-loading-surface`,
-chữ trắng vẫn hiện, ảnh opacity 0, shade ẩn; giải mã xong, runtime thêm `is-overlay-media-ready`, ảnh
-và shade hiện. Ảnh hero có `<picture>` mang `is-media-settled` (script head) thì hiện luôn, không chờ runtime;
+chữ trắng vẫn hiện, ảnh opacity 0, shade ẩn; tải và giải mã xong, script head thêm `is-media-settled` lên khung
+([tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)), ảnh và shade hiện, không chờ `motion.js`. Ảnh lỗi: shade vẫn ẩn;
 `motion-fallback` bỏ cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong (trừ
 marquee, [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
@@ -213,7 +213,7 @@ Given ảnh portal đầu của #dich-vu bị trễ
 When portal vào viewport
 Then nền portal là #2b2c2b, chữ trắng hiện, ảnh opacity 0, shade ẩn
 When ảnh tải xong
-Then ảnh có is-overlay-media-ready, ảnh và shade hiện
+Then khung portal có is-media-settled, ảnh và shade hiện
 ```
 
 ### R11. Đổi ngôn ngữ chạy lại trang
@@ -248,7 +248,7 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | DOM hook | `.hero[data-hero-intro]`, `.hero-slide[data-slide]`, `img[data-src]`, `.hero-word`, `.hero-shade`, `[data-motion-toggle]`, `[data-scroll-cue]`, `[data-scroll-cue-label]` | Hero, nút dừng, scroll cue (R3, R4); `motion.js` đọc |
 | DOM hook | `.service-portal`, `.portal-line`, `.portal-title__quiet`, `.portal-title__strong`, `.portal-title-mask`, `.portal-subtitle`, `.media-hover-zoom-trigger`, `.media-hover-zoom` | Portal và hover chung (R5, R6) |
 | DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.project-track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
-| Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
+| Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
 | Data | `src/site/content/client-logos.json`, `content/project-reel.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); build và test đọc |
 | Hàm | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7) trong `motion.js` | Nội bộ, không export |
 
