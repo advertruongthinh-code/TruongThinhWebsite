@@ -550,12 +550,8 @@
             completedTextGroups.delete(group);
             lineTweens.get(group)?.delay(delay).play(0);
           } else {
-            gsap.to(group.querySelectorAll(".motion-word"), {
-              opacity: 1,
-              duration: 1,
+            window.TruongThinhMotion.revealWords(group.querySelectorAll(".motion-word"), {
               delay,
-              ease: "expo.out",
-              stagger: 0.2,
               onComplete: () => completedTextGroups.add(group),
             });
           }
@@ -629,12 +625,8 @@
               if (startHeroText && heroWordGroup) advertisingHeroTextStarted = true;
               if (startHeroText && heroWordGroup) {
                 const titleDelay = heroProfile === "words-06" ? 0.6 : 0.9;
-                afterIntroStart(() => gsap.to(heroWordGroup.querySelectorAll(".motion-word"), {
-                  opacity: 1,
-                  duration: 1,
+                afterIntroStart(() => window.TruongThinhMotion.revealWords(heroWordGroup.querySelectorAll(".motion-word"), {
                   delay: getRemainingDelay(titleDelay),
-                  ease: "expo.out",
-                  stagger: 0.2,
                   onComplete: () => completedTextGroups.add(heroWordGroup),
                 }));
               }
