@@ -37,6 +37,7 @@ import { planAroundPinned } from "./detour-path.mjs";
 import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
+import { DUR, EASE } from "./motion-tokens.mjs";
 import {
   breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
 } from "./mount-budget.mjs";
@@ -91,7 +92,7 @@ const SKELETON_CONTEXT_BUDGET = 12;
 const SKELETON_SHARED_BUDGET = 24;
 // Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; card and primary shorten the duration to 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
-const CARD_REVEAL_MS = 600;
+const CARD_REVEAL_MS = DUR.hover;
 // Blur on the loading card image itself (progressive-loading R9); a filter does not re-read the backdrop every frame like backdrop-filter.
 const CARD_LOADING_BLUR = "blur(24px)";
 // Blur samples transparent pixels outside the image edge, so the fading edge exposes the dominant background color as a dark border (owner 2026-11-09).
@@ -1832,7 +1833,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // For long rows cap the total stagger delay at 0.6s so the last chip does not appear late.
       if (animate && wasHidden && !group.hidden) {
         const chips = [...group.querySelectorAll(".rail-chip")];
-        enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
+        enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: EASE.expoOut, delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
       // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
@@ -2178,7 +2179,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (Math.abs(sx - 1) <= 0.01 && Math.abs(sy - 1) <= 0.01) return;
     for (const child of node.children) {
       const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
-      child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: 400, easing: "ease" });
+      child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: DUR.card, easing: "ease" });
     }
   };
   // Position is precomputed; Masonry only needs to run the motion. Instant layout skips it so it does not re-measure every card
@@ -2445,7 +2446,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
         || document.hidden || skeletonMotionPreference.matches) return;
-      canvas.style.transition = "opacity 300ms ease-out";
+      canvas.style.transition = `opacity ${DUR.base}ms ease-out`;
       requestAnimationFrame(() => {
         if (canvas.isConnected && skeletonFlowByFrame.get(frame) === renderer
           && !document.hidden && !skeletonMotionPreference.matches) canvas.style.opacity = "1";
@@ -2706,7 +2707,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Crossfade step of the approved reveal: the old layer fades from its current opacity, the new layer from 0.
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;
-    const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
+    const timing = { delay: 300 * scale, duration: 600 * scale, easing: EASE.card, fill: "both" };
     // Read all opacities before the first write, so the whole crossfade costs only one style recalc.
     const opacities = from.map((node) => getComputedStyle(node).opacity);
     return [
@@ -2839,7 +2840,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         delete node.dataset.masonryMediaLoading;
         entry.animations = layers.map((media, index) => media.animate(
           [{ filter: CARD_LOADING_BLUR, opacity: from[index], scale: media.style.scale || "1" }, { filter: "none", opacity: 1, scale: "1" }],
-          { duration: CARD_REVEAL_MS, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" }));
+          { duration: CARD_REVEAL_MS, easing: EASE.card, fill: "forwards" }));
       } else {
         layers.forEach((media) => {
           media.style.setProperty("transition", "none", "important");
@@ -2899,7 +2900,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       [dx, dy] = [from.x - to.x, from.y - to.y];
     }
     node.animate([{ translate: `${dx}px ${dy}px`, scale, transformOrigin: "0 0" }, ...(corner ? [corner] : []),
-      { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }], { duration: 400, easing: "ease" });
+      { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }], { duration: DUR.card, easing: "ease" });
   };
   const cancelCtaSlides = (nodes) => [...nodes].forEach((node) => node.getAnimations().forEach((animation) => {
     if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
@@ -3212,9 +3213,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
       if (shouldAnimate && !reduced) {
-        motionUntil = performance.now() + 400;
+        motionUntil = performance.now() + DUR.card;
         if (gridHost.motionTimer) clearTimeout(gridHost.motionTimer);
-        gridHost.motionTimer = setTimeout(settleMotion, 400);
+        gridHost.motionTimer = setTimeout(settleMotion, DUR.card);
       }
       // New cards need LazySizes to examine them; already-mounted cards are handled by the IntersectionObserver.
       if (created.size || geometryChanged || shouldAnimate) window.lazySizes?.loader?.checkElems?.();
@@ -3656,14 +3657,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
           { translate: `${from.x - to.x}px ${from.y - to.y}px` },
           { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset },
           { translate: "0px 0px" },
-        ], { id: "related-detour", duration: 400, easing: "ease" });
+        ], { id: "related-detour", duration: DUR.card, easing: "ease" });
       }
       relatedHost.motionTimer = setTimeout(() => {
         relatedHost.motionTimer = 0;
         cancelRelatedDetours();
         relatedHost.cancelTransitions();
         renderRelatedWindow();
-      }, 400);
+      }, DUR.card);
     });
   };
   const relatedTypographyKey = () => [document.documentElement, photoInfo, photoDescription]
@@ -4608,7 +4609,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent("site:layout"));
           if (generation === detailRenderGeneration && photoView) photoView.dataset.masonryDetailReady = "true";
-        }, 400);
+        }, DUR.card);
         // The batch CTA at the end of related builds in its own task: sharing the related mount task it is 111ms on the A04s (CTA R9, gate 50ms).
         // The "cta" phase holds an interleaved resize frame so the batch is not built in the same frame as Masonry and LazySizes.
         directEntryPhase = "cta";

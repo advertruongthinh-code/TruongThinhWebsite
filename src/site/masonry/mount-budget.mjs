@@ -1,8 +1,9 @@
 // Card mount budget while scrolling, and ghost (temporary) cards holding the place of cards not yet mounted (advertising-masonry R7).
 import { mountQuota } from "./layout.mjs";
+import { DUR, EASE } from "./motion-tokens.mjs";
 
-export const GHOST_FADE_MS = 450;
-export const GHOST_FADE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
+export const GHOST_FADE_MS = DUR.fade;
+export const GHOST_FADE_EASING = EASE.expoOut;
 const BREATHE_MS = 2000;
 // Swiping a viewport every 100ms only holds places and does not mount real cards.
 const FAST_VIEWPORTS_PER_S = 10;

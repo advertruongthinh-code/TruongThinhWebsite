@@ -126,6 +126,8 @@ Then ảnh về Fit, − disabled
 
 ### R6. Resize, motion đang chạy và reduced motion
 
+Animation mở `300ms`, đóng `250ms` đọc `DUR.base`, `DUR.quick` và `EASE.viewer` của `masonry/motion-tokens.mjs` (token `--dur-base`, `--dur-quick`, `--ease-viewer`).
+
 - Resize hoặc xoay máy: đang ở một nấc thì giữ nấc đó theo hình học mới; nằm
   giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại. Góc xoay ảnh
   (R11) giữ nguyên.

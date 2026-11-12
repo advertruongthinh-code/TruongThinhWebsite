@@ -146,7 +146,7 @@ dạng phủ đều đủ ba bậc, mức `16`, `57`, `100px`. Các bậc nhòe 
 chiều ngược lại, chỉ bằng `opacity`; tint và hạt nhiễu theo cùng mức, nên kính
 bắt đầu và kết thúc không nhòe, không tint. Không animate bán kính blur mỗi
 frame, theo nguyên tắc của [Motion](../../design-system/motion.md#nguyên-tắc).
-Thời gian và đường cong theo bảng
+Pha vào dùng `EASE.standard` (`--ease`) của `masonry/motion-tokens.mjs`. Thời gian và đường cong theo bảng
 [Hiện và tan trên ảnh vừa tải](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải).
 Xong thì runtime gỡ kính khỏi DOM.
 

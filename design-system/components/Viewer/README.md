@@ -8,6 +8,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 
 ## Hành vi
 
+- Mở `300ms`, đóng `250ms`, đường cong `--ease-viewer` ([token motion](../../motion.md#token-motion)).
 - Ảnh mở từ khung primary tới mức fit. Tỷ lệ zoom liên tục từ fit tới hai lần
   cover; nút và con lăn nhảy giữa ba nấc fit, cover, hai lần cover. Trên màn
   cảm ứng chụm hai ngón zoom theo tay, vặn hai ngón xoay ảnh rồi buông thì hít
@@ -26,7 +27,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.
   Nút vẫn còn cho trình đọc màn hình và hiện lại khi focus bàn phím.
 - Back (nút back Android, vuốt mép iOS, nút back trình duyệt) chỉ đóng viewer.
-- Nền mờ vào `300ms`, ra `250ms`; reduced motion bỏ transition.
+- Nền mờ vào `300ms`, ra `250ms`, cùng đường `--ease-viewer` (`cubic-bezier(0.55, 0, 0, 1)`); reduced motion bỏ transition.
 
 ## Chú thích thuật ngữ
 

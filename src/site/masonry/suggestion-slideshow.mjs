@@ -1,4 +1,5 @@
 import { env } from "./host.mjs";
+import { EASE } from "./motion-tokens.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
 const decks = new Map();
 
@@ -19,7 +20,7 @@ const covered = () => document.querySelector("dialog[open]") !== null;
 // itself so the loop still repeats.
 // Horizontal push of the suggestion button (design-system/motion.md): new media enters from the direction side, old media recedes 35% and fades 0.4.
 // The card and primary media strips reuse the PUSH_TIMING timing, with no recede and no fade (media-card R3, owner 2026-10-19).
-export const PUSH_TIMING = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
+export const PUSH_TIMING = { duration: 900, easing: EASE.push, fill: "forwards" };
 function pushSlide(incoming, outgoing, direction = 1) {
   return {
     animation: incoming.animate([{ transform: `translateX(${100 * direction}%)` }, { transform: "translateX(0)" }], PUSH_TIMING),
