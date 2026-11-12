@@ -1591,10 +1591,11 @@ body.is-masonry-browse .masonry-grid {
   height: 100%;
 }
 
-/* Media being loaded carries the masonry's last skeleton frame (docs/specs/loading-glass-and-page-entry.md R1). */
+/* PC media being loaded waits under a Flow frame (docs/specs/loading-glass-and-page-entry.md R1); taps go through to the card and its buttons. */
 .card-media > .masonry-grid__cta-frame {
   z-index: 1;
   inset: 0;
+  pointer-events: none;
   --masonry-cta-frame-opacity: 1;
 }
 
@@ -1732,17 +1733,8 @@ body.is-masonry-browse .masonry-grid {
   opacity: 1;
 }
 
-/* A card waiting for its image breathes using the Light sweep's own media-breathe keyframe (style.css); the runtime sets
-   data-masonry-media-loading while the image is blurred and removes it when the blur dissolves (image-wait spec S2). Only a blurred layer breathes: layers created on
-   demand (strip neighbors) while the card is still waiting have no blur so they do not breathe. */
-[data-masonry-media-loading] .masonry-card__foreground[style*="blur("] {
-  animation: media-breathe 2s ease-in-out infinite;
-  /* Phase shared with the placeholder card (runtime writes --breathe-phase), so switching from placeholder to blurred card does not jump in brightness. */
-  animation-delay: var(--breathe-phase, 0s);
-}
-
-/* A placeholder card holds the place of a card not built in time during a fast swipe (advertising-masonry R7): the cover image's dominant color, breathing like a card
-   waiting for its image. The layer sits at the start of the grid, under every card, and takes no taps. */
+/* A placeholder card holds the place of a card not built in time during a fast swipe (advertising-masonry R7): the cover image's dominant color, breathing
+   (PC; the phone uses the color layer). The layer sits at the start of the grid, under every card, and takes no taps. */
 .masonry-ghost-layer {
   position: absolute;
   inset: 0;
@@ -2003,11 +1995,6 @@ body.is-masonry-browse .site-footer {
   opacity: var(--masonry-cta-frame-opacity);
 }
 
-/* The batch frame enters under the Kính from the runtime, so it takes the final opacity at once (skeleton R4). */
-.masonry-grid__cta-frame[data-masonry-cta-frame] {
-  transition: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .masonry-grid__cta-frame {
     opacity: var(--masonry-cta-frame-opacity);
@@ -2088,14 +2075,8 @@ body.is-masonry-browse .site-footer {
   display: none;
 }
 
-[data-detail-glass="true"] .detail-view__hero-frame > .glass-surface,
-.detail-view__hero-frame > .glass-surface[data-glass-reveal] {
+[data-detail-glass="true"] .detail-view__hero-frame > .glass-surface {
   display: block;
-}
-
-/* The Kính reveal covers the photo and skeleton but sits under the image action. */
-.detail-view__hero-frame > .glass-surface[data-glass-reveal] > i {
-  z-index: 2;
 }
 
 /* Centred by layout (inset 0 + auto margin), not translate(-50%, -50%): a fractional translate snaps the media edge
@@ -2119,6 +2100,11 @@ body.is-masonry-browse .site-footer {
   z-index: 2;
   inset: 0;
   --masonry-cta-frame-opacity: 1;
+}
+
+/* The primary's shared Flow canvas draws over the skeleton and the photo it reveals (advertising-skeleton R5). */
+.detail-view__hero-frame > .masonry-grid__cta-shared-flow {
+  z-index: 2;
 }
 
 .detail-view__hero-frame[data-detail-loading] > :is([data-detail-image], [data-detail-background]) {

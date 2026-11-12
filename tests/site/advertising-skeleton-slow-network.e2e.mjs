@@ -1,5 +1,6 @@
-// Card waiting for its image on a slow network (progressive-loading R9): on PC the image blurs itself in place of the Flow skeleton; on the phone a flat layer
-// cycles through the image's 4 dominant colors and the image fades in once loaded. Card images are held 8s like Slow 3G.
+// Card waiting for its image on a slow network (progressive-loading R9): on PC the image stays hidden under a Flow frame in its 4 colors, drawn on the grid's
+// shared canvas, and shows through Glass once loaded; on the phone a flat layer cycles through the image's 4 dominant colors and the image fades in once loaded.
+// Card images are held 8s like Slow 3G.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-skeleton-slow-network.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -19,7 +20,7 @@ const open = async (device) => {
   });
   return { context, page, slow };
 };
-// Card in the viewport: an image not yet loaded without blur or without a dominant color is an empty cell; the card has no skeleton frame or Flow canvas.
+// Card in the viewport: an image not yet loaded without a Flow frame (PC), the color layer (phone) or a dominant color is an empty cell.
 const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") => page.evaluate((selector) =>
   [...document.querySelectorAll(selector)].filter((card) => {
     const { top, bottom } = card.getBoundingClientRect();
@@ -29,11 +30,11 @@ const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") 
     return {
       id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
-      blur: Boolean(image?.style.filter.startsWith("blur(")),
-      // A blurred card waiting for its image breathes: the runtime sets data-masonry-media-loading on the card (waiting-for-image spec S2).
+      blur: Boolean(image?.style.filter),
+      // The runtime marks a card waiting under Flow (just-viewed label, detail.css); it is cleared when the reveal starts.
       marked: card.hasAttribute("data-masonry-media-loading"),
-      // The blur clears (WAAPI animate) with inline blur still present but breathing stopped.
-      revealing: Boolean(image?.getAnimations().some((animation) => animation.animationName === undefined)),
+      flow: card.querySelector("[data-masonry-loading-skeleton]")?.dataset.masonryFlowState ?? null,
+      revealing: Boolean(image?.getAnimations().length),
       color: Boolean(card.querySelector(".card-media")?.style.backgroundColor),
       // Phone: the card waits on the color layer (progressive-loading R9); the image stays hidden, unfiltered, until it is decoded.
       wait: card.dataset.mediaWait === "colors",
@@ -47,17 +48,23 @@ const ghostsInView = (page) => page.evaluate(() => [...document.querySelectorAll
   const { top, bottom } = ghost.getBoundingClientRect();
   return bottom > 0 && top < innerHeight;
 }).length);
+// PC: every card still waiting carries a Flow frame over its hidden image, never blur; the frame sits on the dominant color (owner 2026-10-31).
 const assertNoBlank = (label, states) => {
   assert.ok(states.length, `${label}: cards in view`);
-  assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
-  assert.deepEqual(states.filter(({ blur, marked, revealing }) => blur !== marked && !revealing), [],
-    `${label}: every blurred card is marked to breathe, and only those (a card revealing has stopped breathing)`);
-  // An image that has received no bytes has nothing for the blur to draw: the frame is filled with the image's dominant color (owner 2026-10-31).
+  assert.deepEqual(states.filter(({ loaded, skeleton, revealing }) => !loaded && !skeleton && !revealing), [], `${label}: loading cards without a Flow frame`);
+  assert.deepEqual(states.filter(({ blur }) => blur), [], `${label}: cards still blur their image`);
+  assert.deepEqual(states.filter(({ skeleton, marked, revealing }) => skeleton && !revealing && !marked), [], `${label}: waiting cards are marked`);
   assert.deepEqual(states.filter(({ loaded, color }) => !loaded && !color), [], `${label}: loading cards without dominant color`);
-  // Backdrop-filter Kính on cards drops FPS when dragging the scrollbar (owner 2026-10-31).
-  assert.deepEqual(states.filter(({ glass }) => glass), [], `${label}: cards still carry Kính`);
-  assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
+  // Kính shows only while a card reveals, never on a waiting card.
+  assert.deepEqual(states.filter(({ glass, revealing }) => glass && !revealing), [], `${label}: a waiting card carries Kính`);
 };
+// One shared Flow canvas for all waiting cards of the main grid, the last child of the grid (advertising-skeleton R5).
+const gridCanvases = (page) => page.evaluate(() => {
+  const grid = document.querySelector("[data-project-grid]");
+  return { count: grid.querySelectorAll(":scope > canvas.masonry-grid__cta-shared-flow").length,
+    last: grid.lastElementChild?.matches("canvas.masonry-grid__cta-shared-flow") ?? false,
+    cardCanvases: grid.querySelectorAll("[data-masonry-card] canvas[data-masonry-flow-backend='webgl']").length };
+});
 
 // Phone: every card still waiting has the color layer and a hidden image, never blur, breathing, Kính or Flow.
 const assertPhoneWait = (label, states) => {
@@ -191,19 +198,30 @@ try {
     await context.close();
   }
 
-  // On page load: the first card image is blurred from the first frame, does not animate in, and its node is not replaced.
+  // On page load: the first cards wait under a running Flow frame on the grid's one shared canvas, the image stays hidden and does not animate before it loads,
+  // and its node is not replaced.
   for (const [label, device] of [["desktop", { viewport: { width: 1440, height: 900 } }]]) {
     const { context, page } = await open(device);
     await page.addInitScript(() => {
       const ids = new WeakMap();
       let next = 0;
-      window.__blurTrace = [];
+      window.__waitTrace = [];
+      // Whether the grid's shared canvas (WebGL context, compiled shader) already existed when the first card frame arrived:
+      // creating it then dropped frames on the owner's PC (2026-11-12).
+      new MutationObserver((records, observer) => {
+        const frame = records.flatMap(({ addedNodes }) => [...addedNodes])
+          .find((node) => node.matches?.("[data-masonry-loading-skeleton]") && node.closest("[data-project-grid]"));
+        if (!frame) return;
+        window.__canvasBeforeFirstFrame = Boolean(frame.closest("[data-project-grid]").querySelector(":scope > canvas.masonry-grid__cta-shared-flow"));
+        observer.disconnect();
+      }).observe(document, { childList: true, subtree: true });
       const tick = () => {
-        for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img[style*='blur(']")) {
+        for (const frame of document.querySelectorAll("[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]")) {
+          const image = frame.closest("[data-masonry-card]").querySelector("img");
+          if (!image || image.complete) continue;
           if (!ids.has(image)) ids.set(image, ++next);
-          window.__blurTrace.push([image.closest("[data-masonry-card]").dataset.masonryCard, ids.get(image),
-            // Breathing (CSS animation media-breathe) is not an animate-in; count only other (WAAPI) animations.
-            image.getAnimations().filter((animation) => animation.animationName !== "media-breathe").length]);
+          window.__waitTrace.push([image.closest("[data-masonry-card]").dataset.masonryCard, ids.get(image), image.getAnimations().length,
+            getComputedStyle(image).opacity, image.style.filter]);
         }
         if (performance.now() < 3000) requestAnimationFrame(tick);
       };
@@ -212,20 +230,85 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 3000);
     const cards = new Map();
-    for (const [card, image, animations] of await page.evaluate(() => window.__blurTrace)) {
+    for (const [card, image, animations, opacity, filter] of await page.evaluate(() => window.__waitTrace)) {
       if (!cards.has(card)) cards.set(card, []);
-      cards.get(card).push({ image, animations });
+      cards.get(card).push({ image, animations, opacity, filter });
     }
-    assert.ok(cards.size, `${label}: first cards blur while images load`);
+    assert.ok(cards.size, `${label}: first cards wait under Flow while images load`);
     for (const [card, samples] of cards) {
       assert.equal(new Set(samples.map(({ image }) => image)).size, 1, `${label}: ${card} keeps one image node`);
-      assert.ok(samples.every(({ animations }) => !animations), `${label}: ${card} blur starts at full, no fade in`);
+      assert.ok(samples.every(({ animations, opacity, filter }) => !animations && opacity === "0" && !filter), `${label}: ${card} image hidden, unfiltered, not animated while waiting`);
     }
-    assertNoBlank(`${label} load`, await cardStates(page));
+    const states = await cardStates(page);
+    assertNoBlank(`${label} load`, states);
+    assert.ok(states.some(({ flow }) => flow === "running"), `${label}: waiting cards run Flow ${JSON.stringify(states)}`);
+    assert.deepEqual(await gridCanvases(page), { count: 1, last: true, cardCanvases: 0 }, `${label}: one shared canvas in the grid, none per card`);
+    assert.equal(await page.evaluate(() => window.__canvasBeforeFirstFrame), true, `${label}: the grid's Flow canvas is created before the first card waits`);
     await context.close();
   }
 
-  // PC with cache off, dragging the scrollbar quickly up and down (owner 2026-10-27): cards flying past do not become empty cells and no Flow is built.
+  // PC load: a card frame's still image (one CPU render each) is drawn only at idle. Drawing them in the deferred CTA task doubled it
+  // (19ms vs 10ms on main) and dropped frames in the first reveal burst on the owner's PC (3b.2 run 4).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      window.__stills = { idle: 0, busy: 0 };
+      let idle = false;
+      const request = window.requestIdleCallback;
+      window.requestIdleCallback = (callback, options) => request((deadline) => {
+        idle = true;
+        try { return callback(deadline); } finally { idle = false; }
+      }, options);
+      const { append } = Element.prototype;
+      Element.prototype.append = function (...nodes) {
+        if (nodes.some((node) => node.classList?.contains("masonry-grid__cta-flow")) && this.closest(".card-media")) window.__stills[idle ? "idle" : "busy"]++;
+        return append.apply(this, nodes);
+      };
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => performance.now() > 3000);
+    const stills = await page.evaluate(() => window.__stills);
+    assert.ok(stills.idle > 0 && stills.busy === 0, `desktop load: card stills drawn only at idle ${JSON.stringify(stills)}`);
+    assert.ok((await cardStates(page)).some(({ flow }) => flow === "running"), "desktop load: waiting cards run Flow");
+    await context.close();
+  }
+
+  // PC with KHR_parallel_shader_compile (stubbed: headless SwiftShader lacks it): the grid's shared canvas never reads LINK_STATUS in the frame it linked,
+  // it polls COMPLETION_STATUS_KHR first. Reading it at once blocked the main thread 27ms in the first reveal burst on the owner's PC (3b.2 run 2).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      const proto = WebGLRenderingContext.prototype;
+      const { getExtension, getProgramParameter, linkProgram, drawArrays } = proto;
+      const COMPLETION_STATUS_KHR = 0x91b1;
+      const shared = (gl) => gl.canvas.classList?.contains("masonry-grid__cta-shared-flow");
+      const linked = new WeakMap();
+      let frame = 0;
+      const count = () => { frame++; requestAnimationFrame(count); };
+      requestAnimationFrame(count);
+      window.__link = { syncReads: 0, polls: 0, draws: 0 };
+      proto.getExtension = function (name) {
+        return name === "KHR_parallel_shader_compile" ? { COMPLETION_STATUS_KHR, MAX_SHADER_COMPILER_THREADS_KHR: 0x91b0, maxShaderCompilerThreadsKHR() {} }
+          : getExtension.call(this, name);
+      };
+      proto.linkProgram = function (program) { linked.set(program, frame); return linkProgram.call(this, program); };
+      proto.getProgramParameter = function (program, pname) {
+        if (pname === COMPLETION_STATUS_KHR) { window.__link.polls++; return frame - linked.get(program) >= 2; }
+        if (pname === this.LINK_STATUS && shared(this) && linked.get(program) === frame) window.__link.syncReads++;
+        return getProgramParameter.call(this, program, pname);
+      };
+      proto.drawArrays = function (...args) { if (shared(this)) window.__link.draws++; return drawArrays.apply(this, args); };
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => performance.now() > 3000);
+    const link = await page.evaluate(() => window.__link);
+    assert.equal(link.syncReads, 0, `desktop parallel compile: no LINK_STATUS read in the linking frame ${JSON.stringify(link)}`);
+    assert.ok(link.polls > 0 && link.draws > 1, `desktop parallel compile: polls completion, then Flow draws ${JSON.stringify(link)}`);
+    assert.ok((await cardStates(page)).some(({ flow }) => flow === "running"), "desktop parallel compile: waiting cards run Flow");
+    await context.close();
+  }
+
+  // PC with cache off, dragging the scrollbar quickly up and down (owner 2026-10-27): cards flying past do not become empty cells.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
     const cdp = await context.newCDPSession(page);
@@ -245,7 +328,7 @@ try {
     await page.mouse.up();
     await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 5000 });
     // After scrolling stops, temporary cards in the viewport are still upgraded to real cards gradually within the frame budget (loading-glass R10); a newly built card receives
-    // its blur in the next frame's IntersectionObserver.
+    // its Flow frame in the next frame's IntersectionObserver.
     await page.waitForFunction(() => ![...document.querySelectorAll(".masonry-ghost")].some((ghost) => {
       const { top, bottom } = ghost.getBoundingClientRect();
       return bottom > 0 && top < innerHeight;
@@ -255,9 +338,9 @@ try {
     await context.close();
   }
 
-  // Tall PC: more than 12 cards waiting for images are all blurred.
+  // Tall PC: every card waiting in view runs Flow (no per-layer cap; the old context budget was 12) on the grid's one canvas.
   {
-    const { context, page } = await open({ viewport: { width: 1920, height: 1400 } });
+    const { context, page } = await open({ viewport: { width: 1920, height: 3000 } });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     for (let y = 400; y <= 2400; y += 400) {
@@ -266,56 +349,105 @@ try {
     }
     await page.waitForTimeout(1500);
     const states = await cardStates(page);
-    assert.ok(states.filter(({ blur }) => blur).length > 12, `desktop tall: more than 12 cards blur ${states.length}`);
+    const running = states.filter(({ flow }) => flow === "running").length;
+    assert.ok(running > 12 && running === states.filter(({ loaded, revealing }) => !loaded && !revealing).length,
+      `desktop tall: every waiting card runs Flow, more than 12 ${running}/${states.length}`);
     assertNoBlank("desktop tall", states);
+    assert.deepEqual(await gridCanvases(page), { count: 1, last: true, cardCanvases: 0 }, "desktop tall: one shared canvas in the grid");
     await context.close();
   }
 
-  // Reduced motion: the image is still blurred while waiting but does not breathe (waiting-for-image spec S2).
+  // Reduced motion: the card waits on the still Flow frame of its preset, not running, and nothing is blurred.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"));
-    // The global reduced-motion reset cuts animations to a single 0.01ms iteration: breathing stops at opacity 1 and does not repeat.
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]"));
     await page.waitForTimeout(500);
-    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img[style*='blur(']")]
-      .map((image) => getComputedStyle(image))
-      .filter(({ opacity, animationIterationCount }) => opacity !== "1" || animationIterationCount === "infinite")
-      .length), 0, "reduced motion: blurred cards do not breathe");
+    const states = await cardStates(page);
+    assertNoBlank("reduced motion", states);
+    assert.deepEqual(states.filter(({ flow }) => flow === "running"), [], "reduced motion: Flow does not run");
     await context.close();
   }
 
-  // Breathing stops exactly when the blur clears: opacity goes from the breathing value to 1, with no frame jumping more than 0.1 from the previous one.
+  // Many cards finish at once (images released together): no card uses Kính; each reveals through frosted glass drawn on the shared canvas
+  // from a 20px copy of its photo (owner sample 10, 2026-11-12). Afterwards no card keeps its Flow frame or mark and no loaded image is stuck below opacity 1.
   {
-    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    const { context, page, slow } = await open({ viewport: { width: 1920, height: 3000 } });
     await page.addInitScript(() => {
-      window.__opacityTrace = new Map();
+      window.__frost = { copies: 0, uploads: 0 };
+      const copy = window.createImageBitmap;
+      window.createImageBitmap = function (source, ...rest) {
+        if (rest.at(-1)?.resizeWidth === 20) window.__frost.copies += 1;
+        return copy.call(this, source, ...rest);
+      };
+      const upload = WebGLRenderingContext.prototype.texImage2D;
+      WebGLRenderingContext.prototype.texImage2D = function (...args) {
+        if (args.at(-1) instanceof ImageBitmap) window.__frost.uploads += 1;
+        return upload.apply(this, args);
+      };
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+    for (let y = 400; y <= 1200; y += 400) {
+      await page.evaluate((value) => window.TruongThinhMotion.setLogicalScroll(value), y);
+      await page.waitForTimeout(600);
+    }
+    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']").length >= 8);
+    await page.evaluate(() => {
+      window.__glassMax = 0;
       const tick = () => {
-        for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img")) {
-          const trace = window.__opacityTrace.get(image) || [];
-          const rect = image.closest("[data-masonry-card]").getBoundingClientRect();
-          trace.push([Number(getComputedStyle(image).opacity), Boolean(image.style.filter), rect.bottom > 0 && rect.top < innerHeight]);
-          window.__opacityTrace.set(image, trace);
-        }
-        if (performance.now() < 14000) requestAnimationFrame(tick);
+        window.__glassMax = Math.max(window.__glassMax, document.querySelectorAll("[data-project-grid] [data-masonry-card] [data-glass-reveal]").length);
+        requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
-    const jumps = await page.evaluate(() => [...window.__opacityTrace.values()]
-      // Only images that were blurred then sharpened during the measurement (having both blur frames and no-blur frames).
-      .filter((trace) => trace.some(([, blurred]) => blurred) && trace.some(([, blurred], i) => !blurred && trace.slice(0, i).some(([, was]) => was)))
-      // Drop frames before the image starts to blur (opacity 0 waiting for lazyload).
-      .map((trace) => trace.slice(trace.findIndex(([, blurred]) => blurred)))
-      // When a card leaves the viewport its skeleton is dropped immediately (nobody sees the jump), so only count frame pairs where the card is still in the viewport.
-      .map((trace) => trace.slice(1).reduce((max, [opacity, , visible], i) => (visible && trace[i][2] ? Math.max(max, Math.abs(opacity - trace[i][0])) : max), 0)));
-    assert.ok(jumps.length, "opacity trace: some card went from blurred to sharp");
-    assert.ok(jumps.every((jump) => jump <= 0.1), `opacity trace: no frame jumps over 0.1 when breathing stops ${JSON.stringify(jumps)}`);
+    slow.on = false;
+    await page.waitForFunction(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((card) => {
+      const { top, bottom } = card.getBoundingClientRect();
+      return bottom > 0 && top < innerHeight;
+    }).every((card) => !card.querySelector("[data-masonry-loading-skeleton]")), null, { timeout: DELAY + 15_000 });
+    const glassMax = await page.evaluate(() => window.__glassMax);
+    assert.equal(glassMax, 0, "burst: no card Kính reveal");
+    const frost = await page.evaluate(() => window.__frost);
+    assert.ok(frost.copies > 0 && frost.uploads > 0, `burst: cards reveal through frosted glass ${JSON.stringify(frost)}`);
+    const states = await cardStates(page);
+    assert.deepEqual(states.filter(({ loaded, skeleton, marked, glass }) => loaded && (skeleton || marked || glass)), [], "burst: revealed cards drop Flow, mark and Kính");
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]
+      .filter((image) => image.naturalWidth && getComputedStyle(image).opacity !== "1").length), 0, "burst: no loaded image stuck below opacity 1");
     await context.close();
   }
 
-  // Phone: opening detail from a scrolled masonry jumps back to y=0 without scrollend; related card images blur while waiting,
+  // Soft navigation fires no pagehide and replaces the grid: each mount's shared Flow layers are disposed with it, so live WebGL contexts do not grow
+  // with every visit (review #875: 1, 3, 5, 7 before the fix).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      window.__glContexts = [];
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+        const gl = getContext.call(this, type, ...rest);
+        if (gl && /webgl/.test(type) && !window.__glContexts.includes(gl)) window.__glContexts.push(gl);
+        return gl;
+      };
+    });
+    const live = () => page.evaluate(() => window.__glContexts.filter((gl) => !gl.isContextLost()).length);
+    const settled = (path) => page.waitForFunction((value) => location.pathname === value && window.barba && !window.barba.transitions.isRunning, path);
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
+    const counts = [await live()];
+    for (let round = 0; round < 2; round += 1) {
+      await page.evaluate(() => window.barba.go("/vi/projects/"));
+      await settled("/vi/projects/");
+      await page.evaluate(() => window.barba.go("/vi/advertising-products/"));
+      await settled("/vi/advertising-products/");
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
+      counts.push(await live());
+    }
+    assert.ok(counts.every((count) => count <= 3) && counts.at(-1) <= counts[0], `soft navigation leaks WebGL contexts ${counts}`);
+    await context.close();
+  }
+
+  // Phone: opening detail from a scrolled masonry jumps back to y=0 without scrollend; related card images wait on the color layer,
   // and still clear once loaded without the viewer scrolling further.
   {
     const { context, page, slow } = await open(phone);

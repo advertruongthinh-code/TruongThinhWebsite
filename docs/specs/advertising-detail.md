@@ -88,8 +88,8 @@ And trên cảm ứng không có thanh, vuốt dọc trong mô tả cuộn chữ
 
 ### R4. Media primary và nền
 
-`renderPrimaryMedia` đổi ảnh tại chính khung primary: ảnh cũ ẩn ngay, skeleton phủ khung, giải mã xong thì ảnh hiện dưới
-Kính ba bậc rồi Kính tan trong `0.6s`; ảnh có sẵn hay chưa cùng một chuỗi ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`renderPrimaryMedia` đổi ảnh tại chính khung primary: ảnh cũ ẩn ngay, skeleton phủ khung, giải mã xong thì trên PC Flow hóa kính mờ của
+ảnh rồi tan ra ảnh trong `0.6s`, không Kính (điện thoại: lớp màu); ảnh có sẵn hay chưa cùng một chuỗi ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
 primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.
@@ -97,7 +97,7 @@ primary và related theo cover của card, không theo media đang xem: đổi m
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache
 When bấm card related B
-Then A ẩn ngay, skeleton phủ khung primary, B hiện dưới Kính rồi Kính tan trong 0.6s
+Then A ẩn ngay, skeleton phủ khung primary, Flow hóa kính mờ của B rồi tan ra B trong 0.6s
 ```
 
 ### R5. Suggestion
@@ -144,7 +144,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`, không card nào đi qua primary; cuối related là CTA cuối masonry ([CTA R9, R10](advertising-cta-center-parallax.md#r9-cta-cuối-related-ở-detail)). Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-detail` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-detail` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; kính mờ của primary làm bản ảnh 20px và chạy trên canvas Flow ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related

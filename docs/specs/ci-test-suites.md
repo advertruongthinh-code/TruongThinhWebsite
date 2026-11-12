@@ -64,11 +64,11 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại, lần dựng đầu chia task |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `adv-related` | advertising-detail, advertising-cta-center-parallax | related đi vòng primary, CTA cuối related (tách khỏi `adv-detail` 2026-11-11: gộp lại chạy gần 12 phút, chạm timeout job) |
-| `masonry-hosts` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax, advertising-detail, progressive-loading, projects | ma trận chung cho mọi nơi có masonry (Advertising, Công trình, related): vuốt nhanh, vùng giữ card, không lên 4K, Kính reveal không chồng cung, CTA chưa hiện trước khi vào view, F5 |
+| `masonry-hosts` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax, advertising-detail, progressive-loading, projects | ma trận chung cho mọi nơi có masonry (Advertising, Công trình, related): vuốt nhanh, vùng giữ card, không lên 4K, không Kính reveal chồng cung, CTA chưa hiện trước khi vào view, F5 |
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
-| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
+| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, kính mờ lộ ảnh |
 | `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo

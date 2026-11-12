@@ -22,7 +22,7 @@ updated: 2026-11-12
 
 Batch skeleton nối tiếp [masonry](advertising-masonry.md) từ đáy card thật tới footer, mặt là Flow WebGL với 12
 preset, làm nền cho CTA cuối trang. Spec sở hữu hình học batch, preset, assignment, vòng đời và WebGL context. Card
-chờ ảnh tự mờ, không dùng Flow ([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Vị trí chữ CTA ở
+PC chờ ảnh bằng khung Flow trong 4 màu của ảnh, điện thoại bằng lớp màu ([tải theo nấc R9](progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)). Vị trí chữ CTA ở
 [CTA giữa viewport](advertising-cta-center-parallax.md), kính ở [Kính](glass-surface.md).
 
 ## Hành vi
@@ -72,7 +72,7 @@ Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 
 ### R3. Assignment ngẫu nhiên và giữ màu
 
-Mọi khung Flow (batch và skeleton chờ ảnh primary) bốc assignment lúc khung vào vùng nhìn thấy lần đầu trong
+Mọi khung Flow (batch, skeleton chờ ảnh primary và card PC) bốc assignment lúc khung vào vùng nhìn thấy lần đầu trong
 một trạng thái trang: preset ngẫu nhiên trong 12, một hoán vị anchor trong 24, chiều chảy ngẫu nhiên, pha liên tục ngẫu
 nhiên trên cả vòng (không chia mức cố định) và tốc độ lệch ngẫu nhiên tối đa 10% quanh `speed` của preset. Khi bốc, tránh
 preset của khung kề đang có assignment (trên, dưới cùng cột, hoặc chồng chiều dọc ở cột bên cạnh); hết preset để tránh
@@ -87,10 +87,10 @@ When thanh địa chỉ thu, mở làm chiều cao vùng nhìn thấy đổi qua
 Then mọi khung đang thấy giữ node, assignment và không chạy lại hiệu ứng vào
 ```
 
-Flow chờ ảnh primary lấy màu từ chính ảnh đang chờ: bốn màu của preset bốc được thay bằng bốn màu
+Flow chờ ảnh của primary và card PC lấy màu từ chính ảnh đang chờ: bốn màu của preset bốc được thay bằng bốn màu
 nổi bật của ảnh đó, sắp từ sáng tới tối như preset; field, anchor, chiều chảy, pha, tốc độ vẫn bốc như trên. Lúc build,
 `build-image-variants.mjs` trích bốn màu bằng k-means (k = 4, khởi đầu k-means++ seed cố định) trên bản thu 64px và ghi vào `MEDIA_COLORS` cùng màu chủ
-đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)); `--check` báo ảnh thiếu.
+đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-card-đang-tải-chờ-dưới-flow)); `--check` báo ảnh thiếu.
 Media không có bốn màu (video không poster, ảnh mới chưa build) dùng màu preset. Batch dưới CTA giữ 12 preset.
 Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi.
 Màu chủ đạo là tâm bin đông nhất của histogram RGB 16x16x16 trên điểm ảnh **cỡ gốc** của WebP (không phải bản 64px; `sharp` `stats()` bỏ qua `resize`); bốn màu Flow lấy từ bản thu 64px (`resize(64)`).
@@ -110,39 +110,46 @@ And khung batch dưới CTA vẫn mang màu của một trong 12 preset
 
 ### R4. Vào viewport và vòng lặp
 
-Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
-([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
-Flow. Khi Kính cung đang giao viewport, khung chỉ crossfade, không Kính reveal; cung vừa vào viewport thì gỡ mọi Kính reveal
-đang chạy trong trang (khung batch, primary), ở grid lẫn ở detail (lần đầu sau F5 detail, 09/11); luật này nằm trong hàm reveal chung `playReveal`: bất kỳ Kính reveal nào còn trong DOM làm Chrome bỏ blur các bậc của cung (đo trên PC owner, 07/10). Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
-vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại dưới Kính cung trông như
-các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner thấy trên PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
+Khung batch giao vùng nhìn thấy (visual viewport) hiện bằng fade opacity `0.6s` `ease-out` (`--dur-hover`), không Kính (owner 2026-11-12, bỏ
+reveal Kính cùng lúc với ảnh card và primary, [Kính R6](glass-surface.md#r6-không-hiện-hay-tan)). Khung chờ ảnh của card PC và primary cũng hiện
+bằng fade `0.6s`, vào lúc đang cuộn (`SKELETON_SCROLL_ENTRY_MS`) thì hiện ngay; ảnh lộ qua kính mờ ([skeleton chờ ảnh R2](loading-glass-and-page-entry.md#r2-lộ-ảnh-khi-tải-xong)).
+Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Fade chỉ chạy lần đầu khung vào
+vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải (owner thấy hiện lại dưới Kính cung trông như các bậc nhòe mất, PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
 ```gherkin
 Given khung đã hiện xong và Flow đang chạy
 When cuộn khung ra hẳn vùng nhìn thấy rồi vào lại
-Then khung hiện ngay, không trống, reveal Kính không chạy lại
+Then khung hiện ngay, không trống, fade không chạy lại
 
 Given khung đã hiện xong và Flow đang chạy
 When ẩn tab rồi hiện lại hai lần
-Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
+Then fade không chạy lại, Flow tiếp tục từ pha lúc dừng
 ```
 
 ### R5. WebGL context
 
-Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.masonry-grid__cta-skeleton`:
-7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate. Canvas cao gấp đôi viewport, cuộn cùng
+Mỗi vùng vẽ mọi khung của nó bằng một canvas WebGL chung (một context), con cuối của vùng: batch trong `.masonry-grid__cta-skeleton`,
+khung chờ ảnh của card PC trong `[data-project-grid]` và `[data-detail-related-grid]`, khung chờ ảnh của primary PC trong `.detail-view__hero-frame`
+(`sharedFlowContainer`, `sharedSkeletonFlows` theo vùng, tối đa 4 context). Batch giữ vùng riêng vì trong detail batch nằm ngoài lưới related; vùng card giữ canvas là con cuối dù masonry gắn card sau nó
+(runtime gắn lại canvas mỗi lần mount khung). 7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate.
+Trên PC, lớp của lưới chính được tạo ngay lúc mount (kèm một lần vẽ khởi động để GPU biên dịch shader), không đợi card đầu tiên chờ ảnh: tạo lúc đó làm rớt khung trong 3 giây đầu (PC owner 2026-11-12, 1% low 42 so với 83 của main). Nơi có `KHR_parallel_shader_compile`, lớp chỉ đọc `LINK_STATUS` khi driver báo link xong, ở một frame sau; tới lúc đó canvas trong suốt và khung giữ ảnh tĩnh (đọc ngay sau `linkProgram` chặn luồng chính 27ms trên PC owner, lượt đo 2 của 3b.2). Khung trên canvas chung không có trần số khung: mọi khung đang thấy đều vẽ (bỏ `SKELETON_SHARED_BUDGET` 24, owner 2026-11-12); không có WebGL thì
+khung card giữ frame tĩnh, không mở context riêng cho từng card. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
-chưa vào entry không vẽ, khung đang entry vẽ với alpha theo opacity của reveal Kính (R4). Canvas nằm trên khung và
-dưới Kính, CTA. Dưới canvas mỗi khung vẫn hiện frame tĩnh là một khung hình Flow của chính assignment ở pha hiện tại,
+chưa vào entry không vẽ, khung đang entry hay đang lộ ảnh vẽ với alpha bằng opacity của khung nhân opacity của mặt (R4). Canvas nằm trên khung; canvas batch nằm dưới Kính, CTA, canvas card nằm trên cả card, canvas primary trên ảnh và dưới nút ảnh ([skeleton chờ ảnh R2](loading-glass-and-page-entry.md#r2-lộ-ảnh-khi-tải-xong)).
+Lộ ảnh: runtime gọi `reveal(tiny, duration, { box, cover })` của khung với bản ảnh rộng 20px (`ImageBitmap` lật dọc cho WebGL), canvas tải nó lên
+texture unit 1 rồi trong `duration` vẽ khung bằng nhánh kính mờ của chính shader Flow: 45% đầu (`FROST_SHARE`) `uFrost` tăng `0 → 1` (bốn mẫu bilinear
+quanh điểm, màn trắng `14%`, sạn mịn `4.5%` từ texture nhiễu một texel mỗi pixel canvas), phần còn lại alpha của khung giảm `1 → 0`, cả hai theo `smoothstep`.
+`box` là chỗ ảnh nằm trong khung (primary `contain`), ngoài `box` bản ảnh phủ `cover` theo `cover` như nền mờ. Không thêm program hay blur, nên GPU không biên dịch gì lúc lộ.
+Xong thì resolve; khung dừng giữa chừng thì xóa texture và resolve. Không có context hoặc shader chưa link thì trả `null` và runtime crossfade. Dưới canvas mỗi khung vẫn hiện frame tĩnh là một khung hình Flow của chính assignment ở pha hiện tại,
 nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống và lúc chuyển sang chạy không nhảy. Mất context:
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 
-Skeleton chờ ảnh của primary ([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)): trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
-PC dùng chung một context trong worker (đoạn dưới), tối đa 24 khung chạy; điện thoại dùng context riêng mỗi khung, xếp 4 khung mỗi
-worker (tối đa 12 khung, 3 worker). Khung đang thấy
+Renderer riêng và worker dưới đây từng vẽ skeleton chờ ảnh của primary; từ 3b.2 (owner 2026-11-12) primary vẽ trên canvas chung nên không khung nào
+còn dùng chúng (dọn ở bước sau): trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
+PC dùng chung một context trong worker (đoạn dưới); ngân sách `SKELETON_CONTEXT_BUDGET` 12 chỉ tính khung có renderer riêng. Khung đang thấy
 giữ renderer đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi left). Khung chưa có renderer hiện frame
 tĩnh của preset. Nhả renderer trước khi cấp mới nên xoay máy không vượt ngân sách. Renderer vẽ trong một module worker
 chung của document qua `OffscreenCanvas`: rAF của worker không chờ main thread, nên khi vuốt nhanh main
@@ -162,7 +169,7 @@ nhiều lần vẫn an toàn và không gọi `loseContext` trên context đã m
 (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn gây task trên 50ms thì
 hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh. Điện thoại (pointer coarse, có touch hoặc `clientWidth <= 750`) hoãn
-như vậy cho khung batch; khung chờ ảnh của primary dựng ngay cả lúc đang vuốt, với profile phone ở R8. "Cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
+như vậy cho khung batch; khung chờ ảnh dựng ngay cả lúc đang vuốt. "Cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
 không có `scrollend` thì `120ms` sau scroll event cuối. Scroll không kèm `scrollend` (layout, mở detail nhảy về đầu
 trang) coi là đã dừng sau `500ms` không có scroll event.
 
@@ -203,13 +210,12 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](../decisions/phone-frame-budget.md)
-(trên 60fps), mọi khung trong viewport đều chạy. Batch đạt gate nhờ một canvas chung nửa độ phân giải (R5). Khung
-chờ ảnh của primary trên điện thoại dùng renderer `120x80` (`PHONE_CARD_FLOW`), vẽ mọi frame của worker, giữ preset, màu,
-anchor, chiều chảy và tốc độ; ngoài điểm đó không hạ preset, noise hay số khung chạy để đạt gate.
+(trên 60fps), mọi khung trong viewport đều chạy. Batch đạt gate nhờ một canvas chung nửa độ phân giải (R5); điện thoại không có khung chờ ảnh (lớp màu,
+[tải theo nấc R9](progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)). Không hạ preset, noise hay số khung chạy để đạt gate.
 Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
-rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt).
+rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt). Khung card trên PC chỉ nhận ảnh tĩnh trong lượt idle đó, tới lúc ấy card giữ màu chủ đạo của ảnh: vẽ chúng trong task hoãn của batch CTA làm task đó dài gấp đôi (19ms so với 10ms) và rớt khung lúc lộ ảnh hàng loạt trên PC owner (3b.2 lượt 4).
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport
@@ -240,7 +246,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, 200 seed x 3 và 4 cột x đáy ngẫu nhiên không lỗ và không lặp band, related không khung hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%; mỗi preset đủ 4 màu, field, finish; hai chuỗi random cho vị trí mảng màu khác nhau; màu ảnh chỉ thay colors, field và finish giữ của preset nguồn); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt; `dominant` khớp `sharp` ở mọi biên bin và ca hòa; `mediaColors` ra đúng `MEDIA_COLORS` của ba ảnh trong repo); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
-| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |
+| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: mờ dần `0.6s`, không Kính, cả khi cung ngoài hay đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |

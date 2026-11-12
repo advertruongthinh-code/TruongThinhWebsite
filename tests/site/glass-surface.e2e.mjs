@@ -9,8 +9,6 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-// Rising Kính phase of the 0.6s reveal: 0 to 0.26s (loading-glass-and-page-entry R2).
-const GLASS_RISE_MS = 260;
 // GPU compositing (SwiftShader) like real Chrome; software compositing blurs the backdrop of each layer separately.
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
   args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
@@ -194,8 +192,8 @@ try {
       await page.close();
     }
   }
-  // Changing primary's image runs exactly the slow-loading card motion (loading-glass-and-page-entry R4): the old image is hidden right under the skeleton, Kính
-  // rises in three steps, the image appears under Kính, Kính fades. A slow-loading image (related) and a ready one (Back) share one sequence, same rhythm as the card.
+  // Photos reveal without Kính (owner 2026-11-12): the primary and cards turn Flow into frosted glass on the Flow canvas instead
+  // (loading-glass-and-page-entry R2, R4), so no reveal Kính attaches while a slow primary, a related photo or Back loads.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
@@ -204,90 +202,28 @@ try {
         if (slow) await new Promise((resolve) => setTimeout(resolve, 800));
         await route.continue();
       });
-      // Rhythm of each reveal Kính at attach time: delay, duration, easing of each Kính layer, the image and the skeleton beneath it.
       await page.addInitScript(() => {
-        window.__ttRevealTimings = [];
-        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((glass) => {
-          if (!glass.matches?.(".glass-surface[data-glass-reveal]")) return;
-          const host = glass.parentElement;
-          const nodes = [...glass.children, host.querySelector("[data-detail-image]") ?? host.querySelector("img"),
-            host.querySelector("[data-masonry-loading-skeleton]")];
-          window.__ttRevealTimings.push({
-            host: glass.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary",
-            timing: nodes.map((node) => node?.getAnimations().map((animation) => {
-              const { delay, duration, easing } = animation.effect.getComputedTiming();
-              return [delay, duration, easing];
-            })),
-          });
+        window.__ttRevealGlass = 0;
+        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
+          if (node.matches?.(".glass-surface[data-glass-reveal]") && !node.closest(".masonry-grid__cta-frame[data-masonry-cta-frame]")) window.__ttRevealGlass += 1;
         }))).observe(document, { childList: true, subtree: true });
       });
-      // detailId: the image of an already-built card, not index.html's default image loaded under the still-hidden view.
       const settled = () => page.waitForFunction(() => {
         const photo = document.querySelector("[data-detail-image]");
         return photo.dataset.detailId && photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
-          && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
+          && !photo.parentElement.querySelector("[data-masonry-loading-skeleton]");
       }, null, { timeout: 20000 });
+      slow = true;
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
       await settled();
       await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] a"));
-      // Record every frame of the primary frame from the image change until Kính is removed.
-      const record = (action) => page.evaluate((action) => new Promise((resolve) => {
-        const frame = document.querySelector(".detail-view__hero-frame");
-        const photo = frame.querySelector("[data-detail-image]");
-        const opacity = (node) => (node ? Number(getComputedStyle(node).opacity) : 0);
-        const frames = [];
-        const started = performance.now();
-        const tick = () => {
-          const glass = frame.querySelector(".glass-surface[data-glass-reveal]");
-          const tint = glass?.querySelector(".glass-surface__tint");
-          frames.push({ skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")), glass: Boolean(glass),
-            level: opacity(tint), photo: opacity(photo), at: performance.now(), time: tint?.getAnimations()[0]?.currentTime ?? 0 });
-          if ((frames.some((entry) => entry.glass) && !glass) || performance.now() - started > 8000) resolve(frames);
-          else requestAnimationFrame(tick);
-        };
-        // A related card with a cover image: video has no reveal Kính (loading-glass R4).
-        if (action === "related") [...document.querySelectorAll("[data-masonry-related-card]")]
-          .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click();
-        else history.back();
-        requestAnimationFrame(tick);
-      }), action);
-      const sequence = (frames) => {
-        const skeleton = frames.findIndex((entry) => entry.skeleton);
-        const glass = frames.findIndex((entry) => entry.glass);
-        return {
-          // Time the skeleton stands before Kính (ms): counting frames would miss it when rAF is sparse.
-          waiting: skeleton >= 0 && glass >= 0 ? frames[glass].at - frames[skeleton].at : 0,
-          // Skeleton attaches before or in the same frame as Kính; the new image is not exposed before Kính, and Kính starts unblurred.
-          order: skeleton >= 0 && glass >= skeleton && frames.slice(skeleton, glass + 1).every((entry) => entry.photo === 0)
-            && frames[glass].level < 0.2,
-          // Rising Kính phase (0 to 0.26s of the animation): the image is never denser than the Kính covering it. Filter by the animation's currentTime of
-          // the animation, not by sampled frame: with sparse rAF the "peak" sample lands in the phase where Kính has already faded.
-          underGlass: frames.filter((entry) => entry.glass && entry.time <= GLASS_RISE_MS)
-            .every((entry) => entry.photo <= entry.level + 0.02),
-          settled: frames.at(-1).photo === 1 && !frames.at(-1).skeleton,
-        };
-      };
-      slow = true;
-      const loading = sequence(await record("related"));
+      await page.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card]")]
+        .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click());
       await settled();
       slow = false;
-      const cached = sequence(await record("back"));
-      check(loading.waiting >= 300 && loading.order && loading.underGlass && loading.settled,
-        `slow primary does not run skeleton, Kính, photo, settle ${JSON.stringify(loading)}`);
-      check(cached.order && cached.underGlass && cached.settled, `cached primary differs from the slow sequence ${JSON.stringify(cached)}`);
-      const timings = await page.evaluate(() => window.__ttRevealTimings);
-      const primary = timings.filter(({ host }) => host === "primary").map(({ timing }) => JSON.stringify(timing));
-      // On page open, related (slow-loading) and Back (ready) share one rhythm.
-      check(primary.length >= 3 && new Set(primary).size === 1, `cached and slow primary reveals use different timing ${primary.join(" | ")}`);
-      // Slow-loading card on masonry (progressive-loading R9): no Kính, blurred image from the start, when the image arrives the blur fades then is removed.
-      slow = true;
-      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm`);
-      await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 });
-      check(!(await page.evaluate(() => window.__ttRevealTimings.some(({ host }) => host === "card"))), "loading card wears Kính");
-      slow = false;
-      await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card")
-        && !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 20000 })
-        .catch(() => check(false, "card blur stays after the photo loaded"));
+      await page.goBack();
+      await settled();
+      check(await page.evaluate(() => window.__ttRevealGlass) === 0, "a photo reveal attached Kính");
     } finally {
       await page.close();
     }

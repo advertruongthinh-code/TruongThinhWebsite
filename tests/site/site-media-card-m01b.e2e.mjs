@@ -585,12 +585,10 @@ test("M01b synthetic video cover starts muted with poster", async () => {
         legacyHidden: legacy.hidden, legacyDisplay: getComputedStyle(legacy).display,
         legacyRect: { width: oldRect.width, height: oldRect.height },
         videoReadyState: active.readyState,
-        // Media dimmed while waiting to load deliberately overflows the frame by 24px on each side (loading-glass R1, the frame clips the overflow).
-        bleed: active.style.filter.startsWith("blur(") ? 24 : 0,
         frame: { left: frame.left, top: frame.top, right: frame.right, bottom: frame.bottom },
         videoRect: { left: activeRect.left, top: activeRect.top, right: activeRect.right, bottom: activeRect.bottom } };
     });
-    const slack = 1 + beforeVideoReady.bleed;
+    const slack = 1;
     const withinFrame = beforeVideoReady.videoRect.left >= beforeVideoReady.frame.left - slack
       && beforeVideoReady.videoRect.top >= beforeVideoReady.frame.top - slack
       && beforeVideoReady.videoRect.right <= beforeVideoReady.frame.right + slack

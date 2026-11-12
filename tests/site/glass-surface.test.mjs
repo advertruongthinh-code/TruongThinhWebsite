@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps, glassRevealLevel } from "../../src/site/masonry/glass-surface.mjs";
+import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps } from "../../src/site/masonry/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
@@ -82,12 +82,6 @@ for (const [radius, band] of [[5040, 280], [1365, 8], [3.5 * 390, 120]]) {
   assert(steps.every(({ on, off }, index) => on < off && (!index || off < steps[index - 1].off && on < steps[index - 1].on)),
     "R2: steps are ordered outside in and overlap their neighbours");
 }
-// R6: the reveal surface has all three steps; level rises to full at 0.6 of 1.4s then falls back to none.
-assert.match(runtime, /createGlassSurface\("even", 3\)/, "R6: the reveal Kính has three steps");
-const levels = Array.from({ length: 141 }, (_, index) => glassRevealLevel(index / 140));
-const peak = 60;
-assert(Math.abs(levels[0]) < 1e-3 && Math.abs(levels[peak] - 1) < 1e-3 && Math.abs(levels[140]) < 1e-3,
-  "R6: no blur and no tint at the start and the end, full at 0.6s");
-assert(levels.slice(0, peak + 1).every((level, index) => !index || level >= levels[index - 1] - 1e-9)
-  && levels.slice(peak).every((level, index) => !index || level <= levels[peak + index - 1] + 1e-9), "R6: in, then out");
+// R6: no surface reveals through Kính any more (owner 2026-11-12): photos reveal through frosted glass on the Flow canvas, batch frames fade.
+assert.doesNotMatch(runtime, /glassReveal|playGlassReveal/, "R6: no reveal Kính");
 console.log("glass-surface: PASS");
