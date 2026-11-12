@@ -13,7 +13,7 @@ tests:
   - tests/site/media-colors.test.mjs
   - tests/site/advertising-primary-flow-colors.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-10
+updated: 2026-11-12
 ---
 
 # Skeleton cuối masonry Advertising
@@ -234,7 +234,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | --- | --- |
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, 200 seed x 3 và 4 cột x đáy ngẫu nhiên không lỗ và không lặp band, related không khung hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
-| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
+| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%; mỗi preset đủ 4 màu, field, finish; hai chuỗi random cho vị trí mảng màu khác nhau; màu ảnh chỉ thay colors, field và finish giữ của preset nguồn); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
