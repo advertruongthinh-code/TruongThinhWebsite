@@ -6,6 +6,8 @@ source:
   - src/site/style.css
   - src/site/assets/brand/**
   - scripts/site/sync-site-menu.mjs
+  - scripts/site/shell.mjs
+  - src/site/partials/**
 tests:
   - tests/site/site.e2e.cjs
   - tests/site/site-static-contract.cjs
@@ -30,7 +32,7 @@ updated: 2026-11-12
 
 Shell là phần chung của năm trang VI/EN: header, brand lockup, full menu, footer, floating CTA, đổi
 ngôn ngữ, route veil, smooth scroll, scrollbar, layout mobile toàn site (`src/site/motion.js`,
-`src/site/style.css`). Markup shell lặp trong năm HTML trang; file HTML, motion nội dung trang và
+`src/site/style.css`). Markup shell chỉ có một bản trong `src/site/partials/` (R1); file HTML, motion nội dung trang và
 Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static-release.md). Spec con của shell:
 [cảm giác cuộn](scroll-feel.md), [header đi theo ngón tay](phone-header-scroll.md), [logo đổi màu khi chuyển trang](logo-route-crossfade.md),
 [mở trực tiếp giống chuyển trang](first-load-parity.md), [chữ hero](hero-typography.md).
@@ -39,11 +41,8 @@ Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static
 
 ### R1. Markup chung và thứ tự lớp
 
-Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa
-`svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`,
-`a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba.
-Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback
-(R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
+Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa `svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`, `a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba. Markup này nằm một bản trong `src/site/partials/` (`head.html` favicon và font preload, `boot.html` script khởi động, `styles.html` stylesheet, `route-veil.html`, `header.html`, `floating-cta.html`, `menu.html`, `footer.html`, `scripts.html` script cuối trang). 6 trang nguồn chỉ giữ mốc `<!-- shell:<tên> -->`; `renderShell` (`scripts/site/shell.mjs`, gọi trong `readPageSource`) thay mốc bằng partial lúc build và điền tham số của trang từ bảng `SHELL_PAGES`: nhãn navbar, chữ `sr-only` của logo, chữ và nhãn nút Zalo nổi, route hai link đổi ngôn ngữ, script thêm (Advertising thêm masonry, lazysizes sau SplitText). Title, description, script hero, thẻ `<body>` và `<style>` riêng vẫn ở trang. Thứ tự script giữ nguyên vì script khởi động theo dõi lỗi tải `motion.js`.
+Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback (R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
 nội dung. Header, floating CTA và menu tồn tại qua route mềm (R6).
 
 ```gherkin

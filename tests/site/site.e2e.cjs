@@ -96,6 +96,8 @@ const results = [];
 let browser;
 
 const assert = require("node:assert");
+// Source pages with the shared shell, menu and navbar rendered in (site-shell R4).
+const { readPageSource } = require("../../scripts/site/sync-site-menu.mjs");
 
 function unique(items) {
   return [...new Set(items.filter(Boolean))];
@@ -170,7 +172,7 @@ function assertPersistentNavigationContracts() {
   );
 
   PUBLIC_HTML.forEach(([relativePath, namespace]) => {
-    const source = fs.readFileSync(path.join(root, relativePath), "utf8");
+    const source = readPageSource(relativePath);
     assert(
       source.includes(
           '<link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />',
@@ -383,23 +385,14 @@ function assertPersistentNavigationContracts() {
     "Home hero solid intro must match Espacio's measured 1 second reveal",
   );
   const styleSource = fs.readFileSync(path.join(root, "style.css"), "utf8");
-  const homeSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const homeSource = readPageSource("index.html");
   const brandCss = styleSource.match(/\.brand\s*\{[\s\S]*?\n\}/)?.[0];
   const detailSource = fs.readFileSync(path.join(root, "detail.js"), "utf8");
   const detailCss = fs.readFileSync(path.join(root, "detail.css"), "utf8");
-  const aboutSource = fs.readFileSync(path.join(root, "about/index.html"), "utf8");
-  const residentialSource = fs.readFileSync(
-    path.join(root, "residential/index.html"),
-    "utf8",
-  );
-  const commercialSource = fs.readFileSync(
-    path.join(root, "commercial/index.html"),
-    "utf8",
-  );
-  const projectsSource = fs.readFileSync(
-    path.join(root, "advertising-products/index.html"),
-    "utf8",
-  );
+  const aboutSource = readPageSource("about/index.html");
+  const residentialSource = readPageSource("residential/index.html");
+  const commercialSource = readPageSource("commercial/index.html");
+  const projectsSource = readPageSource("advertising-products/index.html");
   const storyArrowWrapperCss = styleSource.match(/\.story-arrow\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
   const storyArrowCss = styleSource.match(/\.story-link svg\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
   const storyArrowHoverCss = styleSource.match(/\.story-link:hover svg\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
@@ -848,7 +841,7 @@ function assertPersistentNavigationContracts() {
   );
   assert(
     /<link rel="stylesheet" href="\/detail\.css"\s*\/>/.test(
-      fs.readFileSync(path.join(root, "index.html"), "utf8"),
+      readPageSource("index.html"),
     ),
     "Persistent Home shell does not preload detail styles for soft entries",
   );
@@ -862,7 +855,7 @@ function assertPersistentNavigationContracts() {
 
 function assertEspacioTypographyMotionSourceContracts() {
   for (const [relativePath] of PUBLIC_HTML) {
-    const source = fs.readFileSync(path.join(SITE_ROOT, relativePath), "utf8");
+    const source = readPageSource(relativePath);
     assert(
       (source.match(/\bdata-scroll-cue(?!-)/g) || []).length === 1 &&
         /<button\b[^>]*\bdata-scroll-cue\b[\s\S]*?\bdata-scroll-cue-label\b/.test(
@@ -10417,7 +10410,7 @@ function assertBrandShellSourceContracts() {
   const motionSource = fs.readFileSync(path.join(SITE_ROOT, "motion.js"), "utf8");
 
   PUBLIC_HTML.forEach(([relativePath]) => {
-    const source = fs.readFileSync(path.join(SITE_ROOT, relativePath), "utf8");
+    const source = readPageSource(relativePath);
     const lockups = extractInlineBrandLockups(source, relativePath);
     lockupCount += lockups.length;
 

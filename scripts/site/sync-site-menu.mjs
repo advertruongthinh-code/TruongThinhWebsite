@@ -6,6 +6,7 @@ import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
+import { renderShell } from "./shell.mjs";
 
 export const MENU_PAGES = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navMarker = /( *)<!-- menu-nav -->/;
@@ -109,9 +110,9 @@ export const renderDesktopList = (indent) => [
 
 const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING_CATEGORIES, cards: ADVERTISING_CARDS }));
 
-// Source page (path relative to src/site) with the menu and navbar list rendered in place of their markers.
+// Source page (path relative to src/site) with the shell, menu and navbar list rendered in place of their markers.
 export const readPageSource = (relativePath) => {
-  const source = readFileSync(path.join(siteRoot, relativePath), "utf8");
+  const source = renderShell(readFileSync(path.join(siteRoot, relativePath), "utf8"), relativePath);
   if (!navMarker.test(source)) throw new Error(`${relativePath} is missing <!-- menu-nav -->`);
   if (!desktopMarker.test(source)) throw new Error(`${relativePath} is missing <!-- desktop-nav -->`);
   // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.
