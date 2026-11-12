@@ -9,7 +9,7 @@ tests:
   - tests/site/block-pages.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-11
+updated: 2026-11-13
 ---
 
 # News
@@ -68,6 +68,7 @@ Theo mẫu Bài News của [layout-library R2](layout-library.md): tiêu đề, 
 khối "Tin khác" (`news-cards`, tiêu đề căn giữa rồi 3 bài dạng dải trang chủ R4, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, mới nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài mới nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
 Bài có ngày đăng và ngày cập nhật hiển thị khớp dữ liệu cấu trúc, tác giả là người duyệt. Dữ liệu cấu trúc `BlogPosting`,
 `BreadcrumbList`, `VideoObject` khi có video, theo [SEO](seo.md); ảnh, video trong bài theo [tải ảnh](media-delivery.md).
+Ảnh bài là ảnh riêng của bài đó, không dùng lại ảnh trang khác hay bài khác ([bộ kiểm nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung) mục 7); mỗi ảnh là một cảnh riêng minh họa đúng đoạn văn cạnh nó, không cần cùng một không gian (owner 2026-11-13). Mẫu ảnh mỗi bài: ảnh rộng đầu bài (cũng là bìa 3:2), cặp ảnh dọc 2:3, ảnh dọc 2:3 lệch phải.
 
 ```gherkin
 Given một bài thuộc nhóm Sản phẩm quảng cáo

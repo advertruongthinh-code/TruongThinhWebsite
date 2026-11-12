@@ -20,6 +20,33 @@ function filesUnder(root, extension) {
     .map((entry) => path.join(entry.parentPath, entry.name));
 }
 
+// News images belong to News only (agent-rule-ad-images: "ảnh bài News không dùng lại ảnh đã có trên site"): a News
+// image may appear in one article only (cover plus its own blocks), and no other page, data file or style may use it.
+// Compared by stem so -240/-960 variants and other formats count; assets/ is skipped (variant lists are not consumers).
+const imageStem = (src) => src.replace(/\.(webp|avif|jxl|png|jpe?g)$/, "").replace(/-(240|480|960|1600|2048)$/, "");
+function newsImageReuse(siteRoot, news) {
+  const errors = [];
+  const owner = new Map();
+  for (const page of news) {
+    for (const src of new Set(JSON.stringify(page).match(CONTENT_PATH) ?? [])) {
+      const stem = imageStem(src);
+      if (owner.has(stem) && owner.get(stem) !== page.id) errors.push(`content/news.json:${page.id}: ${src}: News image also used by News ${owner.get(stem)}`);
+      else owner.set(stem, page.id);
+    }
+  }
+  if (!owner.size) return errors;
+  const newsFile = path.join(siteRoot, "content/news.json");
+  const assets = path.join(siteRoot, "assets") + path.sep;
+  const files = [".html", ".css", ".json", ".mjs", ".js"].flatMap((extension) => filesUnder(siteRoot, extension))
+    .filter((file) => file !== newsFile && !file.startsWith(assets));
+  for (const file of files) {
+    for (const src of new Set(readFileSync(file, "utf8").match(CONTENT_PATH) ?? [])) {
+      if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: News image (${owner.get(imageStem(src))}) reused outside News`);
+    }
+  }
+  return errors;
+}
+
 // Returns errors as "<file>: <image path>: <rule>", without stopping at the first one.
 export async function checkSiteContent(siteRoot) {
   const { default: sharp } = await import("sharp");
@@ -75,6 +102,7 @@ export async function checkSiteContent(siteRoot) {
     for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
+  errors.push(...newsImageReuse(siteRoot, pages.news));
   // Site menu featured items: project ids and Advertising group slugs must exist.
   const menuFile = path.join(siteRoot, "content/menu.json");
   if (existsSync(menuFile)) {

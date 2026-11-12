@@ -57,3 +57,19 @@ test("reports every error, not just the first", async () => {
   const html = VALID_IMG.replace(' data-en-alt="Living room"', "") + `<img src="/assets/content/projects/missing.webp" alt="" />`;
   assert.equal((await checkSiteContent(await site(html))).length, 2);
 });
+
+test("a News image is reported when another page or another article uses it", async () => {
+  const article = (id, src) => ({ id, blocks: [{ id: "a", type: "image-single", image: { src } }] });
+  const withNews = async (html, news) => {
+    const root = await site(html);
+    mkdirSync(path.join(root, "content"));
+    writeFileSync(path.join(root, "content/news.json"), JSON.stringify(news));
+    return root;
+  };
+  const reuse = (errors) => errors.filter((error) => /News image/.test(error));
+  assert.deepEqual(reuse(await checkSiteContent(await withNews("", [article("one", IMAGE)]))), []);
+  const [outside] = reuse(await checkSiteContent(await withNews(VALID_IMG.replace(IMAGE, IMAGE.replace(".webp", "-960.webp")), [article("one", IMAGE)])));
+  assert.match(outside, /index\.html: .*sample-960\.webp: News image \(one\) reused outside News/);
+  const [twice] = reuse(await checkSiteContent(await withNews("", [article("one", IMAGE), article("two", IMAGE)])));
+  assert.match(twice, /news\.json:two: .*sample\.webp: News image also used by News one/);
+});
