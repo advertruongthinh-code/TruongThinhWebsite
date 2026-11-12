@@ -6,7 +6,7 @@ source:
   - src/site/content/client-logos.json
   - src/site/content/project-reel.json
   - scripts/site/project-reel.mjs
-  - src/site/content/hero-slides.json
+  - src/site/**/hero-*
   - scripts/site/hero-slides.mjs
   - src/site/assets/content/client-logos/**
   - src/site/assets/content/projects/home-*
