@@ -157,6 +157,8 @@
   let headerFollowStale = true;
   let currentHeaderColor = "";
   let routeTimeline;
+  // Bumped by every coverRoute(); a pending playRouteEnter from an older route checks it before touching the veil.
+  let routeCoverCount = 0;
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
@@ -2183,6 +2185,7 @@
   };
 
   const coverRoute = () => {
+    routeCoverCount += 1;
     routeInFlight = true;
     routeMountReady = false;
     pinHeaderForRoute();
@@ -2229,7 +2232,8 @@
     return Promise.all([covered, closing]);
   };
 
-  const playRouteEnter = async () => {
+  // cover: the coverRoute count this reveal belongs to; the direct-load reveal passes the count from before any soft route.
+  const playRouteEnter = async (cover = routeCoverCount) => {
     if (!hasGsap || reduceMotion) {
       clearRouteEntry();
       return;
@@ -2238,6 +2242,9 @@
     await document.fonts.ready;
     const hold = routeMarkHeld && routeVeilInk ? routeVeilCoveredAt + routeVeilHold - performance.now() : 0;
     if (hold > 0) await new Promise((resolve) => setTimeout(resolve, hold));
+    // A route that started covering during the waits owns the veil now: killing its cover tween would drop the
+    // onComplete that Barba's leave() awaits, so the transition would never finish (site-shell R6).
+    if (cover !== routeCoverCount) return;
     routeTimeline?.kill();
     showHeader();
     header.classList.add("is-route-pinned");
@@ -2921,6 +2928,7 @@
   // Mount and Barba read layout; after the first frame that layout is done, so this script is still a short task.
   const afterFirstFrame = new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve)));
   if (enteredViaRoute) prepareRouteDestination(directContainer);
+  const directCover = routeCoverCount;
   const directMount = afterFirstFrame.then(() => mountPage(directContainer, {
     scrollY: directScroll ?? window.scrollY,
     settledStartup,
@@ -2950,7 +2958,7 @@
       (mounted) => {
         if (mounted) replayPendingAdvertisingFilter();
         else clearPendingAdvertisingFilter();
-        if (mounted) return playRouteEnter();
+        if (mounted) return playRouteEnter(directCover);
         clearRouteEntry();
       },
       handleDirectMountFailure,
