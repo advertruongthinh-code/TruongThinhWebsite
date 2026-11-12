@@ -3,7 +3,8 @@
 // is embedded in the page so the runtime changes the filter in place.
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
-import { PROJECT_FILTERS, PROJECT_TYPES, PUBLIC_ORIGIN, SECTORS, pageHref } from "./block-pages.mjs";
+import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, pageHref } from "./block-pages.mjs";
+import { PUBLIC_ORIGIN, escapeHtml } from "./lib.mjs";
 
 const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const ROOT_NAME = { vi: "Công trình", en: "Projects" };
@@ -13,7 +14,6 @@ const SLOGAN = { first: { vi: "Những công trình", en: "Projects" }, lead: { 
 const CTA = [{ vi: "Không gian tiếp theo", en: "The next space" }, { vi: "dành cho bạn", en: "is yours" }];
 const IMAGE_WIDTHS = [240, 480, 960];
 
-const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 const filterHref = (filter) => `/vi/projects/${filter.slug ? `${filter.slug}/` : ""}`;
 
 // The "Tất cả" page, sector pages that have projects, and type pages always exist (an empty type is noindex). The filter row shows only filters

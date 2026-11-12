@@ -2,11 +2,10 @@
 // Featured projects and advertising groups are read from content/menu.json via menuFeatured (editable by the CMS later).
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { PROJECT_TYPES, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
+import { escapeHtml, readJson, siteRoot } from "./lib.mjs";
 
-const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "src", "site");
 const consumers = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navPattern = /( *)<nav\s+class="menu-nav"[\s\S]*?<\/nav>/;
 const desktopListPattern = /(class="desktop-nav"[\s\S]*?\n)( *)<ul>[\s\S]*?<\/ul>/;
@@ -34,7 +33,6 @@ const SOCIAL = [
   { label: "YouTube", href: null },
 ];
 
-const escapeHtml = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 // A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
 const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== vi.replace(/^\/vi\//, "/en/") ? ` data-en-href="${en}"` : ""}`;
 const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en)} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
@@ -101,7 +99,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
   ].join("\n");
 };
 
-const [menu, projects] = await Promise.all(["menu.json", "projects.json"].map(async (file) => JSON.parse(await readFile(path.join(siteRoot, "content", file), "utf8"))));
+const [menu, projects] = await Promise.all(["menu.json", "projects.json"].map((file) => readJson(path.join(siteRoot, "content", file))));
 export const renderDesktopList = (indent) => [
   "<ul>",
   ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),

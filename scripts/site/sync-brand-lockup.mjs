@@ -1,10 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { siteRoot } from "./lib.mjs";
 
-const scriptPath = fileURLToPath(import.meta.url);
-const projectRoot = path.resolve(path.dirname(scriptPath), "..", "..");
-const siteRoot = path.join(projectRoot, "src", "site");
 const canonicalPath = path.join(siteRoot, "assets", "brand", "truong-thinh-lockup.svg");
 const consumers = [
   "index.html",

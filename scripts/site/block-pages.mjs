@@ -3,10 +3,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
+import { PUBLIC_ORIGIN, escapeHtml } from "./lib.mjs";
 
 export { NEWS_GROUPS };
 
-export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 // The sector is also the sector page directory, used as its frame and namespace.
 export const SECTORS = ["residential", "commercial"];
 const SECTOR_NAME = { residential: "Không gian nhà ở", commercial: "Không gian kinh doanh" };
@@ -18,7 +18,6 @@ export const KINDS = {
   news: { dir: "news", frame: () => "about", namespace: "news", schema: "BlogPosting", parent: () => ({ name: "News", path: "/news/" }) },
 };
 
-const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
 export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KINDS).map((kind) => {
   const file = path.join(siteRoot, `content/${kind}.json`);

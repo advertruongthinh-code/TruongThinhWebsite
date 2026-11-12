@@ -1,15 +1,12 @@
 // Shared block set for project pages and News (layout-library R1, R4): validates JSON data then builds static HTML.
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
-import { existsSync } from "node:fs";
-import path from "node:path";
+import { IMAGE_SRC, escapeHtml, validateImage } from "./lib.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
 
-const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const IMAGE_SRC = /^\/assets\/content\/[a-z0-9/-]+\.webp$/;
 // ponytail: only internal /vi|/en links or Zalo; extend when the CMS needs checked external links.
 const SAFE_HREF = /^(?:\/(?:vi|en)\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
@@ -214,21 +211,13 @@ export const BLOCK_TYPES = Object.keys(BLOCKS);
 
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
 export async function validateBlockPage(page, { siteRoot, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
-  const { default: sharp } = await import("sharp");
   const errors = [];
   const text = (value, where) => {
     if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
     if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
     else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
-  const media = async (value, where) => {
-    if (!value || !IMAGE_SRC.test(value.src ?? "")) return errors.push(`${where}: src must be /assets/content/<kebab-case>.webp`);
-    for (const field of ["altVi", "altEn"]) if (typeof value[field] !== "string" || !value[field].trim()) errors.push(`${where}: missing ${field}`);
-    const file = path.join(siteRoot, value.src);
-    if (!existsSync(file)) return errors.push(`${where}: file not found ${value.src}`);
-    const { width, height } = await sharp(file).metadata();
-    if (value.width !== width || value.height !== height) errors.push(`${where}: width/height must be ${width}x${height}`);
-  };
+  const media = async (value, where) => { errors.push(...await validateImage(value, siteRoot, where)); };
   const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
   if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
