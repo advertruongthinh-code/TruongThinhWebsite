@@ -20,28 +20,30 @@ function filesUnder(root, extension) {
     .map((entry) => path.join(entry.parentPath, entry.name));
 }
 
-// News images belong to News only (agent-rule-ad-images: "ảnh bài News không dùng lại ảnh đã có trên site"): a News
-// image may appear in one article only (cover plus its own blocks), and no other page, data file or style may use it.
-// Compared by stem so -240/-960 variants and other formats count; assets/ is skipped (variant lists are not consumers).
+// Images are compared by stem so -240/-960 variants and other formats count; assets/ is skipped (variant lists are not consumers).
 const imageStem = (src) => src.replace(/\.(webp|avif|jxl|png|jpe?g)$/, "").replace(/-(240|480|960|1600|2048)$/, "");
-function newsImageReuse(siteRoot, news) {
+// News and project images stay on their own pages (owner 2026-11-13: project photos only on project pages): an image of one
+// News article or project may appear in that page only (cover, card and blocks), and no other page, data file or style may
+// use it. Shared placeholders are exempt until the real photo lands.
+function ownImageReuse(siteRoot, kind, pages, label) {
   const errors = [];
   const owner = new Map();
-  for (const page of news) {
+  for (const page of pages) {
     for (const src of new Set(JSON.stringify(page).match(CONTENT_PATH) ?? [])) {
       const stem = imageStem(src);
-      if (owner.has(stem) && owner.get(stem) !== page.id) errors.push(`content/news.json:${page.id}: ${src}: News image also used by News ${owner.get(stem)}`);
+      if (path.basename(stem).startsWith("placeholder")) continue;
+      if (owner.has(stem) && owner.get(stem) !== page.id) errors.push(`content/${kind}.json:${page.id}: ${src}: ${label} image also used by ${label} ${owner.get(stem)}`);
       else owner.set(stem, page.id);
     }
   }
   if (!owner.size) return errors;
-  const newsFile = path.join(siteRoot, "content/news.json");
+  const ownFile = path.join(siteRoot, `content/${kind}.json`);
   const assets = path.join(siteRoot, "assets") + path.sep;
   const files = [".html", ".css", ".json", ".mjs", ".js"].flatMap((extension) => filesUnder(siteRoot, extension))
-    .filter((file) => file !== newsFile && !file.startsWith(assets));
+    .filter((file) => file !== ownFile && !file.startsWith(assets));
   for (const file of files) {
     for (const src of new Set(readFileSync(file, "utf8").match(CONTENT_PATH) ?? [])) {
-      if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: News image (${owner.get(imageStem(src))}) reused outside News`);
+      if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
     }
   }
   return errors;
@@ -102,7 +104,7 @@ export async function checkSiteContent(siteRoot) {
     for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
-  errors.push(...newsImageReuse(siteRoot, pages.news));
+  errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
   // Site menu featured items: project ids and Advertising group slugs must exist.
   const menuFile = path.join(siteRoot, "content/menu.json");
   if (existsSync(menuFile)) {
