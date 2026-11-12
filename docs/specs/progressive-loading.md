@@ -89,7 +89,7 @@ xuất hiện khi đủ chất lượng như lúc trước khi làm jxl"). Bản
 Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ.
 
 - Trang tĩnh: vệt sáng của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) che tới `load` và `decode()`.
-- Advertising: card giữ khung Flow (điện thoại: lớp màu 4 màu chủ đạo) tới khi ảnh tải xong (R9), primary chạy Kính lúc `decode()` xong (điện thoại: ảnh hiện `0.45s` trên lớp màu)
+- Advertising: card giữ khung Flow (điện thoại: lớp màu 4 màu chủ đạo) tới khi ảnh tải xong (R9), primary lộ qua kính mờ lúc `decode()` xong (điện thoại: ảnh hiện `0.45s` trên lớp màu)
   ([skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md)).
 - Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn, đã tải xong), tải bản gốc riêng, `load` xong mới đổi.
 - Site không đăng ký Service Worker. `/sw.js` chỉ còn tự gỡ bản đã cài ở máy khách từ trước (`_headers` `no-cache`).
@@ -202,9 +202,9 @@ Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 
 ### R9. Card chờ ảnh bằng Flow hoặc lớp màu
 
-PC (owner 2026-11-12, đo ở DRY 3b.1): card masonry chính và related vào viewport khi ảnh chưa tải xong thì ảnh ẩn dưới một khung [skeleton](advertising-skeleton.md) Flow (`[data-masonry-loading-skeleton]` trong `.card-media`) mang 4 màu của chính ảnh (`MEDIA_COLORS[1..4]`; thiếu thì màu preset), vẽ trên canvas Flow chung của lưới ([skeleton R5](advertising-skeleton.md#r5-webgl-context)). Khung tô màu chủ đạo của ảnh (`MEDIA_COLORS`, `dominant` trong `image-palette.mjs`, khớp `sharp` `stats().dominant`) nằm dưới khung Flow nên ảnh chưa có byte không thành ô trắng (A04s 400 kbit/s: ô trắng 2 đến 4s; owner chọn 2026-10-31 11:09). Tải và `decode()` xong (R3) thì lộ ảnh bằng hàm chung `playReveal` như primary: Kính ba bậc, Flow mờ (riêng card mờ từ `0s` để Kính lộ ngay, owner 2026-11-12), ảnh hiện, Kính tan trong `0.6s` rồi gỡ khung ([skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-card-đang-tải-chờ-dưới-flow)). Tối đa `CARD_GLASS_REVEAL_MAX` = 2 card lộ bằng Kính cùng lúc, card thứ ba trở đi chỉ crossfade `0.6s`. Plan đặt 4 rồi hạ theo đường lùi của nó: với 4 Kính cùng lúc GPU mất 78ms cho một khung ở 3/5 lượt lộ hàng loạt trên PC owner, với 2 thì không lượt nào (3b.2 lượt 4 và 5). Không nâng khi chưa có số. Không còn ảnh mờ hay thở trên card.
+PC (owner 2026-11-12, đo ở DRY 3b.1): card masonry chính và related vào viewport khi ảnh chưa tải xong thì ảnh ẩn dưới một khung [skeleton](advertising-skeleton.md) Flow (`[data-masonry-loading-skeleton]` trong `.card-media`) mang 4 màu của chính ảnh (`MEDIA_COLORS[1..4]`; thiếu thì màu preset), vẽ trên canvas Flow chung của lưới ([skeleton R5](advertising-skeleton.md#r5-webgl-context)). Khung tô màu chủ đạo của ảnh (`MEDIA_COLORS`, `dominant` trong `image-palette.mjs`, khớp `sharp` `stats().dominant`) nằm dưới khung Flow nên ảnh chưa có byte không thành ô trắng (A04s 400 kbit/s: ô trắng 2 đến 4s; owner chọn 2026-10-31 11:09). Tải và `decode()` xong (R3) thì lộ ảnh như primary: canvas Flow hóa kính mờ của chính ảnh rồi tan ra ảnh nét trong `0.6s`, rồi gỡ khung, không Kính ([skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-card-đang-tải-chờ-dưới-flow)). Owner chọn kiểu 10 "Kính mờ rẻ" (2026-11-12) sau khi đo: Kính lộ ảnh làm Skia biên dịch shader lần đầu dùng, một khung GPU 47 đến 106ms giữa lượt lộ hàng loạt trên PC owner kể cả khi chỉ 2 Kính cùng lúc; crossfade không Kính thì khớp main (3b.2 lượt 5 đến 7). Không còn ảnh mờ hay thở trên card.
 
-Lịch sử số đo: bản đầu đặt Kính ba bậc (`backdrop-filter`) thường trực trên 15 đến 18 card đang chờ; owner kéo thanh cuộn cực đoan (tắt cache, 3G) thấy FPS không hơn Flow (2026-10-31 09:59). Trace 1920px: Kính thường trực 14 đến 15 FPS, blur 41; A04s 400 kbit/s: Kính 8,6 đến 10,6, blur 74 đến 82. Owner chọn blur trên ảnh (2026-10-31). PC owner (RTX 3090, 1920x1080, 3G, tắt cache, trung vị 3 lượt, 2026-11-12): kéo thanh cuộn blur 83,3 FPS (1% low 80,0), Flow rồi crossfade 83,4 (80,6), Flow rồi Kính 83,7 (80,0), không long task; cả ba chạm trần nhịp khung và Kính chỉ chạy 3 đến 5 lần mỗi lượt, nên chưa tách được chi phí GPU và chưa đo máy yếu hơn. Gate PC của bản này: cùng kịch bản kéo thanh cuộn không dưới 81,3 FPS, 1% low không dưới 78, không long task trên 50ms; lượt lộ hàng loạt (Fast 4G, tắt cache, 3 giây đầu) không thấp hơn bản blur quá 2 FPS.
+Lịch sử số đo: bản đầu đặt Kính ba bậc (`backdrop-filter`) thường trực trên 15 đến 18 card đang chờ; owner kéo thanh cuộn cực đoan (tắt cache, 3G) thấy FPS không hơn Flow (2026-10-31 09:59). Trace 1920px: Kính thường trực 14 đến 15 FPS, blur 41; A04s 400 kbit/s: Kính 8,6 đến 10,6, blur 74 đến 82. Owner chọn blur trên ảnh (2026-10-31). PC owner (RTX 3090, 1920x1080, 3G, tắt cache, trung vị 3 lượt, 2026-11-12): kéo thanh cuộn blur 83,3 FPS (1% low 80,0), Flow rồi crossfade 83,4 (80,6), Flow rồi Kính 83,7 (80,0), không long task; cả ba chạm trần nhịp khung và Kính chỉ chạy 3 đến 5 lần mỗi lượt, nên chưa tách được chi phí GPU và chưa đo máy yếu hơn. Gate PC (áp cho bản kính mờ): cùng kịch bản kéo thanh cuộn không dưới 81,3 FPS, 1% low không dưới 78, không long task trên 50ms; lượt lộ hàng loạt (Fast 4G, tắt cache, 3 giây đầu) không thấp hơn bản blur quá 2 FPS.
 
 - Điện thoại (`skeletonPhone`, owner 2026-11-12) không Flow, không Kính: card chờ ảnh (chính, related, card tạm) và primary chờ bằng lớp màu phẳng đổi qua 4 màu chủ đạo (`MEDIA_COLORS[1..4]`,
   `2s` mỗi màu, chu kỳ `8s`; lớp trên chỉ đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; `[data-media-wait="colors"]` trong `detail.css`); ảnh ẩn tới khi `decode()` xong rồi hiện `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` trên lớp màu, xong gỡ lớp.
@@ -216,7 +216,7 @@ Lịch sử số đo: bản đầu đặt Kính ba bậc (`backdrop-filter`) th�
 Given masonry Advertising trên PC 1440px, tắt cache, mạng chậm
 When card mới vào viewport khi ảnh chưa tải
 Then ảnh ẩn, không blur, dưới khung Flow đang chạy trong 4 màu của ảnh; mọi card chờ dùng một canvas chung của lưới
-And khi tải xong ảnh lộ trong 0.6s, không quá 4 card có Kính cùng lúc, rồi khung bị gỡ
+And khi tải xong ảnh lộ qua kính mờ của chính nó trong 0.6s, không card nào có Kính, rồi khung bị gỡ
 ```
 
 ### R10. Lên bản gốc sau khi hiện
@@ -254,10 +254,10 @@ Khi cài, sửa các spec sở hữu trong cùng PR và chuyển spec này sang 
 
 ## UI
 
-Không đổi hình vệt sáng, skeleton, Kính: [Vệt sáng](../../design-system/components/LoadSweep/README.md),
+[Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [Skeleton](../../design-system/components/Skeleton/README.md),
-[Kính hiện và tan](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải). Card PC chờ ảnh đổi từ blur
-sang khung Flow rồi Kính lúc lộ (R9, 2026-11-12); README Kính, MediaCard, Skeleton và Motion ghi lại cùng PR.
+[Kính](../../design-system/components/Glass/README.md). Card PC chờ ảnh đổi từ blur
+sang khung Flow rồi kính mờ lúc lộ (R9, 2026-11-12); README Kính, MediaCard, Primary, Skeleton và Motion ghi lại cùng PR.
 
 ## Kiểm tra
 
@@ -270,7 +270,7 @@ sang khung Flow rồi Kính lúc lộ (R9, 2026-11-12); README Kính, MediaCard,
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
-| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, mọi card chờ chạy Flow trên một canvas của lưới, không ảnh mờ, card chờ ảnh có màu chủ đạo, lộ hàng loạt tối đa 2 Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
+| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, mọi card chờ chạy Flow trên một canvas của lưới, không ảnh mờ, card chờ ảnh có màu chủ đạo, lộ hàng loạt không Kính, có bản sao kính mờ), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
 | R10 | `image-upgrade.e2e.mjs` (hero và ảnh lớn detail lên bản gốc, card masonry giữ bản vừa khung, không đổi khi đang cuộn, một request) |
 
 ## Gate còn mở

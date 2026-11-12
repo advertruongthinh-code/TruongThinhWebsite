@@ -345,7 +345,8 @@ async function snapshot(page) {
 async function collectFlowWindow(page) {
   return page.evaluate(async () => {
     const surface = document.querySelector("[data-masonry-cta-frame].is-looping .masonry-grid__cta-surface");
-    const canvas = document.querySelector(".masonry-grid__cta-shared-flow") ?? surface.querySelector("canvas");
+    // The batch's own shared canvas: the grid, related grid and primary frame each have one too.
+    const canvas = surface.closest(".masonry-grid__cta-skeleton")?.querySelector(":scope > .masonry-grid__cta-shared-flow") ?? surface.querySelector("canvas");
     const grid = document.querySelector("[data-project-grid]");
     const digest = () => {
       const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -446,8 +447,8 @@ async function exitSkeletonViewport(page) {
   });
 }
 
-// First entry into the viewport (skeleton R4): the frame appears with a 0.6s Kính reveal then it is removed when the arc Kính does not intersect the viewport;
-// if the arc Kính is intersecting the viewport the frame only crossfades, with no Kính reveal. Re-entry is covered in reenterSkeletonViewport.
+// First entry into the viewport (skeleton R4): the frame only fades in over 0.6s, with no Kính reveal, whether or not the arc Kính is in view
+// (owner 2026-11-12). Re-entry is covered in reenterSkeletonViewport.
 async function firstEntryReveals(browser, scrollTarget) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 400 } });
   const page = await context.newPage();
@@ -485,6 +486,8 @@ async function firstEntryReveals(browser, scrollTarget) {
     return await page.evaluate(() => ({
       ...window.__ttFirstEntry,
       leftover: document.querySelectorAll("[data-masonry-cta-frame] [data-glass-reveal]").length,
+      fade: (({ transitionProperty, transitionDuration }) => ({ transitionProperty, transitionDuration }))(
+        getComputedStyle(document.querySelector("[data-masonry-cta-frame].is-entry-ready"))),
     }));
   } finally {
     await context.close();
@@ -927,7 +930,7 @@ try {
     "skeleton loop changes grid height");
 
   const lossSupported = await page.evaluate(() => {
-    const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
+    const canvas = document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow");
     const gl = canvas?.getContext("webgl") || canvas?.getContext("experimental-webgl");
     const extension = gl?.getExtension("WEBGL_lose_context");
     if (!extension) return false;
@@ -938,14 +941,14 @@ try {
   assert(lossSupported, "Chromium does not expose WEBGL_lose_context for the restore regression");
   await page.waitForTimeout(250);
   const paintsWhileLost = await page.evaluate(() =>
-    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0);
+    document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0);
   await page.waitForTimeout(250);
   assert.equal(await page.evaluate(() =>
-    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), paintsWhileLost,
+    document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), paintsWhileLost,
     "skeleton kept issuing WebGL draws while its context was lost");
   await page.evaluate(() => window.__ttSkeletonLossExtension.restoreContext());
   await page.waitForFunction((before) =>
-    (document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0) > before,
+    (document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0) > before,
   paintsWhileLost);
 
   await page.setViewportSize({ width: 1569, height: 912 });
@@ -1204,7 +1207,7 @@ try {
     && document.querySelector("[data-masonry-cta-frame]")?.dataset.masonryFlowState === "paused");
   const reducedState = await page.locator("[data-masonry-cta-frame]").first().evaluate((frame) => {
     const style = getComputedStyle(frame);
-    const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
+    const canvas = document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow");
     return {
       opacity: Number(style.opacity),
       paints: canvas?.__ttSkeletonPaints || 0,
@@ -1217,7 +1220,7 @@ try {
     "reduced motion skeleton is not immediately visible");
   assert(Math.abs(reducedState.transformY) <= 0.1, "reduced motion skeleton retains an entry transform");
   assert.equal(await page.evaluate(() =>
-    document.querySelector(".masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), reducedState.paints,
+    document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), reducedState.paints,
   "reduced motion skeleton kept advancing WebGL");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForFunction(() => document.querySelector("[data-masonry-cta-frame].is-looping"));
@@ -1277,16 +1280,12 @@ try {
   assert.equal(new URL(page.url()).pathname, "/en/advertising-products/", "parent nav changed canonical locale route");
   assert.equal(new URL(page.url()).search, "", "parent nav added query state");
   assert.equal(await page.locator('[data-masonry-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
-  // First entry: the reveal runs when the arc Kính is outside the viewport, and does not run when the arc intersects the viewport.
-  const revealedEntry = await firstEntryReveals(browser, "first-frame");
-  assert(revealedEntry.added.length >= 1, "first entry: frame did not play the Kinh reveal");
-  assert(revealedEntry.added.every(({ arcInView }) => !arcInView), "first entry: Kinh reveal played while the arc Kinh was in view");
-  assert.equal(revealedEntry.lifetimes.length, revealedEntry.added.length, "first entry: Kinh reveal was not removed after playing");
-  assert(revealedEntry.lifetimes.every((ms) => ms >= 500 && ms <= 1_500),
-    `first entry: Kinh reveal should last about 0.6s (${revealedEntry.lifetimes.map(Math.round)}ms)`);
-  assert.equal(revealedEntry.leftover, 0, "first entry: Kinh reveal stayed in the frame");
-  const arcEntry = await firstEntryReveals(browser, "page-end");
-  assert.equal(arcEntry.added.length, 0, "first entry under the arc Kinh must only crossfade");
+  // First entry: the frame fades in over 0.6s and never wears a Kính reveal, with the arc Kính out of view or in view.
+  for (const target of ["first-frame", "page-end"]) {
+    const entry = await firstEntryReveals(browser, target);
+    assert.equal(entry.added.length + entry.leftover, 0, `${target}: batch frame entry attached a Kinh reveal`);
+    assert.deepEqual(entry.fade, { transitionProperty: "opacity", transitionDuration: "0.6s" }, `${target}: batch frame does not fade in over 0.6s`);
+  }
   assert.deepEqual(errors, [], "continuation emitted browser errors");
   evidence.errors = errors;
   evidence.pass = true;

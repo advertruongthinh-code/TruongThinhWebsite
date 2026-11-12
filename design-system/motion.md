@@ -64,7 +64,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut` (điện thoại: `1.1 → 1`, hoặc lia thẳng trái, phải, lên, xuống `8%` chiều cao khung cùng nhịp, theo `data-hero-move`); mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`masonry/suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005` | [Hero](components/Hero/README.md) About (`data-motion-hero-media`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
-| Kính reveal | Năm bậc trong `0.6s`, chỉ opacity | [Media card](components/MediaCard/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md) ([Kính](components/Glass/README.md)) |
+| Kính mờ lộ ảnh | Flow hóa kính mờ của chính ảnh rồi tan ra ảnh nét trong `0.6s`, vẽ trên canvas Flow | PC: [Media card](components/MediaCard/README.md), [Primary](components/Primary/README.md) ([Skeleton](components/Skeleton/README.md)) |
 | Flow | Gradient bốn màu chảy bằng WebGL, 12 preset | [Skeleton](components/Skeleton/README.md) |
 | Line reveal, word fade | `1.9s power4.out` theo dòng; `1s expo.out` theo từ | Tiêu đề [Hero](components/Hero/README.md), tiêu đề section và [Banner CTA](components/BannerCta/README.md) (mục Text) |
 | Cụm chữ nguyên khối | Cả khối `scale 1.1 → 1` `2.5s cubic-bezier(0, 0, .26, 1)` (`--ease`) từ lúc trang bắt đầu lộ; câu rồi số fade nguyên khối `1s expo.out`, trễ `0.3s` và `0.6s`; không tách từ, không trượt | Trang 404 (mục Text), mẫu 404 của Espacio |
@@ -267,9 +267,10 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - PC, ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh ẩn dưới khung [Skeleton](components/Skeleton/README.md)
   Flow trong 4 màu của chính ảnh (khung hiện `0.6s`, ngay lập tức nếu đang cuộn), vẽ trên một canvas chung của lưới. Tải và `decode()` xong thì
-  lộ ảnh như primary trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)`: Kính ba bậc hiện, Flow mờ (`0s` tới `0.26s`), ảnh hiện (`0.13s` tới `0.39s`), Kính tan,
-  rồi gỡ khung. Tối đa 2 card lộ bằng Kính cùng lúc, card thứ ba trở đi chỉ crossfade; Kính cung đang thấy thì không Kính.
-  Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ, pill chỉ số và nhãn vừa xem nằm dưới Flow; lúc lộ ảnh, Kính của card nằm dưới Flow nên Flow của card mờ ngay từ `0s` (tới khoảng `0.26s`) thay vì cùng nhịp ảnh, để Kính lộ ra ngay như primary (Kính trên Flow); ảnh vẫn hiện `0.13s` tới `0.39s` (owner 2026-11-12, đồng nhất cảm giác).
+  lộ ảnh như primary trong `0.6s` (owner 2026-11-12, kiểu 10 "Kính mờ rẻ"): ảnh hiện ngay dưới khung, canvas vẽ Flow hóa kính mờ của chính ảnh
+  (`0s` tới `0.27s`, `smoothstep`: bản ảnh 20px kéo giãn, màn trắng `14%`, sạn mịn `4.5%`), rồi kính mờ tan ra ảnh nét (`0.27s` tới `0.6s`, `smoothstep`), rồi gỡ khung.
+  Không Kính, không blur filter. Không làm được bản ảnh 20px hoặc canvas chưa sẵn thì crossfade (`0.13s` tới `0.39s`, `cubic-bezier(0.65, 0, 0.35, 1)`).
+  Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ và lúc lộ, pill chỉ số và nhãn vừa xem nằm dưới Flow.
   Khung card, link luôn hiện.
 - Điện thoại (`skeletonPhone`): thay khung Flow bằng lớp màu phẳng (`[data-media-wait="colors"]`, `detail.css`): đổi qua 4 màu chủ đạo của ảnh, mỗi màu `2s`
   `ease-in-out`, chu kỳ `8s` (lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ), dùng chung pha `--wait-phase` giữa card tạm, card và primary; ảnh ẩn tới khi tải và giải mã xong rồi
@@ -302,8 +303,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: reveal Kính `0.6s` như ảnh card (mục trên; lớp dưới là khung
-  trống, lớp hiện lên là Flow); Kính cung đang trong viewport thì frame và card chỉ crossfade, Flow chạy ngay từ đầu
+- Vào viewport: frame mờ dần opacity `0 → 1` `0.6s` `ease-out`, không Kính (owner 2026-11-12); Flow chạy ngay từ đầu
   kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
   chỉ lần đầu vào; rời hẳn viewport rồi vào lại thì hiện ngay. Không hover, không shimmer, không focus.
   Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.
@@ -322,11 +322,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối (chỉ hiện khi media sẵn sàng) và nhãn `Vừa xem` / `Just viewed` có bóng D.
 - Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
-  chưa giải mã xong sau `100ms` thì khung primary mang skeleton như card rồi
-  crossfade dưới kính cùng nhịp `0.6s` như card (owner 19/10). Ảnh có sẵn: ảnh đang xem và nền blur
-  cũ mờ đi trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`, kính
-  hiện `0` đến `0.26s` rồi tan tới `0.6s`; mở lần đầu thì ảnh mới hiện từ khung
-  trống cùng nhịp. Reduced motion: không kính.
+  đang tải thì khung primary mang skeleton như card; giải mã xong thì lộ qua kính mờ như ảnh card (mục
+  [Ảnh trong card](#ảnh-trong-card), `0.6s`, owner 2026-11-12): kính mờ đặt đúng chỗ ảnh nằm, vùng dư phủ như nền mờ.
+  Ảnh có sẵn chỉ làm skeleton đứng ngắn hơn; khung chưa kịp hiện thì crossfade `0.13s` đến `0.39s`. Reduced motion: ảnh hiện thẳng.
 - Viewer: transform từ khung hero tới fit và ngược lại (màn cảm ứng: fit chạm cạnh màn hình, cả khi xoay ngang); nút, con lăn, chạm đúp
   và bật về sau pinch nội suy `200ms ease-in-out`; pinch và pan theo tay tức
   thì, giới hạn theo ảnh đã phóng; vượt giới hạn khi pinch thì ảnh chỉ đi một

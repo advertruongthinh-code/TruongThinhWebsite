@@ -369,10 +369,23 @@ try {
     await context.close();
   }
 
-  // Many cards finish at once (images released together): at most CARD_GLASS_REVEAL_MAX (2) card Glass reveals run at the same time, the rest crossfade;
-  // afterwards no card keeps its Flow frame, mark or Kính and no loaded image is stuck below opacity 1.
+  // Many cards finish at once (images released together): no card uses Kính; each reveals through frosted glass drawn on the shared canvas
+  // from a 20px copy of its photo (owner sample 10, 2026-11-12). Afterwards no card keeps its Flow frame or mark and no loaded image is stuck below opacity 1.
   {
     const { context, page, slow } = await open({ viewport: { width: 1920, height: 3000 } });
+    await page.addInitScript(() => {
+      window.__frost = { copies: 0, uploads: 0 };
+      const copy = window.createImageBitmap;
+      window.createImageBitmap = function (source, ...rest) {
+        if (rest.at(-1)?.resizeWidth === 20) window.__frost.copies += 1;
+        return copy.call(this, source, ...rest);
+      };
+      const upload = WebGLRenderingContext.prototype.texImage2D;
+      WebGLRenderingContext.prototype.texImage2D = function (...args) {
+        if (args.at(-1) instanceof ImageBitmap) window.__frost.uploads += 1;
+        return upload.apply(this, args);
+      };
+    });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     for (let y = 400; y <= 1200; y += 400) {
@@ -394,7 +407,9 @@ try {
       return bottom > 0 && top < innerHeight;
     }).every((card) => !card.querySelector("[data-masonry-loading-skeleton]")), null, { timeout: DELAY + 15_000 });
     const glassMax = await page.evaluate(() => window.__glassMax);
-    assert.ok(glassMax >= 1 && glassMax <= 2, `burst: card Glass reveals capped at 2 ${glassMax}`);
+    assert.equal(glassMax, 0, "burst: no card Kính reveal");
+    const frost = await page.evaluate(() => window.__frost);
+    assert.ok(frost.copies > 0 && frost.uploads > 0, `burst: cards reveal through frosted glass ${JSON.stringify(frost)}`);
     const states = await cardStates(page);
     assert.deepEqual(states.filter(({ loaded, skeleton, marked, glass }) => loaded && (skeleton || marked || glass)), [], "burst: revealed cards drop Flow, mark and Kính");
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]

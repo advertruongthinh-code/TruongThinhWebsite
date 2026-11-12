@@ -287,10 +287,16 @@ try {
     // Longer delay so the entry layout settles while the card image is still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(BASE_URL + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    // Kính reveal (loading-glass-and-page-entry R2, R4; glass-surface R6) and card image blur (progressive-loading R9):
-    // record each attach.
+    // Reveal Kính (none left on cards and the primary, owner 2026-11-12), the 20px frosted-glass copies the PC reveal makes
+    // (loading-glass-and-page-entry R2, R4) and card image blur (progressive-loading R9): record each one.
     await page.evaluate(() => {
       window.__ttRevealGlass = [];
+      window.__ttFrost = [];
+      const copy = window.createImageBitmap;
+      window.createImageBitmap = function (source, ...rest) {
+        if (rest.at(-1)?.resizeWidth === 20) window.__ttFrost.push(source.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary");
+        return copy.call(this, source, ...rest);
+      };
       window.__ttCardBlur = [];
       new MutationObserver((records) => records.forEach(({ target, oldValue }) => {
         if (!target.style.filter.startsWith("blur(") || oldValue?.includes("blur(")) return;
@@ -298,25 +304,12 @@ try {
       })).observe(document.body, { attributes: true, attributeFilter: ["style"], attributeOldValue: true, subtree: true });
       new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
-        window.__ttRevealGlass.push({
-          // Related cards are also in the photo view; its Kính is the card Kính, not the primary's.
-          host: node.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary",
-          card: node.closest("[data-masonry-card]")?.dataset.masonryCard,
-          steps: node.querySelectorAll(".glass-surface__step").length,
-          skeleton: Boolean(node.parentElement.querySelector("[data-masonry-loading-skeleton]")),
-          // When the Flow frame starts fading: cards at 0 so their Glass (under the grid's Flow canvas) shows from the start (owner 2026-11-12).
-          frameDelay: node.parentElement.querySelector(":scope > [data-masonry-loading-skeleton]")?.getAnimations()
-            .map((animation) => animation.effect.getTiming().delay).at(-1) ?? null,
-          flat: [...node.querySelectorAll(".glass-surface__step")].some((step) => getComputedStyle(step).backgroundColor !== "rgba(0, 0, 0, 0)"),
-          end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
-            .map((animation) => animation.effect.getComputedTiming().endTime))),
-          animated: [...new Set([...node.children].flatMap((layer) => layer.getAnimations()
-            .flatMap((animation) => animation.effect.getKeyframes().flatMap((frame) => Object.keys(frame)))))]
-            .filter((key) => !["offset", "computedOffset", "easing", "composite"].includes(key)),
-        });
+        // Related cards are also in the photo view; their Kính would be card Kính, not the primary's.
+        window.__ttRevealGlass.push({ host: node.closest("[data-masonry-card], [data-masonry-related-card]") ? "card" : "primary" });
       }))).observe(document.body, { childList: true, subtree: true });
     });
     const revealGlass = (host) => page.evaluate((name) => window.__ttRevealGlass.filter((glass) => glass.host === name), host);
+    const frostCopies = (host) => page.evaluate((name) => window.__ttFrost.filter((value) => value === name).length, host);
     await page.waitForFunction(() => window.TruongThinhMasonry?.getBrowseState?.()?.seed
       && document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const geometry = () => page.evaluate(() => ({
@@ -367,11 +360,10 @@ try {
       .filter((card) => card.hasAttribute("data-masonry-media-loading")
         || [...card.querySelectorAll("img")].some((image) => getComputedStyle(image).animationName !== "none")).length), 0,
       `${viewport.width}px: loaded cards stop breathing`);
-    // Phone cards never wear Kính; a PC card shows Kính only to reveal from its Flow frame (three tiers).
-    const cardGlass = await revealGlass("card");
-    if (phoneView) assert.deepEqual(cardGlass, [], `${viewport.width}px: loading cards wear no Kính`);
-    else assert.deepEqual(cardGlass.filter(({ skeleton, steps, frameDelay }) => !skeleton || steps !== 3 || frameDelay !== 0), [],
-      `${viewport.width}px: card Kính reveals from Flow, and the Flow frame fades from 0 so the Kính shows at once`);
+    // No card wears Kính; a PC card reveals from its Flow frame through frosted glass of its photo, the phone through the color layer.
+    assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
+    const cardFrost = await frostCopies("card");
+    assert.ok(phoneView ? cardFrost === 0 : cardFrost > 0, `${viewport.width}px: ${phoneView ? "phone cards make no" : "PC cards reveal through a"} frosted copy (${cardFrost})`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
     // A card that finished loading and left the viewport shows again at once: no blur, no skeleton (R3).
@@ -457,21 +449,16 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass, wait: swapped.wait },
       { busy: null, skeleton: false, glass: false, wait: null },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
-    const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: the PC primary reveals through three-step Kính in 0.6 s like cards; the phone primary has no Kính (color layer, then a 0.45 s fade).
-    if (phoneView) assert.deepEqual(primaryGlass, [], `${viewport.width}px: the phone primary wears no Kính`);
-    else assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
-      `${viewport.width}px: the primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
-    // Like cards: the skeleton still shows through the Kính, the Kính steps have no flat gray fill over the skeleton.
-    if (!phoneView) assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
-      `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
-    if (!phoneView) assert.ok(primaryGlass.filter(({ skeleton }) => skeleton).every(({ frameDelay }) => frameDelay > 100),
-      `${viewport.width}px: the primary Flow frame still fades with the photo (Kính over Flow) ${JSON.stringify(primaryGlass)}`);
-    // Back to the first image also swaps the image in place through the Kính (R4).
+    // loading-glass-and-page-entry R4: the PC primary reveals like cards, through frosted glass of its photo on its own shared Flow canvas;
+    // the phone primary uses the color layer, then a 0.45 s fade. Neither wears Kính.
+    assert.deepEqual(await revealGlass("primary"), [], `${viewport.width}px: the primary wears no Kính`);
+    const primaryFrost = await frostCopies("primary");
+    assert.ok(phoneView ? primaryFrost === 0 : primaryFrost > 0, `${viewport.width}px: primary frosted copies ${primaryFrost}`);
+    // Back to the first image also swaps the image in place (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id
       && !document.querySelector("[data-detail-image]").parentElement.hasAttribute("aria-busy"), first.photo);
-    primaryReveals.push(await revealGlass("primary"));
+    primaryReveals.push({ glass: await revealGlass("primary"), frost: await frostCopies("primary") });
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton], [data-detail-view] [data-media-wait]").length), 0,
@@ -480,10 +467,9 @@ try {
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
-  // Only the PC primary reveals through Kính; the phone primary uses the color layer.
-  assert.deepEqual(primaryReveals[0], [], "phone primary reveals through no Kính");
-  assert.ok(primaryReveals[1].length && primaryReveals[1].every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
-    `PC primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryReveals[1])}`);
+  // Only the PC primary reveals through frosted glass; the phone primary uses the color layer; neither wears Kính.
+  assert.deepEqual(primaryReveals[0], { glass: [], frost: 0 }, "phone primary reveals through no Kính and no frosted glass");
+  assert.ok(primaryReveals[1].glass.length === 0 && primaryReveals[1].frost > 0, `PC primary reveals through frosted glass ${JSON.stringify(primaryReveals[1])}`);
   // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });

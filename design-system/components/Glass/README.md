@@ -11,7 +11,6 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 | --- | --- |
 | Cung (`data-glass-shape="arc"`) | Kính cuối masonry, nền cho cụm CTA trên batch [skeleton](../Skeleton/README.md) |
 | Phủ đều (`data-glass-shape="even"`) | Vùng dư quanh ảnh [primary](../Primary/README.md) khi ảnh contain còn chỗ trống |
-| Phủ đều, ba bậc (`data-glass-reveal`) | Ảnh [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
 
 ## Hành vi
 
@@ -56,28 +55,9 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 
 ## Hiện và tan trên ảnh vừa tải
 
-Ảnh hiện thì kính phủ đều ba bậc hiện trên lớp dưới
-([skeleton](../Skeleton/README.md) hoặc khung trống), crossfade lớp dưới sang
-ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Nhịp gốc `1.4s`:
-
-| Bước | Thời điểm | Đường cong |
-| --- | --- | --- |
-| Kính hiện trên skeleton | 0 đến 0.6s | `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
-| Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` (`--ease-card`) |
-| Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (đường cong riêng, không trùng `power4.inOut` của GSAP) |
-
-- Primary detail chạy đúng reveal của card tải chậm (cùng `0.6s`): kính ba bậc hiện trên skeleton, dưới kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi kính tan. Điện thoại chạy đúng như PC (owner 11/10).
-- Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
-  opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
-  nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
-- Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
-  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Primary hiện từ skeleton
-  hay đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10).
-- Card masonry trên PC lộ ảnh từ khung Flow bằng Kính này, nhịp `0.6s`, tối đa 2 Kính card cùng lúc (`CARD_GLASS_REVEAL_MAX`), còn lại
-  crossfade ([Media card](../MediaCard/README.md), owner 2026-11-12). Điện thoại không Kính trên card. Kính đặt thường trực trên 15 đến
-  18 card làm kéo thanh cuộn tụt còn 14 FPS (2026-10-31), nên Kính chỉ chạy lúc lộ.
-- Giảm chuyển động: không kính.
-- Hiện xong thì gỡ kính khỏi DOM; primary rời đi giữa chừng cũng gỡ.
+Bỏ (owner 2026-11-12): không bề mặt nào hiện rồi tan Kính. Lần đầu dùng, Skia biên dịch shader của kính mất 40 đến 106ms giữa
+lượt lộ hàng loạt trên PC owner. Ảnh card và primary lộ qua kính mờ vẽ trên canvas Flow, khung batch chỉ mờ dần
+([Skeleton](../Skeleton/README.md)). Kính đặt thường trực trên 15 đến 18 card làm kéo thanh cuộn tụt còn 14 FPS (2026-10-31), nên card không có Kính.
 
 Thời gian ở [Motion](../../motion.md#ảnh-trong-card).
 

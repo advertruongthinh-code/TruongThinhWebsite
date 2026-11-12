@@ -178,7 +178,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()
       && entry.canvas?.closest("[data-masonry-cta-skeleton]")).length), 1, "batch uses one shared WebGL context");
     await page.evaluate(() => {
-      const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
+      const canvas = document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow");
       const record = window.__flowLedger.records.find(entry => entry.canvas === canvas);
       window.__lossRecord = record;
       window.__lossOuter = document.querySelector("[data-masonry-cta-frame].is-entry-ready");

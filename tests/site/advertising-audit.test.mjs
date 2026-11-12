@@ -3,7 +3,6 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { filterRank, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
-import { createGlassSurface, playGlassReveal } from "../../src/site/masonry/glass-surface.mjs";
 import { localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
 
 test("malformed card URLs fall back without breaking catalog initialization", () => {
@@ -36,26 +35,4 @@ test("localization preserves authored attributes and literal replacement tokens"
   assert.match(html, /\salt="English \$&"/);
   assert.match(html, /data-en-href="\/about\/"/);
   assert.match(html, /\shref="\/en\/about\/"/);
-});
-
-test("all arc band layers become visible during reveal", (t) => {
-  const element = () => ({ dataset: {}, style: { setProperty() {} }, children: [],
-    className: "", setAttribute() {}, getContext: () => null,
-    append(...nodes) { this.children.push(...nodes); },
-    get classList() { return { contains: (name) => this.className.split(" ").includes(name) }; },
-    animate: (frames) => frames,
-  });
-  const previousStyle = globalThis.getComputedStyle;
-  globalThis.getComputedStyle = () => ({ opacity: "1" });
-  t.after(() => { if (previousStyle === undefined) delete globalThis.getComputedStyle; else globalThis.getComputedStyle = previousStyle; });
-  const previous = globalThis.document;
-  globalThis.document = { createElement: element };
-  t.after(() => { if (previous === undefined) delete globalThis.document; else globalThis.document = previous; });
-  const glass = createGlassSurface("arc");
-  const frames = playGlassReveal(glass, 1400);
-  glass.children.forEach((layer, index) => {
-    if (layer.classList.contains("glass-surface__step")) {
-      assert(Math.max(...frames[index].map(({ opacity }) => opacity)) > 0.99, `layer ${index} must reveal`);
-    }
-  });
 });

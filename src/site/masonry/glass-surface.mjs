@@ -1,8 +1,6 @@
-import { EASE } from "./motion-tokens.mjs";
 
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
-// The blur steps (increments in detail.css), then a white tint and grain. A surface that fades step by step (spec R6)
-// has three steps (levels 16.07, 57.14, 100px: ceiling 100px, owner 06/10; the owner chose three steps on 2026-10-24); the arc band
+// The blur steps (increments in detail.css), then a white tint and grain. Levels 16.07, 57.14, 100px (ceiling 100px, owner 06/10); the arc band
 // has three on phone (4.5, 12, 28px; owner, 05/10, for Android phones), and nine on PC (ARC_DESKTOP_LEVELS, owner 2026-11-01).
 const ARC_STEPS = 3;
 // The owner's arc (06/10): apex at -15% of the CTA group (above the title edge, owner 10/10, so the text sits inside the core), radius 3.5 viewport widths, band 1.75 group heights,
@@ -103,56 +101,6 @@ export function createGlassSurface(shape, steps = shape === "arc" ? Math.max(ARC
     Object.assign(document.createElement("i"), { className: "glass-surface__grain" }),
   );
   return glass;
-}
-
-// CSS cubic-bezier(x1, y1, x2, y2) as a function of time; x is monotonic, so bisection finds the parameter.
-const cubicBezier = (x1, y1, x2, y2) => {
-  const at = (a, b, t) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
-  return (x) => {
-    let low = 0;
-    let high = 1;
-    for (let pass = 0; pass < 24; pass += 1) {
-      const mid = (low + high) / 2;
-      if (at(x1, x2, mid) < x) low = mid;
-      else high = mid;
-    }
-    return at(y1, y2, (low + high) / 2);
-  };
-};
-// Approved reveal (design-system/components/Glass/README.md): in within 0.6s of 1.4s, out over the remainder.
-const REVEAL_PEAK = 0.6 / 1.4;
-const REVEAL_IN = cubicBezier(...EASE.standard.match(/[\d.]+/g).map(Number));
-const REVEAL_OUT = cubicBezier(0.86, 0, 0.07, 1);
-const REVEAL_SAMPLES = 28;
-
-// Glass intensity through the reveal, 0 to 1 and back to 0; t runs across the whole reveal.
-export function glassRevealLevel(t) {
-  return t <= REVEAL_PEAK ? REVEAL_IN(t / REVEAL_PEAK) : 1 - REVEAL_OUT((t - REVEAL_PEAK) / (1 - REVEAL_PEAK));
-}
-
-const REVEAL_LEVELS = Array.from({ length: REVEAL_SAMPLES + 1 }, (_, index) => glassRevealLevel(index / REVEAL_SAMPLES));
-// Each layer's curve is written as a linear() easing over two keyframes 0 and base: the same sample points, joined straight
-// like the old sampled keyframes, but animate() is about 40% cheaper (CPU 4x) and still runs on the compositor.
-const revealEasings = new Map();
-const revealEasing = (step, index, steps) => {
-  const key = step ? `${steps}:${index}` : "";
-  if (!revealEasings.has(key)) revealEasings.set(key, `linear(${REVEAL_LEVELS
-    .map((level) => +(step ? Math.min(1, Math.max(0, steps * level - index)) : level).toFixed(5)).join(", ")})`);
-  return revealEasings.get(key);
-};
-
-// Spec R6: steps come in from light to strong and go out from strong to light, by opacity only; tint and grain follow
-// the level, so the glass starts and ends with no blur and no tint. Opacity with linear() easing keeps it on the compositor.
-export function playGlassReveal(glass, duration) {
-  const layers = [...glass.children];
-  // The leading step of the glass covers evenly, so step indexes run from 0 to the glass's own step count.
-  const steps = layers.filter((layer) => layer.classList.contains("glass-surface__step")).length;
-  // Read every base opacity before the first animate, so a reveal costs only one style recalc.
-  const bases = layers.map((layer) => Number(getComputedStyle(layer).opacity));
-  return layers.map((layer, index) => {
-    const step = layer.classList.contains("glass-surface__step");
-    return layer.animate([{ opacity: 0 }, { opacity: bases[index] }], { duration, fill: "both", easing: revealEasing(step, index, steps) });
-  });
 }
 
 // The arc circle in glass-box coordinates: apex yIn, radius R, band T, center (W / 2, cy),

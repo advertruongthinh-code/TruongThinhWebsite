@@ -59,6 +59,11 @@ uniform vec2 uAnchors[4];
 uniform vec3 uColors[4];
 uniform vec4 uBalances;
 uniform sampler2D uNoise;
+uniform float uFrost;
+uniform sampler2D uTiny;
+uniform vec2 uTinySize;
+uniform vec4 uTinyBox;
+uniform vec2 uTinyCover;
 
 float saturateValue(float value) {
   return clamp(value, 0.0, 1.0);
@@ -126,6 +131,19 @@ void main() {
 
   float noiseValue = texture2D(uNoise, vUv * vec2(3.0, 2.0)).r;
   color = mix(color, overlayNoise(color, noiseValue), uNoiseOpacity);
+  if (uFrost > 0.0) {
+    // Frosted glass of the photo (reveal, owner 2026-11-12): a 20px copy stretched to the frame blurs by itself, a thin white veil,
+    // and fine grain at one noise texel per canvas pixel. No blur filter, so the GPU compiles nothing new at reveal.
+    // Inside uTinyBox the copy sits where the photo sits (contain); outside it covers the frame like the zoom blur background.
+    vec2 inner = (vUv - uTinyBox.xy) / uTinyBox.zw;
+    vec2 tinyUv = all(equal(inner, clamp(inner, 0.0, 1.0))) ? inner : (vUv - 0.5) * uTinyCover + 0.5;
+    vec2 texel = 0.75 / uTinySize;
+    vec3 tiny = 0.25 * (texture2D(uTiny, tinyUv - texel).rgb + texture2D(uTiny, tinyUv + texel).rgb
+      + texture2D(uTiny, tinyUv + vec2(texel.x, -texel.y)).rgb + texture2D(uTiny, tinyUv + vec2(-texel.x, texel.y)).rgb);
+    vec3 frost = mix(tiny, vec3(1.0), 0.14);
+    frost = mix(frost, overlayNoise(frost, texture2D(uNoise, gl_FragCoord.xy / 256.0).r), 0.045);
+    color = mix(color, frost, uFrost);
+  }
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
 `;
@@ -986,6 +1004,8 @@ export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase 
 // One WebGL context draws every batch frame: 7-8 dedicated contexts overload the old A05s GPU (round 18), a shared canvas at half
 // resolution passes the gate (round 20, advertising-skeleton R5). The canvas is 2 viewports tall and only shifts when the viewport leaves it.
 // One layer for the whole document: the runtime attaches the canvas to the current batch, and a remounting controller reuses the context.
+// Share of a reveal spent turning Flow into frosted glass; the rest clears the glass (sample 10 the owner chose, 2026-11-12).
+const FROST_SHARE = 0.45;
 export function createSharedSkeletonFlowLayer() {
   const scale = 0.5;
   const canvas = document.createElement("canvas");
@@ -1067,7 +1087,10 @@ export function createSharedSkeletonFlowLayer() {
       locations = {
         time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
         noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+        frost: uniform("uFrost"), tinySize: uniform("uTinySize"), tinyBox: uniform("uTinyBox"), tinyCover: uniform("uTinyCover"),
       };
+      // The photo's 20px copy sits at unit 1 while a frame reveals; unit 0 keeps the noise.
+      gl.uniform1i(uniform("uTiny"), 1);
       // Alpha reveal through a constant blend: the shader is shared with the dedicated renderer so no extra uniform is added.
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.CONSTANT_ALPHA, gl.ZERO);
@@ -1096,7 +1119,18 @@ export function createSharedSkeletonFlowLayer() {
       const { frame } = entry;
       // A frame not yet entered is not drawn; a frame entering is drawn by the reveal opacity (R4).
       if (!frame.isConnected || !frame.classList.contains("is-entry-ready")) continue;
-      const alpha = entry.alpha();
+      const { reveal } = entry;
+      let alpha;
+      let frost = 0;
+      if (reveal) {
+        // Reveal: Flow turns into frosted glass of the photo over the first 45%, then the glass clears to the photo under it.
+        reveal.start ??= timestamp;
+        const progress = Math.min(1, (timestamp - reveal.start) / reveal.duration);
+        frost = reveal.texture ? smoothValue(progress / FROST_SHARE) : 0;
+        alpha = reveal.texture ? 1 - smoothValue((progress - FROST_SHARE) / (1 - FROST_SHARE)) : 1 - smoothValue(progress);
+        // Stays clear until the runtime stops the frame.
+        if (progress >= 1) reveal.resolve();
+      } else alpha = entry.alpha();
       const box = frame.getBoundingClientRect();
       const top = box.top - origin.top - bandTop;
       const { height } = box;
@@ -1108,6 +1142,15 @@ export function createSharedSkeletonFlowLayer() {
       gl.viewport(x, y, w, h);
       gl.scissor(x, y, w, h);
       gl.blendColor(0, 0, 0, alpha);
+      gl.uniform1f(locations.frost, frost);
+      if (frost > 0) {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, reveal.texture);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform2f(locations.tinySize, reveal.width, reveal.height);
+        gl.uniform4fv(locations.tinyBox, reveal.box);
+        gl.uniform2fv(locations.tinyCover, reveal.cover);
+      }
       const { field, finish } = entry.preset;
       gl.uniform1f(locations.time, entry.phase);
       gl.uniform1f(locations.scale, field.scale);
@@ -1149,7 +1192,14 @@ export function createSharedSkeletonFlowLayer() {
         frame, preset, alpha, direction: direction < 0 ? -1 : 1, speedScale, phase: Number(initialPhase) || FLOW_CLOCK_START,
         ...presetUniforms(preset),
       };
+      const endReveal = () => {
+        if (!entry.reveal) return;
+        if (entry.reveal.texture && !gl.isContextLost()) gl.deleteTexture(entry.reveal.texture);
+        entry.reveal.resolve();
+        entry.reveal = null;
+      };
       const stop = () => {
+        endReveal();
         entries.delete(entry);
         if (entries.size || !frameId) return;
         halt();
@@ -1167,6 +1217,29 @@ export function createSharedSkeletonFlowLayer() {
         destroy: stop,
         get phase() { return entry.phase; },
         get running() { return entries.has(entry); },
+        // Reveal the photo under this frame in `duration` ms through frosted glass made from `tiny` (an ImageBitmap of about 20px, flipped
+        // for WebGL; null fades Flow out). `box` is the photo's rect in the frame (x, y from the bottom left, width, height, all 0..1) and `cover`
+        // the share of the photo the spare area shows. Resolves when done or when the frame stops; null when the layer cannot draw.
+        reveal(tiny, duration, { box = [0, 0, 1, 1], cover = [1, 1] } = {}) {
+          if (lost || !locations || !entries.has(entry)) return null;
+          endReveal();
+          let texture = null;
+          if (tiny) {
+            texture = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tiny);
+            gl.activeTexture(gl.TEXTURE0);
+          }
+          return new Promise((resolve) => {
+            entry.reveal = { texture, width: tiny?.width || 1, height: tiny?.height || 1, box, cover, duration, start: null, resolve };
+            resume();
+          });
+        },
       };
     },
   };

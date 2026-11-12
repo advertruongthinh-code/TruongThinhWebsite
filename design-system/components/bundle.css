@@ -5347,11 +5347,6 @@ body.is-masonry-browse .site-footer {
   opacity: var(--masonry-cta-frame-opacity);
 }
 
-/* The batch frame enters under the Kính from the runtime, so it takes the final opacity at once (skeleton R4). */
-.masonry-grid__cta-frame[data-masonry-cta-frame] {
-  transition: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .masonry-grid__cta-frame {
     opacity: var(--masonry-cta-frame-opacity);
@@ -5432,14 +5427,8 @@ body.is-masonry-browse .site-footer {
   display: none;
 }
 
-[data-detail-glass="true"] .detail-view__hero-frame > .glass-surface,
-.detail-view__hero-frame > .glass-surface[data-glass-reveal] {
+[data-detail-glass="true"] .detail-view__hero-frame > .glass-surface {
   display: block;
-}
-
-/* The Kính reveal covers the photo and skeleton but sits under the image action. */
-.detail-view__hero-frame > .glass-surface[data-glass-reveal] > i {
-  z-index: 2;
 }
 
 /* Centred by layout (inset 0 + auto margin), not translate(-50%, -50%): a fractional translate snaps the media edge
@@ -5463,6 +5452,11 @@ body.is-masonry-browse .site-footer {
   z-index: 2;
   inset: 0;
   --masonry-cta-frame-opacity: 1;
+}
+
+/* The primary's shared Flow canvas draws over the skeleton and the photo it reveals (advertising-skeleton R5). */
+.detail-view__hero-frame > .masonry-grid__cta-shared-flow {
+  z-index: 2;
 }
 
 .detail-view__hero-frame[data-detail-loading] > :is([data-detail-image], [data-detail-background]) {
