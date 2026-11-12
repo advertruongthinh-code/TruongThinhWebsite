@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-11-11
+- Updated: 2026-11-12
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -21,8 +21,7 @@
 - Owner fact chưa xác nhận: năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)); các câu
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
-- Chờ owner quyết: gộp nhãn trùng giữa
-  `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
+- Chờ owner quyết: bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
 - Máy đo chuẩn: Galaxy A04s SM-A047F qua adb ([Android thật](operations/android-real-device-debugging.md)); A05s là máy cũ.
   Nợ phone và GPU ([card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)), số đo cũ 2026-10-18, chưa đo lại:
   - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
