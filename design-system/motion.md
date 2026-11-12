@@ -14,7 +14,9 @@ Motion owner đã duyệt nhưng chưa có code nằm trong spec sở hữu ph�
 - Motion phục vụ nội dung, không giữ nội dung ở trạng thái ẩn.
 - `prefers-reduced-motion: reduce` đi thẳng trạng thái cuối: bỏ transform,
   autoplay, entrance; scroll native; zoom/pan người xem chủ động vẫn đổi tức
-  thì. Đổi preference khi đang mở trang có hiệu lực ngay.
+  thì. Đổi preference khi đang mở trang: hero, logo chạy, masonry dừng hoặc chạy lại ngay; menu, veil chuyển
+  trang, header theo lần tải trang kế ([shell R13](../docs/specs/site-shell.md#r13-reduced-motion)). Query duy nhất là
+  `window.TruongThinhEnv.reducedMotion` do `head-inline.js` gán; module masonry đọc qua `env` của `masonry/host.mjs`.
 - Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
   blur mỗi frame.
 - Vòng đời (dọn observer, listener, timeline; BFCache) ở [shell](../docs/specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)
@@ -149,6 +151,11 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` và rời thứ tự Tab |
 | Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`) |
 | Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và câu, không split: `scale 1.1 → 1` `2.5s` `--ease` từ lúc veil bắt đầu mở; câu rồi số hiện dần `1s expo.out` trễ `0.3s` và `0.6s` (nhịp Espacio, đo frame 2026-10-12). Trước đó đứng ở frame đầu dưới veil. Reduced motion và script lỗi hiện ngay trạng thái cuối |
+
+Line reveal và word fade có một nguồn timing: `revealLines` và `revealWords` trong `window.TruongThinhMotion`
+(`motion.js`), `detail.js` gọi lại `revealWords`; "vào viewport thì chạy một lần" là `onceInView`. Nơi gọi chỉ
+truyền delay, stagger hoặc trạng thái đầu riêng của mình. Ngoại lệ còn viết tay: word fade của hero trang chủ (nằm
+trong timeline intro) và line reveal của `detail.js` (phải chạy cả khi `motion.js` không tải được).
 
 Route và target:
 

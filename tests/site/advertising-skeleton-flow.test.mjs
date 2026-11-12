@@ -115,6 +115,19 @@ assert.deepEqual(tinted.preset.colors, imageColors, "image colours replace the p
 assert.deepEqual({ ...tinted, preset: { ...tinted.preset, colors: null } },
   { ...draw(20260921), preset: { ...draw(20260921).preset, colors: null } }, "only the colours change");
 assert(Object.isFrozen(tinted.preset.colors), "image colours are frozen like a preset");
+// Shuffle rule (skeleton R3): preset fields come whole from the source preset; only the colour patch positions are reshuffled per load.
+const sourceOf = (assignment) => SKELETON_FLOW_PRESETS.find(({ id }) => id === assignment.preset.id);
+const plain = draw(20260921);
+assert.deepEqual(plain.preset.colors, sourceOf(plain).colors, "without image colours the preset keeps its own colours");
+assert.deepEqual(tinted.preset.field, sourceOf(tinted).field, "image colours keep the source field");
+assert.deepEqual(tinted.preset.finish, sourceOf(tinted).finish, "image colours keep the source finish");
+for (const preset of SKELETON_FLOW_PRESETS) {
+  assert.equal(preset.colors.length, 4, `${preset.id}: four colours`);
+  assert.deepEqual(Object.keys(preset.field).sort(), ["distortion", "scale", "speed", "swirl"], `${preset.id}: field keys`);
+  assert.deepEqual(Object.keys(preset.finish).sort(), ["noise", "soften"], `${preset.id}: finish keys`);
+}
+const permutationOf = (seed) => draw(seed).anchorPermutation.join(",");
+assert.notEqual(permutationOf(20260921), permutationOf(7), "two different random streams give different patch positions");
 const stream = seededRandom(7);
 const draws = Array.from({ length: 400 }, () => drawSkeletonFlowAssignment({ random: stream }));
 assert.equal(new Set(draws.map(({ preset }) => preset.id)).size, 12, "draws must reach every preset");

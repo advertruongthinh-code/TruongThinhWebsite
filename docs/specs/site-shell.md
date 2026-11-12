@@ -21,7 +21,7 @@ tests:
   - tests/site/route-veil-header.e2e.mjs
   - tests/site/projects-back-scroll.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # Shell website
@@ -227,8 +227,8 @@ Then không có tràn ngang, chữ bị cắt hay header chồng tiêu đề
 ### R13. Reduced motion
 
 `prefers-reduced-motion: reduce`: không veil, không smooth scroll, không FLIP lockup, màu header
-đổi ngay, menu không timeline, CSS rút animation và transition về 0,01ms, `scroll-behavior: auto`.
-Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ. Đổi preference khi trang mở: `motion-paused` theo ngay.
+đổi ngay, menu không timeline, CSS rút animation và transition về 0,01ms, `scroll-behavior: auto`. Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ. Đổi preference khi trang mở: `motion-paused` (hero, logo chạy) theo ngay; menu, veil chuyển trang, header theo preference từ lần tải trang kế (`motion.js` đọc một lần lúc load).
+Media query reduced motion và phone định nghĩa một lần ở `window.TruongThinhEnv` (`head-inline.js`); shell, detail, masonry đọc từ đó.
 
 ```gherkin
 Given trình duyệt bật reduced motion

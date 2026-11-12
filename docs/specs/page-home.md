@@ -17,6 +17,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
   - tests/site/hero-slideshow.test.mjs
+  - tests/site/hero-motion.e2e.mjs
   - tests/site/project-reel.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-11-12
@@ -267,7 +268,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (ảnh đầu khác slide 0, thứ tự xáo, preload khớp ảnh đầu với `Math.random` stub), `hero-slideshow.test.mjs` (Nhà ở, Kinh doanh cùng script), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (ảnh đầu khác slide 0, thứ tự xáo, preload khớp ảnh đầu với `Math.random` stub), `hero-slideshow.test.mjs` (Nhà ở, Kinh doanh cùng script), `hero-motion.e2e.mjs` (slide hero zoom 1,06 về 1 không lia, scale không tăng trong cùng slide, PC và A04s), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |

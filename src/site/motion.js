@@ -1,7 +1,5 @@
 (() => {
-  const reduceMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  );
+  const reduceMotionQuery = window.TruongThinhEnv.reducedMotion;
   const reduceMotion = reduceMotionQuery.matches;
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
@@ -310,6 +308,23 @@
   function openTextMasks() {
     this.targets().forEach(openTextMask);
   }
+  // Shared text motion (hero-typography spec, design-system motion.md). vars override the defaults; vars.from turns the tween into fromTo.
+  const revealLines = (lines, { from, ...vars } = {}) => {
+    const to = { y: "-0.1em", duration: 1.9, ease: "power4.out", stagger: 0.1, onComplete: openTextMasks, ...vars };
+    return from ? gsap.fromTo(lines, from, to) : gsap.to(lines, to);
+  };
+  const revealWords = (words, vars = {}) =>
+    gsap.to(words, { opacity: 1, duration: 1, ease: "expo.out", stagger: 0.2, ...vars });
+  // Calls callback(target) the first time each element intersects, then stops watching it. Returns the observer for cleanup.
+  const onceInView = (elements, callback, options) => {
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      callback(entry.target);
+      observer.unobserve(entry.target);
+    }), options);
+    elements.forEach((element) => element && observer.observe(element));
+    return observer;
+  };
   // Motto (page-home R7): the ink of a character in the column of the adjacent line's image must be at least
   // max(0.1em, 6px) from the image; if short, only that pair of lines is spread. Ink per character is measured with canvas, text positions
   // are taken at the animation's end state (.heritage-line lifts 0.1em when motion is on).
@@ -1122,6 +1137,9 @@
   window.TruongThinhMotion = {
     maskHiddenY,
     openTextMask,
+    revealLines,
+    revealWords,
+    onceInView,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
     lockLogicalScroll() {
@@ -1592,117 +1610,39 @@
         );
       }
 
-      const revealObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const target = entry.target;
+      // Settled startup shows everything at once, so no element is watched.
+      const watch = (elements) => (settledStartup ? [] : elements);
+      observers.push(
+        onceInView(watch([...revealItems, ...revealGroups]), (target) => {
           if (target.matches(".reveal")) {
-            gsap.to(target, {
-              opacity: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power3.out",
-            });
-          } else {
-            gsap.to(target.querySelectorAll(".line-mask > span"), {
-              y: "-0.1em",
-              duration: 1.9,
-              onComplete: openTextMasks,
-              ease: "power4.out",
-              stagger: 0.1,
-            });
-            target.closest(".legacy-copy")?.querySelector(":scope > p")?.classList.add("is-inview");
+            gsap.to(target, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+            return;
           }
-          observer.unobserve(target);
-        });
-      });
-      observers.push(revealObserver);
-      if (!settledStartup) {
-        revealItems.forEach((item) => revealObserver.observe(item));
-        revealGroups.forEach((group) => revealObserver.observe(group));
-      }
-
-      const heritageTextObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const line = entry.target.querySelector(".heritage-line");
+          revealLines(target.querySelectorAll(".line-mask > span"));
+          target.closest(".legacy-copy")?.querySelector(":scope > p")?.classList.add("is-inview");
+        }),
+        onceInView(watch(heritageTextMasks), (mask) => {
+          const line = mask.querySelector(".heritage-line");
           if (line) {
-            gsap.fromTo(
-              line,
-              { y: maskHiddenY },
-              {
-                y: "-0.1em",
-                duration: 1.9,
-                onComplete: openTextMasks,
-                delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
-                ease: "power4.out",
-              },
-            );
+            revealLines(line, {
+              from: { y: maskHiddenY },
+              stagger: 0,
+              delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
+            });
           }
-          observer.unobserve(entry.target);
-        });
-      });
-      observers.push(heritageTextObserver);
-      if (!settledStartup) {
-        heritageTextMasks.forEach((mask) => heritageTextObserver.observe(mask));
-      }
-
-      const classObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-inview");
-          observer.unobserve(entry.target);
-        });
-      });
-      observers.push(classObserver);
-      if (!settledStartup) {
-        heritageImages.forEach((image) => classObserver.observe(image));
-        if (projectTrack) classObserver.observe(projectTrack);
-      }
-
-      const portalTitleObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const portal = portalTitles.find(({ target }) => target === entry.target);
-          if (portal) {
-            gsap.to(
-              portal.lines.length
-                ? portal.lines
-                : portal.card.querySelectorAll(".portal-copy strong"),
-              {
-                y: "-0.1em",
-                duration: 1.9,
-                onComplete: openTextMasks,
-                delay: (portal.index % 3) * 0.3,
-                ease: "power4.out",
-              },
-            );
-            observer.unobserve(entry.target);
-          }
-        });
-      });
-      observers.push(portalTitleObserver);
-      if (!settledStartup) {
-        portalTitles.forEach(({ target }) => {
-          if (target) portalTitleObserver.observe(target);
-        });
-      }
-
-      const portalSubtitleObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          portalSubtitles
-            .find(({ target }) => target === entry.target)
-            ?.card.classList.add("is-subtitle-inview");
-          observer.unobserve(entry.target);
-        });
-      });
-      observers.push(portalSubtitleObserver);
-      if (!settledStartup) {
-        portalSubtitles.forEach(({ target }) => {
-          if (target) portalSubtitleObserver.observe(target);
-        });
-      }
+        }),
+        onceInView(watch([...heritageImages, projectTrack]), (target) => target.classList.add("is-inview")),
+        onceInView(watch(portalTitles.map(({ target }) => target)), (target) => {
+          const portal = portalTitles.find((item) => item.target === target);
+          revealLines(portal.lines.length ? portal.lines : portal.card.querySelectorAll(".portal-copy strong"), {
+            stagger: 0,
+            delay: (portal.index % 3) * 0.3,
+          });
+        }),
+        onceInView(watch(portalSubtitles.map(({ target }) => target)), (target) =>
+          portalSubtitles.find((item) => item.target === target)?.card.classList.add("is-subtitle-inview"),
+        ),
+      );
 
       const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
       timelines.add(intro);
