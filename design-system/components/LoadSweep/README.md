@@ -1,12 +1,13 @@
 # Vệt sáng
 
-Nguồn: CSS `.media-gate`; spec [Tải ảnh](../../../docs/specs/media-delivery.md).
+Nguồn: CSS `.media-gate`, script `src/site/head-inline.js`; spec [Tải ảnh](../../../docs/specs/media-delivery.md).
 
 Trạng thái chờ của khung ảnh nội dung trên mọi trang và của nút
 [Suggestion](../Suggestion/README.md) "Có thể bạn thích" chưa bật, tới khi ảnh
 tải và giải mã xong ([tải ảnh R6](../../../docs/specs/media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)).
 Owner duyệt 2026-10-07, thay vòng xoay và thanh tải ở đáy nút. Style ở
-`src/site/style.css` và `src/site/detail.css`, không có markup riêng. Card masonry
+`src/site/style.css`, không có markup riêng: khung ảnh mới chỉ cần thuộc tính `data-media-frame`
+(nút Suggestion cũng vậy, không còn CSS vệt riêng). Card masonry
 Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../MediaCard/README.md)), không dùng vệt.
 
 ## Hành vi
@@ -16,7 +17,8 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
   rộng khoảng hai phần năm khung, vẽ bằng `::before` của khung. Độ sáng giảm
   về 0 qua 17 điểm màu theo đường cosine nên mép mờ dần (owner 2026-10-10).
 - Vệt vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục, mỗi lượt `1.6s`
-  linear. Chỉ animate `transform`; khung ra ngoài viewport thì vệt dừng.
+  linear. Chỉ animate `transform`; khung ra ngoài viewport thì vệt dừng (một observer trong script `<head>`,
+  kể cả khung thêm sau lúc mount).
 - Ảnh (JXL, trình duyệt chưa đọc JXL thì WebP) tải xong toàn bộ file và
   `decode()` xong mới hiện, không hiện bản tải dở: khung có `.is-media-settled`,
   vệt gỡ, ảnh `opacity` `0` sang `1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
@@ -27,7 +29,7 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
 - Ảnh dưới chữ trắng (hero, portal, CTA, closer) chờ cùng `.is-media-settled`: chưa có thì
   ảnh `opacity: 0` và lớp tối ẩn, chữ trắng vẫn hiện; ảnh lỗi giữ lớp tối ẩn. Không script nào
   khác tự chờ ảnh lần hai.
-- Nút suggestion đang bật nền trắng, không có vệt; nhãn luôn nằm trên vệt.
+- Nút suggestion đang bật nền trắng, không có vệt (rule ghi đè riêng); nhãn luôn nằm trên vệt.
 - Reduced motion: không lướt; cả lớp sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
 - Không JavaScript: không có class `media-gate` trên root, ảnh hiện như thường.
 

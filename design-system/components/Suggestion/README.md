@@ -21,7 +21,7 @@ chuỗi ảnh nền.
 - Lớp tối `0.5` chỉ hiện khi ảnh nền đã giải mã xong (cùng ảnh, fade `0.45s`; chưa xong thì chỉ có vệt, nhãn vẫn có bóng D), giữa hai mức `0.4` và `0.6` của Pinterest; hover chuột hoặc focus bàn
   phím không đổi độ tối, nhãn chạy [gạch chân](../../motion.md#motion-theo-bề-mặt-ui) như nav
   và portal; ảnh không zoom. Nút đang bật không có lớp tối, không gạch chân.
-- Ảnh nền chưa giải mã xong thì nút chưa bật hiện [Vệt sáng](../LoadSweep/README.md)
+- Ảnh nền chưa giải mã xong thì nút chưa bật (có `data-media-frame`) hiện [Vệt sáng](../LoadSweep/README.md)
   phủ cả nút, nhãn vẫn đọc được.
 
 Preview chụp tại một thời điểm của chuỗi ảnh nên ảnh nền có thể khác lần chụp

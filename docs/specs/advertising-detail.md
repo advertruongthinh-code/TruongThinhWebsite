@@ -124,7 +124,7 @@ And resize 844×390 xuống 844×340 thì mọi frame card suggestion ở cột 
 (`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` (giữa hai mức `0.4` và `0.6` của Pinterest) chỉ hiện khi ảnh nền của nút đã giải mã (`is-media-settled`), cùng ảnh fade `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`; lúc chờ chỉ có vệt sáng và nhãn trắng mang bóng D; slideshow giải mã ảnh kế trước khi đẩy nên lớp tối không tắt giữa hai ảnh; hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không có lớp tối, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
-chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật (runtime gắn `data-media-frame`) có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin

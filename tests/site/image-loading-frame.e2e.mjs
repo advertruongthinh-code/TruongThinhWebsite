@@ -467,6 +467,43 @@ try {
     results.push({ case: "soft-nav-hero-settled", route });
     await context.close();
   }
+  // A frame opts in with data-media-frame (media-delivery R6): any image source, no exclusion list, also when added after mount; the sweep pauses off screen.
+  {
+    const { context, page } = await open({ delay: 0, viewport: viewports[1] });
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+    await page.route("**/slow-frame-*.png", async route => {
+      await new Promise(resolve => setTimeout(resolve, DELAY));
+      await route.fulfill({ contentType: "image/png", body: png });
+    });
+    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
+    const add = (id, margin) => page.evaluate(({ id, margin }) => {
+      const frame = document.createElement("div");
+      frame.id = id;
+      frame.dataset.mediaFrame = "";
+      frame.style.cssText = `position:relative;width:200px;height:100px;margin-top:${margin}px`;
+      const image = document.createElement("img");
+      image.alt = "";
+      image.src = `/slow-frame-${id}.png`;
+      frame.append(image);
+      document.body.append(frame);
+    }, { id, margin });
+    const state = id => page.evaluate(id => {
+      const frame = document.getElementById(id);
+      return { marked: frame.classList.contains("media-frame"), sweep: getComputedStyle(frame, "::before").animationName,
+        settled: frame.classList.contains("is-media-settled"), offscreen: frame.classList.contains("is-media-offscreen") };
+    }, id);
+    await add("frame-visible", 0);
+    await page.evaluate(() => document.getElementById("frame-visible").scrollIntoView());
+    await page.waitForFunction(() => { const frame = document.getElementById("frame-visible"); return frame.classList.contains("media-frame") && !frame.classList.contains("is-media-offscreen"); });
+    assert.deepEqual(await state("frame-visible"), { marked: true, sweep: "media-sweep", settled: false, offscreen: false }, "data-media-frame frame outside /assets/content/ shows the sweep");
+    await add("frame-far", 8000);
+    await page.waitForFunction(() => document.getElementById("frame-far").classList.contains("is-media-offscreen"), null, { timeout: 5000 })
+      .catch(() => assert.fail("a frame added after mount and off screen pauses its sweep"));
+    await page.waitForFunction(() => document.getElementById("frame-visible").classList.contains("is-media-settled"), null, { timeout: 5000 });
+    assert.equal((await state("frame-visible")).sweep, "none", "data-media-frame frame drops the sweep once settled");
+    results.push({ case: "data-media-frame", marked: true });
+    await context.close();
+  }
   console.log("PASS image loading frame: " + results.length + " cases");
 } finally {
   await fs.writeFile(output + "/results.json", JSON.stringify(results, null, 2));
