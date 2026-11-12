@@ -140,8 +140,7 @@ Khung trên canvas chung không có trần số khung: mọi khung đang thấy 
 khung card giữ frame tĩnh, không mở context riêng cho từng card. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
-chưa vào entry không vẽ, khung đang entry hay đang lộ ảnh vẽ với alpha bằng opacity của khung nhân opacity của mặt (R4). Canvas nằm trên khung và
-dưới Kính, CTA. Dưới canvas mỗi khung vẫn hiện frame tĩnh là một khung hình Flow của chính assignment ở pha hiện tại,
+chưa vào entry không vẽ, khung đang entry hay đang lộ ảnh vẽ với alpha bằng opacity của khung nhân opacity của mặt (R4). Canvas nằm trên khung; canvas batch nằm dưới Kính, CTA, canvas card nằm trên cả card ([skeleton chờ ảnh R2](loading-glass-and-page-entry.md#r2-lộ-ảnh-khi-tải-xong)). Dưới canvas mỗi khung vẫn hiện frame tĩnh là một khung hình Flow của chính assignment ở pha hiện tại,
 nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống và lúc chuyển sang chạy không nhảy. Mất context:
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 

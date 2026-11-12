@@ -119,7 +119,7 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha các card tạm khác (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s`, hoặc card tạm tan `0.45s` trên khung Flow nếu ảnh chưa xong ([Motion](../../motion.md#ảnh-trong-card)).
+- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha các card tạm khác (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` hoặc card tạm gỡ ở frame sau dưới khung Flow nếu ảnh chưa xong ([Motion](../../motion.md#ảnh-trong-card)).
 - **Chờ tải:** mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.

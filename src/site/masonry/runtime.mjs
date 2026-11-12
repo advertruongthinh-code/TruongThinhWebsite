@@ -2416,7 +2416,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!sharedSkeletonFlows.has(container)) {
       const layer = createSharedSkeletonFlowLayer();
       sharedSkeletonFlows.set(container, layer);
-      addEventListener("pagehide", (event) => { if (!event.persisted) layer?.dispose(); });
+      // A soft navigation fires no pagehide and replaces the grid: the layer lives as long as this mount.
+      const dispose = () => { layer?.dispose(); layer?.canvas.remove(); sharedSkeletonFlows.delete(container); };
+      addEventListener("pagehide", (event) => { if (!event.persisted) dispose(); }, { signal: controller.signal });
+      controller.signal.addEventListener("abort", dispose, { once: true });
     }
     const layer = sharedSkeletonFlows.get(container);
     // A rebuilt batch or a newly mounted card lands after the canvas; the canvas must be the last child to sit above the frames, below Glass and the CTA.
@@ -2810,14 +2813,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       frame = attachLoadingSkeleton(node.querySelector(".card-media"), mediaKey(node), null, new Set(colors).size > 1 ? colors : null);
       node.dataset.masonryMediaLoading = "";
     }
-    // Phone: the color layer is in the same phase as the temp card, so the temp card is removed in the next frame, no crossfade (R7).
-    // PC: the temp card fades out over the Flow frame.
+    // The card has drawn its wait state over the temp card (phone: the color layer in the same phase; PC: the Flow frame over the opaque media box),
+    // so the temp card is removed in the next frame, no crossfade (R7).
     if (node.masonryGhost) {
       const ghost = node.masonryGhost;
       node.masonryGhost = null;
-      if (phone || reduced) requestAnimationFrame(() => ghost.remove());
-      else ghost.animate([{ opacity: getComputedStyle(ghost).opacity }, { opacity: 0 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING })
-        .finished.then(() => ghost.remove(), () => ghost.remove());
+      requestAnimationFrame(() => ghost.remove());
     }
     cardSkeletons.set(node, { frame, colors: phone, revealing: false, animations: [], glass: null });
   };

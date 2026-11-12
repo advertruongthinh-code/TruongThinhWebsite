@@ -331,6 +331,36 @@ try {
     await context.close();
   }
 
+  // Soft navigation fires no pagehide and replaces the grid: each mount's shared Flow layers are disposed with it, so live WebGL contexts do not grow
+  // with every visit (review #875: 1, 3, 5, 7 before the fix).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      window.__glContexts = [];
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+        const gl = getContext.call(this, type, ...rest);
+        if (gl && /webgl/.test(type) && !window.__glContexts.includes(gl)) window.__glContexts.push(gl);
+        return gl;
+      };
+    });
+    const live = () => page.evaluate(() => window.__glContexts.filter((gl) => !gl.isContextLost()).length);
+    const settled = (path) => page.waitForFunction((value) => location.pathname === value && window.barba && !window.barba.transitions.isRunning, path);
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
+    const counts = [await live()];
+    for (let round = 0; round < 2; round += 1) {
+      await page.evaluate(() => window.barba.go("/vi/projects/"));
+      await settled("/vi/projects/");
+      await page.evaluate(() => window.barba.go("/vi/advertising-products/"));
+      await settled("/vi/advertising-products/");
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
+      counts.push(await live());
+    }
+    assert.ok(counts.every((count) => count <= 3) && counts.at(-1) <= counts[0], `soft navigation leaks WebGL contexts ${counts}`);
+    await context.close();
+  }
+
   // Phone: opening detail from a scrolled masonry jumps back to y=0 without scrollend; related card images wait on the color layer,
   // and still clear once loaded without the viewer scrolling further.
   {

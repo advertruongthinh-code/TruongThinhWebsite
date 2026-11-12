@@ -64,7 +64,7 @@ chờ decode), khi card còn giao viewport thì `revealCard` gọi hàm reveal c
 trong `0.6s` (`CARD_REVEAL_MS`), giống primary ở R4: Kính ba bậc hiện, Flow mờ, media hiện `0.13s` tới `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`,
 Kính tan; canvas chung vẽ Flow theo opacity của khung. Xong thì gỡ Kính, khung và `data-masonry-media-loading`. Tối đa `CARD_GLASS_REVEAL_MAX` = 4 card
 lộ bằng Kính cùng lúc; card thứ năm trở đi, và mọi card khi Kính cung đang thấy, chỉ crossfade (không Kính). Bị gỡ giữa chừng thì hủy animation,
-gỡ khung và hiện media ngay. Card chưa có khung (gắn trong `revealCard`) chỉ crossfade media.
+gỡ khung và hiện media ngay. Card chưa có khung (gắn trong `revealCard`) chỉ crossfade media. Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ, pill chỉ số và nhãn vừa xem nằm dưới Flow; lúc lộ ảnh, Kính của card nằm dưới Flow và chỉ lộ ra khi Flow mờ dần (từ khoảng `0.13s`), khác primary có Kính trên Flow từ đầu.
 
 Trên điện thoại (cùng điều kiện `skeletonPhone` của [skeleton R1](advertising-skeleton.md)) không có khung: `revealCard` cho media hiện
 `opacity 0 → 1` trong `0.45s` (`GHOST_FADE_MS`, `GHOST_FADE_EASING`) trên lớp màu, xong gỡ lớp màu (`clearColorWait`), không gọi `playReveal`; bị gỡ giữa chừng thì hủy animation và hiện media ngay.
@@ -212,7 +212,7 @@ grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhả
 dựng dần mỗi frame (`requestAnimationFrame`). Mọi card tạm thở chung pha (`animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha màu (`colorsPhase`) nên không nhảy màu.
 
 Card tạm lên card thật: ảnh đã có hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
-(cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1: PC card tạm tan `0.45s` (`GHOST_FADE_MS`, `GHOST_FADE_EASING`) trên khung Flow, điện thoại và giảm chuyển động gỡ ở frame kế; card tạm
+(cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1 và card tạm gỡ ở frame kế (card thật với nền media đục đã phủ kín nó); card tạm
 ngoài viewport gỡ không motion. Giảm chuyển động (R8): card tạm không thở, ảnh có sẵn hiện thẳng.
 
 ```gherkin
