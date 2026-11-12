@@ -80,7 +80,7 @@ And README dài tối đa 150 dòng
    khối từ HTML trang (`also`), kể cả trang khác; trang 404 kèm khối `<style>` riêng của trang.
 2. Preview dùng chính CSS website: `components/bundle.css` sinh từ `style.css`, `detail.css`, bỏ `@font-face` tự
    host (preview nạp font từ Google). `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card
-   rail công trình chèn từ dữ liệu như build) hoặc từ bản chụp, sinh `bundle.css`, `bundle.js` rỗng và ảnh
+   rail công trình chèn từ dữ liệu như build; menu và navbar dựng bằng `readPageSource` như build) hoặc từ bản chụp, sinh `bundle.css`, `bundle.js` rỗng và ảnh
    `preview-media/` (xóa ảnh thừa). `qa:docs` chạy chế độ `--check`; file sinh lệch source thì fail.
 3. `bundle.js` rỗng nhưng bắt buộc: thiếu file này, trang ép mọi preview thành tĩnh, không chạy script, không tải
    ảnh (verify 2026-10-23).

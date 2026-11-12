@@ -14,7 +14,8 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
   nhóm (Nhà ở, Kinh doanh, Công trình, Quảng cáo, Về chúng tôi, Liên hệ) gọn
   một dòng, và danh sách mục con; 3/2/1 cột ở mặc định, 960, 578px (PC ba
   trên, ba dưới); cột ngăn bằng viền `line`. Nav dựng lúc build từ
-  `scripts/site/sync-site-menu.mjs` ([shell spec](../../../docs/specs/site-shell.md#r4-full-menu)).
+  `content/menu.json` bằng `scripts/site/sync-site-menu.mjs`, thay mốc `<!-- menu-nav -->` trong trang nguồn; đầu ra không đổi
+  ([shell spec](../../../docs/specs/site-shell.md#r4-full-menu)).
 - Mục con dẫn tới URL canonical kèm query, không dùng section hash. Mục chữ
   hoa 700, 0.85rem, cao dòng tối thiểu 22.4px, cách nhau 15px; tiêu đề nhóm
   `menu-title` vẫn được xuống dòng nếu cửa sổ quá hẹp.

@@ -66,7 +66,7 @@ tên; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([m
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-hotel` thuộc Nhà ở;
 `showroom-cua-hang`, `cafe-nha-hang`, `van-phong` thuộc Kinh doanh; mỗi loại một trang lọc `/<locale>/projects/<loại>/`
 luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc chỉ hiện bộ lọc có công
-trình, cộng bộ lọc của trang đang xem. Mảng, loại, nhãn lấy từ `PROJECT_TYPES` của `scripts/site/block-pages.mjs`.
+trình, cộng bộ lọc của trang đang xem. Mảng, loại, nhãn lấy từ `PROJECT_TYPES` của `scripts/site/block-pages.mjs`; khung trang lấy qua `readPageSource` (menu dựng lúc build, không nằm trong HTML nguồn).
 Công trình tiêu biểu trên menu site đọc `src/site/content/menu.json` (`featuredProjects`, thứ tự hiển thị; CMS sửa được);
 cùng file giữ `featuredProductGroups` cho nhóm sản phẩm quảng cáo tiêu biểu, rỗng thì lấy nhóm nhiều thẻ nhất, bằng số thẻ thì xếp theo slug A-Z (`menuFeatured`).
 `scripts/ci/content-contract.mjs` báo id không tồn tại hoặc lặp.

@@ -9,6 +9,8 @@ export { NEWS_GROUPS };
 
 // The sector is also the sector page directory, used as its frame and namespace.
 export const SECTORS = ["residential", "commercial"];
+// Sector short names (menu group titles, project filter chips).
+export const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const SECTOR_NAME = { residential: "Không gian nhà ở", commercial: "Không gian kinh doanh" };
 
 // Per page kind: route directory, frame page, namespace, JSON-LD type, parent breadcrumb entry.
