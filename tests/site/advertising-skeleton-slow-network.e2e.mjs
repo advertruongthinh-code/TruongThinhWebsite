@@ -247,6 +247,32 @@ try {
     await context.close();
   }
 
+  // PC load: a card frame's still image (one CPU render each) is drawn only at idle. Drawing them in the deferred CTA task doubled it
+  // (19ms vs 10ms on main) and dropped frames in the first reveal burst on the owner's PC (3b.2 run 4).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      window.__stills = { idle: 0, busy: 0 };
+      let idle = false;
+      const request = window.requestIdleCallback;
+      window.requestIdleCallback = (callback, options) => request((deadline) => {
+        idle = true;
+        try { return callback(deadline); } finally { idle = false; }
+      }, options);
+      const { append } = Element.prototype;
+      Element.prototype.append = function (...nodes) {
+        if (nodes.some((node) => node.classList?.contains("masonry-grid__cta-flow")) && this.closest(".card-media")) window.__stills[idle ? "idle" : "busy"]++;
+        return append.apply(this, nodes);
+      };
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => performance.now() > 3000);
+    const stills = await page.evaluate(() => window.__stills);
+    assert.ok(stills.idle > 0 && stills.busy === 0, `desktop load: card stills drawn only at idle ${JSON.stringify(stills)}`);
+    assert.ok((await cardStates(page)).some(({ flow }) => flow === "running"), "desktop load: waiting cards run Flow");
+    await context.close();
+  }
+
   // PC with KHR_parallel_shader_compile (stubbed: headless SwiftShader lacks it): the grid's shared canvas never reads LINK_STATUS in the frame it linked,
   // it polls COMPLETION_STATUS_KHR first. Reading it at once blocked the main thread 27ms in the first reveal burst on the owner's PC (3b.2 run 2).
   {

@@ -2626,6 +2626,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // the frame task exceeds 50ms on an Android phone during a fast swipe (R8, decision phone-frame-budget).
   let skeletonSyncInFrame = false;
   let skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
+  let skeletonAssignIdle = false;
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
     const rects = new Map();
@@ -2641,15 +2642,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // the rest go to a later task, and a frame without an assignment does not enter the entry yet (decision phone-frame-budget).
     const assignUntil = performance.now() + skeletonAssignBudget;
     let assigned = 0;
+    let deferred = false;
     for (const frame of visibleSkeletonFrames) {
       if (skeletonAssignmentByFrame.has(frame)) continue;
+      // A card frame shows the image's dominant color until idle: its still drawn in the deferred CTA task doubled that task
+      // (19ms vs 10ms) and dropped frames in the first reveal burst on the owner's PC (3b.2 run 4).
+      if (!skeletonAssignIdle && frame.parentElement?.classList.contains("card-media")) {
+        deferred = true;
+        continue;
+      }
       if (skeletonSyncInFrame || (assigned && performance.now() > assignUntil)) {
-        scheduleSkeletonAssign();
+        deferred = true;
         break;
       }
       assignSkeleton(frame, rects);
       assigned += 1;
     }
+    if (deferred) scheduleSkeletonAssign();
     syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
@@ -2703,8 +2712,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const run = (deadline) => {
       skeletonAssignTimer = 0;
       if (controller.signal.aborted) return;
-      skeletonAssignBudget = Math.min(SKELETON_ASSIGN_BUDGET_MS, deadline?.timeRemaining() ?? SKELETON_ASSIGN_BUDGET_MS);
+      // A PC busy enough that idle times out (tall window, every card waiting) still assigns a full budget: one frame per pass left
+      // cards without Flow for seconds. The phone keeps the idle remainder (decision phone-frame-budget).
+      skeletonAssignBudget = deadline?.didTimeout && !skeletonPhone() ? SKELETON_ASSIGN_BUDGET_MS
+        : Math.min(SKELETON_ASSIGN_BUDGET_MS, deadline?.timeRemaining() ?? SKELETON_ASSIGN_BUDGET_MS);
+      skeletonAssignIdle = true;
       syncSkeletonMotion();
+      skeletonAssignIdle = false;
       skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
     };
     skeletonAssignTimer = globalThis.requestIdleCallback?.(run, { timeout: 250 }) ?? setTimeout(run);

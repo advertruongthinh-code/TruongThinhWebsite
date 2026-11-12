@@ -211,7 +211,7 @@ Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy
 Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
-rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt).
+rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt). Khung card trên PC chỉ nhận ảnh tĩnh trong lượt idle đó, tới lúc ấy card giữ màu chủ đạo của ảnh: vẽ chúng trong task hoãn của batch CTA làm task đó dài gấp đôi (19ms so với 10ms) và rớt khung lúc lộ ảnh hàng loạt trên PC owner (3b.2 lượt 4).
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport
