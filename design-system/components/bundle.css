@@ -1062,10 +1062,10 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   will-change: transform;
 }
 
-/* Portrait screens (phone) crop both sides of the hero image; a slide whose subject is off-center sets --hero-portrait-x to keep the subject in frame. */
+/* Portrait screens (phone) crop both sides of the hero image; hero-slides.json sets --hero-focal-x and --hero-focal-y on the figure to keep the subject in frame. */
 @media (max-aspect-ratio: 1/1) {
   .hero-slide img {
-    object-position: var(--hero-portrait-x, 50%) 50%;
+    object-position: var(--hero-focal-x, 50%) var(--hero-focal-y, 50%);
   }
 }
 

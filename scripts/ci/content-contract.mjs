@@ -4,6 +4,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { validateProjectReel } from "../site/project-reel.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
@@ -52,25 +53,12 @@ export async function checkSiteContent(siteRoot) {
         errors.push(`${at(file)}: ${src}: declared ${width}x${height}, actual pixels ${real.width}x${real.height}`);
       }
     }
-    // Hero slideshow (page-home R3, detail-pages R5): the head script's `slides` array picks the first image by index,
-    // so it must match figure.hero-slide in name, width and order; data-slide runs from 0 without gaps.
-    const slidesArray = text.match(/const slides = (\[[\s\S]*?\]);/)?.[1];
-    if (slidesArray) {
-      const slides = [...slidesArray.matchAll(/\["([^"]+)",\s*(\d+)\]/g)].map(([, name, width]) => `${name} ${width}`);
-      const figures = [...text.matchAll(/<figure class="hero-slide(?:\s[^"]*)?" data-slide="(\d+)">\s*(<img\b[^>]*>)/g)];
-      figures.forEach(([, index], position) => {
-        if (Number(index) !== position) errors.push(`${at(file)}: hero-slide ${position} has data-slide="${index}"`);
-      });
-      const markup = figures.map(([, , tag]) => {
-        const src = attribute(tag, "src") ?? attribute(tag, "data-src") ?? "";
-        return `${path.basename(src, ".webp")} ${attribute(tag, "width")}`;
-      });
-      if (slides.join("|") !== markup.join("|")) {
-        errors.push(`${at(file)}: slides array [${slides.join(", ")}] differs from figure.hero-slide [${markup.join(", ")}]`);
-      }
-    }
   }
 
+  const heroFile = path.join(siteRoot, "content/hero-slides.json");
+  if (existsSync(heroFile)) {
+    await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
+  }
   const reelFile = path.join(siteRoot, "content/project-reel.json");
   if (existsSync(reelFile)) {
     await validateProjectReel(JSON.parse(readFileSync(reelFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
