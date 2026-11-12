@@ -245,7 +245,7 @@ Then không có veil hay timeline menu, scroll native, trang Residential hiện 
 | Class | `route-enter`, `motion-fallback`, `motion-enabled`, `motion-ready`, `menu-open`, `is-transitioning` | Trạng thái shell trên `html`, `body` |
 | Hàm public | `window.TruongThinhMotion` (`getLogicalScroll`, `setLogicalScroll`, `lockLogicalScroll`, `unlockLogicalScroll`, `getViewportMetrics`); `window.__ttMotionBoot` (`claim`, `release`, `fail`, `fallback`) | Advertising runtime, test; head script (R7) |
 | Event, storage | Phát `site:scroll`, `site:menu-closed`, `languagechange`, nghe `site:layout`; `localStorage['tt-lang']`, `sessionStorage['tt-locale-scroll:<path><search>']` | Module trang đồng bộ shell; ngôn ngữ, cuộn fallback |
-| Token | `--site-layout-viewport-height`, `--header-row-height`, `--gutter`, `--footer-top-gap` | Layout shell |
+| Token | `--site-layout-viewport-height`, `--header-row-height`, `--gutter`, `--footer-top-gap`; thời lượng và đường cong `--dur-*`, `--ease`, `--ease-*` ([bảng](../../design-system/motion.md#token-motion)) | Layout shell; motion CSS |
 | Phụ thuộc | `window.TruongThinhDetail`, `window.TruongThinhMasonry` | Mount trang, adapter Advertising (spec trang) |
 
 ## UI

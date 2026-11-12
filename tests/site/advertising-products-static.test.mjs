@@ -152,7 +152,7 @@ assert.match(css, /suggestion-link\[aria-pressed="true"\] \.detail-view__suggest
 assert.doesNotMatch(css, /--masonry-suggestion-image|background-clip:\s*text/, "active suggestion uses plain ink text without an image mask");
 assert.doesNotMatch(css, /suggestion-link:hover:not\(\[aria-pressed="true"\]\)::after\s*\{[^}]*filter:/, "inactive suggestion hover does not change overlay darkness");
 assert.doesNotMatch(siteCss, /service-portal:hover \.portal-shade\s*\{[^}]*background:/, "portal hover does not change overlay darkness");
-assert.match(css, /suggestion-link \{[\s\S]*?transition: background-color 250ms ease-out, border-color 250ms ease-out;/, "active state crossfades its surface and border without layout change");
+assert.match(css, /suggestion-link \{[\s\S]*?transition: background-color var\(--dur-quick\) ease-out, border-color var\(--dur-quick\) ease-out;/, "active state crossfades its surface and border without layout change");
 assert.match(css, /detail-view__info \[data-detail-description\] \{[\s\S]*?font-size: 1rem;/, "description text scales with the root font size without redesigning the category eyebrow");
 assert.doesNotMatch(advertisingCss, /masonry-grid \.masonry-card figcaption|\[data-masonry-related-card\] figcaption/, "Advertising CSS reserves no caption space");
 assert.match(advertisingCss, /\.masonry-card \{[\s\S]*?contain: layout;/, "tile layout containment preserves the external focus-visible outline");

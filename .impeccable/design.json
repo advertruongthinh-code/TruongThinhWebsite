@@ -21,8 +21,58 @@
         "purpose": "Motion: Design System không có family motion; xem mục Motion trong README."
       },
       {
-        "name": "media-hover-duration",
+        "name": "ease-underline",
+        "value": "cubic-bezier(0.4, 0, 0, 1)",
+        "purpose": "Đường cong gạch chân chạy; xem motion.md mục Token motion."
+      },
+      {
+        "name": "ease-expo-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Đường cong vào nhanh, dừng mềm (khớp expo.out của GSAP); xem motion.md mục Token motion."
+      },
+      {
+        "name": "ease-card",
+        "value": "cubic-bezier(0.65, 0, 0.35, 1)",
+        "purpose": "Đường cong card hiện ảnh lần đầu; xem motion.md mục Token motion."
+      },
+      {
+        "name": "ease-viewer",
+        "value": "cubic-bezier(0.55, 0, 0, 1)",
+        "purpose": "Đường cong mở, đóng viewer; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-fast",
+        "value": "150ms",
+        "purpose": "Thời lượng 150ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-quick",
+        "value": "250ms",
+        "purpose": "Thời lượng 250ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-base",
+        "value": "300ms",
+        "purpose": "Thời lượng 300ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-card",
+        "value": "400ms",
+        "purpose": "Thời lượng 400ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-fade",
+        "value": "450ms",
+        "purpose": "Thời lượng 450ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "dur-hover",
         "value": "600ms",
+        "purpose": "Thời lượng 600ms; xem motion.md mục Token motion."
+      },
+      {
+        "name": "media-hover-duration",
+        "value": "var(--dur-hover)",
         "purpose": "Motion: xem mục Motion trong README."
       },
       {

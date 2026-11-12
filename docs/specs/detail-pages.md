@@ -262,7 +262,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 
 Component [Hero](../../design-system/components/Hero/README.md), [Gallery](../../design-system/components/Gallery/README.md),
 [Footer](../../design-system/components/Footer/README.md). Motion [text](../../design-system/motion.md#text),
-[hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax). Copy và
+[hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax); `detail.css` đọc thời lượng, đường cong từ [token motion](../../design-system/motion.md#token-motion). Copy và
 ảnh: [hero ba route](../../design-system/content.md#hero-ba-route-dịch-vụ), [mạch nội dung](../../design-system/content.md#mạch-nội-dung-theo-route),
 [crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md).
 
