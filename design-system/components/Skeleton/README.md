@@ -40,9 +40,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 Cùng khung này phủ kín ảnh [primary](../Primary/README.md) đang chờ ảnh, đủ độ
 đậm (không nhạt dần), gỡ sau khi ảnh hiện; bốn màu Flow lấy từ chính ảnh đó
 (build trích bằng k-means), batch giữ 12 preset. [Media card](../MediaCard/README.md)
-chờ ảnh bằng blur trên màu chủ đạo, không dùng khung này. Flow chạy cả khi đang
-cuộn. Mọi khung của batch vẽ trên một canvas WebGL chung ở nửa độ phân giải,
-nằm trên khung và dưới Kính, CTA; khung chờ ảnh primary dùng context riêng.
+trên PC chờ ảnh bằng chính khung này, cũng với bốn màu của ảnh; điện thoại dùng lớp màu. Flow chạy cả khi đang
+cuộn. Mỗi vùng vẽ trên một canvas WebGL chung ở nửa độ phân giải, là con cuối của vùng đó, nằm trên khung và dưới Kính, CTA:
+batch, card lưới chính, card lưới related (tối đa 3 context); không giới hạn số khung vẽ. Khung chờ ảnh primary dùng context riêng.
 Khung chưa chạy hoặc mất context hiện một khung hình Flow đứng yên của chính
 assignment.
 

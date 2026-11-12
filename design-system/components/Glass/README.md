@@ -73,8 +73,9 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 - Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
   ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Primary hiện từ skeleton
   hay đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10).
-- Card masonry không còn Kính: ảnh card chờ tải tự mờ trên màu chủ đạo rồi blur
-  tan ([Media card](../MediaCard/README.md), owner 2026-10-31).
+- Card masonry trên PC lộ ảnh từ khung Flow bằng Kính này, nhịp `0.6s`, tối đa 4 Kính card cùng lúc (`CARD_GLASS_REVEAL_MAX`), còn lại
+  crossfade ([Media card](../MediaCard/README.md), owner 2026-11-12). Điện thoại không Kính trên card. Kính đặt thường trực trên 15 đến
+  18 card làm kéo thanh cuộn tụt còn 14 FPS (2026-10-31), nên Kính chỉ chạy lúc lộ.
 - Giảm chuyển động: không kính.
 - Hiện xong thì gỡ kính khỏi DOM; primary rời đi giữa chừng cũng gỡ.
 

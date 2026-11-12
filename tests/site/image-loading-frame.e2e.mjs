@@ -323,9 +323,9 @@ try {
       filters: [...document.querySelectorAll("[data-masonry-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
-    // A card image waiting to load shows under its own blur instead of the Flow skeleton (progressive-loading R9).
+    // A card image waiting to load stays hidden under a Flow frame (PC) or the color layer (phone) (progressive-loading R9).
     const waitingImage = phoneView ? "[data-project-grid] [data-media-wait='colors'] img.lazyloading"
-      : "[data-project-grid] img[style*='blur('].lazyloading";
+      : "[data-project-grid] [data-masonry-card]:has([data-masonry-loading-skeleton]) img.lazyloading";
     await page.waitForFunction((selector) => document.querySelector(selector), waitingImage);
     const loading = await page.evaluate((selector) => {
       const image = document.querySelector(selector);
@@ -339,10 +339,9 @@ try {
       assert.deepEqual(loading, { blur: false, animationName: "none", opacity: 0, marked: false, layer: "media-colors-fade, media-colors-shift" },
         `${viewport.width}px: loading card waits on the color layer, image hidden`);
     } else {
-      // A waiting image breathes with media-breathe (opacity 1 → 0.45 → 1) while blurred (image-wait spec S2).
-      assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
-        { blur: true, animationName: "media-breathe", opacity: true, marked: true, layer: "none" },
-        `${viewport.width}px: loading card blurs its own image and breathes as it enters view`);
+      // The image stays hidden, unblurred and still under the card's Flow frame; the card is marked as waiting.
+      assert.deepEqual(loading, { blur: false, animationName: "none", opacity: 0, marked: true, layer: "none" },
+        `${viewport.width}px: loading card waits under Flow, image hidden`);
     }
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
@@ -356,16 +355,19 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // The blur dissolves within 0.6 s after the last image finishes loading, then is removed.
+    // The Flow frame or color layer goes within 0.6 s after the last image finishes loading.
     await page.waitForFunction((selector) => !document.querySelector(selector), phoneView ? "[data-project-grid] [data-masonry-card][data-media-wait]"
-      : "[data-project-grid] img[style*='blur(']", { timeout: 5000 })
-      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur or color layer`));
+      : "[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]", { timeout: 5000 })
+      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the Flow frame or color layer`));
     // When loading finishes the breathing stops: no attribute, animation or half-done opacity remains (image-wait spec S2).
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.hasAttribute("data-masonry-media-loading")
         || [...card.querySelectorAll("img")].some((image) => getComputedStyle(image).animationName !== "none")).length), 0,
       `${viewport.width}px: loaded cards stop breathing`);
-    assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
+    // Phone cards never wear Kính; a PC card shows Kính only to reveal from its Flow frame (three tiers).
+    const cardGlass = await revealGlass("card");
+    if (phoneView) assert.deepEqual(cardGlass, [], `${viewport.width}px: loading cards wear no Kính`);
+    else assert.deepEqual(cardGlass.filter(({ skeleton, steps }) => !skeleton || steps !== 3), [], `${viewport.width}px: card Kính reveals from Flow`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
     // A card that finished loading and left the viewport shows again at once: no blur, no skeleton (R3).

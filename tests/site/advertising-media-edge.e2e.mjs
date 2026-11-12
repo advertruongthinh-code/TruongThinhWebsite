@@ -1,7 +1,7 @@
 // Dark seam at the masonry card edge (owner 2026-11-09): the frame's dominant-color background must not show at the media edge.
 // 1. A loaded image covers the frame exactly, even when the file still loading rounds pixels to a skewed ratio (480w: 437x245 of a 3065x1725 frame).
-// 2. The blurred image waiting to load overshoots the frame by at least the blur radius, so the blur's pale edge band lies outside the clipped area.
-//    On the phone the card waits on the color layer instead: no blur, so no overshoot; the image is hidden and the layer fills the frame.
+// 2. A card waiting to load: on PC the Flow frame fills the media box and the image is hidden, unfiltered; on the phone the color layer fills the frame
+//    and the image is hidden. Neither blurs, so no edge band can show.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-media-edge.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -9,7 +9,6 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
-const BLEED = 24;
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
 const scrollThrough = async (page, wait) => {
@@ -62,7 +61,7 @@ try {
     await page.close();
   }
 
-  // Card image held for 8s like Slow 3G: the card in the viewport is blurred on PC, covered by the color layer on the phone.
+  // Card image held for 8s like Slow 3G: the card in the viewport is covered by its Flow frame on PC, by the color layer on the phone.
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const phone = viewport.width <= 750;
     const context = await browser.newContext({ viewport });
@@ -88,16 +87,19 @@ try {
       await context.close();
       continue;
     }
-    const bleeds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]")].flatMap((tile) => {
+    const frames = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]")].flatMap((tile) => {
       const media = tile.querySelector(".masonry-card__media");
-      const image = media?.querySelector(".masonry-card__foreground:not([hidden])");
-      if (!image?.style.filter.startsWith("blur(")) return [];
+      const frame = media?.querySelector("[data-masonry-loading-skeleton]");
+      if (!frame) return [];
+      const image = media.querySelector(".masonry-card__foreground:not([hidden])");
       const box = media.getBoundingClientRect();
-      const rect = image.getBoundingClientRect();
-      return [{ id: tile.dataset.masonryCard, bleed: Math.min(box.top - rect.top, rect.bottom - box.bottom, box.left - rect.left, rect.right - box.right) }];
+      const rect = frame.getBoundingClientRect();
+      return [{ id: tile.dataset.masonryCard, gap: Math.max(...[rect.top - box.top, box.bottom - rect.bottom, rect.left - box.left, box.right - rect.right].map(Math.abs)),
+        blur: Boolean(image?.style.filter), opacity: image && Number(getComputedStyle(image).opacity) }];
     }));
-    assert.ok(bleeds.length > 2, `${viewport.width}px: blurred cards measured (${bleeds.length})`);
-    assert.deepEqual(bleeds.filter(({ bleed }) => bleed < BLEED - 0.5), [], `${viewport.width}px: blurred media must overflow the frame by the blur radius`);
+    assert.ok(frames.length > 2, `${viewport.width}px: waiting cards measured (${frames.length})`);
+    assert.deepEqual(frames.filter(({ gap, blur, opacity }) => gap > 0.5 || blur || opacity !== 0), [],
+      `${viewport.width}px: the Flow frame fills the media box and the waiting image is hidden, unfiltered`);
     await page.unrouteAll({ behavior: "ignoreErrors" });
     await context.close();
   }

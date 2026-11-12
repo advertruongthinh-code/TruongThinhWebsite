@@ -22,12 +22,12 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   (owner 2026-11-10). Mọi UI của card nằm trong media nên card cao đúng bằng media.
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
-- Vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh,
-  ảnh hiện ngay dưới `blur(24px)` của chính nó, phóng tràn khung 24px mỗi phía để
-  mép mờ không thành viền tối (owner 2026-11-09), thở (opacity `1 → 0.45 → 1`, `2s`,
-  owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
-  ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
-- Điện thoại (cảm ứng hoặc viewport từ 750px trở xuống) không mờ, không thở: card chờ ảnh mang `data-media-wait="colors"`, một lớp phẳng đổi qua 4 màu
+- PC: vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh, ảnh ẩn dưới khung
+  [Skeleton](../Skeleton/README.md) Flow trong 4 màu của chính ảnh (`.card-media > .masonry-grid__cta-frame`, không nhận tap; card mang
+  `data-masonry-media-loading`), vẽ trên một canvas chung của lưới. Tải và giải mã xong thì lộ ảnh `0.6s` bằng Kính như primary, tối đa 4 card
+  cùng lúc, còn lại crossfade (owner 2026-11-12, đo PC ở DRY 3b.1). Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
+  ([Motion](../../motion.md#ảnh-trong-card)).
+- Điện thoại (cảm ứng hoặc viewport từ 750px trở xuống) không Flow, không Kính: card chờ ảnh mang `data-media-wait="colors"`, một lớp phẳng đổi qua 4 màu
   chủ đạo của ảnh (mỗi màu `2s`, `ease-in-out`, lặp `8s`; lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; token màu `--wait-1..4`), ảnh ẩn tới khi tải và giải mã xong rồi hiện `0.45s`
   `cubic-bezier(0.16, 1, 0.3, 1)` trên lớp màu; xong lớp màu bị gỡ (`detail.css`, `[data-media-wait="colors"]`). Chưa đo trên A04s.
 - Card masonry không zoom ảnh khi hover hay focus (owner 2026-10-18). Dưới tên
@@ -39,10 +39,10 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
 
-Bản đầu cho ảnh vừa tải hiện dưới Kính ba bậc; kéo thanh cuộn nhanh khi mạng
-chậm còn 14 đến 15 FPS trên PC, 8,6 đến 10,6 FPS trên A04s, blur trên ảnh đạt 41 và 74
-đến 82 FPS, nên owner chọn blur (2026-10-31,
-[tải theo nấc R9](../../../docs/specs/progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)).
+Bản đầu đặt Kính ba bậc thường trực trên ảnh đang chờ; kéo thanh cuộn nhanh khi mạng
+chậm còn 14 đến 15 FPS trên PC, 8,6 đến 10,6 FPS trên A04s, nên owner chọn blur (2026-10-31). Từ 2026-11-12 PC chờ bằng Flow
+và chỉ chạy Kính lúc lộ: đo PC owner 83,7 FPS kéo thanh cuộn, bằng blur 83,3 (DRY 3b.1,
+[tải theo nấc R9](../../../docs/specs/progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)).
 
 ## Nhiều media trong card
 
@@ -119,13 +119,13 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha card mờ (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` ([Motion](../../motion.md#ảnh-trong-card)).
-- **Chờ tải:** card mờ thì thở; mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
+- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha các card tạm khác (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s`, hoặc card tạm tan `0.45s` trên khung Flow nếu ảnh chưa xong ([Motion](../../motion.md#ảnh-trong-card)).
+- **Chờ tải:** mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
-  cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
-- **Reduced motion:** skeleton đứng yên, ảnh mờ và card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
+  cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của lộ ảnh); card còn chờ ảnh thì chỉ có chữ.
+- **Reduced motion:** skeleton đứng yên, card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ

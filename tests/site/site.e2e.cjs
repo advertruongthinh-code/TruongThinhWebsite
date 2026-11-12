@@ -6549,15 +6549,13 @@ async function runAdvertisingMediaEntranceChecks() {
         const final = trace.at(-1);
         // 0.6s rhythm (design-system motion.md, image in card): the image shows 0.13s to 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
-        // progressive-loading R9: an image that is in time to blur sits at final opacity under the blur, with no separate image fade.
-        const underBlur = trace.some((sample) => sample.blur);
+        // progressive-loading R9: the image waits hidden under its Flow frame, never blurred, then fades in within the 0.6s reveal.
         assert(
           targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            // Under the blur the image breathes between 0.45 and 1 (spec image-wait S2), no separate image fade.
-            (underBlur ? trace.filter((sample) => sample.blur).every((sample) => sample.imageOpacity >= 0.44)
-              : fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
-                fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") &&
+            trace.every((sample) => !sample.blur) &&
+            fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
+              fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)" &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
           `${locale} fresh deep card skipped the image-only fade of the 0.6s reveal: ${JSON.stringify(trace)}`,
         );

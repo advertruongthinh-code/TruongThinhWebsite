@@ -265,22 +265,21 @@ nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opa
 Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị trí
 (mục trên) và ảnh hiện (mục này).
 
-- Ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh hiện
-  ngay ở opacity cuối dưới `blur(24px)`, phóng tràn khung 24px mỗi phía, không animate vào, nét dần khi tải; ảnh thở bằng `media-breathe`
-  (opacity `1 → 0.45 → 1`, `2s ease-in-out`, lặp; reduced motion không thở). Tải và `decode()` xong thì thở dừng,
-  blur về `none`, scale và opacity về 1 trong `0.6s`
-  `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
-  mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
-- Điện thoại (`skeletonPhone`): thay blur và thở bằng lớp màu phẳng (`[data-media-wait="colors"]`, `detail.css`): đổi qua 4 màu chủ đạo của ảnh, mỗi màu `2s`
+- PC, ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh ẩn dưới khung [Skeleton](components/Skeleton/README.md)
+  Flow trong 4 màu của chính ảnh (khung hiện `0.6s`, ngay lập tức nếu đang cuộn), vẽ trên một canvas chung của lưới. Tải và `decode()` xong thì
+  lộ ảnh như primary trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)`: Kính ba bậc hiện, Flow mờ, ảnh hiện (`0.13s` tới `0.39s`), Kính tan,
+  rồi gỡ khung. Tối đa 4 card lộ bằng Kính cùng lúc, card thứ năm trở đi chỉ crossfade; Kính cung đang thấy thì không Kính.
+  Khung card, link luôn hiện.
+- Điện thoại (`skeletonPhone`): thay khung Flow bằng lớp màu phẳng (`[data-media-wait="colors"]`, `detail.css`): đổi qua 4 màu chủ đạo của ảnh, mỗi màu `2s`
   `ease-in-out`, chu kỳ `8s` (lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ), dùng chung pha `--wait-phase` giữa card tạm, card và primary; ảnh ẩn tới khi tải và giải mã xong rồi
   hiện `opacity 0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (`--dur-fade`, `--ease-expo-out`) trên lớp màu, xong gỡ lớp màu. Reduced motion: lớp màu đứng yên ở màu 1, ảnh hiện thẳng.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
-- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở như ảnh
-  đang mờ và cùng pha. Card tạm lên card thật thì ảnh có sẵn hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s`
-  `cubic-bezier(0.16, 1, 0.3, 1)` (cùng nhịp ảnh nội dung ngoài masonry), chỉ opacity; ảnh chưa xong thì vào luồng ảnh mờ
-  ở trên. Reduced motion: card tạm không thở, ảnh hiện thẳng.
-- Reduced motion: ảnh vẫn mờ khi chờ, tải xong thì nét ngay, không tan.
+- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở
+  (`media-breathe`, opacity `1 → 0.45 → 1`, `2s`) cùng pha. Card tạm lên card thật thì ảnh có sẵn hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)` (cùng nhịp ảnh nội dung ngoài masonry), chỉ opacity; ảnh chưa xong thì card nhận khung Flow ở
+  trên và card tạm tan `0.45s` trên khung đó (điện thoại: gỡ ở frame sau). Reduced motion: card tạm không thở, ảnh hiện thẳng.
+- Reduced motion: khung Flow đứng yên ở ảnh tĩnh của preset, tải xong thì ảnh hiện ngay, không Kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
   tâm `20%` mép mờ dần theo cosine, nghiêng 60 độ lướt `1.6s` linear, chỉ `transform`; ảnh hiện sau load và `decode()`, opacity `0.45s`
