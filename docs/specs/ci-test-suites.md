@@ -55,7 +55,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `shell-motion` | site-shell, logo-route-crossfade | menu, reduced motion, bfcache, nhịp chữ và logo kiểu Espacio, link nội bộ |
 | `scroll` | scroll-feel | cảm giác cuộn, cuộn bằng nút giữa chuột |
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |
-| `home` | page-home | hero, portal, marquee logo khách, scroll cue, wheel, media hover |
+| `home` | page-home | hero (kể cả chuyển động zoom của slide), portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
 | `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết |
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
