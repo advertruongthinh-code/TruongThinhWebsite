@@ -1388,6 +1388,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       trackStripSwipe(link, {
         start: () => {
           suppressClickUntil = 0;
+          // A drag drops a press still waiting for its media, so a snap-back is not followed by that press.
+          if (pendingIndex !== null) {
+            pendingIndex = null;
+            figure.dataset.masonryActiveMediaId = items[activeIndex].id;
+            updateIndicator(activeIndex);
+          }
           preloadNeighbors();
         },
         width: canvasWidth,
