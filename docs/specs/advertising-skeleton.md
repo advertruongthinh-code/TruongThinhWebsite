@@ -92,7 +92,12 @@ nổi bật của ảnh đó, sắp từ sáng tới tối như preset; field, a
 `build-image-variants.mjs` trích bốn màu bằng k-means (k = 4, khởi đầu k-means++ seed cố định) trên bản thu 64px và ghi vào `MEDIA_COLORS` cùng màu chủ
 đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)); `--check` báo ảnh thiếu.
 Media không có bốn màu (video không poster, ảnh mới chưa build) dùng màu preset. Batch dưới CTA giữ 12 preset.
-Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi. Thêm ảnh: chép
+Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi.
+Màu chủ đạo là tâm bin đông nhất của histogram RGB 16x16x16 trên điểm ảnh **cỡ gốc** của WebP (không phải bản 64px; `sharp` `stats()` bỏ qua `resize`); bốn màu Flow lấy từ bản thu 64px (`resize(64)`).
+Hai bước nằm trong `image-palette.mjs`, không phụ thuộc `sharp` hay API Node: `dominant(pixels, channels)` khớp `stats().dominant` từng bin và từng ca hòa
+(test so với `sharp`), `palette(pixels)` cho bốn màu, `mediaColors({ full, thumb, channels })` gộp thành năm màu hex. Build gọi `mediaColors` với điểm ảnh từ `sharp`;
+CMS gọi cùng hàm trên WebP đã lưu (không dùng PNG hay JXL), điểm ảnh từ `canvas` (`channels: 4`). Số của CMS chỉ khớp build đến mức bản 64px do `canvas` thu giống `sharp` (Lanczos3);
+màu chủ đạo phải lấy từ điểm ảnh cỡ gốc mới khớp. Thêm ảnh: chép
 WebP vào thư mục Advertising rồi chạy build. Thay ảnh cùng tên: xóa variant cũ của ảnh đó (`-240` tới `-2048`, `.avif`,
 `.jxl`) rồi chạy build; build tính lại màu mỗi khi dựng lại variant của ảnh.
 
@@ -234,7 +239,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | --- | --- |
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch, nối dưới card hai cột, band ngang trải hai cột, 200 seed x 3 và 4 cột x đáy ngẫu nhiên không lỗ và không lặp band, related không khung hai cột, số khung cấu hình); `advertising-products-layout.test.mjs` (card tạm của card hai cột); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
-| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%; mỗi preset đủ 4 màu, field, finish; hai chuỗi random cho vị trí mảng màu khác nhau; màu ảnh chỉ thay colors, field và finish giữ của preset nguồn); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
+| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%; mỗi preset đủ 4 màu, field, finish; hai chuỗi random cho vị trí mảng màu khác nhau; màu ảnh chỉ thay colors, field và finish giữ của preset nguồn); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment); `media-colors.test.mjs` (k-means 4 màu trên ảnh tổng hợp, sắp sáng tới tối, chạy lại ra y hệt; `dominant` khớp `sharp` ở mọi biên bin và ca hòa; `mediaColors` ra đúng `MEDIA_COLORS` của ba ảnh trong repo); `advertising-primary-flow-colors.e2e.mjs` (primary dùng 4 màu của media, batch giữ preset) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport); `advertising-related-cta.e2e.mjs` (F5 detail: Kính reveal gỡ khi cung vào view) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
