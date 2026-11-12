@@ -161,10 +161,10 @@
 .motion-enabled [data-motion-up],
 .motion-enabled [data-motion-media] {
   opacity: 0;
-  transition-duration: 0.6s;
+  transition-duration: var(--dur-hover);
   transition-delay: var(--motion-delay, 0s);
   transition-property: opacity, transform;
-  transition-timing-function: cubic-bezier(0, 0, 0.26, 1);
+  transition-timing-function: var(--ease);
   will-change: opacity, transform;
 }
 
@@ -190,8 +190,8 @@
   opacity: 0;
   transform: translate3d(-60px, 0, 0);
   transition:
-    opacity 0.6s cubic-bezier(0, 0, 0.26, 1) var(--motion-delay, 0s),
-    transform 0.6s cubic-bezier(0, 0, 0.26, 1) var(--motion-delay, 0s);
+    opacity var(--dur-hover) var(--ease) var(--motion-delay, 0s),
+    transform var(--dur-hover) var(--ease) var(--motion-delay, 0s);
   will-change: opacity, transform;
 }
 
@@ -211,7 +211,7 @@
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   :root [data-motion-hero-wrapper-zoom] {
     transform: translate(-50%, -50%) scale(1.2);
-    transition: transform 2.5s cubic-bezier(0, 0, 0.26, 1);
+    transition: transform 2.5s var(--ease);
     will-change: transform;
   }
 
@@ -659,7 +659,7 @@
   font-weight: 700;
   line-height: 1.4;
   text-transform: uppercase;
-  transition: color 0.3s ease-out, text-decoration-color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out, text-decoration-color var(--dur-base) ease-out;
 }
 
 .detail-index-hero .project-filter:hover,
@@ -679,7 +679,7 @@
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"], [aria-busy="true"]) {
@@ -716,7 +716,7 @@
     transform: scaleX(0);
     transform-origin: right center;
     background: currentColor;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+    transition: transform var(--dur-base) var(--ease-underline);
   }
 
   .detail-index-hero .rail-chip > span:first-child::after {
@@ -817,7 +817,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 /* Kiosk cover image: the light-box text leans right, shift the 3:4 crop frame to the right to keep the full text. */
@@ -1516,7 +1516,7 @@ body.is-masonry-browse .masonry-grid {
   pointer-events: none;
   /* The black layer shows only when media is ready, with the same 0.6s timing as the blur dissolving (image-wait spec S3). */
   transition: opacity var(--media-hover-duration) var(--media-hover-easing),
-    background-color 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    background-color var(--dur-hover) var(--ease-card);
 }
 
 /* Overlay layer of every card media; masonry cards and the suggestion button set their own background and opacity. Pills sit
@@ -1895,7 +1895,7 @@ body.is-masonry-browse .site-footer {
   display: block;
   box-sizing: border-box;
   opacity: 0;
-  transition: opacity 600ms ease-out;
+  transition: opacity var(--dur-hover) ease-out;
 }
 
 .masonry-grid__cta-surface {
@@ -2393,7 +2393,7 @@ body.is-masonry-browse .site-footer {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-50%);
-  transition: opacity 150ms ease-out, visibility 150ms;
+  transition: opacity var(--dur-fast) ease-out, visibility var(--dur-fast);
 }
 
 .video-player__volume:is(:hover, :has(:focus-visible)) .video-player__volume-pop {
@@ -2526,7 +2526,7 @@ body.is-masonry-browse .site-footer {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--dur-fast) ease-out;
 }
 
 .detail-view__expand {
@@ -2704,7 +2704,7 @@ body.is-masonry-browse .site-footer {
   width: 12px;
   opacity: 0;
   touch-action: none;
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--dur-fast) ease-out;
 }
 
 .detail-view__description-bar::before,
@@ -2772,7 +2772,7 @@ body.is-masonry-browse .site-footer {
   stroke-linecap: square;
   stroke-linejoin: miter;
   stroke-width: 1.5;
-  transition: transform 250ms ease-out;
+  transition: transform var(--dur-quick) ease-out;
 }
 
 .detail-view__cta:is(:hover, :focus-visible) svg {
@@ -2852,7 +2852,7 @@ body.is-masonry-browse .site-footer {
   overflow: hidden;
   color: var(--white);
   text-decoration: none;
-  transition: background-color 250ms ease-out, border-color 250ms ease-out;
+  transition: background-color var(--dur-quick) ease-out, border-color var(--dur-quick) ease-out;
 }
 
 /* A button not yet enabled waits for its background image with the shared light sweep of content images (style.css), under the overlay and label. */
@@ -2876,7 +2876,7 @@ body.is-masonry-browse .site-footer {
 }
 
 .media-gate .detail-view__suggestion-link.is-media-settled > img {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2907,7 +2907,7 @@ body.is-masonry-browse .site-footer {
   inset: 0;
   background: rgb(0 0 0 / 0.5);
   opacity: 1;
-  transition: opacity 250ms ease-out;
+  transition: opacity var(--dur-quick) ease-out;
   content: "";
 }
 
@@ -2921,7 +2921,7 @@ body.is-masonry-browse .site-footer {
 }
 
 .media-gate .detail-view__suggestion-link.is-media-settled:not([aria-pressed="true"])::after {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 .detail-view__suggestion-link[aria-pressed="true"] img {
@@ -2936,7 +2936,7 @@ body.is-masonry-browse .site-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 250ms ease-out, var(--media-hover-transform);
+  transition: opacity var(--dur-quick) ease-out, var(--media-hover-transform);
 }
 
 .detail-view__suggestion-link [data-masonry-suggestion-image-layer="next"] {
@@ -3008,11 +3008,11 @@ body.is-masonry-browse .site-footer {
 }
 
 .detail-dialog[data-viewer-state="opening"]::backdrop {
-  animation: detail-viewer-backdrop-in 300ms cubic-bezier(0.55, 0, 0, 1) both;
+  animation: detail-viewer-backdrop-in var(--dur-base) var(--ease-viewer) both;
 }
 
 .detail-dialog[data-viewer-state="closing"]::backdrop {
-  animation: detail-viewer-backdrop-out 250ms cubic-bezier(0.55, 0, 0, 1) both;
+  animation: detail-viewer-backdrop-out var(--dur-quick) var(--ease-viewer) both;
 }
 
 @keyframes detail-viewer-backdrop-in {
@@ -3070,7 +3070,7 @@ body.is-masonry-browse .site-footer {
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--dur-fast) ease-out;
 }
 
 .detail-dialog__close,
@@ -3132,7 +3132,7 @@ body.is-masonry-browse .site-footer {
   width: max-content;
   max-width: calc(round(down, 100% - 2 * (2rem + 36px) + 8px, 68px) - 8px);
   translate: -50% 0;
-  transition: opacity 0.3s ease, translate 0.3s ease;
+  transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
 }
 
 .detail-dialog__thumbs button:focus-visible {
@@ -3248,7 +3248,7 @@ body.is-masonry-browse .site-footer {
 @media (prefers-reduced-motion: no-preference) {
   /* After the first placement, address bar resizing slides smoothly instead of jumping. */
   .detail-cta[data-masonry-grid-cta][data-masonry-cta-settled] .detail-cta__copy {
-    transition: margin-bottom 0.4s ease-out;
+    transition: margin-bottom var(--dur-card) ease-out;
   }
 }
 
@@ -3900,7 +3900,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   font-weight: 600;
   letter-spacing: 0;
   opacity: 0.3;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 .blk-article-head--list .blk-news-filter__chip:hover,
@@ -3925,7 +3925,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
   pointer-events: none;
 }
 
@@ -4220,7 +4220,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   height: 2.5rem;
   background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 40'%3E%3Cpath d='M0 20h142M122 1l20 19-20 19' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
-  transition: translate 0.4s var(--ease);
+  transition: translate var(--dur-card) var(--ease);
 }
 
 .blk-cta__link:hover .blk-cta__arrow {
@@ -4407,7 +4407,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   inset: 0;
   height: 100%;
   aspect-ratio: auto;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .blk-news-list .blk-news-card:hover img,
@@ -4433,7 +4433,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-news-list .blk-news-card__text {
   padding-bottom: 4px;
   background: linear-gradient(currentColor, currentColor) right bottom / 0 3px no-repeat;
-  transition: background-size 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: background-size var(--dur-base) var(--ease-underline);
 }
 
 .blk-news-list .blk-news-card:hover .blk-news-card__text,
@@ -4562,7 +4562,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .home-news__item:hover .home-news__media img,
@@ -4600,13 +4600,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   line-height: 1.4;
   text-transform: uppercase;
   opacity: 0;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 .home-news__item:hover .home-news__more,
 .home-news__item:focus-visible .home-news__more {
   opacity: 1;
-  transition-duration: 0.6s;
+  transition-duration: var(--dur-hover);
 }
 
 @media (max-width: 960px) {

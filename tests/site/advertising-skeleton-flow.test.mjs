@@ -34,7 +34,7 @@ assert.doesNotMatch(skeletonRule, /(?:-webkit-)?mask-image/i,
   "R10 moves the skeleton opacity boundary into the global glass surface");
 assert.match(skeletonRule, /pointer-events:\s*none\s*;/i,
   "R6 removes skeleton hover interaction at the container boundary");
-assert.match(frameRule, /transition:\s*opacity 600ms ease-out(?:\s+0ms)?\s*;/i,
+assert.match(frameRule, /transition:\s*opacity var\(--dur-hover\) ease-out(?:\s+0ms)?\s*;/i,
   "R6 requires the skeleton frame to reveal with opacity-only 600ms ease-out");
 assert.doesNotMatch(frameRule, /\btransform\b|(?:-webkit-)?mask-image/i,
   "R6 forbids frame transform and per-frame mask");

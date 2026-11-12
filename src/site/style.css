@@ -73,7 +73,17 @@
   --section-gap: 90px;
   --footer-top-gap: 64px;
   --ease: cubic-bezier(0, 0, 0.26, 1);
-  --media-hover-duration: 600ms;
+  --ease-underline: cubic-bezier(0.4, 0, 0, 1);
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-card: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-viewer: cubic-bezier(0.55, 0, 0, 1);
+  --dur-fast: 150ms;
+  --dur-quick: 250ms;
+  --dur-base: 300ms;
+  --dur-card: 400ms;
+  --dur-fade: 450ms;
+  --dur-hover: 600ms;
+  --media-hover-duration: var(--dur-hover);
   --media-hover-easing: ease-out;
   --media-hover-transform: transform var(--media-hover-duration) var(--media-hover-easing);
   --tracking-display: 0.001px;
@@ -481,7 +491,7 @@ html.route-enter .site-header {
   transform: scaleX(0);
   transform-origin: right center;
   background: currentColor;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .desktop-nav a:hover::after {
@@ -508,7 +518,7 @@ html.route-enter .site-header {
   border: 0;
   background: transparent;
   cursor: pointer;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-button svg {
@@ -522,7 +532,7 @@ html.route-enter .site-header {
 
 .menu-button line {
   transform-origin: center;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-button:hover .top,
@@ -563,8 +573,8 @@ html.route-enter .site-header {
   transform: translateX(130%);
   transition:
     transform 1s cubic-bezier(0.63, 0, 0.08, 1),
-    background 0.3s ease-out,
-    0.6s cubic-bezier(0.42, 0, 0.07, 0.99);
+    background var(--dur-base) ease-out,
+    var(--dur-hover) cubic-bezier(0.42, 0, 0.07, 0.99);
 }
 
 .floating-cta:hover {
@@ -581,7 +591,7 @@ html.route-enter .site-header {
   stroke: currentColor;
   stroke-width: 4;
   stroke-miterlimit: 10;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .floating-cta span {
@@ -589,7 +599,7 @@ html.route-enter .site-header {
   grid-row: 1;
   margin-left: 10px;
   white-space: nowrap;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .floating-cta.show {
@@ -740,7 +750,7 @@ html.route-enter .site-header {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-language button.is-active,
@@ -841,7 +851,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
 
 .menu-close__icon svg line {
   transform-origin: center;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-base) ease-out;
 }
 
 .menu-close:hover .menu-close__icon svg line {
@@ -945,7 +955,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   background: var(--line);
   transform: scaleY(0);
   transform-origin: top;
-  transition: transform 0.3s linear;
+  transition: transform var(--dur-base) linear;
 }
 
 .menu-group:nth-child(3n)::after {
@@ -979,7 +989,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   position: relative;
   color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease-out;
+  transition: color var(--dur-base) ease-out;
 }
 
 .menu-group__title > span {
@@ -999,7 +1009,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-group__title:hover > span::before,
@@ -1043,7 +1053,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   pointer-events: none;
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 .menu-option:hover::before,
@@ -1290,8 +1300,8 @@ em {
   color: white;
   cursor: pointer;
   transition:
-    background-color 0.25s ease,
-    transform 0.25s ease;
+    background-color var(--dur-quick) ease,
+    transform var(--dur-quick) ease;
 }
 
 @media (max-width: 1200px) {
@@ -1352,7 +1362,7 @@ em {
   text-transform: uppercase;
   word-spacing: var(--word-spacing-body);
   transform: translateX(-50%);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 1s var(--ease-expo-out);
 }
 
 .scroll-cue.is-hidden {
@@ -1691,7 +1701,7 @@ em {
 
 .motion-enabled .service-portal .portal-subtitle {
   opacity: 0;
-  transition: opacity 0.3s ease-out var(--portal-subtitle-delay);
+  transition: opacity var(--dur-base) ease-out var(--portal-subtitle-delay);
   will-change: opacity;
 }
 
@@ -1788,7 +1798,7 @@ em {
   content: "";
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
 #dich-vu .service-portal:hover .portal-subtitle::after,
@@ -1918,8 +1928,8 @@ em {
   opacity: 0;
   transform: scale(0.9);
   transition:
-    opacity 0.6s var(--ease) 0.6s,
-    transform 0.6s var(--ease) 0.6s;
+    opacity var(--dur-hover) var(--ease) 0.6s,
+    transform var(--dur-hover) var(--ease) 0.6s;
   will-change: transform, opacity;
 }
 
@@ -1966,7 +1976,7 @@ em {
   stroke: currentColor;
   stroke-width: 1;
   transform: translateX(-25%);
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--dur-base) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .story-link:hover svg {
@@ -1992,7 +2002,7 @@ em {
 
 .motion-enabled .project-track {
   translate: 60px 0;
-  transition: translate 0.6s var(--ease);
+  transition: translate var(--dur-hover) var(--ease);
   will-change: transform, translate;
 }
 
@@ -2016,7 +2026,7 @@ em {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .project-card--low,
@@ -2034,7 +2044,7 @@ em {
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  transition: opacity 0.3s ease-out;
+  transition: opacity var(--dur-base) ease-out;
 }
 
 @media (hover: hover) and (min-width: 981px) {
@@ -2093,7 +2103,7 @@ em {
 .legacy-closer > img,
 .legacy-closer > picture > img {
   object-fit: cover;
-  transition: transform 0.6s ease-out;
+  transition: transform var(--dur-hover) ease-out;
 }
 
 .legacy-closer:hover > img,
@@ -2137,7 +2147,7 @@ em {
 @media (prefers-reduced-motion: no-preference) {
   .motion-enabled .legacy-copy > p {
     opacity: 0;
-    transition: opacity 0.6s ease-out 0.3s;
+    transition: opacity var(--dur-hover) ease-out 0.3s;
     will-change: opacity;
   }
 
@@ -2275,7 +2285,7 @@ em {
 
 .media-gate .media-frame.is-media-settled > img,
 .media-gate .media-frame.is-media-settled > picture > img {
-  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
 }
 
 @keyframes media-sweep {
