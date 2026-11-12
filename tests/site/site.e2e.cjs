@@ -385,6 +385,14 @@ function assertPersistentNavigationContracts() {
     "Home hero solid intro must match Espacio's measured 1 second reveal",
   );
   const styleSource = fs.readFileSync(path.join(root, "style.css"), "utf8");
+  const mediaNoSelectCss =
+    styleSource.match(/:where\(img, picture, video, canvas, svg\)\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert(
+    ["user-select: none", "-webkit-user-drag: none", "-webkit-touch-callout: none"].every((rule) =>
+      mediaNoSelectCss.includes(rule),
+    ),
+    "Media must never be selectable, draggable or open the long-press menu site-wide",
+  );
   const homeSource = readPageSource("index.html");
   const brandCss = styleSource.match(/\.brand\s*\{[\s\S]*?\n\}/)?.[0];
   const detailSource = fs.readFileSync(path.join(root, "detail.js"), "utf8");

@@ -169,6 +169,15 @@ a {
   color: white;
 }
 
+/* Site-wide: media never shows the selection highlight, never drags out as a ghost image and never opens the
+   long-press image menu on touch. Text around it stays selectable. */
+:where(img, picture, video, canvas, svg) {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
 /* Keep the overlay thumb reachable above the fixed header glass surface. */
 .c-scrollbar {
   z-index: 1001;
