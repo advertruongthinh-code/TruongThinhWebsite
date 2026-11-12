@@ -63,7 +63,7 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 | Bước | Thời điểm | Đường cong |
 | --- | --- | --- |
 | Kính hiện trên skeleton | 0 đến 0.6s | `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
-| Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` |
+| Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` (`--ease-card`) |
 | Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
 
 - Primary detail chạy đúng reveal của card tải chậm (cùng `0.6s`): kính ba bậc hiện trên skeleton, dưới kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi kính tan. Điện thoại chạy đúng như PC (owner 11/10).

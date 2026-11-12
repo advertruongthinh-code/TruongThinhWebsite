@@ -8,8 +8,10 @@ source:
   - scripts/docs/stage-design-system.mjs
   - scripts/docs/build-design-md.mjs
   - scripts/docs/captures/**
+  - src/site/masonry/motion-tokens.mjs
 tests:
   - scripts/docs/check-docs.mjs
+  - tests/site/motion-tokens.test.mjs
 notion: none
 ---
 
