@@ -271,6 +271,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   blur về `none`, scale và opacity về 1 trong `0.6s`
   `cubic-bezier(0.65, 0, 0.35, 1)` rồi gỡ; điện thoại chờ ngừng vuốt `120ms`
   mới tan. Không Kính, không skeleton. Khung card, link luôn hiện.
+- Điện thoại (`skeletonPhone`): thay blur và thở bằng lớp màu phẳng (`[data-media-wait="colors"]`, `detail.css`): đổi qua 4 màu chủ đạo của ảnh, mỗi màu `2s`
+  `ease-in-out`, chu kỳ `8s` (lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ), dùng chung pha `--wait-phase` giữa card tạm, card và primary; ảnh ẩn tới khi tải và giải mã xong rồi
+  hiện `opacity 0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (`--dur-fade`, `--ease-expo-out`) trên lớp màu, xong gỡ lớp màu. Reduced motion: lớp màu đứng yên ở màu 1, ảnh hiện thẳng.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
 - Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở như ảnh

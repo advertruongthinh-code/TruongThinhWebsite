@@ -1764,6 +1764,71 @@ body.is-masonry-browse .masonry-grid {
   }
 }
 
+/* Phone image wait (progressive-loading R9): masonry cards, the temp card and the Advertising primary frame wait on a flat layer cycling through the image's 4 dominant
+   colors, 2s each. The runtime sets data-media-wait="colors" and --wait-1..4 (the file's colors) and --wait-phase (shared by every layer, so a temp card turning into a card keeps
+   its color). Two pseudo layers under the content (z-index -1 inside an isolated stacking context): the top one fades colors 2 and 4 in and out (opacity), the base one
+   switches color in steps while the top one covers it, so every visible change is a 2s fade. Seen: 1, 2, 3, 4, then 1 again. */
+[data-media-wait="colors"] {
+  isolation: isolate;
+}
+
+[data-media-wait="colors"]::before,
+[data-media-wait="colors"]::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  animation-duration: 8s;
+  animation-iteration-count: infinite;
+  animation-delay: var(--wait-phase, 0s);
+}
+
+[data-media-wait="colors"]::before {
+  animation-name: media-colors-base;
+  animation-timing-function: step-end;
+}
+
+[data-media-wait="colors"]::after {
+  animation-name: media-colors-top;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes media-colors-base {
+  0% { background-color: var(--wait-1); }
+  25% { background-color: var(--wait-3); }
+  75% { background-color: var(--wait-1); }
+}
+
+@keyframes media-colors-top {
+  0% { opacity: 0; background-color: var(--wait-2); }
+  25% { opacity: 1; background-color: var(--wait-2); }
+  50% { opacity: 0; background-color: var(--wait-2); }
+  50.01% { opacity: 0; background-color: var(--wait-4); }
+  75% { opacity: 1; background-color: var(--wait-4); }
+  100% { opacity: 0; background-color: var(--wait-4); }
+}
+
+/* The card's media box paints its dominant color inline; it must not cover the layers while the image fades in over them. */
+[data-media-wait="colors"] .masonry-card__media {
+  background-color: transparent !important;
+}
+
+.masonry-ghost[data-media-wait="colors"] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-media-wait="colors"]::before {
+    background-color: var(--wait-1);
+    animation: none;
+  }
+
+  [data-media-wait="colors"]::after {
+    display: none;
+  }
+}
+
 [data-masonry-media-loading] .card-media__just-viewed {
   background-color: transparent;
 }

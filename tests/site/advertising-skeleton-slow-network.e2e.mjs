@@ -1,4 +1,5 @@
-// Card waiting for its image on a slow network (progressive-loading R9): the image blurs itself in place of the Flow skeleton; card images are held 8s like Slow 3G.
+// Card waiting for its image on a slow network (progressive-loading R9): on PC the image blurs itself in place of the Flow skeleton; on the phone a flat layer
+// cycles through the image's 4 dominant colors and the image fades in once loaded. Card images are held 8s like Slow 3G.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-skeleton-slow-network.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -34,6 +35,9 @@ const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") 
       // The blur clears (WAAPI animate) with inline blur still present but breathing stopped.
       revealing: Boolean(image?.getAnimations().some((animation) => animation.animationName === undefined)),
       color: Boolean(card.querySelector(".card-media")?.style.backgroundColor),
+      // Phone: the card waits on the color layer (progressive-loading R9); the image stays hidden, unfiltered, until it is decoded.
+      wait: card.dataset.mediaWait === "colors",
+      hidden: Boolean(image) && Number(getComputedStyle(image).opacity) === 0 && !image.style.filter,
       glass: Boolean(card.querySelector(".glass-surface")),
       skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton], canvas")),
     };
@@ -55,9 +59,102 @@ const assertNoBlank = (label, states) => {
   assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
 };
 
+// Phone: every card still waiting has the color layer and a hidden image, never blur, breathing, Kính or Flow.
+const assertPhoneWait = (label, states) => {
+  assert.ok(states.length, `${label}: cards in view`);
+  assert.deepEqual(states.filter(({ loaded, wait, hidden }) => !loaded && !(wait && hidden)), [], `${label}: loading cards without the color layer`);
+  assert.deepEqual(states.filter(({ blur, marked }) => blur || marked), [], `${label}: cards still blur or breathe`);
+  assert.deepEqual(states.filter(({ glass }) => glass), [], `${label}: cards still carry Kính`);
+  assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
+};
+
 try {
+  // Phone page load: cards wait on the color layer from the first frame.
+  {
+    const { context, page } = await open(phone);
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
+    assertPhoneWait("phone load", await cardStates(page));
+    // The layer cycles through the 4 colors: the top layer's fade runs 8s and the colors are the file's own (--wait-1..4 set).
+    const layer = await page.evaluate(() => {
+      const card = document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']");
+      const style = getComputedStyle(card);
+      const timing = card.getAnimations({ subtree: true }).map((animation) => animation.effect.getComputedTiming().duration);
+      return { vars: [1, 2, 3, 4].every((index) => style.getPropertyValue(`--wait-${index}`).trim()), timing };
+    });
+    assert.ok(layer.vars, "phone: the card carries four wait colors");
+    assert.ok(layer.timing.length === 2 && layer.timing.every((duration) => duration === 8000), `phone: two layers cycle in 8s ${JSON.stringify(layer)}`);
+    await context.close();
+  }
+
+  // Phone: when the image arrives it fades in over 450ms, then the layer is removed and the image stays opaque; nothing is left waiting.
+  {
+    const { context, page } = await open(phone);
+    await page.addInitScript(() => {
+      window.__fades = new Set();
+      const tick = () => {
+        for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img")) {
+          const fade = image.getAnimations().find((animation) => animation.effect.getTiming().duration === 450);
+          if (fade) window.__fades.add(image.closest("[data-masonry-card]").dataset.masonryCard);
+        }
+        if (performance.now() < 14000) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
+    assert.ok(await page.evaluate(() => window.__fades.size), "phone: some card image fades in over 450ms when it arrives");
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((card) => card.querySelector("img")?.naturalWidth > 0)
+      .filter((card) => card.hasAttribute("data-media-wait") || getComputedStyle(card.querySelector("img")).opacity !== "1"
+        || card.style.getPropertyValue("--wait-1") || card.querySelector("img").style.filter)
+      .map((card) => card.dataset.masonryCard)), [], "phone: loaded cards drop the color layer and show the image");
+    await context.close();
+  }
+
+  // Phone with reduced motion: the layer stays still on color 1, the image is not hidden by a second layer.
+  {
+    const { context, page } = await open({ ...phone, reducedMotion: "reduce" });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
+    assert.deepEqual(await page.evaluate(() => {
+      const card = document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']");
+      const base = getComputedStyle(card, "::before");
+      return { animation: base.animationName, top: getComputedStyle(card, "::after").display,
+        color: base.backgroundColor === getComputedStyle(card).getPropertyValue("--wait-1").trim() || base.backgroundColor.startsWith("rgb") };
+    }), { animation: "none", top: "none", color: true }, "phone reduced motion: still color layer");
+    await context.close();
+  }
+
+  // Phone fast fling: temp cards use the color layer too, in the same phase as the card that replaces them.
+  {
+    const { context, page } = await open(phone);
+    // Temp cards live a few frames: record each one as it enters the DOM.
+    await page.addInitScript(() => {
+      window.__ghosts = [];
+      new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
+        if (node.classList?.contains("masonry-ghost")) {
+          window.__ghosts.push({ wait: node.dataset.mediaWait, phase: node.style.getPropertyValue("--wait-phase"),
+            animation: getComputedStyle(node).animationName });
+        }
+      }))).observe(document, { childList: true, subtree: true });
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card]"));
+    await page.waitForTimeout(500);
+    for (const y of [9000, 2000, 12000]) {
+      await page.evaluate((top) => scrollTo(0, top), y);
+      await page.waitForTimeout(150);
+    }
+    const ghosts = await page.evaluate(() => window.__ghosts);
+    assert.ok(ghosts.length, "phone: a fast fling shows temp cards");
+    assert.deepEqual(ghosts.filter(({ wait, phase, animation }) => wait !== "colors" || !phase.endsWith("ms") || animation !== "none"), [],
+      "phone: temp cards carry the color layer, no breathing");
+    await context.close();
+  }
+
   // On page load: the first card image is blurred from the first frame, does not animate in, and its node is not replaced.
-  for (const [label, device] of [["phone", phone], ["desktop", { viewport: { width: 1440, height: 900 } }]]) {
+  for (const [label, device] of [["desktop", { viewport: { width: 1440, height: 900 } }]]) {
     const { context, page } = await open(device);
     await page.addInitScript(() => {
       const ids = new WeakMap();
@@ -204,14 +301,13 @@ try {
     await page.evaluate(() => scrollTo(0, document.querySelector("[data-masonry-related-card]").getBoundingClientRect().top - 100));
     await page.waitForTimeout(500);
     const related = await cardStates(page, "[data-masonry-related-card]");
-    assert.ok(related.some(({ blur }) => blur), `phone: related cards blur while loading ${JSON.stringify(related)}`);
-    assert.deepEqual(related.filter(({ blur, marked, revealing }) => blur !== marked && !revealing), [],
-      "phone: related cards breathe exactly while blurred");
+    assert.ok(related.some(({ wait }) => wait), `phone: related cards wait on the color layer ${JSON.stringify(related)}`);
+    assertPhoneWait("phone related", related);
     await page.waitForFunction(() => {
       const loaded = [...document.querySelectorAll("[data-masonry-related-card]")]
         .map((card) => card.querySelector("img")).filter((image) => image?.naturalWidth > 0);
-      return loaded.length && loaded.every((image) => !image.style.filter.startsWith("blur("));
-    }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still blurred "
+      return loaded.length && loaded.every((image) => !image.closest("[data-media-wait]"));
+    }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still wait "
       + JSON.stringify(await cardStates(page, "[data-masonry-related-card]"))));
     await context.close();
   }

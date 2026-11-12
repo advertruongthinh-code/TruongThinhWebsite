@@ -1,7 +1,7 @@
 // Per-frame card mount budget (advertising-masonry R7): quota by measured cost; very fast swipes only reserve space.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { breathePhase, createDetachedCards, createMountBudget, detachedCapacity } from "../../src/site/masonry/mount-budget.mjs";
+import { breathePhase, clearColorWait, colorsPhase, createDetachedCards, createMountBudget, detachedCapacity, setColorWait } from "../../src/site/masonry/mount-budget.mjs";
 
 const clock = () => {
   const state = { now: 1000 };
@@ -104,6 +104,24 @@ test("breathing phase is shared by absolute time", () => {
   assert.equal(breathePhase(4000), "0ms");
   assert.equal(breathePhase(4300), "-300ms");
   assert.equal(breathePhase(5300), "-1300ms", "same phase as 3300ms: shifted by one period");
+});
+
+test("color wait phase is shared by absolute time, 8s cycle", () => {
+  assert.equal(colorsPhase(16000), "0ms");
+  assert.equal(colorsPhase(16300), "-300ms");
+  assert.equal(colorsPhase(25300), "-1300ms", "same phase as 17300ms: shifted by one period");
+});
+
+test("a color wait is set and cleared on any node", () => {
+  const values = new Map();
+  const node = { dataset: {}, style: { setProperty: (name, value) => values.set(name, value), removeProperty: (name) => values.delete(name) } };
+  setColorWait(node, ["#111111", "#222222", "#333333", "#444444"]);
+  assert.equal(node.dataset.mediaWait, "colors");
+  assert.deepEqual([1, 2, 3, 4].map((index) => values.get(`--wait-${index}`)), ["#111111", "#222222", "#333333", "#444444"]);
+  assert.match(values.get("--wait-phase"), /^-?\d+(\.\d+)?ms$/);
+  clearColorWait(node);
+  assert.equal(node.dataset.mediaWait, undefined);
+  assert.equal(values.size, 0, "all wait variables are removed");
 });
 
 test("detached capacity follows device memory, 4 GB when unknown", () => {

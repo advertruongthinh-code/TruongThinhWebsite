@@ -13,7 +13,7 @@ tests:
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/406332849a0e816ebc6af97487876c15
-updated: 2026-11-07
+updated: 2026-11-12
 ---
 
 # Ảnh JPEG XL progressive và thứ tự tải
@@ -89,7 +89,7 @@ xuất hiện khi đủ chất lượng như lúc trước khi làm jxl"). Bản
 Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ.
 
 - Trang tĩnh: vệt sáng của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) che tới `load` và `decode()`.
-- Advertising: card giữ blur tới khi ảnh tải xong (R9), primary chạy Kính lúc `decode()` xong
+- Advertising: card giữ blur (điện thoại: lớp màu 4 màu chủ đạo) tới khi ảnh tải xong (R9), primary chạy Kính lúc `decode()` xong (điện thoại: ảnh hiện `0.45s` trên lớp màu)
   ([skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md)).
 - Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn, đã tải xong), tải bản gốc riêng, `load` xong mới đổi.
 - Site không đăng ký Service Worker. `/sw.js` chỉ còn tự gỡ bản đã cài ở máy khách từ trước (`_headers` `no-cache`).
@@ -208,15 +208,15 @@ lượt JXL qua lớp mờ. Khung tô màu chủ đạo của ảnh (`MEDIA_COLO
 thành ô trắng (A04s 400 kbit/s: ô trắng 2 đến 4s; owner chọn 2026-10-31 11:09). Tải và `decode()` xong (R3) thì blur tan
 về 0 trong `0.6s` rồi gỡ ([skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)). Trong lúc mờ ảnh thở (opacity `1 → 0.45 → 1`, `2s`) và thở dừng cùng nhịp blur tan (owner 2026-11-01); gate điện thoại giữ ở trên.
 
-Bản đầu dùng Kính ba bậc (`backdrop-filter`) trên ảnh; owner kéo thanh cuộn cực đoan (tắt cache, 3G) thấy FPS không hơn
-Flow (2026-10-31 09:59). Trace 1920px: có Kính 14 đến 15 FPS, blur trên ảnh 41 (JXL hay WebP như nhau); A04s 400 kbit/s: có Kính 8,6 đến 10,6, blur trên ảnh 74 đến 82.
+Bản đầu dùng Kính ba bậc (`backdrop-filter`) trên ảnh; owner kéo thanh cuộn cực đoan (tắt cache, 3G) thấy FPS không hơn Flow (2026-10-31 09:59).
+Trace 1920px: Kính 14 đến 15 FPS, blur 41; A04s 400 kbit/s: Kính 8,6 đến 10,6, blur 74 đến 82.
 
-- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
-  blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
-- Điện thoại giữ luật chờ trang ngừng cuộn `120ms` trước khi tan (`PHONE_REVEAL_SCROLL_IDLE_MS`).
-- Card không còn Kính, khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
-  ([skeleton](advertising-skeleton.md)). Đã gỡ bản giảm tải tạm của PR #618.
-- Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ).
+- Điện thoại (`skeletonPhone`, owner 2026-11-12) không mờ, không thở: card chờ ảnh (chính, related, card tạm) và primary chờ bằng lớp màu phẳng đổi qua 4 màu chủ đạo (`MEDIA_COLORS[1..4]`,
+  `2s` mỗi màu, chu kỳ `8s`; lớp trên chỉ đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; `[data-media-wait="colors"]` trong `detail.css`); ảnh ẩn tới khi `decode()` xong rồi hiện `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` trên lớp màu, xong gỡ lớp.
+  Thiếu đủ 5 màu thì lớp đứng yên ở màu chủ đạo. Giữ luật chờ ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`). Chưa đo A04s (3a.3).
+- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
+- Card không còn Kính, khung skeleton, Flow hay WebGL context; Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)); đã gỡ bản giảm tải tạm của PR #618.
+- Primary trên PC giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ); trên điện thoại chờ bằng lớp màu như trên.
 
 ```gherkin
 Given masonry Advertising trên PC, tắt cache, mạng chậm
