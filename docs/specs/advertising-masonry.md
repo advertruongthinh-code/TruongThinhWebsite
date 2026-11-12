@@ -68,7 +68,7 @@ And body có is-masonry-browse, floating CTA không hiện
 
 Dữ liệu tĩnh trong `catalog.mjs`, `media-manifest.mjs`, `photo-tags.mjs`, `taxonomy.mjs`; `media-contract.mjs` kiểm. Rail
 và filter chạy theo sáu cụm ([phân loại R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)): `ADVERTISING_CATEGORIES` có `slug` là id cụm, nhãn rail; sáu
-nhóm cũ (`kiosk-posm`...) chỉ còn trong manifest và `ADVERTISING_LEGACY_CATEGORIES` cho trang tương thích. Mỗi card có `id`,
+nhóm cũ (`kiosk-posm`...) chỉ còn trong manifest và `ADVERTISING_LEGACY_CATEGORIES` cho trang tương thích (chỉ giữ `slug`, tên và câu giới thiệu; nhãn sản phẩm của nhóm cũ chỉ khai một lần ở tag `variant` `product-<productKey>` trong `photo-tags.mjs`). Mỗi card có `id`,
 `category` (cụm của sản phẩm chính), `clusterIds` (cụm của từng sản phẩm), `sourceOrder` (đếm lại trong cụm), `productKey`, `productIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
 tên và mô tả VI/EN, `tagIds`, `media` (`src`, `sourceId`, `width`, `height`, alt VI/EN, `source`, `sha256`, `provenance`),
 `mediaItems`, `coverMediaId`, `rank`. Pool bị từ chối khi: trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN, provenance

@@ -11,7 +11,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import sharp from "sharp";
-import { palette } from "./image-palette.mjs";
+import { mediaColors } from "./image-palette.mjs";
 import { readJson, siteRoot as sourceRoot, walk } from "./lib.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 
@@ -37,7 +37,6 @@ const thresholds = JSON.parse(await readFile(thresholdsFile, "utf8").catch(() =>
 const colorsFile = path.join(sourceRoot, "media-lib/colors.mjs");
 const colors = { ...(await import(pathToFileURL(colorsFile)).catch(() => ({}))).MEDIA_COLORS };
 const colorKey = (file) => file.includes(`${path.sep}advertising${path.sep}`) && path.basename(file, ".webp");
-const hex = ([r, g, b]) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 const relativeOf = (file) => path.relative(sourceRoot, file).replaceAll("\\", "/");
 
 // Variant path of a WebP: name.avif (full width), name-480.webp, name-480.avif, ...
@@ -161,9 +160,9 @@ const buildFile = async (file) => {
   if (key && (colors[key]?.length !== 5 || rebuilt)) {
     if (check) missing.push(`${relative} (color)`);
     else {
-      const small = sharp(file).resize(64).removeAlpha();
-      const { r, g, b } = (await small.clone().stats()).dominant;
-      colors[key] = [[r, g, b], ...palette(await small.raw().toBuffer())].map(hex);
+      // The dominant color reads the full-size pixels (sharp stats() ignores resize); the Flow colors read the 64px thumbnail.
+      const [full, thumb] = await Promise.all([sharp(file).removeAlpha().raw().toBuffer(), sharp(file).resize(64).removeAlpha().raw().toBuffer()]);
+      colors[key] = mediaColors({ full, thumb });
     }
   }
   // Write after each image (sequentially between jobs) so a long run that gets interrupted can continue.

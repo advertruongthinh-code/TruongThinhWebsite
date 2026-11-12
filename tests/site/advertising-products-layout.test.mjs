@@ -4,6 +4,7 @@ import { performance } from "node:perf_hooks";
 import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_DATASET_VERSION, ADVERTISING_LEGACY_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
+import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import {
   MASONRY_LAYOUT_VERSION,
@@ -321,12 +322,14 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   for (const category of ADVERTISING_LEGACY_CATEGORIES) {
     const categoryCards = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
-    assert.equal(category.products.length, { "kiosk-posm": 14, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
+    // The old group's product labels live only in the tag registry now: variant tag product-<productKey> holds the label.
+    const products = ADVERTISING_TAG_REGISTRY.filter(({ id }) => id.startsWith(`product-${category.slug}-product-`));
+    assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
-    assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, category.products.length, `${category.slug} covers all taxonomy products`);
+    assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, products.length, `${category.slug} covers all taxonomy products`);
     for (const card of categoryCards) {
-      const productIndex = Number(card.productKey.slice(-2)) - 1;
-      assert.deepEqual([card.titleVi, card.titleEn], [category.products[productIndex].titleVi, category.products[productIndex].titleEn], `${card.id} matches its taxonomy product`);
+      const tag = products.find(({ id }) => id === `product-${card.productKey}`);
+      assert.deepEqual([card.titleVi, card.titleEn], [tag.labelVi, tag.labelEn], `${card.id} matches its taxonomy product`);
     }
     assert.ok(poolSources.has(category.cover), `${category.slug} cover reuses its production pool`);
     assert.equal(category.gallery.length, 2, `${category.slug} keeps two detail gallery images`);

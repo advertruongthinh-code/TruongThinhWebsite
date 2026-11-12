@@ -204,7 +204,7 @@ Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 
 Card masonry chính và related đang chờ ảnh không dùng skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh chưa tải
 xong thì ảnh hiện ngay ở opacity cuối dưới `filter: blur(24px)` của chính nó (không animate vào); trình duyệt vẽ dần các
-lượt JXL qua lớp mờ. Khung tô màu chủ đạo của ảnh (`MEDIA_COLORS`, `sharp` `stats().dominant`) nên ảnh chưa có byte không
+lượt JXL qua lớp mờ. Khung tô màu chủ đạo của ảnh (`MEDIA_COLORS`, `dominant` trong `image-palette.mjs`, khớp `sharp` `stats().dominant`) nên ảnh chưa có byte không
 thành ô trắng (A04s 400 kbit/s: ô trắng 2 đến 4s; owner chọn 2026-10-31 11:09). Tải và `decode()` xong (R3) thì blur tan
 về 0 trong `0.6s` rồi gỡ ([skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ)). Trong lúc mờ ảnh thở (opacity `1 → 0.45 → 1`, `2s`) và thở dừng cùng nhịp blur tan (owner 2026-11-01); gate điện thoại giữ ở trên.
 
