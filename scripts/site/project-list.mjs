@@ -3,10 +3,9 @@
 // is embedded in the page so the runtime changes the filter in place.
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
-import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, pageHref } from "./block-pages.mjs";
+import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
 import { PUBLIC_ORIGIN, escapeHtml } from "./lib.mjs";
 
-const SECTOR_LABEL = { residential: { vi: "Nhà ở", en: "Residential" }, commercial: { vi: "Kinh doanh", en: "Commercial" } };
 const ROOT_NAME = { vi: "Công trình", en: "Projects" };
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };

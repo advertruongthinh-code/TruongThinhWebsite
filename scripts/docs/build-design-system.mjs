@@ -5,8 +5,11 @@ import { basename, dirname, join } from 'node:path';
 import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
+import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
 
 const OUT = 'design-system';
+// Source pages keep menu markers; the preview reads them with the menu rendered, as the build does.
+const readSource = (file) => MENU_PAGES.some((page) => file === `src/site/${page}`) ? readPageSource(file.slice('src/site/'.length)) : readFileSync(file, 'utf8');
 // Links in the preview do not navigate: claude.ai stops the live preview when the frame leaves the page (spec design-system R3.5).
 const HEAD = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">\n'
   + '<script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>';
@@ -47,7 +50,7 @@ const COMPONENTS = [
     markup: `<main id="noi-dung">\n${renderBlocks(blocksPreview.page, blocksPreviewContext)}\n</main>` },
   // News list page (news R2) is built on the About page frame like the build; the preview takes the <main> part.
   { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,
-    markup: extract(renderNewsListPage(readFileSync('src/site/about/index.html', 'utf8'), { path: '/news/', base: '/news/', number: 1, count: 2,
+    markup: extract(renderNewsListPage(readSource('src/site/about/index.html'), { path: '/news/', base: '/news/', number: 1, count: 2,
       years: ['2026'], posts: blocksPreview.news }), /<main id="noi-dung"/) },
   { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
     also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
@@ -125,7 +128,7 @@ addEventListener("load", () => requestAnimationFrame(() => {
 const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
 
 for (const c of COMPONENTS) {
-  const html = readFileSync(c.file, 'utf8').replace('<!-- project-reel-cards -->', () => projectReelCards);
+  const html = readSource(c.file).replace('<!-- project-reel-cards -->', () => projectReelCards);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
     // Captures keep fixed px of the 1440 viewport (capture-design-system.mjs); width=1440 makes claude.ai render at that size and scale down, without cropping edges.
@@ -134,7 +137,7 @@ for (const c of COMPONENTS) {
     continue;
   }
   if (!c.start.test(html)) throw new Error(`${c.start} not found in ${c.file}`);
-  let markup = c.markup ?? [extract(html, c.start), ...(c.also ?? []).map((a) => (Array.isArray(a) ? extract(readFileSync(a[0], 'utf8'), a[1]) : extract(html, a)))].join('\n');
+  let markup = c.markup ?? [extract(html, c.start), ...(c.also ?? []).map((a) => (Array.isArray(a) ? extract(readSource(a[0]), a[1]) : extract(html, a)))].join('\n');
   if (c.before) markup = c.before(html) + '\n' + markup;
   if (c.open) markup = markup.replace(/^<dialog class="([^"]*)"/, '<dialog open class="$1 is-active"');
   // The preview does not run page scripts: drop inline scripts; keep only the active hero slide, which gets src so its image shows (page-home R3).
