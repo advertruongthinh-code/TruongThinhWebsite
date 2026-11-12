@@ -1,6 +1,7 @@
 // Dark seam at the masonry card edge (owner 2026-11-09): the frame's dominant-color background must not show at the media edge.
 // 1. A loaded image covers the frame exactly, even when the file still loading rounds pixels to a skewed ratio (480w: 437x245 of a 3065x1725 frame).
 // 2. The blurred image waiting to load overshoots the frame by at least the blur radius, so the blur's pale edge band lies outside the clipped area.
+//    On the phone the card waits on the color layer instead: no blur, so no overshoot; the image is hidden and the layer fills the frame.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-media-edge.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -61,8 +62,9 @@ try {
     await page.close();
   }
 
-  // Card image held for 8s like Slow 3G: the card in the viewport is blurred.
+  // Card image held for 8s like Slow 3G: the card in the viewport is blurred on PC, covered by the color layer on the phone.
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const phone = viewport.width <= 750;
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
     await page.route("**/assets/content/**", async (route) => {
@@ -70,7 +72,22 @@ try {
       await route.continue().catch(() => {});
     });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]").length > 2);
+    await page.waitForFunction((selector) => document.querySelectorAll(selector).length > 2,
+      phone ? "[data-project-grid] [data-masonry-card][data-media-wait='colors']" : "[data-project-grid] [data-masonry-media-loading]");
+    if (phone) {
+      const layers = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card][data-media-wait='colors']")].map((tile) => {
+        const card = tile.getBoundingClientRect();
+        const layer = getComputedStyle(tile, "::after");
+        const image = tile.querySelector(".masonry-card__foreground:not([hidden])");
+        return { id: tile.dataset.masonryCard, width: Number.parseFloat(layer.width) - card.width, height: Number.parseFloat(layer.height) - card.height,
+          blur: Boolean(image?.style.filter), opacity: image && Number(getComputedStyle(image).opacity) };
+      }));
+      assert.deepEqual(layers.filter(({ width, height, blur, opacity }) => Math.abs(width) > 0.5 || Math.abs(height) > 0.5 || blur || opacity !== 0), [],
+        "390px: the color layer fills the frame and the waiting image is hidden, unfiltered");
+      await page.unrouteAll({ behavior: "ignoreErrors" });
+      await context.close();
+      continue;
+    }
     const bleeds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-media-loading]")].flatMap((tile) => {
       const media = tile.querySelector(".masonry-card__media");
       const image = media?.querySelector(".masonry-card__foreground:not([hidden])");

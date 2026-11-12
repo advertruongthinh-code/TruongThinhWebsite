@@ -1062,10 +1062,39 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   will-change: transform;
 }
 
-/* Portrait screens (phone) crop both sides of the hero image; a slide whose subject is off-center sets --hero-portrait-x to keep the subject in frame. */
+/* Portrait screens (phone) crop both sides of the hero image; hero-slides.json sets --hero-focal-x and --hero-focal-y on the figure to keep the subject in frame. */
 @media (max-aspect-ratio: 1/1) {
   .hero-slide img {
-    object-position: var(--hero-portrait-x, 50%) 50%;
+    object-position: var(--hero-focal-x, 50%) var(--hero-focal-y, 50%);
+  }
+}
+
+/* Phone slideshow (page-home R3): zoom-out slides start at 1.1, pan slides start at their first frame. motion.js sets --hero-pan (8% of the frame
+   height) when a pan slide starts and tweens x or y between 0 and -pan; the box grows by --hero-pan along the pan axis so an edge never shows.
+   The state before the script runs equals the first tween frame. Reduced motion keeps the plain 100% box and the static rules below. */
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  .hero-slide[data-hero-move="zoom-out"] img {
+    transform: scale(1.1);
+  }
+
+  .hero-slide[data-hero-move="pan"] img {
+    transform: none;
+  }
+
+  .hero-slide:is([data-hero-pan-dir="left"], [data-hero-pan-dir="right"]) img {
+    width: calc(100% + var(--hero-pan, 0px));
+  }
+
+  .hero-slide:is([data-hero-pan-dir="up"], [data-hero-pan-dir="down"]) img {
+    height: calc(100% + var(--hero-pan, 0px));
+  }
+
+  .hero-slide[data-hero-pan-dir="left"] img {
+    transform: translateX(calc(-1 * var(--hero-pan, 0px)));
+  }
+
+  .hero-slide[data-hero-pan-dir="up"] img {
+    transform: translateY(calc(-1 * var(--hero-pan, 0px)));
   }
 }
 
@@ -3261,6 +3290,11 @@ html.motion-fallback .hero-slide.is-active {
   visibility: visible !important;
 }
 
+html.motion-fallback .hero-slide.is-active img {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 html.motion-fallback .hero-slide.is-active img,
 html.motion-fallback .reveal,
 html.motion-fallback .heritage-line,
@@ -5070,6 +5104,83 @@ body.is-masonry-browse .masonry-grid {
 @media (prefers-reduced-motion: reduce) {
   .masonry-ghost {
     animation: none;
+  }
+}
+
+/* Phone image wait (progressive-loading R9): masonry cards, the temp card and the Advertising primary frame wait on a flat layer cycling through the image's 4 dominant
+   colors, 2s each. The runtime sets data-media-wait="colors" and --wait-1..4 (the file's colors) and --wait-phase (shared by every layer, so a temp card turning into a card keeps
+   its color). Two pseudo layers under the content (z-index -1 inside an isolated stacking context): the top one fades colors 2 and 4 in and out (an opacity animation of its own, so it
+   can run on the compositor; its color is a separate step animation that only changes while the layer is transparent), the base one switches color in steps while the top one covers
+   it, so every visible change is a 2s fade. Seen: 1, 2, 3, 4, then 1 again. */
+[data-media-wait="colors"] {
+  isolation: isolate;
+}
+
+[data-media-wait="colors"]::before,
+[data-media-wait="colors"]::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  animation-duration: 8s;
+  animation-iteration-count: infinite;
+  animation-delay: var(--wait-phase, 0s);
+}
+
+[data-media-wait="colors"]::before {
+  animation-name: media-colors-base;
+  animation-timing-function: step-end;
+}
+
+[data-media-wait="colors"]::after {
+  animation-name: media-colors-fade, media-colors-shift;
+  animation-timing-function: ease-in-out, step-end;
+}
+
+@keyframes media-colors-base {
+  0% { background-color: var(--wait-1); }
+  25% { background-color: var(--wait-3); }
+  75% { background-color: var(--wait-1); }
+}
+
+@keyframes media-colors-fade {
+  0%, 50%, 100% { opacity: 0; }
+  25%, 75% { opacity: 1; }
+}
+
+@keyframes media-colors-shift {
+  0% { background-color: var(--wait-2); }
+  50% { background-color: var(--wait-4); }
+}
+
+/* The card's media box paints its dominant color inline; it must not cover the layers while the image fades in over them. A card video shows its poster at once,
+   so it waits hidden like an image until the runtime marks it ready and fades it in. */
+[data-media-wait="colors"] .masonry-card__media {
+  background-color: transparent !important;
+}
+
+[data-media-wait="colors"] video.masonry-card__foreground:not(.is-masonry-media-ready) {
+  opacity: 0;
+}
+
+/* Primary: a video and the live blur background sit above the color layer, so they wait hidden like the photo and background (the runtime fades them in with it). */
+.detail-view__hero-frame[data-media-wait="colors"][data-detail-loading] > :is([data-detail-video], .detail-view__live-background) {
+  opacity: 0;
+}
+
+.masonry-ghost[data-media-wait="colors"] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-media-wait="colors"]::before {
+    background-color: var(--wait-1);
+    animation: none;
+  }
+
+  [data-media-wait="colors"]::after {
+    display: none;
   }
 }
 

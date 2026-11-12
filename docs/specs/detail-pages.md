@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-07
+updated: 2026-11-12
 ---
 
 # Trang Residential, Commercial và About
@@ -26,7 +26,7 @@ Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đ�
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
 nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo trong `.detail-cta`. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vệt sáng chờ ảnh thuộc
-[tải ảnh](media-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
+[tải ảnh](media-delivery.md); phần Advertising trong hai file chung (gồm lớp màu chờ ảnh trên điện thoại, `[data-media-wait]`) thuộc spec Advertising.
 
 ## Hành vi
 
@@ -115,7 +115,7 @@ Then mỗi trang một h1, không có bước nhảy cấp heading, không phầ
 ### R5. Hero và vào trang
 
 Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), có kicker, `h1` hai dòng, scroll cue. Residential,
-Commercial: hero slideshow giống hệt [trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng): cùng script head chọn, preload slide đầu, cùng script module xáo, cùng zoom `1.06 → 1`, crossfade, nút dừng `[data-motion-toggle]`; `.hero-slides` parallax speed `-2`; không JavaScript thì `.hero-slides` hiện nền ảnh slide 0 (R11). Residential 8 ảnh: bếp và bàn ăn gỗ, homestay ven sông (từ Kinh doanh), sáu ảnh nhà ở từ trang chủ (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay A317-v3, phòng khách căn hộ A317-v2, bếp nhà phố A317-v1-alt1, phòng khách nhà ống A321-v2). Commercial 7 ảnh: 8 hero cũ trừ homestay (shop thể thao, tiệm bánh vòm xanh ở gallery; hai gian hàng dừa ở [Gian hàng triển lãm](advertising-masonry.md)); chữ hoa, đậm 600,
+Commercial: hero slideshow giống hệt [trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng): cùng script head chọn, preload slide đầu, cùng script module xáo (danh sách slide và hai script này do build sinh từ `content/hero-slides.json`, xem trang chủ R3), cùng zoom `1.06 → 1`, crossfade, nút dừng `[data-motion-toggle]`; `.hero-slides` parallax speed `-2`; không JavaScript thì `.hero-slides` hiện nền ảnh slide 0 (R11). Residential 8 ảnh: bếp và bàn ăn gỗ, homestay ven sông (từ Kinh doanh), sáu ảnh nhà ở từ trang chủ (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay A317-v3, phòng khách căn hộ A317-v2, bếp nhà phố A317-v1-alt1, phòng khách nhà ống A321-v2). Commercial 7 ảnh: 8 hero cũ trừ homestay (shop thể thao, tiệm bánh vòm xanh ở gallery; hai gian hàng dừa ở [Gian hàng triển lãm](advertising-masonry.md)); chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
 tính từ lúc mount: ảnh hero About (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên;

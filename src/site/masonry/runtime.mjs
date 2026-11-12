@@ -19,6 +19,7 @@ import {
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } from "./replay.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
+import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
@@ -39,7 +40,7 @@ import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
 import {
-  breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
+  breathePhase, clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
 let activeInstance;
@@ -72,6 +73,11 @@ const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
+// The 4 colors of the phone wait layer (progressive-loading R9): the file's Flow colors; without a full palette the layer stays the flat fallback color.
+const waitColors = (src, fallback = "#e9e6df") => {
+  const colors = mediaColors(src)?.slice(1);
+  return colors?.length === 4 ? colors : Array(4).fill(fallback);
+};
 const detailId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
   if (!id) return url.searchParams.get("photo");
@@ -928,18 +934,6 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
   return image;
 }
 
-// Continuous media strip (media-card R3, R6, owner 2026-10-19): each lane is nodes of the same slot, placed side by side `width` apart,
-// only translate is shifted, opacity unchanged. Releasing after a drag slides the remaining distance, with a rhythm that shortens with the distance.
-const releaseTiming = (distance, width) => ({ duration: Math.max(200, PUSH_TIMING.duration * Math.min(1, distance / width)),
-  easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
-function placeStrip(lanes, width, offset) {
-  lanes.forEach(({ nodes, slot }) => nodes.forEach((node) => { node.style.translate = `${slot * width + offset}px 0`; }));
-}
-function moveStrip(lanes, width, from, to, timing) {
-  return lanes.flatMap(({ nodes, slot }) => nodes.map((node) => node.animate(
-    { translate: [`${slot * width + from}px 0`, `${slot * width + to}px 0`] }, timing)));
-}
-
 // Displayable media: image decoded, video with a frame or a decoded poster; an error also ends the wait so the strip does not hang.
 function whenMediaReady(node) {
   if (node instanceof HTMLVideoElement) {
@@ -954,51 +948,6 @@ function whenMediaReady(node) {
   if (!(node instanceof HTMLImageElement)) return Promise.resolve();
   node.loading = "eager";
   return node.decode().catch(() => {});
-}
-
-// A swipe drags the strip with the finger (media-card R3, owner 2026-10-19): direction locks after 10px; lifting after dragging past half
-// the frame or at 0.5px/ms moves to the next media, otherwise it snaps back; at the two ends of the strip it moves only 1/3 of the finger distance. With no
-// pointermove (synthetic pointer) velocity is infinite: a horizontal swipe from 10px changes media.
-function trackStripSwipe(target, { accepts = () => true, start = () => {}, width, canStep, drag, release, signal }) {
-  let gesture = null;
-  const offset = (dx) => canStep(dx < 0 ? 1 : -1) ? dx : dx / 3;
-  target.addEventListener("pointerdown", (event) => {
-    if (!event.isPrimary || !accepts(event)) return;
-    const { pointerId: id, clientX: x, clientY: y, timeStamp: t } = event;
-    gesture = { id, x, y, horizontal: null, lastX: x, lastT: t, prevX: x, prevT: t };
-    start(event);
-  }, { signal });
-  target.addEventListener("pointermove", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    const dx = event.clientX - gesture.x;
-    const dy = event.clientY - gesture.y;
-    if (gesture.horizontal === null) {
-      if (Math.hypot(dx, dy) < 10) return;
-      gesture.horizontal = Math.abs(dx) > Math.abs(dy);
-    }
-    if (!gesture.horizontal) return;
-    Object.assign(gesture, { prevX: gesture.lastX, prevT: gesture.lastT, lastX: event.clientX, lastT: event.timeStamp });
-    drag(offset(dx));
-  }, { signal });
-  target.addEventListener("pointerup", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    const { x, y, horizontal, prevX, prevT } = gesture;
-    gesture = null;
-    const dx = event.clientX - x;
-    if (horizontal === false || Math.abs(dx) < 10 || Math.abs(dx) <= Math.abs(event.clientY - y)) {
-      if (horizontal) release(0, offset(dx));
-      return;
-    }
-    const elapsed = horizontal === null ? 0 : event.timeStamp - prevT;
-    const speed = elapsed > 0 ? Math.abs(event.clientX - prevX) / elapsed : Infinity;
-    const step = dx < 0 ? 1 : -1;
-    release(canStep(step) && (Math.abs(dx) > width() / 2 || speed >= 0.5) ? step : 0, offset(dx));
-  }, { signal });
-  target.addEventListener("pointercancel", (event) => {
-    if (gesture?.id !== event.pointerId) return;
-    if (gesture.horizontal) release(0, offset(gesture.lastX - gesture.x));
-    gesture = null;
-  }, { signal });
 }
 
 function syncJustViewedMarker(figure, locale, marked) {
@@ -1242,7 +1191,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         if (item.kind === "image") {
           failedImages.add(item.id);
           const fallback = imageFallbackIndex();
-          if (activeIndex === index && fallback >= 0 && fallback !== index) {
+          if (shownIndex() === index && fallback >= 0 && fallback !== index) {
             setActive(fallback);
             return;
           }
@@ -1252,18 +1201,18 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           const probe = new Image();
           probe.addEventListener("load", () => {
             posterStatus.set(item.id, "loaded");
-            if (activeIndex === index) updateLoading();
+            if (shownIndex() === index) updateLoading();
           }, { once: true });
           probe.addEventListener("error", () => {
             posterStatus.set(item.id, "failed");
-            if (activeIndex !== index) return;
+            if (shownIndex() !== index) return;
             const fallback = imageFallbackIndex();
             if (fallback >= 0 && fallback !== index) setActive(fallback);
             else updateLoading();
           }, { once: true });
           probe.src = item.posterSrc;
         }
-        if (activeIndex !== index) return;
+        if (shownIndex() !== index) return;
         updateLoading();
       });
       layers.set(item.id, layer);
@@ -1291,6 +1240,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
       ? null : items[activeIndex].id;
+    // A video waits on its poster like an image (progressive-loading R9).
+    figure.advertisingWaitColors = () => {
+      const item = items[activeIndex];
+      return waitColors(item.kind === "video" ? item.posterSrc : item.src, color);
+    };
     figure.advertisingActiveVideo = () => {
       const layer = layers.get(items[activeIndex]?.id);
       return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
@@ -1304,9 +1258,15 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Continuous strip (owner 2026-10-19): old and new media are joined, only the position shifts, clipped at the canvas; the strip slides
     // only after the new media has decoded, so no background shows or fade runs mid-load. A manual drag sets the strip `offset` before release.
+    // Each lane is { nodes, slot, index }; `stripTo` is the offset the strip is heading to; `pendingIndex` is a press waiting for its media
+    // to decode while the strip keeps moving (media-card R3, interruptible strip).
     let lanes = [];
     let laneAnimations = [];
     let slideToken = 0;
+    let stripTo = 0;
+    let pendingIndex = null;
+    // The media the card shows or is about to show: a pending press wins, so a late error of the media it left is stale.
+    function shownIndex() { return pendingIndex ?? activeIndex; }
     const canvasWidth = () => media.clientWidth;
     const reducedMotion = () => env.reducedMotion.matches;
     const settleLanes = () => {
@@ -1332,17 +1292,22 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       });
       placeStrip(lanes, canvasWidth(), offset);
     };
-    const runLanes = (from, to, timing) => {
+    const settleWhenDone = () => {
       const token = slideToken;
-      laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
       laneAnimations.at(-1)?.finished.then(() => { if (token === slideToken) settleLanes(); }, () => {});
+    };
+    const runLanes = (from, to, timing) => {
+      stripTo = to;
+      laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
+      settleWhenDone();
     };
     const preloadNeighbors = () => [activeIndex - 1, activeIndex + 1].forEach((index) => {
       if (!items[index]) return;
       const layer = layerFor(index);
       void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-masonry-media-ready"); });
     });
-    const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
+    const slideTo = (index, offset = 0, timing = PUSH_TIMING) => {
+      pendingIndex = null;
       const from = activeIndex;
       const outgoing = layers.get(items[from]?.id);
       settleLanes();
@@ -1353,23 +1318,94 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
       const direction = activeIndex > from ? 1 : -1;
-      showLanes([{ nodes: [outgoing], slot: 0 }, { nodes: [incoming], slot: direction }], offset);
+      showLanes([{ nodes: [outgoing], slot: 0, index: from }, { nodes: [incoming], slot: direction, index: activeIndex }], offset);
+      stripTo = -direction * canvasWidth();
       const token = slideToken;
       void whenMediaReady(incoming).then(() => {
-        if (token !== slideToken) return;
+        // A newer press waiting for its media takes over this slide before it starts.
+        if (token !== slideToken || pendingIndex !== null) return;
         if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
         runLanes(offset, -direction * canvasWidth(), timing);
       });
     };
+    // Rule 2 of the interruptible strip: only the lanes on screen stay (keepLanes), the others leave the strip like settleLanes does; a
+    // target without a lane joins right after the outermost lane in the press direction.
+    const steerLanes = (index, incoming) => {
+      const width = canvasWidth();
+      const current = lanes.find((entry) => entry.index === index);
+      if (index === activeIndex && current && -current.slot * width === stripTo) return;
+      const { kept, slot } = keepLanes(lanes, { index, direction: index > activeIndex ? 1 : -1, width, offset: stripOffset(lanes, width) });
+      lanes.filter((entry) => !kept.includes(entry)).forEach(({ nodes: [layer] }) => {
+        releaseNode(layer);
+        layer.classList.remove("card-media__image--lane", "card-media__image--beside");
+        layer.hidden = true;
+      });
+      let lane = kept.find((entry) => entry.index === index);
+      if (!lane) {
+        lane = { nodes: [incoming], slot, index };
+        kept.push(lane);
+        incoming.classList.add("card-media__image--lane", "card-media__image--beside");
+        if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
+      }
+      lanes = kept;
+      const toPx = -lane.slot * width;
+      // setActive pauses the outgoing video and hides its layer; the strip keeps every lane visible until it settles.
+      setActive(index);
+      if (activeIndex !== index) return settleLanes();
+      lanes.forEach(({ nodes: [node] }) => { node.hidden = false; });
+      figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
+      const from = stripOffset(lanes, width);
+      slideToken += 1;
+      laneAnimations = retargetStrip(lanes, { toPx, width, sameDirection: Math.sign(stripTo - from) === Math.sign(toPx - from) });
+      stripTo = toPx;
+      settleWhenDone();
+    };
+    // Rule 5: the strip keeps heading to its current target until the new target has decoded; if it settled meanwhile, this is a fresh slide.
+    // The dots, counter and active id change on the press (R3); the active layer changes when the strip steers.
+    const retargetMedia = (nextIndex) => {
+      const index = Math.max(0, Math.min(items.length - 1, nextIndex));
+      const item = items[index];
+      if (failedImages.has(item.id) || posterStatus.get(item.id) === "failed") return slideTo(index);
+      pendingIndex = index;
+      figure.dataset.masonryActiveMediaId = item.id;
+      updateIndicator(index);
+      onMediaChange(item.id);
+      const incoming = layerFor(index);
+      void whenMediaReady(incoming).then(() => {
+        if (pendingIndex !== index) return;
+        pendingIndex = null;
+        // A strip that has not started moving takes the plain path, as before the strip was interruptible.
+        if (laneAnimations.length) steerLanes(index, incoming);
+        else slideTo(index);
+      });
+    };
+    // A press while the strip is in flight retargets it; a swipe release (non-zero offset) or reduced motion takes the plain path.
+    const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
+      if (lanes.length && !offset && !reducedMotion()) retargetMedia(index);
+      else slideTo(index, offset, timing);
+    };
+    // Card removed mid-slide (virtualization): drop the pending press and every lane so no translate is left behind.
+    figure.advertisingSettleStrip = () => {
+      const pending = pendingIndex;
+      pendingIndex = null;
+      settleLanes();
+      if (pending !== null) setActive(pending);
+    };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
-      () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
+      () => selectMedia((pendingIndex ?? activeIndex) + Number(button.dataset.masonryMediaHoverStep))));
     if (hasCarousel) {
       figure.addEventListener("pointerenter", preloadNeighbors);
       // Pointer events include touch; touch-action: pan-y leaves horizontal swipes to this handler.
       trackStripSwipe(link, {
         start: () => {
           suppressClickUntil = 0;
+          // A drag drops a press still waiting for its media, so a snap-back is not followed by that press.
+          if (pendingIndex !== null) {
+            pendingIndex = null;
+            figure.dataset.masonryActiveMediaId = items[activeIndex].id;
+            updateIndicator(activeIndex);
+          }
           preloadNeighbors();
         },
         width: canvasWidth,
@@ -1377,7 +1413,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         drag: (offset) => {
           if (reducedMotion()) return;
           showLanes([-1, 0, 1].filter((slot) => items[activeIndex + slot])
-            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot })), offset);
+            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot, index: activeIndex + slot })), offset);
         },
         release: (step, offset) => {
           suppressClickUntil = performance.now() + 400;
@@ -1401,6 +1437,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let failed = false;
     figure.advertisingPendingMediaId = () => failed || (image.complete && image.naturalWidth > 0)
       ? null : record.coverMediaId;
+    figure.advertisingWaitColors = () => waitColors(record.media.src, color);
     image.addEventListener("error", () => {
       failed = true;
       onPendingChange(figure);
@@ -1644,6 +1681,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     attach: (node) => observeMediaCard(node),
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: cardColor,
+    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, cardColor(card)) : null,
   });
   const relatedHost = createMasonryHost(relatedGrid, {
     create: ({ card: { id }, card }) => createPhotoCard(card, locale, handleMediaLoaded, true,
@@ -1655,6 +1693,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     },
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: (card) => mediaColors(card.media.src)?.[0],
+    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, mediaColors(card.media.src)?.[0]) : null,
     masonry: { itemSelector: "[data-masonry-related-item]", getId: (node) => node.dataset.masonryRelatedItem },
   });
   let relatedLayout;
@@ -1779,6 +1818,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const observeMediaCard = (node) => mediaObserver.observe(node);
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
+    node.advertisingSettleStrip?.();
     node.querySelectorAll("video").forEach(releaseVideoSource);
     // An img detached from the DOM keeps loading: dragging the scrollbar with no cache piles hundreds of requests from removed cards ahead of the visible
     // image. Drop the source so the browser cancels the request.
@@ -2753,24 +2793,34 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         REMOUNT_CACHE_WAIT_MS);
       return;
     }
-    // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
-    // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
-    const scale = cardLoadingScale(node);
-    mediaLayers(node).forEach((media) => {
-      media.style.filter = CARD_LOADING_BLUR;
-      media.style.scale = scale;
-    });
-    // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
-    node.dataset.masonryMediaLoading = "";
-    node.style.setProperty("--breathe-phase", breathePhase());
-    // The card has already drawn the blurred image over the dominant color, so the temp card is removed in the next frame, no crossfade (R7).
+    // Phone: a flat layer cycling through the image's 4 dominant colors; the image stays hidden until decoded, then fades in (progressive-loading R9).
+    const phone = skeletonPhone();
+    if (phone) {
+      // A temp card hands over its own colors so the layer does not jump when the real card shows a different media than the cover.
+      const ghost = node.masonryGhost;
+      setColorWait(node, ghost?.dataset.mediaWait
+        ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
+    } else {
+      // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
+      // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
+      const scale = cardLoadingScale(node);
+      mediaLayers(node).forEach((media) => {
+        media.style.filter = CARD_LOADING_BLUR;
+        media.style.scale = scale;
+      });
+      // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
+      node.dataset.masonryMediaLoading = "";
+      node.style.setProperty("--breathe-phase", breathePhase());
+    }
+    // The card has already drawn its wait state over the dominant color (blurred image, or the same color layer in the same phase as the temp card),
+    // so the temp card is removed in the next frame, no crossfade (R7).
     if (node.masonryGhost) {
       const ghost = node.masonryGhost;
       node.masonryGhost = null;
       requestAnimationFrame(() => ghost.remove());
     }
-    showMedia(node);
-    cardSkeletons.set(node, { blur: true, revealing: false, animations: [] });
+    if (!phone) showMedia(node);
+    cardSkeletons.set(node, { blur: !phone, colors: phone, revealing: false, animations: [] });
   };
   const dropCardSkeleton = (node) => {
     removeGhost(node);
@@ -2778,6 +2828,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!entry) return;
     cardSkeletons.delete(node);
     delete node.dataset.masonryMediaLoading;
+    if (entry.colors) clearColorWait(node);
     entry.animations.forEach((animation) => animation.cancel());
     mediaLayers(node).forEach((media) => {
       media.style.removeProperty("transition");
@@ -2833,7 +2884,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       const layers = mediaLayers(node);
-      if (entry.blur) {
+      if (entry.colors) {
+        // The image fades in over the color layer (kept under it by CSS); the layer is removed when the fade ends. No `fill`: the ready class set here holds opacity 1 afterwards.
+        layers.forEach((media) => {
+          media.style.setProperty("transition", "none", "important");
+          media.classList.add("is-masonry-media-ready");
+        });
+        entry.animations = layers.map((media) => media.animate([{ opacity: 0 }, { opacity: 1 }],
+          { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
+      } else if (entry.blur) {
         // The blur melts to 0 over 0.6s (progressive-loading R9). The breathing stops at exactly that moment: opacity goes from the breathing value to 1 on the same
         // rhythm, no flash; read before removing the attribute because once removed the CSS animation stops and the value read is always 1.
         const from = layers.map((media) => getComputedStyle(media).opacity);
@@ -3847,6 +3906,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     animations.forEach((animation) => animation.cancel());
     glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
+    clearColorWait(heroFrame);
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
   };
@@ -3867,6 +3927,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // and only then runs the reveal from 0 (flash bug on Back, Forward).
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
+    // Phone: no skeleton and no Glass; the photo (and a video or live background, hidden by CSS while waiting) fades in over the color layer (kept under it by CSS), which
+    // settlePrimaryReveal removes. No `fill`: removing data-detail-loading above holds opacity 1 afterwards.
+    if (reveal.colors) {
+      const shown = [...incoming, ...[photoVideo, liveBackground].filter((node) => node && !node.hidden)];
+      reveal.animations = shown.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
+      Promise.all(reveal.animations.map(({ finished }) => finished))
+        .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+      return;
+    }
     const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
     reveal.glass = played.glass;
     reveal.animations = played.animations;
@@ -4031,23 +4101,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (heroFrame) delete heroFrame.dataset.detailSliding;
     startLiveBackground();
   };
-  // entries: [{ item, slot }], slot 0 is the media currently shown; `offset` is the offset of slot 0 from the frame.
+  const primaryLaneNode = (item) => Object.assign(document.createElement("img"),
+    { alt: "", src: primarySource(item), className: "detail-view__strip-media" });
+  // entries: [{ item, slot }], slot 0 is the media currently shown; `offset` is the offset of slot 0 from the frame. Each lane is
+  // { nodes, slot, index } like the card strip; `to` is the offset the strip heads to, `pendingId` a press waiting for its media to decode.
   const openPrimaryStrip = (entries, offset = 0) => {
     closePrimaryStrip();
     const width = primaryWidth();
     const clip = document.createElement("div");
     clip.className = "detail-view__strip";
+    const items = primaryItems();
     const lanes = entries.map(({ item, slot }) => {
-      const media = slot ? Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) })
-        : currentPrimaryNode();
+      const media = slot ? primaryLaneNode(item) : currentPrimaryNode();
       media.classList.add("detail-view__strip-media");
       clip.append(media);
-      return { slot, nodes: [media] };
+      return { slot, nodes: [media], index: items.indexOf(item) };
     });
     photoVideo.after(clip);
     heroFrame.dataset.detailSliding = "";
     const playing = !photoVideo.hidden && !photoVideo.paused;
-    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null };
+    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null, to: 0, pendingId: null };
     // The video's still image stays in the strip; the sound keeps running and fades with the strip's rhythm, then the video pauses.
     if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
@@ -4056,8 +4129,63 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return primaryStrip;
   };
   const runPrimaryStrip = (strip, from, to, timing) => {
+    strip.to = to;
     strip.animations = moveStrip(strip.lanes, strip.width, from, to, timing);
     return strip.animations.at(-1).finished;
+  };
+  // The strip reached its last target: bring the real media there (strip.apply), then remove the strip once that media can show. A retarget
+  // (new animations) or a press still waiting for its media takes over instead.
+  const landPrimaryStrip = async (strip) => {
+    const { animations } = strip;
+    // No animation: the strip had not started when a press sent it back to the media it shows.
+    try { await animations.at(-1)?.finished; } catch { return; }
+    if (primaryStrip !== strip || strip.animations !== animations || strip.pendingId || !strip.apply) return;
+    strip.apply();
+    Object.assign(strip, { apply: null, playing: false });
+    // A video entering the frame plays from the start (R6); the strip is removed when the video has a frame.
+    await (photoVideo.hidden ? whenMediaReady(photoImage) : photoVideo.readyState >= 2 || new Promise((resolve) => {
+      photoVideo.addEventListener("loadeddata", resolve, { once: true });
+      photoVideo.addEventListener("error", resolve, { once: true });
+    }));
+    if (primaryStrip === strip) closePrimaryStrip();
+  };
+  // A press while the primary strip has not landed (media-card R3 rules 1 to 5, R6): the strip keeps moving from where it
+  // is seen, or stays at rest when it has not started, and turns to the new target once that media has decoded; only the lanes on screen
+  // stay (keepLanes), so a target that never showed loses its lane. The sound fade and the video pause belong to the first open and the
+  // landing only. Returns false when the press takes the plain path: no strip on its way or a finger on the strip.
+  const steerPrimaryStrip = (item, direction) => {
+    const strip = primaryStrip;
+    if (!strip || strip.dragging || !strip.apply) return false;
+    const { width } = strip;
+    const index = primaryItems().indexOf(item);
+    const node = strip.lanes.find((entry) => entry.index === index)?.nodes[0] ?? primaryLaneNode(item);
+    strip.pendingId = item.id;
+    void whenMediaReady(node).then(() => {
+      if (primaryStrip !== strip || strip.pendingId !== item.id) return;
+      strip.pendingId = null;
+      const moving = strip.animations.some(({ playState }) => playState === "running");
+      // Back to the target the strip already heads to or rests on: the running animation lands, a stopped strip lands now.
+      if (strip.lanes.some((entry) => entry.index === index && -entry.slot * width === strip.to)) {
+        if (!moving) void landPrimaryStrip(strip);
+        return;
+      }
+      const from = stripOffset(strip.lanes, width);
+      const { kept, slot } = keepLanes(strip.lanes, { index, direction, width, offset: from });
+      strip.lanes.filter((entry) => !kept.includes(entry))
+        .forEach(({ nodes }) => nodes.forEach((entry) => entry !== node && entry.remove()));
+      if (!kept.some((entry) => entry.index === index)) {
+        kept.push({ nodes: [node], slot, index });
+        strip.nodes[0].append(node);
+      }
+      strip.lanes = kept;
+      const toPx = -slot * width;
+      // A strip that already stopped on the old target makes a plain slide from rest.
+      strip.animations = retargetStrip(strip.lanes, { toPx, width,
+        sameDirection: Math.sign(strip.to - from) === Math.sign(toPx - from), timing: moving ? null : PUSH_TIMING });
+      strip.to = toPx;
+      void landPrimaryStrip(strip);
+    });
+    return true;
   };
   // `motion` from a drag swipe: the strip is already open, the offset at release and the remaining slide rhythm.
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
@@ -4068,7 +4196,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
     if (changed || video || sliding) settlePrimaryReveal();
-    const strip = sliding ? motion?.strip ?? openPrimaryStrip([
+    const steered = sliding && !motion && steerPrimaryStrip(item, Math.sign(slide));
+    const strip = steered ? primaryStrip : sliding ? motion?.strip ?? openPrimaryStrip([
       { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
     ]) : null;
     if (!sliding) closePrimaryStrip();
@@ -4119,25 +4248,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoImage.src = source;
     }
     fitPrimaryMedia(item);
-    if (strip) {
+    if (strip && !steered) {
       const from = motion?.offset ?? 0;
       // Wait only for the shown media and the target media; the lane on the other side does not enter the frame.
       void Promise.all(strip.lanes.filter(({ slot }) => slot === 0 || slot === Math.sign(slide))
         .flatMap(({ nodes }) => nodes).map(whenMediaReady))
-        .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
-          motion?.timing ?? PUSH_TIMING))
         .then(() => {
-          if (primaryStrip !== strip) return;
-          strip.apply();
-          Object.assign(strip, { apply: null, playing: false });
-          if (!video) return whenMediaReady(photoImage);
-          // A video entering the frame plays from the start (R6); the strip is removed when the video has a frame.
-          return photoVideo.readyState >= 2 || new Promise((resolve) => {
-            photoVideo.addEventListener("loadeddata", resolve, { once: true });
-            photoVideo.addEventListener("error", resolve, { once: true });
-          });
-        })
-        .then(() => { if (primaryStrip === strip) closePrimaryStrip(); }, () => {});
+          // A later press took the strip over before it started (steerPrimaryStrip), or sent it back to the media it shows and it landed.
+          if (primaryStrip !== strip || strip.pendingId || strip.animations.length || !strip.apply) return;
+          void runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width, motion?.timing ?? PUSH_TIMING).catch(() => {});
+          return landPrimaryStrip(strip);
+        });
     }
     // Images of the two adjacent media enter the cache so a manual drag does not meet an empty lane.
     const neighbors = record.mediaItems || [];
@@ -4156,8 +4277,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (changed) {
       // Whether the image is available or not, both run the slow-loading card motion (loading-glass-and-page-entry R4): the old image and background hide immediately,
       // the skeleton covers the frame until the new image has decoded; an available image only makes the skeleton stand shorter.
-      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
-        mediaColors(video ? item.posterSrc : item.src)?.slice(1)), animations: [], glass: null };
+      // Phone: the same color layer as the cards instead of the Flow skeleton (progressive-loading R9).
+      const phone = skeletonPhone();
+      const waitSrc = video ? item.posterSrc : item.src;
+      if (phone) setColorWait(heroFrame, waitColors(waitSrc, cardColor(record)));
+      const reveal = { frame: phone ? null : attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
+        mediaColors(waitSrc)?.slice(1)), colors: phone, animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";
@@ -4924,7 +5049,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
 
   const handOffVideo = (node) => {
     const video = node.advertisingActiveVideo?.();
-    videoHandoff = video ? { mediaId: node.dataset.masonryActiveMediaId, time: video.currentTime } : null;
+    // The video's own id: while a press waits for its media, the card's active id already names the pressed media (media-card R3).
+    videoHandoff = video ? { mediaId: video.dataset.masonryMediaItem, time: video.currentTime } : null;
   };
   grid.addEventListener("click", (event) => {
     const link = event.target.closest("[data-masonry-card] > a");

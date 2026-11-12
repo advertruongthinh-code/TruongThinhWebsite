@@ -27,6 +27,9 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   mép mờ không thành viền tối (owner 2026-11-09), thở (opacity `1 → 0.45 → 1`, `2s`,
   owner 2026-11-01) và nét dần khi tải; tải và giải mã xong thì thở dừng, blur tan, scale và opacity về 1 cùng nhịp `0.6s`. Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)). Card không có Kính, skeleton hay Flow.
+- Điện thoại (cảm ứng hoặc viewport từ 750px trở xuống) không mờ, không thở: card chờ ảnh mang `data-media-wait="colors"`, một lớp phẳng đổi qua 4 màu
+  chủ đạo của ảnh (mỗi màu `2s`, `ease-in-out`, lặp `8s`; lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; token màu `--wait-1..4`), ảnh ẩn tới khi tải và giải mã xong rồi hiện `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)` trên lớp màu; xong lớp màu bị gỡ (`detail.css`, `[data-media-wait="colors"]`). Chưa đo trên A04s.
 - Card masonry không zoom ảnh khi hover hay focus (owner 2026-10-18). Dưới tên
   là lớp tối học nguyên Pinterest (`media-shade-card`: 48px trên phẳng
   `rgba(17, 17, 17, 0.4)`, rồi nhạt tuyến tính về 0 ở đáy card). Chuột thật: tên
@@ -88,7 +91,10 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
   không nền, bóng nhẹ; ẩn ở media đầu, cuối; cảm ứng không có mũi tên, đổi
   bằng vuốt. Cùng nút với mũi tên dải media của
   [Primary](../Primary/README.md#thumbnail-media), chỉ khác hình dạng.
-- Đổi media tức thì, không trượt; ảnh tải lần đầu hết blur, scale về 1 và opacity lên 1 trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)` (`CARD_REVEAL_MS`).
+- Đổi media là dải liền trượt ngang 0.9s (`PUSH_TIMING`); bấm tiếp khi dải
+  đang trượt thì dải chạy tiếp từ vị trí đang hiện, không nhảy về đích cũ
+  (`retargetStrip` trong `masonry/strip.mjs`, [spec R3](../../../docs/specs/media-card.md#r3-đổi-media-trên-card));
+  reduced motion đổi tức thì. Ảnh tải lần đầu hết blur, scale về 1 và opacity lên 1 trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)` (`CARD_REVEAL_MS`).
 
 ### Focus và nhãn
 
@@ -113,13 +119,13 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha card mờ, không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` ([Motion](../../motion.md#ảnh-trong-card)).
+- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha card mờ (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` ([Motion](../../motion.md#ảnh-trong-card)).
 - **Chờ tải:** card mờ thì thở; mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
   cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của blur tan); card còn mờ chờ ảnh thì chỉ có chữ.
-- **Reduced motion:** skeleton đứng yên, ảnh mờ và card tạm không thở; ảnh hiện ngay, không transition,
+- **Reduced motion:** skeleton đứng yên, ảnh mờ và card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ

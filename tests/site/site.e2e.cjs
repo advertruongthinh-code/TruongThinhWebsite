@@ -9350,9 +9350,9 @@ async function runHeroCrossFadeContinuityChecks() {
 
 async function runWhiteOverlayMediaFallbackCheck() {
   const viewport = { width: 1440, height: 900 };
-  // Slide 0 is read from index.html, with no hard-coded hero image name (content-independent-tests R1).
+  // Slide 0 comes from the hero data file, with no hard-coded hero image name (content-independent-tests R1).
   const heroAsset = `**/${path.basename(
-    fs.readFileSync(path.join(SITE_ROOT, "index.html"), "utf8").match(/data-slide="0"[\s\S]*?data-src="([^"]+)"/)[1],
+    JSON.parse(fs.readFileSync(path.join(SITE_ROOT, "content", "hero-slides.json"), "utf8")).home[0].src,
   )}`;
   const cases = [
     {

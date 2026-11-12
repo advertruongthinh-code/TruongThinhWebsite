@@ -28,7 +28,7 @@ agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy k
 
 ## Chấm ảnh Advertising
 
-Rule tạo và chấm ảnh AI nằm ở [rule ảnh](agent-rule-ad-images.md#chấm-điểm); chỉ đọc khi task có ảnh.
+Chỉ là con trỏ: mọi rule tạo, chấm ảnh AI nằm ở [Tạo và chấm media AI](agent-rule-ad-images.md#chấm-điểm); chỉ đọc khi task có ảnh.
 
 ## Handoff
 

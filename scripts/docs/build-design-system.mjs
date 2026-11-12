@@ -2,6 +2,7 @@
 // Usage: node scripts/docs/build-design-system.mjs [--check]
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { expandHero, readHeroSources } from '../site/hero-slides.mjs';
 import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
@@ -125,10 +126,11 @@ addEventListener("load", () => requestAnimationFrame(() => {
 }
 
 // The project card rail is generated at build time from content/project-reel.json (page-home R8); the preview inserts it as built, and the build already validated it.
+const hero = readHeroSources('src/site');
 const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
 
 for (const c of COMPONENTS) {
-  const html = readSource(c.file).replace('<!-- project-reel-cards -->', () => projectReelCards);
+  const html = expandHero(readSource(c.file), hero.data, hero.orderScript).replace('<!-- project-reel-cards -->', () => projectReelCards);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
     // Captures keep fixed px of the 1440 viewport (capture-design-system.mjs); width=1440 makes claude.ai render at that size and scale down, without cropping edges.

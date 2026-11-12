@@ -2,6 +2,7 @@ import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { env } from "./host.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
+import { isTranslate, keepLanes, laneSlot, placeStrip, releaseNode, retargetStrip, stripOffset } from "./strip.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -457,20 +458,25 @@ export function createDetailViewer({
   const visibleControls = () => [...dialog.querySelectorAll("button, input")]
     .filter((control) => !control.disabled && !control.hidden && control.getClientRects().length > 0
       && getComputedStyle(control).visibility !== "hidden");
+  // `node` moves exactly as `leader` does from now on, `shift` px beside it: same translate animations at the same point.
+  const follow = (node, leader, shift = 0) => {
+    const at = (translate) => `${(Number.parseFloat(translate) || 0) + shift}px 0`;
+    node.style.translate = at(leader.style.translate);
+    return leader.getAnimations().filter(isTranslate).map((animation) => {
+      const frames = animation.effect.getKeyframes().map((frame) => ({ ...frame, translate: at(frame.translate) }));
+      const twin = node.animate(frames, animation.effect.getTiming());
+      twin.startTime = animation.startTime;
+      return twin;
+    });
+  };
+  // Every node in the strip but the real media is a ghost: a still copy of media that left.
   const endSlide = () => {
     if (!slide) return;
-    slide.ghost.remove();
-    slide.animations.forEach((animation) => animation.cancel());
+    slide.lanes.forEach(({ nodes }) => nodes.forEach((node) => node === media ? releaseNode(node) : node.remove()));
     slide = null;
   };
-  // The viewer thumbnail row changes the card's media (R8): a sliding layer carries the old media out, the new media slides in like the primary strip.
-  // `apply` switches the primary to the new media; the video must return to the primary before the primary changes source.
-  const slideTo = (nextRecord, step, apply) => {
-    if (!dialog.open || dialog.dataset.viewerState === "closing") return;
-    endSlide();
-    cancelMotion();
-    dialog.dataset.viewerState = "open";
-    // Video: a canvas draws the currently shown frame, the poster if there is no frame yet; image: a copy of the image.
+  // Video: a canvas draws the currently shown frame, the poster if there is no frame yet; image: a copy of the image.
+  const ghostOf = () => {
     const ghost = media === expandedImage ? expandedImage.cloneNode()
       : video.readyState < 2 ? Object.assign(document.createElement("img"), { src: video.poster, alt: "" })
         : Object.assign(document.createElement("canvas"), { width: video.videoWidth, height: video.videoHeight });
@@ -480,7 +486,47 @@ export function createDetailViewer({
     ghost.setAttribute("aria-hidden", "true");
     for (const name of ["width", "height", "transform"]) ghost.style[name] = media.style[name];
     viewport.append(ghost);
+    return ghost;
+  };
+  const mediaIndex = (entry) => (entry.mediaItems || []).findIndex(({ id }) => id === entry.media.id);
+  // The slide reached its last target: ghosts go and the real media rests in place. A retarget or a press waiting for its media takes over.
+  const landSlide = async (current) => {
+    const { animations } = current;
+    try { await animations.at(-1).finished; } catch { return; }
+    if (slide === current && current.animations === animations && !current.pending) endSlide();
+  };
+  // The viewer thumbnail row changes the card's media (R8): a ghost carries the old media out, the new media slides in like the primary strip.
+  // `apply` switches the primary to the new media; the video must return to the primary before the primary changes source.
+  // A press mid-slide follows the interruptible strip (media-card R3, advertising-detail R9): the strip keeps moving from where it is seen,
+  // the old target becomes a second ghost that keeps its motion, the new target joins next to the outermost lane and the strip turns to it
+  // once it can show. Lanes are { nodes, slot, index } like the card strip; `to` is the offset the strip heads to.
+  const slideTo = (nextRecord, step, apply) => {
+    if (!dialog.open || dialog.dataset.viewerState === "closing") return;
+    const index = mediaIndex(nextRecord);
+    // Only a strip that has started moving is steered; one still waiting for its first media ends as before.
+    const current = slide && slide.animations.length && !reducedMotion.matches ? slide : null;
+    if (!current) endSlide();
+    cancelMotion();
+    dialog.dataset.viewerState = "open";
+    const ghost = ghostOf();
+    const width = current?.width ?? viewport.clientWidth;
+    const from = current ? stripOffset(current.lanes, width) : 0;
+    if (current) {
+      const lane = current.lanes.find(({ nodes }) => nodes.includes(media));
+      current.animations = current.animations.filter(({ effect }) => effect?.target !== media);
+      // A target still waiting for its media, off screen and not the one the strip heads to, never showed: its lane goes (rule 2).
+      if (current.pending && lane.nodes.length === 1 && -lane.slot * width !== current.to && Math.abs(lane.slot * width + from) >= width) {
+        current.lanes.splice(current.lanes.indexOf(lane), 1);
+        ghost.remove();
+      } else {
+        lane.nodes[lane.nodes.indexOf(media)] = ghost;
+        current.animations.push(...follow(ghost, media));
+      }
+      releaseNode(media);
+    }
+    const slot = current && laneSlot(current.lanes, index, step);
     if (media === video) detachVideo();
+    const previousIndex = record ? mediaIndex(record) : -1;
     apply();
     record = nextRecord;
     if (record.media.kind === "video") attachVideo();
@@ -491,8 +537,21 @@ export function createDetailViewer({
     panX = panY = 0;
     measureFit();
     renderTransform();
-    const current = slide = { ghost, animations: [] };
     const target = media;
+    if (current) {
+      // The target moves with the strip from its own slot: in its lane already, or beside the outermost lane on its side.
+      const lane = current.lanes.find((entry) => entry.index === index);
+      const leader = lane ?? current.lanes.find((entry) => Math.abs(entry.slot - slot) === 1);
+      if (!lane) current.lanes.push({ nodes: [target], slot, index });
+      else lane.nodes.push(target);
+      current.animations.push(...follow(target, leader.nodes[0], (slot - leader.slot) * width));
+    } else {
+      slide = { lanes: [{ nodes: [ghost], slot: 0, index: previousIndex }, { nodes: [target], slot: step, index }],
+        animations: [], width, to: 0, pending: null };
+      placeStrip(slide.lanes, width, 0);
+    }
+    const strip = slide;
+    const token = strip.pending = {};
     const ready = target === video
       ? video.readyState >= 2 || new Promise((resolve) => {
         video.addEventListener("loadeddata", resolve, { once: true });
@@ -500,14 +559,25 @@ export function createDetailViewer({
       })
       : expandedImage.decode().catch(() => {});
     void Promise.resolve(ready).then(() => {
-      if (slide !== current) return;
+      if (slide !== strip || strip.pending !== token) return;
+      strip.pending = null;
       if (reducedMotion.matches) return endSlide();
-      const width = viewport.clientWidth;
-      current.animations = [
-        ghost.animate([{ translate: "0 0" }, { translate: `${-step * width}px 0` }], PUSH_TIMING),
-        target.animate([{ translate: `${step * width}px 0` }, { translate: "0 0" }], PUSH_TIMING),
-      ];
-      return current.animations[1].finished.then(() => { if (slide === current) endSlide(); }, () => {});
+      const lane = strip.lanes.find(({ nodes }) => nodes.includes(target));
+      // Back to the target the strip already heads to or rests on: it lands when its animation ends.
+      if (-lane.slot * width === strip.to) return landSlide(strip);
+      const now = stripOffset(strip.lanes, width);
+      const moving = strip.animations.some(({ playState }) => playState === "running");
+      const { kept, slot } = keepLanes(strip.lanes, { index, direction: step, width, offset: now });
+      lane.slot = slot;
+      if (!kept.includes(lane)) kept.push(lane);
+      strip.lanes.filter((entry) => !kept.includes(entry)).forEach(({ nodes }) => nodes.forEach((node) => node.remove()));
+      strip.lanes = kept;
+      const toPx = -lane.slot * width;
+      // A strip at rest (a fresh slide, or one that stopped on the old target) makes a plain slide.
+      strip.animations = retargetStrip(strip.lanes, { toPx, width,
+        sameDirection: Math.sign(strip.to - now) === Math.sign(toPx - now), timing: moving ? null : PUSH_TIMING });
+      strip.to = toPx;
+      return landSlide(strip);
     });
   };
 

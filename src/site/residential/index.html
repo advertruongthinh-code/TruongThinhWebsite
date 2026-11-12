@@ -37,15 +37,7 @@
     <script>
       // detail-pages R5: pick the first hero slide right in the head then preload, like the home hero (page-home R3).
       (() => {
-        const slides = [
-          ["residential-hero-kitchen-dining", 3072],
-          ["commercial-hero-homestay", 3072],
-          ["home-hero-kitchen-dining", 3072],
-          ["home-hero-walnut-bedroom", 3072],
-          ["home-hero-homestay-bedroom-audit-a317-v3", 3072],
-          ["home-hero-apartment-living-audit-a317-v2", 3072],
-          ["home-hero-tube-house-kitchen-audit-a317-v18", 3072],
-          ["home-hero-tube-house-living-audit-a321-v2", 3072]];
+        const slides = /* hero-slides-data:residential */;
         const first = Math.floor(Math.random() * slides.length);
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
@@ -203,109 +195,9 @@
           aria-labelledby="page-title"
         >
           <div class="hero-slides" aria-hidden="true">
-            <figure class="hero-slide is-active" data-slide="0">
-              <img
-                data-src="/assets/content/projects/residential-hero-kitchen-dining.webp"
-                width="3072"
-                height="2048"
-                alt="Bếp và bàn ăn gỗ trong nhà ở, tủ bếp xám đèn hắt và lọ hoa trên bàn"
-                data-en-alt="Home kitchen and timber dining table with lit grey cabinetry and flowers on the table"
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="1">
-              <img
-                data-src="/assets/content/projects/commercial-hero-homestay.webp"
-                width="3072"
-                height="2048"
-                alt="Homestay ven sông với bàn ăn gỗ dài và hiên mở nhìn ra kênh lúc hoàng hôn"
-                data-en-alt="Riverside homestay with a long timber dining table and an open veranda over the canal at sunset"
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="2">
-              <img
-                data-src="/assets/content/projects/home-hero-kitchen-dining.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="3">
-              <img
-                data-src="/assets/content/projects/home-hero-walnut-bedroom.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="4">
-              <img
-                data-src="/assets/content/projects/home-hero-homestay-bedroom-audit-a317-v3.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="5">
-              <img
-                data-src="/assets/content/projects/home-hero-apartment-living-audit-a317-v2.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="6">
-              <img
-                data-src="/assets/content/projects/home-hero-tube-house-kitchen-audit-a317-v18.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="7">
-              <img
-                data-src="/assets/content/projects/home-hero-tube-house-living-audit-a321-v2.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
+            <!-- hero-slides:residential -->
           </div>
-          <script type="module">
-            // detail-pages R5: shuffle slides like the home page (page-home R3), the same code.
-            (() => {
-              const slides = document.currentScript?.previousElementSibling ?? document.querySelector(".hero-slides");
-              const first = document.documentElement.dataset.heroFirst;
-              delete document.documentElement.dataset.heroFirst;
-              [...slides.children].map((slide) => [slide.dataset.slide === first ? -1 : Math.random(), slide])
-                .sort(([a], [b]) => a - b)
-                .forEach(([, slide], index) => {
-                  slides.append(slide);
-                  slide.classList.toggle("is-active", !index);
-                });
-              let image = slides.querySelector("img");
-              // The page-top ResizeObserver tracks this image (while parsing it still has data-srcset) and writes sizes by crop, possibly before
-              // this script even runs; a mismatch with the preload sizes="100vw" means loading twice. The copy is not tracked, sizes returns to 100vw
-              // like an image with src already present (media-delivery R2).
-              image.replaceWith((image = image.cloneNode()));
-              image.setAttribute("fetchpriority", "high");
-              [...image.parentElement.querySelectorAll(":scope > source"), image].forEach((node) => {
-                if (!node?.dataset.srcset) return;
-                node.sizes = "100vw";
-                node.srcset = node.dataset.srcset;
-                node.removeAttribute("data-srcset");
-              });
-              image.src = image.dataset.src;
-              image.removeAttribute("data-src");
-            })();
-          </script>
+          <!-- hero-order -->
           <div class="hero-shade" aria-hidden="true"></div>
 
           <div class="hero-content">

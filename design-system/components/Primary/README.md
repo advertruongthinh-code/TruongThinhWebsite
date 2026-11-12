@@ -68,7 +68,8 @@ Rule đầy đủ: [detail](../../../docs/specs/advertising-detail.md).
 ([Motion](../../motion.md#suggestion-và-detail)).
 
 Trong lúc đổi ảnh, [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) phủ
-đều hiện rồi tan trên khung ảnh.
+đều hiện rồi tan trên khung ảnh. Điện thoại không có skeleton và Kính: khung ảnh đang tải mang
+lớp màu đổi qua 4 màu chủ đạo của ảnh (`data-media-wait="colors"`, như card, [MediaCard](../MediaCard/README.md)), ảnh và nền vùng dư hiện `0.45s` trên lớp màu rồi lớp màu bị gỡ.
 
 ## Chú thích thuật ngữ
 

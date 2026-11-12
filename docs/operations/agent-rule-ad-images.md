@@ -1,9 +1,46 @@
-# Tạo và chấm ảnh Advertising
+# Tạo và chấm media AI
 
-Áp dụng cho mọi ảnh tạo bằng AI trên site. Brief theo
+Nguồn rule duy nhất cho mọi media tạo bằng AI trên site: công cụ, brief, chuỗi ảnh
+một không gian (công trình mẫu), duyệt, phóng to, chấm điểm. Brief theo
 [Ảnh Advertising](../../design-system/advertising-images.md) và
 [Content và media](../../design-system/content.md); bối cảnh hợp ngành của
 khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/advertising-client-products.md).
+
+## Công cụ
+
+Owner chốt 2026-10-18. Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ kế
+tiếp đúng thứ tự; không bỏ bước. Trả phí chỉ bằng coin runninghub.ai, không dùng model
+tính giá đô la (owner 2026-10-24).
+
+| Việc | Thứ tự |
+| --- | --- |
+| Tạo ảnh | ChatGPT web, ChatGPT Codex hoặc CLI, runninghub.ai, kie.ai |
+| Tạo video bằng model AI | kie.ai, runninghub.ai |
+| Tạo nhạc | YuE2 trên runninghub.ai |
+| AI agent biên tập video | [hyperframe.dev](http://hyperframe.dev/) |
+
+- kie.ai chỉ dùng cho ảnh owner chỉ định; sửa chữ trên ảnh owner chỉ định bằng
+  gpt-image-2.5 Sunburst trên kie.ai. API key theo [API key](TOOLING.md#api-key).
+- ChatGPT web trên Chrome PC: tải ảnh lên chatgpt.com chỉ khi owner gõ cho phép trong
+  chính thread làm việc; Chrome chạy không cướp focus.
+- Codex: `codex exec -m gpt-6-sol -s workspace-write -C <dir> -i <ref>`, effort mặc định
+  (effort cao, prompt skill ngắn không tốt hơn); giữ prompt dài, tạo mới thay vì sửa
+  chồng; khi sửa ảnh dặn Codex không resize, không lưu lại. Tắt `gen.ps1` và tiến trình
+  codex cũ trước khi chạy lại (2026-10-14).
+
+### gpt-image-2.5 trên kie.ai
+
+Rút từ trang model kie.ai và bài so sánh bên thứ ba, lấy 2026-10-18; mặc định ban đầu,
+sửa khi owner chấm ảnh thật.
+
+- Flare và Sunburst cùng request, cùng giá; đổi model là đổi tên
+  (`gpt-image-2-5-sunburst-text-to-image`, `-image-to-image`; Flare tương tự). Ảnh tham khảo
+  truyền qua `input_urls`.
+- Mặc định Sunburst cho ảnh lên site: viết đúng chữ nhỏ hoặc dày hơn Flare, ít vân da giả.
+  Flare (nhanh hơn 15 đến 40%) chỉ cho ảnh không chữ cần thử bố cục nhanh, hoặc khi Sunburst lỗi.
+- Phân giải: 1K 6 credit, 2K 10, 4K 16; tối đa 3840x2160, cạnh chia hết cho 16, tỷ lệ 1:3 tới
+  3:1; 27:16, 16:27, 9:8, 8:9 chỉ ở 1K. Chọn theo slot ([tải ảnh](../specs/media-delivery.md)):
+  2K mặc định; 4K cho hero trang chủ; 1K chỉ thử prompt, không lên site.
 
 ## Media chung
 
@@ -69,7 +106,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      theo tinh thần "để thương hiệu luôn trong tầm mắt" (không in câu này); chữ
      đủ lớn để đọc đúng dấu; biển một mặt quay về máy; chữ LED ma trận không đặt
      ở cỡ nhỏ (owner chốt 2026-10-14); chữ lớn, nét dày, ưu tiên hình;
-     chữ AI lỗi thì đổi font hoặc góc nhìn (2026-10-26);
+     chữ AI lỗi thì đổi font hoặc góc nhìn (2026-10-26); dòng phụ là slogan,
+     motto, không phải địa danh (owner 2026-10-14);
    - không dùng xe đẩy inox kiểu cũ có tủ kính ba mặt (như xe hủ tiếu), owner
      loại 2026-10-14;
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
@@ -98,7 +136,15 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
    - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
      phòng, không chắn lối; không tủ cao sát bếp (owner chốt 2026-10-17).
-3. **Tạo.** Công cụ theo thứ tự fallback trong [Stack AI và media](TOOLING.md#stack-ai-và-media)
+   - kiến trúc có thật ngoài đời, không kiến trúc giả tưởng; tỷ lệ trụ và bảng như
+     công trình thật; đường chân trời phía sau liền mạch; không cảnh trao tay ở nhà
+     thuốc, y tế (owner 2026-10-14).
+   - mặt xe bán hàng, standee: owner thích in ảnh tràn mặt (sản phẩm thật ở nửa dưới,
+     lá nhiệt đới ở góc, tên và slogan trên cùng); không mảng phẳng hai màu một icon.
+     Thiết kế lại thì nêu mục tiêu và ràng buộc, để model tự thiết kế, giữ ảnh nền đã
+     chọn làm tham khảo.
+   - ảnh bài News không dùng lại ảnh đã có trên site.
+3. **Tạo.** Công cụ theo thứ tự fallback ở [Công cụ](#công-cụ)
    (ChatGPT web trước; owner chốt 2026-10-18, thay chốt "chỉ Codex, không RunningHub"
    2026-10-15). Mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). `record.json` ghi công cụ và model đọc từ C2PA của ảnh
@@ -119,7 +165,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      bố cục, người, chữ, thương hiệu;
    - không dùng từ headline, title, caption trong prompt vì model in chữ vào ảnh;
      ảnh không chữ ghi rõ không có chữ ở bất kỳ đâu (owner chốt 2026-10-17);
-   - chuỗi ảnh một không gian theo [Ảnh công trình mẫu](sample-project-images.md);
+   - chuỗi ảnh một không gian theo [mục riêng](#chuỗi-ảnh-một-không-gian);
    - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
      giữ nguyên và phần sửa (owner chốt 2026-10-17); ảnh đã sửa hai lần mà còn
      lỗi thì tạo mới từ đầu, vì sửa chồng làm ảnh xuống cấp (owner chốt 2026-10-18);
@@ -139,9 +185,68 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    `p-<id>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
    kèm model đọc từ C2PA, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
-5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
-   link tham khảo. Chỉ ảnh owner lấy mới vào PR. Lựa chọn cho việc chạy trên PC
-   phải là chữ owner gõ trong thread làm việc; bấm card không tới được PC.
+5. **Owner duyệt cuối** trên trang duyệt (artifact claude.ai, không đưa đường dẫn PC):
+   ảnh cũ cạnh ảnh mới, kèm điểm, link tham khảo, link chat ChatGPT, zoom toàn màn hình
+   100%, công cụ khoanh vùng (mask) để sửa, ô ghi chú gen lại; không hiện logo SVG.
+   Chỉ ảnh owner lấy mới vào PR; ảnh không đạt thì gen lại, owner quyết ảnh gen lại có
+   quay lại trang duyệt không. Lựa chọn cho việc chạy trên PC phải là chữ owner gõ
+   trong thread làm việc; bấm card không tới được PC.
+
+## Chuỗi ảnh một không gian
+
+Cho chuỗi ảnh của một không gian (công trình mẫu trang Công trình, series nhà ở, kinh
+doanh); mâu thuẫn với [Tạo ảnh](#tạo-ảnh) thì mục này thắng.
+
+### Bản vẽ trước, ảnh sau
+
+- Mỗi lần gen hoặc gen lại, owner duyệt bản vẽ hiện hành trước: mặt bằng, góc máy,
+  bảng thống kê món. Bản vẽ cũ sai chuẩn gỡ khỏi trang duyệt, không để lẫn với bản
+  mới (owner 2026-11-11).
+- Mọi họa tiết, chi tiết trang trí (chạm, ghép veneer, tranh gạch, vòm) có bản vẽ
+  chi tiết ghi kích thước (mặt đứng hoặc chi tiết); prompt của ảnh có chi tiết đó
+  kèm bản vẽ tương ứng (owner 2026-11-11).
+- Mặt bằng gửi model chỉ là ảnh PNG mặt bằng có mã F/D/W và vị trí, hướng, số camera;
+  không kèm bảng, chú giải hay khung tên. Mỗi bảng (món, vật liệu, góc máy) là một
+  file CSV riêng (owner 2026-11-11, nhắc lại 2026-11-12).
+- Mỗi ảnh gen ra ghi rõ camera nào: tên file theo số camera (`cam-04.png`), hồ sơ
+  ảnh và chú thích trên trang duyệt ghi "Camera 4"; không in chữ lên ảnh, nên không
+  có góc máy chỉ để chụp biển chữ (owner 2026-11-12).
+- Render 3D clay chỉ là gợi ý lỏng hoặc bỏ hẳn; không dùng làm nền cho model đồ theo,
+  vì ảnh đồ theo 3D mất chi tiết và trông không thật (owner 2026-11-11).
+
+### Nhất quán giữa các góc
+
+- Gen lần lượt, ảnh chính trước; ảnh sau kèm ảnh đã gen làm neo, ghi neo là camera
+  nào; prompt nêu ảnh mới thấy gì (trái, giữa, phải), hướng nhìn ("nhìn về tường X")
+  theo mặt bằng và bảng thống kê (owner 2026-11-09).
+- Cận cảnh kèm ảnh cắt của món chung từ neo; mô tả chữ từng món được chép sang prompt
+  sau; mỗi ảnh một `record.json`. CSV góc máy lệch ảnh chính đã gen thì ảnh chính thắng.
+- Món chung (cửa, cửa sổ, đồ nội thất, vật liệu hoàn thiện) giống hệt ở mọi góc của
+  cùng một công trình; ảnh lệch món chung là ảnh sai. Kiểm từng món so với neo trước
+  khi đưa owner xem (owner 2026-11-11).
+
+### Thiết kế
+
+- Nội thất và đồ phải nổi bật, có điểm nhấn; thiết kế bình thường bị trả về
+  (owner 2026-11-11).
+- Hạn chế mây tre và lam gỗ; nếu dùng thì không có lỗi hình AI như nan thưa, to
+  (owner 2026-11-11).
+- Mái ngói thì trong nhà có trần phẳng (la phông); hiên không cần (owner 2026-11-11).
+
+## Phóng to
+
+- Owner tự phóng to ảnh gốc của site bằng Topaz Gigapixel (2026-11-12). Agent phóng to
+  bằng workflow B (SeedVR2 chia khối, làm nét) trên runninghub.ai, 12 đến 15 coin mỗi ảnh
+  (owner chọn 2026-10-24, xác nhận 2026-10-25).
+- Đã loại: Real-ESRGAN (bề mặt như nhựa), upscale 4K của kie.ai, SeedVR2 7B và Qwen-Image
+  (sai dấu chữ Việt hoặc đổi khung), VOSR2 (bịa họa tiết). Biển có chữ không dùng model
+  phục hồi sinh chữ.
+- Chọn ảnh theo file site build thật tham chiếu (`.site-output` từ
+  `scripts/site/prepare-static-assets.mjs`), không theo file trong thư mục assets.
+- Xóa metadata ảnh từ runninghub.ai (có thể chứa token owner), rồi chấm lại đúng SHA-256 mới.
+- Ảnh phóng to đã duyệt giữ làm bản gốc ở `source-assets\upscale-da-duyet` trên ổ E và
+  chép sang ổ D; ảnh gốc từng card ở `source-assets\anh-goc-theo-the`, tên `<số card>-<tên>`.
+  Owner có thể sửa tay ảnh gốc ở đó và yêu cầu cập nhật mọi chỗ liên quan.
 
 ## Chấm điểm
 
@@ -174,7 +279,8 @@ Ngoại lệ (owner chốt 2026-10-18): với đợt ảnh tạo bằng ChatGPT 
 ảnh, không dùng agent chấm.
 
 Một agent chấm, độc lập với agent tạo ảnh (owner chốt 2026-10-13, thay cho ba
-agent). Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
+agent). Câu hỏi đầu tiên: người xem có tin ảnh này do máy ảnh chụp không; ảnh trông
+như tranh vẽ hay dựng 3D là trượt. Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
 cấu, vật liệu, chi tiết AI, chữ và dấu, bố cục, thumbnail, ngành khách hàng.
 Lỗi loại thẳng là loại.
 
@@ -194,3 +300,8 @@ site và chấm lại đúng SHA-256 mới (owner chốt 2026-10-17). Owner phá
 - **Critique**: đánh giá chất lượng thị giác và đóng góp cho bộ ảnh.
 - **Provenance**: nguồn gốc có thể truy nguyên của ảnh (model, SHA-256, tham khảo).
 - **C2PA**: metadata nhúng trong ảnh cho biết công cụ và model đã tạo ảnh.
+- **Công trình mẫu**: công trình dựng bằng ảnh AI để minh họa năng lực trên trang Công trình.
+- **Neo**: ảnh đã duyệt gửi kèm prompt để model giữ đúng món chung.
+- **Render 3D clay**: ảnh dựng khối trắng từ mô hình 3D, chưa có vật liệu.
+- **CSV**: file bảng dạng chữ, mỗi dòng một món.
+- **Upscale**: phóng to ảnh lên độ phân giải cao hơn.
