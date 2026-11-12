@@ -105,7 +105,6 @@
   --brand-header-width: 260.981741px;
   --brand-header-track-width: 260.981741px;
   --brand-menu-height: var(--brand-header-height);
-  --brand-menu-width: var(--brand-header-width);
   --header-row-height: 67.515625px;
   --header-collapsed-row-height: 60.390625px;
   --site-layout-viewport-height: 100vh;
@@ -233,7 +232,7 @@ a {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .detail-carousel)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -2538,10 +2537,6 @@ em {
     --header-collapsed-row-height: 60.390625px;
   }
 
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 90px;
-  }
-
   .site-header {
     width: calc(100% - 50px);
     padding: 25px 25px 0;
@@ -2747,10 +2742,6 @@ em {
 }
 
 @media (max-width: 980px) {
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 60px;
-  }
-
   .hero {
     min-height: 38rem;
   }
@@ -2883,10 +2874,6 @@ em {
   :root {
     --gutter: 20px;
     --section-gap: 64px;
-  }
-
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 30px;
   }
 
   .menu-button {

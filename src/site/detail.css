@@ -3509,61 +3509,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-.detail-carousel {
-  width: 100%;
-  overflow: hidden;
-}
-
-.detail-carousel-track {
-  display: flex;
-  align-items: flex-start;
-  transition-property: transform !important;
-}
-
-.detail-carousel-slide img {
-  width: 100%;
-  aspect-ratio: var(--masonry-media-ratio);
-  background: #e9e6df;
-  object-fit: contain;
-}
-
-[data-masonry-carousel-state="native"] .detail-carousel {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-}
-
-[data-masonry-carousel-state="native"] .detail-carousel-track {
-  gap: var(--masonry-carousel-gap);
-}
-
-.detail-carousel-pagination.swiper-pagination {
-  position: static;
-  display: flex;
-  width: 100%;
-  min-height: 67px;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
-  padding-top: 32px;
-}
-
-.detail-carousel-pagination .swiper-pagination-bullet {
-  width: 6px;
-  height: 6px;
-  margin: 0 !important;
-  background: #c4c4c4;
-  opacity: 1;
-}
-
-.detail-carousel-pagination .swiper-pagination-bullet-active {
-  background: var(--ink);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .detail-carousel-track {
-    transition-duration: 0.01ms !important;
-  }
-
   .masonry-grid .masonry-card {
     opacity: 1 !important;
     transform: none !important;

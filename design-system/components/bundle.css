@@ -52,7 +52,6 @@
   --brand-header-width: 260.981741px;
   --brand-header-track-width: 260.981741px;
   --brand-menu-height: var(--brand-header-height);
-  --brand-menu-width: var(--brand-header-width);
   --header-row-height: 67.515625px;
   --header-collapsed-row-height: 60.390625px;
   --site-layout-viewport-height: 100vh;
@@ -180,7 +179,7 @@ a {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .detail-carousel)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -2485,10 +2484,6 @@ em {
     --header-collapsed-row-height: 60.390625px;
   }
 
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 90px;
-  }
-
   .site-header {
     width: calc(100% - 50px);
     padding: 25px 25px 0;
@@ -2694,10 +2689,6 @@ em {
 }
 
 @media (max-width: 980px) {
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 60px;
-  }
-
   .hero {
     min-height: 38rem;
   }
@@ -2830,10 +2821,6 @@ em {
   :root {
     --gutter: 20px;
     --section-gap: 64px;
-  }
-
-  #noi-dung:has(> #bang-chung) {
-    --section-gap: 30px;
   }
 
   .menu-button {
@@ -6831,61 +6818,7 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-.detail-carousel {
-  width: 100%;
-  overflow: hidden;
-}
-
-.detail-carousel-track {
-  display: flex;
-  align-items: flex-start;
-  transition-property: transform !important;
-}
-
-.detail-carousel-slide img {
-  width: 100%;
-  aspect-ratio: var(--masonry-media-ratio);
-  background: #e9e6df;
-  object-fit: contain;
-}
-
-[data-masonry-carousel-state="native"] .detail-carousel {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-}
-
-[data-masonry-carousel-state="native"] .detail-carousel-track {
-  gap: var(--masonry-carousel-gap);
-}
-
-.detail-carousel-pagination.swiper-pagination {
-  position: static;
-  display: flex;
-  width: 100%;
-  min-height: 67px;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
-  padding-top: 32px;
-}
-
-.detail-carousel-pagination .swiper-pagination-bullet {
-  width: 6px;
-  height: 6px;
-  margin: 0 !important;
-  background: #c4c4c4;
-  opacity: 1;
-}
-
-.detail-carousel-pagination .swiper-pagination-bullet-active {
-  background: var(--ink);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .detail-carousel-track {
-    transition-duration: 0.01ms !important;
-  }
-
   .masonry-grid .masonry-card {
     opacity: 1 !important;
     transform: none !important;
