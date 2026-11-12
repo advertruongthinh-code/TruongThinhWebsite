@@ -227,7 +227,7 @@ Then không có tràn ngang, chữ bị cắt hay header chồng tiêu đề
 ### R13. Reduced motion
 
 `prefers-reduced-motion: reduce`: không veil, không smooth scroll, không FLIP lockup, màu header
-đổi ngay, menu không timeline, CSS rút animation và transition về 0,01ms, `scroll-behavior: auto`. Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ. Đổi preference khi trang mở: `motion-paused` theo ngay.
+đổi ngay, menu không timeline, CSS rút animation và transition về 0,01ms, `scroll-behavior: auto`. Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ. Đổi preference khi trang mở: `motion-paused` (hero, logo chạy) theo ngay; menu, veil chuyển trang, header theo preference từ lần tải trang kế (`motion.js` đọc một lần lúc load).
 Media query reduced motion và phone định nghĩa một lần ở `window.TruongThinhEnv` (`head-inline.js`); shell, detail, masonry đọc từ đó.
 
 ```gherkin
