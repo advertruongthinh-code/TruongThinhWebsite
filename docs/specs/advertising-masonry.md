@@ -141,6 +141,8 @@ And ở 390px (2 cột) mọi card rộng một cột
 
 ### R6. Đặt card và chuyển vị trí
 
+Thời lượng và đường cong trong script đọc từ `masonry/motion-tokens.mjs`, bằng token CSS ([Token motion](../../design-system/motion.md#token-motion)). Card đổi vị trí hoặc kích thước chạy `--dur-card`, mốc `400ms`.
+
 Lưới chính đặt card từ cache build (`replayLayout`, một vòng O(n), không Worker; thuật toán, file, dự phòng `stackLayout`, chip chờ ở [cache bố cục](masonry-layout-cache.md)).
 Related: card đi theo thứ tự R4; mỗi card vào cột có đáy thấp nhất (hòa thì cột trái), top bằng đáy cột cộng khoảng
 giữa, card đầu mỗi cột ở top 0; mọi card một cột (R5). Pha ưu tiên đòi: mép dưới ảnh gần nhất ở hai cột kề lệch ít nhất 10% chiều cao ảnh cao

@@ -32,17 +32,21 @@ Thời lượng và đường cong lặp lại khai một lần ở `:root` củ
 
 | Token | Giá trị | Dùng cho |
 | --- | --- | --- |
-| `--ease` | `cubic-bezier(0, 0, 0.26, 1)` | Hero kicker, media reveal, zoom hero, rail dự án, mũi tên CTA, 404 |
+| `--ease` | `cubic-bezier(0, 0, 0.26, 1)` | Hero kicker, media reveal, zoom hero, rail dự án, mũi tên CTA, 404, pha vào của Kính khi card hiện ảnh |
 | `--ease-underline` | `cubic-bezier(0.4, 0, 0, 1)` | Gạch chân chạy (nav, menu, filter, chip, link, nhãn suggestion, news) |
-| `--ease-expo-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Ảnh decode xong hiện `media-fade-in`, scroll cue |
-| `--ease-card` | `cubic-bezier(0.65, 0, 0.35, 1)` | Nền badge "vừa xem" trên card |
-| `--ease-viewer` | `cubic-bezier(0.55, 0, 0, 1)` | Backdrop viewer mở, đóng |
+| `--ease-expo-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Ảnh decode xong hiện `media-fade-in`, scroll cue, card tạm hiện dần, chip filter vào |
+| `--ease-card` | `cubic-bezier(0.65, 0, 0.35, 1)` | Ảnh card, ảnh primary hiện lần đầu (crossfade từ skeleton, blur tan) và nền badge "vừa xem" trên card |
+| `--ease-viewer` | `cubic-bezier(0.55, 0, 0, 1)` | Backdrop viewer mở, đóng; ảnh viewer bay ra, về |
 | `--dur-fast` | `150ms` | Hover control video, thanh mô tả |
-| `--dur-quick` | `250ms` | Hover nút suggestion, CTA detail, backdrop viewer đóng |
-| `--dur-base` | `300ms` | Hover nền và chữ, gạch chân chạy, backdrop viewer mở |
-| `--dur-card` | `400ms` | Trượt `margin-bottom`, mũi tên CTA |
-| `--dur-fade` | `450ms` | `media-fade-in` |
-| `--dur-hover` | `600ms` | Zoom ảnh hover, reveal, nền badge (`--media-hover-duration` trỏ về đây) |
+| `--dur-quick` | `250ms` | Hover nút suggestion, CTA detail, viewer đóng |
+| `--dur-base` | `300ms` | Hover nền và chữ, gạch chân chạy, viewer mở, skeleton Flow hiện |
+| `--dur-card` | `400ms` | Trượt `margin-bottom`, mũi tên CTA, card đổi vị trí hoặc kích thước trên masonry |
+| `--dur-fade` | `450ms` | `media-fade-in`, card tạm hiện dần |
+| `--dur-hover` | `600ms` | Zoom ảnh hover, reveal, nền badge, card hiện ảnh (`--media-hover-duration` trỏ về đây) |
+
+Script masonry không gõ lại các giá trị trên: `src/site/masonry/motion-tokens.mjs` export `EASE` và `DUR` với đúng
+chuỗi của token, và `tests/site/motion-tokens.test.mjs` so từng giá trị với `:root`. Riêng đường cong đẩy ngang
+`cubic-bezier(0.76, 0, 0.24, 1)` của suggestion và dải media (`EASE.push`) không có token CSS.
 
 Giá trị chỉ dùng một lần giữ literal tại chỗ (100ms, 700ms, 1s, 1.6s vệt sáng, 2s thở, 2.5s, 25s, delay) cùng các
 đường cong riêng của header, floating CTA, menu và `.story-link`. Chế độ giảm chuyển động kẹp `0.01ms` ở `style.css`,

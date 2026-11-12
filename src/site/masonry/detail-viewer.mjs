@@ -1,6 +1,7 @@
 import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { env } from "./host.mjs";
+import { DUR, EASE } from "./motion-tokens.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -388,7 +389,7 @@ export function createDetailViewer({
       return;
     }
     const from = getComputedStyle(media).transform;
-    runMotion(from, target, 250, "cubic-bezier(0.55, 0, 0, 1)", "closing", () => finishClose(restoreFocus));
+    runMotion(from, target, DUR.quick, EASE.viewer, "closing", () => finishClose(restoreFocus));
   };
   // Borrow the primary's own video and player, moved in a single task so the video does not stop; detach returns it to the exact place.
   const attachVideo = () => {
@@ -449,7 +450,7 @@ export function createDetailViewer({
     updateVisibleControls();
     measureFit();
     const target = renderTransform();
-    runMotion(sourceTransform() || target, target, 300, "cubic-bezier(0.55, 0, 0, 1)", "opening");
+    runMotion(sourceTransform() || target, target, DUR.base, EASE.viewer, "opening");
     closeButton.focus({ preventScroll: true });
   };
   // Every visible button and input in DOM order, so Tab reaches the thumbnail row and the video player.

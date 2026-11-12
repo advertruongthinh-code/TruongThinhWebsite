@@ -1,3 +1,5 @@
+import { EASE } from "./motion-tokens.mjs";
+
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
 // The blur steps (increments in detail.css), then a white tint and grain. A surface that fades step by step (spec R6)
 // has three steps (levels 16.07, 57.14, 100px: ceiling 100px, owner 06/10; the owner chose three steps on 2026-10-24); the arc band
@@ -119,7 +121,7 @@ const cubicBezier = (x1, y1, x2, y2) => {
 };
 // Approved reveal (design-system/components/Glass/README.md): in within 0.6s of 1.4s, out over the remainder.
 const REVEAL_PEAK = 0.6 / 1.4;
-const REVEAL_IN = cubicBezier(0, 0, 0.26, 1);
+const REVEAL_IN = cubicBezier(...EASE.standard.match(/[\d.]+/g).map(Number));
 const REVEAL_OUT = cubicBezier(0.86, 0, 0.07, 1);
 const REVEAL_SAMPLES = 28;
 

@@ -33,7 +33,7 @@
       {
         "name": "ease-card",
         "value": "cubic-bezier(0.65, 0, 0.35, 1)",
-        "purpose": "Đường cong card hiện ảnh lần đầu; xem motion.md mục Token motion."
+        "purpose": "Đường cong card, primary hiện ảnh lần đầu và nền badge; xem motion.md mục Token motion."
       },
       {
         "name": "ease-viewer",
