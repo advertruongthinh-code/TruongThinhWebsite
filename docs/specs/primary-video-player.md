@@ -7,7 +7,7 @@ tests:
   - tests/site/primary-video-keyframes.test.mjs
   - tests/site/advertising-photo-layout.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-31
+updated: 2026-11-12
 ---
 
 # Player video primary, khung media ngang và chữ nút gợi ý
@@ -166,7 +166,9 @@ And mở viewer thì nút đóng, phóng to, thu nhỏ cùng kiểu đó
 
 Nút mở lớn hiện cả với video và mở video vào viewer như ảnh: nền blur như ảnh, không nền đen; video phát tiếp đúng giây
 và đúng trạng thái phát, dừng, tiếng; có thanh player (PC theo R7 và R9, cảm ứng theo R1). Dãy thumbnail dưới viewer, như dãy của primary, đổi media của card
-(media trượt như primary); viewer không có hai mũi tên. Video không phóng to: không nút phóng to, thu nhỏ,
+(media trượt như primary); viewer không có hai mũi tên. Bấm thumbnail hoặc phím khi media đang trượt thì theo dải ngắt
+được ([media-card R3](media-card.md#r3-đổi-media-trên-card)): dải chạy tiếp từ chỗ đang thấy, media đích cũ thành bóng thứ
+hai vẫn trượt cùng dải, media mới vào kề làn ngoài cùng theo chiều bấm, làn ra khỏi khung bị bỏ khi dải đổi đích (DRY 4.2). Video không phóng to: không nút phóng to, thu nhỏ,
 không con lăn, không pinch; ảnh vẫn theo
 [viewer R5](advertising-viewer-touch-zoom.md#r5-nút-con-lăn-phím-và-trạng-thái-dùng-chung-một-tỷ-lệ). Đóng viewer
 thì primary đứng ở media vừa xem, video ở đúng giây. Player không còn nút toàn màn hình; Fullscreen API không dùng nữa.
