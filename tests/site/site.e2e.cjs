@@ -266,8 +266,10 @@ function assertPersistentNavigationContracts() {
         !/onerror\s*=/.test(source),
       `${relativePath} does not use the minimal capture-error handshake`,
     );
-    const headerSource = source.match(/<header\b[\s\S]*?<\/header>/)?.[0];
-    const menuSource = source.match(
+    // The navbar list and menu are rendered by the build, so these checks read the output, not the source page with its markers.
+    const built = fs.readFileSync(path.join(SITE_ROOT, "..", "..", ".site-output", relativePath), "utf8");
+    const headerSource = built.match(/<header\b[\s\S]*?<\/header>/)?.[0];
+    const menuSource = built.match(
       /<dialog\b(?=[^>]*\bid="site-menu")[\s\S]*?<\/dialog>/,
     )?.[0];
     assert(
@@ -287,9 +289,9 @@ function assertPersistentNavigationContracts() {
     );
     assert(
       // The header keeps the full label; the full menu splits small/large titles, so the full label lives in aria-label.
-      (source.match(/(?:data-vi|\saria-label)="Sản phẩm Quảng cáo"/g) || []).length >=
+      (built.match(/(?:data-vi|\saria-label)="Sản phẩm Quảng cáo"/g) || []).length >=
         2 &&
-        (source.match(/data-en(?:-aria-label)?="Advertising products"/g) || []).length >= 2,
+        (built.match(/data-en(?:-aria-label)?="Advertising products"/g) || []).length >= 2,
       `${relativePath} has inconsistent project/product labels in the header or full menu`,
     );
     assert(

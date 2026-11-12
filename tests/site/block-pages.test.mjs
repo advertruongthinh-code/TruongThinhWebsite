@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { readPageSource } from "../../scripts/site/sync-site-menu.mjs";
 import { SECTORS, loadBlockContent, renderBlockPage, renderHomeNews, renderProjectPage } from "../../scripts/site/block-pages.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
-const templateOf = (sector) => readFileSync(new URL(`../../src/site/${sector}/index.html`, import.meta.url), "utf8");
+const templateOf = (sector) => readPageSource(`${sector}/index.html`);
 const template = templateOf("residential");
 const { projects, news } = loadBlockContent(siteRoot);
 const ctx = { projects: new Map(projects.map((page) => [page.id, page])), news: new Map(news.map((page) => [page.id, page])) };
@@ -46,7 +47,7 @@ test("News list: newest first, 12 per page, year filter pages, group pages kept 
   assert.equal(pages[1].posts.length, 2);
   // The year page is not indexable; the filter row has only "Tất cả" and the years, no group.
   const { renderNewsListPage } = await import("../../scripts/site/block-pages.mjs");
-  const frame = readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8");
+  const frame = readPageSource("about/index.html");
   const yearHtml = renderNewsListPage(frame, pages[4]);
   assert.ok(yearHtml.includes('<meta name="robots" content="noindex, follow" />'));
   assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
@@ -66,7 +67,7 @@ test("News list: newest first, 12 per page, year filter pages, group pages kept 
 
 test("News article head: group label links to its group page in both languages", () => {
   const post = news[0];
-  const html = renderBlockPage("news", readFileSync(new URL("../../src/site/about/index.html", import.meta.url), "utf8"), post, ctx);
+  const html = renderBlockPage("news", readPageSource("about/index.html"), post, ctx);
   assert.ok(html.includes(`<a class="blk-article-head__group" href="/vi/news/${post.group}/" data-en-href="/en/news/${post.group}/"`), "group link VI and EN");
   // Espacio article head: white (ink header), "News / group" crumb, then title, then date.
   assert.match(html, /blk-article-head--post[^>]*data-header-tone="ink"[\s\S]*?blk-article-head__crumb[\s\S]*?<h1[\s\S]*?blk-article-head__date/);
@@ -81,7 +82,7 @@ test("home News strip: 3 newest posts, each with group, title and Read more like
 
 test("every page links to News from the hamburger menu only", () => {
   for (const file of ["index.html", "about/index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "404.html"]) {
-    const html = readFileSync(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
+    const html = readPageSource(file);
     assert.equal((html.match(/href="\/vi\/news\/"/g) ?? []).length, 1, file);
     assert.match(html, /<a class="menu-option" href="\/vi\/news\/" data-en="News">Tin tức<\/a>/, file);
   }
@@ -155,7 +156,7 @@ test("menu featured: chosen projects in order; product groups chosen or by card 
 
 test("Projects page: artifact JSON cannot close its script; empty type chips hidden except on their own page", async () => {
   const { buildProjectArtifact, projectListPages, renderProjectListPage } = await import("../../scripts/site/project-list.mjs");
-  const template = readFileSync(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
+  const template = readPageSource("advertising-products/index.html");
   const projects = [{ id: "a", sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "a-en", title: { vi: "A </script><b>", en: "A" }, cover: { src: "/a.webp", width: 300, height: 200, altVi: "a", altEn: "a" } }];
   const artifact = buildProjectArtifact(projects);
   const pages = projectListPages(projects);

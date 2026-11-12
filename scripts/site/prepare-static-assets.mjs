@@ -10,7 +10,7 @@ import { MASONRY_LAYOUT_VERSION, filterRank, matchesFilter } from "../../src/sit
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import { LAYOUT_CACHE_PRELOAD_MARKER, LAYOUT_CACHE_ROOT, layoutCachePreload } from "./layout-cache-preload.mjs";
 import "./sync-brand-lockup.mjs";
-import "./sync-site-menu.mjs";
+import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
@@ -66,11 +66,13 @@ await validateProjectReel(projectReel, sourceRoot);
 const projectReelCards = renderProjectReel(projectReel);
 const hero = readHeroSources(sourceRoot);
 await validateHeroSlides(hero.data, sourceRoot);
-const homeTemplate = await readFile(path.join(sourceRoot, "index.html"), "utf8");
+const homeTemplate = readPageSource("index.html");
 if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
 
 await rm(outputRoot, { recursive: true, force: true });
 await cp(sourceRoot, outputRoot, { recursive: true });
+// Menu and navbar list are rendered here, not stored in the source pages; the home page is overwritten next with its project reel.
+await Promise.all(MENU_PAGES.map((page) => writeFile(path.join(outputRoot, page), readPageSource(page), "utf8")));
 await writeFile(path.join(outputRoot, "index.html"), homeTemplate.replace("<!-- project-reel-cards -->", () => projectReelCards), "utf8");
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);
@@ -341,13 +343,13 @@ const frameTemplates = new Map();
 for (const [kind, pages] of Object.entries(blockContent)) {
   for (const page of pages) {
     const frame = KINDS[kind].frame(page);
-    if (!frameTemplates.has(frame)) frameTemplates.set(frame, await readFile(path.join(sourceRoot, frame, "index.html"), "utf8"));
+    if (!frameTemplates.has(frame)) frameTemplates.set(frame, readPageSource(`${frame}/index.html`));
     const destination = path.join(outputRoot, pageSource(kind, page));
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, renderBlockPage(kind, frameTemplates.get(frame), page, blockContext), "utf8");
   }
 }
-if (!frameTemplates.has("about")) frameTemplates.set("about", await readFile(path.join(sourceRoot, "about", "index.html"), "utf8"));
+if (!frameTemplates.has("about")) frameTemplates.set("about", readPageSource("about/index.html"));
 for (const listPage of newsListPages(blockContent.news)) {
   const destination = path.join(outputRoot, newsListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
@@ -355,7 +357,7 @@ for (const listPage of newsListPages(blockContent.news)) {
 }
 // Projects page built on the src shell of the Advertising products page (projects R2).
 // The Projects page embeds its layouts in the artifact, so it needs no cache preload.
-const advertisingFrame = (await readFile(path.join(sourceRoot, "advertising-products", "index.html"), "utf8")).replace(LAYOUT_CACHE_PRELOAD_MARKER, "");
+const advertisingFrame = readPageSource("advertising-products/index.html").replace(LAYOUT_CACHE_PRELOAD_MARKER, "");
 // Cover image dominant color (1x1 average of the 240 variant) for the grid tail under the CTA.
 const { default: sharp } = await import("sharp");
 const coverColors = Object.fromEntries(await Promise.all(blockContent.projects.map(async (project) => {

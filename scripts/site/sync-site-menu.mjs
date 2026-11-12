@@ -1,14 +1,15 @@
-// Full-menu nav (site-shell R4) built from one source then written into every source page that has the menu, the same way as sync-brand-lockup.
-// Featured projects and advertising groups are read from content/menu.json via menuFeatured (editable by the CMS later).
-import { readFile, writeFile } from "node:fs/promises";
+// Full-menu nav and navbar list (site-shell R4) rendered at build time from content/menu.json and put in place of the
+// <!-- menu-nav --> and <!-- desktop-nav --> markers of the source pages: nothing is written back into src/site.
+// Featured projects and advertising groups come from content/menu.json via menuFeatured (editable by the CMS later).
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { PROJECT_TYPES, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
-import { escapeHtml, readJson, siteRoot } from "./lib.mjs";
+import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
+import { escapeHtml, siteRoot } from "./lib.mjs";
 
-const consumers = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
-const navPattern = /( *)<nav\s+class="menu-nav"[\s\S]*?<\/nav>/;
-const desktopListPattern = /(class="desktop-nav"[\s\S]*?\n)( *)<ul>[\s\S]*?<\/ul>/;
+export const MENU_PAGES = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
+const navMarker = /( *)<!-- menu-nav -->/;
+const desktopMarker = /( *)<!-- desktop-nav -->/;
 // Navbar (site-shell R4): four main items in the exact order of menu groups 01-04.
 const DESKTOP_LINKS = [
   { href: "/vi/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
@@ -55,11 +56,11 @@ const group = (number, { title, aria, href, options }) => [
 export const renderMenuNav = ({ projects, productGroups }) => {
   const groups = [
     {
-      title: { vi: "Nhà ở", en: "Residential" }, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/vi/residential/" },
+      title: SECTOR_LABEL.residential, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/vi/residential/" },
       options: [option({ vi: "/vi/residential/", label: { vi: "Thiết kế không gian nhà ở", en: "Residential interior design" } }), ...typesOf("residential").map(typeOption)],
     },
     {
-      title: { vi: "Kinh doanh", en: "Commercial" }, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/vi/commercial/" },
+      title: SECTOR_LABEL.commercial, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/vi/commercial/" },
       options: [option({ vi: "/vi/commercial/", label: { vi: "Thiết kế không gian kinh doanh", en: "Commercial interior design" } }), ...typesOf("commercial").map(typeOption)],
     },
     {
@@ -99,7 +100,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
   ].join("\n");
 };
 
-const [menu, projects] = await Promise.all(["menu.json", "projects.json"].map((file) => readJson(path.join(siteRoot, "content", file))));
+const [menu, projects] = ["menu.json", "projects.json"].map((file) => JSON.parse(readFileSync(path.join(siteRoot, "content", file), "utf8")));
 export const renderDesktopList = (indent) => [
   "<ul>",
   ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),
@@ -107,18 +108,17 @@ export const renderDesktopList = (indent) => [
 ].join("\n");
 
 const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING_CATEGORIES, cards: ADVERTISING_CARDS }));
-for (const relativePath of consumers) {
-  const target = path.join(siteRoot, relativePath);
-  const source = await readFile(target, "utf8");
-  if (!navPattern.test(source)) throw new Error(`${relativePath} is missing <nav class="menu-nav">`);
-  if (!desktopListPattern.test(source)) throw new Error(`${relativePath} is missing the navbar <ul>`);
+
+// Source page (path relative to src/site) with the menu and navbar list rendered in place of their markers.
+export const readPageSource = (relativePath) => {
+  const source = readFileSync(path.join(siteRoot, relativePath), "utf8");
+  if (!navMarker.test(source)) throw new Error(`${relativePath} is missing <!-- menu-nav -->`);
+  if (!desktopMarker.test(source)) throw new Error(`${relativePath} is missing <!-- desktop-nav -->`);
   // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.
   const section = relativePath.split("/")[1] ? relativePath.split("/")[0] : null;
   const current = section ? nav.replace(`class="menu-group__title" href="/vi/${section}/"`, `class="menu-group__title" href="/vi/${section}/" aria-current="page"`) : nav;
   const markCurrent = (list) => section ? list.replace(`<li><a href="/vi/${section}/"`, `<li class="selected"><a href="/vi/${section}/" aria-current="page"`) : list;
-  const next = source
-    .replace(navPattern, (_match, indent) => `${indent}${current}`)
-    .replace(desktopListPattern, (_match, head, indent) => `${head}${indent}${markCurrent(renderDesktopList(indent))}`);
-  if (next !== source) await writeFile(target, next, "utf8");
-}
-console.log(`[site-menu] synchronized ${consumers.length} menu consumers`);
+  return source
+    .replace(navMarker, (_match, indent) => `${indent}${current}`)
+    .replace(desktopMarker, (_match, indent) => `${indent}${markCurrent(renderDesktopList(indent))}`);
+};
