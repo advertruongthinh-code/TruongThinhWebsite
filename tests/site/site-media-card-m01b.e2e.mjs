@@ -1356,9 +1356,12 @@ for (const reduced of [false, true]) {
           const id = [...after.left.keys()].find((key) => before.left.has(key));
           return id === undefined ? 0 : after.left.get(id) - before.left.get(id);
         };
+        // 15% per 60Hz frame: a frame the busy test machine drops (33ms) may carry twice that at the strip's top speed; a settle jump is a
+        // whole frame width within one frame.
         for (let index = 1; index < frames.length; index++) {
           const jump = Math.abs(shift(frames[index - 1], frames[index]));
-          assert(jump <= 0.15, `strip jumps ${jump.toFixed(3)} frames at ${frames[index].t.toFixed(0)}ms`);
+          const frameCount = Math.max(1, (frames[index].t - frames[index - 1].t) / (1000 / 60));
+          assert(jump <= 0.15 * frameCount, `strip jumps ${jump.toFixed(3)} frames in ${frameCount.toFixed(1)} frames at ${frames[index].t.toFixed(0)}ms`);
         }
         assert.equal(trace.clicks.length, 4, "four presses recorded");
         for (const [index, click] of trace.clicks.entries()) {
