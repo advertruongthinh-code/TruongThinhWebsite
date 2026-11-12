@@ -136,7 +136,7 @@ Mỗi vùng vẽ mọi khung của nó bằng một canvas WebGL chung (một co
 khung chờ ảnh của card PC trong `[data-project-grid]` và `[data-detail-related-grid]` (`sharedFlowContainer`, `sharedSkeletonFlows` theo vùng, tối đa
 3 context). Batch giữ vùng riêng vì trong detail batch nằm ngoài lưới related; vùng card giữ canvas là con cuối dù masonry gắn card sau nó
 (runtime gắn lại canvas mỗi lần mount khung). 7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate.
-Khung trên canvas chung không có trần số khung: mọi khung đang thấy đều vẽ (bỏ `SKELETON_SHARED_BUDGET` 24, owner 2026-11-12); không có WebGL thì
+Trên PC, lớp của lưới chính được tạo ngay lúc mount (kèm một lần vẽ khởi động để GPU biên dịch shader), không đợi card đầu tiên chờ ảnh: tạo lúc đó làm rớt khung trong 3 giây đầu (PC owner 2026-11-12, 1% low 42 so với 83 của main). Khung trên canvas chung không có trần số khung: mọi khung đang thấy đều vẽ (bỏ `SKELETON_SHARED_BUDGET` 24, owner 2026-11-12); không có WebGL thì
 khung card giữ frame tĩnh, không mở context riêng cho từng card. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung

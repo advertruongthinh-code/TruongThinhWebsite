@@ -2410,9 +2410,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // the main grid, the related grid. The primary keeps its own renderer.
   const sharedFlowContainer = (frame) => frame.closest(".masonry-grid__cta-skeleton")
     || (frame.parentElement?.classList.contains("card-media") ? frame.closest("[data-project-grid], [data-detail-related-grid]") : null);
-  const sharedFlowFor = (frame) => {
-    const container = sharedFlowContainer(frame);
-    if (!container) return null;
+  const sharedFlowLayer = (container) => {
     if (!sharedSkeletonFlows.has(container)) {
       const layer = createSharedSkeletonFlowLayer();
       sharedSkeletonFlows.set(container, layer);
@@ -2427,6 +2425,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (layer && container.lastElementChild !== layer.canvas) container.append(layer.canvas);
     return layer;
   };
+  const sharedFlowFor = (frame) => {
+    const container = sharedFlowContainer(frame);
+    return container ? sharedFlowLayer(container) : null;
+  };
+  // PC: create the main grid's layer while the page is still covered, so the WebGL context and shader compile do not drop frames
+  // when the first cards start waiting (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
+  if (grid && !skeletonPhone() && !skeletonMotionPreference.matches) sharedFlowLayer(grid);
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);

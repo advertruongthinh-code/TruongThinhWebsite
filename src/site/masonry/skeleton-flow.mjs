@@ -991,6 +991,9 @@ export function createSharedSkeletonFlowLayer() {
     return true;
   };
   if (!setup()) return null;
+  // Warm-up draw: the GPU compiles the program on its first draw. With the blend constant at its default alpha 0 nothing shows.
+  gl.viewport(0, 0, 1, 1);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
 
   const entries = new Set();
   let frameId = 0;

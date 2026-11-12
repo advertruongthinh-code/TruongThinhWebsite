@@ -206,6 +206,15 @@ try {
       const ids = new WeakMap();
       let next = 0;
       window.__waitTrace = [];
+      // Whether the grid's shared canvas (WebGL context, compiled shader) already existed when the first card frame arrived:
+      // creating it then dropped frames on the owner's PC (2026-11-12).
+      new MutationObserver((records, observer) => {
+        const frame = records.flatMap(({ addedNodes }) => [...addedNodes])
+          .find((node) => node.matches?.("[data-masonry-loading-skeleton]") && node.closest("[data-project-grid]"));
+        if (!frame) return;
+        window.__canvasBeforeFirstFrame = Boolean(frame.closest("[data-project-grid]").querySelector(":scope > canvas.masonry-grid__cta-shared-flow"));
+        observer.disconnect();
+      }).observe(document, { childList: true, subtree: true });
       const tick = () => {
         for (const frame of document.querySelectorAll("[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]")) {
           const image = frame.closest("[data-masonry-card]").querySelector("img");
@@ -234,6 +243,7 @@ try {
     assertNoBlank(`${label} load`, states);
     assert.ok(states.some(({ flow }) => flow === "running"), `${label}: waiting cards run Flow ${JSON.stringify(states)}`);
     assert.deepEqual(await gridCanvases(page), { count: 1, last: true, cardCanvases: 0 }, `${label}: one shared canvas in the grid, none per card`);
+    assert.equal(await page.evaluate(() => window.__canvasBeforeFirstFrame), true, `${label}: the grid's Flow canvas is created before the first card waits`);
     await context.close();
   }
 
