@@ -11,7 +11,7 @@ const manifestPath = path.join(site, "content/client-logos.json");
 const logoDirectory = path.join(site, "assets/content/client-logos");
 const projectDirectory = path.join(site, "assets/content/projects");
 const sharedDirectory = path.join(site, "assets/content/shared");
-const html = fs.readFileSync(path.join(site, "index.html"), "utf8");
+const html = require("../../scripts/site/sync-site-menu.mjs").readPageSource("index.html");
 const css = fs.readFileSync(path.join(site, "style.css"), "utf8");
 
 assert.ok(fs.existsSync(manifestPath), "Missing client logo manifest");

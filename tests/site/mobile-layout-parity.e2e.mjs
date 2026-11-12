@@ -34,7 +34,7 @@ for (const file of servedFiles) {
   assert.equal(response.status, 200); assert.equal(assets[file].source, assets[file].served, file);
 }
 const sourceHTML={};
-for(const file of ['index.html','about/index.html','residential/index.html','commercial/index.html','advertising-products/index.html'])sourceHTML[file]=hash(await fs.readFile(`src/site/${file}`));
+for(const file of ['index.html','about/index.html','residential/index.html','commercial/index.html','advertising-products/index.html',...(await fs.readdir('src/site/partials')).map(name=>`partials/${name}`)])sourceHTML[file]=hash(await fs.readFile(`src/site/${file}`));
 const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "about/", "advertising-products/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];

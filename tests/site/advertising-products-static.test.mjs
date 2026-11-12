@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import vm from "node:vm";
+import { readPageSource } from "../../scripts/site/sync-site-menu.mjs";
 import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
 import { bandKey } from "../../src/site/masonry/replay.mjs";
@@ -9,11 +10,11 @@ import { bandKey } from "../../src/site/masonry/replay.mjs";
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
   read("src/site/masonry/runtime.mjs"),
-  Promise.all(["src/site/advertising-products/index.html", "src/site/head-inline.js"].map(read)).then((sources) => sources.join("\n")),
+  read("src/site/head-inline.js").then((inline) => `${readPageSource("advertising-products/index.html")}\n${inline}`),
   read("src/site/detail.css"),
   read("src/site/style.css"),
   read("scripts/site/prepare-static-assets.mjs"),
-  Promise.all(["src/site/motion.js", "src/site/detail.js", "src/site/index.html"].map(read)).then((sources) => sources.join("\n")),
+  Promise.all(["src/site/motion.js", "src/site/detail.js"].map(read)).then((sources) => [...sources, readPageSource("index.html")].join("\n")),
 ]);
 const artifact = buildAdvertisingArtifact();
 const advertisingGridStart = css.indexOf(".masonry-grid {");

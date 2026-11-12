@@ -90,7 +90,7 @@ const swiperStyle = (await Promise.all(swiperStyleSources.map((source) => readFi
   .replace(/@keyframes swiper-preloader-spin\s*\{(?:[^{}]*\{[^}]*\})*\s*\}/, "");
 if (/:root|:host|@keyframes/.test(swiperStyle)) throw new Error("swiper.css still has document-wide rules after strip.");
 await writeFile(swiperStyleTarget, swiperStyle, { encoding: "utf8", flush: true });
-await Promise.all(nonPublicSourceAssets.map((asset) => rm(path.join(outputRoot, asset), { force: true })));
+await Promise.all(nonPublicSourceAssets.map((asset) => rm(path.join(outputRoot, asset), { force: true, recursive: true })));
 
 // Descriptions in both languages and related are used only by detail: split out of the artifact so the path to the first 8 cards is lighter (static-release R1).
 const detailById = {};
