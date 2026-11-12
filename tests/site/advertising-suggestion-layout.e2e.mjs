@@ -29,6 +29,16 @@ const directSlots = selectSuggestions({
 assert.equal(directSlots.length, 4, "D17 selection has four slots");
 assert(directSlots.some(({ tag }) => tag.id === "use-sampling"), "D17 keeps an initial URL tag inside four stable slots");
 
+// Related is mounted and the page-entry veil is gone (html.route-enter, body.is-transitioning, as advertising-primary-p14).
+// While the veil blocks pointers, Playwright retries a click with other scroll alignments and the smooth scroller keeps
+// that scroll, shifting the primary by 219px on a slow CI runner (reproduced at 10x CPU throttle).
+function entryDone() {
+  return document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
+    && document.querySelector("[data-masonry-related-card]:not([hidden])")
+    && !document.documentElement.classList.contains("route-enter")
+    && !document.body.classList.contains("is-transitioning");
+}
+
 function readSuggestions() {
   const rounded = (value) => Math.round(value * 10) / 10;
   const info = document.querySelector("[data-detail-info]")?.getBoundingClientRect();
@@ -131,8 +141,7 @@ try {
     await page.setViewportSize({ width: 1569, height: 912 });
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
     // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
-    await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
-      && document.querySelector("[data-masonry-related-card]:not([hidden])"));
+    await page.waitForFunction(entryDone, null, { timeout: 8_000 });
     const split = await page.evaluate(readSuggestions);
     assert.equal(split.layout, "split", `${locale}: fixture must exercise split primary`);
     assert.equal(split.span, "3", `${locale}: desktop primary must span three columns`);
@@ -153,8 +162,7 @@ try {
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
     // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
-    await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4
-      && document.querySelector("[data-masonry-related-card]:not([hidden])"));
+    await page.waitForFunction(entryDone, null, { timeout: 8_000 });
     const secondDesktop = await page.evaluate(readSuggestions);
     assert.equal(secondDesktop.layout, "split", `${locale}: intrinsic ratio cannot change desktop mode`);
     assert.equal(secondDesktop.span, "3", `${locale}: second desktop primary must span three columns`);
