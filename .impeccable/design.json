@@ -33,7 +33,7 @@
       {
         "name": "ease-card",
         "value": "cubic-bezier(0.65, 0, 0.35, 1)",
-        "purpose": "Đường cong card hiện ảnh lần đầu; xem motion.md mục Token motion."
+        "purpose": "Đường cong card, primary hiện ảnh lần đầu và nền badge; xem motion.md mục Token motion."
       },
       {
         "name": "ease-viewer",
@@ -93,32 +93,56 @@
     ],
     "breakpoints": [
       {
-        "name": "1200",
-        "value": "1200px"
+        "name": "578",
+        "value": "578px"
       },
       {
-        "name": "1024",
-        "value": "1024px"
+        "name": "640",
+        "value": "640px"
       },
       {
-        "name": "980/981",
-        "value": "980px"
-      },
-      {
-        "name": "960/961",
-        "value": "960px"
+        "name": "680/681",
+        "value": "680px"
       },
       {
         "name": "750/751",
         "value": "750px"
       },
       {
-        "name": "680",
-        "value": "680px"
+        "name": "799",
+        "value": "799px"
       },
       {
-        "name": "578/579",
-        "value": "578px"
+        "name": "960/961",
+        "value": "960px"
+      },
+      {
+        "name": "980/981",
+        "value": "980px"
+      },
+      {
+        "name": "1023/1024/1025",
+        "value": "1023px"
+      },
+      {
+        "name": "1200/1201",
+        "value": "1200px"
+      },
+      {
+        "name": "1279",
+        "value": "1279px"
+      },
+      {
+        "name": "1299",
+        "value": "1299px"
+      },
+      {
+        "name": "1400",
+        "value": "1400px"
+      },
+      {
+        "name": "1440",
+        "value": "1440px"
       }
     ]
   }

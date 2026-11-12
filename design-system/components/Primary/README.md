@@ -46,7 +46,7 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
   EN `Show image 2 of 3: <alt>`.
 - Bấm thumbnail đổi media primary; primary mở ở media đang xem trên card.
 - Khung media là dải trượt kiểu pin Pinterest nhiều media: khung giữ tỷ lệ
-  cover, media cũ trượt ra và media mới trượt vào 350ms. Mũi tên vuông trắng
+  cover, media cũ trượt ra và media mới trượt vào 900ms `cubic-bezier(0.76, 0, 0.24, 1)` (`PUSH_TIMING`, cùng nhịp đẩy ngang của nút gợi ý). Mũi tên vuông trắng
   36px bo 10px, cách mép 16px, hiện khi trỏ vào khung, ẩn ở đầu, cuối. Chấm 8px
   cách đáy 14px: active trắng, còn lại trắng 0.5. Video vào khung phát từ đầu.
 - Video ở primary tự phát, tắt tiếng, lặp, player theo trang pin Pinterest:

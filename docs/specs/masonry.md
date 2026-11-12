@@ -70,7 +70,7 @@ Then cả hai dựng card theo cùng ngân sách và hàng chờ LRU của sân 
 Card, primary và khung batch hiện media bằng một hàm `playReveal({ from, to, host })`: crossfade đã duyệt, có `host` thì
 thêm Kính ba bậc ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Cung CTA đang thấy thì không
 thêm Kính, cung vừa vào view thì gỡ mọi Kính reveal trong trang
-([skeleton R4](advertising-skeleton.md#r4-vào-viewport-và-vòng-lặp)). Reveal bị hủy giữa chừng không báo lỗi.
+([skeleton R4](advertising-skeleton.md#r4-vào-viewport-và-vòng-lặp)). Reveal bị hủy giữa chừng không báo lỗi. Thời lượng và đường cong trong script đọc từ `masonry/motion-tokens.mjs`, bằng token CSS ([Token motion](../../design-system/motion.md#token-motion)).
 
 ### R6. Batch CTA tự chứa
 

@@ -16,7 +16,7 @@ chuỗi ảnh nền.
   bật hoặc tắt.
 - Nút chưa bật giữ ảnh 5s như
   [slideshow hero](../../motion.md#suggestion-và-detail), ảnh không zoom, rồi ảnh mới đẩy ngang
-  ảnh cũ trong `0.9s`; nút sau trễ nút trước `0.4s` thành sóng. Nút đang bật
+  ảnh cũ trong `0.9s` (đường cong đẩy không có token CSS, xem [token motion](../../motion.md#token-motion)); nút sau trễ nút trước `0.4s` thành sóng. Nút đang bật
   và reduced motion giữ ảnh tĩnh.
 - Lớp tối `0.5` chỉ hiện khi ảnh nền đã giải mã xong (cùng ảnh, fade `0.45s`; chưa xong thì chỉ có vệt, nhãn vẫn có bóng D), giữa hai mức `0.4` và `0.6` của Pinterest; hover chuột hoặc focus bàn
   phím không đổi độ tối, nhãn chạy [gạch chân](../../motion.md#motion-theo-bề-mặt-ui) như nav
