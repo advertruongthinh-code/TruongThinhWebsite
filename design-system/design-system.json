@@ -18,7 +18,7 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-12T09:35:00Z",
+    "at": "2026-11-12T09:41:00Z",
     "via": "Claude Code",
     "note": "DRY 5.2: hero điện thoại, slide zoom-out 1.1 → 1 hoặc lia thẳng 8% chiều cao khung theo data-hero-move và data-hero-pan-dir (README Hero, motion.md)"
   }
