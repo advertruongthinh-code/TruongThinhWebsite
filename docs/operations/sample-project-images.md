@@ -12,8 +12,12 @@ mâu thuẫn thì file này thắng cho chuỗi ảnh một không gian.
 - Mọi họa tiết, chi tiết trang trí (chạm, ghép veneer, tranh gạch, vòm) có bản vẽ
   chi tiết ghi kích thước (mặt đứng hoặc chi tiết); prompt của ảnh có chi tiết đó
   kèm bản vẽ tương ứng (owner 2026-11-11).
-- Mặt bằng gửi model chỉ là hình bản vẽ, không kèm bảng; mỗi bảng (món, vật liệu,
-  góc máy) là một file CSV riêng (owner 2026-11-11).
+- Mặt bằng gửi model chỉ là ảnh PNG mặt bằng có đánh dấu vị trí, hướng và số
+  camera; không kèm bảng, chú giải hay khung tên. Mỗi bảng (món, vật liệu, góc máy)
+  là một file CSV riêng (owner 2026-11-11, nhắc lại 2026-11-12).
+- Mỗi ảnh gen ra ghi rõ camera nào: tên file theo số camera (`cam-04.png`), hồ sơ
+  ảnh và chú thích trên trang duyệt ghi "Camera 4"; không in chữ lên ảnh
+  (owner 2026-11-12).
 - Render 3D clay chỉ là gợi ý lỏng hoặc bỏ hẳn; không dùng làm nền cho model đồ theo,
   vì ảnh đồ theo 3D mất chi tiết và trông không thật (owner 2026-11-11).
 
