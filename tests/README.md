@@ -72,7 +72,8 @@ $env:BASE_URL = "http://127.0.0.1:8787"
 node tests/site/site.e2e.cjs
 ```
 
-`pnpm dev` phục vụ cổng 8787, cũng là default trong code; đặt `BASE_URL` khi
+`pnpm dev` phục vụ cổng 8787, cũng là default trong code (`BASE_URL` của
+[`tests/site/harness.mjs`](site/harness.mjs), nơi test ESM mới lấy cả cỡ màn hình chuẩn); đặt `BASE_URL` khi
 server chạy cổng khác. Worker trust-boundary fixture chạy không cần Wrangler, D1, R2:
 `pnpm qa:worker:security`. `qa:worker:static` và Worker contract đầy đủ thuộc
 CMS phase; chỉ chạy sau owner gate mở CMS và Worker runtime được pin lại.

@@ -5,10 +5,11 @@ source:
   - .github/workflows/ci.yml
   - tests/ci-suites.json
   - scripts/ci/**
+  - tests/site/harness.mjs
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # Bộ test CI chia theo phần website
@@ -181,7 +182,7 @@ Then chạy fast, detail-pages, footer và media giống CI
 
 Script e2e mới hoặc đang chạy tay vào bộ từng cái một; script phải xanh trên runner CI trước khi vào manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
 sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
-quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
+quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL` (qua `BASE_URL` của harness, [R12](#r12-harness-test-trình-duyệt)).
 
 ```gherkin
 Given script shared-header-single-line đỏ vì test đòi hành vi demo đã đổi
@@ -217,6 +218,35 @@ Job suite có `timeout-minutes: 12`. Bước cài trình duyệt chỉ chạy `p
 11 phút làm job `fast` bị hủy hai lần ở PR 581 (2026-10-26), và `timeout` chạy bằng user thường không kill được apt chạy bằng sudo.
 Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà chưa chạy test nào (PR 567).
 
+### R12. Harness test trình duyệt
+
+`tests/site/harness.mjs` là helper duy nhất cho test trình duyệt viết bằng ESM; tên không chứa `.e2e.` hay `.test.` nên
+runner không nhặt nó làm test, và nó nằm trong `shared` của manifest nên đổi nó chạy mọi bộ ([R3](#r3-chọn-bộ-theo-file-pr-sửa)).
+Export đúng các tên sau:
+
+| Export | Việc |
+| --- | --- |
+| `BASE_URL` | `process.env.BASE_URL`, mặc định `http://127.0.0.1:8787` (cổng `pnpm dev`); CI luôn đặt `BASE_URL` theo cổng preview của job |
+| `VIEWPORTS` | Ba cỡ chuẩn, đóng băng: `desktop` 1440x900, `phone` 390x844 (cảm ứng), `a04s` 384x724 dpr 1.875 (máy đo Galaxy A04s) |
+| `launchBrowser(options)` | Đặt `PLAYWRIGHT_BROWSERS_PATH` (mặc định `.tooling/browsers`) trước khi nạp `playwright`, rồi mở Chromium headless; `PLAYWRIGHT_EXECUTABLE_PATH` đổi binary |
+| `openPage(browser, viewport, contextOptions)` | Tách `width`, `height` khỏi option thiết bị của viewport, mở context và trang; trả `{ context, page }` |
+| `frames(page, count = 2)` | Chờ `count` lần `requestAnimationFrame` |
+| `settleTransitions(page)` | Chờ hai frame rồi chờ tới khi không còn CSS transition đang chạy |
+
+Test mới dùng harness thay cho tự mở trình duyệt, tự đọc `BASE_URL` và tự khai ba cỡ trên. Cỡ khác ba cỡ trên, hoặc cỡ
+trùng kích thước nhưng khác cờ thiết bị, giữ literal tại chỗ. Test cũ chuyển sang harness khi một task đụng tới chính file đó,
+không chuyển hàng loạt. `site.e2e.cjs` là CommonJS và giữ `launchBrowser` riêng.
+
+```gherkin
+Given test e2e mới cần trang 390x844 cảm ứng
+When viết test
+Then dùng openPage(browser, VIEWPORTS.phone) và BASE_URL của harness, không tự khai cỡ hay cổng
+
+Given PR sửa harness.mjs
+When chạy pnpm qa:suite --changed
+Then mọi bộ được chọn vì harness nằm trong shared
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -224,6 +254,7 @@ Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà
 | Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `shared`, `manual`; agent sửa khi thêm test |
 | Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
+| Helper | `tests/site/harness.mjs` | `BASE_URL`, `VIEWPORTS`, mở trình duyệt và trang, chờ frame và transition cho test ESM (R12) |
 | Check | `static-release` | Check tổng mà Automerge đọc |
 
 ## Kiểm tra
@@ -235,6 +266,7 @@ Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà
 | R11 | `timeout-minutes` trong `ci.yml` |
 | R4, R5 | Run CI thật trên một PR docs-only, một PR có code (chỉ `fast`), một lượt `workflow_dispatch` với `full: true` |
 | R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
+| R12 | Bốn test mẫu dùng harness (`image-loading-frame`, `masonry-hosts`, `site-media-card-m01b`, `hero-text-shadow`) xanh như trước; `tests/tooling/ci-suites.test.mjs` xanh khi harness nằm trong `shared` |
 | R7 | Mỗi bộ xanh trên runner CI tại PR đưa nó vào |
 | R2 | Thời gian từng job trong log Actions, ghi vào mô tả PR |
 
@@ -247,9 +279,11 @@ Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở). CI chỉ chạy WebKit ở bộ `adv-browse`
   (`advertising-random-browse.e2e.mjs`, job đó cài thêm WebKit); các bộ khác chạy Chromium (`LIFECYCLE_ENGINES`);
   Firefox và phần WebKit còn lại chạy tay.
+- Harness (R12) mới có bốn file dùng: các test còn lại (khoảng 70 file ESM) vẫn tự gọi `chromium.launch` và tự khai cỡ; mỗi task sau chuyển file nó đụng tới.
 
 ## Chú thích thuật ngữ
 
+- **Harness**: file helper dùng chung cho test trình duyệt, không tự là test.
 - **Bộ test (suite)**: nhóm test bảo vệ một phần website, chạy thành một job CI.
 - **Manifest**: file JSON liệt kê bộ và test của từng bộ.
 - **Matrix**: một job GitHub Actions nhân thành nhiều job theo danh sách giá trị.

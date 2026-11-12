@@ -5,9 +5,9 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { CROP_CAP } from "../../src/site/masonry/replay.mjs";
+import { BASE_URL, VIEWPORTS, launchBrowser, openPage, settleTransitions } from "./harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const base = process.env.BASE_URL || "http://localhost:8792";
 const fixtureId = "signage-raised-letters-06";
 const videoId = `${fixtureId}-synthetic-video`;
 const fixturePrefix = "/__site_media_card_fixture__/";
@@ -17,8 +17,6 @@ const wideClip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio
 const widePoster = path.join(root, "tests/site/fixtures/site-media-card-poster.webp");
 const wideFixtureId = "signage-raised-letters-08";
 const outputDir = process.env.SITE_MEDIA_OUTPUT_DIR;
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
-const { chromium } = await import("playwright");
 
 // The card fixture drops the temporary media (the temporary media sets a video as the cover of card 06), keeping only the legacy image as cover like the canonical artifact.
 function legacyFixtureArtifact() {
@@ -77,14 +75,6 @@ function wideFixtureArtifact() {
   card.coverMediaId = video.id;
   return artifact;
 }
-
-// Wait for all running CSS transitions to end instead of a fixed sleep: two frames for style recalculation to start the
-// transition, then wait until no transition is running (including the delay phase).
-const settleTransitions = async (page) => {
-  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  await page.waitForFunction(() => !document.getAnimations()
-    .some((animation) => animation instanceof CSSTransition && animation.playState === "running"), null, { timeout: 5_000 });
-};
 
 async function wideFrame(card) {
   return card.evaluate((node) => {
@@ -145,7 +135,7 @@ async function setup(page, locale, videoCover = false) {
     await route.fulfill({ path: file, contentType: file === clip ? "video/mp4" : "image/webp" });
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
-  await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -167,7 +157,7 @@ async function setupSingleton(page, item) {
     return route.fulfill({ path: file, contentType: file === clip ? "video/mp4" : "image/webp" });
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-  await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -179,7 +169,7 @@ async function setupSingleton(page, item) {
 
 async function setupMany(page, locale) {
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, manyImageArtifact());
-  await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -270,9 +260,8 @@ async function pointerSwipe(link, from, to, y, pointerId) {
 }
 
 async function run(viewport, touch, locale) {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport, hasTouch: touch, isMobile: touch });
-  const page = await context.newPage();
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
@@ -415,18 +404,18 @@ async function run(viewport, touch, locale) {
 }
 
 test("M01b desktop synthetic card changes media without detail navigation", async () => {
-  const result = await run({ width: 1440, height: 900 }, false, "en");
+  const result = await run(VIEWPORTS.desktop, false, "en");
   assert.equal(result.after.id, videoId);
 });
 
 test("M01b mobile synthetic card swipe changes media without detail navigation", async () => {
-  const result = await run({ width: 390, height: 844 }, true, "vi");
+  const result = await run(VIEWPORTS.phone, true, "vi");
   assert.equal(result.after.id, videoId);
 });
 
 test("M01b swipe suppresses its click but permits a fresh pointer tap", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const card = await setup(page, "en");
     const link = card.locator(":scope > a");
@@ -468,8 +457,8 @@ test("M01b swipe suppresses its click but permits a fresh pointer tap", async ()
 });
 
 test("M01b keyboard click after swipe is not suppressed", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const card = await setup(page, "en");
     const link = card.locator(":scope > a");
@@ -493,8 +482,8 @@ test("M01b keyboard click after swipe is not suppressed", async () => {
 });
 
 test("M01b a newer swipe keeps its click guard past an older timeout", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const card = await setup(page, "en");
     const link = card.locator(":scope > a");
@@ -523,9 +512,8 @@ test("M01b a newer swipe keeps its click guard past an older timeout", async () 
 });
 
 test("M01b touch swipe click stays blocked and a new touch tap opens detail", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  const page = await context.newPage();
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, VIEWPORTS.phone);
   try {
     const card = await setup(page, "vi");
     const link = card.locator(":scope > a");
@@ -562,8 +550,8 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
 });
 
 test("M01b synthetic video cover starts muted with poster", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   let releaseVideo = () => {};
   const videoGate = new Promise((resolve) => { releaseVideo = resolve; });
   try {
@@ -573,7 +561,7 @@ test("M01b synthetic video cover starts muted with poster", async () => {
       await route.fulfill({ path: file, contentType: file === clip ? "video/mp4" : "image/webp" });
     });
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(true));
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -620,8 +608,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
 });
 
 test("M01b explicit singleton video cover renders without a carousel", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const video = fixtureArtifact(true).cards.find((card) => card.id === fixtureId).mediaItems
       .find((media) => media.id === videoId);
@@ -663,8 +651,8 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
 
 // R5: a card with only a video, where the video and poster both fail: the skeleton does not run forever but shows the error mark; detail does the same.
 test("M01b video-only card with failed video and poster shows the load-error indicator in card and detail", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const video = fixtureArtifact(true).cards.find((card) => card.id === fixtureId).mediaItems
       .find((media) => media.id === videoId);
@@ -687,8 +675,8 @@ test("M01b video-only card with failed video and poster shows the load-error ind
 });
 
 test("M01b explicit singleton nonlegacy image renders without a carousel", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const imageId = `${fixtureId}-synthetic-single-image`;
   try {
     const card = await setupSingleton(page, {
@@ -741,8 +729,8 @@ test("M01b explicit singleton nonlegacy image renders without a carousel", async
 });
 
 test("M01b failed video cover loads its unready image fallback", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
@@ -750,7 +738,7 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(true));
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -808,8 +796,8 @@ test("M01b failed video cover loads its unready image fallback", async () => {
 });
 
 test("M01b all failed cover assets stop without fallback recursion", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
@@ -819,7 +807,7 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     // Break the source and every responsive variant (name-480.jxl etc.) the browser may choose.
     await page.route(`**${imageSrc.replace(/\.[^.]+$/, "")}*`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -850,8 +838,8 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
 });
 
 test("M01b failed next image restores the last valid card image", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const missingId = `${fixtureId}-missing-image`;
   try {
     const artifact = fixtureArtifact();
@@ -868,7 +856,7 @@ test("M01b failed next image restores the last valid card image", async () => {
       await route.fulfill({ path: file, contentType: file === clip ? "video/mp4" : "image/webp" });
     });
     await page.route(`**${fixturePrefix}missing-image.webp`, (route) => route.fulfill({ status: 404, body: "" }));
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -900,8 +888,8 @@ test("M01b failed next image restores the last valid card image", async () => {
 });
 
 test("M01b failed video keeps its loaded poster and usable carousel", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
@@ -943,8 +931,8 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
 });
 
 test("M01b failed video and poster restore the ready image cover", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
@@ -980,8 +968,8 @@ test("M01b failed video and poster restore the ready image cover", async () => {
 });
 
 test("M01b stale poster failure does not override a newer image selection", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   let releasePoster = () => {};
   const posterGate = new Promise((resolve) => { releasePoster = resolve; });
   let markProbeStarted = () => {};
@@ -1023,8 +1011,8 @@ test("M01b stale poster failure does not override a newer image selection", asyn
 });
 
 test("M01b stale image error preserves newer selection and failed reselect falls back", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   const missingId = `${fixtureId}-missing-image`;
   let releaseError = () => {};
   const errorGate = new Promise((resolve) => { releaseError = resolve; });
@@ -1045,7 +1033,7 @@ test("M01b stale image error preserves newer selection and failed reselect falls
       await errorGate;
       await route.fulfill({ status: 404, body: "" });
     });
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -1086,9 +1074,8 @@ test("M01b stale image error preserves newer selection and failed reselect falls
 });
 
 async function runNumericIndicator(locale, viewport, mobile) {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport, hasTouch: mobile, isMobile: mobile });
-  const page = await context.newPage();
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, viewport, { hasTouch: mobile, isMobile: mobile });
   try {
     const card = await setupMany(page, locale);
     const count = card.locator("[data-masonry-media-count]");
@@ -1157,21 +1144,21 @@ async function runNumericIndicator(locale, viewport, mobile) {
 }
 
 test("M01b eleven media use numeric navigation on EN desktop", async () => {
-  await runNumericIndicator("en", { width: 1440, height: 900 }, false);
+  await runNumericIndicator("en", VIEWPORTS.desktop, false);
 });
 
 test("M01b eleven media use numeric navigation on VI mobile", async () => {
-  await runNumericIndicator("vi", { width: 390, height: 844 }, true);
+  await runNumericIndicator("vi", VIEWPORTS.phone, true);
 });
 
 test("M01b five media still use dot controls", async () => {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const browser = await launchBrowser();
+  const { page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     const artifact = manyImageArtifact();
     artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 5;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-    await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -1186,18 +1173,15 @@ test("M01b five media still use dot controls", async () => {
 // Owner 2026-10-18: hovering a multi-media card shows arrows by position like a Pinterest pin, the card does not zoom media;
 // touch has no arrows.
 test("M01b hover arrows step card media by position and the card media never zooms", async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser();
   try {
     for (const touch of [false, true]) {
-      const context = await browser.newContext(touch
-        ? { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
-        : { viewport: { width: 1440, height: 900 } });
-      const page = await context.newPage();
+      const { context, page } = await openPage(browser, touch ? VIEWPORTS.phone : VIEWPORTS.desktop);
       const artifact = manyImageArtifact();
       const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
       items.length = 3;
       await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-      await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -1228,13 +1212,12 @@ test("M01b hover arrows step card media by position and the card media never zoo
 });
 
 // A three-media card of the same ratio (cover copies) for the hover dark layer, continuous strip and swipe drag (media-card R3, owner 2026-10-19).
-async function setupThree(context) {
-  const page = await context.newPage();
+async function setupThree(page) {
   const artifact = manyImageArtifact();
   const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
   items.length = 3;
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-  await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -1242,7 +1225,7 @@ async function setupThree(context) {
   await card.scrollIntoViewIfNeeded();
   await page.waitForTimeout(450);
   await card.locator("img").first().waitFor({ state: "visible" });
-  return { page, card, items };
+  return { card, items };
 }
 
 // Record every frame: position (relative to the canvas), opacity, decode state of every visible layer.
@@ -1267,10 +1250,10 @@ const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, acti
 }, { ms, action });
 
 test("M01b hover shows the Pinterest shade at once, hides just viewed, and media change slides as one strip", async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-    const { page, card, items } = await setupThree(context);
+    const { context, page } = await openPage(browser, VIEWPORTS.desktop);
+    const { card, items } = await setupThree(page);
     // The "Vừa xem" label is attached by masonry when detail closes; the test attaches the exact node the runtime created to measure the hover part.
     await card.locator(".card-media").evaluate((media) => {
       const marker = Object.assign(document.createElement("span"), { className: "card-media__just-viewed",
@@ -1314,10 +1297,10 @@ test("M01b hover shows the Pinterest shade at once, hides just viewed, and media
 });
 
 test("M01b touch drag moves the strip with the finger, snaps back below half, and commits past half", async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-    const { page, card, items } = await setupThree(context);
+    const { context, page } = await openPage(browser, VIEWPORTS.phone);
+    const { card, items } = await setupThree(page);
     const point = await visibleSwipePoints(card);
     assert(point.visible && point.hitsLink, `touch gesture must start on visible card: ${JSON.stringify(point)}`);
     const width = await card.locator(".card-media").evaluate((node) => node.clientWidth);
@@ -1356,7 +1339,7 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
 });
 
 async function runWideCover(locale, related = false, mode = "normal") {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser();
   const page = await browser.newPage({ viewport: locale === "vi" ? { width: 390, height: 844 } : { width: 1440, height: 900 } });
   let releaseVideo = () => {};
   const videoGate = new Promise((resolve) => { releaseVideo = resolve; });
@@ -1371,7 +1354,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
     const search = related
       ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
       : "?category=signage-raised-letters";
-    await page.goto(`${base}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
