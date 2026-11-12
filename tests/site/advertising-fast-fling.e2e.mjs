@@ -147,12 +147,13 @@ try {
     const wrong = [];
     for (const [id, color] of entries) {
       const media = document.querySelector(`[data-masonry-card="${id}"] .card-media`);
-      if (media && getComputedStyle(media).backgroundColor !== color) wrong.push(id);
+      // A card still waiting for its image (phone color layer) has a transparent media box by design.
+      if (media && !media.closest("[data-media-wait]") && getComputedStyle(media).backgroundColor !== color) wrong.push(id);
     }
     const blank = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((card) => {
       const rect = card.getBoundingClientRect();
       const image = [...card.querySelectorAll("img")].find((node) => !node.hidden);
-      return rect.bottom > 0 && rect.top < vh && !image?.classList.contains("is-masonry-media-ready");
+      return rect.bottom > 0 && rect.top < vh && !card.hasAttribute("data-media-wait") && !image?.classList.contains("is-masonry-media-ready");
     }).length;
     return { strayGhosts, wrong, blank };
   }, fling.ghosts);

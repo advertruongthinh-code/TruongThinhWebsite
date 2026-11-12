@@ -466,13 +466,16 @@ try {
     primaryReveals.push(await revealGlass("primary"));
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton], [data-detail-view] [data-media-wait]").length), 0,
+      `${viewport.width}px: closing the viewer clears the skeleton and the color layer`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
   // Only the PC primary reveals through Kính; the phone primary uses the color layer.
-  assert.deepEqual([primaryReveals[0].length, primaryReveals[1].length > 0], [0, true], `primary Kính: phone none, PC some ${JSON.stringify(primaryReveals)}`);
+  assert.deepEqual(primaryReveals[0], [], "phone primary reveals through no Kính");
+  assert.ok(primaryReveals[1].length && primaryReveals[1].every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
+    `PC primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryReveals[1])}`);
   // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });

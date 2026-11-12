@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-07
+updated: 2026-11-12
 ---
 
 # Trang Residential, Commercial và About
@@ -26,7 +26,7 @@ Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đ�
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
 nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo trong `.detail-cta`. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vệt sáng chờ ảnh thuộc
-[tải ảnh](media-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
+[tải ảnh](media-delivery.md); phần Advertising trong hai file chung (gồm lớp màu chờ ảnh trên điện thoại, `[data-media-wait]`) thuộc spec Advertising.
 
 ## Hành vi
 

@@ -75,6 +75,28 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
     assertPhoneWait("phone load", await cardStates(page));
+    // First frames: every card in view whose image has not loaded carries the layer on every sampled frame (no blank frame), keeps one image node and never animates
+    // its image before the image is decoded.
+    const trace = await page.evaluate(async () => {
+      const ids = new WeakMap();
+      const samples = [];
+      for (let frame = 0; frame < 60; frame += 1) {
+        await new Promise(requestAnimationFrame);
+        for (const card of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
+          const { top, bottom } = card.getBoundingClientRect();
+          const image = card.querySelector("img");
+          if (bottom <= 0 || top >= innerHeight || !image || image.complete) continue;
+          if (!ids.has(image)) ids.set(image, ids.size + 1);
+          samples.push({ card: card.dataset.masonryCard, wait: card.dataset.mediaWait, image: ids.get(image), animations: image.getAnimations().length });
+        }
+      }
+      return samples;
+    });
+    assert.ok(trace.length, "phone: first frames sampled loading cards");
+    assert.deepEqual(trace.filter(({ wait, animations }) => wait !== "colors" || animations), [], "phone: loading cards wear the layer on every frame and do not animate the image early");
+    const nodes = new Map();
+    for (const { card, image } of trace) nodes.set(card, new Set([...(nodes.get(card) || []), image]));
+    assert.deepEqual([...nodes].filter(([, set]) => set.size > 1).map(([card]) => card), [], "phone: each card keeps one image node");
     // The layer cycles through the 4 colors: the top layer's fade runs 8s and the colors are the file's own (--wait-1..4 set).
     const layer = await page.evaluate(() => {
       const card = document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']");
@@ -83,7 +105,7 @@ try {
       return { vars: [1, 2, 3, 4].every((index) => style.getPropertyValue(`--wait-${index}`).trim()), timing };
     });
     assert.ok(layer.vars, "phone: the card carries four wait colors");
-    assert.ok(layer.timing.length === 2 && layer.timing.every((duration) => duration === 8000), `phone: two layers cycle in 8s ${JSON.stringify(layer)}`);
+    assert.ok(layer.timing.length === 3 && layer.timing.every((duration) => duration === 8000), `phone: two layers (three animations: base, fade, shift) cycle in 8s ${JSON.stringify(layer)}`);
     await context.close();
   }
 
@@ -91,11 +113,17 @@ try {
   {
     const { context, page } = await open(phone);
     await page.addInitScript(() => {
-      window.__fades = new Set();
+      window.__fades = new Map();
       const tick = () => {
         for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img")) {
           const fade = image.getAnimations().find((animation) => animation.effect.getTiming().duration === 450);
-          if (fade) window.__fades.add(image.closest("[data-masonry-card]").dataset.masonryCard);
+          if (!fade) continue;
+          const card = image.closest("[data-masonry-card]");
+          const keyframes = fade.effect.getKeyframes();
+          window.__fades.set(card.dataset.masonryCard, {
+            easing: fade.effect.getTiming().easing, from: keyframes[0].opacity, to: keyframes.at(-1).opacity,
+            // The layer stays under the fading image and the image carries no filter.
+            layer: card.dataset.mediaWait, filter: image.style.filter });
         }
         if (performance.now() < 14000) requestAnimationFrame(tick);
       };
@@ -103,7 +131,10 @@ try {
     });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
-    assert.ok(await page.evaluate(() => window.__fades.size), "phone: some card image fades in over 450ms when it arrives");
+    const fades = await page.evaluate(() => [...window.__fades.values()]);
+    assert.ok(fades.length, "phone: some card image fades in over 450ms when it arrives");
+    assert.deepEqual(fades.filter(({ easing, from, to, layer, filter }) => easing !== "cubic-bezier(0.16, 1, 0.3, 1)" || from !== "0" || to !== "1"
+      || layer !== "colors" || filter), [], "phone: the fade is opacity 0 to 1 on the expo-out curve, over the color layer, unfiltered");
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.querySelector("img")?.naturalWidth > 0)
       .filter((card) => card.hasAttribute("data-media-wait") || getComputedStyle(card.querySelector("img")).opacity !== "1"
@@ -117,12 +148,19 @@ try {
     const { context, page } = await open({ ...phone, reducedMotion: "reduce" });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
-    assert.deepEqual(await page.evaluate(() => {
+    const still = await page.evaluate(() => {
       const card = document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']");
       const base = getComputedStyle(card, "::before");
-      return { animation: base.animationName, top: getComputedStyle(card, "::after").display,
-        color: base.backgroundColor === getComputedStyle(card).getPropertyValue("--wait-1").trim() || base.backgroundColor.startsWith("rgb") };
-    }), { animation: "none", top: "none", color: true }, "phone reduced motion: still color layer");
+      // Resolve --wait-1 through a probe element so the comparison is between computed colors.
+      const probe = document.body.appendChild(document.createElement("canvas"));
+      probe.style.transition = "none";
+      probe.style.backgroundColor = getComputedStyle(card).getPropertyValue("--wait-1").trim();
+      const expected = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { animation: base.animationName, top: getComputedStyle(card, "::after").display, color: base.backgroundColor, expected };
+    });
+    assert.deepEqual([still.animation, still.top], ["none", "none"], "phone reduced motion: the layers do not animate");
+    assert.ok(still.expected !== "rgba(0, 0, 0, 0)" && still.color === still.expected, `phone reduced motion: still color layer on color 1 ${JSON.stringify(still)}`);
     await context.close();
   }
 

@@ -57,9 +57,20 @@ try {
   assert.ok(MEDIA_COLORS[phoneKey], `phone primary media has colours: ${waiting.src}`);
   assert.deepEqual(waiting.vars, MEDIA_COLORS[phoneKey].slice(1), "phone primary waits on the image's four colours");
   assert.deepEqual([waiting.skeleton, waiting.glass], [false, false], "phone primary has no Flow skeleton or Kính");
-  // The photo arrives: it fades in over 450ms, then the layer is removed.
-  await phone.waitForFunction(() => document.querySelector("[data-detail-image]").getAnimations()
-    .some((animation) => animation.effect.getTiming().duration === 450), null, { timeout: 15_000 });
+  // While waiting the photo is hidden and unfiltered.
+  assert.deepEqual(await phone.evaluate(() => {
+    const image = document.querySelector("[data-detail-image]");
+    return { opacity: getComputedStyle(image).opacity, filter: getComputedStyle(image).filter };
+  }), { opacity: "0", filter: "none" }, "phone primary photo waits hidden, unfiltered");
+  // The photo arrives: it fades in 0 to 1 over 450ms on the expo-out curve while the layer is still there, and the layer is removed only after the fade finished.
+  const fade = await phone.waitForFunction(() => {
+    const animation = document.querySelector("[data-detail-image]").getAnimations().find((item) => item.effect.getTiming().duration === 450);
+    if (!animation) return null;
+    const keyframes = animation.effect.getKeyframes();
+    return { easing: animation.effect.getTiming().easing, from: keyframes[0].opacity, to: keyframes.at(-1).opacity,
+      layer: document.querySelector("[data-detail-image]").parentElement.dataset.mediaWait };
+  }, null, { timeout: 15_000, polling: 8 }).then((handle) => handle.jsonValue());
+  assert.deepEqual(fade, { easing: "cubic-bezier(0.16, 1, 0.3, 1)", from: "0", to: "1", layer: "colors" }, "phone primary photo fades in 0 to 1 over the layer");
   await phone.waitForFunction(() => !document.querySelector("[data-detail-image]").parentElement.hasAttribute("data-media-wait"), null, { timeout: 3000 });
   console.log("advertising primary Flow colours passed");
 } finally {

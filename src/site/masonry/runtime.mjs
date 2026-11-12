@@ -2793,8 +2793,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Phone: a flat layer cycling through the image's 4 dominant colors; the image stays hidden until decoded, then fades in (progressive-loading R9).
     const phone = skeletonPhone();
-    if (phone) setColorWait(node, node.advertisingWaitColors());
-    else {
+    if (phone) {
+      // A temp card hands over its own colors so the layer does not jump when the real card shows a different media than the cover.
+      const ghost = node.masonryGhost;
+      setColorWait(node, ghost?.dataset.mediaWait
+        ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
+    } else {
       // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
       // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
       const scale = cardLoadingScale(node);
@@ -2879,7 +2883,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
       const layers = mediaLayers(node);
       if (entry.colors) {
-        // The image fades in over the color layer (kept under it by CSS); the layer is removed when the fade ends.
+        // The image fades in over the color layer (kept under it by CSS); the layer is removed when the fade ends. No `fill`: the ready class set here holds opacity 1 afterwards.
         layers.forEach((media) => {
           media.style.setProperty("transition", "none", "important");
           media.classList.add("is-masonry-media-ready");
@@ -3921,9 +3925,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // and only then runs the reveal from 0 (flash bug on Back, Forward).
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
-    // Phone: no skeleton and no Glass; the photo fades in over the color layer (kept under it by CSS), which settlePrimaryReveal removes.
+    // Phone: no skeleton and no Glass; the photo (and a video or live background, hidden by CSS while waiting) fades in over the color layer (kept under it by CSS), which
+    // settlePrimaryReveal removes. No `fill`: removing data-detail-loading above holds opacity 1 afterwards.
     if (reveal.colors) {
-      reveal.animations = incoming.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }],
+      const shown = [...incoming, ...[photoVideo, liveBackground].filter((node) => node && !node.hidden)];
+      reveal.animations = shown.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }],
         { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
       Promise.all(reveal.animations.map(({ finished }) => finished))
         .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});

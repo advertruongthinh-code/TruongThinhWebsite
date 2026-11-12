@@ -5,7 +5,7 @@ Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `s
 Lưới ảnh sản phẩm so le trên trang Advertising và Công trình. Lưới chính đặt card
 theo bố cục tính sẵn lúc build (`masonry/packer.mjs`), `masonry/replay.mjs` chỉ đặt
 lại, một vòng lặp, không tìm kiếm; related masonry ở detail do `masonry/layout.mjs`
-tính (thuần, không đọc DOM). Card đổi vị trí hoặc kích thước chạy `--dur-card` `400ms`, card tạm hiện dần `--dur-fade` `450ms`
+tính (thuần, không đọc DOM). Card đổi vị trí hoặc kích thước chạy `--dur-card` `400ms`, card tạm hiện dần `--dur-fade` `450ms` (điện thoại: card tạm là lớp đổi qua 4 màu chủ đạo của ảnh bìa, [MediaCard](../MediaCard/README.md))
 (token motion: [motion.md](../../motion.md#token-motion)). `masonry/runtime.mjs` mount và ảo hóa; engine chuyển vị
 trí là `masonry-layout`.
 
