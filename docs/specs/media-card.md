@@ -3,7 +3,9 @@ title: Card nhiều media
 status: live
 source:
   - src/site/masonry/strip.mjs
+  - src/site/media-lib/media-queue.mjs
 tests:
+  - tests/site/media-queue.test.mjs
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/site-media-card-m01b.e2e.mjs
   - tests/site/site-media-card-r6.e2e.mjs
@@ -12,7 +14,7 @@ tests:
   - tests/site/site-media-card-playback.e2e.mjs
   - tests/site/strip-swipe-audit.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Card nhiều media
@@ -79,7 +81,7 @@ liền trượt ngang: media mới vào từ mép canvas phía đi tới, media 
 nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
 ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
 giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay.
-Bấm mũi tên hoặc chấm khi dải đang trượt thì dải không nhảy về đích cũ (owner 2026-11-12, plan DRY pha 4): đọc vị trí đang hiện, giữ các làn đang có, làn đích mới nối ngay sau làn ngoài cùng theo hướng đi (media ở giữa chưa từng hiện thì bỏ qua, không có làn); cùng chiều thì chạy tiếp từ vị trí đó tới đích mới trong 0.9s, ngược chiều thì quay đầu trong 0.9s nhân quãng còn lại chia bề rộng canvas (tối thiểu 200ms), cả hai dùng đường cong `cubic-bezier(0.33, 1, 0.68, 1)` của lúc nhấc tay. Đích mới chưa decode thì dải chạy tiếp tới đích đang có, decode xong mới đổi đích; dải đã dừng trước đó thì là một lần trượt mới. Media đích chưa có làn luôn vào từ phía nút trỏ tới (tới thì từ phải, lùi thì từ trái), kể cả khi theo thứ tự media nó nằm giữa hai làn (DRY 4.2). Card rời DOM giữa chừng thì dải dừng, không sót translate. Primary và viewer theo cùng luật này (R6, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Hàm dùng chung ở `masonry/strip.mjs` (`retargetStrip`, `laneSlot`, `keepLanes`). Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+Bấm mũi tên hoặc chấm khi dải đang trượt thì dải không nhảy về đích cũ (owner 2026-11-12, plan DRY pha 4): đọc vị trí đang hiện, giữ các làn đang có, làn đích mới nối ngay sau làn ngoài cùng theo hướng đi (media ở giữa chưa từng hiện thì bỏ qua, không có làn); cùng chiều thì chạy tiếp từ vị trí đó tới đích mới trong 0.9s, ngược chiều thì quay đầu trong 0.9s nhân quãng còn lại chia bề rộng canvas (tối thiểu 200ms), cả hai dùng đường cong `cubic-bezier(0.33, 1, 0.68, 1)` của lúc nhấc tay. Trên card, dải đổi đích và trượt ngay cả khi media đích chưa tải xong (owner 2026-11-12, thay luật chờ decode): làn của media đang tải mang lớp chờ trượt cùng làn (R5); dải đã dừng trước đó thì là một lần trượt mới. Primary và viewer vẫn chờ decode tới khi làm PR 2 của plan tải nhanh. Media đích chưa có làn luôn vào từ phía nút trỏ tới (tới thì từ phải, lùi thì từ trái), kể cả khi theo thứ tự media nó nằm giữa hai làn (DRY 4.2). Card rời DOM giữa chừng thì dải dừng, không sót translate. Primary và viewer theo cùng luật này (R6, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Hàm dùng chung ở `masonry/strip.mjs` (`retargetStrip`, `laneSlot`, `keepLanes`). Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 Không có pointermove: dịch ngang từ 10px vẫn đổi media; tap và cuộn dọc không đổi.
@@ -131,10 +133,8 @@ And card có video 1, ảnh, video 2 phát xong video 1 thì đẩy sang video 2
 ### R5. Chờ tải và lỗi media
 
 Item active chưa sẵn sàng thì card có status ẩn "Đang tải media" / "Loading media" và skeleton trong khung
-([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)). Ảnh phụ tải lazy theo biến thể
-([tải ảnh R3](media-delivery.md#r3-runtime-advertising-chọn-biến-thể)). Ảnh lỗi: card về ảnh vừa sẵn sàng gần nhất, rồi
-ảnh cover, rồi ảnh đầu chưa lỗi. Video lỗi: thử poster; poster tải được thì hiện poster, lịch phát bỏ qua card đó, dải vẫn dùng được;
-poster cũng lỗi thì về ảnh như trên. Lỗi cũ không đè lựa chọn mới hơn, không gọi lại vô hạn.
+([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)). Ảnh phụ đi qua hàng đợi tải chung `media-lib/media-queue.mjs` (owner 2026-11-12): media đang xem có luồng riêng và tải trước, các file khác chờ lượt theo khoảng cách tới media đang xem, tối đa 2 file song song trên điện thoại (`(hover: none) and (pointer: coarse)`), 4 trên PC; file đã bắt đầu tải không bị hủy, kể cả khi card rời cửa sổ ảo hóa (ảnh bìa vẫn hủy như [masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)). Hàng đợi chọn file theo bề rộng card nhân DPR ([tải ảnh R3](media-delivery.md#r3-runtime-advertising-chọn-biến-thể)), tải và decode xong mới gán cho ảnh, nên ảnh đọc từ cache, không tải hai lần, không decode giữa lúc trượt. PC: card vào màn thì tải bản 240 của mọi media khác. Card nằm trọn trong màn và trang ngừng cuộn `250ms`, rê chuột vào card hay bắt đầu vuốt thì tải bản nét của media trước và sau media đang xem. Video: file chỉ tải khi item thành active (R4).
+Làn trượt vào khi media chưa sẵn sàng mang lớp chờ `.card-media__wait` và media dưới lớp không vẽ tới khi decode xong: PC là kính mờ rẻ (mẫu 10 của 3b.2: bản 240 thu về 20px kéo giãn, lớp trắng 14%, grain 4,5% trộn overlay), media không có bản 240 thì chỉ màu chủ đạo; điện thoại là lớp 4 màu chủ đạo như card chờ ảnh ([tải dần R9](progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)); poster video theo cùng luật. Decode xong thì PC tan kính trong `0.33s` (phần tan của reveal `0.6s`), điện thoại hiện ảnh `0.45s` trên lớp màu, rồi gỡ lớp. Media dưới lớp chờ không gắn skeleton của card; reduced motion không có lớp chờ. Ảnh lỗi: card về ảnh vừa sẵn sàng gần nhất, rồi ảnh cover, rồi ảnh đầu chưa lỗi. Video lỗi: thử poster; poster tải được thì hiện poster, lịch phát bỏ qua card đó, dải vẫn dùng được; poster cũng lỗi thì về ảnh như trên. Lỗi cũ không đè lựa chọn mới hơn, không gọi lại vô hạn.
 
 Không còn media nào hiện được (mọi ảnh lỗi; card chỉ có video mà video và poster cùng lỗi): skeleton gỡ, hiện dấu báo
 lỗi dùng chung cho mọi media trên site: khung giữ đúng tỷ lệ, nền xám nhạt tĩnh, không gradient;
