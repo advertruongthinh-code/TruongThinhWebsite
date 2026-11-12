@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
+import { readPageSource } from "../../scripts/site/sync-site-menu.mjs";
 import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_PRODUCT_THRESHOLD } from "../../src/site/advertising-products/taxonomy.mjs";
 
@@ -95,7 +96,7 @@ test("taxonomy R4: the filter comes from the path, ?category= wins; a filter wit
 });
 
 test("taxonomy R4: the root page in artifact.pages matches the title and kicker of index.html", async () => {
-  const html = await readFile(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
+  const html = readPageSource("advertising-products/index.html");
   const root = artifact.pages.find(({ filter }) => filter === "all");
   assert.match(html, new RegExp(`<title data-en="${root.titleEn}">\\s*${root.titleVi}\\s*</title>`));
   assert.match(html, new RegExp(`data-en="${root.kickerEn}"\\s*>\\s*${root.kickerVi}\\s*</p>`, "i"));
