@@ -9,6 +9,7 @@ source:
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
   - src/site/404.html
+  - src/site/chinh-sach-quyen-rieng-tu/**
   - wrangler.static.toml
   - .github/workflows/deploy-demo.yml
 tests:
@@ -206,6 +207,7 @@ chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên
 `CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và
 Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>.
+Trang chính sách quyền riêng tư `src/site/chinh-sach-quyen-rieng-tu/index.html` là file tĩnh độc lập (không shell, không JS, VI và EN trong một file), build chép nguyên, phục vụ ở `/chinh-sach-quyen-rieng-tu/`; Pinterest đòi link chính sách có tên công ty cho app moodboard nội bộ.
 
 ```gherkin
 Given một push vào main và bộ fast của CI xanh
