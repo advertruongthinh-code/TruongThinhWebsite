@@ -508,10 +508,11 @@ async function installRelatedMediaProbe(page) {
           easing: style.transitionTimingFunction,
           // Like stuffing: the opacity fade still runs when the main thread is busy and cannot take a frame in between. An image with a skeleton
           // fades with a WAAPI crossfade instead of a CSS transition.
-          blur: image.style.filter.startsWith("blur("),
-          // The breathing of a card waiting for its image (CSS media-breathe) is not a fade of the image itself (waiting-for-image spec S2).
+          blur: Boolean(image.style.filter),
+          skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton]")),
+          // The Flow frame fades to 0 with the image's fade and stays until the Glass ends: an opaque image under a gone frame is shown, not leaked.
+          cover: Number(getComputedStyle(card.querySelector("[data-masonry-loading-skeleton]") || image).opacity),
           fading: image.getAnimations().some((animation) => animation.playState === "running"
-            && animation.animationName !== "media-breathe"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
         // A card still with a skeleton has no media shown yet: sample until the fade finishes, even when the fixture holds the image past 3s.
@@ -1316,20 +1317,22 @@ try {
     // Smooth scroll bypasses native scrollIntoView; move the logical scroll to the card instead.
     await relatedPage.locator(`[data-masonry-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
-    // A related card image waiting to load sits at final opacity under its own blur (progressive-loading R9); when the image arrives the blur clears and is removed.
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] img[style*='blur(']`), initialMediaId);
+    // A related card image waiting to load stays hidden under its Flow frame (progressive-loading R9); when the image arrives it shows through the reveal and the frame is removed.
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-masonry-related-card="${id}"] [data-masonry-loading-skeleton]`), initialMediaId);
     mediaReleased = true;
     await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
     await relatedPage.unroute(mediaPattern);
     await relatedPage.waitForFunction((id) => {
       const card = document.querySelector(`[data-masonry-related-card="${id}"]`);
-      return card?.querySelector("img")?.naturalWidth && !card.querySelector("img[style*='blur(']");
+      return card?.querySelector("img")?.naturalWidth && !card.querySelector("[data-masonry-loading-skeleton]");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
-    // Under the blur the image breathes between 0.45 and 1; opacity is only animated together with the blur when it clears (waiting-for-image spec S2), with no separate fade.
-    assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => (!frame.fading || frame.blur) && (!frame.blur || frame.opacity >= 0.44))
+    // Under the Flow frame the image stays hidden; it only fades in during the reveal from that frame, never blurred, and ends opaque.
+    assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => !frame.blur && (!frame.fading || frame.skeleton)
+      && (!frame.skeleton || frame.fading || frame.opacity <= 0.01 || frame.cover <= 0.01))
       && initialMedia.frames.at(-1).opacity >= 0.99,
-      `related initial media fades instead of waiting under its blur ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
+      `related initial media shows before its reveal from Flow ${JSON.stringify(initialMedia?.frames.filter((frame) => frame.blur || (frame.fading && !frame.skeleton)
+        || (frame.skeleton && !frame.fading && frame.opacity > 0.01 && frame.cover > 0.01)).slice(0, 5).concat(initialMedia?.frames.slice(-1) || []))}`);
     // Framing tags are still supported as deep links after the detail chips were removed.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);

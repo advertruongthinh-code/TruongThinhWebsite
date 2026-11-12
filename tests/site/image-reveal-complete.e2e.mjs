@@ -57,11 +57,11 @@ try {
   assert.ok(hero.settled >= hero.load, `hero settles only after load ${JSON.stringify(hero)}`);
   assert.equal(jxlRequests.get(hero.src), 1, `hero file requested once ${JSON.stringify([...jxlRequests])}`);
 
-  // Advertising: the blur on the card image starts to clear only once the image has finished loading.
+  // Advertising: a card image starts its reveal from the Flow frame only once the image has finished loading.
   await page.addInitScript(() => {
     window.__blurTrace = [];
     const tick = () => {
-      for (const image of document.querySelectorAll("[data-project-grid] img[style*='blur(']")) {
+      for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card]:has([data-masonry-loading-skeleton]) img")) {
         if (image.__traced || !image.getAnimations().length) continue;
         image.__traced = true;
         window.__blurTrace.push({ complete: image.complete, src: image.currentSrc });
@@ -73,7 +73,7 @@ try {
   await page.goto(`${origin}/vi/advertising-products/`);
   await page.waitForFunction(() => window.__blurTrace.length >= 3, null, { timeout: 30_000 });
   const blur = await page.evaluate(() => window.__blurTrace);
-  assert.ok(blur.every(({ complete }) => complete), `card blur dissolves before the photo finishes ${JSON.stringify(blur.slice(0, 5))}`);
+  assert.ok(blur.every(({ complete }) => complete), `card reveals before the photo finishes ${JSON.stringify(blur.slice(0, 5))}`);
 
   // Viewer: show the existing primary image, switch to the original only once the original has finished loading.
   // The card has an original wider than 1600, so the primary at 1440px takes the 1600 size and the viewer must switch to the original.

@@ -178,7 +178,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()
       && entry.canvas?.closest("[data-masonry-cta-skeleton]")).length), 1, "batch uses one shared WebGL context");
     await page.evaluate(() => {
-      const canvas = document.querySelector(".masonry-grid__cta-shared-flow");
+      const canvas = document.querySelector(".masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow");
       const record = window.__flowLedger.records.find(entry => entry.canvas === canvas);
       window.__lossRecord = record;
       window.__lossOuter = document.querySelector("[data-masonry-cta-frame].is-entry-ready");
@@ -266,8 +266,10 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       && document.querySelector('[data-masonry-cta-skeleton]')?.dataset.masonryCtaReady === "true");
     assert.equal(await page.evaluate(() => performance.timeOrigin), softEntry.timeOrigin, "Barba return uses the same document cache");
     assert.equal(await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed), softEntry.seed);
-    assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.canvas?.classList.contains("masonry-grid__cta-shared-flow")).length), 1,
-      "controller remount reuses the shared batch context");
+    // Each mount disposes its shared layers (skeleton R5, review #875): the return never leaves more than one batch context live.
+    const sharedLive = await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.canvas?.classList.contains("masonry-grid__cta-shared-flow"))
+      .map(entry => ({ lost: !entry.gl || entry.gl.isContextLost(), connected: Boolean(entry.canvas?.isConnected), batch: Boolean(entry.canvas?.closest("[data-masonry-cta-skeleton]")) })));
+    assert.ok(sharedLive.filter(({ lost }) => !lost).length <= 1, `controller remount leaves at most one live shared batch context ${JSON.stringify(sharedLive)}`);
     await fs.writeFile(output + "/" + engine + "-ledger.json", JSON.stringify({ portraitLedger, orientation, settled, cycles, finalLedger }, null, 2));
 
 

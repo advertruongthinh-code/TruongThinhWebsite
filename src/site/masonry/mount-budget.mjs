@@ -20,8 +20,7 @@ const HOLD_FAST_MS = 120;
 // keeps a few cards per frame even when the measurement is low (a fast machine still mounts everything within a few frames).
 const MAX_MOUNTS_PER_FRAME = 8;
 
-// All breathing elements share one phase: a negative delay equal to the current time modulo the cycle, so a ghost card turning into a faded card
-// does not jump in brightness.
+// All breathing ghost cards share one phase: a negative delay equal to the current time modulo the cycle, so neighbors breathe in step.
 export const breathePhase = (now = performance.now()) => `${-(now % BREATHE_MS)}ms`;
 
 // Same idea for the phone wait layer: every color layer shares one phase, so a ghost card turning into a real card (or the primary frame) keeps its color.

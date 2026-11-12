@@ -32,7 +32,7 @@ import {
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
-import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
 import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
@@ -40,7 +40,7 @@ import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
 import {
-  breathePhase, clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
+  clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
 let activeInstance;
@@ -91,28 +91,13 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Wide desktop shows 8-10 CTA frames at once; 12 keeps all of them alive and stays under Chrome's 16-context limit.
 // Phones also run every frame in the viewport (owner 2026-10-10), no longer limited to 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// Advertising-skeleton R5: Chrome keeps only 4 live WebGL contexts per dedicated worker (measured on RTX 3090, Chrome 155 and
-// A04s, Chrome 156: creating a 5th context reclaims the oldest one). PC: all frames draw on one shared context in the worker, then
-// transfer the image to the frame's canvas, up to 24 frames. Phone: one context per frame, 4 frames per worker (12 frames);
-// a shared context on the A04s drops fps below the R8 gate (measured 26/10).
-const SKELETON_SHARED_BUDGET = 24;
 // Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; card and primary shorten the duration to 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = DUR.hover;
-// Blur on the loading card image itself (progressive-loading R9); a filter does not re-read the backdrop every frame like backdrop-filter.
-const CARD_LOADING_BLUR = "blur(24px)";
-// Blur samples transparent pixels outside the image edge, so the fading edge exposes the dominant background color as a dark border (owner 2026-11-09).
-// The blurred image is scaled up by this much on each side (1 blur sigma: the frame edge keeps about 16% of the background color) so the faded band falls outside the clipped frame.
-const CARD_LOADING_BLEED_PX = 24;
-const cardLoadingScale = (node) => {
-  const width = Number.parseFloat(node.style.width);
-  const height = Number.parseFloat(node.style.getPropertyValue("--masonry-media-height"));
-  return width > 0 && height > 0
-    ? `${1 + (2 * CARD_LOADING_BLEED_PX) / width} ${1 + (2 * CARD_LOADING_BLEED_PX) / height}`
-    : "1";
-};
+// Width in pixels of the photo copy the Flow canvas turns into frosted glass at reveal: stretched to the frame it blurs by itself (owner 2026-11-12).
+const FROST_COPY_WIDTH = 20;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
-// On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a Glass reveal for every card that scrolls past.
+// On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a reveal for every card that scrolls past.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 // A re-attached card with already-loaded media waits this long for the cache (R3 measured decode at one to three frames); past the deadline, if the image has not arrived (cache off
 // or cleared), it carries a skeleton like a loading card (R1), never a blank frame.
@@ -121,10 +106,9 @@ const PHONE_SCROLL_SETTLE_MS = 500;
 // Card skeleton (advertising-skeleton R4): a card entering the viewport within this window after a scroll event shows the frame and Flow canvas
 // immediately without a fade, so a fast swipe still shows the running gradient.
 const SKELETON_SCROLL_ENTRY_MS = 250;
-// Card frames on phones also run during a swipe: a quarter of the pixels so the GPU holds the fps gate (R8, owner 18/10).
-const PHONE_CARD_FLOW = { width: 120, height: 80 };
-// Document-wide shared batch Flow layer; null when there is no WebGL so the batch falls back to its own renderer.
-let sharedSkeletonFlow;
+// Shared Flow layers by container (advertising-skeleton R5): the batch, the main grid's cards, the related grid's cards. Each container
+// draws all its frames on one WebGL canvas; null when there is no WebGL so the frames keep their still image.
+const sharedSkeletonFlows = new Map();
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
   record.disposed = true;
@@ -1008,7 +992,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "masonry-card__media masonry-card__media--natural card-media";
-  // The image's dominant color fills the frame while the image has received no bytes; the blurred then sharp image covers it (progressive-loading R9).
+  // The image's dominant color fills the frame while the image has received no bytes; the Flow frame (PC) or color layer (phone) then the image covers it (progressive-loading R9).
   const color = cardColor(record);
   if (color) media.style.backgroundColor = color;
   const image = createPhotoMedia(record, locale, { native: related });
@@ -2299,6 +2283,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
 
   const skeletonMotionPreference = env.reducedMotion;
   const visibleSkeletonFrames = new Set();
+  // Card frames whose reveal crossfade is running: the shared canvas follows their opacity.
+  const fadingSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
   const skeletonLeaseByFrame = new Map();
   const sharedFlowAllowed = () => skeletonFlowWorkerSupported() && !skeletonPhone();
@@ -2327,7 +2313,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clearTimeout(pending.fallback);
     frame.removeEventListener("transitionend", pending.settle);
     pending.animations.forEach((animation) => animation.cancel());
-    pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
   // Loading skeleton runs on related cards and on the primary; the CTA batch is removed while a photo is open.
@@ -2419,19 +2404,33 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonAssignmentByFrame.set(frame, assignment);
     frame.querySelector(".masonry-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
-  // All batch frames draw on one shared half-resolution WebGL canvas (advertising-skeleton R5).
-  const sharedFlowFor = (frame) => {
-    const container = frame.closest(".masonry-grid__cta-skeleton");
-    if (!container) return null;
-    if (sharedSkeletonFlow === undefined) {
-      sharedSkeletonFlow = createSharedSkeletonFlowLayer();
-      addEventListener("pagehide", (event) => { if (!event.persisted) sharedSkeletonFlow?.dispose(); });
+  // Batch frames and PC card frames each draw on one shared half-resolution WebGL canvas per container (advertising-skeleton R5): the batch,
+  // the main grid, the related grid, and the primary frame, so every photo reveals through the same frosted glass.
+  const sharedFlowContainer = (frame) => frame.closest(".masonry-grid__cta-skeleton")
+    || (frame.parentElement?.classList.contains("card-media") ? frame.closest("[data-project-grid], [data-detail-related-grid]") : null)
+    || (frame.parentElement && frame.parentElement === photoImage?.parentElement ? frame.parentElement : null);
+  const sharedFlowLayer = (container) => {
+    if (!sharedSkeletonFlows.has(container)) {
+      const layer = createSharedSkeletonFlowLayer();
+      sharedSkeletonFlows.set(container, layer);
+      // A soft navigation fires no pagehide and replaces the grid: the layer lives as long as this mount.
+      const dispose = () => { layer?.dispose(); layer?.canvas.remove(); sharedSkeletonFlows.delete(container); };
+      addEventListener("pagehide", (event) => { if (!event.persisted) dispose(); }, { signal: controller.signal });
+      controller.signal.addEventListener("abort", dispose, { once: true });
     }
-    // A rebuilt batch removes or adds frames after the canvas; the canvas must be the last child to sit above the frames, below Glass and the CTA.
-    const canvas = sharedSkeletonFlow?.canvas;
-    if (canvas && container.lastElementChild !== canvas) container.append(canvas);
-    return sharedSkeletonFlow;
+    const layer = sharedSkeletonFlows.get(container);
+    // A rebuilt batch or a newly mounted card lands after the canvas; the canvas must be the last child to sit above the frames. The batch canvas stays below its Glass and the CTA;
+    // the card canvas draws over the whole card (each card is a stacking context), Glass included.
+    if (layer && container.lastElementChild !== layer.canvas) container.append(layer.canvas);
+    return layer;
   };
+  const sharedFlowFor = (frame) => {
+    const container = sharedFlowContainer(frame);
+    return container ? sharedFlowLayer(container) : null;
+  };
+  // PC: create the main grid's layer while the page is still covered, so the WebGL context and shader compile do not drop frames
+  // when the first cards start waiting (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
+  if (grid && !skeletonPhone() && !skeletonMotionPreference.matches) sharedFlowLayer(grid);
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
@@ -2440,11 +2439,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const sharedLayer = sharedFlowFor(frame);
     if (sharedLayer) {
       const surface = frame.querySelector(".masonry-grid__cta-surface");
-      // While revealing, the shared canvas follows the surface opacity; after the reveal it is 1 (R4).
-      const alpha = () => (skeletonEntryFrames.has(frame) ? Number(getComputedStyle(surface).opacity) : 1);
+      // While entering or revealing, the shared canvas follows the frame and surface opacity; otherwise it is 1 (R4).
+      const alpha = () => (skeletonEntryFrames.has(frame) || fadingSkeletonFrames.has(frame)
+        ? Number(getComputedStyle(frame).opacity) * Number(getComputedStyle(surface).opacity) : 1);
       skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale, alpha }));
       return;
     }
+    // A card frame without a shared layer (no WebGL) keeps its still image: no context per card.
+    if (sharedFlowContainer(frame)) return;
     const budget = SKELETON_CONTEXT_BUDGET;
     const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
     if (!lease && skeletonNativeContexts.length >= budget) return;
@@ -2458,7 +2460,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       initialPhase: skeletonPhase(frame),
       direction,
       speedScale,
-      ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
     };
     // A fast swipe leaves the main-thread rAF at about 12fps on the A04s: drawing in a worker keeps Flow running steadily (R8, owner 19/10).
     const shared = !lease && sharedFlowAllowed();
@@ -2509,12 +2510,20 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (oldCanvas && skeletonAssignmentByFrame.has(frame)) oldCanvas.replaceWith(createSkeletonCanvas(frame));
   };
   // `rects` is read before assignSkeleton appends the canvas; reading again afterwards forces another style recalc.
+  // Frames on a shared layer have no cap: every visible one draws. Only frames with their own renderer count against the context budget.
   const syncSkeletonRenderers = (rects) => {
-    const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
+    const budget = SKELETON_CONTEXT_BUDGET;
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
+    let counted = 0;
+    const fits = (frame) => {
+      if (sharedFlowContainer(frame)) return true;
+      if (counted >= budget) return false;
+      counted += 1;
+      return true;
+    };
     for (const frame of skeletonFlowByFrame.keys()) {
-      if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
+      if (visibleSkeletonFrames.has(frame) && fits(frame)) keep.add(frame);
     }
     // Card and CTA frames sit in different containers, so order by viewport position. Reuse the rect read
     // before appending the canvas: reading again forces another layout (Android phone, decision phone-frame-budget).
@@ -2525,8 +2534,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       .map(({ frame }) => frame)
       .filter((frame) => !keep.has(frame));
     if (eligible) for (const frame of prioritized) {
-      if (keep.size >= budget) break;
-      keep.add(frame);
+      if (fits(frame)) keep.add(frame);
     }
     // Release before allocating so rotating the phone never stacks the context budget.
     for (const frame of skeletonFlowByFrame.keys()) {
@@ -2583,7 +2591,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
     if (skeletonEntryFrames.has(frame) || frame.classList.contains("is-entry-ready")) return;
-    const pending = { reveal: 0, fallback: 0, settle: null, animations: [], glass: null };
+    const pending = { reveal: 0, fallback: 0, settle: null, animations: [] };
     const settle = () => {
       if (skeletonEntryFrames.get(frame) !== pending) return;
       cancelSkeletonEntry(frame);
@@ -2600,14 +2608,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!frame.dataset.masonryCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
-      // A batch frame enters like a card image: Flow shows under Glass on the empty frame over 0.6s (skeleton R4).
-      if (frame.dataset.masonryCtaFrame) {
-        const reveal = playReveal({ to: [frame.querySelector(".masonry-grid__cta-surface")], host: frame });
-        pending.glass = reveal.glass;
-        pending.animations = reveal.animations;
-        reveal.finished.then(settle, () => {});
-        return;
-      }
       frame.addEventListener("transitionend", pending.settle);
       pending.fallback = setTimeout(settle, 650);
     });
@@ -2617,6 +2617,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // the frame task exceeds 50ms on an Android phone during a fast swipe (R8, decision phone-frame-budget).
   let skeletonSyncInFrame = false;
   let skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
+  let skeletonAssignIdle = false;
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
     const rects = new Map();
@@ -2632,15 +2633,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // the rest go to a later task, and a frame without an assignment does not enter the entry yet (decision phone-frame-budget).
     const assignUntil = performance.now() + skeletonAssignBudget;
     let assigned = 0;
+    let deferred = false;
     for (const frame of visibleSkeletonFrames) {
       if (skeletonAssignmentByFrame.has(frame)) continue;
+      // A card frame shows the image's dominant color until idle: its still drawn in the deferred CTA task doubled that task
+      // (19ms vs 10ms) and dropped frames in the first reveal burst on the owner's PC (3b.2 run 4).
+      if (!skeletonAssignIdle && frame.parentElement?.classList.contains("card-media")) {
+        deferred = true;
+        continue;
+      }
       if (skeletonSyncInFrame || (assigned && performance.now() > assignUntil)) {
-        scheduleSkeletonAssign();
+        deferred = true;
         break;
       }
       assignSkeleton(frame, rects);
       assigned += 1;
     }
+    if (deferred) scheduleSkeletonAssign();
     syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
@@ -2694,8 +2703,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const run = (deadline) => {
       skeletonAssignTimer = 0;
       if (controller.signal.aborted) return;
-      skeletonAssignBudget = Math.min(SKELETON_ASSIGN_BUDGET_MS, deadline?.timeRemaining() ?? SKELETON_ASSIGN_BUDGET_MS);
+      // A PC busy enough that idle times out (tall window, every card waiting) still assigns a full budget: one frame per pass left
+      // cards without Flow for seconds. The phone keeps the idle remainder (decision phone-frame-budget).
+      skeletonAssignBudget = deadline?.didTimeout && !skeletonPhone() ? SKELETON_ASSIGN_BUDGET_MS
+        : Math.min(SKELETON_ASSIGN_BUDGET_MS, deadline?.timeRemaining() ?? SKELETON_ASSIGN_BUDGET_MS);
+      skeletonAssignIdle = true;
       syncSkeletonMotion();
+      skeletonAssignIdle = false;
       skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
     };
     skeletonAssignTimer = globalThis.requestIdleCallback?.(run, { timeout: 250 }) ?? setTimeout(run);
@@ -2760,30 +2774,30 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
   };
-  // One reveal for card, primary and batch frame (masonry-reuse step 8): `from` fades out, `to` shows via the approved
-  // crossfade. With `host`, add three-tier Glass at the bottom of the media box, over photo and skeleton (R2, R4), unless the arc CTA is visible:
-  // the reveal Glass makes Chrome drop the arc's tier blur (skeleton R4).
-  const playReveal = ({ from = [], to = [], host = null }) => {
-    let glass = null;
-    if (host && !ctaBatch.arcInView) {
-      glass = createGlassSurface("even", 3);
-      glass.dataset.glassReveal = "";
-      host.append(glass);
-    }
-    const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
+  // Crossfade for a card or primary photo the frosted glass cannot reveal (masonry-reuse step 8): `from` fades out, `to` shows via the approved crossfade.
+  const playReveal = ({ from = [], to = [] }) => {
+    const animations = crossfadeLayers(from, to, CARD_REVEAL_MS);
     const finished = Promise.all(animations.map(({ finished: done }) => done));
     // A cancelled reveal (card leaves view, filter change, teardown) makes `finished` reject; callers that do not need it report no error.
     finished.catch(() => {});
-    return { glass, animations, finished };
+    return { animations, finished };
   };
   // The realtime background of the spare area draws into a 1/8-frame canvas with the last tier's blur then scales up 8x (detail.css): a CSS filter on a
   // scaled-up image is recomputed by the GPU at screen size every frame, a canvas is not.
   const BAKED_SCALE = 8;
   const BAKED_FILTERS = [[100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
-  // Late-loading media shows under its own blur and the blur melts away over 0.6s once loaded; already-loaded media shows immediately
-  // (loading-glass-and-page-entry R1-R3).
+  // Late-loading media waits under a Flow frame in the image's 4 colors and shows through frosted glass over 0.6s once loaded (PC), or under the color layer (phone);
+  // already-loaded media shows immediately (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
+  // A 20px copy of the decoded photo, flipped for WebGL; null when the browser cannot make one (the reveal then only fades Flow).
+  const frostCopy = (media) => {
+    const width = media.naturalWidth || media.videoWidth;
+    const height = media.naturalHeight || media.videoHeight;
+    if (!width || !height || typeof createImageBitmap !== "function") return Promise.resolve(null);
+    return createImageBitmap(media, { resizeWidth: FROST_COPY_WIDTH, resizeHeight: Math.max(1, Math.round(FROST_COPY_WIDTH * height / width)),
+      resizeQuality: "medium", imageOrientation: "flipY" }).catch(() => null);
+  };
   const attachCardSkeleton = (node, waitCache = loadedMediaKeys.has(mediaKey(node))) => {
     const mediaId = node.advertisingPendingMediaId?.();
     if (cardSkeletons.has(node) || !mediaId) return;
@@ -2800,27 +2814,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const ghost = node.masonryGhost;
       setColorWait(node, ghost?.dataset.mediaWait
         ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
-    } else {
-      // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
-      // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
-      const scale = cardLoadingScale(node);
-      mediaLayers(node).forEach((media) => {
-        media.style.filter = CARD_LOADING_BLUR;
-        media.style.scale = scale;
-      });
-      // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
-      node.dataset.masonryMediaLoading = "";
-      node.style.setProperty("--breathe-phase", breathePhase());
     }
-    // The card has already drawn its wait state over the dominant color (blurred image, or the same color layer in the same phase as the temp card),
+    // PC: the image stays hidden under a Flow frame in its own 4 colors on the grid's shared canvas (progressive-loading R9); without a full palette Flow
+    // keeps the preset colors. The data attribute marks the card as waiting (just-viewed label, detail.css).
+    let frame = null;
+    if (!phone) {
+      const colors = node.advertisingWaitColors();
+      frame = attachLoadingSkeleton(node.querySelector(".card-media"), mediaKey(node), null, new Set(colors).size > 1 ? colors : null);
+      node.dataset.masonryMediaLoading = "";
+    }
+    // The card has drawn its wait state over the temp card (phone: the color layer in the same phase; PC: the Flow frame over the opaque media box),
     // so the temp card is removed in the next frame, no crossfade (R7).
     if (node.masonryGhost) {
       const ghost = node.masonryGhost;
       node.masonryGhost = null;
       requestAnimationFrame(() => ghost.remove());
     }
-    if (!phone) showMedia(node);
-    cardSkeletons.set(node, { blur: !phone, colors: phone, revealing: false, animations: [] });
+    cardSkeletons.set(node, { frame, colors: phone, revealing: false, animations: [] });
   };
   const dropCardSkeleton = (node) => {
     removeGhost(node);
@@ -2830,11 +2840,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     delete node.dataset.masonryMediaLoading;
     if (entry.colors) clearColorWait(node);
     entry.animations.forEach((animation) => animation.cancel());
-    mediaLayers(node).forEach((media) => {
-      media.style.removeProperty("transition");
-      media.style.removeProperty("filter");
-      media.style.removeProperty("scale");
-    });
+    if (entry.frame) {
+      fadingSkeletonFrames.delete(entry.frame);
+      detachLoadingSkeleton(entry.frame);
+    }
+    mediaLayers(node).forEach((media) => media.style.removeProperty("transition"));
   };
   const heldReveals = new Set();
   let revealHoldTimer = 0;
@@ -2866,11 +2876,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       return;
     }
     if (!entry) {
-      entry = { blur: false, revealing: false, animations: [] };
+      entry = { frame: null, revealing: false, animations: [] };
       cardSkeletons.set(node, entry);
     }
     entry.revealing = true;
-    // Without blur, only swap the decoded photo so the crossfade does not paint a half-decoded frame (R2).
+    // Only swap the decoded photo so the crossfade does not paint a half-decoded frame (R2).
     const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
       // A card leaving view during decode has had its skeleton dropped; the image must still show, otherwise it is stuck at opacity 0.
@@ -2892,23 +2902,40 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         });
         entry.animations = layers.map((media) => media.animate([{ opacity: 0 }, { opacity: 1 }],
           { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
-      } else if (entry.blur) {
-        // The blur melts to 0 over 0.6s (progressive-loading R9). The breathing stops at exactly that moment: opacity goes from the breathing value to 1 on the same
-        // rhythm, no flash; read before removing the attribute because once removed the CSS animation stops and the value read is always 1.
-        const from = layers.map((media) => getComputedStyle(media).opacity);
-        delete node.dataset.masonryMediaLoading;
-        entry.animations = layers.map((media, index) => media.animate(
-          [{ filter: CARD_LOADING_BLUR, opacity: from[index], scale: media.style.scale || "1" }, { filter: "none", opacity: 1, scale: "1" }],
-          { duration: CARD_REVEAL_MS, easing: EASE.card, fill: "forwards" }));
-      } else {
+        Promise.all(entry.animations.map(({ finished }) => finished))
+          .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
+        return;
+      }
+      // PC: the grid's Flow canvas turns into frosted glass of the photo, then clears to the photo already shown under it, in 0.6s
+      // (progressive-loading R9, owner 2026-11-12). No Glass: its blur made the GPU compile shaders for ~47ms at the first reveal.
+      // A frame the canvas does not draw yet, or no shared layer, crossfades instead.
+      const renderer = entry.frame && skeletonFlowByFrame.get(entry.frame);
+      const frosted = renderer?.reveal && renderer.running && entry.frame.classList.contains("is-entry-ready");
+      (frosted ? frostCopy(layer) : Promise.resolve(null)).then((tiny) => {
+        if (cardSkeletons.get(node) !== entry) {
+          tiny?.close();
+          return;
+        }
         layers.forEach((media) => {
           media.style.setProperty("transition", "none", "important");
           media.classList.add("is-masonry-media-ready");
         });
-        entry.animations = playReveal({ to: layers }).animations;
-      }
-      Promise.all(entry.animations.map(({ finished }) => finished))
-        .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
+        delete node.dataset.masonryMediaLoading;
+        const revealed = frosted ? renderer.reveal(tiny, CARD_REVEAL_MS) : null;
+        tiny?.close();
+        if (revealed) {
+          // The frame's still image would cover the photo: the canvas alone draws Flow and the glass now. No transition, or the still
+          // would fade under the clearing glass.
+          entry.frame.style.transition = "none";
+          entry.frame.style.opacity = "0";
+          revealed.then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node));
+          return;
+        }
+        entry.animations = playReveal({ from: entry.frame ? [entry.frame] : [], to: layers }).animations;
+        if (entry.frame) fadingSkeletonFrames.add(entry.frame);
+        Promise.all(entry.animations.map(({ finished }) => finished))
+          .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
+      });
     });
   };
   const syncCardSkeleton = (node) => {
@@ -3901,20 +3928,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let primaryReveal = null;
   const settlePrimaryReveal = () => {
     if (!primaryReveal) return;
-    const { frame, animations, glass } = primaryReveal;
+    const { frame, animations } = primaryReveal;
     primaryReveal = null;
     animations.forEach((animation) => animation.cancel());
-    glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
     clearColorWait(heroFrame);
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  // The primary runs exactly the slow-loading card reveal (loading-glass-and-page-entry R4): three-tier Glass shows on the skeleton, under
-  // the Glass the skeleton fades while the image and spare-area background appear, then the Glass melts, all with CARD_REVEAL_MS.
+  // The primary runs exactly the slow-loading card reveal (loading-glass-and-page-entry R4): Flow turns into frosted glass of the photo,
+  // then clears to the photo and spare-area background, all with CARD_REVEAL_MS.
   const playPrimaryReveal = (reveal, incoming) => {
     if (primaryReveal !== reveal) return;
-    // Image decoded before the photo view shows (opened from grid): wait so Glass can measure the hero.
+    // Image decoded before the photo view shows (opened from grid): wait so the reveal can measure the hero.
     if (photoView.hidden) {
       requestAnimationFrame(() => playPrimaryReveal(reveal, incoming));
       return;
@@ -3927,7 +3953,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // and only then runs the reveal from 0 (flash bug on Back, Forward).
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
-    // Phone: no skeleton and no Glass; the photo (and a video or live background, hidden by CSS while waiting) fades in over the color layer (kept under it by CSS), which
+    // Phone: no skeleton and no frosted glass; the photo (and a video or live background, hidden by CSS while waiting) fades in over the color layer (kept under it by CSS), which
     // settlePrimaryReveal removes. No `fill`: removing data-detail-loading above holds opacity 1 afterwards.
     if (reveal.colors) {
       const shown = [...incoming, ...[photoVideo, liveBackground].filter((node) => node && !node.hidden)];
@@ -3937,11 +3963,44 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
       return;
     }
-    const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
-    reveal.glass = played.glass;
-    reveal.animations = played.animations;
-    played.finished
-      .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+    // PC: the shared layer turns Flow into frosted glass of the photo, then clears it (owner sample 10, 2026-11-12). The image and background
+    // are already shown under the opaque frame; the canvas takes over in the frame the frame hides.
+    const renderer = skeletonFlowByFrame.get(reveal.frame);
+    const settle = () => primaryReveal === reveal && settlePrimaryReveal();
+    const fallback = () => {
+      reveal.animations = playReveal({ from: [reveal.frame], to: incoming }).animations;
+      Promise.all(reveal.animations.map(({ finished }) => finished)).then(settle, () => {});
+    };
+    if (!renderer?.reveal || !renderer.running || !reveal.frame.classList.contains("is-entry-ready")) {
+      fallback();
+      return;
+    }
+    // Copy the 240px background, the same photo already decoded: copying the full-size photo decodes its JXL again on the main thread
+    // (owner PC run 8: a 59 ms long task right before the reveal).
+    frostCopy(photoBackground?.naturalWidth ? photoBackground : photoImage).then((tiny) => {
+      if (primaryReveal !== reveal) {
+        tiny?.close();
+        return;
+      }
+      const frame = reveal.frame.getBoundingClientRect();
+      const image = photoImage.getBoundingClientRect();
+      const ratio = (image.width / image.height) / (frame.width / frame.height);
+      // A hidden image (video primary) has no box: the copy then covers the frame.
+      const revealed = renderer.reveal(tiny, CARD_REVEAL_MS, ratio > 0 && Number.isFinite(ratio) ? {
+        box: [(image.left - frame.left) / frame.width, (frame.bottom - image.bottom) / frame.height,
+          image.width / frame.width, image.height / frame.height],
+        // The background covers the frame at scale 1.12 (detail.css).
+        cover: [Math.min(1, 1 / ratio) / 1.12, Math.min(1, ratio) / 1.12],
+      } : undefined);
+      tiny?.close();
+      if (!revealed) {
+        fallback();
+        return;
+      }
+      reveal.frame.style.transition = "none";
+      reveal.frame.style.opacity = "0";
+      revealed.then(settle);
+    });
   };
   // Media sits contain inside a cover frame; the spare area shows the zoom blur background (Glass), video included.
   const fitPrimaryMedia = (item) => {
@@ -4282,7 +4341,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const waitSrc = video ? item.posterSrc : item.src;
       if (phone) setColorWait(heroFrame, waitColors(waitSrc, cardColor(record)));
       const reveal = { frame: phone ? null : attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
-        mediaColors(waitSrc)?.slice(1)), colors: phone, animations: [], glass: null };
+        mediaColors(waitSrc)?.slice(1)), colors: phone, animations: [] };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";
