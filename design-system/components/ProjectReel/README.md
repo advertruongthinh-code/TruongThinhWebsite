@@ -15,8 +15,7 @@ Dải card công trình xếp so le trên trang chủ (3 tới 6 card, hiện 6)
 - Caption chữ hoa 700 0.8rem, ô vuông màu đầu dòng lặp ba: `blue` ở card
   1, 4; `orange-accent` ở card 2, 5; viền ở card 3, 6. Caption dài xuống dòng,
   lưới cao thêm thay vì cắt chữ.
-- Desktop có hover: caption ẩn tới khi hover; ảnh `scale(1.15)` `0.6s
-  ease-out`. Không shadow, không radius.
+- Desktop có hover: caption ẩn tới khi hover (`(hover: hover)` và từ 981px); ảnh `scale(1.15)` `0.6s ease-out` viết riêng ở `style.css` `.project-card:hover`, không qua primitive `media-hover-zoom`, không gate `(hover: hover)` và không có focus bàn phím. Không shadow, không radius.
 - Khi có motion, track trượt vào từ 60px bên phải lúc vào viewport.
 
 ## Chú thích thuật ngữ
