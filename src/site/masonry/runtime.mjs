@@ -43,6 +43,9 @@ import {
   breathePhase, clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
+// The detail thumbnail strip spans the info column: the whole number of 60px+8px slots that fit, each widened to share the leftover (owner 2026-11-12).
+const detailThumbSize = (width) => (width + 8) / Math.max(1, Math.floor((width + 8) / 68)) - 8;
+
 let activeInstance;
 
 const startLayoutWorker = () => new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
@@ -3430,7 +3433,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!button || !node.clientWidth) continue;
       const strip = node.getBoundingClientRect();
       const box = button.getBoundingClientRect();
-      const fade = (name) => node.hasAttribute(name) ? 60 : 0;
+      const fade = (name) => node.hasAttribute(name) ? box.width : 0;
       if (box.left >= strip.left + fade("data-fade-start") - 1 && box.right <= strip.right - fade("data-fade-end") + 1) continue;
       node.scrollBy({ left: box.left + box.width / 2 - strip.left - strip.width / 2, behavior: reduced ? "auto" : "smooth" });
     }
@@ -3811,6 +3814,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       try {
         photoInfo.style.width = `${width}px`;
         photoInfo.style.height = "auto";
+        // Measure with the thumbnail size this width will get, the strip height follows it.
+        photoInfo.style.setProperty("--detail-thumb-size", `${detailThumbSize(width)}px`);
         // A locale change runs a scale(0.9) transition on main: the rect shrinks with the scale so divide again by the set width,
         // otherwise info is 10% shorter and the description is clipped.
         const infoRect = photoInfo.getBoundingClientRect();
@@ -3832,6 +3837,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       } finally {
         photoInfo.style.width = previousWidth;
         photoInfo.style.height = previousHeight;
+        photoInfo.style.removeProperty("--detail-thumb-size");
       }
     };
     const measureInfo = (width, mode, basePrimary = null) => {
@@ -3873,6 +3879,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
+      "thumb-size": detailThumbSize(primary.descriptionWidth),
     })) photoView.style.setProperty(`--detail-${key}`, `${value}px`);
     if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
