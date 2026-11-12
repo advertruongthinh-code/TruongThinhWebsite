@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -18,7 +18,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
-  crowded = false, twoVideos = false } = {}) {
+  crowded = false, twoVideos = false, otherImages = 0 } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   assert.equal(artifact.cards.length, ADVERTISING_MEDIA_MANIFEST.length, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
@@ -47,6 +47,12 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     // The artifact keeps only the grid part (static-release R1), the description lives in catalog-detail.
     card.descriptionVi = card.descriptionEn = Array(8).fill(ADVERTISING_CATALOG_DETAIL[cardId].descriptionEn).join(" ");
   }
+  // Images of other 3:2 cards, each its own file, so every lane of a strip shows a different picture (media of one card share one ratio).
+  if (otherImages) {
+    card.mediaItems.push(...artifact.cards.filter((item) => item.id !== card.id && item.media.width * 2 === item.media.height * 3)
+      .slice(0, otherImages)
+      .map((item, index) => ({ kind: "image", ...item.media, id: `${cardId}-other-${index}` })));
+  }
   if (singleton) {
     card.mediaItems = [card.mediaItems[1]];
     card.coverMediaId = videoId;
@@ -66,9 +72,9 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
 }
 
 async function openFixture(page, locale, { videoCover = false, direct = false, photoOnly = false,
-  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false, crowded = false, twoVideos = false } = {}) {
+  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false, crowded = false, twoVideos = false, otherImages = 0 } = {}) {
   const { artifact, card, related } = fixtureArtifact(videoCover,
-    { singleton, relatedMedia, hasAudio, wideVideo, crowded, twoVideos });
+    { singleton, relatedMedia, hasAudio, wideVideo, crowded, twoVideos, otherImages });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
     // Return 206 for Range so Chrome treats the clip as seekable, otherwise the seek bar cannot change currentTime.
@@ -834,7 +840,8 @@ test("M02a primary thumbnails jump straight to a media without dots and the blur
     assert(sliding.length >= 20, `strip slides over many frames: ${sliding.length}`);
     for (const frame of sliding) {
       assert.equal(frame.media.length, 2, "strip holds only the current and the chosen media");
-      assert(frame.media.every(({ src }) => !src?.includes("m02a-strip=2")), "the media in between never shows");
+      // A strip from rest: the media in between was never on screen, so it gets no lane (media-card R3 rule 2).
+      assert(frame.media.every(({ src }) => !src?.includes("m02a-strip=2")), "the media in between, off screen at the press, never shows");
       assert(frame.media.some(({ src }) => src?.includes("m02a-strip=3")), "the chosen media slides in");
       assert.equal(frame.real, "hidden", "the real media waits under the strip");
       assert(frame.media.every(({ opacity }) => opacity === "1"), "nothing fades");
@@ -846,6 +853,183 @@ test("M02a primary thumbnails jump straight to a media without dots and the blur
     assert.equal(await page.locator("[data-detail-view]").getAttribute("data-masonry-active-media-id"),
       card.mediaItems[2].id);
     assert.equal(await thumbs.nth(2).getAttribute("aria-current"), "true");
+  });
+});
+
+// Rapid presses on a media strip (media-card R3, interruptible strip): presses run 60ms apart; every frame records, while `active` exists,
+// the centre of each lane node on screen from the centre of `frame` in frame widths, and the video's audible volume. A lane node is keyed by
+// the node, and a `retarget` node (the viewer's real image, which takes the new media and a new lane on each press) also by the press count.
+// `restarts` lists each task that removed a lane more than half on screen at its last frame and added new lanes: the strip jumped back to
+// rest and started over. The trace ends 3s after the last press.
+async function traceStripPresses(page, { frame, lanes, active, presses, retarget = null, container }) {
+  return page.evaluate(async ({ frame, lanes, active, presses, retarget, container }) => {
+    const ids = new WeakMap();
+    let next = 0;
+    const key = (node) => {
+      if (!ids.has(node)) ids.set(node, `node-${next++}`);
+      return `${ids.get(node)}${retarget && node.matches(retarget) ? `:${trace.presses.length}` : ""}`;
+    };
+    const video = document.querySelector("[data-detail-video]");
+    const trace = { frames: [], presses: [], restarts: [] };
+    const lastCentre = new WeakMap();
+    const lanesIn = (nodes) => nodes.flatMap((node) => node.nodeType !== 1 ? []
+      : [...(node.matches(lanes) ? [node] : []), ...node.querySelectorAll(lanes)]);
+    const observer = new MutationObserver((records) => {
+      const added = lanesIn(records.flatMap(({ addedNodes }) => [...addedNodes]));
+      const seen = lanesIn(records.flatMap(({ removedNodes }) => [...removedNodes]))
+        .filter((node) => Math.abs(lastCentre.get(node) ?? Infinity) < 0.5);
+      if (added.length && seen.length) trace.restarts.push({ at: performance.now(), centres: seen.map((node) => lastCentre.get(node)) });
+    });
+    observer.observe(document.querySelector(container), { childList: true, subtree: true });
+    let stop = false;
+    // `t` is the frame time animations are sampled at, which after a long task can be well before the sample runs; `at` orders the frame
+    // against the presses.
+    const tick = (time) => {
+      const box = document.querySelector(active) && document.querySelector(frame).getBoundingClientRect();
+      trace.frames.push({ t: time, at: performance.now(), audible: video.paused || video.muted ? 0 : video.volume,
+        count: box ? document.querySelectorAll(lanes).length : 0,
+        lanes: box ? [...document.querySelectorAll(lanes)].map((node) => {
+          const rect = node.getBoundingClientRect();
+          const centre = (rect.left + rect.width / 2 - box.left - box.width / 2) / box.width;
+          lastCentre.set(node, centre);
+          return [key(node), centre];
+        }).filter(([, centre]) => Math.abs(centre) < 1) : [] });
+      if (!stop) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    for (const [index, { selector, step }] of presses.entries()) {
+      if (index) await new Promise((resolve) => setTimeout(resolve, 60));
+      trace.presses.push({ t: performance.now(), step });
+      document.querySelector(selector).click();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    stop = true;
+    observer.disconnect();
+    return trace;
+  }, { frame, lanes, active, presses, retarget, container });
+}
+
+// The checks of tasks 0.2 and 4.1 on any strip: no restart from rest, lanes stay joined, no jump over 15% of the frame per 60Hz frame, and the
+// strip keeps moving forward right after every same-direction press.
+function assertContinuousStrip(trace, label, minFrames = 20) {
+  void mkdir(path.join(root, ".tmp/strip-rapid-step"), { recursive: true })
+    .then(() => writeFile(path.join(root, ".tmp/strip-rapid-step", `${label}.json`), JSON.stringify(trace)));
+  const frames = trace.frames.filter(({ lanes }) => lanes.length).map(({ t, at, lanes }) => ({ t, at, lanes: new Map(lanes) }));
+  assert(frames.length >= minFrames, `${label}: the strip moves over many frames: ${frames.length}`);
+  assert.deepEqual(trace.restarts, [], `${label}: a press never drops the strip back to rest`);
+  for (const { lanes } of frames) {
+    // A ghost and the real media can share one lane: compare distinct lane centres.
+    const centres = [...lanes.values()].sort((a, b) => a - b).filter((centre, index, all) => !index || centre - all[index - 1] > 0.02);
+    assert(centres.every((centre, index) => !index || Math.abs(centre - centres[index - 1] - 1) < 0.02),
+      `${label}: lanes stay joined: ${JSON.stringify(centres)}`);
+  }
+  const shift = (before, after) => {
+    const id = [...after.lanes.keys()].find((key) => before.lanes.has(key));
+    return id === undefined ? 0 : after.lanes.get(id) - before.lanes.get(id);
+  };
+  for (let index = 1; index < frames.length; index++) {
+    const jump = Math.abs(shift(frames[index - 1], frames[index]));
+    const frameCount = Math.max(1, (frames[index].t - frames[index - 1].t) / (1000 / 60));
+    assert(jump <= 0.15 * frameCount,
+      `${label}: strip jumps ${jump.toFixed(3)} frames in ${frameCount.toFixed(1)} frames at ${frames[index].t.toFixed(0)}ms`);
+  }
+  for (const [index, press] of trace.presses.entries()) {
+    if (index === 0 || press.step !== trace.presses[index - 1].step) continue;
+    // A strip still waiting for its first media stays at rest: only a strip already moving must keep moving.
+    const before = frames.filter(({ at }) => at < press.t).slice(-2);
+    if (before.length < 2 || -shift(before[0], before[1]) * press.step <= 0.001) continue;
+    // Frames before the next press; a busy headless run may draw only one, measured against the frame before the press.
+    const next = trace.presses[index + 1]?.t ?? Infinity;
+    const after = frames.filter(({ at }) => at > press.t && at < next);
+    assert(after.length, `${label}: a frame between press ${index + 1} and the next`);
+    const pair = after.length > 1 ? after.slice(0, 2) : [before[1], after[0]];
+    const velocity = -shift(...pair) * press.step;
+    assert(velocity > 0.001, `${label}: strip keeps moving forward right after press ${index + 1}: ${velocity.toFixed(4)}`);
+  }
+}
+
+// Every media of the card shows once without motion, then the primary is back on the video: the strip lanes then decode from cache, so the
+// first strip starts moving before the second press.
+async function warmPrimaryMedia(page, card) {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const item of [...card.mediaItems.slice(2), card.mediaItems[1]]) {
+    await page.locator(`[data-detail-media-select="${item.id}"]`).click();
+    await page.waitForFunction((kind) => {
+      const image = document.querySelector("[data-detail-image]");
+      return kind === "video" ? document.querySelector("[data-detail-video]").readyState >= 2 : image.complete && image.naturalWidth > 0;
+    }, item.kind);
+  }
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  // The runtime hears the media query change on a later task.
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
+// Next three times then previous, 60ms apart, from a playing video (advertising-detail R6 with media-card R3): one continuous strip of at
+// most three lanes, the sound only fades out, and the strip rests on the media before last.
+test("M02a rapid primary steps keep one continuous strip of three lanes at most and the sound never comes back", async () => {
+  await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
+    const card = await openFixture(page, "en", { videoCover: true, direct: true, otherImages: 4 });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && document.querySelector("[data-detail-video]").readyState >= 2);
+    await warmPrimaryMedia(page, card);
+    await page.evaluate(() => {
+      const video = document.querySelector("[data-detail-video]");
+      video.muted = false;
+      video.volume = 1;
+      return video.play();
+    });
+    assert.deepEqual(await page.evaluate(() => {
+      const video = document.querySelector("[data-detail-video]");
+      return [video.paused, video.muted];
+    }), [false, false], "the video plays with sound before the presses");
+    const presses = [1, 1, 1, -1].map((step) => ({ selector: `[data-detail-media-step="${step}"]`, step }));
+    const trace = await traceStripPresses(page, { frame: ".detail-view__strip", lanes: ".detail-view__strip > *",
+      active: ".detail-view__strip", presses, container: ".detail-view__hero-frame" });
+    assertContinuousStrip(trace, "primary");
+    const most = Math.max(...trace.frames.map(({ count }) => count));
+    assert(most <= 3, `the primary strip holds at most three lanes: ${most}`);
+    const audible = trace.frames.filter(({ at }) => at >= trace.presses[0].t).map((frame) => frame.audible);
+    assert(audible.every((volume, index) => !index || volume <= audible[index - 1] + 1e-6),
+      `the sound only fades out across the presses: ${audible.map((volume) => volume.toFixed(2)).join(" ")}`);
+    assert.equal(trace.frames.at(-1).lanes.length, 0, "the strip is gone once it rests");
+    assert.equal(await page.locator("[data-detail-view]").getAttribute("data-masonry-active-media-id"), card.mediaItems[3].id,
+      "the primary rests on the media before last");
+    assert.deepEqual(await page.evaluate(() => {
+      const image = document.querySelector("[data-detail-image]");
+      return [image.hidden, getComputedStyle(image).visibility, document.querySelector("[data-detail-video]").paused];
+    }), [false, "visible", true], "the image shows and the video stays paused");
+  });
+});
+
+// The same presses in the viewer (advertising-detail R9 with media-card R3): the old target becomes a second ghost that keeps moving.
+test("M02a rapid viewer steps keep one continuous strip and rest on the media before last", async () => {
+  await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
+    const card = await openFixture(page, "en", { videoCover: true, direct: true, otherImages: 4 });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && document.querySelector("[data-detail-video]").readyState >= 2);
+    await warmPrimaryMedia(page, card);
+    await page.locator("[data-detail-expand]").click();
+    await page.locator("[data-detail-dialog]").waitFor({ state: "visible" });
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]").dataset.viewerState === "open");
+    const presses = [[2, 1], [3, 1], [4, 1], [3, -1]].map(([index, step]) => ({
+      selector: `[data-detail-viewer-select="${card.mediaItems[index].id}"]`, step }));
+    const trace = await traceStripPresses(page, { frame: "[data-detail-viewport]",
+      lanes: ".detail-dialog__ghost, [data-detail-expanded-image]:not([hidden])", active: ".detail-dialog__ghost", presses,
+      retarget: "[data-detail-expanded-image]", container: "[data-detail-viewport]" });
+    // The viewer decodes the original of each media on the main thread, so a headless run draws few frames meanwhile.
+    assertContinuousStrip(trace, "viewer", 5);
+    assert.equal(trace.frames.at(-1).lanes.length, 0, "every ghost is gone once the strip rests");
+    const state = await page.evaluate(() => {
+      const image = document.querySelector("[data-detail-expanded-image]");
+      return { src: image.currentSrc || image.src, translate: getComputedStyle(image).translate,
+        active: document.querySelector("[data-detail-view]").dataset.masonryActiveMediaId };
+    });
+    assert.equal(state.active, card.mediaItems[3].id, "the primary follows to the media before last");
+    assert.equal(mediaPath(state.src).replace(/(?:-\d+)?\.\w+$/, ""), card.mediaItems[3].src.replace(/(?:-\d+)?\.\w+$/, ""),
+      "the viewer shows the media before last");
+    assert.match(state.translate, /^(none|0px( 0px)?)$/, "the viewer image rests in place");
   });
 });
 
