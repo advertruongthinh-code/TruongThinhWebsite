@@ -9,6 +9,7 @@ source:
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
   - src/site/404.html
+  - src/site/chinh-sach-quyen-rieng-tu/**
   - wrangler.static.toml
   - .github/workflows/deploy-demo.yml
 tests:
@@ -203,9 +204,8 @@ And không bước nào gọi Wrangler hoặc deploy
 `pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và
-Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
-Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>.
+`CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
+Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. `src/site/chinh-sach-quyen-rieng-tu/index.html` (chính sách quyền riêng tư cho app Pinterest nội bộ) là file tĩnh độc lập, build chép nguyên.
 
 ```gherkin
 Given một push vào main và bộ fast của CI xanh

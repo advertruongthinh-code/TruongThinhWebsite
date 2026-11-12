@@ -349,7 +349,7 @@ test("R11 keeps the use-sampling pool in one continuous coordinate space", () =>
   const options = {
     cards: ADVERTISING_CARDS,
     categoryOrder,
-    heroId: "kiosk-posm-30",
+    heroId: "kiosk-posm-25",
     tag: "use-sampling",
     ...viewportForWidth(1569),
   };
