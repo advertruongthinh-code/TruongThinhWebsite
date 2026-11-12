@@ -72,9 +72,9 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 ### R3. Loại asset không public
 
-`scripts/site/non-public-source-assets.mjs` liệt kê 17 path trong `src/site/`
+`scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
-manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, SVG lockup gốc, ảnh cover và
+manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin

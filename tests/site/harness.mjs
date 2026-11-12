@@ -34,3 +34,13 @@ export const settleTransitions = async (page) => {
   await page.waitForFunction(() => !document.getAnimations()
     .some((animation) => animation instanceof CSSTransition && animation.playState === "running"), null, { timeout: 5_000 });
 };
+
+// Pins the masonry random order (media-card R4) for every direct visit in this page or context, so a test that needs a
+// given layout does not depend on the per-visit seed. It writes the same sessionStorage handoff the language switch uses
+// (VISIT_SEED_HANDOFF_KEY in src/site/masonry/runtime.mjs, which cannot be imported in Node). The runtime reads it only
+// on a "navigate" load, so reload still reseeds and Back still restores the history seed, as in production.
+export const pinBrowseSeed = (target, seed) => target.addInitScript(([key, value]) => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ version: 1, url: location.href.split("#")[0], seed: value, expiresAt: Date.now() + 30_000 }));
+  } catch { /* Storage blocked: the visit keeps its random seed. */ }
+}, ["tt-advertising-visit-seed-handoff-v1", seed]);

@@ -91,7 +91,10 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
   không nền, bóng nhẹ; ẩn ở media đầu, cuối; cảm ứng không có mũi tên, đổi
   bằng vuốt. Cùng nút với mũi tên dải media của
   [Primary](../Primary/README.md#thumbnail-media), chỉ khác hình dạng.
-- Đổi media tức thì, không trượt; ảnh tải lần đầu hết blur, scale về 1 và opacity lên 1 trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)` (`CARD_REVEAL_MS`).
+- Đổi media là dải liền trượt ngang 0.9s (`PUSH_TIMING`); bấm tiếp khi dải
+  đang trượt thì dải chạy tiếp từ vị trí đang hiện, không nhảy về đích cũ
+  (`retargetStrip` trong `masonry/strip.mjs`, [spec R3](../../../docs/specs/media-card.md#r3-đổi-media-trên-card));
+  reduced motion đổi tức thì. Ảnh tải lần đầu hết blur, scale về 1 và opacity lên 1 trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)` (`CARD_REVEAL_MS`).
 
 ### Focus và nhãn
 

@@ -4,6 +4,7 @@ import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const { planDetourPath } = await import("../../src/site/masonry/detour-path.mjs");
+const { pinBrowseSeed } = await import("./harness.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const ready = (page) => page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
@@ -193,8 +194,11 @@ try {
   await page.close();
 
   // Find a case where a batch frame has a straight line crossing primary: it must detour (R10). When related is empty the CTA sits right under primary.
+  // Whether such a case exists among the first heroes depends on the random order, so the search pins one seed that has it.
+  const DETOUR_SEED = process.env.CTA_DETOUR_SEED || "related-cta-detour-3";
   const heroes = await (async () => {
     const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
+    await pinBrowseSeed(list, DETOUR_SEED);
     await list.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     await list.waitForSelector("[data-masonry-card]");
     const ids = await list.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard));
@@ -206,6 +210,7 @@ try {
   for (const hero of heroes) {
     if (detourCase && emptyCase) break;
     const search = await browser.newPage({ viewport: { width: 1569, height: 912 } });
+    await pinBrowseSeed(search, DETOUR_SEED);
     search.on("pageerror", (error) => errors.push(`${hero}: ${error.message}`));
     await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(search);

@@ -12,6 +12,7 @@ import { LAYOUT_CACHE_PRELOAD_MARKER, LAYOUT_CACHE_ROOT, layoutCachePreload } fr
 import "./sync-brand-lockup.mjs";
 import "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
+import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
@@ -63,6 +64,8 @@ const layoutCache = buildLayoutCacheMemo({ cards: artifact.cards, filters: PUBLI
 const projectReel = await readJson(path.join(sourceRoot, "content", "project-reel.json"));
 await validateProjectReel(projectReel, sourceRoot);
 const projectReelCards = renderProjectReel(projectReel);
+const hero = readHeroSources(sourceRoot);
+await validateHeroSlides(hero.data, sourceRoot);
 const homeTemplate = await readFile(path.join(sourceRoot, "index.html"), "utf8");
 if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
 
@@ -503,7 +506,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, responsivePictures(embedVietnameseText(html, target)).replace("<!-- head-inline -->", () => headInline), "utf8");
+      await writeFile(target, responsivePictures(embedVietnameseText(expandHero(html, hero.data, hero.orderScript), target)).replace("<!-- head-inline -->", () => headInline), "utf8");
     }),
   );
 };

@@ -40,22 +40,17 @@ test("each broken rule reports the right file, image and rule", async () => {
   }
 });
 
-test("hero: slides array matches figure.hero-slide by name, width, order; data-slide is contiguous", async () => {
-  const figure = (index, width = 40, active = "") => `<figure class="hero-slide${active}" data-slide="${index}">
-    <img data-src="${IMAGE}" width="${width}" height="30" alt="" /></figure>`;
-  const page = (slides, figures) => `<script>const slides = ${slides};</script><div class="hero-slides">${figures}</div>`;
-  const good = page('[["sample",40],["sample",40]]', figure(0, 40, " is-active") + figure(1));
-  assert.deepEqual(await checkSiteContent(await site(good)), []);
-  const cases = [
-    [page('[["sample",40]]', figure(0) + figure(1)), /slides array \[sample 40\] differs from figure\.hero-slide \[sample 40, sample 40\]/],
-    [page('[["sample",40],["other",40]]', figure(0) + figure(1)), /differs from figure\.hero-slide/],
-    [page('[["sample",40],["sample",40]]', figure(0) + figure(2)), /hero-slide 1 has data-slide="2"/],
-  ];
-  for (const [html, expected] of cases) {
-    const errors = await checkSiteContent(await site(html));
-    assert.equal(errors.length, 1, `${expected}: ${errors.join(" | ")}`);
-    assert.match(errors[0], expected);
-  }
+test("hero-slides.json is validated with the site content", async () => {
+  const slide = { id: "sample", src: IMAGE, width: 40, height: 30, altVi: "", altEn: "", focal: { x: 50, y: 50 }, phoneMove: { kind: "zoom-out" } };
+  const withHero = async (data) => {
+    const root = await site("");
+    mkdirSync(path.join(root, "content"));
+    writeFileSync(path.join(root, "content/hero-slides.json"), JSON.stringify(data));
+    return root;
+  };
+  assert.deepEqual(await checkSiteContent(await withHero({ home: [slide], residential: [slide], commercial: [slide] })), []);
+  const [error] = await checkSiteContent(await withHero({ home: [{ ...slide, width: 41 }], residential: [slide], commercial: [slide] }));
+  assert.match(error, /hero-slides\.home\[0\]: width\/height must be 40x30/);
 });
 
 test("reports every error, not just the first", async () => {

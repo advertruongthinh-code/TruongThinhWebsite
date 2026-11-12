@@ -1,6 +1,6 @@
 # Hero
 
-Nguồn: CSS `.hero`, `.motion-toggle`, `.scroll-cue`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
+Nguồn: CSS `.hero`, `.motion-toggle`, `.scroll-cue`; dữ liệu slide `src/site/content/hero-slides.json`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
 
 Khối mở đầu mỗi trang, dựng như một title card: vài chữ rất lớn chiếm màn
 hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
@@ -34,7 +34,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
-([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
+([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)). Danh sách slide, vùng cắt màn dọc (`--hero-focal-x`, `--hero-focal-y` trên `figure.hero-slide`) và kiểu chuyển động phone (`data-hero-move`, và `data-hero-pan-dir` cho slide lia) do build sinh từ `hero-slides.json`.
 
 ## Theo width
 
@@ -70,7 +70,7 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
 - Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
 - Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About `scale 1.2 → 1.005`,
   `2.5s ease`.
-- Trang chủ, Residential, Commercial: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`; thứ tự toàn bộ slide, gồm ảnh
+- Trang chủ, Residential, Commercial: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut` (điện thoại: slide `zoom-out` `1.1 → 1`, slide `pan` lia thẳng một trục `8%` chiều cao khung, cùng thời lượng; reduced motion không lia); thứ tự toàn bộ slide, gồm ảnh
   đầu, ngẫu nhiên mỗi lần tải.
 - Reduced motion hiện ngay trạng thái cuối. Chi tiết ở
   [Motion](../../motion.md#text).
