@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { readPageSource } from "../../scripts/site/sync-site-menu.mjs";
 
 const routes = [
   ["home", "src/site/index.html"],
@@ -14,7 +15,7 @@ const routes = [
 const sources = routes.map(([name, file]) => ({
   name,
   file,
-  source: fs.readFileSync(path.resolve(file), "utf8"),
+  source: readPageSource(file.slice("src/site/".length)),
 }));
 
 function attribute(markup, name) {

@@ -14,7 +14,8 @@ const detailRoutes = [
   "led-displays-lightboxes",
   "print-decals",
 ].map(slug => `advertising-products/${slug}/`);
-const sources = routes.map(route => fs.readFileSync(path.join("src/site", route, "index.html"), "utf8"));
+// The footer comes from one partial (site-shell R1); compare the built pages so a page that drops or forks it still fails.
+const sources = routes.map(route => fs.readFileSync(path.join(".site-output", route, "index.html"), "utf8"));
 const footerSource = sources.map(source => source.match(/<footer\b[\s\S]*?<\/footer>/)[0]
   .replace(/\s+/g, " ")
   .replace(/>\s+</g, "><")

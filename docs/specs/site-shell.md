@@ -6,6 +6,8 @@ source:
   - src/site/style.css
   - src/site/assets/brand/**
   - scripts/site/sync-site-menu.mjs
+  - scripts/site/shell.mjs
+  - src/site/partials/**
 tests:
   - tests/site/site.e2e.cjs
   - tests/site/site-static-contract.cjs
@@ -30,7 +32,7 @@ updated: 2026-11-12
 
 Shell là phần chung của năm trang VI/EN: header, brand lockup, full menu, footer, floating CTA, đổi
 ngôn ngữ, route veil, smooth scroll, scrollbar, layout mobile toàn site (`src/site/motion.js`,
-`src/site/style.css`). Markup shell lặp trong năm HTML trang; file HTML, motion nội dung trang và
+`src/site/style.css`). Markup shell chỉ có một bản trong `src/site/partials/` (R1); file HTML, motion nội dung trang và
 Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static-release.md). Spec con của shell:
 [cảm giác cuộn](scroll-feel.md), [header đi theo ngón tay](phone-header-scroll.md), [logo đổi màu khi chuyển trang](logo-route-crossfade.md),
 [mở trực tiếp giống chuyển trang](first-load-parity.md), [chữ hero](hero-typography.md).
@@ -39,12 +41,10 @@ Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static
 
 ### R1. Markup chung và thứ tự lớp
 
-Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa
-`svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`,
-`a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba.
-Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback
-(R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
+Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa `svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`, `a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba. Markup này nằm một bản trong `src/site/partials/` (`head.html` favicon và font preload, `boot.html` script khởi động, `styles.html` stylesheet, `route-veil.html`, `header.html`, `floating-cta.html`, `menu.html`, `footer.html`, `scripts.html` script cuối trang). 6 trang nguồn chỉ giữ mốc `<!-- shell:<tên> -->`; `renderShell` (`scripts/site/shell.mjs`, gọi trong `readPageSource`) thay mốc bằng partial lúc build và điền tham số của trang từ bảng `SHELL_PAGES`: nhãn navbar, chữ `sr-only` của logo, chữ và nhãn nút Zalo nổi, route hai link đổi ngôn ngữ, script thêm (Advertising thêm masonry, lazysizes sau SplitText). Title, description, script hero, thẻ `<body>` và `<style>` riêng vẫn ở trang. Thứ tự script giữ nguyên vì script khởi động theo dõi lỗi tải `motion.js`.
+Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback (R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
 nội dung. Header, floating CTA và menu tồn tại qua route mềm (R6).
+Toàn site, media (`img`, `picture`, `video`, `canvas`, `svg`) không bôi đen khi kéo, nhấp đúp, Ctrl+A hay giữ lâu, không kéo ra ảnh ma, không mở menu ảnh trên phone: một khối `:where(...)` specificity 0 cạnh `::selection` trong `style.css`; chữ quanh media vẫn chọn được.
 
 ```gherkin
 Given trang 1440px đã cuộn, header và floating CTA đang hiện
@@ -122,7 +122,7 @@ ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, c
 phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (hiện, chữ và mark giữ màu; veil phủ kín thì chữ đổi ngay sang ink, mark lật sang CMYK theo
 [logo đổi màu](logo-route-crossfade.md)); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
 alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ lớp lật và class `is-brand-*` của mark), CTA, menu;
-lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil (veil phủ kín ít nhất `1s`, [logo đổi màu R2](logo-route-crossfade.md#r2-veil-bắt-đầu-mở-tone-trang-đích)). Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header.
+lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil (veil phủ kín ít nhất `1s`, [logo đổi màu R2](logo-route-crossfade.md#r2-veil-bắt-đầu-mở-tone-trang-đích)). Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header. Route mềm bắt đầu khi màn gỡ veil của lần tải trực tiếp (R7) còn chờ font hoặc giữ veil thì màn gỡ cũ bỏ lượt, không dừng veil đang phủ của route mới; route vẫn xong (lỗi cũ: Barba treo quá 60s).
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
@@ -262,12 +262,12 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
+| R1 | `pnpm qa:static` (gồm khối media không bôi đen), `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
 | R2 | `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_GEOMETRY_ONLY` |
 | R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`, `TT_E2E_MENU_RESIZE_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
-| R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
+| R6 | `logo-route-crossfade.e2e.mjs`, `route-early-navigation.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `projects-back-scroll.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |

@@ -3,14 +3,8 @@ import path from "node:path";
 import { siteRoot } from "./lib.mjs";
 
 const canonicalPath = path.join(siteRoot, "assets", "brand", "truong-thinh-lockup.svg");
-const consumers = [
-  "index.html",
-  "residential/index.html",
-  "commercial/index.html",
-  "advertising-products/index.html",
-  "about/index.html",
-  "404.html",
-];
+// The shell partials hold the only inline lockups: one in the header, one in the menu.
+const consumers = ["partials/header.html", "partials/menu.html"];
 const lockupPattern = /<svg class="brand-lockup" viewBox="[^\"]*" aria-hidden="true" data-parity-media>[\s\S]*?<\/svg>/g;
 const subtitleEnglishCopy = "INTERIORS · ADVERTISING";
 
@@ -34,21 +28,21 @@ for (const relativePath of consumers) {
   const target = path.join(siteRoot, relativePath);
   const source = await readFile(target, "utf8");
   const matches = [...source.matchAll(lockupPattern)];
-  if (matches.length !== 2 || matches.some((match) => !/class="brand-lockup__geometry"/.test(match[0]))) {
-    throw new Error(`${relativePath} must contain exactly two recognizable inline brand lockups.`);
+  if (matches.length !== 1 || matches.some((match) => !/class="brand-lockup__geometry"/.test(match[0]))) {
+    throw new Error(`${relativePath} must contain exactly one recognizable inline brand lockup.`);
   }
   const next = source.replace(lockupPattern, (markup) =>
     markup.replace(/>[\s\S]*<\/svg>$/, `>\n${consumerGeometry}\n</svg>`),
   );
-  if ((next.match(lockupPattern) || []).length !== 2) {
+  if ((next.match(lockupPattern) || []).length !== 1) {
     throw new Error(`${relativePath} lockup replacement changed the consumer count.`);
   }
   if (next !== source) await writeFile(target, next, "utf8");
   synchronized += matches.length;
 }
 
-if (synchronized !== consumers.length * 2) {
-  throw new Error(`Expected ${consumers.length * 2} inline lockups; synchronized ${synchronized}.`);
+if (synchronized !== consumers.length) {
+  throw new Error(`Expected ${consumers.length} inline lockups; synchronized ${synchronized}.`);
 }
 
 console.log(`[brand-lockup] synchronized ${synchronized} inline consumers from canonical SVG`);

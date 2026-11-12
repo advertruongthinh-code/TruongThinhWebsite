@@ -1,6 +1,6 @@
 # Full menu
 
-Nguồn: CSS `.site-menu`, `.menu-group`, `.menu-shutters`; `scripts/site/sync-site-menu.mjs`; spec [Shell](../../../docs/specs/site-shell.md).
+Nguồn: CSS `.site-menu`, `.menu-group`, `.menu-shutters`; `src/site/partials/menu.html`, `scripts/site/sync-site-menu.mjs`; spec [Shell](../../../docs/specs/site-shell.md).
 
 Menu toàn màn hình mở từ nút menu của header: sáu nhóm route,
 chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở bằng
@@ -14,7 +14,7 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
   nhóm (Nhà ở, Kinh doanh, Công trình, Quảng cáo, Về chúng tôi, Liên hệ) gọn
   một dòng, và danh sách mục con; 3/2/1 cột ở mặc định, 960, 578px (PC ba
   trên, ba dưới); cột ngăn bằng viền `line`. Nav dựng lúc build từ
-  `content/menu.json` bằng `scripts/site/sync-site-menu.mjs`, thay mốc `<!-- menu-nav -->` trong trang nguồn; đầu ra không đổi
+  `content/menu.json` bằng `scripts/site/sync-site-menu.mjs`, thay mốc `<!-- menu-nav -->` trong `partials/menu.html` (khung menu một bản, chèn vào 6 trang bằng `renderShell`); đầu ra không đổi
   ([shell spec](../../../docs/specs/site-shell.md#r4-full-menu)).
 - Mục con dẫn tới URL canonical kèm query, không dùng section hash. Mục chữ
   hoa 700, 0.85rem, cao dòng tối thiểu 22.4px, cách nhau 15px; tiêu đề nhóm
