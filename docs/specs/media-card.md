@@ -1,7 +1,8 @@
 ---
 title: Card nhiều media
 status: live
-source: []
+source:
+  - src/site/masonry/strip.mjs
 tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/site-media-card-m01b.e2e.mjs
@@ -100,7 +101,6 @@ And rời chuột thì hai lớp đó ẩn ngay; card mang "Vừa xem" thì nhã
 Given card 3 media trên cảm ứng
 When kéo ngang 30% canvas rồi nhấc tay chậm
 Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì trượt nốt sang item kế
-
 Given card 5 media, chuột thật, 1440px
 When bấm "Media tiếp" ba lần rồi "Media trước" một lần, cách nhau 60ms
 Then dải không nhảy quá 15% canvas giữa hai frame, vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, dừng ở media thứ ba
