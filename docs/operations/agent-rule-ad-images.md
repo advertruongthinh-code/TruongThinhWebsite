@@ -213,6 +213,9 @@ doanh); mâu thuẫn với [Tạo ảnh](#tạo-ảnh) thì mục này thắng.
   có góc máy chỉ để chụp biển chữ (owner 2026-11-12).
 - Render 3D clay chỉ là gợi ý lỏng hoặc bỏ hẳn; không dùng làm nền cho model đồ theo,
   vì ảnh đồ theo 3D mất chi tiết và trông không thật (owner 2026-11-11).
+- Moodboard mỗi công trình tạo bằng ChatGPT từ brief đủ (phong cách, màu, vật liệu,
+  đồ, đèn, decor) kèm ảnh ref, đủ chuẩn đưa lên site; ảnh từng camera gen kèm moodboard
+  và ref hợp góc đó (owner 2026-11-13).
 
 ### Nhất quán giữa các góc
 
@@ -232,6 +235,8 @@ doanh); mâu thuẫn với [Tạo ảnh](#tạo-ảnh) thì mục này thắng.
 - Hạn chế mây tre và lam gỗ; nếu dùng thì không có lỗi hình AI như nan thưa, to
   (owner 2026-11-11).
 - Mái ngói thì trong nhà có trần phẳng (la phông); hiên không cần (owner 2026-11-11).
+- Có bản vẽ đèn trần, đèn tường và decor tường; tường không trống (owner 2026-11-13).
+- Bếp có tủ treo, hút mùi nằm trong tủ; khung tủ thẳng, cánh có thể cong (owner 2026-11-13).
 
 ## Phóng to
 

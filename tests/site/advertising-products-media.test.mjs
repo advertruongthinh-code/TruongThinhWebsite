@@ -9,7 +9,7 @@ import {
   ADVERTISING_DATASET_VERSION,
   buildAdvertisingArtifact,
 } from "../../src/site/advertising-products/catalog.mjs";
-import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
+import { ADVERTISING_MEDIA_MANIFEST, MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
 import {
   ADVERTISING_CLUSTERS,
@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 276);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 231);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -257,6 +257,16 @@ test("accepted trade-fair kiosk sources retain exact provenance and existing tax
   ];
 
   for (const [id, productKey, sourceSha256] of expected) {
+    const coverId = MERGED_CARD_REDIRECTS[id];
+    if (coverId) {
+      // Merged into a multi-media card (media-card R7): the image is an item of the cover card with its own alt.
+      const item = ADVERTISING_MEDIA_MANIFEST.find((candidate) => candidate.id === coverId)?.mediaItems.find((media) => media.id === id);
+      assert.ok(item, `${id} is integrated into the public media pool`);
+      assert.match(item.provenance, new RegExp(sourceSha256, "i"));
+      assert.match(item.altVi, /hội chợ/i);
+      assert.match(item.altEn, /trade fair/i);
+      continue;
+    }
     const record = ADVERTISING_MEDIA_MANIFEST.find((candidate) => candidate.id === id);
     assert.ok(record, `${id} is integrated into the public media pool`);
     assert.equal(record.category, "kiosk-posm");
@@ -301,7 +311,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 276);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 231);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();

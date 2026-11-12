@@ -207,12 +207,14 @@ try {
   await previewReady("/vi/advertising-products");
   const patched = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).titleVi, cardId);
   assert.equal(patched, "Card thử CMS");
+  // The first card may already be a multi-media card (media-card R7), so count from its current items.
+  const itemsBefore = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).mediaItems.length, cardId);
   await props.getByRole("button", { name: "Thêm media" }).click();
   await page.locator(".pick").waitFor();
   await page.locator(".media-tile").first().click();
   const cardDraft = await page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:advertising")));
   assert.equal(cardDraft.cards[cardId].titleVi, "Card thử CMS");
-  assert.equal(cardDraft.cards[cardId].mediaItems.length, 2);
+  assert.equal(cardDraft.cards[cardId].mediaItems.length, itemsBefore + 1);
   assert.match(await page.textContent("#draft-status"), /Chưa lưu · 1 thay đổi/);
   // Card page p/<id>: opening it preselects that card.
   await page.locator(".panel--pages .search").fill(`p/${cardId}`);
