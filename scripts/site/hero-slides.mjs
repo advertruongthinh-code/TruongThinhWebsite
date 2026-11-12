@@ -35,6 +35,7 @@ export async function validateHeroSlides(data, siteRoot) {
       else if (move.kind === "pan") {
         if (!isPoint(move.from) || !isPoint(move.to)) errors.push(`${at}: pan needs from and to points`);
         else if (move.from.x !== move.to.x && move.from.y !== move.to.y) errors.push(`${at}: pan must be horizontal or vertical (from.x === to.x or from.y === to.y)`);
+        else if (move.from.x === move.to.x && move.from.y === move.to.y) errors.push(`${at}: pan from and to must differ`);
       }
     }
   }
@@ -43,12 +44,20 @@ export async function validateHeroSlides(data, siteRoot) {
 
 const imageName = (slide) => slide.src.split("/").pop().replace(/\.webp$/, "");
 
-// Only call with data that passed validateHeroSlides. Same markup the pages had, plus data-hero-move and the focal custom properties.
-const renderSlides = (slides) => slides.map((slide, index) => [
-  `<figure class="hero-slide${index ? "" : " is-active"}" data-slide="${index}" data-hero-move="${slide.phoneMove.kind}" style="--hero-focal-x: ${slide.focal.x}%; --hero-focal-y: ${slide.focal.y}%">`,
-  `  <img data-src="${slide.src}" width="${slide.width}" height="${slide.height}" alt="${escapeHtml(slide.altVi)}"${slide.altEn ? ` data-en-alt="${escapeHtml(slide.altEn)}"` : ""} loading="eager" />`,
-  "</figure>",
-].join("\n")).join("\n");
+// Direction the view travels over the image (left, right, up, down): from and to are points on the image, so to.x > from.x is "right".
+const panDir = ({ from, to }) => (from.x === to.x ? (to.y > from.y ? "down" : "up") : (to.x > from.x ? "right" : "left"));
+
+// Only call with data that passed validateHeroSlides. Same markup the pages had, plus data-hero-move, data-hero-pan-dir (pan only)
+// and the focal custom properties. A pan slide starts at its from point, so that point is the portrait object-position.
+const renderSlides = (slides) => slides.map((slide, index) => {
+  const pan = slide.phoneMove.kind === "pan";
+  const focal = pan ? slide.phoneMove.from : slide.focal;
+  return [
+    `<figure class="hero-slide${index ? "" : " is-active"}" data-slide="${index}" data-hero-move="${slide.phoneMove.kind}"${pan ? ` data-hero-pan-dir="${panDir(slide.phoneMove)}"` : ""} style="--hero-focal-x: ${focal.x}%; --hero-focal-y: ${focal.y}%">`,
+    `  <img data-src="${slide.src}" width="${slide.width}" height="${slide.height}" alt="${escapeHtml(slide.altVi)}"${slide.altEn ? ` data-en-alt="${escapeHtml(slide.altEn)}"` : ""} loading="eager" />`,
+    "</figure>",
+  ].join("\n");
+}).join("\n");
 
 // [name, width] pairs the head script indexes by slide position (the same order as the figures).
 const renderData = (slides) => `[${slides.map((slide) => `["${imageName(slide)}", ${slide.width}]`).join(", ")}]`;

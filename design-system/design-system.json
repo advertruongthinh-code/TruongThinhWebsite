@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-12T09:30:00Z",
+    "at": "2026-11-12T09:41:00Z",
     "via": "Claude Code",
-    "note": "DRY 5.1: slide hero đọc từ content/hero-slides.json; vùng cắt màn dọc qua --hero-focal-x/y trên figure.hero-slide (Hero README, preview, bundle.css)"
+    "note": "DRY 5.2: hero điện thoại, slide zoom-out 1.1 → 1 hoặc lia thẳng 8% chiều cao khung theo data-hero-move và data-hero-pan-dir (README Hero, motion.md)"
   }
 }

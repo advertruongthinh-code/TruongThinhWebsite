@@ -31,6 +31,7 @@ test("each broken rule reports its slide and rule", async () => {
     [{ ...slide, focal: { x: 120, y: 50 } }, /focal x and y must be 0-100/],
     [{ ...slide, phoneMove: { kind: "spin" } }, /phoneMove\.kind must be zoom-out or pan/],
     [{ ...slide, phoneMove: { kind: "pan", from: { x: 0, y: 0 }, to: { x: 10, y: 10 } } }, /pan must be horizontal or vertical/],
+    [{ ...slide, phoneMove: { kind: "pan", from: { x: 5, y: 5 }, to: { x: 5, y: 5 } } }, /pan from and to must differ/],
     [{ ...slide, width: 41 }, /width\/height must be 40x30/],
   ];
   for (const [bad, expected] of cases) {
@@ -49,4 +50,19 @@ test("expandHero writes the figures, the head array and the order script the CMS
   assert.match(html, /alt="Hai" data-en-alt="Two"/);
   assert.doesNotMatch(html.split("two.webp")[0], /data-en-alt/);
   assert.match(html, /<\/div><script type="module">\nrun\(\);\n<\/script>$/);
+});
+
+test("a pan slide gets data-hero-pan-dir from its points and starts at its from point", () => {
+  const pan = (from, to) => ({ ...slide, phoneMove: { kind: "pan", from, to } });
+  const html = expandHero("<!-- hero-slides:home -->", dataOf(
+    pan({ x: 0, y: 50 }, { x: 40, y: 50 }),
+    pan({ x: 80, y: 50 }, { x: 20, y: 50 }),
+    pan({ x: 50, y: 10 }, { x: 50, y: 60 }),
+    pan({ x: 50, y: 70 }, { x: 50, y: 30 }),
+    slide,
+  ), "");
+  const figures = html.match(/<figure [^>]+>/g);
+  assert.deepEqual(figures.map((tag) => tag.match(/data-hero-pan-dir="(\w+)"/)?.[1]), ["right", "left", "down", "up", undefined]);
+  assert.match(figures[0], /--hero-focal-x: 0%; --hero-focal-y: 50%/);
+  assert.match(figures[1], /--hero-focal-x: 80%/);
 });

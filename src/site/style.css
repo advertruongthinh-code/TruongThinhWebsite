@@ -1122,6 +1122,35 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
+/* Phone slideshow (page-home R3): zoom-out slides start at 1.1, pan slides start at their first frame. motion.js sets --hero-pan (8% of the frame
+   height) when a pan slide starts and tweens x or y between 0 and -pan; the box grows by --hero-pan along the pan axis so an edge never shows.
+   The state before the script runs equals the first tween frame. Reduced motion keeps the plain 100% box and the static rules below. */
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  .hero-slide[data-hero-move="zoom-out"] img {
+    transform: scale(1.1);
+  }
+
+  .hero-slide[data-hero-move="pan"] img {
+    transform: none;
+  }
+
+  .hero-slide:is([data-hero-pan-dir="left"], [data-hero-pan-dir="right"]) img {
+    width: calc(100% + var(--hero-pan, 0px));
+  }
+
+  .hero-slide:is([data-hero-pan-dir="up"], [data-hero-pan-dir="down"]) img {
+    height: calc(100% + var(--hero-pan, 0px));
+  }
+
+  .hero-slide[data-hero-pan-dir="left"] img {
+    transform: translateX(calc(-1 * var(--hero-pan, 0px)));
+  }
+
+  .hero-slide[data-hero-pan-dir="up"] img {
+    transform: translateY(calc(-1 * var(--hero-pan, 0px)));
+  }
+}
+
 /* Owner 2026-10-26, every hero (home, Residential, Commercial, About): uniform overlay 0.2; total darkness at the top edge 0.7, fading
    over 36% of the hero height to exactly the 0.2 of the uniform overlay, at the bottom edge 0.5; no left edge layer. The edge layer stacks on the uniform overlay so the alpha
    of the edge layer = (total - 0.2) / 0.8: 0.625 and 0.375. The top edge is long and smooth: stops follow a cosine curve, slope 0 at start and end, no hard edge. */
@@ -3312,6 +3341,11 @@ html.motion-fallback body:not([data-detail-hero-profile="words-06"])
 html.motion-fallback .hero-slide.is-active {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+html.motion-fallback .hero-slide.is-active img {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 html.motion-fallback .hero-slide.is-active img,
