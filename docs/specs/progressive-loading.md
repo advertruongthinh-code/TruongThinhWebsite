@@ -213,7 +213,7 @@ Trace 1920px: Kính 14 đến 15 FPS, blur 41; A04s 400 kbit/s: Kính 8,6 đến
 
 - Điện thoại (`skeletonPhone`, owner 2026-11-12) không mờ, không thở: card chờ ảnh (chính, related, card tạm) và primary chờ bằng lớp màu phẳng đổi qua 4 màu chủ đạo (`MEDIA_COLORS[1..4]`,
   `2s` mỗi màu, chu kỳ `8s`; lớp trên chỉ đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; `[data-media-wait="colors"]` trong `detail.css`); ảnh ẩn tới khi `decode()` xong rồi hiện `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` trên lớp màu, xong gỡ lớp.
-  Thiếu đủ 5 màu thì lớp đứng yên ở màu chủ đạo. Giữ luật chờ ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`). Chưa đo A04s (3a.3).
+  Thiếu đủ 5 màu thì lớp đứng yên ở màu chủ đạo. Giữ luật chờ ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`). A04s 400 kbit/s (2026-11-12, trung vị 3 lượt, SurfaceFlinger `ChromeChildSurface`, so với blur trước #864): fling lưới 71,3 so với 70,9 FPS, related 71,8 so với 71,1, detail lạnh 76,0 so với 75,9; 1% low 32 đến 37 so với 30 đến 33. rAF trong trang 40 đến 50 và 1% low khoảng 30 ở cả hai bản là nợ có từ trước.
 - Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
 - Card không còn Kính, khung skeleton, Flow hay WebGL context; Flow chỉ còn ở batch cuối masonry ([skeleton](advertising-skeleton.md)); đã gỡ bản giảm tải tạm của PR #618.
 - Primary trên PC giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ); trên điện thoại chờ bằng lớp màu như trên.
