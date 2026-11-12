@@ -3390,9 +3390,13 @@ async function runEspacioTypographyChecks() {
               overflow:
                 document.documentElement.scrollWidth -
                 document.documentElement.clientWidth,
-              lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle),
+              // The masonry card counter "i/N" is 0.75rem regular like Pinterest's (media-card spec, owner 2026-11-10), outside the
+              // 500 weight and 12.5px floors. It only shows when a card with 6+ media lands in the first viewport, which the random
+              // card order decides, so without this exception the check failed at random.
+              lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle && item.selector !== "span.card-media__count"),
               // Portal subtitle shrinks with the card width to stay on one line (page-home R5), not following the 12.5px floor.
-              tinyText: visibleText.filter((item) => item.size < 12.5 && item.selector !== "span.portal-subtitle"),
+              tinyText: visibleText.filter((item) => item.size < 12.5
+                && !["span.portal-subtitle", "span.card-media__count"].includes(item.selector)),
               roles: {
                 nav: readRole("#header-menu-items a"),
                 cue: readRole("[data-scroll-cue]"),
