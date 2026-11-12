@@ -38,6 +38,8 @@ hai file này trỏ về `design-system/`, không chép lại. Hành vi từng p
    `style.css` và `detail.css` đọc từ `--dur-*` và `--ease*` ở `:root`; bảng token nằm ở `motion.md` mục Token
    motion, mỗi token khai trong `tokens.json` `meta.cssOnly`. Giá trị mới lặp từ hai chỗ thì thêm token, không gõ lại
    literal; giá trị chỉ dùng một lần giữ literal tại chỗ.
+   Script masonry đọc cùng giá trị từ `src/site/masonry/motion-tokens.mjs` (`EASE`, `DUR`); test
+   `tests/site/motion-tokens.test.mjs` bắt lệch với `:root`.
 4. Chỉ mô tả Trường Thịnh: số đo là của website Trường Thịnh. Site tham khảo chỉ ghi ở section `Nguồn tham khảo` của
    `README.md` (owner 2026-10-04).
 5. Thiết kế owner đã duyệt nhưng website chưa chạy ghi trong spec sở hữu phần đó (`status: planned` hoặc
