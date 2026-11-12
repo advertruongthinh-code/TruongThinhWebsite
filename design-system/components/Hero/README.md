@@ -1,6 +1,6 @@
 # Hero
 
-Nguồn: CSS `.hero`, `.motion-toggle`, `.scroll-cue`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
+Nguồn: CSS `.hero`, `.motion-toggle`, `.scroll-cue`; dữ liệu slide `src/site/content/hero-slides.json`; spec [Chữ hero](../../../docs/specs/hero-typography.md).
 
 Khối mở đầu mỗi trang, dựng như một title card: vài chữ rất lớn chiếm màn
 hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
@@ -34,7 +34,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
-([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
+([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)). Danh sách slide, vùng cắt màn dọc (`--hero-focal-x`, `--hero-focal-y` trên `figure.hero-slide`) và kiểu chuyển động phone (`data-hero-move`) do build sinh từ `hero-slides.json`.
 
 ## Theo width
 
