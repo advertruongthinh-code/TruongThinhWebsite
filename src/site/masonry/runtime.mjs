@@ -94,9 +94,9 @@ const SKELETON_CONTEXT_BUDGET = 12;
 // Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; card and primary shorten the duration to 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = DUR.hover;
-// At most this many card reveals run Glass at once; the next ones only crossfade (progressive-loading R9). Plan judgement, not a measured number:
-// the PC measurement only ran 3 to 5 Glass reveals per run. Lower it if the burst check fails, never raise it without numbers.
-const CARD_GLASS_REVEAL_MAX = 4;
+// At most this many card reveals run Glass at once; the next ones only crossfade (progressive-loading R9). Lowered from 4 by the plan's
+// fallback: with 4 at once the GPU spent 78ms on one frame in 3 of 5 first reveal bursts on the owner's PC, with 2 none (3b.2 runs 4-5).
+const CARD_GLASS_REVEAL_MAX = 2;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a Glass reveal for every card that scrolls past.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;

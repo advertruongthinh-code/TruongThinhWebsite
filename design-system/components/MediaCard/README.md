@@ -24,8 +24,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   `width`, `height`).
 - PC: vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh, ảnh ẩn dưới khung
   [Skeleton](../Skeleton/README.md) Flow trong 4 màu của chính ảnh (`.card-media > .masonry-grid__cta-frame`, không nhận tap; card mang
-  `data-masonry-media-loading`), vẽ trên một canvas chung của lưới. Tải và giải mã xong thì lộ ảnh `0.6s` bằng Kính như primary, tối đa 4 card
-  cùng lúc, còn lại crossfade (owner 2026-11-12, đo PC ở DRY 3b.1). Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
+  `data-masonry-media-loading`), vẽ trên một canvas chung của lưới. Tải và giải mã xong thì lộ ảnh `0.6s` bằng Kính như primary, tối đa 2 card
+  cùng lúc, còn lại crossfade (owner 2026-11-12, đo PC ở DRY 3b.1; hạ từ 4 ở 3b.2 vì GPU rớt khung khi 4 Kính chạy cùng lúc). Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)).
 - Điện thoại (cảm ứng hoặc viewport từ 750px trở xuống) không Flow, không Kính: card chờ ảnh mang `data-media-wait="colors"`, một lớp phẳng đổi qua 4 màu
   chủ đạo của ảnh (mỗi màu `2s`, `ease-in-out`, lặp `8s`; lớp trên đổi opacity, lớp dưới đổi màu từng bước lúc bị phủ; token màu `--wait-1..4`), ảnh ẩn tới khi tải và giải mã xong rồi hiện `0.45s`

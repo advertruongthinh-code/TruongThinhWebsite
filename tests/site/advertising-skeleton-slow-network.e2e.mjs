@@ -369,7 +369,7 @@ try {
     await context.close();
   }
 
-  // Many cards finish at once (images released together): at most CARD_GLASS_REVEAL_MAX (4) card Glass reveals run at the same time, the rest crossfade;
+  // Many cards finish at once (images released together): at most CARD_GLASS_REVEAL_MAX (2) card Glass reveals run at the same time, the rest crossfade;
   // afterwards no card keeps its Flow frame, mark or Kính and no loaded image is stuck below opacity 1.
   {
     const { context, page, slow } = await open({ viewport: { width: 1920, height: 3000 } });
@@ -394,7 +394,7 @@ try {
       return bottom > 0 && top < innerHeight;
     }).every((card) => !card.querySelector("[data-masonry-loading-skeleton]")), null, { timeout: DELAY + 15_000 });
     const glassMax = await page.evaluate(() => window.__glassMax);
-    assert.ok(glassMax >= 1 && glassMax <= 4, `burst: card Glass reveals capped at 4 ${glassMax}`);
+    assert.ok(glassMax >= 1 && glassMax <= 2, `burst: card Glass reveals capped at 2 ${glassMax}`);
     const states = await cardStates(page);
     assert.deepEqual(states.filter(({ loaded, skeleton, marked, glass }) => loaded && (skeleton || marked || glass)), [], "burst: revealed cards drop Flow, mark and Kính");
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]

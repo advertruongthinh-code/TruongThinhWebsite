@@ -268,7 +268,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - PC, ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh ẩn dưới khung [Skeleton](components/Skeleton/README.md)
   Flow trong 4 màu của chính ảnh (khung hiện `0.6s`, ngay lập tức nếu đang cuộn), vẽ trên một canvas chung của lưới. Tải và `decode()` xong thì
   lộ ảnh như primary trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)`: Kính ba bậc hiện, Flow mờ (`0s` tới `0.26s`), ảnh hiện (`0.13s` tới `0.39s`), Kính tan,
-  rồi gỡ khung. Tối đa 4 card lộ bằng Kính cùng lúc, card thứ năm trở đi chỉ crossfade; Kính cung đang thấy thì không Kính.
+  rồi gỡ khung. Tối đa 2 card lộ bằng Kính cùng lúc, card thứ ba trở đi chỉ crossfade; Kính cung đang thấy thì không Kính.
   Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ, pill chỉ số và nhãn vừa xem nằm dưới Flow; lúc lộ ảnh, Kính của card nằm dưới Flow nên Flow của card mờ ngay từ `0s` (tới khoảng `0.26s`) thay vì cùng nhịp ảnh, để Kính lộ ra ngay như primary (Kính trên Flow); ảnh vẫn hiện `0.13s` tới `0.39s` (owner 2026-11-12, đồng nhất cảm giác).
   Khung card, link luôn hiện.
 - Điện thoại (`skeletonPhone`): thay khung Flow bằng lớp màu phẳng (`[data-media-wait="colors"]`, `detail.css`): đổi qua 4 màu chủ đạo của ảnh, mỗi màu `2s`

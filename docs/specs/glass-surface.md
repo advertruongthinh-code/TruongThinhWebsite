@@ -167,7 +167,7 @@ báo owner kèm số đo trước khi đổi số bậc (năm bậc rơi gate tr
 nhòe dựng sẵn trên canvas. Owner bỏ đường đó: primary dùng Kính ba bậc `backdrop-filter` hiện/tan (R6)
 ([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)), điện thoại chạy đúng như PC.
 Ba bậc phủ cả hero chưa đo trên phone Android; dưới gate thì dừng, báo owner kèm số đo, không tự quay về Kính dựng sẵn.
-Card chờ ảnh không đặt Kính thường trực (A04s kéo trang chỉ 9 đến 11 FPS); PC chỉ dùng Kính lúc lộ ảnh, tối đa 4 card cùng lúc
+Card chờ ảnh không đặt Kính thường trực (A04s kéo trang chỉ 9 đến 11 FPS); PC chỉ dùng Kính lúc lộ ảnh, tối đa 2 card cùng lúc
 ([tải theo nấc R9](progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)). Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
