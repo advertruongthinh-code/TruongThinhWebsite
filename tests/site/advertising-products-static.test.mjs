@@ -64,8 +64,10 @@ assert.ok(!Object.hasOwn(artifact, "layouts"), "artifact has no fixed-column lay
 assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "layoutSpan")), "public content no longer requires or exposes span choices");
 assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "fitMode") && !Object.hasOwn(card, "presentationCanvas")), "artifact cards do not carry legacy canvas fields");
 const kioskFairIds = ["kiosk-posm-25", "kiosk-posm-26", "kiosk-posm-27", "kiosk-posm-28", "kiosk-posm-29", "kiosk-posm-30"];
-assert.ok(kioskFairIds.every((id) => artifact.cards.some((card) => card.id === id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
-assert.ok(kioskFairIds.every((id) => !Object.hasOwn(artifact.cards.find((card) => card.id === id), "title")), "accepted trade-fair kiosk cards add no image title");
+// A merged image lives on its cover card (media-card R7), so look it up through the card's media items.
+const kioskFairCard = (id) => artifact.cards.find((card) => card.id === id || card.mediaItems?.some((item) => item.id === id));
+assert.ok(kioskFairIds.every((id) => kioskFairCard(id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
+assert.ok(kioskFairIds.every((id) => !Object.hasOwn(kioskFairCard(id), "title")), "accepted trade-fair kiosk cards add no image title");
 assert.match(advertisingCss, /\.masonry-grid \{[\s\S]*?--masonry-gap: 15px;/, "mobile grid uses the 15px gap band");
 assert.match(advertisingCss, /\.detail-page \.masonry-section \{[\s\S]*?--masonry-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
 assert.match(advertisingCss, /@media \(min-width: 751px\)[\s\S]*?--masonry-outer: 25px;/, "middle no-script outer band starts at 751px");
