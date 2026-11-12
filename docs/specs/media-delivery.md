@@ -155,15 +155,12 @@ Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sán
 Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh
 vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
 `[data-detail-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
-`.client-logo-marquee`. Khung mới muốn vệt chỉ cần thuộc tính HTML `data-media-frame` trên khung: ảnh nào nằm trong khung đó
-(khung gần nhất, kể cả khung lồng nhau) được tính, bất kể `src` và không áp danh sách loại trừ trên; không cần CSS riêng.
-Khung chưa `.is-media-settled`:
+`.client-logo-marquee`. Khung mới chỉ cần thuộc tính HTML `data-media-frame` (khung gần nhất của ảnh; bất kể `src`, không áp danh sách loại trừ trên, không cần CSS riêng). Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
 - Một dải sáng đối xứng, trắng `20%` ở tâm (owner 2026-11-01, trước `16%`; một biến CSS `--media-sweep-gradient` trong `:root` giữ dải, khung ảnh và nút suggestion cùng dùng), rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng
   giảm về 0 qua 17 điểm màu theo đường cosine (raised cosine) nên mép mờ dần, không gãy (owner 2026-10-10, thay quầng `13%` rộng nửa khung). Nghiêng 60 độ, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer hay focus; không số, không phần trăm, không `aria-busy`.
-- Khung ngoài viewport thì vệt dừng (`.is-media-offscreen`): đúng một `IntersectionObserver` trong script `<head>`, `markFrame` gọi `observe`,
-  `settle` gọi `unobserve`, nên khung thêm sau lúc mount cũng được dừng. Reduced motion: không lướt; khung sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
+- Khung ngoài viewport thì vệt dừng (`.is-media-offscreen`) bởi một `IntersectionObserver` trong script `<head>` (`markFrame` observe, `settle` unobserve), kể cả khung thêm sau mount. Reduced motion: không lướt; khung sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
 - Luật chung: ảnh có motion chờ và lớp tối để chữ trắng nổi chỉ hiện lớp tối khi ảnh đang hiện đã settle; chưa xong thì chỉ
   có motion chờ, chữ trắng vẫn hiện với bóng D ([hero-typography R6](hero-typography.md#r6-bóng-chữ-hai-lớp-trên-ảnh-ngoại-lệ-design-system)). Theo luật: [page-home R10](page-home.md#r10-ảnh-dưới-chữ-trắng), [detail R6](advertising-detail.md#r6-slideshow-suggestion), [media-card](media-card.md).
 
@@ -178,8 +175,7 @@ Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (ngu�
 của mọi trang), đăng ký trước khi trình duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script thêm class lên `<html>`;
 CSS chỉ ẩn ảnh khi có class này, nên không JavaScript thì ảnh hiện như thường (không vệt chặn).
 
-Nút suggestion detail dùng cùng vệt thay thanh chạy đáy ([detail R6](advertising-detail.md#r6-slideshow-suggestion)): runtime tạo nút kèm
-`data-media-frame`, không còn CSS vệt riêng; nút đang bật (`aria-pressed="true"`) không chạy vệt, một rule ghi đè trong `detail.css` giữ nền trắng.
+Nút suggestion detail dùng cùng vệt thay thanh chạy đáy ([detail R6](advertising-detail.md#r6-slideshow-suggestion)) qua `data-media-frame` trên nút, không CSS vệt riêng; nút đang bật (`aria-pressed="true"`) có một rule ghi đè tắt vệt.
 
 ```gherkin
 Given ảnh /assets/content/ của /vi/about/ bị trễ 1,5s, viewport 390px
@@ -245,8 +241,7 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
 | Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
-| Attribute | `data-media-frame` trên khung ảnh | Markup/runtime ghi; script `<head>` gắn `.media-frame` cho ảnh bên trong (R6) |
-| Class | `.media-frame`, `.is-media-settled`, `.is-media-offscreen`, `.is-media-error` | Script inline `<head>` ghi; vệt (R6), nút suggestion, dấu báo lỗi (R8) đọc |
+| Class, attribute | `data-media-frame` (markup ghi), `.media-frame`, `.is-media-settled`, `.is-media-offscreen`, `.is-media-error` | Script inline `<head>` ghi class; vệt (R6), nút suggestion, dấu báo lỗi (R8) đọc |
 | Data | `nonPublicSourceAssets` (`non-public-source-assets.mjs`) | Path bỏ qua khi sinh biến thể (R1) |
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
 
