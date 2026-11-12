@@ -72,6 +72,7 @@
         "node tests/site/logo-route-crossfade.e2e.mjs",
         "node tests/site/not-found-routes.e2e.mjs",
         "node tests/site/route-veil-header.e2e.mjs",
+        "node tests/site/route-early-navigation.e2e.mjs",
         "node tests/site/projects-back-scroll.e2e.mjs",
         "node tests/site/reduced-motion-live.e2e.mjs",
         "node tests/site/brand-mark-flip.e2e.mjs"
