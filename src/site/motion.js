@@ -1668,6 +1668,18 @@
       let carouselStopped = false;
       let holdSettledSlide = settledStartup;
       const heroTimelines = new Set();
+      // [from, to] tween vars of a slide image. Desktop zooms 1.06 to 1; on a phone a slide zooms 1.1 to 1 or pans
+      // straight by 8% of the frame height (page-home R3). Reduced motion never pans: the CSS box is not widened then.
+      const heroMotion = (slide) => {
+        if (!window.TruongThinhEnv.phone.matches) return [{ scale: 1.06 }, { scale: 1 }];
+        const dir = reduceMotionQuery.matches || slide.dataset.heroMove !== "pan" ? "" : slide.dataset.heroPanDir;
+        if (!dir) return [{ scale: 1.1 }, { scale: 1 }];
+        const pan = 0.08 * slide.clientHeight;
+        slide.style.setProperty("--hero-pan", `${pan}px`);
+        const axis = dir === "left" || dir === "right" ? "x" : "y";
+        const forward = dir === "right" || dir === "down";
+        return [{ scale: 1, [axis]: forward ? 0 : -pan }, { [axis]: forward ? -pan : 0 }];
+      };
       const startSlide = (index) => {
         if (carouselStopped || !slides[index]) return;
         const slide = slides[index];
@@ -1685,16 +1697,17 @@
         heroTimelines.add(timeline);
         timelines.add(timeline);
         setActiveSlide(index);
+        const [moveFrom, moveTo] = heroMotion(slide);
         if (holdSettledSlide) {
           holdSettledSlide = false;
-          gsap.set(slide.querySelector("img"), { scale: 1 });
+          gsap.set(slide.querySelector("img"), { ...moveFrom, ...moveTo });
           timeline.to({}, { duration: 5 }, 0);
         } else {
           timeline.fromTo(
             slide.querySelector("img"),
-            { scale: 1.06 },
-            // The zoom lasts through the crossfade (5s shown + 1.6s fade), so the old image keeps moving until fully faded.
-            { scale: 1, duration: 6.6, ease: "sine.inOut" },
+            moveFrom,
+            // The move lasts through the crossfade (5s shown + 1.6s fade), so the old image keeps moving until fully faded.
+            { ...moveTo, duration: 6.6, ease: "sine.inOut" },
             introOffset,
           );
         }
