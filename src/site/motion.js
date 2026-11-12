@@ -1352,18 +1352,6 @@
       });
   };
 
-  // The waiting shimmer stops when the frame leaves the viewport; a settled frame is no longer watched (media-delivery R6).
-  const pauseOffscreenMediaSweeps = (state) => {
-    const observer = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
-      if (target.classList.contains("is-media-settled")) observer.unobserve(target);
-      else target.classList.toggle("is-media-offscreen", !isIntersecting);
-    }));
-    state.container
-      .querySelectorAll('.media-frame:not(.is-media-settled)')
-      .forEach((frame) => observer.observe(frame));
-    state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
-  };
-
   // Header intro (logo, menu items, menu button) runs with WAAPI on the compositor: the mount's long task and text measurement right after
   // load do not stall the logo (decision phone-frame-budget). GSAP's power4.out is sampled into linear(), with the same
   // duration, delay and stagger as the old GSAP timeline; a browser without linear() still runs the GSAP timeline.
@@ -1890,7 +1878,6 @@
       }
     }
 
-    pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
     // Hero font size is fixed before SplitText splits words and motion reads positions.

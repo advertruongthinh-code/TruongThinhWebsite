@@ -3394,6 +3394,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const link = document.createElement("button");
         link.type = "button";
         link.className = "detail-view__suggestion-link card-interactive card-media";
+        link.dataset.mediaFrame = "";
         link.dataset.masonrySuggestionTag = tag.id;
         link.dataset.masonrySuggestionIndex = String(index);
         const first = suggestionDeck(tag.id, cards.filter(candidate => candidate.tagIds?.includes(tag.id)))[0] || card;

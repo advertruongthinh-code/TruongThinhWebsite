@@ -2855,38 +2855,18 @@ body.is-masonry-browse .site-footer {
   transition: background-color var(--dur-quick) ease-out, border-color var(--dur-quick) ease-out;
 }
 
-/* A button not yet enabled waits for its background image with the shared light sweep of content images (style.css), under the overlay and label. */
-.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
-  background-color: var(--media-loading-surface);
+/* The button carries data-media-frame, so the shared sweep and fade of style.css apply (media-delivery R6); a pressed button has no sweep and keeps its white fill. */
+.media-gate .detail-view__suggestion-link[aria-pressed="true"]:not(.is-media-settled) {
+  background-color: var(--white);
 }
 
-.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) img {
-  opacity: 0;
+.media-gate .detail-view__suggestion-link[aria-pressed="true"]:not(.is-media-settled)::before {
+  content: none;
 }
 
-.media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
-  position: absolute;
+/* The sweep sits above the image layers (z-index 0) and below the dark layer and label; without it the 1px edge rows differ at fractional pixel ratios (A04s 1.875). */
+.media-gate .detail-view__suggestion-link.media-frame::before {
   z-index: 1;
-  inset: 0 auto 0 0;
-  width: 400%;
-  content: "";
-  background: var(--media-sweep-gradient);
-  animation: media-sweep 1.6s linear infinite;
-  pointer-events: none;
-}
-
-.media-gate .detail-view__suggestion-link.is-media-settled > img {
-  animation: media-fade-in var(--dur-fade) var(--ease-expo-out);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .media-gate .detail-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
-    inset: 0;
-    width: auto;
-    background: rgb(255 255 255 / 10%);
-    /* !important to beat the global reduced-motion animation reset. */
-    animation: media-breathe 2s ease-in-out infinite !important;
-  }
 }
 
 .detail-view__suggestion-link[aria-pressed="true"] {

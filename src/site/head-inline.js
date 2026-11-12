@@ -18,21 +18,32 @@ try {
 document.documentElement.classList.add("media-gate");
 (() => {
   // failed: when an image fails to load, the frame also gets .is-media-error so CSS draws the error indicator (media-delivery R8).
+  // The waiting sweep stops while its frame is off screen; a settled frame is no longer watched (media-delivery R6).
+  const offscreen = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
+    if (target.classList.contains("is-media-settled")) offscreen.unobserve(target);
+    else target.classList.toggle("is-media-offscreen", !isIntersecting);
+  }));
   const settle = (image, failed = false) => {
     const parent = image.parentElement;
-    const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
+    const frame = image.closest("[data-media-frame]") || (parent?.tagName === "PICTURE" ? parent.parentElement : parent);
     parent?.classList.add("is-media-settled");
     frame?.classList.add("is-media-settled");
     frame?.classList.toggle("is-media-error", failed);
+    if (frame) offscreen.unobserve(frame);
   };
   const isImage = (target) => target.tagName === "IMG";
   // The waiting frame is the parent of the content image (or of the picture), except grid, photo view, the Advertising "Xem lớn hơn" viewer and the client logo strip:
   // add the class when the image enters the DOM instead of a page-wide :has() selector, which made every style recalculation about 1/4 slower.
+  // A [data-media-frame] ancestor opts any image in (any src, no exclusions); the nearest one is the frame.
   const markFrame = (image) => {
-    if (!image.getAttribute("src")?.startsWith("/assets/content/")) return;
+    const marked = image.closest("[data-media-frame]");
+    if (!marked && !image.getAttribute("src")?.startsWith("/assets/content/")) return;
     const parent = image.parentElement;
-    const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
-    if (frame && !frame.closest("[data-project-grid], [data-detail-view], [data-detail-dialog], .client-logo-marquee")) frame.classList.add("media-frame");
+    const frame = marked || (parent?.tagName === "PICTURE" ? parent.parentElement : parent);
+    if (frame && (marked || !frame.closest("[data-project-grid], [data-detail-view], [data-detail-dialog], .client-logo-marquee"))) {
+      frame.classList.add("media-frame");
+      offscreen.observe(frame);
+    }
   };
   // An in-viewport image upgrades to the original after the frame-fit version has shown (progressive-loading R10, owner 2026-10-31): load the original
   // separately and swap only once decoded; runs only when the page stops scrolling and no in-viewport image is still loading, one image per turn.
