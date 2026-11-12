@@ -2,8 +2,8 @@
 
 Chuyển động của website Trường Thịnh, viết theo runtime đang chạy:
 `src/site/motion.js` (shell, route, menu, hero), `src/site/detail.js` và
-`detail.css` (trang detail), `src/site/advertising-products/` (catalog,
-skeleton, viewer). Định dạng token không có family motion, nên mọi timing nằm ở
+`detail.css` (trang detail), `src/site/masonry/` (runtime, viewer, slideshow gợi ý, kính, skeleton,
+host), `src/site/advertising-products/` (catalog, dữ liệu media). Định dạng token không có family motion, nên mọi timing nằm ở
 đây.
 
 Nguồn tham khảo của nhịp motion ghi ở [README](README.md#nguồn-tham-khảo).
@@ -17,8 +17,10 @@ Motion owner đã duyệt nhưng chưa có code nằm trong spec sở hữu ph�
   thì. Đổi preference khi đang mở trang: hero, logo chạy, masonry dừng hoặc chạy lại ngay; menu, veil chuyển
   trang, header theo lần tải trang kế ([shell R13](../docs/specs/site-shell.md#r13-reduced-motion)). Query duy nhất là
   `window.TruongThinhEnv.reducedMotion` do `head-inline.js` gán; module masonry đọc qua `env` của `masonry/host.mjs`.
-- Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
-  blur mỗi frame.
+- Ưu tiên `transform` và `opacity`. Ngoại lệ đang chạy, mỗi cái ghi ở mục riêng: `background-size`
+  gạch chân news, `margin-bottom` cụm CTA Advertising, `height` shutter menu, màu và nền khi hover,
+  `visibility` pop âm lượng video, `filter` blur ảnh card đang tải, biến CSS `--header-surface-shift`
+  (GSAP, dịch `::before` của header).
 - Vòng đời (dọn observer, listener, timeline; BFCache) ở [shell](../docs/specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)
   và [ba trang con](../docs/specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời); thư viện animation ở
   [phát hành tĩnh](../docs/specs/static-release.md#r4-font-và-thư-viện-tự-host).
@@ -54,7 +56,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Motion | Thông số | Bề mặt UI |
 | --- | --- | --- |
 | Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), neo trái theo chữ. Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
-| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Project reel](components/ProjectReel/README.md), portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
+| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | Portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy. [Project reel](components/ProjectReel/README.md) tự viết riêng, không qua primitive và không có focus |
 | Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`masonry/suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005` | [Hero](components/Hero/README.md) About (`data-motion-hero-media`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
@@ -69,6 +71,22 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 Motion chỉ một bề mặt dùng: header intro, collapse, ẩn hiện ([Header](components/Header/README.md));
 shutter ([Full menu](components/FullMenu/README.md)); route veil; [Lockup](components/BrandLockup/README.md);
 zoom, pan, vuốt đóng ([Viewer](components/Viewer/README.md)); trượt vào ([Floating CTA](components/FloatingCta/README.md)).
+
+### Chuyển động đang chạy, chưa có ở trên
+
+| Phần tử | Thông số |
+| --- | --- |
+| `.floating-cta` mục thứ ba | `var(--dur-hover) cubic-bezier(0.42, 0, 0.07, 0.99)`, mọi thuộc tính còn lại (không khai tên) |
+| `.story-link svg` | `var(--dur-base) cubic-bezier(0.4, 0, 0.2, 1)` |
+| `.motion-toggle` | nền và transform `var(--dur-quick) ease` |
+| `.detail-dialog__thumbs` | opacity và translate `var(--dur-base) ease` |
+| `.video-player__bar` | opacity `200ms ease-out` |
+| `.video-player__volume-pop` | opacity `var(--dur-fast) ease-out`, visibility `var(--dur-fast)` |
+| `.detail-view__description-bar` | opacity `var(--dur-fast) ease-out` |
+| `.detail-view__media-step` | opacity `100ms ease-out` |
+| `.card-media__just-viewed` | opacity theo `--media-hover-duration` và `--media-hover-easing`; nền `var(--dur-hover) var(--ease-card)` |
+| `.detail-view__cta svg` | transform `var(--dur-quick) ease-out` |
+| Nút cue cuộn tới phần kế | `scrollTo` của Locomotive `900ms`, `0` khi giảm chuyển động |
 
 ## Shell
 
@@ -148,8 +166,8 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | --- | --- | --- |
 | Line reveal | `data-motion-lines` | `1.9s power4.out`, stagger `0.1s`, khi vào viewport |
 | Word fade | `data-motion-words` | `1s expo.out`, stagger `0.2s` |
-| Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` và rời thứ tự Tab |
-| Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`) |
+| Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` `--ease-expo-out` và rời thứ tự Tab |
+| Media reveal | `data-motion-media` | `0.6s ease-out`: dòng `transition-timing-function` trong `detail.css` đè `--ease` |
 | Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và câu, không split: `scale 1.1 → 1` `2.5s` `--ease` từ lúc veil bắt đầu mở; câu rồi số hiện dần `1s expo.out` trễ `0.3s` và `0.6s` (nhịp Espacio, đo frame 2026-10-12). Trước đó đứng ở frame đầu dưới veil. Reduced motion và script lỗi hiện ngay trạng thái cuối |
 
 Line reveal và word fade có một nguồn timing: `revealLines` và `revealWords` trong `window.TruongThinhMotion`
@@ -188,7 +206,7 @@ Trang chủ:
 
 | Phần tử | Hiệu ứng |
 | --- | --- |
-| Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out` (`--media-hover-*`); khung giữ nguyên, ảnh bị clip |
+| Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out`: ảnh card qua `--media-hover-*`; project tile viết riêng trong `style.css`, hover không gate `(hover: hover)`; khung giữ nguyên, ảnh bị clip |
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
@@ -204,14 +222,13 @@ outline. Touch không cần hover để mở ảnh.
 
 ### Kicker và hàng chip khi đổi filter
 
-Bấm cụm hoặc chip trên [rail](components/Filter/README.md) chạy lại hai entrance có sẵn của Advertising (không thêm
+Đổi cụm hoặc sản phẩm trên [rail](components/Filter/README.md) chạy lại entrance có sẵn của hàng chip (không thêm
 nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opacity` và `transform`:
 
-- Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
-  `--ease`, không delay.
+- Kicker (h1, tên cụm hoặc sản phẩm) đứng yên khi lọc, giữ chữ của trang đã tải (owner 2026-11-08); không chạy entrance.
 - Hàng chip vừa hiện (từ Tất cả sang cụm, hoặc từ cụm này sang cụm khác) vào như rail lúc tải trang: từng chip
-  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s` (hàng dài thì ép tổng so le tối đa `0.6s`), trễ `0.3s` để kicker đi trước.
-- Đổi sản phẩm trong cùng cụm: chỉ kicker chạy lại, hàng chip đứng yên. Về Tất cả: chip ẩn ngay, không motion thoát.
+  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s` (hàng dài thì ép tổng so le tối đa `0.6s`), trễ `0.3s`.
+- Đổi sản phẩm trong cùng cụm: hàng chip đứng yên, không motion nào. Về Tất cả: chip ẩn ngay, không motion thoát.
 - Bấm liên tiếp: animation đang chạy bị hủy rồi chạy lại từ đầu. Tải trang, Back/Forward, đổi ngôn ngữ và
   mở ảnh không chạy. Reduced motion: vào thẳng trạng thái cuối. Không đổi bố cục nên không có CLS.
 
