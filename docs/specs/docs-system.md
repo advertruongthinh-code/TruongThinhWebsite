@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-11-10
+updated: 2026-11-12
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -182,8 +182,10 @@ thay đổi mới nằm trong mô tả PR.
   không nạp cả thư mục. Rule module chia theo trigger, nội dung chỉ một loại task
   (ví dụ rule ảnh AI tách khỏi rule QA chung). File `docs/reference/` chia theo họ
   sản phẩm để brief chỉ nạp họ cần. Ngân sách byte trong `check-docs.mjs`:
-  `AGENTS.md` 15000, `agent-rule-ad-images.md` 16000, module `agent-rule-*` khác 8000,
-  mỗi file `docs/reference/` 24000; vượt thì tách, không nới số.
+  `AGENTS.md` 15000, `agent-rule-ad-images.md` 24000, `agent-rule-model-routing.md` 16000,
+  module `agent-rule-*` khác 8000, mỗi file `docs/reference/` 24000; vượt thì tách, không nới số.
+  Ngoại lệ (owner 2026-11-12): mỗi chủ đề một file rule duy nhất, không rải nhiều file, nên
+  rule media AI và rule routing (Claude, OpenAI) gom một file với ngân sách riêng ở trên.
 
 ### R10. Notion chỉ giữ backlog
 

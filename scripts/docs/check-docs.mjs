@@ -73,7 +73,8 @@ for (const file of files) {
 // Byte budget for files an agent loads on trigger (docs/specs/docs-system.md R9): long lines cannot evade the line limit.
 const BYTE_BUDGET = [
   [/^AGENTS\.md$/, 15000],
-  [/^docs\/operations\/agent-rule-ad-images\.md$/, 16000],
+  [/^docs\/operations\/agent-rule-ad-images\.md$/, 24000],
+  [/^docs\/operations\/agent-rule-model-routing\.md$/, 16000],
   [/^docs\/operations\/agent-rule-/, 8000],
   [/^docs\/reference\//, 24000],
 ];
