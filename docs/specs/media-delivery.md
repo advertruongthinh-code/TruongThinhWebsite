@@ -169,7 +169,7 @@ vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/
 hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
 `.is-media-settled` ngay và vẽ dấu báo lỗi ([R8](#r8-dấu-báo-lỗi-tải-media)), khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
-nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì vẫn ẩn lớp phủ như trước, cộng dấu báo lỗi của R8.
+nên chưa có vệt. Ảnh nền hero, CTA, portal, closer dùng cùng cổng này: CSS đọc `.is-media-settled` trên khung ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); lỗi thì vẫn ẩn lớp phủ như trước, cộng dấu báo lỗi của R8. Không script trang nào tự chờ ảnh lần hai.
 
 Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (nguồn duy nhất `src/site/head-inline.js`, build thay `<!-- head-inline -->`
 của mọi trang), đăng ký trước khi trình duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script thêm class lên `<html>`;

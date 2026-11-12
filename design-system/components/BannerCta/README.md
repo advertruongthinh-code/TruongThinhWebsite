@@ -31,6 +31,9 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
 - Hover: ảnh `scale(1.1)` `0.6s ease-out`, gạch chân 3px của nhãn chạy từ trái;
   lớp bấm phủ cả khối. CTA Advertising là ngoại lệ: không ảnh, chỉ hover nút.
   Focus giữ focus ring của Design System.
+- Chờ ảnh: khối chưa có `.is-media-settled` (ảnh chưa tải và giải mã xong) thì ảnh ẩn trên nền
+  `media-loading-surface` và lớp tối `::after` ẩn, chữ trắng vẫn hiện; ảnh lỗi giữ lớp tối ẩn
+  ([Vệt sáng](../LoadSweep/README.md)).
 - Vào viewport: line reveal của tiêu đề ([motion](../../motion.md)), link hiện
   sau 0.3s.
 

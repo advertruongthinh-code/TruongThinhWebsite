@@ -3491,7 +3491,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   transform: none;
 }
 
-.motion-enabled [data-motion-media].is-motion-inview.is-motion-ready {
+.motion-enabled .is-media-settled > [data-motion-media].is-motion-inview {
   opacity: 1;
 }
 
@@ -6831,51 +6831,30 @@ body.is-detail .desktop-nav a[aria-current="page"]:is(:hover, :focus-visible)::a
   }
 }
 
-/* A hero image that the head script marked settled (loaded and decoded) does not wait for motion.js,
-   avoiding a show, hide, show flicker when motion.js runs. */
+/* Images under white text (hero, portal, CTA, closer) wait for the head script's settle (loaded and decoded, media-delivery R6):
+   until the frame has .is-media-settled the image stays at opacity 0 and the dark overlay is hidden; a failed image keeps the overlay hidden. */
 @media (scripting: enabled) {
   html:not(.motion-fallback)
-    .hero:not(
-      :has(
-        .hero-slide.is-active img.is-overlay-media-ready,
-        .about-hero__media img.is-overlay-media-ready,
-        :is(.hero-slide.is-active, .about-hero__media) picture.is-media-settled > img
-      )
-    )
+    .hero:not(:has(:is(.hero-slide.is-active, .about-hero__media).is-media-settled:not(.is-media-error)))
     .hero-shade,
   html:not(.motion-fallback)
-    .service-portal:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))
+    .service-portal:is(:not(.is-media-settled), .is-media-error)
     .portal-shade,
   html:not(.motion-fallback)
-    .legacy-closer:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))
+    .legacy-closer:is(:not(.is-media-settled), .is-media-error)
     .legacy-shade,
   html:not(.motion-fallback)
-    .detail-cta:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))::after {
+    .detail-cta:is(:not(.is-media-settled), .is-media-error)::after {
     visibility: hidden;
   }
 
-  html.motion-enabled:not(.motion-fallback)
-    :is(
-      .hero-slide img,
-      .about-hero__media img,
-      .service-portal > img,
-      .service-portal > picture > img,
-      .detail-cta > img,
-      .detail-cta > picture > img,
-      .legacy-closer > img,
-      .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img),
-  html:not(.motion-enabled):not(.motion-fallback)
-    :is(
-      .hero-slide img,
-      .about-hero__media img,
-      .service-portal > img,
-      .service-portal > picture > img,
-      .detail-cta > img,
-      .detail-cta > picture > img,
-      .legacy-closer > img,
-      .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img) {
+  html:not(.motion-fallback)
+    :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
+    > img,
+  html:not(.motion-fallback)
+    :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
+    > picture
+    > img {
     opacity: 0;
   }
 }
