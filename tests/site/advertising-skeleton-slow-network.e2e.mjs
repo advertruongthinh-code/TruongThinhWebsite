@@ -247,6 +247,41 @@ try {
     await context.close();
   }
 
+  // PC with KHR_parallel_shader_compile (stubbed: headless SwiftShader lacks it): the grid's shared canvas never reads LINK_STATUS in the frame it linked,
+  // it polls COMPLETION_STATUS_KHR first. Reading it at once blocked the main thread 27ms in the first reveal burst on the owner's PC (3b.2 run 2).
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.addInitScript(() => {
+      const proto = WebGLRenderingContext.prototype;
+      const { getExtension, getProgramParameter, linkProgram, drawArrays } = proto;
+      const COMPLETION_STATUS_KHR = 0x91b1;
+      const shared = (gl) => gl.canvas.classList?.contains("masonry-grid__cta-shared-flow");
+      const linked = new WeakMap();
+      let frame = 0;
+      const count = () => { frame++; requestAnimationFrame(count); };
+      requestAnimationFrame(count);
+      window.__link = { syncReads: 0, polls: 0, draws: 0 };
+      proto.getExtension = function (name) {
+        return name === "KHR_parallel_shader_compile" ? { COMPLETION_STATUS_KHR, MAX_SHADER_COMPILER_THREADS_KHR: 0x91b0, maxShaderCompilerThreadsKHR() {} }
+          : getExtension.call(this, name);
+      };
+      proto.linkProgram = function (program) { linked.set(program, frame); return linkProgram.call(this, program); };
+      proto.getProgramParameter = function (program, pname) {
+        if (pname === COMPLETION_STATUS_KHR) { window.__link.polls++; return frame - linked.get(program) >= 2; }
+        if (pname === this.LINK_STATUS && shared(this) && linked.get(program) === frame) window.__link.syncReads++;
+        return getProgramParameter.call(this, program, pname);
+      };
+      proto.drawArrays = function (...args) { if (shared(this)) window.__link.draws++; return drawArrays.apply(this, args); };
+    });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => performance.now() > 3000);
+    const link = await page.evaluate(() => window.__link);
+    assert.equal(link.syncReads, 0, `desktop parallel compile: no LINK_STATUS read in the linking frame ${JSON.stringify(link)}`);
+    assert.ok(link.polls > 0 && link.draws > 1, `desktop parallel compile: polls completion, then Flow draws ${JSON.stringify(link)}`);
+    assert.ok((await cardStates(page)).some(({ flow }) => flow === "running"), "desktop parallel compile: waiting cards run Flow");
+    await context.close();
+  }
+
   // PC with cache off, dragging the scrollbar quickly up and down (owner 2026-10-27): cards flying past do not become empty cells.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 } });

@@ -467,6 +467,26 @@ function presetUniforms(preset) {
   };
 }
 
+// Compile and link without reading any status: with KHR_parallel_shader_compile the driver links off the main thread until
+// LINK_STATUS is read, and failed shaders fail the link anyway.
+function startProgram(gl) {
+  const shaders = [[gl.VERTEX_SHADER, VERTEX_SHADER], [gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER]].map(([type, source]) => {
+    const shader = gl.createShader(type);
+    if (shader) {
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+    }
+    return shader;
+  });
+  const program = shaders.every(Boolean) && gl.createProgram();
+  if (program) {
+    for (const shader of shaders) gl.attachShader(program, shader);
+    gl.linkProgram(program);
+  }
+  for (const shader of shaders) if (shader) gl.deleteShader(shader);
+  return program || null;
+}
+
 function createProgram(gl) {
   const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER);
@@ -973,28 +993,9 @@ export function createSharedSkeletonFlowLayer() {
   canvas.setAttribute("aria-hidden", "true");
   const attributes = { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true };
   let gl = canvas.getContext("webgl", attributes);
+  if (!gl) return null;
   let locations = null;
-  // Build program, buffer, noise texture; called again after webglcontextrestored.
-  const setup = () => {
-    const program = gl && contextProgram(gl);
-    if (!program) return false;
-    gl.useProgram(program);
-    bindQuadAndNoise(gl, program, gl.createBuffer(), gl.createTexture());
-    const uniform = (name) => gl.getUniformLocation(program, name);
-    locations = {
-      time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
-      noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
-    };
-    // Alpha reveal through a constant blend: the shader is shared with the dedicated renderer so no extra uniform is added.
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.CONSTANT_ALPHA, gl.ZERO);
-    return true;
-  };
-  if (!setup()) return null;
-  // Warm-up draw: the GPU compiles the program on its first draw. With the blend constant at its default alpha 0 nothing shows.
-  gl.viewport(0, 0, 1, 1);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-
+  let linkFrame = 0;
   const entries = new Set();
   let frameId = 0;
   let lost = false;
@@ -1036,12 +1037,53 @@ export function createSharedSkeletonFlowLayer() {
     lastTimestamp = -1;
   };
   const resume = () => {
-    if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
+    if (!frameId && !lost && locations && entries.size) frameId = requestAnimationFrame(tick);
   };
+
+  // Build program, buffer, noise texture; called again after webglcontextrestored. Where KHR_parallel_shader_compile exists the
+  // link status is read only once the driver reports it done, a later frame: reading it at once blocked the main thread 27ms in the
+  // first reveal burst on the owner's PC (3b.2 run 2). Until then the canvas stays clear and each frame shows its still image.
+  const setup = () => {
+    cancelAnimationFrame(linkFrame);
+    locations = null;
+    const parallel = gl.getExtension("KHR_parallel_shader_compile");
+    const program = startProgram(gl);
+    if (!program) return false;
+    const finish = () => {
+      linkFrame = 0;
+      if (lost) return false;
+      if (parallel && !gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR)) {
+        linkFrame = requestAnimationFrame(finish);
+        return true;
+      }
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        gl.deleteProgram(program);
+        lost = true;
+        return false;
+      }
+      gl.useProgram(program);
+      bindQuadAndNoise(gl, program, gl.createBuffer(), gl.createTexture());
+      const uniform = (name) => gl.getUniformLocation(program, name);
+      locations = {
+        time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
+        noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+      };
+      // Alpha reveal through a constant blend: the shader is shared with the dedicated renderer so no extra uniform is added.
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.CONSTANT_ALPHA, gl.ZERO);
+      // Warm-up draw: the GPU compiles the program on its first draw. With the blend constant at its default alpha 0 nothing shows.
+      gl.viewport(0, 0, 1, 1);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      resume();
+      return true;
+    };
+    return parallel ? Boolean(linkFrame = requestAnimationFrame(finish)) : finish();
+  };
+  if (!setup()) return null;
 
   function tick(timestamp) {
     frameId = 0;
-    if (!entries.size || lost || !canvas.parentElement) return;
+    if (!entries.size || lost || !locations || !canvas.parentElement) return;
     const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
     lastTimestamp = timestamp;
     placeBand();
@@ -1083,12 +1125,12 @@ export function createSharedSkeletonFlowLayer() {
   // Context lost: the canvas is blank so the static frame under each frame shows through; on restore it rebuilds and continues running.
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
-    programByContext.delete(gl);
     lost = true;
     halt();
   });
   canvas.addEventListener("webglcontextrestored", () => {
     gl = canvas.getContext("webgl", attributes);
+    lost = false;
     lost = !setup();
     resume();
   });
@@ -1099,6 +1141,7 @@ export function createSharedSkeletonFlowLayer() {
     dispose() {
       entries.clear();
       halt();
+      cancelAnimationFrame(linkFrame);
       if (!gl.isContextLost()) gl.getExtension("WEBGL_lose_context")?.loseContext();
     },
     attach(frame, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1, alpha }) {
