@@ -8,7 +8,7 @@ import { CROP_CAP } from "../../src/site/masonry/replay.mjs";
 import { BASE_URL, VIEWPORTS, launchBrowser, openPage, settleTransitions } from "./harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const fixtureId = "signage-raised-letters-06";
+const fixtureId = "signage-raised-letters-37";
 const videoId = `${fixtureId}-synthetic-video`;
 const fixturePrefix = "/__site_media_card_fixture__/";
 const clip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio-3x2.mp4");

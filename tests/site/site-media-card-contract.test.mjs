@@ -54,7 +54,7 @@ test("canonical image cards expose one stable cover item without changing legacy
 
 test("parent and related cards retain ordered image/video items, cover IDs, and legacy image media", () => {
   const parentBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
-  const relatedBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-06");
+  const relatedBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-37");
   const parent = {
     ...parentBase,
     coverMediaId: parentBase.id,

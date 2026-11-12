@@ -351,7 +351,9 @@ assert.ok(Math.abs(tabletSpan3.primary.imageZoneHeight + tabletSpan3.primary.int
 "Pinterest image, gap, and description exactly fill the group");
 assert.equal(tabletSpan3.layout.columns, columnsForWidth(810), "tablet span3 keeps the fixed responsive column count");
 assert.equal(tabletSpan3.primary.span, 3, "tablet primary reserves all three responsive columns");
-assert.equal(tabletSpan3.photoPlacements.length, 3, "tablet span3 retains every related real photo");
+assert.equal(tabletSpan3.photoPlacements.length,
+  artifact.cards.filter((card) => card.id !== "mobile-retail-04" && card.tagIds.includes("use-sampling")).length,
+  "tablet span3 retains every related real photo");
 assert.ok(tabletSpan3.photoPlacements.every((placement) => placement.y >= tabletSpan3.primary.height + tabletSpan3.primary.gap - 0.1),
   "tablet span3 keeps this sparse fixture below the primary");
 assert.deepEqual(tabletSpan3.layout.diagnostics.attempts.map(({ mode }) => mode), ["alongside"],
