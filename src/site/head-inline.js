@@ -1,8 +1,14 @@
 // Script inlined into the <head> of every page at build time (prepare-static-assets.mjs replaces <!-- head-inline -->).
 // One source for 6 pages so it does not fragment (progressive-loading R7).
+// The one definition of "reduced motion" and "phone" for every page script and module (masonry/host.mjs falls back
+// to the same queries when this script is absent). Each consumer still reads .matches at its own moment.
+window.TruongThinhEnv = Object.freeze({
+  reducedMotion: matchMedia("(prefers-reduced-motion: reduce)"),
+  phone: matchMedia("(hover: none) and (pointer: coarse)"),
+});
 try {
   // Every direct load (link, reload, Back/Forward) runs the enter phase of route-transition.
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (!window.TruongThinhEnv.reducedMotion.matches) {
     document.documentElement.classList.add("route-enter");
   }
   const routeLocale = document.documentElement.dataset.routeLocale;
@@ -114,7 +120,7 @@ document.documentElement.classList.add("media-gate");
   // Masonry cards, including related cards and suggestion cards on detail, keep the frame-fit version even if a portrait card is taller than 60% of the viewport (owner
   // choice 2026-10-31): upgrading related cards to the original made the PC stall 200-480ms on each 4K JXL decode between two scrolls (measured 2026-11-09).
   // Phones do not upgrade to the 4K original (owner 2026-11-07, media query like the build's phone <source>).
-  const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const phone = window.TruongThinhEnv.phone.matches;
   const watchUpgrade = (image) => {
     if (phone || !VARIANT.test(image.currentSrc)
       || image.closest("[data-masonry-item]")) return;

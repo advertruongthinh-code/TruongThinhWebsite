@@ -1,3 +1,4 @@
+import { env } from "./host.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
 const decks = new Map();
 
@@ -121,7 +122,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   observer.observe(root, { attributes: true, attributeFilter: ["aria-pressed"], subtree: true });
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
-  const preference = matchMedia("(prefers-reduced-motion: reduce)");
+  const preference = env.reducedMotion;
   preference.addEventListener("change", onVisibility, { signal });
   // The first clock of button i is delayed 0.4s * i so the whole cluster changes images staggered from top to bottom. Use delay, do not wind
   // currentTime negative: play() after pause would rewind an animation with negative currentTime to 0.

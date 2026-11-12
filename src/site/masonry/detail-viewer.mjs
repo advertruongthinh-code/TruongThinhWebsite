@@ -1,5 +1,6 @@
 import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
+import { env } from "./host.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -74,9 +75,9 @@ export function createDetailViewer({
   let motionGeneration = 0;
   let resizeFrame = 0;
   let fitGeometryKey = "";
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const reducedMotion = env.reducedMotion;
   // A touch screen hides the viewer buttons (R8) so Fit leaves no margin for them: the image touches the screen edge, in landscape too.
-  const touchScreen = matchMedia("(hover: none) and (pointer: coarse)");
+  const touchScreen = env.phone;
 
   document.body.append(dialog);
 

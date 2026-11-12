@@ -14,7 +14,9 @@ Motion owner đã duyệt nhưng chưa có code nằm trong spec sở hữu ph�
 - Motion phục vụ nội dung, không giữ nội dung ở trạng thái ẩn.
 - `prefers-reduced-motion: reduce` đi thẳng trạng thái cuối: bỏ transform,
   autoplay, entrance; scroll native; zoom/pan người xem chủ động vẫn đổi tức
-  thì. Đổi preference khi đang mở trang có hiệu lực ngay.
+  thì. Đổi preference khi đang mở trang: hero, logo chạy, masonry dừng hoặc chạy lại ngay; menu, veil chuyển
+  trang, header theo lần tải trang kế ([shell R13](../docs/specs/site-shell.md#r13-reduced-motion)). Query duy nhất là
+  `window.TruongThinhEnv.reducedMotion` do `head-inline.js` gán; module masonry đọc qua `env` của `masonry/host.mjs`.
 - Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
   blur mỗi frame.
 - Vòng đời (dọn observer, listener, timeline; BFCache) ở [shell](../docs/specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)

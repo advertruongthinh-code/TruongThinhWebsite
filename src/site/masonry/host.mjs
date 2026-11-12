@@ -2,6 +2,13 @@
 // and the related one in detail are two instances, so the build budget, placeholder cards and LRU queue are written only once (advertising-masonry R7).
 import { createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity } from "./mount-budget.mjs";
 
+// Shared environment queries, defined once in head-inline.js. The fallback covers pages without it (admin overlay, tests that load
+// modules alone); getters so importing in Node, where matchMedia does not exist, does not throw.
+export const env = globalThis.TruongThinhEnv ?? {
+  get reducedMotion() { return matchMedia("(prefers-reduced-motion: reduce)"); },
+  get phone() { return matchMedia("(hover: none) and (pointer: coarse)"); },
+};
+
 // Which cards are really built this frame: required cards always build; the rest are queued cards first (reattaching is cheaper than
 // building new), then those nearest the screen center first, up to `quota` cards. A very fast swipe (`fast`) builds only required cards.
 export function pickMounts({ missing, mustMount = () => false, distance, queued = () => false, fast = false, quota }) {
