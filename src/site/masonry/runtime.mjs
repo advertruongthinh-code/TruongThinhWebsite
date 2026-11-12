@@ -1186,7 +1186,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         if (item.kind === "image") {
           failedImages.add(item.id);
           const fallback = imageFallbackIndex();
-          if (activeIndex === index && fallback >= 0 && fallback !== index) {
+          if (shownIndex() === index && fallback >= 0 && fallback !== index) {
             setActive(fallback);
             return;
           }
@@ -1196,18 +1196,18 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           const probe = new Image();
           probe.addEventListener("load", () => {
             posterStatus.set(item.id, "loaded");
-            if (activeIndex === index) updateLoading();
+            if (shownIndex() === index) updateLoading();
           }, { once: true });
           probe.addEventListener("error", () => {
             posterStatus.set(item.id, "failed");
-            if (activeIndex !== index) return;
+            if (shownIndex() !== index) return;
             const fallback = imageFallbackIndex();
             if (fallback >= 0 && fallback !== index) setActive(fallback);
             else updateLoading();
           }, { once: true });
           probe.src = item.posterSrc;
         }
-        if (activeIndex !== index) return;
+        if (shownIndex() !== index) return;
         updateLoading();
       });
       layers.set(item.id, layer);
@@ -1255,6 +1255,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let slideToken = 0;
     let stripTo = 0;
     let pendingIndex = null;
+    // The media the card shows or is about to show: a pending press wins, so a late error of the media it left is stale.
+    function shownIndex() { return pendingIndex ?? activeIndex; }
     const canvasWidth = () => media.clientWidth;
     const reducedMotion = () => env.reducedMotion.matches;
     const settleLanes = () => {
@@ -1310,7 +1312,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       stripTo = -direction * canvasWidth();
       const token = slideToken;
       void whenMediaReady(incoming).then(() => {
-        if (token !== slideToken) return;
+        // A newer press waiting for its media takes over this slide before it starts.
+        if (token !== slideToken || pendingIndex !== null) return;
         if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
         runLanes(offset, -direction * canvasWidth(), timing);
       });
@@ -1338,7 +1341,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         return true;
       }
       lanes.forEach(({ nodes: [node] }) => { node.hidden = false; });
-      onMediaChange(figure.dataset.masonryActiveMediaId);
       figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
       const from = stripOffset(lanes, width);
       slideToken += 1;
@@ -1348,14 +1350,21 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       return true;
     };
     // Rule 5: the strip keeps heading to its current target until the new target has decoded; if it settled meanwhile, this is a fresh slide.
+    // The dots, counter and active id change on the press (R3); the active layer changes when the strip steers.
     const retargetMedia = (nextIndex) => {
       const index = Math.max(0, Math.min(items.length - 1, nextIndex));
+      const item = items[index];
+      if (failedImages.has(item.id) || posterStatus.get(item.id) === "failed") return slideTo(index);
       pendingIndex = index;
+      figure.dataset.masonryActiveMediaId = item.id;
+      updateIndicator(index);
+      onMediaChange(item.id);
       const incoming = layerFor(index);
       void whenMediaReady(incoming).then(() => {
         if (pendingIndex !== index) return;
         pendingIndex = null;
-        if (!lanes.length || !steerLanes(index, incoming)) slideTo(index);
+        // A strip that has not started moving takes the plain path, as before the strip was interruptible.
+        if (!laneAnimations.length || !steerLanes(index, incoming)) slideTo(index);
       });
     };
     // A press while the strip is in flight retargets it; a swipe release (non-zero offset) or reduced motion takes the plain path.
@@ -1365,8 +1374,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Card removed mid-slide (virtualization): drop the pending press and every lane so no translate is left behind.
     figure.advertisingSettleStrip = () => {
+      const pending = pendingIndex;
       pendingIndex = null;
       settleLanes();
+      if (pending !== null) setActive(pending);
     };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
