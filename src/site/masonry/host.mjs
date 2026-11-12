@@ -67,8 +67,8 @@ export function cancelMasonryTransitions(instance) {
 
 // `create(placement)` builds a new card; `attach(node, placement)` attaches the observer and shared style when a card enters the yard (new or from the
 // queue); `detach(id, node, queue)` removes a card from the DOM, keeping it in `queue` if it can be reused; `color(card)` is the
-// placeholder card color; `masonry` is the yard's own Masonry option (`itemSelector`, `getId`).
-export function createMasonryHost(root, { create, attach = () => {}, detach, color = () => undefined, masonry = {},
+// placeholder card color; `waitColors(card)` the 4 colors of its phone wait layer (null: breathing flat color); `masonry` is the yard's own Masonry option (`itemSelector`, `getId`).
+export function createMasonryHost(root, { create, attach = () => {}, detach, color = () => undefined, waitColors = () => null, masonry = {},
   deviceMemory = globalThis.navigator?.deviceMemory } = {}) {
   const host = {
     root,
@@ -146,7 +146,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, col
           continue;
         }
         if (allowed && !allowed.has(id)) {
-          host.ghosts.show(id, placement, color(placement.card));
+          host.ghosts.show(id, placement, color(placement.card), () => waitColors(placement.card));
           continue;
         }
         const start = performance.now();

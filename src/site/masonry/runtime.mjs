@@ -40,7 +40,7 @@ import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
 import {
-  breathePhase, GHOST_FADE_EASING, GHOST_FADE_MS,
+  breathePhase, clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
 let activeInstance;
@@ -73,6 +73,11 @@ const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
+// The 4 colors of the phone wait layer (progressive-loading R9): the file's Flow colors; without a full palette the layer stays the flat fallback color.
+const waitColors = (src, fallback = "#e9e6df") => {
+  const colors = mediaColors(src)?.slice(1);
+  return colors?.length === 4 ? colors : Array(4).fill(fallback);
+};
 const detailId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
   if (!id) return url.searchParams.get("photo");
@@ -1235,6 +1240,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
       ? null : items[activeIndex].id;
+    // A video waits on its poster like an image (progressive-loading R9).
+    figure.advertisingWaitColors = () => {
+      const item = items[activeIndex];
+      return waitColors(item.kind === "video" ? item.posterSrc : item.src, color);
+    };
     figure.advertisingActiveVideo = () => {
       const layer = layers.get(items[activeIndex]?.id);
       return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
@@ -1425,6 +1435,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let failed = false;
     figure.advertisingPendingMediaId = () => failed || (image.complete && image.naturalWidth > 0)
       ? null : record.coverMediaId;
+    figure.advertisingWaitColors = () => waitColors(record.media.src, color);
     image.addEventListener("error", () => {
       failed = true;
       onPendingChange(figure);
@@ -1668,6 +1679,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     attach: (node) => observeMediaCard(node),
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: cardColor,
+    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, cardColor(card)) : null,
   });
   const relatedHost = createMasonryHost(relatedGrid, {
     create: ({ card: { id }, card }) => createPhotoCard(card, locale, handleMediaLoaded, true,
@@ -1679,6 +1691,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     },
     detach: (id, node, queue) => detachCard(id, node, queue),
     color: (card) => mediaColors(card.media.src)?.[0],
+    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, mediaColors(card.media.src)?.[0]) : null,
     masonry: { itemSelector: "[data-masonry-related-item]", getId: (node) => node.dataset.masonryRelatedItem },
   });
   let relatedLayout;
@@ -2778,24 +2791,34 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         REMOUNT_CACHE_WAIT_MS);
       return;
     }
-    // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
-    // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
-    const scale = cardLoadingScale(node);
-    mediaLayers(node).forEach((media) => {
-      media.style.filter = CARD_LOADING_BLUR;
-      media.style.scale = scale;
-    });
-    // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
-    node.dataset.masonryMediaLoading = "";
-    node.style.setProperty("--breathe-phase", breathePhase());
-    // The card has already drawn the blurred image over the dominant color, so the temp card is removed in the next frame, no crossfade (R7).
+    // Phone: a flat layer cycling through the image's 4 dominant colors; the image stays hidden until decoded, then fades in (progressive-loading R9).
+    const phone = skeletonPhone();
+    if (phone) {
+      // A temp card hands over its own colors so the layer does not jump when the real card shows a different media than the cover.
+      const ghost = node.masonryGhost;
+      setColorWait(node, ghost?.dataset.mediaWait
+        ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
+    } else {
+      // The image shows immediately under its own blur so the browser paints progressively; a filter on the image does not re-read the backdrop every frame like Glass
+      // backdrop-filter, so dragging the scrollbar does not drop FPS (progressive-loading R9).
+      const scale = cardLoadingScale(node);
+      mediaLayers(node).forEach((media) => {
+        media.style.filter = CARD_LOADING_BLUR;
+        media.style.scale = scale;
+      });
+      // A blurred card waiting for its image breathes (detail.css, image-wait spec S2); dropCardSkeleton removes it together with the blur.
+      node.dataset.masonryMediaLoading = "";
+      node.style.setProperty("--breathe-phase", breathePhase());
+    }
+    // The card has already drawn its wait state over the dominant color (blurred image, or the same color layer in the same phase as the temp card),
+    // so the temp card is removed in the next frame, no crossfade (R7).
     if (node.masonryGhost) {
       const ghost = node.masonryGhost;
       node.masonryGhost = null;
       requestAnimationFrame(() => ghost.remove());
     }
-    showMedia(node);
-    cardSkeletons.set(node, { blur: true, revealing: false, animations: [] });
+    if (!phone) showMedia(node);
+    cardSkeletons.set(node, { blur: !phone, colors: phone, revealing: false, animations: [] });
   };
   const dropCardSkeleton = (node) => {
     removeGhost(node);
@@ -2803,6 +2826,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!entry) return;
     cardSkeletons.delete(node);
     delete node.dataset.masonryMediaLoading;
+    if (entry.colors) clearColorWait(node);
     entry.animations.forEach((animation) => animation.cancel());
     mediaLayers(node).forEach((media) => {
       media.style.removeProperty("transition");
@@ -2858,7 +2882,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       const layers = mediaLayers(node);
-      if (entry.blur) {
+      if (entry.colors) {
+        // The image fades in over the color layer (kept under it by CSS); the layer is removed when the fade ends. No `fill`: the ready class set here holds opacity 1 afterwards.
+        layers.forEach((media) => {
+          media.style.setProperty("transition", "none", "important");
+          media.classList.add("is-masonry-media-ready");
+        });
+        entry.animations = layers.map((media) => media.animate([{ opacity: 0 }, { opacity: 1 }],
+          { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
+      } else if (entry.blur) {
         // The blur melts to 0 over 0.6s (progressive-loading R9). The breathing stops at exactly that moment: opacity goes from the breathing value to 1 on the same
         // rhythm, no flash; read before removing the attribute because once removed the CSS animation stops and the value read is always 1.
         const from = layers.map((media) => getComputedStyle(media).opacity);
@@ -3872,6 +3904,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     animations.forEach((animation) => animation.cancel());
     glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
+    clearColorWait(heroFrame);
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
   };
@@ -3892,6 +3925,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // and only then runs the reveal from 0 (flash bug on Back, Forward).
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
+    // Phone: no skeleton and no Glass; the photo (and a video or live background, hidden by CSS while waiting) fades in over the color layer (kept under it by CSS), which
+    // settlePrimaryReveal removes. No `fill`: removing data-detail-loading above holds opacity 1 afterwards.
+    if (reveal.colors) {
+      const shown = [...incoming, ...[photoVideo, liveBackground].filter((node) => node && !node.hidden)];
+      reveal.animations = shown.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }));
+      Promise.all(reveal.animations.map(({ finished }) => finished))
+        .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+      return;
+    }
     const played = playReveal({ from: [reveal.frame], to: incoming, host: heroFrame });
     reveal.glass = played.glass;
     reveal.animations = played.animations;
@@ -4181,8 +4224,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (changed) {
       // Whether the image is available or not, both run the slow-loading card motion (loading-glass-and-page-entry R4): the old image and background hide immediately,
       // the skeleton covers the frame until the new image has decoded; an available image only makes the skeleton stand shorter.
-      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
-        mediaColors(video ? item.posterSrc : item.src)?.slice(1)), animations: [], glass: null };
+      // Phone: the same color layer as the cards instead of the Flow skeleton (progressive-loading R9).
+      const phone = skeletonPhone();
+      const waitSrc = video ? item.posterSrc : item.src;
+      if (phone) setColorWait(heroFrame, waitColors(waitSrc, cardColor(record)));
+      const reveal = { frame: phone ? null : attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
+        mediaColors(waitSrc)?.slice(1)), colors: phone, animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";

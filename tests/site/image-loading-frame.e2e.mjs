@@ -282,6 +282,8 @@ try {
   // P9: Advertising cards, geometry and viewer while images load.
   const primaryReveals = [];
   for (const viewport of viewports) {
+    // Phone: cards and the primary wait on the dominant-color layer instead of blur, Flow and Kính (progressive-loading R9).
+    const phoneView = viewport.width <= 750;
     // Longer delay so the entry layout settles while the card image is still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(BASE_URL + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
@@ -322,17 +324,26 @@ try {
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
     // A card image waiting to load shows under its own blur instead of the Flow skeleton (progressive-loading R9).
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur('].lazyloading"));
-    const loading = await page.evaluate(() => {
-      const image = document.querySelector("[data-project-grid] img[style*='blur('].lazyloading");
+    const waitingImage = phoneView ? "[data-project-grid] [data-media-wait='colors'] img.lazyloading"
+      : "[data-project-grid] img[style*='blur('].lazyloading";
+    await page.waitForFunction((selector) => document.querySelector(selector), waitingImage);
+    const loading = await page.evaluate((selector) => {
+      const image = document.querySelector(selector);
+      const card = image.closest("[data-masonry-card]");
       const { filter, opacity, animationName } = getComputedStyle(image);
       return { blur: filter.startsWith("blur("), animationName, opacity: Number(opacity),
-        marked: image.closest("[data-masonry-card]").hasAttribute("data-masonry-media-loading") };
-    });
-    // A waiting image breathes with media-breathe (opacity 1 → 0.45 → 1) while blurred (image-wait spec S2).
-    assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
-      { blur: true, animationName: "media-breathe", opacity: true, marked: true },
-      `${viewport.width}px: loading card blurs its own image and breathes as it enters view`);
+        marked: card.hasAttribute("data-masonry-media-loading"), layer: getComputedStyle(card, "::after").animationName };
+    }, waitingImage);
+    if (phoneView) {
+      // The image stays hidden (no blur, no breathing) over a color layer that cycles through its 4 colors.
+      assert.deepEqual(loading, { blur: false, animationName: "none", opacity: 0, marked: false, layer: "media-colors-top" },
+        `${viewport.width}px: loading card waits on the color layer, image hidden`);
+    } else {
+      // A waiting image breathes with media-breathe (opacity 1 → 0.45 → 1) while blurred (image-wait spec S2).
+      assert.deepEqual({ ...loading, opacity: loading.opacity >= 0.45 && loading.opacity <= 1 },
+        { blur: true, animationName: "media-breathe", opacity: true, marked: true, layer: "none" },
+        `${viewport.width}px: loading card blurs its own image and breathes as it enters view`);
+    }
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -346,8 +357,9 @@ try {
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
     // The blur dissolves within 0.6 s after the last image finishes loading, then is removed.
-    await page.waitForFunction(() => !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 5000 })
-      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur`));
+    await page.waitForFunction((selector) => !document.querySelector(selector), phoneView ? "[data-project-grid] [data-masonry-card][data-media-wait]"
+      : "[data-project-grid] img[style*='blur(']", { timeout: 5000 })
+      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur or color layer`));
     // When loading finishes the breathing stops: no attribute, animation or half-done opacity remains (image-wait spec S2).
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.hasAttribute("data-masonry-media-loading")
@@ -386,16 +398,17 @@ try {
     const inView = () => page.evaluate((ids) => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => ids.includes(card.dataset.masonryCard))
       .filter((card) => { const { top, bottom } = card.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
-      .map((card) => ({ id: card.dataset.masonryCard, skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton]")),
+      .map((card) => ({ id: card.dataset.masonryCard, wait: card.hasAttribute("data-media-wait"),
+        skeleton: Boolean(card.querySelector("[data-masonry-loading-skeleton]")),
         opacity: getComputedStyle(card.querySelector("img")).opacity })), loadedIds);
     let reentry = [];
     for (let tries = 0; tries < 50; tries += 1) {
       reentry = await inView();
-      if (reentry.length && reentry.every(({ skeleton, opacity }) => !skeleton && opacity === "1")) break;
+      if (reentry.length && reentry.every(({ skeleton, wait, opacity }) => !skeleton && !wait && opacity === "1")) break;
       await page.waitForTimeout(200);
     }
     assert.ok(reentry.length, `${viewport.width}px: loaded cards are back in view`);
-    assert.deepEqual(reentry.filter(({ skeleton, opacity }) => skeleton || opacity !== "1"), [],
+    assert.deepEqual(reentry.filter(({ skeleton, wait, opacity }) => skeleton || wait || opacity !== "1"), [],
       `${viewport.width}px: a re-entering loaded card shows without skeleton`);
     const reentryBlur = (await page.evaluate(() => window.__ttCardBlur)).slice(blursBefore).filter((card) => loadedIds.includes(card));
     assert.deepEqual(reentryBlur, [], `${viewport.width}px: a re-entering loaded card starts no blur`);
@@ -410,15 +423,19 @@ try {
     // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-detail-image]").parentElement;
-      return { photo: window.TruongThinhMasonry.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")),
+      return { photo: window.TruongThinhMasonry.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-masonry-loading-skeleton]")), wait: frame.dataset.mediaWait ?? null,
         glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-detail-image]").currentSrc };
     });
     // The Kính reveal belongs to the image; a card opened with video (temporary multi-media) has no image skeleton so pick a card opened with an image.
     await page.locator("[data-masonry-card]:not(:has(video)) a").first().click();
-    await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.parentElement.getAttribute("aria-busy") === "true"
-      && document.querySelector("[data-detail-image]").parentElement.querySelector("[data-masonry-loading-skeleton]"));
+    await page.waitForFunction((colors) => {
+      const frame = document.querySelector("[data-detail-image]")?.parentElement;
+      return frame?.getAttribute("aria-busy") === "true"
+        && (colors ? frame.dataset.mediaWait === "colors" : frame.querySelector("[data-masonry-loading-skeleton]"));
+    }, phoneView);
     const first = await viewer();
-    assert.ok(first.photo && first.skeleton, `${viewport.width}px: viewer shows the skeleton while primary loads`);
+    assert.ok(first.photo && (phoneView ? first.wait === "colors" && !first.skeleton : first.skeleton),
+      `${viewport.width}px: viewer shows the ${phoneView ? "color layer" : "skeleton"} while primary loads`);
     await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] > a"));
     const relatedId = await page.evaluate(() => {
       const card = [...document.querySelectorAll("[data-masonry-related-card]")].find(node => node.querySelector("a") && !node.querySelector("video") && node.getBoundingClientRect().height);
@@ -431,14 +448,16 @@ try {
     await page.waitForTimeout(DELAY + 300);
     const swapped = await viewer();
     assert.equal(swapped.photo, relatedId);
-    assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
+    assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass, wait: swapped.wait },
+      { busy: null, skeleton: false, glass: false, wait: null },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: phone and PC share the same three-step Kính, the same 0.6s timing as cards.
-    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
+    // loading-glass-and-page-entry R4: the PC primary reveals through three-step Kính in 0.6 s like cards; the phone primary has no Kính (color layer, then a 0.45 s fade).
+    if (phoneView) assert.deepEqual(primaryGlass, [], `${viewport.width}px: the phone primary wears no Kính`);
+    else assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
       `${viewport.width}px: the primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
     // Like cards: the skeleton still shows through the Kính, the Kính steps have no flat gray fill over the skeleton.
-    assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
+    if (!phoneView) assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
     // Back to the first image also swaps the image in place through the Kính (R4).
     await page.goBack();
@@ -447,13 +466,16 @@ try {
     primaryReveals.push(await revealGlass("primary"));
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhMasonry.getBrowseState().photo === null);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton], [data-detail-view] [data-media-wait]").length), 0,
+      `${viewport.width}px: closing the viewer clears the skeleton and the color layer`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
-  // Phone and PC share the same Kính chain on the primary: pass count, step count, duration, animate attribute.
-  assert.deepEqual(primaryReveals[0], primaryReveals[1], `phone primary reveals match PC ${JSON.stringify(primaryReveals)}`);
+  // Only the PC primary reveals through Kính; the phone primary uses the color layer.
+  assert.deepEqual(primaryReveals[0], [], "phone primary reveals through no Kính");
+  assert.ok(primaryReveals[1].length && primaryReveals[1].every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
+    `PC primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryReveals[1])}`);
   // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });

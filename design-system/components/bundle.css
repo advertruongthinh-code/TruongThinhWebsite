@@ -5107,6 +5107,83 @@ body.is-masonry-browse .masonry-grid {
   }
 }
 
+/* Phone image wait (progressive-loading R9): masonry cards, the temp card and the Advertising primary frame wait on a flat layer cycling through the image's 4 dominant
+   colors, 2s each. The runtime sets data-media-wait="colors" and --wait-1..4 (the file's colors) and --wait-phase (shared by every layer, so a temp card turning into a card keeps
+   its color). Two pseudo layers under the content (z-index -1 inside an isolated stacking context): the top one fades colors 2 and 4 in and out (an opacity animation of its own, so it
+   can run on the compositor; its color is a separate step animation that only changes while the layer is transparent), the base one switches color in steps while the top one covers
+   it, so every visible change is a 2s fade. Seen: 1, 2, 3, 4, then 1 again. */
+[data-media-wait="colors"] {
+  isolation: isolate;
+}
+
+[data-media-wait="colors"]::before,
+[data-media-wait="colors"]::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  animation-duration: 8s;
+  animation-iteration-count: infinite;
+  animation-delay: var(--wait-phase, 0s);
+}
+
+[data-media-wait="colors"]::before {
+  animation-name: media-colors-base;
+  animation-timing-function: step-end;
+}
+
+[data-media-wait="colors"]::after {
+  animation-name: media-colors-fade, media-colors-shift;
+  animation-timing-function: ease-in-out, step-end;
+}
+
+@keyframes media-colors-base {
+  0% { background-color: var(--wait-1); }
+  25% { background-color: var(--wait-3); }
+  75% { background-color: var(--wait-1); }
+}
+
+@keyframes media-colors-fade {
+  0%, 50%, 100% { opacity: 0; }
+  25%, 75% { opacity: 1; }
+}
+
+@keyframes media-colors-shift {
+  0% { background-color: var(--wait-2); }
+  50% { background-color: var(--wait-4); }
+}
+
+/* The card's media box paints its dominant color inline; it must not cover the layers while the image fades in over them. A card video shows its poster at once,
+   so it waits hidden like an image until the runtime marks it ready and fades it in. */
+[data-media-wait="colors"] .masonry-card__media {
+  background-color: transparent !important;
+}
+
+[data-media-wait="colors"] video.masonry-card__foreground:not(.is-masonry-media-ready) {
+  opacity: 0;
+}
+
+/* Primary: a video and the live blur background sit above the color layer, so they wait hidden like the photo and background (the runtime fades them in with it). */
+.detail-view__hero-frame[data-media-wait="colors"][data-detail-loading] > :is([data-detail-video], .detail-view__live-background) {
+  opacity: 0;
+}
+
+.masonry-ghost[data-media-wait="colors"] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-media-wait="colors"]::before {
+    background-color: var(--wait-1);
+    animation: none;
+  }
+
+  [data-media-wait="colors"]::after {
+    display: none;
+  }
+}
+
 [data-masonry-media-loading] .card-media__just-viewed {
   background-color: transparent;
 }
