@@ -4,7 +4,6 @@ import { existsSync } from "node:fs";
 import { transform } from "esbuild";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { MASONRY_LAYOUT_VERSION, filterRank, matchesFilter } from "../../src/site/masonry/layout.mjs";
@@ -17,11 +16,9 @@ import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
+import { PUBLIC_ORIGIN, escapeHtml, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
-const scriptPath = fileURLToPath(import.meta.url);
-const projectRoot = path.resolve(path.dirname(scriptPath), "..", "..");
-const sourceRoot = path.join(projectRoot, "src", "site");
 const outputRoot = path.join(projectRoot, ".site-output");
 const PUBLIC_GRID_FILTERS = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug), ...ADVERTISING_PRODUCT_CHIPS.map(({ filter }) => filter)];
 const vendorAssets = [
@@ -63,7 +60,7 @@ const artifact = buildAdvertisingArtifact();
 const layoutCache = buildLayoutCacheMemo({ cards: artifact.cards, filters: PUBLIC_GRID_FILTERS, datasetVersion: artifact.datasetVersion, rankOf: filterRank, matches: matchesFilter });
 
 // Home page project rail: validate data and placeholders before deleting old output (page-home R8).
-const projectReel = JSON.parse(await readFile(path.join(sourceRoot, "content", "project-reel.json"), "utf8"));
+const projectReel = await readJson(path.join(sourceRoot, "content", "project-reel.json"));
 await validateProjectReel(projectReel, sourceRoot);
 const projectReelCards = renderProjectReel(projectReel);
 const homeTemplate = await readFile(path.join(sourceRoot, "index.html"), "utf8");
@@ -132,7 +129,6 @@ await Promise.all(minifiedFiles.map(async (file) => {
   await writeFile(file, (source.startsWith(COMPILE_HINT) ? COMPILE_HINT : "") + code, { encoding: "utf8", flush: true });
 }));
 
-const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 // Compatibility pages redirecting to the new cluster page (static release R7, taxonomy R4, R5).
 const renderCompatibilityPage = (category, cluster) => {
   const titleVi = escapeHtml(category.titleVi);
@@ -252,7 +248,6 @@ for (const page of ADVERTISING_PAGES) {
 // Card page (media-seo R1, R2, R4, R6): the root page template carrying the name, description, all card media in HTML (AI bots do not
 // run JS), JSON-LD and absolute URLs on the real domain so Google Images and AI bots lead back to the right card. The script right after the
 // static block hides it when JS is on because the runtime builds detail with the same content by path.
-const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 const cardHref = (locale, card) => `/${locale}/advertising-products/p/${card.id}/`;
 const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
 const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];

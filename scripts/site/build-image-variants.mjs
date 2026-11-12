@@ -5,16 +5,16 @@
 //   JXL needs cjxl and djxl pinned in tooling-versions.json (scripts/tooling/install-jxl.sh).
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import sharp from "sharp";
 import { palette } from "./image-palette.mjs";
+import { readJson, siteRoot as sourceRoot, walk } from "./lib.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 
-const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
 const VARIANT_WIDTHS = [240, 480, 960];
 // null is the original; a size not smaller than the original is dropped (progressive-loading R1).
 const JXL_WIDTHS = [240, 480, 960, 1600, 2048, null];
@@ -23,7 +23,7 @@ const arg = (name) => { const index = process.argv.indexOf(`--${name}`); return 
 const force = process.argv.includes("--force");
 const check = process.argv.includes("--check");
 const jobs = Math.max(1, Number(arg("jobs")) || 1);
-const originals = arg("originals") ? JSON.parse(await readFile(arg("originals"), "utf8")) : {};
+const originals = arg("originals") ? await readJson(arg("originals")) : {};
 const skip = new Set(nonPublicSourceAssets);
 const run = promisify(execFile);
 // The pinned build is installed by scripts/tooling/install-jxl.sh; env CJXL and DJXL override it, otherwise look in PATH.
@@ -39,11 +39,6 @@ const colors = { ...(await import(pathToFileURL(colorsFile)).catch(() => ({}))).
 const colorKey = (file) => file.includes(`${path.sep}advertising${path.sep}`) && path.basename(file, ".webp");
 const hex = ([r, g, b]) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 const relativeOf = (file) => path.relative(sourceRoot, file).replaceAll("\\", "/");
-
-const walk = async (dir) => (await Promise.all((await readdir(dir, { withFileTypes: true })).map((entry) => {
-  const full = path.join(dir, entry.name);
-  return entry.isDirectory() ? walk(full) : [full];
-}))).flat();
 
 // Variant path of a WebP: name.avif (full width), name-480.webp, name-480.avif, ...
 const variantPaths = (file) => {

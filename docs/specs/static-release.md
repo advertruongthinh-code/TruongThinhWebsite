@@ -3,6 +3,7 @@ title: Phát hành tĩnh
 status: live
 source:
   - scripts/site/prepare-static-assets.mjs
+  - scripts/site/lib.mjs
   - scripts/site/non-public-source-assets.mjs
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
@@ -21,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-11
+updated: 2026-11-12
 ---
 
 # Phát hành tĩnh
@@ -246,9 +247,8 @@ Then job fail và liệt kê file biến thể còn thiếu
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Command | `pnpm prepare:site`, `pnpm dev`, `pnpm deploy:demo`, `pnpm demo:wrangler` | Build, preview, deploy và rollback demo |
-| Hàm public | `ROUTES`, `localeHtml(html, locale)` | Export từ `serve-static-parity.mjs`; build, preview, test dùng chung |
-| Data | `nonPublicSourceAssets` | Path không public (R3), export từ `non-public-source-assets.mjs` |
-| Data | `catalog-artifact.mjs` | Build sinh trong output, runtime Advertising import |
+| Data | `nonPublicSourceAssets`, `catalog-artifact.mjs` | Path không public (R3) từ `non-public-source-assets.mjs`; artifact build sinh trong output, runtime Advertising import |
+| Hàm public | `ROUTES`, `localeHtml(html, locale)`; `projectRoot`, `siteRoot`, `PUBLIC_ORIGIN`, `IMAGE_SRC`, `escapeHtml`, `readJson`, `walk`, `validateImage(image, root, where)` | Hai nhóm: `ROUTES`, `localeHtml` export từ `serve-static-parity.mjs` (build, preview, test dùng chung); phần còn lại là helper chung của `scripts/site/` ở `lib.mjs`, chỉ import built-in Node (job Docs import được khi chưa cài `node_modules`), `sharp` nạp lúc gọi `validateImage`; script mới dùng lại, không chép lại |
 | Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
 | DOM hook | `[data-masonry-compatibility-route]` | `main` của trang tương thích |
 | Attribute | `data-en`, `data-vi`, `data-en-*`, `data-vi-*`, `data-route-locale` | Build và runtime đổi ngôn ngữ |

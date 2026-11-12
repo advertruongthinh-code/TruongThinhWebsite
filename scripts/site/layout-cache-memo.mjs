@@ -4,11 +4,10 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { buildLayoutCache } from "../../src/site/masonry/packer.mjs";
+import { projectRoot, siteRoot } from "./lib.mjs";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const masonryRoot = path.join(projectRoot, "src", "site", "masonry");
+const masonryRoot = path.join(siteRoot, "masonry");
 const SOURCES = ["packer.mjs", "replay.mjs", "layout.mjs", "random-order.mjs"];
 const memoDir = path.join(projectRoot, "node_modules", ".cache", "layout-cache");
 
