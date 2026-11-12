@@ -1140,10 +1140,9 @@ try {
     .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
-  // The batch frame enters with a 0.6s Kính reveal from the runtime, never a CSS opacity fade (skeleton R4).
-  assert.equal(entryContract.frame.opacity, null, "skeleton frame must not fade its opacity in CSS");
-  assert(entryContract.stagger.every((delay) => delay === undefined),
-    "skeleton frames must not carry an opacity transition");
+  // The batch frame enters with a plain 0.6s CSS opacity fade, no Kính (skeleton R4, owner 2026-11-12), and no stagger.
+  assert.deepEqual(entryContract.frame.opacity, { delay: "0s", duration: "0.6s", easing: "ease-out" }, "skeleton frame fades its opacity over 0.6s");
+  assert(entryContract.stagger.every((delay) => delay === "0s"), "skeleton frames must not stagger their fade");
   assert(Math.abs(matrix(entryContract.frame.transform).y) <= 0.1,
     "skeleton frame must retain its geometry before entry");
   assert.equal(entryContract.frame.maskImage, "none", "frame retained a local fade mask");
