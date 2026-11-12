@@ -1,7 +1,7 @@
 # Benchmark dùng cho OpenAI routing
 
 Snapshot kiểm tra 2026-10-21; chỉ khảo sát `gpt-6.1-sol` và `gpt-6-astra`.
-Chính sách áp dụng ở [OpenAI routing](../operations/agent-rule-openai-routing.md).
+Chính sách áp dụng ở [Model routing, mục OpenAI](../operations/agent-rule-model-routing.md#openai-codex).
 Đây là số đo của benchmark cùng harness của họ, chưa phải số đo Codex trong repo.
 
 ## Artificial Analysis: effort và cost/task
