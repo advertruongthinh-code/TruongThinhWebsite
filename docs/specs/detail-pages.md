@@ -139,7 +139,7 @@ Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cầ
 tách dòng trong mask, vào viewport thì trượt `2em → -0.1em` (1,9s, stagger 0,1s); `[data-motion-words]` ngoài hero hiện
 theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `document.fonts.ready` và khi đổi kích thước,
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
-(thêm trượt từ 60px), `[data-motion-media]` (chờ ảnh tải) hiện trong 0,6s khi vào viewport. Portal reveal như
+(thêm trượt từ 60px), `[data-motion-media]` (chờ cha có `is-media-settled`: tải và giải mã xong, hoặc lỗi để alt hiện) hiện trong 0,6s khi vào viewport. Portal reveal như
 [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ). Parallax Locomotive ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)):
 ảnh hero About (`.about-hero__media`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ tải lại
 trang như F5, mọi reveal chạy lại từ đầu ([trang chủ R11](page-home.md#r11-đổi-ngôn-ngữ-chạy-lại-trang)). Rời
@@ -222,14 +222,14 @@ nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertisi
 Dấu chấm cuối `h2` không treo: cả dòng kể cả dấu nằm giữa khối. Dấu nằm chung text node với chữ (`data-en` gồm dấu), không tách span: span riêng thành một từ của SplitText, dòng vừa khít đẩy riêng dấu chấm xuống dòng mới (Nhà ở 390px). `.capability-marquee`: hai `.marquee-line` giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh duo, CTA (gallery: R7) dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
-thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
-`is-overlay-media-ready`, riêng ảnh hero chỉ chờ `is-media-settled` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
+thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì khung có
+`is-media-settled` do script head gắn ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
 cổng này. Khung ảnh nội dung (gồm gallery) có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
 Given ảnh nền CTA /vi/commercial/ bị trễ
 When CTA vào viewport rồi ảnh tải xong
-Then chữ trắng hiện ngay trên media-loading-surface, lớp tối ẩn, ảnh opacity 0 tới khi có is-overlay-media-ready
+Then chữ trắng hiện ngay trên media-loading-surface, lớp tối ẩn, ảnh opacity 0 tới khi khung có is-media-settled
 ```
 
 ### R11. Reduced motion, fallback, không JavaScript
@@ -254,7 +254,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 | DOM hook | `[data-motion-hero-media]` (chỉ About), `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
 | DOM hook | `[data-motion-lines]`, `[data-motion-words]`, `[data-motion-*-source]`, `[data-motion-fade]`, `[data-motion-up]`, `[data-motion-media]`, `data-motion-delay`, `data-scroll-speed` | Reveal, parallax (R6) |
 | DOM hook | `[data-gallery]`, `[data-gallery-track]` | Gallery (R7) |
-| Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-motion-ready`, `is-dragging`, `is-overlay-media-ready` | `detail.js`, `motion.js` ghi |
+| Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-dragging` | `detail.js`, `motion.js` ghi |
 | Hàm public | `window.TruongThinhDetail`: `mount(container, {settled, softNavigation})`, `unmount()`, `revertSplitText()`, `rebuildSplitText()` | `motion.js` gọi; `ensureAdvertisingDependencies` thuộc Advertising |
 | Data | `data-cms="hero.kicker"` | Worker CMS dormant đọc |
 

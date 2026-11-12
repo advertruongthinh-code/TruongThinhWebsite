@@ -36,8 +36,6 @@
     `tt-locale-scroll:${url.pathname}${url.search}`;
   const textMaskSelector =
     ".hero-line-mask, .line-mask, .heritage-text, .portal-title-mask, .portal-title__quiet, .portal-title__strong, .detail-line, .motion-line-mask";
-  const whiteOverlayMediaSelector =
-    ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
   const maskContext = document.createElement("canvas").getContext("2d");
   const runtimeBodyClasses = [
     "is-transitioning",
@@ -1354,37 +1352,6 @@
       });
   };
 
-  const watchWhiteOverlayMedia = (state) => {
-    state.container
-      .querySelectorAll(whiteOverlayMediaSelector)
-      .forEach((image) => {
-        const reveal = () => {
-          if (
-            state.abort.signal.aborted ||
-            !image.complete ||
-            image.naturalWidth === 0
-          ) {
-            return;
-          }
-          image.classList.add("is-overlay-media-ready");
-        };
-        const decode = () => {
-          if (typeof image.decode !== "function") {
-            reveal();
-            return;
-          }
-          image.decode().then(reveal, reveal);
-        };
-        if (image.complete && image.naturalWidth > 0) decode();
-        else {
-          image.addEventListener("load", decode, {
-            once: true,
-            signal: state.abort.signal,
-          });
-        }
-      });
-  };
-
   // The waiting shimmer stops when the frame leaves the viewport; a settled frame is no longer watched (media-delivery R6).
   const pauseOffscreenMediaSweeps = (state) => {
     const observer = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
@@ -1923,7 +1890,6 @@
       }
     }
 
-    watchWhiteOverlayMedia(state);
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });

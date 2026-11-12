@@ -14,7 +14,8 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
   `paper`. `hero-shade` chung mọi hero ảnh: phủ đều `0.2`; độ tối tổng mép trên `0.7` nhạt
   dần, mịn tới đúng `0.2` trong 36% chiều cao hero, mép dưới `0.5`; không lớp ngang; chữ hero có bóng D
-  (owner 2026-11-01; hero Advertising chữ đen trên giấy không áp). Header đổi tone theo nền qua `data-header-tone`.
+  (owner 2026-11-01; hero Advertising chữ đen trên giấy không áp). Ảnh slide đang hiện chưa tải và
+  giải mã xong (khung chưa có `.is-media-settled`) thì ảnh ẩn và `hero-shade` ẩn ([Vệt sáng](../LoadSweep/README.md)). Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
 - Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,

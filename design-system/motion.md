@@ -167,7 +167,7 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | Line reveal | `data-motion-lines` | `1.9s power4.out`, stagger `0.1s`, khi vào viewport |
 | Word fade | `data-motion-words` | `1s expo.out`, stagger `0.2s` |
 | Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` `--ease-expo-out` và rời thứ tự Tab |
-| Media reveal | `data-motion-media` | `0.6s ease-out`: dòng `transition-timing-function` trong `detail.css` đè `--ease` |
+| Media reveal | `data-motion-media` | `0.6s ease-out`: dòng `transition-timing-function` trong `detail.css` đè `--ease`; khi vào viewport và cha có `.is-media-settled` (tải và `decode()` xong, hoặc lỗi) |
 | Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và câu, không split: `scale 1.1 → 1` `2.5s` `--ease` từ lúc veil bắt đầu mở; câu rồi số hiện dần `1s expo.out` trễ `0.3s` và `0.6s` (nhịp Espacio, đo frame 2026-10-12). Trước đó đứng ở frame đầu dưới veil. Reduced motion và script lỗi hiện ngay trạng thái cuối |
 
 Line reveal và word fade có một nguồn timing: `revealLines` và `revealWords` trong `window.TruongThinhMotion`
