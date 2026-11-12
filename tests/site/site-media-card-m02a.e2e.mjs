@@ -1538,10 +1538,12 @@ const scrollHints = (page) => page.evaluate(() => {
   const box = strip.getBoundingClientRect();
   return {
     rows: new Set([...strip.children].map((node) => node.offsetTop)).size,
-    wholeThumbs: (strip.clientWidth + 8) % 68 === 0,
+    // Whole thumbnails of at least 60px that span the info column (owner 2026-11-12).
+    wholeThumbs: active.width >= 60 && strip.clientWidth === strip.parentElement.clientWidth
+      && Math.abs((strip.clientWidth + 8) / (active.width + 8) - Math.round((strip.clientWidth + 8) / (active.width + 8))) < 0.01,
     strip: [strip.hasAttribute("data-fade-start"), strip.hasAttribute("data-fade-end")],
-    activeClear: active.left >= box.left + (strip.hasAttribute("data-fade-start") ? 60 : 0) - 1
-      && active.right <= box.right - (strip.hasAttribute("data-fade-end") ? 60 : 0) + 1,
+    activeClear: active.left >= box.left + (strip.hasAttribute("data-fade-start") ? active.width : 0) - 1
+      && active.right <= box.right - (strip.hasAttribute("data-fade-end") ? active.width : 0) + 1,
     overflow: scroll.scrollHeight > scroll.clientHeight + 1,
     description: [scroll.hasAttribute("data-fade-start"), scroll.hasAttribute("data-fade-end")],
     scrollTop: scroll.scrollTop,

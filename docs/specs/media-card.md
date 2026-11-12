@@ -160,7 +160,7 @@ phát; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Ba
 từ detail của chính card đó thì card đứng ở media vừa xem trong detail, video ở đúng giây; đổi ngôn ngữ tải lại trang
 như F5 nên về cover (owner 2026-11-08). URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
-i trên N: <alt>", thumbnail 60px góc vuông, đang xem `aria-current` có viền đôi, video có biểu tượng phát; dãy một dòng chỉ hiện thumbnail nguyên, thừa thì cuộn ngang, thumbnail cuối trong khung mờ về trắng (đã cuộn thì thumbnail đầu cũng mờ), đổi media thì dãy tự cuộn đưa thumbnail đang xem ra giữa. Khung media
+i trên N: <alt>", thumbnail vuông góc vuông, tối thiểu 60px, dãy trải hết bề rộng cột thông tin (thumbnail nới đều phần dư, owner 2026-11-12), đang xem `aria-current` có viền đôi, video có biểu tượng phát; dãy một dòng chỉ hiện thumbnail nguyên, thừa thì cuộn ngang, thumbnail cuối trong khung mờ về trắng (đã cuộn thì thumbnail đầu cũng mờ), đổi media thì dãy tự cuộn đưa thumbnail đang xem ra giữa. Khung media
 theo dải trượt của pin Pinterest nhiều media: khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px góc vuông, chevron nét mảnh 16px, cách mép 16px hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong

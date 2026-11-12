@@ -6016,13 +6016,14 @@ body.is-masonry-browse .site-footer {
   margin: 0;
 }
 
-/* A single-row thumbnail strip fits a whole number of thumbnails (60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24). */
+/* A single-row thumbnail strip fits a whole number of thumbnails (at least 60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
+   widens each thumbnail (--detail-thumb-size) so the strip spans the full column like the text below (owner 2026-11-12). */
 .detail-view__media-thumbs {
   --scroll-fade-direction: to right;
-  --scroll-fade-size: 60px;
+  --scroll-fade-size: var(--detail-thumb-size, 60px);
   display: flex;
   gap: 8px;
-  width: calc(round(down, 100% + 8px, 68px) - 8px);
+  width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -6047,9 +6048,9 @@ body.is-masonry-browse .site-footer {
    white 1px border. */
 .detail-view__media-thumbs button {
   position: relative;
-  flex: 0 0 60px;
-  width: 60px;
-  height: 60px;
+  flex: 0 0 var(--detail-thumb-size, 60px);
+  width: var(--detail-thumb-size, 60px);
+  height: var(--detail-thumb-size, 60px);
   overflow: hidden;
   padding: 0;
   border: 0;

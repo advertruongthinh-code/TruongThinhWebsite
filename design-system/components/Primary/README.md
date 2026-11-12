@@ -36,9 +36,11 @@ Card nhiều media (xem [Media card](../MediaCard/README.md#nhiều-media-trong-
 có hàng thumbnail trong cột chữ, giữa nhãn nhóm và mô tả. Card một ảnh legacy
 không có hàng này. Catalog hiện chưa có card nào như vậy, nên preview chưa có.
 
-- Hàng `flex-wrap`, gap 8px, `role="group"`, nhãn `Media sản phẩm` /
-  `Product media`.
-- Nút vuông 60×60px bo 16px, không viền, nền `media-loading-surface`; ảnh
+- Một dòng, gap 8px, `role="group"`, nhãn `Media sản phẩm` /
+  `Product media`; thừa thì cuộn ngang, mép còn nội dung mờ về trắng.
+- Dãy trải hết bề rộng cột chữ: số nút nguyên tối thiểu 60px vừa cột, mỗi
+  nút nới đều phần dư (`--detail-thumb-size` do runtime đặt, owner 2026-11-12).
+- Nút vuông góc vuông, không viền, nền `media-loading-surface`; ảnh
   `object-fit: cover`. Video dùng poster và tam giác phát 20px trắng có bóng.
 - Đang chọn: `aria-current="true"`, lớp phủ viền 1px `rgb(51 51 46)` cộng viền
   trong 1px trắng (theo pin Pinterest). Focus: outline 2px `ink` offset 3px.
