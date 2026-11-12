@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-12T08:32:00Z",
+    "at": "2026-11-12T09:30:00Z",
     "via": "Claude Code",
-    "note": "DRY 1.1 đến 2.2 và 8.2: token motion CSS, một cổng is-media-settled, data-media-frame cho vệt sáng (LoadSweep, Suggestion, BannerCta, Hero), danh sách breakpoint và giá trị motion khớp code (README, motion.md, tokens.json, bundle.css)"
+    "note": "DRY 5.1: slide hero đọc từ content/hero-slides.json; vùng cắt màn dọc qua --hero-focal-x/y trên figure.hero-slide (Hero README, preview, bundle.css)"
   }
 }
