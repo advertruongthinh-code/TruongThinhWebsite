@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -1211,11 +1211,11 @@ test("M01b hover arrows step card media by position and the card media never zoo
   } finally { await browser.close(); }
 });
 
-// A three-media card of the same ratio (cover copies) for the hover dark layer, continuous strip and swipe drag (media-card R3, owner 2026-10-19).
-async function setupThree(page) {
+// A card of `count` same-ratio media (cover copies) for the hover dark layer, continuous strip and swipe drag (media-card R3, owner 2026-10-19).
+async function setupThree(page, count = 3) {
   const artifact = manyImageArtifact();
   const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
-  items.length = 3;
+  items.length = count;
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
@@ -1295,6 +1295,51 @@ test("M01b hover shows the Pinterest shade at once, hides just viewed, and media
     await context.close();
   } finally { await browser.close(); }
 });
+
+// Task 0.2 safety net for the strip rewrite: rapid next, next, next, previous clicks must end on the third media with one
+// visible layer at rest. The per-frame trace is evidence only; the continuity assert is added by the strip task (4.1).
+for (const reduced of [false, true]) {
+  test(`M01b rapid hover steps next x3 then previous settle on the third media${reduced ? " with reduced motion" : ""}`, async () => {
+    const browser = await launchBrowser();
+    try {
+      const { context, page } = await openPage(browser, VIEWPORTS.desktop);
+      const errors = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+      const { card, items } = await setupThree(page, 5);
+      await card.locator(".card-media").hover();
+      await settleTransitions(page);
+      await card.evaluate((node) => {
+        const trace = window.__stripTrace = { frames: [], stripAnimations: 0, stop: false };
+        const tick = () => {
+          const layers = [...node.querySelectorAll("[data-masonry-media-item]:not([hidden])")];
+          trace.frames.push({ t: performance.now(), translates: layers.map((layer) => getComputedStyle(layer).translate) });
+          trace.stripAnimations = Math.max(trace.stripAnimations, node.getAnimations({ subtree: true })
+            .filter((animation) => animation.effect?.target?.matches?.("[data-masonry-media-item]")).length);
+          if (!trace.stop) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      for (const step of [1, 1, 1, -1]) {
+        await card.locator(`[data-masonry-media-hover-step="${step}"]`).click();
+        await page.waitForTimeout(60);
+      }
+      await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
+        .getAnimations({ subtree: true }).length === 0, fixtureId);
+      const trace = await page.evaluate(() => { window.__stripTrace.stop = true; return window.__stripTrace; });
+      await mkdir(path.join(root, ".tmp/strip-rapid-step"), { recursive: true });
+      await writeFile(path.join(root, ".tmp/strip-rapid-step", reduced ? "trace-reduced.json" : "trace.json"), JSON.stringify(trace));
+
+      assert.equal(await card.getAttribute("data-masonry-active-media-id"), items[2].id, "ends on the third media");
+      const visible = card.locator("[data-masonry-media-item]:not([hidden])");
+      assert.equal(await visible.count(), 1, "one visible layer at rest");
+      assert.match(await visible.evaluate((node) => getComputedStyle(node).translate), /^(none|0px( 0px)?)$/, "visible layer rests at zero translate");
+      if (reduced) assert.equal(trace.stripAnimations, 0, "reduced motion creates no strip animation");
+      assert.deepEqual(errors, [], "no page errors");
+      await context.close();
+    } finally { await browser.close(); }
+  });
+}
 
 test("M01b touch drag moves the strip with the finger, snaps back below half, and commits past half", async () => {
   const browser = await launchBrowser();
