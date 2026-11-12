@@ -578,7 +578,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
     : null;
   observer?.observe({ type: "longtask", buffered: false });
   const paintsBefore = window.__ttSkeletonPaints.connected;
-  const activeCanvases = [...document.querySelectorAll('.masonry-grid__cta-shared-flow, [data-masonry-cta-frame].is-looping canvas[data-masonry-flow-backend="webgl"]')];
+  const activeCanvases = [...document.querySelectorAll('.masonry-grid__cta-skeleton > .masonry-grid__cta-shared-flow, [data-masonry-cta-frame].is-looping canvas[data-masonry-flow-backend="webgl"]')];
   const perFrameBefore = activeCanvases.map(canvas => canvas.__ttSkeletonPaints || 0);
   const activeFrameCount = activeCanvases.length;
   const started = performance.now();

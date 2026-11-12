@@ -1003,7 +1003,7 @@ export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase 
 
 // One WebGL context draws every batch frame: 7-8 dedicated contexts overload the old A05s GPU (round 18), a shared canvas at half
 // resolution passes the gate (round 20, advertising-skeleton R5). The canvas is 2 viewports tall and only shifts when the viewport leaves it.
-// One layer for the whole document: the runtime attaches the canvas to the current batch, and a remounting controller reuses the context.
+// One layer per container (batch, main grid, related grid, primary frame); the runtime disposes it with the mount that made it.
 // Share of a reveal spent turning Flow into frosted glass; the rest clears the glass (sample 10 the owner chose, 2026-11-12).
 const FROST_SHARE = 0.45;
 export function createSharedSkeletonFlowLayer() {
