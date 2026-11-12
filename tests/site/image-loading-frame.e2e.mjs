@@ -304,6 +304,9 @@ try {
           card: node.closest("[data-masonry-card]")?.dataset.masonryCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
           skeleton: Boolean(node.parentElement.querySelector("[data-masonry-loading-skeleton]")),
+          // When the Flow frame starts fading: cards at 0 so their Glass (under the grid's Flow canvas) shows from the start (owner 2026-11-12).
+          frameDelay: node.parentElement.querySelector(":scope > [data-masonry-loading-skeleton]")?.getAnimations()
+            .map((animation) => animation.effect.getTiming().delay).at(-1) ?? null,
           flat: [...node.querySelectorAll(".glass-surface__step")].some((step) => getComputedStyle(step).backgroundColor !== "rgba(0, 0, 0, 0)"),
           end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
             .map((animation) => animation.effect.getComputedTiming().endTime))),
@@ -367,7 +370,8 @@ try {
     // Phone cards never wear Kính; a PC card shows Kính only to reveal from its Flow frame (three tiers).
     const cardGlass = await revealGlass("card");
     if (phoneView) assert.deepEqual(cardGlass, [], `${viewport.width}px: loading cards wear no Kính`);
-    else assert.deepEqual(cardGlass.filter(({ skeleton, steps }) => !skeleton || steps !== 3), [], `${viewport.width}px: card Kính reveals from Flow`);
+    else assert.deepEqual(cardGlass.filter(({ skeleton, steps, frameDelay }) => !skeleton || steps !== 3 || frameDelay !== 0), [],
+      `${viewport.width}px: card Kính reveals from Flow, and the Flow frame fades from 0 so the Kính shows at once`);
     assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
       .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
     // A card that finished loading and left the viewport shows again at once: no blur, no skeleton (R3).
@@ -461,6 +465,8 @@ try {
     // Like cards: the skeleton still shows through the Kính, the Kính steps have no flat gray fill over the skeleton.
     if (!phoneView) assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
+    if (!phoneView) assert.ok(primaryGlass.filter(({ skeleton }) => skeleton).every(({ frameDelay }) => frameDelay > 100),
+      `${viewport.width}px: the primary Flow frame still fades with the photo (Kính over Flow) ${JSON.stringify(primaryGlass)}`);
     // Back to the first image also swaps the image in place through the Kính (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhMasonry.getBrowseState().photo === id

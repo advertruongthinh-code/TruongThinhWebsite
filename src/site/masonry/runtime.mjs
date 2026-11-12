@@ -2422,7 +2422,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       controller.signal.addEventListener("abort", dispose, { once: true });
     }
     const layer = sharedSkeletonFlows.get(container);
-    // A rebuilt batch or a newly mounted card lands after the canvas; the canvas must be the last child to sit above the frames, below Glass and the CTA.
+    // A rebuilt batch or a newly mounted card lands after the canvas; the canvas must be the last child to sit above the frames. The batch canvas stays below its Glass and the CTA;
+    // the card canvas draws over the whole card (each card is a stacking context), Glass included.
     if (layer && container.lastElementChild !== layer.canvas) container.append(layer.canvas);
     return layer;
   };
@@ -2748,9 +2749,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     scheduleSkeletonSync();
   };
   // Crossfade step of the approved reveal: the old layer fades from its current opacity, the new layer from 0.
-  const crossfadeLayers = (from, to, total) => {
+  // `fromAtStart`: the old layer starts fading at 0 instead of with the new layer (masonry cards, see playReveal).
+  const crossfadeLayers = (from, to, total, fromAtStart = false) => {
     const scale = total / MEDIA_REVEAL_MS;
     const timing = { delay: 300 * scale, duration: 600 * scale, easing: EASE.card, fill: "both" };
+    const fromTiming = fromAtStart ? { ...timing, delay: 0 } : timing;
     // Read all opacities before the first write, so the whole crossfade costs only one style recalc.
     const opacities = from.map((node) => getComputedStyle(node).opacity);
     return [
@@ -2758,7 +2761,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const opacity = opacities[index];
         node.style.transition = "none";
         node.style.opacity = opacity;
-        return node.animate([{ opacity }, { opacity: 0 }], timing);
+        return node.animate([{ opacity }, { opacity: 0 }], fromTiming);
       }),
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
@@ -2766,14 +2769,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // One reveal for card, primary and batch frame (masonry-reuse step 8): `from` fades out, `to` shows via the approved
   // crossfade. With `host`, add three-tier Glass at the bottom of the media box, over photo and skeleton (R2, R4), unless the arc CTA is visible:
   // the reveal Glass makes Chrome drop the arc's tier blur (skeleton R4).
-  const playReveal = ({ from = [], to = [], host = null }) => {
+  const playReveal = ({ from = [], to = [], host = null, fromAtStart = false }) => {
     let glass = null;
     if (host && !ctaBatch.arcInView) {
       glass = createGlassSurface("even", 3);
       glass.dataset.glassReveal = "";
       host.append(glass);
     }
-    const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
+    const animations = [...crossfadeLayers(from, to, CARD_REVEAL_MS, fromAtStart), ...(glass ? playGlassReveal(glass, CARD_REVEAL_MS) : [])];
     const finished = Promise.all(animations.map(({ finished: done }) => done));
     // A cancelled reveal (card leaves view, filter change, teardown) makes `finished` reject; callers that do not need it report no error.
     finished.catch(() => {});
@@ -2903,7 +2906,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         // running Glass reveals the card only crossfades.
         const glass = Boolean(entry.frame) && cardGlassReveals.size < CARD_GLASS_REVEAL_MAX;
         if (entry.frame) fadingSkeletonFrames.add(entry.frame);
-        const played = playReveal({ from: entry.frame ? [entry.frame] : [], to: layers, host: glass ? node.querySelector(".card-media") : null });
+        // The grid's Flow canvas draws over the whole card, so the card Glass is under Flow: Flow fades from 0 so the Glass shows from the start, like the
+        // primary where Glass sits over Flow (owner 2026-11-12).
+        const played = playReveal({ from: entry.frame ? [entry.frame] : [], to: layers, host: glass ? node.querySelector(".card-media") : null, fromAtStart: true });
         entry.animations = played.animations;
         entry.glass = played.glass;
         if (entry.glass) cardGlassReveals.add(entry);

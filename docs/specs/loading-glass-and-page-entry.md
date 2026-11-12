@@ -61,10 +61,10 @@ Then card chưa tải xong có lớp màu, không Kính, canvas Flow hay khung s
 
 Ảnh tải xong và `img.decode()` xong ([tải theo nấc R3](progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong); video không
 chờ decode), khi card còn giao viewport thì `revealCard` gọi hàm reveal chung `playReveal({ from: [khung Flow], to: media, host: .card-media })`
-trong `0.6s` (`CARD_REVEAL_MS`), giống primary ở R4: Kính ba bậc hiện, Flow mờ, media hiện `0.13s` tới `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`,
+trong `0.6s` (`CARD_REVEAL_MS`), giống primary ở R4: Kính ba bậc hiện, Flow mờ từ `0s` (primary: cùng nhịp ảnh), media hiện `0.13s` tới `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`,
 Kính tan; canvas chung vẽ Flow theo opacity của khung. Xong thì gỡ Kính, khung và `data-masonry-media-loading`. Tối đa `CARD_GLASS_REVEAL_MAX` = 4 card
 lộ bằng Kính cùng lúc; card thứ năm trở đi, và mọi card khi Kính cung đang thấy, chỉ crossfade (không Kính). Bị gỡ giữa chừng thì hủy animation,
-gỡ khung và hiện media ngay. Card chưa có khung (gắn trong `revealCard`) chỉ crossfade media. Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ, pill chỉ số và nhãn vừa xem nằm dưới Flow; lúc lộ ảnh, Kính của card nằm dưới Flow và chỉ lộ ra khi Flow mờ dần (từ khoảng `0.13s`), khác primary có Kính trên Flow từ đầu.
+gỡ khung và hiện media ngay. Card chưa có khung (gắn trong `revealCard`) chỉ crossfade media. Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ, pill chỉ số và nhãn vừa xem nằm dưới Flow; lúc lộ ảnh, Kính của card nằm dưới Flow nên Flow của card mờ ngay từ `0s` (tới khoảng `0.26s`) thay vì cùng nhịp ảnh, để Kính lộ ra ngay như primary (Kính trên Flow); ảnh vẫn hiện `0.13s` tới `0.39s` (owner 2026-11-12, đồng nhất cảm giác).
 
 Trên điện thoại (cùng điều kiện `skeletonPhone` của [skeleton R1](advertising-skeleton.md)) không có khung: `revealCard` cho media hiện
 `opacity 0 → 1` trong `0.45s` (`GHOST_FADE_MS`, `GHOST_FADE_EASING`) trên lớp màu, xong gỡ lớp màu (`clearColorWait`), không gọi `playReveal`; bị gỡ giữa chừng thì hủy animation và hiện media ngay.
