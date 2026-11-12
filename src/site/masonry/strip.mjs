@@ -19,6 +19,14 @@ export function stripOffset(lanes, width) {
   return (Number.parseFloat(getComputedStyle(node).translate) || 0) - slot * width;
 }
 
+export const isTranslate = (animation) => animation.effect?.getKeyframes().some((frame) => "translate" in frame);
+
+// A node leaves the strip: its translate animations and offset go.
+export function releaseNode(node) {
+  node.getAnimations().filter(isTranslate).forEach((animation) => animation.cancel());
+  node.style.translate = "";
+}
+
 // Rule 2 of the interruptible strip (media-card R3): the slot of media `index` is its lane already in the strip, else the slot right after the
 // outermost lane in the press direction (1 next, -1 previous), so media in between that never showed get no lane and the new media always
 // enters from the side the press points to. Each lane is { nodes, slot, index }.
@@ -44,18 +52,19 @@ export function keepLanes(lanes, { index, direction, width, offset }) {
 // the strip's earlier translate animations are cancelled.
 export function retargetStrip(lanes, { toPx, width, sameDirection, timing = null }) {
   const from = stripOffset(lanes, width);
-  lanes.forEach(({ nodes }) => nodes.forEach((node) => node.getAnimations()
-    .filter((animation) => animation.effect?.getKeyframes().some((frame) => "translate" in frame))
-    .forEach((animation) => animation.cancel())));
+  lanes.forEach(({ nodes }) => nodes.forEach(releaseNode));
   placeStrip(lanes, width, from);
   const duration = sameDirection ? PUSH_TIMING.duration
     : Math.max(200, PUSH_TIMING.duration * Math.abs(from - toPx) / width);
   const animations = moveStrip(lanes, width, from, toPx,
     timing ?? { duration, easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
-  // Start now: a pending animation holds its first keyframe for a few frames, which reads as the strip stopping on the press, and the
-  // timeline's frame time is stale after a long task, which reads as a jump. Until the next frame the inline offset holds the same place.
+  // Start at once: a pending animation holds its first keyframe for a few frames, which reads as the strip stopping on the press. `from`
+  // is where the strip was at the last frame time, so the strip starts there; after a long task that time is stale and starting there would
+  // skip the time lost, so it starts now and the inline offset holds the place until the next frame.
   const now = performance.now();
-  animations.forEach((animation) => { animation.startTime = now; });
+  const frame = document.timeline.currentTime ?? now;
+  const start = now - frame < 100 ? frame : now;
+  animations.forEach((animation) => { animation.startTime = start; });
   return animations;
 }
 

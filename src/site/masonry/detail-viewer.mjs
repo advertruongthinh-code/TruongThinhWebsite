@@ -2,7 +2,7 @@ import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { env } from "./host.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
-import { keepLanes, laneSlot, placeStrip, retargetStrip, stripOffset } from "./strip.mjs";
+import { isTranslate, keepLanes, laneSlot, placeStrip, releaseNode, retargetStrip, stripOffset } from "./strip.mjs";
 import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -458,12 +458,6 @@ export function createDetailViewer({
   const visibleControls = () => [...dialog.querySelectorAll("button, input")]
     .filter((control) => !control.disabled && !control.hidden && control.getClientRects().length > 0
       && getComputedStyle(control).visibility !== "hidden");
-  const isTranslate = (animation) => animation.effect?.getKeyframes().some((frame) => "translate" in frame);
-  // A node leaves the strip: its translate animations and offset go.
-  const releaseNode = (node) => {
-    node.getAnimations().filter(isTranslate).forEach((animation) => animation.cancel());
-    node.style.translate = "";
-  };
   // `node` moves exactly as `leader` does from now on, `shift` px beside it: same translate animations at the same point.
   const follow = (node, leader, shift = 0) => {
     const at = (translate) => `${(Number.parseFloat(translate) || 0) + shift}px 0`;
@@ -510,9 +504,7 @@ export function createDetailViewer({
     if (!dialog.open || dialog.dataset.viewerState === "closing") return;
     const index = mediaIndex(nextRecord);
     // Only a strip that has started moving is steered; one still waiting for its first media ends as before.
-    const flying = slide && slide.animations.length && !reducedMotion.matches ? slide : null;
-    const current = flying;
-    const slot = current && laneSlot(current.lanes, index, step);
+    const current = slide && slide.animations.length && !reducedMotion.matches ? slide : null;
     if (!current) endSlide();
     cancelMotion();
     dialog.dataset.viewerState = "open";
@@ -521,10 +513,18 @@ export function createDetailViewer({
     const from = current ? stripOffset(current.lanes, width) : 0;
     if (current) {
       const lane = current.lanes.find(({ nodes }) => nodes.includes(media));
-      lane.nodes[lane.nodes.indexOf(media)] = ghost;
-      current.animations = current.animations.filter(({ effect }) => effect?.target !== media).concat(follow(ghost, media));
+      current.animations = current.animations.filter(({ effect }) => effect?.target !== media);
+      // A target still waiting for its media, off screen and not the one the strip heads to, never showed: its lane goes (rule 2).
+      if (current.pending && lane.nodes.length === 1 && -lane.slot * width !== current.to && Math.abs(lane.slot * width + from) >= width) {
+        current.lanes.splice(current.lanes.indexOf(lane), 1);
+        ghost.remove();
+      } else {
+        lane.nodes[lane.nodes.indexOf(media)] = ghost;
+        current.animations.push(...follow(ghost, media));
+      }
       releaseNode(media);
     }
+    const slot = current && laneSlot(current.lanes, index, step);
     if (media === video) detachVideo();
     const previousIndex = record ? mediaIndex(record) : -1;
     apply();

@@ -1378,6 +1378,69 @@ for (const reduced of [false, true]) {
   });
 }
 
+// A dot jump then previous once the first media has left the frame (media-card R3 rule 2): only the lanes on screen stay, so the first
+// media never comes back and the strip turns from where it is to the media before last.
+test("M01b dot jump then previous turns the strip without bringing back media that left the frame", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await openPage(browser, VIEWPORTS.desktop);
+    const { card, items } = await setupThree(page, 5);
+    const ids = items.map(({ id }) => id);
+    await card.locator(".card-media").hover();
+    await settleTransitions(page);
+    // Every media decodes first, without motion, so each press steers the moving strip at once.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const id of [...ids.slice(1), ids[0]]) await card.locator(`[data-masonry-media-select="${id}"]`).click();
+    await card.evaluate((node) => Promise.all([...node.querySelectorAll("img[data-masonry-media-item]")].map((image) => image.decode().catch(() => {}))));
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const trace = await card.evaluate(async (node, ids) => {
+      const media = node.querySelector(".card-media");
+      const frames = [];
+      let stop = false;
+      const tick = () => {
+        const box = media.getBoundingClientRect();
+        frames.push({ t: performance.now(), lefts: Object.fromEntries([...node.querySelectorAll("[data-masonry-media-item]:not([hidden])")]
+          .map((layer) => [layer.dataset.masonryMediaItem, (layer.getBoundingClientRect().left - box.left) / box.width])) });
+        if (!stop) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      const select = (id) => node.querySelector(`[data-masonry-media-select="${id}"]`).click();
+      select(ids[1]);
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      select(ids[4]);
+      // The press comes once the strip is past 1.3 frames: the first media is off screen, the second and the fifth share the frame.
+      const start = performance.now();
+      await new Promise((resolve) => {
+        const wait = () => (frames.at(-1)?.lefts[ids[1]] ?? 0) < -0.3 || performance.now() - start > 2000 ? resolve() : requestAnimationFrame(wait);
+        wait();
+      });
+      const press = { t: performance.now(), lefts: frames.at(-1).lefts };
+      node.querySelector('[data-masonry-media-hover-step="-1"]').click();
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      stop = true;
+      return { frames, press };
+    }, ids);
+    await mkdir(path.join(root, ".tmp/strip-rapid-step"), { recursive: true });
+    await writeFile(path.join(root, ".tmp/strip-rapid-step", "card-jump-back.json"), JSON.stringify(trace));
+    assert(trace.press.lefts[ids[1]] < -0.3 && !(Math.abs(trace.press.lefts[ids[0]] ?? 1) < 1),
+      `the press comes with the first media off screen: ${JSON.stringify(trace.press.lefts)}`);
+    const after = trace.frames.filter(({ t }) => t > trace.press.t);
+    const back = after.filter(({ lefts }) => Math.abs(lefts[ids[0]] ?? 1) < 0.99);
+    assert.deepEqual(back, [], "the first media, off screen at the press, never comes back");
+    for (let index = 1; index < after.length; index++) {
+      const id = Object.keys(after[index].lefts).find((key) => key in after[index - 1].lefts);
+      const jump = id === undefined ? 0 : Math.abs(after[index].lefts[id] - after[index - 1].lefts[id]);
+      const frameCount = Math.max(1, (after[index].t - after[index - 1].t) / (1000 / 60));
+      assert(jump <= 0.15 * frameCount, `strip jumps ${jump.toFixed(3)} frames in ${frameCount.toFixed(1)} frames`);
+    }
+    assert.equal(await card.getAttribute("data-masonry-active-media-id"), ids[3], "ends on the media before last");
+    const visible = card.locator("[data-masonry-media-item]:not([hidden])");
+    assert.equal(await visible.count(), 1, "one visible layer at rest");
+    await context.close();
+  } finally { await browser.close(); }
+});
+
 test("M01b touch drag moves the strip with the finger, snaps back below half, and commits past half", async () => {
   const browser = await launchBrowser();
   try {
