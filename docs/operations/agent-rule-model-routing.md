@@ -69,7 +69,7 @@ Chế độ 2 hạ xuống mức Pareto rẻ hơn chỉ khi điểm Category g�
 | Việc | Category gần nhất | Chế độ 1: model, effort, provider | Chế độ 2 (kie) | Ghi chú |
 | --- | --- | --- | --- | --- |
 | interview-me, spec, plan | Reasoning, Long Agentic | opus medium, Max | = | opus high khi chạm 3+ file nóng (catalog-runtime, motion.js, skeleton-flow, design-system) |
-| Motion/UI trong `src/site` | Coding, Design | sonnet high, Max | = | opus medium khi chạm 3+ file nóng hoặc sau một lần owner chê |
+| Motion/UI trong `src/site` | Coding, Design | sonnet high, Max; opus medium khi chạm cùng lúc data, runtime, CSS | = | opus medium khi chạm 3+ file nóng hoặc sau một lần owner chê |
 | Design thuần, không code | Design | sonnet high, Max | haiku xhigh | 85.0 so với 82.2 |
 | Perf/fps gate phone Android | Data Analysis, Long Agentic | opus high, Max | = | opus xhigh chỉ sau một vòng đo vẫn chưa đạt |
 | Sửa e2e có test đỏ rõ | Coding | sonnet high, Max | = | opus medium nếu sửa xong vẫn đỏ |
@@ -87,7 +87,15 @@ Haiku chỉ cho việc ngắn; việc nhiều bước nhiều tool dùng sonnet 
 
 ### Leo bậc
 
-Leo một bậc theo Pareto (haiku medium, haiku xhigh, sonnet high, opus medium, opus high, opus xhigh) khi cùng một check đỏ hai lần liên tiếp sau khi sửa, hoặc owner chê kết quả. Áp dụng cho lần thử lại; task kế tiếp bắt đầu lại từ mặc định. Không leo vì lỗi môi trường (runner offline, cloud-Chromium). Opus max chỉ cho perf hoặc security và cần owner duyệt riêng. Leo bậc giữ provider của chế độ đang chạy.
+Owner duyệt 2026-11-12 theo video và docs Anthropic ([nguồn, case mẫu](../reference/claude-routing-cases.md)). Vai: opus medium mặc định; fable cho việc mở, nhiều mốc (giá 2x opus, cần owner cho); sonnet khi nói được "xong là gì" trong một câu (0.5x); haiku cho việc lặp nhiều, nhạy chi phí. Job lớn: model lớn dẫn, subagent sonnet làm phần rõ phạm vi.
+
+Cùng check đỏ hai lần sau sửa hoặc owner chê: chẩn đoán theo thứ tự, ghi một dòng trong brief.
+
+1. Thiếu context (brief mơ hồ, thiếu skill, tool): sửa context, giữ route.
+2. Thiếu công (sót file, không chạy test): tăng effort một bậc, giữ model và prompt cache. Trần sonnet là high, quá thì opus medium; xhigh vẫn thiếu thì sang bước 3.
+3. Thiếu hiểu biết (context đủ mà sai tự tin, bug tinh vi, kiến trúc, đề mơ hồ): lên model kế (haiku, sonnet, opus, fable) ở medium.
+
+Ba lần sửa hỏng cùng check: dừng, hỏi owner. Opus max chỉ cho perf hoặc security, owner duyệt riêng. Không leo vì lỗi môi trường. Chỉ áp cho lần thử lại; giữ provider của chế độ. Hạ bậc: phần cơ học còn lại giao subagent nhỏ hơn, brief ghi rõ bước và tiêu chí xong.
 
 ## OpenAI, Codex
 
@@ -186,6 +194,7 @@ Không suy quota từ USD/token hoặc khẳng định Astra luôn tốt hơn So
 - **Subagent**: worker do Agent tool tạo trong một thread.
 - **File nóng**: file nhiều thread cùng sửa, dễ conflict.
 - **Leo bậc**: nâng model hoặc effort cho lần thử lại sau khi lần trước thất bại.
+- **Prompt cache**: context đã xử lý được giữ cho lượt sau rẻ, nhanh hơn; đổi model làm mất.
 - **Route**: cặp model và effort yêu cầu cho một task.
 - **Callable**: host thực sự có công cụ gọi route đó.
 - **Requested / effective**: route yêu cầu / route được metadata xác nhận đã chạy.
