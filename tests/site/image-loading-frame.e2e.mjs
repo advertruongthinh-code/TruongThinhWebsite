@@ -336,7 +336,7 @@ try {
     }, waitingImage);
     if (phoneView) {
       // The image stays hidden (no blur, no breathing) over a color layer that cycles through its 4 colors.
-      assert.deepEqual(loading, { blur: false, animationName: "none", opacity: 0, marked: false, layer: "media-colors-top" },
+      assert.deepEqual(loading, { blur: false, animationName: "none", opacity: 0, marked: false, layer: "media-colors-fade, media-colors-shift" },
         `${viewport.width}px: loading card waits on the color layer, image hidden`);
     } else {
       // A waiting image breathes with media-breathe (opacity 1 → 0.45 → 1) while blurred (image-wait spec S2).
