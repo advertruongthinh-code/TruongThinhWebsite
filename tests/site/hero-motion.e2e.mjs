@@ -1,4 +1,4 @@
-// page-home R3: the home hero slide zooms out (1.06 to 1 on desktop, 1.1 to 1 on a phone) with no pan; a phone pan slide moves straight
+// page-home R3: a zoom-out hero slide zooms out (1.06 to 1 on desktop, 1.1 to 1 on a phone) with no pan; a phone pan slide moves straight
 // along one axis by 8% of the frame height and its image edge never enters the frame (DRY tasks 0.3, 5.2).
 // Math.random is fixed so the slide order is stable, as in runHeroCrossFadeContinuityChecks in site.e2e.cjs.
 import assert from "node:assert/strict";
@@ -10,6 +10,13 @@ const TOLERANCE = 0.001;
 const PAN_MS = 9_000;
 const SCALE_RANGE = { desktop: [1.055, 1.06], a04s: [1.095, 1.1] };
 const failures = [];
+
+// hero-slides.json decides which slide pans, so each check rewrites every slide to the move it tests instead of trusting the data.
+const rewriteMoves = (html, attributes) => html.replace(/data-hero-move="(?:zoom-out|pan)"(?: data-hero-pan-dir="\w+")?/g, attributes);
+const routeMoves = (page, attributes) => page.route(`${BASE_URL}/vi/`, async (route) => {
+  const response = await route.fetch();
+  await route.fulfill({ response, body: rewriteMoves(await response.text(), attributes) });
+});
 
 // Fixed shuffle: the first slide is always the same one, as in runHeroCrossFadeContinuityChecks in site.e2e.cjs.
 const pinOrder = (page) => page.addInitScript(() => {
@@ -23,6 +30,7 @@ try {
     const { context, page } = await openPage(browser, VIEWPORTS[name]);
     try {
       await pinOrder(page);
+      await routeMoves(page, 'data-hero-move="zoom-out"');
       await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".hero-slide.is-active img")?.complete);
 
@@ -65,11 +73,7 @@ try {
     const { context, page } = await openPage(browser, VIEWPORTS.a04s);
     try {
       await pinOrder(page);
-      await page.route(`${BASE_URL}/vi/`, async (route) => {
-        const response = await route.fetch();
-        const html = (await response.text()).replaceAll('data-hero-move="zoom-out"', `data-hero-move="pan" data-hero-pan-dir="${dir}"`);
-        await route.fulfill({ response, body: html });
-      });
+      await routeMoves(page, `data-hero-move="pan" data-hero-pan-dir="${dir}"`);
       await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".hero-slide.is-active img")?.complete);
 
