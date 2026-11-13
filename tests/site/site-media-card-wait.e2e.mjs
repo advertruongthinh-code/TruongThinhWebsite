@@ -120,3 +120,50 @@ test("media-card R5: the shared queue never runs more than its cap plus the view
     await browser.close();
   }
 });
+
+// media-card R6 (owner 2026-11-12): primary loads the media being viewed first, then every other media of the card through the queue; an arrow
+// press slides at once, the target lane under its wait layer until the file has decoded.
+for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], ["phone 390", VIEWPORTS.phone, true]]) {
+  test(`media-card R6 ${label}: primary queues the other media and slides at once onto a loading one under its wait layer`, async () => {
+    const browser = await launchBrowser();
+    const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    const requested = new Set();
+    try {
+      await page.route("**/*media-wait=*", async (route) => {
+        requested.add(new URL(route.request().url()).searchParams.get("media-wait"));
+        await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+        await route.continue().catch(() => {});
+      });
+      await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, slowArtifact());
+      await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
+      await page.locator("[data-detail-view]").waitFor({ state: "visible" });
+      await page.waitForFunction(() => {
+        const image = document.querySelector("[data-detail-view] [data-detail-image]");
+        return image?.complete && image.naturalWidth > 0;
+      });
+      await page.waitForTimeout(300);
+      assert.deepEqual([...requested].sort(), ["1", "2", "3"], "every other media is queued once the viewed media shows");
+      const state = await page.evaluate(async () => {
+        document.querySelector('[data-detail-media-step="1"]').click();
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+        const strip = document.querySelector(".detail-view__strip");
+        const wait = strip?.querySelector(".card-media__wait");
+        return { moving: strip ? strip.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length : 0,
+          wait: wait && { frost: wait.classList.contains("card-media__wait--frost"), colors: wait.dataset.mediaWait || null } };
+      });
+      assert(state.moving > 0, `primary strip runs within two frames of the press: ${JSON.stringify(state)}`);
+      assert(state.wait, `target lane carries its wait layer: ${JSON.stringify(state)}`);
+      if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
+      else assert(state.wait.frost, "PC waits on frosted glass");
+      await page.waitForFunction(() => !document.querySelector(".detail-view__strip"), null, { timeout: 15_000 });
+      assert.match(await page.locator("[data-detail-view] [data-detail-image]").getAttribute("src"), /media-wait=1/);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+      await browser.close();
+    }
+  });
+}
