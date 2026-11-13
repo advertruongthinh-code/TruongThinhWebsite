@@ -36,6 +36,7 @@ export function createDetailViewer({
   video,
   player,
   videoHost,
+  laneWait,
   onOpen,
 } = {}) {
   if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
@@ -53,6 +54,8 @@ export function createDetailViewer({
   let home = null;
   let homeParent = null;
   let slide = null;
+  // The lane wait layer of the image shown while its file loads (laneWait): it rides the strip with the image and clears once it decodes.
+  let mediaWait = null;
   let scale = 1;
   // Image rotation angle in degrees; free during a pinch, otherwise always a multiple of 90 (R11).
   let angle = 0;
@@ -332,6 +335,7 @@ export function createDetailViewer({
   const finishClose = (restoreFocus) => {
     cancelMotion();
     endSlide();
+    dropWait();
     dialog.close();
     if (media === video) detachVideo();
     delete dialog.dataset.viewerState;
@@ -474,10 +478,28 @@ export function createDetailViewer({
       return twin;
     });
   };
+  const dropWait = () => {
+    mediaWait?.remove();
+    mediaWait = null;
+    expandedImage.style.removeProperty("visibility");
+  };
+  // The image shown has not decoded: it waits under the lane layer, sized like the image, until it does (media-card R6).
+  const waitForImage = () => {
+    if (!laneWait || reducedMotion.matches || (expandedImage.complete && expandedImage.naturalWidth > 0)) return null;
+    let entry = null;
+    entry = laneWait(expandedImage, record.media, () => mediaWait === entry.wait);
+    const { wait } = entry;
+    wait.classList.add("detail-dialog__wait");
+    wait.style.setProperty("--viewer-fit-width", expandedImage.style.width);
+    wait.style.setProperty("--viewer-fit-height", expandedImage.style.height);
+    viewport.append(wait);
+    void entry.done.then(() => { if (mediaWait === wait) mediaWait = null; });
+    return mediaWait = wait;
+  };
   // Every node in the strip but the real media is a ghost: a still copy of media that left.
   const endSlide = () => {
     if (!slide) return;
-    slide.lanes.forEach(({ nodes }) => nodes.forEach((node) => node === media ? releaseNode(node) : node.remove()));
+    slide.lanes.forEach(({ nodes }) => nodes.forEach((node) => node === media || node === mediaWait ? releaseNode(node) : node.remove()));
     slide = null;
   };
   // Video: a canvas draws the currently shown frame, the poster if there is no frame yet; image: a copy of the image.
@@ -514,6 +536,10 @@ export function createDetailViewer({
     cancelMotion();
     dialog.dataset.viewerState = "open";
     const ghost = ghostOf();
+    // A wait layer still on the media that leaves goes on covering its ghost (it is in the ghost's lane already on a moving strip).
+    const leavingWait = mediaWait;
+    mediaWait = null;
+    expandedImage.style.removeProperty("visibility");
     const width = current?.width ?? viewport.clientWidth;
     const from = current ? stripOffset(current.lanes, width) : 0;
     if (current) {
@@ -543,21 +569,24 @@ export function createDetailViewer({
     measureFit();
     renderTransform();
     const target = media;
+    const wait = target === expandedImage ? waitForImage() : null;
+    const targetNodes = wait ? [target, wait] : [target];
     if (current) {
       // The target moves with the strip from its own slot: in its lane already, or beside the outermost lane on its side.
       const lane = current.lanes.find((entry) => entry.index === index);
       const leader = lane ?? current.lanes.find((entry) => Math.abs(entry.slot - slot) === 1);
-      if (!lane) current.lanes.push({ nodes: [target], slot, index });
-      else lane.nodes.push(target);
-      current.animations.push(...follow(target, leader.nodes[0], (slot - leader.slot) * width));
+      if (!lane) current.lanes.push({ nodes: targetNodes, slot, index });
+      else lane.nodes.push(...targetNodes);
+      targetNodes.forEach((node) => current.animations.push(...follow(node, leader.nodes[0], (slot - leader.slot) * width)));
     } else {
-      slide = { lanes: [{ nodes: [ghost], slot: 0, index: previousIndex }, { nodes: [target], slot: step, index }],
-        animations: [], width, to: 0, pending: null };
+      slide = { lanes: [{ nodes: leavingWait ? [ghost, leavingWait] : [ghost], slot: 0, index: previousIndex },
+        { nodes: targetNodes, slot: step, index }], animations: [], width, to: 0, pending: null };
       placeStrip(slide.lanes, width, 0);
     }
     const strip = slide;
     const token = strip.pending = {};
-    const ready = target === video
+    // A target under its wait layer slides at once (owner 2026-11-13); otherwise the strip turns to it once it can show.
+    const ready = wait ? null : target === video
       ? video.readyState >= 2 || new Promise((resolve) => {
         video.addEventListener("loadeddata", resolve, { once: true });
         video.addEventListener("error", resolve, { once: true });

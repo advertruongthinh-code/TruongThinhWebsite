@@ -114,7 +114,15 @@ const FROST_UPSCALE = 4;
 // PC lane Flow (owner 2026-11-13): the mounted page lends its loading skeleton here, so a lane waits under Flow in its image's 4 colors over
 // the frosted glass; null on the phone and before a mount.
 let laneFlow = null;
-function createLaneWait({ id, waitSrc, tinySrc, color }) {
+// The file a lane waits for (a video waits for its poster) and its 240 file.
+const laneWaitSource = (item) => item.kind === "video" ? item.posterSrc : item.src;
+const laneTinySource = (item) => responsiveSource(laneWaitSource(item), item.width, 240);
+// flowFrame: a Flow frame already running for this media (the primary's first load), moved into the layer instead of a new one, so the
+// motion goes on while the lane slides (owner 2026-11-13).
+function createLaneWait(item, color, flowFrame = null) {
+  const { id } = item;
+  const waitSrc = laneWaitSource(item);
+  const tinySrc = laneTinySource(item);
   const node = document.createElement("div");
   node.className = "card-media__wait";
   node.dataset.mediaId = id;
@@ -133,7 +141,7 @@ function createLaneWait({ id, waitSrc, tinySrc, color }) {
     if (laneFlow) {
       node.classList.add("card-media__wait--flow");
       const colors = mediaColors(waitSrc)?.slice(1);
-      node.laneFlowFrame = laneFlow.attach(node, id, colors?.length === 4 && new Set(colors).size > 1 ? colors : null);
+      node.laneFlowFrame = laneFlow.attach(node, id, colors?.length === 4 && new Set(colors).size > 1 ? colors : null, flowFrame);
     }
   }
   return node;
@@ -143,7 +151,10 @@ function createLaneWait({ id, waitSrc, tinySrc, color }) {
 // crossfades its colour layer to the media in 0.45s as a card does (progressive-loading R9); then the layer goes. The media stays unpainted
 // (visibility hidden) under its layer until then: a file that arrives mid-slide would otherwise decode while the strip moves and hold its frames
 // (headless Chromium measured 66-110ms per 3072 WebP).
-function clearLaneWait(node, media, reduced, done = () => {}) {
+// Returns a promise that settles once the layer is gone.
+function clearLaneWait(node, media, reduced) {
+  let done;
+  const cleared = new Promise((resolve) => { done = resolve; });
   node.dataset.waitDone = "";
   media.style.removeProperty("visibility");
   const finish = () => {
@@ -154,7 +165,7 @@ function clearLaneWait(node, media, reduced, done = () => {}) {
     if (node.laneFlowFrame) laneFlow?.detach(node.laneFlowFrame);
     node.laneFlowFrame = null;
     finish();
-    return;
+    return cleared;
   }
   // The layer sits above the media, so the layer itself fades out: fading the media in under it showed nothing, then the layer vanished in one
   // frame (phone, owner 2026-11-13). Over an opaque media both read as the same crossfade.
@@ -169,13 +180,23 @@ function clearLaneWait(node, media, reduced, done = () => {}) {
       .finished.then(() => node.animate([{ opacity: 1 }, { opacity: 0 }],
         { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" }).finished)
       .then(finishFlow, finishFlow);
-    return;
+    return cleared;
   }
   const fade = skeletonPhone()
     ? node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING, fill: "forwards" })
     : node.animate([{ opacity: 1 }, { opacity: 0 }],
       { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" });
   fade.finished.then(finish, finish);
+  return cleared;
+}
+// A strip lane media (primary or viewer) not decoded yet: it waits unpainted under its layer, which clears once it decodes. `done` settles
+// when the layer is gone, so the strip lands only after the crossfade (a strip removed mid-fade showed the media at once, owner 2026-11-13).
+// `live` false at decode: the media moved on to another file, its layer stays with the lane until the strip removes it.
+function waitLaneMedia(media, item, color, { reduced, flowFrame = null, live = () => true } = {}) {
+  const wait = createLaneWait(item, color, flowFrame);
+  media.style.visibility = "hidden";
+  const done = media.decode().catch(() => {}).then(() => live() ? clearLaneWait(wait, media, reduced) : undefined);
+  return { wait, done };
 }
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a reveal for every card that scrolls past.
@@ -1237,8 +1258,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const waits = new Map();
     const cardSource = (item) => responsiveSource(item.src, item.width,
       Math.ceil(Math.max(media.clientWidth, 240) * devicePixelRatio));
-    const waitSource = (item) => item.kind === "video" ? item.posterSrc : item.src;
-    const tinySource = (item) => responsiveSource(waitSource(item), item.width, 240);
     // The queue loads a file without making its layer: layers stay created on demand (layerFor), and a layer gets its src once the queue has
     // the file.
     const cardUrls = new Map();
@@ -1264,8 +1283,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     figure.advertisingWarmMedia = () => {
       if (skeletonPhone()) return;
       items.forEach((item, index) => {
-        const tiny = tinySource(item);
-        if (index !== activeIndex && tiny !== waitSource(item)) void mediaQueue.load(tiny, { rank: Math.abs(index - activeIndex) }).catch(() => {});
+        const tiny = laneTinySource(item);
+        if (index !== activeIndex && tiny !== laneWaitSource(item)) void mediaQueue.load(tiny, { rank: Math.abs(index - activeIndex) }).catch(() => {});
       });
     };
     // The wait layer of a lane whose media is not ready; null when it is ready (or reduced motion: the media shows when it arrives).
@@ -1275,7 +1294,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (isReady(layer) || reducedMotion() || layer.classList.contains("is-media-error")) return null;
       let node = waits.get(item.id);
       if (node) return node;
-      node = createLaneWait({ id: item.id, waitSrc: waitSource(item), tinySrc: tinySource(item), color });
+      node = createLaneWait(item, color);
       layer.style.visibility = "hidden";
       layer.after(node);
       waits.set(item.id, node);
@@ -1293,7 +1312,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       layer.style.setProperty("transition", "none", "important");
       layer.classList.add("is-masonry-media-ready");
       onPendingChange(figure);
-      clearLaneWait(node, layer, reducedMotion(), () => layer.style.removeProperty("transition"));
+      void clearLaneWait(node, layer, reducedMotion()).then(() => layer.style.removeProperty("transition"));
     };
     // A lane carries its media and, while that media loads, its wait layer; both move with the strip.
     const laneNodes = (index) => {
@@ -1876,6 +1895,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     video: photoVideo,
     player: photoPlayer,
     videoHost: photoDialog?.querySelector("[data-detail-video-host]"),
+    // The viewer's media still loading slides in under the same lane wait as the primary strip (owner 2026-11-13).
+    laneWait: (media, item, live) => waitLaneMedia(media, item, primaryWaitColor(item), { reduced, live }),
     onOpen: () => {
       photoView.dataset.detailExpanded = "";
       drawLiveBackground();
@@ -2942,8 +2963,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // canvas would trail); dropped once the layer leaves the document however it was removed.
   if (!skeletonPhone()) {
     laneFlow = {
-      attach: (host, mediaId, colors) => {
-        const frame = attachLoadingSkeleton(host, `lane:${mediaId}`, null, colors);
+      attach: (host, mediaId, colors, running = null) => {
+        const frame = running ? host.appendChild(running) : attachLoadingSkeleton(host, `lane:${mediaId}`, null, colors);
         let seen = false;
         const watch = () => {
           if (!loadingSkeletonFrames.has(frame) || controller.signal.aborted) return;
@@ -4135,7 +4156,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const { frame, animations } = primaryReveal;
     primaryReveal = null;
     animations.forEach((animation) => animation.cancel());
-    if (frame) detachLoadingSkeleton(frame);
+    // A frame a strip lane took along (primaryLane) stays with that lane, which drops it when it leaves.
+    if (frame && !frame.closest(".detail-view__strip")) detachLoadingSkeleton(frame);
     clearColorWait(heroFrame);
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
@@ -4360,23 +4382,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         fadeVolume(1);
       }
       strip.animations.forEach((animation) => animation.cancel());
+      // Back on a media still loading (a swipe that snapped back): its Flow frame returns to the frame.
+      const frame = primaryReveal?.frame;
+      if (frame?.closest(".detail-view__strip")) heroFrame.insertBefore(frame, photoVideo.nextSibling);
       strip.nodes.forEach((node) => node.remove());
     }
     if (heroFrame) delete heroFrame.dataset.detailSliding;
     startLiveBackground();
   };
   // A strip lane: the media (image, or poster of a video) and, while it has not decoded, its wait layer (media-card R6, owner 2026-11-12).
+  // `done` settles once the lane's wait layer has cleared. The media being viewed, still under its first-load wait, takes that wait along: the
+  // running Flow frame moves into its lane (PC), the color layer keeps its shared phase (phone), so sliding away never shows the bare frame.
+  const primaryWaitColor = (item) => cardColor(cards.find((card) => card.id === activePhotoId) ?? { media: item });
   const primaryLane = (item, slot, index) => {
     const media = Object.assign(document.createElement("img"),
       { alt: "", src: primarySource(item), className: "detail-view__strip-media" });
     if (reduced || (media.complete && media.naturalWidth > 0)) return { nodes: [media], slot, index };
-    const waitSrc = item.kind === "video" ? item.posterSrc : item.src;
-    const wait = createLaneWait({ id: item.id, waitSrc, tinySrc: responsiveSource(waitSrc, item.width, 240),
-      color: cardColor(cards.find((card) => card.id === activePhotoId) ?? { media: item }) });
+    const flowFrame = slot === 0 ? primaryReveal?.frame ?? null : null;
+    const { wait, done } = waitLaneMedia(media, item, primaryWaitColor(item), { reduced, flowFrame });
     wait.classList.add("detail-view__strip-media");
-    media.style.visibility = "hidden";
-    void media.decode().catch(() => {}).then(() => clearLaneWait(wait, media, reduced));
-    return { nodes: [media, wait], slot, index };
+    return { nodes: [media, wait], slot, index, done };
   };
   // entries: [{ item, slot }], slot 0 is the media currently shown; `offset` is the offset of slot 0 from the frame. Each lane is
   // { nodes, slot, index } like the card strip; `to` is the offset the strip heads to.
@@ -4387,7 +4412,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clip.className = "detail-view__strip";
     const items = primaryItems();
     const lanes = entries.map(({ item, slot }) => {
-      const lane = slot ? primaryLane(item, slot, items.indexOf(item)) : { nodes: [currentPrimaryNode()], slot, index: items.indexOf(item) };
+      const lane = slot || "detailLoading" in heroFrame.dataset ? primaryLane(item, slot, items.indexOf(item))
+        : { nodes: [currentPrimaryNode()], slot, index: items.indexOf(item) };
       lane.nodes[0].classList.add("detail-view__strip-media");
       clip.append(...lane.nodes);
       return lane;
@@ -4414,6 +4440,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const { animations } = strip;
     // No animation: the strip had not started when a press sent it back to the media it shows.
     try { await animations.at(-1)?.finished; } catch { return; }
+    if (primaryStrip !== strip || strip.animations !== animations || !strip.apply) return;
+    // The target's wait layer clears first (crossfade), then the real media takes over.
+    await strip.lanes.find((lane) => -lane.slot * strip.width === strip.to)?.done;
     if (primaryStrip !== strip || strip.animations !== animations || !strip.apply) return;
     strip.apply();
     Object.assign(strip, { apply: null, playing: false });
@@ -4464,11 +4493,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // With the viewer open the primary changes directly: the strip is inserted next to photoVideo, but the video may be inside the viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
-    if (changed || video || sliding) settlePrimaryReveal();
+    // The strip opens before the first-load wait settles: the lane of the media being viewed takes that wait's Flow frame along.
     const steered = sliding && !motion && steerPrimaryStrip(item, Math.sign(slide));
     const strip = steered ? primaryStrip : sliding ? motion?.strip ?? openPrimaryStrip([
       { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
     ]) : null;
+    if (changed || video || sliding) settlePrimaryReveal();
     if (!sliding) closePrimaryStrip();
     // Video to video within the same card: time, total, seek bar stay on the old video until the new video runs (owner 2026-10-25).
     videoTimeHold = Boolean(slide) && video && activePrimaryItem?.kind === "video";
