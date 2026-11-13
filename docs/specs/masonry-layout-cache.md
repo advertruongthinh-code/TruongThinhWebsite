@@ -103,10 +103,10 @@ Then request file một filter đã bắt đầu trước khi detail.js tải xo
 
 ### R5. Cỡ pool và ngưỡng chip
 
-Một chip luôn có tối thiểu 10 card và trang riêng ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-10-card)), nên pool nhỏ nhất
-của cụm và sản phẩm là 10 card; filter loại công trình ở trang Công trình có thể chỉ 3 card và vẫn không lỗ ở mọi cỡ từ 1 card.
+Một chip luôn có tối thiểu 5 card và trang riêng ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card)), nên pool nhỏ nhất
+của cụm và sản phẩm là 5 card; filter loại công trình ở trang Công trình có thể chỉ 3 card và vẫn không lỗ ở mọi cỡ từ 1 card.
 Pool nhỏ có thể hạ card ngang về một cột (đo trên pool ngẫu nhiên có card ngang: 3 tới 8 card thì 8,5% pool có card bị hạ, 10 tới 14 card thì 0,5%), không bao giờ có lỗ. Số
-filter cache bằng `all` + 6 cụm + sản phẩm từ 10 card, nên số file ở R3 đổi theo ngưỡng. Test ngẫu nhiên (`masonry-layout-fuzz.test.mjs`:
+filter cache bằng `all` + 6 cụm + sản phẩm từ 5 card, nên số file ở R3 đổi theo ngưỡng. Test ngẫu nhiên (`masonry-layout-fuzz.test.mjs`:
 81 bộ có seed, 1 tới 80 card, 9 kiểu tỷ lệ) kiểm build không `throw`, replay không lỗ trên 5 dải, mỗi card một lần, cắt không quá 5%, `stackLayout`
 không lỗ; `LAYOUT_FUZZ_COUNTS=150,285,600` chạy bản dài bằng tay (216 bộ, 296 nghìn replay, 0 lỗi).
 
