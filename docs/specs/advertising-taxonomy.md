@@ -49,6 +49,8 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
 Nhãn, slug VI và title đổi theo Keyword Planner cả nước 2026-11-13 (owner "ok quảng cáo"; bảng từ khóa trong tài liệu SEO từ khóa của thread SEO): biển vẫy (1K-10K) hơn bảng vẫy, gian hàng hội chợ hơn gian hàng triển lãm, "LED decor" không có lượt tìm nên thành LED neon, in hộp giấy, túi giấy (10K-100K) thay thẻ, vé. Slug cũ chưa live trên domain chính nên không cần chuyển hướng.
 
+Tên card tiếng Việt (`titleVi` trong `media-manifest.mjs`, cũng là alt ảnh bìa) là từ khóa ngách riêng của từng card: sản phẩm + vật liệu, cấu tạo hoặc ngành khách, không trùng nhau (owner 2026-11-13 duyệt tên Haiku đặt từ ảnh). Tên tiếng Anh vẫn theo nhãn sản phẩm.
+
 Tên cụm liệt kê vài sản phẩm chính để khách đọc là biết cụm có gì, mở đầu bằng cụm từ có lượt tìm
 cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có thể khác tên cụm. Quy tắc kèm theo:
 
