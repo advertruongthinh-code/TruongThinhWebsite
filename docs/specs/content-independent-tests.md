@@ -57,9 +57,10 @@ catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs
 6. Trang dựng từ khối `src/site/content/projects.json`, `news.json`: kiểu khối, chữ VI/EN, ảnh có thật đúng kích thước,
    id liên kết trỏ trang có thật ([layout-library R4](layout-library.md#r4-dữ-liệu-và-render-tĩnh)); mảng và loại công trình
    khớp nhau; `src/site/content/menu.json` chỉ trỏ công trình và nhóm Advertising có thật ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)).
-7. Ảnh bài News chỉ thuộc một bài (bìa và khối của chính bài đó): không bài News khác, trang, file data hay CSS nào
-   trong `src/site/` (trừ `assets/`) dùng lại ảnh đó, so theo tên gốc nên biến thể và định dạng khác cũng tính
-   ([tạo media AI](../operations/agent-rule-ad-images.md#tạo-ảnh)).
+7. Ảnh bài News chỉ thuộc một bài, ảnh công trình chỉ thuộc một công trình (bìa, card và khối của chính trang đó): không
+   trang cùng loại khác, trang, file data hay CSS nào trong `src/site/` (trừ `assets/`) dùng lại ảnh đó, so theo tên gốc
+   nên biến thể và định dạng khác cũng tính; ảnh tạm `placeholder-*` được miễn
+   ([tạo media AI](../operations/agent-rule-ad-images.md#tạo-ảnh); ảnh công trình: owner 2026-11-13).
 
 Lỗi nêu file, id và luật bị vi phạm, không dừng ở lỗi đầu tiên.
 
