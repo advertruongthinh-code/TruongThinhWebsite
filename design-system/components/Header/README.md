@@ -35,6 +35,9 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
   một nửa, dòng giữa giãn gấp đôi; nhấn thì nút `scale(.8)`.
 - Underline nav cao 3px, cách chữ 4px; nghỉ `scaleX(0)` neo phải, hover hoặc
   đang chọn `scaleX(1)` neo trái.
+  Trang detail (card sản phẩm quảng cáo `body.is-detail`, trang công trình
+  `body.is-project-detail`) giữ `aria-current` nhưng underline đang chọn về
+  `scaleX(0)`, chỉ chạy ra khi hover hoặc focus.
 
 ## Trạng thái
 
