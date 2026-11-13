@@ -48,6 +48,8 @@ async function measure() {
     return image?.complete && image.naturalWidth > 0 && !document.querySelector(".detail-view__hero-frame[data-detail-loading]");
   }, null, { timeout: 60_000 });
   const shownAt = await page.evaluate(() => performance.now());
+  // The thumbnail row can render after the first image shows (A04s: 8 of 15 runs counted 0).
+  await page.waitForFunction(() => document.querySelectorAll("[data-detail-media-select]").length > 1, null, { timeout: 30_000 });
   const count = await page.locator("[data-detail-media-select]").count();
   await page.waitForTimeout(JUMP_AFTER_MS);
   const jump = await page.evaluate(async (index) => {
