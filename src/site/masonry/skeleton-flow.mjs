@@ -1117,6 +1117,7 @@ export function createSharedSkeletonFlowLayer() {
   let bandTop = -1;
   let bandHeight = 0;
   let container = null;
+  let lastClip = "";
 
   const placeBand = () => {
     const viewport = innerHeight;
@@ -1208,6 +1209,14 @@ export function createSharedSkeletonFlowLayer() {
     gl.enable(gl.SCISSOR_TEST);
     // Rect instead of offsetTop: frames slide by `translate` when masonry shifts, and the canvas draws at the visible position.
     const origin = container.getBoundingClientRect();
+    // Texels per CSS px; the canvas size is rounded, so a fixed 0.5 drifts up to 1px across the band.
+    const scaleX = canvas.width / origin.width;
+    const scaleY = canvas.height / bandHeight;
+    const ratio = devicePixelRatio || 1;
+    // Outward to whole device pixels: a card sliding by `translate` paints its edge pixel partly, and the clip must cover that pixel fully.
+    const floor = (value) => Math.floor(value * ratio) / ratio;
+    const ceil = (value) => Math.ceil(value * ratio) / ratio;
+    let clip = "";
     for (const entry of entries) {
       entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
       const { frame } = entry;
@@ -1229,10 +1238,19 @@ export function createSharedSkeletonFlowLayer() {
       const top = box.top - origin.top - bandTop;
       const { height } = box;
       if (alpha <= 0 || top + height < 0 || top > bandHeight) continue;
-      const x = Math.round((box.left - origin.left) * scale);
-      const w = Math.round(box.width * scale);
-      const h = Math.round(height * scale);
-      const y = canvas.height - Math.round(top * scale) - h;
+      // The half-resolution canvas is upscaled bilinearly, so an edge pixel also samples the texel outside the frame: a frame drawn only
+      // over its own texels left a 1-2px band at all four edges where the still image under the canvas showed through (owner 2026-11-13).
+      // Draw one texel past every edge, then clip the canvas to the frames so that bleed never shows outside them.
+      const left = box.left - origin.left;
+      // Not clamped to the canvas: a frame crossing the band keeps its mapping and the scissor cuts it.
+      const x = Math.floor(left * scaleX - 0.5);
+      const w = Math.ceil((left + box.width) * scaleX + 0.5) - x;
+      const bottom = Math.ceil((top + height) * scaleY + 0.5);
+      const y = canvas.height - bottom;
+      const h = bottom - Math.floor(top * scaleY - 0.5);
+      const clipLeft = floor(box.left) - origin.left;
+      const clipTop = floor(box.top) - origin.top - bandTop;
+      clip += `M${clipLeft} ${clipTop}H${ceil(box.right) - origin.left}V${ceil(box.bottom) - origin.top - bandTop}H${clipLeft}Z`;
       gl.viewport(x, y, w, h);
       gl.scissor(x, y, w, h);
       gl.blendColor(0, 0, 0, alpha);
@@ -1256,6 +1274,9 @@ export function createSharedSkeletonFlowLayer() {
       gl.uniform4fv(locations.balances, entry.balances);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
+    // Written only when a frame moves or appears, so a still grid costs no style work.
+    clip = clip ? `path("${clip}")` : "inset(50%)";
+    if (clip !== lastClip) canvas.style.clipPath = lastClip = clip;
     frameId = requestAnimationFrame(tick);
   }
 
