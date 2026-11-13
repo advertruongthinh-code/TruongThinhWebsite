@@ -56,7 +56,6 @@
     }
   },
   "repositories": {
-    "Graphify-Labs/graphify": "0a8cd4e1e342235fe53e881fb5d591bf0460071f",
     "ayghri/i-have-adhd": "1ecea1993b7fce257ffbd686c070948b5e07eda6",
     "addyosmani/agent-skills": "aeac41d4d005999432bb7312f7ff06383a91d59d",
     "juliusbrussee/caveman": "f5837c46f8a38915ebc8dd1e6250598fb7482863",
@@ -66,7 +65,6 @@
     "vercel-labs/skills": "92a9a34ac3bf88e695e468b90c7bf32f163d32c8"
   },
   "repository_urls": {
-    "Graphify-Labs/graphify": "https://github.com/Graphify-Labs/graphify.git",
     "ayghri/i-have-adhd": "https://github.com/ayghri/i-have-adhd.git",
     "addyosmani/agent-skills": "https://github.com/addyosmani/agent-skills.git",
     "juliusbrussee/caveman": "https://github.com/juliusbrussee/caveman.git",
