@@ -93,7 +93,7 @@ nổi bật của ảnh đó, sắp từ sáng tới tối như preset; field, a
 `build-image-variants.mjs` trích bốn màu bằng k-means (k = 4, khởi đầu k-means++ seed cố định) trên bản thu 64px và ghi vào `MEDIA_COLORS` cùng màu chủ
 đạo của card ([loading-glass R1](loading-glass-and-page-entry.md#r1-card-đang-tải-chờ-dưới-flow)); `--check` báo ảnh thiếu.
 Media không có bốn màu (video không poster, ảnh mới chưa build) dùng màu preset. Batch dưới CTA giữ 12 preset.
-Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow]`, chỉ build ghi.
+Contract dữ liệu: `MEDIA_COLORS[tên file WebP không đuôi] = [màu chủ đạo card, 4 màu Flow, độ chói vùng pill 0-100]` (phần tử thứ sáu cho tông pill của card, [media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media)), chỉ build ghi; runtime đọc 4 màu Flow qua `flowColors`.
 Màu chủ đạo là tâm bin đông nhất của histogram RGB 16x16x16 trên điểm ảnh **cỡ gốc** của WebP (không phải bản 64px; `sharp` `stats()` bỏ qua `resize`); bốn màu Flow lấy từ bản thu 64px (`resize(64)`).
 Hai bước nằm trong `image-palette.mjs`, không phụ thuộc `sharp` hay API Node: `dominant(pixels, channels)` khớp `stats().dominant` từng bin và từng ca hòa
 (test so với `sharp`), `palette(pixels)` cho bốn màu, `mediaColors({ full, thumb, channels })` gộp thành năm màu hex. Build gọi `mediaColors` với điểm ảnh từ `sharp`;
