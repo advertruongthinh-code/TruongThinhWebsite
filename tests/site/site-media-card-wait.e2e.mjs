@@ -168,6 +168,17 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       });
       await page.waitForTimeout(300);
       assert.deepEqual([...requested].sort(), ["1", "2", "3"], "every other media is queued once the viewed media shows");
+      // Every frame, the opacity of the target lane's wait layer: it must fade out over the decoded media before the strip goes, never be cut
+      // by the strip landing (phone showed the image at once, owner 2026-11-13).
+      await page.evaluate(() => {
+        window.__waitOpacities = [];
+        const sample = () => {
+          const wait = document.querySelector(".detail-view__strip .card-media__wait");
+          if (wait) window.__waitOpacities.push(Number(getComputedStyle(wait).opacity));
+          requestAnimationFrame(sample);
+        };
+        sample();
+      });
       const state = await page.evaluate(async () => {
         document.querySelector('[data-detail-media-step="1"]').click();
         await new Promise(requestAnimationFrame);
@@ -184,6 +195,116 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       else assert(state.wait.frost && state.wait.flow, `PC waits under Flow over frosted glass: ${JSON.stringify(state.wait)}`);
       await page.waitForFunction(() => !document.querySelector(".detail-view__strip"), null, { timeout: 15_000 });
       assert.match(await page.locator("[data-detail-view] [data-detail-image]").getAttribute("src"), /media-wait=1/);
+      const opacities = await page.evaluate(() => window.__waitOpacities);
+      assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out before the strip goes: ${JSON.stringify(opacities.slice(-12))}`);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+      await browser.close();
+    }
+  });
+}
+
+// Opens the photo of the fixture card; `slowCover` also delays the cover, so the primary is still under its first-load wait.
+async function openSlowPhoto(page, { slowCover = false } = {}) {
+  await page.route("**/*media-wait=*", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+    await route.continue().catch(() => {});
+  });
+  const artifact = slowArtifact();
+  if (slowCover) {
+    const card = artifact.cards.find((item) => item.id === fixtureId);
+    card.mediaItems[0] = { ...card.mediaItems[0], src: `${card.mediaItems[0].src}?media-wait=0` };
+  }
+  await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+  await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
+  await page.locator("[data-detail-view]").waitFor({ state: "visible" });
+}
+
+// media-card R6 (owner 2026-11-13): sliding away from a primary still under its first-load Flow takes that same Flow frame along in its
+// lane, so the frame never shows bare (grey) mid-slide.
+test("media-card R6 PC 1440: the primary's first-load Flow rides its lane when the viewer slides away", async () => {
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, VIEWPORTS.desktop);
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  try {
+    await openSlowPhoto(page, { slowCover: true });
+    await page.waitForFunction(() => {
+      const frame = document.querySelector("[data-detail-view] .detail-view__hero-frame > .masonry-grid__cta-frame");
+      if (frame) frame.dataset.testFirstLoad = "";
+      return Boolean(frame);
+    });
+    const state = await page.evaluate(async () => {
+      document.querySelector('[data-detail-media-step="1"]').click();
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      const frame = document.querySelector("[data-test-first-load]");
+      return { inLane: Boolean(frame?.closest(".detail-view__strip .card-media__wait")), connected: Boolean(frame?.isConnected),
+        lanes: document.querySelectorAll(".detail-view__strip .card-media__wait").length };
+    });
+    assert(state.inLane && state.lanes === 2, `the first-load Flow frame moved into the leaving lane: ${JSON.stringify(state)}`);
+    await page.waitForFunction(() => !document.querySelector(".detail-view__strip"), null, { timeout: 15_000 });
+    assert(!(await page.evaluate(() => document.querySelector("[data-test-first-load]")?.isConnected)), "the frame goes with its lane");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+// media-card R6 (owner 2026-11-13): in the viewer, a media still loading slides in at once under the same lane wait as the primary strip
+// and crossfades to the image once it has decoded.
+for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], ["phone 390", VIEWPORTS.phone, true]]) {
+  test(`media-card R6 ${label}: the viewer slides at once onto a loading media under its wait layer`, async () => {
+    const browser = await launchBrowser();
+    const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    try {
+      await openSlowPhoto(page);
+      await page.waitForFunction(() => {
+        const image = document.querySelector("[data-detail-view] [data-detail-image]");
+        return image?.complete && image.naturalWidth > 0;
+      });
+      await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
+      await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open"
+        || (document.querySelector("[data-detail-dialog]")?.open && !document.querySelector("[data-detail-dialog]").dataset.viewerState));
+      await page.evaluate(() => {
+        window.__waitOpacities = [];
+        const sample = () => {
+          const wait = document.querySelector(".detail-dialog__wait");
+          if (wait) window.__waitOpacities.push(Number(getComputedStyle(wait).opacity));
+          requestAnimationFrame(sample);
+        };
+        sample();
+      });
+      const state = await page.evaluate(async (id) => {
+        document.querySelector(`[data-detail-viewer-select="${id}"]`).click();
+        await new Promise(requestAnimationFrame);
+        await new Promise(requestAnimationFrame);
+        const image = document.querySelector("[data-detail-expanded-image]");
+        const wait = document.querySelector(".detail-dialog__wait");
+        const box = (node) => { const rect = node.getBoundingClientRect(); return { width: Math.round(rect.width), height: Math.round(rect.height) }; };
+        return { moving: image.getAnimations().filter((animation) => animation.playState === "running").length,
+          wait: wait && { colors: wait.dataset.mediaWait || null, flow: Boolean(wait.querySelector(":scope > .masonry-grid__cta-frame")),
+            moving: wait.getAnimations().filter((animation) => animation.playState === "running").length, box: box(wait) },
+          image: box(image) };
+      }, `${fixtureId}-wait-1`);
+      assert(state.moving > 0, `the viewer strip runs within two frames of the press: ${JSON.stringify(state)}`);
+      assert(state.wait && state.wait.moving > 0, `the target carries its wait layer along: ${JSON.stringify(state)}`);
+      assert.equal(state.wait.box.height, state.image.height, "the wait layer has the image's fit size");
+      if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
+      else assert(state.wait.flow && state.wait.box.width >= state.image.width + 40, `PC waits under Flow with feathered sides: ${JSON.stringify(state)}`);
+      await page.waitForFunction(() => !document.querySelector(".detail-dialog__wait"), null, { timeout: 15_000 });
+      const shown = await page.evaluate(() => {
+        const image = document.querySelector("[data-detail-expanded-image]");
+        return { src: image.getAttribute("src"), visibility: getComputedStyle(image).visibility };
+      });
+      assert.match(shown.src, /media-wait=1/);
+      assert.equal(shown.visibility, "visible");
+      const opacities = await page.evaluate(() => window.__waitOpacities);
+      assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out: ${JSON.stringify(opacities.slice(-12))}`);
       assert.deepEqual(errors, []);
     } finally {
       await context.close();

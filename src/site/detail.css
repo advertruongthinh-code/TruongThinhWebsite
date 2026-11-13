@@ -3131,7 +3131,8 @@ body.is-masonry-browse .site-footer {
   grid-area: 1 / 1;
 }
 
-.detail-dialog__viewport :is(img, video, canvas) {
+/* Not inside a lane wait layer: its frost and Flow canvases keep their own size. */
+.detail-dialog__viewport :is(img, video, canvas):not(.card-media__wait *) {
   display: block;
   width: auto;
   height: auto;
@@ -3265,6 +3266,19 @@ body.is-masonry-browse .site-footer {
 
 .detail-dialog__ghost {
   pointer-events: none;
+}
+
+/* Viewer image still loading (media-card R6, owner 2026-11-13): the lane wait layer sits in the image's grid cell at its fit size; on PC its
+   Flow reaches the feather into the media beside it like the primary strip. */
+.detail-dialog__viewport > .card-media__wait.detail-dialog__wait {
+  position: relative;
+  inset: auto;
+  width: var(--viewer-fit-width);
+  height: var(--viewer-fit-height);
+}
+
+.detail-dialog__viewport > .card-media__wait--flow.detail-dialog__wait {
+  width: calc(var(--viewer-fit-width) + 2 * var(--lane-feather));
 }
 
 .detail-dialog__controls {
