@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import sharp from "sharp";
 
-import { dominant, mediaColors, palette } from "../../scripts/site/image-palette.mjs";
+import { dominant, mediaColors, palette, pillLuminance } from "../../scripts/site/image-palette.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const { MEDIA_COLORS } = await import(pathToFileURL(path.join(root, "src/site/media-lib/colors.mjs")).href);
@@ -22,10 +22,19 @@ const flat = palette(Uint8Array.from(Array.from({ length: 64 }, () => [90, 90, 9
 assert.equal(flat.length, 4);
 assert(flat.every((color) => color.join() === "90,90,90"));
 
-// Generated file: each image has a dominant card color and 4 Flow colors in hex.
+// Generated file: each image has a dominant card color and 4 Flow colors in hex, then the pill-area luminance 0-100.
 const entries = Object.values(MEDIA_COLORS);
 assert(entries.length > 0);
-assert(entries.every((colors) => colors.length === 5 && colors.every((color) => /^#[0-9a-f]{6}$/.test(color))));
+assert(entries.every((colors) => colors.length === 6 && colors.slice(0, 5).every((color) => /^#[0-9a-f]{6}$/.test(color))
+  && Number.isInteger(colors[5]) && colors[5] >= 0 && colors[5] <= 100));
+
+// media-card R2 (owner 2026-11-13): the pill luminance reads only the bottom middle of the thumbnail, where the pill sits.
+const thumbOf = (bottomMiddle) => Uint8Array.from(Array.from({ length: 64 * 40 }, (_, index) => {
+  const x = index % 64, y = Math.floor(index / 64);
+  return y >= 34 && x >= 19 && x < 45 ? bottomMiddle : 255 - bottomMiddle;
+}).flatMap((value) => [value, value, value]));
+assert.equal(pillLuminance(thumbOf(0)), 0, "a black pill area under a white image is dark");
+assert.equal(pillLuminance(thumbOf(255)), 100, "a white pill area under a black image is light");
 
 // dominant() is the sharp-free twin of sharp stats().dominant: same bins at every bin edge and the same winner on ties (fewer pixels than bins).
 const solid = async (r, g, b, count = 1) => {

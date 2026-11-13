@@ -10,6 +10,7 @@ tests:
   - tests/site/site-media-card-m01b.e2e.mjs
   - tests/site/site-media-card-r6.e2e.mjs
   - tests/site/site-media-card-m02a.e2e.mjs
+  - tests/site/site-media-card-pill-tone.e2e.mjs
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-wait.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
@@ -40,10 +41,8 @@ Then validateAdvertisingCardMedia ném lỗi "ratio must match the card", không
 
 Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `masonry/layout.mjs`), kể cả khi cover là video. Mọi UI của card nằm trong media (owner 2026-11-10): card cao đúng bằng media ở masonry, bộ lọc, related và Công trình; batch skeleton và card
 tạm cũng không chừa chỗ dưới media. Hàng pill cao 40px sát đáy, trong canvas: chấm hoặc bộ đếm ở giữa, pill cách đáy card 12px như hàng nút dưới của pin Pinterest khi hover (owner 2026-11-10). Card không có nhãn thời lượng video
-(owner 2026-11-10). Card một item không có hàng pill; item đó là video hoặc ảnh khác `record.media` thì card hiện đúng
-item đó. Đổi media, tải chậm hay lỗi không đổi khung
-card, canvas hay hàng pill (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
-[masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới
+(owner 2026-11-10). Pill theo tông vùng ảnh ngay dưới nó của media đang hiện (owner 2026-11-13): build đo độ chói tương đối (WCAG, 0-100) của 15% đáy, 40% giữa ảnh 64px (video đo poster), lưu ở phần tử thứ sáu của `MEDIA_COLORS`; dưới 20 (điểm hai pill tương phản bằng nhau với vùng đó) thì pill sáng: nền trắng 85%, chấm và chữ than `#333`; còn lại giữ pill than; đổi media thì pill mờ dần sang tông mới trong 0.3s. Card một item không có hàng pill; item đó là video hoặc ảnh khác `record.media` thì card hiện đúng item đó. Đổi media, tải chậm hay lỗi không đổi khung
+card, canvas hay hàng pill (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của [masonry R5](advertising-masonry.md#r5-hình-học-masonry); cover ngang từ tỷ lệ vàng (`w/h >= 1.618`) trải hai cột ở lưới
 từ 3 cột theo R5 đó, canvas và hàng pill rộng theo hai cột.
 Media không có ngoại lệ (owner 2026-11-11): không ảnh hay video nào có điểm lấy nét riêng; mọi crop (khung suggestion, trim card hai cột) cắt đều quanh tâm, nên ảnh phải được tạo hoặc chọn với chủ thể nằm giữa khung.
 
@@ -247,7 +246,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
-| R2 | `advertising-products-layout.test.mjs` (mọi card cao đúng bằng media, không dải dưới canvas); `advertising-skeleton-flow.test.mjs` (skeleton không chừa tên); `block-pages.e2e.mjs` (tên Công trình trong media); `site-media-card-r6.e2e.mjs` (hàng pill trong canvas, ca 384px 5 media có video không chồng pill, rect ổn định, singleton) |
+| R2 | `site-media-card-pill-tone.e2e.mjs` (pill sáng trên vùng tối, than trên vùng sáng, mờ dần khi đổi media, PC và phone); `media-colors.test.mjs` (độ chói vùng pill); `advertising-products-layout.test.mjs` (mọi card cao đúng bằng media, không dải dưới canvas); `advertising-skeleton-flow.test.mjs` (skeleton không chừa tên); `block-pages.e2e.mjs` (tên Công trình trong media); `site-media-card-r6.e2e.mjs` (hàng pill trong canvas, ca 384px 5 media có video không chồng pill, rect ổn định, singleton) |
 | R3 | `advertising-card-interactions.e2e.mjs` (chuột thật: lớp tối Pinterest và tên khi hover; cảm ứng: không tên, không lớp tối, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp hover không motion, "Vừa xem" khi hover, dải liền không fade không lộ nền; bấm mũi tên hover ba lần tới một lần lùi cách 60ms dừng đúng media thứ ba với một lớp, translate 0, dải không nhảy quá 15% canvas giữa hai frame và vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, reduced motion không tạo animation; bấm chấm nhảy rồi lùi khi media đầu đã ra khỏi khung thì media đầu không quay lại, vệt vị trí từng frame ghi ở `.tmp/strip-rapid-step/`); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi); `frost-upscale.test.mjs` (kính mờ của làn phóng B-spline tròn, màu phẳng giữ phẳng, dưới 4ms) |

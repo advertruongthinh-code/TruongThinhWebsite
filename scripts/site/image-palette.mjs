@@ -45,9 +45,26 @@ export function dominant(pixels, channels = 3) {
 
 const hex = ([r, g, b]) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 
-// MEDIA_COLORS entry [dominant, 4 Flow colors] as hex, no sharp or Node API so the CMS admin can import this file. Input is the stored WebP (never the PNG or JXL): `full` = pixels of the full-size image, `thumb` = pixels of the same image resized to
+// Relative luminance (WCAG, 0-100) of the area under a card's pill row (media-card R2, owner 2026-11-13): the bottom 15% of the 64px thumbnail,
+// across the middle 40% of its width, where the dots or the counter sit.
+const linear = (value) => (value /= 255) <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+export function pillLuminance(thumb, channels = 3, width = 64) {
+  const height = Math.round(thumb.length / channels / width);
+  let sum = 0;
+  let count = 0;
+  for (let y = Math.floor(height * 0.85); y < height; y += 1) {
+    for (let x = Math.floor(width * 0.3); x < Math.ceil(width * 0.7); x += 1) {
+      const at = (y * width + x) * channels;
+      sum += 0.2126 * linear(thumb[at]) + 0.7152 * linear(thumb[at + 1]) + 0.0722 * linear(thumb[at + 2]);
+      count += 1;
+    }
+  }
+  return Math.round((sum / count) * 100);
+}
+
+// MEDIA_COLORS entry [dominant, 4 Flow colors, pill luminance]: colors as hex, no sharp or Node API so the CMS admin can import this file. Input is the stored WebP (never the PNG or JXL): `full` = pixels of the full-size image, `thumb` = pixels of the same image resized to
 // 64px wide (sharp resize(64), lanczos3). Both are 8-bit sRGB, `channels` 3 (RGB) or 4 (RGBA, canvas getImageData; alpha ignored like removeAlpha()).
 export function mediaColors({ full, thumb, channels = 3 }) {
   const rgb = channels === 3 ? thumb : thumb.filter((_, index) => index % 4 !== 3);
-  return [dominant(full, channels), ...palette(rgb)].map(hex);
+  return [...[dominant(full, channels), ...palette(rgb)].map(hex), pillLuminance(thumb, channels)];
 }

@@ -62,7 +62,7 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 | Số item | Hàng pill trong canvas | Điều khiển |
 | --- | --- | --- |
 | 1 | Không | Không chỉ báo |
-| 2 tới 5 | 40px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 16×40px |
+| 2 tới 5 | 40px | Một hàng chấm 8px trong pill: chấm màu chữ pill 40%, chấm đang xem đậm; vùng bấm 16×40px |
 | Từ 6 | Pill cộng 12px | Bộ đếm `7/11` trong pill, không nút trong hàng; đổi media bằng mũi tên hover hoặc vuốt |
 
 - Hàng pill nằm sát đáy, trong canvas, không nền; pill cách đáy card 12px như hàng nút dưới của pin Pinterest (owner 2026-11-10):
@@ -72,6 +72,9 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
   nhau 16px. Pill bộ đếm padding 4px 8px, chữ trắng `0.75rem` thường,
   line-height 1.6, số thường (số 1 dạng
   `tabular-nums` của Plus Jakarta Sans có chân, owner 2026-11-10 thấy lạ).
+- Pill theo tông vùng ảnh ngay dưới nó (owner 2026-11-13): vùng tối (độ chói dưới 20/100, video lấy poster) thì pill sáng, nền
+  trắng 85%, chấm và chữ than `#333`; vùng sáng giữ pill than chữ trắng. Đổi media thì pill mờ dần sang tông mới `0.3s`
+  (`--dur-base`). Chấm theo màu chữ của pill: chấm thường 40%, chấm đang xem đậm.
 - Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
 ### Video
