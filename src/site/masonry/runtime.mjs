@@ -111,6 +111,9 @@ const FROST_UPSCALE = 4;
 // glass (sample 10: the 240 file drawn at 20px and stretched, 14% white veil, fine grain), the phone the 4-colour layer of a card waiting for
 // its image. Only a real 240 file is drawn: drawImage decodes on the main thread, and a media without size variants would decode its full file.
 // waitSrc: the image file, or the poster of a video; tinySrc: its 240 file.
+// PC lane Flow (owner 2026-11-13): the mounted page lends its loading skeleton here, so a lane waits under Flow in its image's 4 colors over
+// the frosted glass; null on the phone and before a mount.
+let laneFlow = null;
 function createLaneWait({ id, waitSrc, tinySrc, color }) {
   const node = document.createElement("div");
   node.className = "card-media__wait";
@@ -126,10 +129,17 @@ function createLaneWait({ id, waitSrc, tinySrc, color }) {
       node.style.setProperty("--frost-grain-size", `${256 / devicePixelRatio}px`);
     }
     if (tinySrc !== waitSrc) void mediaQueue.load(tinySrc, { rank: 0 }).then(() => drawFrostCopy(node, tinySrc, () => !("waitDone" in node.dataset)), () => {});
+    // Flow over the glass, wider than the lane and feathered at both sides so the seam with the next media is soft (detail.css).
+    if (laneFlow) {
+      node.classList.add("card-media__wait--flow");
+      const colors = mediaColors(waitSrc)?.slice(1);
+      node.laneFlowFrame = laneFlow.attach(node, id, colors?.length === 4 && new Set(colors).size > 1 ? colors : null);
+    }
   }
   return node;
 }
-// The media under a wait layer has decoded: PC clears the frosted glass in the clearing part of the card reveal (0.6s, sample 10), the phone
+// The media under a wait layer has decoded: PC turns Flow into the frosted glass under it, then clears the glass, in the 0.6s card reveal
+// (45% then 55%, like the primary's first image, owner 2026-11-13); without Flow it only clears the glass (0.33s). The phone
 // crossfades its colour layer to the media in 0.45s as a card does (progressive-loading R9); then the layer goes. The media stays unpainted
 // (visibility hidden) under its layer until then: a file that arrives mid-slide would otherwise decode while the strip moves and hold its frames
 // (headless Chromium measured 66-110ms per 3072 WebP).
@@ -141,11 +151,26 @@ function clearLaneWait(node, media, reduced, done = () => {}) {
     done();
   };
   if (node.hidden || reduced) {
+    if (node.laneFlowFrame) laneFlow?.detach(node.laneFlowFrame);
+    node.laneFlowFrame = null;
     finish();
     return;
   }
   // The layer sits above the media, so the layer itself fades out: fading the media in under it showed nothing, then the layer vanished in one
   // frame (phone, owner 2026-11-13). Over an opaque media both read as the same crossfade.
+  const frame = node.laneFlowFrame;
+  const finishFlow = () => {
+    node.laneFlowFrame = null;
+    if (frame) laneFlow?.detach(frame);
+    finish();
+  };
+  if (frame && !skeletonPhone()) {
+    frame.animate([{ opacity: 1 }, { opacity: 0 }], { duration: CARD_REVEAL_MS * 0.45, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" })
+      .finished.then(() => node.animate([{ opacity: 1 }, { opacity: 0 }],
+        { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" }).finished)
+      .then(finishFlow, finishFlow);
+    return;
+  }
   const fade = skeletonPhone()
     ? node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING, fill: "forwards" })
     : node.animate([{ opacity: 1 }, { opacity: 0 }],
@@ -2913,6 +2938,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     frame.remove();
     scheduleSkeletonSync();
   };
+  // Lane Flow (createLaneWait): a frame inside the lane wait layer, own renderer (it moves with the strip on the compositor, which the grid's shared
+  // canvas would trail); dropped once the layer leaves the document however it was removed.
+  if (!skeletonPhone()) {
+    laneFlow = {
+      attach: (host, mediaId, colors) => {
+        const frame = attachLoadingSkeleton(host, `lane:${mediaId}`, null, colors);
+        let seen = false;
+        const watch = () => {
+          if (!loadingSkeletonFrames.has(frame) || controller.signal.aborted) return;
+          if (frame.isConnected) seen = true;
+          else if (seen) return detachLoadingSkeleton(frame);
+          requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+        return frame;
+      },
+      detach: detachLoadingSkeleton,
+    };
+    controller.signal.addEventListener("abort", () => { laneFlow = null; }, { once: true });
+  }
   // Crossfade step of the approved reveal: the old layer fades from its current opacity, the new layer from 0.
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;

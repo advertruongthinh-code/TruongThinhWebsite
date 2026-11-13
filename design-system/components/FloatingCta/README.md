@@ -1,6 +1,6 @@
 # Floating CTA
 
-Nguồn: CSS `.floating-cta`; spec [Shell](../../../docs/specs/site-shell.md).
+Nguồn: CSS `.floating-cta`, `.back-to-top`; spec [Shell](../../../docs/specs/site-shell.md).
 
 Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floating-cta`; lớp
 `show` do `motion.js` gắn.
@@ -15,6 +15,12 @@ Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floati
   `.detail-cta` đã có nút "Gọi Zalo tư vấn". Ẩn cả khi footer lọt vào
   viewport (trang ngắn như 404), nên footer không chừa làn nút.
 - Hover: nền trắng, chữ `ink`, `0.3s ease-out`.
+
+## Nút về đầu trang
+
+- `button.back-to-top`, cùng ô vuông với CTA ở `<= 750px` (35px, đệm 9px, viền 2px đen, nền đen), cách phải 15px, dưới 25px; icon mũi tên lên 25px nét 2.4, không chữ, nhãn `aria-label`.
+- Chỉ điện thoại (`(hover: none) and (pointer: coarse)`), trang có masonry, khi đã qua màn đầu: đúng lúc CTA trượt ra, nên hai nút không cùng hiện. Trượt vào từ phải như CTA.
+- Bấm thì cuộn mượt về đầu trang; reduced motion nhảy thẳng, không trượt.
 
 Preview hiện trạng thái `show`.
 

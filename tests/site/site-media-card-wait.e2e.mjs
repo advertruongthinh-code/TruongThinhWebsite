@@ -61,7 +61,10 @@ async function pressState(card, press) {
     const wait = node.querySelector(".card-media__wait");
     return { elapsed: performance.now() - start, moving: moving.length, activeId: node.dataset.masonryActiveMediaId,
       wait: wait && { frost: wait.classList.contains("card-media__wait--frost"), colors: wait.dataset.mediaWait || null,
-        id: wait.dataset.mediaId, hidden: wait.hidden, translate: getComputedStyle(wait).translate } };
+        id: wait.dataset.mediaId, hidden: wait.hidden, translate: getComputedStyle(wait).translate,
+        flow: Boolean(wait.querySelector(":scope > .masonry-grid__cta-frame")),
+        overhang: wait.getBoundingClientRect().width - wait.parentElement.getBoundingClientRect().width,
+        mask: getComputedStyle(wait).maskImage } };
   }, press);
 }
 
@@ -101,7 +104,15 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       assert(state.wait && state.wait.id === `${fixtureId}-wait-1` && !state.wait.hidden,
         `incoming lane carries its wait layer: ${JSON.stringify(state)}`);
       if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
-      else assert(state.wait.frost, "PC waits on frosted glass");
+      else {
+        assert(state.wait.frost && state.wait.flow, `PC waits under Flow over frosted glass: ${JSON.stringify(state.wait)}`);
+        assert(state.wait.overhang >= 40 && state.wait.mask.includes("gradient"), `PC lane layer overhangs and feathers: ${JSON.stringify(state.wait)}`);
+        const running = await card.evaluate((node) => new Promise((resolve) => setTimeout(() => {
+          const frame = node.querySelector(".card-media__wait > .masonry-grid__cta-frame");
+          resolve(frame ? { ready: frame.classList.contains("is-entry-ready"), backend: frame.querySelector("canvas")?.dataset.masonryFlowBackend } : null);
+        }, 600)));
+        assert(running?.ready && running.backend && running.backend !== "none", `lane Flow runs: ${JSON.stringify(running)}`);
+      }
       assert(await settled(card, `${fixtureId}-wait-1`), "media shows and the wait layer goes once the file has decoded");
       const opacities = await page.evaluate(() => window.__waitOpacities);
       assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out: ${JSON.stringify(opacities.slice(-12))}`);
@@ -164,12 +175,13 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
         const strip = document.querySelector(".detail-view__strip");
         const wait = strip?.querySelector(".card-media__wait");
         return { moving: strip ? strip.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length : 0,
-          wait: wait && { frost: wait.classList.contains("card-media__wait--frost"), colors: wait.dataset.mediaWait || null } };
+          wait: wait && { frost: wait.classList.contains("card-media__wait--frost"), colors: wait.dataset.mediaWait || null,
+            flow: Boolean(wait.querySelector(":scope > .masonry-grid__cta-frame")) } };
       });
       assert(state.moving > 0, `primary strip runs within two frames of the press: ${JSON.stringify(state)}`);
       assert(state.wait, `target lane carries its wait layer: ${JSON.stringify(state)}`);
       if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
-      else assert(state.wait.frost, "PC waits on frosted glass");
+      else assert(state.wait.frost && state.wait.flow, `PC waits under Flow over frosted glass: ${JSON.stringify(state.wait)}`);
       await page.waitForFunction(() => !document.querySelector(".detail-view__strip"), null, { timeout: 15_000 });
       assert.match(await page.locator("[data-detail-view] [data-detail-image]").getAttribute("src"), /media-wait=1/);
       assert.deepEqual(errors, []);

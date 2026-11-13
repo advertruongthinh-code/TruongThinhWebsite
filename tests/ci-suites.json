@@ -118,6 +118,7 @@
       "specs": ["site-shell", "page-home", "detail-pages", "advertising-cta-center-parallax"],
       "tests": [
         "node tests/site/footer-consistency.e2e.mjs",
+        "node tests/site/back-to-top.e2e.mjs",
         "TT_E2E_FOOTER_ONLY=1 node tests/site/site.e2e.cjs"
       ]
     },

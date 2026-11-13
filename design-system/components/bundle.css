@@ -561,6 +561,52 @@ html.route-enter .site-header {
   transform: translateX(0);
 }
 
+/* Back to top (owner 2026-11-13): phones on a page with a masonry layout, past the first screen, in the corner the floating CTA leaves;
+   the same black square as the CTA's icon-only form at 750px (35px plus 9px padding, 15px from the right). motion.js adds .show. */
+.back-to-top {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .back-to-top {
+    position: fixed;
+    z-index: 975;
+    right: 15px;
+    bottom: 25px;
+    display: grid;
+    box-sizing: content-box;
+    width: 35px;
+    height: 35px;
+    padding: 9px;
+    place-items: center;
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    transform: translateX(150%);
+    transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
+  }
+
+  .back-to-top.show {
+    transform: translateX(0);
+  }
+
+  .back-to-top svg {
+    width: 25px;
+    height: 25px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: square;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}
+
 .site-menu {
   position: fixed;
   z-index: 15000;
@@ -4966,6 +5012,24 @@ body.is-masonry-browse .masonry-grid {
   background-image: var(--frost-grain, none);
   background-size: var(--frost-grain-size, 256px);
   mix-blend-mode: overlay;
+}
+
+/* PC lane Flow (media-card R5, owner 2026-11-13): the wait layer reaches 24px into the media beside it on both sides and fades out there, so
+   the seam of a sliding strip is soft; the card or the strip clips what lies outside. Above the media layers (z-index), or the next media,
+   later in the DOM, would cover the feather. Flow runs in its own frame over the glass. */
+.card-media__wait.card-media__wait--flow {
+  z-index: 1;
+  --lane-feather: 24px;
+  right: calc(-1 * var(--lane-feather));
+  left: calc(-1 * var(--lane-feather));
+  width: auto;
+  mask-image: linear-gradient(90deg, transparent, #000 var(--lane-feather), #000 calc(100% - var(--lane-feather)), transparent);
+}
+
+.card-media__wait > .masonry-grid__cta-frame {
+  inset: 0;
+  pointer-events: none;
+  --masonry-cta-frame-opacity: 1;
 }
 
 /* PC media being loaded waits under a Flow frame (docs/specs/loading-glass-and-page-entry.md R1); taps go through to the card and its buttons. */
