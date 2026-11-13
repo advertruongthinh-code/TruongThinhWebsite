@@ -22,8 +22,9 @@ tests:
   - tests/site/reduced-motion-live.e2e.mjs
   - tests/site/route-veil-header.e2e.mjs
   - tests/site/projects-back-scroll.e2e.mjs
+  - tests/site/back-to-top.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Shell website
@@ -184,9 +185,8 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 
 ### R10. Floating CTA và footer
 
-Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ,
-trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
-là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
+Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ, trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
+là nút vuông chỉ icon; Advertising browse ẩn nó. Nút về đầu trang `button.back-to-top` (owner 2026-11-13) chỉ có trên điện thoại (`(hover: none) and (pointer: coarse)`) ở trang có masonry (`[data-masonry-item]`): `.show` khi `scrollY` qua một chiều cao cửa sổ, đúng góc phải dưới floating CTA vừa rời, cùng ô vuông chỉ icon (mũi tên lên, có `aria-label`); bấm thì cuộn mượt về đầu, reduced motion nhảy thẳng. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
 Hotline Zalo đứng trước Văn phòng, cùng độ đậm 500, dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
 Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới. CTA ẩn khi footer lọt vào
 viewport (404) nên footer không chừa làn nút: đệm dọc rộng, bốn cột giãn đều giữa hai biên `gutter`: địa chỉ (cùng cỡ chữ hai số), Hotline, Văn phòng, mạng xã hội xếp ngang (751-1023px Văn phòng xếp dưới Hotline); kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
@@ -271,7 +271,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `projects-back-scroll.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |
-| R10 | `footer-consistency.e2e.mjs`, `TT_E2E_FOOTER_ONLY`, `shared-header-menu-p7.test.mjs` |
+| R10 | `footer-consistency.e2e.mjs`, `TT_E2E_FOOTER_ONLY`, `shared-header-menu-p7.test.mjs`; `back-to-top.e2e.mjs` (điện thoại trang masonry hiện qua màn đầu, bấm về đầu; PC và trang không masonry không hiện) |
 | R11 | `mobile-viewport-stability.e2e.mjs`; Android thật: `mobile-viewport-android-record.mjs` |
 | R12 | `mobile-layout-parity.e2e.mjs --scope matrix` (22 × 5 × 2 cỡ chữ × 3 engine = 660 ca) |
 | R13 | `TT_E2E_REDUCED_ONLY`, `cross-browser.smoke.spec.cjs`; `reduced-motion-live.e2e.mjs` (đổi reduced motion khi trang đang mở thì dừng hoặc chạy lại, không reload) |

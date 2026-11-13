@@ -16,6 +16,8 @@
   const header = document.querySelector("[data-site-header]");
   const routeVeil = document.querySelector(".route-veil");
   const floatingCta = document.querySelector(".floating-cta");
+  const backToTop = document.querySelector(".back-to-top");
+  const phoneQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
   const dialog = document.querySelector("#site-menu");
   const openButton = document.querySelector("[data-menu-open]");
   const closeButton = document.querySelector("[data-menu-close]");
@@ -45,6 +47,7 @@
   const persistentSelectors = [
     "[data-site-header]",
     ".floating-cta",
+    ".back-to-top",
     "#site-menu",
   ];
 
@@ -717,6 +720,13 @@
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta?.classList.toggle("show", nextCtaShown);
+    }
+    // Back to top (owner 2026-11-13): phones, on a page with a masonry layout, once the first screen is passed. It takes the corner the floating
+    // CTA leaves at that point (masonry browse hides the CTA altogether).
+    const topShown = phoneQuery.matches && scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
+    if (backToTop && topShown !== backToTop.classList.contains("show")) {
+      backToTop.classList.toggle("show", topShown);
+      backToTop.tabIndex = topShown ? 0 : -1;
     }
     if (pageState?.scrollCue instanceof HTMLElement) {
       const cueHidden = scrollY > 200;
@@ -2676,6 +2686,11 @@
     { signal: runtimeAbort.signal },
   );
 
+  // Phones scroll natively (Locomotive is off there); reduced motion jumps.
+  backToTop?.addEventListener("click", () => {
+    if (pageState?.smoothScroll) pageState.smoothScroll.scrollTo(0, { duration: reduceMotion ? 0 : undefined });
+    else window.scrollTo({ top: 0, behavior: reduceMotion ? "instant" : "smooth" });
+  }, { signal: runtimeAbort.signal });
   openButton.addEventListener("click", openMenu, {
     signal: runtimeAbort.signal,
   });
