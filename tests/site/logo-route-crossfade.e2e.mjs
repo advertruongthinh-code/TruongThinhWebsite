@@ -114,8 +114,8 @@ try {
       if (toDestination) {
         assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
       }
-      // Veil stays fully covering at least 1s (owner 2026-11-09) even if the destination page loads instantly, so the navbar does not flicker.
-      assert.ok(record.veilOpening - record.veilClosed >= 1000 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
+      // Veil stays fully covering at least 0.7s (owner 2026-11-13) even if the destination page loads instantly, so the navbar does not flicker.
+      assert.ok(record.veilOpening - record.veilClosed >= 700 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
       // The mark flips (no tween) from full veil coverage or from veil opening start, not from the click.
       assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
       const { at, ...flip } = record.flips[0];

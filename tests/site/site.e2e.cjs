@@ -3007,7 +3007,7 @@ async function runEspacioRouteLogoTimingChecks() {
       await gotoRoute(page, "/vi/");
       // Images load by AVIF/WebP srcset variant (media-delivery R3).
       await page.route(/residential-detail-x1(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
-        // Image slower than the whole route: veil covers for 0.75s, holds fully covered for at least 1s (logo-route-crossfade R2), then opens.
+        // Image slower than the whole route: veil covers for 0.75s, holds fully covered for at least 0.7s (logo-route-crossfade R2), then opens.
         await new Promise((resolve) => setTimeout(resolve, 3_200));
         delayedHeroReleased = true;
         await requestRoute.continue();
@@ -8202,7 +8202,7 @@ async function runDetailHeroEntryChecks() {
         });
         const trace = await page.evaluate(() => window.__ttSoftHeroTrace);
         const start = trace.samples[0];
-        // The new container is in the DOM while the veil still covers for its minimum 1s hold (logo-route-crossfade R2);
+        // The new container is in the DOM while the veil still covers for its minimum 0.7s hold (logo-route-crossfade R2);
         // the entrance mounts when the hold ends, so measure the zoom from its first moving frame.
         const moving = trace.samples.find((sample) => sample.scale < start.scale - 0.005);
         const middle = trace.samples.find((sample) => moving && sample.elapsed >= moving.elapsed + 350);

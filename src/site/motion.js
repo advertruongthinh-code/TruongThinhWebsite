@@ -177,9 +177,9 @@
   // Soft route: the header is in veil tone (bold text, CMYK mark) from when the veil fully covers until it starts opening, even when the
   // destination page mounts under the veil (logo-route-crossfade R1, R2).
   let routeVeilInk = false;
-  // The veil covers fully for at least 1s (owner 2026-11-09), longer than one mark flip, even when the destination page is already cached: bold text and CMYK mark
+  // The veil covers fully for at least 0.7s (owner 2026-11-13, was 1s), longer than one mark flip (0.68s), even when the destination page is already cached: bold text and CMYK mark
   // show long enough on the veil, the navbar does not flicker (owner 2026-11-09, logo-route-crossfade R2).
-  const routeVeilHold = 1000;
+  const routeVeilHold = 700;
   let routeVeilCoveredAt;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
