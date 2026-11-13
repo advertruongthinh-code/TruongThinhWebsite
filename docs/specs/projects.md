@@ -89,7 +89,7 @@ carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, di�
 ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác (tiêu đề nghiêng canh giữa "Công trình khác", EN "Other projects") và dòng "Xem toàn bộ công trình" tới `/<locale>/projects/`. Dải là khối `project-slider` không ghi `projectIds`: build tự lấy các công trình khác cùng mảng theo thứ tự trong dữ liệu, nên công trình mới tự vào dải mọi trang cùng mảng. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
 Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `type`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
-chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang cùng mảng (header, menu, footer), namespace `project`; navbar gạch chân Công trình và menu đánh dấu nhóm Công trình, không phải mảng của khung (owner 2026-11-11),
+chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang cùng mảng (header, menu, footer), namespace `project`; navbar và menu đánh dấu (`aria-current`) mục Công trình, không phải mảng của khung (owner 2026-11-11); như detail sản phẩm quảng cáo, gạch chân ẩn trừ khi hover, focus (body `is-project-detail` dùng chung luật `is-detail` trong `detail.css`, owner 2026-11-13),
 route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
 hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
 Cỡ chữ và khối đo theo trang con `/en/projects/` của Espacio ở 1440 và 390 (2026-11-11, owner "phải giống"): tiêu đề mục 64px

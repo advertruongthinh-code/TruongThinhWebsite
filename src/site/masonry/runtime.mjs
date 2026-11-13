@@ -74,14 +74,19 @@ const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/(advertising-products|projects)(?:
 const browseBase = (pathname) => pathname.match(ADVERTISING_PATH_PATTERN)?.[2] ?? "advertising-products";
 // Card page (media-seo R1): detail has the URL /<locale>/advertising-products/p/<card-id>/; the old ?photo= is still read.
 const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([^/]+)\/$/;
-// Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark].
+// Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark, pill-area luminance 0-100].
 const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
+const flowColors = (src) => mediaColors(src)?.slice(1, 5);
+// Card pill tone (media-card R2, owner 2026-11-13): under this luminance the area beneath the pill is dark, so the pill turns light. 20 is where
+// the dark pill (#333 at 80%) and the light pill (white at 85%) contrast equally with the area (WCAG ratio).
+const PILL_LIGHT_BELOW = 20;
+const pillTone = (src) => (mediaColors(src)?.[5] ?? 100) < PILL_LIGHT_BELOW ? "light" : "dark";
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
 // The 4 colors of the phone wait layer (progressive-loading R9): the file's Flow colors; without a full palette the layer stays the flat fallback color.
 const waitColors = (src, fallback = "#e9e6df") => {
-  const colors = mediaColors(src)?.slice(1);
+  const colors = flowColors(src);
   return colors?.length === 4 ? colors : Array(4).fill(fallback);
 };
 const detailId = (url) => {
@@ -140,7 +145,7 @@ function createLaneWait(item, color, flowFrame = null) {
     // Flow over the glass, wider than the lane and feathered at both sides so the seam with the next media is soft (detail.css).
     if (laneFlow) {
       node.classList.add("card-media__wait--flow");
-      const colors = mediaColors(waitSrc)?.slice(1);
+      const colors = flowColors(waitSrc);
       node.laneFlowFrame = laneFlow.attach(node, id, colors?.length === 4 && new Set(colors).size > 1 ? colors : null, flowFrame);
     }
   }
@@ -1201,6 +1206,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     if (hasCarousel) figure.append(indicator, ...hoverSteps);
 
     const updateIndicator = (index) => {
+      // The pill takes the tone of the area under it in the media shown (a video's poster), fading in 0.3s (detail.css).
+      indicator.dataset.pillTone = pillTone(laneWaitSource(items[index]));
       buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
       hoverSteps.forEach((button) => {
         const target = index + Number(button.dataset.masonryMediaHoverStep);
@@ -4580,7 +4587,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const waitSrc = video ? item.posterSrc : item.src;
       if (phone) setColorWait(heroFrame, waitColors(waitSrc, cardColor(record)));
       const reveal = { frame: phone ? null : attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling,
-        mediaColors(waitSrc)?.slice(1)), colors: phone, animations: [] };
+        flowColors(waitSrc)), colors: phone, animations: [] };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";

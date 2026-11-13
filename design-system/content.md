@@ -18,6 +18,8 @@ chung chung và lưới bất động sản rập khuôn.
 ## Song ngữ VI/EN
 
 - Tiếng Việt là bản gốc; tiếng Anh là bản tương ứng.
+- Dấu câu bản EN theo bản VI (owner 2026-10-18): dấu chấm, dấu phẩy đặt cùng chỗ với câu VI tương ứng;
+  liệt kê không dùng dấu phẩy trước `and` (VI không có dấu phẩy trước `và`), trừ khi câu VI có dấu phẩy ở đúng chỗ đó.
 - Không công bố dữ kiện owner chưa xác nhận (Zalo, năm thành lập, bảo hành);
   địa chỉ trụ sở giữ nguyên chuỗi ở cả VI và EN. Danh sách ở
   [PRODUCT.md](../PRODUCT.md#operating-context).

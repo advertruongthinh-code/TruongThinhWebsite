@@ -14,7 +14,7 @@ Thread implementer thường chạy model rẻ hơn với effort không cao (son
 6. Kiểm: command chính xác (`pnpm qa:*`, test cụ thể) và kết quả mong đợi; acceptance criteria đo được, không viết "chạy đúng" hay "đẹp".
 7. Bẫy đã biết: gotcha của module, PR hoặc issue cũ liên quan.
 
-Implementer gặp chỗ plan không trả lời được thì dừng và hỏi điều phối, không đoán. Câu trả lời ghi lại vào plan (card) để thread sau không hỏi lại. Plan thiếu một trong bảy mục trên thì chưa đủ để trình owner duyệt.
+Implementer hỏi điều phối khi plan không trả lời được ([nguyên tắc](../../AGENTS.md#nguyên-tắc-làm-việc)); câu trả lời ghi lại vào plan (card) để thread sau không hỏi lại. Plan thiếu một trong bảy mục trên thì chưa đủ để trình owner duyệt.
 
 ## Thread reviewer riêng cho task dài
 
