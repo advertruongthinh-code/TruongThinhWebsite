@@ -210,6 +210,7 @@
         "node tests/site/advertising-detached-cards.e2e.mjs",
         "node tests/site/advertising-primary-flow-colors.e2e.mjs",
         "node tests/site/frost-glass-smooth.e2e.mjs",
+        "node tests/site/flow-frame-edges.e2e.mjs",
         "node tests/site/masonry-first-build.e2e.mjs"
       ]
     },
