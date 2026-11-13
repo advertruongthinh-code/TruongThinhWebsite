@@ -59,11 +59,22 @@ cache hay untracked worktree.
 - Thread tự review PR (five-axis), sửa finding, resolve review thread và tự merge khi
   CI xanh; không chờ owner duyệt hay xác nhận merge. Workflow `Automerge` tự merge PR khi CI và Docs xanh, kể cả
   khi thread không còn chạy; muốn giữ PR chưa merge thì để draft hoặc gắn nhãn `hold`.
+- PR tạo dạng draft (mặc định của hệ thống) thì thread tự bỏ draft khi CI xanh và hết lý do giữ;
+  không nhờ owner bấm "Ready for review".
 - PR conflict với `main`: merge `main` vào branch (không rebase, không force-push),
   tự resolve, chạy lại quick check, push rồi merge khi CI xanh.
 - Giữ đúng phạm vi thread; bug ngoài phạm vi báo điều phối, không tự sửa.
 - Tự test, debug, QA bằng tool (Playwright, adb, CDP); không nhờ owner thao tác tay
   trên điện thoại. Chỉ hỏi việc tool không làm được (cắm thiết bị, credential).
+
+## Tài nguyên chung
+
+- Mỗi artifact dùng chung (trang duyệt, trang tổng hợp) có đúng một thread đăng; thread khác gửi file
+  cho thread đó, không tự đăng.
+- Codex và việc nặng trên PC (gen ảnh, Chrome, đo fps) chạy từng việc một; điều phối cấp lượt,
+  thread xong báo trả lượt.
+- Điều phối đối chiếu rule trước khi chuyển lời nhờ owner; lời nhờ trái rule thì sửa ở thread, không chuyển.
+- Rule owner chốt ghi vào repo (file này hoặc rule module), không chỉ ghi ở bộ nhớ project hay lời dặn.
 
 ## STATE và living docs
 
