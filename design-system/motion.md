@@ -268,7 +268,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - PC, ảnh chưa tải xong khi card vào viewport: khung media tô màu chủ đạo, ảnh ẩn dưới khung [Skeleton](components/Skeleton/README.md)
   Flow trong 4 màu của chính ảnh (khung hiện `0.6s`, ngay lập tức nếu đang cuộn), vẽ trên một canvas chung của lưới. Tải và `decode()` xong thì
   lộ ảnh như primary trong `0.6s` (owner 2026-11-12, kiểu 10 "Kính mờ rẻ"): ảnh hiện ngay dưới khung, canvas vẽ Flow hóa kính mờ của chính ảnh
-  (`0s` tới `0.27s`, `smoothstep`: bản ảnh 20px kéo giãn, màn trắng `14%`, sạn mịn `4.5%`), rồi kính mờ tan ra ảnh nét (`0.27s` tới `0.6s`, `smoothstep`), rồi gỡ khung.
+  (`0s` tới `0.27s`, `smoothstep`: bản ảnh 20px phóng bậc ba B-spline, màn trắng `14%`, sạn mịn `4.5%`), rồi kính mờ tan ra ảnh nét (`0.27s` tới `0.6s`, `smoothstep`), rồi gỡ khung.
   Không Kính, không blur filter. Không làm được bản ảnh 20px hoặc canvas chưa sẵn thì crossfade (`0.13s` tới `0.39s`, `cubic-bezier(0.65, 0, 0.35, 1)`).
   Canvas của lưới card vẽ trên cả card (mỗi card là một stacking context vì `contain: layout`, nền `.card-media` đục nên canvas không thể nằm dưới): lúc chờ và lúc lộ, pill chỉ số và nhãn vừa xem nằm dưới Flow.
   Khung card, link luôn hiện.

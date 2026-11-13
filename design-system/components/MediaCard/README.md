@@ -24,7 +24,7 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   `width`, `height`).
 - PC: vào viewport khi ảnh chưa tải xong thì khung media tô màu chủ đạo của ảnh, ảnh ẩn dưới khung
   [Skeleton](../Skeleton/README.md) Flow trong 4 màu của chính ảnh (`.card-media > .masonry-grid__cta-frame`, không nhận tap; card mang
-  `data-masonry-media-loading`), vẽ trên một canvas chung của lưới. Tải và giải mã xong thì Flow hóa kính mờ của chính ảnh (bản ảnh 20px kéo giãn, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, như
+  `data-masonry-media-loading`), vẽ trên một canvas chung của lưới. Tải và giải mã xong thì Flow hóa kính mờ của chính ảnh (bản ảnh 20px phóng bậc ba B-spline, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, như
   primary; không Kính (owner 2026-11-12, kiểu 10 "Kính mờ rẻ": Kính làm GPU biên dịch shader giữa lượt lộ hàng loạt). Ảnh đã tải phủ đúng khung (`height: 100%`); khung có vòng trong `1px` màu giấy dưới media nên hụt subpixel không lộ màu chủ đạo. Ảnh đã có sẵn hiện ngay, không motion
   ([Motion](../../motion.md#ảnh-trong-card)).
 - Điện thoại (cảm ứng hoặc viewport từ 750px trở xuống) không Flow, không Kính: card chờ ảnh mang `data-media-wait="colors"`, một lớp phẳng đổi qua 4 màu

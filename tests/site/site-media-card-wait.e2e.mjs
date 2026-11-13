@@ -5,7 +5,7 @@ import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 
 // media-card R3, R5 (owner 2026-11-12): the strip slides at once to a media still loading, which rides in under a wait layer (PC frosted
 // glass, phone color layer) until its file has decoded; the shared queue never runs more than its cap plus the viewed media.
-const fixtureId = "signage-raised-letters-06";
+const fixtureId = "signage-raised-letters-01";
 const DELAY_MS = 2_000;
 
 function slowArtifact() {

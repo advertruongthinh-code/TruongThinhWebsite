@@ -63,7 +63,7 @@ Then card chưa tải xong có lớp màu, không Kính, canvas Flow hay khung s
 chờ decode), khi card còn giao viewport thì `revealCard` làm bản sao ảnh rộng 20px (`frostCopy`: `createImageBitmap`, `FROST_COPY_WIDTH`), hiện media
 ngay dưới khung đục, ẩn khung DOM và giao cho canvas Flow chung của lưới (`reveal()` của
 [skeleton R5](advertising-skeleton.md#r5-webgl-context)) trong `0.6s` (`CARD_REVEAL_MS`): 45% đầu Flow hóa kính mờ của chính ảnh
-(bản 20px kéo giãn tự mờ, màn trắng mỏng, sạn mịn), phần còn lại kính mờ tan ra ảnh nét (owner chọn kiểu 10 "Kính mờ rẻ", 2026-11-12, sạn mịn hơn mẫu).
+(bản 20px phóng bậc ba B-spline tự mờ tròn, không lộ ô, màn trắng mỏng, sạn mịn), phần còn lại kính mờ tan ra ảnh nét (owner chọn kiểu 10 "Kính mờ rẻ", 2026-11-12, sạn mịn hơn mẫu).
 Không Kính, không blur filter: shader Flow có sẵn nhánh kính mờ nên GPU không biên dịch gì mới lúc lộ (Kính làm Skia biên dịch shader
 40 đến 106ms giữa lượt lộ hàng loạt trên PC owner, 3b.2 lượt 5 đến 7). Xong thì gỡ khung và `data-masonry-media-loading`. Không làm được bản sao,
 canvas chưa sẵn (context mất, shader chưa link) hay khung chưa vào (`is-entry-ready`) thì `playReveal` chỉ crossfade khung sang media
@@ -280,7 +280,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 
 - **Skeleton chờ ảnh**: khung skeleton cuối masonry dùng lại để giữ chỗ cho media đang tải.
 - **Kính**: lớp glassmorphism `backdrop-filter`; lộ ảnh không còn dùng.
-- **Kính mờ**: Flow chuyển thành bản ảnh 20px kéo giãn, màn trắng mỏng và sạn mịn, vẽ trên canvas Flow, rồi tan ra ảnh nét.
+- **Kính mờ**: Flow chuyển thành bản ảnh 20px phóng bậc ba B-spline, màn trắng mỏng và sạn mịn, vẽ trên canvas Flow, rồi tan ra ảnh nét.
 - **Blur**: làm mờ chính ảnh bằng `filter`, rẻ hơn `backdrop-filter` vì không đọc lại nền mỗi frame; card không còn dùng.
 - **Crossfade**: một lớp mờ đi trong lúc lớp khác hiện lên ở cùng chỗ.
 - **Lớp tạm**: bản ảnh primary cũ nằm trên ảnh mới cho tới hết crossfade.

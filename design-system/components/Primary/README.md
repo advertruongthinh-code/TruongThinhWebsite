@@ -69,7 +69,7 @@ Rule đầy đủ: [detail](../../../docs/specs/advertising-detail.md).
 [skeleton](../Skeleton/README.md), ảnh có sẵn crossfade từ ảnh đang xem
 ([Motion](../../motion.md#suggestion-và-detail)).
 
-Đổi ảnh trên PC: ảnh giải mã xong thì Flow hóa kính mờ của chính ảnh (bản ảnh 20px kéo giãn, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, như
+Đổi ảnh trên PC: ảnh giải mã xong thì Flow hóa kính mờ của chính ảnh (bản ảnh 20px phóng bậc ba B-spline, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, như
 [Media card](../MediaCard/README.md); kính mờ đặt đúng chỗ ảnh nằm, vùng dư phủ như nền mờ. Không Kính (owner 2026-11-12). Điện thoại không có skeleton: khung ảnh đang tải mang
 lớp màu đổi qua 4 màu chủ đạo của ảnh (`data-media-wait="colors"`, như card, [MediaCard](../MediaCard/README.md)), ảnh và nền vùng dư hiện `0.45s` trên lớp màu rồi lớp màu bị gỡ.
 
