@@ -1,7 +1,8 @@
 # Vận hành Graphify
 
-Graphify 0.9.97 ở user scope. Đây là runbook setup/repair, không phải checklist
-mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
+Graphify 0.9.97 ở user scope, chỉ dùng bản cài local (package `graphifyy` pin
+trong `tooling-versions.json`), không dùng dịch vụ cloud của Graphify Labs. Đây là runbook setup/repair, không
+phải checklist mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
 structural freshness. Agent lifecycle hook bị disabled.
 
 ## Normal task
@@ -13,6 +14,9 @@ structural freshness. Agent lifecycle hook bị disabled.
 ```
 
 Cloud/Linux không có PowerShell: `scripts/tooling/invoke-graphify.sh query "..."` hoặc MCP `graphify`.
+Thread cloud (sandbox) cũng dùng bản local này: `cloud-setup.sh` cài sẵn CLI và MCP,
+wrapper tự cài nếu thiếu và tự build graph trong sandbox; không commit `graphify-out/`,
+không nhờ PC. Không kết nối repo vào dịch vụ hay repo upstream của Graphify Labs.
 
 Wrapper block query khi structural refresh fail, report semantic lag riêng. Rule
 chống stale và thứ tự tool ở [Workflow và tool](agent-rule-workflow-tools.md#graphify).
@@ -107,9 +111,8 @@ reproduce được zero-AST case.
   user approval, rồi chạy lại wrapper.
 - Git-hook log: `%USERPROFILE%\.cache\graphify-rebuild.log`.
 
-Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
-ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/0a8cd4e1e342235fe53e881fb5d591bf0460071f>.
+Nếu command vẫn fail, kiểm tra changelog của bản `graphifyy` đang pin trên PyPI
+trước khi thêm workaround: <https://pypi.org/project/graphifyy/0.9.97/>.
 
 ## Chú thích thuật ngữ
 
