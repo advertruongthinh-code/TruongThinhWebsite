@@ -128,12 +128,15 @@ function manyImageArtifact() {
   return artifact;
 }
 
-async function setup(page, locale, videoCover = false) {
+// failureRoutes: routes that win over the fixture route, installed before the page loads: a card sitting whole on a page at rest loads the media
+// beside the viewed one by itself (media-card R5), so a failure installed after setup would come too late.
+async function setup(page, locale, videoCover = false, failureRoutes = async () => {}) {
   await page.route(`**${fixturePrefix}*`, async (route) => {
     const file = route.request().url().endsWith(".mp4") ? clip : poster;
     if (file === clip) await new Promise((resolve) => setTimeout(resolve, 400));
     await route.fulfill({ path: file, contentType: file === clip ? "video/mp4" : "image/webp" });
   });
+  await failureRoutes(page);
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
   await page.goto(`${BASE_URL}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
@@ -331,10 +334,13 @@ async function run(viewport, touch, locale) {
       const frame = node.querySelector(".card-media").getBoundingClientRect();
       const spinner = node.querySelector("[data-masonry-media-loading]");
       const rect = spinner.getBoundingClientRect();
-      return { visible: !spinner.hidden, withinFrame: rect.left >= frame.left && rect.right <= frame.right
-        && rect.top >= frame.top && rect.bottom <= frame.bottom };
+      // The card at rest may already have loaded the video beside the viewed media (media-card R5): then no loading circle shows.
+      const video = node.querySelector(`video[data-masonry-media-item]`);
+      return { ready: Boolean(video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA), visible: !spinner.hidden,
+        withinFrame: rect.left >= frame.left && rect.right <= frame.right && rect.top >= frame.top && rect.bottom <= frame.bottom };
     });
-    assert(loadingGeometry.visible && loadingGeometry.withinFrame, "loading circle stays inside the media frame");
+    assert(loadingGeometry.ready ? !loadingGeometry.visible : loadingGeometry.visible && loadingGeometry.withinFrame,
+      `loading circle shows inside the media frame while the video loads: ${JSON.stringify(loadingGeometry)}`);
     await card.locator("[data-masonry-media-loading]").waitFor({ state: "hidden" });
     const after = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
@@ -891,10 +897,10 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
-    const card = await setup(page, "en");
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 200);
-    await page.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
+    const card = await setup(page, "en", false,
+      (target) => target.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" })));
     await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.all([videoResponse, posterResponse]);
     await page.waitForFunction((id) => Boolean(document.querySelector(`[data-masonry-card="${id}"] video`)?.error), fixtureId);
@@ -934,11 +940,12 @@ test("M01b failed video and poster restore the ready image cover", async () => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
-    const card = await setup(page, "en");
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
-    await page.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
-    await page.route(`**${fixturePrefix}poster-3x2.webp`, (route) => route.fulfill({ status: 404, body: "" }));
+    const card = await setup(page, "en", false, async (target) => {
+      await target.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
+      await target.route(`**${fixturePrefix}poster-3x2.webp`, (route) => route.fulfill({ status: 404, body: "" }));
+    });
     await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.all([videoResponse, posterResponse]);
     await page.waitForFunction((id) => Boolean(document.querySelector(`[data-masonry-card="${id}"] video`)?.error), fixtureId);
@@ -974,12 +981,13 @@ test("M01b stale poster failure does not override a newer image selection", asyn
   const probeStarted = new Promise((resolve) => { markProbeStarted = resolve; });
   let posterRequests = 0;
   try {
-    const card = await setup(page, "en");
-    await page.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
-    await page.route(`**${fixturePrefix}poster-3x2.webp`, async (route) => {
-      posterRequests += 1;
-      if (posterRequests === 2) { markProbeStarted(); await posterGate; }
-      await route.fulfill({ status: 404, body: "" });
+    const card = await setup(page, "en", false, async (target) => {
+      await target.route(`**${fixturePrefix}clip-audio-3x2.mp4`, (route) => route.fulfill({ status: 404, body: "" }));
+      await target.route(`**${fixturePrefix}poster-3x2.webp`, async (route) => {
+        posterRequests += 1;
+        if (posterRequests === 2) { markProbeStarted(); await posterGate; }
+        await route.fulfill({ status: 404, body: "" });
+      });
     });
     await card.locator(`[data-masonry-media-select="${videoId}"]`).click();
     await Promise.race([probeStarted, new Promise((_, reject) => setTimeout(() => reject(new Error("poster probe request absent")), 5_000))]);
@@ -1031,6 +1039,8 @@ test("M01b stale image error preserves newer selection and failed reselect falls
       await errorGate;
       await route.fulfill({ status: 404, body: "" });
     });
+    // The card may load the missing image before the press (media-card R5): wait for its request from page load on.
+    const request = page.waitForRequest((item) => item.url().endsWith("missing-image.webp"), { timeout: 60_000 });
     await page.goto(`${BASE_URL}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
@@ -1039,7 +1049,6 @@ test("M01b stale image error preserves newer selection and failed reselect falls
     const card = page.locator(`[data-masonry-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"] img`)?.naturalWidth > 0, fixtureId);
-    const request = page.waitForRequest((item) => item.url().endsWith("missing-image.webp"));
     await card.locator(`[data-masonry-media-select="${missingId}"]`).click();
     await request;
     await card.locator(`[data-masonry-media-select="${videoId}"]`).click();

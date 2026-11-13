@@ -31,6 +31,7 @@ import {
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
+  frostGrainUrl,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
@@ -38,6 +39,7 @@ import { planAroundPinned } from "./detour-path.mjs";
 import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
+import { mediaQueue } from "../media-lib/media-queue.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
 import {
   clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
@@ -97,6 +99,9 @@ const SKELETON_CONTEXT_BUDGET = 12;
 // Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; card and primary shorten the duration to 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = DUR.hover;
+// Page at rest for this long before cards sitting whole on screen load the media beside the viewed one; same rest as the original upgrade
+// (progressive-loading R10).
+const NEIGHBOR_IDLE_MS = 250;
 // Width in pixels of the photo copy the Flow canvas turns into frosted glass at reveal: stretched to the frame it blurs by itself (owner 2026-11-12).
 const FROST_COPY_WIDTH = 20;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
@@ -1127,6 +1132,123 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     image.addEventListener("lazyloaded", updateLoading);
     // The head script sets .is-media-error per failed img, including layers that are no longer active; the card decides from the active item.
     media.addEventListener("error", updateLoading, true);
+    // Media files come through the shared queue (media-card R5, owner 2026-11-12): the media being viewed first, others nearest first, at a
+    // capped number of parallel downloads; a started file is never cancelled. The card size picks the file once, so queue and img share a URL.
+    const waits = new Map();
+    const cardSource = (item) => responsiveSource(item.src, item.width,
+      Math.ceil(Math.max(media.clientWidth, 240) * devicePixelRatio));
+    const waitSource = (item) => item.kind === "video" ? item.posterSrc : item.src;
+    const tinySource = (item) => responsiveSource(waitSource(item), item.width, 240);
+    // The queue loads a file without making its layer: layers stay created on demand (layerFor), and a layer gets its src once the queue has
+    // the file.
+    const cardUrls = new Map();
+    const requestMedia = (index, current = false) => {
+      const item = items[index];
+      const existing = layers.get(item.id);
+      if (item.kind !== "image" || existing === image || existing?.hasAttribute("src")) return;
+      if (!cardUrls.has(item.id)) cardUrls.set(item.id, cardSource(item));
+      const url = cardUrls.get(item.id);
+      const give = () => {
+        const layer = layers.get(item.id);
+        if (!layer || layer.hasAttribute("src")) return;
+        layer.dataset.queueSrc = url;
+        layer.src = url;
+      };
+      // A file the queue already has goes in at once: the img is then complete in the same frame and its lane needs no wait layer.
+      if (mediaQueue.loaded(url)) give();
+      // A failed download still hands the URL to the img so its own error path (fallback, error marker) runs.
+      else void mediaQueue.load(url, { rank: Math.abs(index - activeIndex), current }).catch(() => {}).then(give);
+    };
+    // PC: the 240 file of every other media loads when the card enters the screen, so a lane that slides in before its file arrives shows
+    // frosted glass of that media (owner 2026-11-12). The phone keeps its color layer and loads no 240 file.
+    figure.advertisingWarmMedia = () => {
+      if (skeletonPhone()) return;
+      items.forEach((item, index) => {
+        const tiny = tinySource(item);
+        if (index !== activeIndex && tiny !== waitSource(item)) void mediaQueue.load(tiny, { rank: Math.abs(index - activeIndex) }).catch(() => {});
+      });
+    };
+    const drawFrost = (node, url) => {
+      const tiny = new Image();
+      tiny.src = url;
+      tiny.decode().then(() => {
+        if (!node.isConnected && !waits.has(node.dataset.mediaId)) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = FROST_COPY_WIDTH;
+        canvas.height = Math.max(1, Math.round(FROST_COPY_WIDTH * tiny.naturalHeight / tiny.naturalWidth));
+        const context = canvas.getContext("2d");
+        if (!context) return;
+        context.drawImage(tiny, 0, 0, canvas.width, canvas.height);
+        // Thin white veil as in the shader: mix(tiny, white, 0.14).
+        context.fillStyle = "rgba(255, 255, 255, 0.14)";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        node.prepend(canvas);
+      }, () => {});
+    };
+    // The wait layer of a lane whose media is not ready; null when it is ready (or reduced motion: the media shows when it arrives).
+    const waitFor = (index) => {
+      const item = items[index];
+      const layer = layerFor(index);
+      if (isReady(layer) || reducedMotion() || layer.classList.contains("is-media-error")) return null;
+      let node = waits.get(item.id);
+      if (node) return node;
+      node = document.createElement("div");
+      node.className = "card-media__wait";
+      node.dataset.mediaId = item.id;
+      node.setAttribute("aria-hidden", "true");
+      if (skeletonPhone()) setColorWait(node, waitColors(waitSource(item), color));
+      else {
+        node.classList.add("card-media__wait--frost");
+        node.style.backgroundColor = mediaColors(waitSource(item))?.[0] || color || "";
+        const grain = frostGrainUrl();
+        if (grain) {
+          node.style.setProperty("--frost-grain", `url("${grain}")`);
+          node.style.setProperty("--frost-grain-size", `${256 / devicePixelRatio}px`);
+        }
+        // Only a real 240 file is drawn: drawImage decodes on the main thread, and a media without size variants would decode its full file.
+        const tiny = tinySource(item);
+        if (tiny !== waitSource(item)) void mediaQueue.load(tiny, { rank: 0 }).then(() => drawFrost(node, tiny), () => {});
+      }
+      // The media is not painted under its wait layer: a file that arrives mid-slide would otherwise be decoded while the strip moves and hold
+      // its frames (headless Chromium measured 66-110ms per 3072 WebP); dismissWait shows it after decode().
+      layer.style.visibility = "hidden";
+      layer.after(node);
+      waits.set(item.id, node);
+      return node;
+    };
+    // The media under a wait layer is ready: PC clears the frosted glass in the clearing part of the card reveal (0.6s, sample 10), the phone fades
+    // the media in over its color layer in 0.45s as a card does (progressive-loading R9); then the layer goes.
+    const dismissWait = (index) => {
+      const item = items[index];
+      const node = waits.get(item.id);
+      const layer = layers.get(item.id);
+      if (!node || !layer || !isReady(layer)) return;
+      waits.delete(item.id);
+      layer.style.removeProperty("visibility");
+      // No CSS opacity transition under the wait: the media is shown by the fade below or at once.
+      layer.style.setProperty("transition", "none", "important");
+      layer.classList.add("is-masonry-media-ready");
+      onPendingChange(figure);
+      const done = () => {
+        node.remove();
+        layer.style.removeProperty("transition");
+      };
+      if (node.hidden || reducedMotion()) {
+        done();
+        return;
+      }
+      const fade = skeletonPhone()
+        ? layer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING })
+        : node.animate([{ opacity: 1 }, { opacity: 0 }],
+          { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" });
+      fade.finished.then(done, done);
+    };
+    // A lane carries its media and, while that media loads, its wait layer; both move with the strip.
+    const laneNodes = (index) => {
+      const layer = layerFor(index);
+      const wait = waitFor(index);
+      return wait ? [layer, wait] : [layer];
+    };
     // Layers are created on demand: the active item, or the strip's neighbors on hover, swipe (media-card R3).
     const layerFor = (index) => {
       const item = items[index];
@@ -1149,6 +1271,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         setCardVideoSource(layer, () => setVideoSource(layer, item, { file: item.cardSrc || item.src, capWidth: 480 }));
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);
+        layer.addEventListener("loadeddata", () => dismissWait(index));
         // When a video ends the card moves to the next video in the playlist in data order, and after the last it wraps to the first; images
         // are not in the playlist, and a single-video card loops itself (R4, owner 2026-10-18).
         layer.addEventListener("ended", () => {
@@ -1163,22 +1286,20 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           selectMedia(next);
         });
       } else {
-        layer.loading = "lazy";
+        // The file comes through the shared queue (requestMedia): the layer gets its src once the queue has it, so the img reads it from cache.
         layer.decoding = "async";
         layer.alt = english ? item.altEn : item.altVi;
-        const srcset = responsiveSrcset(item.src, item.width);
-        if (srcset) {
-          layer.sizes = "auto, 50vw";
-          layer.srcset = srcset;
-        }
-        layer.src = responsiveSource(item.src);
         layer.addEventListener("load", updateLoading);
+        layer.addEventListener("load", () => layer.decode().catch(() => {}).then(() => dismissWait(index)));
       }
       layer.addEventListener("error", () => {
+        waits.get(item.id)?.remove();
+        waits.delete(item.id);
+        layer.style.removeProperty("visibility");
         if (item.kind === "image") {
           failedImages.add(item.id);
           const fallback = imageFallbackIndex();
-          if (shownIndex() === index && fallback >= 0 && fallback !== index) {
+          if (activeIndex === index && fallback >= 0 && fallback !== index) {
             setActive(fallback);
             return;
           }
@@ -1188,23 +1309,24 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           const probe = new Image();
           probe.addEventListener("load", () => {
             posterStatus.set(item.id, "loaded");
-            if (shownIndex() === index) updateLoading();
+            if (activeIndex === index) updateLoading();
           }, { once: true });
           probe.addEventListener("error", () => {
             posterStatus.set(item.id, "failed");
-            if (shownIndex() !== index) return;
+            if (activeIndex !== index) return;
             const fallback = imageFallbackIndex();
             if (fallback >= 0 && fallback !== index) setActive(fallback);
             else updateLoading();
           }, { once: true });
           probe.src = item.posterSrc;
         }
-        if (shownIndex() !== index) return;
+        if (activeIndex !== index) return;
         updateLoading();
       });
       layers.set(item.id, layer);
       layer.hidden = true;
       media.prepend(layer);
+      requestMedia(index);
       return layer;
     };
     const setActive = (nextIndex) => {
@@ -1217,16 +1339,20 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const previous = layers.get(items[activeIndex]?.id);
       if (previous instanceof HTMLVideoElement) previous.pause();
       if (previous) previous.hidden = true;
+      if (items[activeIndex]) waits.get(items[activeIndex].id)?.setAttribute("hidden", "");
       activeIndex = index;
       const item = items[index];
       const layer = layerFor(index);
       layer.hidden = false;
+      waits.get(item.id)?.removeAttribute("hidden");
+      requestMedia(index, true);
       figure.dataset.masonryActiveMediaId = item.id;
       updateIndicator(index);
       updateLoading();
     };
+    // A media under a strip wait layer waits there, not under the card skeleton.
     figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
-      ? null : items[activeIndex].id;
+      || waits.has(items[activeIndex].id) ? null : items[activeIndex].id;
     // A video waits on its poster like an image (progressive-loading R9).
     figure.advertisingWaitColors = () => {
       const item = items[activeIndex];
@@ -1244,16 +1370,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (videoTime && layer instanceof HTMLVideoElement) layer.currentTime = videoTime;
     };
     // Continuous strip (owner 2026-10-19): old and new media are joined, only the position shifts, clipped at the canvas; the strip slides
-    // only after the new media has decoded, so no background shows or fade runs mid-load. A manual drag sets the strip `offset` before release.
-    // Each lane is { nodes, slot, index }; `stripTo` is the offset the strip is heading to; `pendingIndex` is a press waiting for its media
-    // to decode while the strip keeps moving (media-card R3, interruptible strip).
+    // at once and a media still loading rides in under its wait layer (owner 2026-11-12). A manual drag sets the strip `offset` before release.
+    // Each lane is { nodes, slot, index }; `stripTo` is the offset the strip is heading to (media-card R3, interruptible strip).
     let lanes = [];
     let laneAnimations = [];
     let slideToken = 0;
     let stripTo = 0;
-    let pendingIndex = null;
-    // The media the card shows or is about to show: a pending press wins, so a late error of the media it left is stale.
-    function shownIndex() { return pendingIndex ?? activeIndex; }
     const canvasWidth = () => media.clientWidth;
     const reducedMotion = () => env.reducedMotion.matches;
     const settleLanes = () => {
@@ -1261,19 +1383,24 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       laneAnimations.forEach((animation) => animation.cancel());
       laneAnimations = [];
       const active = layers.get(items[activeIndex]?.id);
-      lanes.forEach(({ nodes: [layer] }) => {
+      lanes.forEach(({ nodes: [layer, wait] }) => {
         layer.classList.remove("card-media__image--lane", "card-media__image--beside");
         layer.style.translate = "";
         layer.hidden = layer !== active;
+        if (wait) {
+          releaseNode(wait);
+          wait.hidden = layer !== active;
+        }
       });
       lanes = [];
     };
     const showLanes = (next, offset) => {
       settleLanes();
       lanes = next;
-      lanes.forEach(({ nodes: [layer], slot }) => {
+      lanes.forEach(({ nodes: [layer, wait], slot }) => {
         if (isReady(layer)) layer.classList.add("is-masonry-media-ready");
         layer.hidden = false;
+        if (wait) wait.hidden = false;
         layer.classList.add("card-media__image--lane");
         layer.classList.toggle("card-media__image--beside", slot !== 0);
       });
@@ -1288,13 +1415,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
       settleWhenDone();
     };
+    // The media beside the viewed one load through the queue: on hover, swipe, or once the card sits whole on a page at rest (owner 2026-11-12).
     const preloadNeighbors = () => [activeIndex - 1, activeIndex + 1].forEach((index) => {
-      if (!items[index]) return;
-      const layer = layerFor(index);
-      void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-masonry-media-ready"); });
+      if (items[index]) requestMedia(index);
     });
+    figure.advertisingPreloadNeighbors = preloadNeighbors;
     const slideTo = (index, offset = 0, timing = PUSH_TIMING) => {
-      pendingIndex = null;
       const from = activeIndex;
       const outgoing = layers.get(items[from]?.id);
       settleLanes();
@@ -1305,15 +1431,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
       const direction = activeIndex > from ? 1 : -1;
-      showLanes([{ nodes: [outgoing], slot: 0, index: from }, { nodes: [incoming], slot: direction, index: activeIndex }], offset);
-      stripTo = -direction * canvasWidth();
-      const token = slideToken;
-      void whenMediaReady(incoming).then(() => {
-        // A newer press waiting for its media takes over this slide before it starts.
-        if (token !== slideToken || pendingIndex !== null) return;
-        if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
-        runLanes(offset, -direction * canvasWidth(), timing);
-      });
+      // The strip slides at once (owner 2026-11-12); media still loading rides in under its wait layer.
+      showLanes([{ nodes: laneNodes(from), slot: 0, index: from },
+        { nodes: laneNodes(activeIndex), slot: direction, index: activeIndex }], offset);
+      runLanes(offset, -direction * canvasWidth(), timing);
     };
     // Rule 2 of the interruptible strip: only the lanes on screen stay (keepLanes), the others leave the strip like settleLanes does; a
     // target without a lane joins right after the outermost lane in the press direction.
@@ -1322,14 +1443,18 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const current = lanes.find((entry) => entry.index === index);
       if (index === activeIndex && current && -current.slot * width === stripTo) return;
       const { kept, slot } = keepLanes(lanes, { index, direction: index > activeIndex ? 1 : -1, width, offset: stripOffset(lanes, width) });
-      lanes.filter((entry) => !kept.includes(entry)).forEach(({ nodes: [layer] }) => {
+      lanes.filter((entry) => !kept.includes(entry)).forEach(({ nodes: [layer, wait] }) => {
         releaseNode(layer);
         layer.classList.remove("card-media__image--lane", "card-media__image--beside");
         layer.hidden = true;
+        if (wait) {
+          releaseNode(wait);
+          wait.hidden = true;
+        }
       });
       let lane = kept.find((entry) => entry.index === index);
       if (!lane) {
-        lane = { nodes: [incoming], slot, index };
+        lane = { nodes: laneNodes(index), slot, index };
         kept.push(lane);
         incoming.classList.add("card-media__image--lane", "card-media__image--beside");
         if (isReady(incoming)) incoming.classList.add("is-masonry-media-ready");
@@ -1339,7 +1464,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       // setActive pauses the outgoing video and hides its layer; the strip keeps every lane visible until it settles.
       setActive(index);
       if (activeIndex !== index) return settleLanes();
-      lanes.forEach(({ nodes: [node] }) => { node.hidden = false; });
+      lanes.forEach(({ nodes }) => nodes.forEach((node) => { node.hidden = false; }));
       figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
       const from = stripOffset(lanes, width);
       slideToken += 1;
@@ -1347,52 +1472,30 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       stripTo = toPx;
       settleWhenDone();
     };
-    // Rule 5: the strip keeps heading to its current target until the new target has decoded; if it settled meanwhile, this is a fresh slide.
-    // The dots, counter and active id change on the press (R3); the active layer changes when the strip steers.
+    // Rule 5, changed 2026-11-12 (owner): the strip turns to a new target at once, loaded or not; a media still loading rides in under its
+    // wait layer. A strip that has not started moving takes the plain path.
     const retargetMedia = (nextIndex) => {
       const index = Math.max(0, Math.min(items.length - 1, nextIndex));
       const item = items[index];
-      if (failedImages.has(item.id) || posterStatus.get(item.id) === "failed") return slideTo(index);
-      pendingIndex = index;
-      figure.dataset.masonryActiveMediaId = item.id;
-      updateIndicator(index);
-      onMediaChange(item.id);
-      const incoming = layerFor(index);
-      void whenMediaReady(incoming).then(() => {
-        if (pendingIndex !== index) return;
-        pendingIndex = null;
-        // A strip that has not started moving takes the plain path, as before the strip was interruptible.
-        if (laneAnimations.length) steerLanes(index, incoming);
-        else slideTo(index);
-      });
+      if (failedImages.has(item.id) || posterStatus.get(item.id) === "failed" || !laneAnimations.length) return slideTo(index);
+      steerLanes(index, layerFor(index));
     };
     // A press while the strip is in flight retargets it; a swipe release (non-zero offset) or reduced motion takes the plain path.
     const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
       if (lanes.length && !offset && !reducedMotion()) retargetMedia(index);
       else slideTo(index, offset, timing);
     };
-    // Card removed mid-slide (virtualization): drop the pending press and every lane so no translate is left behind.
-    figure.advertisingSettleStrip = () => {
-      const pending = pendingIndex;
-      pendingIndex = null;
-      settleLanes();
-      if (pending !== null) setActive(pending);
-    };
+    // Card removed mid-slide (virtualization): drop every lane so no translate is left behind.
+    figure.advertisingSettleStrip = settleLanes;
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
-      () => selectMedia((pendingIndex ?? activeIndex) + Number(button.dataset.masonryMediaHoverStep))));
+      () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
     if (hasCarousel) {
       figure.addEventListener("pointerenter", preloadNeighbors);
       // Pointer events include touch; touch-action: pan-y leaves horizontal swipes to this handler.
       trackStripSwipe(link, {
         start: () => {
           suppressClickUntil = 0;
-          // A drag drops a press still waiting for its media, so a snap-back is not followed by that press.
-          if (pendingIndex !== null) {
-            pendingIndex = null;
-            figure.dataset.masonryActiveMediaId = items[activeIndex].id;
-            updateIndicator(activeIndex);
-          }
           preloadNeighbors();
         },
         width: canvasWidth,
@@ -1400,7 +1503,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         drag: (offset) => {
           if (reducedMotion()) return;
           showLanes([-1, 0, 1].filter((slot) => items[activeIndex + slot])
-            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot, index: activeIndex + slot })), offset);
+            .map((slot) => ({ nodes: laneNodes(activeIndex + slot), slot, index: activeIndex + slot })), offset);
         },
         release: (step, offset) => {
           suppressClickUntil = performance.now() + 400;
@@ -1800,21 +1903,43 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       visibleMediaCards.add(id);
       scheduleVideoSoon();
       attachCardSkeleton(node);
+      node.advertisingWarmMedia?.();
     });
   }, { threshold: 0 });
-  const observeMediaCard = (node) => mediaObserver.observe(node);
+  // A multi-media card sitting whole on screen loads the media beside the viewed one once the page has stopped scrolling (owner 2026-11-12).
+  const wholeCards = new Set();
+  let neighborTimer = 0;
+  const preloadWholeCards = () => {
+    clearTimeout(neighborTimer);
+    neighborTimer = setTimeout(() => wholeCards.forEach((node) => node.advertisingPreloadNeighbors?.()), NEIGHBOR_IDLE_MS);
+  };
+  const wholeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(({ target, intersectionRatio }) => {
+      if (intersectionRatio >= 0.99) wholeCards.add(target);
+      else wholeCards.delete(target);
+    });
+    if (wholeCards.size) preloadWholeCards();
+  }, { threshold: [0, 0.99] });
+  document.addEventListener("scroll", () => wholeCards.size && preloadWholeCards(), { capture: true, passive: true, signal: controller.signal });
+  const observeMediaCard = (node) => {
+    mediaObserver.observe(node);
+    if (node.advertisingPreloadNeighbors) wholeObserver.observe(node);
+  };
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
     node.advertisingSettleStrip?.();
     node.querySelectorAll("video").forEach(releaseVideoSource);
     // An img detached from the DOM keeps loading: dragging the scrollbar with no cache piles hundreds of requests from removed cards ahead of the visible
     // image. Drop the source so the browser cancels the request.
+    // A file from the shared media queue is never cancelled (owner 2026-11-12): the queue holds it and the layer reads it from cache.
     node.querySelectorAll("img").forEach((image) => {
-      if (image.complete) return;
+      if (image.complete || image.dataset.queueSrc) return;
       image.removeAttribute("srcset");
       image.removeAttribute("src");
     });
     mediaObserver.unobserve(node);
+    wholeObserver.unobserve(node);
+    wholeCards.delete(node);
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
   };
@@ -5425,6 +5550,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     resizeObserver.disconnect();
     scrollHintObserver.disconnect();
     mediaObserver.disconnect();
+    wholeObserver.disconnect();
+    clearTimeout(neighborTimer);
     gridHost.masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
     gridHost.cancelGhosts();

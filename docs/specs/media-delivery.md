@@ -11,7 +11,7 @@ tests:
   - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Tải ảnh nội dung
@@ -93,7 +93,7 @@ có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `wi
 | --- | --- |
 | Card masonry, related (`createPhotoMedia`) | `data-sizes` bằng bề rộng card từ solver (chỉ nâng), trong cửa sổ ảo hóa ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)); masonry qua LazySizes `data-src`, `data-srcset`; related native lazy `src`, `srcset`, `sizes` vì rAF LazySizes chiếm 13-24ms frame mount trên phone (owner 2026-10-26) |
 | Nút suggestion | native lazy, `srcset`, `sizes="auto, 50vw"`; ảnh kế của slideshow eager, `sizes` ghim bằng bề rộng nút |
-| Item khác trên card nhiều media | native lazy, `sizes="auto, 50vw"` ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
+| Item khác trên card nhiều media | hàng đợi tải chung, `responsiveSource` với `needed` = bề rộng card × DPR, gán `src` khi file đã về ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
 | Thumbnail primary | lazy, `sizes="auto, 25vw"`; video dùng poster |
 | Ảnh primary | `responsiveSource` với `needed` = bề rộng viewport × DPR, eager, `fetchPriority="high"`, không `srcset`; nền vùng dư (blur 100px) lấy cỡ 240 |
 | Viewer | `responsiveSource` gán lúc mở, `fetchPriority="high"` |
