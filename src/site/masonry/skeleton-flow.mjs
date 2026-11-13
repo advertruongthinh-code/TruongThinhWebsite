@@ -573,6 +573,70 @@ export function frostGrainUrl() {
   return (frostGrain = canvas.toDataURL());
 }
 
+// Cubic B-spline upscale of an RGBA image (owner option B, 2026-11-13), the CPU twin of the frost branch of the shader: the strip-lane frost
+// draws its 20px copy at `factor` times its size with this, so CSS stretching the rest stays round instead of a blocky grid. Edges clamp.
+// Two separable passes of 4 taps; 20x30 at factor 4 measures about 0.1ms in Node.
+export function bsplineUpscale(pixels, width, height, factor) {
+  const outWidth = width * factor;
+  const outHeight = height * factor;
+  // Per output coordinate: the 4 clamped source indices and their B-spline weights, applied in two separable passes.
+  const taps = (size, outSize) => {
+    const indices = new Int32Array(outSize * 4);
+    const weights = new Float32Array(outSize * 4);
+    for (let index = 0; index < outSize; index += 1) {
+      const position = (index + 0.5) / factor - 0.5;
+      const base = Math.floor(position);
+      const f = position - base;
+      const g = 1 - f;
+      const w0 = g * g * g / 6;
+      const w1 = (4 - 6 * f * f + 3 * f * f * f) / 6;
+      const w3 = f * f * f / 6;
+      weights.set([w0, w1, 1 - w0 - w1 - w3, w3], index * 4);
+      for (let offset = 0; offset < 4; offset += 1) indices[index * 4 + offset] = Math.min(size - 1, Math.max(0, base + offset - 1));
+    }
+    return { indices, weights };
+  };
+  const columns = taps(width, outWidth);
+  const rows = taps(height, outHeight);
+  const across = new Float32Array(outWidth * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < outWidth; x += 1) {
+      const target = (y * outWidth + x) * 4;
+      for (let i = 0; i < 4; i += 1) {
+        const source = (y * width + columns.indices[x * 4 + i]) * 4;
+        const weight = columns.weights[x * 4 + i];
+        across[target] += weight * pixels[source];
+        across[target + 1] += weight * pixels[source + 1];
+        across[target + 2] += weight * pixels[source + 2];
+        across[target + 3] += weight * pixels[source + 3];
+      }
+    }
+  }
+  const out = new Uint8ClampedArray(outWidth * outHeight * 4);
+  for (let y = 0; y < outHeight; y += 1) {
+    for (let x = 0; x < outWidth; x += 1) {
+      const target = (y * outWidth + x) * 4;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let a = 0;
+      for (let j = 0; j < 4; j += 1) {
+        const source = (rows.indices[y * 4 + j] * outWidth + x) * 4;
+        const weight = rows.weights[y * 4 + j];
+        r += weight * across[source];
+        g += weight * across[source + 1];
+        b += weight * across[source + 2];
+        a += weight * across[source + 3];
+      }
+      out[target] = r;
+      out[target + 1] = g;
+      out[target + 2] = b;
+      out[target + 3] = a;
+    }
+  }
+  return out;
+}
+
 const smoothValue = (value) => {
   const clamped = Math.min(1, Math.max(0, value));
   return clamped * clamped * (3 - 2 * clamped);

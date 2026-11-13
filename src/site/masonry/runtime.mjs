@@ -32,6 +32,7 @@ import {
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
   frostGrainUrl,
+  bsplineUpscale,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
@@ -104,6 +105,8 @@ const CARD_REVEAL_MS = DUR.hover;
 const NEIGHBOR_IDLE_MS = 250;
 // Width in pixels of the photo copy the Flow canvas turns into frosted glass at reveal: stretched to the frame it blurs by itself (owner 2026-11-12).
 const FROST_COPY_WIDTH = 20;
+// The strip-lane frost draws that copy this many times larger with a cubic B-spline (2D canvas, no WebGL).
+const FROST_UPSCALE = 4;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a reveal for every card that scrolls past.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
@@ -988,6 +991,33 @@ const setCardVideoSource = (video, attach) => {
   else attach();
 };
 
+// Frosted glass of a lane wait layer drawn without WebGL (media-card R5): the 240 file at `url` (already loaded and decoded by the media queue)
+// copied to 20px, drawn 4 times larger by a cubic B-spline so CSS stretches it round like the shader's frost (owner option B, 2026-11-13), with
+// the shader's thin white veil, prepended to `node`. Skipped once `isLive()` is false. Shared by the card and primary lanes.
+function drawFrostCopy(node, url, isLive) {
+  const tiny = new Image();
+  tiny.src = url;
+  tiny.decode().then(() => {
+    if (!isLive()) return;
+    const canvas = document.createElement("canvas");
+    const width = FROST_COPY_WIDTH;
+    const height = Math.max(1, Math.round(FROST_COPY_WIDTH * tiny.naturalHeight / tiny.naturalWidth));
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return;
+    context.drawImage(tiny, 0, 0, width, height);
+    const round = bsplineUpscale(context.getImageData(0, 0, width, height).data, width, height, FROST_UPSCALE);
+    canvas.width = width * FROST_UPSCALE;
+    canvas.height = height * FROST_UPSCALE;
+    context.putImageData(new ImageData(round, canvas.width, canvas.height), 0, 0);
+    // Thin white veil as in the shader: mix(tiny, white, 0.14).
+    context.fillStyle = "rgba(255, 255, 255, 0.14)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    node.prepend(canvas);
+  }, () => {});
+}
+
 function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
   onPendingChange = () => {}) {
   const figure = document.createElement("figure");
@@ -1168,23 +1198,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         if (index !== activeIndex && tiny !== waitSource(item)) void mediaQueue.load(tiny, { rank: Math.abs(index - activeIndex) }).catch(() => {});
       });
     };
-    const drawFrost = (node, url) => {
-      const tiny = new Image();
-      tiny.src = url;
-      tiny.decode().then(() => {
-        if (!node.isConnected && !waits.has(node.dataset.mediaId)) return;
-        const canvas = document.createElement("canvas");
-        canvas.width = FROST_COPY_WIDTH;
-        canvas.height = Math.max(1, Math.round(FROST_COPY_WIDTH * tiny.naturalHeight / tiny.naturalWidth));
-        const context = canvas.getContext("2d");
-        if (!context) return;
-        context.drawImage(tiny, 0, 0, canvas.width, canvas.height);
-        // Thin white veil as in the shader: mix(tiny, white, 0.14).
-        context.fillStyle = "rgba(255, 255, 255, 0.14)";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        node.prepend(canvas);
-      }, () => {});
-    };
     // The wait layer of a lane whose media is not ready; null when it is ready (or reduced motion: the media shows when it arrives).
     const waitFor = (index) => {
       const item = items[index];
@@ -1207,7 +1220,10 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         }
         // Only a real 240 file is drawn: drawImage decodes on the main thread, and a media without size variants would decode its full file.
         const tiny = tinySource(item);
-        if (tiny !== waitSource(item)) void mediaQueue.load(tiny, { rank: 0 }).then(() => drawFrost(node, tiny), () => {});
+        if (tiny !== waitSource(item)) {
+          void mediaQueue.load(tiny, { rank: 0 })
+            .then(() => drawFrostCopy(node, tiny, () => node.isConnected || waits.has(item.id)), () => {});
+        }
       }
       // The media is not painted under its wait layer: a file that arrives mid-slide would otherwise be decoded while the strip moves and hold
       // its frames (headless Chromium measured 66-110ms per 3072 WebP); dismissWait shows it after decode().
