@@ -130,7 +130,7 @@ function createLaneWait({ id, waitSrc, tinySrc, color }) {
   return node;
 }
 // The media under a wait layer has decoded: PC clears the frosted glass in the clearing part of the card reveal (0.6s, sample 10), the phone
-// fades the media in over its colour layer in 0.45s as a card does (progressive-loading R9); then the layer goes. The media stays unpainted
+// crossfades its colour layer to the media in 0.45s as a card does (progressive-loading R9); then the layer goes. The media stays unpainted
 // (visibility hidden) under its layer until then: a file that arrives mid-slide would otherwise decode while the strip moves and hold its frames
 // (headless Chromium measured 66-110ms per 3072 WebP).
 function clearLaneWait(node, media, reduced, done = () => {}) {
@@ -144,8 +144,10 @@ function clearLaneWait(node, media, reduced, done = () => {}) {
     finish();
     return;
   }
+  // The layer sits above the media, so the layer itself fades out: fading the media in under it showed nothing, then the layer vanished in one
+  // frame (phone, owner 2026-11-13). Over an opaque media both read as the same crossfade.
   const fade = skeletonPhone()
-    ? media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING })
+    ? node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING, fill: "forwards" })
     : node.animate([{ opacity: 1 }, { opacity: 0 }],
       { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" });
   fade.finished.then(finish, finish);

@@ -85,6 +85,16 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
     try {
       const { card } = await setup(page);
       if (!touch) await card.hover();
+      // Every frame, the opacity of the lane wait layer: it must fade out over the decoded media (a crossfade), never vanish in one frame (owner 2026-11-13).
+      await page.evaluate(() => {
+        window.__waitOpacities = [];
+        const sample = () => {
+          const wait = document.querySelector(".card-media__wait");
+          if (wait) window.__waitOpacities.push(Number(getComputedStyle(wait).opacity));
+          requestAnimationFrame(sample);
+        };
+        sample();
+      });
       const state = await pressState(card, touch ? "swipe" : "arrow");
       assert.equal(state.activeId, `${fixtureId}-wait-1`, `press moves to media 2: ${JSON.stringify(state)}`);
       assert(state.moving > 0, `strip runs within two frames of the press, before the file arrives: ${JSON.stringify(state)}`);
@@ -93,6 +103,8 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
       else assert(state.wait.frost, "PC waits on frosted glass");
       assert(await settled(card, `${fixtureId}-wait-1`), "media shows and the wait layer goes once the file has decoded");
+      const opacities = await page.evaluate(() => window.__waitOpacities);
+      assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out: ${JSON.stringify(opacities.slice(-12))}`);
       const skeleton = await card.evaluate((node) => Boolean(node.querySelector(".masonry-grid__cta-frame")));
       assert(!skeleton, "the card skeleton does not cover a media that waited under its lane layer");
       assert.deepEqual(errors, []);

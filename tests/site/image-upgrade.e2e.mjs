@@ -31,10 +31,14 @@ try {
     const hero = ".detail-hero .hero-slide.is-active img";
     await page.waitForFunction((selector) => document.querySelector(selector)?.closest(".is-media-settled"), hero);
     assert.match(await pathOf(page, hero), VARIANT, "hero shows its fitted variant first");
+    // A slow link makes the original arrive in many chunks, so a partial copy can show before the end (R10).
+    await (await page.context().newCDPSession(page)).send("Network.emulateNetworkConditions",
+      { offline: false, latency: 20, downloadThroughput: 300_000, uploadThroughput: 300_000 });
     // Scroll down continuously for 3s: each switch to the original (srcset left with a single URL with no width) must happen when the page
     // has been still for at least 200ms. Measure by the real scroll position, since the page has not received scroll during the hero intro.
     await page.evaluate(() => {
       window.__upgradeTrace = [];
+      window.__upgradeSteps = [];
       let movedAt = performance.now();
       let last;
       const tick = () => {
@@ -46,7 +50,10 @@ try {
       tick();
       new MutationObserver((records) => records.forEach(({ target }) => {
         const srcset = target.getAttribute("srcset");
-        if (srcset && !/\s\d+w/.test(srcset)) window.__upgradeTrace.push(Math.round(performance.now() - movedAt));
+        if (srcset && !/\s\d+w/.test(srcset)) {
+          window.__upgradeTrace.push(Math.round(performance.now() - movedAt));
+          window.__upgradeSteps.push(srcset.startsWith("blob:") ? "copy" : "url");
+        }
       })).observe(document, { subtree: true, attributes: true, attributeFilter: ["srcset"] });
     });
     await page.mouse.move(720, 450);
@@ -60,10 +67,21 @@ try {
     await page.evaluate(() => scrollTo(0, 0));
     await page.waitForFunction((selector) => {
       const image = document.querySelector(selector);
-      return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
+      // A streamed original ends as a whole copy in a blob (R10).
+      return image?.currentSrc && (image.currentSrc.startsWith("blob:") ? image.dataset.originalWhole
+        : !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc));
     }, hero, { timeout: 20_000 }).catch(async () => assert.fail(`hero stays on its variant ${await pathOf(page, hero)}`));
-    const heroOriginal = await pathOf(page, hero);
+    const heroOriginal = await page.evaluate((selector) => {
+      const image = document.querySelector(selector);
+      return new URL(image.currentSrc.startsWith("blob:") ? image.dataset.original : image.currentSrc).pathname;
+    }, hero);
     assert.equal(originals.filter(({ pathname }) => pathname === heroOriginal).length, 1, `hero original requested once ${heroOriginal}`);
+    // A JXL original with a threshold for the tier on screen shows a partial copy first, then the whole file, both from the one stream (R2, R10).
+    const { steps, threshold } = await page.evaluate(async (pathname) => ({ steps: window.__upgradeSteps,
+      threshold: (await (await fetch("/assets/content/jxl-thresholds.json")).json())[pathname.slice(1)] }), heroOriginal);
+    if (heroOriginal.endsWith(".jxl") && threshold) {
+      assert.ok(steps.length >= 2 && steps.every((kind) => kind === "copy"), `hero shows a partial copy, then the whole copy ${JSON.stringify(steps)}`);
+    }
     await page.close();
   }
 
