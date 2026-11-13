@@ -20,6 +20,15 @@
   Design System chỉ chạy khi owner tự gõ `republish` trong chính thread làm việc đó; relay của điều phối
   hoặc tap card không tính.
 
+## Viết code: DRY và tổng quát hóa
+
+- Mỗi hành vi, giá trị, dữ liệu chỉ định nghĩa ở một chỗ; nơi khác đọc từ đó. Trước khi viết mới, tìm cái đã có; có thì dùng hoặc mở rộng, không chép rồi sửa.
+- Gom theo hành vi, không theo chỗ đang lặp: liệt kê mọi nơi đang có hoặc sẽ có hành vi đó, mỗi nơi ghi đã nối, nối trong PR này, hay để sau kèm lý do và link card.
+- Khác nhau là tham số, cấu hình hoặc dữ liệu, không phải bản code thứ hai. Nơi mới nhận hành vi bằng khai báo.
+- Chỉ gộp thứ trùng thật, từ hai nơi dùng thật trở lên; giống hình thức khác nghĩa thì giữ tách. Tự kiểm nơi dùng trước khi xóa.
+- Gộp xong xóa đường cũ trong cùng PR, không để hai đường song song.
+- PR chỉ dời code (kết quả giống hệt, có evidence) tách khỏi PR đổi hành vi. Có test hành vi trước khi dời; test kiểm hành vi, không đọc chữ trong source.
+
 ## Notion trong workflow
 
 Board Tasks là backlog chung của owner, điều phối và mọi worker; Git `main` giữ contract và
@@ -114,6 +123,8 @@ khi tool báo lỗi hoặc blocked.
 - **Automation**: hook, watcher hoặc launcher tự xử lý mechanics.
 - **STATE**: snapshot Git ngắn, nêu context hiện tại để bắt đầu task.
 - **SSoT**: single source of truth, nguồn chuẩn duy nhất.
+- **DRY**: don't repeat yourself, mỗi hành vi chỉ viết một lần.
+- **Tổng quát hóa**: gom các trường hợp riêng thành một cách làm chung, phần khác nhau thành tham số.
 - **Project memory**: bộ nhớ chung của các Claude session trong Claude project, nằm ngoài Git.
 - **Canonical**: nguồn chuẩn dùng để quyết định nội dung được chấp nhận.
 - **Evidence**: bằng chứng verify được từ repository, test, tool.
