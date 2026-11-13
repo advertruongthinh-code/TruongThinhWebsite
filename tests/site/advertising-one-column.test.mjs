@@ -345,12 +345,12 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
   assert.equal(full.layout.diagnostics.attempts[0]?.mode, "alongside", "R11 keeps full pools in the shared solver");
 });
 
-test("R11 keeps the use-sampling pool in one continuous coordinate space", () => {
+test("R11 keeps a four-photo single-ratio product pool in one continuous coordinate space", () => {
   const options = {
     cards: ADVERTISING_CARDS,
     categoryOrder,
     heroId: "kiosk-posm-25",
-    tag: "use-sampling",
+    tag: "product-signage-raised-letters-product-06",
     ...viewportForWidth(1569),
   };
   const result = compileRelatedLayout(options);
@@ -361,7 +361,7 @@ test("R11 keeps the use-sampling pool in one continuous coordinate space", () =>
   const expectedRemainingIds = result.cards.slice(1).map(({ id }) => id).sort();
 
   assert.equal(result.cards.length, 4, "R10 fixture keeps four real related photos");
-  assertRelated(result, "R10 kiosk-posm-30 use-sampling");
+  assertRelated(result, "R10 kiosk-posm-25 product-signage-raised-letters-product-06");
   assert.deepEqual(repeated.photoPlacements, result.photoPlacements, "R10 exact case remains deterministic");
   assert.equal(firstRelatedPlacement?.left, 3, "R10 assigns the first related photo to column four");
   assert.equal(firstRelatedPlacement?.y, 0, "R10 aligns the first related photo with the primary top");
@@ -430,7 +430,7 @@ test("R10 fills column four for every nonempty authored hero and tag pool at N4"
 });
 
 test("D9 keeps homogeneous related pools at fixed N with an aligned fallback", () => {
-  for (const tag of ["format-square", "use-sampling"]) {
+  for (const tag of ["format-square", "product-signage-raised-letters-product-06"]) {
     const options = {
       cards: ADVERTISING_CARDS,
       categoryOrder,
@@ -441,7 +441,7 @@ test("D9 keeps homogeneous related pools at fixed N with an aligned fallback", (
     const result = compileRelatedLayout(options);
     assert.equal(result.layout.columns, 3, `${tag}: D9 keeps fixed N`);
     assert.ok(result.cards.length > 0, `${tag}: real related photos remain`);
-    // The approved sampling set uses landscape photos of one ratio, so it also takes the aligned fallback.
+    // The halo-lit steel letter set (use-sampling became three cards in merge batch 6) uses landscape photos of one ratio, so it also takes the aligned fallback.
     assert.equal(result.layout.diagnostics.staggerMode, "fallback", `${tag}: D9 selects the expected phase`);
     assert.equal(result.layout.diagnostics.fallbackUsed, true, `${tag}: fallback state is incorrect`);
     assert.ok(result.layout.diagnostics.operations <= 300000, `${tag}: phases exceeded the shared budget`);

@@ -43,7 +43,7 @@ const engine = (await import("playwright"))[process.env.PHOTO_TRANSITIONS_ENGINE
 const results = [];
 const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
-const mediaCardId = "signage-raised-letters-06";
+const mediaCardId = "signage-raised-letters-37";
 const mediaVideoId = `${mediaCardId}-synthetic-video`;
 // Mirrors VISIT_SEED_HANDOFF_KEY; the runtime module needs a window to import.
 const visitSeedHandoffKey = "tt-advertising-visit-seed-handoff-v1";

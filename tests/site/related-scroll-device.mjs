@@ -17,7 +17,7 @@ const adb = process.env.ANDROID_ADB || "E:/TruongThinh-Website/.tooling/android/
 const base = `http://127.0.0.1:${port}`;
 const out = path.join(root, ".tmp/site-media-card", `related-scroll-${new Date().toISOString().replace(/[-:.]/g, "")}`);
 mkdirSync(out, { recursive: true });
-const A = "signage-raised-letters-06";
+const A = "signage-raised-letters-37";
 const rows = [];
 const log = (message) => console.log(`[related-scroll] ${message}`);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

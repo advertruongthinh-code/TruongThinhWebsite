@@ -9,7 +9,7 @@ import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
-const cardId = "signage-raised-letters-06";
+const cardId = "signage-raised-letters-37";
 const videoId = `${cardId}-synthetic-video`;
 const fixturePrefix = "/__site_media_card_fixture__/";
 const clip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio-3x2.mp4");

@@ -30,7 +30,7 @@ const heights = new Map([[320, 568], [390, 844], [820, 1180], [1024, 768], [1569
 const sampleIds = ["kiosk-posm-03", "kiosk-posm-07", "kiosk-posm-06", "kiosk-posm-04", "kiosk-posm-09"];
 const screenshotSamples = new Set([
   "core-en-kiosk-posm-03-320x568",
-  "core-vi-kiosk-posm-07-820x1180-sparse",
+  "core-vi-signage-raised-letters-37-820x1180-sparse",
   "sparse-related-vi-kiosk-posm-01-1569x912",
   "core-vi-kiosk-posm-09-1569x912",
   "core-en-kiosk-posm-06-1922x912",
@@ -443,7 +443,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
     actual.foreground.widthAttribute / actual.foreground.heightAttribute, `${label}: foreground identity ratio`, 0.005);
   assert(actual.background, `${label}: decorative background is missing`);
   // Same image, possibly a different version: the foreground goes to the original, the blurred background with a filter keeps the frame-fitting version (progressive-loading R10).
-  const photoKey = (src) => new URL(src).pathname.replace(/(?:-\d+)?\.[a-z0-9]+$/i, "");
+  // Only the variant widths of build-image-variants.mjs are a size suffix; a date suffix (-20261018) belongs to the name.
+  const photoKey = (src) => new URL(src).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.[a-z0-9]+$/i, "");
   assert.equal(photoKey(actual.background.currentSrc), photoKey(actual.foreground.currentSrc), `${label}: background and foreground use different photos`);
   assert.equal(actual.background.alt, "", `${label}: background alt must be empty`);
   assert(!actual.background.ariaLabel && !actual.background.title, `${label}: background has an accessible name`);
@@ -1059,11 +1060,12 @@ for (const locale of ["vi", "en"]) {
 for (const [localeIndex, locale] of ["vi", "en"].entries()) {
   for (const [widthIndex, width] of widthSamples.entries()) {
     const sparse = locale === "vi" && width === 820;
-    const id = sparse ? "kiosk-posm-07" : sampleIds[(widthIndex + localeIndex * 2) % sampleIds.length];
+    // The sparse case needs a tag with three other cards; use-sampling fell to three cards in merge batch 6.
+    const id = sparse ? "signage-raised-letters-37" : sampleIds[(widthIndex + localeIndex * 2) % sampleIds.length];
     await runPageCase(browser, {
       label: `core-${locale}-${id}-${width}x${heights.get(width)}${sparse ? "-sparse" : ""}`,
       locale, id, viewport: { width, height: heights.get(width) },
-      tag: sparse ? "use-sampling" : null, sparseTag: sparse,
+      tag: sparse ? "product-signage-raised-letters-product-06" : null, sparseTag: sparse,
       normalCopyFit: width === 1569 || width === 1922,
     });
   }
@@ -1085,8 +1087,9 @@ await runPageCase(browser, {
 await runPageCase(browser, {
   label: "sparse-related-vi-kiosk-posm-01-1569x912", locale: "vi", id: "kiosk-posm-01",
   viewport: { width: 1569, height: 912 }, tag: "product-kiosk-posm-product-01",
-  // The tag has 9 images (adding kiosk-posm-53, 62, 63) so related has exactly 8 cards with the same tag.
-  sparseTag: true, normalCopyFit: true, expectedRelatedCount: 8,
+  // Related holds every other card with the tag; merge batches 5 and 6 change that count, so read it from the catalog.
+  sparseTag: true, normalCopyFit: true,
+  expectedRelatedCount: ADVERTISING_CARDS.filter((card) => card.id !== "kiosk-posm-01" && card.tagIds.includes("product-kiosk-posm-product-01")).length,
 });
 await runPageCase(browser, {
   label: "touch-vi-kiosk-posm-07-390x844", locale: "vi", id: "kiosk-posm-07",
