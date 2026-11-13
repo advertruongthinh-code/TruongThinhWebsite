@@ -29,7 +29,7 @@ try {
   });
   const key = src.split("/").pop().replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
   assert.ok(MEDIA_COLORS[key], `primary media has colours: ${src}`);
-  assert.equal(colors, MEDIA_COLORS[key].slice(1).join(" "), "primary Flow uses the image's four colours");
+  assert.equal(colors, MEDIA_COLORS[key].slice(1, 5).join(" "), "primary Flow uses the image's four colours");
   const batch = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-cta-frame]")]
     .filter((node) => node.dataset.masonryFlowColors).length);
   assert.equal(batch, 0, "batch frames under the CTA keep the presets");
@@ -55,7 +55,7 @@ try {
   });
   const phoneKey = waiting.src.split("/").pop().replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
   assert.ok(MEDIA_COLORS[phoneKey], `phone primary media has colours: ${waiting.src}`);
-  assert.deepEqual(waiting.vars, MEDIA_COLORS[phoneKey].slice(1), "phone primary waits on the image's four colours");
+  assert.deepEqual(waiting.vars, MEDIA_COLORS[phoneKey].slice(1, 5), "phone primary waits on the image's four colours");
   assert.deepEqual([waiting.skeleton, waiting.glass], [false, false], "phone primary has no Flow skeleton or Kính");
   // While waiting the photo is hidden and unfiltered.
   assert.deepEqual(await phone.evaluate(() => {

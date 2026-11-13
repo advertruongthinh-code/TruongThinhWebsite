@@ -195,7 +195,7 @@ const buildFile = async (file) => {
     }
   }
   // New image, or an image replaced under the same name (variant just rebuilt): recompute the color so the color does not drift from the image.
-  if (key && (colors[key]?.length !== 5 || rebuilt)) {
+  if (key && (colors[key]?.length !== 6 || rebuilt)) {
     if (check) missing.push(`${relative} (color)`);
     else {
       // The dominant color reads the full-size pixels (sharp stats() ignores resize); the Flow colors read the 64px thumbnail.

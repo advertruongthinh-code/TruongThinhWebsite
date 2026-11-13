@@ -1700,8 +1700,16 @@ body.is-masonry-browse .masonry-grid {
   align-items: center;
   height: 16px;
   border-radius: 12px;
-  color: #fff;
-  background: rgba(51, 51, 51, 0.8);
+  color: var(--pill-ink, #fff);
+  background: var(--pill-surface, rgba(51, 51, 51, 0.8));
+  transition: color var(--dur-base) var(--ease), background-color var(--dur-base) var(--ease);
+}
+
+/* Pill tone (owner 2026-11-13): over a dark area under the pill (pill luminance in MEDIA_COLORS below 20) the pill turns light, white 85% with
+   charcoal dots and text; over a light area it stays charcoal. Changing media fades between the two in 0.3s. */
+.card-media__indicator[data-pill-tone="light"] {
+  --pill-ink: #333;
+  --pill-surface: rgba(255, 255, 255, 0.85);
 }
 
 .card-media__pill:has(.card-media__count) {
@@ -1721,18 +1729,19 @@ body.is-masonry-browse .masonry-grid {
   padding: 0;
   place-items: center;
   border: 0;
+  color: inherit;
   background: transparent;
   cursor: pointer;
   pointer-events: auto;
 }
 
-/* 8px dots following the Gallery dot UI (Swiper bullet, owner 2026-10-17), colors inverted on the pill: normal dot white 40%, current dot white. */
+/* 8px dots following the Gallery dot UI (Swiper bullet, owner 2026-10-17), in the pill's ink: normal dot at 40%, current dot full. */
 .card-media__dot::before {
   content: "";
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #fff;
+  background: currentColor;
   opacity: 0.4;
 }
 
