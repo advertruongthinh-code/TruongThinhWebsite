@@ -137,9 +137,22 @@ void main() {
     // Inside uTinyBox the copy sits where the photo sits (contain); outside it covers the frame like the zoom blur background.
     vec2 inner = (vUv - uTinyBox.xy) / uTinyBox.zw;
     vec2 tinyUv = all(equal(inner, clamp(inner, 0.0, 1.0))) ? inner : (vUv - 0.5) * uTinyCover + 0.5;
-    vec2 texel = 0.75 / uTinySize;
-    vec3 tiny = 0.25 * (texture2D(uTiny, tinyUv - texel).rgb + texture2D(uTiny, tinyUv + texel).rgb
-      + texture2D(uTiny, tinyUv + vec2(texel.x, -texel.y)).rgb + texture2D(uTiny, tinyUv + vec2(-texel.x, texel.y)).rgb);
+    // Cubic B-spline from 4 bilinear fetches (owner option B, 2026-11-13): stretching the copy linearly left a blocky grid of kinks at its
+    // pixel centres; the B-spline curve is smooth there, so the glass blurs round, at the same 4 fetches.
+    vec2 cell = tinyUv * uTinySize - 0.5;
+    vec2 f = fract(cell);
+    vec2 base = cell - f;
+    vec2 g = 1.0 - f;
+    vec2 w0 = g * g * g / 6.0;
+    vec2 w1 = (4.0 - 6.0 * f * f + 3.0 * f * f * f) / 6.0;
+    vec2 w3 = f * f * f / 6.0;
+    vec2 w2 = 1.0 - w0 - w1 - w3;
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+    vec2 p0 = (base - 0.5 + w1 / s0) / uTinySize;
+    vec2 p1 = (base + 1.5 + w3 / s1) / uTinySize;
+    vec3 tiny = s0.y * (s0.x * texture2D(uTiny, p0).rgb + s1.x * texture2D(uTiny, vec2(p1.x, p0.y)).rgb)
+      + s1.y * (s0.x * texture2D(uTiny, vec2(p0.x, p1.y)).rgb + s1.x * texture2D(uTiny, p1).rgb);
     vec3 frost = mix(tiny, vec3(1.0), 0.14);
     frost = mix(frost, overlayNoise(frost, texture2D(uNoise, gl_FragCoord.xy / 256.0).r), 0.045);
     color = mix(color, frost, uFrost);

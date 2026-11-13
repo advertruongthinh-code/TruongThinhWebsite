@@ -49,7 +49,7 @@ assignment.
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối) và
 [Ảnh trong card](../../motion.md#ảnh-trong-card).
 
-Lúc khung chờ ảnh (card PC, primary PC) sang ảnh, canvas Flow hóa kính mờ của chính ảnh (bản ảnh 20px kéo giãn, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, không Kính (owner 2026-11-12,
+Lúc khung chờ ảnh (card PC, primary PC) sang ảnh, canvas Flow hóa kính mờ của chính ảnh (bản ảnh 20px phóng bậc ba B-spline, màn trắng mỏng, sạn mịn) trong 45% đầu rồi kính mờ tan ra ảnh nét, `0.6s`, không Kính (owner 2026-11-12,
 xem [Ảnh trong card](../../motion.md#ảnh-trong-card)). Khung batch vào viewport chỉ mờ dần `0.6s`, không Kính.
 
 ## Chú thích thuật ngữ
