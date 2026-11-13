@@ -7,7 +7,8 @@ import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-pro
 
 // Card video playback schedule (media-card R4, owner 2026-10-24): masonry plays every video card muted when more than 1/2 of its height shows
 // below the navbar, recomputed immediately while scrolling; hover does not make a card play; related in detail autoplays like masonry (owner
-// 2026-10-25); reduced motion only plays the card under the cursor; each card runs its video playlist then loops.
+// 2026-10-25); reduced motion only plays the card under the cursor; a card with several media plays its video to the end, then the card
+// slideshow moves it on (owner 2026-11-13; the slideshow itself: site-media-card-slideshow.e2e.mjs).
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const fixturePrefix = "/__site_media_card_autoplay__/";
@@ -17,7 +18,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
 // Every card becomes a video card so the schedule always has candidates, independent of the grid seed. playlist: video, image,
-// second video, to check the card skips the image while running its playlist.
+// second video, to check the slideshow plays each video to its end and stands on the image.
 function fixtureArtifact(playlist = false) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
@@ -168,20 +169,28 @@ test("R4 desktop: a single-video card loops its video", async () => {
   } finally { await browser.close(); }
 });
 
-test("R4 desktop: a card plays its video playlist in order, skips images and loops", async () => {
+test("R4 desktop: a card plays a video to its end, stands on the image, plays the next video, then wraps forward", async () => {
   const { browser, page } = await open({ playlist: true });
+  const active = (id) => page.evaluate((cardId) => document.querySelector(`[data-masonry-card="${cardId}"]`)
+    ?.dataset.masonryActiveMediaId, id);
+  const waitFor = (id, suffix, timeout = 15000) => page.waitForFunction(({ cardId, mediaId }) => document
+    .querySelector(`[data-masonry-card="${cardId}"]`)?.dataset.masonryActiveMediaId === mediaId,
+  { cardId: id, mediaId: `${id}-autoplay-${suffix}` }, { timeout });
   try {
     await scrollAndSettle(page, false);
     const first = await playingSettled(page);
-    // The card entered the schedule while scrolling so it may already be on video 2; pick the card that is on video 1.
+    // The card entered the schedule while scrolling so it may already be further on; pick the card that is on video 1.
     const card = first.playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
     assert(card, `a playing card is on its first video: ${JSON.stringify(first.playing)}`);
     // Every card showing over 1/2 plays together so headless Chromium decodes slowly, a 3s clip sometimes runs to 6s.
-    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
-      ?.dataset.masonryActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 15000 });
-    await page.waitForFunction((id) => document.querySelector(`[data-masonry-card="${id}"]`)
-      ?.dataset.masonryActiveMediaId === `${id}-autoplay-video`, card.id, { timeout: 15000 });
-    assert((await videoState(page)).playing.some((video) => video.id === card.id), "the card keeps playing after the loop");
+    await waitFor(card.id, "image");
+    const atImage = Date.now();
+    await waitFor(card.id, "video-2", 15000);
+    const stood = Date.now() - atImage;
+    assert(stood >= 3500, `the card stands about 4s on the image: ${stood}ms`);
+    assert((await videoState(page)).playing.some((video) => video.id === card.id), "the next video plays");
+    await waitFor(card.id, "video");
+    assert.equal(await active(card.id), `${card.id}-autoplay-video`, "after the last media the card wraps to the first");
   } finally { await browser.close(); }
 });
 

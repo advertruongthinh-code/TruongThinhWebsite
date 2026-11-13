@@ -77,16 +77,20 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
   (`--dur-base`). Chấm theo màu chữ của pill: chấm thường 40%, chấm đang xem đậm.
 - Chỉ chấm nhận click; chỗ trống của hàng mở detail như thân card.
 
-### Video
+### Video và slideshow
 
-- Không có nút phát, icon loa hay nhãn thời lượng (owner 2026-11-10). Mỗi lúc một video phát, luôn tắt tiếng:
-  cuộn dừng thì tự phát một card trong vùng giữa màn hình; chuột vào card video
-  thì phát card đó, rời ra thì dừng. Không hiệu ứng hover riêng.
+- Không có nút phát, icon loa hay nhãn thời lượng (owner 2026-11-10). Luôn tắt tiếng: mọi card hiện quá 1/2 dưới
+  navbar đứng ở video thì phát; chuột vào card không làm card phát. Không hiệu ứng hover riêng.
+- Slideshow (owner 2026-11-13): card nhiều media hiện quá 1/2 (masonry, lọc, related, Công trình; primary không chạy)
+  đứng ở ảnh 4s, video phát hết, rồi trượt sang media kế bằng dải liền như bấm `>`; hết vòng về media đầu, vẫn trượt sang
+  phải. Media chưa tải xong vẫn trượt vào, dưới lớp chờ. Các card bắt đầu lệch pha ngẫu nhiên 2-6s, mỗi frame tối đa
+  một card trượt. Chuột trên card giữ card đứng yên (video dưới chuột lặp); rời chuột, nhấn hay vuốt thì đếm lại 4s.
+  Spec: [media-card R4](../../../docs/specs/media-card.md#r4-video-và-slideshow-trên-card).
 
 ### Tương tác
 
 - Chạm hoặc click canvas mở detail ở đúng media đang xem.
-- Vuốt ngang từ 40px đổi media, dừng ở hai đầu, không quay vòng; cuộn dọc
+- Vuốt ngang từ 40px đổi media, dừng ở hai đầu, không quay vòng (chỉ slideshow quay vòng); cuộn dọc
   vẫn native.
 - Chấm, nút trước và sau chỉ đổi media, không mở detail.
 - Hover card nhiều media hiện mũi tên `<` `>` như grid Pinterest (đo
@@ -128,7 +132,7 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
   cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của lộ ảnh); card còn chờ ảnh thì chỉ có chữ.
-- **Reduced motion:** skeleton đứng yên, card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
+- **Reduced motion:** không slideshow, skeleton đứng yên, card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ
