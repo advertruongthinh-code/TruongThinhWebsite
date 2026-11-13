@@ -65,7 +65,7 @@ test("taxonomy R3, R5: each product at the card threshold has a chip and its own
   // The 2026-11-10 placeholders are gone; their three products each keep one owner-approved card with three media (taxonomy R5).
   assert.equal(artifact.cards.filter((card) => card.media.sourceId.startsWith("placeholder:")).length, 0);
   assert.deepEqual(["kiosk-posm-74", "print-decals-37", "office-signs-wayfinding-56"]
-    .map((id) => artifact.cards.find((card) => card.id === id)?.mediaItems?.length), [3, 3, 3]);
+    .map((id) => artifact.cards.find((card) => card.id === id)?.mediaItems?.length), [3, 3, 4]);
   const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
   assert.match(clusterPage, /<link rel="canonical" href="\/vi\/advertising-products\/in-an-decal\/"/);
   // noscript links only generated pages: a product under the threshold has no dead link

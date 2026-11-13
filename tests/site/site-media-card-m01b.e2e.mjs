@@ -269,10 +269,10 @@ async function run(viewport, touch, locale) {
   page.on("pageerror", (error) => errors.push(error.message));
   try {
     const card = await setup(page, locale);
-    await page.evaluate(() => window.TruongThinhMasonry.getAdapter().ensurePhoto("signage-raised-letters-16"));
-    assert.equal(await page.locator('[data-masonry-card="signage-raised-letters-16"] [data-masonry-media-indicator]').count(), 0,
+    await page.evaluate(() => window.TruongThinhMasonry.getAdapter().ensurePhoto("signage-raised-letters-15"));
+    assert.equal(await page.locator('[data-masonry-card="signage-raised-letters-15"] [data-masonry-media-indicator]').count(), 0,
       "image-only public card retains legacy UI");
-    const legacyState = await page.locator('[data-masonry-card="signage-raised-letters-16"]').evaluate((node) => {
+    const legacyState = await page.locator('[data-masonry-card="signage-raised-letters-15"]').evaluate((node) => {
       const image = node.querySelector(".card-media > img");
       return { activeId: node.dataset.masonryActiveMediaId || null,
         layers: node.querySelectorAll("[data-masonry-media-item]").length,

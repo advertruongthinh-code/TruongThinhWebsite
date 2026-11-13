@@ -98,7 +98,6 @@ export const MEDIA_COLORS = Object.freeze({
  "kiosk-posm-75-spa-20261111": ["#e8d8c8","#e4cabd","#c5a78d","#a18256","#5d5429"],
  "kiosk-posm-76-backdrop-20261111": ["#282838","#ddc092","#a4896b","#916830","#413a3a"],
  "kiosk-posm-77-ke-dua-20261111": ["#985828","#acaa8e","#c08a4e","#966332","#693c13"],
- "kiosk-posm-78-gian-hang-dung-cu-20261113": ["#c89868","#c6beb3","#b8916e","#81634b","#2f2c2d"],
  "kiosk-posm-79-gian-hang-dung-cu-20261113": ["#b89868","#cec6bb","#b29678","#7a6450","#353130"],
  "kiosk-posm-80-backdrop-hoi-nghi-20261113": ["#886848","#d4b099","#a98364","#875b3c","#50351a"],
  "kiosk-posm-81-backdrop-khai-truong-20261113": ["#f8f8f8","#caccd5","#938d89","#498fac","#464d40"],

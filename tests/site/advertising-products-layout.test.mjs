@@ -329,7 +329,8 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, products.length, `${category.slug} covers all taxonomy products`);
     for (const card of categoryCards) {
       const tag = products.find(({ id }) => id === `product-${card.productKey}`);
-      assert.deepEqual([card.titleVi, card.titleEn], [tag.labelVi, tag.labelEn], `${card.id} matches its taxonomy product`);
+      // Vietnamese card names are unique niche keywords (owner 2026-11-13); the English name still follows the product.
+      assert.equal(card.titleEn, tag.labelEn, `${card.id} matches its taxonomy product`);
     }
     assert.ok(poolSources.has(category.cover), `${category.slug} cover reuses its production pool`);
     assert.equal(category.gallery.length, 2, `${category.slug} keeps two detail gallery images`);
@@ -341,6 +342,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     const expected = categoryOrder.filter((category) => cycle < counts[category]);
     assert.deepEqual(ADVERTISING_CARDS.filter(({ sourceOrder }) => sourceOrder === cycle).map(({ category }) => category), expected, `round-robin cycle ${cycle}`);
   }
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ titleVi }) => titleVi)).size, ADVERTISING_CARDS.length, "every card has its own Vietnamese name");
   for (const card of ADVERTISING_CARDS) {
     assert.equal(card.media.altVi, card.titleVi, `${card.id} keeps Vietnamese alt text`);
     assert.equal(card.media.altEn, card.titleEn, `${card.id} keeps English alt text`);

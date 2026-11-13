@@ -316,7 +316,7 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
   };
   // The fixture keeps exactly two related photos, independent of photos added to the catalog.
   const sparseTwo = compileRelatedLayout({ ...options,
-    cards: ADVERTISING_CARDS.filter(({ id }) => ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-14"].includes(id)),
+    cards: ADVERTISING_CARDS.filter(({ id }) => ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-67"].includes(id)),
     tag: "product-kiosk-posm-product-02" });
   const sparseOne = compileRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-03" });
   const full = compileRelatedLayout(options);
