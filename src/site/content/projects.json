@@ -22,19 +22,19 @@
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/can-ho-hero.webp",
+          "src": "/assets/content/projects/can-ho-hero-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
           "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
         },
         {
-          "src": "/assets/content/projects/can-ho-phong-ngu.webp",
+          "src": "/assets/content/projects/can-ho-phong-ngu-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng ngủ với giường gỗ sồi, vách đầu giường có đèn hắt, tủ đầu giường treo và tủ áo trắng kịch trần",
           "altEn": "Bedroom with an oak bed, a backlit headboard wall, floating bedside drawers and a floor-to-ceiling white wardrobe"
         }
@@ -239,26 +239,26 @@
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/gieng3-hero.webp",
+          "src": "/assets/content/projects/gieng3-hero-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
           "altEn": "Two-storey light-well house overview: living room with a tree under the light well, a light oak TV wall, a timber staircase with a black steel handrail and the dining table beyond"
         },
         {
-          "src": "/assets/content/projects/gieng3-phong-ngu.webp",
+          "src": "/assets/content/projects/gieng3-phong-ngu-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng ngủ với vách lam gỗ sồi sáng, đầu giường có đèn hắt, tủ áo trắng và cửa kính ra ban công",
           "altEn": "Bedroom with a light oak slatted wall, a backlit headboard, a white wardrobe and glass doors to the balcony"
         },
         {
-          "src": "/assets/content/projects/gieng3-phong-tho.webp",
+          "src": "/assets/content/projects/gieng3-phong-tho-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn",
           "altEn": "Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows"
         }
@@ -465,33 +465,33 @@
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/shared-office-open-desks.webp",
+          "src": "/assets/content/projects/shared-office-open-desks-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
           "altEn": "Open desk area with green felt dividers, desk lamps and a logo wall"
         },
         {
-          "src": "/assets/content/projects/shared-office-team-room.webp",
+          "src": "/assets/content/projects/shared-office-team-room-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng nhóm bốn người vách kính, bàn gỗ và màn hình treo tường",
           "altEn": "Four-person glass-walled team room with a timber table and wall screen"
         },
         {
-          "src": "/assets/content/projects/shared-office-meeting-room.webp",
+          "src": "/assets/content/projects/shared-office-meeting-room-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình",
           "altEn": "Glass-walled meeting room overlooking the street, with a long timber table and screen"
         },
         {
-          "src": "/assets/content/projects/shared-office-pantry.webp",
+          "src": "/assets/content/projects/shared-office-pantry-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu",
           "altEn": "Pantry with a fluted timber bar, lit shelving and moss-green high stools"
         }
@@ -1104,33 +1104,33 @@
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1.webp",
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng khách và bếp ăn liền mạch tông be, sofa vải, kệ TV be cát và cửa sổ bên trái",
           "altEn": "Open living room and kitchen in beige, with a fabric sofa, a sand-beige TV unit and a window on the left"
         },
         {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-2.webp",
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-2-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Bếp ăn với tủ bếp chữ I be cát và bàn ăn mặt laminate vân đá travertine",
           "altEn": "Kitchen with sand-beige single-run cabinets and a dining table in travertine-look laminate"
         },
         {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-4.webp",
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-4-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng ngủ master nhìn về giường và ốp đầu giường gỗ vân dọc, ánh sáng dịu từ cửa sổ",
           "altEn": "Master bedroom looking towards the bed and the vertical-grain headboard panel, with soft light from the window"
         },
         {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6.webp",
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng tắm chung với bồn tắm kèm vòi sen, vách kính, tủ lavabo MDF chống ẩm và gạch be nhám",
           "altEn": "Shared bathroom with a bath and shower, a glass screen, a moisture-resistant MDF vanity and matt beige tiles"
         }
@@ -1336,33 +1336,33 @@
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/can-ho-studio-gap-shot-1.webp",
+          "src": "/assets/content/projects/can-ho-studio-gap-shot-1-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Phòng studio ban ngày nhìn về cửa kính ban công, giường đã gập vào tường, sàn trống, bàn gập bên phải",
           "altEn": "Studio by day looking towards the glass balcony door, with the bed folded into the wall, a clear floor and the fold-down desk on the right"
         },
         {
-          "src": "/assets/content/projects/can-ho-studio-gap-shot-2.webp",
+          "src": "/assets/content/projects/can-ho-studio-gap-shot-2-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Mặt tủ áo cánh lùa xám xanh và hộc giường gập nhìn ngang căn phòng",
           "altEn": "Grey-blue sliding wardrobe doors and the wall-bed cabinet seen across the room"
         },
         {
-          "src": "/assets/content/projects/can-ho-studio-gap-shot-3.webp",
+          "src": "/assets/content/projects/can-ho-studio-gap-shot-3-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Bếp chữ I và bàn bar gập tường ở lối vào, nhìn về tủ lạnh",
           "altEn": "Single-run kitchen and fold-down wall bar at the entrance, looking towards the fridge"
         },
         {
-          "src": "/assets/content/projects/can-ho-studio-gap-shot-6.webp",
+          "src": "/assets/content/projects/can-ho-studio-gap-shot-6-card-wide.webp",
           "width": 3072,
-          "height": 2048,
+          "height": 1728,
           "altVi": "Ban công với bàn ghế gập nan gỗ và chậu cây trên kệ nan",
           "altEn": "Balcony with a folding slatted table and chairs and plants on a slatted shelf"
         }

@@ -143,7 +143,7 @@ sửa khi owner chấm ảnh thật.
      lá nhiệt đới ở góc, tên và slogan trên cùng); không mảng phẳng hai màu một icon.
      Thiết kế lại thì nêu mục tiêu và ràng buộc, để model tự thiết kế, giữ ảnh nền đã
      chọn làm tham khảo.
-   - ảnh bài News không dùng lại ảnh đã có trên site.
+   - ảnh News không dùng lại ảnh có trên site; ảnh công trình chỉ ở trang công trình đó.
 3. **Tạo.** Công cụ theo thứ tự fallback ở [Công cụ](#công-cụ)
    (ChatGPT web trước; owner chốt 2026-10-18, thay chốt "chỉ Codex, không RunningHub"
    2026-10-15). Mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
