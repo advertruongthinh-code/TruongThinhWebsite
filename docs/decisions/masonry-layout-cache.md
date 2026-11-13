@@ -78,7 +78,7 @@ không âm ở cả hai đầu (P4) giữ cột chuẩn cố định trong dải
 - Catalog thật (285 card, 32 filter, 128 ứng viên mỗi filter): 0 card ngang bị hạ trong biến thể giữ lại, cắt tối đa 4,989%, 10980 lần replay không `null`, mép thẳng hàng giảm từ 0,19 xuống 0,09 mỗi card.
 - Checkpoint B trên A04s (trung vị 3 lần, demo ở `main` 7b6071cf): rAF vuốt nhanh 37,3 (gốc 32,2), RAM đỉnh 256 MB (gốc 280), file cả dải compile 2,4 tới 5,1 ms không thuộc long task nào, 0 `layout cache miss`; owner duyệt 2026-11-11.
 - Pool nhỏ (1920 pool ngẫu nhiên, 4% tới 50% card ngang): 3 tới 8 card thì 8,5% pool có card bị hạ, 10 tới 14 card thì 0,5%; không pool nào có lỗ hay build `throw`.
-- Ngưỡng một chip luôn có tối thiểu 10 card (owner 2026-11-11, [taxonomy R5](../specs/advertising-taxonomy.md#r5-ngưỡng-10-card)).
+- Ngưỡng một chip luôn có tối thiểu 10 card (owner 2026-11-11; hạ xuống 5 ngày 2026-11-13, [taxonomy R5](../specs/advertising-taxonomy.md#r5-ngưỡng-5-card)).
 
 ## Follow-up
 
