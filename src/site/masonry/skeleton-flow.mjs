@@ -543,6 +543,23 @@ function createNoise() {
   return (sharedNoise = data);
 }
 
+// Grain tile for frosted glass drawn without WebGL (card strip lanes, media-card R3): the shared noise as gray with alpha 0.045, so CSS overlay
+// blending gives the shader's mix(frost, overlayNoise(frost, noise), 0.045). Empty string when the page cannot draw a canvas.
+let frostGrain;
+export function frostGrainUrl() {
+  if (frostGrain !== undefined) return frostGrain;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  const context = canvas.getContext("2d");
+  if (!context) return (frostGrain = "");
+  const noise = createNoise();
+  const pixels = context.createImageData(256, 256);
+  const alpha = Math.round(0.045 * 255);
+  noise.forEach((value, index) => pixels.data.set([value, value, value, alpha], index * 4));
+  context.putImageData(pixels, 0, 0);
+  return (frostGrain = canvas.toDataURL());
+}
+
 const smoothValue = (value) => {
   const clamped = Math.min(1, Math.max(0, value));
   return clamped * clamped * (3 - 2 * clamped);

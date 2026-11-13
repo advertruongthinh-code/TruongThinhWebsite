@@ -4943,6 +4943,31 @@ body.is-masonry-browse .masonry-grid {
   height: 100%;
 }
 
+/* A strip lane whose media is still loading (media-card R3, owner 2026-11-12): the lane slides at once under this wait layer. PC: frosted glass
+   of the media's 240 file (a 20px copy stretched, thin white veil drawn into the canvas, fine grain blended here), cleared when the file has
+   decoded. Phone: the color layer (data-media-wait). The layer follows the lane's translate. */
+.card-media__wait {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.card-media__wait > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.card-media__wait--frost::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-image: var(--frost-grain, none);
+  background-size: var(--frost-grain-size, 256px);
+  mix-blend-mode: overlay;
+}
+
 /* PC media being loaded waits under a Flow frame (docs/specs/loading-glass-and-page-entry.md R1); taps go through to the card and its buttons. */
 .card-media > .masonry-grid__cta-frame {
   z-index: 1;
