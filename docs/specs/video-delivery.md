@@ -29,7 +29,7 @@ ngoài spec này (xem Gate còn mở).
 ### R1. Thang chất lượng cho mỗi video
 
 Mỗi video có các bậc rộng 240, 480, 960 và 1920 px; chỉ giữ bậc không rộng hơn bản gốc, chiều cao theo tỷ lệ gốc (làm
-tròn về số chẵn). Mọi bậc là H.264 High 4:2:0 để GPU giải mã được ([media-card R4](media-card.md#r4-video-trên-card)),
+tròn về số chẵn). Mọi bậc là H.264 High 4:2:0 để GPU giải mã được ([media-card R4](media-card.md#r4-video-và-slideshow-trên-card)),
 cùng số khung hình mỗi giây với bản gốc, keyframe tối đa mỗi 0,5 s
 ([player R3](primary-video-player.md#r3-mã-hóa-video-cho-tua-mượt)). Segment dài 2 s và bắt đầu bằng keyframe: clip chỉ
 dài 6 tới 15 s, segment 6 s như Apple khuyên thì trình duyệt không kịp đổi bậc trong một clip.

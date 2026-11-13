@@ -1350,10 +1350,15 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);
         layer.addEventListener("loadeddata", () => dismissWait(index));
-        // When a video ends the card moves to the next video in the playlist in data order, and after the last it wraps to the first; images
-        // are not in the playlist, and a single-video card loops itself (R4, owner 2026-10-18).
+        // A video that ends hands over to the card slideshow (R4, owner 2026-11-13: the next media of any kind, after the schedule's
+        // checks). Reduced motion (no slideshow) keeps the playlist: the next video in data order, wrapping to the first; images are not
+        // in it, and a single-video card loops itself (owner 2026-10-18).
         layer.addEventListener("ended", () => {
           if (activeIndex !== index) return;
+          if (hasCarousel && !reducedMotion()) {
+            figure.dispatchEvent(new Event("masonry-media-ended", { bubbles: true }));
+            return;
+          }
           const videos = items.flatMap((entry, position) => entry.kind === "video" ? [position] : []);
           const next = videos[(videos.indexOf(index) + 1) % videos.length];
           if (next === index) {
@@ -1498,7 +1503,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (items[index]) requestMedia(index);
     });
     figure.advertisingPreloadNeighbors = preloadNeighbors;
-    const slideTo = (index, offset = 0, timing = PUSH_TIMING) => {
+    // forward: the new media comes in from the right even when the index wraps to the first (slideshow).
+    const slideTo = (index, offset = 0, timing = PUSH_TIMING, forward = false) => {
       const from = activeIndex;
       const outgoing = layers.get(items[from]?.id);
       settleLanes();
@@ -1508,7 +1514,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dispatchEvent(new Event("masonry-media-change", { bubbles: true }));
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
-      const direction = activeIndex > from ? 1 : -1;
+      const direction = forward || activeIndex > from ? 1 : -1;
       // The strip slides at once (owner 2026-11-12); media still loading rides in under its wait layer.
       showLanes([{ nodes: laneNodes(from), slot: 0, index: from },
         { nodes: laneNodes(activeIndex), slot: direction, index: activeIndex }], offset);
@@ -1565,6 +1571,16 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Card removed mid-slide (virtualization): drop every lane so no translate is left behind.
     figure.advertisingSettleStrip = settleLanes;
+    // Card slideshow (R4, owner 2026-11-13): the schedule steps the card to its next media, loaded or not, always moving forward, so
+    // the first media comes in from the right after the last.
+    if (hasCarousel) {
+      figure.dataset.masonrySlides = "";
+      figure.advertisingAdvance = () => {
+        const next = (activeIndex + 1) % items.length;
+        if (lanes.length) selectMedia(next);
+        else slideTo(next, 0, PUSH_TIMING, true);
+      };
+    }
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
       () => selectMedia(activeIndex + Number(button.dataset.masonryMediaHoverStep))));
@@ -5520,31 +5536,76 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
-  // Card video schedule (media-card R4, owner 2026-10-24): masonry and related in detail (owner 2026-10-25) play every
-  // card that is standing on a video and showing more than 1/2 of its height below the navbar; reduced motion plays only the card under the mouse. Each card runs
-  // its own video playlist (createPhotoCard, ended event).
+  // Card schedule (media-card R4): one rule for card videos and the card slideshow. A card counts while more than 1/2 of its media shows below
+  // the navbar, in masonry, related in detail and Công trình (owner 2026-10-24, 2026-10-25); the primary never runs it.
+  // - Video: every counted card standing on a video plays it, one start per frame (three starts in one frame made an 82ms Commit on PC,
+  //   owner 2026-10-25); reduced motion plays only the card under the mouse.
+  // - Slideshow (owner 2026-11-13): a counted card with several media stands 4s on an image, plays a video to its end, then steps to its next
+  //   media (wrapping), loaded or not; the first step of a card comes at a random 2-6s so cards never step together, and at most one card
+  //   steps per frame. The mouse on a card holds it; leaving, a press or a swipe restarts its 4s. Reduced motion has no slideshow.
   let playingVideos = [];
   let videoScheduleFrame = 0;
+  const SLIDE_DWELL_MS = 4000;
+  // Card -> time its next step is due; a card leaves the map when it stops counting, so it starts on a new random phase when it returns.
+  const slideDue = new Map();
+  // Cards whose video has ended and that wait for their step; their video stays out of the play list until the card moves on.
+  const endedCards = new Set();
+  let slideTimer = 0;
+  let autoStepping = null;
+  const holdSlide = (figure, now = performance.now()) => {
+    if (slideDue.has(figure)) slideDue.set(figure, now + SLIDE_DWELL_MS);
+  };
   const scheduleVideo = () => {
-    // Catalog has no video yet (main 2026-10-26): skip measuring layout every scroll frame.
-    if (!playingVideos.length && !document.querySelector("figure.masonry-card video")) return;
+    const cards = document.querySelectorAll("figure.masonry-card:is([data-masonry-slides], :has(video))");
+    if (!playingVideos.length && !slideDue.size && !cards.length) return;
     const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.masonry-card:hover") : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
-    const next = [...document.querySelectorAll("figure.masonry-card")].flatMap((figure) => {
+    const now = performance.now();
+    const counted = [...cards].filter((figure) => {
+      const box = figure.advertisingActiveVideo?.() || figure.querySelector(".card-media");
+      // getClientRects instead of checkVisibility (Safari below 17.4 lacks it): empty when the media or an ancestor is display none.
+      if (!box?.getClientRects().length) return false;
+      const { top, bottom, height } = box.getBoundingClientRect();
+      return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2;
+    });
+    // Slideshow first, so a card that steps off a video this frame does not restart it: cards standing on an image (or on a video that
+    // ended) whose time has come.
+    for (const figure of slideDue.keys()) if (!counted.includes(figure) || reduced) {
+      slideDue.delete(figure);
+      endedCards.delete(figure);
+    }
+    let stepped = false;
+    if (!reduced) counted.forEach((figure) => {
+      if (!figure.advertisingAdvance) return;
+      // The mouse holds the card; a video under it loops (play() restarts an ended video).
+      if (figure === hovered) {
+        slideDue.set(figure, Infinity);
+        endedCards.delete(figure);
+        return;
+      }
+      if (!slideDue.has(figure)) slideDue.set(figure, now + SLIDE_DWELL_MS * (0.5 + Math.random()));
+      else if (slideDue.get(figure) === Infinity) slideDue.set(figure, now + SLIDE_DWELL_MS);
+      if (stepped || (figure.advertisingActiveVideo?.() && !endedCards.has(figure)) || slideDue.get(figure) > now) return;
+      stepped = true;
+      autoStepping = figure;
+      figure.advertisingAdvance();
+      autoStepping = null;
+      endedCards.delete(figure);
+      slideDue.set(figure, now + PUSH_TIMING.duration + SLIDE_DWELL_MS);
+    });
+    const next = counted.flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();
-      // getClientRects instead of checkVisibility (Safari below 17.4 lacks it): empty when the video or an ancestor is display none.
-      if (!video?.getClientRects().length) return [];
-      if (reduced) return figure === hovered ? [video] : [];
-      const { top, bottom, height } = video.getBoundingClientRect();
-      return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
+      return video && !endedCards.has(figure) && (!reduced || figure === hovered) ? [video] : [];
     });
     playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
-    // A video returning to the schedule resumes from where it stopped. Only one video starts per frame, the rest wait for the next frame
-    // (owner 2026-10-25: three videos starting in the same frame make an 82ms Commit on PC).
+    // A video returning to the schedule resumes from where it stopped.
     const waiting = next.filter((video) => video.paused);
     void waiting[0]?.play().catch(() => {});
-    if (waiting.length > 1) scheduleVideoSoon();
     playingVideos = next;
+    clearTimeout(slideTimer);
+    const due = Math.min(...slideDue.values());
+    if (waiting.length > 1 || stepped) scheduleVideoSoon();
+    else if (Number.isFinite(due)) slideTimer = setTimeout(scheduleVideoSoon, Math.max(0, due - now));
   };
   const scheduleVideoSoon = () => {
     if (videoScheduleFrame) return;
@@ -5553,13 +5614,33 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       scheduleVideo();
     });
   };
+  controller.signal.addEventListener("abort", () => clearTimeout(slideTimer), { once: true });
   addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
   addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
-  document.addEventListener("masonry-media-change", scheduleVideoSoon, { signal: controller.signal });
+  // A media change by hand (dots, arrows, swipe) restarts that card's 4s; the schedule's own step does not.
+  document.addEventListener("masonry-media-change", (event) => {
+    if (event.target !== autoStepping) holdSlide(event.target);
+    endedCards.delete(event.target);
+    scheduleVideoSoon();
+  }, { signal: controller.signal });
+  document.addEventListener("masonry-media-ended", (event) => {
+    // Under the mouse the video loops instead (the schedule restarts it).
+    if (slideDue.has(event.target) && slideDue.get(event.target) !== Infinity) {
+      endedCards.add(event.target);
+      slideDue.set(event.target, 0);
+    }
+    scheduleVideoSoon();
+  }, { signal: controller.signal });
+  // A finger on a card restarts its 4s, so a swipe that snaps back still holds the slideshow.
+  document.addEventListener("pointerdown", (event) => {
+    const figure = event.pointerType !== "mouse" && event.target.closest?.("figure.masonry-card");
+    if (figure) holdSlide(figure);
+  }, { passive: true, signal: controller.signal });
   for (const type of ["pointerover", "pointerout"]) {
     document.addEventListener(type, (event) => {
       const figure = event.pointerType === "mouse" && event.target.closest?.("figure.masonry-card");
-      if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
+      if (!figure || figure.contains(event.relatedTarget)) return;
+      if (!figure.advertisingActiveVideo?.() && !figure.advertisingAdvance) return;
       scheduleVideoSoon();
     }, { signal: controller.signal });
   }

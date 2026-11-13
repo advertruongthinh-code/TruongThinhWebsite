@@ -13,6 +13,7 @@ tests:
   - tests/site/site-media-card-pill-tone.e2e.mjs
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-wait.e2e.mjs
+  - tests/site/site-media-card-slideshow.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
   - tests/site/strip-swipe-audit.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
@@ -108,7 +109,7 @@ When bấm "Media tiếp" ba lần rồi "Media trước" một lần, cách nha
 Then dải không nhảy quá 15% canvas giữa hai frame, vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, dừng ở media thứ ba
 ```
 
-### R4. Video trên card
+### R4. Video và slideshow trên card
 
 Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto"`, có `poster`, nhãn bằng alt của item. Item có
 `hlsSrc` thì layer phát thang chất lượng bằng hls.js, chặn ở bậc 480 vì card hiện tối đa khoảng 440px CSS
@@ -117,9 +118,7 @@ Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto
 H.264 4:2:0, layer luôn tắt tiếng; detail và viewer dùng `hlsSrc` từ bậc đầu hoặc `src`. Card vào DOM
 khi còn cách màn hình một viewport (ảo hóa), nên video tải và giải mã sẵn trước khi tới lượt phát (đo PC: video
 khởi động giữa lúc cuộn làm một Commit 82ms). Lướt quá 3000px/s (kéo thanh cuộn, chuột giữa) thì card video chỉ có poster, gắn nguồn khi cuộn chậm lại, mỗi frame một card.
-Card video theo Pinterest: không nút phát, không icon loa, không nhãn thời lượng (owner 2026-11-10). Luôn tắt tiếng. Masonry: mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau; còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
-theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về
-video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát, không tự trượt. Related trong detail tự phát như masonry, chuột vào hay rời card không đổi lịch phát. Touch tự phát như desktop ở masonry và related; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc
+Card video theo Pinterest: không nút phát, không icon loa, không nhãn thời lượng (owner 2026-11-10). Luôn tắt tiếng. Masonry: mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau; còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Slideshow (owner 2026-11-13): card nhiều media hiện quá 1/2 (masonry, lọc, related, Công trình; primary không chạy) đứng ở ảnh 4s, video phát hết, rồi đẩy sang media kế theo thứ tự `mediaItems` như R3, chấm theo; hết vòng về media đầu, vẫn trượt sang phải. Tới lượt mà media chưa tải xong thì vẫn trượt, media vào dưới lớp chờ (R5). Bước đầu của mỗi card rơi ngẫu nhiên trong 2-6s nên các card không trượt cùng lúc; mỗi frame tối đa một card trượt. Chuột trên card giữ card đứng yên (video dưới chuột lặp); rời chuột, nhấn hay vuốt thì đếm lại 4s. Card một video lặp chính nó. Reduced motion không chạy slideshow: hết video thì sang video kế, bỏ qua ảnh. Related trong detail tự phát như masonry, chuột vào hay rời card không đổi lịch phát. Touch tự phát như desktop ở masonry và related; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc
 card rời cửa sổ ảo hóa thì video tạm dừng.
 
 ```gherkin
@@ -127,7 +126,7 @@ Given ba card video cùng hiện quá 1/2 chiều cao trên masonry
 When cuộn tới khi một card chỉ còn hiện 40% chiều cao
 Then hai card kia vẫn phát tắt tiếng, card còn 40% dừng, không card nào có nút phát
 And rê chuột vào card đang đứng ở ảnh không làm card phát; trong detail, card related video hiện quá 1/2 cũng tự phát, rời chuột không dừng
-And card có video 1, ảnh, video 2 phát xong video 1 thì đẩy sang video 2, xong video 2 thì về video 1
+And card có video 1, ảnh, video 2 phát hết video 1, đứng ở ảnh 4s, phát video 2, rồi trượt sang phải về video 1
 ```
 
 ### R5. Chờ tải và lỗi media
@@ -248,7 +247,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `site-media-card-pill-tone.e2e.mjs` (pill sáng trên vùng tối, than trên vùng sáng, mờ dần khi đổi media, PC và phone); `media-colors.test.mjs` (độ chói vùng pill); `advertising-products-layout.test.mjs` (mọi card cao đúng bằng media, không dải dưới canvas); `advertising-skeleton-flow.test.mjs` (skeleton không chừa tên); `block-pages.e2e.mjs` (tên Công trình trong media); `site-media-card-r6.e2e.mjs` (hàng pill trong canvas, ca 384px 5 media có video không chồng pill, rect ổn định, singleton) |
 | R3 | `advertising-card-interactions.e2e.mjs` (chuột thật: lớp tối Pinterest và tên khi hover; cảm ứng: không tên, không lớp tối, cả related); `advertising-no-titles.e2e.mjs` (tên related ẩn, id riêng); `site-media-card-m02a.e2e.mjs` ("Vừa xem" có bóng D, lớp đen chờ media sẵn sàng); `strip-swipe-audit.test.mjs` (vuốt ngắn không `pointermove` đổi đúng một item); `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp hover không motion, "Vừa xem" khi hover, dải liền không fade không lộ nền; bấm mũi tên hover ba lần tới một lần lùi cách 60ms dừng đúng media thứ ba với một lớp, translate 0, dải không nhảy quá 15% canvas giữa hai frame và vẫn chạy tới ngay sau mỗi lần bấm cùng chiều, reduced motion không tạo animation; bấm chấm nhảy rồi lùi khi media đầu đã ra khỏi khung thì media đầu không quay lại, vệt vị trí từng frame ghi ở `.tmp/strip-rapid-step/`); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
-| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
+| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, slideshow qua video, related tự phát như masonry, reduced motion); `site-media-card-slideshow.e2e.mjs` (4s, lệch pha, media chậm dưới lớp chờ, chuột giữ, vuốt đếm lại, primary và reduced motion không chạy) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi); `frost-upscale.test.mjs` (kính mờ của làn phóng B-spline tròn, màu phẳng giữ phẳng, dưới 4ms) |
 | R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer; bấm tới ba lần rồi lùi cách 60ms ở primary và viewer: dải không dựng lại từ đầu, làn liền, không nhảy quá 15% khung mỗi frame, vẫn chạy tới sau lần bấm cùng chiều, primary tối đa ba làn và tiếng không bật lại, vệt ghi ở `.tmp/strip-rapid-step/`); `site-media-card-wait.e2e.mjs` (primary và viewer trượt ngay vào media đang tải dưới lớp chờ, lớp chờ crossfade trước khi dải gỡ, Flow lần tải đầu đi theo làn) |
 | R7 | `site-media-card-contract.test.mjs` (item sau chỉ từ card đã gộp); `advertising-products-media.test.mjs` (229 card) |
