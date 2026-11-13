@@ -101,12 +101,14 @@ export const renderBlockPage = (kind, template, page, ctx) => {
     [`data-barba-namespace="${frame}"`, `data-barba-namespace="${KINDS[kind].namespace}"`, "namespace"],
     [`href="/vi/${frame}/" data-language-option="vi"`, `href="${pageHref(kind, "vi", page)}" data-language-option="vi"`, "language vi"],
     [`href="/en/${frame}/" data-language-option="en"`, `href="${pageHref(kind, "en", page)}" data-language-option="en"`, "language en"],
-    // A project page belongs to Projects, not to its sector frame: move the navbar underline and the menu mark to Projects.
+    // A project page belongs to Projects, not to its sector frame: move the navbar mark and the menu mark to Projects;
+    // like an advertising card detail, the underline stays hidden until hover (owner 2026-11-13, detail.css `is-project-detail`).
     ...(kind === "projects" ? [
       [' aria-current="page"', "", "frame current page", 2],
       ['<li class="selected">', "<li>", "nav selected"],
       ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
       ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
+      ['class="detail-page"', 'class="detail-page is-project-detail"', "body project detail"],
     ] : []),
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${kind === "news" ? articleHead(page) : ""}${renderBlocks(page, ctx)}\n      </main>`, "main"],
     ...(kind === "news" ? [[' aria-current="page"', "", "menu current page"]] : []),
