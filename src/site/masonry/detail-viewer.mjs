@@ -421,8 +421,13 @@ export function createDetailViewer({
   const showImage = () => {
     const original = responsiveSource(record.media.src, record.media.width);
     const current = heroImage?.currentSrc;
+    const originalHref = new URL(original, location.href).href;
+    // The primary may hold a streamed copy of this original (progressive-loading R10): whole, or partial while it still streams.
+    const copy = current?.startsWith("blob:") && heroImage.dataset.original === originalHref;
     pendingOriginal = null;
-    if (current && current !== new URL(original, location.href).href && mediaBase(current) === mediaBase(original)) {
+    if (copy && heroImage.dataset.originalWhole) {
+      expandedImage.src = current;
+    } else if (current && current !== originalHref && (copy || mediaBase(current) === mediaBase(original))) {
       expandedImage.src = current;
       const loader = pendingOriginal = new Image();
       loader.addEventListener("load", () => pendingOriginal === loader && swapOriginal());

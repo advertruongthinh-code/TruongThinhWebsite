@@ -91,29 +91,77 @@ document.documentElement.classList.add("media-gate");
     }
     if (!image) return pending && scheduleUpgrade();
     forget(image);
-    const original = image.currentSrc.replace(VARIANT, "$1");
-    const loader = Object.assign(new Image(), { src: original });
+    const shown = image.currentSrc;
+    const original = shown.replace(VARIANT, "$1");
+    // URLs this upgrade put on the image: while its currentSrc is one of them the image still shows this media. The Advertising primary reuses one img for
+    // every media, so switching media mid-load must drop the upgrade, otherwise the old media's original overwrites the new media.
+    const owned = new Set([shown]);
     upgrading = true;
     const done = () => {
       upgrading = false;
       scheduleUpgrade(0);
     };
-    // If the page scrolled again by the time decoding finished, wait for idle before swapping: painting a 4K image for the first time costs one long frame.
-    const swap = () => {
-      const wait = busyFor();
-      if (wait) return setTimeout(swap, wait);
-      // The image still shows exactly that media: the Advertising primary reuses one img for every media, so switching media mid-load of the original
-      // must drop it, otherwise the old media's original overwrites the new media.
-      if (image.isConnected && image.currentSrc.replace(VARIANT, "$1") === original) {
-        // Inside a picture, swap the exact source the browser is using (JXL); WebP sits on the img itself. An img with only src (Advertising
-        // primary) swaps src: the runtime assigns src for later media, and a srcset assigned here would override it forever.
-        const source = original.endsWith(".jxl") && image.parentElement?.querySelector('source[type="image/jxl"]');
-        if (source) source.srcset = original;
-        else image[image.hasAttribute("srcset") ? "srcset" : "src"] = original;
-      }
-      done();
+    // Decode off-screen, then swap once the page is idle: painting a 4K image for the first time costs one long frame.
+    // A streamed copy also marks which original it is and whether it is whole, so the viewer can reuse it (detail-viewer showImage).
+    const show = (url, copy) => new Promise((resolve) => {
+      const swap = () => {
+        const wait = busyFor();
+        if (wait) return setTimeout(swap, wait);
+        if (image.isConnected && owned.has(image.currentSrc)) {
+          owned.add(new URL(url, location.href).href);
+          if (copy) Object.assign(image.dataset, { original: new URL(original, location.href).href, originalWhole: copy === "whole" ? "1" : "" });
+          // Inside a picture, swap the exact source the browser is using (JXL); WebP sits on the img itself. An img with only src (Advertising
+          // primary) swaps src: the runtime assigns src for later media, and a srcset assigned here would override it forever.
+          const source = original.endsWith(".jxl") && image.parentElement?.querySelector('source[type="image/jxl"]');
+          if (source) source.srcset = url;
+          else image[image.hasAttribute("srcset") ? "srcset" : "src"] = url;
+        }
+        resolve();
+      };
+      Object.assign(new Image(), { src: url }).decode().then(swap, resolve);
+    });
+    streamOriginal(original, shown, show).then((streamed) => streamed || show(original)).then(done, done);
+  };
+  // Progressive original (progressive-loading R2, R10): stream a JXL original and show a partial copy once the bytes received reach the build's threshold
+  // for the tier on screen (from there the partial file is already sharper than that tier at its size), once more halfway to the end, then the file
+  // whole (a blob too, so the file is requested only once whatever the cache headers). Resolves false before any request when there is no threshold
+  // (WebP, a tier without one); the caller then loads the whole file.
+  let thresholds;
+  const streamOriginal = async (original, shown, show) => {
+    const tier = /-(\d+)\.jxl$/.exec(shown)?.[1];
+    if (!tier || !original.endsWith(".jxl")) return false;
+    thresholds ||= fetch("/assets/content/jxl-thresholds.json").then((response) => response.json()).catch(() => ({}));
+    const at = (await thresholds)[new URL(original, location.href).pathname.slice(1)]?.[tier];
+    if (!at) return false;
+    const response = await fetch(original);
+    if (!response.ok || !response.body) throw new Error(original);
+    const total = Number(response.headers.get("content-length")) || Infinity;
+    const reader = response.body.getReader();
+    const chunks = [];
+    let received = 0, next = at, showing = Promise.resolve(), pending = false, previous;
+    // One step at a time, in order; a partial step is skipped while the previous one still waits for idle. A partial copy is revoked once the next step shows.
+    const step = (url, copy) => {
+      const before = previous;
+      previous = url;
+      pending = true;
+      showing = showing.then(() => show(url, copy)).then(() => {
+        pending = false;
+        if (before) URL.revokeObjectURL(before);
+      });
     };
-    loader.decode().then(swap, done);
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (received >= next && received < total && !pending) {
+        next = received + (total - received) / 2;
+        step(URL.createObjectURL(new Blob(chunks, { type: "image/jxl" })), "partial");
+      }
+    }
+    step(URL.createObjectURL(new Blob(chunks, { type: "image/jxl" })), "whole");
+    await showing;
+    return true;
   };
   const upgradeObserver = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
     if (!target.isConnected) forget(target);

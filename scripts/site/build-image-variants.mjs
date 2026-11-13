@@ -18,7 +18,8 @@ import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 const VARIANT_WIDTHS = [240, 480, 960];
 // null is the original; a size not smaller than the original is dropped (progressive-loading R1).
 const JXL_WIDTHS = [240, 480, 960, 1600, 2048, null];
-const SSIM_THRESHOLD = 0.9;
+// Frame-fit sizes a large frame shows before it upgrades to the original (progressive-loading R2, R10).
+const UPGRADE_TIERS = [960, 1600, 2048];
 const arg = (name) => { const index = process.argv.indexOf(`--${name}`); return index > 0 ? process.argv[index + 1] : null; };
 const force = process.argv.includes("--force");
 const check = process.argv.includes("--check");
@@ -31,7 +32,9 @@ const pinned = (name) => { const file = path.resolve(sourceRoot, "../../.tooling
 const cjxl = process.env.CJXL || pinned("cjxl");
 const djxl = process.env.DJXL || pinned("djxl");
 const thresholdsFile = path.join(sourceRoot, "assets/content/jxl-thresholds.json");
-const thresholds = JSON.parse(await readFile(thresholdsFile, "utf8").catch(() => "{}"));
+// Only originals carry thresholds ({ "<path>.jxl": { "<tier>": bytes } }); a plain number is the per-variant format before 2026-11-13.
+const thresholds = Object.fromEntries(Object.entries(JSON.parse(await readFile(thresholdsFile, "utf8").catch(() => "{}")))
+  .filter(([, value]) => typeof value === "object"));
 // Colors of Advertising images: [the dominant color a card fills with before the image has received any byte (progressive-loading R9), the 4 Flow colors awaiting the
 // primary image, light to dark (advertising-skeleton R3)].
 const colorsFile = path.join(sourceRoot, "media-lib/colors.mjs");
@@ -90,26 +93,54 @@ const encodeJxl = async (png, out, targetBytes, tmp) => {
   return best;
 };
 
-// Smallest number of leading bytes at which the truncated file reaches SSIM 0.90 against the full file (progressive-loading R2).
-const findThreshold = async (jxl, tmp) => {
-  const bytes = await readFile(jxl);
-  const fullPng = path.join(tmp, "full.png");
-  await run(djxl, [jxl, fullPng, "--quiet"]);
-  const full = await luma(fullPng);
-  const score = async (length) => {
-    const part = path.join(tmp, "part.jxl"), partPng = path.join(tmp, "part.png");
-    await writeFile(part, bytes.subarray(0, length));
-    try { await run(djxl, [part, partPng, "--allow_partial_files", "--quiet"]); } catch { return 0; }
-    const partial = await luma(partPng).catch(() => null);
-    return partial && partial.info.width === full.info.width
-      ? ssim(full.data, partial.data, full.info.width, full.info.height) : 0;
+// djxl writes PPM (PNG encoding took 4 times the decode); sharp reads its pixels as raw RGB.
+const lumaAt = async (ppm, width) => {
+  const data = await readFile(ppm);
+  const [header, w, h, max] = data.subarray(0, 64).toString("latin1").match(/^P6\s+(\d+)\s+(\d+)\s+(\d+)\s/) ?? [];
+  if (max !== "255") throw new Error(`${ppm}: not an 8-bit PPM`);
+  return sharp(data.subarray(header.length), { raw: { width: Number(w), height: Number(h), channels: 3 } })
+    .greyscale().resize({ width }).raw().toBuffer({ resolveWithObject: true });
+};
+
+// For each tier the original upgrades from: the smallest number of leading bytes of the original whose partial decode, scaled to the tier
+// width, is at least as close to the full original as the tier file itself (luma SSIM, progressive-loading R2). The page swaps to the
+// partial original from there on, so the image never gets blurrier than the frame-fit version it replaces.
+const findThresholds = async (stem, tmp) => {
+  const bytes = await readFile(`${stem}.jxl`);
+  const fullPng = path.join(tmp, "full.ppm");
+  await run(djxl, [`${stem}.jxl`, fullPng, "--quiet"]);
+  // A partial decode is shared between tiers; null when too few bytes to decode anything.
+  const partials = new Map();
+  const partial = (length) => {
+    if (!partials.has(length)) partials.set(length, (async () => {
+      const part = path.join(tmp, `part-${length}.jxl`), png = path.join(tmp, `part-${length}.ppm`);
+      await writeFile(part, bytes.subarray(0, length));
+      try { await run(djxl, [part, png, "--allow_partial_files", "--quiet"]); return png; } catch { return null; }
+    })());
+    return partials.get(length);
   };
-  let low = 0, high = bytes.length;
-  while (high - low > Math.max(256, bytes.length / 200)) {
-    const middle = Math.floor((low + high) / 2);
-    if (await score(middle) >= SSIM_THRESHOLD) high = middle; else low = middle;
+  const result = {};
+  let low = 0;
+  for (const width of UPGRADE_TIERS) {
+    const tier = `${stem}-${width}.jxl`;
+    if (!existsSync(tier)) continue;
+    const reference = await lumaAt(fullPng, width);
+    const tierPng = path.join(tmp, "tier.ppm");
+    await run(djxl, [tier, tierPng, "--quiet"]);
+    const similarity = async (png) => {
+      const image = png && await lumaAt(png, width).catch(() => null);
+      return image ? ssim(reference.data, image.data, width, Math.min(reference.info.height, image.info.height)) : 0;
+    };
+    const target = await similarity(tierPng);
+    // Thresholds rise with the tier, so each search starts from the previous tier's threshold.
+    let high = bytes.length;
+    while (high - low > Math.max(256, bytes.length / 200)) {
+      const middle = Math.floor((low + high) / 2);
+      if (await similarity(await partial(middle)) >= target) high = middle; else low = middle;
+    }
+    result[width] = high;
   }
-  return high;
+  return result;
 };
 
 const isVariant = (file) => /-(?:240|480|960)\.webp$/.test(file);
@@ -126,9 +157,8 @@ const buildFile = async (file) => {
   let rebuilt = 0;
   for (const variant of variantPaths(file)) {
     if (variant.width && variant.width >= width) continue;
-    const jxlKey = variant.format === "jxl" ? relativeOf(variant.file) : null;
     const exists = await stat(variant.file).catch(() => null);
-    if (!force && exists && (!jxlKey || thresholds[jxlKey])) continue;
+    if (!force && exists) continue;
     if (check) { missing.push(relativeOf(variant.file)); continue; }
     // Only use the originals when they keep exactly the published aspect ratio; otherwise the WebP remains the source.
     const original = originals[relative];
@@ -145,7 +175,6 @@ const buildFile = async (file) => {
         const target = (await stat(avif).catch(() => null))?.size
           ?? (await pipeline.clone().avif({ quality: 55, effort: 6 }).toBuffer()).length;
         await encodeJxl(png, variant.file, target, tmp);
-        thresholds[jxlKey] = await findThreshold(variant.file, tmp);
       } finally {
         await rm(tmp, { recursive: true, force: true });
       }
@@ -155,6 +184,15 @@ const buildFile = async (file) => {
     }
     built += 1;
     rebuilt += 1;
+  }
+  // Thresholds of the original against its tiers; recomputed whenever a variant was rebuilt.
+  const stem = file.slice(0, -".webp".length), originalKey = relativeOf(`${stem}.jxl`);
+  if (UPGRADE_TIERS.some((tier) => tier < width) && (rebuilt || !thresholds[originalKey])) {
+    if (check) missing.push(`${originalKey} (thresholds)`);
+    else {
+      const tmp = await mkdtemp(path.join(os.tmpdir(), "jxl-"));
+      try { thresholds[originalKey] = await findThresholds(stem, tmp); } finally { await rm(tmp, { recursive: true, force: true }); }
+    }
   }
   // New image, or an image replaced under the same name (variant just rebuilt): recompute the color so the color does not drift from the image.
   if (key && (colors[key]?.length !== 5 || rebuilt)) {

@@ -13,7 +13,7 @@ tests:
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/406332849a0e816ebc6af97487876c15
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Ảnh JPEG XL progressive và thứ tự tải
@@ -70,23 +70,26 @@ And chạy lại với --check thì exit 0
 
 ### R2. Ngưỡng chất lượng
 
-Lúc build, mỗi file JXL có `thresholdBytes`: số byte đầu nhỏ nhất mà bản cắt dở giải mã ra SSIM từ 0,90 trở lên so với chính
-file đó giải mã đủ (độ chói, cửa sổ 8×8, như lần đo). Script dò bằng `djxl --allow_partial_files` và ghi
-`assets/content/jxl-thresholds.json` (`{ "<path>": bytes }`). Không đạt ngưỡng trước khi hết file thì ngưỡng là cỡ file.
-Từ 2026-10-31 site không dùng ngưỡng (R3); build vẫn ghi file để quay lại được mà không phải encode lại.
+Lúc build, mỗi bản gốc JXL có ngưỡng byte cho từng cỡ mà khung lớn có thể đang hiện trước khi lên bản gốc (960, 1600, 2048, cỡ
+nào có file): số byte đầu nhỏ nhất mà bản gốc tải dở, thu về rộng bằng cỡ đó, có SSIM so với bản gốc đủ không thấp hơn SSIM của
+chính file cỡ đó (độ chói, cửa sổ 8×8). Từ ngưỡng đó bản dở đã nét bằng hoặc hơn bản đang hiện, nên đổi sang không làm ảnh mờ đi
+(owner duyệt plan 2026-11-12). Script dò bằng `djxl --allow_partial_files`, ghi `assets/content/jxl-thresholds.json`
+(`{ "<path gốc>.jxl": { "960": bytes, "1600": bytes, "2048": bytes } }`), tính lại khi một biến thể của ảnh được build lại;
+`--check` báo ảnh thiếu ngưỡng. Đo 2026-11-13 trên 596 ảnh: trung vị 62% cỡ file, 80% số ngưỡng nằm trong 54-70%.
 
 ```gherkin
-Given <tên>-1600.jxl 108 KB
+Given <tên>.jxl rộng 3072 có <tên>-1600.jxl
 When build tính ngưỡng
-Then jxl-thresholds.json có path đó với số byte giữa 30% và 100% cỡ file
-And giải mã đúng số byte đó cho SSIM từ 0,90 trở lên so với bản đủ
+Then jxl-thresholds.json có "<tên>.jxl" với "1600" không quá cỡ file
+And giải mã đúng số byte đó, thu về rộng 1600, cho SSIM so với bản gốc không thấp hơn <tên>-1600.jxl
 ```
 
 ### R3. Ảnh chỉ hiện khi tải xong
 
 Ảnh chỉ hiện khi đã tải xong toàn bộ file và `decode()` xong, ở mọi trang và mọi trình duyệt (owner 2026-10-31: "ảnh chỉ
 xuất hiện khi đủ chất lượng như lúc trước khi làm jxl"). Bản đầu (2026-10-27) cho hiện từ ngưỡng SSIM 0,90 (R2) nhờ Service
-Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ.
+Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ. Riêng bản gốc ở R10 hiện từ ngưỡng R2 (2026-11-13): ngưỡng so với bản
+đang hiện nên ảnh không mờ đi.
 
 - Trang tĩnh: vệt sáng của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) che tới `load` và `decode()`.
 - Advertising: card giữ khung Flow (điện thoại: lớp màu 4 màu chủ đạo) tới khi ảnh tải xong (R9), primary lộ qua kính mờ lúc `decode()` xong (điện thoại: ảnh hiện `0.45s` trên lớp màu)
@@ -223,8 +226,11 @@ And khi tải xong ảnh lộ qua kính mờ của chính nó trong 0.6s, không
 
 Ảnh khung lớn (rộng từ 640px, hoặc rộng hay cao từ 60% viewport: hero, ảnh lớn detail) đã hiện ở bản vừa khung (R3) và đang trong
 màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang (owner chọn 14:01, thay "mọi ảnh" lúc 10:45). Card và ô nhỏ giữ
-bản vừa khung: mọi item masonry (`[data-masonry-item]`: card lưới, card related, card gợi ý, ở mọi trang có masonry): card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC (card related: PC owner đứng 200-480ms, 2026-11-09). Bản gốc tải riêng bằng
-`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện. Phone không lên bản gốc (R1).
+bản vừa khung: mọi item masonry (`[data-masonry-item]`: card lưới, card related, card gợi ý, ở mọi trang có masonry): card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC (card related: PC owner đứng 200-480ms, 2026-11-09). Bản gốc JXL tải bằng
+`fetch` và đếm byte: số byte đã về đạt ngưỡng R2 của cỡ đang hiện thì phần đã về (blob) thay bản đang hiện, thêm một lần ở nửa
+đường còn lại, rồi bản đủ (cũng là blob, nên bản gốc chỉ request một lần dù header cache thế nào). Lần nào cũng `decode()` xong mới
+đổi `<source>` JXL hoặc `src`. Không có ngưỡng (WebP, cỡ không có) thì tải cả file bằng `Image` như trước. Viewer mở trên bản
+đủ của primary nếu đã có; primary còn đang tải thì viewer mở trên bản đang hiện và tải bản gốc riêng. Phone không lên bản gốc (R1).
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
   Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
@@ -243,7 +249,7 @@ And lúc trang đang cuộn không ảnh nào đổi sang bản gốc
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | File | `<tên>.jxl`, `<tên>-240\|480\|960\|1600\|2048.jxl` | Biến thể (R1), `build-image-variants.mjs` ghi |
-| Data | `assets/content/jxl-thresholds.json` | `{ path: thresholdBytes }` (R2), build ghi, site chưa đọc |
+| Data | `assets/content/jxl-thresholds.json` | `{ "<gốc>.jxl": { cỡ: bytes } }` (R2), build ghi, `head-inline.js` đọc khi lên bản gốc (R10) |
 | File | `/sw.js` | Chỉ tự gỡ Service Worker cũ (R3); `_headers` đặt `Cache-Control: no-cache` |
 | Tool | `cjxl`, `djxl` v0.11.1 ghim trong `tooling-versions.json` | Encode, tính ngưỡng |
 
@@ -264,14 +270,14 @@ sang khung Flow rồi kính mờ lúc lộ (R9, 2026-11-12); README Kính, Media
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
-| R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
+| R2 | `node scripts/site/build-image-variants.mjs --check` (thiếu ngưỡng thì exit 1); kiểm ngẫu nhiên bằng `djxl --allow_partial_files` |
 | R3 | `image-reveal-complete.e2e.mjs` (proxy chậm, không đăng ký Service Worker, hero settle sau `load`, một request; card chỉ lộ từ khung Flow khi ảnh tải xong; viewer đổi sang bản gốc khi tải xong, một request) |
 | R4 | `first-load-parity.e2e.mjs`: font trễ 1s thì veil mở sau khi font về, ảnh hero trễ 3s thì veil không chờ |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
 | R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, mọi card chờ chạy Flow trên một canvas của lưới, không ảnh mờ, card chờ ảnh có màu chủ đạo, lộ hàng loạt không Kính, có bản sao kính mờ), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
-| R10 | `image-upgrade.e2e.mjs` (hero và ảnh lớn detail lên bản gốc, card masonry giữ bản vừa khung, không đổi khi đang cuộn, một request) |
+| R10 | `image-upgrade.e2e.mjs` (hero và ảnh lớn detail lên bản gốc, card masonry giữ bản vừa khung, không đổi khi đang cuộn, một request; mạng chậm thì hiện bản dở trước rồi bản đủ) |
 
 ## Gate còn mở
 
@@ -284,8 +290,8 @@ sang khung Flow rồi kính mờ lúc lộ (R9, 2026-11-12); README Kính, Media
 
 - **JPEG XL (JXL)**: định dạng ảnh mới, hỗ trợ tải progressive và ảnh động.
 - **Progressive**: file xếp dữ liệu để trình duyệt vẽ được bản mờ trước rồi nét dần khi tải thêm.
-- **Ngưỡng chất lượng**: số byte đầu file đủ để bản vẽ dở đạt SSIM 0,90 so với bản đủ; build còn tính, site không dùng.
-- **Service Worker**: script chạy giữa trang và mạng; bản cũ đếm byte ảnh JXL, bản hiện nay chỉ tự gỡ.
+- **Ngưỡng chất lượng**: số byte đầu của bản gốc đủ để bản vẽ dở nét bằng bản đang hiện (R2).
+- **Service Worker**: script chạy giữa trang và mạng; bản cũ đếm byte ảnh JXL, bản hiện nay chỉ tự gỡ (R10 đếm byte bằng `fetch`).
 - **SSIM**: chỉ số giống nhau về cấu trúc giữa hai ảnh, 1 là giống hệt.
 - **Tầng tải**: nhóm tài nguyên của trang cùng mức ưu tiên; tầng sau không giành băng thông của tầng trước.
 - **Veil**: lớp trắng phủ trang lúc tải hoặc chuyển trang.
