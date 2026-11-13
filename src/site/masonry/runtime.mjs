@@ -107,6 +107,49 @@ const NEIGHBOR_IDLE_MS = 250;
 const FROST_COPY_WIDTH = 20;
 // The strip-lane frost draws that copy this many times larger with a cubic B-spline (2D canvas, no WebGL).
 const FROST_UPSCALE = 4;
+// Lane wait layer (media-card R5, R6): a card or primary strip lane whose media has not decoded slides in under this layer. PC is cheap frosted
+// glass (sample 10: the 240 file drawn at 20px and stretched, 14% white veil, fine grain), the phone the 4-colour layer of a card waiting for
+// its image. Only a real 240 file is drawn: drawImage decodes on the main thread, and a media without size variants would decode its full file.
+// waitSrc: the image file, or the poster of a video; tinySrc: its 240 file.
+function createLaneWait({ id, waitSrc, tinySrc, color }) {
+  const node = document.createElement("div");
+  node.className = "card-media__wait";
+  node.dataset.mediaId = id;
+  node.setAttribute("aria-hidden", "true");
+  if (skeletonPhone()) setColorWait(node, waitColors(waitSrc, color));
+  else {
+    node.classList.add("card-media__wait--frost");
+    node.style.backgroundColor = mediaColors(waitSrc)?.[0] || color || "";
+    const grain = frostGrainUrl();
+    if (grain) {
+      node.style.setProperty("--frost-grain", `url("${grain}")`);
+      node.style.setProperty("--frost-grain-size", `${256 / devicePixelRatio}px`);
+    }
+    if (tinySrc !== waitSrc) void mediaQueue.load(tinySrc, { rank: 0 }).then(() => drawFrostCopy(node, tinySrc, () => !("waitDone" in node.dataset)), () => {});
+  }
+  return node;
+}
+// The media under a wait layer has decoded: PC clears the frosted glass in the clearing part of the card reveal (0.6s, sample 10), the phone
+// fades the media in over its colour layer in 0.45s as a card does (progressive-loading R9); then the layer goes. The media stays unpainted
+// (visibility hidden) under its layer until then: a file that arrives mid-slide would otherwise decode while the strip moves and hold its frames
+// (headless Chromium measured 66-110ms per 3072 WebP).
+function clearLaneWait(node, media, reduced, done = () => {}) {
+  node.dataset.waitDone = "";
+  media.style.removeProperty("visibility");
+  const finish = () => {
+    node.remove();
+    done();
+  };
+  if (node.hidden || reduced) {
+    finish();
+    return;
+  }
+  const fade = skeletonPhone()
+    ? media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING })
+    : node.animate([{ opacity: 1 }, { opacity: 0 }],
+      { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" });
+  fade.finished.then(finish, finish);
+}
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // On phones, hold the card reveal until the swipe stops: otherwise a fast fling would start a reveal for every card that scrolls past.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
@@ -1205,28 +1248,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (isReady(layer) || reducedMotion() || layer.classList.contains("is-media-error")) return null;
       let node = waits.get(item.id);
       if (node) return node;
-      node = document.createElement("div");
-      node.className = "card-media__wait";
-      node.dataset.mediaId = item.id;
-      node.setAttribute("aria-hidden", "true");
-      if (skeletonPhone()) setColorWait(node, waitColors(waitSource(item), color));
-      else {
-        node.classList.add("card-media__wait--frost");
-        node.style.backgroundColor = mediaColors(waitSource(item))?.[0] || color || "";
-        const grain = frostGrainUrl();
-        if (grain) {
-          node.style.setProperty("--frost-grain", `url("${grain}")`);
-          node.style.setProperty("--frost-grain-size", `${256 / devicePixelRatio}px`);
-        }
-        // Only a real 240 file is drawn: drawImage decodes on the main thread, and a media without size variants would decode its full file.
-        const tiny = tinySource(item);
-        if (tiny !== waitSource(item)) {
-          void mediaQueue.load(tiny, { rank: 0 })
-            .then(() => drawFrostCopy(node, tiny, () => node.isConnected || waits.has(item.id)), () => {});
-        }
-      }
-      // The media is not painted under its wait layer: a file that arrives mid-slide would otherwise be decoded while the strip moves and hold
-      // its frames (headless Chromium measured 66-110ms per 3072 WebP); dismissWait shows it after decode().
+      node = createLaneWait({ id: item.id, waitSrc: waitSource(item), tinySrc: tinySource(item), color });
       layer.style.visibility = "hidden";
       layer.after(node);
       waits.set(item.id, node);
@@ -1240,24 +1262,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const layer = layers.get(item.id);
       if (!node || !layer || !isReady(layer)) return;
       waits.delete(item.id);
-      layer.style.removeProperty("visibility");
-      // No CSS opacity transition under the wait: the media is shown by the fade below or at once.
+      // No CSS opacity transition under the wait: the media is shown by the lane fade or at once.
       layer.style.setProperty("transition", "none", "important");
       layer.classList.add("is-masonry-media-ready");
       onPendingChange(figure);
-      const done = () => {
-        node.remove();
-        layer.style.removeProperty("transition");
-      };
-      if (node.hidden || reducedMotion()) {
-        done();
-        return;
-      }
-      const fade = skeletonPhone()
-        ? layer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING })
-        : node.animate([{ opacity: 1 }, { opacity: 0 }],
-          { duration: CARD_REVEAL_MS * 0.55, easing: "cubic-bezier(0.42, 0, 0.58, 1)", fill: "forwards" });
-      fade.finished.then(done, done);
+      clearLaneWait(node, layer, reducedMotion(), () => layer.style.removeProperty("transition"));
     };
     // A lane carries its media and, while that media loads, its wait layer; both move with the strip.
     const laneNodes = (index) => {
@@ -4182,8 +4191,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     canvas.getContext("2d").drawImage(source, 0, 0);
     return canvas;
   };
+  // A lane media still under its wait layer is not drawn: drawImage would decode it on the main thread mid-slide.
   const drawable = (node) => node instanceof HTMLVideoElement ? node.readyState >= 2
-    : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0);
+    : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0 && node.style.visibility !== "hidden");
   // Live glass background (owner 2026-10-19): when video plays or the strip slides, the blur background redraws every frame from exactly what is in
   // the media area: cover the media box onto a 1/8-frame canvas, blur with the last tier then scale up 8x.
   // The static background image [data-detail-background] handles the rest.
@@ -4308,10 +4318,21 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (heroFrame) delete heroFrame.dataset.detailSliding;
     startLiveBackground();
   };
-  const primaryLaneNode = (item) => Object.assign(document.createElement("img"),
-    { alt: "", src: primarySource(item), className: "detail-view__strip-media" });
+  // A strip lane: the media (image, or poster of a video) and, while it has not decoded, its wait layer (media-card R6, owner 2026-11-12).
+  const primaryLane = (item, slot, index) => {
+    const media = Object.assign(document.createElement("img"),
+      { alt: "", src: primarySource(item), className: "detail-view__strip-media" });
+    if (reduced || (media.complete && media.naturalWidth > 0)) return { nodes: [media], slot, index };
+    const waitSrc = item.kind === "video" ? item.posterSrc : item.src;
+    const wait = createLaneWait({ id: item.id, waitSrc, tinySrc: responsiveSource(waitSrc, item.width, 240),
+      color: cardColor(cards.find((card) => card.id === activePhotoId) ?? { media: item }) });
+    wait.classList.add("detail-view__strip-media");
+    media.style.visibility = "hidden";
+    void media.decode().catch(() => {}).then(() => clearLaneWait(wait, media, reduced));
+    return { nodes: [media, wait], slot, index };
+  };
   // entries: [{ item, slot }], slot 0 is the media currently shown; `offset` is the offset of slot 0 from the frame. Each lane is
-  // { nodes, slot, index } like the card strip; `to` is the offset the strip heads to, `pendingId` a press waiting for its media to decode.
+  // { nodes, slot, index } like the card strip; `to` is the offset the strip heads to.
   const openPrimaryStrip = (entries, offset = 0) => {
     closePrimaryStrip();
     const width = primaryWidth();
@@ -4319,15 +4340,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clip.className = "detail-view__strip";
     const items = primaryItems();
     const lanes = entries.map(({ item, slot }) => {
-      const media = slot ? primaryLaneNode(item) : currentPrimaryNode();
-      media.classList.add("detail-view__strip-media");
-      clip.append(media);
-      return { slot, nodes: [media], index: items.indexOf(item) };
+      const lane = slot ? primaryLane(item, slot, items.indexOf(item)) : { nodes: [currentPrimaryNode()], slot, index: items.indexOf(item) };
+      lane.nodes[0].classList.add("detail-view__strip-media");
+      clip.append(...lane.nodes);
+      return lane;
     });
     photoVideo.after(clip);
     heroFrame.dataset.detailSliding = "";
     const playing = !photoVideo.hidden && !photoVideo.paused;
-    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null, to: 0, pendingId: null };
+    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null, to: 0 };
     // The video's still image stays in the strip; the sound keeps running and fades with the strip's rhythm, then the video pauses.
     if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
@@ -4341,12 +4362,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return strip.animations.at(-1).finished;
   };
   // The strip reached its last target: bring the real media there (strip.apply), then remove the strip once that media can show. A retarget
-  // (new animations) or a press still waiting for its media takes over instead.
+  // (new animations) takes over instead.
   const landPrimaryStrip = async (strip) => {
     const { animations } = strip;
     // No animation: the strip had not started when a press sent it back to the media it shows.
     try { await animations.at(-1)?.finished; } catch { return; }
-    if (primaryStrip !== strip || strip.animations !== animations || strip.pendingId || !strip.apply) return;
+    if (primaryStrip !== strip || strip.animations !== animations || !strip.apply) return;
     strip.apply();
     Object.assign(strip, { apply: null, playing: false });
     // A video entering the frame plays from the start (R6); the strip is removed when the video has a frame.
@@ -4356,42 +4377,36 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }));
     if (primaryStrip === strip) closePrimaryStrip();
   };
-  // A press while the primary strip has not landed (media-card R3 rules 1 to 5, R6): the strip keeps moving from where it
-  // is seen, or stays at rest when it has not started, and turns to the new target once that media has decoded; only the lanes on screen
-  // stay (keepLanes), so a target that never showed loses its lane. The sound fade and the video pause belong to the first open and the
-  // landing only. Returns false when the press takes the plain path: no strip on its way or a finger on the strip.
+  // A press while the primary strip has not landed (media-card R3 rules 1 to 5, R6): the strip turns to the new target at once from where it
+  // is seen, the target lane under its wait layer while its media loads (owner 2026-11-12); only the lanes on screen stay (keepLanes), so a
+  // target that never showed loses its lane. The sound fade and the video pause belong to the first open and the landing only. Returns false
+  // when the press takes the plain path: no strip on its way or a finger on the strip.
   const steerPrimaryStrip = (item, direction) => {
     const strip = primaryStrip;
     if (!strip || strip.dragging || !strip.apply) return false;
     const { width } = strip;
     const index = primaryItems().indexOf(item);
-    const node = strip.lanes.find((entry) => entry.index === index)?.nodes[0] ?? primaryLaneNode(item);
-    strip.pendingId = item.id;
-    void whenMediaReady(node).then(() => {
-      if (primaryStrip !== strip || strip.pendingId !== item.id) return;
-      strip.pendingId = null;
-      const moving = strip.animations.some(({ playState }) => playState === "running");
-      // Back to the target the strip already heads to or rests on: the running animation lands, a stopped strip lands now.
-      if (strip.lanes.some((entry) => entry.index === index && -entry.slot * width === strip.to)) {
-        if (!moving) void landPrimaryStrip(strip);
-        return;
-      }
-      const from = stripOffset(strip.lanes, width);
-      const { kept, slot } = keepLanes(strip.lanes, { index, direction, width, offset: from });
-      strip.lanes.filter((entry) => !kept.includes(entry))
-        .forEach(({ nodes }) => nodes.forEach((entry) => entry !== node && entry.remove()));
-      if (!kept.some((entry) => entry.index === index)) {
-        kept.push({ nodes: [node], slot, index });
-        strip.nodes[0].append(node);
-      }
-      strip.lanes = kept;
-      const toPx = -slot * width;
-      // A strip that already stopped on the old target makes a plain slide from rest.
-      strip.animations = retargetStrip(strip.lanes, { toPx, width,
-        sameDirection: Math.sign(strip.to - from) === Math.sign(toPx - from), timing: moving ? null : PUSH_TIMING });
-      strip.to = toPx;
-      void landPrimaryStrip(strip);
-    });
+    const moving = strip.animations.some(({ playState }) => playState === "running");
+    // Back to the target the strip already heads to or rests on: the running animation lands, a stopped strip lands now.
+    if (strip.lanes.some((entry) => entry.index === index && -entry.slot * width === strip.to)) {
+      if (!moving) void landPrimaryStrip(strip);
+      return true;
+    }
+    const from = stripOffset(strip.lanes, width);
+    const { kept, slot } = keepLanes(strip.lanes, { index, direction, width, offset: from });
+    strip.lanes.filter((entry) => !kept.includes(entry)).forEach(({ nodes }) => nodes.forEach((entry) => entry.remove()));
+    if (!kept.some((entry) => entry.index === index)) {
+      const lane = primaryLane(item, slot, index);
+      kept.push(lane);
+      strip.nodes[0].append(...lane.nodes);
+    }
+    strip.lanes = kept;
+    const toPx = -slot * width;
+    // A strip that already stopped on the old target makes a plain slide from rest.
+    strip.animations = retargetStrip(strip.lanes, { toPx, width,
+      sameDirection: Math.sign(strip.to - from) === Math.sign(toPx - from), timing: moving ? null : PUSH_TIMING });
+    strip.to = toPx;
+    void landPrimaryStrip(strip);
     return true;
   };
   // `motion` from a drag swipe: the strip is already open, the offset at release and the remaining slide rhythm.
@@ -4455,22 +4470,21 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoImage.src = source;
     }
     fitPrimaryMedia(item);
+    // The strip slides at once; a target not decoded yet rides in under its wait layer (media-card R6, owner 2026-11-12).
     if (strip && !steered) {
-      const from = motion?.offset ?? 0;
-      // Wait only for the shown media and the target media; the lane on the other side does not enter the frame.
-      void Promise.all(strip.lanes.filter(({ slot }) => slot === 0 || slot === Math.sign(slide))
-        .flatMap(({ nodes }) => nodes).map(whenMediaReady))
-        .then(() => {
-          // A later press took the strip over before it started (steerPrimaryStrip), or sent it back to the media it shows and it landed.
-          if (primaryStrip !== strip || strip.pendingId || strip.animations.length || !strip.apply) return;
-          void runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width, motion?.timing ?? PUSH_TIMING).catch(() => {});
-          return landPrimaryStrip(strip);
-        });
+      void runPrimaryStrip(strip, motion?.offset ?? 0, -Math.sign(slide) * strip.width, motion?.timing ?? PUSH_TIMING).catch(() => {});
+      void landPrimaryStrip(strip);
     }
-    // Images of the two adjacent media enter the cache so a manual drag does not meet an empty lane.
+    // The media being viewed loads first; once it shows, every other media of the card goes through the shared queue nearest first (poster for a
+    // video), so thumbnails, arrows and swipes mostly meet a loaded media.
     const neighbors = record.mediaItems || [];
     const at = neighbors.indexOf(item);
-    [neighbors[at - 1], neighbors[at + 1]].forEach((entry) => { if (entry) new Image().src = primarySource(entry); });
+    void whenMediaReady(video ? photoVideo : photoImage).then(() => {
+      if (activePrimaryMediaId !== item.id) return;
+      neighbors.forEach((entry, index) => {
+        if (index !== at) void mediaQueue.load(primarySource(entry), { rank: Math.abs(index - at) }).catch(() => {});
+      });
+    });
     syncVideoPlayer();
     syncVideoTime();
     if (photoBackground) {
