@@ -11,8 +11,9 @@ tests:
   - tests/site/blocks.test.mjs
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
+  - tests/site/project-hero-motion.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-11
+updated: 2026-11-14
 ---
 
 # Công trình nhà ở và kinh doanh
@@ -83,19 +84,27 @@ Then thẻ cao đúng bằng media, tên tiếng Anh không hiện trên cảm �
 
 ### R3. Trang chi tiết công trình
 
-Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md): hero hai dòng có ảnh hoặc video, nền tối
-và lớp phủ .hero-shade như hero các trang tĩnh (owner 2026-11-08), đoạn giới thiệu,
-carousel, ô thông số (`facts-grid`: loại công trình, địa điểm, diện tích, năm hoàn thành, hạng mục Trường Thịnh làm), các khối
-ảnh và chữ do người soạn ghép, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác (tiêu đề nghiêng canh giữa "Công trình khác", EN "Other projects") và dòng "Xem toàn bộ công trình" tới `/<locale>/projects/`. Dải là khối `project-slider` không ghi `projectIds`: build tự lấy các công trình khác cùng mảng theo thứ tự trong dữ liệu, nên công trình mới tự vào dải mọi trang cùng mảng. Tên chủ nhà
+Theo mẫu Chi tiết công trình của [layout-library R2](layout-library.md). Hero như trang con `/en/projects/` của Espacio
+(owner duyệt 2026-11-14): ảnh phủ kín nền tối, lớp phủ .hero-shade, dòng tên công trình nhỏ chữ hoa (thẻ `h1`, 16px nét 600,
+đầu dòng thẳng mép trái dòng tiêu đề đầu, phone canh giữa và vẫn hiện), tiêu đề 1 đến 3 dòng có đúng một chữ nghiêng
+(`tagline`, đánh dấu `*chữ*`), nút "Thiết kế không gian của bạn" chữ hoa 16px cách tiêu đề 32px kéo mượt xuống khối Zalo
+(`#lien-he`, gạch chân 3px khi rê chuột, phone luôn gạch chân) và "Cuộn xuống". Motion như hero trang tĩnh: ảnh thu từ 1.2,
+chữ hiện từng từ, dòng tên trượt vào từ trái lúc 1.2s, nút hiện dần lúc 1.8s; giảm chuyển động thì hiện ngay. Sau hero là
+tiêu đề kể chuyện, đoạn giới thiệu,
+carousel, ô thông số (`facts-grid` 4 ô: Khu vực, Diện tích, Hạng mục, Vật liệu chính), các khối
+ảnh và chữ theo bảng R4, đoạn kể về xưởng và câu kết, khối liên hệ Zalo và đặt lịch khảo sát, dải công trình khác (tiêu đề nghiêng canh giữa "Công trình khác", EN "Other projects") và dòng "Xem toàn bộ công trình" tới `/<locale>/projects/`. Dải là khối `project-slider` không ghi `projectIds`: build tự lấy các công trình khác cùng mảng theo thứ tự trong dữ liệu, nên công trình mới tự vào dải mọi trang cùng mảng. Tên chủ nhà
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList`.
 Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `type`, `slugVi`, `slugEn`, tên, mô tả, ảnh bìa,
 chuỗi khối); `scripts/site/block-pages.mjs` dựng trang từ khung trang cùng mảng (header, menu, footer), namespace `project`; navbar và menu đánh dấu (`aria-current`) mục Công trình, không phải mảng của khung (owner 2026-11-11); như detail sản phẩm quảng cáo, gạch chân ẩn trừ khi hover, focus (body `is-project-detail` dùng chung luật `is-detail` trong `detail.css`, owner 2026-11-13),
-route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Công trình mẫu chỉ ghi loại, phong cách,
-hạng mục, không ghi tên khách, địa chỉ, năm, diện tích bịa (owner 2026-11-07); thay bằng công trình thật trước khi lên domain.
+route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Chữ kể chuyện như giới thiệu công trình, không đọc như AI; công
+trình mẫu được ghi khu vực và diện tích ước lượng, không ghi tên khách, không ghi nhãn "công trình mẫu" (owner 2026-11-14, thay
+luật 2026-11-07); thay bằng công trình thật trước khi lên domain.
 Cỡ chữ và khối đo theo trang con `/en/projects/` của Espacio ở 1440 và 390 (2026-11-11, owner "phải giống"): tiêu đề mục 64px
 (40px phone) dòng 1.4, chữ thường nét 500 như mọi chữ hiện trên site (Espacio silka 400 tương đương Plus Jakarta 500), ô thông số tràn mép có vạch dọc (phone một cột canh giữa, vạch ngang), cặp ảnh tràn
 mép hai nửa bằng nhau cách 35px, thẻ dải công trình trên phone 200 × 300px so le 120px, dòng "Xem toàn bộ công trình" 16px với mũi tên
-200px (150px phone); số đo chi tiết ở [Blocks](../../design-system/components/Blocks/README.md). Hero giữ kiểu hero trang tĩnh (owner 2026-11-08).
+200px (150px phone); số đo chi tiết ở [Blocks](../../design-system/components/Blocks/README.md). Motion thân bài như Espacio:
+tiêu đề mục hiện từng dòng, ô thông số nhô lên 60px lần lượt cách 0.15s, dải công trình trượt vào từ phải 60px và trôi ngang
+theo cuộn ([Motion](../../design-system/motion.md)).
 
 ```gherkin
 Given công trình chưa có xác nhận khách đồng ý nêu tên
@@ -129,6 +138,12 @@ Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh
 | 8-9 | như 6-7, `gallery-carousel` 5 ảnh, thêm `paragraph`, `image-pair` |
 | 10-12 | như 8-9, thêm `paragraph`, `image-single` |
 | 13+ | `gallery-carousel` (5), `facts-grid`, hai cặp `paragraph`, `image-pair`, `gallery-carousel` thứ hai (3-4), `paragraph`, `image-single` |
+
+18 trang mẫu (owner chọn "Dàn lại thân bài + motion" 2026-11-14) xếp theo bảng trên, thêm `image-text` (ảnh dọc cạnh đoạn văn
+như Espacio `-layout-parrafo -layout-right`). Trang 6 ảnh xen kẽ theo thứ tự chữ cái: trang chẵn `gallery-carousel`, `facts-grid`,
+`image-text`, `paragraph`, `image-single` rộng; trang lẻ `facts-grid`, `image-text`, `paragraph`, `image-single` 2/3 trái,
+`gallery-carousel` cuối. Hai nhà phố thêm `image-pair` và hai `image-single`; Japandi dùng 10 ảnh thật (owner duyệt), ảnh tủ giày dọc thành `image-text`, chữ khớp ảnh (tường vuông, chỉ đồ gỗ bo). Bốn trang
+có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `contact-quick`, `project-slider`, `cta-arrow`.
 
 ```gherkin
 Given bản nháp công trình mới có ảnh AI tạo chưa qua gate
@@ -164,7 +179,7 @@ Trang toàn bộ công trình dùng [Masonry](../../design-system/components/Mas
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom) |
+| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom); R3 hero và motion thân bài: `tests/site/project-hero-motion.e2e.mjs` |
 | R4, R5 | chưa có test |
 
 ## Gate còn mở

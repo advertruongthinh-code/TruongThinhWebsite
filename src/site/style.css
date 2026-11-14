@@ -2441,7 +2441,7 @@ em {
 }
 
 /* Hero, CTA, portal carry white text so they keep the dark background as before the error marker, so the text stays readable. */
-.media-gate :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer).is-media-error {
+.media-gate :is(.hero-slide, .hero-photo, .service-portal, .detail-cta, .legacy-closer).is-media-error {
   --media-error-surface: var(--media-loading-surface);
   --media-error-ink: #b8b8b6;
   --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b8b6' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");

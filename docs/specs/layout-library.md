@@ -6,7 +6,7 @@ source:
 tests:
   - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-12
+updated: 2026-11-14
 ---
 
 # Thư viện layout trang và khối
@@ -53,11 +53,12 @@ của Claude, owner duyệt từng dòng `[CẦN LÀM RÕ: owner đánh dấu gi
 | Id khối | Espacio | Dữ liệu chính | Dùng khi | Đề xuất |
 | --- | --- | --- | --- | --- |
 | `hero-fullscreen` | `layout-portada` | 1 đến 3 slide ảnh hoặc video, tiêu đề hai dòng | Mở trang mảng dịch vụ, trang chủ | Giữ |
-| `hero-project` | `layout-hero-banner dosLineas` | Ảnh hoặc video nền, tiêu đề hai dòng, dòng phụ, CTA | Mở trang công trình, trang toàn bộ công trình | Giữ |
+| `hero-project` | `layout-hero-banner` | Ảnh nền, tên công trình (dòng nhỏ chữ hoa), `tagline` 1 đến 3 dòng có một `*chữ nghiêng*`, nút tới khối Zalo khi trang có `contact-quick` | Mở trang công trình | Giữ |
 | `section-title` | `layout-titular` (thêm biến thể nửa trang) | Tiêu đề | Mở một ý mới | Giữ |
 | `paragraph` | `layout-parrafo` | Đoạn văn | Mọi trang | Giữ |
 | `paragraph-columns` | `layout-parrafo-columnas` | Đoạn văn hai cột | Bài dài | Giữ |
-| `image-single` | `layout-imagen-unica` và 6 biến thể | 1 ảnh; vị trí rộng, 2/3 trái hoặc phải, 1/2 trái hoặc phải, cạnh đoạn văn | Nhịp ảnh trong bài | Giữ |
+| `image-single` | `layout-imagen-unica` và 6 biến thể | 1 ảnh; vị trí rộng, 2/3 trái hoặc phải, 1/2 trái hoặc phải | Nhịp ảnh trong bài | Giữ |
+| `image-text` | `layout-parrafo -layout-right` | 1 ảnh dọc cột trái 1/3, đoạn văn cột phải 2/3 cách 35px; phone ảnh trên chữ dưới | Ảnh cạnh đoạn văn trang công trình | Giữ |
 | `image-pair` | `layout-imagen-doble` 3 biến thể | 2 ảnh; bằng nhau, trái lớn, phải lớn | So sánh, chi tiết | Giữ |
 | `video-single` | `layout-imagen-unica -video` | 1 video có poster | Video thi công | Giữ |
 | `gallery-carousel` | `layout-galeria` | Tới 12 ảnh hoặc video, chú thích | Bộ ảnh công trình | Giữ |
@@ -122,7 +123,7 @@ Then dừng lại và gửi owner bản thiết kế
 
 Bộ dựng là `scripts/site/blocks.mjs` (`validateBlockPage`, `renderBlocks`, version 1); `content-contract` kiểm
 `src/site/content/projects.json` và `news.json`. Bản 1: chữ là đoạn thường tách bằng dòng trống, chưa có đậm, nghiêng, link
-trong đoạn; ảnh tham chiếu bằng đường dẫn `/assets/content/*.webp` kèm kích thước thật (kiểm bằng `validateImage` của `scripts/site/lib.mjs`, [phát hành tĩnh R1](static-release.md#r1-build-site-output-từ-srcsite)), chưa theo id thư viện media. Mỗi khối có schema dữ liệu có version: trường chữ VI/EN, media tham chiếu theo id, link nội bộ theo id trang. Chữ chỉ có
+trong đoạn (riêng `tagline` của `hero-project` có tối đa một cụm `*nghiêng*` mỗi dòng); ảnh tham chiếu bằng đường dẫn `/assets/content/*.webp` kèm kích thước thật (kiểm bằng `validateImage` của `scripts/site/lib.mjs`, [phát hành tĩnh R1](static-release.md#r1-build-site-output-từ-srcsite)), chưa theo id thư viện media. Mỗi khối có schema dữ liệu có version: trường chữ VI/EN, media tham chiếu theo id, link nội bộ theo id trang. Chữ chỉ có
 đoạn, đậm, nghiêng, link; không nhận HTML, CSS hay script. Cùng dữ liệu luôn ra cùng HTML. Thiếu bản EN thì không xuất bản
 được bản EN, không đoán.
 

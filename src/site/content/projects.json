@@ -10,8 +10,8 @@
       "en": "Warm oak apartment"
     },
     "description": {
-      "vi": "Căn hộ hai phòng ngủ dùng gỗ sồi, sơn xanh rêu và đèn hắt: Trường Thịnh thiết kế, sản xuất tại xưởng và lắp đặt trọn gói.",
-      "en": "A two-bedroom apartment in oak, sage paint and soft cove lighting: designed, built in our workshop and installed by Trường Thịnh."
+      "vi": "Căn hộ hai phòng ngủ cho gia đình bốn người: nhiều chỗ cất đồ, gỗ sồi, sơn xanh rêu và đèn hắt. Thiết kế, sản xuất tại xưởng và lắp đặt bởi Trường Thịnh.",
+      "en": "A two-bedroom apartment for a family of four: plenty of storage in oak, sage paint and soft cove light. Designed, built and installed by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/can-ho-hero.webp",
@@ -44,18 +44,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Căn hộ",
-          "en": "Apartment"
-        },
-        "titleLine2": {
-          "vi": "gỗ sồi ấm",
-          "en": "in warm oak"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Căn hộ hai phòng ngủ",
-          "en": "Residential · Two-bedroom apartment"
-        },
+        "tagline": [
+          {
+            "vi": "Ngôi nhà nhỏ",
+            "en": "A small home"
+          },
+          {
+            "vi": "ấm như *gỗ sồi*",
+            "en": "as warm as *oak*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/can-ho-hero.webp",
           "width": 3072,
@@ -68,16 +66,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Một căn hộ gọn, ấm và dễ ở",
-          "en": "A compact, warm and easy home"
+          "vi": "Đủ chỗ cất đồ, vẫn thoáng",
+          "en": "Room for everything, still airy"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Gia chủ cần một căn hộ hai phòng ngủ đủ chỗ cất đồ cho cả nhà mà vẫn thoáng. Chúng tôi chọn gỗ sồi làm chất liệu chính, điểm thêm sơn xanh rêu và đèn hắt để không gian ấm vào buổi tối.\n\nMọi tủ, kệ được thiết kế theo số đo thực tế, cắt CNC tại xưởng rồi lắp đặt trong thời gian ngắn, ít bụi và ít làm phiền hàng xóm.",
-          "en": "The owners wanted a two-bedroom apartment with storage for the whole family that still felt open. We chose oak as the main material, with sage paint and cove lighting to keep the rooms warm in the evening.\n\nEvery cabinet and shelf was designed to measured dimensions, CNC-cut in our workshop and installed quickly, with little dust and little disruption for the neighbours."
+          "vi": "Căn hộ hai phòng ngủ của một gia đình bốn người: bố mẹ đi làm cả ngày, hai bé đang tuổi đi học. Điều họ cần nhất là chỗ cất đồ, để tối về nhà không thấy bừa. Chúng tôi chọn gỗ sồi làm chất liệu chính, điểm sơn xanh rêu và đèn hắt, để căn hộ nhiều tủ mà vẫn ấm và nhẹ mắt.",
+          "en": "A two-bedroom apartment for a family of four: two working parents and two school-age children. What they needed most was storage, so the evenings would not start with clutter. We chose oak as the main material, with touches of sage paint and cove lighting, so a home full of cabinets still feels warm and light."
         }
       },
       {
@@ -120,22 +118,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Căn hộ hai phòng ngủ",
-              "en": "Two-bedroom apartment"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Tối giản ấm, gỗ sồi và xanh rêu",
-              "en": "Warm minimal, oak and sage"
+              "vi": "khoảng 75 m²",
+              "en": "about 75 m²"
             }
           },
           {
@@ -144,21 +142,29 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Thiết kế, sản xuất, lắp đặt nội thất",
-              "en": "Interior design, fabrication and installation"
+              "vi": "Tủ giày, tủ bếp, kệ TV, giường, tủ áo, tủ lavabo",
+              "en": "Shoe cabinet, kitchen, TV unit, bed, wardrobes, vanity"
             }
           },
           {
             "label": {
-              "vi": "Bảo hành",
-              "en": "Aftercare"
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
             },
             "text": {
-              "vi": "Bảo trì sau bàn giao",
-              "en": "Maintenance after handover"
+              "vi": "MDF chống ẩm melamine vân sồi, MDF sơn xanh rêu, đá nhân tạo",
+              "en": "Moisture-resistant MDF in oak melamine, sage-painted MDF, engineered stone"
             }
           }
         ]
+      },
+      {
+        "id": "bedroom-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng ngủ bố mẹ giữ thật ít đồ: giường gỗ sồi, vách đầu giường có đèn hắt, tủ đầu giường treo cho sàn trống. Tủ áo trắng kịch trần chứa đồ cả bốn mùa mà không làm phòng chật.",
+          "en": "The parents' bedroom keeps things few: an oak bed, a backlit headboard wall and floating bedside drawers that leave the floor clear. A white floor-to-ceiling wardrobe holds clothes for every season without crowding the room."
+        }
       },
       {
         "id": "bedroom",
@@ -176,20 +182,36 @@
         "id": "detail-text",
         "type": "paragraph",
         "text": {
-          "vi": "Ở phòng khách, cánh vân gỗ và cánh sơn xanh rêu được ghép khít mạch, tay nắm âm để mặt tủ liền một khối.",
-          "en": "In the living room, veneered and sage-painted doors meet with tight joints, and recessed pulls keep the cabinet front as one clean surface."
+          "vi": "Ở phòng khách, kệ TV ghép cánh vân sồi với cánh sơn xanh rêu. Mạch giữa hai loại cánh khít đều, khe tay nắm âm chạy liền, nên cả mảng tủ dài đọc như một khối.",
+          "en": "In the living room, the TV unit pairs oak doors with sage-painted ones. The joints between them are tight and even, and the recessed handle groove runs straight through, so the long wall of cabinets reads as one piece."
         }
       },
       {
         "id": "detail",
         "type": "image-single",
-        "position": "right-2-3",
+        "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/can-ho-chi-tiet.webp",
           "width": 3072,
           "height": 2304,
           "altVi": "Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm",
           "altEn": "Close-up of an oak media unit: timber-veneer and sage-painted doors with tight joints and a recessed finger pull"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Mọi tủ được đo tại nhà, dựng bản vẽ rồi cắt CNC ở xưởng Trường Thịnh. Cánh dán chỉ cạnh cùng màu bằng máy, lỗ bản lề và ray khoan sẵn, nên ngày lắp chỉ còn ráp và chỉnh. Căn hộ lắp xong trong khoảng năm ngày, ít bụi và ít làm phiền hàng xóm.",
+          "en": "Every cabinet was measured on site, drawn up, then CNC-cut in the Trường Thịnh workshop. Doors were machine edge-banded in matching colours and pre-drilled for hinges and runners, so installation was only assembly and adjustment. The apartment was fitted in about five days, with little dust and little noise for the neighbours."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một căn hộ nhiều tủ, nhưng người ở chỉ thấy sự gọn.",
+          "en": "A home full of cabinets, where all you notice is the calm."
         }
       },
       {
@@ -227,8 +249,8 @@
       "en": "Light-well townhouse"
     },
     "description": {
-      "vi": "Nhà phố hai tầng có giếng trời giữa nhà, gỗ sồi sáng và terrazzo: Trường Thịnh thiết kế, sản xuất và lắp đặt nội thất trọn gói.",
-      "en": "A two-storey townhouse around a central light well, in light oak and terrazzo: interiors designed, built and installed by Trường Thịnh."
+      "vi": "Nhà phố hai tầng hẹp và sâu, giếng trời đưa ánh sáng xuống giữa nhà, tủ gỗ sồi sáng và terrazzo. Thiết kế, sản xuất và lắp đặt bởi Trường Thịnh.",
+      "en": "A narrow, deep two-storey townhouse where a lightwell brings daylight into the middle of the home, with light oak joinery and terrazzo. By Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/gieng3-hero.webp",
@@ -268,18 +290,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Nhà phố",
-          "en": "Townhouse"
-        },
-        "titleLine2": {
-          "vi": "giếng trời",
-          "en": "around a light well"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Nhà phố hai tầng",
-          "en": "Residential · Two-storey townhouse"
-        },
+        "tagline": [
+          {
+            "vi": "Ánh sáng rơi",
+            "en": "Daylight falls"
+          },
+          {
+            "vi": "xuống *giữa* nhà",
+            "en": "into the *heart* of the house"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/gieng3-hero.webp",
           "width": 3072,
@@ -292,16 +312,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Ánh sáng đi vào giữa nhà",
-          "en": "Daylight into the heart of the house"
+          "vi": "Nhà hẹp, mà không tối",
+          "en": "Narrow, but never dark"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà phố hẹp và sâu thường tối ở giữa. Giếng trời và cây xanh đặt ngay phòng khách đưa ánh sáng xuống cả hai tầng, cầu thang gỗ tay vịn thép mảnh giữ tầm nhìn thông thoáng.\n\nToàn bộ tủ dùng gỗ sồi sáng, cánh trơn tay nắm âm để các mảng tủ lớn vẫn nhẹ mắt.",
-          "en": "Narrow, deep townhouses are often dark in the middle. A light well and planting in the living room bring daylight down through both floors, and a timber stair with a slim steel rail keeps sightlines open.\n\nAll cabinetry is light oak with flat doors and recessed pulls, so even large runs of storage stay calm."
+          "vi": "Nhà phố hai tầng của một gia đình ba thế hệ, ngang hơn bốn mét và sâu gần hai mươi mét. Kiểu nhà này thường tối ở giữa, nên chúng tôi mở một giếng trời ngay phòng khách và đặt cây xanh bên dưới. Ánh sáng đi xuống cả hai tầng, cầu thang gỗ tay vịn thép mảnh giữ tầm nhìn thông suốt từ cửa vào tới bếp.",
+          "en": "A two-storey townhouse for a three-generation family, just over four metres wide and nearly twenty metres deep. Homes like this are usually dark in the middle, so we opened a lightwell right above the living room and planted greenery beneath it. Daylight now reaches both floors, and a timber stair with a slim steel rail keeps the view open from the front door to the kitchen."
         }
       },
       {
@@ -337,22 +357,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Nhà phố hai tầng",
-              "en": "Two-storey townhouse"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Gỗ sồi sáng, terrazzo, cây xanh",
-              "en": "Light oak, terrazzo, planting"
+              "vi": "khoảng 150 m² sàn",
+              "en": "about 150 m² floor area"
             }
           },
           {
@@ -361,21 +381,29 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Thiết kế, sản xuất, lắp đặt nội thất",
-              "en": "Interior design, fabrication and installation"
+              "vi": "Tủ giày, kệ TV, tủ bếp, tủ áo, vách lam, tủ thờ",
+              "en": "Shoe cabinet, TV unit, kitchen, wardrobes, slatted screen, altar cabinet"
             }
           },
           {
             "label": {
-              "vi": "Không gian",
-              "en": "Rooms"
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
             },
             "text": {
-              "vi": "Phòng khách, bếp, phòng ngủ, phòng thờ",
-              "en": "Living, kitchen, bedrooms, altar room"
+              "vi": "MDF chống ẩm melamine vân sồi sáng, mặt terrazzo, thép sơn tĩnh điện",
+              "en": "Moisture-resistant MDF in light oak melamine, terrazzo tops, powder-coated steel"
             }
           }
         ]
+      },
+      {
+        "id": "bedroom-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Lên tầng hai, phòng ngủ dùng vách lam gỗ sồi sáng thay cho một bức tường kín. Lam lọc bớt nắng từ ban công, đầu giường có đèn hắt cho buổi tối, tủ áo trắng đặt sát tường để phòng rộng hơn số đo.",
+          "en": "Upstairs, the bedroom uses a light oak slatted screen instead of a solid wall. The slats soften the sun from the balcony, the headboard glows in the evening, and a white wardrobe sits flush to the wall so the room feels larger than it is."
+        }
       },
       {
         "id": "bedroom",
@@ -393,8 +421,8 @@
         "id": "altar-text",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng thờ dùng cùng chất gỗ với cả nhà, hai tủ đứng hai bên giữ đồ thờ gọn gàng mà vẫn trang nghiêm.",
-          "en": "The altar room uses the same oak as the rest of the house, with tall cabinets either side to keep ritual items tidy and dignified."
+          "vi": "Phòng thờ ở tầng hai dùng cùng chất gỗ với cả nhà. Tủ thờ đặt giữa hai cửa sổ lớn, hai tủ đứng hai bên cất đồ lễ, nên mặt bàn thờ lúc nào cũng gọn và trang nghiêm.",
+          "en": "The altar room on the upper floor uses the same oak as the rest of the house. The altar cabinet sits between two large windows, with tall cabinets on either side for offerings, so the altar itself always stays clear and dignified."
         }
       },
       {
@@ -417,6 +445,22 @@
             "altEn": "Close-up of light oak cabinet doors with edge banding, even door gaps and a recessed plinth"
           }
         ]
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Toàn bộ tủ dùng MDF chống ẩm phủ melamine vân sồi sáng, cánh trơn tay nắm âm để các mảng tủ lớn vẫn nhẹ. Xưởng cắt CNC theo số đo đã chốt, dán chỉ cạnh cùng vân và khoan sẵn lỗ phụ kiện. Khe cánh đều nhau trên mọi tủ, từ lối vào lên tới phòng thờ.",
+          "en": "All cabinets are moisture-resistant MDF in light oak melamine, with flat doors and recessed handles so the large runs stay light. The workshop CNC-cut every part to the agreed measurements, edge-banded them in matching grain and pre-drilled the hardware. The door gaps are the same on every cabinet, from the entry to the altar room."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một giếng trời, một chất gỗ, và cả nhà sáng lên.",
+          "en": "One lightwell, one timber, and the whole house brightens."
+        }
       },
       {
         "id": "contact",
@@ -453,8 +497,8 @@
       "en": "Shared workspace"
     },
     "description": {
-      "vi": "Không gian làm việc chung với bàn mở, phòng họp kính, phòng nhóm và pantry: Trường Thịnh thiết kế, sản xuất và lắp đặt.",
-      "en": "A shared workspace with open desks, glass meeting rooms, team rooms and a pantry: designed, built and installed by Trường Thịnh."
+      "vi": "Một tầng văn phòng làm việc chung với bàn mở, phòng họp kính, phòng nhóm và pantry, chia lớp bằng vách nỉ, kính và gỗ sọc. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A coworking floor with open desks, a glass meeting room, team rooms and a pantry, layered with felt, glass and fluted timber. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/shared-office-open-desks.webp",
@@ -501,18 +545,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Văn phòng",
-          "en": "Shared"
-        },
-        "titleLine2": {
-          "vi": "làm việc chung",
-          "en": "workspace"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Văn phòng",
-          "en": "Commercial · Office"
-        },
+        "tagline": [
+          {
+            "vi": "Làm việc chung,",
+            "en": "Work together,"
+          },
+          {
+            "vi": "nghĩ *riêng*",
+            "en": "think *alone*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/shared-office-open-desks.webp",
           "width": 3072,
@@ -525,16 +567,110 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Chỗ ngồi chung, góc riêng khi cần",
-          "en": "Open seating, private corners when needed"
+          "vi": "Ồn khi cần, yên khi muốn",
+          "en": "Busy when you need it, quiet when you want it"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Khách thuê cần vừa bàn mở để làm việc nhóm, vừa góc yên tĩnh để gọi điện và họp. Vách nỉ xanh, vách kính và gỗ sọc chia không gian mà không làm mất ánh sáng.\n\nCác phòng nhỏ dùng chung một bảng vật liệu nên cả tầng liền mạch, dễ nhận diện thương hiệu.",
-          "en": "Members need open desks for teamwork and quiet corners for calls and meetings. Green felt, glass partitions and fluted timber divide the floor without blocking light.\n\nThe small rooms share one material palette, so the whole floor reads as one brand."
+          "vi": "Một tầng văn phòng cho thuê theo chỗ ngồi, khách là các nhóm khởi nghiệp và người làm tự do. Họ cần bàn mở để làm việc cùng nhau, nhưng cũng cần nơi gọi điện hay họp mà không làm phiền ai. Vách nỉ xanh, vách kính và gỗ sọc chia tầng thành nhiều lớp riêng tư khác nhau, ánh sáng vẫn đi qua được.",
+          "en": "A floor of desks rented by the seat, used by start-up teams and freelancers. They need open desks to work together, but also somewhere to take a call or meet without disturbing anyone. Green felt panels, glass walls and fluted timber divide the floor into different levels of privacy while letting the light through."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "Trung tâm TP.HCM",
+              "en": "Central Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 320 m²",
+              "en": "about 320 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Bàn làm việc, vách nỉ, phòng họp, phòng nhóm, quầy pantry",
+              "en": "Desks, felt screens, meeting room, team rooms, pantry bar"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF melamine vân sồi, ốp gỗ sọc, vách nỉ tiêu âm, kính cường lực",
+              "en": "Oak melamine MDF, fluted timber cladding, acoustic felt, tempered glass"
+            }
+          }
+        ]
+      },
+      {
+        "id": "meeting-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng họp lớn nằm sát mặt tiền, vách kính nhìn ra phố. Bàn dài gỗ đi dây âm dưới mặt bàn, màn hình treo tường, đủ cho mười người họp mà không thấy một sợi dây nào.",
+          "en": "The main meeting room sits on the street front behind a glass wall. The long timber table hides its cables underneath and the screen hangs on the wall, so ten people can meet without a single wire in sight."
+        }
+      },
+      {
+        "id": "meeting",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/shared-office-meeting-room.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình",
+          "altEn": "Glass-walled meeting room overlooking the street, with a long timber table and screen"
+        }
+      },
+      {
+        "id": "pantry-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Pantry là nơi mọi người gặp nhau nhiều nhất trong ngày. Quầy bar ốp gỗ sọc, kệ có đèn hắt và ghế cao xanh rêu được làm kỹ như quầy một quán cà phê, để ai cũng muốn ở lại thêm vài phút.",
+          "en": "The pantry is where people cross paths most during the day. The fluted bar, the backlit shelves and the moss-green stools are made with the care of a café counter, so everyone lingers a few minutes longer."
+        }
+      },
+      {
+        "id": "pantry",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/shared-office-pantry.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu",
+          "altEn": "Pantry with a fluted timber bar, lit shelving and moss-green high stools"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Các phòng nhỏ dùng chung một bảng vật liệu và một bộ chi tiết, nên xưởng sản xuất hàng loạt mà mỗi phòng vẫn khớp kích thước riêng. Nan gỗ sọc phay CNC, vách nỉ cắt theo khung, cửa kính khung gỗ lắp ngoài giờ làm việc của tòa nhà.",
+          "en": "The small rooms share one material palette and one set of details, so the workshop could build them in batches while each room still fits its own size. The fluted timber was CNC-milled, the felt cut to its frames, and the timber-framed glass doors installed outside the building's office hours."
         }
       },
       {
@@ -565,81 +701,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Văn phòng làm việc chung",
-              "en": "Shared workspace"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Gỗ sọc, nỉ xanh, vách kính",
-              "en": "Fluted timber, green felt, glass"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Thiết kế, sản xuất, lắp đặt nội thất",
-              "en": "Interior design, fabrication and installation"
-            }
-          },
-          {
-            "label": {
-              "vi": "Không gian",
-              "en": "Rooms"
-            },
-            "text": {
-              "vi": "Bàn mở, phòng họp, phòng nhóm, pantry",
-              "en": "Open desks, meeting room, team rooms, pantry"
-            }
-          }
-        ]
-      },
-      {
-        "id": "meeting",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/shared-office-meeting-room.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình",
-          "altEn": "Glass-walled meeting room overlooking the street, with a long timber table and screen"
-        }
-      },
-      {
-        "id": "pantry-text",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Pantry là nơi mọi người gặp nhau nhiều nhất trong ngày, nên quầy bar gỗ sọc và kệ đèn hắt được làm kỹ như một quầy quán cà phê.",
-          "en": "The pantry is where people meet most during the day, so the fluted timber bar and lit shelving were built with the care of a café counter."
-        }
-      },
-      {
-        "id": "pantry",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/shared-office-pantry.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu",
-          "altEn": "Pantry with a fluted timber bar, lit shelving and moss-green high stools"
+          "vi": "Một tầng làm việc chung, nhưng ai cũng tìm được góc của mình.",
+          "en": "One shared floor, and everyone finds a corner of their own."
         }
       },
       {
@@ -677,8 +743,8 @@
       "en": "Neighbourhood bakery"
     },
     "description": {
-      "vi": "Tiệm bánh nhỏ với kệ bánh mì gỗ có đèn hắt, tủ bánh kem kính và góc ngồi cạnh cửa: Trường Thịnh thiết kế, sản xuất và lắp đặt.",
-      "en": "A small bakery with lit timber bread shelving, a glass cake case and a window seating corner: designed, built and installed by Trường Thịnh."
+      "vi": "Tiệm bánh nhỏ với kệ bánh mì gỗ sáng đèn, tủ bánh kem kính và góc ngồi cạnh cửa, để bánh nổi bật từ ngoài phố. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A small bakery with lit timber bread shelves, a glass cake cabinet and a seat by the door, so the bread shows from the street. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/bakery-bread-shelves.webp",
@@ -711,18 +777,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Tiệm bánh",
-          "en": "Neighbourhood"
-        },
-        "titleLine2": {
-          "vi": "ngọt",
-          "en": "bakery"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · F&B",
-          "en": "Commercial · F&B"
-        },
+        "tagline": [
+          {
+            "vi": "Ổ bánh *sáng đèn*",
+            "en": "Bread that *glows*"
+          },
+          {
+            "vi": "từ ngoài phố",
+            "en": "from the street"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/commercial-hero-bakery.webp",
           "width": 3072,
@@ -736,15 +800,89 @@
         "type": "section-title",
         "text": {
           "vi": "Bánh là nhân vật chính",
-          "en": "The bread takes centre stage"
+          "en": "The bread is the star"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Mặt bằng nhỏ nên mọi kệ, quầy đều phải vừa trưng bày vừa chứa đồ. Kệ bánh mì gỗ có đèn hắt từng tầng để bánh nổi bật từ ngoài đường, tủ bánh kem đặt ngay lối vào cho khách chọn nhanh.\n\nVách vòm xanh và gỗ ấm giữ cho tiệm một nét riêng dễ nhớ.",
-          "en": "The floor is small, so every shelf and counter has to display and store at once. Each tier of the timber bread shelving is lit so the loaves stand out from the street, and the cake case sits right by the entrance for a quick choice.\n\nThe green arch and warm timber give the shop a look people remember."
+          "vi": "Một tiệm bánh nhỏ nướng bánh mì và bánh kem mỗi sáng, mặt bằng chỉ hơn hai mươi mét vuông. Khách phần lớn ghé mua mang về, nên tiệm cần bày được nhiều bánh, thấy rõ từ ngoài đường và đi một vòng là chọn xong. Vì vậy mọi kệ, quầy ở đây vừa trưng bày vừa chứa đồ.",
+          "en": "A small bakery that bakes bread and cakes every morning, in just over twenty square metres. Most customers buy to take away, so the shop had to show a lot of bread, be easy to read from the street and let people choose in one loop. Every shelf and counter here both displays and stores."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 25 m²",
+              "en": "about 25 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Kệ bánh mì, quầy thu ngân, tủ bánh kem, kệ hộp bánh, bàn ghế",
+              "en": "Bread shelves, cashier counter, cake cabinet, box shelving, seating"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine vân gỗ ấm, kính cường lực, đèn LED hắt",
+              "en": "Moisture-resistant MDF in warm wood melamine, tempered glass, LED strip lighting"
+            }
+          }
+        ]
+      },
+      {
+        "id": "corner-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cạnh cửa kính có một bàn hai chỗ, đủ cho khách ngồi chờ hay ăn vội một chiếc bánh. Vách vòm xanh phía sau làm nền cho tủ kính, cũng là góc khách hay chụp ảnh nhất.",
+          "en": "By the glass door there is a table for two, enough to wait or eat a quick pastry. The green arched wall behind it frames the cake cabinet, and it is the corner customers photograph most."
+        }
+      },
+      {
+        "id": "corner",
+        "type": "image-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/bakery-seating-corner.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh kính và vách vòm xanh phía sau",
+          "altEn": "Two-seat tables by the window, with the glass cake case and green arched wall behind"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Kệ bánh mì phay sẵn rãnh đi dây trong từng tầng, đèn LED lắp âm nên không thấy bóng, chỉ thấy bánh sáng lên. Tủ bánh kem đặt theo khung quầy do xưởng làm, mặt quầy dùng MDF chống ẩm vì khu này lau rửa nhiều lần trong ngày. Tiệm lắp trong hai ngày để kịp khai trương.",
+          "en": "The bread shelves were milled with cable channels in every tier and the LEDs are recessed, so you never see a bulb, only the bread lighting up. The cake cabinet was ordered to fit the counter frame built in our workshop, and the counter top is moisture-resistant MDF because it is wiped down many times a day. The shop was installed in two days, in time for opening."
         }
       },
       {
@@ -775,61 +913,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Tiệm bánh ngọt",
-              "en": "Bakery"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Gỗ ấm, vòm xanh, đèn hắt",
-              "en": "Warm timber, green arch, cove light"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Thiết kế, sản xuất, lắp đặt quầy kệ",
-              "en": "Design, fabrication and installation of fixtures"
-            }
-          },
-          {
-            "label": {
-              "vi": "Không gian",
-              "en": "Areas"
-            },
-            "text": {
-              "vi": "Quầy, kệ bánh, tủ kính, góc ngồi",
-              "en": "Counter, bread shelving, display case, seating"
-            }
-          }
-        ]
-      },
-      {
-        "id": "corner",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/bakery-seating-corner.webp",
-          "width": 1536,
-          "height": 1024,
-          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh kính và vách vòm xanh phía sau",
-          "altEn": "Two-seat tables by the window, with the glass cake case and green arched wall behind"
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tiệm nhỏ, nhưng từ xa đã thấy bánh.",
+          "en": "A small shop, but you can see the bread from down the street."
         }
       },
       {
@@ -867,8 +955,8 @@
       "en": "Garden cafe"
     },
     "description": {
-      "vi": "Quán cà phê có sân cây xanh và phòng kính, quầy bar ốp nan, ghế băng gỗ và biển chữ nổi ngoài cổng: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A cafe with a planted garden and a glass room, a slatted bar, timber benches and raised letters at the gate: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Quán cà phê có sân cây xanh và phòng kính, quầy bar ốp nan, ghế băng gỗ và biển chữ nổi ngoài cổng. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A café with a planted courtyard and a glass room, a slatted bar, timber benches and a raised-letter sign at the gate. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -908,18 +996,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Quán cà phê",
-          "en": "Garden"
-        },
-        "titleLine2": {
-          "vi": "sân vườn",
-          "en": "cafe"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Cafe sân vườn",
-          "en": "Commercial · Garden cafe"
-        },
+        "tagline": [
+          {
+            "vi": "Qua sân cây,",
+            "en": "Through the garden,"
+          },
+          {
+            "vi": "vào một tách *cà phê*",
+            "en": "into a cup of *coffee*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -932,16 +1018,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Từ cổng, qua sân cây, vào quầy bar",
-          "en": "From the gate, through the garden, to the bar"
+          "vi": "Mỗi bước vào quán là một khung nhìn",
+          "en": "Every step in has its own view"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Quán dành cho khách trẻ và gia đình. Khách đi từ cổng qua sân cây xanh rồi vào phòng kính có quầy bar, mỗi đoạn đường có một điểm nhìn riêng.\n\nGỗ sồi sáng, tông xanh rêu và gạch nung đỏ giữ không khí nhiệt đới nhẹ, không cần trang trí nhiều.",
-          "en": "The cafe is for young customers and families. Guests walk from the gate through a planted garden into a glass room with the bar, and each stretch of the route has its own view.\n\nLight oak, moss green and red terracotta keep a light tropical feel without much decoration."
+          "vi": "Quán nằm trong một con hẻm rộng, phía trước là khoảng sân cũ có sẵn vài cây lớn. Chúng tôi giữ lại cây, đặt bàn ghế dưới giàn, rồi dựng phòng kính phía sau cho quầy bar. Khách đi từ cổng qua sân rồi mới vào trong, mỗi đoạn có một điểm nhìn riêng, đủ cho người trẻ ngồi làm việc và gia đình đưa con tới cuối tuần.",
+          "en": "The café sits on a wide lane, behind an old yard with a few mature trees. We kept the trees, set tables under a pergola and built a glass room at the back for the bar. Guests walk from the gate through the garden before stepping inside, each stretch with its own view, enough for young people working on laptops and families visiting at the weekend."
         }
       },
       {
@@ -977,22 +1063,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Quán cà phê sân vườn",
-              "en": "Garden cafe"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Nhiệt đới nhẹ, gỗ sáng, xanh rêu",
-              "en": "Light tropical, light timber, moss green"
+              "vi": "khoảng 180 m² (sân và phòng kính)",
+              "en": "about 180 m² (garden and glass room)"
             }
           },
           {
@@ -1002,7 +1088,7 @@
             },
             "text": {
               "vi": "Quầy bar, kệ ly cốc, ghế băng, kệ cây, biển chữ nổi",
-              "en": "Bar, cup shelving, benches, plant shelves, raised-letter sign"
+              "en": "Bar counter, glassware shelving, benches, planters, raised-letter sign"
             }
           },
           {
@@ -1012,37 +1098,32 @@
             },
             "text": {
               "vi": "MDF chống ẩm melamine vân sồi, gỗ thông, gạch nung",
-              "en": "Moisture-resistant MDF in oak melamine, pine, terracotta"
+              "en": "Moisture-resistant MDF in oak melamine, pine, fired brick"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Ghế băng ven tường và kệ chậu cây dùng cùng kiểu nan gỗ với quầy bar. Nan được phay CNC theo một bộ bản vẽ nên khoảng cách đều từ quầy ra tới sân.",
-          "en": "The wall bench and plant shelves use the same timber slats as the bar. The slats are CNC-cut from one set of drawings, so the spacing stays even from the bar out to the garden."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận ghế băng nan gỗ ven tường và tay vịn phay CNC",
           "altEn": "Close-up of the slatted timber wall bench and its CNC-cut armrest"
+        },
+        "text": {
+          "vi": "Dọc tường phòng kính là ghế băng nan gỗ, tay vịn bo tròn cho người ngồi lâu. Kệ chậu cây ngoài sân dùng cùng kiểu nan, nên từ quầy bar nhìn ra sân thấy một nhịp liền.",
+          "en": "Slatted timber benches run along the glass room wall, with rounded armrests for people who stay a while. The planters outside use the same slats, so the view from the bar to the garden keeps one rhythm."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Khu pha chế chia theo thao tác của người đứng quầy: kệ ly cốc sau lưng, quầy làm việc trước mặt, chữ nổi menu treo phía trên. Quầy dùng MDF chống ẩm phủ melamine vì khu này luôn có nước.",
-          "en": "The prep area follows how the barista works: cups on the shelving behind, the work counter in front, raised-letter menu above. The bar is moisture-resistant MDF with a melamine finish because this area is always wet."
+          "vi": "Khu pha chế chia theo thao tác của người đứng quầy: kệ ly cốc sau lưng, mặt làm việc trước mặt, menu chữ nổi treo phía trên. Quầy dùng MDF chống ẩm phủ melamine vì khu này lúc nào cũng có nước.",
+          "en": "The bar is laid out around the barista's movements: glassware behind, the work surface in front, the raised-letter menu above. The counter is moisture-resistant MDF with melamine because this area is never dry."
         }
       },
       {
@@ -1055,6 +1136,22 @@
           "height": 2048,
           "altVi": "Khu pha chế nhìn về kệ ly cốc nan gỗ và quầy làm việc",
           "altEn": "Prep area looking towards the slatted cup shelving and the work counter"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Toàn bộ nan gỗ, từ quầy bar, ghế băng tới kệ cây, được phay CNC từ một bộ bản vẽ nên khoảng cách nan đều nhau. Biển chữ nổi ngoài cổng cũng do xưởng cắt và lắp đèn hắt. Phần đồ gỗ lắp trong ba ngày, song song với đội làm sân.",
+          "en": "Every slat, from the bar to the benches and planters, was CNC-milled from one set of drawings, so the spacing is identical throughout. The raised-letter sign at the gate was also cut and backlit in our workshop. The joinery went in over three days, alongside the landscaping crew."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Quán đẹp nhất vào buổi chiều, khi nắng đi qua giàn cây vào tới quầy.",
+          "en": "It is at its best in the afternoon, when the sun comes through the pergola and reaches the bar."
         }
       },
       {
@@ -1092,8 +1189,8 @@
       "en": "Warm beige two-bedroom apartment"
     },
     "description": {
-      "vi": "Căn hộ hai phòng ngủ phủ một tông be từ tường đến tủ, nan CNC nhỏ làm điểm nhấn: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A two-bedroom apartment in one beige palette from walls to cabinets, with fine CNC slats as accents: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Căn hộ hai phòng ngủ phủ một tông be từ tường đến tủ, melamine nhám chống vân tay và nan CNC nhỏ làm điểm nhấn. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A two-bedroom apartment in one beige palette from walls to cabinets, matt fingerprint-resistant melamine and small CNC slat accents. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1.webp",
@@ -1140,18 +1237,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Căn hộ",
-          "en": "Warm beige"
-        },
-        "titleLine2": {
-          "vi": "tông be ấm",
-          "en": "apartment"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Căn hộ hai phòng ngủ",
-          "en": "Residential · Two-bedroom apartment"
-        },
+        "tagline": [
+          {
+            "vi": "Một tông *be*",
+            "en": "One shade of *beige*"
+          },
+          {
+            "vi": "từ tường đến tủ",
+            "en": "from wall to cabinet"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1.webp",
           "width": 3072,
@@ -1164,16 +1259,105 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Một tông màu, từ tường đến tủ",
-          "en": "One palette, from walls to cabinets"
+          "vi": "Ít màu, để nhà dịu lại",
+          "en": "Fewer colours, a calmer home"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Căn hộ dành cho cặp vợ chồng trẻ thích không gian dịu, ấm và ít màu. Be sữa, be cát và nâu cà phê sữa phủ đều từ tường tới cánh tủ nên các phòng liền một mạch.\n\nKệ TV, tủ kho bếp, tủ áo và ốp đầu giường làm bằng MDF chống ẩm phủ melamine be cát nhám, chống bám vân tay.",
-          "en": "The apartment is for a young couple who like soft, warm rooms with few colours. Milk beige, sand beige and latte brown run from the walls to the cabinet doors, so the rooms read as one.\n\nThe TV unit, kitchen pantry, wardrobes and headboard panelling are moisture-resistant MDF in a matt sand-beige melamine that resists fingerprints."
+          "vi": "Căn hộ hai phòng ngủ cho một cặp vợ chồng trẻ, cả hai làm việc nhiều với màn hình và muốn về nhà là được nghỉ mắt. Be sữa, be cát và nâu cà phê sữa phủ đều từ tường tới cánh tủ, nên phòng khách, bếp và phòng ngủ đọc như một không gian liền.",
+          "en": "A two-bedroom apartment for a young couple who spend their days in front of screens and want to rest their eyes at home. Milk beige, sand beige and latte brown run from the walls to the cabinet doors, so the living room, kitchen and bedrooms read as one continuous space."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 68 m²",
+              "en": "about 68 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Kệ TV, tủ bếp, tủ kho, tủ áo, ốp đầu giường, tủ lavabo",
+              "en": "TV unit, kitchen, pantry cabinet, wardrobes, headboard panel, vanity"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine be cát nhám, laminate vân travertine",
+              "en": "Moisture-resistant MDF in matt sand-beige melamine, travertine-look laminate"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-5.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận cánh tủ áo hai cánh phẳng be cát, melamine nhám và tay nắm âm",
+          "altEn": "Close-up of the two flat sand-beige wardrobe doors, matt melamine and recessed pulls"
+        },
+        "text": {
+          "vi": "Trong phòng ngủ, tủ áo hai cánh phẳng, tay nắm âm để mảng tủ lớn không lấn giường. Nan phay CNC nhỏ chỉ xuất hiện ở đầu giường và kệ trang trí, đủ tạo nhịp mà không rối mắt.",
+          "en": "In the bedroom, the wardrobe has two flat doors and recessed handles so the large unit never crowds the bed. Small CNC-milled slats appear only on the headboard and a display shelf, enough for rhythm without visual noise."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng tắm giữ cùng tông be với các phòng khác. Tủ lavabo dùng MDF chống ẩm, gạch nhám khổ lớn ít đường ron nên lau chùi nhanh.",
+          "en": "The bathroom keeps the same beige as the other rooms. The vanity is moisture-resistant MDF, and large matt tiles mean fewer grout lines and quicker cleaning."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng tắm chung với bồn tắm kèm vòi sen, vách kính, tủ lavabo MDF chống ẩm và gạch be nhám",
+          "altEn": "Shared bathroom with a bath and shower, a glass screen, a moisture-resistant MDF vanity and matt beige tiles"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Melamine be cát nhám được chọn vì không bám vân tay, hợp với một căn nhà nhiều cánh tủ. Xưởng dán chỉ cạnh cùng màu, phay nan và khoan lỗ phụ kiện trước khi chở tới. Lắp đặt khoảng bốn ngày, gia chủ dọn vào ở ngay tuần sau.",
+          "en": "Matt sand-beige melamine was chosen because it does not show fingerprints, which matters in a home with this many doors. The workshop edge-banded in matching colours, milled the slats and pre-drilled the hardware before delivery. Installation took about four days, and the couple moved in the following week."
         }
       },
       {
@@ -1204,89 +1388,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Căn hộ hai phòng ngủ",
-              "en": "Two-bedroom apartment"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Tối giản ấm, tông be, nan CNC nhỏ",
-              "en": "Warm minimal, beige, fine CNC slats"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Kệ TV, tủ bếp, tủ kho, tủ áo, ốp đầu giường",
-              "en": "TV unit, kitchen, pantry, wardrobes, headboard panel"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF chống ẩm melamine be, laminate vân travertine",
-              "en": "Moisture-resistant MDF in beige melamine, travertine-look laminate"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Cánh tủ áo phẳng, tay nắm âm để mảng tủ lớn không lấn phòng ngủ. Nan phay CNC nhỏ chỉ dùng ở vài điểm như đầu giường và kệ trang trí, đủ tạo nhịp mà không rối mắt.",
-          "en": "Wardrobe doors are flat with recessed pulls, so the large cabinet does not crowd the bedroom. Fine CNC slats appear only in a few places such as the headboard and the display shelf, enough for rhythm without clutter."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-5.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận cánh tủ áo hai cánh phẳng be cát, melamine nhám và tay nắm âm",
-          "altEn": "Close-up of the two flat sand-beige wardrobe doors, matt melamine and recessed pulls"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Phòng tắm dùng tủ lavabo MDF chống ẩm cùng tông be với các phòng khác. Gạch nhám khổ lớn giảm đường ron, dễ lau chùi.",
-          "en": "The bathroom has a moisture-resistant MDF vanity in the same beige as the other rooms. Large matt tiles mean fewer grout lines, easier cleaning."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng tắm chung với bồn tắm kèm vòi sen, vách kính, tủ lavabo MDF chống ẩm và gạch be nhám",
-          "altEn": "Shared bathroom with a bath and shower, a glass screen, a moisture-resistant MDF vanity and matt beige tiles"
+          "vi": "Một căn hộ không cần nhiều màu để thấy ấm.",
+          "en": "A home that needs very few colours to feel warm."
         }
       },
       {
@@ -1324,8 +1430,8 @@
       "en": "Studio apartment with multi-function furniture"
     },
     "description": {
-      "vi": "Căn hộ studio với giường gập, bàn gập, ghế dài có hộc kéo và vách trượt để sàn luôn trống: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A studio apartment with a fold-away bed, fold-down desk, storage bench and sliding screen to keep the floor clear: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Căn studio khoảng 35 m² với giường gập, bàn gập, ghế dài hộc kéo và vách trượt để sàn luôn trống. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A studio of about 35 m² with a fold-down bed, fold-away desk, storage bench and sliding screen to keep the floor clear. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/can-ho-studio-gap-shot-1.webp",
@@ -1372,18 +1478,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Căn hộ studio",
-          "en": "Studio with"
-        },
-        "titleLine2": {
-          "vi": "đồ gỗ đa năng",
-          "en": "multi-function furniture"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Căn hộ studio",
-          "en": "Residential · Studio apartment"
-        },
+        "tagline": [
+          {
+            "vi": "Một phòng,",
+            "en": "One room,"
+          },
+          {
+            "vi": "*cả* ngày lẫn đêm",
+            "en": "*all* day and night"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-1.webp",
           "width": 3072,
@@ -1396,16 +1500,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Một phòng, dùng cả ngày lẫn đêm",
-          "en": "One room, for day and night"
+          "vi": "Gập lại là có thêm chỗ",
+          "en": "Fold it away, gain a room"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Căn hộ studio dành cho người trẻ đi làm xa nhà, cần một phòng vừa để ngủ, làm việc, nấu ăn và tiếp bạn. Giường gập vào tường, bàn làm việc gập và vách lam trượt giúp sàn trống khi không dùng.\n\nTông trắng ngà, gỗ tần bì nhạt và xám xanh giữ căn phòng nhỏ sáng và gọn.",
-          "en": "The studio is for a young person working away from home who needs one room to sleep, work, cook and have friends over. A wall bed, a fold-down desk and a sliding slatted screen keep the floor clear when not in use.\n\nIvory white, pale ash and grey-blue keep the small room bright and tidy."
+          "vi": "Căn studio khoảng ba mươi lăm mét vuông của một người trẻ đi làm xa nhà. Một phòng phải vừa để ngủ, làm việc, nấu ăn và tiếp bạn. Giường gập vào tường, bàn làm việc gập và vách lam trượt giúp sàn trống khi không dùng, còn tông trắng ngà, gỗ tần bì nhạt và xám xanh giữ căn phòng nhỏ sáng và gọn.",
+          "en": "A studio of about thirty-five square metres for a young professional living away from home. One room has to work for sleeping, working, cooking and having friends over. A wall bed, a fold-away desk and a sliding slatted screen clear the floor when not in use, while ivory, pale ash and blue-grey keep the small room bright and tidy."
         }
       },
       {
@@ -1441,22 +1545,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Căn hộ studio",
-              "en": "Studio apartment"
+              "vi": "Trung tâm TP.HCM",
+              "en": "Central Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Tối giản, trắng ngà, xám xanh",
-              "en": "Minimal, ivory white, grey-blue"
+              "vi": "khoảng 35 m²",
+              "en": "about 35 m²"
             }
           },
           {
@@ -1466,7 +1570,7 @@
             },
             "text": {
               "vi": "Giường gập, tủ áo cánh lùa, bàn gập, ghế hộc kéo, kệ sách",
-              "en": "Wall bed, sliding wardrobe, fold-down desks, storage bench, bookshelf"
+              "en": "Wall bed, sliding wardrobe, fold-away desk, storage bench, bookshelf"
             }
           },
           {
@@ -1476,37 +1580,32 @@
             },
             "text": {
               "vi": "MDF chống ẩm melamine vân tần bì, MDF sơn PU xám xanh",
-              "en": "Moisture-resistant MDF in ash melamine, grey-blue PU-painted MDF"
+              "en": "Moisture-resistant MDF in ash melamine, blue-grey PU-painted MDF"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Đồ gỗ đa năng phải chạy êm mỗi ngày. Vị trí bản lề giường gập và rãnh ray trượt giảm chấn được phay CNC ngay ở xưởng, nên lắp tại nhà là khớp, không phải chỉnh tay.",
-          "en": "Multi-function furniture has to move smoothly every day. Seats for the wall-bed hinges and the soft-close runner grooves are CNC-cut in the workshop, so everything fits on site without hand adjustment."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-5.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận ghế dài hộc kéo dưới cửa sổ và bàn làm việc gập, đệm vàng nghệ",
           "altEn": "Close-up of the storage bench under the window and the fold-down desk, with turmeric-yellow cushions"
+        },
+        "text": {
+          "vi": "Dưới cửa sổ là ghế dài có hộc kéo, ban ngày là chỗ ngồi đọc, tối là nơi cất chăn gối. Bàn làm việc gập sát bên, hạ xuống khi cần, gập lên khi có khách.",
+          "en": "Under the window, a bench with pull-out drawers is a reading seat by day and bedding storage by night. The desk folds down beside it when needed and folds away when friends come over."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Ban công dùng bàn ghế gập và kệ cây nan gỗ, gấp gọn khi cần thêm chỗ. Sàn lát gạch nhám chống trượt.",
-          "en": "The balcony has a folding slatted table, chairs and a plant shelf that pack away when more space is needed. The floor is matt anti-slip tile."
+          "vi": "Ban công dùng bàn ghế gập và kệ cây nan gỗ, gấp gọn khi cần phơi đồ. Sàn lát gạch nhám chống trượt cho những hôm mưa tạt.",
+          "en": "The balcony has a folding table and chairs with a slatted plant stand, all tucked away on laundry days. Matt anti-slip tiles cope with the rain."
         }
       },
       {
@@ -1519,6 +1618,22 @@
           "height": 2048,
           "altVi": "Ban công với bàn ghế gập nan gỗ và chậu cây trên kệ nan",
           "altEn": "Balcony with a folding slatted table and chairs and plants on a slatted shelf"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Đồ gỗ đa năng phải chạy êm mỗi ngày trong nhiều năm. Vị trí bản lề giường gập và rãnh ray trượt giảm chấn được phay CNC ở xưởng theo đúng bản vẽ, nên khi lắp tại nhà là khớp, không phải chỉnh tay. Cả căn lắp xong trong ba ngày.",
+          "en": "Multi-purpose furniture has to run smoothly every day for years. The wall-bed hinge points and the soft-close runner grooves were CNC-milled in the workshop exactly to the drawings, so everything fitted on site without hand adjustment. The whole studio was installed in three days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ba mươi lăm mét vuông, nhưng sáng nào cũng có một căn phòng trống.",
+          "en": "Thirty-five square metres, and every morning an empty room."
         }
       },
       {
@@ -1556,8 +1671,8 @@
       "en": "Cosmetics store"
     },
     "description": {
-      "vi": "Cửa hàng mỹ phẩm tông hồng phấn với kệ tường đèn LED, đảo thử sản phẩm, bàn trang điểm thử và biển chữ nổi: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A powder-pink cosmetics store with LED-lit wall shelving, a testing island, a make-up table and a raised-letter sign: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Cửa hàng mỹ phẩm tông hồng phấn, kệ tường đèn LED từng hộc, đảo thử sản phẩm và bàn trang điểm thử. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A blush-pink cosmetics store with LED-lit wall niches, a testing island and a make-up table. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -1604,18 +1719,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Cửa hàng",
-          "en": "Cosmetics"
-        },
-        "titleLine2": {
-          "vi": "mỹ phẩm",
-          "en": "store"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Cửa hàng bán lẻ",
-          "en": "Commercial · Retail store"
-        },
+        "tagline": [
+          {
+            "vi": "Màu son",
+            "en": "Every shade"
+          },
+          {
+            "vi": "hiện *đúng* màu",
+            "en": "shows *true*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -1636,8 +1749,97 @@
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Cửa hàng một tầng dành cho khách trẻ. Đảo thử sản phẩm đặt giữa, quầy thu ngân gần cửa, kho nhỏ phía sau, nên khách đi một vòng là thấy hết.\n\nTông hồng phấn và trắng kem, viền đồng thau, đèn LED hắt trong từng hộc kệ để màu sản phẩm hiện đúng.",
-          "en": "The single-floor store is for young customers. The testing island sits in the middle, the till near the door, a small stockroom at the back, so one loop shows the whole range.\n\nPowder pink and cream, brass trims, LED strips in every shelf niche let product colours show true."
+          "vi": "Cửa hàng mỹ phẩm một tầng cho khách trẻ, phần lớn ghé sau giờ học, giờ làm. Họ muốn cầm thử, tô thử rồi mới mua. Vì vậy đảo thử sản phẩm đặt ngay giữa, quầy thu ngân gần cửa, kho nhỏ phía sau. Khách đi một vòng là thấy hết, và dưới đèn LED hắt trong từng hộc kệ, màu sản phẩm hiện đúng như khi dùng.",
+          "en": "A single-floor cosmetics store for young customers who mostly drop in after school or work. They want to hold, swatch and try before they buy. So the testing island sits in the middle, the cashier near the door and a small stockroom at the back. One loop shows everything, and under LEDs set into every niche, each shade looks the way it will when worn."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "Trung tâm TP.HCM",
+              "en": "Central Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 60 m²",
+              "en": "about 60 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Kệ tường, đảo thử, bàn trang điểm, quầy thu ngân, biển hiệu",
+              "en": "Wall shelving, testing island, make-up table, cashier counter, signage"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF melamine trắng kem, veneer óc chó, kính cường lực",
+              "en": "Cream melamine MDF, walnut veneer, tempered glass"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận đảo thử sản phẩm: mặt veneer óc chó, gương tròn, đèn vòng",
+          "altEn": "Close-up of the testing island: walnut veneer top, round mirror, ring light"
+        },
+        "text": {
+          "vi": "Đảo thử bo tròn góc để khách đi quanh không vướng. Mặt đảo phủ veneer óc chó, có gương tròn và đèn vòng, đủ sáng để thử màu ngay tại chỗ.",
+          "en": "The testing island has rounded corners so customers can circle it freely. Its walnut-veneer top carries a round mirror and a ring light, bright enough to try colours on the spot."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Quầy thu ngân màu mận đặt gần cửa, kệ phía sau phay họa tiết nan. Đây là chỗ khách dừng lâu nhất khi chờ gói hàng, nên kệ sau quầy bày những sản phẩm mới về.",
+          "en": "The plum cashier counter sits near the door, with slat-patterned shelving behind it. Customers pause here longest while their purchase is wrapped, so the shelf behind the counter shows the newest arrivals."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Quầy thu ngân màu mận và kệ sau quầy nhìn từ lối vào",
+          "altEn": "Plum-coloured till counter and the shelving behind it, seen from the entrance"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Các hộc kệ tường được phay CNC sẵn rãnh đèn LED và lỗ đi dây, viền đồng thau gắn ở xưởng. Nền hồng phấn và trắng kem dùng MDF melamine, giữ màu đều trên mọi mảng. Biển hiệu mặt tiền chữ nổi mica vàng đồng và alu cũng do xưởng làm và lắp.",
+          "en": "The wall niches were CNC-milled with LED channels and cable holes, and the brass trims fitted in the workshop. The blush and cream backgrounds are melamine MDF, so the colour stays even on every panel. The shopfront sign, in gold acrylic and aluminium raised letters, was also made and installed by our workshop."
         }
       },
       {
@@ -1668,89 +1870,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Cửa hàng mỹ phẩm",
-              "en": "Cosmetics store"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Hồng phấn, trắng kem, đồng thau",
-              "en": "Powder pink, cream, brass"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Kệ tường, đảo thử, bàn trang điểm, quầy thu ngân, biển hiệu",
-              "en": "Wall shelving, testing island, make-up table, till, sign"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF melamine trắng kem, veneer óc chó, kính cường lực",
-              "en": "MDF in cream melamine, walnut veneer, toughened glass"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Đảo thử tròn góc để khách đi quanh không vướng. Mặt đảo phủ veneer óc chó, có gương tròn và đèn vòng để thử màu ngay tại chỗ.",
-          "en": "The testing island has rounded corners so customers can walk around it freely. Its top is walnut veneer, with a round mirror and ring light for trying shades on the spot."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận đảo thử sản phẩm: mặt veneer óc chó, gương tròn, đèn vòng",
-          "altEn": "Close-up of the testing island: walnut veneer top, round mirror, ring light"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Quầy thu ngân màu mận đặt gần cửa, kệ sau quầy phay họa tiết nan. Biển hiệu mặt tiền dùng chữ nổi bằng mica vàng đồng và alu.",
-          "en": "The plum till counter sits near the door, with slat-pattern CNC shelving behind it. The shopfront sign uses raised letters in brass-gold acrylic and aluminium composite."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Quầy thu ngân màu mận và kệ sau quầy nhìn từ lối vào",
-          "altEn": "Plum-coloured till counter and the shelving behind it, seen from the entrance"
+          "vi": "Một cửa hàng mà ánh sáng làm thay phần trang trí.",
+          "en": "A store where the light does the decorating."
         }
       },
       {
@@ -1788,8 +1912,8 @@
       "en": "Fashion store"
     },
     "description": {
-      "vi": "Cửa hàng thời trang nam nữ với kệ treo tường hai bên, bàn gấp đồ ở giữa và phòng thử phía sau: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A men's and women's fashion store with wall rails on both sides, a folding table in the middle and fitting rooms at the back: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Cửa hàng thời trang nam nữ với kệ treo tường gỗ tần bì, bàn gấp đồ ở giữa và phòng thử phía sau. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A men's and women's fashion store with ash wall racks, a central folding table and fitting rooms at the back. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -1836,18 +1960,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Cửa hàng",
-          "en": "Fashion"
-        },
-        "titleLine2": {
-          "vi": "thời trang",
-          "en": "store"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Cửa hàng bán lẻ",
-          "en": "Commercial · Retail store"
-        },
+        "tagline": [
+          {
+            "vi": "Gỗ *lùi lại*,",
+            "en": "The wood *steps back*,"
+          },
+          {
+            "vi": "quần áo bước ra",
+            "en": "the clothes step forward"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -1861,15 +1983,15 @@
         "type": "section-title",
         "text": {
           "vi": "Lối đi rõ, đồ dễ chọn",
-          "en": "A clear aisle, easy browsing"
+          "en": "Clear aisles, easy choices"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Cửa hàng một tầng trên phố buôn bán ở TP.HCM. Kệ treo tường chạy hai bên, bàn gấp đồ ở giữa, phòng thử và kho đặt phía sau, khuất khỏi lối đi chính.\n\nGỗ tần bì, khung thép đen mờ và ánh sáng ấm làm nền gọn để quần áo là phần nổi bật.",
-          "en": "A single-floor store on a shopping street in Ho Chi Minh City. Wall rails run along both sides, the folding table sits in the middle, fitting rooms and stockroom are at the back, out of the main aisle.\n\nAsh timber, matt black steel frames and warm light make a quiet backdrop so the clothes stand out."
+          "vi": "Cửa hàng thời trang nam nữ trên một con phố buôn bán đông khách. Người vào thường đã biết mình tìm gì, nên lối đi phải rõ và đồ phải dễ chọn. Kệ treo chạy dọc hai bên tường, bàn gấp đồ đặt giữa, phòng thử và kho lùi về phía sau, khuất khỏi lối đi chính. Gỗ tần bì, thép đen mờ và ánh sáng ấm làm nền gọn để quần áo nổi lên.",
+          "en": "A men's and women's fashion store on a busy shopping street. Customers usually know what they are looking for, so the aisles must be clear and the clothes easy to choose. Hanging racks line both walls, a folding table sits in the middle, and the fitting rooms and stockroom are set back out of the main path. Ash, matt black steel and warm light form a quiet backdrop that lets the clothes stand out."
         }
       },
       {
@@ -1905,22 +2027,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Cửa hàng thời trang",
-              "en": "Fashion store"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Tối giản ấm, gỗ tần bì, khung đen mờ",
-              "en": "Warm minimal, ash timber, matt black frames"
+              "vi": "khoảng 90 m²",
+              "en": "about 90 m²"
             }
           },
           {
@@ -1930,7 +2052,7 @@
             },
             "text": {
               "vi": "Kệ treo tường, bàn trưng bày, quầy thu ngân, bục cửa kính, biển hiệu",
-              "en": "Wall rails, display tables, till, window plinth, sign"
+              "en": "Wall racks, display table, cashier counter, window plinth, signage"
             }
           },
           {
@@ -1940,37 +2062,32 @@
             },
             "text": {
               "vi": "MDF melamine vân tần bì, veneer tần bì, thép sơn tĩnh điện",
-              "en": "MDF in ash melamine, ash veneer, powder-coated steel"
+              "en": "Ash melamine MDF, ash veneer, powder-coated steel"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Bàn trưng bày ở giữa có mặt tần bì và chân gỗ vát cạnh, đủ rộng để xếp đồ gấp theo lớp. Cạnh vát giúp bàn trông nhẹ dù đặt giữa lối đi.",
-          "en": "The central display table has an ash top and chamfered timber legs, wide enough for layered folded stock. The chamfers keep the table light even in the middle of the aisle."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận bàn trưng bày trung tâm: mặt tần bì, chân vát cạnh, đồ gấp xếp lớp",
           "altEn": "Close-up of the central display table: ash top, chamfered legs, folded garments in layers"
+        },
+        "text": {
+          "vi": "Bàn trưng bày giữa cửa hàng có mặt tần bì và chân gỗ vát cạnh, đủ rộng để xếp đồ gấp theo lớp. Cạnh vát giúp chiếc bàn lớn trông nhẹ dù đặt ngay giữa lối đi.",
+          "en": "The central display table has an ash top and chamfered timber legs, wide enough for folded clothes in layers. The chamfers keep a large table looking light even in the middle of the aisle."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Quầy thu ngân và kệ phía sau phay logo chìm, cùng chất gỗ tần bì với bục cửa kính. Biển hiệu mặt tiền dùng chữ nổi alu đen và mica trắng sữa.",
-          "en": "The till counter and back shelving carry a CNC-engraved logo and share the ash timber of the window plinth. The shopfront sign uses raised letters in black aluminium composite and opal acrylic."
+          "vi": "Quầy thu ngân và kệ phía sau phay logo chìm, cùng chất tần bì với bục trưng bày sau cửa kính. Ngoài mặt tiền, biển hiệu chữ nổi alu đen và mica trắng sữa.",
+          "en": "The cashier counter and the shelving behind it carry an engraved logo, in the same ash as the window plinth. Outside, the sign uses black aluminium and milky acrylic raised letters."
         }
       },
       {
@@ -1983,6 +2100,22 @@
           "height": 2048,
           "altVi": "Quầy thu ngân và kệ sau quầy nhìn từ lối vào",
           "altEn": "Till counter and back shelving seen from the entrance"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Kệ treo tường được phay sẵn rãnh cho thanh treo thép và đèn LED, nên khi đổi bộ sưu tập chỉ cần dời thanh treo. Thép sơn tĩnh điện gia công theo kích thước hộc gỗ, ráp thử tại xưởng rồi mới tháo ra chở đi. Cửa hàng lắp đặt trong bốn ngày.",
+          "en": "The wall racks were milled with slots for the steel rails and LED strips, so a new collection only means moving the rails. The powder-coated steel was made to the timber niche sizes and dry-fitted in the workshop before being taken apart for delivery. The store was installed in four days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khi cửa hàng đông khách, gỗ lùi lại phía sau và quần áo lên tiếng.",
+          "en": "When the store is busy, the wood steps back and the clothes do the talking."
         }
       },
       {
@@ -2020,8 +2153,8 @@
       "en": "Mezzanine loft homestay"
     },
     "description": {
-      "vi": "Homestay nhỏ có phòng khách bếp trà thông tầng và gác lửng ngủ thêm, cầu thang hộp tủ và lan can nan gỗ: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A small homestay with a double-height living room and tea kitchen, a sleeping mezzanine, a storage staircase and a slatted timber balustrade: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Homestay nhỏ có phòng khách bếp trà thông tầng, gác lửng ngủ thêm, cầu thang hộp tủ và lan can nan gỗ. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A small homestay with a double-height living and tea kitchen, a sleeping mezzanine, a storage stair and a slatted balustrade. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2068,18 +2201,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Homestay",
-          "en": "Mezzanine loft"
-        },
-        "titleLine2": {
-          "vi": "gác lửng",
-          "en": "homestay"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Homestay",
-          "en": "Residential · Homestay"
-        },
+        "tagline": [
+          {
+            "vi": "Ngủ trên gác,",
+            "en": "Sleep upstairs,"
+          },
+          {
+            "vi": "nhìn xuống *phòng khách*",
+            "en": "look down on the *living room*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -2093,15 +2224,104 @@
         "type": "section-title",
         "text": {
           "vi": "Thông tầng để gác lửng không bí",
-          "en": "Double height keeps the loft airy"
+          "en": "Double height, so the loft can breathe"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Homestay dành cho nhóm bạn hoặc gia đình trẻ. Phòng khách và bếp trà thông tầng ở bên dưới, một phòng ngủ ở tầng trệt, gác lửng ngủ thêm nhìn xuống phòng khách.\n\nGỗ sồi sáng và tường trắng kem giữ gác lửng thoáng; đèn LED vàng ấm làm không gian dịu vào buổi tối.",
-          "en": "The homestay is for groups of friends or young families. A double-height living room and tea kitchen sit below, one bedroom is on the ground floor, a sleeping mezzanine looks down over the living room.\n\nLight oak and cream walls keep the loft open; warm LED lighting softens the space in the evening."
+          "vi": "Homestay nhỏ cho nhóm bạn hoặc gia đình trẻ thuê nguyên căn vài ngày. Phòng khách và bếp trà thông tầng ở bên dưới, một phòng ngủ ở tầng trệt, gác lửng ngủ thêm nhìn xuống phòng khách. Nhờ khoảng thông tầng, người trên gác vẫn nghe tiếng nói chuyện bên dưới, và gác lửng không còn bí.",
+          "en": "A small homestay rented whole by groups of friends or young families for a few days. The living room and tea kitchen sit below a double-height space, there is one bedroom on the ground floor, and a sleeping mezzanine looks down over the living room. Thanks to the open height, those upstairs still hear the conversation below, and the loft never feels stuffy."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "Đà Lạt, Lâm Đồng",
+              "en": "Da Lat, Lam Dong"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 55 m² sàn",
+              "en": "about 55 m² floor area"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Cầu thang hộp tủ, lan can, quầy bếp trà, giường gác, đầu giường",
+              "en": "Storage stair, balustrade, tea counter, loft beds, headboard"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine vân sồi, plywood veneer sồi, gỗ thông",
+              "en": "Moisture-resistant MDF in oak melamine, oak-veneered plywood, pine"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận mặt quầy bếp trà gỗ ốp nan và tay nắm",
+          "altEn": "Close-up of the slat-clad tea counter front and its pulls"
+        },
+        "text": {
+          "vi": "Quầy bếp trà ốp nan gỗ là nơi cả nhóm tụ lại buổi tối. Cầu thang lên gác cũng là một dãy hộp tủ, dưới mỗi bậc là chỗ cất vali và chăn gối, nên phòng khách không cần thêm tủ.",
+          "en": "The slatted tea counter is where the group gathers in the evening. The stair to the loft is a run of storage boxes, with room for suitcases and bedding under each step, so the living room needs no extra cabinets."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng ngủ tầng trệt có đầu giường ốp nan và tủ áo MDF. Trên gác, tủ thấp đặt sát mái để tận dụng phần trần thấp.",
+          "en": "The ground-floor bedroom has a slatted headboard and an MDF wardrobe. Up in the loft, low cabinets tuck under the roof to use the low ceiling."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng ngủ tầng trệt nhìn về đầu giường nan CNC",
+          "altEn": "Ground-floor bedroom looking towards the CNC-slatted headboard"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Bậc thang và sàn gác dùng plywood phủ veneer sồi cho chắc chân, cùng tông với quầy bếp trà. Lan can nan gỗ phay CNC đủ dày để an toàn mà vẫn thoáng tầm nhìn. Tất cả được cắt sẵn ở xưởng, lên tới nơi chỉ cần ráp, nên homestay đón khách sau năm ngày lắp.",
+          "en": "The stair treads and loft floor are oak-veneered plywood for a solid step, in the same tone as the tea counter. The CNC-milled slatted balustrade is thick enough to be safe while keeping the view open. Everything was pre-cut in the workshop and only assembled on site, so the homestay welcomed guests five days after installation began."
         }
       },
       {
@@ -2132,89 +2352,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Homestay gác lửng",
-              "en": "Mezzanine homestay"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Mộc hiện đại, gỗ sáng, trắng kem",
-              "en": "Modern rustic, light timber, cream"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Cầu thang hộp tủ, lan can, quầy bếp trà, giường gác, đầu giường",
-              "en": "Storage staircase, balustrade, tea counter, loft beds, headboard"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF chống ẩm melamine vân sồi, plywood veneer sồi, gỗ thông",
-              "en": "Moisture-resistant MDF in oak melamine, oak-veneer plywood, pine"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Cầu thang là một dãy hộp tủ, bên dưới các bậc là chỗ cất đồ. Bậc thang và sàn gác dùng plywood phủ veneer sồi, cùng tông với quầy bếp trà.",
-          "en": "The staircase is a run of storage boxes, with cupboards under the steps. Treads and the loft floor are oak-veneer plywood, in the same tone as the tea counter."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận mặt quầy bếp trà gỗ ốp nan và tay nắm",
-          "altEn": "Close-up of the slat-clad tea counter front and its pulls"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Phòng ngủ tầng trệt có đầu giường ốp nan và tủ áo MDF. Trên gác, tủ thấp đặt sát mái để tận dụng phần không gian thấp.",
-          "en": "The ground-floor bedroom has a slatted headboard and an MDF wardrobe. Up in the loft, low cabinets sit against the roof to use the low space."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng ngủ tầng trệt nhìn về đầu giường nan CNC",
-          "altEn": "Ground-floor bedroom looking towards the CNC-slatted headboard"
+          "vi": "Một căn nhà nhỏ, nhưng đủ chỗ cho cả nhóm ở cùng nhau.",
+          "en": "A small house with room for the whole group to stay together."
         }
       },
       {
@@ -2252,8 +2394,8 @@
       "en": "Riverside wooden homestay"
     },
     "description": {
-      "vi": "Homestay một tầng bên sông miền Tây, gỗ tràm sáng, mây tre và gạch thẻ, đầu giường nan và quầy trà: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A single-storey homestay on a Mekong Delta river, in light cajeput timber, rattan and brick, with slatted headboards and a tea bar: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Homestay một tầng bên sông miền Tây với gỗ tràm sáng, mây tre, gạch thẻ, đầu giường nan và quầy trà. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A single-storey riverside homestay in the Mekong Delta with light melaleuca wood, rattan, brick, slatted headboards and a tea bar. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2300,18 +2442,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Homestay nhà gỗ",
-          "en": "Riverside"
-        },
-        "titleLine2": {
-          "vi": "ven sông",
-          "en": "wooden homestay"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Homestay",
-          "en": "Residential · Homestay"
-        },
+        "tagline": [
+          {
+            "vi": "Một căn nhà gỗ",
+            "en": "A timber house"
+          },
+          {
+            "vi": "mở ra *phía sông*",
+            "en": "open to the *river*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -2324,16 +2464,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Phòng chung mở ra phía sông",
-          "en": "A shared room that opens to the river"
+          "vi": "Phòng chung nhìn ra sông",
+          "en": "A common room facing the water"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Homestay dành cho khách nghỉ cuối tuần theo nhóm nhỏ. Phòng sinh hoạt chung nhìn ra sông, hai phòng ngủ có nhà tắm riêng ở phía sau.\n\nGỗ tràm sáng màu, mây tre và gạch thẻ giữ chất mộc miền sông nước; vách phay họa tiết lá dừa nước làm điểm nhận diện.",
-          "en": "The homestay is for small groups on weekend breaks. The shared living room faces the river, two bedrooms with their own bathrooms are at the back.\n\nLight cajeput timber, rattan and brick keep a rustic river-country feel; a CNC-cut screen with a water-palm leaf pattern gives the place its signature."
+          "vi": "Homestay một tầng bên một nhánh sông, khách là những nhóm nhỏ về nghỉ cuối tuần. Phòng sinh hoạt chung mở thẳng ra sông, hai phòng ngủ có nhà tắm riêng lùi về phía sau cho yên tĩnh. Gỗ tràm sáng màu, mây tre và gạch thẻ giữ chất mộc miền sông nước, vách phay họa tiết lá dừa nước làm điểm nhận diện.",
+          "en": "A single-storey homestay on a branch of the river, for small groups coming for the weekend. The common room opens straight onto the water, and two bedrooms with private bathrooms sit further back for quiet. Light melaleuca wood, rattan and brick keep the simple character of river country, and a screen milled with a nipa-palm pattern gives the place its signature."
         }
       },
       {
@@ -2369,22 +2509,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Homestay ven sông",
-              "en": "Riverside homestay"
+              "vi": "Cần Thơ",
+              "en": "Can Tho"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Mộc miền Tây, gỗ tràm sáng, mây tre",
-              "en": "Mekong rustic, light cajeput, rattan"
+              "vi": "khoảng 110 m²",
+              "en": "about 110 m²"
             }
           },
           {
@@ -2394,7 +2534,7 @@
             },
             "text": {
               "vi": "Đầu giường, quầy trà, kệ lưu niệm, vách họa tiết, biển gỗ",
-              "en": "Headboards, tea bar, souvenir shelf, pattern screen, timber sign"
+              "en": "Headboards, tea bar, souvenir shelving, patterned screen, timber sign"
             }
           },
           {
@@ -2404,37 +2544,32 @@
             },
             "text": {
               "vi": "Gỗ tràm ghép thanh sơn PU, MDF chống ẩm melamine vân teak",
-              "en": "PU-finished jointed cajeput, moisture-resistant MDF in teak melamine"
+              "en": "PU-finished finger-jointed melaleuca, moisture-resistant MDF in teak melamine"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Quầy trà ốp nan gỗ là chỗ khách ngồi lại với nhau. Phía sau quầy là kệ lưu niệm và vách họa tiết lá dừa nước, đều phay CNC từ cùng một bộ bản vẽ.",
-          "en": "The slat-clad tea bar is where guests gather. Behind it, the souvenir shelf and the water-palm screen are CNC-cut from the same set of drawings."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận mặt quầy trà ốp nan gỗ CNC, tay nắm và bậc ly",
           "altEn": "Close-up of the CNC-slatted tea bar front, its pulls and cup ledge"
+        },
+        "text": {
+          "vi": "Quầy trà ốp nan gỗ là chỗ khách ngồi lại với nhau sau bữa tối. Phía sau quầy là kệ lưu niệm và vách họa tiết lá dừa nước, đều phay CNC từ cùng một bộ bản vẽ.",
+          "en": "The slatted tea bar is where guests sit together after dinner. Behind it are the souvenir shelves and the nipa-palm screen, all CNC-milled from the same set of drawings."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Khí hậu ven sông ẩm nên tủ áo và tủ lavabo dùng MDF chống ẩm phủ melamine vân teak. Ngoài cổng có biển gỗ chữ khắc tên homestay.",
-          "en": "The riverside climate is humid, so the wardrobes and vanities are moisture-resistant MDF in teak-grain melamine. At the gate, a carved timber sign names the homestay."
+          "vi": "Khí hậu ven sông ẩm quanh năm, nên tủ áo và tủ lavabo dùng MDF chống ẩm phủ melamine vân teak. Gỗ tràm chỉ dùng ở những chỗ khô như đầu giường và quầy trà.",
+          "en": "The riverside air is humid all year, so the wardrobes and vanities are moisture-resistant MDF in teak melamine. Melaleuca is kept for the dry places, such as the headboards and the tea bar."
         }
       },
       {
@@ -2447,6 +2582,22 @@
           "height": 2048,
           "altVi": "Phòng tắm riêng của phòng 1 với tủ lavabo gỗ chống ẩm",
           "altEn": "Private bathroom of bedroom 1 with a moisture-resistant timber vanity"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Gỗ tràm ghép thanh được sơn PU tại xưởng, phủ kín cả mặt sau để hạn chế cong vênh. Đồ gỗ chở xuống bằng xe tải nhỏ rồi ráp tại chỗ trong khoảng bốn ngày. Ngoài cổng có thêm tấm biển gỗ khắc tên homestay, làm từ chính phần gỗ tràm còn dư.",
+          "en": "The finger-jointed melaleuca was PU-finished in the workshop, back faces included, to limit warping. The joinery travelled down by small truck and was assembled on site in about four days. At the gate hangs a timber sign engraved with the homestay's name, made from the leftover melaleuca."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Buổi sáng ở đây bắt đầu bằng tiếng thuyền và một ấm trà.",
+          "en": "Mornings here begin with the sound of boats and a pot of tea."
         }
       },
       {
@@ -2484,8 +2635,8 @@
       "en": "Small boutique hotel"
     },
     "description": {
-      "vi": "Khách sạn boutique nhỏ với quầy lễ tân phay CNC, vách nan, quầy buffet và phòng tiêu chuẩn gỗ óc chó nhạt: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A small boutique hotel with a CNC-cut reception desk, slatted walls, a buffet counter and pale walnut guest rooms: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Khách sạn boutique nhỏ với quầy lễ tân phay CNC, vách nan đèn hắt, quầy buffet và phòng tiêu chuẩn gỗ óc chó nhạt. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A small boutique hotel with a CNC-milled reception desk, a backlit slatted wall, a buffet counter and light-walnut standard rooms. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2532,18 +2683,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Khách sạn",
-          "en": "Small"
-        },
-        "titleLine2": {
-          "vi": "boutique nhỏ",
-          "en": "boutique hotel"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Khách sạn boutique",
-          "en": "Residential · Boutique hotel"
-        },
+        "tagline": [
+          {
+            "vi": "Ấn tượng đầu tiên",
+            "en": "First impressions"
+          },
+          {
+            "vi": "ở *quầy lễ tân*",
+            "en": "at the *front desk*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -2556,16 +2705,105 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Ấn tượng đầu tiên ở quầy lễ tân",
-          "en": "First impressions at the front desk"
+          "vi": "Khách nhớ quầy lễ tân trước tiên",
+          "en": "Guests remember the front desk first"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Khách sạn ở trung tâm thành phố dành cho khách công tác và du lịch ngắn ngày. Công trình gồm hai tầng: sảnh lễ tân có khu ngồi chờ và phòng ăn sáng, cùng một tầng điển hình có hai phòng tiêu chuẩn.\n\nGỗ óc chó nhạt, đá và đồng thau trên nền kem ấm tạo cảm giác hiện đại mà vẫn gần gũi.",
-          "en": "The hotel is in the city centre, for business travellers and short stays. The project covers two floors: a reception lobby with a lounge and breakfast room, and a typical floor with two standard rooms.\n\nPale walnut, stone and brass on a warm cream base feel modern yet welcoming."
+          "vi": "Khách sạn nhỏ ở trung tâm thành phố, khách chủ yếu là người đi công tác và du lịch ngắn ngày. Họ ở hai, ba đêm rồi đi, nên ấn tượng đầu tiên ở sảnh rất quan trọng. Quầy lễ tân phay CNC, vách nan có đèn hắt và khu lounge với kệ sách gỗ tạo cảm giác hiện đại mà vẫn gần gũi, như bước vào nhà một người bạn.",
+          "en": "A small city-centre hotel whose guests are mostly business travellers and short-stay tourists. They stay two or three nights and move on, so the first impression in the lobby matters. A CNC-milled reception desk, a backlit slatted wall and a lounge with timber bookshelves feel modern yet familiar, like walking into a friend's home."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "Trung tâm TP.HCM",
+              "en": "Central Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 240 m² (sảnh và một tầng phòng)",
+              "en": "about 240 m² (lobby and one guest floor)"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Quầy lễ tân, vách nan, quầy buffet, đầu giường, tủ áo, tủ lavabo",
+              "en": "Reception desk, slatted wall, buffet counter, headboards, wardrobes, vanities"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine óc chó nhạt, HDF veneer sồi, đá thạch anh",
+              "en": "Moisture-resistant MDF in light walnut melamine, oak-veneered HDF, quartz"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận quầy buffet sáng ốp nan gỗ và mặt đá",
+          "altEn": "Close-up of the slat-clad breakfast buffet and its stone top"
+        },
+        "text": {
+          "vi": "Phòng ăn sáng dùng quầy buffet ốp nan cùng kiểu với quầy lễ tân, mặt đá thạch anh dễ lau sau mỗi lượt phục vụ.",
+          "en": "The breakfast room has a slatted buffet counter in the same style as the reception desk, with a quartz top that wipes clean after every service."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng tiêu chuẩn có đầu giường nan CNC và tủ áo MDF, phòng tắm dùng tủ lavabo chống ẩm. Mỗi phòng đủ chỗ treo đồ cho một chuyến đi ngắn, không thừa món nào.",
+          "en": "Standard rooms have a CNC-slatted headboard and an MDF wardrobe, and the bathrooms use moisture-resistant vanities. Each room holds just what a short trip needs, nothing more."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng tắm của phòng tiêu chuẩn với tủ lavabo gỗ chống ẩm",
+          "altEn": "Standard room bathroom with a moisture-resistant timber vanity"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Các phòng dùng chung một bộ chi tiết, nên xưởng sản xuất theo lô: cắt CNC, dán chỉ cạnh, khoan phụ kiện cho cả tầng cùng lúc. Nhờ vậy các phòng đồng đều, và khi cần thay một cánh tủ sau này cũng có sẵn bản vẽ. Mỗi tầng lắp xong trong khoảng ba ngày.",
+          "en": "All rooms share one set of details, so the workshop produced them in batches: CNC cutting, edge-banding and hardware drilling for a whole floor at once. The rooms come out identical, and if a door ever needs replacing, the drawings are ready. Each floor was installed in about three days."
         }
       },
       {
@@ -2596,89 +2834,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Khách sạn boutique nhỏ",
-              "en": "Small boutique hotel"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Hiện đại ấm, óc chó nhạt, đồng thau",
-              "en": "Warm modern, pale walnut, brass"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Quầy lễ tân, vách nan, lan can, quầy buffet, đầu giường, tủ áo",
-              "en": "Reception desk, slatted walls, balustrade, buffet, headboards, wardrobes"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF chống ẩm melamine óc chó nhạt, HDF veneer sồi, đá thạch anh",
-              "en": "Moisture-resistant MDF in pale walnut melamine, oak-veneer HDF, quartz"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng ăn sáng dùng quầy buffet ốp nan cùng kiểu với quầy lễ tân, mặt đá dễ lau sau mỗi lượt phục vụ.",
-          "en": "The breakfast room has a slat-clad buffet counter in the same style as the reception desk, with a stone top that is easy to wipe down after each service."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận quầy buffet sáng ốp nan gỗ và mặt đá",
-          "altEn": "Close-up of the slat-clad breakfast buffet and its stone top"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Phòng tiêu chuẩn có đầu giường nan CNC và tủ áo MDF, phòng tắm dùng tủ lavabo chống ẩm. Các phòng dùng chung một bộ chi tiết nên xưởng sản xuất nhanh và đồng đều.",
-          "en": "Standard rooms have CNC-slatted headboards and MDF wardrobes, bathrooms have moisture-resistant vanities. All rooms share one set of details, so workshop production is fast and consistent."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng tắm của phòng tiêu chuẩn với tủ lavabo gỗ chống ẩm",
-          "altEn": "Standard room bathroom with a moisture-resistant timber vanity"
+          "vi": "Hai đêm ở lại, và khách vẫn nhớ chiếc quầy gỗ ở sảnh.",
+          "en": "Two nights later, guests still remember the timber desk in the lobby."
         }
       },
       {
@@ -2716,8 +2876,8 @@
       "en": "Vietnamese restaurant"
     },
     "description": {
-      "vi": "Nhà hàng món Việt với vách lam gỗ, ốp tường họa tiết nón lá, lô ghế bán riêng tư và quầy thu ngân phay CNC: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A Vietnamese restaurant with timber louvres, a conical-hat pattern wall, semi-private booths and a CNC-cut till counter: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Nhà hàng món Việt với vách lam gỗ, ốp tường họa tiết nón lá, lô ghế bán riêng tư và quầy thu ngân phay CNC. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A Vietnamese restaurant with timber louvres, conical-hat wall panels, semi-private booths and a CNC-milled cashier counter. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2764,18 +2924,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Nhà hàng",
-          "en": "Vietnamese"
-        },
-        "titleLine2": {
-          "vi": "món Việt",
-          "en": "restaurant"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Nhà hàng",
-          "en": "Commercial · Restaurant"
-        },
+        "tagline": [
+          {
+            "vi": "Bữa cơm chung,",
+            "en": "A shared meal,"
+          },
+          {
+            "vi": "góc ngồi *riêng*",
+            "en": "a table of *your own*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -2788,16 +2946,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Bữa cơm chung, góc ngồi riêng",
-          "en": "Shared meals, private corners"
+          "vi": "Ăn cùng nhau, vẫn có chỗ riêng",
+          "en": "Eating together, with a corner of your own"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà hàng dành cho gia đình và nhóm bạn. Khách vào qua sảnh thu ngân rồi tới sảnh ăn chung; có ba lô ghế bán riêng tư, bếp đặt phía sau khuất tầm nhìn.\n\nGỗ tối ấm, lam gỗ và gốm men ngọc tạo chất Việt hiện đại, không cần đồ trang trí rời.",
-          "en": "The restaurant is for families and groups of friends. Guests enter through the till lobby into the shared dining hall; there are three semi-private booths, the kitchen sits out of sight at the back.\n\nWarm dark timber, louvres and celadon ceramics give a modern Vietnamese feel without loose decoration."
+          "vi": "Nhà hàng món Việt cho gia đình và nhóm bạn, đông nhất vào bữa tối và cuối tuần. Khách vào qua quầy thu ngân rồi tới sảnh ăn chung, có ba lô ghế bán riêng tư cho những bữa cần nói chuyện, bếp đặt phía sau khuất tầm nhìn. Gỗ tối ấm, lam gỗ và gốm men ngọc tạo chất Việt hiện đại mà không cần đồ trang trí rời.",
+          "en": "A Vietnamese restaurant for families and groups of friends, busiest at dinner and on weekends. Guests pass the cashier into the shared dining hall, with three semi-private booths for meals that need conversation and the kitchen tucked out of sight at the back. Warm dark wood, timber louvres and celadon ceramics give a modern Vietnamese feel without loose decoration."
         }
       },
       {
@@ -2833,22 +2991,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Nhà hàng món Việt",
-              "en": "Vietnamese restaurant"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Việt hiện đại, gỗ tối ấm, gốm men",
-              "en": "Modern Vietnamese, warm dark timber, glazed ceramics"
+              "vi": "khoảng 200 m²",
+              "en": "about 200 m²"
             }
           },
           {
@@ -2858,7 +3016,7 @@
             },
             "text": {
               "vi": "Quầy thu ngân, vách lam, ốp tường họa tiết, lô ghế, biển hiệu",
-              "en": "Till counter, louvres, pattern wall, booths, sign"
+              "en": "Cashier counter, louvre screens, patterned wall panels, booths, signage"
             }
           },
           {
@@ -2868,37 +3026,32 @@
             },
             "text": {
               "vi": "MDF chống ẩm melamine vân óc chó, gỗ cao su, gốm men ngọc",
-              "en": "Moisture-resistant MDF in walnut melamine, rubberwood, celadon tiles"
+              "en": "Moisture-resistant MDF in walnut melamine, rubberwood, celadon ceramics"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Vách lam giữa các lô ghế che vừa đủ để mỗi nhóm có góc riêng mà vẫn thấy không khí cả sảnh. Lam được phay CNC từ MDF chống ẩm phủ melamine vân óc chó.",
-          "en": "The louvres between booths screen just enough for each group to have its own corner while still sharing the buzz of the hall. They are CNC-cut from moisture-resistant MDF in walnut-grain melamine."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận vách lam gỗ phay CNC giữa hai lô ghế",
           "altEn": "Close-up of the CNC-cut timber louvre between two booths"
+        },
+        "text": {
+          "vi": "Vách lam giữa các lô ghế che vừa đủ để mỗi nhóm có góc riêng, mà vẫn nghe được không khí của cả sảnh. Lam phay CNC từ MDF chống ẩm phủ melamine vân óc chó.",
+          "en": "The louvres between the booths screen just enough for each group to have its own corner, while still sharing the buzz of the hall. They are CNC-milled from moisture-resistant MDF in walnut melamine."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Ốp tường sảnh ăn phay họa tiết nón lá, đi cùng kệ trưng bày đặc sản nan gỗ. Khu WC dùng tủ lavabo gỗ chống ẩm cùng tông với sảnh.",
-          "en": "The dining hall wall is CNC-cut with a conical-hat pattern, alongside a slatted display shelf for local specialities. The restroom has a moisture-resistant timber vanity in the same tone as the hall."
+          "vi": "Ốp tường sảnh ăn phay họa tiết nón lá, đi cùng kệ trưng bày đặc sản nan gỗ. Khu WC dùng tủ lavabo gỗ chống ẩm cùng tông, để khách đi tới đâu cũng thấy cùng một nhà hàng.",
+          "en": "The dining-hall walls are milled with a conical-hat pattern, alongside slatted shelves for regional specialities. The restrooms use moisture-resistant timber vanities in the same tone, so every corner feels like the same restaurant."
         }
       },
       {
@@ -2911,6 +3064,22 @@
           "height": 2048,
           "altVi": "Khu WC với tủ lavabo gỗ chống ẩm",
           "altEn": "Restroom area with a moisture-resistant timber vanity"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Họa tiết nón lá được dựng thành file vector rồi phay CNC trên tấm MDF, ghép lại thành mảng tường liền mạch không thấy mối nối. Lam, quầy thu ngân và ốp tường dùng chung một vân óc chó, cắt từ cùng một lô ván để màu đều. Phần đồ gỗ lắp trong năm ngày.",
+          "en": "The conical-hat pattern was drawn as a vector file, CNC-milled into MDF sheets and joined into one seamless wall. The louvres, cashier counter and wall panels share one walnut grain, cut from the same batch of boards so the colour matches. The joinery was installed in five days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Bếp lo món ăn, còn chỗ ngồi giữ khách ở lại lâu hơn.",
+          "en": "The kitchen takes care of the food; the seating keeps guests a little longer."
         }
       },
       {
@@ -2948,8 +3117,8 @@
       "en": "Director's office and boardroom"
     },
     "description": {
-      "vi": "Khu điều hành với bàn giám đốc, bàn họp mười hai chỗ, quầy thư ký và vách logo bằng gỗ óc chó, xanh navy và đồng thau: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "An executive suite with a director's desk, a twelve-seat boardroom table, a secretary's desk and a logo wall in walnut, navy and brass: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Khu điều hành với bàn giám đốc, bàn họp mười hai chỗ, quầy thư ký và vách logo bằng gỗ óc chó, xanh navy và đồng thau. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "An executive suite with a director's desk, a twelve-seat boardroom table, a reception desk and a logo wall in walnut, navy and brass. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2996,18 +3165,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Phòng giám đốc",
-          "en": "Director's office"
-        },
-        "titleLine2": {
-          "vi": "và phòng họp",
-          "en": "and boardroom"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Văn phòng",
-          "en": "Commercial · Office"
-        },
+        "tagline": [
+          {
+            "vi": "Bàn họp",
+            "en": "A table"
+          },
+          {
+            "vi": "cho những *quyết định* lớn",
+            "en": "for big *decisions*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -3021,15 +3188,104 @@
         "type": "section-title",
         "text": {
           "vi": "Chắc chắn và lịch sự",
-          "en": "Solid and composed"
+          "en": "Solid and courteous"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Khu điều hành một tầng dành cho giám đốc một công ty xây dựng ở TP.HCM, gồm phòng giám đốc, phòng họp lớn và khu chờ có thư ký ở mặt tiền.\n\nGỗ óc chó đậm, xanh navy và đồng thau tạo cảm giác chắc chắn, lịch sự. Bàn, tủ và kệ đều phủ veneer óc chó sơn PU mờ.",
-          "en": "A single-floor executive suite for the director of a construction company in Ho Chi Minh City, with a director's office, a large boardroom and a waiting area with a secretary at the front.\n\nDark walnut, navy and brass feel solid and composed. Desks, cabinets and shelving are all walnut veneer with a matt PU finish."
+          "vi": "Khu điều hành của một công ty xây dựng, gồm phòng giám đốc, phòng họp lớn và khu chờ có thư ký ở mặt tiền. Đây là nơi tiếp đối tác và ký hợp đồng, nên không gian cần chắc chắn, lịch sự mà không phô trương. Gỗ óc chó đậm, xanh navy và đồng thau được dùng xuyên suốt, bàn, tủ và kệ đều phủ veneer óc chó sơn PU mờ.",
+          "en": "The executive floor of a construction company: the director's office, a large boardroom and a front waiting area with a secretary's desk. This is where partners are received and contracts signed, so the space needed to feel solid and courteous without showing off. Dark walnut, navy and brass run throughout, and every desk, cabinet and shelf is walnut veneer in a matt PU finish."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 130 m²",
+              "en": "about 130 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Bàn giám đốc, bàn họp, kệ trình chiếu, quầy thư ký, vách logo",
+              "en": "Director's desk, boardroom table, media unit, reception desk, logo wall"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF veneer óc chó sơn PU, plywood veneer óc chó, inox mạ đồng",
+              "en": "PU-finished walnut-veneer MDF, walnut-veneer plywood, brass-plated stainless steel"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận mép bàn họp: veneer óc chó, chân vát cạnh, viền đồng thau",
+          "altEn": "Close-up of the boardroom table edge: walnut veneer, chamfered legs, brass trim"
+        },
+        "text": {
+          "vi": "Bàn họp mười hai chỗ có chân vát cạnh và viền đồng thau ở mép. Kệ trình chiếu và tủ hộp đi cùng bàn, giữ thiết bị và dây nối gọn một chỗ.",
+          "en": "The twelve-seat boardroom table has chamfered legs and a brass edge. A matching media unit and box cabinets keep equipment and cables in one tidy place."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Khu chờ ở mặt tiền có quầy thư ký, vách logo nan gỗ với chữ nổi inox mạ đồng và góc sofa navy cho khách. Đối tác ngồi đây vài phút trước khi vào họp, đủ để thấy công ty làm việc chỉn chu thế nào.",
+          "en": "The front waiting area has the secretary's desk, a slatted logo wall with brass-plated raised letters and a navy sofa corner for visitors. Partners wait here a few minutes before a meeting, long enough to see how carefully the company works."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Góc chờ với sofa navy, bàn trà và ghế đơn nhìn từ lối vào",
+          "altEn": "Waiting corner with a navy sofa, coffee table and armchair, seen from the entrance"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Veneer óc chó được chọn theo lô để vân trên mặt bàn họp chạy liền một mạch. Xưởng phay rãnh âm, vát chân bàn bằng CNC, sơn PU mờ nhiều lớp rồi mới gắn viền đồng thau. Bàn họp dài được chia làm ba mảnh để đưa lên thang máy, ráp lại tại chỗ không thấy mối nối.",
+          "en": "The walnut veneer was selected from one batch so the grain runs continuously across the boardroom table. The workshop CNC-milled the recessed grooves and chamfered legs, applied several coats of matt PU, then fitted the brass trim. The long table was built in three sections to fit the lift and joined on site without a visible seam."
         }
       },
       {
@@ -3060,89 +3316,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Phòng giám đốc, phòng họp",
-              "en": "Director's office, boardroom"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Óc chó đậm, xanh navy, đồng thau",
-              "en": "Dark walnut, navy, brass"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Bàn giám đốc, bàn họp, kệ trình chiếu, quầy thư ký, vách logo",
-              "en": "Director's desk, boardroom table, media unit, secretary's desk, logo wall"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF veneer óc chó sơn PU, plywood veneer óc chó, inox mạ đồng",
-              "en": "Walnut-veneer MDF with PU finish, walnut-veneer plywood, brass-plated stainless steel"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Bàn họp mười hai chỗ có chân vát cạnh và viền đồng thau ở mép. Kệ trình chiếu và tủ hộp đi cùng bàn, giữ thiết bị gọn một chỗ.",
-          "en": "The twelve-seat boardroom table has chamfered legs and a brass edge trim. A media unit and box cabinets go with it, keeping equipment in one tidy place."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận mép bàn họp: veneer óc chó, chân vát cạnh, viền đồng thau",
-          "altEn": "Close-up of the boardroom table edge: walnut veneer, chamfered legs, brass trim"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Khu chờ ở mặt tiền có quầy thư ký, vách logo nan gỗ với chữ nổi inox mạ đồng và góc sofa navy cho khách.",
-          "en": "The waiting area at the front has the secretary's desk, a slatted logo wall with brass-plated stainless steel letters and a navy sofa corner for visitors."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Góc chờ với sofa navy, bàn trà và ghế đơn nhìn từ lối vào",
-          "altEn": "Waiting corner with a navy sofa, coffee table and armchair, seen from the entrance"
+          "vi": "Một căn phòng nói thay doanh nghiệp trước cả khi cuộc họp bắt đầu.",
+          "en": "A room that speaks for the company before the meeting even starts."
         }
       },
       {
@@ -3180,8 +3358,8 @@
       "en": "Tile and sanitary ware showroom"
     },
     "description": {
-      "vi": "Showroom có vách mẫu gạch phay ô, ba phòng tắm mẫu, đảo trưng bày và bàn tư vấn gỗ sồi: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A showroom with CNC-cut tile sample walls, three model bathrooms, a display island and an oak consultation desk: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Showroom gạch và thiết bị vệ sinh có ba phòng tắm mẫu, vách mẫu gạch phay ô, đảo trưng bày và bàn tư vấn gỗ sồi. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A tile and sanitaryware showroom with three model bathrooms, milled tile-sample walls, display islands and an oak consultation desk. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3228,18 +3406,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Showroom gạch",
-          "en": "Tile and sanitary"
-        },
-        "titleLine2": {
-          "vi": "và thiết bị vệ sinh",
-          "en": "ware showroom"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Showroom",
-          "en": "Commercial · Showroom"
-        },
+        "tagline": [
+          {
+            "vi": "Chọn gạch,",
+            "en": "Choose a tile,"
+          },
+          {
+            "vi": "thấy ngay *phòng tắm*",
+            "en": "see the *bathroom*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -3252,16 +3428,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Chọn gạch, thấy ngay phòng tắm",
-          "en": "Choose a tile, see the bathroom"
+          "vi": "Khách mua cả một phòng tắm, không chỉ một viên gạch",
+          "en": "Customers buy a bathroom, not just a tile"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Showroom một tầng cho cửa hàng vật liệu hoàn thiện ở TP.HCM. Khách vừa chọn gạch vừa thấy ngay phòng tắm hoàn chỉnh: ba phòng tắm mẫu mở mặt ở phía sau, vách mẫu gạch và đảo trưng bày ở giữa, khu tư vấn ngay lối vào.\n\nXám xi măng, gỗ sồi và đèn hắt giữ nền trung tính để màu gạch hiện đúng.",
-          "en": "A single-floor showroom for a finishing-materials store in Ho Chi Minh City. Customers choose tiles and see a finished bathroom at the same time: three open-fronted model bathrooms at the back, sample walls and a display island in the middle, the consultation area right by the entrance.\n\nCement grey, oak and indirect lighting keep a neutral backdrop so tile colours show true."
+          "vi": "Showroom của một cửa hàng vật liệu hoàn thiện. Khách thường khó hình dung một viên gạch mẫu sẽ trông thế nào khi ốp kín cả phòng, nên ba phòng tắm mẫu được dựng mở mặt ở phía sau. Vách mẫu gạch và đảo trưng bày ở giữa, bàn tư vấn ngay lối vào. Xám xi măng, gỗ sồi và đèn hắt giữ nền trung tính để màu gạch hiện đúng.",
+          "en": "The showroom of a finishing-materials store. Customers find it hard to imagine how a single sample tile will look across a whole room, so three open-fronted model bathrooms were built at the back. Tile-sample walls and display islands fill the middle, with the consultation desk right at the entrance. Cement grey, oak and indirect light keep the backdrop neutral so the tile colours read true."
         }
       },
       {
@@ -3297,22 +3473,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Showroom gạch và thiết bị vệ sinh",
-              "en": "Tile and sanitary ware showroom"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Công nghiệp ấm, xám xi măng, gỗ sồi",
-              "en": "Warm industrial, cement grey, oak"
+              "vi": "khoảng 250 m²",
+              "en": "about 250 m²"
             }
           },
           {
@@ -3322,7 +3498,7 @@
             },
             "text": {
               "vi": "Vách mẫu gạch, tủ lavabo, đảo trưng bày, bàn tư vấn, biển hiệu",
-              "en": "Tile sample walls, vanities, display island, consultation desk, sign"
+              "en": "Tile-sample walls, vanities, display islands, consultation desk, signage"
             }
           },
           {
@@ -3338,31 +3514,26 @@
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Vách mẫu gạch chạy dọc hai bên sảnh, phay sẵn ô lắp mẫu theo khổ gạch. Khi đổi bộ sưu tập, chỉ cần thay mẫu vào ô có sẵn.",
-          "en": "Sample walls run along both sides of the floor, with slots CNC-cut to tile sizes. When a collection changes, new samples simply go into the existing slots."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Cận đảo trưng bày gạch: ô lắp mẫu phay CNC và khung gỗ viền đồng thau",
           "altEn": "Close-up of the tile display island: CNC-cut sample slots and a timber frame with brass trim"
+        },
+        "text": {
+          "vi": "Vách mẫu gạch chạy dọc hai bên sảnh và đảo trưng bày ở giữa đều phay sẵn ô theo khổ gạch, khung gỗ viền đồng thau. Khi đổi bộ sưu tập, nhân viên chỉ cần thay mẫu vào ô có sẵn.",
+          "en": "The sample walls along both sides of the hall and the islands in the middle are milled with pockets sized to each tile format, framed in timber with brass trim. When a collection changes, staff simply swap the samples into the existing pockets."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Tủ lavabo trong phòng tắm mẫu dùng MDF chống ẩm lõi xanh, để khách thấy đúng vật liệu dùng được trong phòng tắm thật. Quầy thu ngân, kệ catalogue và biển hiệu mặt tiền dùng chung bảng màu xám than và gỗ sồi.",
-          "en": "Vanities in the model bathrooms are green-core moisture-resistant MDF, so customers see a material that works in a real bathroom. The till, catalogue shelving and shopfront sign share one palette of charcoal and oak."
+          "vi": "Bàn tư vấn và quầy thu ngân đặt gần lối vào, dùng chung bảng màu xám than và gỗ sồi với kệ catalogue và biển hiệu mặt tiền. Khách chọn xong ở phòng mẫu là quay ra đây ngồi tính khối lượng.",
+          "en": "The consultation desk and cashier counter sit near the entrance, sharing the charcoal-and-oak palette of the catalogue shelves and the shopfront sign. Once customers have chosen in the model rooms, they come back here to work out quantities."
         }
       },
       {
@@ -3375,6 +3546,22 @@
           "height": 2048,
           "altVi": "Quầy thu ngân và bàn tư vấn nhìn từ lối vào, biển hiệu thấp thoáng sau kính mặt tiền",
           "altEn": "Till and consultation desk seen from the entrance, with the sign glimpsed through the front glass"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ lavabo trong phòng tắm mẫu dùng MDF chống ẩm lõi xanh, đúng loại ván dùng được trong phòng tắm thật, để khách chạm tận tay vật liệu mình sẽ mua. Ô mẫu gạch phay CNC theo từng khổ gạch phổ biến, mẫu đặt vào là khít. Showroom lắp trong một tuần, song song với đội ốp lát.",
+          "en": "The vanities in the model bathrooms are green-core moisture-resistant MDF, the same board you would use in a real bathroom, so customers can touch the material they will buy. The sample pockets were CNC-milled for each common tile size, so samples drop in snugly. The showroom was fitted in one week, alongside the tiling crew."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ở đây, khách thấy phòng tắm của mình trước khi mua viên gạch đầu tiên.",
+          "en": "Here, customers see their bathroom before buying the first tile."
         }
       },
       {
@@ -3412,8 +3599,8 @@
       "en": "Twenty-seat office"
     },
     "description": {
-      "vi": "Văn phòng một tầng với quầy tiếp tân gỗ sồi, khu làm việc mở, phòng họp kính và pantry: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A single-floor office with an oak reception desk, an open workspace, a glass meeting room and a pantry: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Văn phòng một tầng cho khoảng hai mươi người với quầy tiếp tân gỗ sồi, khu làm việc mở, phòng họp kính và pantry. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A single-floor office for about twenty people with an oak reception desk, open workspace, glass meeting room and pantry. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3460,18 +3647,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Văn phòng",
-          "en": "Twenty-seat"
-        },
-        "titleLine2": {
-          "vi": "20 chỗ",
-          "en": "office"
-        },
-        "subtitle": {
-          "vi": "Kinh doanh · Văn phòng",
-          "en": "Commercial · Office"
-        },
+        "tagline": [
+          {
+            "vi": "Gọn cho",
+            "en": "Just right"
+          },
+          {
+            "vi": "*hai mươi* người làm việc",
+            "en": "for *twenty* people"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
@@ -3484,16 +3669,105 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Gọn cho hai mươi người làm việc",
-          "en": "Tidy for a team of twenty"
+          "vi": "Sáng, gọn và dễ tập trung",
+          "en": "Bright, tidy and easy to focus"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Văn phòng một tầng dành cho công ty dịch vụ nhỏ khoảng hai mươi nhân viên ở TP.HCM. Sảnh tiếp tân ở mặt tiền, khu làm việc mở ở giữa, phòng họp kính và pantry phía sau.\n\nTrắng ngà, xám xanh và cam đất trên nền gỗ sồi sáng, cùng trần thạch cao phẳng, giữ không gian sáng và dễ tập trung.",
-          "en": "A single-floor office for a small service company of about twenty staff in Ho Chi Minh City. Reception is at the front, the open workspace in the middle, the glass meeting room and pantry at the back.\n\nIvory white, grey-blue and burnt orange over light oak, with a flat plaster ceiling, keep the space bright and easy to focus in."
+          "vi": "Văn phòng một tầng của một công ty dịch vụ nhỏ, khoảng hai mươi nhân viên. Mọi người ngồi máy tính cả ngày, họp nhanh vài lần và ăn trưa tại chỗ. Sảnh tiếp tân ở mặt tiền, khu làm việc mở ở giữa, phòng họp kính và pantry phía sau. Trắng ngà, xám xanh và cam đất trên nền gỗ sồi sáng giữ không gian sáng và dễ tập trung.",
+          "en": "A single-floor office for a small service company of about twenty people. They spend the day at their screens, hold a few quick meetings and eat lunch in. Reception is at the front, the open workspace in the middle, and the glass meeting room and pantry at the back. Ivory, blue-grey and terracotta over light oak keep the space bright and easy to focus in."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 150 m²",
+              "en": "about 150 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Quầy tiếp tân, vách logo, bàn làm việc, tủ hồ sơ, tủ pantry, kệ phòng họp",
+              "en": "Reception desk, logo wall, desks, filing cabinets, pantry, meeting-room unit"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine vân sồi, laminate xám bê tông, kính cường lực",
+              "en": "Moisture-resistant MDF in oak melamine, concrete-grey laminate, tempered glass"
+            }
+          }
+        ]
+      },
+      {
+        "id": "image-1",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Cận quầy tiếp tân gỗ sồi phay rãnh và vách logo chữ nổi phía sau",
+          "altEn": "Close-up of the grooved oak reception desk and the raised-letter logo wall behind"
+        },
+        "text": {
+          "vi": "Quầy tiếp tân gỗ sồi phay rãnh âm, phía sau là vách logo ốp gỗ với chữ nổi tên công ty. Mảng sơn cam đất sau quầy giúp khách nhận ra lối vào ngay từ thang máy.",
+          "en": "The oak reception desk is milled with recessed grooves, set against a timber logo wall with the company name in raised letters. A terracotta wall behind it lets visitors spot the entrance straight from the lift."
+        }
+      },
+      {
+        "id": "text-2",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cạnh quầy là góc chờ với sofa cam đất, bàn trà và kệ trưng bày giới thiệu công ty. Khách ngồi đây vài phút, đủ để xem công ty đã làm được những gì.",
+          "en": "Next to the desk is a waiting corner with a terracotta sofa, a coffee table and shelves that introduce the company. Visitors sit here a few minutes, long enough to see what the company has done."
+        }
+      },
+      {
+        "id": "image-2",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Góc chờ khách với sofa cam đất, bàn trà và kệ trưng bày giới thiệu",
+          "altEn": "Visitor waiting corner with a burnt-orange sofa, coffee table and display shelf"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ hồ sơ cao chạy dọc tường khu làm việc, tủ locker đặt cuối dãy bàn, hộc tủ phay tay nắm âm nên lối đi không bị vướng. Bàn làm việc đi sẵn máng dây từ xưởng, ngày lắp chỉ cần đấu điện. Văn phòng lắp trong một cuối tuần để thứ Hai mọi người vào làm luôn.",
+          "en": "Tall filing cabinets line the workspace wall and lockers sit at the end of the desk rows, with milled recessed handles so nothing catches in the aisles. Desks left the workshop with cable trays fitted, so installation only meant connecting power. The office was fitted over one weekend, ready for work on Monday."
         }
       },
       {
@@ -3524,89 +3798,11 @@
         ]
       },
       {
-        "id": "facts",
-        "type": "facts-grid",
-        "items": [
-          {
-            "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
-            },
-            "text": {
-              "vi": "Văn phòng 20 chỗ",
-              "en": "Twenty-seat office"
-            }
-          },
-          {
-            "label": {
-              "vi": "Phong cách",
-              "en": "Style"
-            },
-            "text": {
-              "vi": "Hiện đại gọn, xám xanh, cam đất, gỗ sồi",
-              "en": "Clean modern, grey-blue, burnt orange, oak"
-            }
-          },
-          {
-            "label": {
-              "vi": "Hạng mục",
-              "en": "Scope"
-            },
-            "text": {
-              "vi": "Quầy tiếp tân, vách logo, tủ pantry, tủ hồ sơ, kệ phòng họp",
-              "en": "Reception desk, logo wall, pantry, filing cabinets, meeting room units"
-            }
-          },
-          {
-            "label": {
-              "vi": "Vật liệu chính",
-              "en": "Main materials"
-            },
-            "text": {
-              "vi": "MDF chống ẩm melamine vân sồi, laminate xám bê tông, kính cường lực",
-              "en": "Moisture-resistant MDF in oak melamine, concrete-grey laminate, toughened glass"
-            }
-          }
-        ]
-      },
-      {
-        "id": "text-1",
+        "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Quầy tiếp tân gỗ sồi phay rãnh âm, phía sau là vách logo ốp gỗ với chữ nổi tên công ty. Mảng sơn cam đất sau quầy giúp khách nhận ra lối vào từ xa.",
-          "en": "The oak reception desk has CNC-cut recessed grooves, backed by a timber logo wall with the company name in raised letters. A burnt-orange paint panel behind the desk marks the entrance from a distance."
-        }
-      },
-      {
-        "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận quầy tiếp tân gỗ sồi phay rãnh và vách logo chữ nổi phía sau",
-          "altEn": "Close-up of the grooved oak reception desk and the raised-letter logo wall behind"
-        }
-      },
-      {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Tủ hồ sơ cao chạy dọc tường khu làm việc, tủ locker cho nhân viên đặt cuối dãy bàn. Hộc tủ phay tay nắm âm nên lối đi giữa các dãy không bị vướng.",
-          "en": "Tall filing cabinets run along the workspace wall, staff lockers stand at the end of the desk rows. Recessed CNC-cut pulls keep the aisles between rows clear."
-        }
-      },
-      {
-        "id": "image-2",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Góc chờ khách với sofa cam đất, bàn trà và kệ trưng bày giới thiệu",
-          "altEn": "Visitor waiting corner with a burnt-orange sofa, coffee table and display shelf"
+          "vi": "Một văn phòng không cần lớn, chỉ cần mỗi thứ đúng chỗ.",
+          "en": "An office that does not need to be big, only to have everything in its place."
         }
       },
       {
@@ -3644,8 +3840,8 @@
       "en": "Modern Indochine townhouse"
     },
     "description": {
-      "vi": "Nhà phố hai tầng gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau, tủ giày có hốc vòm phay CNC: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A two-storey townhouse in dark walnut, teal encaustic tiles and brass, with a CNC-cut arched niche at the shoe cabinet: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Nhà phố hai tầng gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau, vách ngăn ô vòm phay CNC dẫn từ gara vào bếp. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A two-storey townhouse in dark walnut, teal encaustic tiles and brass, with a CNC-milled arched screen leading from the garage to the kitchen. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
       "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
@@ -3692,18 +3888,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Nhà phố Indochine",
-          "en": "Modern Indochine"
-        },
-        "titleLine2": {
-          "vi": "hiện đại",
-          "en": "townhouse"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Nhà phố hai tầng",
-          "en": "Residential · Two-storey townhouse"
-        },
+        "tagline": [
+          {
+            "vi": "Chất *Đông Dương*,",
+            "en": "*Indochine* spirit,"
+          },
+          {
+            "vi": "gọn cho nhà phố",
+            "en": "townhouse scale"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
           "width": 3072,
@@ -3716,16 +3910,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Chất Đông Dương, gọn cho nhà phố",
-          "en": "Indochine character, made compact"
+          "vi": "Đông Dương, nhưng nhẹ hơn",
+          "en": "Indochine, but lighter"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà phố hai tầng dành cho gia đình trẻ ở TP.HCM, thích không khí Đông Dương nhưng gọn và hiện đại.\n\nHốc vòm phay CNC trên tủ giày đón khách ngay ở sảnh, rồi phòng khách mở thẳng ra bếp ăn. Gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau lặp lại ở mỗi phòng nên cả nhà liền một mạch.",
-          "en": "A two-storey townhouse for a young family in Ho Chi Minh City who like an Indochine mood but want it compact and modern.\n\nA CNC-cut arched niche above the shoe cabinet greets you in the lobby, then the living room opens straight onto the kitchen. Dark walnut, teal encaustic tiles and brass repeat in every room, so the house reads as one."
+          "vi": "Nhà phố hai tầng của một gia đình trẻ thích không khí Đông Dương nhưng không muốn nhà nặng nề. Vách ngăn ô vòm phay CNC dẫn mắt từ gara vào phòng khách rồi bếp ăn. Gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau lặp lại ở mỗi phòng nên cả nhà liền một mạch.",
+          "en": "A two-storey townhouse for a young family who love the Indochine mood but did not want a heavy house. A CNC-milled screen of arches leads the eye from the garage into the living room and on to the kitchen. Dark walnut, teal encaustic tiles and brass repeat in every room, so the whole house flows as one."
         }
       },
       {
@@ -3768,22 +3962,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Nhà phố hai tầng",
-              "en": "Two-storey townhouse"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Indochine hiện đại, óc chó tối, gạch bông",
-              "en": "Modern Indochine, dark walnut, encaustic tiles"
+              "vi": "khoảng 170 m² sàn",
+              "en": "about 170 m² floor area"
             }
           },
           {
@@ -3792,8 +3986,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Kệ TV, tủ bếp, buffet, đầu giường, tủ áo, tủ giày, tủ lavabo",
-              "en": "TV wall, kitchen, buffet, headboard, wardrobe, shoe cabinet, vanity"
+              "vi": "Vách ngăn, kệ TV, tủ bếp, buffet, đầu giường, tủ áo, tủ giày",
+              "en": "Screen wall, TV unit, kitchen, buffet, headboard, wardrobes, shoe cabinet"
             }
           },
           {
@@ -3803,37 +3997,32 @@
             },
             "text": {
               "vi": "MDF chống ẩm veneer óc chó sơn PU, gạch bông, đồng thau",
-              "en": "Moisture-resistant walnut-veneer MDF with PU finish, encaustic tiles, brass"
+              "en": "PU-finished walnut-veneer moisture-resistant MDF, encaustic tiles, brass"
             }
           }
         ]
       },
       {
-        "id": "text-1",
-        "type": "paragraph",
-        "text": {
-          "vi": "Tủ giày ở sảnh dùng cánh phẳng để lối vào gọn. Các món lớn như tủ bếp và buffet dùng cánh phào khung, tay nắm đồng thau, đưa nét Đông Dương vào những chỗ dễ thấy.",
-          "en": "The shoe cabinet in the lobby has flat doors to keep the entrance clean. Larger pieces like the kitchen and buffet use framed doors, brass pulls, bringing the Indochine accent to the places people see first."
-        }
-      },
-      {
         "id": "image-1",
-        "type": "image-single",
-        "position": "right-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-7.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Sảnh vào nhà: tủ giày cánh phẳng óc chó, hốc vòm phay CNC, gương tròn khung đồng và sàn gạch bông",
           "altEn": "Entrance lobby: a flat-door walnut shoe cabinet, a CNC-cut arched niche, a round brass mirror and an encaustic tile floor"
+        },
+        "text": {
+          "vi": "Tủ giày ở sảnh dùng cánh phẳng để lối vào gọn. Nét Đông Dương dành cho những món lớn, dễ thấy như tủ bếp và buffet, với cánh phào khung và tay nắm đồng thau.",
+          "en": "The hall shoe cabinet has flat doors to keep the entry calm. The Indochine details are saved for the large, visible pieces such as the kitchen and buffet, with framed moulded doors and brass handles."
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Tầng 2 có phòng ngủ master, phòng thay đồ, phòng tắm và phòng làm việc. Vẫn gỗ óc chó và xanh cổ vịt, nhưng thêm vải bọc và ánh sáng dịu hơn tầng dưới.",
-          "en": "Upstairs are the master bedroom, dressing room, bathroom and study. The same walnut and teal continue, with upholstery and softer light than downstairs."
+          "vi": "Tầng hai có phòng ngủ master, phòng thay đồ, phòng tắm và phòng làm việc. Vẫn gỗ óc chó và xanh cổ vịt, nhưng thêm vải bọc và ánh sáng dịu hơn tầng dưới.",
+          "en": "Upstairs are the master bedroom, dressing room, bathroom and study. The same walnut and teal continue, with more upholstery and softer light than downstairs."
         }
       },
       {
@@ -3852,8 +4041,8 @@
         "id": "text-3",
         "type": "paragraph",
         "text": {
-          "vi": "Đầu giường bọc nệm lanh xanh cổ vịt trong khung óc chó phay CNC. Tủ áo walk-in dùng cánh phẳng, tay nắm thanh đồng và đèn hắt trong từng hộc.",
-          "en": "The headboard is teal linen upholstery in a CNC-cut walnut frame. The walk-in wardrobe has flat doors, brass bar pulls and a light in every compartment."
+          "vi": "Đầu giường bọc nệm lanh xanh cổ vịt trong khung óc chó phay CNC. Tủ áo walk-in dùng cánh phẳng, tay nắm âm và đèn hắt trong từng hộc.",
+          "en": "The headboard is teal linen upholstery inside a CNC-milled walnut frame. The walk-in wardrobe has flat doors, recessed handles and lighting in every compartment."
         }
       },
       {
@@ -3881,14 +4070,14 @@
         "id": "text-4",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng tắm ốp gạch bông xanh cổ vịt, tủ lavabo làm từ MDF chống ẩm phủ veneer óc chó để chịu được hơi nước.",
-          "en": "The bathroom is clad in teal encaustic tiles, the vanity is moisture-resistant MDF with walnut veneer to cope with steam."
+          "vi": "Phòng tắm ốp gạch bông xanh cổ vịt, tủ lavabo làm từ MDF chống ẩm phủ veneer óc chó để chịu hơi nước.",
+          "en": "The bathroom is clad in teal encaustic tiles, with a vanity in walnut-veneered moisture-resistant MDF to handle the steam."
         }
       },
       {
         "id": "image-4",
         "type": "image-single",
-        "position": "wide",
+        "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-11.webp",
           "width": 3072,
@@ -3901,8 +4090,8 @@
         "id": "text-5",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng làm việc nằm cạnh sân thượng, có bàn gỗ óc chó và kệ sách hộc mở cùng bộ với các tủ khác trong nhà.",
-          "en": "The study sits next to the roof terrace, with a walnut desk and open bookshelves that match the rest of the cabinetry."
+          "vi": "Phòng làm việc nằm cạnh sân thượng, bàn óc chó và kệ sách hộc mở cùng bộ với các tủ khác trong nhà.",
+          "en": "The study sits next to the roof terrace, with a walnut desk and open bookshelves that match the rest of the joinery."
         }
       },
       {
@@ -3915,6 +4104,22 @@
           "height": 2048,
           "altVi": "Phòng làm việc: bàn óc chó, ghế bọc vải đất nung, giấy dán tường hoa văn, tủ thấp trưng gốm và kệ sách hộc mở",
           "altEn": "Study: a walnut desk, a terracotta upholstered chair, patterned wallpaper, a low cabinet with ceramics and an open bookcase"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phào khung trên cánh tủ bếp và buffet được phay CNC từ một tấm MDF, không ghép nẹp, nên sau khi sơn PU không lộ đường nối. Ô vòm trên vách ngăn và khung đầu giường cắt từ cùng một file, vì vậy đường cong tầng dưới và tầng trên giống hệt nhau. Cả nhà lắp đặt trong khoảng mười ngày.",
+          "en": "The frame mouldings on the kitchen and buffet doors were CNC-milled from a single MDF panel rather than applied strips, so no joints show after the PU finish. The arches of the screen and the headboard frame come from the same file, so the curves downstairs and upstairs match exactly. The whole house was installed in about ten days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một ngôi nhà mới, nhưng có cảm giác đã được sống lâu năm.",
+          "en": "A new house that already feels lived in for years."
         }
       },
       {
@@ -4000,18 +4205,16 @@
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Nhà phố Japandi",
-          "en": "Japandi townhouse"
-        },
-        "titleLine2": {
-          "vi": "sân vườn trước",
-          "en": "with front garden"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Nhà phố hai tầng",
-          "en": "Residential · Two-storey townhouse"
-        },
+        "tagline": [
+          {
+            "vi": "Tường giữ vuông,",
+            "en": "Square walls,"
+          },
+          {
+            "vi": "đồ gỗ *bo mềm*",
+            "en": "*softly rounded* wood"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1.webp",
           "width": 3072,
@@ -4024,16 +4227,16 @@
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Đồ gỗ bo mềm, tường giữ vuông",
-          "en": "Soft furniture, square walls"
+          "vi": "Mềm mắt, và an toàn cho con nhỏ",
+          "en": "Soft on the eye, safe for little ones"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà phố hai tầng dành cho vợ chồng trẻ có con nhỏ, chừa sân vườn phía trước để đậu xe và trồng cây.\n\nPhong cách Japandi với gỗ tần bì sáng và tường trát vôi màu đất. Tường giữ góc vuông, chỉ đồ gỗ được bo mép nên nhà gọn mắt mà vẫn mềm và đỡ va chạm cho trẻ nhỏ.",
-          "en": "A two-storey townhouse for a young couple with a small child, with a front garden for parking and plants.\n\nJapandi in light ash and earthy limewash. The walls keep their square corners and only the furniture is rounded, so the house stays calm yet soft and safer for a small child."
+          "vi": "Nhà phố hai tầng của một cặp vợ chồng trẻ có con nhỏ đang tập đi. Họ chừa sân vườn phía trước để đậu xe và trồng cây, muốn trong nhà sáng, mềm và an toàn. Tường trát vôi màu đất giữ góc vuông cho gọn mắt, còn mép đồ gỗ đều bo tròn, trên nền gỗ tần bì sáng theo tinh thần Japandi.",
+          "en": "A two-storey townhouse for a young couple with a toddler just learning to walk. They kept a front garden for parking and planting, and wanted the inside bright, soft and safe. Earthy limewash walls keep their square corners for a calm look, while every timber edge is rounded, all in light ash in a Japandi spirit."
         }
       },
       {
@@ -4069,22 +4272,22 @@
         "items": [
           {
             "label": {
-              "vi": "Loại công trình",
-              "en": "Project type"
+              "vi": "Khu vực",
+              "en": "Location"
             },
             "text": {
-              "vi": "Nhà phố hai tầng",
-              "en": "Two-storey townhouse"
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
             }
           },
           {
             "label": {
-              "vi": "Phong cách",
-              "en": "Style"
+              "vi": "Diện tích",
+              "en": "Area"
             },
             "text": {
-              "vi": "Japandi, gỗ tần bì sáng, đồ gỗ bo mép",
-              "en": "Japandi, light ash, rounded furniture"
+              "vi": "khoảng 160 m² sàn",
+              "en": "about 160 m² floor area"
             }
           },
           {
@@ -4113,8 +4316,8 @@
         "id": "text-1",
         "type": "paragraph",
         "text": {
-          "vi": "Bếp chữ I dùng tủ phẳng không tay nắm chạy cao tới trần, hút mùi âm dưới tủ treo, len chân thấp lùi vào khuất dưới tủ. Bàn ăn tần bì góc vuông trên bốn chân vuông, ghế tựa lưng cong có đệm.",
-          "en": "The single-run kitchen has handleless flat cabinets up to the ceiling, a hood built in under the wall units and a low toe kick set back out of sight. The ash dining table has square corners on four square legs, with cushioned curved-back chairs."
+          "vi": "Trong bếp, tủ chữ I cánh phẳng không tay nắm chạy cao tới trần, hút mùi âm dưới tủ treo, len chân lùi vào khuất. Mép cánh tủ, kệ TV và lưng ghế ăn bo cùng một bán kính, còn bàn ăn tần bì giữ góc vuông cho gọn với tường.",
+          "en": "In the kitchen, handleless flat-door units run up to the ceiling, the hood is built in under the wall cabinets and the toe kick is set back out of sight. Door edges, the TV unit and the chair backs share one radius, while the ash dining table keeps square corners to sit neatly against the walls."
         }
       },
       {
@@ -4130,31 +4333,26 @@
         }
       },
       {
-        "id": "text-2",
-        "type": "paragraph",
-        "text": {
-          "vi": "Ở sân trước, tủ giày cánh phẳng bo góc đứng trên chân thép đen, kệ treo trồng cây và ghế băng nệm lanh nối mặt tiền với phần trong nhà.",
-          "en": "In the front yard, a flat-door shoe cabinet with rounded corners stands on black steel legs, and a wall shelf of plants and a linen-cushioned bench link the facade to the interior."
-        }
-      },
-      {
         "id": "image-2",
-        "type": "image-single",
-        "position": "left-2-3",
+        "type": "image-text",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-8.webp",
           "width": 2048,
           "height": 3072,
           "altVi": "Tủ giày tần bì hai cánh phẳng bo góc trên chân thép đen, đèn tường, chậu cây và dép gỗ",
           "altEn": "Ash shoe cabinet with two flat doors and rounded corners on black steel legs, a wall lamp, a potted plant and wooden sandals"
+        },
+        "text": {
+          "vi": "Ngoài sân, tủ giày tần bì hai cánh phẳng bo góc đứng trên chân thép đen, cạnh kệ treo trồng cây và ghế băng nệm lanh, nối mặt tiền với phần trong nhà.",
+          "en": "Out front, an ash shoe cabinet with two flat, round-cornered doors stands on black steel legs beside a wall shelf of plants and a linen-cushioned bench, linking the facade to the interior."
         }
       },
       {
         "id": "text-3",
         "type": "paragraph",
         "text": {
-          "vi": "Tầng 2 có sảnh thang với kệ hộc trưng bày bo góc, dẫn vào phòng ngủ master. Đầu giường bọc nệm lanh trong khung tần bì bo hai góc trên, tab đầu giường cùng chất tần bì.",
-          "en": "Upstairs, the stair landing has rounded display niches and leads to the master bedroom. The headboard is linen upholstery in an ash frame with rounded top corners, with matching ash bedside tables."
+          "vi": "Tầng hai mở đầu bằng sảnh thang có kệ hộc trưng bày bo góc, dẫn vào phòng ngủ master. Đầu giường bọc nệm lanh trong khung tần bì bo hai góc trên, tab đầu giường cùng chất tần bì.",
+          "en": "Upstairs opens onto a stair landing with rounded display niches, leading to the master bedroom. The headboard is linen upholstery in an ash frame with rounded top corners, with matching ash bedside tables."
         }
       },
       {
@@ -4182,8 +4380,8 @@
         "id": "text-4",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng ngủ con dùng tủ áo âm tường cánh phẳng, giữ sàn trống cho trẻ chơi. Góc học có bàn máy tính bo cong và tủ sách che rèm lanh, không cánh, bốn hộc kéo phía dưới.",
-          "en": "The child's bedroom has a flat-door built-in wardrobe that keeps the floor free for play. The study corner has a curved computer desk and a linen-curtained bookcase with no doors and four drawers below."
+          "vi": "Phòng ngủ con dùng tủ áo âm tường cánh phẳng, giữ sàn trống cho bé chơi. Góc học có bàn máy tính bo cong và tủ sách che rèm lanh với bốn hộc kéo, cùng chất tần bì với cả nhà, đủ dùng tới khi bé lớn.",
+          "en": "The child's room has a flush built-in wardrobe, leaving the floor free for play. The study corner has a curved computer desk and a linen-curtained bookcase with four drawers, in the same ash as the rest of the house and sized to last as the child grows."
         }
       },
       {
@@ -4202,20 +4400,36 @@
         "id": "text-5",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng làm việc có bàn tần bì bo cong bên cửa sổ và kệ sách hộc mở. Góc đọc sách có ghế bành bọc vải, bàn phụ tròn, tranh, kệ treo và đèn tường tay xoay.",
-          "en": "The study has a curved ash desk by the window and an open bookcase. The reading corner has an upholstered armchair, a round side table, a print, a wall shelf and a swing-arm wall lamp."
+          "vi": "Phòng làm việc có bàn tần bì bo cong bên cửa sổ và kệ sách hộc mở. Góc đọc có ghế bành bọc vải, bàn phụ tròn và đèn tường tay xoay, đủ dịu cho một buổi chiều đọc sách.",
+          "en": "The study has a curved ash desk by the window and an open bookcase. The reading corner has an upholstered armchair, a round side table and a swing-arm wall lamp, soft enough for an afternoon of reading."
         }
       },
       {
         "id": "image-5",
         "type": "image-single",
-        "position": "wide",
+        "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12.webp",
           "width": 3072,
           "height": 2048,
           "altVi": "Phòng làm việc: bàn tần bì bo cong bên cửa sổ, góc đọc sách có ghế bành, bàn phụ tròn, tranh, kệ treo, đèn tường và kệ sách hộc mở",
           "altEn": "Study: a curved ash desk by the window, a reading corner with an armchair, a round side table, a print, a wall shelf, a wall lamp and an open bookcase"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Bán kính bo được cài sẵn trên máy CNC nên mọi món, từ cánh tủ bếp tới kệ hộc sảnh thang, có cùng một đường cong. Mép bo dán chỉ cạnh bằng máy dán cạnh cong, không phải sửa tay. Cả nhà lắp trong khoảng chín ngày.",
+          "en": "The edge radius was set once on the CNC, so every piece, from the kitchen doors to the landing niches, shares the same curve. Rounded edges were banded on a contour edge-bander with no hand finishing. The whole house was installed in about nine days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một ngôi nhà mà trẻ con có thể chạy khắp nơi.",
+          "en": "A home where a child can run everywhere."
         }
       },
       {

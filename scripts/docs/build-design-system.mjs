@@ -46,8 +46,8 @@ const COMPONENTS = [
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
     also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
   // Project and News blocks (layout-library R1): rendered from the fixed blocks-preview.json, independent of site content.
-  // The block hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
-  { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.blk-hero { height: 720px; }',
+  // The project hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
+  { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.project-hero { height: 720px; min-height: 0; }',
     markup: `<main id="noi-dung">\n${renderBlocks(blocksPreview.page, blocksPreviewContext)}\n</main>` },
   // News list page (news R2) is built on the About page frame like the build; the preview takes the <main> part.
   { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,

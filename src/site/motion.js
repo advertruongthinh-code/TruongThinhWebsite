@@ -1405,24 +1405,36 @@
     const scrollCue = state.container.querySelector("[data-scroll-cue]");
     const scrollTarget = state.hero?.nextElementSibling;
     state.scrollCue = scrollCue;
-    scrollCue?.addEventListener(
-      "click",
-      () => {
-        if (!(scrollTarget instanceof HTMLElement)) return;
-        if (state.smoothScroll) {
-          state.smoothScroll.scrollTo(scrollTarget, {
-            duration: reduceMotion ? 0 : 900,
-            disableLerp: reduceMotion,
-          });
-        } else {
-          scrollTarget.scrollIntoView({
-            behavior: reduceMotion ? "auto" : "smooth",
-            block: "start",
-          });
-        }
-      },
-      { signal: state.abort.signal },
-    );
+    const scrollToElement = (target) => {
+      if (!(target instanceof HTMLElement)) return;
+      if (state.smoothScroll) {
+        state.smoothScroll.scrollTo(target, {
+          duration: reduceMotion ? 0 : 900,
+          disableLerp: reduceMotion,
+        });
+      } else {
+        target.scrollIntoView({
+          behavior: reduceMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }
+    };
+    scrollCue?.addEventListener("click", () => scrollToElement(scrollTarget), {
+      signal: state.abort.signal,
+    });
+    // In-page links (project hero CTA to the Zalo block, projects R3) scroll the same way; without JS the anchor jumps natively.
+    state.container.querySelectorAll("a[data-scroll-to]").forEach((link) => {
+      link.addEventListener(
+        "click",
+        (event) => {
+          const target = document.getElementById(link.hash.slice(1));
+          if (!target) return;
+          event.preventDefault();
+          scrollToElement(target);
+        },
+        { signal: state.abort.signal },
+      );
+    });
     let clientLogoInView = false;
     const syncClientLogoMotion = () => {
       clientLogoTrack?.classList.toggle(
@@ -1494,6 +1506,7 @@
         "projects",
         "residential",
         "commercial",
+        "project",
       ]).has(state.container.dataset.barbaNamespace);
       let scrollCueTimeline;
       const buildScrollCueTimeline = () => {
@@ -1868,14 +1881,14 @@
     directionStartY = state.smoothScrollY;
     lastDirection = "";
 
-    const heroMedia = container.querySelector(".hero-slides, .about-hero__media");
+    const heroMedia = container.querySelector(".hero-slides, .hero-photo");
     // Barba builds the container with DOMParser so the hero slide reorder script (page-home R3) does not run; run a classic copy,
     // synchronously, before mount reads the slides.
     const heroShuffle = softNavigation && heroMedia?.nextElementSibling;
     if (heroShuffle?.tagName === "SCRIPT") {
       heroShuffle.replaceWith(Object.assign(document.createElement("script"), { textContent: heroShuffle.textContent }));
     }
-    const projectTrack = container.querySelector(".project-track");
+    const projectTrack = container.querySelector(".project-track, .blk-projects__track");
     if (heroMedia) {
       heroMedia.setAttribute("data-scroll", "");
       heroMedia.setAttribute("data-scroll-speed", "-2");

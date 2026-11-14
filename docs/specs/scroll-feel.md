@@ -7,7 +7,7 @@ tests:
   - tests/site/middle-autoscroll.e2e.mjs
   - tests/site/scroll-trace.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
-updated: 2026-10-31
+updated: 2026-11-14
 ---
 
 # Cảm giác cuộn chung theo trang chủ
@@ -73,7 +73,7 @@ And không lúc nào lộ mép ảnh
 
 | Section | Nền | Parallax |
 | --- | --- | --- |
-| Hero trang chủ, Residential, Commercial, About (`.hero-slides`, `.about-hero__media`, runtime đặt `data-scroll-speed`) | Ảnh | `-2` |
+| Hero trang chủ, Residential, Commercial, About, trang công trình (`.hero-slides`, `.hero-photo`, runtime đặt `data-scroll-speed`) | Ảnh | `-2` |
 | "Giữ nghề, Không ngừng làm mới" trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không |
 | CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh, ngoài hero | Không |
 | Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh ngoài hero, không có chữ đè | Không |
@@ -81,6 +81,7 @@ And không lúc nào lộ mép ảnh
 | CTA cuối Advertising | Skeleton, Kính | Parallax riêng, ngoại lệ owner duyệt |
 | CTA footer "Có mặt bằng?" | Đơn màu | Không |
 | Rail dự án trang chủ (trượt ngang) | Không phải chữ trên nền | `4` ngang |
+| Dải công trình Residential, Commercial, trang công trình (`.blk-projects__track`, như Espacio `layout-slider-proyectos`, đo 2026-11-14) | Không phải chữ trên nền | `4` ngang |
 | Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, ngoài hero | Không |
 
 Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ từ 40px và phần tử ảnh, video, canvas hoặc

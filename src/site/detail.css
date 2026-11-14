@@ -28,12 +28,14 @@
 }
 
 
-.residential-hero .hero-content {
+.residential-hero .hero-content,
+.project-hero .hero-content {
   width: min(80%, 62.5rem);
   text-align: left;
 }
 
-.residential-hero .hero-kicker {
+.residential-hero .hero-kicker,
+.project-hero .hero-kicker {
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
@@ -76,6 +78,41 @@
 
 .detail-title__strong {
   font-weight: 700;
+}
+
+/* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline is bold italic like the
+   other hero accents; the CTA is 16px bold capitals, centred 32px under the title, underlined on hero hover (always on phone). On phone the
+   project name stays above the tagline (exception to the hidden kicker, owner 2026-11-14). */
+.project-hero .hero-kicker {
+  text-transform: uppercase;
+}
+
+.project-hero .hero-title em {
+  font-style: italic;
+  font-weight: 700;
+}
+
+.project-hero .hero-content:has(> .hero-title > :only-child) > .hero-kicker {
+  padding-left: 0;
+  text-align: center;
+}
+
+.hero-cta {
+  position: relative;
+  display: table;
+  margin: 32px auto 0;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media (max-width: 750px) {
+  .project-hero .hero-cta::before {
+    transform: scaleX(1);
+  }
 }
 
 /* Commercial hero: regular text weight 500 light like other page hero titles, accent text (em) bold 700 italic (owner 2026-10-24). */
@@ -172,6 +209,21 @@
   transform: translate3d(0, 60px, 0);
 }
 
+/* Slides in from the right without fading (project strip, Espacio "animate-left"); revealed by the same observer as data-motion-up. */
+.motion-enabled [data-motion-left] {
+  transform: translate3d(60px, 0, 0);
+  transition: transform var(--dur-hover) var(--ease) var(--motion-delay, 0s);
+}
+
+.motion-enabled [data-motion-left].is-motion-inview {
+  transform: none;
+}
+
+/* The 60px offset must not widen the page (a phone viewport grows to fit it); clip like .heritage-montage. */
+#noi-dung:has(> [data-motion-left]) {
+  overflow-x: clip;
+}
+
 .motion-enabled [data-motion-media] {
   transition-timing-function: ease-out;
 }
@@ -200,11 +252,28 @@
   transform: none;
 }
 
+/* Project hero CTA: fades in after the title, timed by detail.js like the kicker (projects R3). */
+.motion-enabled [data-motion-hero-fade] {
+  opacity: 0;
+  transition: opacity var(--dur-hover) var(--ease) var(--motion-delay, 0s);
+}
+
+.motion-enabled [data-motion-hero-fade].is-motion-inview {
+  opacity: 1;
+}
+
+/* Hidden from the first paint, before motion.js adds .motion-enabled: the light project page can paint first, and the kicker would then
+   reverse from a half-hidden state and stay visible until its delay (projects R3). html.motion-fallback shows them if motion fails. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   body[data-detail-hero-profile="words-06"]
-    [data-motion-hero-kicker]:not(.is-motion-inview) {
+    [data-motion-hero-kicker]:not(.is-motion-inview),
+  .project-hero [data-motion-hero-kicker]:not(.is-motion-inview) {
     opacity: 0;
     transform: translate3d(-60px, 0, 0);
+  }
+
+  .project-hero [data-motion-hero-fade]:not(.is-motion-inview) {
+    opacity: 0;
   }
 }
 
@@ -884,15 +953,17 @@
     top: 47%;
   }
 
-  .residential-hero .hero-content {
+  .residential-hero .hero-content,
+  .project-hero .hero-content {
     top: 51%;
     width: calc(100% - 2.5rem);
   }
 
-  .residential-hero .hero-kicker {
+  .residential-hero .hero-kicker,
+  .project-hero .hero-kicker {
     padding-left: 0;
     margin-bottom: 1.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     text-align: center;
   }
 
@@ -1026,19 +1097,26 @@
   min-height: max(46rem, 100svh);
 }
 
-.about-hero__media,
-.about-hero__media img {
+.hero-photo,
+.hero-photo img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.about-hero__media img {
+.hero-photo {
+  margin: 0;
+}
+
+.hero-photo img {
   transform: scale(1.2);
   object-fit: cover;
-  object-position: center 46%;
   will-change: transform;
+}
+
+.about-hero .hero-photo img {
+  object-position: center 46%;
 }
 
 .about-hero .hero-content {
@@ -1290,7 +1368,7 @@
     min-height: max(44rem, 100svh);
   }
 
-  .about-hero__media img {
+  .about-hero .hero-photo img {
     object-position: 58% center;
   }
 
@@ -1381,7 +1459,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .about-hero__media img {
+  .hero-photo img {
     transform: none;
     will-change: auto;
   }
@@ -1389,8 +1467,10 @@
 
 html.motion-fallback [data-motion-fade],
 html.motion-fallback [data-motion-up],
+html.motion-fallback [data-motion-left],
 html.motion-fallback [data-motion-media],
 html.motion-fallback [data-motion-hero-kicker],
+html.motion-fallback [data-motion-hero-fade],
 html.motion-fallback .motion-word,
 html.motion-fallback .project-filter {
   opacity: 1 !important;
@@ -3544,7 +3624,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
    until the frame has .is-media-settled the image stays at opacity 0 and the dark overlay is hidden; a failed image keeps the overlay hidden. */
 @media (scripting: enabled) {
   html:not(.motion-fallback)
-    .hero:not(:has(:is(.hero-slide.is-active, .about-hero__media).is-media-settled:not(.is-media-error)))
+    .hero:not(:has(:is(.hero-slide.is-active, .hero-photo).is-media-settled:not(.is-media-error)))
     .hero-shade,
   html:not(.motion-fallback)
     .service-portal:is(:not(.is-media-settled), .is-media-error)
@@ -3558,10 +3638,10 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 
   html:not(.motion-fallback)
-    :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
+    :is(.hero-slide, .hero-photo, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
     > img,
   html:not(.motion-fallback)
-    :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
+    :is(.hero-slide, .hero-photo, .service-portal, .detail-cta, .legacy-closer):not(.is-media-settled)
     > picture
     > img {
     opacity: 0;
@@ -3604,6 +3684,12 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
   margin-top: -0.2em;
   text-align: right;
+}
+
+/* One line sits in the middle; three lines go left, middle, right like Espacio project heroes (projects R3). */
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask):only-child,
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask):nth-child(2):not(:last-child) {
+  text-align: center;
 }
 
 .hero > .hero-content {
@@ -3659,7 +3745,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
   /* Phone: only the title sits at the hero center and no kicker shows (owner audit 2026-10-18). The kicker is hidden .sr-only style so the h1 naming the
      Advertising cluster or product stays for screen readers and SEO. */
-  .hero > .hero-content > .hero-kicker {
+  .hero:not(.project-hero) > .hero-content > .hero-kicker {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -3671,6 +3757,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 
   .residential-hero > .hero-content,
+  .project-hero > .hero-content,
   .commercial-hero > .hero-content {
     top: 50%;
   }
@@ -3746,61 +3833,6 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 .blk {
   width: min(calc(100% - 2 * var(--gutter)), 1370px);
   margin-inline: auto;
-}
-
-/* Dark background like the static page hero: the .hero image-wait color and the shared .hero-shade overlay (style.css). */
-.blk-hero {
-  position: relative;
-  height: var(--site-layout-viewport-height);
-  min-height: 32rem;
-  overflow: hidden;
-  background: var(--media-loading-surface);
-  color: var(--white);
-}
-
-.blk-hero__media {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-}
-
-.blk-hero__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.blk-hero__copy {
-  position: absolute;
-  z-index: 2;
-  inset: auto var(--gutter) clamp(2.5rem, 7vw, 6rem);
-  text-shadow: var(--text-shadow-d);
-}
-
-.blk-hero__title {
-  margin: 0;
-  font-size: clamp(3rem, 8vw, 8.5rem);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: var(--tracking-display);
-  word-spacing: var(--word-spacing-display);
-}
-
-.blk-hero__title span {
-  display: block;
-}
-
-.blk-hero__line2 {
-  font-style: italic;
-  font-weight: 300;
-}
-
-.blk-hero__subtitle {
-  margin: 1.25rem 0 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* The head of a News article and the list page: a dark strip bleeding to the edge like the static page hero (background --media-loading-surface,
@@ -3896,7 +3928,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .blk-article-head--list .blk-news-filter__chip::before,
 .blk-article-head__news::before,
-.home-news__group::before {
+.home-news__group::before,
+.hero-cta::before {
   content: "";
   position: absolute;
   left: 0;
@@ -3914,7 +3947,9 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-article-head--list .blk-news-filter__chip[aria-current="true"]::before,
 .blk-article-head__news:hover::before,
 .home-news__item:hover .home-news__group::before,
-.home-news__item:focus-visible .home-news__group::before {
+.home-news__item:focus-visible .home-news__group::before,
+.project-hero:hover .hero-cta::before,
+.hero-cta:focus-visible::before {
   transform: scaleX(1);
   transform-origin: left center;
 }
@@ -4089,6 +4124,35 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-top: 0.75rem;
   color: var(--muted);
   font-size: 0.875rem;
+}
+
+/* Image beside paragraph (Espacio "-layout-parrafo -layout-right", measured 1440 and 390): image one third (445px of 1370px), 35px gap, the
+   text in the usual 600px paragraph column pushed right and 1em down; phone stacks image then text. */
+.blk-image-text {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  column-gap: 35px;
+  align-items: start;
+}
+
+.blk-image-text__figure {
+  margin: 0;
+}
+
+.blk-image-text img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.blk-image-text__copy p:first-child {
+  margin-top: 1em;
+}
+
+@media (max-width: 680px) {
+  .blk-image-text {
+    grid-template-columns: 1fr;
+  }
 }
 
 .blk-pair {
@@ -4508,8 +4572,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 }
 
 /* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com, measured 2026-11-11 at 1440 and 390: 3 columns 70px
-   apart; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
-   the text is taller. Group 16px semibold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
+   apart; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 3:2 and stretches when
+   the text is taller. Group 16px bold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
    semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
   display: grid;
@@ -4534,7 +4598,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media::before {
   content: "";
   display: block;
-  padding-top: 120%;
+  padding-top: 66.7%;
 }
 
 .home-news__media img {
@@ -4562,7 +4626,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-top: 15px;
   color: #2f2f2f;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -4601,9 +4665,18 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
+/* Phone: the home block sits 30px under the hero and 30px above the next block like Espacio (measured 2026-11-14, site gap is 64px). */
 @media (max-width: 680px) {
   .home-news {
     --gutter: 15px;
+  }
+
+  .hero:has(+ .home-news) {
+    margin-bottom: 30px;
+  }
+
+  .home-news + .section-gap {
+    margin-top: 30px;
   }
 }
 
