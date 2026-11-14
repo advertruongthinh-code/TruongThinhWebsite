@@ -9837,7 +9837,8 @@ async function runHomeMotionRegressionCheck() {
     /const introOffset = heroIntroPending && index === 0 \? 1 : 0;/.test(
       motionSource,
     ) &&
-      /\{ scale: 1\.06 \}[\s\S]*scale: 1, duration: 6\.6, ease: "sine\.inOut"[\s\S]*duration: 1\.6[\s\S]*introOffset \+ 5,[\s\S]*\.call\(\(\) => startSlide\(nextIndex\), null, introOffset \+ 5\)/.test(
+      // Desktop zooms 1.06 to 1 through heroMotion; phone zoom 1.1 or 8% pan (page-home R3, 56ade288) goes through the same moveTo.
+      /\[\{ scale: 1\.06 \}, \{ scale: 1 \}\][\s\S]*\.\.\.moveTo, duration: 6\.6, ease: "sine\.inOut"[\s\S]*duration: 1\.6[\s\S]*introOffset \+ 5,[\s\S]*\.call\(\(\) => startSlide\(nextIndex\), null, introOffset \+ 5\)/.test(
       motionSource,
       ),
     "The home hero zoom/cross-fade contract changed",
