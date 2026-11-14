@@ -1220,6 +1220,11 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
+/* p.hero-title takes the h1 size so a slogan moved off h1 keeps its word spacing. */
+.hero p:where(.hero-title) {
+  font-size: 2em;
+}
+
 .legacy-copy h2 {
   font-size: var(--cta-title-size);
   line-height: 0.98;
@@ -3743,6 +3748,41 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-wrap: balance;
+}
+
+/* Detail breadcrumb: each crumb wraps as one unit, so a line break falls between levels, never inside a short label. */
+.detail-breadcrumb ol {
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-breadcrumb li {
+  display: inline-block;
+  max-width: 100%;
+  text-wrap: balance;
+}
+
+.detail-breadcrumb li:not(:last-child)::after {
+  content: "\203A" / "";
+  margin-inline: 0.5em;
+  opacity: 0.55;
+}
+
+.detail-breadcrumb a {
+  display: inline-block;
+  padding-block: 0.3rem;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 150ms ease;
+}
+
+.detail-breadcrumb a:hover,
+.detail-breadcrumb a:focus-visible {
+  text-decoration-color: currentColor;
 }
 
 .detail-intro__copy {

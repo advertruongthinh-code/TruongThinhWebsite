@@ -12,7 +12,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     id: "signage", slugVi: "bang-hieu-quang-cao", slugEn: "signage", legacySlug: "signage-raised-letters",
     labelVi: "Bảng hiệu, chữ nổi & hộp đèn", labelEn: "Signage, raised letters & light boxes",
     railVi: "Bảng hiệu", railEn: "Signage",
-    titleVi: "Làm bảng hiệu quảng cáo, biển công ty, chữ nổi, hộp đèn — Trường Thịnh",
+    titleVi: "Bảng hiệu quảng cáo, chữ nổi, hộp đèn — Trường Thịnh",
     titleEn: "Shop signs, raised letters and light boxes — Trường Thịnh",
     descriptionVi: "Thiết kế, sản xuất và lắp đặt bảng hiệu alu, mặt dựng, chữ nổi inox, mica, hộp đèn và bảng vẫy cho cửa hàng, văn phòng tại Vĩnh Long và miền Tây.",
     descriptionEn: "Design, fabrication and installation of aluminium signs, facades, stainless-steel and acrylic raised letters, light boxes and projecting signs for shops and offices in Vĩnh Long and the Mekong Delta.",
@@ -56,7 +56,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     id: "office-signs", slugVi: "bien-van-phong", slugEn: "office-signs", legacySlug: "office-signs-wayfinding",
     labelVi: "Biển văn phòng, bảng tên & kỷ niệm chương", labelEn: "Office signs, nameplates & awards",
     railVi: "Biển văn phòng", railEn: "Office signs",
-    titleVi: "Biển số nhà, bảng tên công ty, biển chỉ dẫn, kỷ niệm chương — Trường Thịnh",
+    titleVi: "Biển công ty, biển chỉ dẫn, kỷ niệm chương — Trường Thịnh",
     titleEn: "Office signs, wayfinding signs and award plaques — Trường Thịnh",
     descriptionVi: "Biển số nhà, bảng tên công ty, biển phòng ban, biển chỉ dẫn, sơ đồ tòa nhà, bảng chức danh để bàn và kỷ niệm chương in UV, khắc trên kim loại, gỗ, thủy tinh.",
     descriptionEn: "House numbers, company nameplates, room signs, wayfinding signs, building directories, desk nameplates and award plaques, UV-printed or engraved on metal, timber and glass.",
@@ -65,15 +65,21 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   },
   {
     id: "mobile-retail", slugVi: "xe-ban-hang-luu-dong", slugEn: "mobile-retail", legacySlug: "mobile-retail",
-    labelVi: "Xe & quầy bán hàng lưu động", labelEn: "Mobile carts & counters",
+    labelVi: "Xe bán hàng lưu động", labelEn: "Mobile retail carts",
     railVi: "Xe bán hàng", railEn: "Mobile carts",
-    titleVi: "Xe bán hàng lưu động, xe cafe, quầy bán hàng di động — Trường Thịnh",
-    titleEn: "Mobile retail carts and counters — Trường Thịnh",
+    titleVi: "Xe bán hàng lưu động, xe cafe, xe đồ ăn — Trường Thịnh",
+    titleEn: "Mobile retail, coffee and food carts — Trường Thịnh",
     descriptionVi: "Đóng xe bán cà phê, trà sữa, đồ ăn, xe đẩy và quầy bán hàng di động, quầy gấp gọn theo nhận diện thương hiệu, giao tại Vĩnh Long và miền Tây.",
     descriptionEn: "Coffee, milk tea and food carts, push carts, mobile and folding counters built to your brand, delivered in Vĩnh Long and the Mekong Delta.",
     introVi: "Xe bán hàng và quầy di động cho cà phê, trà sữa, đồ ăn, sampling và hội chợ, làm theo mẫu chuỗi nhượng quyền hoặc theo nhận diện riêng.",
     introEn: "Carts and mobile counters for coffee, milk tea, food, sampling and fairs, built to a franchise standard or to your own brand.",
   },
+]);
+
+// Products removed by a merge: their old page 301s to the cluster page (taxonomy R4).
+// Mobile counters merged into carts (owner 2026-11-14, Keyword Planner: "xe bán hàng lưu động" outranks "quầy bán hàng di động").
+export const ADVERTISING_RETIRED_PRODUCTS = Object.freeze([
+  Object.freeze({ cluster: "mobile-retail", slugVi: "quay-ban-hang-di-dong", slugEn: "mobile-counters" }),
 ]);
 
 // A product's introduction doubles as the meta description (noi-dung-trang in the plan).
@@ -88,14 +94,14 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
   {
     id: "signage/raised-letters", cluster: "signage", slugVi: "chu-noi", slugEn: "raised-letters",
     labelVi: "Chữ nổi", labelEn: "Raised letters",
-    titleVi: "Chữ nổi inox, mica, alu — Trường Thịnh", titleEn: "Stainless-steel, acrylic and aluminium raised letters — Trường Thịnh",
+    titleVi: "Chữ nổi inox, mica, alu — Trường Thịnh", titleEn: "Stainless, acrylic and aluminium raised letters — Trường Thịnh",
     introVi: "Chữ nổi inox sáng chân, mica, alu và formex, logo chữ nổi cho mặt tiền cửa hàng và tòa nhà.",
     introEn: "Halo-lit stainless-steel, acrylic, aluminium and Formex raised letters and dimensional logos for shop fronts and buildings.",
   },
   {
     id: "signage/light-boxes", cluster: "signage", slugVi: "hop-den", slugEn: "light-boxes",
     labelVi: "Hộp đèn", labelEn: "Light boxes",
-    titleVi: "Hộp đèn quảng cáo, tranh điện, hộp đèn mica hút nổi — Trường Thịnh", titleEn: "Advertising light boxes and slim LED light boxes — Trường Thịnh",
+    titleVi: "Hộp đèn quảng cáo, tranh điện, hộp đèn mica — Trường Thịnh", titleEn: "Advertising light boxes and slim LED light boxes — Trường Thịnh",
     introVi: "Hộp đèn bạt hiflex, bạt 3M, hộp đèn LED siêu mỏng và tranh điện nắp hít, nắp bật cho cửa hàng và quầy.",
     introEn: "Hiflex and 3M fabric light boxes, slim LED light boxes and magnetic or snap-frame illuminated frames for shops and counters.",
   },
@@ -200,7 +206,7 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
   {
     id: "led-displays/led-sign-boards", cluster: "led-displays", slugVi: "bang-hieu-led", slugEn: "led-sign-boards",
     labelVi: "Bảng hiệu LED", labelEn: "LED sign boards",
-    titleVi: "Bảng hiệu LED, biển LED vẫy, LED ruồi — Trường Thịnh", titleEn: "LED sign boards, LED projecting signs and LED neon signs — Trường Thịnh",
+    titleVi: "Bảng hiệu LED, biển LED vẫy, LED ruồi — Trường Thịnh", titleEn: "LED sign boards and LED neon signs — Trường Thịnh",
     introVi: "Bảng hiệu viền LED dot, LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo, bảng neon cho cửa hàng nhỏ. Phục vụ Vĩnh Long (gồm Bến Tre, Trà Vinh cũ), Cần Thơ, Đồng Tháp và các tỉnh miền Tây.",
     introEn: "Sign boards with LED dot or LED strip borders and pixel LED, LED neon flex or printed faces: LED projecting signs, standing signs, hanging signs and neon signs for small shops. We serve Vĩnh Long (including former Bến Tre and Trà Vinh), Cần Thơ, Đồng Tháp and the wider Mekong Delta.",
   },
@@ -214,7 +220,7 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
   {
     id: "office-signs/wayfinding-building-directories", cluster: "office-signs", slugVi: "bien-chi-dan-so-do-toa-nha", slugEn: "wayfinding-building-directories",
     labelVi: "Biển chỉ dẫn & sơ đồ tòa nhà", labelEn: "Wayfinding & building directories",
-    titleVi: "Biển chỉ dẫn, sơ đồ tòa nhà, khu công nghiệp — Trường Thịnh", titleEn: "Wayfinding signs and building and industrial park directories — Trường Thịnh",
+    titleVi: "Biển chỉ dẫn, sơ đồ tòa nhà, khu công nghiệp — Trường Thịnh", titleEn: "Wayfinding signs and building directories — Trường Thịnh",
     introVi: "Biển chỉ dẫn tầng, biển WC, biển tên đường, sơ đồ tòa nhà, khu công nghiệp, nhà máy và khu du lịch.",
     introEn: "Floor signs, washroom signs, street-name signs and directories for buildings, industrial parks, factories and tourist sites.",
   },
@@ -245,12 +251,5 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
     titleVi: "Xe bán hàng lưu động, xe cà phê, xe đồ ăn — Trường Thịnh", titleEn: "Mobile retail, coffee and food carts — Trường Thịnh",
     introVi: "Xe bán cà phê, trà sữa, đồ ăn và xe đẩy trưng bày, đóng theo mẫu hoặc theo yêu cầu.",
     introEn: "Coffee, milk tea and food carts and display push carts, built from a model or to order.",
-  },
-  {
-    id: "mobile-retail/mobile-counters", cluster: "mobile-retail", slugVi: "quay-ban-hang-di-dong", slugEn: "mobile-counters",
-    labelVi: "Quầy bán hàng di động", labelEn: "Mobile counters",
-    titleVi: "Quầy bán hàng di động, quầy gấp gọn — Trường Thịnh", titleEn: "Mobile and folding retail counters — Trường Thịnh",
-    introVi: "Quầy pha chế, quầy pop-up, quầy gấp gọn và quầy ngoài trời cho hội chợ, sự kiện.",
-    introEn: "Beverage, pop-up, folding and outdoor counters for fairs and events.",
   },
 ]);

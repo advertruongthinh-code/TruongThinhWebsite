@@ -4,7 +4,7 @@
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, pageNameHeading } from "./lib.mjs";
 
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
@@ -24,10 +24,10 @@ export const FILTER_SEO = {
     title: { vi: "Công trình thiết kế thi công nội thất trọn gói", en: "Turnkey interior design and fit-out projects" },
     description: { vi: `Công trình nội thất trọn gói của Trường Thịnh: thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt. ${AREA_VI}`, en: `Turnkey interiors by Trường Thịnh: design, panel furniture made in our CNC workshop, installation. ${AREA_EN}` } },
   "nha-o": { intro: { vi: `Nội thất nhà phố, căn hộ chung cư và homestay: tủ bếp, tủ áo, kệ TV, giường, vách ốp đóng theo kích thước từng phòng. ${WORKSHOP_VI}`, en: `Townhouse, apartment and homestay interiors: kitchens, wardrobes, TV walls, beds and wall panels built to each room's size. ${WORKSHOP_EN}` },
-    title: { vi: "Công trình nội thất nhà ở: nhà phố, căn hộ, homestay", en: "Residential interior projects: townhouses, apartments, homestays" },
+    title: { vi: "Công trình nội thất nhà phố, căn hộ, homestay", en: "Townhouse, apartment and homestay projects" },
     description: { vi: `Nội thất nhà phố, căn hộ, homestay do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC và lắp đặt trọn gói. ${AREA_VI}`, en: `Townhouse, apartment and homestay interiors designed, CNC-built and installed by Trường Thịnh. ${AREA_EN}` } },
   "kinh-doanh": { intro: { vi: `Nội thất quán cafe, nhà hàng, showroom, cửa hàng và văn phòng: quầy, kệ trưng bày, vách ốp và bàn làm việc theo thương hiệu. ${WORKSHOP_VI}`, en: `Cafe, restaurant, showroom, store and office interiors: counters, display shelving, wall panels and desks that fit the brand. ${WORKSHOP_EN}` },
-    title: { vi: "Thiết kế quán cafe, showroom, văn phòng: công trình thực tế", en: "Cafe, showroom and office design: completed projects" },
+    title: { vi: "Thiết kế quán cafe, showroom, văn phòng", en: "Cafe, showroom and office design projects" },
     description: { vi: `Quán cafe, showroom, văn phòng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC và lắp đặt trọn gói. ${AREA_VI}`, en: `Cafes, showrooms and offices designed, CNC-built and installed by Trường Thịnh. ${AREA_EN}` } },
   "nha-pho": { intro: { vi: `Nội thất nhà phố nhiều tầng theo phong cách Indochine, Japandi, hiện đại: tủ bếp, cầu thang, phòng thờ, tủ áo kịch trần. ${WORKSHOP_VI}`, en: `Multi-storey townhouse interiors in Indochine, Japandi and modern styles: kitchens, staircases, altar rooms, full-height wardrobes. ${WORKSHOP_EN}` },
     title: { vi: "Thiết kế, thi công nội thất nhà phố", en: "Townhouse interior design projects" },
@@ -134,14 +134,15 @@ const indexSection = (template, projects, intro) => {
 };
 
 const main = ({ filter, projects }, artifact, template) => {
-  // Every page: the kicker is fixed as p, the slogan is h1; filters differ only in title, description and URL. The filter row follows the DOM contract of
+  // Every page: the kicker is fixed as p, the slogan is p.hero-title, h1 is the filter keyword name (owner 2026-11-15); filters differ only in title, description and URL. The filter row follows the DOM contract of
   // catalog-runtime (like the Advertising page, without the viewer and product chips).
   const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
+          ${pageNameHeading(filter.name)}
           <div class="hero-content" data-motion-hero-wrapper-zoom>
             <p class="hero-kicker" data-motion-hero-kicker data-en="${ROOT_KICKER.en}">${ROOT_KICKER.vi}</p>
-            <h1 id="page-title" data-motion-words data-motion-hero-title>${line(SLOGAN.first, "detail-title__quiet")}<span class="detail-hero-line-mask"><span class="detail-title__quiet projects-title__accent" data-motion-word-source><span data-en="${SLOGAN.lead.en}">${SLOGAN.lead.vi}</span> <em data-en="${SLOGAN.accent.en}">${SLOGAN.accent.vi}</em></span></span></h1>
+            <p id="page-title" class="hero-title" data-motion-words data-motion-hero-title>${line(SLOGAN.first, "detail-title__quiet")}<span class="detail-hero-line-mask"><span class="detail-title__quiet projects-title__accent" data-motion-word-source><span data-en="${SLOGAN.lead.en}">${SLOGAN.lead.vi}</span> <em data-en="${SLOGAN.accent.en}">${SLOGAN.accent.vi}</em></span></span></p>
           </div>
           <div class="hero-browse">
             <div class="project-filters" role="group" aria-label="Lọc công trình" data-en-aria-label="Filter projects">

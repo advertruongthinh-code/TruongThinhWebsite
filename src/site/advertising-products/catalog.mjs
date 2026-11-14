@@ -5,7 +5,7 @@ import {
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
-import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_PRODUCT_THRESHOLD, ADVERTISING_RETIRED_PRODUCTS } from "./taxonomy.mjs";
 
 export const ADVERTISING_DATASET_VERSION = "2026-09-24.1";
 
@@ -137,10 +137,12 @@ export const ADVERTISING_ROOT_PAGE = deepFreeze({
 // vi, en are the path after /<locale>/advertising-products/; filter is a cluster id or a product id.
 const clusterById = new Map(ADVERTISING_CLUSTERS.map((cluster) => [cluster.id, cluster]));
 const productCount = (id) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length;
+// A cluster's only product would repeat the cluster page, so it gets no chip and no page; the cluster keeps its rail entry.
+const soleProduct = ({ cluster }) => ADVERTISING_PRODUCTS.filter((product) => product.cluster === cluster).length === 1;
 export const ADVERTISING_PAGES = deepFreeze([
   ...ADVERTISING_CLUSTERS.map((cluster) => ({ ...cluster, filter: cluster.id, cluster: cluster.id, vi: cluster.slugVi, en: cluster.slugEn })),
   ...ADVERTISING_PRODUCTS
-    .filter(({ id }) => productCount(id) >= ADVERTISING_PRODUCT_THRESHOLD)
+    .filter((product) => productCount(product.id) >= ADVERTISING_PRODUCT_THRESHOLD && !soleProduct(product))
     .map((product) => {
       const cluster = clusterById.get(product.cluster);
       return {
@@ -149,6 +151,12 @@ export const ADVERTISING_PAGES = deepFreeze([
       };
     }),
 ]);
+// Old product pages that now 301 to their cluster page: retired products and sole products, as [locale, from, to] paths after /advertising-products/.
+export const ADVERTISING_PRODUCT_REDIRECTS = deepFreeze([...ADVERTISING_RETIRED_PRODUCTS, ...ADVERTISING_PRODUCTS.filter(soleProduct)]
+  .flatMap((product) => {
+    const cluster = clusterById.get(product.cluster);
+    return [["vi", `${cluster.slugVi}/${product.slugVi}`, cluster.slugVi], ["en", `${cluster.slugEn}/${product.slugEn}`, cluster.slugEn]];
+  }));
 // Product chips of the chip row (R3, R5): every product at the threshold has a page, vi, en are the URL part after /<locale>/advertising-products/.
 const pageByFilter = new Map(ADVERTISING_PAGES.map((page) => [page.filter, page]));
 export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS

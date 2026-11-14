@@ -421,7 +421,8 @@ for (const bandFile of bandFiles) {
     filterFileCount += 1;
   }
 }
-assert.equal(filterFileCount, 160, "160 one-filter cache files");
+// 150 after mobile-retail lost both product filters (counters merged into carts, a sole product has no page).
+assert.equal(filterFileCount, 150, "150 one-filter cache files");
 
 // Head preload of the one-filter cache file (plan T4b): every grid page starts it from an inline script before the deferred
 // vendor scripts; card pages and Projects pages start none.

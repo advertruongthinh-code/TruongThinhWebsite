@@ -32,7 +32,7 @@ PC chờ ảnh bằng khung Flow trong 4 màu của ảnh, điện thoại bằn
 
 Khung `.masonry-grid__cta-frame[data-masonry-cta-frame]` nằm trong `[data-masonry-cta-skeleton]`
 (`aria-hidden`), không focus, không hover, không viền. Khung bắt đầu một khoảng giữa dưới card thật của cột (dưới card
-hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Khung theo cùng luật span với card
+hai cột thì ở cả hai cột, [masonry R5](advertising-masonry.md#r5-hình-học-masonry)); cột chưa có card thật thì khung bắt đầu ở đỉnh lưới, ngang cạnh trên card thật. Khung theo cùng luật span với card
 thật (`canSpanTwoColumns`, `spanSlots` ở `masonry/layout.mjs`): band có w/h từ tỷ lệ vàng trở lên trải hai cột kề nhau
 khi lưới từ 3 cột và lỗ không quá nửa cột, không có chỗ thì chọn band khác; không để lỗ
 ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)): hai đáy chênh nhau thì khung một cột cuối của cột ngắn hơn

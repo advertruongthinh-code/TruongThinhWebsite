@@ -413,6 +413,19 @@ export function serializeBrowseLocation(input, browse = {}, categories = [], pag
 const compareRelatedSource = (left, right) =>
   left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 
+// Detail breadcrumb (owner 2026-11-14): the card's cluster (short rail name), then its main product; no root level. Every level is a filter
+// with a page, so each crumb is a real link; a level with no page is left out. pages is artifact.pages, categories carry the rail names.
+export function detailBreadcrumb(card, { categories = [], pages = [] } = {}) {
+  if (!card) return [];
+  const pageByFilter = new Map(pages.map((page) => [page.filter, page]));
+  const cluster = categories.find((entry) => entry.slug === card.category);
+  const product = pageByFilter.get(card.productIds?.[0]);
+  return [
+    cluster && pageByFilter.has(cluster.slug) && { filter: cluster.slug, labelVi: cluster.titleVi, labelEn: cluster.titleEn },
+    product && product.filter !== card.category && { filter: product.filter, labelVi: product.labelVi, labelEn: product.labelEn },
+  ].filter(Boolean);
+}
+
 export function selectRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
@@ -863,10 +876,11 @@ export function createBrowseHistoryController({
       storeCurrent();
       return write("replace", { ...current, tag }, "tag");
     },
-    returnToGrid({ reason = "navbar" } = {}) {
+    returnToGrid({ reason = "navbar", category: requested = null } = {}) {
       const viewedId = current.photo || current.grid.focusId;
       // From a photo, the navbar keeps the group selected on the source masonry; going straight to a photo or a group grid goes to All.
-      const category = (current.photo && current.grid.category) || "all";
+      // The detail breadcrumb names the filter to return to.
+      const category = requested || (current.photo && current.grid.category) || "all";
       // A related photo outside that group is not in the masonry, so it returns to the photo it was opened from.
       const focusId = matchesFilter(cardById.get(viewedId), category) ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
@@ -3653,7 +3667,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     focusVirtualPlacement(placement, { focus, scrollIntoView });
     return gridHost.rendered.get(id) || null;
   };
-  const categoryById = new Map(categories.map((category) => [category.slug, category]));
+  // Detail breadcrumb: real links to each filter page; a click closes detail and filters the grid in place (handler below).
+  const renderBreadcrumb = (record, english) => {
+    if (!photoCategory) return;
+    photoCategory.setAttribute("aria-label", english ? "Category" : "Phân loại");
+    const list = document.createElement("ol");
+    for (const crumb of detailBreadcrumb(record, { categories, pages })) {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      const url = serializeBrowseLocation(window.location.href, { category: crumb.filter }, categories, pages);
+      link.href = `${url.pathname}${url.search}`;
+      link.dataset.detailCrumb = crumb.filter;
+      link.textContent = english ? crumb.labelEn : crumb.labelVi;
+      item.append(link);
+      list.append(item);
+    }
+    photoCategory.replaceChildren(list);
+  };
   // The thumbnail strip and description fade at the edge while content remains, the description scrollbar follows scroll position (owner 2026-10-24).
   const syncScrollFade = (node, before, after) => {
     node.toggleAttribute("data-fade-start", before > 1);
@@ -5015,8 +5045,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     if (photoDescriptionScroll) photoDescriptionScroll.scrollTop = 0;
-    const category = categoryById.get(record.category);
-    if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
+    renderBreadcrumb(record, english);
     renderSuggestionLinks(browse, english);
     if (reveal) revealPhotoView(browse, generation);
     return true;
@@ -5189,14 +5218,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       node.advertisingSetMediaId?.(gridMediaId, viewedTime);
     }
     let restoredScrollY;
-    if (reason === "navbar" && node && browse.grid.anchorOffset === null) {
+    const placesCard = reason === "navbar" || reason === "breadcrumb";
+    if (placesCard && node && browse.grid.anchorOffset === null) {
       const rect = node.getBoundingClientRect();
       restoredScrollY = getLogicalScroll() + rect.top - Math.max(0, (innerHeight - rect.height) / 2);
     } else if (
       node
       && browse.grid.anchorOffset !== null
       && browse.grid.viewportWidth !== null
-      && (reason === "navbar" || browse.grid.viewportWidth !== document.documentElement.clientWidth)
+      && (placesCard || browse.grid.viewportWidth !== document.documentElement.clientWidth)
     ) {
       const rect = node.getBoundingClientRect();
       restoredScrollY = getLogicalScroll() + rect.top - browse.grid.anchorOffset;
@@ -5593,6 +5623,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         .find((node) => node.dataset.masonrySuggestionTag === nextTag);
       (nextLink || photoInfo)?.focus({ preventScroll: true });
     });
+  }, { signal: controller.signal });
+  // Breadcrumb click: same as a rail click from the grid, but it first closes detail with a push, so Back reopens the photo.
+  photoCategory?.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-detail-crumb]");
+    if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const category = link.dataset.detailCrumb;
+    whenLayoutReady(category, () => browseHistory.returnToGrid({ reason: "breadcrumb", category }), link);
   }, { signal: controller.signal });
   // Escape and the back button take the same path (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
   const leavePhoto = () => {
