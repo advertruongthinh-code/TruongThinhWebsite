@@ -165,10 +165,12 @@ Then đều là none
 Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 384 tới 1920:
 
 - Đoạn văn không kết thúc bằng một chữ đứng lẻ ở dòng cuối. `body` đặt `text-wrap: pretty` một lần trong
-  `style.css`; mọi khối chữ thừa hưởng, tiêu đề đặt `balance` riêng giữ `balance`.
-- Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask` viết tay) không để `,` `.` `;` ở cuối dòng, kể cả
-  dòng cuối. Một regex `LINE_END_PUNCT` trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline,
-  `pnpm qa:content` báo lỗi dòng mask trong HTML.
+  `style.css`; mọi khối chữ thừa hưởng, tiêu đề đặt `balance` riêng giữ `balance`. Chromium không luôn kéo một chữ
+  dài xuống, nên lúc build `tieOrphans` (`scripts/site/prepare-static-assets.mjs`) nối hai chữ cuối bằng dấu cách
+  không ngắt trong khối chữ song ngữ thuần (`p`, `h1`-`h6`, `li`, `figcaption`), cả VI, EN.
+- Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask`, heading chia phần có `data-en` riêng, câu có
+  `<br>`) không để `,` `.` `;` ở cuối dòng, kể cả dòng cuối; tiêu đề CTA cùng quy tắc. Một regex `LINE_END_PUNCT`
+  trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline, `pnpm qa:content` báo lỗi các dòng trong HTML.
 
 ```gherkin
 Given mọi trang VI và EN ở 384, 390, 768, 1024, 1280, 1440, 1920

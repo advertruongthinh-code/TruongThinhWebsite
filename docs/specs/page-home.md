@@ -48,12 +48,12 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 1 | `.hero#top` | Mười ảnh slideshow (tính từ HTML), `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | News | `.home-news` | 3 bài News mới nhất theo trang chủ Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)), build chèn vào `<!-- home-news -->` | Trang từng bài | ink |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
-| 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
+| 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
 | 5 | `#du-an` | Sáu `figure` công trình so le sinh từ dữ liệu, caption nêu đúng hạng mục trong ảnh (R8) | Không | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
-| sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
+| sau | `.site-invitation` | "Có mặt bằng? / Mời chúng tôi đến xem" | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
 
 ```gherkin
 Given output đã build

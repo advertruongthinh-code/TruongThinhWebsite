@@ -72,6 +72,12 @@ export async function checkSiteContent(siteRoot) {
       const en = [...chunk.matchAll(/data-en="([^"]*)"/g)].map((match) => match[1]).join(" ").trim();
       for (const line of [vi, en]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
     }
+    // A heading split into styled parts, or a statement split by <br>: each part is a line, same rule.
+    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+      const parts = [...inner.matchAll(/data-en="([^"]*)"[^>]*>([^<]*)</g)];
+      if (!(name.startsWith("h") ? parts.length > 1 : inner.includes("<br"))) continue;
+      for (const [, en, vi] of parts) for (const line of [en, vi.trim()]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
+    }
     for (const tag of text.match(/<img\b[^>]*>/g) ?? []) {
       const src = attribute(tag, "src") ?? attribute(tag, "data-src");
       if (!src?.startsWith("/assets/content/")) continue;
