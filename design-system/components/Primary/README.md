@@ -37,9 +37,11 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 
 - Một dòng, gap 8px, `role="group"`, nhãn `Media sản phẩm` /
   `Product media`; thừa thì cuộn ngang, mép còn nội dung mờ về trắng.
-- Dãy trải hết bề rộng cột chữ: số nút nguyên tối thiểu 60px vừa cột, mỗi
-  nút nới đều phần dư (`--detail-thumb-size` do runtime đặt, owner 2026-11-12).
-- Nút vuông góc vuông, không viền, nền `media-loading-surface`; ảnh
+- Nút giữ đúng tỷ lệ của media (`--detail-thumb-ratio`, mọi media một card
+  cùng tỷ lệ, owner 2026-11-14): cao tối thiểu 60px, rộng theo tỷ lệ.
+- Dãy trải hết bề rộng cột chữ: số nút nguyên vừa cột, mỗi nút nới đều phần
+  dư (`--detail-thumb-size` là bề rộng, runtime đặt, owner 2026-11-12).
+- Góc vuông, không viền, nền `media-loading-surface`; ảnh
   `object-fit: cover`. Video dùng poster và tam giác phát 20px trắng có bóng.
 - Đang chọn: `aria-current="true"`, lớp phủ viền 1px `rgb(51 51 46)` cộng viền
   trong 1px trắng (theo pin Pinterest). Focus: outline 2px `ink` offset 3px.

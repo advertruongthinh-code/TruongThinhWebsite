@@ -167,7 +167,9 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
         return image?.complete && image.naturalWidth > 0;
       });
       await page.waitForTimeout(300);
-      assert.deepEqual([...requested].sort(), ["1", "2", "3"], "every other media is queued once the viewed media shows");
+      // The queue runs at most 2 downloads at once on a phone, nearest first; a thumbnail scrolled out of the strip loads lazily now that
+      // thumbnails keep the media ratio (owner 2026-11-14), so the last media starts once an earlier one ends (checked after the slide).
+      assert(["1", "2"].every((id) => requested.has(id)), `the nearest media are queued once the viewed media shows: ${[...requested]}`);
       // Every frame, the opacity of the target lane's wait layer: it must fade out over the decoded media before the strip goes, never be cut
       // by the strip landing (phone showed the image at once, owner 2026-11-13).
       await page.evaluate(() => {
@@ -195,6 +197,8 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       else assert(state.wait.frost && state.wait.flow, `PC waits under Flow over frosted glass: ${JSON.stringify(state.wait)}`);
       await page.waitForFunction(() => !document.querySelector(".detail-view__strip"), null, { timeout: 15_000 });
       assert.match(await page.locator("[data-detail-view] [data-detail-image]").getAttribute("src"), /media-wait=1/);
+      for (const end = Date.now() + DELAY_MS * 2; requested.size < 3 && Date.now() < end;) await page.waitForTimeout(100);
+      assert.deepEqual([...requested].sort(), ["1", "2", "3"], "every other media is queued once a slot frees");
       const opacities = await page.evaluate(() => window.__waitOpacities);
       assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out before the strip goes: ${JSON.stringify(opacities.slice(-12))}`);
       assert.deepEqual(errors, []);

@@ -18,6 +18,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Không có nút đóng và nút zoom (owner 2026-11-14): đóng bằng click nền, Escape, Back; zoom bằng con lăn,
   phím `+`/`-`, chuột giữa về fit. Mở viewer thì focus vào chính hộp thoại.
 - PC: ảnh cách mép màn hình 16px; có dãy thumbnail thì dãy xếp dọc sát trái (cách mép 16px, giữa theo chiều dọc),
+  nút rộng 60px, cao theo đúng tỷ lệ media như dãy Primary (owner 2026-11-14), chỉ hiện nút nguyên;
   ảnh cách dãy ít nhất 16px, lề phải bằng lề trái nên ảnh vẫn giữa màn hình.
 - Mọi máy: nền tối `rgba(32, 33, 32, 0.85)` cộng blur `50px`; điện thoại cũng blur
   (owner 2026-10-26, trước đó không blur để giữ 60fps trên phone Android).
