@@ -84,47 +84,37 @@ try {
     // The last open's picture is gone, so no later open can paint it.
     assert.ok(await page.evaluate(() => !document.querySelector("[data-detail-expanded-image]").hasAttribute("src")),
       `${label}: closing the viewer drops its picture`);
-    // Owner 2026-11-11: while the primary photo loads the expand button is locked and a tap on the photo does nothing.
-    assert.ok(await page.locator("[data-detail-expand]").isDisabled(), `${label}: expand button locked while card B loads`);
-    // Desktop: the icon is a spinning loader; touch screens hide the button, so the icon stays still.
-    const spinning = () => document.querySelector("[data-detail-expand-icon]").getAnimations().length > 0;
-    assert.equal(await page.evaluate(spinning), !touch, `${label}: loading icon spins only where the button shows`);
-    await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
-    if (touch) {
-      const frame = await page.locator("[data-detail-image]").boundingBox();
-      await tap(page, frame.x + frame.width / 2, frame.y + frame.height / 2);
-    }
-    await page.waitForTimeout(400);
-    assert.ok(await page.evaluate(() => !document.querySelector("dialog[open]")), `${label}: viewer stays closed while card B loads`);
-
+    // Owner 2026-11-14: the expand button is never locked; the viewer opens at once and the photo waits under the lane wait layer.
+    assert.ok(!(await page.locator("[data-detail-expand]").isDisabled()), `${label}: expand button open while card B loads`);
     // Chrome keeps painting the last decoded picture of an <img> until its new src loads, while currentSrc and
     // naturalWidth already describe the new src. So the viewer image must never be visible before it is complete.
-    await page.waitForFunction(() => !document.querySelector("[data-detail-expand]").disabled, null, { timeout: 60_000 });
-    assert.ok(await page.evaluate(() => document.querySelector("[data-detail-image]").complete), `${label}: unlocks once loaded`);
-    // The spinner morphs back into the expand icon within a second and stops.
-    await page.waitForFunction(() => {
-      const group = document.querySelector("[data-detail-expand-icon]");
-      return !group.getAnimations().length && !group.style.transform && group.querySelector("path").getAttribute("d").startsWith("M15.00 3.00");
-    }, null, { timeout: 2000 });
     await page.evaluate(() => {
       const image = document.querySelector("[data-detail-expanded-image]");
       window.__staleFrames = 0;
+      window.__waitSeen = false;
       window.__done = false;
-      const end = performance.now() + 1000;
       const tick = () => {
         if (document.querySelector("dialog[open]")) {
           const style = getComputedStyle(image);
           const visible = image.checkVisibility() && style.visibility !== "hidden" && Number(style.opacity) > 0;
           if (visible && image.getAttribute("src") && !image.complete) window.__staleFrames += 1;
+          if (document.querySelector(".detail-dialog__wait")) window.__waitSeen = true;
+          else if (visible && image.complete) window.__done = true;
         }
-        if (performance.now() < end) requestAnimationFrame(tick);
-        else window.__done = true;
+        if (!window.__done) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-      document.querySelector("[data-detail-expand]").click();
     });
-    await page.waitForFunction(() => window.__done);
-    assert.ok(await page.evaluate(() => document.querySelector("dialog[open]")), `${label}: viewer opens once loaded`);
+    if (touch) {
+      const frame = await page.locator("[data-detail-image]").boundingBox();
+      await tap(page, frame.x + frame.width / 2, frame.y + frame.height / 2);
+    } else {
+      await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
+    }
+    await page.waitForTimeout(400);
+    assert.ok(await page.evaluate(() => document.querySelector("dialog[open]")), `${label}: viewer opens while card B loads`);
+    assert.ok(await page.evaluate(() => window.__waitSeen), `${label}: the unloaded photo waits under the lane wait layer`);
+    await page.waitForFunction(() => window.__done, null, { timeout: 60_000 });
     if (process.env.DEBUG) await page.screenshot({ path: `.tmp/stale-${label}.png` });
     const staleFrames = await page.evaluate(() => window.__staleFrames);
     assert.equal(staleFrames, 0, `${label}: viewer drew a stale picture for ${staleFrames} frames on card B ${nextId}`);

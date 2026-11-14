@@ -106,7 +106,7 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
       else {
         assert(state.wait.frost && state.wait.flow, `PC waits under Flow over frosted glass: ${JSON.stringify(state.wait)}`);
-        assert(state.wait.overhang >= 40 && state.wait.mask.includes("gradient"), `PC lane layer overhangs and feathers: ${JSON.stringify(state.wait)}`);
+        assert(Math.abs(state.wait.overhang) < 1 && !state.wait.mask.includes("gradient"), `PC lane layer is exactly the lane box, hard edge: ${JSON.stringify(state.wait)}`);
         const running = await card.evaluate((node) => new Promise((resolve) => setTimeout(() => {
           const frame = node.querySelector(".card-media__wait > .masonry-grid__cta-frame");
           resolve(frame ? { ready: frame.classList.contains("is-entry-ready"), backend: frame.querySelector("canvas")?.dataset.masonryFlowBackend } : null);
@@ -295,7 +295,7 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       assert(state.wait && state.wait.moving > 0, `the target carries its wait layer along: ${JSON.stringify(state)}`);
       assert.equal(state.wait.box.height, state.image.height, "the wait layer has the image's fit size");
       if (touch) assert.equal(state.wait.colors, "colors", "phone waits on the color layer");
-      else assert(state.wait.flow && state.wait.box.width >= state.image.width + 40, `PC waits under Flow with feathered sides: ${JSON.stringify(state)}`);
+      else assert(state.wait.flow && state.wait.box.width === state.image.width, `PC waits under Flow at the image box, hard edge: ${JSON.stringify(state)}`);
       await page.waitForFunction(() => !document.querySelector(".detail-dialog__wait"), null, { timeout: 15_000 });
       const shown = await page.evaluate(() => {
         const image = document.querySelector("[data-detail-expanded-image]");

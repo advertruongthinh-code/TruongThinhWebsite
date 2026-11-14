@@ -1,4 +1,3 @@
-import { createLoadingExpandIcon } from "../media-lib/loading-expand-icon.mjs";
 import { responsiveSource } from "../media-lib/responsive-image.mjs";
 import { env } from "./host.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
@@ -368,18 +367,6 @@ export function createDetailViewer({
   };
   // The image loading the original for the viewer (showImage); null when not waiting.
   let pendingOriginal = null;
-  // A photo opens only once the primary has it (owner 2026-11-11): the viewer starts from that picture, never from
-  // the one its <img> kept from the last open, which Chrome keeps painting until a new src loads.
-  const primaryReady = () => record?.media.kind === "video" || !heroImage
-    || (heroImage.complete && heroImage.naturalWidth > 0);
-  // Touch screens hide the button (R8), so its icon stays still there.
-  const expandIcon = expandButton.querySelector("[data-detail-expand-icon]");
-  const icon = expandIcon && createLoadingExpandIcon(expandIcon, { still: () => reducedMotion.matches || touchScreen.matches });
-  const syncExpand = () => {
-    const ready = primaryReady();
-    expandButton.disabled = !ready;
-    icon?.setLoading(!ready);
-  };
   const close = ({ restoreFocus = true, animate = restoreFocus } = {}) => {
     if (!dialog.open) return;
     pendingOriginal = null;
@@ -445,7 +432,7 @@ export function createDetailViewer({
     expandedImage.fetchPriority = "high";
   };
   const open = () => {
-    if (!record || dialog.open || !primaryReady()) return;
+    if (!record || dialog.open) return;
     sourceRect = record.media.kind === "video" ? video.getBoundingClientRect() : null;
     lockedScroll = scroll?.lockLogicalScroll?.() ?? scroll?.getLogicalScroll?.() ?? window.scrollY;
     if (sourceRect) attachVideo();
@@ -459,8 +446,12 @@ export function createDetailViewer({
     ownEntry = true;
     updateVisibleControls();
     measureFit();
+    // A photo the primary has not loaded yet opens at once under the viewer's lane wait (owner 2026-11-14, media-card R6).
+    const wait = media === expandedImage ? waitForImage() : null;
     const target = renderTransform();
-    runMotion(sourceTransform() || target, target, DUR.base, EASE.viewer, "opening");
+    const from = sourceTransform() || target;
+    runMotion(from, target, DUR.base, EASE.viewer, "opening");
+    if (wait && imageAnimation) wait.animate([{ transform: from }, { transform: target }], imageAnimation.effect.getTiming());
     closeButton.focus({ preventScroll: true });
   };
   // Every visible button and input in DOM order, so Tab reaches the thumbnail row and the video player.
@@ -632,8 +623,6 @@ export function createDetailViewer({
     // Double tap habit: the second tap lands in the just-opened viewer and is swallowed, no zoom.
     lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   }, { signal: controller.signal });
-  heroImage?.addEventListener("load", syncExpand, { signal: controller.signal });
-  heroImage?.addEventListener("error", syncExpand, { signal: controller.signal });
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
@@ -818,7 +807,6 @@ export function createDetailViewer({
     close({ restoreFocus: false, animate: false });
     cancelMotion();
     cancelAnimationFrame(resizeFrame);
-    icon?.cleanup();
     resizeObserver?.disconnect();
     controller.abort();
     if (parent && dialog.parentNode !== parent) parent.insertBefore(dialog, nextSibling?.isConnected ? nextSibling : null);
@@ -833,7 +821,6 @@ export function createDetailViewer({
     setRecord(nextRecord) {
       if (record?.id !== nextRecord?.id) close({ restoreFocus: false });
       record = nextRecord || null;
-      syncExpand();
       if (record) expandedImage.dataset.detailId = record.id;
       else delete expandedImage.dataset.detailId;
       if (record && dialog.open) {

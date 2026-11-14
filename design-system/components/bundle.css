@@ -5014,16 +5014,10 @@ body.is-masonry-browse .masonry-grid {
   mix-blend-mode: overlay;
 }
 
-/* PC lane Flow (media-card R5, owner 2026-11-13): the wait layer reaches 24px into the media beside it on both sides and fades out there, so
-   the seam of a sliding strip is soft; the card or the strip clips what lies outside. Above the media layers (z-index), or the next media,
-   later in the DOM, would cover the feather. Flow runs in its own frame over the glass. */
+/* PC lane Flow (media-card R5): Flow runs in its own frame over the glass, exactly the media box with a hard edge (owner 2026-11-14, no feather).
+   Above the media layers (z-index), or the next media, later in the DOM, would cover it while the strip slides. */
 .card-media__wait.card-media__wait--flow {
   z-index: 1;
-  --lane-feather: 24px;
-  right: calc(-1 * var(--lane-feather));
-  left: calc(-1 * var(--lane-feather));
-  width: auto;
-  mask-image: linear-gradient(90deg, transparent, #000 var(--lane-feather), #000 calc(100% - var(--lane-feather)), transparent);
 }
 
 .card-media__wait > .masonry-grid__cta-frame {
@@ -6050,11 +6044,6 @@ body.is-masonry-browse .site-footer {
   right: 16px;
 }
 
-/* Locked until the primary photo has loaded (advertising-detail R9): the icon spins as a loader, the button stays white. */
-.detail-view__expand:disabled {
-  cursor: progress;
-}
-
 /* Pinterest-style back button at the top left (detail R10), also shown on touch screens. */
 .detail-view__back {
   top: 16px;
@@ -6680,16 +6669,12 @@ body.is-masonry-browse .site-footer {
 }
 
 /* Viewer image still loading (media-card R6, owner 2026-11-13): the lane wait layer sits in the image's grid cell at its fit size; on PC its
-   Flow reaches the feather into the media beside it like the primary strip. */
+   Flow covers the same box. */
 .detail-dialog__viewport > .card-media__wait.detail-dialog__wait {
   position: relative;
   inset: auto;
   width: var(--viewer-fit-width);
   height: var(--viewer-fit-height);
-}
-
-.detail-dialog__viewport > .card-media__wait--flow.detail-dialog__wait {
-  width: calc(var(--viewer-fit-width) + 2 * var(--lane-feather));
 }
 
 .detail-dialog__controls {
