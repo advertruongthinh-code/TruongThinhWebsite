@@ -57,18 +57,18 @@ try {
   assert.ok(hero.settled >= hero.load, `hero settles only after load ${JSON.stringify(hero)}`);
   assert.equal(jxlRequests.get(hero.src), 1, `hero file requested once ${JSON.stringify([...jxlRequests])}`);
 
-  // Advertising: a card image starts its reveal from the Flow frame only once the image has finished loading.
+  // Advertising: a card image starts its reveal from the Flow frame only once the image has finished loading. The reveal starts when
+  // the image gets is-masonry-media-ready: PC clears frosted glass on the Flow canvas with no animation on the image (62c63928).
   await page.addInitScript(() => {
     window.__blurTrace = [];
-    const tick = () => {
-      for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card]:has([data-masonry-loading-skeleton]) img")) {
-        if (image.__traced || !image.getAnimations().length) continue;
-        image.__traced = true;
-        window.__blurTrace.push({ complete: image.complete, src: image.currentSrc });
+    new MutationObserver((records) => {
+      for (const { target } of records) {
+        if (target.tagName !== "IMG" || target.__traced || !target.classList.contains("is-masonry-media-ready")
+          || !target.closest("[data-project-grid] [data-masonry-card]:has([data-masonry-loading-skeleton])")) continue;
+        target.__traced = true;
+        window.__blurTrace.push({ complete: target.complete, src: target.currentSrc });
       }
-      if (performance.now() < 20_000) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    }).observe(document, { attributes: true, attributeFilter: ["class"], subtree: true });
   });
   await page.goto(`${origin}/vi/advertising-products/`);
   await page.waitForFunction(() => window.__blurTrace.length >= 3, null, { timeout: 30_000 });
