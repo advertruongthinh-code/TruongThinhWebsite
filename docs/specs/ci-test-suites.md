@@ -48,7 +48,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
 | `fast` | static-release, cms, cms-editor | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route, editor CMS (`tests/admin/`, [cms-editor R9](cms-editor.md#r9-chạy-local-và-ci)); chạy với mọi PR có code |
-| `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
+| `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại; mọi loại trang VI và EN ở đủ dải `SWEEP_WIDTHS` không có phần tử lòi ra mép màn (`layout-sweep.e2e.mjs`) |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark lật màu, 404, reduced motion, route mềm ngay sau khi tải |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
 | `brand` | site-shell, logo-route-crossfade | logo: màu, bbox, co giãn khi đổi cỡ màn hình |
@@ -232,12 +232,13 @@ Export đúng các tên sau:
 | --- | --- |
 | `BASE_URL` | `process.env.BASE_URL`, mặc định `http://127.0.0.1:8787` (cổng `pnpm dev`); CI luôn đặt `BASE_URL` theo cổng preview của job |
 | `VIEWPORTS` | Ba cỡ chuẩn, đóng băng: `desktop` 1440x900, `phone` 390x844 (cảm ứng), `a04s` 384x724 dpr 1.875 (máy đo Galaxy A04s) |
+| `SWEEP_WIDTHS`, `viewportAt(width, height = 900)` | Dải bề rộng bắt buộc cho việc giao diện web, đóng băng: 384, 768, 1024, 1280, 1440, 1920; viewport cho một bề rộng, dưới 600 là điện thoại cảm ứng |
 | `launchBrowser(options)` | Đặt `PLAYWRIGHT_BROWSERS_PATH` (mặc định `.tooling/browsers`) trước khi nạp `playwright`, rồi mở Chromium headless; `PLAYWRIGHT_EXECUTABLE_PATH` đổi binary |
 | `openPage(browser, viewport, contextOptions)` | Tách `width`, `height` khỏi option thiết bị của viewport, mở context và trang; trả `{ context, page }` |
 | `frames(page, count = 2)` | Chờ `count` lần `requestAnimationFrame` |
 | `settleTransitions(page)` | Chờ hai frame rồi chờ tới khi không còn CSS transition đang chạy |
 
-Test mới dùng harness thay cho tự mở trình duyệt, tự đọc `BASE_URL` và tự khai ba cỡ trên. Cỡ khác ba cỡ trên, hoặc cỡ
+Test mới dùng harness thay cho tự mở trình duyệt, tự đọc `BASE_URL`, tự khai ba cỡ trên, dải quét hay ngưỡng điện thoại. Cỡ khác ba cỡ trên, hoặc cỡ
 trùng kích thước nhưng khác cờ thiết bị, giữ literal tại chỗ. Test cũ chuyển sang harness khi một task đụng tới chính file đó,
 không chuyển hàng loạt. `site.e2e.cjs` là CommonJS và giữ `launchBrowser` riêng.
 
