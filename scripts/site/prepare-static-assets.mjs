@@ -18,7 +18,7 @@ import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsL
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const outputRoot = path.join(projectRoot, ".site-output");
@@ -243,11 +243,10 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   ].join("\n    "))
   .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
     (_match, before, middle) => `${before}${escapeHtml(page.descriptionVi)}${middle}${escapeHtml(page.descriptionEn)}"`)
-  // The slogan becomes p.hero-title keeping its look; the kicker becomes h1 but keeps the root page fixed text
-  // (owner 2026-11-08: the kicker does not change per cluster, cluster and product names live in the title and rail).
+  // The slogan becomes p.hero-title keeping its look and the kicker keeps the root page fixed text (owner 2026-11-08);
+  // h1 is the page's keyword name (owner 2026-11-15, media-seo R6).
   .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
-  .replace(/<p(\s+class="hero-kicker"[\s\S]*?)data-en="[^"]*"(\s*)>[\s\S]*?<\/p>/,
-    (_match, attributes, space) => `<h1${attributes}data-en="${escapeHtml(ADVERTISING_ROOT_PAGE.kickerEn)}"${space}>${escapeHtml(ADVERTISING_ROOT_PAGE.kickerVi)}</h1>`)
+  .replace(/(<div class="hero-content"[^>]*>)/, (match) => `${pageNameHeading(pageName(page))}\n          ${match}`)
   .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${pageHref("vi", page)}" data-language-option="vi"`)
   .replace('href="/en/advertising-products/" data-language-option="en"', `href="${pageHref("en", page)}" data-language-option="en"`)
   .replace(/(data-masonry-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")

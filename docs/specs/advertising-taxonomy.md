@@ -49,7 +49,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
 Nhãn, slug VI và title đổi theo Keyword Planner cả nước 2026-11-13 (owner "ok quảng cáo"; bảng từ khóa trong tài liệu SEO từ khóa của thread SEO): biển vẫy (1K-10K) hơn bảng vẫy, gian hàng hội chợ hơn gian hàng triển lãm, "LED decor" không có lượt tìm nên thành LED neon, in hộp giấy, túi giấy (10K-100K) thay thẻ, vé. Slug cũ chưa live trên domain chính nên không cần chuyển hướng.
 
-Tên card tiếng Việt (`titleVi` trong `media-manifest.mjs`, cũng là alt ảnh bìa) là từ khóa ngách riêng của từng card: sản phẩm + vật liệu, cấu tạo hoặc ngành khách, không trùng nhau (owner 2026-11-13 duyệt tên Haiku đặt từ ảnh). Tên tiếng Anh vẫn theo nhãn sản phẩm.
+Tên card tiếng Việt (`titleVi` trong `media-manifest.mjs`) là từ khóa ngách riêng của từng card: sản phẩm + vật liệu, cấu tạo hoặc ngành khách, không trùng nhau (owner 2026-11-13 duyệt tên Haiku đặt từ ảnh). Tên tiếng Anh (`titleEn`) cũng là cụm riêng từng card; alt và mô tả viết từ ảnh (owner duyệt 2026-11-15, [media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)).
 
 Tên cụm liệt kê vài sản phẩm chính để khách đọc là biết cụm có gì, mở đầu bằng cụm từ có lượt tìm
 cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có thể khác tên cụm. Quy tắc kèm theo:
@@ -126,7 +126,7 @@ Build sinh trang tĩnh cho mỗi locale:
 
 Trang chỉ sinh cho cụm và sản phẩm đủ ngưỡng R5. Trang `/vi/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
 cho cả hai locale. Mỗi trang là trang masonry Advertising với filter đặt sẵn, có title, meta description, h1, đoạn giới thiệu riêng
-trong HTML tĩnh (h1 là dòng kicker nhưng ghi chữ cố định của trang gốc, "Sản phẩm tiêu biểu" / "Our featured products"; tên cụm, tên sản phẩm chỉ còn ở title, meta và rail, owner 2026-11-08; khẩu hiệu giữ hình nhưng là `p.hero-title`, owner 2026-10-15), canonical tuyệt đối trỏ chính nó, hreflang VI/EN, JSON-LD `CollectionPage` (30 card đầu của bộ lọc) và `BreadcrumbList`, ảnh share là ảnh bìa card đầu (SEO audit 2026-11-15; trang gốc cũng vậy). Sáu URL tương thích `/advertising-products/<slug cũ>/`
+trong HTML tĩnh (h1 là tên trang có từ khóa, chính là title bỏ đuôi " — Trường Thịnh", ẩn khỏi mắt bằng `.sr-only` qua `pageNameHeading`, owner 2026-11-15; kicker vẫn là `p` ghi chữ cố định của trang gốc "Sản phẩm tiêu biểu" / "Our featured products", owner 2026-11-08; khẩu hiệu giữ hình nhưng là `p.hero-title`, owner 2026-10-15), canonical tuyệt đối trỏ chính nó, hreflang VI/EN, JSON-LD `CollectionPage` (30 card đầu của bộ lọc) và `BreadcrumbList`, ảnh share là ảnh bìa card đầu (SEO audit 2026-11-15; trang gốc cũng vậy). Sáu URL tương thích `/advertising-products/<slug cũ>/`
 ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)) chuyển hướng tới trang cụm mới tương
 ứng. `?category=<slug cũ hoặc mới>` trên URL gốc: runtime thay URL bằng path cụm mới (`replaceState`), giữ `photo`, `tag` và query
 khác. Site tĩnh không trả được 301 theo query; 301 phía server làm khi có Worker CMS (Gate còn mở). Slug đổi về sau

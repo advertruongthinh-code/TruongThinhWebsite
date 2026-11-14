@@ -56,7 +56,7 @@ Then có h1 tên card, đoạn mô tả và năm phần tử media đúng thứ 
 Mỗi media có `altVi`, `altEn` riêng, mô tả đúng thứ trong media đó (góc chụp, chi tiết, bối cảnh), không lặp lại
 giữa các media trong cùng card, không nhồi từ khóa. Validator (`media-contract.mjs`) từ chối card có hai media trùng
 alt cùng ngôn ngữ. File media mới đặt tên ngắn có nghĩa theo sản phẩm, ví dụ `chu-noi-inox-mat-tien-2.webp`; file đang
-có giữ tên vì tên file chỉ là gợi ý rất nhẹ với Google. VI và EN dùng chung một file, không dịch tên file.
+có giữ tên vì tên file chỉ là gợi ý rất nhẹ với Google. VI và EN dùng chung một file, không dịch tên file. Alt ảnh bìa không lặp tên card: tên card là từ khóa ngách, alt tả ảnh (`altVi`, `altEn` trong `PHOTO_METADATA_BY_RECORD_ID`, viết từ ảnh, owner duyệt 2026-11-15); tên tiếng Anh card cũng là cụm riêng từng card.
 
 ```gherkin
 Given một card có hai media cùng altVi
