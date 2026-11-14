@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-13T17:45:00Z",
+    "at": "2026-11-14T02:20:00Z",
     "via": "Claude Code",
-    "note": "#904 veil giữ phủ kín tối thiểu 0.7s (motion.md); #905 underline navbar trang chi tiết (Header); #906 pill card theo tone ảnh (MediaCard, bundle.css)"
+    "note": "#910 Flow chờ tải primary nằm đúng hộp ảnh, zoom blur vùng dư làm mờ Flow đang chạy (Skeleton, bundle.css)"
   }
 }
