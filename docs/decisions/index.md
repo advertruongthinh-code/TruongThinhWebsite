@@ -11,6 +11,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | --- | --- | --- |
 | 2026-10-10 | accepted | [Trên 60fps trên phone Android](phone-frame-budget.md) |
 | 2026-07-30 | accepted | [Xanh/cam là accent](accent-color-roles.md) |
+| 2026-11-14 | proposed | [CMS trên Cloudflare, xuất bản ra trang tĩnh](cms-cloudflare-static-publish.md) |
 | 2026-07-31 | accepted | [Defense in depth cho admin](admin-defense-in-depth.md) |
 | 2026-09-01 | accepted | [Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md) |
 | 2026-10-04 | accepted | [Skill Claude chỉ đến từ plugin pin ở user scope](claude-skills-from-pinned-plugins.md) |
