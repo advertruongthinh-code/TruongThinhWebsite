@@ -41,10 +41,10 @@
 
 ## Notion trong workflow
 
-Board Tasks trên Notion là backlog chung; Git `main` giữ contract, card chỉ trỏ tới đó. Việc owner giao chưa có card thì
-tạo card trước khi làm. Card là plan: mọi việc owner giao thành bước, không bỏ bước chưa tick khi owner chưa nói bỏ.
-Điều phối tạo card trước khi giao việc cho thread; thread làm tiếp việc cũ thì `search` card cũ và cập nhật, không để
-đứng yên. Mọi PR có dòng `Card: <link>` trong mô tả, qa-docs kiểm. Chi tiết: [Notion và Git](docs/operations/notion.md#rule).
+Board Tasks trên Notion là backlog; Git `main` giữ contract, card chỉ trỏ tới đó. Mọi việc có card trước khi làm: điều phối
+tạo và ghi link trong brief, việc owner giao thẳng thì thread tự tạo. Card nhỏ (dưới 50 LOC, một PR) chỉ tên, status, link PR;
+card lớn là plan, không bỏ bước chưa tick khi owner chưa nói bỏ. Mọi PR có dòng `Card: <link>` (không vào được Notion:
+`Card: chờ tạo`), qa-docs kiểm. Chi tiết: [Notion và Git](docs/operations/notion.md#rule).
 
 ## Routing theo path
 

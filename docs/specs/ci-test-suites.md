@@ -205,6 +205,10 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 CI không tự chạy lại lệnh hay job đỏ. Owner bỏ quy tắc chạy lại một lần ngày 2026-10-26 vì sau R4 nó chỉ còn tác dụng
 cho lượt đêm. Lượt đêm đỏ là đỏ; người xem lượt đêm có thể re-run tay một lần trước khi giao sửa.
 
+Workflow `card-report.yml` chạy cùng giờ lượt đêm, ngoài bộ test: `scripts/ci/card-report.mjs` liệt kê PR merge trong 24 giờ
+và dòng `Card:` của từng PR vào job summary, đỏ khi PR thiếu link card hoặc còn `Card: chờ tạo`
+([notion](../operations/notion.md#rule)). Không đọc Notion; điều phối đối chiếu card khi xem lượt đêm.
+
 ### R10. Đo thời gian từng lệnh
 
 Job suite ghi vào job summary bảng bộ, lệnh, số giây, kết quả, và upload artifact `suite-timing-<bộ>` (cả khi xanh,
