@@ -33,9 +33,9 @@ test("taxonomy R4: the EN product page has title, meta, canonical, hreflang, an 
   const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1];
   assert.match(noscript, /<p[^>]*>Business cards, flyers, brochures, catalogues/);
   for (const page of ADVERTISING_PAGES) assert.match(noscript, new RegExp(`href="/en/advertising-products/${page.en}/"`), page.filter);
-  // The kicker keeps the root page's fixed text on every cluster page and product page (taxonomy R5, owner 2026-11-08).
-  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [ADVERTISING_ROOT_PAGE.kickerEn], "the only h1 is the fixed kicker");
-  assert.match(html, new RegExp(`<h1\\s+class="hero-kicker"[^>]*data-vi="${ADVERTISING_ROOT_PAGE.kickerVi}"`));
+  // The only h1 is the page's keyword name (owner 2026-11-15); the kicker keeps the root page's fixed text (owner 2026-11-08).
+  assert.deepEqual([...html.matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), ["Business cards, flyers and catalogues"], "the only h1 is the page name");
+  assert.match(html, new RegExp(`<p\\s+class="hero-kicker"[^>]*data-vi="${ADVERTISING_ROOT_PAGE.kickerVi}"`));
   assert.match(html, /<p id="page-title" class="hero-title"/);
   assert.match(html, /data-masonry-filter="printing-decals" aria-current="true"/);
   assert.match(html, /data-masonry-filter="all" aria-current="false"/);

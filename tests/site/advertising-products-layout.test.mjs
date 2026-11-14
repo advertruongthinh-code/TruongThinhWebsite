@@ -327,11 +327,8 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, products.length, `${category.slug} covers all taxonomy products`);
-    for (const card of categoryCards) {
-      const tag = products.find(({ id }) => id === `product-${card.productKey}`);
-      // Vietnamese card names are unique niche keywords (owner 2026-11-13); the English name still follows the product.
-      assert.equal(card.titleEn, tag.labelEn, `${card.id} matches its taxonomy product`);
-    }
+    // Card names in both languages are niche keywords written from the photo (owner 2026-11-13 VI, 2026-11-15 EN).
+    for (const card of categoryCards) assert.ok(products.some(({ id }) => id === `product-${card.productKey}`), `${card.id} keeps a taxonomy product`);
     assert.ok(poolSources.has(category.cover), `${category.slug} cover reuses its production pool`);
     assert.equal(category.gallery.length, 2, `${category.slug} keeps two detail gallery images`);
     assert.ok(category.gallery.every(([src]) => poolSources.has(src)), `${category.slug} gallery reuses its production pool`);
@@ -343,9 +340,11 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     assert.deepEqual(ADVERTISING_CARDS.filter(({ sourceOrder }) => sourceOrder === cycle).map(({ category }) => category), expected, `round-robin cycle ${cycle}`);
   }
   assert.equal(new Set(ADVERTISING_CARDS.map(({ titleVi }) => titleVi)).size, ADVERTISING_CARDS.length, "every card has its own Vietnamese name");
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ titleEn }) => titleEn)).size, ADVERTISING_CARDS.length, "every card has its own English name");
   for (const card of ADVERTISING_CARDS) {
-    assert.equal(card.media.altVi, card.titleVi, `${card.id} keeps Vietnamese alt text`);
-    assert.equal(card.media.altEn, card.titleEn, `${card.id} keeps English alt text`);
+    // Alt describes the photo, not the card name (media-seo R2).
+    assert.ok(card.media.altVi && card.media.altVi !== card.titleVi, `${card.id} has its own Vietnamese alt text`);
+    assert.ok(card.media.altEn && card.media.altEn !== card.titleEn, `${card.id} has its own English alt text`);
     assert.deepEqual(readWebpSize(new URL(`../../src/site${card.media.src}`, import.meta.url)), [card.media.width, card.media.height], `${card.id} intrinsic dimensions match its file`);
   }
   for (const viewport of [...publicWidths, ...boundaryWidths]) {

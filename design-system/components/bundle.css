@@ -1220,6 +1220,11 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
+/* p.hero-title takes the h1 size so a slogan moved off h1 keeps its word spacing. */
+.hero p:where(.hero-title) {
+  font-size: 2em;
+}
+
 .legacy-copy h2 {
   font-size: var(--cta-title-size);
   line-height: 0.98;

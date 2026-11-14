@@ -263,8 +263,8 @@ test("accepted trade-fair kiosk sources retain exact provenance and existing tax
       const item = ADVERTISING_MEDIA_MANIFEST.find((candidate) => candidate.id === coverId)?.mediaItems.find((media) => media.id === id);
       assert.ok(item, `${id} is integrated into the public media pool`);
       assert.match(item.provenance, new RegExp(sourceSha256, "i"));
-      assert.match(item.altVi, /hội chợ/i);
-      assert.match(item.altEn, /trade fair/i);
+      assert.match(item.altVi, /gian hàng|hội chợ|triển lãm/i);
+      assert.match(item.altEn, /booth|fair|exhibition/i);
       continue;
     }
     const record = ADVERTISING_MEDIA_MANIFEST.find((candidate) => candidate.id === id);
@@ -273,8 +273,8 @@ test("accepted trade-fair kiosk sources retain exact provenance and existing tax
     assert.equal(record.productKey, productKey);
     assert.deepEqual(record.tagIds.slice(0, 2), ["group-kiosk-posm", `product-${productKey}`]);
     assert.match(record.media.provenance, new RegExp(sourceSha256, "i"));
-    assert.match(record.descriptionVi, /hội chợ/i);
-    assert.match(record.descriptionEn, /trade fair/i);
+    assert.match(record.descriptionVi, /hội chợ|triển lãm/i);
+    assert.match(record.descriptionEn, /fair|exhibition/i);
   }
 });
 

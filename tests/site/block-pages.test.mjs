@@ -191,4 +191,10 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   assert.doesNotMatch(html(null).match(/<main[\s\S]*<\/main>/)[0], /advertising-products\/standee|Dấu ấn tiếp theo/, "no Advertising tile or CTA copy left in the grid");
   assert.match(html(null), /aria-label="Ảnh công trình"[\s\S]*Không gian tiếp theo/, "project label and CTA copy replace the Advertising ones");
   assert.match(html("van-phong"), /class="projects-empty"[^>]* hidden/, "a filter with projects hides the empty line");
+  // The only h1 is the filter keyword name; the slogan keeps its look as p.hero-title (owner 2026-11-15).
+  const { FILTER_SEO } = await import("../../scripts/site/project-list.mjs");
+  for (const slug of [null, "van-phong"]) {
+    assert.deepEqual([...html(slug).matchAll(/<h1\b[^>]*>([^<]*)<\/h1>/g)].map((match) => match[1]), [FILTER_SEO[slug ?? "all"].title.vi], `${slug} h1`);
+    assert.match(html(slug), /<p id="page-title" class="hero-title"/);
+  }
 });

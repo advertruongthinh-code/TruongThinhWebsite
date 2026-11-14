@@ -54,3 +54,7 @@ export const alternateLinks = (vi, en) => [
   `<link rel="alternate" hreflang="en" href="${absolute(en)}" />`,
   `<link rel="alternate" hreflang="x-default" href="${absolute(vi)}" />`,
 ];
+// A page title without the brand suffix is the page's keyword name.
+export const pageName = ({ titleVi, titleEn }) => ({ vi: titleVi.replace(/ — Trường Thịnh$/, ""), en: titleEn.replace(/ — Trường Thịnh$/, "") });
+// The page's keyword name as its h1 (media-seo R6): screen readers and search engines read it; the visible kicker and slogan keep their look.
+export const pageNameHeading = ({ vi, en }) => `<h1 class="sr-only" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</h1>`;
