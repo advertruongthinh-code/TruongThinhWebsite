@@ -81,6 +81,11 @@ const flowColors = (src) => mediaColors(src)?.slice(1, 5);
 // the dark pill (#333 at 80%) and the light pill (white at 85%) contrast equally with the area (WCAG ratio).
 const PILL_LIGHT_BELOW = 20;
 const pillTone = (src) => (mediaColors(src)?.[5] ?? 100) < PILL_LIGHT_BELOW ? "light" : "dark";
+// Description of the media shown (media-card R7): a media with its own uses it, otherwise the card's.
+const mediaDescription = (record, mediaId, english) => {
+  const own = record.mediaDescriptions?.[mediaId];
+  return (english ? own?.en ?? record.descriptionEn : own?.vi ?? record.descriptionVi) || "";
+};
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
@@ -4566,6 +4571,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.masonryActiveMediaId = item.id;
+    if (photoDescription) photoDescription.textContent = mediaDescription(record, item.id, english);
     // Changing media within the same card keeps the viewer's sound choice like Pinterest; opening a new card goes back to muted.
     if (!slide) {
       photoVideo.muted = true;
@@ -4972,7 +4978,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (videoHandoff?.mediaId === selected.id && selected.kind === "video") photoVideo.currentTime = videoHandoff.time;
     videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
-    if (photoDescription) photoDescription.textContent = (english ? record.descriptionEn : record.descriptionVi) || "";
     if (photoDescriptionScroll) photoDescriptionScroll.scrollTop = 0;
     const category = categoryById.get(record.category);
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;

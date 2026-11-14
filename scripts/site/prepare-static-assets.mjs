@@ -96,8 +96,8 @@ await Promise.all(nonPublicSourceAssets.map((asset) => rm(path.join(outputRoot, 
 const detailById = {};
 // source, sha256, provenance of media are checked only at build (media-contract), the runtime does not read them.
 const stripBuildMedia = ({ source, sha256, provenance, ...media }) => media;
-const gridCards = artifact.cards.map(({ descriptionVi, descriptionEn, related, media, mediaItems, ...card }) => {
-  detailById[card.id] = { descriptionVi, descriptionEn, related };
+const gridCards = artifact.cards.map(({ descriptionVi, descriptionEn, mediaDescriptions, related, media, mediaItems, ...card }) => {
+  detailById[card.id] = { descriptionVi, descriptionEn, mediaDescriptions, related };
   return { ...card, media: stripBuildMedia(media), mediaItems: mediaItems?.map(stripBuildMedia) };
 });
 const gridArtifact = { ...artifact, cards: gridCards, layoutCacheFilterUrl: `${LAYOUT_CACHE_ROOT}/{band}/{filter}.mjs`, layoutCacheBandUrl: `${LAYOUT_CACHE_ROOT}/{band}.mjs` };
