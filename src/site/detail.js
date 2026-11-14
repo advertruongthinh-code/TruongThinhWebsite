@@ -379,6 +379,7 @@
           "projects",
           "residential",
           "commercial",
+          "news",
         ]).has(container.dataset.barbaNamespace);
         const lineGroups = splitRoute ? selectAll("[data-motion-lines]") : [];
         const wordGroups = splitRoute ? selectAll("[data-motion-words]") : [];
