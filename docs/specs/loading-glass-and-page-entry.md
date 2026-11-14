@@ -11,8 +11,9 @@ tests:
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
   - tests/site/advertising-media-edge.e2e.mjs
+  - tests/site/primary-flow-zoom-blur.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Skeleton chờ ảnh và kính mờ hiện ảnh
@@ -106,7 +107,10 @@ thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không kh
 sẵn hay chưa, để người xem không phân biệt được hai trường hợp:
 
 1. Khi `src` đổi, ảnh và nền vùng dư cũ ẩn ngay (`data-detail-loading`), skeleton cuối masonry (cùng hook và cách
-   bốc assignment, [skeleton](advertising-skeleton.md)) phủ khung, trên ảnh và dưới nút ảnh; khung có `aria-busy="true"`; runtime chờ `decode()`.
+   bốc assignment, [skeleton](advertising-skeleton.md)) phủ đúng hộp `contain` của ảnh (`--detail-image-width`, `--detail-image-height`), không phủ
+   vùng dư, trên ảnh và dưới nút ảnh; khung có `aria-busy="true"`; runtime chờ `decode()`. Vùng dư là zoom blur của chính Flow đang chạy, như
+   khi video play (owner 2026-11-13): nền realtime `.detail-view__live-background` chép vùng Flow từ canvas Flow chung ngay sau mỗi lần lớp vẽ
+   (`afterDraw`, buffer WebGL không giữ), lane strip còn chờ cũng góp Flow của lớp chờ.
 2. Giải mã xong thì lộ như card ở R2: skeleton của primary vẽ trên canvas Flow chung của chính khung (canvas là con cuối của
    `.detail-view__hero-frame`, `z-index: 2`), ảnh và nền vùng dư hiện ngay dưới khung, Flow hóa kính mờ rồi tan trong `0.6s`. Kính mờ đặt bản
    20px (sao từ ảnh nền 240px đã giải mã, không sao từ ảnh lớn vì giải mã lại JXL trên luồng chính 59ms, đo lượt 8) đúng chỗ ảnh nằm `contain` trong khung, vùng dư phủ `cover` như nền mờ (`scale(1.12)`). Khung chưa vào, canvas chưa sẵn hoặc không
@@ -128,6 +132,10 @@ And chuỗi và nhịp từng lớp giống hệt khi B tải chậm, không ả
 Given PC mở detail, ảnh primary tải chậm
 When ảnh giải mã xong, rồi bấm related, rồi Back
 Then PC lộ qua kính mờ của ảnh trong 0.6s, không Kính
+
+Given PC mở detail, ảnh primary tải chậm, ảnh hẹp hơn khung
+When Flow đang chạy
+Then Flow chỉ nằm trong hộp ảnh, vùng dư hai bên là zoom blur của chính Flow đó
 
 Given điện thoại mở detail, ảnh primary tải chậm
 When ảnh giải mã xong

@@ -2147,10 +2147,14 @@ body.is-masonry-browse .site-footer {
   object-fit: contain;
 }
 
-/* The skeleton sits above the photo and under the image action; the waiting photo sits under it until decoded. */
+/* The skeleton sits above the photo and under the image action; the waiting photo sits under it until decoded. It covers exactly the
+   photo's contain box, never the spare area: the zoom blur there blurs the running Flow like a playing video (owner 2026-11-13). */
 .detail-view__hero-frame > .masonry-grid__cta-frame {
   z-index: 2;
   inset: 0;
+  width: var(--detail-image-width, 100%);
+  height: var(--detail-image-height, 100%);
+  margin: auto;
   --masonry-cta-frame-opacity: 1;
 }
 
