@@ -171,8 +171,9 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
   không ngắt trong mọi phần tử chữ song ngữ thuần (có `data-en`, không thẻ con) nằm trong `<main>`, cả VI, EN;
   `<head>`, header, menu giữ nguyên chữ. Nhãn hai chữ ("Main materials", "Hôm nay") nằm trọn một dòng; dấu như `·`
   đi cùng chữ sau nó; heading kết thúc bằng phần nghiêng (`i`, `em`) nối phần đó với chữ trước.
-- Hai chữ cuối rộng hơn cột ở cỡ chữ hiện tại thì không chung dòng được: đó là giới hạn cỡ chữ, test báo riêng,
-  không tính lỗi mồ côi.
+- Hai chữ cuối phải vừa một dòng của cột: chỗ nào không vừa thì hạ cỡ chữ chỗ đó (owner 2026-11-14), nếu không
+  `overflow-wrap: anywhere` bẻ giữa chữ. Đã hạ: `.detail-heading h2` phone 3rem, mốc `.about-timeline__marker` sàn
+  2rem, `.about-commitment h3` rộng 16ch, 1.35rem ở 681 tới 980px, 2.4rem trên phone.
 - Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask`, heading chia phần có `data-en` riêng, câu có
   `<br>`) không để `,` `.` `;` ở cuối dòng, kể cả dòng cuối; tiêu đề CTA cùng quy tắc. Một regex `LINE_END_PUNCT`
   trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline, `pnpm qa:content` báo lỗi các dòng trong HTML.
@@ -180,7 +181,8 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
 ```gherkin
 Given mọi trang VI và EN ở 384, 390, 768, 1024, 1280, 1440, 1920
 When đo từng khối chữ bằng Range rects
-Then không khối chữ nhiều dòng nào trong main có dòng cuối chỉ một chữ, trừ khi hai chữ cuối rộng hơn cột
+Then không khối chữ nhiều dòng nào trong main có dòng cuối chỉ một chữ
+And hai chữ cuối của mọi khối vừa một dòng của cột
 And không trang nào cuộn ngang
 And không dòng chốt nào của tiêu đề kết thúc bằng , . hoặc ;
 ```

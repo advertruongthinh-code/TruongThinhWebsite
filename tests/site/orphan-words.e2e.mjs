@@ -57,7 +57,7 @@ const scan = () => {
     }
     lines.sort((a, b) => a.top - b.top);
     if (lines.length < 2 || lines.at(-1).words.length > 1) continue;
-    // Two words wider than the column cannot share a line at this type size: a layout limit, reported apart.
+    // Two words wider than the column cannot share a line at this type size: the fix is the type size, not the build.
     const probe = document.createElement("span");
     probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap";
     probe.textContent = words.slice(-2).map((item) => item.word).join(" ");
@@ -72,7 +72,6 @@ const scan = () => {
 
 const browser = await chromium.launch();
 const failures = [];
-const limits = [];
 try {
   const page = await browser.newPage({ reducedMotion: "reduce" });
   for (const width of widths) {
@@ -82,7 +81,7 @@ try {
       await page.evaluate(() => document.fonts.ready);
       const { found, tooWide, overflow } = await page.evaluate(scan);
       for (const item of found) failures.push(`${width} ${route}: one word on the last line of ${item}`);
-      for (const item of tooWide) limits.push(`${width} ${route}: ${item}`);
+      for (const item of tooWide) failures.push(`${width} ${route}: last two words wider than the column, lower the type size: ${item}`);
       if (overflow > 1) failures.push(`${width} ${route}: page scrolls sideways by ${overflow}px`);
     }
   }
@@ -90,5 +89,4 @@ try {
   await browser.close();
 }
 assert.deepEqual(failures, [], failures.join("\n"));
-if (limits.length) console.log(`orphan-words: last two words wider than the column (type size, not wrapping):\n${limits.join("\n")}`);
 console.log(`orphan-words: PASS (${routes.length} routes x ${widths.length} widths)`);

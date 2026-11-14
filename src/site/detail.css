@@ -1012,7 +1012,8 @@
 
   .detail-heading h2 {
     margin-top: 1rem;
-    font-size: 3.25rem;
+    /* Two tied last words ("finished home") fit the 384px column (hero-typography R7). */
+    font-size: 3rem;
   }
 
   .process-step {
@@ -1193,7 +1194,8 @@
 .about-timeline__marker {
   grid-column: 2;
   margin: 0;
-  font-size: clamp(2.6rem, 4.5vw, 5.4rem);
+  /* Floor lets the tied last two words share a line in the 768px column (hero-typography R7). */
+  font-size: clamp(2rem, 4.5vw, 5.4rem);
   font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 0.95;
@@ -1284,7 +1286,8 @@
 }
 
 .about-commitment h3 {
-  max-width: 9ch;
+  /* Wide enough for the two tied last words ("through handover", hero-typography R7). */
+  max-width: 16ch;
   margin: auto 0 1rem;
   font-size: clamp(2rem, 3vw, 3.7rem);
   font-weight: 600;
@@ -1319,6 +1322,11 @@
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
+  }
+
+  /* Three narrow columns until 680px: the two tied last words ("through handover") fit (hero-typography R7). */
+  .about-commitment h3 {
+    font-size: 1.35rem;
   }
 
   .about-chapter-lead p:last-child,
@@ -1464,7 +1472,7 @@
   }
 
   .about-commitment h3 {
-    font-size: 2.8rem;
+    font-size: 2.4rem;
   }
 }
 
