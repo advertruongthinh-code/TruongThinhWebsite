@@ -2195,9 +2195,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let hasLaidOut = false;
 
   const updateLocalizedContent = () => {
+    // A category with rail: false filters cards but gets no chip (Projects sectors).
     const entries = [
       { slug: "all", titleEn: "All", titleVi: "Tất cả" },
-      ...categories,
+      ...categories.filter((entry) => entry.rail !== false),
     ];
     /** @type {Map<string, HTMLAnchorElement>} */
     const existing = new Map(
