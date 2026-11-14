@@ -142,7 +142,7 @@ function createLaneWait(item, color, flowFrame = null) {
       node.style.setProperty("--frost-grain-size", `${256 / devicePixelRatio}px`);
     }
     if (tinySrc !== waitSrc) void mediaQueue.load(tinySrc, { rank: 0 }).then(() => drawFrostCopy(node, tinySrc, () => !("waitDone" in node.dataset)), () => {});
-    // Flow over the glass, wider than the lane and feathered at both sides so the seam with the next media is soft (detail.css).
+    // Flow over the glass, exactly the lane box with a hard edge (detail.css).
     if (laneFlow) {
       node.classList.add("card-media__wait--flow");
       const colors = flowColors(waitSrc);

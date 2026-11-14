@@ -3,7 +3,6 @@ title: Viewer Advertising theo cử chỉ tay
 status: live
 source:
   - src/site/masonry/detail-viewer.mjs
-  - src/site/media-lib/loading-expand-icon.mjs
 tests:
   - tests/site/advertising-viewer-touch.e2e.mjs
   - tests/site/detail-view.e2e.mjs
@@ -156,7 +155,7 @@ phát hoặc dừng, không mở viewer; nút mở lớn hiện và mở video v
 ([primary-video-player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Khung
 primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
 [media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
-Ảnh primary chưa tải xong thì chạm không mở viewer, như nút bị khóa ở [detail R9](advertising-detail.md#r9-viewer) (owner 2026-11-11).
+Ảnh primary chưa tải xong thì chạm vẫn mở viewer ngay, ảnh chờ dưới lớp chờ như nút `Xem lớn hơn` ở [detail R9](advertising-detail.md#r9-viewer) (owner 2026-11-14).
 
 ```gherkin
 Given detail của một ảnh trên điện thoại dọc
