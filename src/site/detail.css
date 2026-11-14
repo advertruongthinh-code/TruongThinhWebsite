@@ -3256,22 +3256,23 @@ body.is-masonry-browse .site-footer {
    (detail-viewer measureFit). */
 .detail-dialog__thumbs {
   --scroll-fade-direction: to bottom;
+  --viewer-thumb-width: 96px;
   position: absolute;
   top: calc(50% + (var(--viewer-visible-top, 0px) - var(--viewer-visible-bottom, 0px)) / 2);
   left: calc(var(--viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
   z-index: 2;
   flex-direction: column;
   width: max-content;
-  max-height: calc(round(down, 100% - 2rem + 8px, 60px / var(--detail-thumb-ratio, 1) + 8px) - 8px);
+  max-height: calc(round(down, 100% - 2rem + 8px, var(--viewer-thumb-width) / var(--detail-thumb-ratio, 1) + 8px) - 8px);
   overflow: hidden auto;
   overscroll-behavior: contain;
   translate: 0 -50%;
   transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
 }
 
-/* The vertical strip keeps a 60px column; each thumbnail's height follows its media's ratio (owner 2026-11-14). */
+/* The vertical strip keeps a 96px column (60px before, owner asked wider 2026-11-14); each thumbnail's height follows its media's ratio. */
 .detail-dialog__thumbs button {
-  width: 60px;
+  width: var(--viewer-thumb-width);
 }
 
 .detail-dialog__thumbs button:focus-visible {
