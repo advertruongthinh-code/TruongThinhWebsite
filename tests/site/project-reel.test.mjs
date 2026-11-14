@@ -39,7 +39,8 @@ test("renders cards in order with escaped VI/EN text", async () => {
 
 test("built home page has one card, image, alt pair and caption pair per data item", async () => {
   for (const route of ["vi", "en"]) {
-    const html = await readFile(new URL(`../../.site-output/${route}/index.html`, import.meta.url), "utf8");
+    // The build ties the last two words with a no-break space (hero-typography R7); compare copy, not spacing.
+    const html = (await readFile(new URL(`../../.site-output/${route}/index.html`, import.meta.url), "utf8")).replaceAll("\u00a0", " ");
     const track = html.match(/<div\s+class="project-track"[\s\S]*?<\/div>/)[0];
     assert.doesNotMatch(html, /project-reel-cards/);
     assert.equal(track.match(/<figure class="project-card /g).length, items.length, route);

@@ -503,6 +503,16 @@ const responsivePictures = (html) =>
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
 
+// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
+// bilingual element (block or inline part of a title) ties its last two words with a no-break space in VI, EN and
+// the rendered text.
+const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
+const tieLastWord = (text) => (text.trim().split(/\s+/).length < 3 ? text : text.replace(/\s+(\S+\s*)$/, "\u00a0$1"));
+const tieElement = (_match, name, attributes, content) =>
+  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
+// Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
+const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) => open + body.replace(TIE_BLOCK, tieElement) + close);
+
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
 const localizeHtmlOutput = async (directory) => {
@@ -513,7 +523,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, responsivePictures(embedVietnameseText(expandHero(html, hero.data, hero.orderScript), target)).replace("<!-- head-inline -->", () => headInline), "utf8");
+      await writeFile(target, responsivePictures(tieOrphans(embedVietnameseText(expandHero(html, hero.data, hero.orderScript), target))).replace("<!-- head-inline -->", () => headInline), "utf8");
     }),
   );
 };

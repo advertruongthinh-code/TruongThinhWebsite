@@ -119,6 +119,8 @@ body {
   font-weight: 500;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
+  /* Site-wide orphan rule: inherited by every text block, so no paragraph ends on a lone word; headings that set balance keep it. */
+  text-wrap: pretty;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }

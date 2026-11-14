@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { validateProjectReel } from "../site/project-reel.mjs";
-import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
@@ -66,6 +66,18 @@ export async function checkSiteContent(siteRoot) {
       if (!existsSync(path.join(siteRoot, src))) errors.push(`${at(file)}: ${src}: file does not exist`);
     }
     if (!file.endsWith(".html")) continue;
+    // Hand-written title lines (hero, CTA masks): same no-punctuation rule as block taglines.
+    for (const [, chunk] of text.matchAll(/class="[^"]*line-mask[^"]*"[^>]*>([\s\S]*?)(?=<[^>]*line-mask|<\/h\d>|<\/p>)/g)) {
+      const vi = chunk.replace(/<[^>]*>/g, " ").replace(/<[^>]*$/, "").replace(/\s+/g, " ").trim();
+      const en = [...chunk.matchAll(/data-en="([^"]*)"/g)].map((match) => match[1]).join(" ").trim();
+      for (const line of [vi, en]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
+    }
+    // A heading split into styled parts, or a statement split by <br>: each part is a line, same rule.
+    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+      const parts = [...inner.matchAll(/data-en="([^"]*)"[^>]*>([^<]*)</g)];
+      if (!(name.startsWith("h") ? parts.length > 1 : inner.includes("<br"))) continue;
+      for (const [, en, vi] of parts) for (const line of [en, vi.trim()]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
+    }
     for (const tag of text.match(/<img\b[^>]*>/g) ?? []) {
       const src = attribute(tag, "src") ?? attribute(tag, "data-src");
       if (!src?.startsWith("/assets/content/")) continue;

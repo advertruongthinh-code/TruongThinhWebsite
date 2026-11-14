@@ -9,7 +9,8 @@ import { ADVERTISING_PRODUCT_THRESHOLD } from "../../src/site/advertising-produc
 // The runtime reads window at import time; the test only uses pure functions, so assign an empty window.
 globalThis.window ??= {};
 const { parseBrowseLocation, selectRelated, selectSuggestions, serializeBrowseLocation } = await import("../../src/site/masonry/runtime.mjs");
-const read = (path) => readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8");
+// The build ties the last two words with a no-break space (hero-typography R7); these checks compare copy, not spacing.
+const read = async (path) => (await readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8")).replaceAll("\u00a0", " ");
 const artifact = buildAdvertisingArtifact();
 
 test("taxonomy R4, R5: one page per cluster and per product that meets the threshold, in both locales", () => {

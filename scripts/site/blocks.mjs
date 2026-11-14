@@ -50,6 +50,8 @@ export const newsTeaser = (post) => {
 };
 // Hero tagline line: "ấm như *gỗ sồi*" becomes plain text, then the italic part as <em>, then the rest; each part keeps its own EN so the locale
 // swap (data-en) does not drop the italic. VI and EN may put the italic at different places in the line.
+// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7).
+export const LINE_END_PUNCT = /[,.;]\s*$/;
 const ITALIC = /^([^*]*)(?:\*([^*]+)\*([^*]*))?$/;
 const taglineParts = (text) => {
   const [, before, italic = "", after = ""] = text.match(ITALIC);
@@ -285,6 +287,7 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
       for (const [index, line] of list.entries()) {
         text(line, `${where}.${field}[${index}]`);
         if ([line?.vi, line?.en].some((value) => typeof value === "string" && !ITALIC.test(value))) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
+        if ([line?.vi, line?.en].some((value) => typeof value === "string" && LINE_END_PUNCT.test(value))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
       }
     }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
