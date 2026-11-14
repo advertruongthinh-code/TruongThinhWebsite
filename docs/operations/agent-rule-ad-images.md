@@ -23,7 +23,8 @@ tính giá đô la (owner 2026-10-24).
   gpt-image-2.5 Sunburst trên kie.ai. API key theo [API key](TOOLING.md#api-key).
 - Owner cho phép thường trực (2026-11-14): mọi thread được tạo ảnh bằng Codex và ChatGPT web,
   kể cả tải ảnh tham khảo lên chatgpt.com, không cần owner gõ cho phép từng thread. ChatGPT web
-  chạy trên Chrome PC không cướp focus.
+  chạy trên Chrome PC không cướp focus, không cần xin lượt PC: nhiều thread tạo song song, mỗi
+  thread tab riêng và chỉ đóng tab của mình (owner 2026-11-14).
 - Codex: `codex exec -m gpt-6-sol -s workspace-write -C <dir> -i <ref>`, effort mặc định
   (effort cao, prompt skill ngắn không tốt hơn); giữ prompt dài, tạo mới thay vì sửa
   chồng; khi sửa ảnh dặn Codex không resize, không lưu lại. Tắt `gen.ps1` và tiến trình

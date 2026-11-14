@@ -77,7 +77,7 @@ cache hay untracked worktree.
 
 - Mỗi artifact dùng chung (trang duyệt, trang tổng hợp) có đúng một thread đăng; thread khác gửi file
   cho thread đó, không tự đăng.
-- Codex và việc nặng trên PC (gen ảnh, Chrome, đo fps) chạy từng việc một; điều phối cấp lượt,
+- Codex và việc nặng trên PC (Chrome đo, fps; trừ ChatGPT web) chạy từng việc một; điều phối cấp lượt,
   thread xong báo trả lượt.
 - Điều phối đối chiếu rule trước khi chuyển lời nhờ owner; lời nhờ trái rule thì sửa ở thread, không chuyển.
 - Rule owner chốt ghi vào repo (file này hoặc rule module), không chỉ ghi ở bộ nhớ project hay lời dặn.
