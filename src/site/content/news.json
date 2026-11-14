@@ -428,11 +428,11 @@
         "type": "image-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-bien-hieu-mat-tien-d-20261113.webp",
+          "src": "/assets/content/shared/news-bien-hieu-mat-tien-d-20261113-v2.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Thợ đeo dây an toàn trên giàn giáo bắt biển hộp \"SOLA\" bằng bản mã bulông",
-          "altEn": "Fitter in a safety harness on scaffolding bolting up a \"SOLA\" box sign with mounting plates"
+          "altVi": "Thợ trên giàn giáo thấp siết bulông bản mã tay đỡ biển hộp \"SOLA\"",
+          "altEn": "Fitter on a low scaffold tightening the mounting plate bolts of a \"SOLA\" box sign"
         }
       },
       {
