@@ -52,7 +52,7 @@ const COMPONENTS = [
   // News list page (news R2) is built on the About page frame like the build; the preview takes the <main> part.
   { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,
     markup: extract(renderNewsListPage(readSource('src/site/about/index.html'), { path: '/news/', base: '/news/', number: 1, count: 2,
-      years: ['2026'], posts: blocksPreview.news }), /<main id="noi-dung"/) },
+      group: null, groups: ['nha-o', 'kinh-doanh', 'quang-cao', 'xu-huong'], total: blocksPreview.news.length, posts: blocksPreview.news }), /<main id="noi-dung"/) },
   { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
     also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
   { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-timeline/,

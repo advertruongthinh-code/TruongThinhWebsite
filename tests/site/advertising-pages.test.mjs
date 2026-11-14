@@ -27,9 +27,9 @@ test("taxonomy R4: the EN product page has title, meta, canonical, hreflang, an 
   assert.match(html, /<html[^>]*lang="en"/);
   assert.match(html, /<title[^>]*>Business cards, flyers and catalogues — Trường Thịnh<\/title>/);
   assert.match(html, /<meta\s+name="description"\s+content="Business cards, flyers, brochures, catalogues/);
-  assert.match(html, /<link rel="canonical" href="\/en\/advertising-products\/printing-decals\/office-printing\/"/);
-  assert.match(html, /<link rel="alternate" hreflang="vi" href="\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
-  assert.match(html, /<link rel="alternate" hreflang="x-default" href="\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/truongthinhads.vn\/en\/advertising-products\/printing-decals\/office-printing\/"/);
+  assert.match(html, /<link rel="alternate" hreflang="vi" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
+  assert.match(html, /<link rel="alternate" hreflang="x-default" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
   const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1];
   assert.match(noscript, /<p[^>]*>Business cards, flyers, brochures, catalogues/);
   for (const page of ADVERTISING_PAGES) assert.match(noscript, new RegExp(`href="/en/advertising-products/${page.en}/"`), page.filter);
@@ -68,7 +68,7 @@ test("taxonomy R3, R5: each product at the card threshold has a chip and its own
   assert.deepEqual(["kiosk-posm-74", "print-decals-37", "office-signs-wayfinding-56"]
     .map((id) => artifact.cards.find((card) => card.id === id)?.mediaItems?.length), [3, 3, 4]);
   const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
-  assert.match(clusterPage, /<link rel="canonical" href="\/vi\/advertising-products\/in-an-decal\/"/);
+  assert.match(clusterPage, /<link rel="canonical" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/"/);
   // noscript links only generated pages: a product under the threshold has no dead link
   for (const [, href] of clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].matchAll(/href="(\/vi\/advertising-products\/[^"]*)"/g)) {
     assert.ok(existsSync(new URL(`../../.site-output${href}index.html`, import.meta.url)), `noscript ${href}`);

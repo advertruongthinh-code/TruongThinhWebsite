@@ -26,11 +26,13 @@ const PAIR_LAYOUT = { equal: "blk-pair--equal", "left-large": "blk-pair--left-la
 const FACTS_COLUMNS = { 2: "blk-facts--2", 3: "blk-facts--3", 4: "blk-facts--4" };
 const BANNER_COLUMNS = { 1: "blk-banners--1", 2: "blk-banners--2", 3: "blk-banners--3" };
 // Four News groups (news R1); display names and slugs are final per Keyword Planner, until then use the temporary names.
+// vi/en: the group name on articles; chip: News filter label; title: group page search title, worded as advice so it does not
+// compete with the Residential, Commercial and Advertising pages for the same keyword (SEO audit 2026-11-15).
 export const NEWS_GROUPS = {
-  "nha-o": { vi: "Không gian nhà ở", en: "Residential spaces" },
-  "kinh-doanh": { vi: "Không gian kinh doanh", en: "Commercial spaces" },
-  "xu-huong": { vi: "Xu hướng thiết kế", en: "Design trends" },
-  "quang-cao": { vi: "Sản phẩm quảng cáo", en: "Advertising products" },
+  "nha-o": { vi: "Không gian nhà ở", en: "Residential spaces", chip: { vi: "Nhà ở", en: "Residential" }, title: { vi: "Tư vấn nội thất nhà ở: tủ bếp, tủ áo, nhà phố", en: "Home interior advice: kitchens, wardrobes, townhouses" } },
+  "kinh-doanh": { vi: "Không gian kinh doanh", en: "Commercial spaces", chip: { vi: "Kinh doanh", en: "Commercial" }, title: { vi: "Tư vấn nội thất quán cafe, cửa hàng, văn phòng", en: "Cafe, shop and office interior advice" } },
+  "quang-cao": { vi: "Sản phẩm quảng cáo", en: "Advertising products", chip: { vi: "Quảng cáo", en: "Advertising" }, title: { vi: "Kinh nghiệm làm biển hiệu, màn hình LED", en: "Shop sign and LED screen advice" } },
+  "xu-huong": { vi: "Xu hướng thiết kế", en: "Design trends", chip: { vi: "Xu hướng", en: "Trends" }, title: { vi: "Xu hướng thiết kế nội thất gỗ", en: "Timber interior design trends" } },
 };
 
 // News teaser like the espaciohomedesign.com news block (home strip and "Other news" at the end of an article, news R3, R4, measured 2026-11-11):

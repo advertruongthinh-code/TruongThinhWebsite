@@ -15,9 +15,10 @@ import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
-import { RENAMED_FILTER_SLUGS, buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
+import { legacyRedirects, redirectsFile } from "./redirects.mjs";
+import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, escapeHtml, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const outputRoot = path.join(projectRoot, ".site-output");
@@ -211,21 +212,34 @@ const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).repla
     + `${ADVERTISING_PRODUCT_CHIPS.filter(({ cluster }) => cluster === slug).map(productLink).join("")}</div>`).join("\n          "),
 );
 // The marker stays in the template: each cluster and product page gets its own filter, the root page gets "all", card pages none.
-await writeFile(advertisingIndexPath, advertisingTemplate.replace(LAYOUT_CACHE_PRELOAD_MARKER, () => layoutCachePreload("all")), "utf8");
+// Advertising list pages (root, cluster, product) as CollectionPage: the cards of that filter, the first cover as share image.
+const cardsOf = (filter) => ADVERTISING_CARDS.filter((card) => filter === "all" || card.clusterIds.includes(filter) || card.productIds.includes(filter));
+const ADVERTISING_LIST_ITEMS = 30;
+const advertisingListHead = (page, vi, en, crumbs) => {
+  const cards = cardsOf(page.filter);
+  return [
+    ...alternateLinks(vi, en),
+    `<meta property="og:image" content="${PUBLIC_ORIGIN}${cards[0].media.src}" />`,
+    collectionLd({ path: vi, name: page.labelVi, description: page.descriptionVi ?? page.labelVi,
+      items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/vi/advertising-products/p/${card.id}/`]), crumbs }),
+  ];
+};
+await writeFile(advertisingIndexPath, advertisingTemplate.replace(LAYOUT_CACHE_PRELOAD_MARKER, () => layoutCachePreload("all"))
+  .replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
+    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "utf8");
 
 // Cluster and product pages (taxonomy R4): the root page template, changing title, meta, canonical, hreflang, the selected rail item and
 // noscript (intro, links to every page). The source file is written to both locale directories; the ROUTES loop below translates.
 const pageHref = (locale, page) => `/${locale}/advertising-products/${page[locale]}/`;
 const pageLinks = ADVERTISING_PAGES.map((page) =>
   `<li><a href="${pageHref("vi", page)}" data-en-href="${pageHref("en", page)}" data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</a></li>`).join("");
+const clusterPageOf = (cluster) => ADVERTISING_PAGES.find((entry) => entry.filter === cluster);
 const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(LAYOUT_CACHE_PRELOAD_MARKER, () => layoutCachePreload(page.filter))
   .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
     `<title data-en="${escapeHtml(page.titleEn)}">${escapeHtml(page.titleVi)}</title>`,
-    `<link rel="canonical" href="${pageHref("vi", page)}" data-en-href="${pageHref("en", page)}" />`,
-    `<link rel="alternate" hreflang="vi" href="${pageHref("vi", page)}" />`,
-    `<link rel="alternate" hreflang="en" href="${pageHref("en", page)}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${pageHref("vi", page)}" />`,
+    ...advertisingListHead(page, pageHref("vi", page), pageHref("en", page), [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
+      ...(page.filter === page.cluster ? [] : [[clusterPageOf(page.cluster).labelVi, pageHref("vi", clusterPageOf(page.cluster))]]), [page.labelVi, pageHref("vi", page)]]),
   ].join("\n    "))
   .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
     (_match, before, middle) => `${before}${escapeHtml(page.descriptionVi)}${middle}${escapeHtml(page.descriptionEn)}"`)
@@ -282,10 +296,13 @@ const cardJsonLd = (card) => {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "WebPage", "@id": url, url, primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
+      { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: card.descriptionVi, inLanguage: "vi",
+        primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
+      breadcrumbLd([["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
+        ...card.clusterIds.slice(0, 1).map((id) => [clusterPageOf(id).labelVi, pageHref("vi", clusterPageOf(id))]), [card.titleVi, cardHref("vi", card)]]),
       ...card.mediaItems.map((item) => ({
         "@type": "ImageObject", "@id": `${PUBLIC_ORIGIN}${mediaImage(item)}`, contentUrl: `${PUBLIC_ORIGIN}${mediaImage(item)}`,
-        creator: owner, creditText: "Trường Thịnh",
+        name: item.altVi, creator: owner, creditText: "Trường Thịnh",
       })),
     ],
   }).replace(/</g, "\\u003c");
@@ -295,10 +312,7 @@ const renderCardPage = (card) => advertisingTemplate
     .replace(LAYOUT_CACHE_PRELOAD_MARKER, "")
     .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
       `<title data-en="${escapeHtml(card.titleEn)} — Trường Thịnh">${escapeHtml(card.titleVi)} — Trường Thịnh</title>`,
-      `<link rel="canonical" href="${cardUrl("vi", card)}" data-en-href="${cardUrl("en", card)}" />`,
-      `<link rel="alternate" hreflang="vi" href="${cardUrl("vi", card)}" />`,
-      `<link rel="alternate" hreflang="en" href="${cardUrl("en", card)}" />`,
-      `<link rel="alternate" hreflang="x-default" href="${cardUrl("vi", card)}" />`,
+      ...alternateLinks(cardHref("vi", card), cardHref("en", card)),
       `<meta property="og:image" content="${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}" />`,
       `<script type="application/ld+json">${cardJsonLd(card)}</script>`,
     ].join("\n    "))
@@ -370,11 +384,14 @@ for (const listPage of projectListPages(blockContent.projects)) {
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderProjectListPage(advertisingFrame, listPage, projectArtifact), "utf8");
 }
-for (const [oldSlug, newSlug] of Object.entries(RENAMED_FILTER_SLUGS)) for (const locale of ["vi", "en"]) {
-  const destination = path.join(outputRoot, locale, "projects", oldSlug, "index.html");
+// Moved paths other than merged cards (their compatibility page is written below): a noindex fallback page for the preview
+// server; Cloudflare answers them with a real 301 from _redirects.
+for (const [from, to] of legacyRedirects(blockContent).filter(([from]) => !from.includes("/advertising-products/p/"))) {
+  const destination = path.join(outputRoot, from, "index.html");
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, renderRedirectPage(`/${locale}/projects/${newSlug}/`), "utf8");
+  await writeFile(destination, renderRedirectPage(to), "utf8");
 }
+await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent), "utf8");
 // Image sitemap (media-seo R5): one url per card page, one image:loc per media (video uses its poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>
   `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${PUBLIC_ORIGIN}${mediaImage(item)}</image:loc></image:image>`).join("")}</url>`));
@@ -526,6 +543,26 @@ const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/,
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
+// Share preview tags (SEO audit 2026-11-15): og:title, og:description, og:url and twitter:card mirror the page's own title,
+// description and canonical, carrying the data-en-* twin so localeHtml switches them with the page language.
+const enContent = (value) => (value === undefined ? "" : ` data-en-content="${value}"`);
+const socialMeta = (html) => {
+  const title = /<title\b([^>]*)>([\s\S]*?)<\/title>/.exec(html);
+  if (!title || html.includes('property="og:title"')) return html;
+  const description = /<meta\s+name="description"\s+content="([^"]*)"(?:\s+data-en-content="([^"]*)")?/.exec(html);
+  const canonical = /<link rel="canonical" href="(https:[^"]*)"(?: data-en-href="([^"]*)")?/.exec(html);
+  const tags = [
+    '<meta property="og:type" content="website" />',
+    '<meta property="og:site_name" content="Trường Thịnh" />',
+    `<meta property="og:locale" content="vi_VN"${enContent("en_US")} />`,
+    `<meta property="og:title" content="${title[2].trim()}"${enContent(/data-en="([^"]*)"/.exec(title[1])?.[1])} />`,
+    ...(description ? [`<meta property="og:description" content="${description[1]}"${enContent(description[2])} />`] : []),
+    ...(canonical ? [`<meta property="og:url" content="${canonical[1]}"${enContent(canonical[2])} />`] : []),
+    '<meta name="twitter:card" content="summary_large_image" />',
+  ];
+  return html.replace(title[0], () => `${title[0]}\n    ${tags.join("\n    ")}`);
+};
+
 const localizeHtmlOutput = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });
   await Promise.all(
@@ -534,7 +571,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, responsivePictures(tieOrphans(embedVietnameseText(expandHero(html, hero.data, hero.orderScript), target))).replace("<!-- head-inline -->", () => headInline), "utf8");
+      await writeFile(target, responsivePictures(tieOrphans(embedVietnameseText(expandHero(socialMeta(html), hero.data, hero.orderScript), target))).replace("<!-- head-inline -->", () => headInline), "utf8");
     }),
   );
 };
@@ -560,6 +597,19 @@ for (const [route, source] of ROUTES) {
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, localeHtml(html, route.startsWith("/en/") ? "en" : "vi"), "utf8");
 }
+
+// Page sitemap (SEO audit 2026-11-15): every indexable route (self canonical, no noindex) except card pages, which
+// sitemap-advertising.xml lists with their images; sitemap.xml indexes both and robots.txt points at it.
+const pageUrls = [];
+for (const route of ROUTES.keys()) {
+  if (route.includes("/advertising-products/p/")) continue;
+  const html = await readFile(path.join(outputRoot, route, "index.html"), "utf8");
+  if (/<link rel="canonical" href="([^"]*)"/.exec(html)?.[1] === `${PUBLIC_ORIGIN}${route}` && !/<meta name="robots" content="noindex/.test(html)) pageUrls.push(`${PUBLIC_ORIGIN}${route}`);
+}
+await writeFile(path.join(outputRoot, "sitemap-pages.xml"), ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...pageUrls.map((url) => `<url><loc>${url}</loc></url>`), "</urlset>", ""].join("\n"), "utf8");
+await writeFile(path.join(outputRoot, "sitemap.xml"), ['<?xml version="1.0" encoding="UTF-8"?>', '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...["sitemap-pages.xml", "sitemap-advertising.xml"].map((file) => `<sitemap><loc>${PUBLIC_ORIGIN}/${file}</loc></sitemap>`), "</sitemapindex>", ""].join("\n"), "utf8");
 
 // not_found_handling = "404-page" takes the nearest 404.html by path: /en/* uses /en/404.html, other paths use the vi version at the root.
 const notFoundHtml = await readFile(path.join(outputRoot, "404.html"), "utf8");

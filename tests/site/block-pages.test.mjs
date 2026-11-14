@@ -35,24 +35,25 @@ test("a changed template anchor stops the build instead of shipping a page witho
   assert.throws(() => renderProjectPage(template.replace(/<title\b/, "<titlex"), projects[0], ctx), /anchor "title" matched 0 times/);
 });
 
-test("News list: newest first, 12 per page, year filter pages, group pages kept without chips", async () => {
-  const { newsListPages } = await import("../../scripts/site/block-pages.mjs");
+test("News list: newest first, 12 per page, group pages with group chips, thin group pages noindex, year paths redirect", async () => {
+  const { newsListPages, newsYearRedirects } = await import("../../scripts/site/block-pages.mjs");
   const fields = (id) => ({ slugVi: id, slugEn: id, title: { vi: id, en: id }, cover: { src: `/${id}.webp`, width: 3, height: 2, altVi: id, altEn: id } });
   const post = (index, group) => ({ id: `p${index}`, group, published: `2026-10-${String(index + 1).padStart(2, "0")}`, ...fields(`p${index}`) });
   const posts = [...Array.from({ length: 12 }, (_, index) => post(index, "nha-o")), post(12, "xu-huong"), { id: "old", group: "nha-o", published: "2025-12-31", ...fields("old") }];
   const pages = newsListPages(posts);
-  assert.deepEqual(pages.map((page) => page.path), ["/news/", "/news/page/2/", "/news/2026/", "/news/2026/page/2/", "/news/2025/", "/news/nha-o/", "/news/nha-o/page/2/", "/news/xu-huong/"]);
+  assert.deepEqual(pages.map((page) => page.path), ["/news/", "/news/page/2/", "/news/nha-o/", "/news/nha-o/page/2/", "/news/xu-huong/"]);
   assert.equal(pages[0].posts[0].id, "p12");
-  assert.deepEqual(pages[0].years, ["2026", "2025"]);
+  assert.deepEqual(pages[0].groups, ["nha-o", "xu-huong"]);
   assert.equal(pages[1].posts.length, 2);
-  // The year page is not indexable; the filter row has only "Tất cả" and the years, no group.
+  assert.deepEqual(newsYearRedirects(posts), [["/news/2026/", "/news/"], ["/news/2025/", "/news/"]]);
+  // A group page under 5 posts is noindex, follow; the filter row is "Tất cả" plus the groups that have posts.
   const { renderNewsListPage } = await import("../../scripts/site/block-pages.mjs");
   const frame = readPageSource("about/index.html");
-  const yearHtml = renderNewsListPage(frame, pages[4]);
-  assert.ok(yearHtml.includes('<meta name="robots" content="noindex, follow" />'));
+  assert.ok(renderNewsListPage(frame, pages[4]).includes('<meta name="robots" content="noindex, follow" />'));
+  assert.doesNotMatch(renderNewsListPage(frame, pages[2]), /noindex/);
   assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
-  const chips = [...renderNewsListPage(frame, pages[5]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(chips, ["/vi/news/", "/vi/news/2026/", "/vi/news/2025/"]);
+  const chips = [...renderNewsListPage(frame, pages[4]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"(?: aria-current="true")?/g)].map((match) => match[0].includes("aria-current") ? `${match[1]}*` : match[1]);
+  assert.deepEqual(chips, ["/vi/news/", "/vi/news/nha-o/", "/vi/news/xu-huong/*"]);
   // Espacio layout: the first article is a large card (image loads immediately for LCP), the next 4 are a 2x2 grid, the rest are horizontal row cards (lazy).
   const list = renderNewsListPage(frame, pages[0]);
   const main = list.match(/<div class="blk-news-list__main">([\s\S]*?)<\/div>/)[1];
@@ -96,7 +97,7 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: id hoặc slug 2026 trùng đường dẫn nhóm, năm hoặc phân trang"]);
   assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
-    "n: group phải là nha-o, kinh-doanh, xu-huong, quang-cao",
+    "n: group phải là nha-o, kinh-doanh, quang-cao, xu-huong",
     "n: published phải là YYYY-MM-DD",
     "n: id hoặc slug page trùng đường dẫn nhóm, năm hoặc phân trang",
     "n: id hoặc slug xu-huong trùng đường dẫn nhóm, năm hoặc phân trang",
