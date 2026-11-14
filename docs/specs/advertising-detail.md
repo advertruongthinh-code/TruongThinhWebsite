@@ -7,6 +7,7 @@ tests:
   - tests/site/advertising-photo-layout.test.mjs
   - tests/site/advertising-full-span-p72.e2e.mjs
   - tests/site/advertising-primary-p14.e2e.mjs
+  - tests/site/advertising-detail-breadcrumb.e2e.mjs
   - tests/site/advertising-single-related.e2e.mjs
   - tests/site/advertising-suggestion-conditional.e2e.mjs
   - tests/site/advertising-suggestion-info.e2e.mjs
@@ -18,7 +19,7 @@ tests:
   - tests/site/related-scroll-device.mjs
   - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-11
+updated: 2026-11-14
 ---
 
 # Detail Advertising
@@ -69,14 +70,14 @@ And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao b
 
 ### R3. Info: nhóm, mô tả, CTA
 
-Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, dãy thumbnail ([media-card R6](media-card.md#r6-media-trong-primary)),
+Info (`role="region"`, `tabindex=0`) có breadcrumb phân loại VI/EN, dãy thumbnail ([media-card R6](media-card.md#r6-media-trong-primary)),
 mô tả và CTA; không có tiêu đề ảnh. Mô tả căn trái trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
 "Mô tả ảnh" / "Photo description"), cao ít nhất ba dòng hoặc vừa chữ nếu ngắn hơn (R2); chữ dài cuộn bên trong bằng wheel,
 vuốt, phím mũi tên, `End`; khi còn chữ để cuộn, các input này không cuộn trang. Còn chữ phía trên hoặc dưới thì mép đó mờ về trắng cao một dòng (`data-fade-start`,
 `data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B theo ngôn ngữ player: rãnh 4px
 `rgba(32,33,32,0.16)`, viên 4px `rgba(32,33,32,0.6)` dài theo tỷ lệ chữ đang thấy; chỉ hiện (fade 150ms) khi trỏ chuột vào
 hoặc focus bàn phím trong mô tả và khi đang kéo; kéo viên bằng pointer capture. Cảm ứng (`hover: none`) không có thanh.
-Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
+Breadcrumb (owner 2026-11-14): gốc › cluster (tên rail) › sản phẩm chính, link thật; bấm: đóng detail (push), lọc tại chỗ như rail. Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
 khoảng trên footer của site ([CTA giữa viewport R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn)).
 
 ```gherkin

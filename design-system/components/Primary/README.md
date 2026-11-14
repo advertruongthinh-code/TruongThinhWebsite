@@ -21,7 +21,7 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   [Viewer](../Viewer/README.md). Màn cảm ứng ẩn nút này, chạm đúp ảnh để mở. Video có thêm nút tiếng.
   Nút không bao giờ khóa, icon phóng to đứng yên: ảnh chưa tải xong thì viewer vẫn mở ngay,
   ảnh chờ dưới lớp chờ (PC Flow, phone lớp màu). Màn cảm ứng chạm ảnh cũng vậy.
-- Cột chữ: nhãn nhóm, mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
+- Cột chữ: breadcrumb phân loại (link tới từng cấp lọc), mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
   [Suggestion](../Suggestion/README.md). Không có tiêu đề ảnh.
 - Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:
   nút 24px, chấm tròn 8px viền 1px `ink`, trang đang xem tô `ink`; bấm chấm để
@@ -32,7 +32,7 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 ## Thumbnail media
 
 Card nhiều media (xem [Media card](../MediaCard/README.md#nhiều-media-trong-card))
-có hàng thumbnail trong cột chữ, giữa nhãn nhóm và mô tả. Card một ảnh legacy
+có hàng thumbnail trong cột chữ, giữa breadcrumb và mô tả. Card một ảnh legacy
 không có hàng này. Catalog hiện chưa có card nào như vậy, nên preview chưa có.
 
 - Một dòng, gap 8px, `role="group"`, nhãn `Media sản phẩm` /

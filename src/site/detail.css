@@ -328,6 +328,41 @@
   text-wrap: balance;
 }
 
+/* Detail breadcrumb: each crumb wraps as one unit, so a line break falls between levels, never inside a short label. */
+.detail-breadcrumb ol {
+  display: block;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-breadcrumb li {
+  display: inline-block;
+  max-width: 100%;
+  text-wrap: balance;
+}
+
+.detail-breadcrumb li:not(:last-child)::after {
+  content: "\203A" / "";
+  margin-inline: 0.5em;
+  opacity: 0.55;
+}
+
+.detail-breadcrumb a {
+  display: inline-block;
+  padding-block: 0.3rem;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 150ms ease;
+}
+
+.detail-breadcrumb a:hover,
+.detail-breadcrumb a:focus-visible {
+  text-decoration-color: currentColor;
+}
+
 .detail-intro__copy {
   max-width: 56rem;
   margin: 0;

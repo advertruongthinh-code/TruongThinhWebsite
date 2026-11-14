@@ -292,7 +292,7 @@ export function createSkeletonFlowFrameLayout({
   // stretches by exactly the difference; if that bottom is a real card or a two-column frame, place only when the bottoms are level.
   const wideSlot = (band, column, bottoms, lastFrames) => {
     if (!canSpanTwoColumns(columns, { width: 1, height: band.ratio })) return null;
-    return spanSlots(bottoms, columns, 2, gap, cardWidth, gap)
+    return spanSlots(bottoms, columns, 2, gap, cardWidth)
       .filter(({ left, y }) => (left === column || left === column - 1) && y < boundaryBottom)
       .map((slot) => {
         if (slot.cavity <= 0.05) return { ...slot, stretch: null };
@@ -313,7 +313,8 @@ export function createSkeletonFlowFrameLayout({
     while (frames.length < maxFrames) {
       const column = bottoms.reduce((shortest, bottom, index) =>
         bottom < bottoms[shortest] ? index : shortest, 0);
-      const top = Number(bottoms[column]) + gap;
+      // An empty column (bottom 0) starts at the grid top, level with the real cards (spanSlots rule).
+      const top = bottoms[column] ? Number(bottoms[column]) + gap : 0;
       if (top >= boundaryBottom) break;
       // A slot is the order of frames following the masonry, not a column:depth cell: when resize changes the column count, frame k is still
       // item k of the same grid, so it slides together with the card above it (owner 10/10).

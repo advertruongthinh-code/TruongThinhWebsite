@@ -187,6 +187,12 @@ assert.deepEqual(frameLayout.slice(0, 4).map(({ column }) => column), [0, 1, 2, 
   "skeleton continuation must consume the shortest existing masonry frontier before adding a second card to a column");
 assert.deepEqual(frameLayout.slice(0, 4).map(({ top }) => top), [135, 195, 255, 315],
   "skeletons must start at each real-card column bottom plus the shared gap, without a batch row seam");
+// Empty columns (filter with few real cards): the first frame starts at the grid top, level with the real cards' top edge.
+const emptyColumnFrames = createSkeletonFlowFrameLayout({ columnBottoms: [510, 510, 0, 0], columns: 4, cardWidth: 300, gap: 35, boundaryBottom: 2_000 });
+for (const column of [2, 3]) {
+  const first = emptyColumnFrames.find((frame) => column >= frame.column && column < frame.column + frame.span);
+  assert.equal(first.top, 0, `column ${column}: a skeleton in an empty column must start at the grid top, not one gap below it`);
+}
 const seededFramesA = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-a" });
 const seededFramesARepeat = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-a" });
 const seededFramesB = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-b" });
