@@ -12,6 +12,7 @@ tests:
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
   - tests/site/project-hero-motion.e2e.mjs
+  - tests/site/gallery-fill.e2e.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
 updated: 2026-11-14
 ---
@@ -179,7 +180,7 @@ Trang toàn bộ công trình dùng [Masonry](../../design-system/components/Mas
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom); R3 hero và motion thân bài: `tests/site/project-hero-motion.e2e.mjs` |
+| R1, R2, R3 | `tests/site/block-pages.test.mjs`, `tests/site/blocks.test.mjs`, `tests/site/block-pages.e2e.mjs` (suite `block-pages`; R2: tên thẻ trong media là tên link, chuột thật hover hiện tên và lớp tối Pinterest, cảm ứng không hiện, thẻ cao bằng media, skeleton không chừa chỗ tên, không zoom); R3 hero và motion thân bài: `tests/site/project-hero-motion.e2e.mjs`; gallery ít ảnh vẫn kín hàng ([chi tiết R7](detail-pages.md#r7-gallery-ngang)): `tests/site/gallery-fill.e2e.mjs` ở 384, 1920, 2560px |
 | R4, R5 | chưa có test |
 
 ## Gate còn mở

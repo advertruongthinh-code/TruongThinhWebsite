@@ -11,7 +11,6 @@ tests:
   - tests/site/site.e2e.cjs
   - tests/site/static-locales.test.mjs
   - tests/site/image-loading-frame.e2e.mjs
-  - tests/site/gallery-fill.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
@@ -279,7 +278,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
 | R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom About, Advertising; Residential, Commercial có slideshow và nút dừng), `TT_E2E_HERO_CONTINUITY_ONLY` (xáo, preload, crossfade), `hero-slideshow.test.mjs` (script giống trang chủ), `footer-consistency.e2e.mjs` (nút dừng không chồng CTA), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
-| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung), ca `text200` và `fallback` (caption không vượt track); `gallery-fill.e2e.mjs` (18 trang công trình ở 384, 1920, 2560px: ảnh cuối chạm mép phải track) |
+| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung), ca `text200` và `fallback` (caption không vượt track); `gallery-fill.e2e.mjs` (ảnh ít vẫn kín hàng, suite `block-pages`) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
 | R10 | `cta-title-punctuation.e2e.mjs` (dấu câu cuối tiêu đề CTA không rơi dòng, VI và EN, 320 tới 1920px), `TT_E2E_MEDIA_FALLBACK_ONLY` (CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
