@@ -8,6 +8,7 @@ source:
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
+  - src/site/robots.txt
   - src/site/404.html
   - wrangler.static.toml
   - .github/workflows/deploy-demo.yml
