@@ -498,10 +498,10 @@ const responsivePictures = (html) =>
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
 
-// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so a plain-text
-// bilingual block ties its last two words with a no-break space in VI, EN and the rendered text. Title lines
-// (spans) keep their own breaks.
-const TIE_BLOCK = /<(p|h[1-6]|li|figcaption|blockquote|dd|dt)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
+// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
+// bilingual element (block or inline part of a title) ties its last two words with a no-break space in VI, EN and
+// the rendered text.
+const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
 const tieLastWord = (text) => (text.trim().split(/\s+/).length < 3 ? text : text.replace(/\s+(\S+\s*)$/, "\u00a0$1"));
 const tieOrphans = (html) => html.replace(TIE_BLOCK, (_match, name, attributes, content) =>
   `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`);
