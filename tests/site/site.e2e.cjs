@@ -935,10 +935,12 @@ function monitorPage(page) {
     try {
       const isSameOrigin = new URL(request.url()).origin === BASE_ORIGIN;
       if (!isSameOrigin && !trackedExternalTypes.has(request.resourceType())) return;
-      // Images and videos aborted when leaving the page or removing a card (ERR_ABORTED) are browser behavior, not load errors.
+      // Images and videos aborted when leaving the page or removing a card (ERR_ABORTED) are browser behavior, not load errors. The 4K JXL
+      // original and its thresholds stream through fetch (head-inline streamOriginal, progressive-loading R10), so their abort counts too.
       if (
         request.failure()?.errorText === "net::ERR_ABORTED" &&
-        ["image", "media"].includes(request.resourceType())
+        (["image", "media"].includes(request.resourceType()) ||
+          (request.resourceType() === "fetch" && /\/assets\/content\/.+\.(?:jxl|json)$/.test(new URL(request.url()).pathname)))
       ) return;
       diagnostics.requestFailures.push(
         `${request.method()} ${request.url()} — ${
@@ -9186,9 +9188,11 @@ async function runHeroCrossFadeContinuityChecks() {
         await page.addInitScript(() => {
           const values = [0.2, ...Array.from({ length: 63 }, (_, index) => 0.99 - index * 0.01)];
           Math.random = () => values.shift() ?? 0.5;
+          // The tier each image first loads: R10 later swaps in the original, streamed as a blob (progressive-loading R10).
+          document.addEventListener("load", ({ target }) => { target.firstSrc ??= target.currentSrc; }, true);
         });
         await gotoRoute(page, route);
-        await page.waitForFunction(() => document.querySelector(".hero-slide img").complete);
+        await page.waitForFunction(() => document.querySelector(".hero-slide img").firstSrc);
         const state = await page.evaluate(() => {
           const slides = [...document.querySelectorAll(".hero-slide")];
           const image = slides[0].querySelector("img");
@@ -9198,7 +9202,7 @@ async function runHeroCrossFadeContinuityChecks() {
             active: slides.flatMap((slide, index) => (slide.classList.contains("is-active") ? [index] : [])).join(","),
             priority: image.getAttribute("fetchpriority"),
             name: image.getAttribute("src").split("/").pop().replace(/\.webp$/, ""),
-            current: image.currentSrc.replace(location.origin, ""),
+            current: image.firstSrc.replace(location.origin, ""),
             preload: preload?.imageSrcset,
             unhydratedFirst: image.hasAttribute("data-src"),
           };
