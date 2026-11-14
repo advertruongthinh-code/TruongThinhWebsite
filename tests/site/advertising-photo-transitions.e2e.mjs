@@ -1137,66 +1137,28 @@ try {
     await page.goto(href("/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-detail-expand]").click();
-    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-detail-${name}]`)]));
-    // Let the 150 ms background transition finish; a heavily loaded runner may lag more than a fixed wait.
-    const read = (control) => control.evaluate(async (node) => {
-      await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
-      const style = getComputedStyle(node);
-      return { background: style.backgroundColor, color: style.color, disabled: node.disabled,
-        outline: style.outlineStyle, outlineWidth: parseFloat(style.outlineWidth),
-        width: node.clientWidth, radius: style.borderRadius };
-    });
-    const shade = (color) => Number(color.match(/[\d.]+/)[0]);
-    const evidence = [];
-    const checkDisabled = async (control, enabled) => {
-      await page.mouse.move(500, 350);
-      await page.evaluate(frame);
-      const normal = await read(control);
-      assert(normal.disabled, "zoom limit must use native disabled state");
-      assert(shade(normal.color) - shade((await read(enabled)).color) >= 60, "disabled icon must be visibly lighter");
-      await control.hover();
-      await page.evaluate(frame);
-      assert.deepEqual(await read(control), normal, "disabled control must not respond to hover");
-      evidence.push({ disabled: normal });
-    };
-    const activate = async (control, label) => {
+    // No close or zoom buttons (owner 2026-11-14): + and - step the zoom, Escape closes.
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
+    assert.equal(await page.locator("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out], [data-detail-zoom-reset]").count(), 0,
+      "the viewer has no close, zoom or reset button");
+    const status = () => page.locator("[data-detail-zoom-status]").textContent();
+    const step = async (key, label) => {
       stage(label);
-      await page.mouse.move(500, 350);
-      await page.evaluate(frame);
-      const normal = await read(control);
-      assert.equal(normal.radius, "0px", "keep square design");
-      assert.equal(normal.width, 36, "36px white square (primary-video-player R7)");
-      await control.hover();
-      await page.evaluate(frame);
-      const hovered = await read(control);
-      assert(shade(normal.background) - shade(hovered.background) >= 20, `${label}: hover needs clear tonal change ${JSON.stringify({ normal, hovered })}`);
-      const bounds = await control.boundingBox();
-      assert(bounds, `${label}: control has no pointer target`);
-      await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
-      await page.mouse.down();
-      let pressed = await read(control);
-      for (let attempt = 0; attempt < 6 && shade(hovered.background) - shade(pressed.background) < 12; attempt += 1) {
-        await page.evaluate(frame);
-        pressed = await read(control);
-      }
-      assert(shade(hovered.background) - shade(pressed.background) >= 12,
-        `${label}: press needs distinct feedback ${JSON.stringify({ hovered, pressed })}`);
-      await page.mouse.up();
-      await page.evaluate(frame);
-      evidence.push({ label, normal, hovered, pressed });
+      const before = await status();
+      await page.keyboard.press(key);
+      await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
+      const after = await status();
+      evidence.push({ label, before, after });
+      return after;
     };
-    await checkDisabled(controls["zoom-out"], controls["zoom-in"]);
-    await activate(controls["zoom-in"], "zoom-to-cover");
-    await activate(controls["zoom-in"], "zoom-to-limit");
-    await checkDisabled(controls["zoom-in"], controls["zoom-out"]);
-    assert.equal(await page.locator("[data-detail-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
-    await activate(controls["zoom-out"], "zoom-out");
-    await page.keyboard.press("Tab");
-    const focused = await page.locator(":focus").evaluate((node) => ({ outline: getComputedStyle(node).outlineStyle, width: parseFloat(getComputedStyle(node).outlineWidth) }));
-    assert(focused.outline !== "none" && focused.width >= 2, "keyboard focus needs a clear ring");
-    await activate(controls.close, "close");
+    const evidence = [];
+    assert.equal(await status(), "100%");
+    assert.notEqual(await step("+", "zoom-to-cover"), "100%", "+ zooms in");
+    await step("+", "zoom-to-limit");
+    assert.equal(await step("-", "zoom-out"), evidence[0].after, "- steps back one stop");
+    stage("close");
+    await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
-    assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false);
     return evidence;
   });
 
@@ -1231,13 +1193,13 @@ try {
       // Fit on a touch screen touches the top and bottom edges (viewer touch R8): the start point is right of the Fit image,
       // which is the backdrop when the zoom animation has just started and becomes the image when the zoom finishes.
       const x = Math.round(await page.evaluate(() => document.querySelector("[data-detail-expanded-image]").getBoundingClientRect().right) + 20);
-      await page.evaluate(() => document.querySelector("[data-detail-zoom-in]").click());
+      await page.keyboard.press("+");
       const target = await page.evaluate((x) => document.elementFromPoint(x, 265)?.matches("[data-detail-viewport]"), x);
       assert(target, "swipe must start on the backdrop while the zoom animation runs");
       await touch({ x, y: 265 }, { x, y: 83 });
       assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
       stage(`${locale}-backdrop-tap-closes`);
-      await page.evaluate(() => document.querySelector("[data-detail-zoom-out]").click());
+      await page.keyboard.press("-");
       await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       await page.touchscreen.tap(20, 300);
       await page.waitForFunction(() => !document.querySelector("#detail-dialog").open);
@@ -1511,16 +1473,16 @@ try {
     const opening = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
       animations: window.__ttViewerProbe.animations,
-      focus: document.activeElement?.matches("[data-detail-close]"),
+      focus: document.activeElement?.matches("[data-detail-dialog]"),
     }));
     assert(opening.locks.includes("hidden"), "viewer open must own document scroll lock");
     assert(opening.animations.some(({ duration, state }) => duration === 300 && state === "opening"),
       "primary to viewer open morph must remain");
-    assert.equal(opening.focus, true, "viewer open must focus close control");
+    assert.equal(opening.focus, true, "viewer open must focus the dialog (no close button, owner 2026-11-14)");
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
 
     stage("viewer-close-morph");
-    await page.locator("[data-detail-close]").click();
+    await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     const closed = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
@@ -1538,7 +1500,7 @@ try {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.locator("[data-detail-expand]").click();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
-    await page.locator("[data-detail-close]").click();
+    await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     const reduced = await page.evaluate(() => ({
       locks: [document.body.style.overflow, document.documentElement.style.overflow],
@@ -2217,30 +2179,10 @@ try {
     stage("viewer-controls"); await expandControl.click();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open);
     await assertNoBack();
-    const viewerControls = await page.evaluate(() => [...document.querySelectorAll(
-      "[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]",
-    )].map((node) => ({
-      disabled: node.disabled,
-      hidden: node.hidden,
-      rect: node.getBoundingClientRect().toJSON(),
-      radius: getComputedStyle(node).borderRadius,
-      stroke: getComputedStyle(node.querySelector("svg")).strokeWidth,
-    })));
-    for (const control of viewerControls.filter((control) => !control.hidden)) {
-      assert(Math.abs(control.rect.width - 36) <= 0.1 && Math.abs(control.rect.height - 36) <= 0.1);
-      assert.equal(control.radius, "0px"); assert.equal(control.stroke, "2px");
-    }
-    const zoomOut = page.locator("[data-detail-zoom-out]");
-    const disabledBackground = await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor);
-    await zoomOut.hover(); await page.evaluate(frame); await settleHover(zoomOut);
-    assert.equal(await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor), disabledBackground,
-      "disabled zoom-out received active hover treatment");
-    const zoomIn = page.locator("[data-detail-zoom-in]");
-    const zoomBackground = await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor);
-    await zoomIn.hover(); await page.evaluate(frame); await settleHover(zoomIn);
-    assert.notEqual(await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor), zoomBackground);
+    assert.equal(await page.locator("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]").count(), 0,
+      "the viewer has no close or zoom buttons (owner 2026-11-14)");
     assert.equal(await page.locator("[data-detail-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
-    await page.locator("[data-detail-close]").click();
+    await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");
     await assertNoBack();
@@ -2275,7 +2217,7 @@ try {
     await page.locator('[data-site-header] a[href="/vi/commercial/"]').click();
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "commercial");
     await assertNoBack();
-    return { compact, expandHover, reducedMotion, viewerControls };
+    return { compact, expandHover, reducedMotion };
   });
 
   await caseRun("navbar-keeps-picked-group", { width: 1440, height: 900 }, async (page, stage) => {

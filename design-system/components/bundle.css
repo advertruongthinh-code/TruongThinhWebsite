@@ -6482,6 +6482,10 @@ body.is-masonry-browse .site-footer {
   color: var(--white);
 }
 
+.detail-dialog:focus {
+  outline: none;
+}
+
 .detail-dialog::backdrop {
   /* Every device gets the same 0,85 dark layer and Kính blur (advertising-detail R9; owner 2026-10-26 dropped the no-blur phone exception). */
   background: rgba(32, 33, 32, 0.85);
@@ -6545,81 +6549,21 @@ body.is-masonry-browse .site-footer {
   user-select: none;
 }
 
-.detail-dialog__close,
-.detail-dialog__controls button {
-  display: inline-grid;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  place-items: center;
-  color: var(--ink);
-  font-size: 1.35rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color var(--dur-fast) ease-out;
-}
-
-.detail-dialog__close,
-.detail-dialog__controls button {
-  background: #fff;
-}
-
-@media (hover: hover) {
-  .detail-dialog__close:not(:disabled):hover,
-  .detail-dialog__controls button:not(:disabled):hover {
-    background: var(--media-control-hover);
-  }
-}
-
-.detail-dialog__close:focus-visible,
-.detail-dialog__controls button:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 3px #fff;
-}
-
-.detail-dialog__close:not(:disabled):active,
-.detail-dialog__controls button:not(:disabled):active {
-  background: var(--media-control-active);
-}
-
-.detail-dialog__controls button:disabled {
-  color: #91918c;
-  background: #f3f3f1;
-  cursor: default;
-  transition: none;
-}
-
-.detail-dialog__close svg,
-.detail-dialog__controls button svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
-  stroke-width: 2;
-}
-
-.detail-dialog__close {
+/* The thumbnail strip of the viewer (primary-video-player R8): same strip as the primary, stacked vertically on the left, 16px from the edge and centered
+   vertically, height following the thumbnail count (owner 2026-11-14; before: a row at the bottom). The fit leaves 16px between the strip and the image
+   (detail-viewer measureFit). */
+.detail-dialog__thumbs {
+  --scroll-fade-direction: to bottom;
   position: absolute;
-  top: calc(var(--viewer-visible-top, 0px) + max(1rem, env(safe-area-inset-top)));
+  top: calc(50% + (var(--viewer-visible-top, 0px) - var(--viewer-visible-bottom, 0px)) / 2);
   left: calc(var(--viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
   z-index: 2;
-}
-
-/* The thumbnail strip under the viewer replaces the two arrows (primary-video-player R8, owner 2026-10-25): same strip as the primary, centered between
-   the bottom inside Fit's 80px margin, width following the thumbnail count and leaving room for the zoom button column on the right. */
-.detail-dialog__thumbs {
-  position: absolute;
-  bottom: calc(var(--viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
-  left: 50%;
-  z-index: 2;
+  flex-direction: column;
   width: max-content;
-  max-width: calc(round(down, 100% - 2 * (2rem + 36px) + 8px, 68px) - 8px);
-  translate: -50% 0;
+  max-height: calc(round(down, 100% - 2rem + 8px, 68px) - 8px);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  translate: 0 -50%;
   transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
 }
 
@@ -6627,10 +6571,10 @@ body.is-masonry-browse .site-footer {
   outline-color: #fff;
 }
 
-/* When the mouse is still the strip shrinks down and fades (owner 2026-10-26). */
+/* When the mouse is still the strip slides out to the left and fades (owner 2026-10-26). */
 .detail-dialog__thumbs[data-viewer-idle] {
   opacity: 0;
-  translate: -50% 1rem;
+  translate: -1rem -50%;
   pointer-events: none;
 }
 
@@ -6675,29 +6619,6 @@ body.is-masonry-browse .site-footer {
   inset: auto;
   width: var(--viewer-fit-width);
   height: var(--viewer-fit-height);
-}
-
-.detail-dialog__controls {
-  position: absolute;
-  right: calc(var(--viewer-visible-right, 0px) + max(1rem, env(safe-area-inset-right)));
-  bottom: calc(var(--viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
-  z-index: 2;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-dialog__controls output {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 .detail-dialog[hidden],
@@ -6960,8 +6881,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 
 }
 
-/* The touch screen opens, zooms and closes the viewer by gesture; the remaining buttons are for screen readers and show
-   again on keyboard focus (advertising-viewer-touch-zoom R7, R8). */
+/* The touch screen opens the viewer by tapping and hides the thumbnail strip too (swipe changes media). */
 @media (hover: none) and (pointer: coarse) {
   /* Like manipulation but without pan-x: a horizontal swipe drags the media strip with the finger (media-card R6). */
   .detail-view__hero-frame {
@@ -6969,8 +6889,6 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 
   .detail-view__image-action.detail-view__expand:not(:focus-visible, [data-detail-expand-video]),
-  .detail-dialog__close:not(:focus-visible),
-  .detail-dialog__controls button:not(:focus-visible),
   .detail-dialog__thumbs:not(:focus-within) {
     position: absolute;
     width: 1px;
@@ -6987,8 +6905,6 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 
 @media (prefers-reduced-motion: reduce) {
   .detail-view__image-action,
-  .detail-dialog__close,
-  .detail-dialog__controls button,
   .detail-dialog__thumbs {
     transition: none !important;
   }

@@ -11,33 +11,16 @@ addEventListener("load", () => requestAnimationFrame(() => {
 }));</script>
 <div style="position: relative; height: 900px; overflow: hidden; transform: translateZ(0); background: var(--paper);">
 <div data-ds-frame>
-<dialog class="detail-dialog" id="detail-dialog" data-detail-dialog="" aria-labelledby="detail-dialog-title" open="" data-viewer-state="open" data-ds-focus="" style="--viewer-visible-top: 0px; --viewer-visible-left: 0px; --viewer-visible-right: 0px; --viewer-visible-bottom: 0px;">
+<dialog class="detail-dialog" id="detail-dialog" data-detail-dialog="" tabindex="-1" aria-labelledby="detail-dialog-title" open="" data-viewer-state="open" data-ds-focus="" style="--viewer-visible-top: 0px; --viewer-visible-left: 0px; --viewer-visible-right: 0px; --viewer-visible-bottom: 0px;">
             <h2 class="sr-only" id="detail-dialog-title" data-en="Expanded photo" data-vi="Xem ảnh lớn">
               Xem ảnh lớn
             </h2>
-            <button class="detail-dialog__close" type="button" data-detail-close="" aria-label="Đóng ảnh" data-en-aria-label="Close image">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M5 5l14 14M19 5L5 19"></path>
-              </svg>
-            </button>
             <div class="detail-dialog__viewport is-media-settled" data-detail-viewport="">
-              <img data-detail-expanded-image="" src="../../preview-media/signage-raised-letters-26-owner-20260924.webp" width="3072" height="2304" decoding="async" alt="Chữ nổi Alu và Formex" data-detail-id="signage-raised-letters-26" fetchpriority="high" style="width: 986.667px; height: 740px; transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1); cursor: default;">
+              <img data-detail-expanded-image="" src="../../preview-media/signage-raised-letters-26-owner-20260924.webp" width="3072" height="2304" decoding="async" alt="Chữ nổi Alu và Formex" data-detail-id="signage-raised-letters-26" fetchpriority="high" style="width: 1088px; height: 816px; transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1); cursor: default;">
               <div class="detail-dialog__video" data-detail-video-host="" hidden="" style="--viewer-fit-width: 986.6666666666666px; --viewer-fit-height: 740px;"></div>
             </div>
             <div class="detail-view__media-thumbs detail-dialog__thumbs" role="group" aria-label="Media sản phẩm" data-en-aria-label="Product media" data-detail-viewer-thumbs="" hidden=""></div>
-            <div class="detail-dialog__controls" role="group" aria-label="Điều khiển phóng ảnh" data-en-aria-label="Photo zoom controls">
-              <button type="button" data-detail-zoom-in="" aria-label="Phóng to" data-en-aria-label="Zoom in">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 5v14M5 12h14"></path>
-                </svg>
-              </button>
-              <button type="button" data-detail-zoom-out="" aria-label="Thu nhỏ" data-en-aria-label="Zoom out" disabled="">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M5 12h14"></path>
-                </svg>
-              </button>
-              <output class="sr-only" data-detail-zoom-status="" aria-live="polite">100%</output>
-            </div>
+            <output class="sr-only" data-detail-zoom-status="" aria-live="polite">100%</output>
           </dialog>
 </div>
 </div>

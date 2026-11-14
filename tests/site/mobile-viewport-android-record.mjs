@@ -277,12 +277,13 @@ try {
       await evaluate("document.querySelector('[data-detail-expand]').click()"); await pause(600);
       await sample("viewer-open"); await shot("viewer-open");
       await recordLayout(`${route}-viewer-open`);
-      await evaluate("document.querySelector('[data-detail-zoom-in]').click()"); await sample("viewer-zoom");
+      // No zoom buttons (owner 2026-11-14): the + key steps the zoom.
+      await evaluate("document.querySelector('[data-detail-dialog]').dispatchEvent(new KeyboardEvent('keydown', { key: '+', bubbles: true, cancelable: true }))"); await sample("viewer-zoom");
       // Touch stops a running zoom in place (viewer touch zoom R6), so let the zoom settle first.
       for (let i = 0; i < 30 && await evaluate("document.querySelector('#detail-dialog').dataset.viewerState") !== "open"; i++) await pause(100);
       await swipe("up"); await swipe("down"); await shot("viewer-after-touch");
       await recordLayout(`${route}-viewer-after-touch`);
-      await evaluate("document.querySelector('[data-detail-close]').click()"); await pause(500);
+      await evaluate("history.back()"); await pause(500);
       assert.equal(await evaluate("document.querySelector('#detail-dialog').open"),false,'viewer closes on Android');
     }
   }

@@ -39,8 +39,9 @@ const readState = () => {
     cover: Math.max(viewport.clientWidth / image.clientWidth, viewport.clientHeight / image.clientHeight),
     open: dialog.open, phase: dialog.dataset.viewerState,
     status: document.querySelector("[data-detail-zoom-status]").textContent,
-    plusDisabled: document.querySelector("[data-detail-zoom-in]").disabled,
-    minusDisabled: document.querySelector("[data-detail-zoom-out]").disabled,
+    // No zoom buttons (owner 2026-11-14): "plus disabled" is the Max stop, "minus disabled" is Fit.
+    plusDisabled: Math.hypot(matrix.a, matrix.b) >= 2 * Math.max(viewport.clientWidth / image.clientWidth, viewport.clientHeight / image.clientHeight) - 0.03,
+    minusDisabled: document.querySelector("[data-detail-zoom-status]").textContent === "100%",
     scroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
     pageZoom: visualViewport.scale,
     animations: image.getAnimations().length,
@@ -99,15 +100,16 @@ async function openViewer(page, touch, { double = false } = {}) {
   await settled(page);
 }
 
-// R8: on a touch screen the buttons sit outside the view but assistive tech can still click them.
-const press = (page, hook) => page.evaluate((selector) => document.querySelector(selector).click(), `[${hook}]`);
+// The viewer has no zoom buttons (owner 2026-11-14): + and - keys step the zoom, sent as key events so a real phone gets them too.
+const zoomKey = (key) => document.querySelector("[data-detail-dialog]").dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+const press = (page, key) => page.evaluate(zoomKey, key);
 
-// The viewer no longer has a reset button (owner 2026-10-25): pressing - until Fit, the - button is disabled at Fit.
+// The viewer has no reset button (owner 2026-10-25): press - until Fit.
 async function resetZoom(page) {
-  while (await page.evaluate(() => {
-    const zoomOut = document.querySelector("[data-detail-zoom-out]");
-    return !zoomOut.disabled && (zoomOut.click(), true);
-  })) await settled(page);
+  while (await page.evaluate(() => document.querySelector("[data-detail-zoom-status]").textContent !== "100%")) {
+    await press(page, "-");
+    await settled(page);
+  }
   await settled(page);
 }
 
@@ -194,9 +196,9 @@ async function runPhone({ locale, width, height }) {
   const state = () => page.evaluate(readState);
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
-  // R7, R8: no button is shown on the primary or in the viewer, and the page does not zoom on double tap.
-  const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out"]
-    .filter((hook) => document.querySelector(`[data-detail-${hook}]`).getBoundingClientRect().width > 1));
+  // R7, R8: no button is shown on the primary or in the viewer (the viewer has none, owner 2026-11-14), and the page does not zoom on double tap.
+  const visibleButtons = await page.evaluate(() => [...document.querySelectorAll("[data-detail-expand], #detail-dialog button:not([data-detail-viewer-thumbs] button)")]
+    .filter((node) => node.getBoundingClientRect().width > 1).map((node) => node.outerHTML.slice(0, 60)));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   // R4, R7: the second tap of the double tap that opens the viewer is swallowed, and the image stays at Fit.
   check(start.scale === 1 && start.x === 0 && start.y === 0, `${label} R7: double tap open zoomed the image ${start.scale}`);
@@ -232,10 +234,10 @@ async function runPhone({ locale, width, height }) {
   await settled(page);
   const between = await state();
   check(between.scale > 1.05 && between.scale < between.cover * 0.95, `${label} R5: pinch did not stop between stops (${between.scale})`);
-  await press(page, "data-detail-zoom-in");
+  await press(page, "+");
   await settled(page);
   check(near((await state()).scale, between.cover), `${label} R5: + from between stops did not reach Cover`);
-  await press(page, "data-detail-zoom-out");
+  await press(page, "-");
   await settled(page);
   const fitAgain = await state();
   check(near(fitAgain.scale, 1) && fitAgain.minusDisabled, `${label} R5: - did not return to Fit`);
@@ -426,7 +428,7 @@ async function runMotion() {
         const image = document.querySelector("[data-detail-expanded-image]");
         const viewport = document.querySelector("[data-detail-viewport]");
         const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-        document.querySelector("[data-detail-zoom-in]").click();
+        document.querySelector("[data-detail-dialog]").dispatchEvent(new KeyboardEvent("keydown", { key: "+", bubbles: true, cancelable: true }));
         let shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
         for (let i = 0; i < 10 && shown.a <= 1; i++) {
           await frame();
@@ -474,15 +476,15 @@ async function runDesktop() {
   check(page.url() === url, "desktop R10: Back left detail instead of closing the viewer");
   await page.locator("[data-detail-expand]").click();
   await settled(page);
-  await page.locator("[data-detail-close]").click();
+  await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
   await page.waitForTimeout(300);
-  check(page.url() === url, "desktop R10: closing by button changed the URL");
+  check(page.url() === url, "desktop R10: closing by Escape changed the URL");
   // Back during the 250ms close animation consumes only the viewer's entry, not one more.
   await page.locator("[data-detail-expand]").click();
   await settled(page);
   await page.evaluate(() => {
-    document.querySelector("[data-detail-close]").click();
+    document.querySelector("[data-detail-dialog]").dispatchEvent(new Event("cancel", { cancelable: true }));
     history.back();
   });
   await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]").open);
@@ -491,7 +493,7 @@ async function runDesktop() {
     `desktop R10: Back during the close animation left detail (${page.url()})`);
   await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leave the page: return before unload
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
-    .catch(() => check(false, "desktop R10: Back after a button close did not leave detail"));
+    .catch(() => check(false, "desktop R10: Back after an Escape close did not leave detail"));
   await context.close();
 }
 
