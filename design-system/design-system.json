@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-14T10:30:00Z",
+    "at": "2026-11-14T11:50:00Z",
     "via": "Claude Code",
-    "note": "#914 bỏ mép mờ Flow và khóa phóng to trước khi ảnh tải; #919 viewer PC dãy thumbnail dọc bên trái, bỏ nút đóng và nút zoom (Viewer, Primary, bundle.css)"
+    "note": "#925 lề và cột News trang chủ như Espacio (NewsList); #931 gallery ít ảnh tự cao cho kín hàng (Gallery), vệt chờ ảnh không tràn khỏi khung (LoadSweep); #930 SEO; bundle.css"
   }
 }
