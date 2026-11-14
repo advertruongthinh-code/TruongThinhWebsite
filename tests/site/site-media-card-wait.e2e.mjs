@@ -272,15 +272,23 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
         || (document.querySelector("[data-detail-dialog]")?.open && !document.querySelector("[data-detail-dialog]").dataset.viewerState));
       await page.evaluate(() => {
         window.__waitOpacities = [];
+        window.__flowOnEntry = null;
         const sample = () => {
           const wait = document.querySelector(".detail-dialog__wait");
           if (wait) window.__waitOpacities.push(Number(getComputedStyle(wait).opacity));
+          // Owner 2026-11-14: the lane Flow already runs at full strength on the first frame its lane shows on screen.
+          const frame = wait?.querySelector(":scope > .masonry-grid__cta-frame");
+          if (frame && window.__flowOnEntry === null && wait.getBoundingClientRect().left < innerWidth) {
+            window.__flowOnEntry = { opacity: Number(getComputedStyle(frame).opacity), state: frame.dataset.masonryFlowState };
+          }
           requestAnimationFrame(sample);
         };
         sample();
       });
       const state = await page.evaluate(async (id) => {
-        document.querySelector(`[data-detail-viewer-select="${id}"]`).click();
+        const thumb = document.querySelector(`[data-detail-viewer-select="${id}"]`);
+        const pending = "mediaPending" in thumb.dataset;
+        thumb.click();
         await new Promise(requestAnimationFrame);
         await new Promise(requestAnimationFrame);
         const image = document.querySelector("[data-detail-expanded-image]");
@@ -289,8 +297,10 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
         return { moving: image.getAnimations().filter((animation) => animation.playState === "running").length,
           wait: wait && { colors: wait.dataset.mediaWait || null, flow: Boolean(wait.querySelector(":scope > .masonry-grid__cta-frame")),
             moving: wait.getAnimations().filter((animation) => animation.playState === "running").length, box: box(wait) },
-          image: box(image) };
+          image: box(image), pending };
       }, `${fixtureId}-wait-1`);
+      // Owner 2026-11-14: a thumbnail whose media's large file has not loaded runs the light streak.
+      assert(state.pending, "the thumbnail of a loading media runs the light streak");
       assert(state.moving > 0, `the viewer strip runs within two frames of the press: ${JSON.stringify(state)}`);
       assert(state.wait && state.wait.moving > 0, `the target carries its wait layer along: ${JSON.stringify(state)}`);
       assert.equal(state.wait.box.height, state.image.height, "the wait layer has the image's fit size");
@@ -305,6 +315,13 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
       assert.equal(shown.visibility, "visible");
       const opacities = await page.evaluate(() => window.__waitOpacities);
       assert(opacities.some((opacity) => opacity > 0.05 && opacity < 0.95), `the wait layer crossfades out: ${JSON.stringify(opacities.slice(-12))}`);
+      if (!touch) {
+        const entry = await page.evaluate(() => window.__flowOnEntry);
+        assert(entry && entry.opacity === 1 && entry.state === "running", `Flow runs at full strength as its lane enters: ${JSON.stringify(entry)}`);
+      }
+      // The streak crossfades out once the large file has loaded; both strips drop the mark.
+      await page.waitForFunction((id) => [...document.querySelectorAll(`[data-detail-media-select="${id}"], [data-detail-viewer-select="${id}"]`)]
+        .every((button) => !("mediaPending" in button.dataset) && !("mediaSettling" in button.dataset)), `${fixtureId}-wait-1`, { timeout: 15_000 });
       assert.deepEqual(errors, []);
     } finally {
       await context.close();

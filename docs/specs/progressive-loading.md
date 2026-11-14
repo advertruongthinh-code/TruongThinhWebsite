@@ -230,10 +230,10 @@ bản vừa khung: mọi item masonry (`[data-masonry-item]`: card lưới, card
 `fetch` và đếm byte: số byte đã về đạt ngưỡng R2 của cỡ đang hiện thì phần đã về (blob) thay bản đang hiện, thêm một lần ở nửa
 đường còn lại, rồi bản đủ (cũng là blob, nên bản gốc chỉ request một lần dù header cache thế nào). Lần nào cũng `decode()` xong mới
 đổi `<source>` JXL hoặc `src`. Không có ngưỡng (WebP, cỡ không có) thì tải cả file bằng `Image` như trước. Viewer mở trên bản
-đủ của primary nếu đã có; primary còn đang tải thì viewer mở trên bản đang hiện và tải bản gốc riêng. Phone không lên bản gốc (R1).
+đủ của primary nếu đã có; không thì mở trên bản đang hiện và tự tải bản gốc, không qua bước này. Phone không lên bản gốc (R1).
 
-- Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
-  Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
+- Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải (lưới dưới detail đang mở,
+  `content-visibility: hidden`, không tính); mỗi lượt một ảnh. Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
 - Đang chạy reveal hoặc ảnh đang ẩn (slide hero chưa tới lượt) thì để lượt sau; ảnh có `filter` (nền mờ primary) không lên.
 - Ảnh đã là bản gốc, đã ra khỏi màn hình hoặc bị gỡ thì bỏ. Code ở script `<head>` (`head-inline.js`), một chỗ cho mọi trang.
 

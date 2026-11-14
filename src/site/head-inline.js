@@ -56,9 +56,11 @@ document.documentElement.classList.add("media-gate");
   let scrolledAt = 0;
   let upgrading = false;
   let upgradeTimer = 0;
+  // checkVisibility: the grid kept under an open detail (content-visibility: hidden, detail.css) keeps its layout, so its lazy images
+  // sit inside the viewport but never load and would hold every upgrade.
   const visible = (node) => {
     const { top, bottom, width } = node.getBoundingClientRect();
-    return width > 0 && bottom > 0 && top < innerHeight;
+    return width > 0 && bottom > 0 && top < innerHeight && (node.checkVisibility?.() ?? true);
   };
   const scheduleUpgrade = (wait = SCROLL_IDLE_MS) => {
     if (!upgradeTimer && !upgrading && inView.size) upgradeTimer = setTimeout(upgradeNext, wait);
@@ -179,10 +181,11 @@ document.documentElement.classList.add("media-gate");
   // Masonry cards, including related cards and suggestion cards on detail, keep the frame-fit version even if a portrait card is taller than 60% of the viewport (owner
   // choice 2026-10-31): upgrading related cards to the original made the PC stall 200-480ms on each 4K JXL decode between two scrolls (measured 2026-11-09).
   // Phones do not upgrade to the 4K original (owner 2026-11-07, media query like the build's phone <source>).
+  // The "Xem lớn hơn" viewer loads its own original (detail-viewer showImage, R3): upgrading it too requested the original three times.
   const phone = window.TruongThinhEnv.phone.matches;
   const watchUpgrade = (image) => {
     if (phone || !VARIANT.test(image.currentSrc)
-      || image.closest("[data-masonry-item]")) return;
+      || image.closest("[data-masonry-item], [data-detail-dialog]")) return;
     upgradeObserver.observe(image);
     resized.observe(image);
   };

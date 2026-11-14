@@ -2291,6 +2291,9 @@ em {
 /* The content image frame waits with a light streak until the head script adds .is-media-settled after load and decode; without JavaScript there is no .media-gate so the image shows normally. */
 .media-gate .media-frame:not(.is-media-settled) {
   overflow: clip;
+  /* Makes the frame the containing block of the absolute ::before streak, so overflow clips it even when the frame is position: static
+     (image-single, image-pair figures); without it the 400%-wide streak escaped and left white bands over the images above. */
+  contain: paint;
   background-color: var(--media-loading-surface);
 }
 
@@ -2300,8 +2303,11 @@ em {
 }
 
 /* A strip 400% of the frame wide slides -75% to 0 so the streak enters from beyond the left edge and exits fully past the right edge; animate transform only.
-   The white strip with 20% center is as wide as the original, 17 raised-cosine color stops so the edge fades out, no break (docs/specs/media-delivery.md R6). */
-.media-gate .media-frame:not(.is-media-settled)::before {
+   The white strip with 20% center is as wide as the original, 17 raised-cosine color stops so the edge fades out, no break (docs/specs/media-delivery.md R6).
+   A media thumbnail of the primary or viewer strip runs the same streak over its own picture until that media's large file has loaded, then the
+   streak crossfades out over the picture (owner 2026-11-14). */
+.media-gate .media-frame:not(.is-media-settled)::before,
+.detail-view__media-thumbs button:is([data-media-pending], [data-media-settling])::before {
   position: absolute;
   inset: 0 auto 0 0;
   width: 400%;
@@ -2330,6 +2336,16 @@ em {
   }
 }
 
+.detail-view__media-thumbs button[data-media-settling]::before {
+  animation: media-sweep 1.6s linear infinite, media-fade-out var(--dur-fade) var(--ease-expo-out) forwards;
+}
+
+@keyframes media-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes media-fade-in {
   from {
     opacity: 0;
@@ -2344,7 +2360,8 @@ em {
 
 @media (prefers-reduced-motion: reduce) {
   /* No sweep; the whole layer gently brightens and darkens on a 2s cycle. */
-  .media-gate .media-frame:not(.is-media-settled)::before {
+  .media-gate .media-frame:not(.is-media-settled)::before,
+  .detail-view__media-thumbs button[data-media-pending]::before {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 10%);
@@ -3778,7 +3795,10 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 /* Like the Espacio block "The balance within the spaces": thin-stroke title centered, image strip of equal height,
    width following the real image ratio, caption under the image (detail-pages R7). */
 .detail-gallery {
-  --gallery-image-height: min(50vw, 45rem);
+  --gallery-gap: 20px;
+  /* Height that makes the images exactly fill the track; without --gallery-ratio (Homes page, many images) it is ~0 and never wins. */
+  --gallery-fill-height: calc((100vw - 2 * var(--gutter) - var(--gallery-gaps, 0) * var(--gallery-gap)) / var(--gallery-ratio, 1000));
+  --gallery-image-height: max(min(50vw, 45rem), var(--gallery-fill-height));
   padding: 35px 0;
   overflow: hidden;
   background: var(--white);
@@ -3871,11 +3891,18 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 @media (max-width: 750px) {
   .detail-gallery {
-    --gallery-image-height: 75vw;
+    --gallery-image-height: max(75vw, var(--gallery-fill-height));
   }
 
   .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
     gap: 10px;
+  }
+}
+
+/* Swiper spaceBetween is 10 below 600px. */
+@media (max-width: 599px) {
+  .detail-gallery {
+    --gallery-gap: 10px;
   }
 }
 

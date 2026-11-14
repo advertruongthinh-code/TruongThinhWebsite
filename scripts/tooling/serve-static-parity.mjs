@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, loadBlockContent, newsListRoutes } from "../site/block-pages.mjs";
-import { projectListRoutes } from "../site/project-list.mjs";
+import { RENAMED_FILTER_SLUGS, projectListRoutes } from "../site/project-list.mjs";
 
 export const ROUTES = new Map([
   ["/vi/", "index.html"],
@@ -27,6 +27,8 @@ export const ROUTES = new Map([
   ...blockRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))),
   // The all-projects page and the filter-by-sector pages (projects R2).
   ...projectListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
+  // Old path of a renamed filter: redirect page (projects R2).
+  ...Object.keys(RENAMED_FILTER_SLUGS).flatMap((slug) => ["vi", "en"].map((locale) => [`/${locale}/projects/${slug}/`, `${locale}/projects/${slug}/index.html`])),
   // The News list page, group pages and paginated pages (news R2).
   ...newsListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).news),
   ["/vi/about/", "about/index.html"],

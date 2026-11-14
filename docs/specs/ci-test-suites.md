@@ -57,7 +57,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |
 | `home` | page-home | hero (kể cả chuyển động zoom của slide), portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
-| `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết; đầu trang News và đầu bài News: vị trí và motion mở trang (`news-head-motion.e2e.mjs`); hero trang công trình, nút tới khối Zalo, motion thân bài (`project-hero-motion.e2e.mjs`); lề và cột News trang chủ như Espacio từ 384 tới 1920 (`home-news-layout.e2e.mjs`) |
+| `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết; đầu trang News và đầu bài News: vị trí và motion mở trang (`news-head-motion.e2e.mjs`); hero trang công trình, nút tới khối Zalo, motion thân bài (`project-hero-motion.e2e.mjs`); lề và cột News trang chủ như Espacio từ 384 tới 1920 (`home-news-layout.e2e.mjs`); gallery trang công trình ít ảnh vẫn kín hàng (`gallery-fill.e2e.mjs`) |
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
 | `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route, bấm filter khi cache xếp card đang tải, preload cache từ head |
@@ -68,7 +68,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
-| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, kính mờ lộ ảnh |
+| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, kính mờ lộ ảnh, vệt chờ không tràn khỏi khung (`media-sweep-contained.e2e.mjs`) |
 | `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo

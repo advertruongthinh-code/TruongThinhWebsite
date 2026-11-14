@@ -28,6 +28,8 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Đổi media bằng dãy thumbnail: dải trượt ngay, cả khi ảnh đích chưa tải; ảnh chưa decode nằm dưới lớp chờ của
   [Primary](../Primary/README.md) (PC Flow mép sắc, điện thoại lớp 4 màu), cỡ bằng ảnh fit, decode xong thì
   crossfade sang ảnh; ảnh đã tải hiện ngay (owner 2026-11-13, [media-card R6](../../../docs/specs/media-card.md#r6-media-trong-primary)).
+  Flow của ảnh đích đã chạy đủ sáng ngay khi làn bắt đầu trượt vào, không lộ kính mờ rồi Flow mới hiện; thumbnail của ảnh
+  chưa tải có [Vệt sáng](../LoadSweep/README.md) như dãy Primary (owner 2026-11-14).
 - Nền mờ vào `300ms`, ra `250ms`, cùng đường `--ease-viewer` (`cubic-bezier(0.55, 0, 0, 1)`); reduced motion bỏ transition.
 
 ## Chú thích thuật ngữ

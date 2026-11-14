@@ -15,7 +15,7 @@ import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
 import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
-import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage } from "./project-list.mjs";
+import { RENAMED_FILTER_SLUGS, buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { PUBLIC_ORIGIN, escapeHtml, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
@@ -369,6 +369,11 @@ for (const listPage of projectListPages(blockContent.projects)) {
   const destination = path.join(outputRoot, projectListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderProjectListPage(advertisingFrame, listPage, projectArtifact), "utf8");
+}
+for (const [oldSlug, newSlug] of Object.entries(RENAMED_FILTER_SLUGS)) for (const locale of ["vi", "en"]) {
+  const destination = path.join(outputRoot, locale, "projects", oldSlug, "index.html");
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, renderRedirectPage(`/${locale}/projects/${newSlug}/`), "utf8");
 }
 // Image sitemap (media-seo R5): one url per card page, one image:loc per media (video uses its poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>

@@ -18,7 +18,7 @@ balance within the spaces" của Espacio interior-design. Markup
   thường đen 20%, chấm active `ink`, bấm để tới ảnh; dưới 600px chấm động.
 - Mọi ảnh cao `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo tỷ lệ thật
   của ảnh (`height` cố định, `width: auto`, giữ `width`/`height` trên `img`),
-  không crop. Khung `.detail-gallery__media` nền `media-loading-surface`;
+  không crop. Ít ảnh không phủ hết track (khối `gallery-carousel` ghi `--gallery-ratio`, `--gallery-gaps`) thì cả hàng cao lên cho kín. Khung `.detail-gallery__media` nền `media-loading-surface`;
   hover không zoom, chỉ con trỏ grab.
 - Caption `figcaption` dưới ảnh 10px, label 0.8rem, 700, hoa, màu `ink`;
   không nới bề rộng figure, chữ dài xuống dòng.

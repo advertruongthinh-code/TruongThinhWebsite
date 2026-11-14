@@ -153,7 +153,7 @@
     },
     "block-pages": {
       "specs": ["layout-library", "projects", "news"],
-      "tests": ["node tests/site/block-pages.e2e.mjs", "node tests/site/news-head-motion.e2e.mjs", "node tests/site/home-news-layout.e2e.mjs",
+      "tests": ["node tests/site/block-pages.e2e.mjs", "node tests/site/news-head-motion.e2e.mjs", "node tests/site/home-news-layout.e2e.mjs", "node tests/site/gallery-fill.e2e.mjs",
         "node tests/site/project-hero-motion.e2e.mjs"]
     },
     "entry": {
@@ -280,7 +280,7 @@
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages", "progressive-loading"],
       "tests": ["node tests/site/image-loading-frame.e2e.mjs", "node tests/site/image-reveal-complete.e2e.mjs", "node tests/site/image-upgrade.e2e.mjs",
-        "node tests/site/image-format-fallback.e2e.mjs"]
+        "node tests/site/image-format-fallback.e2e.mjs", "node tests/site/media-sweep-contained.e2e.mjs"]
     },
     "media-card": {
       "specs": ["media-card", "glass-surface", "video-delivery"],
