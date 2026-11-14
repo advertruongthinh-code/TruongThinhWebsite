@@ -1277,6 +1277,8 @@ export function createSharedSkeletonFlowLayer() {
     // Written only when a frame moves or appears, so a still grid costs no style work.
     clip = clip ? `path("${clip}")` : "inset(50%)";
     if (clip !== lastClip) canvas.style.clipPath = lastClip = clip;
+    // The drawing buffer is not preserved, so a reader copies it right here, in the same task as the draw.
+    layer.afterDraw?.();
     frameId = requestAnimationFrame(tick);
   }
 
@@ -1293,8 +1295,10 @@ export function createSharedSkeletonFlowLayer() {
     resume();
   });
 
-  return {
+  const layer = {
     canvas,
+    // Called after each frame the layer draws; the primary's live blur background copies the Flow from the canvas here.
+    afterDraw: null,
     // Leaving the document does not enter BFCache: return the context exactly once.
     dispose() {
       entries.clear();
@@ -1319,10 +1323,14 @@ export function createSharedSkeletonFlowLayer() {
         if (entries.size || !frameId) return;
         halt();
         clear();
+        // No more draws: a reader driven by afterDraw takes over its own rhythm.
+        layer.afterDraw?.();
       };
       return {
         backend: "webgl",
         context: null,
+        // The layer canvas this frame draws on: the primary's live blur background copies the frame's area from it.
+        canvas,
         draw() { return true; },
         start() {
           entries.add(entry);
@@ -1358,4 +1366,5 @@ export function createSharedSkeletonFlowLayer() {
       };
     },
   };
+  return layer;
 }

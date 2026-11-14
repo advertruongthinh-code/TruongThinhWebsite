@@ -37,8 +37,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 - [Kính](../Glass/README.md) dạng cung phủ batch làm nền cho CTA: card phía trên
   vẫn nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối.
 
-Cùng khung này phủ kín ảnh [primary](../Primary/README.md) đang chờ ảnh, đủ độ
-đậm (không nhạt dần), gỡ sau khi ảnh hiện; bốn màu Flow lấy từ chính ảnh đó
+Cùng khung này phủ đúng hộp `contain` của ảnh [primary](../Primary/README.md) đang chờ ảnh (PC), không phủ vùng dư, đủ độ
+đậm (không nhạt dần), gỡ sau khi ảnh hiện; vùng dư là zoom blur của chính Flow đang chạy như video đang play: nền realtime chép Flow
+qua `afterDraw` của canvas chung, ngay sau mỗi lần vẽ (owner 2026-11-13); bốn màu Flow lấy từ chính ảnh đó
 (build trích bằng k-means), batch giữ 12 preset. [Media card](../MediaCard/README.md)
 trên PC chờ ảnh bằng chính khung này, cũng với bốn màu của ảnh; điện thoại dùng lớp màu. Flow chạy cả khi đang
 cuộn. Mỗi vùng vẽ trên một canvas WebGL chung ở nửa độ phân giải, là con cuối của vùng đó, nằm trên khung; canvas batch nằm dưới Kính, CTA, còn canvas card nằm trên cả card, canvas primary trên ảnh và dưới nút ảnh:
