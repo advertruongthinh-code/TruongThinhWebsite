@@ -54,3 +54,10 @@ test("PR docs gate requires a Card line linking the Notion card", (t) => {
   const green = run();
   assert.equal(green.status, 0, green.stderr);
 });
+
+// notion.md rule 8: when Notion is unreachable, `Card: chờ tạo` passes and the coordinator backfills.
+test("PR docs gate accepts Card: chờ tạo", (t) => {
+  const { run } = fixture(t, { PR_BODY: "Card: chờ tạo\nTên: x; Status: In progress" });
+  const result = run();
+  assert.equal(result.status, 0, result.stderr);
+});

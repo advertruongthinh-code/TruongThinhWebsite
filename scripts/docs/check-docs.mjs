@@ -117,8 +117,8 @@ if (docsBase) {
   const body = `${prBody}\n${git('log', '--format=%B', `${mergeBase}..HEAD`)}`;
   const changed = git('diff', '--name-only', base).split('\n').filter(Boolean);
   // Card gate (docs-system.md R4, notion.md): every PR names its Notion card. A local run without PR_NUMBER or PR_BODY skips it.
-  if ((PR_NUMBER || process.env.PR_BODY) && !/^Card: https:\/\/(app\.notion\.com|www\.notion\.so)\/\S+/m.test(body)) {
-    errors.push('card: the PR description or a commit message on this branch has no line, alone and unformatted: Card: <link Notion card>');
+  if ((PR_NUMBER || process.env.PR_BODY) && !/^Card: (https:\/\/(app\.notion\.com|www\.notion\.so)\/\S+|chờ tạo)/m.test(body)) {
+    errors.push('card: the PR description or a commit message on this branch has no line, alone and unformatted: Card: <link Notion card> (or Card: chờ tạo when Notion is unreachable)');
   }
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
   for (const spec of specs) {
