@@ -4189,6 +4189,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clearColorWait(heroFrame);
     delete heroFrame.dataset.detailLoading;
     heroFrame.removeAttribute("aria-busy");
+    // The zoom blur stops copying the Flow (drawLiveBackground).
+    startLiveBackground();
   };
   // The primary runs exactly the slow-loading card reveal (loading-glass-and-page-entry R4): Flow turns into frosted glass of the photo,
   // then clears to the photo and spare-area background, all with CARD_REVEAL_MS.
@@ -4322,7 +4324,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Media that has a still frame under the viewer; null when the viewer is closed.
   let liveStill = null;
-  const drawLiveBackground = () => {
+  // A Flow on a shared layer can be copied only right after that layer draws (its buffer is not preserved): the layer then calls the
+  // redraw (afterDraw) instead of the background's own rAF.
+  let liveFlowLayer = null;
+  const LAYER_DRAWN = Symbol("layer drawn");
+  const flowLayerOf = (frame) => {
+    const canvas = skeletonFlowByFrame.get(frame)?.canvas;
+    return canvas ? [...sharedSkeletonFlows.values()].find((layer) => layer?.canvas === canvas) ?? null : null;
+  };
+  const drawLiveBackground = (trigger) => {
     cancelLive = null;
     // A page with no detail (Projects, viewer off) has no primary frame to draw.
     if (!photoView) return;
@@ -4333,11 +4343,21 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!still) liveStill = null;
     else if (liveStill === activePrimaryMediaId) return;
     const strip = still ? null : primaryStrip;
-    const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
-      : [{ node: photoVideo, x: 0 }];
+    // The primary's first-load Flow runs in the media box: the zoom blur blurs it like a playing video (owner 2026-11-13).
+    const flow = !still && !strip && primaryReveal?.frame?.parentElement === heroFrame ? primaryReveal.frame : null;
+    // A strip lane whose media still waits shows its wait layer's Flow instead.
+    const lanes = strip ? strip.lanes.map(({ nodes: [node, wait] }) => ({ node, flow: wait?.laneFlowFrame,
+      x: parseFloat(getComputedStyle(node).translate) || 0 }))
+      : [{ node: photoVideo, flow, x: 0 }];
     // A video with no frame yet (just changed source, seeked, looped) keeps the background just drawn instead of flashing back to the static background image.
-    liveBackground.hidden = (!still && photoView.dataset.detailGlass !== "true") || (!strip && photoVideo.hidden);
-    if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
+    liveBackground.hidden = (!still && photoView.dataset.detailGlass !== "true") || (!strip && !flow && photoVideo.hidden);
+    const layer = liveBackground.hidden ? null : lanes.map((lane) => lane.flow && flowLayerOf(lane.flow)).find(Boolean) ?? null;
+    if (liveFlowLayer && liveFlowLayer !== layer) liveFlowLayer.afterDraw = null;
+    liveFlowLayer = layer;
+    if (layer) layer.afterDraw = () => drawLiveBackground(LAYER_DRAWN);
+    // Outside the layer's draw its canvas reads blank: keep the background just drawn.
+    if (layer && trigger !== LAYER_DRAWN) return;
+    if (!liveBackground.hidden && (strip || flow || drawable(photoVideo))) {
       const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
       const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
       // Draw overflowing the edge by two blur radii so the frame edge does not fade to transparent.
@@ -4353,8 +4373,24 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const top = (liveScratch.height - mediaHeight * scale) / 2;
       const scratch = liveScratch.getContext("2d");
       scratch.clearRect(0, 0, liveScratch.width, liveScratch.height);
-      lanes.forEach(({ node, x }) => {
-        if (drawable(node)) scratch.drawImage(node, left + x * scale, top, mediaWidth * scale, mediaHeight * scale);
+      // Screen position of the media box, to place a Flow frame by its own rect (a lane's Flow layer is wider than the lane).
+      const frameBox = flow || lanes.some((lane) => lane.flow) ? heroFrame.getBoundingClientRect() : null;
+      lanes.forEach(({ node, flow: frame, x }) => {
+        if (!frame || (node !== photoVideo && drawable(node))) {
+          if (drawable(node)) scratch.drawImage(node, left + x * scale, top, mediaWidth * scale, mediaHeight * scale);
+          return;
+        }
+        // The Flow draws on a WebGL canvas, the frame's own or the shared layer's: copy the frame's area of it, mapped by screen rects.
+        const source = skeletonFlowByFrame.get(frame)?.canvas ?? frame.querySelector("canvas");
+        const area = source?.width && source.getBoundingClientRect();
+        const rect = frame.getBoundingClientRect();
+        if (!area?.width || !rect.width) return;
+        const sx = source.width / area.width;
+        const sy = source.height / area.height;
+        const boxLeft = frameBox.left + (frameBox.width - mediaWidth) / 2;
+        const boxTop = frameBox.top + (frameBox.height - mediaHeight) / 2;
+        scratch.drawImage(source, (rect.left - area.left) * sx, (rect.top - area.top) * sy, rect.width * sx, rect.height * sy,
+          left + (rect.left - boxLeft) * scale, top + (rect.top - boxTop) * scale, rect.width * scale, rect.height * scale);
       });
       const context = liveBackground.getContext("2d");
       context.clearRect(0, 0, width, height);
@@ -4362,7 +4398,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       context.drawImage(liveScratch, -bleed, -bleed);
       if (still) liveStill = activePrimaryMediaId;
     }
-    if (!still && (strip || !photoVideo.paused)) queueLive(!strip);
+    if (!still && !layer && (strip || (flow && !liveBackground.hidden) || !photoVideo.paused)) queueLive(!strip && !flow);
   };
   // Draw the next frame immediately (source change, seek, strip close or viewer), after which the draw pass picks its own rhythm.
   const startLiveBackground = () => {
@@ -4613,6 +4649,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.detailLoading = "true";
+      if (reveal.frame) startLiveBackground();
       // decode() rejects on error or when a newer source replaces this one.
       // The background uses its own 240 file: wait for the background too so it does not show after the reveal on a cold cache; a failed background does not block the reveal.
       Promise.all([photoImage.decode(), photoBackground?.decode().catch(() => {})])

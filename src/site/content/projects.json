@@ -3644,61 +3644,47 @@
       "en": "Modern Indochine townhouse"
     },
     "description": {
-      "vi": "Nhà phố hai tầng gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau, vách ngăn ô vòm phay CNC: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A two-storey townhouse in dark walnut, teal encaustic tiles and brass, with a CNC-cut arched screen: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Nhà phố hai tầng gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau, tủ giày có hốc vòm phay CNC: thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A two-storey townhouse in dark walnut, teal encaustic tiles and brass, with a CNC-cut arched niche at the shoe cabinet: design and CNC-cut woodwork by Trường Thịnh."
     },
     "cover": {
-      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng khách nhìn về bếp ăn: sàn gạch bông, kệ TV veneer óc chó và sofa",
-      "altEn": "Living room looking towards the kitchen: encaustic tile floor, walnut-veneer TV wall and sofa"
+      "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
+      "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-1-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng khách nhìn về bếp ăn: sàn gạch bông, kệ TV veneer óc chó và sofa",
-          "altEn": "Living room looking towards the kitchen: encaustic tile floor, walnut-veneer TV wall and sofa"
+          "height": 1728,
+          "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
+          "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-2-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Bếp ăn gỗ óc chó tối với bàn ăn và tủ bếp cánh phào khung, ánh sáng từ cửa sổ sau",
-          "altEn": "Dark walnut kitchen with the dining table and framed cabinet doors, lit by the rear window"
+          "height": 1728,
+          "altVi": "Bếp ăn óc chó: tủ bếp cánh panô khung, cửa sổ dải ngang nhìn ra cây xanh, bàn ăn, đèn thả đồng và ba khay sơn mài trên tường",
+          "altEn": "Walnut kitchen and dining area: framed-panel cabinets, a long low window onto greenery, the dining table, brass pendants and three lacquer trays on the wall"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-8-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Từ sảnh gara nhìn vách ngăn veneer óc chó có ô vòm phay CNC, phòng khách phía sau",
-          "altEn": "From the garage lobby, the walnut-veneer screen with CNC-cut arches and the living room beyond"
+          "height": 1728,
+          "altVi": "Phòng ngủ master: tường sơn vôi đất nung, đầu giường bọc lanh xanh cổ vịt khung óc chó, đèn bàn gốm và ghế bench cuối giường",
+          "altEn": "Master bedroom: a terracotta limewash wall, a teal linen headboard in a walnut frame, ceramic table lamps and a bench at the foot of the bed"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-12-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng ngủ master với đầu giường bọc nệm khung óc chó, giường đôi và ghế đọc sách cạnh cửa ban công",
-          "altEn": "Master bedroom with an upholstered walnut-framed headboard, a double bed and a reading chair by the balcony door"
-        },
-        {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng tắm gạch bông xanh cổ vịt với bồn tắm và tủ lavabo MDF chống ẩm veneer óc chó",
-          "altEn": "Teal encaustic-tiled bathroom with a bathtub and a moisture-resistant walnut-veneer MDF vanity"
-        },
-        {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng làm việc với bàn gỗ óc chó và kệ sách hộc mở veneer óc chó",
-          "altEn": "Study with a walnut desk and open walnut-veneer bookshelves"
+          "height": 1728,
+          "altVi": "Phòng làm việc: bàn óc chó, ghế bọc vải đất nung, giấy dán tường hoa văn, tủ thấp trưng gốm và kệ sách hộc mở",
+          "altEn": "Study: a walnut desk, a terracotta upholstered chair, patterned wallpaper, a low cabinet with ceramics and an open bookcase"
         }
       ]
     },
@@ -3719,11 +3705,11 @@
           "en": "Residential · Two-storey townhouse"
         },
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách nhìn về bếp ăn: sàn gạch bông, kệ TV veneer óc chó và sofa",
-          "altEn": "Living room looking towards the kitchen: encaustic tile floor, walnut-veneer TV wall and sofa"
+          "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
+          "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
         }
       },
       {
@@ -3738,8 +3724,8 @@
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà phố hai tầng dành cho gia đình trẻ ở TP.HCM, thích không khí Đông Dương nhưng gọn và hiện đại.\n\nVách ngăn ô vòm phay CNC dẫn mắt từ gara vào phòng khách rồi bếp ăn. Gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau lặp lại ở mỗi phòng nên cả nhà liền một mạch.",
-          "en": "A two-storey townhouse for a young family in Ho Chi Minh City who like an Indochine mood but want it compact and modern.\n\nA CNC-cut arched screen leads the eye from the garage into the living room and on to the kitchen. Dark walnut, teal encaustic tiles and brass repeat in every room, so the house reads as one."
+          "vi": "Nhà phố hai tầng dành cho gia đình trẻ ở TP.HCM, thích không khí Đông Dương nhưng gọn và hiện đại.\n\nHốc vòm phay CNC trên tủ giày đón khách ngay ở sảnh, rồi phòng khách mở thẳng ra bếp ăn. Gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau lặp lại ở mỗi phòng nên cả nhà liền một mạch.",
+          "en": "A two-storey townhouse for a young family in Ho Chi Minh City who like an Indochine mood but want it compact and modern.\n\nA CNC-cut arched niche above the shoe cabinet greets you in the lobby, then the living room opens straight onto the kitchen. Dark walnut, teal encaustic tiles and brass repeat in every room, so the house reads as one."
         }
       },
       {
@@ -3747,39 +3733,32 @@
         "type": "gallery-carousel",
         "images": [
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-2.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Bếp ăn gỗ óc chó tối với bàn ăn và tủ bếp cánh phào khung, ánh sáng từ cửa sổ sau",
-            "altEn": "Dark walnut kitchen with the dining table and framed cabinet doors, lit by the rear window"
+            "altVi": "Bếp ăn óc chó: tủ bếp cánh panô khung, cửa sổ dải ngang nhìn ra cây xanh, bàn ăn, đèn thả đồng và ba khay sơn mài trên tường",
+            "altEn": "Walnut kitchen and dining area: framed-panel cabinets, a long low window onto greenery, the dining table, brass pendants and three lacquer trays on the wall"
           },
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
-            "width": 3072,
-            "height": 2048,
-            "altVi": "Từ sảnh gara nhìn vách ngăn veneer óc chó có ô vòm phay CNC, phòng khách phía sau",
-            "altEn": "From the garage lobby, the walnut-veneer screen with CNC-cut arches and the living room beyond"
-          },
-          {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-3.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ TV ốp tường veneer óc chó, phào chỉ phay CNC và hộc đèn hắt",
-            "altEn": "Close-up of the walnut-veneer TV wall with CNC-cut mouldings and a lit niche"
+            "altVi": "Cận tủ bếp óc chó cánh panô khung, núm đồng, mặt đá kem và cửa sổ dải ngang nhìn ra cây xanh",
+            "altEn": "Close-up of the walnut kitchen: framed-panel doors, brass knobs, a cream stone worktop and the long low window onto greenery"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-4.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận buffet cánh phào khung veneer óc chó, tay nắm đồng thau, bình gốm trên mặt tủ",
-            "altEn": "Close-up of the framed walnut-veneer buffet with brass pulls and a ceramic vase on top"
+            "altVi": "Cận kệ TV treo óc chó cánh panô khung, tay nắm đồng, bình gốm men lam và đĩa gốm treo tường",
+            "altEn": "Close-up of the wall-hung walnut TV unit with framed-panel doors, brass pulls, a blue-and-white vase and wall plates"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-5.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận tủ bếp cánh phào khung óc chó, tay nắm đồng thau, mặt đá kem và gạch ốp xanh cổ vịt",
-            "altEn": "Close-up of framed walnut kitchen doors with brass pulls, a cream stone worktop and teal wall tiles"
+            "altVi": "Cận buffet óc chó cánh panô, tay nắm đồng, bình gốm men lam và khay sơn mài, kệ treo trưng gốm phía trên",
+            "altEn": "Close-up of the walnut buffet with panel doors and brass pulls, a blue-and-white vase and a lacquer tray, ceramics on a shelf above"
           }
         ]
       },
@@ -3813,8 +3792,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Vách ngăn, kệ TV, tủ bếp, buffet, đầu giường, tủ áo, tủ giày",
-              "en": "Screen, TV wall, kitchen, buffet, headboard, wardrobe, shoe cabinet"
+              "vi": "Kệ TV, tủ bếp, buffet, đầu giường, tủ áo, tủ giày, tủ lavabo",
+              "en": "TV wall, kitchen, buffet, headboard, wardrobe, shoe cabinet, vanity"
             }
           },
           {
@@ -3842,11 +3821,11 @@
         "type": "image-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-7.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận tủ giày cánh phẳng veneer óc chó ở sảnh, sàn gạch bông",
-          "altEn": "Close-up of the flat walnut-veneer shoe cabinet in the lobby, on encaustic tiles"
+          "altVi": "Sảnh vào nhà: tủ giày cánh phẳng óc chó, hốc vòm phay CNC, gương tròn khung đồng và sàn gạch bông",
+          "altEn": "Entrance lobby: a flat-door walnut shoe cabinet, a CNC-cut arched niche, a round brass mirror and an encaustic tile floor"
         }
       },
       {
@@ -3862,19 +3841,19 @@
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-8.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ master với đầu giường bọc nệm khung óc chó, giường đôi và ghế đọc sách cạnh cửa ban công",
-          "altEn": "Master bedroom with an upholstered walnut-framed headboard, a double bed and a reading chair by the balcony door"
+          "altVi": "Phòng ngủ master: tường sơn vôi đất nung, đầu giường bọc lanh xanh cổ vịt khung óc chó, đèn bàn gốm và ghế bench cuối giường",
+          "altEn": "Master bedroom: a terracotta limewash wall, a teal linen headboard in a walnut frame, ceramic table lamps and a bench at the foot of the bed"
         }
       },
       {
         "id": "text-3",
         "type": "paragraph",
         "text": {
-          "vi": "Đầu giường bọc nệm lanh xanh cổ vịt trong khung óc chó phay CNC. Tủ áo walk-in dùng cánh phẳng, tay nắm âm và đèn hắt trong từng hộc.",
-          "en": "The headboard is teal linen upholstery in a CNC-cut walnut frame. The walk-in wardrobe has flat doors, recessed pulls and a light in every compartment."
+          "vi": "Đầu giường bọc nệm lanh xanh cổ vịt trong khung óc chó phay CNC. Tủ áo walk-in dùng cánh phẳng, tay nắm thanh đồng và đèn hắt trong từng hộc.",
+          "en": "The headboard is teal linen upholstery in a CNC-cut walnut frame. The walk-in wardrobe has flat doors, brass bar pulls and a light in every compartment."
         }
       },
       {
@@ -3883,18 +3862,18 @@
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-9.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận đầu giường bọc nệm xanh cổ vịt trong khung óc chó phay CNC và tab đầu giường",
-            "altEn": "Close-up of the teal upholstered headboard in a CNC-cut walnut frame, with a bedside table"
+            "altVi": "Cận đầu giường bọc lanh xanh cổ vịt khung óc chó bo góc, gối đất nung và vàng mù tạt, đèn bàn gốm men lam",
+            "altEn": "Close-up of the teal linen headboard in a rounded walnut frame, terracotta and mustard cushions and blue-and-white table lamps"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-indochine-shot-10.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận tủ áo walk-in cánh phẳng veneer óc chó, tay nắm âm, đèn hắt trong hộc",
-            "altEn": "Close-up of the flat walnut-veneer walk-in wardrobe with recessed pulls and lit compartments"
+            "altVi": "Cận tủ áo walk-in óc chó cánh phẳng, tay nắm thanh đồng, một cánh mở thấy đèn hắt trong hộc",
+            "altEn": "Close-up of the walnut walk-in wardrobe with flat doors and brass bar pulls, one door open onto a lit compartment"
           }
         ]
       },
@@ -3911,11 +3890,11 @@
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-11.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm gạch bông xanh cổ vịt với bồn tắm và tủ lavabo MDF chống ẩm veneer óc chó",
-          "altEn": "Teal encaustic-tiled bathroom with a bathtub and a moisture-resistant walnut-veneer MDF vanity"
+          "altVi": "Phòng tắm ốp gạch thẻ xanh cổ vịt: bồn tắm, tủ lavabo óc chó, gương vòm khung đồng, thang treo khăn và chậu cây gốm men lam",
+          "altEn": "Bathroom in teal glazed tiles: a bathtub, a walnut vanity, an arched brass mirror, a towel ladder and a plant in a blue-and-white pot"
         }
       },
       {
@@ -3931,11 +3910,11 @@
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-indochine-shot-12.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng làm việc với bàn gỗ óc chó và kệ sách hộc mở veneer óc chó",
-          "altEn": "Study with a walnut desk and open walnut-veneer bookshelves"
+          "altVi": "Phòng làm việc: bàn óc chó, ghế bọc vải đất nung, giấy dán tường hoa văn, tủ thấp trưng gốm và kệ sách hộc mở",
+          "altEn": "Study: a walnut desk, a terracotta upholstered chair, patterned wallpaper, a low cabinet with ceramics and an open bookcase"
         }
       },
       {

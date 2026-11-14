@@ -293,6 +293,7 @@
         "node tests/site/site-media-card-r6.e2e.mjs",
         "node tests/site/site-media-card-slideshow.e2e.mjs",
         "node tests/site/site-media-card-wait.e2e.mjs",
+        "node tests/site/primary-flow-zoom-blur.e2e.mjs",
         "node tests/site/video-delivery.e2e.mjs"
       ]
     }
