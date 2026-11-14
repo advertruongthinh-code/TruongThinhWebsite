@@ -504,14 +504,25 @@ const responsivePictures = (html) =>
   });
 
 // No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
-// bilingual element (block or inline part of a title) ties its last two words with a no-break space in VI, EN and
-// the rendered text.
+// bilingual element (paragraph, label, caption or inline part of a title) ties its last two words with a no-break
+// space in VI, EN and the rendered text. A two-word label stays on one line; a separator such as "·" stays with the
+// word after it. A heading that ends with an italic part ties that part to the word before it.
 const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
-const tieLastWord = (text) => (text.trim().split(/\s+/).length < 3 ? text : text.replace(/\s+(\S+\s*)$/, "\u00a0$1"));
+const TIE_ITALIC_TAIL = /(<\/span>)\s+(<(i|em)\b[^>]*>[^<]*<\/\3>\s*<\/h[1-6]>)/g;
+const tieLastWord = (text) => {
+  const [, lead, body, trail] = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
+  const words = body.split(/\s+/);
+  if (words.length < 2) return text;
+  let glued = words.pop();
+  while (words.length > 1 && !/[\p{L}\p{N}]/u.test(words.at(-1))) glued = `${words.pop()}\u00a0${glued}`;
+  glued = `${words.pop()}\u00a0${glued}`;
+  return `${lead}${[...words, glued].join(" ")}${trail}`;
+};
 const tieElement = (_match, name, attributes, content) =>
   `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
 // Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
-const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) => open + body.replace(TIE_BLOCK, tieElement) + close);
+const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) =>
+  open + body.replace(TIE_BLOCK, tieElement).replace(TIE_ITALIC_TAIL, "$1\u00a0$2") + close);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
