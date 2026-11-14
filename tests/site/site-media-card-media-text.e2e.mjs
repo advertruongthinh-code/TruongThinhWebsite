@@ -4,15 +4,14 @@ import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-pro
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 
-// media-card R7 (owner 2026-11-13): every media of a multi-media card has its own name and description; the card name (hover) and the
-// detail description follow the media shown, the cover uses the card's own.
+// media-card R7 (owner 2026-11-14): the card name stays the card's whatever media is shown; the detail description follows the media
+// shown (its own when it has one, the card's for the cover).
 const cardId = "kiosk-posm-51";
 const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === cardId);
 const { category } = ADVERTISING_CATALOG_ARTIFACT.cards.find(({ id }) => id === cardId);
-const titleOf = (mediaId) => record.mediaItems.find(({ id }) => id === mediaId).titleVi ?? record.titleVi;
 const descriptionOf = (mediaId) => record.mediaDescriptions[mediaId]?.vi ?? record.descriptionVi;
 
-test("media-card R7: card name and detail description follow the media shown", async () => {
+test("media-card R7: one card name, the detail description follows the media shown", async () => {
   assert(record.mediaItems.length >= 3);
   const browser = await launchBrowser();
   const { page } = await openPage(browser, VIEWPORTS.desktop, { reducedMotion: "reduce" });
@@ -28,13 +27,12 @@ test("media-card R7: card name and detail description follow the media shown", a
     await card.hover();
     const caption = card.locator("figcaption");
     const shown = () => card.getAttribute("data-masonry-active-media-id");
-    assert.equal(await caption.textContent(), titleOf(await shown()), "the name matches the media shown");
-    // Step to a merged media: the name changes to that media's own.
+    assert.equal(await caption.textContent(), record.titleVi);
+    // Step to a merged media: the card keeps its one name.
     if (await shown() === record.coverMediaId) await card.locator('[data-masonry-media-hover-step="1"]').click();
     const merged = await shown();
     assert.notEqual(merged, record.coverMediaId);
-    assert.equal(await caption.textContent(), titleOf(merged));
-    assert.notEqual(titleOf(merged), record.titleVi);
+    assert.equal(await caption.textContent(), record.titleVi, "the card name does not change with the media");
     // Detail opens on that media and shows its description; a thumbnail back to the cover shows the card's description.
     await card.locator(":scope > a").click();
     await page.waitForFunction(() => document.body.classList.contains("is-detail"));

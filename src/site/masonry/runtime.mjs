@@ -81,11 +81,7 @@ const flowColors = (src) => mediaColors(src)?.slice(1, 5);
 // the dark pill (#333 at 80%) and the light pill (white at 85%) contrast equally with the area (WCAG ratio).
 const PILL_LIGHT_BELOW = 20;
 const pillTone = (src) => (mediaColors(src)?.[5] ?? 100) < PILL_LIGHT_BELOW ? "light" : "dark";
-// Name and description of the media shown (media-card R7): a merged item keeps its own, the cover uses the card's.
-const mediaTitle = (record, mediaId, english) => {
-  const item = record.mediaItems?.find((entry) => entry.id === mediaId);
-  return (english ? item?.titleEn : item?.titleVi) ?? (english ? record.titleEn : record.titleVi);
-};
+// Description of the media shown (media-card R7): a media with its own uses it, otherwise the card's.
 const mediaDescription = (record, mediaId, english) => {
   const own = record.mediaDescriptions?.[mediaId];
   return (english ? own?.en ?? record.descriptionEn : own?.vi ?? record.descriptionVi) || "";
@@ -1439,8 +1435,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       waits.get(item.id)?.removeAttribute("hidden");
       requestMedia(index, true);
       figure.dataset.masonryActiveMediaId = item.id;
-      const caption = figure.querySelector(".masonry-card__title");
-      if (caption) caption.textContent = mediaTitle(record, item.id, english);
       updateIndicator(index);
       updateLoading();
     };
@@ -1649,7 +1643,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   title.className = "masonry-card__title";
   title.id = `${related ? "advertising-related-title" : "advertising-title"}-${record.id}`;
   title.setAttribute("aria-hidden", "true");
-  title.textContent = mediaTitle(record, figure.dataset.masonryActiveMediaId, locale === "en");
+  title.textContent = locale === "en" ? record.titleEn : record.titleVi;
   figure.querySelector(".card-interactive")?.setAttribute("aria-labelledby", title.id);
   return figure;
 }
@@ -2218,7 +2212,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const caption = node.querySelector("figcaption");
         if (link) link.href = record.href?.[locale] ?? advertisingCardPath(locale, record.id);
         if (image) image.alt = english ? record.media.altEn : record.media.altVi;
-        if (caption) caption.textContent = mediaTitle(record, node.dataset.masonryActiveMediaId, english);
+        if (caption) caption.textContent = english ? record.titleEn : record.titleVi;
         syncJustViewedMarker(node, locale, lastClosedPhotoId === id
           && (cardMap === relatedHost.rendered ? Boolean(activePhotoId) : !activePhotoId));
       });
