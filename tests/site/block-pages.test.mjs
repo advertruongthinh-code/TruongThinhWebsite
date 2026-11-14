@@ -16,7 +16,7 @@ for (const sector of SECTORS) test(`${sector} project page carries its own head,
   const project = projects.find((page) => page.sector === sector);
   assert.ok(project, `projects.json has a ${sector} project`);
   const html = renderProjectPage(templateOf(sector), project, ctx);
-  assert.match(html, new RegExp(`<title data-en="${project.title.en} — Trường Thịnh">${project.title.vi} — Trường Thịnh</title>`));
+  assert.match(html, new RegExp(`<title data-en="${project.seoTitle.en} — Trường Thịnh">${project.seoTitle.vi} — Trường Thịnh</title>`));
   assert.match(html, new RegExp(`<link rel="canonical" href="https://truongthinhads.vn/vi/projects/${project.slugVi}/" data-en-href="https://truongthinhads.vn/en/projects/${project.slugEn}/" />`));
   assert.match(html, /<link rel="alternate" hreflang="x-default"/);
   assert.match(html, /<script type="application\/ld\+json">\{"@context":"https:\/\/schema.org","@graph":\[\{"@type":"Article"/);
@@ -92,7 +92,7 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b" }, "p"), []);
   assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
-  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-hotel"]);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-khach-san"]);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: id hoặc slug 2026 trùng đường dẫn nhóm, năm hoặc phân trang"]);
   assert.deepEqual(kindFieldErrors("news", { group: "khac", published: "7/11/2026", slugVi: "page", slugEn: "xu-huong" }, "n"), [
@@ -110,7 +110,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   const { projectListPages } = await import("../../scripts/site/project-list.mjs");
   const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
   assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
-    ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-hotel/", 0],
+    ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-khach-san/", 0],
     ["/projects/showroom-cua-hang/", 0], ["/projects/cafe-nha-hang/", 1], ["/projects/van-phong/", 1],
   ]);
   const { buildProjectArtifact } = await import("../../scripts/site/project-list.mjs");
@@ -129,9 +129,25 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   // An image with leftover area relative to the card frame (different ratio) is rejected.
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", id: "x", slugVi: "x", slugEn: "x", card: { width: 3, height: 2, media: [{ src: "/x.webp", width: 200, height: 300, altVi: "x", altEn: "x" }] } }, "p"), ["p: card.media[0] khác tỷ lệ khung thẻ 3x2"]);
   assert.equal(artifact.cards.find((card) => card.id === "b").mediaItems.length, 1);
-  assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-hotel", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
+  assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-khach-san", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
   assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: id hoặc slug nha-o trùng đường dẫn lọc công trình", "p: id hoặc slug can-ho trùng đường dẫn lọc công trình"]);
+});
+
+test("Projects SEO: every filter page has its own title and a meta of at most 155 characters; detail pages use seoTitle; renamed slug redirects", async () => {
+  const { FILTER_SEO, RENAMED_FILTER_SLUGS, projectListPages, renderRedirectPage } = await import("../../scripts/site/project-list.mjs");
+  const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
+  const pages = projectListPages(projects);
+  for (const { filter } of pages) {
+    assert.equal(filter.name, FILTER_SEO[filter.slug ?? "all"].title, filter.slug);
+    for (const locale of ["vi", "en"]) assert.ok(filter.description[locale].length <= 155, `${filter.slug} ${locale} meta length`);
+  }
+  assert.equal(new Set(pages.map(({ filter }) => filter.name.vi)).size, pages.length, "one keyword per page");
+  assert.ok(projects.every((project) => project.seoTitle?.vi && project.seoTitle.en), "every project has seoTitle");
+  assert.equal(new Set(projects.map((project) => project.seoTitle.vi)).size, projects.length, "seoTitle unique");
+  assert.deepEqual(kindFieldErrors("projects", { id: "x", slugVi: "x", slugEn: "x", sector: "commercial", type: "van-phong", seoTitle: { vi: "a" } }, "p"), ["p: seoTitle phải có vi và en"]);
+  assert.deepEqual(RENAMED_FILTER_SLUGS, { "homestay-hotel": "homestay-khach-san" });
+  assert.match(renderRedirectPage("/vi/projects/homestay-khach-san/"), /<meta http-equiv="refresh" content="0; url=\/vi\/projects\/homestay-khach-san\/">/);
 });
 
 test("menu featured: chosen projects in order; product groups chosen or by card count; unknown ids reported", async () => {
