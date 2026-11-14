@@ -46,6 +46,7 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 - Nhãn từng nút: `Xem ảnh 2 trên 3: <alt>` hoặc `Xem video 1 trên 3: <alt>`;
   EN `Show image 2 of 3: <alt>`.
 - Bấm thumbnail đổi media primary; primary mở ở media đang xem trên card.
+- Thumbnail của media chưa tải file lớn có [Vệt sáng](../LoadSweep/README.md) chạy trên ảnh nhỏ, tải xong thì vệt mờ dần `0.45s` (owner 2026-11-14).
 - Khung media là dải trượt kiểu pin Pinterest nhiều media: khung giữ tỷ lệ
   cover, media cũ trượt ra và media mới trượt vào 900ms `cubic-bezier(0.76, 0, 0.24, 1)` (`PUSH_TIMING`, cùng nhịp đẩy ngang của nút gợi ý). Mũi tên vuông trắng
   36px bo 10px, cách mép 16px, hiện khi trỏ vào khung, ẩn ở đầu, cuối. Chấm 8px

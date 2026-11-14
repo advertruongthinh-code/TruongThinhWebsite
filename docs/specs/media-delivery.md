@@ -155,7 +155,7 @@ Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sán
 
 Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
 `[data-detail-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
-`.client-logo-marquee`. Khung mới chỉ cần thuộc tính HTML `data-media-frame` (khung gần nhất của ảnh; bất kể `src`, không áp danh sách loại trừ trên, không cần CSS riêng). Khung chưa `.is-media-settled`:
+`.client-logo-marquee`. Thumbnail dãy media primary và viewer dùng cùng dải sáng trên ảnh nhỏ của nó, chờ file lớn của media ([media card R6](media-card.md#r6-media-trong-primary)). Khung mới chỉ cần thuộc tính HTML `data-media-frame` (khung gần nhất của ảnh; bất kể `src`, không áp danh sách loại trừ trên, không cần CSS riêng). Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
 - Một dải sáng đối xứng, trắng `20%` ở tâm (owner 2026-11-01, trước `16%`; một biến CSS `--media-sweep-gradient` trong `:root` giữ dải, khung ảnh và nút suggestion cùng dùng), rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng

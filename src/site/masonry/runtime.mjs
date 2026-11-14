@@ -2544,6 +2544,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     && !skeletonMotionPreference.matches
     && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
   const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame) && skeletonMotionAllowed();
+  // A lane Flow frame (laneFlow) rides a strip that slides it in from off screen: it counts as visible, draws and runs from its first frame
+  // at full strength, so Flow is already moving while the strip slides (owner 2026-11-14; before, the frosted glass showed until the lane
+  // entered the viewport, then Flow faded in).
+  const laneSkeletonFrame = (frame) => frame.dataset.masonryLoadingSkeleton?.startsWith("lane:");
   const settleSkeletonCanvas = (frame) => {
     const canvas = frame.querySelector('[data-masonry-flow-backend="webgl"]');
     if (!canvas) return;
@@ -2704,7 +2708,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderer?.draw(performance.now());
     // On a fast swipe a card stays in the viewport only about 270ms, so a 300ms fade means Flow never shows (R4); the still image under the canvas
     // is in the same phase so it shows immediately without a jump.
-    if (enteringWhileScrolling()) {
+    if (enteringWhileScrolling() || laneSkeletonFrame(frame)) {
       canvas.style.opacity = "1";
       return;
     }
@@ -2829,7 +2833,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       // A card entering the viewport while scrolling shows immediately: a 0.6s fade is longer than a fast swipe leaves the card in the viewport (R4).
-      if (!frame.dataset.masonryCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
+      if (laneSkeletonFrame(frame) || (!frame.dataset.masonryCtaFrame && enteringWhileScrolling())) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
       frame.addEventListener("transitionend", pending.settle);
@@ -2848,9 +2852,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const frame of skeletonFrames()) {
       const rect = frame.getBoundingClientRect();
       rects.set(frame, rect);
-      if (rect.width > 0 && rect.height > 0
-        && rect.right > visible.left && rect.left < visible.left + visible.width
-        && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
+      if (rect.width > 0 && rect.height > 0 && (laneSkeletonFrame(frame) || rect.right > visible.left && rect.left < visible.left + visible.width
+        && rect.bottom > visible.top && rect.top < visible.top + visible.height)) visibleSkeletonFrames.add(frame);
       else visibleSkeletonFrames.delete(frame);
     }
     // Each still image is one CPU render; opening detail may need more than a dozen at once. Over budget,
@@ -2866,7 +2869,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         deferred = true;
         continue;
       }
-      if (skeletonSyncInFrame || (assigned && performance.now() > assignUntil)) {
+      if ((skeletonSyncInFrame && !laneSkeletonFrame(frame)) || (assigned && performance.now() > assignUntil)) {
         deferred = true;
         break;
       }
@@ -4623,9 +4626,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const neighbors = record.mediaItems || [];
     const at = neighbors.indexOf(item);
     void whenMediaReady(video ? photoVideo : photoImage).then(() => {
+      settleMediaThumbs(item.id);
       if (activePrimaryMediaId !== item.id) return;
       neighbors.forEach((entry, index) => {
-        if (index !== at) void mediaQueue.load(primarySource(entry), { rank: Math.abs(index - at) }).catch(() => {});
+        if (index !== at) void mediaQueue.load(primarySource(entry), { rank: Math.abs(index - at) })
+          .catch(() => {}).then(() => settleMediaThumbs(entry.id));
       });
     });
     syncVideoPlayer();
@@ -4686,6 +4691,24 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const primaryItems = () => cards.find((card) => card.id === activePhotoId)?.mediaItems || [];
   const primaryIndex = () => primaryItems().findIndex((entry) => entry.id === activePrimaryMediaId);
   const stepPrimaryMedia = (step) => showPrimaryMedia(primaryItems()[primaryIndex() + step]);
+  // A thumbnail runs the light streak (LoadSweep) until its media's primary file has loaded or failed, then the streak crossfades out over the
+  // picture (owner 2026-11-14); the primary and viewer strips carry the same mark.
+  const settleMediaThumbs = (id) => {
+    for (const strip of [photoMediaThumbs, photoViewerThumbs]) {
+      strip?.querySelectorAll("[data-media-pending]").forEach((button) => {
+        if ((button.dataset.detailMediaSelect ?? button.dataset.detailViewerSelect) !== id) return;
+        delete button.dataset.mediaPending;
+        if (reduced) return;
+        button.dataset.mediaSettling = "";
+        const end = (event) => {
+          if (event.animationName !== "media-fade-out") return;
+          button.removeEventListener("animationend", end);
+          delete button.dataset.mediaSettling;
+        };
+        button.addEventListener("animationend", end);
+      });
+    }
+  };
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
@@ -4734,6 +4757,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (item.kind === "video") {
         button.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>');
       }
+      if (!mediaQueue.loaded(primarySource(item))) button.dataset.mediaPending = "";
       button.addEventListener("click", () => showPrimaryMedia(item));
       photoMediaThumbs.append(button);
       if (!photoViewerThumbs) return;
