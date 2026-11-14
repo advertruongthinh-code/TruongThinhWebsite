@@ -165,7 +165,7 @@ sửa khi owner chấm ảnh thật.
      bố cục, người, chữ, thương hiệu;
    - không dùng từ headline, title, caption trong prompt vì model in chữ vào ảnh;
      ảnh không chữ ghi rõ không có chữ ở bất kỳ đâu (owner chốt 2026-10-17);
-   - chuỗi ảnh một không gian theo [mục riêng](#chuỗi-ảnh-một-không-gian);
+   - chuỗi ảnh một không gian theo [rule riêng](agent-rule-image-series.md);
    - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
      giữ nguyên và phần sửa (owner chốt 2026-10-17); ảnh đã sửa hai lần mà còn
      lỗi thì tạo mới từ đầu, vì sửa chồng làm ảnh xuống cấp (owner chốt 2026-10-18);
@@ -194,49 +194,8 @@ sửa khi owner chấm ảnh thật.
 
 ## Chuỗi ảnh một không gian
 
-Cho chuỗi ảnh của một không gian (công trình mẫu trang Công trình, series nhà ở, kinh
-doanh); mâu thuẫn với [Tạo ảnh](#tạo-ảnh) thì mục này thắng.
-
-### Bản vẽ trước, ảnh sau
-
-- Mỗi lần gen hoặc gen lại, owner duyệt bản vẽ hiện hành trước: mặt bằng, góc máy,
-  bảng thống kê món. Bản vẽ cũ sai chuẩn gỡ khỏi trang duyệt, không để lẫn với bản
-  mới (owner 2026-11-11).
-- Mọi họa tiết, chi tiết trang trí (chạm, ghép veneer, tranh gạch, vòm) có bản vẽ
-  chi tiết ghi kích thước (mặt đứng hoặc chi tiết); prompt của ảnh có chi tiết đó
-  kèm bản vẽ tương ứng (owner 2026-11-11).
-- Mặt bằng gửi model chỉ là ảnh PNG mặt bằng có mã F/D/W và vị trí, hướng, số camera;
-  không kèm bảng, chú giải hay khung tên. Mỗi bảng (món, vật liệu, góc máy) là một
-  file CSV riêng (owner 2026-11-11, nhắc lại 2026-11-12).
-- Mỗi ảnh gen ra ghi rõ camera nào: tên file theo số camera (`cam-04.png`), hồ sơ
-  ảnh và chú thích trên trang duyệt ghi "Camera 4"; không in chữ lên ảnh, nên không
-  có góc máy chỉ để chụp biển chữ (owner 2026-11-12).
-- Render 3D clay chỉ là gợi ý lỏng hoặc bỏ hẳn; không dùng làm nền cho model đồ theo,
-  vì ảnh đồ theo 3D mất chi tiết và trông không thật (owner 2026-11-11).
-- Moodboard mỗi công trình tạo bằng ChatGPT từ brief đủ (phong cách, màu, vật liệu,
-  đồ, đèn, decor) kèm ảnh ref, đủ chuẩn đưa lên site; ảnh từng camera gen kèm moodboard
-  và ref hợp góc đó (owner 2026-11-13).
-
-### Nhất quán giữa các góc
-
-- Gen lần lượt, ảnh chính trước; ảnh sau kèm ảnh đã gen làm neo, ghi neo là camera
-  nào; prompt nêu ảnh mới thấy gì (trái, giữa, phải), hướng nhìn ("nhìn về tường X")
-  theo mặt bằng và bảng thống kê (owner 2026-11-09).
-- Cận cảnh kèm ảnh cắt của món chung từ neo; mô tả chữ từng món được chép sang prompt
-  sau; mỗi ảnh một `record.json`. CSV góc máy lệch ảnh chính đã gen thì ảnh chính thắng.
-- Món chung (cửa, cửa sổ, đồ nội thất, vật liệu hoàn thiện) giống hệt ở mọi góc của
-  cùng một công trình; ảnh lệch món chung là ảnh sai. Kiểm từng món so với neo trước
-  khi đưa owner xem (owner 2026-11-11).
-
-### Thiết kế
-
-- Nội thất và đồ phải nổi bật, có điểm nhấn; thiết kế bình thường bị trả về
-  (owner 2026-11-11).
-- Hạn chế mây tre và lam gỗ; nếu dùng thì không có lỗi hình AI như nan thưa, to
-  (owner 2026-11-11).
-- Mái ngói thì trong nhà có trần phẳng (la phông); hiên không cần (owner 2026-11-11).
-- Có bản vẽ đèn trần, đèn tường và decor tường; tường không trống (owner 2026-11-13).
-- Bếp có tủ treo, hút mùi nằm trong tủ; khung tủ thẳng, cánh có thể cong (owner 2026-11-13).
+Rule chuỗi ảnh của một không gian (bản vẽ, ảnh ref, moodboard, nhất quán giữa các góc, thiết kế)
+nằm ở [Chuỗi ảnh một không gian](agent-rule-image-series.md).
 
 ## Phóng to
 
@@ -306,7 +265,5 @@ site và chấm lại đúng SHA-256 mới (owner chốt 2026-10-17). Owner phá
 - **Provenance**: nguồn gốc có thể truy nguyên của ảnh (model, SHA-256, tham khảo).
 - **C2PA**: metadata nhúng trong ảnh cho biết công cụ và model đã tạo ảnh.
 - **Công trình mẫu**: công trình dựng bằng ảnh AI để minh họa năng lực trên trang Công trình.
-- **Neo**: ảnh đã duyệt gửi kèm prompt để model giữ đúng món chung.
-- **Render 3D clay**: ảnh dựng khối trắng từ mô hình 3D, chưa có vật liệu.
 - **CSV**: file bảng dạng chữ, mỗi dòng một món.
 - **Upscale**: phóng to ảnh lên độ phân giải cao hơn.

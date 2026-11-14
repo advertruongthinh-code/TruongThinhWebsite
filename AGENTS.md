@@ -117,7 +117,7 @@ cache hay untracked worktree.
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
 | Viết spec, plan; task dài cần thread reviewer | [Plan và review](docs/operations/agent-rule-plan-review.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
-| Tạo, chấm, phóng to media AI (ảnh, chuỗi ảnh công trình mẫu, video, âm thanh) | [Tạo và chấm media AI](docs/operations/agent-rule-ad-images.md) |
+| Tạo, chấm, phóng to media AI (ảnh, chuỗi ảnh công trình mẫu, video, âm thanh) | [Tạo và chấm media AI](docs/operations/agent-rule-ad-images.md); chuỗi ảnh: [một không gian](docs/operations/agent-rule-image-series.md) |
 | Giao thread, chọn model/effort (Claude, OpenAI, Codex) | [Model routing](docs/operations/agent-rule-model-routing.md) |
 
 ## Scripts map
