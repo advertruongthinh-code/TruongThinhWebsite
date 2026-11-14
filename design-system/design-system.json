@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-14T13:00:00Z",
+    "at": "2026-11-14T13:50:00Z",
     "via": "Claude Code",
-    "note": "#927 Flow làn chạy đủ sáng ngay khi trượt, thumbnail có vệt sáng chờ ảnh lớn rồi mờ dần (LoadSweep, Primary, Viewer); luật không chữ mồ côi, không dấu cuối dòng chốt (README, DetailBlocks, Footer); bundle.css"
+    "note": "#941 thumbnail đúng tỷ lệ ảnh ở dãy Primary và dãy viewer (--detail-thumb-ratio); #942 dãy dọc viewer rộng 96px (Primary, Viewer, bundle.css)"
   }
 }
