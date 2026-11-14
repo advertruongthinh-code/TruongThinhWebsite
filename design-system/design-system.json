@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-14T11:50:00Z",
+    "at": "2026-11-14T13:00:00Z",
     "via": "Claude Code",
-    "note": "#925 lề và cột News trang chủ như Espacio (NewsList); #931 gallery ít ảnh tự cao cho kín hàng (Gallery), vệt chờ ảnh không tràn khỏi khung (LoadSweep); #930 SEO; bundle.css"
+    "note": "#927 Flow làn chạy đủ sáng ngay khi trượt, thumbnail có vệt sáng chờ ảnh lớn rồi mờ dần (LoadSweep, Primary, Viewer); luật không chữ mồ côi, không dấu cuối dòng chốt (README, DetailBlocks, Footer); bundle.css"
   }
 }
