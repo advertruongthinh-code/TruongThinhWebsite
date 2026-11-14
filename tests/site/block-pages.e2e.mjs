@@ -91,15 +91,19 @@ try {
         const titles = Object.fromEntries(projects.map((project) => [project.id, project.title[locale]]));
         const grid = await page.evaluate(() => {
           const host = document.querySelector("[data-project-grid]");
+          // A wide frame (span 2, card at least 1.618:1) covers every column it spans; the next frame is checked in each.
           const frames = [...host.querySelectorAll("[data-masonry-cta-frame]")].map((frame) => ({
-            column: frame.dataset.masonryCtaColumn, top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
+            column: Number(frame.dataset.masonryCtaColumn), span: Number(frame.dataset.masonryCtaSpan || 1),
+            top: Number.parseFloat(frame.style.top), height: Number.parseFloat(frame.style.height),
           }));
+          const covers = (frame, column) => column >= frame.column && column < frame.column + frame.span;
           return {
             gap: Number.parseFloat(getComputedStyle(host).getPropertyValue("--masonry-gap")),
-            strides: frames.flatMap((frame, index) => {
-              const next = frames.slice(index + 1).find((other) => other.column === frame.column);
-              return next ? [next.top - frame.top - frame.height] : [];
-            }),
+            strides: frames.flatMap((frame) => Array.from({ length: frame.span }, (_, offset) => frame.column + offset).flatMap((column) => {
+              const below = frames.filter((other) => other.top > frame.top && covers(other, column));
+              if (!below.length) return [];
+              return [Math.min(...below.map((other) => other.top)) - frame.top - frame.height];
+            })),
             cards: [...host.querySelectorAll("[data-masonry-card]")].map((tile) => {
               const title = tile.querySelector(".masonry-card__title");
               const media = tile.querySelector(".card-media").getBoundingClientRect();
