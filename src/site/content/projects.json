@@ -9,6 +9,10 @@
       "vi": "Căn hộ gỗ sồi ấm",
       "en": "Warm oak apartment"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất căn hộ 2 phòng ngủ gỗ sồi",
+      "en": "Oak two-bedroom apartment interior design"
+    },
     "description": {
       "vi": "Căn hộ hai phòng ngủ cho gia đình bốn người: nhiều chỗ cất đồ, gỗ sồi, sơn xanh rêu và đèn hắt. Thiết kế, sản xuất tại xưởng và lắp đặt bởi Trường Thịnh.",
       "en": "A two-bedroom apartment for a family of four: plenty of storage in oak, sage paint and soft cove light. Designed, built and installed by Trường Thịnh."
@@ -17,8 +21,8 @@
       "src": "/assets/content/projects/can-ho-hero.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
-      "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
+      "altVi": "Quầy bar bếp, sofa và kệ TV gỗ sồi, căn hộ 2 phòng ngủ",
+      "altEn": "Kitchen with breakfast bar, sofa and oak TV wall facing the balcony, two-bedroom apartment"
     },
     "card": {
       "width": 3072,
@@ -28,15 +32,15 @@
           "src": "/assets/content/projects/can-ho-hero-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
-          "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
+          "altVi": "Phòng khách, kệ TV gỗ sồi hướng ban công, căn hộ 2 phòng ngủ",
+          "altEn": "Living room with an oak TV wall facing the city-view balcony, two-bedroom apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-phong-ngu-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng ngủ với giường gỗ sồi, vách đầu giường có đèn hắt, tủ đầu giường treo và tủ áo trắng kịch trần",
-          "altEn": "Bedroom with an oak bed, a backlit headboard wall, floating bedside drawers and a floor-to-ceiling white wardrobe"
+          "altVi": "Phòng ngủ, giường gỗ sồi, vách đầu giường đèn hắt, căn hộ 2 phòng ngủ",
+          "altEn": "Bedroom with an oak bed and backlit headboard wall, two-bedroom apartment"
         }
       ]
     },
@@ -58,8 +62,8 @@
           "src": "/assets/content/projects/can-ho-hero.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
-          "altEn": "Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony"
+          "altVi": "Quầy bar bếp, sofa và kệ TV gỗ sồi, căn hộ 2 phòng ngủ",
+          "altEn": "Kitchen with breakfast bar, sofa and oak TV wall facing the balcony, two-bedroom apartment"
         }
       },
       {
@@ -86,29 +90,29 @@
             "src": "/assets/content/projects/can-ho-loi-vao.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Hành lang lối vào có tủ giày cao kịch trần, hốc kệ đèn hắt và ghế ngồi thay giày, nhìn thẳng ra phòng khách",
-            "altEn": "Entry hallway with a floor-to-ceiling shoe cabinet, a lit display niche and a bench for changing shoes, looking through to the living room"
+            "altVi": "Lối vào, tủ giày kịch trần và hốc kệ đèn hắt, căn hộ 2 phòng ngủ",
+            "altEn": "Entry hall with floor-to-ceiling shoe cabinet and lit display niche, two-bedroom apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-bep.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Bếp tủ trên trắng, tủ dưới vân gỗ sồi, mặt đá sáng và quầy bán đảo với ghế gỗ",
-            "altEn": "Kitchen with white upper cabinets, oak base units, pale stone worktops and a peninsula bar with timber stools"
+            "altVi": "Bếp tủ trên trắng, tủ dưới gỗ sồi, mặt đá sáng, căn hộ 2 phòng ngủ",
+            "altEn": "Kitchen with white upper cabinets, oak base units, pale stone worktops, two-bedroom apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-phong-ngu-2.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Phòng trẻ em với giường có ngăn kéo, bàn học sát cửa sổ, vách pegboard xanh và tủ áo có hốc kệ bo cong",
-            "altEn": "Child's room with a storage bed, a window desk, a green pegboard wall and a wardrobe with a curved shelf niche"
+            "altVi": "Phòng trẻ em, giường ngăn kéo, bàn học, vách pegboard xanh, căn hộ 2 phòng ngủ",
+            "altEn": "Child's room with storage bed, window desk and green pegboard wall, two-bedroom apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-phong-tam.webp",
             "width": 2304,
             "height": 3072,
-            "altVi": "Phòng tắm với tủ lavabo treo vân gỗ sồi, mặt đá, tủ gương hai cánh và vách kính tắm đứng",
-            "altEn": "Bathroom with a wall-hung oak vanity, stone top, two-door mirror cabinet and a glass shower screen"
+            "altVi": "Phòng tắm, lavabo treo gỗ sồi, mặt đá và vách kính, căn hộ 2 phòng ngủ",
+            "altEn": "Bathroom with wall-hung oak vanity, stone top and glass shower screen, two-bedroom apartment"
           }
         ]
       },
@@ -174,8 +178,8 @@
           "src": "/assets/content/projects/can-ho-phong-ngu.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ với giường gỗ sồi, vách đầu giường có đèn hắt, tủ đầu giường treo và tủ áo trắng kịch trần",
-          "altEn": "Bedroom with an oak bed, a backlit headboard wall, floating bedside drawers and a floor-to-ceiling white wardrobe"
+          "altVi": "Phòng ngủ, giường gỗ sồi, tủ áo trắng kịch trần, căn hộ 2 phòng ngủ",
+          "altEn": "Bedroom with oak bed, floor-to-ceiling white wardrobe and bedside drawers, two-bedroom apartment"
         }
       },
       {
@@ -194,8 +198,8 @@
           "src": "/assets/content/projects/can-ho-chi-tiet.webp",
           "width": 3072,
           "height": 2304,
-          "altVi": "Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm",
-          "altEn": "Close-up of an oak media unit: timber-veneer and sage-painted doors with tight joints and a recessed finger pull"
+          "altVi": "Cận cảnh tủ TV gỗ sồi, cánh xanh rêu khít mạch, căn hộ 2 phòng ngủ",
+          "altEn": "Close-up of oak media unit with sage-painted doors and recessed pulls, two-bedroom apartment"
         }
       },
       {
@@ -248,6 +252,10 @@
       "vi": "Nhà phố giếng trời",
       "en": "Light-well townhouse"
     },
+    "seoTitle": {
+      "vi": "Nội thất nhà phố có giếng trời, gỗ sồi sáng",
+      "en": "Light-well townhouse interior in pale oak"
+    },
     "description": {
       "vi": "Nhà phố hai tầng hẹp và sâu, giếng trời đưa ánh sáng xuống giữa nhà, tủ gỗ sồi sáng và terrazzo. Thiết kế, sản xuất và lắp đặt bởi Trường Thịnh.",
       "en": "A narrow, deep two-storey townhouse where a lightwell brings daylight into the middle of the home, with light oak joinery and terrazzo. By Trường Thịnh."
@@ -256,8 +264,8 @@
       "src": "/assets/content/projects/gieng3-hero.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
-      "altEn": "Two-storey light-well house overview: living room with a tree under the light well, a light oak TV wall, a timber staircase with a black steel handrail and the dining table beyond"
+      "altVi": "Phòng khách, tủ TV gỗ sồi sáng, cầu thang thép đen, nhà phố 2 tầng",
+      "altEn": "Living room with a light oak TV wall, timber staircase with black steel handrail, light-well townhouse"
     },
     "card": {
       "width": 3072,
@@ -267,22 +275,22 @@
           "src": "/assets/content/projects/gieng3-hero-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
-          "altEn": "Two-storey light-well house overview: living room with a tree under the light well, a light oak TV wall, a timber staircase with a black steel handrail and the dining table beyond"
+          "altVi": "Phòng khách, cây xanh dưới giếng trời, bàn ăn phía sau, nhà phố 2 tầng",
+          "altEn": "Two-storey living room with a tree under the light well and dining table beyond, light-well townhouse"
         },
         {
           "src": "/assets/content/projects/gieng3-phong-ngu-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng ngủ với vách lam gỗ sồi sáng, đầu giường có đèn hắt, tủ áo trắng và cửa kính ra ban công",
-          "altEn": "Bedroom with a light oak slatted wall, a backlit headboard, a white wardrobe and glass doors to the balcony"
+          "altVi": "Phòng ngủ vách lam gỗ sồi sáng, đầu giường đèn hắt, nhà phố 2 tầng",
+          "altEn": "Bedroom with light oak slatted wall, backlit headboard and balcony glass doors, light-well townhouse"
         },
         {
           "src": "/assets/content/projects/gieng3-phong-tho-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn",
-          "altEn": "Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows"
+          "altVi": "Phòng thờ, tủ thờ gỗ sồi sáng, hai tủ đứng, nhà phố 2 tầng",
+          "altEn": "Altar room with light oak altar cabinet flanked by tall cabinets and two large windows, light-well townhouse"
         }
       ]
     },
@@ -304,8 +312,8 @@
           "src": "/assets/content/projects/gieng3-hero.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
-          "altEn": "Two-storey light-well house overview: living room with a tree under the light well, a light oak TV wall, a timber staircase with a black steel handrail and the dining table beyond"
+          "altVi": "Phòng khách, tủ TV gỗ sồi sáng, cầu thang thép đen, nhà phố 2 tầng",
+          "altEn": "Living room with a light oak TV wall, timber staircase with black steel handrail, light-well townhouse"
         }
       },
       {
@@ -332,22 +340,22 @@
             "src": "/assets/content/projects/gieng3-loi-vao.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Lối vào với hệ tủ gỗ sồi sáng kịch trần tay nắm âm, hốc kệ trắng và ghế ngồi thay giày",
-            "altEn": "Entry with full-height light oak cabinets and recessed pulls, a white display niche and a bench for changing shoes"
+            "altVi": "Lối vào, tủ gỗ sồi sáng kịch trần, hốc kệ trắng, nhà phố 2 tầng",
+            "altEn": "Entry with full-height light oak cabinets, recessed pulls and white display niche, light-well townhouse"
           },
           {
             "src": "/assets/content/projects/gieng3-bep.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ sồi sáng, mặt đá terrazzo và bàn ăn gỗ nhìn ra sân sau",
-            "altEn": "Single-run kitchen with white upper cabinets, light oak base units, a terrazzo worktop and a timber dining table facing the back garden"
+            "altVi": "Bếp một hàng, tủ dưới gỗ sồi sáng, mặt đá terrazzo, nhà phố 2 tầng",
+            "altEn": "Single-run kitchen with light oak base units, terrazzo worktop and timber dining table, light-well townhouse"
           },
           {
             "src": "/assets/content/projects/gieng3-phong-tam.webp",
             "width": 2304,
             "height": 3072,
-            "altVi": "Phòng tắm ốp terrazzo với lavabo đặt bàn, tủ treo gỗ sồi sáng, gương lớn và cửa sổ kính mờ",
-            "altEn": "Terrazzo bathroom with a vessel basin, a wall-hung light oak vanity, a large mirror and a frosted window"
+            "altVi": "Phòng tắm ốp terrazzo, lavabo đặt bàn, tủ treo gỗ sồi sáng, nhà phố 2 tầng",
+            "altEn": "Terrazzo bathroom with vessel basin, wall-hung light oak vanity, large mirror and frosted window, light-well townhouse"
           }
         ]
       },
@@ -413,8 +421,8 @@
           "src": "/assets/content/projects/gieng3-phong-ngu.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ với vách lam gỗ sồi sáng, đầu giường có đèn hắt, tủ áo trắng và cửa kính ra ban công",
-          "altEn": "Bedroom with a light oak slatted wall, a backlit headboard, a white wardrobe and glass doors to the balcony"
+          "altVi": "Phòng ngủ vách lam gỗ sồi, tủ áo trắng, nhà phố 2 tầng",
+          "altEn": "Bedroom with light oak slatted wall, white wardrobe and balcony glass doors, light-well townhouse"
         }
       },
       {
@@ -434,15 +442,15 @@
             "src": "/assets/content/projects/gieng3-phong-tho.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn",
-            "altEn": "Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows"
+            "altVi": "Phòng thờ, tủ thờ gỗ sồi sáng, hai cửa sổ lớn, nhà phố 2 tầng",
+            "altEn": "Altar room with light oak altar cabinet and two large windows, light-well townhouse"
           },
           {
             "src": "/assets/content/projects/gieng3-chi-tiet.webp",
             "width": 3072,
             "height": 2304,
-            "altVi": "Cận cảnh cánh tủ gỗ sồi sáng dán cạnh, khe cánh đều và chân tủ âm",
-            "altEn": "Close-up of light oak cabinet doors with edge banding, even door gaps and a recessed plinth"
+            "altVi": "Cận cảnh cánh tủ gỗ sồi sáng dán cạnh, chân tủ âm, nhà phố 2 tầng",
+            "altEn": "Close-up of light oak cabinet doors with edge banding and recessed plinth, light-well townhouse"
           }
         ]
       },
@@ -496,6 +504,10 @@
       "vi": "Văn phòng làm việc chung",
       "en": "Shared workspace"
     },
+    "seoTitle": {
+      "vi": "Thiết kế văn phòng làm việc chung, phòng họp kính",
+      "en": "Coworking office design with glass meeting rooms"
+    },
     "description": {
       "vi": "Một tầng văn phòng làm việc chung với bàn mở, phòng họp kính, phòng nhóm và pantry, chia lớp bằng vách nỉ, kính và gỗ sọc. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A coworking floor with open desks, a glass meeting room, team rooms and a pantry, layered with felt, glass and fluted timber. Design and CNC joinery by Trường Thịnh."
@@ -504,8 +516,8 @@
       "src": "/assets/content/projects/shared-office-open-desks.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
-      "altEn": "Open desk area with green felt dividers, desk lamps and a logo wall"
+      "altVi": "Khu bàn làm việc chung, vách nỉ xanh, đèn bàn và tường logo, văn phòng chung",
+      "altEn": "Open desk area with green felt dividers, desk lamps and logo wall, coworking office"
     },
     "card": {
       "width": 3072,
@@ -515,29 +527,29 @@
           "src": "/assets/content/projects/shared-office-open-desks-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
-          "altEn": "Open desk area with green felt dividers, desk lamps and a logo wall"
+          "altVi": "Bàn làm việc mở, vách nỉ xanh, đèn bàn, tường logo, văn phòng chung",
+          "altEn": "Open-plan desks with green felt dividers, desk lamps and logo wall, coworking office"
         },
         {
           "src": "/assets/content/projects/shared-office-team-room-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng nhóm bốn người vách kính, bàn gỗ và màn hình treo tường",
-          "altEn": "Four-person glass-walled team room with a timber table and wall screen"
+          "altVi": "Phòng nhóm bốn người, vách kính, bàn gỗ và màn hình treo tường, văn phòng chung",
+          "altEn": "Four-person glass-walled team room with timber table and wall screen, coworking office"
         },
         {
           "src": "/assets/content/projects/shared-office-meeting-room-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình",
-          "altEn": "Glass-walled meeting room overlooking the street, with a long timber table and screen"
+          "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình, văn phòng chung",
+          "altEn": "Glass-walled meeting room overlooking the street with long timber table, coworking office"
         },
         {
           "src": "/assets/content/projects/shared-office-pantry-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu",
-          "altEn": "Pantry with a fluted timber bar, lit shelving and moss-green high stools"
+          "altVi": "Pantry quầy bar ốp gỗ sọc, kệ đèn hắt, ghế cao xanh rêu, văn phòng chung",
+          "altEn": "Pantry with fluted timber bar, lit shelving and moss-green high stools, coworking office"
         }
       ]
     },
@@ -559,8 +571,8 @@
           "src": "/assets/content/projects/shared-office-open-desks.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
-          "altEn": "Open desk area with green felt dividers, desk lamps and a logo wall"
+          "altVi": "Khu bàn làm việc chung, vách nỉ xanh, đèn bàn và tường logo, văn phòng chung",
+          "altEn": "Open desk area with green felt dividers, desk lamps and logo wall, coworking office"
         }
       },
       {
@@ -641,8 +653,8 @@
           "src": "/assets/content/projects/shared-office-meeting-room.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình",
-          "altEn": "Glass-walled meeting room overlooking the street, with a long timber table and screen"
+          "altVi": "Phòng họp có vách kính và bàn dài gỗ, màn hình, văn phòng chung",
+          "altEn": "Meeting room with glass walls facing the street, long timber table and screen, coworking office"
         }
       },
       {
@@ -661,8 +673,8 @@
           "src": "/assets/content/projects/shared-office-pantry.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu",
-          "altEn": "Pantry with a fluted timber bar, lit shelving and moss-green high stools"
+          "altVi": "Quầy bar pantry ốp gỗ sọc, kệ đèn hắt, ghế cao xanh rêu, văn phòng chung",
+          "altEn": "Pantry bar clad in fluted timber, lit shelves and moss-green stools, coworking office"
         }
       },
       {
@@ -681,22 +693,22 @@
             "src": "/assets/content/projects/shared-office-phone-booth.webp",
             "width": 2456,
             "height": 3072,
-            "altVi": "Phòng làm việc một người với bàn gỗ, kệ cây xanh và cửa kính khung gỗ",
-            "altEn": "Single-person work booth with a timber desk, plant shelf and timber-framed glass door"
+            "altVi": "Phòng một người, bàn gỗ, kệ cây xanh, cửa kính khung gỗ, văn phòng chung",
+            "altEn": "Single-person work booth with timber desk, plant shelf and timber-framed glass door, coworking office"
           },
           {
             "src": "/assets/content/projects/shared-office-team-room.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng nhóm bốn người vách kính, bàn gỗ và màn hình treo tường",
-            "altEn": "Four-person glass-walled team room with a timber table and wall screen"
+            "altVi": "Phòng nhóm bốn chỗ có vách kính, bàn gỗ và màn hình treo, văn phòng chung",
+            "altEn": "Glass-walled room for four with timber table and wall-mounted screen, coworking office"
           },
           {
             "src": "/assets/content/projects/shared-office-rest-pod.webp",
             "width": 2456,
             "height": 3072,
-            "altVi": "Phòng nghỉ nhỏ với giường đơn, rèm xanh và vách gỗ sọc",
-            "altEn": "Small rest room with a single bed, green curtain and fluted timber walls"
+            "altVi": "Phòng nghỉ nhỏ có giường đơn, rèm xanh và vách gỗ sọc, văn phòng chung",
+            "altEn": "Small rest room with single bed, green curtain and fluted timber walls, coworking office"
           }
         ]
       },
@@ -742,6 +754,10 @@
       "vi": "Tiệm bánh ngọt",
       "en": "Neighbourhood bakery"
     },
+    "seoTitle": {
+      "vi": "Thiết kế tiệm bánh ngọt, kệ bánh mì gỗ",
+      "en": "Bakery design with wooden bread shelves"
+    },
     "description": {
       "vi": "Tiệm bánh nhỏ với kệ bánh mì gỗ sáng đèn, tủ bánh kem kính và góc ngồi cạnh cửa, để bánh nổi bật từ ngoài phố. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A small bakery with lit timber bread shelves, a glass cake cabinet and a seat by the door, so the bread shows from the street. Design and CNC joinery by Trường Thịnh."
@@ -750,8 +766,8 @@
       "src": "/assets/content/projects/bakery-bread-shelves.webp",
       "width": 1122,
       "height": 1402,
-      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
-      "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
+      "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
     },
     "card": {
       "width": 1122,
@@ -761,15 +777,15 @@
           "src": "/assets/content/projects/bakery-bread-shelves.webp",
           "width": 1122,
           "height": 1402,
-          "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
-          "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+          "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
+          "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
         },
         {
           "src": "/assets/content/projects/bakery-service-counter.webp",
           "width": 1122,
           "height": 1402,
-          "altVi": "Quầy thu ngân và tủ bánh kem kính nhìn từ phía khách, kệ hộp bánh phía sau",
-          "altEn": "Service counter and glass cake case seen from the customer side, with shelves of cake boxes behind"
+          "altVi": "Quầy thu ngân và tủ bánh kem kính, nhìn từ phía khách, tiệm bánh nhỏ",
+          "altEn": "Service counter and glass cake case seen from the customer side, bakery shop"
         }
       ]
     },
@@ -791,8 +807,8 @@
           "src": "/assets/content/projects/commercial-hero-bakery.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Tiệm bánh với tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh",
-          "altEn": "Bakery with a cake display case, timber bread shelves and a green arched wall"
+          "altVi": "Tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh trong tiệm bánh nhỏ",
+          "altEn": "Cake display case, timber bread shelves and green arched wall in a bakery shop"
         }
       },
       {
@@ -873,8 +889,8 @@
           "src": "/assets/content/projects/bakery-seating-corner.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh kính và vách vòm xanh phía sau",
-          "altEn": "Two-seat tables by the window, with the glass cake case and green arched wall behind"
+          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh và vách vòm xanh, tiệm bánh nhỏ",
+          "altEn": "Two-seat tables by the window, with glass cake case and green arched wall behind, bakery shop"
         }
       },
       {
@@ -893,22 +909,22 @@
             "src": "/assets/content/projects/bakery-bread-shelves.webp",
             "width": 1122,
             "height": 1402,
-            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn và cây xanh trên kệ",
-            "altEn": "Tiered timber bread shelving with strip lighting, neatly stacked loaves and plants on top"
+            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
+            "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
           },
           {
             "src": "/assets/content/projects/bakery-service-counter.webp",
             "width": 1122,
             "height": 1402,
-            "altVi": "Quầy thu ngân và tủ bánh kem kính nhìn từ phía khách, kệ hộp bánh phía sau",
-            "altEn": "Service counter and glass cake case seen from the customer side, with shelves of cake boxes behind"
+            "altVi": "Quầy thu ngân và tủ bánh kem kính, nhìn từ phía khách, tiệm bánh nhỏ",
+            "altEn": "Service counter and glass cake case seen from the customer side, bakery shop"
           },
           {
             "src": "/assets/content/projects/gallery-bakery.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Tiệm bánh ngọt với tủ kính bánh kem, kệ bánh mì gỗ sáng đèn và bàn ngồi cạnh cửa",
-            "altEn": "Bakery with a cake display case, lit timber bread shelves and tables by the window"
+            "altVi": "Tủ bánh kem kính, kệ bánh mì gỗ sáng đèn, bàn cạnh cửa, tiệm bánh nhỏ",
+            "altEn": "Glass cake case, lit timber bread shelves and tables by the window, bakery shop"
           }
         ]
       },
@@ -954,6 +970,10 @@
       "vi": "Quán cà phê sân vườn",
       "en": "Garden cafe"
     },
+    "seoTitle": {
+      "vi": "Thiết kế quán cà phê sân vườn có phòng kính",
+      "en": "Garden cafe design with a glass room"
+    },
     "description": {
       "vi": "Quán cà phê có sân cây xanh và phòng kính, quầy bar ốp nan, ghế băng gỗ và biển chữ nổi ngoài cổng. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A café with a planted courtyard and a glass room, a slatted bar, timber benches and a raised-letter sign at the gate. Design and CNC joinery by Trường Thịnh."
@@ -962,8 +982,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng cà phê trong nhà nhìn từ cuối phòng về quầy bar ốp nan và vách kính ra sân",
-      "altEn": "Indoor cafe room seen from the back towards the slatted bar and the glass wall to the garden"
+      "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+      "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
     },
     "card": {
       "width": 3072,
@@ -973,22 +993,22 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng cà phê trong nhà nhìn từ cuối phòng về quầy bar ốp nan và vách kính ra sân",
-          "altEn": "Indoor cafe room seen from the back towards the slatted bar and the glass wall to the garden"
+          "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+          "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sân vườn nhìn từ cổng vào: bàn ghế dưới giàn cây và vách kính phòng cà phê",
-          "altEn": "Garden seen from the gate: tables under the plant trellis and the glass wall of the cafe room"
+          "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+          "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu pha chế nhìn về kệ ly cốc nan gỗ và quầy làm việc",
-          "altEn": "Prep area looking towards the slatted cup shelving and the work counter"
+          "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+          "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
         }
       ]
     },
@@ -1010,8 +1030,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng cà phê trong nhà nhìn từ cuối phòng về quầy bar ốp nan và vách kính ra sân",
-          "altEn": "Indoor cafe room seen from the back towards the slatted bar and the glass wall to the garden"
+          "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+          "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
         }
       },
       {
@@ -1038,22 +1058,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Sân vườn nhìn từ cổng vào: bàn ghế dưới giàn cây và vách kính phòng cà phê",
-            "altEn": "Garden seen from the gate: tables under the plant trellis and the glass wall of the cafe room"
+            "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+            "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận biển chữ nổi trên tường rào ngoài cổng, nền gỗ và đèn hắt",
-            "altEn": "Close-up of raised letters on the front wall by the gate, on a timber backing with backlighting"
+            "altVi": "Biển chữ nổi ngoài cổng, nền gỗ có đèn hắt, cà phê sân vườn",
+            "altEn": "Raised letters on the front wall by the gate, timber backing with backlighting, garden cafe"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận mặt quầy bar ốp nan CNC, ghế cao và kệ ly cốc phía sau",
-            "altEn": "Close-up of the CNC-slatted bar front, high stools and the cup shelving behind"
+            "altVi": "Biển chữ nổi ngoài cổng, nền gỗ có đèn hắt, cà phê sân vườn",
+            "altEn": "Raised letters on the front wall by the gate, timber backing with backlighting, garden cafe"
           }
         ]
       },
@@ -1110,8 +1130,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận ghế băng nan gỗ ven tường và tay vịn phay CNC",
-          "altEn": "Close-up of the slatted timber wall bench and its CNC-cut armrest"
+          "altVi": "Biển chữ nổi ngoài cổng, nền gỗ có đèn hắt, cà phê sân vườn",
+          "altEn": "Raised letters on the front wall by the gate, timber backing with backlighting, garden cafe"
         },
         "text": {
           "vi": "Dọc tường phòng kính là ghế băng nan gỗ, tay vịn bo tròn cho người ngồi lâu. Kệ chậu cây ngoài sân dùng cùng kiểu nan, nên từ quầy bar nhìn ra sân thấy một nhịp liền.",
@@ -1134,8 +1154,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu pha chế nhìn về kệ ly cốc nan gỗ và quầy làm việc",
-          "altEn": "Prep area looking towards the slatted cup shelving and the work counter"
+          "altVi": "Phòng cà phê, quầy bar ốp nan, vách kính ra sân, cà phê sân vườn",
+          "altEn": "Indoor cafe room with slatted bar and glass wall facing the courtyard, garden cafe"
         }
       },
       {
@@ -1188,6 +1208,10 @@
       "vi": "Căn hộ 2 phòng ngủ tông be ấm",
       "en": "Warm beige two-bedroom apartment"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất căn hộ 2 phòng ngủ tông be ấm",
+      "en": "Warm beige two-bedroom apartment interior design"
+    },
     "description": {
       "vi": "Căn hộ hai phòng ngủ phủ một tông be từ tường đến tủ, melamine nhám chống vân tay và nan CNC nhỏ làm điểm nhấn. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A two-bedroom apartment in one beige palette from walls to cabinets, matt fingerprint-resistant melamine and small CNC slat accents. Design and CNC joinery by Trường Thịnh."
@@ -1196,8 +1220,8 @@
       "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng khách và bếp ăn liền mạch tông be, sofa vải, kệ TV be cát và cửa sổ bên trái",
-      "altEn": "Open living room and kitchen in beige, with a fabric sofa, a sand-beige TV unit and a window on the left"
+      "altVi": "Phòng khách liền bếp tông be, sofa, kệ TV be cát, căn hộ 2 phòng ngủ",
+      "altEn": "Open living room and kitchen in beige with fabric sofa and sand-beige TV unit, two-bedroom apartment"
     },
     "card": {
       "width": 3072,
@@ -1207,29 +1231,29 @@
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng khách và bếp ăn liền mạch tông be, sofa vải, kệ TV be cát và cửa sổ bên trái",
-          "altEn": "Open living room and kitchen in beige, with a fabric sofa, a sand-beige TV unit and a window on the left"
+          "altVi": "Phòng khách với sofa vải, kệ TV be cát, căn hộ 2 phòng ngủ",
+          "altEn": "Living room with fabric sofa, sand-beige TV unit and a window on the left, two-bedroom apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-2-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Bếp ăn với tủ bếp chữ I be cát và bàn ăn mặt laminate vân đá travertine",
-          "altEn": "Kitchen with sand-beige single-run cabinets and a dining table in travertine-look laminate"
+          "altVi": "Bếp tủ chữ I be cát, bàn ăn laminate vân travertine, căn hộ 2 phòng ngủ",
+          "altEn": "Kitchen with sand-beige single-run cabinets and travertine-look laminate dining table, two-bedroom apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-4-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng ngủ master nhìn về giường và ốp đầu giường gỗ vân dọc, ánh sáng dịu từ cửa sổ",
-          "altEn": "Master bedroom looking towards the bed and the vertical-grain headboard panel, with soft light from the window"
+          "altVi": "Phòng ngủ, ốp đầu giường gỗ vân dọc, ánh sáng dịu, căn hộ 2 phòng ngủ",
+          "altEn": "Master bedroom with vertical-grain headboard panel and soft window light, two-bedroom apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng tắm chung với bồn tắm kèm vòi sen, vách kính, tủ lavabo MDF chống ẩm và gạch be nhám",
-          "altEn": "Shared bathroom with a bath and shower, a glass screen, a moisture-resistant MDF vanity and matt beige tiles"
+          "altVi": "Phòng tắm chung, bồn tắm, vách kính, tủ lavabo MDF, căn hộ 2 phòng ngủ",
+          "altEn": "Shared bathroom with bath and shower, glass screen and moisture-resistant MDF vanity, two-bedroom apartment"
         }
       ]
     },
@@ -1251,8 +1275,8 @@
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách và bếp ăn liền mạch tông be, sofa vải, kệ TV be cát và cửa sổ bên trái",
-          "altEn": "Open living room and kitchen in beige, with a fabric sofa, a sand-beige TV unit and a window on the left"
+          "altVi": "Phòng khách liền bếp tông be, sofa, kệ TV be cát, căn hộ 2 phòng ngủ",
+          "altEn": "Open living room and kitchen in beige with fabric sofa and sand-beige TV unit, two-bedroom apartment"
         }
       },
       {
@@ -1324,8 +1348,8 @@
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-5.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận cánh tủ áo hai cánh phẳng be cát, melamine nhám và tay nắm âm",
-          "altEn": "Close-up of the two flat sand-beige wardrobe doors, matt melamine and recessed pulls"
+          "altVi": "Cận cánh tủ áo be cát, melamine nhám, tay nắm âm, căn hộ 2 phòng ngủ",
+          "altEn": "Close-up of flat sand-beige wardrobe doors, matt melamine and recessed pulls, two-bedroom apartment"
         },
         "text": {
           "vi": "Trong phòng ngủ, tủ áo hai cánh phẳng, tay nắm âm để mảng tủ lớn không lấn giường. Nan phay CNC nhỏ chỉ xuất hiện ở đầu giường và kệ trang trí, đủ tạo nhịp mà không rối mắt.",
@@ -1348,8 +1372,8 @@
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm chung với bồn tắm kèm vòi sen, vách kính, tủ lavabo MDF chống ẩm và gạch be nhám",
-          "altEn": "Shared bathroom with a bath and shower, a glass screen, a moisture-resistant MDF vanity and matt beige tiles"
+          "altVi": "Phòng tắm với bồn tắm, vách kính và gạch be nhám, căn hộ 2 phòng ngủ",
+          "altEn": "Bathroom with bath and shower, glass screen, matt beige tiles and MDF vanity, two-bedroom apartment"
         }
       },
       {
@@ -1368,22 +1392,22 @@
             "src": "/assets/content/projects/can-ho-2pn-be-am-shot-2.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Bếp ăn với tủ bếp chữ I be cát và bàn ăn mặt laminate vân đá travertine",
-            "altEn": "Kitchen with sand-beige single-run cabinets and a dining table in travertine-look laminate"
+            "altVi": "Bếp ăn tủ be cát một hàng, bàn laminate vân travertine, căn hộ 2 phòng ngủ",
+            "altEn": "Dining kitchen with sand-beige single-run cabinets and travertine-look laminate table, two-bedroom apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-2pn-be-am-shot-3.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ TV thấp be cát, hộc đèn hắt và tay nắm âm",
-            "altEn": "Close-up of the low sand-beige TV unit, its lit niche and recessed pulls"
+            "altVi": "Cận kệ TV be cát, hộc đèn hắt, tay nắm âm, căn hộ 2 phòng ngủ",
+            "altEn": "Close-up of the low sand-beige TV unit, lit niche and recessed pulls, two-bedroom apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-2pn-be-am-shot-4.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng ngủ master nhìn về giường và ốp đầu giường gỗ vân dọc, ánh sáng dịu từ cửa sổ",
-            "altEn": "Master bedroom looking towards the bed and the vertical-grain headboard panel, with soft light from the window"
+            "altVi": "Phòng ngủ master nhìn về giường, ốp gỗ vân dọc, căn hộ 2 phòng ngủ",
+            "altEn": "Master bedroom looking towards the bed and vertical-grain panel, two-bedroom apartment"
           }
         ]
       },
@@ -1429,6 +1453,10 @@
       "vi": "Căn hộ studio đồ gỗ đa năng",
       "en": "Studio apartment with multi-function furniture"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất căn hộ studio, đồ gỗ đa năng",
+      "en": "Studio apartment interior with multi-function furniture"
+    },
     "description": {
       "vi": "Căn studio khoảng 35 m² với giường gập, bàn gập, ghế dài hộc kéo và vách trượt để sàn luôn trống. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A studio of about 35 m² with a fold-down bed, fold-away desk, storage bench and sliding screen to keep the floor clear. Design and CNC joinery by Trường Thịnh."
@@ -1437,8 +1465,8 @@
       "src": "/assets/content/projects/can-ho-studio-gap-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng studio ban ngày nhìn về cửa kính ban công, giường đã gập vào tường, sàn trống, bàn gập bên phải",
-      "altEn": "Studio by day looking towards the glass balcony door, with the bed folded into the wall, a clear floor and the fold-down desk on the right"
+      "altVi": "Phòng studio nhìn về cửa kính ban công, giường gập vào tường, căn hộ studio",
+      "altEn": "Studio looking towards the glass balcony door with the bed folded away, studio apartment"
     },
     "card": {
       "width": 3072,
@@ -1448,29 +1476,29 @@
           "src": "/assets/content/projects/can-ho-studio-gap-shot-1-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng studio ban ngày nhìn về cửa kính ban công, giường đã gập vào tường, sàn trống, bàn gập bên phải",
-          "altEn": "Studio by day looking towards the glass balcony door, with the bed folded into the wall, a clear floor and the fold-down desk on the right"
+          "altVi": "Phòng studio ban ngày, giường gập vào tường, sàn trống, bàn gập, căn hộ studio",
+          "altEn": "Studio by day with bed folded into the wall, clear floor and fold-down desk, studio apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-2-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Mặt tủ áo cánh lùa xám xanh và hộc giường gập nhìn ngang căn phòng",
-          "altEn": "Grey-blue sliding wardrobe doors and the wall-bed cabinet seen across the room"
+          "altVi": "Phòng studio với tủ áo cánh lùa xám xanh và hộc giường gập, căn hộ studio",
+          "altEn": "Studio with grey-blue sliding wardrobe doors and wall-bed cabinet seen across the room, studio apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-3-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Bếp chữ I và bàn bar gập tường ở lối vào, nhìn về tủ lạnh",
-          "altEn": "Single-run kitchen and fold-down wall bar at the entrance, looking towards the fridge"
+          "altVi": "Bếp chữ I, bàn bar gập tường ở lối vào, căn hộ studio",
+          "altEn": "Single-run kitchen and fold-down wall bar by the entrance, facing the fridge, studio apartment"
         },
         {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-6-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Ban công với bàn ghế gập nan gỗ và chậu cây trên kệ nan",
-          "altEn": "Balcony with a folding slatted table and chairs and plants on a slatted shelf"
+          "altVi": "Ban công bàn ghế gập nan gỗ, chậu cây trên kệ nan, căn hộ studio",
+          "altEn": "Balcony with folding slatted table and chairs and plants on a slatted shelf, studio apartment"
         }
       ]
     },
@@ -1492,8 +1520,8 @@
           "src": "/assets/content/projects/can-ho-studio-gap-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng studio ban ngày nhìn về cửa kính ban công, giường đã gập vào tường, sàn trống, bàn gập bên phải",
-          "altEn": "Studio by day looking towards the glass balcony door, with the bed folded into the wall, a clear floor and the fold-down desk on the right"
+          "altVi": "Phòng studio nhìn về cửa kính ban công, giường gập vào tường, căn hộ studio",
+          "altEn": "Studio looking towards the glass balcony door with the bed folded away, studio apartment"
         }
       },
       {
@@ -1520,22 +1548,22 @@
             "src": "/assets/content/projects/can-ho-studio-gap-shot-2.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Mặt tủ áo cánh lùa xám xanh và hộc giường gập nhìn ngang căn phòng",
-            "altEn": "Grey-blue sliding wardrobe doors and the wall-bed cabinet seen across the room"
+            "altVi": "Tủ áo cánh lùa xám xanh cùng hộc giường gập, phòng nhìn ngang, căn hộ studio",
+            "altEn": "Grey-blue sliding wardrobe doors and wall-bed cabinet viewed across the room, studio apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-studio-gap-shot-3.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Bếp chữ I và bàn bar gập tường ở lối vào, nhìn về tủ lạnh",
-            "altEn": "Single-run kitchen and fold-down wall bar at the entrance, looking towards the fridge"
+            "altVi": "Lối vào, bếp chữ I, bàn bar gập tường, nhìn về tủ lạnh, căn hộ studio",
+            "altEn": "Entrance with single-run kitchen and fold-down wall bar, looking towards the fridge, studio apartment"
           },
           {
             "src": "/assets/content/projects/can-ho-studio-gap-shot-4.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận giường gập đã hạ xuống, mặt ván melamine vân tần bì và bản lề âm",
-            "altEn": "Close-up of the wall bed folded down, its ash-grain melamine panel and concealed hinges"
+            "altVi": "Cận giường gập hạ xuống, ván melamine vân tần bì, bản lề âm, căn hộ studio",
+            "altEn": "Close-up of wall bed folded down, ash-grain melamine panel and concealed hinges, studio apartment"
           }
         ]
       },
@@ -1592,8 +1620,8 @@
           "src": "/assets/content/projects/can-ho-studio-gap-shot-5.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận ghế dài hộc kéo dưới cửa sổ và bàn làm việc gập, đệm vàng nghệ",
-          "altEn": "Close-up of the storage bench under the window and the fold-down desk, with turmeric-yellow cushions"
+          "altVi": "Cận ghế dài hộc kéo dưới cửa sổ, bàn gập, đệm vàng nghệ, căn hộ studio",
+          "altEn": "Close-up of storage bench under window and fold-down desk, turmeric-yellow cushions, studio apartment"
         },
         "text": {
           "vi": "Dưới cửa sổ là ghế dài có hộc kéo, ban ngày là chỗ ngồi đọc, tối là nơi cất chăn gối. Bàn làm việc gập sát bên, hạ xuống khi cần, gập lên khi có khách.",
@@ -1616,8 +1644,8 @@
           "src": "/assets/content/projects/can-ho-studio-gap-shot-6.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Ban công với bàn ghế gập nan gỗ và chậu cây trên kệ nan",
-          "altEn": "Balcony with a folding slatted table and chairs and plants on a slatted shelf"
+          "altVi": "Ban công có bàn ghế gập nan gỗ và cây trên kệ nan, căn hộ studio",
+          "altEn": "Slatted folding table and chairs on the balcony, with plants on a slatted shelf, studio apartment"
         }
       },
       {
@@ -1670,6 +1698,10 @@
       "vi": "Cửa hàng mỹ phẩm",
       "en": "Cosmetics store"
     },
+    "seoTitle": {
+      "vi": "Thiết kế cửa hàng mỹ phẩm, kệ đèn LED",
+      "en": "Cosmetics store design with LED shelving"
+    },
     "description": {
       "vi": "Cửa hàng mỹ phẩm tông hồng phấn, kệ tường đèn LED từng hộc, đảo thử sản phẩm và bàn trang điểm thử. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A blush-pink cosmetics store with LED-lit wall niches, a testing island and a make-up table. Design and CNC joinery by Trường Thịnh."
@@ -1678,8 +1710,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Cửa hàng nhìn từ cửa vào thẳng về đảo thử sản phẩm và kệ nền sáng đèn phía sau",
-      "altEn": "Store seen from the entrance straight towards the testing island and the lit back wall shelving"
+      "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+      "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
     },
     "card": {
       "width": 3072,
@@ -1689,29 +1721,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Cửa hàng nhìn từ cửa vào thẳng về đảo thử sản phẩm và kệ nền sáng đèn phía sau",
-          "altEn": "Store seen from the entrance straight towards the testing island and the lit back wall shelving"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Dãy kệ tường bên phải sáng đèn, đảo thử ở giữa",
-          "altEn": "Lit wall shelving on the right, with the testing island in the middle"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Kệ nền phía sau và bàn trang điểm thử có gương",
-          "altEn": "Back wall shelving and the make-up testing table with a mirror"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân màu mận và kệ sau quầy nhìn từ lối vào",
-          "altEn": "Plum-coloured till counter and the shelving behind it, seen from the entrance"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         }
       ]
     },
@@ -1733,8 +1765,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Cửa hàng nhìn từ cửa vào thẳng về đảo thử sản phẩm và kệ nền sáng đèn phía sau",
-          "altEn": "Store seen from the entrance straight towards the testing island and the lit back wall shelving"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         }
       },
       {
@@ -1806,8 +1838,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận đảo thử sản phẩm: mặt veneer óc chó, gương tròn, đèn vòng",
-          "altEn": "Close-up of the testing island: walnut veneer top, round mirror, ring light"
+          "altVi": "Cận đảo thử, mặt veneer óc chó, gương tròn, đèn vòng, showroom mỹ phẩm",
+          "altEn": "Close-up of testing island with walnut veneer top, round mirror and ring light, cosmetics showroom"
         },
         "text": {
           "vi": "Đảo thử bo tròn góc để khách đi quanh không vướng. Mặt đảo phủ veneer óc chó, có gương tròn và đèn vòng, đủ sáng để thử màu ngay tại chỗ.",
@@ -1830,8 +1862,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân màu mận và kệ sau quầy nhìn từ lối vào",
-          "altEn": "Plum-coloured till counter and the shelving behind it, seen from the entrance"
+          "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+          "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
         }
       },
       {
@@ -1850,22 +1882,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Dãy kệ tường bên phải sáng đèn, đảo thử ở giữa",
-            "altEn": "Lit wall shelving on the right, with the testing island in the middle"
+            "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+            "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Kệ nền phía sau và bàn trang điểm thử có gương",
-            "altEn": "Back wall shelving and the make-up testing table with a mirror"
+            "altVi": "Nhìn từ cửa vào, đảo thử sản phẩm, kệ tường sáng đèn, showroom mỹ phẩm",
+            "altEn": "Store seen from the entrance towards the testing island and lit back wall shelving, cosmetics showroom"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ tường: hộc phay CNC, đèn LED hắt từng tầng, viền đồng thau",
-            "altEn": "Close-up of the wall shelving: CNC-cut niches, LED strips on every tier, brass trim"
+            "altVi": "Cận đảo thử, mặt veneer óc chó, gương tròn, đèn vòng, showroom mỹ phẩm",
+            "altEn": "Close-up of testing island with walnut veneer top, round mirror and ring light, cosmetics showroom"
           }
         ]
       },
@@ -1911,6 +1943,10 @@
       "vi": "Cửa hàng thời trang",
       "en": "Fashion store"
     },
+    "seoTitle": {
+      "vi": "Thiết kế shop thời trang, kệ treo gỗ tần bì",
+      "en": "Fashion store design with ash wall racks"
+    },
     "description": {
       "vi": "Cửa hàng thời trang nam nữ với kệ treo tường gỗ tần bì, bàn gấp đồ ở giữa và phòng thử phía sau. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A men's and women's fashion store with ash wall racks, a central folding table and fitting rooms at the back. Design and CNC joinery by Trường Thịnh."
@@ -1919,8 +1955,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Cửa hàng nhìn chéo về bàn trưng bày trung tâm, kệ treo tường và dãy phòng thử phía sau",
-      "altEn": "Diagonal view of the store towards the central display table, wall rails and the fitting rooms at the back"
+      "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+      "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
     },
     "card": {
       "width": 3072,
@@ -1930,29 +1966,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Cửa hàng nhìn chéo về bàn trưng bày trung tâm, kệ treo tường và dãy phòng thử phía sau",
-          "altEn": "Diagonal view of the store towards the central display table, wall rails and the fitting rooms at the back"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Kệ treo tường bên trái với thanh treo, hộc gấp đồ và đèn hắt dưới kệ",
-          "altEn": "Left wall unit with hanging rails, folding cubbies and under-shelf lighting"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Dãy ba phòng thử đồ với rèm hồng đất và gương khung gỗ",
-          "altEn": "Row of three fitting rooms with clay-pink curtains and timber-framed mirrors"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân và kệ sau quầy nhìn từ lối vào",
-          "altEn": "Till counter and back shelving seen from the entrance"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         }
       ]
     },
@@ -1974,8 +2010,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Cửa hàng nhìn chéo về bàn trưng bày trung tâm, kệ treo tường và dãy phòng thử phía sau",
-          "altEn": "Diagonal view of the store towards the central display table, wall rails and the fitting rooms at the back"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         }
       },
       {
@@ -2002,22 +2038,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Kệ treo tường bên trái với thanh treo, hộc gấp đồ và đèn hắt dưới kệ",
-            "altEn": "Left wall unit with hanging rails, folding cubbies and under-shelf lighting"
+            "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+            "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Dãy ba phòng thử đồ với rèm hồng đất và gương khung gỗ",
-            "altEn": "Row of three fitting rooms with clay-pink curtains and timber-framed mirrors"
+            "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+            "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ treo tường: thanh treo thép đen, hộc kệ tần bì phay rãnh, đèn LED hắt",
-            "altEn": "Close-up of the wall unit: black steel rail, grooved ash cubbies, LED strip"
+            "altVi": "Kệ treo tường thép đen, hộc tần bì phay rãnh, đèn LED hắt, shop thời trang",
+            "altEn": "Close-up of wall unit with black steel rail, grooved ash cubbies and LED strip, fashion boutique"
           }
         ]
       },
@@ -2074,8 +2110,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận bàn trưng bày trung tâm: mặt tần bì, chân vát cạnh, đồ gấp xếp lớp",
-          "altEn": "Close-up of the central display table: ash top, chamfered legs, folded garments in layers"
+          "altVi": "Kệ treo tường thép đen, hộc tần bì phay rãnh, đèn LED hắt, shop thời trang",
+          "altEn": "Close-up of wall unit with black steel rail, grooved ash cubbies and LED strip, fashion boutique"
         },
         "text": {
           "vi": "Bàn trưng bày giữa cửa hàng có mặt tần bì và chân gỗ vát cạnh, đủ rộng để xếp đồ gấp theo lớp. Cạnh vát giúp chiếc bàn lớn trông nhẹ dù đặt ngay giữa lối đi.",
@@ -2098,8 +2134,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân và kệ sau quầy nhìn từ lối vào",
-          "altEn": "Till counter and back shelving seen from the entrance"
+          "altVi": "Bàn trưng bày trung tâm, kệ treo tường, phòng thử phía sau, shop thời trang",
+          "altEn": "Diagonal view of central display table, wall rails and fitting rooms at the back, fashion boutique"
         }
       },
       {
@@ -2145,12 +2181,16 @@
   {
     "id": "homestay-gac-lung",
     "sector": "residential",
-    "type": "homestay-hotel",
+    "type": "homestay-khach-san",
     "slugVi": "homestay-gac-lung",
     "slugEn": "mezzanine-loft-homestay",
     "title": {
       "vi": "Homestay gác lửng",
       "en": "Mezzanine loft homestay"
+    },
+    "seoTitle": {
+      "vi": "Thiết kế homestay gác lửng, cầu thang hộp tủ",
+      "en": "Mezzanine homestay design with a storage staircase"
     },
     "description": {
       "vi": "Homestay nhỏ có phòng khách bếp trà thông tầng, gác lửng ngủ thêm, cầu thang hộp tủ và lan can nan gỗ. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
@@ -2160,8 +2200,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng khách bếp trà thông tầng nhìn lên lan can gác lửng, sofa và cửa sổ lớn",
-      "altEn": "Double-height living room and tea kitchen looking up to the mezzanine balustrade, with the sofa and a large window"
+      "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+      "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
     },
     "card": {
       "width": 3072,
@@ -2171,29 +2211,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách bếp trà thông tầng nhìn lên lan can gác lửng, sofa và cửa sổ lớn",
-          "altEn": "Double-height living room and tea kitchen looking up to the mezzanine balustrade, with the sofa and a large window"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy bếp trà gỗ và khung cửa mặt tiền",
-          "altEn": "Timber tea counter and the front door frame"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Gác ngủ với hai nệm đôi và tủ thấp dưới mái",
-          "altEn": "Sleeping loft with two double mattresses and low cabinets under the roof"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ tầng trệt nhìn về đầu giường nan CNC",
-          "altEn": "Ground-floor bedroom looking towards the CNC-slatted headboard"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         }
       ]
     },
@@ -2215,8 +2255,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách bếp trà thông tầng nhìn lên lan can gác lửng, sofa và cửa sổ lớn",
-          "altEn": "Double-height living room and tea kitchen looking up to the mezzanine balustrade, with the sofa and a large window"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         }
       },
       {
@@ -2288,8 +2328,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận mặt quầy bếp trà gỗ ốp nan và tay nắm",
-          "altEn": "Close-up of the slat-clad tea counter front and its pulls"
+          "altVi": "Cận mặt quầy bếp trà gỗ ốp nan và tay nắm, homestay tầng lửng",
+          "altEn": "Close-up of slat-clad timber tea counter front and its pulls, mezzanine homestay"
         },
         "text": {
           "vi": "Quầy bếp trà ốp nan gỗ là nơi cả nhóm tụ lại buổi tối. Cầu thang lên gác cũng là một dãy hộp tủ, dưới mỗi bậc là chỗ cất vali và chăn gối, nên phòng khách không cần thêm tủ.",
@@ -2312,8 +2352,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ tầng trệt nhìn về đầu giường nan CNC",
-          "altEn": "Ground-floor bedroom looking towards the CNC-slatted headboard"
+          "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+          "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
         }
       },
       {
@@ -2332,22 +2372,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Quầy bếp trà gỗ và khung cửa mặt tiền",
-            "altEn": "Timber tea counter and the front door frame"
+            "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+            "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Gác ngủ với hai nệm đôi và tủ thấp dưới mái",
-            "altEn": "Sleeping loft with two double mattresses and low cabinets under the roof"
+            "altVi": "Phòng khách thông tầng nhìn lên lan can gác lửng, sofa, homestay tầng lửng",
+            "altEn": "Double-height living room looking up to the mezzanine balustrade and sofa, mezzanine homestay"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận lan can nan gỗ phay CNC nhìn xuống phòng khách thông tầng",
-            "altEn": "Close-up of the CNC-cut slatted balustrade looking down into the double-height living room"
+            "altVi": "Cận mặt quầy bếp trà gỗ ốp nan và tay nắm, homestay tầng lửng",
+            "altEn": "Close-up of slat-clad timber tea counter front and its pulls, mezzanine homestay"
           }
         ]
       },
@@ -2386,12 +2426,16 @@
   {
     "id": "homestay-nha-go-ven-song",
     "sector": "residential",
-    "type": "homestay-hotel",
+    "type": "homestay-khach-san",
     "slugVi": "homestay-nha-go-ven-song",
     "slugEn": "riverside-wooden-homestay",
     "title": {
       "vi": "Homestay nhà gỗ ven sông",
       "en": "Riverside wooden homestay"
+    },
+    "seoTitle": {
+      "vi": "Thiết kế homestay nhà gỗ ven sông miền Tây",
+      "en": "Riverside wooden homestay design in the Mekong Delta"
     },
     "description": {
       "vi": "Homestay một tầng bên sông miền Tây với gỗ tràm sáng, mây tre, gạch thẻ, đầu giường nan và quầy trà. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
@@ -2401,8 +2445,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng sinh hoạt chung nhìn từ cửa ra sofa mây và cửa sổ lớn hướng sông",
-      "altEn": "Shared living room seen from the door towards the rattan sofa and the large river-facing window"
+      "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+      "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
     },
     "card": {
       "width": 3072,
@@ -2412,29 +2456,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng sinh hoạt chung nhìn từ cửa ra sofa mây và cửa sổ lớn hướng sông",
-          "altEn": "Shared living room seen from the door towards the rattan sofa and the large river-facing window"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy trà ốp nan gỗ và kệ lưu niệm phía sau phòng sinh hoạt chung",
-          "altEn": "Slat-clad tea bar and the souvenir shelf at the back of the living room"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ 1 nhìn về đầu giường gỗ tràm và tủ áo",
-          "altEn": "Bedroom 1 looking towards the cajeput headboard and wardrobe"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm riêng của phòng 1 với tủ lavabo gỗ chống ẩm",
-          "altEn": "Private bathroom of bedroom 1 with a moisture-resistant timber vanity"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         }
       ]
     },
@@ -2456,8 +2500,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng sinh hoạt chung nhìn từ cửa ra sofa mây và cửa sổ lớn hướng sông",
-          "altEn": "Shared living room seen from the door towards the rattan sofa and the large river-facing window"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         }
       },
       {
@@ -2484,22 +2528,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Quầy trà ốp nan gỗ và kệ lưu niệm phía sau phòng sinh hoạt chung",
-            "altEn": "Slat-clad tea bar and the souvenir shelf at the back of the living room"
+            "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+            "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng ngủ 1 nhìn về đầu giường gỗ tràm và tủ áo",
-            "altEn": "Bedroom 1 looking towards the cajeput headboard and wardrobe"
+            "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+            "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận đầu giường nan dọc phay CNC, vân gỗ tràm và đèn hắt",
-            "altEn": "Close-up of the CNC-cut vertical-slat headboard, cajeput grain and backlighting"
+            "altVi": "Cận đầu giường nan dọc phay CNC, vân gỗ tràm và đèn hắt, homestay ven sông",
+            "altEn": "Close-up of CNC-cut vertical-slat headboard, cajeput grain and backlighting, riverside homestay"
           }
         ]
       },
@@ -2556,8 +2600,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận mặt quầy trà ốp nan gỗ CNC, tay nắm và bậc ly",
-          "altEn": "Close-up of the CNC-slatted tea bar front, its pulls and cup ledge"
+          "altVi": "Cận đầu giường nan dọc phay CNC, vân gỗ tràm và đèn hắt, homestay ven sông",
+          "altEn": "Close-up of CNC-cut vertical-slat headboard, cajeput grain and backlighting, riverside homestay"
         },
         "text": {
           "vi": "Quầy trà ốp nan gỗ là chỗ khách ngồi lại với nhau sau bữa tối. Phía sau quầy là kệ lưu niệm và vách họa tiết lá dừa nước, đều phay CNC từ cùng một bộ bản vẽ.",
@@ -2580,8 +2624,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm riêng của phòng 1 với tủ lavabo gỗ chống ẩm",
-          "altEn": "Private bathroom of bedroom 1 with a moisture-resistant timber vanity"
+          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
+          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
         }
       },
       {
@@ -2627,12 +2671,16 @@
   {
     "id": "khach-san-boutique",
     "sector": "residential",
-    "type": "homestay-hotel",
+    "type": "homestay-khach-san",
     "slugVi": "khach-san-boutique-nho",
     "slugEn": "small-boutique-hotel",
     "title": {
       "vi": "Khách sạn boutique nhỏ",
       "en": "Small boutique hotel"
+    },
+    "seoTitle": {
+      "vi": "Nội thất khách sạn boutique nhỏ, quầy lễ tân CNC",
+      "en": "Small boutique hotel interior with a CNC reception desk"
     },
     "description": {
       "vi": "Khách sạn boutique nhỏ với quầy lễ tân phay CNC, vách nan đèn hắt, quầy buffet và phòng tiêu chuẩn gỗ óc chó nhạt. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
@@ -2642,8 +2690,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Sảnh nhìn từ cửa vào về quầy lễ tân phay CNC và vách nan sau quầy",
-      "altEn": "Lobby seen from the entrance towards the CNC-cut reception desk and the slatted wall behind it"
+      "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+      "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
     },
     "card": {
       "width": 3072,
@@ -2653,29 +2701,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sảnh nhìn từ cửa vào về quầy lễ tân phay CNC và vách nan sau quầy",
-          "altEn": "Lobby seen from the entrance towards the CNC-cut reception desk and the slatted wall behind it"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu lounge với sofa, ghế bành và kệ sách nan gỗ",
-          "altEn": "Lounge with a sofa, armchairs and slatted timber bookshelves"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tiêu chuẩn nhìn về đầu giường nan CNC và tủ áo",
-          "altEn": "Standard room looking towards the CNC-slatted headboard and wardrobe"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm của phòng tiêu chuẩn với tủ lavabo gỗ chống ẩm",
-          "altEn": "Standard room bathroom with a moisture-resistant timber vanity"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         }
       ]
     },
@@ -2697,8 +2745,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sảnh nhìn từ cửa vào về quầy lễ tân phay CNC và vách nan sau quầy",
-          "altEn": "Lobby seen from the entrance towards the CNC-cut reception desk and the slatted wall behind it"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         }
       },
       {
@@ -2770,8 +2818,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận quầy buffet sáng ốp nan gỗ và mặt đá",
-          "altEn": "Close-up of the slat-clad breakfast buffet and its stone top"
+          "altVi": "Cận quầy buffet sáng ốp nan gỗ và mặt đá, khách sạn boutique",
+          "altEn": "Close-up of slat-clad breakfast buffet and its stone top, boutique hotel"
         },
         "text": {
           "vi": "Phòng ăn sáng dùng quầy buffet ốp nan cùng kiểu với quầy lễ tân, mặt đá thạch anh dễ lau sau mỗi lượt phục vụ.",
@@ -2794,8 +2842,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm của phòng tiêu chuẩn với tủ lavabo gỗ chống ẩm",
-          "altEn": "Standard room bathroom with a moisture-resistant timber vanity"
+          "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+          "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
         }
       },
       {
@@ -2814,22 +2862,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Khu lounge với sofa, ghế bành và kệ sách nan gỗ",
-            "altEn": "Lounge with a sofa, armchairs and slatted timber bookshelves"
+            "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+            "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng tiêu chuẩn nhìn về đầu giường nan CNC và tủ áo",
-            "altEn": "Standard room looking towards the CNC-slatted headboard and wardrobe"
+            "altVi": "Sảnh, quầy lễ tân phay CNC, vách nan sau quầy, khách sạn boutique",
+            "altEn": "Lobby seen from the entrance towards CNC-cut reception desk and slatted wall behind, boutique hotel"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận mặt quầy lễ tân phay CNC và vách nan gỗ có đèn hắt phía sau",
-            "altEn": "Close-up of the CNC-cut reception desk front and the backlit slatted wall behind"
+            "altVi": "Cận quầy buffet sáng ốp nan gỗ và mặt đá, khách sạn boutique",
+            "altEn": "Close-up of slat-clad breakfast buffet and its stone top, boutique hotel"
           }
         ]
       },
@@ -2875,6 +2923,10 @@
       "vi": "Nhà hàng món Việt",
       "en": "Vietnamese restaurant"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nhà hàng món Việt, vách lam gỗ",
+      "en": "Vietnamese restaurant design with wooden louvres"
+    },
     "description": {
       "vi": "Nhà hàng món Việt với vách lam gỗ, ốp tường họa tiết nón lá, lô ghế bán riêng tư và quầy thu ngân phay CNC. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A Vietnamese restaurant with timber louvres, conical-hat wall panels, semi-private booths and a CNC-milled cashier counter. Design and CNC joinery by Trường Thịnh."
@@ -2883,8 +2935,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Sảnh ăn nhìn từ cửa sảnh về bàn ăn, ốp tường họa tiết CNC và vách lam che bếp",
-      "altEn": "Dining hall seen from the entrance towards the tables, the CNC-patterned wall and the louvres screening the kitchen"
+      "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+      "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
     },
     "card": {
       "width": 3072,
@@ -2894,29 +2946,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sảnh ăn nhìn từ cửa sảnh về bàn ăn, ốp tường họa tiết CNC và vách lam che bếp",
-          "altEn": "Dining hall seen from the entrance towards the tables, the CNC-patterned wall and the louvres screening the kitchen"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu lô ghế bán riêng tư nhìn dọc ba lô và vách lam gỗ",
-          "altEn": "Semi-private booths seen along all three, with timber louvres between them"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sảnh ăn nhìn từ cuối phòng về cửa vào và cửa sổ mặt tiền",
-          "altEn": "Dining hall seen from the back towards the entrance and the front windows"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu WC với tủ lavabo gỗ chống ẩm",
-          "altEn": "Restroom area with a moisture-resistant timber vanity"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         }
       ]
     },
@@ -2938,8 +2990,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Sảnh ăn nhìn từ cửa sảnh về bàn ăn, ốp tường họa tiết CNC và vách lam che bếp",
-          "altEn": "Dining hall seen from the entrance towards the tables, the CNC-patterned wall and the louvres screening the kitchen"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         }
       },
       {
@@ -2966,22 +3018,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Khu lô ghế bán riêng tư nhìn dọc ba lô và vách lam gỗ",
-            "altEn": "Semi-private booths seen along all three, with timber louvres between them"
+            "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+            "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Sảnh ăn nhìn từ cuối phòng về cửa vào và cửa sổ mặt tiền",
-            "altEn": "Dining hall seen from the back towards the entrance and the front windows"
+            "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+            "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận quầy thu ngân phay CNC, mặt nan dọc và đèn hắt",
-            "altEn": "Close-up of the CNC-cut till counter with vertical slats and backlighting"
+            "altVi": "Cận quầy thu ngân phay CNC, mặt nan dọc, đèn hắt, nhà hàng ẩm thực Việt",
+            "altEn": "Close-up of CNC-cut till counter with vertical slats and backlighting, Vietnamese restaurant"
           }
         ]
       },
@@ -3038,8 +3090,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận vách lam gỗ phay CNC giữa hai lô ghế",
-          "altEn": "Close-up of the CNC-cut timber louvre between two booths"
+          "altVi": "Cận quầy thu ngân phay CNC, mặt nan dọc, đèn hắt, nhà hàng ẩm thực Việt",
+          "altEn": "Close-up of CNC-cut till counter with vertical slats and backlighting, Vietnamese restaurant"
         },
         "text": {
           "vi": "Vách lam giữa các lô ghế che vừa đủ để mỗi nhóm có góc riêng, mà vẫn nghe được không khí của cả sảnh. Lam phay CNC từ MDF chống ẩm phủ melamine vân óc chó.",
@@ -3062,8 +3114,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu WC với tủ lavabo gỗ chống ẩm",
-          "altEn": "Restroom area with a moisture-resistant timber vanity"
+          "altVi": "Sảnh ăn, ốp tường họa tiết CNC, vách lam che bếp, nhà hàng ẩm thực Việt",
+          "altEn": "Dining hall towards the tables, CNC-patterned wall and louvres screening the kitchen, Vietnamese restaurant"
         }
       },
       {
@@ -3116,6 +3168,10 @@
       "vi": "Phòng giám đốc và phòng họp",
       "en": "Director's office and boardroom"
     },
+    "seoTitle": {
+      "vi": "Thiết kế phòng giám đốc và phòng họp gỗ óc chó",
+      "en": "Walnut director's office and boardroom design"
+    },
     "description": {
       "vi": "Khu điều hành với bàn giám đốc, bàn họp mười hai chỗ, quầy thư ký và vách logo bằng gỗ óc chó, xanh navy và đồng thau. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "An executive suite with a director's desk, a twelve-seat boardroom table, a reception desk and a logo wall in walnut, navy and brass. Design and CNC joinery by Trường Thịnh."
@@ -3124,8 +3180,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng họp nhìn chéo qua bàn họp óc chó về kệ trình chiếu và cửa sổ",
-      "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows"
+      "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+      "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
     },
     "card": {
       "width": 3072,
@@ -3135,29 +3191,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng họp nhìn chéo qua bàn họp óc chó về kệ trình chiếu và cửa sổ",
-          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng giám đốc nhìn từ cửa vào về bàn giám đốc và tủ sau lưng",
-          "altEn": "Director's office seen from the door towards the desk and the cabinet behind it"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thư ký, vách logo nan gỗ và kệ sách khu chờ",
-          "altEn": "Secretary's desk, slatted timber logo wall and bookshelves in the waiting area"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Góc chờ với sofa navy, bàn trà và ghế đơn nhìn từ lối vào",
-          "altEn": "Waiting corner with a navy sofa, coffee table and armchair, seen from the entrance"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         }
       ]
     },
@@ -3179,8 +3235,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng họp nhìn chéo qua bàn họp óc chó về kệ trình chiếu và cửa sổ",
-          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         }
       },
       {
@@ -3252,8 +3308,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận mép bàn họp: veneer óc chó, chân vát cạnh, viền đồng thau",
-          "altEn": "Close-up of the boardroom table edge: walnut veneer, chamfered legs, brass trim"
+          "altVi": "Cận bàn họp: veneer óc chó, chân vát cạnh, viền đồng thau, văn phòng điều hành",
+          "altEn": "Close-up of boardroom table edge with walnut veneer, chamfered legs and brass trim, executive office"
         },
         "text": {
           "vi": "Bàn họp mười hai chỗ có chân vát cạnh và viền đồng thau ở mép. Kệ trình chiếu và tủ hộp đi cùng bàn, giữ thiết bị và dây nối gọn một chỗ.",
@@ -3276,8 +3332,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Góc chờ với sofa navy, bàn trà và ghế đơn nhìn từ lối vào",
-          "altEn": "Waiting corner with a navy sofa, coffee table and armchair, seen from the entrance"
+          "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+          "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
         }
       },
       {
@@ -3296,22 +3352,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng giám đốc nhìn từ cửa vào về bàn giám đốc và tủ sau lưng",
-            "altEn": "Director's office seen from the door towards the desk and the cabinet behind it"
+            "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+            "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Quầy thư ký, vách logo nan gỗ và kệ sách khu chờ",
-            "altEn": "Secretary's desk, slatted timber logo wall and bookshelves in the waiting area"
+            "altVi": "Phòng họp nhìn qua bàn óc chó, kệ trình chiếu, cửa sổ, văn phòng điều hành",
+            "altEn": "Boardroom seen diagonally across the walnut table towards the media unit and windows, executive office"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận bàn giám đốc và tủ trang trí phía sau: vân óc chó, rãnh âm, tay nắm đồng thau",
-            "altEn": "Close-up of the director's desk and display cabinet: walnut grain, recessed grooves, brass pulls"
+            "altVi": "Cận bàn họp: veneer óc chó, chân vát cạnh, viền đồng thau, văn phòng điều hành",
+            "altEn": "Close-up of boardroom table edge with walnut veneer, chamfered legs and brass trim, executive office"
           }
         ]
       },
@@ -3357,6 +3413,10 @@
       "vi": "Showroom gạch và thiết bị vệ sinh",
       "en": "Tile and sanitary ware showroom"
     },
+    "seoTitle": {
+      "vi": "Thiết kế showroom gạch, thiết bị vệ sinh",
+      "en": "Tile and sanitary ware showroom design"
+    },
     "description": {
       "vi": "Showroom gạch và thiết bị vệ sinh có ba phòng tắm mẫu, vách mẫu gạch phay ô, đảo trưng bày và bàn tư vấn gỗ sồi. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A tile and sanitaryware showroom with three model bathrooms, milled tile-sample walls, display islands and an oak consultation desk. Design and CNC joinery by Trường Thịnh."
@@ -3365,8 +3425,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Khu trưng bày nhìn về ba phòng tắm mẫu, đảo gạch ở giữa, hai vách mẫu gạch hai bên",
-      "altEn": "Display floor looking towards the three model bathrooms, with the tile island in the middle and sample walls on both sides"
+      "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+      "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
     },
     "card": {
       "width": 3072,
@@ -3376,29 +3436,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu trưng bày nhìn về ba phòng tắm mẫu, đảo gạch ở giữa, hai vách mẫu gạch hai bên",
-          "altEn": "Display floor looking towards the three model bathrooms, with the tile island in the middle and sample walls on both sides"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm mẫu 1 với bồn tắm, vách ốp gạch và tủ lavabo gỗ sồi",
-          "altEn": "Model bathroom 1 with a bathtub, tiled walls and an oak vanity"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm mẫu 2 với vách kính đứng, bồn cầu và tủ lavabo nan dọc",
-          "altEn": "Model bathroom 2 with a glass shower screen, toilet and a vertical-slat vanity"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân và bàn tư vấn nhìn từ lối vào, biển hiệu thấp thoáng sau kính mặt tiền",
-          "altEn": "Till and consultation desk seen from the entrance, with the sign glimpsed through the front glass"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         }
       ]
     },
@@ -3420,8 +3480,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu trưng bày nhìn về ba phòng tắm mẫu, đảo gạch ở giữa, hai vách mẫu gạch hai bên",
-          "altEn": "Display floor looking towards the three model bathrooms, with the tile island in the middle and sample walls on both sides"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         }
       },
       {
@@ -3448,22 +3508,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng tắm mẫu 1 với bồn tắm, vách ốp gạch và tủ lavabo gỗ sồi",
-            "altEn": "Model bathroom 1 with a bathtub, tiled walls and an oak vanity"
+            "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+            "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng tắm mẫu 2 với vách kính đứng, bồn cầu và tủ lavabo nan dọc",
-            "altEn": "Model bathroom 2 with a glass shower screen, toilet and a vertical-slat vanity"
+            "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+            "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ lavabo đặt bàn: mặt đá, thân MDF phủ vân sồi, đèn hắt sau gương",
-            "altEn": "Close-up of the countertop basin unit: stone top, oak-grain MDF body, light behind the mirror"
+            "altVi": "Cận lavabo đặt bàn: mặt đá, thân MDF vân sồi, đèn hắt, showroom gạch vệ sinh",
+            "altEn": "Close-up of countertop basin unit with stone top, oak-grain MDF body and backlit mirror, tile showroom"
           }
         ]
       },
@@ -3520,8 +3580,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận đảo trưng bày gạch: ô lắp mẫu phay CNC và khung gỗ viền đồng thau",
-          "altEn": "Close-up of the tile display island: CNC-cut sample slots and a timber frame with brass trim"
+          "altVi": "Cận lavabo đặt bàn: mặt đá, thân MDF vân sồi, đèn hắt, showroom gạch vệ sinh",
+          "altEn": "Close-up of countertop basin unit with stone top, oak-grain MDF body and backlit mirror, tile showroom"
         },
         "text": {
           "vi": "Vách mẫu gạch chạy dọc hai bên sảnh và đảo trưng bày ở giữa đều phay sẵn ô theo khổ gạch, khung gỗ viền đồng thau. Khi đổi bộ sưu tập, nhân viên chỉ cần thay mẫu vào ô có sẵn.",
@@ -3544,8 +3604,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Quầy thu ngân và bàn tư vấn nhìn từ lối vào, biển hiệu thấp thoáng sau kính mặt tiền",
-          "altEn": "Till and consultation desk seen from the entrance, with the sign glimpsed through the front glass"
+          "altVi": "Ba phòng tắm mẫu, đảo gạch giữa, vách mẫu hai bên, showroom gạch vệ sinh",
+          "altEn": "Display floor with three model bathrooms, tile island and sample walls on both sides, tile showroom"
         }
       },
       {
@@ -3598,6 +3658,10 @@
       "vi": "Văn phòng 20 chỗ",
       "en": "Twenty-seat office"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất văn phòng 20 chỗ ngồi",
+      "en": "Twenty-seat office interior design"
+    },
     "description": {
       "vi": "Văn phòng một tầng cho khoảng hai mươi người với quầy tiếp tân gỗ sồi, khu làm việc mở, phòng họp kính và pantry. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A single-floor office for about twenty people with an oak reception desk, open workspace, glass meeting room and pantry. Design and CNC joinery by Trường Thịnh."
@@ -3606,8 +3670,8 @@
       "src": "/assets/content/projects/placeholder-ngang.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Khu làm việc mở nhìn chéo qua hai dãy bàn, phòng họp kính và pantry phía sau",
-      "altEn": "Open workspace seen diagonally across two rows of desks, with the glass meeting room and pantry behind"
+      "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+      "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
     },
     "card": {
       "width": 3072,
@@ -3617,29 +3681,29 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu làm việc mở nhìn chéo qua hai dãy bàn, phòng họp kính và pantry phía sau",
-          "altEn": "Open workspace seen diagonally across two rows of desks, with the glass meeting room and pantry behind"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Hai dãy bàn làm việc nhìn dọc, tủ locker gỗ cuối dãy",
-          "altEn": "Two rows of desks seen lengthwise, with timber lockers at the end"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng họp với bàn họp mười chỗ, kệ TV gỗ sồi và cửa sổ",
-          "altEn": "Meeting room with a ten-seat table, an oak TV unit and windows"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         },
         {
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Góc chờ khách với sofa cam đất, bàn trà và kệ trưng bày giới thiệu",
-          "altEn": "Visitor waiting corner with a burnt-orange sofa, coffee table and display shelf"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         }
       ]
     },
@@ -3661,8 +3725,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Khu làm việc mở nhìn chéo qua hai dãy bàn, phòng họp kính và pantry phía sau",
-          "altEn": "Open workspace seen diagonally across two rows of desks, with the glass meeting room and pantry behind"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         }
       },
       {
@@ -3734,8 +3798,8 @@
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận quầy tiếp tân gỗ sồi phay rãnh và vách logo chữ nổi phía sau",
-          "altEn": "Close-up of the grooved oak reception desk and the raised-letter logo wall behind"
+          "altVi": "Cận quầy tiếp tân gỗ sồi phay rãnh, vách logo chữ nổi, văn phòng 20 người",
+          "altEn": "Close-up of grooved oak reception desk and raised-letter logo wall, twenty-seat office"
         },
         "text": {
           "vi": "Quầy tiếp tân gỗ sồi phay rãnh âm, phía sau là vách logo ốp gỗ với chữ nổi tên công ty. Mảng sơn cam đất sau quầy giúp khách nhận ra lối vào ngay từ thang máy.",
@@ -3758,8 +3822,8 @@
           "src": "/assets/content/projects/placeholder-ngang.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Góc chờ khách với sofa cam đất, bàn trà và kệ trưng bày giới thiệu",
-          "altEn": "Visitor waiting corner with a burnt-orange sofa, coffee table and display shelf"
+          "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+          "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
         }
       },
       {
@@ -3778,22 +3842,22 @@
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Hai dãy bàn làm việc nhìn dọc, tủ locker gỗ cuối dãy",
-            "altEn": "Two rows of desks seen lengthwise, with timber lockers at the end"
+            "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+            "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
           },
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng họp với bàn họp mười chỗ, kệ TV gỗ sồi và cửa sổ",
-            "altEn": "Meeting room with a ten-seat table, an oak TV unit and windows"
+            "altVi": "Khu làm việc mở, hai dãy bàn, phòng họp kính và pantry, văn phòng 20 người",
+            "altEn": "Open workspace across two desk rows, glass meeting room and pantry behind, twenty-seat office"
           },
           {
             "src": "/assets/content/projects/placeholder-doc.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận tủ bếp pantry: cánh MDF vân sồi, tay nắm âm, mặt đá nhân tạo",
-            "altEn": "Close-up of the pantry cabinets: oak-grain MDF doors, recessed pulls, engineered stone top"
+            "altVi": "Cận quầy tiếp tân gỗ sồi phay rãnh, vách logo chữ nổi, văn phòng 20 người",
+            "altEn": "Close-up of grooved oak reception desk and raised-letter logo wall, twenty-seat office"
           }
         ]
       },
@@ -3839,6 +3903,10 @@
       "vi": "Nhà phố Indochine hiện đại",
       "en": "Modern Indochine townhouse"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất nhà phố Indochine hiện đại",
+      "en": "Modern Indochine townhouse interior design"
+    },
     "description": {
       "vi": "Nhà phố hai tầng gỗ óc chó tối, gạch bông xanh cổ vịt và đồng thau, vách ngăn ô vòm phay CNC dẫn từ gara vào bếp. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A two-storey townhouse in dark walnut, teal encaustic tiles and brass, with a CNC-milled arched screen leading from the garage to the kitchen. Design and CNC joinery by Trường Thịnh."
@@ -3847,8 +3915,8 @@
       "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
-      "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
+      "altVi": "Phòng khách, tường xanh cổ vịt, tranh sơn mài, kệ TV óc chó, nhà phố Indochine",
+      "altEn": "Living room with teal limewash wall, lotus lacquer panel and walnut TV unit, Indochine townhouse"
     },
     "card": {
       "width": 3072,
@@ -3858,29 +3926,29 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-1-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
-          "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
+          "altVi": "Phòng khách với ghế bành đất nung, sofa kem và thảm hoa văn, nhà phố Indochine",
+          "altEn": "Living room with terracotta armchair, patterned rug and cream sofa, Indochine townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-indochine-shot-2-r7-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Bếp ăn óc chó: tủ bếp cánh panô khung, cửa sổ dải ngang nhìn ra cây xanh, bàn ăn, đèn thả đồng và ba khay sơn mài trên tường",
-          "altEn": "Walnut kitchen and dining area: framed-panel cabinets, a long low window onto greenery, the dining table, brass pendants and three lacquer trays on the wall"
+          "altVi": "Bếp óc chó cánh panô, cửa sổ dải, bàn ăn, đèn thả đồng, nhà phố Indochine",
+          "altEn": "Walnut kitchen and dining area with framed-panel cabinets, long low window, brass pendants, Indochine townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-indochine-shot-8-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng ngủ master: tường sơn vôi đất nung, đầu giường bọc lanh xanh cổ vịt khung óc chó, đèn bàn gốm và ghế bench cuối giường",
-          "altEn": "Master bedroom: a terracotta limewash wall, a teal linen headboard in a walnut frame, ceramic table lamps and a bench at the foot of the bed"
+          "altVi": "Phòng ngủ master, đầu giường lanh xanh cổ vịt, đèn bàn gốm, nhà phố Indochine",
+          "altEn": "Master bedroom with terracotta limewash wall, teal linen headboard in walnut frame and ceramic lamps, Indochine townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-indochine-shot-12-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng làm việc: bàn óc chó, ghế bọc vải đất nung, giấy dán tường hoa văn, tủ thấp trưng gốm và kệ sách hộc mở",
-          "altEn": "Study: a walnut desk, a terracotta upholstered chair, patterned wallpaper, a low cabinet with ceramics and an open bookcase"
+          "altVi": "Phòng làm việc, bàn óc chó, ghế đất nung, kệ sách hộc mở, nhà phố Indochine",
+          "altEn": "Study with walnut desk, terracotta chair, patterned wallpaper and open bookcase, Indochine townhouse"
         }
       ]
     },
@@ -3902,8 +3970,8 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách nhìn về bếp ăn: ghế bành đất nung, thảm hoa văn, sofa kem, tường sơn vôi xanh cổ vịt có tranh sơn mài sen và kệ TV óc chó",
-          "altEn": "Living room looking towards the kitchen: a terracotta armchair, a patterned rug, a cream sofa, a teal limewash wall with a lotus lacquer panel and a walnut TV unit"
+          "altVi": "Phòng khách, tường xanh cổ vịt, tranh sơn mài, kệ TV óc chó, nhà phố Indochine",
+          "altEn": "Living room with teal limewash wall, lotus lacquer panel and walnut TV unit, Indochine townhouse"
         }
       },
       {
@@ -3930,29 +3998,29 @@
             "src": "/assets/content/projects/nha-pho-indochine-shot-2-r7.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Bếp ăn óc chó: tủ bếp cánh panô khung, cửa sổ dải ngang nhìn ra cây xanh, bàn ăn, đèn thả đồng và ba khay sơn mài trên tường",
-            "altEn": "Walnut kitchen and dining area: framed-panel cabinets, a long low window onto greenery, the dining table, brass pendants and three lacquer trays on the wall"
+            "altVi": "Bếp ăn óc chó, cánh panô khung, cửa sổ dải, đèn đồng, nhà phố Indochine",
+            "altEn": "Dining kitchen in walnut with framed-panel doors, long window onto greenery and brass pendant lights, Indochine townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-indochine-shot-3.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận tủ bếp óc chó cánh panô khung, núm đồng, mặt đá kem và cửa sổ dải ngang nhìn ra cây xanh",
-            "altEn": "Close-up of the walnut kitchen: framed-panel doors, brass knobs, a cream stone worktop and the long low window onto greenery"
+            "altVi": "Cận tủ bếp óc chó cánh panô, núm đồng, mặt đá kem, nhà phố Indochine",
+            "altEn": "Close-up of walnut kitchen with framed-panel doors, brass knobs and cream stone worktop, Indochine townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-indochine-shot-4.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ TV treo óc chó cánh panô khung, tay nắm đồng, bình gốm men lam và đĩa gốm treo tường",
-            "altEn": "Close-up of the wall-hung walnut TV unit with framed-panel doors, brass pulls, a blue-and-white vase and wall plates"
+            "altVi": "Cận kệ TV óc chó cánh panô, tay nắm đồng, bình gốm lam, nhà phố Indochine",
+            "altEn": "Close-up of wall-hung walnut TV unit with framed-panel doors, brass pulls and blue-and-white vase, Indochine townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-indochine-shot-5.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận buffet óc chó cánh panô, tay nắm đồng, bình gốm men lam và khay sơn mài, kệ treo trưng gốm phía trên",
-            "altEn": "Close-up of the walnut buffet with panel doors and brass pulls, a blue-and-white vase and a lacquer tray, ceramics on a shelf above"
+            "altVi": "Cận buffet óc chó cánh panô, tay nắm đồng, khay sơn mài, nhà phố Indochine",
+            "altEn": "Close-up of walnut buffet with panel doors, brass pulls and lacquer tray, Indochine townhouse"
           }
         ]
       },
@@ -4009,8 +4077,8 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-7.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Sảnh vào nhà: tủ giày cánh phẳng óc chó, hốc vòm phay CNC, gương tròn khung đồng và sàn gạch bông",
-          "altEn": "Entrance lobby: a flat-door walnut shoe cabinet, a CNC-cut arched niche, a round brass mirror and an encaustic tile floor"
+          "altVi": "Sảnh vào, tủ giày óc chó cánh phẳng, hốc vòm phay CNC, gương, nhà phố Indochine",
+          "altEn": "Entrance lobby with flat-door walnut shoe cabinet, CNC-cut arched niche and round brass mirror, Indochine townhouse"
         },
         "text": {
           "vi": "Tủ giày ở sảnh dùng cánh phẳng để lối vào gọn. Nét Đông Dương dành cho những món lớn, dễ thấy như tủ bếp và buffet, với cánh phào khung và tay nắm đồng thau.",
@@ -4033,8 +4101,8 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-8.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ master: tường sơn vôi đất nung, đầu giường bọc lanh xanh cổ vịt khung óc chó, đèn bàn gốm và ghế bench cuối giường",
-          "altEn": "Master bedroom: a terracotta limewash wall, a teal linen headboard in a walnut frame, ceramic table lamps and a bench at the foot of the bed"
+          "altVi": "Phòng ngủ master, tường vôi đất nung, ghế bench cuối giường, nhà phố Indochine",
+          "altEn": "Master bedroom with terracotta limewash wall, foot-of-bed bench and ceramic lamps, Indochine townhouse"
         }
       },
       {
@@ -4054,15 +4122,15 @@
             "src": "/assets/content/projects/nha-pho-indochine-shot-9.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận đầu giường bọc lanh xanh cổ vịt khung óc chó bo góc, gối đất nung và vàng mù tạt, đèn bàn gốm men lam",
-            "altEn": "Close-up of the teal linen headboard in a rounded walnut frame, terracotta and mustard cushions and blue-and-white table lamps"
+            "altVi": "Cận đầu giường lanh xanh cổ vịt khung óc chó, gối đất nung, nhà phố Indochine",
+            "altEn": "Close-up of teal linen headboard in rounded walnut frame, terracotta and mustard cushions, Indochine townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-indochine-shot-10.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận tủ áo walk-in óc chó cánh phẳng, tay nắm thanh đồng, một cánh mở thấy đèn hắt trong hộc",
-            "altEn": "Close-up of the walnut walk-in wardrobe with flat doors and brass bar pulls, one door open onto a lit compartment"
+            "altVi": "Cận tủ áo walk-in óc chó cánh phẳng, tay nắm đồng, nhà phố Indochine",
+            "altEn": "Walnut walk-in wardrobe with flat doors, brass bar pulls and a lit open compartment, Indochine townhouse"
           }
         ]
       },
@@ -4082,8 +4150,8 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-11.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng tắm ốp gạch thẻ xanh cổ vịt: bồn tắm, tủ lavabo óc chó, gương vòm khung đồng, thang treo khăn và chậu cây gốm men lam",
-          "altEn": "Bathroom in teal glazed tiles: a bathtub, a walnut vanity, an arched brass mirror, a towel ladder and a plant in a blue-and-white pot"
+          "altVi": "Phòng tắm gạch thẻ xanh, tủ lavabo óc chó, gương vòm đồng, nhà phố Indochine",
+          "altEn": "Teal glazed-tile bathroom with walnut vanity, arched brass mirror and towel ladder, Indochine townhouse"
         }
       },
       {
@@ -4102,8 +4170,8 @@
           "src": "/assets/content/projects/nha-pho-indochine-shot-12.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng làm việc: bàn óc chó, ghế bọc vải đất nung, giấy dán tường hoa văn, tủ thấp trưng gốm và kệ sách hộc mở",
-          "altEn": "Study: a walnut desk, a terracotta upholstered chair, patterned wallpaper, a low cabinet with ceramics and an open bookcase"
+          "altVi": "Phòng làm việc, bàn óc chó, ghế đất nung, tủ thấp trưng gốm, nhà phố Indochine",
+          "altEn": "Study with walnut desk, terracotta chair, patterned wallpaper and ceramic-filled low cabinet, Indochine townhouse"
         }
       },
       {
@@ -4156,6 +4224,10 @@
       "vi": "Nhà phố Japandi sân vườn trước",
       "en": "Japandi townhouse with front garden"
     },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất nhà phố Japandi sân vườn",
+      "en": "Japandi townhouse interior with front garden"
+    },
     "description": {
       "vi": "Nhà phố hai tầng Japandi gỗ tần bì sáng, tường trát vôi vuông vức, đồ gỗ bo mép mềm, sân vườn phía trước: thiết kế và đồ gỗ CNC của Trường Thịnh.",
       "en": "A two-storey Japandi townhouse in light ash, with square limewash walls, softly rounded furniture and a front garden: design and CNC-cut woodwork by Trường Thịnh."
@@ -4164,8 +4236,8 @@
       "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
-      "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
+      "altVi": "Phòng khách sofa lanh, bàn trà tròn, bếp tần bì, đèn thả washi, nhà phố Japandi",
+      "altEn": "Ground floor living room with linen sofa, round coffee table and ash kitchen beyond, Japandi townhouse"
     },
     "card": {
       "width": 3072,
@@ -4175,29 +4247,29 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
-          "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
+          "altVi": "Bếp tần bì, đèn thả washi, cầu thang dưới ô thông tầng, nhà phố Japandi",
+          "altEn": "Ash kitchen and dining table beyond, washi pendant and stair under double-height void, Japandi townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-2-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Bếp ăn tần bì: tủ phẳng không tay nắm cao tới trần, gạch xanh xô thơm, bàn ăn góc vuông, ghế lưng cong và đèn thả washi",
-          "altEn": "Ash kitchen and dining area: handleless flat cabinets up to the ceiling, sage-green tiles, a square-cornered dining table, curved-back chairs and a washi pendant"
+          "altVi": "Bếp tần bì, tủ phẳng không tay nắm tới trần, gạch xanh, nhà phố Japandi",
+          "altEn": "Ash kitchen with handleless flat cabinets up to the ceiling and sage-green tiles, Japandi townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-6-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng ngủ master: đầu giường bọc lanh khung tần bì bo góc trên, đèn tường washi, tab đầu giường tần bì và thảm len",
-          "altEn": "Master bedroom: a linen headboard in an ash frame with rounded top corners, washi wall lamps, ash bedside tables and a wool rug"
+          "altVi": "Phòng ngủ, đầu giường lanh khung tần bì bo góc, đèn tường washi, nhà phố Japandi",
+          "altEn": "Master bedroom with linen headboard in ash frame with rounded corners and washi wall lamps, Japandi townhouse"
         },
         {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12-card-wide.webp",
           "width": 3072,
           "height": 1728,
-          "altVi": "Phòng làm việc: bàn tần bì bo cong bên cửa sổ, góc đọc sách có ghế bành, bàn phụ tròn, tranh, kệ treo, đèn tường và kệ sách hộc mở",
-          "altEn": "Study: a curved ash desk by the window, a reading corner with an armchair, a round side table, a print, a wall shelf, a wall lamp and an open bookcase"
+          "altVi": "Phòng làm việc, bàn tần bì bo cong cạnh cửa sổ, ghế bành, nhà phố Japandi",
+          "altEn": "Study with curved ash desk by the window, armchair, round side table and bookcase, Japandi townhouse"
         }
       ]
     },
@@ -4219,8 +4291,8 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
-          "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
+          "altVi": "Phòng khách sofa lanh, bàn trà tròn, bếp tần bì, đèn thả washi, nhà phố Japandi",
+          "altEn": "Ground floor living room with linen sofa, round coffee table and ash kitchen beyond, Japandi townhouse"
         }
       },
       {
@@ -4247,22 +4319,22 @@
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-3.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Sân trước: tường trát vôi kem, cửa gỗ tần bì, kệ treo trồng cây và ghế băng nệm lanh, nắng xuyên qua lá",
-            "altEn": "Front yard: a cream limewash wall, an ash door, a wall shelf of plants and a linen-cushioned bench, sunlight through leaves"
+            "altVi": "Sân trước, tường vôi kem, cửa tần bì, ghế băng nệm lanh, nhà phố Japandi",
+            "altEn": "Front yard with cream limewash wall, ash door, plant shelf and linen-cushioned bench, Japandi townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-4.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ TV treo tần bì bo cạnh có đèn hắt phía dưới, đĩa gốm treo tường và bình gốm cành khô",
-            "altEn": "Close-up of the wall-hung ash TV unit with rounded edges and a light strip below, wall plates and a ceramic vase with dry branches"
+            "altVi": "Cận kệ TV tần bì bo cạnh, đèn hắt, bình gốm cành khô, nhà phố Japandi",
+            "altEn": "Close-up of wall-hung ash TV unit with rounded edges and dry-branch vase, Japandi townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-6.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng ngủ master: đầu giường bọc lanh khung tần bì bo góc trên, đèn tường washi, tab đầu giường tần bì và thảm len",
-            "altEn": "Master bedroom: a linen headboard in an ash frame with rounded top corners, washi wall lamps, ash bedside tables and a wool rug"
+            "altVi": "Phòng ngủ master, đầu giường lanh tần bì, tab đầu giường, thảm len, nhà phố Japandi",
+            "altEn": "Master bedroom with linen headboard, ash bedside tables and wool rug, Japandi townhouse"
           }
         ]
       },
@@ -4328,8 +4400,8 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-2.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Bếp ăn tần bì: tủ phẳng không tay nắm cao tới trần, gạch xanh xô thơm, bàn ăn góc vuông, ghế lưng cong và đèn thả washi",
-          "altEn": "Ash kitchen and dining area: handleless flat cabinets up to the ceiling, sage-green tiles, a square-cornered dining table, curved-back chairs and a washi pendant"
+          "altVi": "Bếp tần bì, tủ phẳng không tay nắm, bàn góc vuông, nhà phố Japandi",
+          "altEn": "Ash dining kitchen with handleless cabinets, square-cornered table and curved-back chairs, Japandi townhouse"
         }
       },
       {
@@ -4339,8 +4411,8 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-8.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Tủ giày tần bì hai cánh phẳng bo góc trên chân thép đen, đèn tường, chậu cây và dép gỗ",
-          "altEn": "Ash shoe cabinet with two flat doors and rounded corners on black steel legs, a wall lamp, a potted plant and wooden sandals"
+          "altVi": "Tủ giày tần bì hai cánh phẳng bo góc, đèn tường, chậu cây, nhà phố Japandi",
+          "altEn": "Ash shoe cabinet with two flat doors on black steel legs, potted plant, Japandi townhouse"
         },
         "text": {
           "vi": "Ngoài sân, tủ giày tần bì hai cánh phẳng bo góc đứng trên chân thép đen, cạnh kệ treo trồng cây và ghế băng nệm lanh, nối mặt tiền với phần trong nhà.",
@@ -4364,15 +4436,15 @@
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-9.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Kệ hộc trưng bày bo góc trên tường trát vôi xanh xô thơm, đèn hắt trong hộc, gốm và sách",
-            "altEn": "Rounded display niches on a sage limewash wall, lit inside, with ceramics and books"
+            "altVi": "Kệ hộc bo góc trên tường vôi xanh, đèn hắt trong hộc, gốm, nhà phố Japandi",
+            "altEn": "Rounded display niches on sage limewash wall, lit inside, with ceramics and books, Japandi townhouse"
           },
           {
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-10.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận đầu giường bọc lanh khung tần bì bo góc, gối màu đất và xanh rêu, đèn tường và đèn bàn washi",
-            "altEn": "Close-up of the linen headboard in a rounded ash frame, earth and moss cushions, washi wall and table lamps"
+            "altVi": "Cận đầu giường lanh tần bì bo góc, gối đất và xanh rêu, nhà phố Japandi",
+            "altEn": "Close-up of linen headboard in rounded ash frame, earth and moss cushions, washi lamps, Japandi townhouse"
           }
         ]
       },
@@ -4392,8 +4464,8 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-11.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ con: giường đơn tần bì, tủ áo âm tường cánh phẳng, bàn máy tính bo cong, tủ sách che rèm lanh với 4 hộc kéo và kệ treo hình mây",
-          "altEn": "Child's bedroom: an ash single bed, a flat-door built-in wardrobe, a curved computer desk, a linen-curtained bookcase with four drawers and a cloud-shaped wall shelf"
+          "altVi": "Phòng ngủ trẻ, giường tần bì, tủ áo âm tường, bàn bo cong, nhà phố Japandi",
+          "altEn": "Child's bedroom with ash bed, flat-door built-in wardrobe, curved desk and linen-curtained bookcase, Japandi townhouse"
         }
       },
       {
@@ -4412,8 +4484,8 @@
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng làm việc: bàn tần bì bo cong bên cửa sổ, góc đọc sách có ghế bành, bàn phụ tròn, tranh, kệ treo, đèn tường và kệ sách hộc mở",
-          "altEn": "Study: a curved ash desk by the window, a reading corner with an armchair, a round side table, a print, a wall shelf, a wall lamp and an open bookcase"
+          "altVi": "Phòng làm việc, bàn tần bì bo cong, góc đọc sách, tranh treo, nhà phố Japandi",
+          "altEn": "Study with curved ash desk, reading corner, round side table and wall shelf, Japandi townhouse"
         }
       },
       {
