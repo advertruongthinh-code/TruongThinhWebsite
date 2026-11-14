@@ -3952,61 +3952,47 @@
       "en": "Japandi townhouse with front garden"
     },
     "description": {
-      "vi": "Nhà phố hai tầng Japandi gỗ tần bì sáng, góc tường và mép đồ gỗ bo cong, sân vườn phía trước: thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A two-storey Japandi townhouse in light ash, with rounded wall corners and furniture edges, a front garden: design and CNC-cut woodwork by Trường Thịnh."
+      "vi": "Nhà phố hai tầng Japandi gỗ tần bì sáng, tường trát vôi vuông vức, đồ gỗ bo mép mềm, sân vườn phía trước: thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A two-storey Japandi townhouse in light ash, with square limewash walls, softly rounded furniture and a front garden: design and CNC-cut woodwork by Trường Thịnh."
     },
     "cover": {
-      "src": "/assets/content/projects/placeholder-ngang.webp",
+      "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1.webp",
       "width": 3072,
       "height": 2048,
-      "altVi": "Phòng khách Japandi nhìn về sofa thấp và cầu thang, góc tường bo cong, ánh sáng từ sân vườn trước",
-      "altEn": "Japandi living room looking towards the low sofa and staircase, with rounded wall corners and light from the front garden"
+      "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
+      "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
     },
     "card": {
       "width": 3072,
-      "height": 2048,
+      "height": 1728,
       "media": [
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng khách Japandi nhìn về sofa thấp và cầu thang, góc tường bo cong, ánh sáng từ sân vườn trước",
-          "altEn": "Japandi living room looking towards the low sofa and staircase, with rounded wall corners and light from the front garden"
+          "height": 1728,
+          "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
+          "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-2-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Bếp ăn tần bì sáng với bàn ăn 6 chỗ, tủ bếp chữ I và cửa lùa ra sân sau",
-          "altEn": "Light ash kitchen with a six-seat dining table, single-run cabinets and a sliding door to the back yard"
+          "height": 1728,
+          "altVi": "Bếp ăn tần bì: tủ phẳng không tay nắm cao tới trần, gạch xanh xô thơm, bàn ăn góc vuông, ghế lưng cong và đèn thả washi",
+          "altEn": "Ash kitchen and dining area: handleless flat cabinets up to the ceiling, sage-green tiles, a square-cornered dining table, curved-back chairs and a washi pendant"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-6-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Sân vườn trước nhìn vào mặt tiền: ghế băng gỗ, bồn cây và tủ giày cánh phẳng bo góc",
-          "altEn": "Front garden looking at the facade: timber bench, planter and a flat-door shoe cabinet with rounded corners"
+          "height": 1728,
+          "altVi": "Phòng ngủ master: đầu giường bọc lanh khung tần bì bo góc trên, đèn tường washi, tab đầu giường tần bì và thảm len",
+          "altEn": "Master bedroom: a linen headboard in an ash frame with rounded top corners, washi wall lamps, ash bedside tables and a wool rug"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12-card-wide.webp",
           "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng ngủ master với đầu giường bọc nệm lanh khung tần bì bo góc, cửa sổ lớn nhìn ra sân vườn",
-          "altEn": "Master bedroom with a linen headboard in a rounded ash frame and a large window over the garden"
-        },
-        {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng ngủ con với giường đơn, bàn học và tủ áo âm tường cánh phẳng tần bì",
-          "altEn": "Child's bedroom with a single bed, a study desk and a flat ash built-in wardrobe"
-        },
-        {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng làm việc với bàn tần bì và kệ sách hộc mở bo góc",
-          "altEn": "Study with an ash desk and open bookshelves with rounded corners"
+          "height": 1728,
+          "altVi": "Phòng làm việc: bàn tần bì bo cong bên cửa sổ, góc đọc sách có ghế bành, bàn phụ tròn, tranh, kệ treo, đèn tường và kệ sách hộc mở",
+          "altEn": "Study: a curved ash desk by the window, a reading corner with an armchair, a round side table, a print, a wall shelf, a wall lamp and an open bookcase"
         }
       ]
     },
@@ -4027,27 +4013,27 @@
           "en": "Residential · Two-storey townhouse"
         },
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-1.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng khách Japandi nhìn về sofa thấp và cầu thang, góc tường bo cong, ánh sáng từ sân vườn trước",
-          "altEn": "Japandi living room looking towards the low sofa and staircase, with rounded wall corners and light from the front garden"
+          "altVi": "Tầng trệt nhìn từ phòng khách về sau nhà: sofa lanh, bàn trà tròn, bếp tần bì, bàn ăn, đèn thả washi và cầu thang dưới ô thông tầng",
+          "altEn": "Ground floor seen from the living room towards the back: a linen sofa, a round coffee table, the ash kitchen, the dining table, a washi pendant and the stair under the double-height void"
         }
       },
       {
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Không còn cạnh vuông lộ ra",
-          "en": "No sharp corners in sight"
+          "vi": "Đồ gỗ bo mềm, tường giữ vuông",
+          "en": "Soft furniture, square walls"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Nhà phố hai tầng dành cho vợ chồng trẻ có con nhỏ, chừa sân vườn phía trước để đậu xe và trồng cây.\n\nPhong cách Japandi với gỗ tần bì sáng và tường trắng kem. Góc tường trát bo cong, ô cửa đi bo vòm thấp, mép đồ gỗ đều bo tròn nên nhà mềm mắt và đỡ va chạm cho trẻ nhỏ.",
-          "en": "A two-storey townhouse for a young couple with a small child, leaving a front garden for parking and planting.\n\nJapandi in light ash with cream walls. Wall corners are rendered round, doorways have low arches, furniture edges are rounded, so the house feels soft and spares small children hard knocks."
+          "vi": "Nhà phố hai tầng dành cho vợ chồng trẻ có con nhỏ, chừa sân vườn phía trước để đậu xe và trồng cây.\n\nPhong cách Japandi với gỗ tần bì sáng và tường trát vôi màu đất. Tường giữ góc vuông, chỉ đồ gỗ được bo mép nên nhà gọn mắt mà vẫn mềm và đỡ va chạm cho trẻ nhỏ.",
+          "en": "A two-storey townhouse for a young couple with a small child, with a front garden for parking and plants.\n\nJapandi in light ash and earthy limewash. The walls keep their square corners and only the furniture is rounded, so the house stays calm yet soft and safer for a small child."
         }
       },
       {
@@ -4055,39 +4041,25 @@
         "type": "gallery-carousel",
         "images": [
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
+            "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-3.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Bếp ăn tần bì sáng với bàn ăn 6 chỗ, tủ bếp chữ I và cửa lùa ra sân sau",
-            "altEn": "Light ash kitchen with a six-seat dining table, single-run cabinets and a sliding door to the back yard"
+            "altVi": "Sân trước: tường trát vôi kem, cửa gỗ tần bì, kệ treo trồng cây và ghế băng nệm lanh, nắng xuyên qua lá",
+            "altEn": "Front yard: a cream limewash wall, an ash door, a wall shelf of plants and a linen-cushioned bench, sunlight through leaves"
           },
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
-            "width": 3072,
-            "height": 2048,
-            "altVi": "Sân vườn trước nhìn vào mặt tiền: ghế băng gỗ, bồn cây và tủ giày cánh phẳng bo góc",
-            "altEn": "Front garden looking at the facade: timber bench, planter and a flat-door shoe cabinet with rounded corners"
-          },
-          {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-4.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ TV treo tần bì bo cạnh, vân gỗ sáng và hộc đèn hắt phía dưới",
-            "altEn": "Close-up of the floating ash TV unit with rounded edges, light grain and a lit recess below"
+            "altVi": "Cận kệ TV treo tần bì bo cạnh có đèn hắt phía dưới, đĩa gốm treo tường và bình gốm cành khô",
+            "altEn": "Close-up of the wall-hung ash TV unit with rounded edges and a light strip below, wall plates and a ceramic vase with dry branches"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
-            "width": 2048,
-            "height": 3072,
-            "altVi": "Cận bàn ăn tần bì mặt bo góc, chân vát phay CNC và tủ bếp tay nắm âm",
-            "altEn": "Close-up of the ash dining table with rounded corners, CNC-cut tapered legs and kitchen cabinets with recessed pulls"
-          },
-          {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
+            "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-6.webp",
             "width": 3072,
             "height": 2048,
-            "altVi": "Phòng ngủ master với đầu giường bọc nệm lanh khung tần bì bo góc, cửa sổ lớn nhìn ra sân vườn",
-            "altEn": "Master bedroom with a linen headboard in a rounded ash frame and a large window over the garden"
+            "altVi": "Phòng ngủ master: đầu giường bọc lanh khung tần bì bo góc trên, đèn tường washi, tab đầu giường tần bì và thảm len",
+            "altEn": "Master bedroom: a linen headboard in an ash frame with rounded top corners, washi wall lamps, ash bedside tables and a wool rug"
           }
         ]
       },
@@ -4111,8 +4083,8 @@
               "en": "Style"
             },
             "text": {
-              "vi": "Japandi, gỗ tần bì sáng, bo góc mềm",
-              "en": "Japandi, light ash, soft rounded corners"
+              "vi": "Japandi, gỗ tần bì sáng, đồ gỗ bo mép",
+              "en": "Japandi, light ash, rounded furniture"
             }
           },
           {
@@ -4121,8 +4093,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Tủ bếp, kệ TV, bàn ăn, tủ áo âm tường, đầu giường, ghế băng, tủ giày",
-              "en": "Kitchen, TV unit, dining table, built-in wardrobes, headboard, bench, shoe cabinet"
+              "vi": "Tủ bếp, kệ TV, tủ giày, kệ hộc trưng bày, đầu giường, tủ áo âm tường, bàn học, tủ sách che rèm, bàn làm việc",
+              "en": "Kitchen, TV unit, shoe cabinet, display niches, headboard, built-in wardrobe, study desk, curtained bookcase, work desk"
             }
           },
           {
@@ -4131,8 +4103,8 @@
               "en": "Main materials"
             },
             "text": {
-              "vi": "MDF chống ẩm melamine vân tần bì, veneer óc chó nhạt",
-              "en": "Moisture-resistant MDF in ash melamine, pale walnut veneer"
+              "vi": "MDF chống ẩm melamine vân tần bì, vải lanh, gạch thủ công xanh xô thơm",
+              "en": "Moisture-resistant ash-grain melamine MDF, linen, sage handmade tiles"
             }
           }
         ]
@@ -4141,8 +4113,8 @@
         "id": "text-1",
         "type": "paragraph",
         "text": {
-          "vi": "Mép cánh tủ bếp, mặt bàn ăn và kệ TV đều được phay bo tròn bằng CNC ngay ở xưởng. Độ bo đồng đều trên mọi món nên đồ gỗ hợp với góc tường trát cong.",
-          "en": "Kitchen door edges, the dining table top and the TV unit are all rounded on the CNC in the workshop. The rounding is consistent across every piece, so the furniture matches the curved plaster corners."
+          "vi": "Bếp chữ I dùng tủ phẳng không tay nắm chạy cao tới trần, hút mùi âm dưới tủ treo, len chân thấp lùi vào khuất dưới tủ. Bàn ăn tần bì góc vuông trên bốn chân vuông, ghế tựa lưng cong có đệm.",
+          "en": "The single-run kitchen has handleless flat cabinets up to the ceiling, a hood built in under the wall units and a low toe kick set back out of sight. The ash dining table has square corners on four square legs, with cushioned curved-back chairs."
         }
       },
       {
@@ -4150,19 +4122,19 @@
         "type": "image-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận tủ bếp chữ I tần bì, tay nắm âm, mép cánh bo tròn và mặt đá xám",
-          "altEn": "Close-up of the ash kitchen run with recessed pulls, rounded door edges and a grey stone top"
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-2.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Bếp ăn tần bì: tủ phẳng không tay nắm cao tới trần, gạch xanh xô thơm, bàn ăn góc vuông, ghế lưng cong và đèn thả washi",
+          "altEn": "Ash kitchen and dining area: handleless flat cabinets up to the ceiling, sage-green tiles, a square-cornered dining table, curved-back chairs and a washi pendant"
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Ngoài sân, tủ giày cánh phẳng, ghế băng và bồn cây cũng bo góc, nối mặt tiền với phần trong nhà. Khung cửa kính và giá treo dùng thép sơn tĩnh điện đen mờ.",
-          "en": "Outside, the flat-door shoe cabinet, bench and planter are rounded too, linking the facade with the interior. Glass door frames and hanging rails are matt black powder-coated steel."
+          "vi": "Ở sân trước, tủ giày cánh phẳng bo góc đứng trên chân thép đen, kệ treo trồng cây và ghế băng nệm lanh nối mặt tiền với phần trong nhà.",
+          "en": "In the front yard, a flat-door shoe cabinet with rounded corners stands on black steel legs, and a wall shelf of plants and a linen-cushioned bench link the facade to the interior."
         }
       },
       {
@@ -4170,19 +4142,19 @@
         "type": "image-single",
         "position": "left-2-3",
         "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-8.webp",
           "width": 2048,
           "height": 3072,
-          "altVi": "Cận tủ giày ngoài trời cánh phẳng bo góc và ghế băng, nắng qua tán cây",
-          "altEn": "Close-up of the outdoor flat-door shoe cabinet with rounded corners and the bench, in sunlight through the trees"
+          "altVi": "Tủ giày tần bì hai cánh phẳng bo góc trên chân thép đen, đèn tường, chậu cây và dép gỗ",
+          "altEn": "Ash shoe cabinet with two flat doors and rounded corners on black steel legs, a wall lamp, a potted plant and wooden sandals"
         }
       },
       {
         "id": "text-3",
         "type": "paragraph",
         "text": {
-          "vi": "Tầng 2 có sảnh thang với kệ hộc trưng bày bo góc, dẫn vào phòng ngủ master. Đầu giường bọc nệm lanh trong khung tần bì, tab đầu giường dán veneer óc chó nhạt làm điểm nhấn.",
-          "en": "Upstairs, the stair landing has rounded display niches and leads to the master bedroom. The headboard is linen upholstery in an ash frame, with pale walnut veneer bedside tables as the accent."
+          "vi": "Tầng 2 có sảnh thang với kệ hộc trưng bày bo góc, dẫn vào phòng ngủ master. Đầu giường bọc nệm lanh trong khung tần bì bo hai góc trên, tab đầu giường cùng chất tần bì.",
+          "en": "Upstairs, the stair landing has rounded display niches and leads to the master bedroom. The headboard is linen upholstery in an ash frame with rounded top corners, with matching ash bedside tables."
         }
       },
       {
@@ -4191,18 +4163,18 @@
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-9.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận kệ hộc trưng bày bo góc ở sảnh thang, góc tường bo cong",
-            "altEn": "Close-up of the rounded display niches at the stair landing and the curved wall corner"
+            "altVi": "Kệ hộc trưng bày bo góc trên tường trát vôi xanh xô thơm, đèn hắt trong hộc, gốm và sách",
+            "altEn": "Rounded display niches on a sage limewash wall, lit inside, with ceramics and books"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
+            "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-10.webp",
             "width": 2048,
             "height": 3072,
-            "altVi": "Cận đầu giường bọc nệm lanh khung tần bì bo góc và tab đầu giường óc chó nhạt",
-            "altEn": "Close-up of the linen headboard in its rounded ash frame and the pale walnut bedside table"
+            "altVi": "Cận đầu giường bọc lanh khung tần bì bo góc, gối màu đất và xanh rêu, đèn tường và đèn bàn washi",
+            "altEn": "Close-up of the linen headboard in a rounded ash frame, earth and moss cushions, washi wall and table lamps"
           }
         ]
       },
@@ -4210,8 +4182,8 @@
         "id": "text-4",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng ngủ con dùng tủ áo âm tường cánh phẳng, giữ sàn trống cho trẻ chơi. Giường đơn và bàn học cùng chất tần bì với cả nhà.",
-          "en": "The child's room has a flat-door built-in wardrobe that keeps the floor free for play. The single bed and study desk are in the same ash as the rest of the house."
+          "vi": "Phòng ngủ con dùng tủ áo âm tường cánh phẳng, giữ sàn trống cho trẻ chơi. Góc học có bàn máy tính bo cong và tủ sách che rèm lanh, không cánh, bốn hộc kéo phía dưới.",
+          "en": "The child's bedroom has a flat-door built-in wardrobe that keeps the floor free for play. The study corner has a curved computer desk and a linen-curtained bookcase with no doors and four drawers below."
         }
       },
       {
@@ -4219,19 +4191,19 @@
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-11.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng ngủ con với giường đơn, bàn học và tủ áo âm tường cánh phẳng tần bì",
-          "altEn": "Child's bedroom with a single bed, a study desk and a flat ash built-in wardrobe"
+          "altVi": "Phòng ngủ con: giường đơn tần bì, tủ áo âm tường cánh phẳng, bàn máy tính bo cong, tủ sách che rèm lanh với 4 hộc kéo và kệ treo hình mây",
+          "altEn": "Child's bedroom: an ash single bed, a flat-door built-in wardrobe, a curved computer desk, a linen-curtained bookcase with four drawers and a cloud-shaped wall shelf"
         }
       },
       {
         "id": "text-5",
         "type": "paragraph",
         "text": {
-          "vi": "Phòng làm việc có bàn tần bì và kệ sách hộc mở bo góc. Rèm lanh màu be và đèn thả giấy washi giữ ánh sáng dịu.",
-          "en": "The study has an ash desk and open bookshelves with rounded corners. Beige linen curtains and washi paper pendants keep the light soft."
+          "vi": "Phòng làm việc có bàn tần bì bo cong bên cửa sổ và kệ sách hộc mở. Góc đọc sách có ghế bành bọc vải, bàn phụ tròn, tranh, kệ treo và đèn tường tay xoay.",
+          "en": "The study has a curved ash desk by the window and an open bookcase. The reading corner has an upholstered armchair, a round side table, a print, a wall shelf and a swing-arm wall lamp."
         }
       },
       {
@@ -4239,11 +4211,11 @@
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
+          "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12.webp",
           "width": 3072,
           "height": 2048,
-          "altVi": "Phòng làm việc với bàn tần bì và kệ sách hộc mở bo góc",
-          "altEn": "Study with an ash desk and open bookshelves with rounded corners"
+          "altVi": "Phòng làm việc: bàn tần bì bo cong bên cửa sổ, góc đọc sách có ghế bành, bàn phụ tròn, tranh, kệ treo, đèn tường và kệ sách hộc mở",
+          "altEn": "Study: a curved ash desk by the window, a reading corner with an armchair, a round side table, a print, a wall shelf, a wall lamp and an open bookcase"
         }
       },
       {
