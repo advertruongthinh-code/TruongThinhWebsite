@@ -45,7 +45,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (13); In ấn văn phòng (11); Menu (10); Bao bì, hộp giấy, ly giấy (9, slug `bao-bi-hop-giay`) |
 | LED neon, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED neon & LED trang trí (29, slug `led-neon-trang-tri`); Màn hình LED (13); Bảng LED chạy chữ (9); Bảng hiệu LED (32) |
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (9); Biển chỉ dẫn & sơ đồ tòa nhà (24); Biển phòng ban (10); Bảng chức danh để bàn (10); Kỷ niệm chương (9) |
-| Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (16); Quầy bán hàng di động (14) |
+| Xe bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (30; gộp Quầy bán hàng di động 2026-11-14 theo Keyword Planner: 1K-10K so với 100-1K) |
 
 Nhãn, slug VI và title đổi theo Keyword Planner cả nước 2026-11-13 (owner "ok quảng cáo"; bảng từ khóa trong tài liệu SEO từ khóa của thread SEO): biển vẫy (1K-10K) hơn bảng vẫy, gian hàng hội chợ hơn gian hàng triển lãm, "LED decor" không có lượt tìm nên thành LED neon, in hộp giấy, túi giấy (10K-100K) thay thẻ, vé. Slug cũ chưa live trên domain chính nên không cần chuyển hướng.
 
@@ -149,7 +149,7 @@ Một ngưỡng duy nhất (owner 2026-11-10, thay hai ngưỡng 3 và 9 cũ; ow
 (R2), đếm số card có `productIds` chứa sản phẩm. Sản phẩm từ 5 card có chip trong hàng chip của cụm (R3) và luôn có
 trang riêng R4, chip trỏ thẳng trang đó; không còn URL `?category=<id sản phẩm>` do build ghi ra (runtime vẫn nhận
 `?category=` cũ để chuyển về path, R4). Dưới 5 card: không chip, không trang, không vào noscript hay sitemap, ảnh vẫn hiện
-trong cụm. Cụm luôn có trang. Chip và trang tính lúc build từ số card, không có danh sách sản phẩm viết tay.
+trong cụm. Cụm luôn có trang. Cụm chỉ còn một sản phẩm thì sản phẩm đó không chip, không trang; trang cũ của nó và của sản phẩm đã gộp (`ADVERTISING_RETIRED_PRODUCTS`) chuyển 301 về trang cụm. Chip và trang tính lúc build từ số card, không có danh sách sản phẩm viết tay.
 
 Sản phẩm tụt dưới 5 thì build không sinh trang nữa; URL cũ dưới trang cụm lấy `404.html` của thư mục cụm: trả 404, canonical
 trang cụm, chuyển tới trang cụm ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)). Phase CMS thay bằng 301 (Gate còn mở).

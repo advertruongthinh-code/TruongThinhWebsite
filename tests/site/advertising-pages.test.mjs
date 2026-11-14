@@ -49,14 +49,17 @@ test("taxonomy R4: the root page rail links to cluster pages by the locale's slu
   }
 });
 
-test("taxonomy R3, R5: each product at the card threshold has a chip and its own page, a product under it has neither", async () => {
+test("taxonomy R3, R5: each product at the card threshold has a chip and its own page, a product under it or alone in its cluster has neither", async () => {
   assert.equal(ADVERTISING_PRODUCT_THRESHOLD, 5);
   const html = await read("vi/advertising-products/index.html");
   const count = (id) => artifact.cards.filter((card) => card.productIds.includes(id)).length;
   const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-masonry-product="([^"]+)"/g)]
     .map(([, vi, en, id]) => ({ vi, en, id }));
-  assert.deepEqual(chips.map(({ id }) => id).sort(), artifact.products.filter(({ id }) => count(id) >= ADVERTISING_PRODUCT_THRESHOLD).map(({ id }) => id).sort(), "one chip per product at the threshold");
-  assert.equal(chips.length, artifact.products.length, "every current product reaches the threshold");
+  const sole = ({ cluster }) => artifact.products.filter((product) => product.cluster === cluster).length === 1;
+  const charted = artifact.products.filter((product) => count(product.id) >= ADVERTISING_PRODUCT_THRESHOLD && !sole(product));
+  assert.deepEqual(chips.map(({ id }) => id).sort(), charted.map(({ id }) => id).sort(), "one chip per product at the threshold");
+  assert.equal(chips.length, artifact.products.length - 1, "every current product reaches the threshold; mobile-retail has one product and no chip");
+  assert.ok(!ADVERTISING_PAGES.some(({ vi }) => vi.startsWith("xe-ban-hang-luu-dong/")), "the sole mobile-retail product has no page");
   for (const { vi, en, id } of chips) {
     const page = ADVERTISING_PAGES.find(({ filter }) => filter === id);
     assert.ok(page, `${id}: every chip has its own page`);

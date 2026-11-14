@@ -373,8 +373,8 @@ const PLAN_MAP = {
   "office-signs/room-signs": { "office-signs-wayfinding": [8, 9] },
   "office-signs/desk-nameplates": { "office-signs-wayfinding": [5, 6, 7] },
   "office-signs/awards-plaques": { "office-signs-wayfinding": [13] },
-  "mobile-retail/carts": { "mobile-retail": [1, 2, 3, 7, 12] },
-  "mobile-retail/mobile-counters": { "mobile-retail": [4, 5, 6, 8, 9, 10, 11] },
+  // Mobile counters merged into carts (owner 2026-11-14, Keyword Planner): one product for the whole cluster.
+  "mobile-retail/carts": { "mobile-retail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
 };
 // R8 label-fix table of the plan; an image missing from the table keeps the product derived from the old product.
 const PLAN_RELABELS = {
@@ -383,7 +383,7 @@ const PLAN_RELABELS = {
   "led-displays-lightboxes-04": ["led-displays/led-screens"],
   "led-displays-lightboxes-09": ["led-displays/led-screens"],
   "led-displays-lightboxes-15": ["led-displays/led-screens", "led-displays/scrolling-led-signs"],
-  "mobile-retail-05": ["mobile-retail/mobile-counters", "displays-booths/sampling-booths-reception-counters"],
+  "mobile-retail-05": ["mobile-retail/carts", "displays-booths/sampling-booths-reception-counters"],
   "print-decals-21": ["printing-decals/decals-banners-canvas", "office-signs/room-signs"],
   "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
   // The neon sign is now LED neon, main product "Bảng hiệu LED" (owner 2026-10-18).
@@ -392,7 +392,7 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 25 products in plan order with a product threshold of 5", () => {
+test("taxonomy has six clusters and 24 products in plan order with a product threshold of 5", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");

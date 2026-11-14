@@ -55,7 +55,7 @@ footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lờ
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
+| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
 | 2 | `.detail-lead#tong-quan` | `h2` "Không gian để *sống.*" nét mảnh canh trái, đoạn mở cột phải thụt dòng đầu (như Espacio "Interior design") | `h2` "Không gian để *kinh doanh.*", cùng bố cục (như Espacio "Kitchens") | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một đoạn ngắn cùng kiểu đoạn mở | "Bằng chứng trong vận hành", một đoạn ngắn | ink |
