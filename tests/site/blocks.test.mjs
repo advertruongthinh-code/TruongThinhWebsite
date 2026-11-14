@@ -96,12 +96,14 @@ test("project hero without a Zalo block has no CTA", () => {
   assert.ok(!renderBlocks(page, ctx).includes("hero-cta"));
 });
 
-test("project hero tagline needs 1 to 3 lines and at most one italic part per line", async () => {
+test("project hero tagline needs 1 to 3 lines, at most one italic part and no , . ; at a line end", async () => {
   for (const [tagline, rule] of [
     [[], /tagline: needs 1 to 3 lines/],
     [[t("a", "a"), t("b", "b"), t("c", "c"), t("d", "d")], /tagline: needs 1 to 3 lines/],
     [[t("*a* và *b*", "*a* and b")], /tagline\[0\]: at most one \*italic\* part/],
     [[t("chữ *lẻ", "odd")], /tagline\[0\]: at most one \*italic\* part/],
+    [[t("Tường vuông,", "Square walls"), t("gỗ *mềm*", "soft *wood*")], /tagline\[0\]: a line must not end with , \. or ;/],
+    [[t("Gỗ mềm", "Soft wood.")], /tagline\[0\]: a line must not end with , \. or ;/],
   ]) {
     const page = fixture();
     page.blocks[0].tagline = tagline;

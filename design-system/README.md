@@ -57,7 +57,8 @@ Cỡ chữ theo từng độ rộng màn hình ở README component (ví dụ [H
 **Quy tắc đọc trước.** Display tạo nhịp, body truyền thông tin, label định vị control. Không dùng weight hay
 tracking display cho đoạn đọc dài. Chữ không được clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`); không dùng
 `overflow: hidden` để giả chiều cao dòng. Chữ display nhiều dòng giữ line-height đủ để dấu dòng dưới không chạm
-chữ dòng trên.
+chữ dòng trên. Không chữ mồ côi: `body` đặt `text-wrap: pretty`, mọi khối chữ thừa hưởng. Tiêu đề xuống dòng chốt
+không để `,` `.` `;` cuối dòng ([hero-typography R7](../docs/specs/hero-typography.md#r7-không-chữ-mồ-côi-không-dấu-cuối-dòng-chốt)).
 
 ## Layout
 

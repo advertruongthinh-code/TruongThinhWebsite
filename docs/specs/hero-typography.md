@@ -7,7 +7,7 @@ tests:
   - tests/site/hero-text-shadow.e2e.mjs
   - tests/site/text-mask-hidden.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
-updated: 2026-10-31
+updated: 2026-11-14
 ---
 
 # Chữ hero kiểu espacio, xuống dòng chốt và khoảng cách dòng đều
@@ -106,7 +106,7 @@ And các khối cùng loại có cùng line-height tính theo cỡ chữ
 
 ### R5. Ngoài phạm vi
 
-Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1 (bóng chữ ở R6 không tính là đổi màu). Ngoại lệ: dấu câu EN theo VI (owner 2026-10-18, [rule](../../design-system/content.md#song-ngữ-vien)); hero trang chủ EN không dấu chấm, hero About EN là "Proven craft. / Earned trust.".
+Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1 (bóng chữ ở R6 không tính là đổi màu). Ngoại lệ: dấu câu EN theo VI (owner 2026-10-18, [rule](../../design-system/content.md#song-ngữ-vien)); hero About EN là "Proven craft / Earned trust"; dấu cuối dòng theo R7.
 
 ### R6. Bóng chữ hai lớp trên ảnh (ngoại lệ Design System)
 
@@ -160,6 +160,23 @@ When đọc text-shadow của title hero và title CTA lưới
 Then đều là none
 ```
 
+### R7. Không chữ mồ côi, không dấu cuối dòng chốt
+
+Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 384 tới 1920:
+
+- Đoạn văn không kết thúc bằng một chữ đứng lẻ ở dòng cuối. `body` đặt `text-wrap: pretty` một lần trong
+  `style.css`; mọi khối chữ thừa hưởng, tiêu đề đặt `balance` riêng giữ `balance`.
+- Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask` viết tay) không để `,` `.` `;` ở cuối dòng, kể cả
+  dòng cuối. Một regex `LINE_END_PUNCT` trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline,
+  `pnpm qa:content` báo lỗi dòng mask trong HTML.
+
+```gherkin
+Given mọi trang VI và EN ở 384, 390, 768, 1024, 1280, 1440, 1920
+When đo từng khối chữ bằng Range rects
+Then không đoạn văn nhiều dòng nào có dòng cuối chỉ một chữ
+And không dòng chốt nào của tiêu đề kết thúc bằng , . hoặc ;
+```
+
 ## UI
 
 Token chữ hero và portal trong [Design System](../../design-system/). Chỉ đổi `design-system/` sau khi owner tự audit
@@ -174,6 +191,7 @@ kết quả trên PC và phone và duyệt; sau đó republish theo
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 | R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh, hero bốn trang (tiêu đề, chữ CUỘN) cũng có bóng; none ở hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
+| R7 | `tests/site/blocks.test.mjs` (tagline), `pnpm qa:content` (HTML); audit Range rects toàn site trong mô tả PR |
 | R6 (dòng ẩn) | `tests/site/text-mask-hidden.e2e.mjs`: mọi dòng chưa reveal nằm dưới mép clip-path, mép dưới không nới lúc ẩn, reveal xong mở lại; 5 trang, 1440 và 390, VI và EN |
 
 ## Gate còn mở

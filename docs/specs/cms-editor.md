@@ -91,8 +91,8 @@ footer, floating CTA nằm ngoài `<main>` nên không chọn được (shell d�
 
 ```gherkin
 Given iframe đã tải Giới thiệu và overlay đã chèn
-When nhấn dòng "Vững niềm tin." của h1
-Then dòng đó có viền chọn, Thuộc tính hiện "Tiêu đề chính · #top", ô VI "Vững niềm tin.", ô EN "Earned trust."
+When nhấn dòng "Vững niềm tin" của h1
+Then dòng đó có viền chọn, Thuộc tính hiện "Tiêu đề chính · #top", ô VI "Vững niềm tin", ô EN "Earned trust"
 And rê lên logo header thì không có viền và không chọn được
 ```
 

@@ -80,7 +80,7 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 
 | # | Khối | Nội dung (VI) | Tone |
 | --- | --- | --- | --- |
-| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề. / Vững niềm tin." | inverse |
+| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
 | 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề."; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng."; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
@@ -92,7 +92,7 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 ```gherkin
 Given output đã build
 When mở /vi/about/
-Then main có một h1 "Vững nghề. Vững niềm tin.", ba chương I, II, III, năm bước quy trình và ba cam kết
+Then main có một h1 "Vững nghề Vững niềm tin", ba chương I, II, III, năm bước quy trình và ba cam kết
 ```
 
 ### R4. Nội dung VI/EN và hook
