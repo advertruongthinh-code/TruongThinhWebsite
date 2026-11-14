@@ -132,12 +132,13 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 
 ### R4. Đổi code là đổi spec
 
-`pnpm qa:docs` (thêm vào CI) chạy bốn check (check riêng của Design System ở [design-system R1, R6](design-system.md#r6-dòng-nguồn-và-gate-component)):
+`pnpm qa:docs` (thêm vào CI) chạy năm check (check riêng của Design System ở [design-system R1, R6](design-system.md#r6-dòng-nguồn-và-gate-component)):
 
 | Check | Fail khi |
 | --- | --- |
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
 | sync | Branch đổi file thuộc `source` của spec mà không đổi spec đó, và cả mô tả PR lẫn commit message trên branch không có dòng `Spec: không đổi - <lý do>` |
+| card | Chạy trên PR (có `PR_NUMBER` hoặc `PR_BODY`) mà cả mô tả PR lẫn commit message trên branch không có dòng `Card: <link card Notion>` ([notion](../operations/notion.md#rule)) |
 | budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
