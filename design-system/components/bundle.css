@@ -3607,14 +3607,16 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  /* The zoomed block's placement and starting scale are parameters: the Advertising hero is centred absolutely and starts at 1.2,
+     the News list title block sits in flow and starts at 1.1 (news R2). */
   :root [data-motion-hero-wrapper-zoom] {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: var(--hero-zoom-place, translate(-50%, -50%)) scale(var(--hero-zoom-from, 1.2));
     transition: transform 2.5s var(--ease);
     will-change: transform;
   }
 
   :root [data-motion-hero-wrapper-zoom].is-motion-inview {
-    transform: translate(-50%, -50%) scale(1);
+    transform: var(--hero-zoom-place, translate(-50%, -50%)) scale(1);
   }
 
   :root .detail-index-hero [data-motion-hero-wrapper-zoom] {
@@ -4802,7 +4804,7 @@ html.motion-fallback .motion-line {
 
 html.motion-fallback [data-motion-hero-wrapper-zoom] {
   opacity: 1 !important;
-  transform: translate(-50%, -50%) scale(1) !important;
+  transform: var(--hero-zoom-place, translate(-50%, -50%)) scale(1) !important;
   transition: none !important;
   visibility: visible !important;
   will-change: auto;
@@ -7298,9 +7300,9 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   color: inherit;
 }
 
-/* News list head like Espacio /en/news (measured 2026-11-11 at 1440 and 390): white, the title fills the column like Espacio's fillText
-   (900px max, 90% of the column; uppercase, line-height 1.4) about 240px from the page top, the filter row centred about 134px below the title
-   top in bold capitals at 30% opacity, the current one full and underlined; no kicker (owner 2026-11-11). On phone the filter row is one
+/* News list head like Espacio /en/news (measured 2026-11-14 at 1440 and 390): white, a 16px kicker 241px from the page top (220px phone),
+   the title right under it filling the column like Espacio's fillText (900px max, 90% of the column; uppercase, line-height 1.4), the filter
+   row 119px under the title (39px phone) in bold capitals at 30% opacity, the current one full and underlined. On phone the filter row is one
    left-aligned line that scrolls sideways. */
 .blk-article-head--list {
   --fill-width: min(90%, 900px);
@@ -7311,11 +7313,28 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   text-align: center;
 }
 
+/* The kicker and title zoom together as one block, in flow (Espacio .layout-titular animate-zoomout); the block is as wide as the title
+   so the 1.1 start stays inside the page. */
+.blk-article-head__titles {
+  --hero-zoom-place: translate(0, 0);
+  --hero-zoom-from: 1.1;
+  width: var(--fill-width);
+  margin-inline: auto;
+}
+
+/* Small line right over the title like Espacio "Interior design news": 16px bold capitals, centred, 22px tall. */
+.blk-article-head__kicker {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
 .blk-article-head--list .blk-article-head__title {
   --chars: var(--chars-vi);
   max-width: none;
-  width: var(--fill-width);
-  margin-inline: auto;
+  width: 100%;
   /* About 0.7em per uppercase glyph in Plus Jakarta Sans 500; capped at Espacio's 112px. */
   font-size: min(7rem, calc((min(100vw - 2 * var(--gutter), 1370px) * 0.9) / (var(--chars) * 0.7)));
   font-weight: 500;
@@ -7333,7 +7352,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   justify-content: center;
   gap: 0;
   width: min(80%, 850px);
-  margin: -38px auto 0;
+  margin: 119px auto 0;
 }
 
 .blk-article-head--list .blk-news-filter__chip {

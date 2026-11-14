@@ -71,10 +71,11 @@ const articleHead = (page) => {
   const [year, month, day] = page.published.split("-");
   return [
     '<header class="blk blk-article-head blk-article-head--post section-gap" data-header-tone="ink">',
+    // Opening motion like Espacio (owner 2026-11-14): the crumb rises line by line at once, the title 0.3s later, the date fades word by word at 0.9s.
     // The group label links to the group page: group pages have no filter chip on the list page (news R2, owner 2026-11-09).
-    `  <p class="blk-article-head__crumb"><a class="blk-article-head__news" href="/vi/news/" data-en-href="/en/news/" data-en="News">Tin tức</a><span class="blk-article-head__slash" aria-hidden="true">/</span><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a></p>`,
-    `  <h1 class="blk-article-head__title" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
-    `  <p class="blk-article-head__date"><time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
+    `  <p class="blk-article-head__crumb" data-motion-lines><a class="blk-article-head__news" href="/vi/news/" data-en-href="/en/news/" data-en="News">Tin tức</a><span class="blk-article-head__slash" aria-hidden="true">/</span><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a></p>`,
+    `  <h1 class="blk-article-head__title" data-motion-lines data-motion-delay="0.3" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
+    `  <p class="blk-article-head__date" data-motion-words data-motion-delay="0.9"><time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
     "</header>\n",
   ].join("\n");
 };
@@ -171,7 +172,7 @@ export const renderHomeNews = (news) => {
 };
 
 // List page frame (News, Projects) built on the About page: SEO head, namespace, language-switch link, h1 and filter row.
-const renderListFrame = (template, { path: listPath, title, h1, description, namespace, filterLabel, chips, body, noindex = false }) => {
+const renderListFrame = (template, { path: listPath, title, kicker, h1, description, namespace, filterLabel, chips, body, noindex = false }) => {
   const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
   const en = `${PUBLIC_ORIGIN}/en${listPath}`;
   const head = [
@@ -184,10 +185,14 @@ const renderListFrame = (template, { path: listPath, title, h1, description, nam
   ].join("\n    ");
   const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
   const main = [
-    // White head with a large centred title and centred filters like Espacio /en/news; no kicker (owner 2026-11-11).
+    // White head with a small kicker over a large centred title and centred filters like Espacio /en/news (owner 2026-11-14).
+    // Opening motion: the kicker and title block zooms from 1.1 to 1 in 2.5s while both fade in word by word after 0.6s.
     '<header class="blk blk-article-head blk-article-head--list section-gap" data-header-tone="ink">',
+    '  <div class="blk-article-head__titles" data-motion-hero-wrapper-zoom>',
+    `  <p class="blk-article-head__kicker" data-motion-words data-motion-delay="0.6" data-en="${escapeHtml(kicker.en)}">${escapeHtml(kicker.vi)}</p>`,
     // Espacio fills the title to the column width (fillText); --chars-vi/--chars-en let CSS size each locale's title the same way.
-    `  <h1 class="blk-article-head__title" style="--chars-vi: ${[...h1.vi].length}; --chars-en: ${[...h1.en].length}" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
+    `  <h1 class="blk-article-head__title" data-motion-words data-motion-delay="0.6" style="--chars-vi: ${[...h1.vi].length}; --chars-en: ${[...h1.en].length}" data-en="${escapeHtml(h1.en)}">${escapeHtml(h1.vi)}</h1>`,
+    "  </div>",
     `  <nav class="blk-news-filter" aria-label="${escapeHtml(filterLabel.vi)}" data-en-aria-label="${escapeHtml(filterLabel.en)}">${chipLinks}</nav>`,
     "</header>",
     body,
@@ -227,7 +232,7 @@ export const renderNewsListPage = (template, listPage) => {
     return `<a href="/vi${pagePath}"${index + 1 === listPage.number ? ' aria-current="page"' : ""}>${index + 1}</a>`;
   }).join("")}</nav>` : "";
   return renderListFrame(template, {
-    path: listPage.path, h1: name, namespace: "news", noindex: Boolean(listPage.year),
+    path: listPage.path, kicker: { vi: "Tư vấn và xu hướng", en: "Advice and trends" }, h1: name, namespace: "news", noindex: Boolean(listPage.year),
     title: { vi: name.vi + suffix.vi, en: name.en + suffix.en },
     description: { vi: `Bài viết tư vấn về ${name.vi.toLowerCase()} từ Trường Thịnh.`, en: `Advice articles on ${name.en.toLowerCase()} from Trường Thịnh.` },
     filterLabel: { vi: "Năm đăng bài", en: "Year published" },

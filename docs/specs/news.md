@@ -7,9 +7,10 @@ tests:
   - tests/site/blocks.test.mjs
   - tests/site/block-pages.test.mjs
   - tests/site/block-pages.e2e.mjs
+  - tests/site/news-head-motion.e2e.mjs
   - tests/site/static-locales.test.mjs
 notion: https://app.notion.com/p/3f7332849a0e8189870ce4b4dfc502bf
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # News
@@ -50,10 +51,15 @@ dòng, như navbar; ảnh phóng 1.1 trong 0.3s (audit Espacio 2026-11-11). Bài
 Hàng lọc chỉ có "Tất cả" và các năm có bài (`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô
 tả cho SEO nhưng không hiện thành nút lọc, người đọc vào qua nhãn nhóm ở đầu bài. Id và slug bài không được là `page`, slug
 nhóm hay số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
-Đầu trang danh sách theo Espacio `/en/news` (owner 2026-11-11): nền trắng, `h1` chữ hoa căn giữa lấp đầy cột (tối đa 900px,
-112px), không kicker, hàng lọc chữ đậm mờ 30%, mục đang chọn và mục rê chuột đậm đủ, gạch chân 3px; phone hàng lọc một dòng canh
-trái, vuốt ngang; header dạng ink. Đầu trang bài theo bài Espacio (owner 2026-11-11 "các trang con của news cũng phải giống"): nền
-trắng, dòng "Tin tức / nhóm" căn giữa chữ hoa đậm, tiêu đề 64px (40px phone) nét thường canh trái, ngày căn giữa bên dưới.
+Đầu trang danh sách theo Espacio `/en/news` (owner 2026-11-11, đo lại 2026-11-14): nền trắng, dòng nhỏ "Tư vấn và xu hướng"
+(EN "Advice and trends", owner 2026-11-14) 16px chữ hoa đậm ngay trên `h1`, `h1` chữ hoa căn giữa lấp đầy cột (tối đa 900px,
+112px), hàng lọc cách chân `h1` 119px (phone 39px), chữ đậm mờ 30%, mục đang chọn và mục rê chuột đậm đủ, gạch chân 3px; phone
+hàng lọc một dòng canh trái, vuốt ngang; header dạng ink. Lúc mở trang, khối dòng nhỏ và `h1` thu từ 1.1 về 1 trong 2.5s, hai dòng
+hiện dần từng từ sau 0.6s. Đầu trang bài theo bài Espacio (owner 2026-11-11 "các trang con của news cũng phải giống"): nền
+trắng, dòng "Tin tức / nhóm" căn giữa chữ hoa đậm, tiêu đề 64px (40px phone) nét thường canh trái, chữ cách mép trang 70px (phone
+30px), ngày căn giữa bên dưới. Lúc mở bài, dòng nhóm trồi lên ngay, tiêu đề trồi lên từng dòng sau 0.3s, ngày hiện dần từng từ
+sau 0.9s. Espacio có nút "Scroll Down" trong HTML hai trang này nhưng ẩn (`display: none`, đo 2026-11-14), nên trang mình không
+thêm. Giảm chuyển động thì hiện ngay trạng thái cuối.
 
 ```gherkin
 Given có 30 bài tiếng Việt
