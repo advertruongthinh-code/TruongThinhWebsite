@@ -21,8 +21,9 @@ tính giá đô la (owner 2026-10-24).
 
 - kie.ai chỉ dùng cho ảnh owner chỉ định; sửa chữ trên ảnh owner chỉ định bằng
   gpt-image-2.5 Sunburst trên kie.ai. API key theo [API key](TOOLING.md#api-key).
-- ChatGPT web trên Chrome PC: tải ảnh lên chatgpt.com chỉ khi owner gõ cho phép trong
-  chính thread làm việc; Chrome chạy không cướp focus.
+- Owner cho phép thường trực (2026-11-14): mọi thread được tạo ảnh bằng Codex và ChatGPT web,
+  kể cả tải ảnh tham khảo lên chatgpt.com, không cần owner gõ cho phép từng thread. ChatGPT web
+  chạy trên Chrome PC không cướp focus.
 - Codex: `codex exec -m gpt-6-sol -s workspace-write -C <dir> -i <ref>`, effort mặc định
   (effort cao, prompt skill ngắn không tốt hơn); giữ prompt dài, tạo mới thay vì sửa
   chồng; khi sửa ảnh dặn Codex không resize, không lưu lại. Tắt `gen.ps1` và tiến trình
