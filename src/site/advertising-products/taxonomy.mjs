@@ -65,7 +65,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   },
   {
     id: "mobile-retail", slugVi: "xe-ban-hang-luu-dong", slugEn: "mobile-retail", legacySlug: "mobile-retail",
-    labelVi: "Xe & quầy bán hàng lưu động", labelEn: "Mobile carts & counters",
+    labelVi: "Xe bán hàng lưu động", labelEn: "Mobile retail carts",
     railVi: "Xe bán hàng", railEn: "Mobile carts",
     titleVi: "Xe bán hàng lưu động, xe cafe, quầy bán hàng di động — Trường Thịnh",
     titleEn: "Mobile retail carts and counters — Trường Thịnh",
@@ -74,6 +74,12 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introVi: "Xe bán hàng và quầy di động cho cà phê, trà sữa, đồ ăn, sampling và hội chợ, làm theo mẫu chuỗi nhượng quyền hoặc theo nhận diện riêng.",
     introEn: "Carts and mobile counters for coffee, milk tea, food, sampling and fairs, built to a franchise standard or to your own brand.",
   },
+]);
+
+// Products removed by a merge: their old page 301s to the cluster page (taxonomy R4).
+// Mobile counters merged into carts (owner 2026-11-14, Keyword Planner: "xe bán hàng lưu động" outranks "quầy bán hàng di động").
+export const ADVERTISING_RETIRED_PRODUCTS = Object.freeze([
+  Object.freeze({ cluster: "mobile-retail", slugVi: "quay-ban-hang-di-dong", slugEn: "mobile-counters" }),
 ]);
 
 // A product's introduction doubles as the meta description (noi-dung-trang in the plan).
@@ -245,12 +251,5 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
     titleVi: "Xe bán hàng lưu động, xe cà phê, xe đồ ăn — Trường Thịnh", titleEn: "Mobile retail, coffee and food carts — Trường Thịnh",
     introVi: "Xe bán cà phê, trà sữa, đồ ăn và xe đẩy trưng bày, đóng theo mẫu hoặc theo yêu cầu.",
     introEn: "Coffee, milk tea and food carts and display push carts, built from a model or to order.",
-  },
-  {
-    id: "mobile-retail/mobile-counters", cluster: "mobile-retail", slugVi: "quay-ban-hang-di-dong", slugEn: "mobile-counters",
-    labelVi: "Quầy bán hàng di động", labelEn: "Mobile counters",
-    titleVi: "Quầy bán hàng di động, quầy gấp gọn — Trường Thịnh", titleEn: "Mobile and folding retail counters — Trường Thịnh",
-    introVi: "Quầy pha chế, quầy pop-up, quầy gấp gọn và quầy ngoài trời cho hội chợ, sự kiện.",
-    introEn: "Beverage, pop-up, folding and outdoor counters for fairs and events.",
   },
 ]);
