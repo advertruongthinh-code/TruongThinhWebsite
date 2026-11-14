@@ -2438,47 +2438,47 @@
       "en": "Riverside wooden homestay design in the Mekong Delta"
     },
     "description": {
-      "vi": "Homestay một tầng bên sông miền Tây với gỗ tràm sáng, mây tre, gạch thẻ, đầu giường nan và quầy trà. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A single-storey riverside homestay in the Mekong Delta with light melaleuca wood, rattan, brick, slatted headboards and a tea bar. Design and CNC joinery by Trường Thịnh."
+      "vi": "Homestay một tầng bên sông miền Tây: mái ngói, tường vôi vàng kem, hiên gạch tàu dọc mặt sông, cửa gỗ xanh rêu và đồ gỗ nâu sẫm. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A single-storey riverside homestay in the Mekong Delta: clay-tile roof, cream lime walls, a terracotta veranda along the water, bottle-green timber doors and dark wood furniture. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
-      "src": "/assets/content/projects/placeholder-ngang.webp",
-      "width": 3072,
-      "height": 2048,
-      "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-      "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+      "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1.webp",
+      "width": 1412,
+      "height": 941,
+      "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
+      "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
     },
     "card": {
-      "width": 3072,
-      "height": 2048,
+      "width": 1672,
+      "height": 941,
       "media": [
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1-card-wide.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
+          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-3.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Phòng khách bộ ghế gỗ đệm kem, bàn trà, cửa đôi xanh rêu mở ra hiên và sông, homestay ven sông",
+          "altEn": "Living room with cushioned wooden sofa set and coffee table, double green doors open to the veranda and river, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-4.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Bàn ăn gỗ dài, tủ bếp gỗ chạy dọc tường, cửa sổ xanh rêu nhìn ra vườn dừa, homestay ven sông",
+          "altEn": "Long wooden dining table and wall-length timber kitchen, green-framed window onto coconut palms, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-5.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu, giường gỗ thấp, cửa đôi mở ra hiên sông, homestay ven sông",
+          "altEn": "Bedroom with a round green-framed window, low wooden bed and double doors open to the river veranda, riverside homestay"
         }
       ]
     },
@@ -2488,8 +2488,8 @@
         "type": "hero-project",
         "tagline": [
           {
-            "vi": "Một căn nhà gỗ",
-            "en": "A timber house"
+            "vi": "Một hiên dài",
+            "en": "A long veranda"
           },
           {
             "vi": "mở ra *phía sông*",
@@ -2497,27 +2497,27 @@
           }
         ],
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1.webp",
+          "width": 1412,
+          "height": 941,
+          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
+          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
         }
       },
       {
         "id": "overview-title",
         "type": "section-title",
         "text": {
-          "vi": "Phòng chung nhìn ra sông",
-          "en": "A common room facing the water"
+          "vi": "Hiên dài nhìn ra sông",
+          "en": "A long veranda on the water"
         }
       },
       {
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Homestay một tầng bên một nhánh sông, khách là những nhóm nhỏ về nghỉ cuối tuần. Phòng sinh hoạt chung mở thẳng ra sông, hai phòng ngủ có nhà tắm riêng lùi về phía sau cho yên tĩnh. Gỗ tràm sáng màu, mây tre và gạch thẻ giữ chất mộc miền sông nước, vách phay họa tiết lá dừa nước làm điểm nhận diện.",
-          "en": "A single-storey homestay on a branch of the river, for small groups coming for the weekend. The common room opens straight onto the water, and two bedrooms with private bathrooms sit further back for quiet. Light melaleuca wood, rattan and brick keep the simple character of river country, and a screen milled with a nipa-palm pattern gives the place its signature."
+          "vi": "Homestay một tầng bên một nhánh sông, khách là những nhóm nhỏ về nghỉ cuối tuần. Cả mặt nhà dài quay ra sông, mỗi phòng có cửa gỗ mở thẳng ra hiên gạch tàu. Mái ngói, tường vôi vàng kem và đầu hồi gạch trần có ô cửa tròn giữ dáng nhà quê miền Tây; bên trong, đồ gỗ nâu sẫm và cửa xanh rêu đi cùng một bảng màu.",
+          "en": "A single-storey homestay on a branch of the river, for small groups coming for the weekend. The whole long front faces the water, and every room has timber doors opening straight onto the terracotta veranda. The tiled roof, cream lime walls and bare brick gable with its round window keep the shape of a Mekong country house; inside, dark wood furniture and bottle-green doors share one palette."
         }
       },
       {
@@ -2525,25 +2525,25 @@
         "type": "gallery-carousel",
         "images": [
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
-            "width": 3072,
-            "height": 2048,
-            "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-            "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-2.webp",
+            "width": 1672,
+            "height": 941,
+            "altVi": "Hiên gạch tàu dọc sông, cột gỗ, cửa gỗ xanh rêu mở ra hiên, ghế gỗ lưng nan, homestay ven sông",
+            "altEn": "Terracotta veranda along the river with timber posts, open bottle-green doors and slatted wooden chairs, riverside homestay"
           },
           {
-            "src": "/assets/content/projects/placeholder-ngang.webp",
-            "width": 3072,
-            "height": 2048,
-            "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-            "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-3.webp",
+            "width": 1672,
+            "height": 941,
+            "altVi": "Phòng khách bộ ghế gỗ đệm kem, bàn trà, cửa đôi xanh rêu mở ra hiên và sông, homestay ven sông",
+            "altEn": "Living room with cushioned wooden sofa set and coffee table, double green doors open to the veranda and river, riverside homestay"
           },
           {
-            "src": "/assets/content/projects/placeholder-doc.webp",
-            "width": 2048,
-            "height": 3072,
-            "altVi": "Cận đầu giường nan dọc phay CNC, vân gỗ tràm và đèn hắt, homestay ven sông",
-            "altEn": "Close-up of CNC-cut vertical-slat headboard, cajeput grain and backlighting, riverside homestay"
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-4.webp",
+            "width": 1672,
+            "height": 941,
+            "altVi": "Bàn ăn gỗ dài, tủ bếp gỗ chạy dọc tường, cửa sổ xanh rêu nhìn ra vườn dừa, homestay ven sông",
+            "altEn": "Long wooden dining table and wall-length timber kitchen, green-framed window onto coconut palms, riverside homestay"
           }
         ]
       },
@@ -2577,8 +2577,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Đầu giường, quầy trà, kệ lưu niệm, vách họa tiết, biển gỗ",
-              "en": "Headboards, tea bar, souvenir shelving, patterned screen, timber sign"
+              "vi": "Cửa gỗ, bộ ghế phòng khách, bàn ăn, tủ bếp, giường, tủ lavabo, bàn ghế hiên",
+              "en": "Timber doors, living room seating, dining table, kitchen, bed, vanity, veranda furniture"
             }
           },
           {
@@ -2587,53 +2587,78 @@
               "en": "Main materials"
             },
             "text": {
-              "vi": "Gỗ tràm ghép thanh sơn PU, MDF chống ẩm melamine vân teak",
-              "en": "PU-finished finger-jointed melaleuca, moisture-resistant MDF in teak melamine"
+              "vi": "Gỗ tự nhiên nhuộm nâu sẫm, cửa gỗ sơn xanh rêu, MDF chống ẩm phủ veneer gỗ",
+              "en": "Dark-stained solid wood, bottle-green painted timber doors, moisture-resistant MDF with wood veneer"
             }
           }
         ]
       },
       {
-        "id": "image-1",
-        "type": "image-text",
-        "image": {
-          "src": "/assets/content/projects/placeholder-doc.webp",
-          "width": 2048,
-          "height": 3072,
-          "altVi": "Cận đầu giường nan dọc phay CNC, vân gỗ tràm và đèn hắt, homestay ven sông",
-          "altEn": "Close-up of CNC-cut vertical-slat headboard, cajeput grain and backlighting, riverside homestay"
-        },
+        "id": "text-1",
+        "type": "paragraph",
         "text": {
-          "vi": "Quầy trà ốp nan gỗ là chỗ khách ngồi lại với nhau sau bữa tối. Phía sau quầy là kệ lưu niệm và vách họa tiết lá dừa nước, đều phay CNC từ cùng một bộ bản vẽ.",
-          "en": "The slatted tea bar is where guests sit together after dinner. Behind it are the souvenir shelves and the nipa-palm screen, all CNC-milled from the same set of drawings."
+          "vi": "Phòng ngủ lấy sáng từ ô cửa tròn ở đầu hồi, khung gỗ sơn xanh rêu nhìn thẳng ra vườn. Giường gỗ khung thấp, tab đầu giường cùng màu gỗ, đèn bàn vàng ấm; cửa đôi bên trái mở ra hiên và sông.",
+          "en": "The bedroom takes its light from the round window in the gable, its green-painted timber frame looking straight into the garden. A low timber bed, a bedside table in the same wood and a warm table lamp; the double doors on the left open to the veranda and the river."
+        }
+      },
+      {
+        "id": "image-1",
+        "type": "image-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-5.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu, giường gỗ thấp, cửa đôi mở ra hiên sông, homestay ven sông",
+          "altEn": "Bedroom with a round green-framed window, low wooden bed and double doors open to the river veranda, riverside homestay"
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Khí hậu ven sông ẩm quanh năm, nên tủ áo và tủ lavabo dùng MDF chống ẩm phủ melamine vân teak. Gỗ tràm chỉ dùng ở những chỗ khô như đầu giường và quầy trà.",
-          "en": "The riverside air is humid all year, so the wardrobes and vanities are moisture-resistant MDF in teak melamine. Melaleuca is kept for the dry places, such as the headboards and the tea bar."
+          "vi": "Khí hậu ven sông ẩm quanh năm, nên tủ lavabo và tủ bếp dùng MDF chống ẩm phủ veneer gỗ, sơn PU kín cả mặt sau. Phòng tắm ốp đá xám, vách kính tắm đứng, gương khung gỗ cùng tông với tủ.",
+          "en": "The riverside air is humid all year, so the vanity and the kitchen are moisture-resistant MDF in wood veneer, PU-finished on the back faces too. The bathroom is clad in grey stone, with a glass shower screen and a timber-framed mirror in the same tone as the cabinet."
         }
       },
       {
         "id": "image-2",
         "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-6.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Phòng tắm ốp đá xám, tủ lavabo gỗ, gương khung gỗ, vách kính tắm đứng, homestay ven sông",
+          "altEn": "Bathroom in grey stone with wooden vanity, timber-framed mirror and glass shower screen, riverside homestay"
+        }
+      },
+      {
+        "id": "text-3",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cuối hiên là bàn trà nhìn ra bến thuyền nhỏ. Bàn ghế ngoài hiên làm bằng gỗ tự nhiên, ghế lưng nan thẳng, chịu được nắng gió ven sông.",
+          "en": "At the end of the veranda a tea table looks out to the small boat landing. The veranda furniture is solid wood with straight slatted backs, built for the sun and wind by the river."
+        }
+      },
+      {
+        "id": "image-3",
+        "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/placeholder-ngang.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Phòng sinh hoạt nhìn từ cửa, sofa mây, cửa sổ lớn hướng sông, homestay ven sông",
-          "altEn": "Shared living room seen from the door towards rattan sofa and large river-facing window, riverside homestay"
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-7.webp",
+          "width": 1672,
+          "height": 941,
+          "altVi": "Bàn trà gỗ ngoài hiên, ấm chén gốm, nhìn ra bến thuyền nhỏ trên sông, homestay ven sông",
+          "altEn": "Wooden tea table on the veranda with ceramic teapot and cups, looking out to a small boat landing, riverside homestay"
         }
       },
       {
         "id": "workshop",
         "type": "paragraph",
         "text": {
-          "vi": "Gỗ tràm ghép thanh được sơn PU tại xưởng, phủ kín cả mặt sau để hạn chế cong vênh. Đồ gỗ chở xuống bằng xe tải nhỏ rồi ráp tại chỗ trong khoảng bốn ngày. Ngoài cổng có thêm tấm biển gỗ khắc tên homestay, làm từ chính phần gỗ tràm còn dư.",
-          "en": "The finger-jointed melaleuca was PU-finished in the workshop, back faces included, to limit warping. The joinery travelled down by small truck and was assembled on site in about four days. At the gate hangs a timber sign engraved with the homestay's name, made from the leftover melaleuca."
+          "vi": "Đồ gỗ làm sẵn tại xưởng theo bản vẽ, sơn PU hoàn thiện rồi chở xuống bằng xe tải nhỏ, ráp tại chỗ trong khoảng bốn ngày. Cửa gỗ xanh rêu cũng sơn tại xưởng để đều màu từ cửa phòng tới cửa nhà tắm.",
+          "en": "The joinery was made in the workshop from the drawings, PU-finished, then taken down by small truck and assembled on site in about four days. The bottle-green doors were painted in the workshop too, so the colour matches from the bedroom doors to the bathroom."
         }
       },
       {
