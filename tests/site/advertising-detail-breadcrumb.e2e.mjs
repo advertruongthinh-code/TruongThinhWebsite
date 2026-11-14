@@ -1,4 +1,4 @@
-// Detail breadcrumb (advertising-detail R3, owner 2026-11-14): root, cluster (rail name), main product, each a real link.
+// Detail breadcrumb (advertising-detail R3, owner 2026-11-14): cluster (rail name), main product, each a real link; no root level.
 // A click closes detail, filters the grid in place at that level with the card in view, and Back reopens the photo.
 // Every SWEEP_WIDTHS width: no crumb past the info column, and a wrap falls between crumbs or leaves at least two words per line.
 import assert from "node:assert/strict";
@@ -7,12 +7,10 @@ import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./h
 const CARD = "kiosk-posm-67";
 const EXPECTED = {
   vi: [
-    ["all", "Sản phẩm quảng cáo", "/vi/advertising-products/"],
     ["displays-booths", "Trưng bày", "/vi/advertising-products/standee-ke-trung-bay/"],
     ["displays-booths/display-shelves-cabinets", "Kệ, tủ trưng bày", "/vi/advertising-products/standee-ke-trung-bay/ke-tu-trung-bay/"],
   ],
   en: [
-    ["all", "Advertising products", "/en/advertising-products/"],
     ["displays-booths", "Displays", "/en/advertising-products/displays-booths/"],
     ["displays-booths/display-shelves-cabinets", "Display shelves & cabinets", "/en/advertising-products/displays-booths/display-shelves-cabinets/"],
   ],

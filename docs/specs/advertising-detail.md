@@ -77,7 +77,7 @@ vuốt, phím mũi tên, `End`; khi còn chữ để cuộn, các input này kh�
 `data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B theo ngôn ngữ player: rãnh 4px
 `rgba(32,33,32,0.16)`, viên 4px `rgba(32,33,32,0.6)` dài theo tỷ lệ chữ đang thấy; chỉ hiện (fade 150ms) khi trỏ chuột vào
 hoặc focus bàn phím trong mô tả và khi đang kéo; kéo viên bằng pointer capture. Cảm ứng (`hover: none`) không có thanh.
-Breadcrumb (owner 2026-11-14): gốc › cluster (tên rail) › sản phẩm chính, link thật; bấm: đóng detail (push), lọc tại chỗ như rail. Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
+Breadcrumb (owner 2026-11-14): cluster (tên rail) › sản phẩm chính, không có cấp gốc, link thật; bấm: đóng detail (push), lọc tại chỗ như rail. Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
 khoảng trên footer của site ([CTA giữa viewport R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn)).
 
 ```gherkin

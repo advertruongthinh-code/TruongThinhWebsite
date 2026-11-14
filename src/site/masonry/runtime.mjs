@@ -413,7 +413,7 @@ export function serializeBrowseLocation(input, browse = {}, categories = [], pag
 const compareRelatedSource = (left, right) =>
   left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 
-// Detail breadcrumb (owner 2026-11-14): root page, the card's cluster (short rail name), then its main product. Every level is a filter
+// Detail breadcrumb (owner 2026-11-14): the card's cluster (short rail name), then its main product; no root level. Every level is a filter
 // with a page, so each crumb is a real link; a level with no page is left out. pages is artifact.pages, categories carry the rail names.
 export function detailBreadcrumb(card, { categories = [], pages = [] } = {}) {
   if (!card) return [];
@@ -421,7 +421,6 @@ export function detailBreadcrumb(card, { categories = [], pages = [] } = {}) {
   const cluster = categories.find((entry) => entry.slug === card.category);
   const product = pageByFilter.get(card.productIds?.[0]);
   return [
-    pageByFilter.has("all") && { filter: "all", labelVi: pageByFilter.get("all").labelVi, labelEn: pageByFilter.get("all").labelEn },
     cluster && pageByFilter.has(cluster.slug) && { filter: cluster.slug, labelVi: cluster.titleVi, labelEn: cluster.titleEn },
     product && product.filter !== card.category && { filter: product.filter, labelVi: product.labelVi, labelEn: product.labelEn },
   ].filter(Boolean);
