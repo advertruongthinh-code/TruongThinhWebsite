@@ -14,7 +14,7 @@ Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../Med
 
 ## Hành vi
 
-- Khung nền `media-loading-surface` `#2b2c2b`, ảnh `opacity: 0`.
+- Khung nền `media-loading-surface` `#2b2c2b`, ảnh `opacity: 0`; `contain: paint` giữ vệt trong khung kể cả khung `position: static`.
 - Một dải sáng đối xứng, trắng `20%` ở tâm, nghiêng 60 độ (cùng góc dải mark),
   rộng khoảng hai phần năm khung, vẽ bằng `::before` của khung. Độ sáng giảm
   về 0 qua 17 điểm màu theo đường cosine nên mép mờ dần (owner 2026-10-10).

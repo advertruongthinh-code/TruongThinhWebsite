@@ -2342,6 +2342,9 @@ em {
 /* The content image frame waits with a light streak until the head script adds .is-media-settled after load and decode; without JavaScript there is no .media-gate so the image shows normally. */
 .media-gate .media-frame:not(.is-media-settled) {
   overflow: clip;
+  /* Makes the frame the containing block of the absolute ::before streak, so overflow clips it even when the frame is position: static
+     (image-single, image-pair figures); without it the 400%-wide streak escaped and left white bands over the images above. */
+  contain: paint;
   background-color: var(--media-loading-surface);
 }
 

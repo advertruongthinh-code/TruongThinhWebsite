@@ -31,10 +31,14 @@ doanh); mâu thuẫn với [Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh) th
 
 ## Nhất quán giữa các góc
 
-- Mỗi công trình chọn một camera chuẩn cho từng khu (owner chỉ định, ví dụ camera 1 cho
-  bếp ăn); góc khác theo ảnh chuẩn, CSV lệch ảnh chuẩn thì ảnh chuẩn thắng.
-- Gen lần lượt, ảnh chuẩn trước; ảnh sau kèm ảnh chuẩn làm neo, ghi neo là camera nào;
-  prompt nêu ảnh mới thấy gì (trái, giữa, phải), hướng nhìn theo mặt bằng (owner 2026-11-09).
+- Vẽ mặt bằng bố trí camera là lúc định trước vai trò từng camera (owner 2026-11-14):
+  camera tổng (ảnh rất rộng thấy đủ món chung của khu), camera chuẩn (neo) cho từng khu,
+  và mỗi camera còn lại theo neo nào. CSV góc máy có cột `vai_tro` (`tong`, `neo`, `theo`)
+  và `neo` (số camera neo); owner duyệt cùng bản vẽ. Camera tổng thường là neo luôn.
+- Góc khác theo ảnh neo; CSV lệch ảnh neo thì ảnh neo thắng. Owner đổi neo (ví dụ chỉ
+  định camera 1 cho bếp ăn) thì sửa CSV trước khi gen tiếp.
+- Gen lần lượt, ảnh tổng và ảnh neo trước; ảnh sau sửa từ ảnh tổng hoặc kèm ảnh neo,
+  ghi neo là camera nào; prompt nêu ảnh mới thấy gì (trái, giữa, phải), hướng nhìn theo mặt bằng (owner 2026-11-09).
 - Món chung có mô tả chữ và ảnh cắt từ ảnh chuẩn (`mon-chung.json`), chép vào prompt mọi
   góc thấy món đó; mảng tường, khu vực không có mã món cũng có ảnh cắt riêng.
 - Góc mới khó đặt: vẽ đỏ lên bản sao ảnh chuẩn vị trí camera mới, mũi tên hướng nhìn,
@@ -59,6 +63,7 @@ doanh); mâu thuẫn với [Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh) th
 
 ## Chú thích thuật ngữ
 
+- **Camera tổng**: góc rất rộng thấy đủ món chung của một khu, gen đầu tiên.
 - **Camera chuẩn**: ảnh owner chọn làm chuẩn cho một khu; các góc khác phải khớp nó.
 - **Neo**: ảnh đã duyệt gửi kèm prompt để model giữ đúng món chung.
 - **Moodboard**: tấm ghép ảnh định hướng màu, vật liệu, đồ và decor của một công trình.

@@ -159,8 +159,9 @@ const BLOCKS = {
   "gallery-carousel": {
     mediaList: { images: [2, 12] },
     // Uses exactly the Homes page Gallery frame so detail.js attaches Swiper (detail-pages R5).
+    // Summed image ratio and gap count let CSS grow the row height when the images are too few to fill the track (detail-pages R7).
     render: (block) => [
-      '<section class="detail-gallery blk-gallery section-gap" data-gallery data-header-tone="ink">',
+      `<section class="detail-gallery blk-gallery section-gap" style="--gallery-ratio: ${block.images.reduce((sum, media) => sum + media.width / media.height, 0).toFixed(4)}; --gallery-gaps: ${block.images.length - 1}" data-gallery data-header-tone="ink">`,
       '  <div class="detail-gallery__track" data-gallery-track>',
       '    <div class="detail-gallery__slides">',
       ...block.images.map((media) => `      <figure class="detail-gallery__item"><div class="detail-gallery__media">${image(media, 'loading="lazy" data-motion-media')}</div></figure>`),

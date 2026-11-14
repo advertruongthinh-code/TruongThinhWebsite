@@ -85,7 +85,8 @@ export const renderBlockPage = (kind, template, page, ctx) => {
   const vi = `${PUBLIC_ORIGIN}${pageHref(kind, "vi", page)}`;
   const en = `${PUBLIC_ORIGIN}${pageHref(kind, "en", page)}`;
   const head = [
-    `<title data-en="${escapeHtml(page.title.en)} — Trường Thịnh">${escapeHtml(page.title.vi)} — Trường Thịnh</title>`,
+    // Search title (projects R3): optional `seoTitle` puts the type keyword first; the h1 keeps the display name.
+    `<title data-en="${escapeHtml((page.seoTitle ?? page.title).en)} — Trường Thịnh">${escapeHtml((page.seoTitle ?? page.title).vi)} — Trường Thịnh</title>`,
     `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
     `<link rel="alternate" hreflang="vi" href="${vi}" />`,
     `<link rel="alternate" hreflang="en" href="${en}" />`,
@@ -261,6 +262,7 @@ export const kindFieldErrors = (kind, page, at) => {
     ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
     // id is also the source file directory (projects/<id>/index.html); colliding with a filter slug would overwrite the filter page.
     ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
+    ...(page.seoTitle === undefined || (page.seoTitle?.vi && page.seoTitle?.en) ? [] : [`${at}: seoTitle phải có vi và en`]),
     ...cardErrors(page.card, at),
   ];
   const errors = [];
@@ -278,7 +280,7 @@ export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" 
 export const PROJECT_TYPES = {
   "nha-pho": { sector: "residential", label: { vi: "Nhà phố", en: "Townhouses" } },
   "can-ho": { sector: "residential", label: { vi: "Căn hộ", en: "Apartments" } },
-  "homestay-hotel": { sector: "residential", label: { vi: "Homestay & hotel", en: "Homestays & hotels" } },
+  "homestay-khach-san": { sector: "residential", label: { vi: "Homestay & khách sạn", en: "Homestays & hotels" } },
   "showroom-cua-hang": { sector: "commercial", label: { vi: "Showroom & cửa hàng", en: "Showrooms & stores" } },
   "cafe-nha-hang": { sector: "commercial", label: { vi: "Cafe & nhà hàng", en: "Cafes & restaurants" } },
   "van-phong": { sector: "commercial", label: { vi: "Văn phòng & khu làm việc", en: "Offices & workspaces" } },

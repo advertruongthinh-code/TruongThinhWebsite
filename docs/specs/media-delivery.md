@@ -8,6 +8,7 @@ source:
   - src/site/assets/content/jxl-thresholds.json
 tests:
   - tests/site/image-loading-frame.e2e.mjs
+  - tests/site/media-sweep-contained.e2e.mjs
   - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
@@ -152,14 +153,13 @@ Then khung ảnh đúng tỷ lệ trước khi tải, build bọc <picture> có 
 
 Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md), [motion](../../design-system/motion.md#ảnh-trong-card)).
 
-Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh
-vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
+Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
 `[data-detail-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
 `.client-logo-marquee`. Thumbnail dãy media primary và viewer dùng cùng dải sáng trên ảnh nhỏ của nó, chờ file lớn của media ([media card R6](media-card.md#r6-media-trong-primary)). Khung mới chỉ cần thuộc tính HTML `data-media-frame` (khung gần nhất của ảnh; bất kể `src`, không áp danh sách loại trừ trên, không cần CSS riêng). Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
 - Một dải sáng đối xứng, trắng `20%` ở tâm (owner 2026-11-01, trước `16%`; một biến CSS `--media-sweep-gradient` trong `:root` giữ dải, khung ảnh và nút suggestion cùng dùng), rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng
-  giảm về 0 qua 17 điểm màu theo đường cosine (raised cosine) nên mép mờ dần, không gãy (owner 2026-10-10, thay quầng `13%` rộng nửa khung). Nghiêng 60 độ, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer hay focus; không số, không phần trăm, không `aria-busy`.
+  giảm về 0 qua 17 điểm màu theo đường cosine (raised cosine) nên mép mờ dần, không gãy (owner 2026-10-10, thay quầng `13%` rộng nửa khung). Nghiêng 60 độ, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Khung chờ có `contain: paint` nên vệt (rộng 400%, `absolute`) luôn bị cắt trong khung, kể cả khung `position: static` (ảnh đơn, cặp ảnh); trước đó vệt tràn ra phủ trắng khối ảnh phía trên (owner 2026-11-14, Indochine). Vệt không nhận pointer hay focus; không số, không phần trăm, không `aria-busy`.
 - Khung ngoài viewport thì vệt dừng (`.is-media-offscreen`) bởi một `IntersectionObserver` trong script `<head>` (`markFrame` observe, `settle` unobserve), kể cả khung thêm sau mount. Reduced motion: không lướt; khung sáng tối nhẹ (trắng `10%`) chu kỳ `2s`.
 - Luật chung: ảnh có motion chờ và lớp tối để chữ trắng nổi chỉ hiện lớp tối khi ảnh đang hiện đã settle; chưa xong thì chỉ
   có motion chờ, chữ trắng vẫn hiện với bóng D ([hero-typography R6](hero-typography.md#r6-bóng-chữ-hai-lớp-trên-ảnh-ngoại-lệ-design-system)). Theo luật: [page-home R10](page-home.md#r10-ảnh-dưới-chữ-trắng), [detail R6](advertising-detail.md#r6-slideshow-suggestion), [media-card](media-card.md).
@@ -268,7 +268,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
-| R6, R8 | `image-loading-frame.e2e.mjs` (dấu báo lỗi ảnh nội dung và hero, CTA, portal VI, EN; khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, Slow 4G; khung `data-media-frame` ngoài `/assets/content/`, khung thêm sau mount dừng vệt khi ngoài viewport); phone Android qua CDP |
+| R6, R8 | `image-loading-frame.e2e.mjs` (dấu báo lỗi ảnh nội dung và hero, CTA, portal VI, EN; khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, Slow 4G; khung `data-media-frame` ngoài `/assets/content/`, khung thêm sau mount dừng vệt khi ngoài viewport); phone Android qua CDP; `media-sweep-contained.e2e.mjs` (vệt không tràn lên gallery 18 trang công trình) |
 | R7 | Chính script, chạy tay trên demo |
 
 ## Gate còn mở

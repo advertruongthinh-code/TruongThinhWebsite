@@ -378,7 +378,10 @@
 /* Like the Espacio block "The balance within the spaces": thin-stroke title centered, image strip of equal height,
    width following the real image ratio, caption under the image (detail-pages R7). */
 .detail-gallery {
-  --gallery-image-height: min(50vw, 45rem);
+  --gallery-gap: 20px;
+  /* Height that makes the images exactly fill the track; without --gallery-ratio (Homes page, many images) it is ~0 and never wins. */
+  --gallery-fill-height: calc((100vw - 2 * var(--gutter) - var(--gallery-gaps, 0) * var(--gallery-gap)) / var(--gallery-ratio, 1000));
+  --gallery-image-height: max(min(50vw, 45rem), var(--gallery-fill-height));
   padding: 35px 0;
   overflow: hidden;
   background: var(--white);
@@ -471,11 +474,18 @@
 
 @media (max-width: 750px) {
   .detail-gallery {
-    --gallery-image-height: 75vw;
+    --gallery-image-height: max(75vw, var(--gallery-fill-height));
   }
 
   .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
     gap: 10px;
+  }
+}
+
+/* Swiper spaceBetween is 10 below 600px. */
+@media (max-width: 599px) {
+  .detail-gallery {
+    --gallery-gap: 10px;
   }
 }
 
