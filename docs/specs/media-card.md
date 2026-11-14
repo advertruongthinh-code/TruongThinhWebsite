@@ -10,6 +10,7 @@ tests:
   - tests/site/site-media-card-m01b.e2e.mjs
   - tests/site/site-media-card-r6.e2e.mjs
   - tests/site/site-media-card-m02a.e2e.mjs
+  - tests/site/site-media-card-media-text.e2e.mjs
   - tests/site/site-media-card-pill-tone.e2e.mjs
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-wait.e2e.mjs
@@ -17,7 +18,7 @@ tests:
   - tests/site/site-media-card-playback.e2e.mjs
   - tests/site/strip-swipe-audit.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
 # Card nhiều media
@@ -215,7 +216,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 
 ### R7. Gộp card thành card nhiều media
 
-AI đề xuất nhóm card có media giống nhau, owner chọn từng nhóm; không luật gộp tự động. Nhóm đã chọn ghi trong `MERGED_CARD_MEDIA` (`media-manifest.mjs`): id card bìa trỏ tới các id card gộp vào, theo thứ tự hiển thị; chỉ gộp card cùng tỷ lệ chính xác (R1), không crop. Card gộp vào thôi là card: ảnh của nó thành item sau của card bìa, alt lấy mô tả của chính ảnh đó (item bìa giữ alt cũ); `productIds`, `tagIds` theo card bìa. Ngưỡng [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card) đếm card, nên gộp làm giảm số card của sản phẩm.
+AI đề xuất nhóm card có media giống nhau, owner chọn từng nhóm; không luật gộp tự động. Nhóm đã chọn ghi trong `MERGED_CARD_MEDIA` (`media-manifest.mjs`): id card bìa trỏ tới các id card gộp vào, theo thứ tự hiển thị; chỉ gộp card cùng tỷ lệ chính xác (R1), không crop. Card gộp vào thôi là card: ảnh của nó thành item sau của card bìa, alt lấy mô tả của chính ảnh đó (item bìa giữ alt cũ); `productIds`, `tagIds` theo card bìa. Mỗi media có tên và mô tả riêng (owner 2026-11-13): item gộp vào mang `titleVi`/`titleEn` của chính nó (tên ngách theo [taxonomy](advertising-taxonomy.md#r1-ba-tầng-phân-loại), không trùng tên nào trên site, tiếng Anh vẫn theo nhãn sản phẩm), card mang `mediaDescriptions` (id item gộp vào tới `{ vi, en }`, build tách sang `catalog-detail.mjs` như mô tả card); tên card trên media (R3) và mô tả ở detail đổi theo media đang hiện, kể cả khi slideshow (R4) hay người xem đổi media; item bìa dùng tên và mô tả của card. Title, meta và trang tĩnh `p/<id>` giữ tên và mô tả của card bìa. Ngưỡng [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card) đếm card, nên gộp làm giảm số card của sản phẩm.
 URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, build ghi trong `prepare-static-assets.mjs`, dev server có route), không vào sitemap. Đợt 1 (owner 2026-11-11): bốn cặp tranh LED neon cùng thiết kế chụp xa và gần (`led-displays-lightboxes-43`+`48`, `44`+`49`, `45`+`50`, `46`+`51`); mở `p/led-displays-lightboxes-48/` thì về `p/led-displays-lightboxes-43/`, primary có hai thumbnail. Đợt 2 (owner 2026-11-11): ba card thay placeholder, mỗi card 3 ảnh mới, id gộp vào chưa từng là card (`kiosk-posm-74`+`75`+`76`, `print-decals-37`+`38`+`39`, `office-signs-wayfinding-56`+`57`+`58`). Đợt 3 (owner 2026-11-11 20:24): bốn cặp LED neon đợt 1 gộp tiếp thành một card tám ảnh (bìa `led-displays-lightboxes-43`, thứ tự 43, 48, 44, 49, 45, 50, 46, 51; ≥ 6 ảnh nên hiện bộ đếm, R3); bốn ảnh chữ nổi tại xưởng thành một card (`signage-raised-letters-29`+`30`+`31`+`32`); `kiosk-posm-14`+`16`; `office-signs-wayfinding-03`+`54`. Card bìa của một đợt trước (`44`, `45`, `46`) cũng thành card gộp vào và `p/<id>` của nó chuyển về card bìa mới. Đợt 4 (owner 2026-11-11 22:45): thêm ảnh mới cho hai card đã gộp, id gộp vào chưa từng là card: `kiosk-posm-14`+`16`+`77` (quầy veneer vân gỗ, không lam gỗ) và `office-signs-wayfinding-03`+`54`+`59` (sảnh bệnh viện); biển phòng họp `office-signs-wayfinding-09` đổi ảnh, cùng tỷ lệ 2:3, tên file mới theo [agent-rule-ad-images](../operations/agent-rule-ad-images.md). Ảnh trên site tạm mã hóa từ bản xem trước 1536 px; PNG gốc ở máy owner, Topaz thay sau. Đợt 5 (owner 2026-11-12 "gom hết"): owner duyệt trên trang duyệt gom card đợt 5 (AI xem ảnh mọi card đơn); 34 nhóm không làm sản phẩm nào xuống dưới 10 card gộp ngay (276 còn 231 card); card bìa là card có `productIds` rộng nhất của nhóm. 17 nhóm còn lại (Backdrop, Kỷ niệm chương, Bảng chức danh, Biển số nhà, Menu, Bao bì, LED chạy chữ, Biển phòng, Gian hàng hội chợ) chờ ảnh mới để sản phẩm còn đủ 10 card rồi gộp đợt sau, cùng hai nhóm giữ lại vì test: `signage-raised-letters-06`+`18` (06 là card fixture của bốn bộ e2e) và `kiosk-posm-07`+`19` (test related use-sampling cần bốn card). `signage-raised-letters-12` giữ card đơn vì là card duy nhất của tag sản phẩm của nó. Đợt 6 (owner duyệt ảnh 2026-11-12 và 2026-11-13): 22 ảnh ChatGPT mới (owner chọn qua ba vòng gen lại; ba ảnh owner tự sửa trong ChatGPT, hai ảnh bao bì owner đưa từ máy) thêm 21 card để mười một sản phẩm giữ đủ 10 card, rồi gộp 17 nhóm B, hai nhóm giữ lại (`signage-raised-letters-18`+`06`, `kiosk-posm-07`+`19`) và hai ảnh gian hàng Toolsmith (`kiosk-posm-78`+`79`): 231 còn 229 card. Card fixture e2e đổi từ `06` sang `signage-raised-letters-37` (cùng sản phẩm, cùng tỷ lệ 3:2); test R11 và D9 của related dùng nhóm bốn ảnh `product-signage-raised-letters-product-06` thay `use-sampling` (còn ba card). Đợt 7 (owner 2026-11-13, trang duyệt "Tên thẻ ngách", ngưỡng chip hạ còn 5 card ở [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card)): Haiku đọc 318 ảnh, đề xuất nhóm cùng chip chính, cùng tỷ lệ, cùng loại sản phẩm; owner chọn 17 nhóm G01-G18 trừ G04: 229 còn 203 card. Ảnh Toolsmith tối hơn `kiosk-posm-78` bị bỏ khỏi site (owner chọn ảnh sáng hơn), `kiosk-posm-79` thành card đơn. Card fixture e2e M01b đổi từ `signage-raised-letters-16` (đã gộp) sang `signage-raised-letters-15`; fixture R11 dùng `kiosk-posm-67` thay `kiosk-posm-14`.
 
 ## Giao diện và dữ liệu
@@ -224,6 +225,7 @@ URL `p/<id>` cũ thành trang chuyển về card bìa (`MERGED_CARD_REDIRECTS`, 
 | --- | --- | --- |
 | Data | `mediaItems[]`: `id`, `kind`, `src`, `sourceId`, `width`, `height`, `altVi`, `altEn`, `source`, `sha256`, `provenance`; video thêm `posterSrc`, `posterWidth`, `posterHeight`, `durationSeconds`, `hasAudio`, tùy chọn `cardSrc`, `hlsSrc` | R1, R4 |
 | Data | `coverMediaId` | Cover và tỷ lệ canvas (R1, R2) |
+| Data | `titleVi`/`titleEn` trên item gộp vào, `mediaDescriptions` trên card | Tên và mô tả theo media đang hiện (R7) |
 | Hàm | `validateAdvertisingCardMedia`, `validateAdvertisingMediaPool` (`media-contract.mjs`) | Chặn dữ liệu sai khi catalog nạp |
 | Hàm | `layoutMedia` (`masonry/layout.mjs`) | Tỷ lệ cover; card cao đúng bằng media (R2) |
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`masonry/runtime.mjs`) | R3–R6 |

@@ -193,3 +193,21 @@ test("masonry media carries no per-image focal point (owner 2026-11-11)", () => 
   const runtime = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(runtime, /media\.suggestionPosition|style\.objectPosition/, "card media is always centred, never positioned per image");
 });
+
+test("every media of a multi-media card has its own Vietnamese name and description (media-card R7)", () => {
+  const coverTitles = ADVERTISING_MEDIA_MANIFEST.map((record) => record.titleVi);
+  const itemTitles = ADVERTISING_MEDIA_MANIFEST.flatMap((record) => record.mediaItems.slice(1).map((item) => item.titleVi));
+  assert.ok(itemTitles.length > 0);
+  assert.ok(itemTitles.every(Boolean));
+  const titles = [...coverTitles, ...itemTitles];
+  assert.deepEqual(titles.filter((title, index) => titles.indexOf(title) !== index), [], "names repeat");
+  for (const record of ADVERTISING_MEDIA_MANIFEST.filter(({ mediaItems }) => mediaItems.length > 1)) {
+    const merged = record.mediaItems.slice(1);
+    assert.deepEqual(Object.keys(record.mediaDescriptions), merged.map(({ id }) => id), record.id);
+    for (const item of merged) {
+      const { vi, en } = record.mediaDescriptions[item.id];
+      assert.ok(vi && en && vi !== record.descriptionVi, item.id);
+      assert.doesNotMatch(vi, /thể hiện rõ sản phẩm và ngữ cảnh sử dụng/, `${item.id} still has the template description`);
+    }
+  }
+});
