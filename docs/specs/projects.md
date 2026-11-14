@@ -66,8 +66,8 @@ tên; thẻ cao đúng bằng media, batch skeleton không chừa chỗ tên ([m
 `aria-labelledby` (tên hiển thị `aria-hidden` để không đọc lặp). Màu chờ ảnh là màu chủ đạo ảnh bìa (build tính bằng sharp). CTA đuôi
 "Không gian tiếp theo dành cho bạn". Không JavaScript thì thẻ tĩnh trong noscript. Dòng mũi tên dưới dải R1 dẫn tới trang lọc cùng mảng; slug công trình không được
 trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can-ho`, `homestay-khach-san` thuộc Nhà ở (slug cũ `homestay-hotel` đổi 2026-11-14, đường dẫn cũ là trang chuyển hướng `noindex` theo `RENAMED_FILTER_SLUGS`);
-`showroom-cua-hang`, `cafe-nha-hang`, `van-phong` thuộc Kinh doanh; mỗi loại một trang lọc `/<locale>/projects/<loại>/`
-luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc chỉ hiện bộ lọc có công
+`quan-cafe`, `nha-hang`, `showroom-cua-hang`, `van-phong` thuộc Kinh doanh (`cafe-nha-hang` tách 2026-11-15, đường dẫn cũ 301 về `quan-cafe`); mỗi loại một trang lọc `/<locale>/projects/<loại>/`
+luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc gồm Tất cả rồi các loại, nhãn và thứ tự theo kicker trang Nhà ở và Kinh doanh: Nhà phố, Căn hộ, Homestay, Cafe, Nhà hàng, Showroom, Văn phòng (owner 2026-11-15); trang mảng `nha-o`, `kinh-doanh` vẫn còn nhưng không có chip. Hàng lọc chỉ hiện bộ lọc có công
 trình, cộng bộ lọc của trang đang xem. Mảng, loại, nhãn lấy từ `PROJECT_TYPES` của `scripts/site/block-pages.mjs`; khung trang lấy qua `readPageSource` (menu dựng lúc build, không nằm trong HTML nguồn).
 Công trình tiêu biểu trên menu site đọc `src/site/content/menu.json` (`featuredProjects`, thứ tự hiển thị; CMS sửa được);
 cùng file giữ `featuredProductGroups` cho nhóm sản phẩm quảng cáo tiêu biểu, rỗng thì lấy nhóm nhiều thẻ nhất, bằng số thẻ thì xếp theo slug A-Z (`menuFeatured`).

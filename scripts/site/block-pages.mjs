@@ -266,14 +266,16 @@ export const kindFieldErrors = (kind, page, at) => {
 // All-projects page (projects R2): staggered grid like Advertising products, clicking a card opens the project page.
 // Filtering by sector or type uses dedicated pages with crawlable paths; filter slugs must not collide with project slugs.
 export const PROJECT_FILTERS = { residential: "nha-o", commercial: "kinh-doanh" };
-// Project types (projects R2): key is the filter page slug; the site menu links to all six pages even if a type has no projects yet.
+// Project types (projects R2): key is the filter page slug; the site menu links to every type page even if a type has no projects yet.
 export const PROJECT_TYPES = {
+  // Labels and order follow the Nhà ở and Kinh doanh hero kickers (owner 2026-11-15): residential first, then commercial.
   "nha-pho": { sector: "residential", label: { vi: "Nhà phố", en: "Townhouses" } },
   "can-ho": { sector: "residential", label: { vi: "Căn hộ", en: "Apartments" } },
-  "homestay-khach-san": { sector: "residential", label: { vi: "Homestay & khách sạn", en: "Homestays & hotels" } },
-  "showroom-cua-hang": { sector: "commercial", label: { vi: "Showroom & cửa hàng", en: "Showrooms & stores" } },
-  "cafe-nha-hang": { sector: "commercial", label: { vi: "Cafe & nhà hàng", en: "Cafes & restaurants" } },
-  "van-phong": { sector: "commercial", label: { vi: "Văn phòng & khu làm việc", en: "Offices & workspaces" } },
+  "homestay-khach-san": { sector: "residential", label: { vi: "Homestay", en: "Homestays" } },
+  "quan-cafe": { sector: "commercial", label: { vi: "Cafe", en: "Cafes" } },
+  "nha-hang": { sector: "commercial", label: { vi: "Nhà hàng", en: "Restaurants" } },
+  "showroom-cua-hang": { sector: "commercial", label: { vi: "Showroom", en: "Showrooms" } },
+  "van-phong": { sector: "commercial", label: { vi: "Văn phòng", en: "Offices" } },
 };
 export const projectTypeHref = (type, locale) => `/${locale}/projects/${type}/`;
 const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
