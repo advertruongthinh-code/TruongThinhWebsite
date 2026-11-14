@@ -1,3 +1,5 @@
+Card: <link card Notion của việc này; bắt buộc, qa-docs kiểm>
+
 Before:
 
 After:

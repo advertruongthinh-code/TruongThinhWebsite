@@ -9,7 +9,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-11-12
+updated: 2026-11-14
 ---
 
 # Bộ test CI chia theo phần website
@@ -57,7 +57,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |
 | `home` | page-home | hero (kể cả chuyển động zoom của slide), portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
-| `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết |
+| `block-pages` | layout-library, projects, news | trang công trình, bài News, danh sách News, trang Công trình, dải công trình: PC và phone, VI và EN, một h1, khối không tràn, link ngôn ngữ, link tới trang chi tiết; đầu trang News và đầu bài News: vị trí và motion mở trang (`news-head-motion.e2e.mjs`) |
 | `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
 | `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route, bấm filter khi cache xếp card đang tải, preload cache từ head |
@@ -204,6 +204,10 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 CI không tự chạy lại lệnh hay job đỏ. Owner bỏ quy tắc chạy lại một lần ngày 2026-10-26 vì sau R4 nó chỉ còn tác dụng
 cho lượt đêm. Lượt đêm đỏ là đỏ; người xem lượt đêm có thể re-run tay một lần trước khi giao sửa.
+
+Workflow `card-report.yml` chạy cùng giờ lượt đêm, ngoài bộ test: `scripts/ci/card-report.mjs` liệt kê PR merge trong 24 giờ
+và dòng `Card:` của từng PR vào job summary, đỏ khi PR thiếu link card hoặc còn `Card: chờ tạo`
+([notion](../operations/notion.md#rule)). Không đọc Notion; điều phối đối chiếu card khi xem lượt đêm.
 
 ### R10. Đo thời gian từng lệnh
 

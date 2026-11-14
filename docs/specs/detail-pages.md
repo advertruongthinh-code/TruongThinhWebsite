@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-12
+updated: 2026-11-14
 ---
 
 # Trang Residential, Commercial và About
@@ -135,7 +135,7 @@ Then 8 slide theo thứ tự ngẫu nhiên, slide đầu zoom từ 1.06 và là 
 
 ### R6. Reveal, parallax, đổi ngôn ngữ và vòng đời
 
-Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cần thêm SplitText. Residential, Commercial: `[data-motion-lines]`
+Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cần thêm SplitText. Residential, Commercial (và Advertising, danh sách Công trình, News): `[data-motion-lines]`
 tách dòng trong mask, vào viewport thì trượt `2em → -0.1em` (1,9s, stagger 0,1s); `[data-motion-words]` ngoài hero hiện
 theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `document.fonts.ready` và khi đổi kích thước,
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
