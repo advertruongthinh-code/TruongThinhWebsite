@@ -26,16 +26,16 @@ Rê chuột hoặc focus thẻ: gạch chân 3px chạy theo bề rộng chữ t
 
 ## Dải News trang chủ và "Tin khác"
 
-Khối News duy nhất ngoài trang News, ngay dưới hero trang chủ, theo trang chủ Espacio (đo lại 2026-11-11): 3 bài mới nhất, mỗi
+Khối News duy nhất ngoài trang News, ngay dưới hero trang chủ, theo trang chủ Espacio (đo lại 2026-11-11, lề và số cột đo 384 tới 1920 ngày 2026-11-14): 3 bài mới nhất, mỗi
 bài ảnh bìa trái (tối thiểu 5:6, cao theo chữ khi chữ dài hơn), phải là nhóm chữ hoa, tiêu đề, "Đọc tiếp". Cuối trang bài,
 khối "Tin khác" dùng đúng thẻ này dưới tiêu đề căn giữa 64px (40px phone). Rê chuột hoặc focus: ảnh phóng 1.2 trong `0.6s ease-out`,
 nhóm có gạch chân 3px mọc từ trái, "Đọc tiếp" hiện dần (`0.6s` vào, `0.3s` ra).
 
 | Phần | 1440 | 390 |
 | --- | --- | --- |
-| Lưới | 3 cột 410px, gap 70px | Một cột, gap 30px, lề 15px |
+| Lưới | Khung tối đa 1500px canh giữa (1920: lề 210px); 3 cột 410px, gap 70px; từ 1200px gap 50px, từ 960px 2 cột, từ 750px lề 15px gap 30px, từ 578px 1 cột | Một cột, gap 30px, lề 15px |
 | Bài | Ảnh 1fr (156px) + chữ 1.5fr, gap 20px | Ảnh 1/3 (113px) + chữ |
-| Nhóm | 16px 600 chữ hoa, cách trên 15px | như PC |
+| Nhóm | 16px 700 chữ hoa, cách trên 15px | như PC |
 | Tiêu đề | 19.2px/1.4 nét 500, cách trên dưới 19.2px | như PC |
 | Đọc tiếp | 12.8px 600 chữ hoa, cách dưới 15px, ẩn tới khi hover | không hiện trên cảm ứng |
 
