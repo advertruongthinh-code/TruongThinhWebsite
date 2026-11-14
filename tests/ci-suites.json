@@ -153,7 +153,7 @@
     },
     "block-pages": {
       "specs": ["layout-library", "projects", "news"],
-      "tests": ["node tests/site/block-pages.e2e.mjs", "node tests/site/news-head-motion.e2e.mjs", "node tests/site/home-news-layout.e2e.mjs",
+      "tests": ["node tests/site/block-pages.e2e.mjs", "node tests/site/news-head-motion.e2e.mjs", "node tests/site/home-news-layout.e2e.mjs", "node tests/site/gallery-fill.e2e.mjs",
         "node tests/site/project-hero-motion.e2e.mjs"]
     },
     "entry": {
