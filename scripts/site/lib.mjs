@@ -33,3 +33,24 @@ export async function validateImage(image, root, where) {
   if (image.width !== width || image.height !== height) errors.push(`${where}: width/height must be ${width}x${height}`);
   return errors;
 }
+
+// Structured data shared by every page kind (SEO audit 2026-11-15): breadcrumb trail and list pages as CollectionPage + ItemList.
+// Items are [name, path] with a /vi/... path; JSON is escaped so it cannot close its script tag.
+const absolute = (pathname) => `${PUBLIC_ORIGIN}${pathname}`;
+export const breadcrumbLd = (items) => ({
+  "@type": "BreadcrumbList",
+  itemListElement: items.map(([name, pathname], index) => ({ "@type": "ListItem", position: index + 1, name, item: absolute(pathname) })),
+});
+export const ldScript = (graph) => `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c")}</script>`;
+export const collectionLd = ({ path: pathname, name, description, items, crumbs }) => ldScript([
+  { "@type": "CollectionPage", "@id": absolute(pathname), url: absolute(pathname), name, description,
+    mainEntity: { "@type": "ItemList", itemListElement: items.map(([itemName, itemPath], index) => ({ "@type": "ListItem", position: index + 1, name: itemName, url: absolute(itemPath) })) } },
+  breadcrumbLd(crumbs),
+]);
+// Absolute canonical and hreflang links for a page whose VI and EN paths are given.
+export const alternateLinks = (vi, en) => [
+  `<link rel="canonical" href="${absolute(vi)}" data-en-href="${absolute(en)}" />`,
+  `<link rel="alternate" hreflang="vi" href="${absolute(vi)}" />`,
+  `<link rel="alternate" hreflang="en" href="${absolute(en)}" />`,
+  `<link rel="alternate" hreflang="x-default" href="${absolute(vi)}" />`,
+];

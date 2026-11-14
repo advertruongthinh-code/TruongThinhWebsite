@@ -49,9 +49,11 @@ native (CSS sticky), nhả ra ở đáy lưới; ảnh thẻ lớn co chiều ca
 rồi các thẻ hàng ngang; phone, tablet một cột; phone mọi thẻ sau thẻ lớn là hàng ngang (ảnh 1/3, cao theo chữ, cách chữ 35px), các thẻ cách nhau 15px. Mỗi thẻ chỉ một ảnh bìa 3:2 và tiêu đề, không nhóm, không ngày (owner 2026-11-11: chỉ tiêu đề, không kicker);
 ảnh thẻ lớn tải ngay (LCP), thẻ khác lazy. Rê chuột hoặc focus bàn phím thì gạch chân chạy theo bề rộng chữ tiêu đề, kể cả nhiều
 dòng, như navbar; ảnh phóng 1.1 trong 0.3s (audit Espacio 2026-11-11). Bài mới nhất trước, mỗi trang 12 bài, có trang 2, 3… với đường dẫn riêng crawl được.
-Hàng lọc chỉ có "Tất cả" và các năm có bài (`/<locale>/news/<năm>/`, `noindex, follow`); trang nhóm giữ đường dẫn, title, mô
-tả cho SEO nhưng không hiện thành nút lọc, người đọc vào qua nhãn nhóm ở đầu bài. Id và slug bài không được là `page`, slug
-nhóm hay số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
+Hàng lọc là "Tất cả" và các nhóm có bài (Nhà ở, Kinh doanh, Quảng cáo, Xu hướng; owner 2026-11-15, bỏ lọc theo năm):
+đường dẫn năm cũ `/<locale>/news/<năm>/` chuyển hướng 301 về `/<locale>/news/`. Trang nhóm có title dạng tư vấn
+(`NEWS_GROUPS.title`, ví dụ "Kinh nghiệm làm biển hiệu, màn hình LED") để không giành từ khóa với trang Nhà ở, Kinh doanh,
+Sản phẩm quảng cáo; nhóm dưới 5 bài là `noindex, follow` (trang mỏng). Trang danh sách có JSON-LD `CollectionPage` và
+`BreadcrumbList`, ảnh share là ảnh bìa bài đầu. Id và slug bài không được là `page`, slug nhóm hay số năm. Bài chỉ có một ngôn ngữ chỉ hiện ở danh sách của ngôn ngữ đó.
 Đầu trang danh sách theo Espacio `/en/news` (owner 2026-11-11, đo lại 2026-11-14): nền trắng, dòng nhỏ "Tư vấn và xu hướng"
 (EN "Advice and trends", owner 2026-11-14) 16px chữ hoa đậm ngay trên `h1`, `h1` chữ hoa căn giữa lấp đầy cột (tối đa 900px,
 112px), hàng lọc cách chân `h1` 119px (phone 39px), chữ đậm mờ 30%, mục đang chọn và mục rê chuột đậm đủ, gạch chân 3px; phone

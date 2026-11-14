@@ -66,7 +66,7 @@ Then validator từ chối card và nêu id hai media trùng alt
 
 ### R4. Dữ liệu cấu trúc và ảnh đại diện
 
-Trang R1 có JSON-LD trong HTML ban đầu: `WebPage` với `primaryImageOfPage` là media cover; mỗi ảnh một `ImageObject`
+Trang R1 có JSON-LD trong HTML ban đầu: `WebPage` (tên, mô tả card) với `primaryImageOfPage` là media cover, `BreadcrumbList` (Trường Thịnh, Sản phẩm quảng cáo, cụm, card); mỗi ảnh một `ImageObject`
 (`contentUrl`, `creator` Organization Trường Thịnh, `creditText`; video lấy poster); mỗi video thêm một `VideoObject`
 khi media có ngày đăng thật (`uploadDate` bắt buộc; contract chưa có field nên chưa sinh). `og:image` là media cover.
 Ảnh minh họa AI chưa gắn nhãn IPTC Digital Source Type, đợi ảnh thật (owner 2026-10-18). Không dùng `Product`: Google
@@ -82,7 +82,7 @@ Then mục Image metadata hợp lệ, không có lỗi nghiêm trọng
 
 Build sinh `sitemap-advertising.xml`: mỗi trang R1 (VI và EN) một `<url>`, trong đó mỗi media một `<image:image>` với
 `<image:loc>` tuyệt đối, video dùng poster. Chỉ dùng thẻ `loc`; các thẻ caption, title của image sitemap Google đã bỏ.
-Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
+`sitemap.xml` của bản tĩnh là sitemap index gồm file này và `sitemap-pages.xml` ([static-release R9](static-release.md#r9-cache-header)). Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
 
 ```gherkin
 Given catalog 285 card, 285 media

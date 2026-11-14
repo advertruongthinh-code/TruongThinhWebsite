@@ -5,13 +5,13 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
 import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.mjs";
-import { RENAMED_FILTER_SLUGS, projectListPages } from "../../scripts/site/project-list.mjs";
-import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
+import { projectListPages } from "../../scripts/site/project-list.mjs";
+import { legacyRedirects } from "../../scripts/site/redirects.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
-  // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article, the News list page, each merged card redirect and each renamed project filter redirect.
+  // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article, the News list page, and each moved path (legacyRedirects).
   const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));
-  assert.equal(ROUTES.size, 21 + (ADVERTISING_PAGES.length + ADVERTISING_CARDS.length + projects.length + news.length + newsListPages(news).length + projectListPages(projects).length + Object.keys(MERGED_CARD_REDIRECTS).length + Object.keys(RENAMED_FILTER_SLUGS).length) * 2);
+  assert.equal(ROUTES.size, 21 + (ADVERTISING_PAGES.length + ADVERTISING_CARDS.length + projects.length + news.length + newsListPages(news).length + projectListPages(projects).length) * 2 + legacyRedirects({ projects, news }).length);
   for (const [route, source] of ROUTES) {
     const locale = route.startsWith("/en/") ? "en" : "vi";
     const original = await readFile(new URL(`../../.site-output/${source}`, import.meta.url), "utf8");

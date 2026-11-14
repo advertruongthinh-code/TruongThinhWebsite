@@ -2,7 +2,7 @@
 
 Nguồn: `scripts/site/block-pages.mjs`; CSS `.blk-article-head`, `.blk-news-filter`, `.blk-news-list`, `.blk-news-card`, `.blk-news-pager`, `.home-news`, `.blk-news-cards`; spec [news R2, R3](../../../docs/specs/news.md#r2-trang-danh-sách-news), [R4](../../../docs/specs/news.md#r4-news-trên-các-trang-khác).
 
-Trang `/vi/news/` theo bố cục Espacio: đầu trang nền trắng có dòng nhỏ, `h1` lớn căn giữa và hàng lọc năm, rồi lưới bài. Bài mới nhất là thẻ
+Trang `/vi/news/` theo bố cục Espacio: đầu trang nền trắng có dòng nhỏ, `h1` lớn căn giữa và hàng lọc nhóm bài, rồi lưới bài. Bài mới nhất là thẻ
 lớn cột trái, bốn bài kế là lưới 2 × 2 cột phải, các bài còn lại là thẻ hàng ngang dưới lưới đó; 12 bài mỗi trang,
 thanh số trang ở cuối. Trang bài dùng `blk-article-head--post` nền trắng: dòng "Tin tức / nhóm" căn giữa, tiêu đề canh trái, ngày căn giữa; thẻ chỉ có ảnh và tiêu đề (owner 2026-11-11); thân bài là
 [khối](../Blocks/README.md). Preview dựng từ dữ liệu cố định `scripts/docs/blocks-preview.json`.
@@ -41,5 +41,5 @@ nhóm có gạch chân 3px mọc từ trái, "Đọc tiếp" hiện dần (`0.6s
 
 ## Chú thích thuật ngữ
 
-- **Chip lọc**: link dạng nhãn chọn năm đăng bài.
+- **Chip lọc**: link dạng nhãn chọn nhóm bài (Tất cả, Nhà ở, Kinh doanh, Quảng cáo, Xu hướng).
 - **Lazy**: ảnh chỉ tải khi gần vào viewport.

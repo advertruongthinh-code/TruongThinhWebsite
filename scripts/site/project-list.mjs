@@ -4,7 +4,7 @@
 import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
-import { PUBLIC_ORIGIN, escapeHtml } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml } from "./lib.mjs";
 
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
@@ -167,15 +167,12 @@ const replaceCounted = (html, pattern, replacement, name, expected = 1) => {
 // artifact: buildProjectArtifact, identical on every filter page; the runtime changes the filter in place.
 export const renderProjectListPage = (template, listPage, artifact) => {
   const { filter, path: listPath, projects } = listPage;
-  const vi = `${PUBLIC_ORIGIN}/vi${listPath}`;
-  const en = `${PUBLIC_ORIGIN}/en${listPath}`;
   const head = [
     `<title data-en="${escapeHtml(filter.name.en)} — Trường Thịnh">${escapeHtml(filter.name.vi)} — Trường Thịnh</title>`,
-    `<link rel="canonical" href="${vi}" data-en-href="${en}" />`,
-    `<link rel="alternate" hreflang="vi" href="${vi}" />`,
-    `<link rel="alternate" hreflang="en" href="${en}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${vi}" />`,
-    ...(projects.length ? [] : ['<meta name="robots" content="noindex" />']),
+    ...alternateLinks(`/vi${listPath}`, `/en${listPath}`),
+    ...(projects.length ? [`<meta property="og:image" content="${PUBLIC_ORIGIN}${projects[0].cover.src}" />`] : ['<meta name="robots" content="noindex" />']),
+    collectionLd({ path: `/vi${listPath}`, name: filter.name.vi, description: filter.description.vi, items: projects.map((project) => [project.title.vi, pageHref("projects", "vi", project)]),
+      crumbs: [["Trường Thịnh", "/vi/"], ["Công trình", "/vi/projects/"], ...(filter.slug ? [[filter.label.vi, `/vi${listPath}`]] : [])] }),
   ].join("\n    ");
   const { description } = filter;
   return [

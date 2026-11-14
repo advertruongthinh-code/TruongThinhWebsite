@@ -8,6 +8,7 @@ source:
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
+  - src/site/robots.txt
   - src/site/404.html
   - wrangler.static.toml
   - .github/workflows/deploy-demo.yml
@@ -167,7 +168,7 @@ And request http://127.0.0.1:8787/ trả 404
 
 ### R9. Cache header
 
-`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này. Mọi path (`/*`) thêm `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy: frame-ancestors 'self'` (chặn đoán MIME, lộ URL đầy đủ sang site khác, nhúng iframe origin khác; chưa đặt CSP script vì site dùng script inline).
+`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này. Mọi path (`/*`) thêm `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy: frame-ancestors 'self'` (chặn đoán MIME, lộ URL đầy đủ sang site khác, nhúng iframe origin khác; chưa đặt CSP script vì site dùng script inline). Build còn sinh (SEO audit 2026-11-15): `_redirects` từ `legacyRedirects` (`scripts/site/redirects.mjs`: card đã gộp, slug lọc công trình đổi tên, trang năm News) để Workers static assets trả 301 thật, trang HTML chuyển hướng `noindex` vẫn có cho máy preview; `sitemap.xml` là sitemap index gồm `sitemap-pages.xml` (mọi route tự canonical, không `noindex`, trừ trang card) và `sitemap-advertising.xml`; `src/site/robots.txt` trỏ `Sitemap:` về sitemap index. Mọi trang có `og:title`, `og:description`, `og:url`, `og:locale`, `twitter:card` lấy từ title, mô tả, canonical của chính trang (`socialMeta`).
 
 | Path | `Cache-Control` | Lý do |
 | --- | --- | --- |
