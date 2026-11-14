@@ -143,7 +143,7 @@ Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh
 18 trang mẫu (owner chọn "Dàn lại thân bài + motion" 2026-11-14) xếp theo bảng trên, thêm `image-text` (ảnh dọc cạnh đoạn văn
 như Espacio `-layout-parrafo -layout-right`). Trang 6 ảnh xen kẽ theo thứ tự chữ cái: trang chẵn `gallery-carousel`, `facts-grid`,
 `image-text`, `paragraph`, `image-single` rộng; trang lẻ `facts-grid`, `image-text`, `paragraph`, `image-single` 2/3 trái,
-`gallery-carousel` cuối. Hai nhà phố thêm `image-pair` và hai `image-single`; Japandi dùng 10 ảnh thật (owner duyệt), ảnh tủ giày dọc thành `image-text`, chữ khớp ảnh (tường vuông, chỉ đồ gỗ bo). Bốn trang
+`gallery-carousel` cuối. Hai nhà phố thêm `image-pair` và hai `image-single`; Japandi dùng 10 ảnh thật (owner duyệt), ảnh tủ giày dọc thành `image-text`, chữ khớp ảnh (tường vuông, chỉ đồ gỗ bo). Homestay nhà gỗ ven sông dùng 7 ảnh thật 16:9 (owner 2026-11-14, chưa phóng to): hero cắt giữa thành 3:2, card dùng 16:9 nguyên khung, thêm một cặp `paragraph`, `image-single` so với hàng 6-7. Bốn trang
 có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `contact-quick`, `project-slider`, `cta-arrow`.
 
 ```gherkin
