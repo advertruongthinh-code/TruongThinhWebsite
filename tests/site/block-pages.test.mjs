@@ -141,6 +141,7 @@ test("Projects SEO: every filter page has its own title and a meta of at most 15
   for (const { filter } of pages) {
     assert.equal(filter.name, FILTER_SEO[filter.slug ?? "all"].title, filter.slug);
     for (const locale of ["vi", "en"]) assert.ok(filter.description[locale].length <= 155, `${filter.slug} ${locale} meta length`);
+    for (const locale of ["vi", "en"]) assert.ok(filter.intro[locale].includes("Trường Thịnh"), `${filter.slug} ${locale} intro names who does the work`);
   }
   assert.equal(new Set(pages.map(({ filter }) => filter.name.vi)).size, pages.length, "one keyword per page");
   assert.ok(projects.every((project) => project.seoTitle?.vi && project.seoTitle.en), "every project has seoTitle");

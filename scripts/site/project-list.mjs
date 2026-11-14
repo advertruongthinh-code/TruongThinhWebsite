@@ -16,24 +16,36 @@ const IMAGE_WIDTHS = [240, 480, 960];
 // meta at most 155 characters: type, CNC panel furniture, secondary terms, service area.
 const AREA_VI = "Phục vụ Vĩnh Long, Cần Thơ, miền Tây.";
 const AREA_EN = "Serving Vinh Long, Can Tho and the Mekong Delta.";
+// Second intro sentence shared by every filter page: who, what, where, with what (AI search reads the initial HTML).
+const WORKSHOP_VI = "Trường Thịnh thiết kế, sản xuất đồ gỗ tấm MDF, MFC, HDF trên máy CNC tại xưởng và lắp đặt trọn gói ở Vĩnh Long, Cần Thơ, Đồng Tháp và miền Tây.";
+const WORKSHOP_EN = "Trường Thịnh designs, CNC-builds panel furniture (MDF, MFC, HDF) in its own workshop and installs it across Vinh Long, Can Tho, Dong Thap and the Mekong Delta.";
 export const FILTER_SEO = {
-  all: { title: { vi: "Công trình thiết kế thi công nội thất trọn gói", en: "Turnkey interior design and fit-out projects" },
+  all: { intro: { vi: `Các công trình nhà ở và kinh doanh Trường Thịnh đã làm: nhà phố, căn hộ, homestay, showroom, quán cafe, văn phòng. ${WORKSHOP_VI}`, en: `Residential and commercial projects by Trường Thịnh: townhouses, apartments, homestays, showrooms, cafes and offices. ${WORKSHOP_EN}` },
+    title: { vi: "Công trình thiết kế thi công nội thất trọn gói", en: "Turnkey interior design and fit-out projects" },
     description: { vi: `Công trình nội thất trọn gói của Trường Thịnh: thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt. ${AREA_VI}`, en: `Turnkey interiors by Trường Thịnh: design, panel furniture made in our CNC workshop, installation. ${AREA_EN}` } },
-  "nha-o": { title: { vi: "Công trình nội thất nhà ở: nhà phố, căn hộ, homestay", en: "Residential interior projects: townhouses, apartments, homestays" },
+  "nha-o": { intro: { vi: `Nội thất nhà phố, căn hộ chung cư và homestay: tủ bếp, tủ áo, kệ TV, giường, vách ốp đóng theo kích thước từng phòng. ${WORKSHOP_VI}`, en: `Townhouse, apartment and homestay interiors: kitchens, wardrobes, TV walls, beds and wall panels built to each room's size. ${WORKSHOP_EN}` },
+    title: { vi: "Công trình nội thất nhà ở: nhà phố, căn hộ, homestay", en: "Residential interior projects: townhouses, apartments, homestays" },
     description: { vi: `Nội thất nhà phố, căn hộ, homestay do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC và lắp đặt trọn gói. ${AREA_VI}`, en: `Townhouse, apartment and homestay interiors designed, CNC-built and installed by Trường Thịnh. ${AREA_EN}` } },
-  "kinh-doanh": { title: { vi: "Thiết kế quán cafe, showroom, văn phòng: công trình thực tế", en: "Cafe, showroom and office design: completed projects" },
+  "kinh-doanh": { intro: { vi: `Nội thất quán cafe, nhà hàng, showroom, cửa hàng và văn phòng: quầy, kệ trưng bày, vách ốp và bàn làm việc theo thương hiệu. ${WORKSHOP_VI}`, en: `Cafe, restaurant, showroom, store and office interiors: counters, display shelving, wall panels and desks that fit the brand. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế quán cafe, showroom, văn phòng: công trình thực tế", en: "Cafe, showroom and office design: completed projects" },
     description: { vi: `Quán cafe, showroom, văn phòng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC và lắp đặt trọn gói. ${AREA_VI}`, en: `Cafes, showrooms and offices designed, CNC-built and installed by Trường Thịnh. ${AREA_EN}` } },
-  "nha-pho": { title: { vi: "Thiết kế, thi công nội thất nhà phố", en: "Townhouse interior design projects" },
+  "nha-pho": { intro: { vi: `Nội thất nhà phố nhiều tầng theo phong cách Indochine, Japandi, hiện đại: tủ bếp, cầu thang, phòng thờ, tủ áo kịch trần. ${WORKSHOP_VI}`, en: `Multi-storey townhouse interiors in Indochine, Japandi and modern styles: kitchens, staircases, altar rooms, full-height wardrobes. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế, thi công nội thất nhà phố", en: "Townhouse interior design projects" },
     description: { vi: `Nội thất nhà phố do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt trọn gói: Indochine, Japandi. ${AREA_VI}`, en: `Townhouse interiors designed, CNC-built and installed by Trường Thịnh: Indochine, Japandi. ${AREA_EN}` } },
-  "can-ho": { title: { vi: "Thiết kế, thi công nội thất căn hộ chung cư", en: "Apartment interior design projects" },
+  "can-ho": { intro: { vi: `Nội thất căn hộ chung cư 2 phòng ngủ và studio: đồ gỗ đa năng, tủ kịch trần, giường gập giúp căn nhỏ rộng hơn. ${WORKSHOP_VI}`, en: `Two-bedroom and studio apartment interiors: multi-function furniture, full-height storage and fold-away beds that make small flats feel larger. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế, thi công nội thất căn hộ chung cư", en: "Apartment interior design projects" },
     description: { vi: `Nội thất căn hộ do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt trọn gói: 2 phòng ngủ, studio. ${AREA_VI}`, en: `Apartment interiors designed, CNC-built and installed by Trường Thịnh: two-bedroom, studio. ${AREA_EN}` } },
-  "homestay-khach-san": { title: { vi: "Thiết kế homestay, nội thất khách sạn", en: "Homestay and boutique hotel design" },
+  "homestay-khach-san": { intro: { vi: `Nội thất homestay nhà vườn, nhà gỗ ven sông và khách sạn mini: quầy lễ tân, đầu giường, phòng nghỉ bền cho khách thuê. ${WORKSHOP_VI}`, en: `Garden and riverside homestay and mini hotel interiors: reception desks, headboards and guest rooms built for heavy use. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế homestay, nội thất khách sạn", en: "Homestay and boutique hotel design" },
     description: { vi: `Homestay, khách sạn do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: nhà vườn, khách sạn mini. ${AREA_VI}`, en: `Homestays and hotels designed, CNC-built and installed by Trường Thịnh: garden houses, mini hotels. ${AREA_EN}` } },
-  "showroom-cua-hang": { title: { vi: "Thiết kế, thi công showroom, cửa hàng, shop", en: "Showroom and retail store design" },
+  "showroom-cua-hang": { intro: { vi: `Thiết kế showroom, shop thời trang, cửa hàng mỹ phẩm: kệ trưng bày có đèn, quầy thu ngân, đảo sản phẩm theo luồng khách. ${WORKSHOP_VI}`, en: `Showroom, fashion and cosmetics store design: lit display shelving, cash counters and product islands laid out for customer flow. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế, thi công showroom, cửa hàng, shop", en: "Showroom and retail store design" },
     description: { vi: `Showroom, cửa hàng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: shop thời trang, mỹ phẩm. ${AREA_VI}`, en: `Showrooms and stores designed, CNC-built and installed by Trường Thịnh: fashion, cosmetics. ${AREA_EN}` } },
-  "cafe-nha-hang": { title: { vi: "Thiết kế thi công quán cafe, nhà hàng", en: "Cafe and restaurant design" },
+  "cafe-nha-hang": { intro: { vi: `Thiết kế quán cafe sân vườn, nhà hàng, tiệm bánh: quầy bar, ghế băng, vách lam gỗ và biển hiệu đồng bộ. ${WORKSHOP_VI}`, en: `Garden cafe, restaurant and bakery design: bar counters, bench seating, timber louvres and matching signage. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế thi công quán cafe, nhà hàng", en: "Cafe and restaurant design" },
     description: { vi: `Quán cafe, nhà hàng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: sân vườn, tiệm bánh. ${AREA_VI}`, en: `Cafes and restaurants designed, CNC-built and installed by Trường Thịnh: garden cafes, bakeries. ${AREA_EN}` } },
-  "van-phong": { title: { vi: "Thiết kế, thi công nội thất văn phòng", en: "Office interior design" },
+  "van-phong": { intro: { vi: `Nội thất văn phòng công ty, phòng giám đốc, phòng họp: quầy lễ tân, bàn làm việc, vách logo theo nhận diện thương hiệu. ${WORKSHOP_VI}`, en: `Company office, director's office and meeting room interiors: reception desks, workstations and logo walls in the brand identity. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế, thi công nội thất văn phòng", en: "Office interior design" },
     description: { vi: `Nội thất văn phòng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: phòng giám đốc, phòng họp. ${AREA_VI}`, en: `Offices designed, CNC-built and installed by Trường Thịnh: director's offices, meeting rooms. ${AREA_EN}` } },
 };
 // Renamed filter slugs (old -> new): the old path stays as a redirect page so shared links keep working.
@@ -48,7 +60,7 @@ export const projectListPages = (projects) => {
     { slug: null, label: { vi: "Tất cả", en: "All" }, match: () => true },
     ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], label: SECTOR_LABEL[sector], match: (project) => project.sector === sector })),
     ...Object.entries(PROJECT_TYPES).map(([type, { label }]) => ({ slug: type, type, label, match: (project) => project.type === type })),
-  ].map((filter) => ({ ...filter, name: FILTER_SEO[filter.slug ?? "all"].title, description: FILTER_SEO[filter.slug ?? "all"].description, projects: projects.filter(filter.match) }));
+  ].map((filter) => ({ ...filter, name: FILTER_SEO[filter.slug ?? "all"].title, description: FILTER_SEO[filter.slug ?? "all"].description, intro: FILTER_SEO[filter.slug ?? "all"].intro, projects: projects.filter(filter.match) }));
   return filters.filter((filter) => filter.type || filter.projects.length).map((filter) => ({
     filter, path: filter.slug ? `/projects/${filter.slug}/` : "/projects/", projects: filter.projects,
   }));
@@ -98,7 +110,8 @@ const srcset = ({ src, width }) => {
   return [...IMAGE_WIDTHS.filter((size) => size < width).map((size) => `${stem}-${size}.webp ${size}w`), `${src} ${width}w`].join(", ");
 };
 
-// Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO).
+// Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO); the filter intro
+// rides in the same noscript like the Advertising cluster intro, so crawlers and AI search read it without a visible layout change.
 const noscriptCard = (project) => [
   `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
   `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" loading="lazy" decoding="async" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" />`,
@@ -109,12 +122,12 @@ const line = (text, className) => `<span class="detail-hero-line-mask"><span cla
 
 // The grid part (grid, batch skeleton, tail CTA) is taken as-is from the Advertising page shell, changing only labels, static cards and CTA text:
 // one masonry DOM contract for both pages; an attribute added on the Advertising page carries over to the Projects page (masonry-reuse step 9).
-const indexSection = (template, projects) => {
+const indexSection = (template, projects, intro) => {
   const sections = template.match(/<section\s+class="masonry-section"[\s\S]*?<\/section>\s*<\/section>/g) ?? [];
   if (sections.length !== 1) throw new Error(`advertising frame anchor "index section" matched ${sections.length} times`);
   return [
     [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
-    [/<noscript>[\s\S]*?<\/noscript>/, () => `<noscript>${projects.map(noscriptCard).join("")}</noscript>`, "noscript"],
+    [/<noscript>[\s\S]*?<\/noscript>/, () => `<noscript><p data-en="${escapeHtml(intro.en)}">${escapeHtml(intro.vi)}</p>${projects.map(noscriptCard).join("")}</noscript>`, "noscript"],
     [/(<h2 id="cta-title" data-motion-lines>)[\s\S]*?(<\/h2>)/, (_match, open, close) => `${open}${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}${close}`, "cta title"],
     [/(\s*)<section\s+class="detail-cta"/, (match, space) => `${space}<p class="projects-empty" data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>${match}`, "cta section"],
   ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), sections[0]);
@@ -139,7 +152,7 @@ const main = ({ filter, projects }, artifact, template) => {
             <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
           </button>
         </section>
-        ${indexSection(template, projects)}
+        ${indexSection(template, projects, filter.intro)}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>
       </main>`;
 };
