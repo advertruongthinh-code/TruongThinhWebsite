@@ -253,7 +253,7 @@
     },
     "adv-primary": {
       "specs": ["advertising-detail"],
-      "tests": ["node tests/site/advertising-primary-p14.e2e.mjs"]
+      "tests": ["node tests/site/advertising-primary-p14.e2e.mjs", "node tests/site/advertising-detail-breadcrumb.e2e.mjs"]
     },
     "adv-view-1": {
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
