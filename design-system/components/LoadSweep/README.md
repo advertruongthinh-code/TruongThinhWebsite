@@ -7,7 +7,9 @@ Trạng thái chờ của khung ảnh nội dung trên mọi trang và của nú
 tải và giải mã xong ([tải ảnh R6](../../../docs/specs/media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)).
 Owner duyệt 2026-10-07, thay vòng xoay và thanh tải ở đáy nút. Style ở
 `src/site/style.css`, không có markup riêng: khung ảnh mới chỉ cần thuộc tính `data-media-frame`
-(nút Suggestion cũng vậy, không còn CSS vệt riêng). Card masonry
+(nút Suggestion cũng vậy, không còn CSS vệt riêng). Thumbnail dãy media của [Primary](../Primary/README.md) và
+[Viewer](../Viewer/README.md) chạy cùng vệt trên ảnh nhỏ của nó tới khi file lớn của media tải xong, rồi vệt mờ dần `0.45s`
+(owner 2026-11-14). Card masonry
 Advertising chờ ảnh bằng blur trên màu chủ đạo ([Media card](../MediaCard/README.md)), không dùng vệt.
 
 ## Hành vi
