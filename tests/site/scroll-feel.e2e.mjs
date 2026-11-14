@@ -25,9 +25,10 @@ const pages = {
 };
 const parallax = {
   home: [".hero-slides:-2", ".project-track:4"],
-  residential: [".hero-slides:-2"],
-  commercial: [".hero-slides:-2"],
-  about: [".about-hero__media:-2"],
+  // The project strip drifts sideways like Espacio's layout-slider-proyectos (speed 4, horizontal).
+  residential: [".blk-projects__track:4", ".hero-slides:-2"],
+  commercial: [".blk-projects__track:4", ".hero-slides:-2"],
+  about: [".hero-photo:-2"],
   advertising: [],
   category: [],
 };

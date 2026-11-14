@@ -31,6 +31,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn `em` | Có |
 | About | Ảnh đội ngũ, `hero-shade` | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
 | Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
+| Trang công trình (`.project-hero`) | Ảnh công trình, `hero-shade` | `tagline` 1 đến 3 dòng, một chữ nghiêng 700; tiêu đề một dòng thì canh giữa, ba dòng thì dòng giữa canh giữa | Tên công trình (`h1`) chữ hoa 16px 600, phone vẫn hiện, canh giữa; nút "Thiết kế không gian của bạn" `.hero-cta` 16px 700 chữ hoa, cách tiêu đề 32px, kéo tới `#lien-he`, gạch chân 3px khi rê chuột (phone luôn có) |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
@@ -47,7 +48,7 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
   bên). Mỗi title co vừa khung theo dòng dài nhất của nó (`100cqi /
   --hero-line-em`, tối đa 7rem): ở 384px từ 26px (Commercial EN) tới 60px
   (trang chủ VI). Hai dòng canh giữa, title nằm đúng tâm hero (lệch tối đa
-  3px) dù có hay không có hàng chip. Không hiện kicker.
+  3px) dù có hay không có hàng chip. Không hiện kicker, trừ trang công trình (kicker là tên công trình, như Espacio).
 - **Rail Advertising trên phone:** `.hero-browse` neo theo đáy hero, chừa sẵn
   một hàng chip, nên rail đứng một chỗ như trên PC.
 - **Kicker:** 16/22.4, 700 hoa; cách nét chữ title như nhau ở mọi hero,
@@ -67,8 +68,9 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
 ## Motion
 
 - Tiêu đề: word fade `data-motion-words`, `1s expo.out`, stagger `0.2s`.
-- Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
-- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About `scale 1.2 → 1.005`,
+- Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`; trang công trình lúc 1.2s, ẩn từ khung đầu.
+- Nút hero trang công trình `data-motion-hero-fade`: hiện dần lúc 1.8s.
+- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About và trang công trình (`.hero-photo`) `scale 1.2 → 1.005`,
   `2.5s ease`.
 - Trang chủ, Residential, Commercial: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut` (điện thoại: slide `zoom-out` `1.1 → 1`, slide `pan` lia thẳng một trục `8%` chiều cao khung, cùng thời lượng; reduced motion không lia); thứ tự toàn bộ slide, gồm ảnh
   đầu, ngẫu nhiên mỗi lần tải.

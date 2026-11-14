@@ -10,7 +10,7 @@ const photo = { src: "/assets/content/projects/home-commercial-cafe.webp", width
 const photo2 = { src: "/assets/content/projects/kiosk-active-v2.webp", width: 2048, height: 3072, altVi: "Xe cà phê", altEn: "Coffee cart" };
 const t = (vi, en) => ({ vi, en });
 
-// The fixture uses all 15 blocks; images are real images already in the site.
+// The fixture uses all 16 blocks; images are real images already in the site.
 const other = { id: "other", slugVi: "khac", slugEn: "other", title: t("Khác", "Other"), cover: photo2, group: "nha-o" };
 const fixture = () => ({
   id: "sample",
@@ -20,7 +20,7 @@ const fixture = () => ({
   description: t("Mô tả", "Description"),
   cover: photo,
   blocks: [
-    { id: "hero", type: "hero-project", titleLine1: t("Căn hộ", "Apartment"), titleLine2: t("ven sông", "by the river"), image: photo },
+    { id: "hero", type: "hero-project", tagline: [t("Căn hộ", "Apartment"), t("ven *sông*", "by the *river*")], image: photo },
     { id: "title", type: "section-title", text: t("Tổng quan", "Overview") },
     { id: "intro", type: "paragraph", text: t("Đoạn một.\n\nĐoạn hai.", "One.\n\nTwo.") },
     { id: "cols", type: "paragraph-columns", text: t("Cột", "Column") },
@@ -34,6 +34,7 @@ const fixture = () => ({
     { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/vi/residential/", hrefEn: "/en/residential/" },
     { id: "quote", type: "quote", text: t("Trích", "Quote") },
     { id: "news", type: "news-cards", newsIds: ["other"] },
+    { id: "beside", type: "image-text", image: photo, text: t("Cạnh ảnh.", "Beside.") },
     { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/vi/residential/", hrefEn: "/en/residential/" }] },
   ],
 });
@@ -71,6 +72,44 @@ test("validator reports every rule broken, not only the first", async () => {
   }
 });
 
+// Project hero (projects R3, owner 2026-11-14): the shared section.hero like Residential and About, project name as the small h1 kicker,
+// the 1-3 line tagline as the big title with one italic word, a CTA that scrolls to the Zalo block, and the scroll cue.
+test("project hero reuses the shared hero markup", () => {
+  const html = renderBlocks(fixture(), ctx);
+  const hero = html.slice(html.indexOf("<section"), html.indexOf("</section>") + 10);
+  assert.match(hero, /^<section class="hero detail-hero project-hero" id="top" data-header-tone="inverse" aria-labelledby="project-title">/);
+  assert.match(hero, /<img [^>]*fetchpriority="high"[^>]*data-motion-hero-media/);
+  assert.match(hero, /<div class="hero-shade" aria-hidden="true"><\/div>/);
+  assert.match(hero, /<h1 class="hero-kicker" id="project-title" data-motion-hero-kicker data-en="Sample apartment">Căn hộ mẫu<\/h1>/);
+  assert.match(hero, /<p class="hero-title" id="page-title" data-motion-words data-motion-hero-title>/);
+  assert.equal((hero.match(/class="detail-hero-line-mask"/g) ?? []).length, 2);
+  assert.ok(hero.includes('<span data-en="by the ">ven </span><em data-en="river">sông</em>'), "italic word keeps its own VI and EN");
+  assert.match(hero, /<a class="hero-cta" href="#lien-he" data-scroll-to data-motion-hero-fade data-en="Design your own space">Thiết kế không gian của bạn<\/a>/);
+  assert.match(hero, /<button class="scroll-cue" type="button" data-scroll-cue/);
+  assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(html, /<section class="blk blk-contact section-gap" id="lien-he"/);
+});
+
+test("project hero without a Zalo block has no CTA", () => {
+  const page = fixture();
+  page.blocks = page.blocks.filter((block) => block.type !== "contact-quick");
+  assert.ok(!renderBlocks(page, ctx).includes("hero-cta"));
+});
+
+test("project hero tagline needs 1 to 3 lines and at most one italic part per line", async () => {
+  for (const [tagline, rule] of [
+    [[], /tagline: needs 1 to 3 lines/],
+    [[t("a", "a"), t("b", "b"), t("c", "c"), t("d", "d")], /tagline: needs 1 to 3 lines/],
+    [[t("*a* và *b*", "*a* and b")], /tagline\[0\]: at most one \*italic\* part/],
+    [[t("chữ *lẻ", "odd")], /tagline\[0\]: at most one \*italic\* part/],
+  ]) {
+    const page = fixture();
+    page.blocks[0].tagline = tagline;
+    const errors = await validateBlockPage(page, ctx);
+    assert.ok(errors.some((error) => rule.test(error)), `${JSON.stringify(tagline)}: ${errors.join("; ")}`);
+  }
+});
+
 test("image size must match the real file", async () => {
   const page = fixture();
   page.cover = { ...photo, width: 100 };
@@ -97,7 +136,7 @@ test("strip and News blocks without ids pick their items at build", () => {
   const page = { ...project("a", "residential"), blocks: [{ type: "project-slider" }] };
   assert.deepEqual(links(renderBlocks(page, auto)), ["b", "d"]);
   // On a project page the strip carries the "Other projects" heading; on a sector page it does not.
-  assert.match(renderBlocks(page, auto), /<h2 class="blk-projects__title" data-en="Other projects">Công trình khác<\/h2>/);
+  assert.match(renderBlocks(page, auto), /<h2 class="blk-projects__title" data-motion-words data-en="Other projects">Công trình khác<\/h2>/);
   assert.doesNotMatch(renderBlocks({ id: "residential", sector: "residential", blocks: [{ type: "project-slider" }] }, auto), /blk-projects__title/);
   // News post: never itself, same group first, newest first, filled up to 3 from other groups.
   const article = { ...post("self", "nha-o", "2026-04-01"), blocks: [{ type: "news-cards" }] };

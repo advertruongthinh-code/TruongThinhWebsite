@@ -48,6 +48,24 @@ export const newsTeaser = (post) => {
     "    </a>",
   ].join("\n");
 };
+// Hero tagline line: "ấm như *gỗ sồi*" becomes plain text, then the italic part as <em>, then the rest; each part keeps its own EN so the locale
+// swap (data-en) does not drop the italic. VI and EN may put the italic at different places in the line.
+const ITALIC = /^([^*]*)(?:\*([^*]+)\*([^*]*))?$/;
+const taglineParts = (text) => {
+  const [, before, italic = "", after = ""] = text.match(ITALIC);
+  return [before, italic, after];
+};
+const taglineLine = (line) => {
+  const vi = taglineParts(line.vi);
+  const en = taglineParts(line.en);
+  return [
+    vi[0] || en[0] ? localized("span", { vi: vi[0], en: en[0] }) : "",
+    vi[1] || en[1] ? localized("em", { vi: vi[1], en: en[1] }) : "",
+    vi[2] || en[2] ? localized("span", { vi: vi[2], en: en[2] }) : "",
+  ].join("");
+};
+// The hero CTA target; one Zalo block per page.
+const CONTACT_ID = "lien-he";
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
 // Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
@@ -66,24 +84,33 @@ const autoNewsIds = (ctx, page) => {
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
 const BLOCKS = {
   "hero-project": {
-    text: ["titleLine1", "titleLine2"],
-    optionalText: ["subtitle"],
+    lines: { tagline: [1, 3] },
     media: ["image"],
-    render: (block) => [
-      '<section class="blk-hero" data-header-tone="light">',
-      `  <figure class="blk-hero__media">${image(block.image, 'fetchpriority="high"')}</figure>`,
-      // Dark overlay shared with the static page heroes (style.css .hero-shade, owner 2026-11-08).
+    // The shared hero of Residential, Commercial and About (projects R3, owner 2026-11-14, like Espacio project pages): the project name is
+    // the small h1 kicker, the tagline is the big title, the CTA scrolls to the page's Zalo block. hero-copy is the CSS for the 1 and 3 line variants.
+    render: (block, ctx, page) => [
+      '<section class="hero detail-hero project-hero" id="top" data-header-tone="inverse" aria-labelledby="project-title">',
+      `  <figure class="hero-photo">${image(block.image, 'fetchpriority="high" data-motion-hero-media')}</figure>`,
       '  <div class="hero-shade" aria-hidden="true"></div>',
-      '  <div class="blk-hero__copy">',
-      `    <h1 class="blk-hero__title">${localized("span", block.titleLine1)} ${localized("span", block.titleLine2, ' class="blk-hero__line2"')}</h1>`,
-      block.subtitle ? `    ${localized("p", block.subtitle, ' class="blk-hero__subtitle"')}` : "",
+      '  <div class="hero-content">',
+      `    ${localized("h1", page.title, ' class="hero-kicker" id="project-title" data-motion-hero-kicker')}`,
+      '    <p class="hero-title" id="page-title" data-motion-words data-motion-hero-title>',
+      ...block.tagline.map((line) => `      <span class="detail-hero-line-mask"><span class="detail-title__quiet" data-motion-word-source>${taglineLine(line)}</span></span>`),
+      "    </p>",
+      page.blocks.some((item) => item.type === "contact-quick")
+        ? `    <a class="hero-cta" href="#${CONTACT_ID}" data-scroll-to data-motion-hero-fade data-en="Design your own space">Thiết kế không gian của bạn</a>`
+        : "",
       "  </div>",
+      '  <button class="scroll-cue" type="button" data-scroll-cue aria-label="Cuộn đến phần tiếp theo" data-en-aria-label="Scroll to the next section">',
+      '    <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>',
+      "  </button>",
       "</section>",
     ].filter(Boolean).join("\n"),
   },
   "section-title": {
     text: ["text"],
-    render: (block) => `<section class="blk blk-title section-gap" data-header-tone="ink">${localized("h2", block.text)}</section>`,
+    // Lines rise in on view like Espacio's titular ("animate-lines", detail-pages R6).
+    render: (block) => `<section class="blk blk-title section-gap" data-header-tone="ink">${localized("h2", block.text, " data-motion-lines")}</section>`,
   },
   paragraph: {
     text: ["text"],
@@ -100,6 +127,18 @@ const BLOCKS = {
     render: (block) => [
       `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
       `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+      "</section>",
+    ].join("\n"),
+  },
+  // Portrait image with a paragraph beside it, Espacio's most used single-image variant (".-layout-parrafo -layout-right", 22 of 48 project
+  // pages, measured 2026-11-14): image one third, text in the paragraph column on the right; phone stacks image then text.
+  "image-text": {
+    text: ["text"],
+    media: ["image"],
+    render: (block) => [
+      '<section class="blk blk-image-text section-gap" data-header-tone="ink">',
+      `  <figure class="blk-image-text__figure">${image(block.image)}</figure>`,
+      `  <div class="blk-paragraph blk-image-text__copy">${localizedParagraphs(block.text)}</div>`,
       "</section>",
     ].join("\n"),
   },
@@ -136,7 +175,8 @@ const BLOCKS = {
     render: (block) => [
       `<section class="blk blk-facts ${FACTS_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
       '  <ol class="blk-facts__list">',
-      ...block.items.map((item) => `    <li class="blk-facts__item">${localized("h3", item.label, ' class="blk-facts__label"')}${localized("p", item.text, ' class="blk-facts__text"')}</li>`),
+      // Each fact rises 60px and fades in, 0.15s after the previous one (Espacio "animate-up animate-opacity").
+      ...block.items.map((item, index) => `    <li class="blk-facts__item" data-motion-up data-motion-delay="${index * 0.15}">${localized("h3", item.label, ' class="blk-facts__label"')}${localized("p", item.text, ' class="blk-facts__text"')}</li>`),
       "  </ol>",
       "</section>",
     ].join("\n"),
@@ -144,7 +184,7 @@ const BLOCKS = {
   "contact-quick": {
     text: ["title"],
     render: (block) => [
-      '<section class="blk blk-contact section-gap" data-header-tone="ink">',
+      `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
       `  ${localized("h2", block.title, ' class="blk-contact__title"')}`,
       `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
       "</section>",
@@ -158,8 +198,9 @@ const BLOCKS = {
       // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
       const onProjectPage = ctx.projects.has(page.id);
       return [
-        '<section class="blk blk-projects section-gap" data-header-tone="ink">',
-        ...(onProjectPage ? ['  <h2 class="blk-projects__title" data-en="Other projects">Công trình khác</h2>'] : []),
+        // The strip slides in from 60px right (Espacio "animate-left"); motion.js adds the horizontal parallax of the home rail to the track.
+        '<section class="blk blk-projects section-gap" data-header-tone="ink" data-motion-left>',
+        ...(onProjectPage ? ['  <h2 class="blk-projects__title" data-motion-words data-en="Other projects">Công trình khác</h2>'] : []),
         '  <div class="blk-projects__track">',
         ...(block.projectIds ?? autoProjectIds(ctx, page)).map((id, index) => {
           const project = ctx.projects.get(id);
@@ -237,6 +278,14 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
     blockIds.add(block.id);
     for (const field of spec.text ?? []) text(block[field], `${where}.${field}`);
     for (const field of spec.optionalText ?? []) if (block[field] !== undefined) text(block[field], `${where}.${field}`);
+    for (const [field, [min, max]] of Object.entries(spec.lines ?? {})) {
+      const list = block[field];
+      if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: needs ${min} to ${max} lines`); continue; }
+      for (const [index, line] of list.entries()) {
+        text(line, `${where}.${field}[${index}]`);
+        if ([line?.vi, line?.en].some((value) => typeof value === "string" && !ITALIC.test(value))) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
+      }
+    }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
     for (const field of spec.href ?? []) href(block[field], `${where}.${field}`);
     for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: must be ${allowed.join(", ")}`);

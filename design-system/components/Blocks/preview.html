@@ -3,37 +3,48 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">
 <script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>
 <script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready");</script>
-<style>.blk-hero { height: 720px; }</style>
+<style>.project-hero { height: 720px; min-height: 0; }</style>
 <main id="noi-dung">
-<section class="blk-hero" data-header-tone="light">
-  <figure class="blk-hero__media"><img src="../../preview-media/can-ho-hero.webp" width="3072" height="2048" alt="Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố" data-en-alt="Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony" fetchpriority="high" /></figure>
+<section class="hero detail-hero project-hero" id="top" data-header-tone="inverse" aria-labelledby="project-title">
+  <figure class="hero-photo"><img src="../../preview-media/can-ho-hero.webp" width="3072" height="2048" alt="Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố" data-en-alt="Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony" fetchpriority="high" data-motion-hero-media /></figure>
   <div class="hero-shade" aria-hidden="true"></div>
-  <div class="blk-hero__copy">
-    <h1 class="blk-hero__title"><span data-en="Apartment">Căn hộ</span> <span class="blk-hero__line2" data-en="in warm oak">gỗ sồi ấm</span></h1>
-    <p class="blk-hero__subtitle" data-en="Residential · Two-bedroom apartment">Nhà ở · Căn hộ hai phòng ngủ</p>
+  <div class="hero-content">
+    <h1 class="hero-kicker" id="project-title" data-motion-hero-kicker data-en="Oak apartment">Căn hộ gỗ sồi</h1>
+    <p class="hero-title" id="page-title" data-motion-words data-motion-hero-title>
+      <span class="detail-hero-line-mask"><span class="detail-title__quiet" data-motion-word-source><span data-en="A two-bedroom home">Căn hộ hai phòng</span></span></span>
+      <span class="detail-hero-line-mask"><span class="detail-title__quiet" data-motion-word-source><span data-en="in warm ">ấm màu </span><em data-en="oak">gỗ sồi</em></span></span>
+    </p>
+    <a class="hero-cta" href="#lien-he" data-scroll-to data-motion-hero-fade data-en="Design your own space">Thiết kế không gian của bạn</a>
   </div>
+  <button class="scroll-cue" type="button" data-scroll-cue aria-label="Cuộn đến phần tiếp theo" data-en-aria-label="Scroll to the next section">
+    <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
+  </button>
 </section>
-<section class="blk blk-title section-gap" data-header-tone="ink"><h2 data-en="A compact, warm and easy home">Một căn hộ gọn, ấm và dễ ở</h2></section>
+<section class="blk blk-title section-gap" data-header-tone="ink"><h2 data-motion-lines data-en="A compact, warm and easy home">Một căn hộ gọn, ấm và dễ ở</h2></section>
 <section class="blk blk-paragraph section-gap" data-header-tone="ink"><p data-en="The owners wanted a two-bedroom apartment with storage for the whole family that still felt open. We chose oak as the main material, with sage paint and cove lighting to keep the rooms warm in the evening.">Gia chủ cần một căn hộ hai phòng ngủ đủ chỗ cất đồ cho cả nhà mà vẫn thoáng. Chúng tôi chọn gỗ sồi làm chất liệu chính, điểm thêm sơn xanh rêu và đèn hắt để không gian ấm vào buổi tối.</p>
 <p data-en="Every cabinet and shelf was designed to measured dimensions, CNC-cut in our workshop and installed quickly, with little dust and little disruption for the neighbours.">Mọi tủ, kệ được thiết kế theo số đo thực tế, cắt CNC tại xưởng rồi lắp đặt trong thời gian ngắn, ít bụi và ít làm phiền hàng xóm.</p></section>
 <section class="blk blk-facts blk-facts--4 section-gap" data-header-tone="ink">
   <ol class="blk-facts__list">
-    <li class="blk-facts__item"><h3 class="blk-facts__label" data-en="Project type">Loại công trình</h3><p class="blk-facts__text" data-en="Two-bedroom apartment">Căn hộ hai phòng ngủ</p></li>
-    <li class="blk-facts__item"><h3 class="blk-facts__label" data-en="Style">Phong cách</h3><p class="blk-facts__text" data-en="Warm minimal, oak and sage">Tối giản ấm, gỗ sồi và xanh rêu</p></li>
-    <li class="blk-facts__item"><h3 class="blk-facts__label" data-en="Scope">Hạng mục</h3><p class="blk-facts__text" data-en="Interior design, fabrication and installation">Thiết kế, sản xuất, lắp đặt nội thất</p></li>
-    <li class="blk-facts__item"><h3 class="blk-facts__label" data-en="Aftercare">Bảo hành</h3><p class="blk-facts__text" data-en="Maintenance after handover">Bảo trì sau bàn giao</p></li>
+    <li class="blk-facts__item" data-motion-up data-motion-delay="0"><h3 class="blk-facts__label" data-en="Project type">Loại công trình</h3><p class="blk-facts__text" data-en="Two-bedroom apartment">Căn hộ hai phòng ngủ</p></li>
+    <li class="blk-facts__item" data-motion-up data-motion-delay="0.15"><h3 class="blk-facts__label" data-en="Style">Phong cách</h3><p class="blk-facts__text" data-en="Warm minimal, oak and sage">Tối giản ấm, gỗ sồi và xanh rêu</p></li>
+    <li class="blk-facts__item" data-motion-up data-motion-delay="0.3"><h3 class="blk-facts__label" data-en="Scope">Hạng mục</h3><p class="blk-facts__text" data-en="Interior design, fabrication and installation">Thiết kế, sản xuất, lắp đặt nội thất</p></li>
+    <li class="blk-facts__item" data-motion-up data-motion-delay="0.44999999999999996"><h3 class="blk-facts__label" data-en="Aftercare">Bảo hành</h3><p class="blk-facts__text" data-en="Maintenance after handover">Bảo trì sau bàn giao</p></li>
   </ol>
+</section>
+<section class="blk blk-image-text section-gap" data-header-tone="ink">
+  <figure class="blk-image-text__figure"><img src="../../preview-media/placeholder-doc.webp" width="2048" height="3072" alt="Ảnh dọc giữ chỗ cạnh đoạn văn" data-en-alt="Portrait placeholder beside the paragraph" loading="lazy" /></figure>
+  <div class="blk-paragraph blk-image-text__copy"><p data-en="The kitchen units run the full length of the wall, and an oak breakfast bar separates the kitchen from the living room without a partition. Every door was CNC-cut in our workshop to the measured sizes.">Tủ bếp chạy hết chiều dài tường, quầy bar gỗ sồi tách bếp với phòng khách mà không cần vách. Mọi cánh tủ cắt CNC tại xưởng theo số đo thực tế.</p></div>
 </section>
 <section class="blk blk-pair blk-pair--left-large section-gap" data-header-tone="ink"><figure class="blk-pair__item"><img src="../../preview-media/gieng3-phong-tho.webp" width="3072" height="2048" alt="Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn" data-en-alt="Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows" loading="lazy" /></figure><figure class="blk-pair__item"><img src="../../preview-media/gieng3-chi-tiet.webp" width="3072" height="2304" alt="Cận cảnh cánh tủ gỗ sồi sáng dán cạnh, khe cánh đều và chân tủ âm" data-en-alt="Close-up of light oak cabinet doors with edge banding, even door gaps and a recessed plinth" loading="lazy" /></figure></section>
 <section class="blk blk-image blk-image--right-2-3 section-gap" data-header-tone="ink">
   <figure class="blk-image__figure"><img src="../../preview-media/can-ho-chi-tiet.webp" width="3072" height="2304" alt="Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm" data-en-alt="Close-up of an oak media unit: timber-veneer and sage-painted doors with tight joints and a recessed finger pull" loading="lazy" /></figure>
 </section>
 <section class="blk blk-quote section-gap" data-header-tone="ink"><blockquote><p data-en="Tight joints, even doors, still like new after two years.">Tủ khít mạch, cánh đều tay, ở hai năm vẫn như mới.</p><cite data-en="Apartment owner">Gia chủ căn hộ</cite></blockquote></section>
-<section class="blk blk-contact section-gap" data-header-tone="ink">
+<section class="blk blk-contact section-gap" id="lien-he" data-header-tone="ink">
   <h2 class="blk-contact__title" data-en="Want a home like this?">Muốn một căn hộ như thế này?</h2>
   <a class="blk-contact__zalo" href="https://zalo.me/0949131050" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>
 </section>
-<section class="blk blk-projects section-gap" data-header-tone="ink">
+<section class="blk blk-projects section-gap" data-header-tone="ink" data-motion-left>
   <div class="blk-projects__track">
     <a class="project-card project-card--high blk-projects__card" href="/vi/projects/can-ho-go-soi-am/" data-en-href="/en/projects/warm-oak-apartment/">
       <span class="project-card__media"><img src="../../preview-media/can-ho-hero.webp" width="3072" height="2048" alt="Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố" data-en-alt="Apartment overview: kitchen with a breakfast bar on the left, sofa and oak TV wall facing a city-view balcony" loading="lazy" /></span>

@@ -135,13 +135,13 @@ Then 8 slide theo thứ tự ngẫu nhiên, slide đầu zoom từ 1.06 và là 
 
 ### R6. Reveal, parallax, đổi ngôn ngữ và vòng đời
 
-Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cần thêm SplitText. Residential, Commercial (và Advertising, danh sách Công trình, News): `[data-motion-lines]`
+Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cần thêm SplitText. Residential, Commercial (và Advertising, danh sách Công trình, trang công trình, News): `[data-motion-lines]`
 tách dòng trong mask, vào viewport thì trượt `2em → -0.1em` (1,9s, stagger 0,1s); `[data-motion-words]` ngoài hero hiện
 theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `document.fonts.ready` và khi đổi kích thước,
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
-(thêm trượt từ 60px), `[data-motion-media]` (chờ cha có `is-media-settled`: tải và giải mã xong, hoặc lỗi để alt hiện) hiện trong 0,6s khi vào viewport. Portal reveal như
+(thêm trượt từ 60px), `[data-motion-left]` (trượt từ phải 60px, không mờ; dải công trình), `[data-motion-media]` (chờ cha có `is-media-settled`: tải và giải mã xong, hoặc lỗi để alt hiện) hiện trong 0,6s khi vào viewport. Portal reveal như
 [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ). Parallax Locomotive ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)):
-ảnh hero About (`.about-hero__media`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ tải lại
+ảnh hero About (`.hero-photo`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ tải lại
 trang như F5, mọi reveal chạy lại từ đầu ([trang chủ R11](page-home.md#r11-đổi-ngôn-ngữ-chạy-lại-trang)). Rời
 trang: `unmount` hủy listener (AbortSignal), observer, frame, split, GSAP context. Không thêm thư viện animation ngoài
 [danh sách tự host](static-release.md#r4-font-và-thư-viện-tự-host).

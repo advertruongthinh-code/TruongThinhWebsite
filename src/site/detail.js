@@ -380,11 +380,12 @@
           "residential",
           "commercial",
           "news",
+          "project",
         ]).has(container.dataset.barbaNamespace);
         const lineGroups = splitRoute ? selectAll("[data-motion-lines]") : [];
         const wordGroups = splitRoute ? selectAll("[data-motion-words]") : [];
         const fadeItems = selectAll("[data-motion-fade]");
-        const upItems = selectAll("[data-motion-up]");
+        const upItems = selectAll("[data-motion-up], [data-motion-left]");
         const mediaItems = selectAll("[data-motion-media]");
         const motionItems = [...fadeItems, ...upItems, ...mediaItems];
         const completedTextGroups = new WeakSet();
@@ -396,6 +397,7 @@
         const heroKicker = container.querySelector(
           "[data-motion-hero-kicker]",
         );
+        const heroFade = container.querySelector("[data-motion-hero-fade]");
         const heroWrapperZoom = container.querySelector(
           "[data-motion-hero-wrapper-zoom]",
         );
@@ -700,24 +702,29 @@
           });
         };
 
-        if (heroKicker && heroSettled) {
-          settleHeroItem(heroKicker);
-        } else if (heroKicker) {
-          gsap.killTweensOf(heroKicker);
-          gsap.set(heroKicker, {
+        // Hero intro items wait for the veil like the title: the kicker slides in at 1.2s (0.9s on words-06), the project hero CTA fades in at 1.8s
+        // (Espacio project pages, projects R3).
+        [
+          [heroKicker, heroProfile === "words-06" ? 0.9 : 1.2],
+          [heroFade, 1.8],
+        ].forEach(([item, delay]) => {
+          if (!item) return;
+          if (heroSettled) {
+            settleHeroItem(item);
+            return;
+          }
+          gsap.killTweensOf(item);
+          gsap.set(item, {
             clearProps: "opacity,visibility,transform",
           });
-          const kickerDelay = heroProfile === "words-06" ? 0.9 : 1.2;
           afterIntroStart(() => {
-            heroKicker.style.setProperty(
+            item.style.setProperty(
               "--motion-delay",
-              `${getRemainingDelay(kickerDelay)}s`,
+              `${getRemainingDelay(delay)}s`,
             );
-            scheduleHeroFrame(() =>
-              heroKicker.classList.add("is-motion-inview"),
-            );
+            scheduleHeroFrame(() => item.classList.add("is-motion-inview"));
           });
-        }
+        });
         if (heroWrapperZoom && heroSettled) {
           settleHeroItem(heroWrapperZoom);
         } else if (heroWrapperZoom) {

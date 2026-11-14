@@ -215,7 +215,7 @@ try {
   // R8: a static image that fails to load settles the frame at once, draws the error mark, hides the image, and the frame keeps its size as in a normal load.
   {
     // Hero, CTA and portal background images have their own case below (dark background, white text).
-    const overlay = ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
+    const overlay = ".hero-slide img, .hero-photo img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
     const measure = async block => {
       const { context, page } = await open({ delay: 0 });
       if (block) await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
@@ -250,7 +250,7 @@ try {
     await page.goto(BASE_URL + route, { waitUntil: "load" });
     await scrollThrough(page);
     await page.waitForTimeout(500);
-    const frames = await page.evaluate(() => [...document.querySelectorAll(".hero-slide.is-active, .about-hero__media, .service-portal, .detail-cta, .legacy-closer")]
+    const frames = await page.evaluate(() => [...document.querySelectorAll(".hero-slide.is-active, .hero-photo, .service-portal, .detail-cta, .legacy-closer")]
       .map(frame => ({ name: frame.className.split(" ")[0], errored: frame.classList.contains("is-media-error"), line: getComputedStyle(frame, "::before").content, surface: getComputedStyle(frame, "::before").backgroundColor })));
     assert.ok(frames.length > 0, `${route}: has overlay frames to test load errors`);
     assert.deepEqual(frames.filter(item => !item.errored || item.line !== line || item.surface !== "rgb(43, 44, 43)"), [], `${route}: the overlay frame draws the error mark on a dark background`);

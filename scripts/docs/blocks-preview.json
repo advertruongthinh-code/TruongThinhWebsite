@@ -1,22 +1,24 @@
 {
   "_note": "Fixed data for the Design System Blocks and NewsList previews (scripts/docs/build-design-system.mjs); does not follow site content.",
   "page": {
+    "title": {
+      "vi": "Căn hộ gỗ sồi",
+      "en": "Oak apartment"
+    },
     "blocks": [
       {
         "id": "hero",
         "type": "hero-project",
-        "titleLine1": {
-          "vi": "Căn hộ",
-          "en": "Apartment"
-        },
-        "titleLine2": {
-          "vi": "gỗ sồi ấm",
-          "en": "in warm oak"
-        },
-        "subtitle": {
-          "vi": "Nhà ở · Căn hộ hai phòng ngủ",
-          "en": "Residential · Two-bedroom apartment"
-        },
+        "tagline": [
+          {
+            "vi": "Căn hộ hai phòng",
+            "en": "A two-bedroom home"
+          },
+          {
+            "vi": "ấm màu *gỗ sồi*",
+            "en": "in warm *oak*"
+          }
+        ],
         "image": {
           "src": "/assets/content/projects/can-ho-hero.webp",
           "width": 3072,
@@ -86,6 +88,21 @@
             }
           }
         ]
+      },
+      {
+        "id": "image-text",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/placeholder-doc.webp",
+          "width": 2048,
+          "height": 3072,
+          "altVi": "Ảnh dọc giữ chỗ cạnh đoạn văn",
+          "altEn": "Portrait placeholder beside the paragraph"
+        },
+        "text": {
+          "vi": "Tủ bếp chạy hết chiều dài tường, quầy bar gỗ sồi tách bếp với phòng khách mà không cần vách. Mọi cánh tủ cắt CNC tại xưởng theo số đo thực tế.",
+          "en": "The kitchen units run the full length of the wall, and an oak breakfast bar separates the kitchen from the living room without a partition. Every door was CNC-cut in our workshop to the measured sizes."
+        }
       },
       {
         "id": "altar",

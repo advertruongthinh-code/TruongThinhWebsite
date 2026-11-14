@@ -9378,7 +9378,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
       route: "/vi/about/?media-fallback=about",
       asset: "**/legacy-team.webp",
       surface: ".about-hero",
-      image: ".about-hero__media img",
+      image: ".hero-photo img",
       text: ".hero-content",
       overlay: ".hero-shade",
     },
