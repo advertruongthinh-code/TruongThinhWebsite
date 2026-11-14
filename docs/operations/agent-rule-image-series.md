@@ -61,6 +61,14 @@ doanh); mâu thuẫn với [Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh) th
 - Có bản vẽ đèn trần, đèn tường, decor tường; tường không trống (owner 2026-11-13).
 - Bếp có tủ treo, hút mùi nằm trong tủ; khung tủ thẳng, cánh có thể cong (owner 2026-11-13).
 
+## Người và xe
+
+Áp cho mọi công trình mẫu; thắng cách che mặt ở [Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh) (owner 2026-11-14).
+
+- Ảnh thấy đường phố: xe máy đậu trên vỉa hè, có thể có ô tô đậu dưới đường; không xe đang chạy, không người ngoài đường.
+- Trong cửa hàng: vài người, có nhân viên, tư thế tự nhiên, không nhìn vào máy (đọc sách, lướt điện thoại). Thấy mặt
+  được nhưng hạn chế thấy trọn khuôn mặt.
+
 ## Chú thích thuật ngữ
 
 - **Camera tổng**: góc rất rộng thấy đủ món chung của một khu, gen đầu tiên.
