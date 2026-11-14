@@ -13,6 +13,8 @@ const TOUCH_SLOP = 10;
 // Two fingers rotate only when twisted past 20° before the zoom changes by more than 20%; an ordinary pinch zoom does not rotate (R11).
 const TWIST_THRESHOLD = 20;
 const ZOOM_LOCK = 1.2;
+// Space between the viewer image, the thumbnail strip and the screen edges on PC (owner 2026-11-14).
+const VIEWER_GAP = 16;
 // Rotate vector (x, y) by `degrees` clockwise on screen, like CSS rotate().
 const rotate = (x, y, degrees) => {
   const radians = degrees * Math.PI / 180;
@@ -25,10 +27,8 @@ export function createDetailViewer({
   expandedImage,
   heroImage,
   viewport,
-  closeButton,
-  zoomInButton,
-  zoomOutButton,
   zoomStatus,
+  thumbs,
   scroll,
   getVisibleViewport,
   signal,
@@ -38,7 +38,7 @@ export function createDetailViewer({
   laneWait,
   onOpen,
 } = {}) {
-  if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
+  if (!dialog || !expandButton || !expandedImage || !viewport || !zoomStatus) {
     return { cleanup() {}, close() {}, popState: () => false, setRecord() {}, slideTo() {} };
   }
   const controller = new AbortController();
@@ -101,7 +101,7 @@ export function createDetailViewer({
   const geometryKey = () => {
     const styles = getComputedStyle(dialog);
     return [viewport.clientWidth, viewport.clientHeight, styles.paddingTop, styles.paddingRight,
-      styles.paddingBottom, styles.paddingLeft].join(":");
+      styles.paddingBottom, styles.paddingLeft, thumbs?.offsetWidth].join(":");
   };
   const updateVisibleControls = () => {
     const { top, left, height, width } = getVisibleViewport();
@@ -120,9 +120,13 @@ export function createDetailViewer({
     fitGeometryKey = geometryKey();
     const styles = getComputedStyle(dialog);
     const touch = touchScreen.matches;
-    const insetX = touch || viewport.clientWidth <= 750 ? 0 : viewport.clientWidth <= 960 ? 16 : 64;
-    const insetTop = touch ? 0 : Math.max(80, (parseFloat(styles.paddingTop) || 0) + 64);
-    const insetBottom = touch ? 0 : Math.max(80, (parseFloat(styles.paddingBottom) || 0) + 64);
+    // No buttons around the image (owner 2026-11-14): 16px on every side; the thumbnail strip on the left takes its width plus 16px on both sides,
+    // mirrored on the right so the image stays centered on the screen. A window up to 750px wide keeps the full width, the strip overlays the image.
+    const narrow = touch || viewport.clientWidth <= 750;
+    const strip = narrow ? 0 : thumbs?.offsetWidth || 0;
+    const insetX = narrow ? 0 : VIEWER_GAP + (strip && strip + VIEWER_GAP);
+    const insetTop = touch ? 0 : (parseFloat(styles.paddingTop) || 0) + VIEWER_GAP;
+    const insetBottom = touch ? 0 : (parseFloat(styles.paddingBottom) || 0) + VIEWER_GAP;
     const availableWidth = Math.max(1, viewport.clientWidth - 2 * insetX
       - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0));
     const availableHeight = Math.max(1, viewport.clientHeight - insetTop - insetBottom);
@@ -149,16 +153,7 @@ export function createDetailViewer({
     // The aria-live status announces the changed value at the end of a pinch, not on every frame of it.
     const status = `${Math.round(scale * 100)}%`;
     if (!pinch && zoomStatus.textContent !== status) zoomStatus.value = zoomStatus.textContent = status;
-    zoomOutButton.disabled = atFit();
-    zoomInButton.disabled = atMax();
-    // A video in the viewer cannot be zoomed (primary-video-player R8, owner 2026-10-25).
-    zoomInButton.hidden = zoomOutButton.hidden = media === video;
     media.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
-    const active = document.activeElement;
-    if (dialog.open && [zoomInButton, zoomOutButton].includes(active)
-      && (active.disabled || active.hidden)) {
-      (zoomInButton.disabled ? zoomOutButton : zoomInButton).focus({ preventScroll: true });
-    }
   };
   const renderTransform = () => {
     const limits = panLimits();
@@ -452,7 +447,7 @@ export function createDetailViewer({
     const from = sourceTransform() || target;
     runMotion(from, target, DUR.base, EASE.viewer, "opening");
     if (wait && imageAnimation) wait.animate([{ transform: from }, { transform: target }], imageAnimation.effect.getTiming());
-    closeButton.focus({ preventScroll: true });
+    dialog.focus({ preventScroll: true });
   };
   // Every visible button and input in DOM order, so Tab reaches the thumbnail row and the video player.
   const visibleControls = () => [...dialog.querySelectorAll("button, input")]
@@ -623,9 +618,6 @@ export function createDetailViewer({
     // Double tap habit: the second tap lands in the just-opened viewer and is swallowed, no zoom.
     lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   }, { signal: controller.signal });
-  closeButton.addEventListener("click", () => close(), { signal: controller.signal });
-  zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
-  zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
   viewport.addEventListener("wheel", (event) => {
     if (!dialog.open || dialog.dataset.viewerState === "closing" || event.deltaY === 0) return;
     event.preventDefault();
@@ -753,6 +745,13 @@ export function createDetailViewer({
       const index = controls.indexOf(document.activeElement);
       const next = index < 0 ? 0 : (index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
       controls[next]?.focus({ preventScroll: true });
+      event.preventDefault();
+      return;
+    }
+    // No zoom buttons (owner 2026-11-14): + and - step the zoom like the wheel; a video in the viewer does not zoom (primary-video-player R8).
+    const step = { "+": 1, "=": 1, "-": -1 }[event.key];
+    if (step && media !== video && dialog.dataset.viewerState !== "closing") {
+      setScale(nextStop(step));
       event.preventDefault();
       return;
     }

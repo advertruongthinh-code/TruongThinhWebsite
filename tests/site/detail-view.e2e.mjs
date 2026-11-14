@@ -692,9 +692,8 @@ async function assertDialogFit(page, label, touch = false) {
     const imageNode = document.querySelector("[data-detail-expanded-image]");
     const image = imageNode?.getBoundingClientRect();
     const dialog = document.querySelector("[data-detail-dialog]");
-    const controls = [...document.querySelectorAll("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]")]
-      .map((node) => ({ disabled: node.disabled, hidden: node.hidden, focusVisible: node.matches(":focus-visible"), rect: node.getBoundingClientRect().toJSON() }));
-    const resetCount = document.querySelectorAll("[data-detail-zoom-reset]").length;
+    // The viewer has no close or zoom buttons (owner 2026-11-14): it closes by backdrop, Escape, Back and zooms by wheel, keys, gestures.
+    const controls = document.querySelectorAll("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out], [data-detail-zoom-reset]").length;
     const ratio = image ? image.width / image.height : null;
     const naturalRatio = imageNode ? imageNode.naturalWidth / imageNode.naturalHeight : null;
     const dialogStyle = dialog ? getComputedStyle(dialog) : null;
@@ -706,30 +705,19 @@ async function assertDialogFit(page, label, touch = false) {
     } : null;
     const output = document.querySelector("[data-detail-zoom-status]");
     const outputRect = output?.getBoundingClientRect();
-    return { viewport, image, controls, resetCount, ratio, naturalRatio, naturalWidth: imageNode?.naturalWidth, open: dialog?.open === true, innerWidth, innerHeight, padding, output: outputRect?.toJSON(), outputPosition: output ? getComputedStyle(output).position : null };
+    return { viewport, image, controls, ratio, naturalRatio, naturalWidth: imageNode?.naturalWidth, open: dialog?.open === true, innerWidth, innerHeight, padding, output: outputRect?.toJSON(), outputPosition: output ? getComputedStyle(output).position : null };
   });
   assert(evidence.open && evidence.viewport && evidence.image, `${label}: dialog is not ready`);
   assert(evidence.image.left >= evidence.viewport.left - 1 && evidence.image.right <= evidence.viewport.right + 1 && evidence.image.top >= evidence.viewport.top - 1 && evidence.image.bottom <= evidence.viewport.bottom + 1, `${label}: fitted image is outside a viewport edge`);
   assert(Math.abs(evidence.ratio - evidence.naturalRatio) < 0.02, `${label}: fitted image lost intrinsic ratio (rendered ${evidence.ratio}, intrinsic ${evidence.naturalRatio})`);
   if (evidence.innerWidth <= 750 && evidence.naturalRatio >= 1) {
     const availableWidth = Math.max(1, evidence.viewport.width - evidence.padding.left - evidence.padding.right);
-    const availableHeight = Math.max(1, evidence.viewport.height - Math.max(80, evidence.padding.top + 64) - Math.max(80, evidence.padding.bottom + 64));
+    const availableHeight = Math.max(1, evidence.viewport.height - (touch ? 0 : evidence.padding.top + evidence.padding.bottom + 32));
     const maximumFittedWidth = Math.min(evidence.naturalWidth, availableWidth, availableHeight * evidence.naturalRatio);
     assert(evidence.viewport.width >= evidence.innerWidth - 32, `${label}: mobile dialog viewport is too narrow (${evidence.viewport.width}px of ${evidence.innerWidth}px)`);
     assert(Math.abs(evidence.image.width - maximumFittedWidth) <= 2, `${label}: landscape fit ignores available geometry (${evidence.image.width}px of ${maximumFittedWidth}px)`);
   }
-  assert.equal(evidence.resetCount, 0, `${label}: the viewer has no reset button (owner 2026-10-25)`);
-  for (const control of evidence.controls) {
-    if (control.hidden) continue;
-    // Viewer touch R8: buttons are hidden from sight on touch screens, except the button that has keyboard focus.
-    if (touch && !control.focusVisible) {
-      assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
-      continue;
-    }
-    // Viewer button is a 36px square (primary-video-player R7, owner 2026-10-24).
-    assert(Math.abs(control.rect.width - 36) <= 1 && Math.abs(control.rect.height - 36) <= 1, `${label}: control is not 36px`);
-    assert(control.rect.left >= -1 && control.rect.top >= -1 && control.rect.right <= evidence.innerWidth + 1 && control.rect.bottom <= evidence.innerHeight + 1, `${label}: control is outside browser viewport`);
-  }
+  assert.equal(evidence.controls, 0, `${label}: the viewer has no close, zoom or reset button (owner 2026-11-14)`);
   assert(evidence.output && evidence.output.width <= 1 && evidence.output.height <= 1 && evidence.outputPosition === "absolute", `${label}: zoom output is not screen-reader-only (${JSON.stringify({ output: evidence.output, outputPosition: evidence.outputPosition })})`);
 }
 
@@ -741,7 +729,7 @@ async function assertViewerLock(page, expectedScroll, baseline, label, settlemen
   }));
   assert(Math.abs(locked.logical - expectedScroll) <= 2, `${label}: viewer lock changed logical scroll before input (${expectedScroll}px to ${locked.logical}px)`);
   assert(locked.bodyOverflow === "hidden" || locked.htmlOverflow === "hidden", `${label}: viewer did not lock document scroll`);
-  const boundaryWheel = await page.evaluate(() => document.querySelector("[data-detail-zoom-in]")?.disabled ? -500 : 500);
+  const boundaryWheel = (await zoomState(page)).plusDisabled ? -500 : 500;
   await page.mouse.wheel(0, boundaryWheel);
   await settleGeometry(page, `${label}:lock-wheel`, settlements, { requireScrollStable: true });
   const afterWheel = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY);
@@ -773,8 +761,9 @@ async function zoomState(page) {
     return {
       scale: matrix.a,
       cover,
-      plusDisabled: document.querySelector("[data-detail-zoom-in]").disabled,
-      minusDisabled: document.querySelector("[data-detail-zoom-out]").disabled,
+      // No buttons any more: "plus disabled" is the max stop (two times Cover), "minus disabled" is Fit.
+      plusDisabled: matrix.a >= cover * 2 - 0.03,
+      minusDisabled: Math.abs(matrix.a - 1) < 0.02,
       status: document.querySelector("[data-detail-zoom-status]")?.textContent,
     };
   });
@@ -858,22 +847,19 @@ async function middleClickReset(page, point, label) {
   assert(Math.abs(after.scroll - beforeScroll) <= 1, `${label}: middle-click changed page scroll`);
 }
 
-// Touch screens keep viewer buttons for screen readers only (viewer touch R8): press them like assistive tech.
-const press = (locator, touch) => (touch ? locator.evaluate((node) => node.click()) : locator.click());
-
-async function clickZoom(page, selector, { reducedMotion, label, touch }) {
-  await page.evaluate((target) => {
-    const button = document.querySelector(target);
+// The viewer zooms by keys (owner 2026-11-14, no zoom buttons): + steps in, - steps out, like the wheel.
+async function clickZoom(page, key, { reducedMotion, label }) {
+  await page.evaluate(() => {
     const dialog = document.querySelector("[data-detail-dialog]");
     window.__ttPhotoViewerZoomMotion = { states: [], animations: [] };
     const observer = new MutationObserver(() => window.__ttPhotoViewerZoomMotion.states.push(dialog?.dataset.viewerState || null));
     observer.observe(dialog, { attributes: true, attributeFilter: ["data-viewer-state"] });
-    button?.addEventListener("click", () => requestAnimationFrame(() => {
+    dialog.addEventListener("keydown", () => requestAnimationFrame(() => {
       window.__ttPhotoViewerZoomMotion.animations = document.querySelector("[data-detail-expanded-image]")?.getAnimations()
         .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
     }), { capture: true, once: true });
-  }, selector);
-  await press(page.locator(selector), touch);
+  });
+  await page.keyboard.press(key);
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   const motion = await page.evaluate(() => window.__ttPhotoViewerZoomMotion);
   if (!reducedMotion) {
@@ -892,22 +878,16 @@ async function exerciseDialog(page, options) {
   await assertDialogFit(page, options.label, options.touch);
   options.setStage?.("lock");
   await assertViewerLock(page, scrollBeforeLock, baseline, options.label, options.settlements);
-  const close = page.locator("[data-detail-close]");
-  const zoomIn = page.locator("[data-detail-zoom-in]");
-  const zoomOut = page.locator("[data-detail-zoom-out]");
   const viewport = page.locator("[data-detail-viewport]");
   const expanded = page.locator("[data-detail-expanded-image]");
-  await assertVisible(close, "close button");
-  await assertVisible(zoomIn, "zoom-in button");
-  await assertVisible(zoomOut, "zoom-out button");
   let level = await zoomState(page);
   assert(level.minusDisabled && !level.plusDisabled, `${options.label}: fit controls are incorrect`);
   options.setStage?.("zoom-cover");
-  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "+", { reducedMotion, label: options.label });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled, `${options.label}: first plus is not cover`);
   options.setStage?.("zoom-max-pan");
-  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "+", { reducedMotion, label: options.label });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled, `${options.label}: second plus is not two-times cover max`);
   const beforePan = await transformEvidence(page);
@@ -930,17 +910,17 @@ async function exerciseDialog(page, options) {
   await assertViewerLock(page, scrollBeforeLock, baseline, `${options.label} after zoom/pan`, options.settlements);
   assert.equal(page.url(), beforeUrl, `${options.label}: zoom/pan changed URL`);
   options.setStage?.("zoom-out-to-fit");
-  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "-", { reducedMotion, label: options.label });
+  await clickZoom(page, "-", { reducedMotion, label: options.label });
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled, `${options.label}: two minus did not return max to fit`);
   options.setStage?.("zoom-out-sequence");
-  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-detail-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
-  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "+", { reducedMotion, label: options.label });
+  await clickZoom(page, "+", { reducedMotion, label: options.label });
+  await clickZoom(page, "-", { reducedMotion, label: options.label });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled, `${options.label}: minus did not return max to cover`);
-  await clickZoom(page, "[data-detail-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "-", { reducedMotion, label: options.label });
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
     `${options.label}: second minus did not return cover to fit`);
@@ -961,20 +941,16 @@ async function exerciseDialog(page, options) {
   options.setStage?.("middle-reset");
   await middleClickReset(page, anchor, options.label);
   options.setStage?.("keyboard-zoom");
-  await zoomIn.focus();
-  await page.keyboard.press("Enter");
+  await page.keyboard.press("=");
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
-  await zoomIn.focus();
-  await page.keyboard.press("Enter");
+  await page.keyboard.press("=");
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
     `${options.label}: keyboard activation did not reach two-times Cover`);
-  await zoomOut.focus();
-  await page.keyboard.press("Enter");
+  await page.keyboard.press("-");
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
-  await zoomOut.focus();
-  await page.keyboard.press("Enter");
+  await page.keyboard.press("-");
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.dataset.viewerState === "open");
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
@@ -1020,15 +996,14 @@ async function exerciseDialog(page, options) {
   await middleClickReset(page, anchor, `${options.label} after rapid input`);
   if (options.keyboard) {
     options.setStage?.("focus-trap");
-    await close.focus();
+    await page.keyboard.press("Tab");
     await page.keyboard.press("Shift+Tab");
     const trapped = await dialog.evaluate((node) => node.contains(document.activeElement));
     assert(trapped, `${options.label}: Shift+Tab escaped dialog`);
   }
   options.setStage?.("close");
   await observeCloseMotion(page);
-  if (options.closeWithButton) await press(close, options.touch);
-  else await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
   await assertViewerMotion(page, { phase: "close", reducedMotion, label: options.label });
   await page.waitForFunction(() => document.querySelector("[data-detail-dialog]")?.open === false);
   assert.equal(page.url(), beforeUrl, `${options.label}: Escape changed photo URL`);
@@ -1095,7 +1070,7 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
       stage = "viewer:controls-only:geometry";
       await settleGeometry(page, stage, settlements, { requireScrollStable: true });
       stage = "viewer:controls-only";
-      await exerciseDialog(page, { label, touch, keyboard: true, closeWithButton: false, reducedMotion, resize: true, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
+      await exerciseDialog(page, { label, touch, keyboard: true, reducedMotion, resize: true, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
       stage = "viewer:resize-focus";
       await assertFocusVisibleAfterResize(page, label);
       assert.deepEqual(diagnostics, [], `${label}: local runtime diagnostics ${JSON.stringify(diagnostics)}`);
@@ -1113,7 +1088,7 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
       await settleGeometry(page, stage, settlements, { requireScrollStable: true });
     }
     stage = "viewer:exercise";
-    await exerciseDialog(page, { label, touch, keyboard: smoke, closeWithButton: smoke && record.shape === "landscape", reducedMotion, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
+    await exerciseDialog(page, { label, touch, keyboard: smoke, reducedMotion, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
     if (smoke) {
       stage = "resize:open";
       await wheelUntilExpandVisible(page, label, settlements);

@@ -162,8 +162,8 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
             return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
           }) };
       });
-      // A touch screen hides the button from view (viewer R8) but it stays in the accessibility tree: call it like TalkBack, not with a mouse click.
-      await page.locator("[data-detail-zoom-in]").evaluate(button => button.click());
+      // No zoom buttons (owner 2026-11-14): the + key steps the zoom.
+      await page.evaluate(() => document.querySelector("[data-detail-dialog]").dispatchEvent(new KeyboardEvent("keydown", { key: "+", bubbles: true, cancelable: true })));
       await page.waitForFunction(() => document.querySelector("#detail-dialog").dataset.viewerState === "open");
       const beforeZoom = await geometry();
       await page.evaluate(() => window.__changeVisibleViewport(500));
@@ -180,7 +180,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
       panned.controls.forEach(rect => assert.ok(rect.left >= 195 && rect.right <= 390 && rect.top >= 100 && rect.bottom <= 520, "controls follow visible offsets"));
       await page.evaluate(() => window.__changeVisibleViewport({ width: 390, height: 500, offsetLeft: 0, offsetTop: 0, scale: 1 }));
       const closing = await page.evaluate(async () => {
-        document.querySelector("[data-detail-close]").click();
+        document.querySelector("#detail-dialog").dispatchEvent(new Event("cancel", { cancelable: true }));
         window.__changeVisibleViewport(650);
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         return document.querySelector("#detail-dialog").dataset.viewerState;

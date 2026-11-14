@@ -333,22 +333,12 @@
             class="detail-dialog"
             id="detail-dialog"
             data-detail-dialog
+            tabindex="-1"
             aria-labelledby="detail-dialog-title"
           >
             <h2 class="sr-only" id="detail-dialog-title" data-en="Expanded photo">
               Xem ảnh lớn
             </h2>
-            <button
-              class="detail-dialog__close"
-              type="button"
-              data-detail-close
-              aria-label="Đóng ảnh"
-              data-en-aria-label="Close image"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M5 5l14 14M19 5L5 19" />
-              </svg>
-            </button>
             <div class="detail-dialog__viewport" data-detail-viewport>
               <img
                 data-detail-expanded-image
@@ -369,34 +359,7 @@
               data-detail-viewer-thumbs
               hidden
             ></div>
-            <div
-              class="detail-dialog__controls"
-              role="group"
-              aria-label="Điều khiển phóng ảnh"
-              data-en-aria-label="Photo zoom controls"
-            >
-              <button
-                type="button"
-                data-detail-zoom-in
-                aria-label="Phóng to"
-                data-en-aria-label="Zoom in"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                data-detail-zoom-out
-                aria-label="Thu nhỏ"
-                data-en-aria-label="Zoom out"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M5 12h14" />
-                </svg>
-              </button>
-              <output class="sr-only" data-detail-zoom-status aria-live="polite">100%</output>
-            </div>
+            <output class="sr-only" data-detail-zoom-status aria-live="polite">100%</output>
           </dialog>
         </section>
       </main>

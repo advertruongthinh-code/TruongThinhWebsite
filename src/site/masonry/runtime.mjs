@@ -1747,9 +1747,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const photoDialog = photoView?.querySelector("[data-detail-dialog]");
   const photoExpandedImage = photoView?.querySelector("[data-detail-expanded-image]");
   const photoViewport = photoView?.querySelector("[data-detail-viewport]");
-  const photoClose = photoView?.querySelector("[data-detail-close]");
-  const photoZoomIn = photoView?.querySelector("[data-detail-zoom-in]");
-  const photoZoomOut = photoView?.querySelector("[data-detail-zoom-out]");
   const photoZoomStatus = photoView?.querySelector("[data-detail-zoom-status]");
   const photoViewerThumbs = photoDialog?.querySelector("[data-detail-viewer-thumbs]");
 
@@ -1909,7 +1906,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let descriptionThumbHeight = 0;
   const photoViewer = createDetailViewer({
     getVisibleViewport,
-    closeButton: photoClose,
     dialog: photoDialog,
     expandButton: photoExpand,
     expandedImage: photoExpandedImage,
@@ -1917,9 +1913,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     scroll,
     signal: controller.signal,
     viewport: photoViewport,
-    zoomInButton: photoZoomIn,
-    zoomOutButton: photoZoomOut,
     zoomStatus: photoZoomStatus,
+    thumbs: photoViewerThumbs,
     video: photoVideo,
     player: photoPlayer,
     videoHost: photoDialog?.querySelector("[data-detail-video-host]"),
@@ -3654,11 +3649,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.toggleAttribute("data-fade-start", before > 1);
     node.toggleAttribute("data-fade-end", after > 1);
   };
+  // A thumbnail strip scrolls along one axis: the primary's row across, the viewer's column down (owner 2026-11-14).
+  const stripVertical = (strip) => strip.scrollHeight - strip.clientHeight > strip.scrollWidth - strip.clientWidth;
+  const stripScroll = (strip) => (stripVertical(strip)
+    ? { start: strip.scrollTop, room: strip.scrollHeight - strip.clientHeight }
+    : { start: strip.scrollLeft, room: strip.scrollWidth - strip.clientWidth });
   const syncScrollHints = () => {
     for (const strip of [photoMediaThumbs, photoViewerThumbs]) {
       if (!strip) continue;
-      const { scrollLeft, scrollWidth, clientWidth } = strip;
-      syncScrollFade(strip, scrollLeft, scrollWidth - clientWidth - scrollLeft);
+      const { start, room } = stripScroll(strip);
+      syncScrollFade(strip, start, room - start);
     }
     if (!photoDescriptionScroll) return;
     const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
@@ -3706,9 +3706,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (!button || !node.clientWidth) continue;
       const strip = node.getBoundingClientRect();
       const box = button.getBoundingClientRect();
-      const fade = (name) => node.hasAttribute(name) ? box.width : 0;
-      if (box.left >= strip.left + fade("data-fade-start") - 1 && box.right <= strip.right - fade("data-fade-end") + 1) continue;
-      node.scrollBy({ left: box.left + box.width / 2 - strip.left - strip.width / 2, behavior: reduced ? "auto" : "smooth" });
+      const [start, end, size] = stripVertical(node) ? ["top", "bottom", "height"] : ["left", "right", "width"];
+      const fade = (name) => node.hasAttribute(name) ? box[size] : 0;
+      if (box[start] >= strip[start] + fade("data-fade-start") - 1 && box[end] <= strip[end] - fade("data-fade-end") + 1) continue;
+      node.scrollBy({ [start]: box[start] + box[size] / 2 - strip[start] - strip[size] / 2, behavior: reduced ? "auto" : "smooth" });
     }
   };
   const renderSuggestionLinks = (browse, english) => {

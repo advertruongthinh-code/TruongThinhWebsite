@@ -1311,12 +1311,8 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     await page.mouse.move(5, 5);
     await settleTransitions(page);
     assert.equal(await page.locator("[data-detail-zoom-reset]").count(), 0, "the viewer has no reset button");
-    for (const selector of ["[data-detail-close]", "[data-detail-zoom-in]",
-      "[data-detail-zoom-out]"]) {
-      const [width, height, radius, border, background] = await square(selector);
-      assert.deepEqual([width, height, radius, border], [36, 36, "0px", "0px"], `${selector} is a 36px square without border`);
-      if (!await page.locator(selector).isDisabled()) assert.equal(background, "rgb(255, 255, 255)", `${selector} is white`);
-    }
+    assert.equal(await page.locator("[data-detail-close], [data-detail-zoom-in], [data-detail-zoom-out]").count(), 0,
+      "the viewer has no close or zoom buttons (owner 2026-11-14)");
   });
 });
 
@@ -1362,16 +1358,17 @@ test("M02a expand opens the playing primary video in the blurred viewer without 
       "under the viewer the primary frame shows the still blur of the video frame");
     await page.waitForTimeout(500);
     assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer video has no wait sweep behind it");
-    assert.deepEqual(await page.evaluate(() => ["zoom-in", "zoom-out"].map((hook) =>
-      document.querySelector(`[data-detail-${hook}]`).getBoundingClientRect().width)), [0, 0],
-    "a video in the viewer shows no zoom buttons");
+    assert.equal(await page.locator("[data-detail-zoom-in], [data-detail-zoom-out]").count(), 0, "the viewer has no zoom buttons");
+    await page.keyboard.press("+");
+    await page.waitForTimeout(400);
+    assert.equal((await videoClock(page)).scale, 1, "the + key does not zoom a video");
     const host = await page.locator("[data-detail-video-host] video").boundingBox();
     await page.mouse.move(host.x + host.width / 2, host.y + host.height / 2);
     await page.mouse.wheel(0, -200);
     await page.waitForTimeout(400);
     assert.equal((await videoClock(page)).scale, 1, "the wheel does not zoom a video");
     const beforeClose = await videoClock(page);
-    await page.locator("[data-detail-close]").click();
+    await page.keyboard.press("Escape");
     await viewer.waitFor({ state: "hidden" });
     await page.waitForTimeout(200);
     const closed = await videoClock(page);
@@ -1422,8 +1419,10 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
       "the viewer strip lists every media of the card and marks the video");
     const strip = await page.locator("[data-detail-viewer-thumbs]").boundingBox();
     const viewport = page.viewportSize();
-    assert(strip && strip.y + strip.height <= viewport.height && strip.y > viewport.height / 2,
-      `the strip sits at the bottom of the viewer: ${JSON.stringify(strip)}`);
+    // PC: the strip is a column at the left edge, centered vertically (owner 2026-11-14).
+    assert(strip && Math.abs(strip.x - 16) <= 1 && strip.height > strip.width
+      && Math.abs(strip.y + strip.height / 2 - viewport.height / 2) <= 1,
+      `the strip sits at the left of the viewer, centered: ${JSON.stringify(strip)}`);
     const ghost = await page.evaluate((id) => {
       document.querySelector(`[data-detail-viewer-select="${id}"]`).click();
       return Boolean(document.querySelector("[data-detail-dialog] .detail-dialog__ghost"));
@@ -1440,7 +1439,7 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
     assert.deepEqual([state.hidden, state.videoInPrimary], [false, true], "the image shows and the video is back in primary");
     assert.deepEqual(await current(), card.mediaItems.map(({ id }) => `${id}:${id === image.id}`),
       "the strip marks the image now on screen");
-    await page.locator("[data-detail-close]").click();
+    await page.keyboard.press("Escape");
     await page.locator("[data-detail-dialog]").waitFor({ state: "hidden" });
     assert.equal(await page.locator("[data-detail-view]").getAttribute("data-masonry-active-media-id"),
       image.id, "primary stays on the media seen in the viewer");

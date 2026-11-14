@@ -10,22 +10,20 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 
 - Mở `300ms`, đóng `250ms`, đường cong `--ease-viewer` ([token motion](../../motion.md#token-motion)).
 - Ảnh mở từ khung primary tới mức fit. Tỷ lệ zoom liên tục từ fit tới hai lần
-  cover; nút và con lăn nhảy giữa ba nấc fit, cover, hai lần cover. Trên màn
+  cover; con lăn và phím `+`, `-` nhảy giữa ba nấc fit, cover, hai lần cover. Trên màn
   cảm ứng chụm hai ngón zoom theo tay, vặn hai ngón xoay ảnh rồi buông thì hít
   về bội 90°, chạm một lần chuyển fit và cover
   ([spec](../../../docs/specs/advertising-viewer-touch-zoom.md)). Pan theo con
   trỏ hoặc một ngón, giới hạn trong ảnh.
-- Nút đóng góc trái trên, cụm thu nhỏ, phóng to, thu về góc phải dưới; mỗi nút
-  vuông 48px, viền 1px theo màu chữ, icon 24px nét 1.5.
-- Nền nút `white`; hover và nhấn dùng `media-control-hover`,
-  `media-control-active`; nút disabled nền `control-disabled-surface`, icon
-  `control-disabled-icon`, không hover motion.
+- Không có nút đóng và nút zoom (owner 2026-11-14): đóng bằng click nền, Escape, Back; zoom bằng con lăn,
+  phím `+`/`-`, chuột giữa về fit. Mở viewer thì focus vào chính hộp thoại.
+- PC: ảnh cách mép màn hình 16px; có dãy thumbnail thì dãy xếp dọc sát trái (cách mép 16px, giữa theo chiều dọc),
+  ảnh cách dãy ít nhất 16px, lề phải bằng lề trái nên ảnh vẫn giữa màn hình.
 - Mọi máy: nền tối `rgba(32, 33, 32, 0.85)` cộng blur `50px`; điện thoại cũng blur
   (owner 2026-10-26, trước đó không blur để giữ 60fps trên phone Android).
 - Màn cảm ứng (`hover: none`, `pointer: coarse`) không hiện nút: chụm hoặc
   chạm một lần để zoom, vặn để xoay; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.
-  Nút vẫn còn cho trình đọc màn hình và hiện lại khi focus bàn phím.
 - Back (nút back Android, vuốt mép iOS, nút back trình duyệt) chỉ đóng viewer.
 - Đổi media bằng dãy thumbnail: dải trượt ngay, cả khi ảnh đích chưa tải; ảnh chưa decode nằm dưới lớp chờ của
   [Primary](../Primary/README.md) (PC Flow mép sắc, điện thoại lớp 4 màu), cỡ bằng ảnh fit, decode xong thì

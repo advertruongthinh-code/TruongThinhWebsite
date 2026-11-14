@@ -167,11 +167,12 @@ Then viewer mở ở Fit, không zoom
 
 ### R8. Màn cảm ứng: nút viewer ẩn khỏi mắt
 
-Trên màn cảm ứng nút đóng, `+`, `−` và dãy thumbnail của viewer ẩn khỏi mắt (kiểu
-`sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
-zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
-chạm. Desktop giữ nguyên nút. Vì không còn nút hiện trên ảnh, Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh
-màn hình theo chiều giới hạn, cả dọc lẫn ngang; desktop giữ lề `80px` trên dưới và `16px`/`64px` hai bên.
+Viewer không có nút đóng, `+`, `−` trên mọi máy (owner 2026-11-14 bỏ hẳn; trước đó desktop có nút, cảm ứng ẩn khỏi mắt):
+đóng bằng chạm, click nền, Escape, Back; zoom bằng pinch (R1), chạm (R4), wheel, phím `+`/`-`. Trên màn cảm ứng dãy thumbnail
+của viewer ẩn khỏi mắt (kiểu `sr-only`) nhưng vẫn trong cây trợ năng; focus bàn phím (`:focus-visible`) thì hiện lại.
+Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh màn hình theo chiều giới hạn, cả dọc lẫn ngang. Desktop: ảnh cách
+mép `16px` bốn phía; card nhiều media thì dãy thumbnail xếp dọc, cách mép trái `16px`, giữa theo chiều dọc, ảnh cách
+dãy ít nhất `16px` và lề phải bằng lề trái nên ảnh vẫn giữa màn hình (`VIEWER_GAP`, owner 2026-11-14).
 
 ```gherkin
 Given điện thoại ngang 915×412 cảm ứng
@@ -250,8 +251,7 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 | --- | --- | --- |
 | DOM hook | `[data-detail-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
 | DOM hook | `[data-detail-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
-| DOM hook | `[data-detail-zoom-in]`, `-zoom-out` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
-| DOM hook | `[data-detail-expand]`, `[data-detail-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
+| DOM hook | `[data-detail-expand]` | Ẩn khỏi mắt trên màn cảm ứng (R7) |
 | DOM hook | `.detail-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
 | CSS | `--viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
 | Hàm public | `TruongThinhMasonry.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
