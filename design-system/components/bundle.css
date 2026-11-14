@@ -7328,10 +7328,13 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   text-align: center;
 }
 
-/* The kicker and title zoom together as one block, in flow (Espacio .layout-titular animate-zoomout). */
+/* The kicker and title zoom together as one block, in flow (Espacio .layout-titular animate-zoomout); the block is as wide as the title
+   so the 1.1 start stays inside the page. */
 .blk-article-head__titles {
   --hero-zoom-place: translate(0, 0);
   --hero-zoom-from: 1.1;
+  width: var(--fill-width);
+  margin-inline: auto;
 }
 
 /* Small line right over the title like Espacio "Interior design news": 16px bold capitals, centred, 22px tall. */
@@ -7346,8 +7349,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 .blk-article-head--list .blk-article-head__title {
   --chars: var(--chars-vi);
   max-width: none;
-  width: var(--fill-width);
-  margin-inline: auto;
+  width: 100%;
   /* About 0.7em per uppercase glyph in Plus Jakarta Sans 500; capped at Espacio's 112px. */
   font-size: min(7rem, calc((min(100vw - 2 * var(--gutter), 1370px) * 0.9) / (var(--chars) * 0.7)));
   font-weight: 500;
