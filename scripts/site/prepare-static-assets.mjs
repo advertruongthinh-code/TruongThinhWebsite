@@ -508,8 +508,10 @@ const responsivePictures = (html) =>
 // the rendered text.
 const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
 const tieLastWord = (text) => (text.trim().split(/\s+/).length < 3 ? text : text.replace(/\s+(\S+\s*)$/, "\u00a0$1"));
-const tieOrphans = (html) => html.replace(TIE_BLOCK, (_match, name, attributes, content) =>
-  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`);
+const tieElement = (_match, name, attributes, content) =>
+  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
+// Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
+const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) => open + body.replace(TIE_BLOCK, tieElement) + close);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;

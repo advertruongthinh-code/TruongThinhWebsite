@@ -167,7 +167,8 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
 - Đoạn văn không kết thúc bằng một chữ đứng lẻ ở dòng cuối. `body` đặt `text-wrap: pretty` một lần trong
   `style.css`; mọi khối chữ thừa hưởng, tiêu đề đặt `balance` riêng giữ `balance`. Chromium không luôn kéo một chữ
   dài xuống, nên lúc build `tieOrphans` (`scripts/site/prepare-static-assets.mjs`) nối hai chữ cuối bằng dấu cách
-  không ngắt trong mọi phần tử chữ song ngữ thuần (có `data-en`, không thẻ con), cả VI, EN.
+  không ngắt trong mọi phần tử chữ song ngữ thuần (có `data-en`, không thẻ con) nằm trong `<main>`, cả VI, EN;
+  `<head>`, header, menu giữ nguyên chữ.
 - Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask`, heading chia phần có `data-en` riêng, câu có
   `<br>`) không để `,` `.` `;` ở cuối dòng, kể cả dòng cuối; tiêu đề CTA cùng quy tắc. Một regex `LINE_END_PUNCT`
   trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline, `pnpm qa:content` báo lỗi các dòng trong HTML.
