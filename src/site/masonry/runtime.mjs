@@ -46,8 +46,15 @@ import {
   clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
-// The detail thumbnail strip spans the info column: the whole number of 60px+8px slots that fit, each widened to share the leftover (owner 2026-11-12).
-const detailThumbSize = (width) => (width + 8) / Math.max(1, Math.floor((width + 8) / 68)) - 8;
+// The detail thumbnail strip spans the info column: the whole number of slots 60px high (width 60px times the media ratio) plus the 8px gap
+// that fit, each widened to share the leftover (owner 2026-11-12). Every thumbnail keeps its media's ratio (owner 2026-11-14; media of one
+// card share one ratio), so the value is the thumbnail width.
+const detailThumbSize = (width, ratio = 1) => (width + 8) / Math.max(1, Math.floor((width + 8) / (60 * ratio + 8))) - 8;
+// Width over height of a card's media (its cover), the ratio of its thumbnails.
+const thumbRatio = (card) => {
+  const media = card?.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card?.media;
+  return media?.width && media?.height ? media.width / media.height : 1;
+};
 
 let activeInstance;
 
@@ -4092,7 +4099,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         photoInfo.style.width = `${width}px`;
         photoInfo.style.height = "auto";
         // Measure with the thumbnail size this width will get, the strip height follows it.
-        photoInfo.style.setProperty("--detail-thumb-size", `${detailThumbSize(width)}px`);
+        photoInfo.style.setProperty("--detail-thumb-size",
+          `${detailThumbSize(width, thumbRatio(cards.find((card) => card.id === browse.photo)))}px`);
         // A locale change runs a scale(0.9) transition on main: the rect shrinks with the scale so divide again by the set width,
         // otherwise info is 10% shorter and the description is clipped.
         const infoRect = photoInfo.getBoundingClientRect();
@@ -4156,7 +4164,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
-      "thumb-size": detailThumbSize(primary.descriptionWidth),
+      "thumb-size": detailThumbSize(primary.descriptionWidth, thumbRatio(cards.find((card) => card.id === browse.photo))),
     })) photoView.style.setProperty(`--detail-${key}`, `${value}px`);
     if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
@@ -4725,6 +4733,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       return;
     }
     const english = locale === "en";
+    // Both strips draw each thumbnail at the media's own ratio (owner 2026-11-14).
+    photoViewerThumbs?.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
     if (!photoMediaThumbs) {
       photoMediaThumbs = document.createElement("div");
       photoMediaThumbs.className = "detail-view__media-thumbs";
@@ -4735,6 +4745,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoDescriptionBox.before(photoMediaThumbs);
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
+    photoMediaThumbs.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
     photoMediaThumbs.replaceChildren();
     photoMediaThumbs.scrollLeft = 0;
     items.forEach((item, index) => {

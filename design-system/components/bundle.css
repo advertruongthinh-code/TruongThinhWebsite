@@ -6254,13 +6254,13 @@ body.is-masonry-browse .site-footer {
   --scroll-fade-to: transparent;
 }
 
-/* Thumbnails following the Pinterest pin (measured 2026-10-18): 60px, square corners (owner 2026-10-24), the current one has a dark 1px border and an inner
-   white 1px border. */
+/* Thumbnails following the Pinterest pin (measured 2026-10-18): about 60px high, square corners (owner 2026-10-24), the current one has a dark 1px border and
+   an inner white 1px border. Each keeps its media's ratio (--detail-thumb-ratio, owner 2026-11-14; before: square crops). */
 .detail-view__media-thumbs button {
   position: relative;
-  flex: 0 0 var(--detail-thumb-size, 60px);
-  width: var(--detail-thumb-size, 60px);
-  height: var(--detail-thumb-size, 60px);
+  flex: 0 0 auto;
+  width: var(--detail-thumb-size, calc(60px * var(--detail-thumb-ratio, 1)));
+  aspect-ratio: var(--detail-thumb-ratio, 1);
   overflow: hidden;
   padding: 0;
   border: 0;
@@ -6679,11 +6679,16 @@ body.is-masonry-browse .site-footer {
   z-index: 2;
   flex-direction: column;
   width: max-content;
-  max-height: calc(round(down, 100% - 2rem + 8px, 68px) - 8px);
+  max-height: calc(round(down, 100% - 2rem + 8px, 60px / var(--detail-thumb-ratio, 1) + 8px) - 8px);
   overflow: hidden auto;
   overscroll-behavior: contain;
   translate: 0 -50%;
   transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
+}
+
+/* The vertical strip keeps a 60px column; each thumbnail's height follows its media's ratio (owner 2026-11-14). */
+.detail-dialog__thumbs button {
+  width: 60px;
 }
 
 .detail-dialog__thumbs button:focus-visible {
