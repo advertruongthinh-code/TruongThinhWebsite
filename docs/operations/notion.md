@@ -19,8 +19,13 @@
   card: tạo card trước khi làm; task từ `200 LOC` ghi estimate trong card.
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
+- Điều phối tạo card (hoặc chỉ card có sẵn) trước khi giao việc, ghi link card trong brief. Thread nhận việc không
+  có link card: `search` card liên quan; không có thì tạo trước khi làm. Việc nhỏ (sửa test, rule docs, ghi
+  lastChange) gắn vào card cha đang mở thay vì bỏ qua.
+- Mọi PR ghi dòng `Card: <link card>` trong mô tả hoặc commit message; `qa-docs` fail khi thiếu
+  ([docs-system R4](../specs/docs-system.md#r4-đổi-code-là-đổi-spec)).
 - Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
-  merge (`Done`, hoặc ghi việc còn mở). Card `In progress` hoặc `Blocked` luôn
+  merge (`Done` kèm `Evidence` là link PR, hoặc ghi việc còn mở). Card `In progress` hoặc `Blocked` luôn
   có `Agent` (thread hoặc agent đang giữ) và `Next action` (bước kế tiếp cụ
   thể); sửa `Next action` mỗi khi bước đổi. Kẹt chờ owner, thiết bị, PR khác:
   chuyển `Blocked`, `Next action` ghi đang chờ gì và ai gỡ; gỡ xong về

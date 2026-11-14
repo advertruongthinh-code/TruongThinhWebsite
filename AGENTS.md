@@ -43,7 +43,8 @@
 
 Board Tasks trên Notion là backlog chung; Git `main` giữ contract, card chỉ trỏ tới đó. Việc owner giao chưa có card thì
 tạo card trước khi làm. Card là plan: mọi việc owner giao thành bước, không bỏ bước chưa tick khi owner chưa nói bỏ.
-Chi tiết: [Notion và Git](docs/operations/notion.md#rule).
+Điều phối tạo card trước khi giao việc cho thread; thread làm tiếp việc cũ thì `search` card cũ và cập nhật, không để
+đứng yên. Mọi PR có dòng `Card: <link>` trong mô tả, qa-docs kiểm. Chi tiết: [Notion và Git](docs/operations/notion.md#rule).
 
 ## Routing theo path
 
