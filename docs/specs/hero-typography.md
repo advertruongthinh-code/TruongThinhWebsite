@@ -6,6 +6,7 @@ tests:
   - tests/site/hero-typography.e2e.mjs
   - tests/site/hero-text-shadow.e2e.mjs
   - tests/site/text-mask-hidden.e2e.mjs
+  - tests/site/orphan-words.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
 updated: 2026-11-14
 ---
@@ -168,7 +169,10 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
   `style.css`; mọi khối chữ thừa hưởng, tiêu đề đặt `balance` riêng giữ `balance`. Chromium không luôn kéo một chữ
   dài xuống, nên lúc build `tieOrphans` (`scripts/site/prepare-static-assets.mjs`) nối hai chữ cuối bằng dấu cách
   không ngắt trong mọi phần tử chữ song ngữ thuần (có `data-en`, không thẻ con) nằm trong `<main>`, cả VI, EN;
-  `<head>`, header, menu giữ nguyên chữ.
+  `<head>`, header, menu giữ nguyên chữ. Nhãn hai chữ ("Main materials", "Hôm nay") nằm trọn một dòng; dấu như `·`
+  đi cùng chữ sau nó; heading kết thúc bằng phần nghiêng (`i`, `em`) nối phần đó với chữ trước.
+- Hai chữ cuối rộng hơn cột ở cỡ chữ hiện tại thì không chung dòng được: đó là giới hạn cỡ chữ, test báo riêng,
+  không tính lỗi mồ côi.
 - Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask`, heading chia phần có `data-en` riêng, câu có
   `<br>`) không để `,` `.` `;` ở cuối dòng, kể cả dòng cuối; tiêu đề CTA cùng quy tắc. Một regex `LINE_END_PUNCT`
   trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline, `pnpm qa:content` báo lỗi các dòng trong HTML.
@@ -176,7 +180,8 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
 ```gherkin
 Given mọi trang VI và EN ở 384, 390, 768, 1024, 1280, 1440, 1920
 When đo từng khối chữ bằng Range rects
-Then không đoạn văn nhiều dòng nào có dòng cuối chỉ một chữ
+Then không khối chữ nhiều dòng nào trong main có dòng cuối chỉ một chữ, trừ khi hai chữ cuối rộng hơn cột
+And không trang nào cuộn ngang
 And không dòng chốt nào của tiêu đề kết thúc bằng , . hoặc ;
 ```
 
@@ -194,7 +199,7 @@ kết quả trên PC và phone và duyệt; sau đó republish theo
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 | R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh, hero bốn trang (tiêu đề, chữ CUỘN) cũng có bóng; none ở hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
-| R7 | `tests/site/blocks.test.mjs` (tagline), `pnpm qa:content` (HTML); audit Range rects toàn site trong mô tả PR |
+| R7 | `tests/site/orphan-words.e2e.mjs`: Range rects mọi khối chữ trong main, 19 trang mẫu VI/EN, 7 bề rộng, không cuộn ngang; `tests/site/blocks.test.mjs` (tagline), `pnpm qa:content` (HTML) |
 | R6 (dòng ẩn) | `tests/site/text-mask-hidden.e2e.mjs`: mọi dòng chưa reveal nằm dưới mép clip-path, mép dưới không nới lúc ẩn, reveal xong mở lại; 5 trang, 1440 và 390, VI và EN |
 
 ## Gate còn mở
