@@ -1,12 +1,8 @@
 // Home News strip (news R4): left edge, width and column count of the three teasers match espaciohomedesign.com/en (layout-bloque-noticias)
 // measured 2026-11-14 at every width from 384 to 1920, so the 1500px cap, the gaps and the column breakpoints cannot drift again.
 import assert from "node:assert/strict";
-import path from "node:path";
 import process from "node:process";
-
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
-const { chromium } = await import("playwright");
-const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
+import { BASE_URL, launchBrowser, openPage, viewportAt } from "./harness.mjs";
 
 // Espacio [left, width] of the three items per viewport width.
 const ESPACIO = {
@@ -19,15 +15,13 @@ const ESPACIO = {
   384: [[15, 354], [15, 354], [15, 354]],
 };
 
-const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
+const browser = await launchBrowser();
 const failures = [];
 try {
   for (const [width, expected] of Object.entries(ESPACIO)) {
-    const phone = Number(width) < 600;
-    const context = await browser.newContext({ viewport: { width: Number(width), height: 900 }, isMobile: phone, hasTouch: phone });
-    const page = await context.newPage();
+    const { context, page } = await openPage(browser, viewportAt(Number(width)));
     try {
-      await page.goto(`${origin}/vi/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
       const items = await page.$$eval(".home-news__item", (links) => links.map((link) => {
         const box = link.getBoundingClientRect();
         return [Math.round(box.left), Math.round(box.width)];

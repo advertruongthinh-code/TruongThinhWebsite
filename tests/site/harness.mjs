@@ -9,6 +9,14 @@ export const VIEWPORTS = Object.freeze({
   a04s: Object.freeze({ width: 384, height: 724, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true }),
 });
 
+// Width band every web UI task must check (AGENTS.md principles, evidence-qa-handoff step 5): phone, tablet, laptop, wide PC.
+export const SWEEP_WIDTHS = Object.freeze([384, 768, 1024, 1280, 1440, 1920]);
+
+// Viewport for any width: under 600px it is a touch phone (overlay scrollbar, takes no width), like a real device.
+export const viewportAt = (width, height = 900) => (width < 600
+  ? { width, height, isMobile: true, hasTouch: true }
+  : { width, height });
+
 // The browsers path must be set before the dynamic import: Playwright reads it once, when the module loads.
 export async function launchBrowser(options) {
   process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");

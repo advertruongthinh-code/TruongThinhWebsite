@@ -36,7 +36,7 @@
 - Việc lớn: không code trước khi owner duyệt spec và plan. Plan đủ chi tiết để implementer không phải tự quyết thiết kế; gặp chỗ plan không trả lời thì dừng hỏi, không đoán.
 - Main giữ ý định, kiến trúc và kiểm chứng; kết quả của worker hay reviewer là claim tới khi main kiểm. Skill là quy trình phải đi đủ bước.
 - Cùng một check đỏ hai lần sau khi sửa: chẩn đoán trước khi sửa tiếp. Ba lần: dừng, hỏi owner.
-- QA nhìn ảnh, không chỉ đọc số; test cả chuỗi thao tác, không chỉ trạng thái cuối. Bug hồi quy: test đỏ trước.
+- QA nhìn ảnh, không chỉ đọc số; đo đủ dải cỡ màn từ điện thoại tới PC rộng; có tham chiếu thì so cùng cỡ. Test cả chuỗi thao tác, không chỉ trạng thái cuối. Bug hồi quy: test đỏ trước.
 - Site tham khảo chỉ để research, không copy source, media, logo, font. Bản EN theo dấu câu của bản VI.
 
 ## Notion trong workflow

@@ -63,7 +63,8 @@
         "node tests/site/shared-header-locale.e2e.mjs",
         "node tests/site/shared-header-menu-p7.e2e.mjs",
         "node tests/site/shared-header-single-line.e2e.mjs",
-        "node tests/site/menu-reference-parity.e2e.mjs"
+        "node tests/site/menu-reference-parity.e2e.mjs",
+        "node tests/site/layout-sweep.e2e.mjs"
       ]
     },
     "route": {
