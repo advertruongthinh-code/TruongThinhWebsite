@@ -25,6 +25,6 @@ test("demo and preview serve the localized 404 page for unknown paths", async ()
   const output = (file) => readFile(new URL(`../../.site-output/${file}`, import.meta.url), "utf8");
   const config = await readFile(new URL("../../wrangler.static.toml", import.meta.url), "utf8");
   assert.match(config, /^not_found_handling = "404-page"$/m);
-  assert.match(await output("404.html"), /<html[^>]*lang="vi"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*không tồn tại/);
-  assert.match(await output("en/404.html"), /<html[^>]*lang="en"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*does not exist or has\smoved\./);
+  assert.match(await output("404.html"), /<html[^>]*lang="vi"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*không còn ở đây/);
+  assert.match(await output("en/404.html"), /<html[^>]*lang="en"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*no longer here or has\smoved/);
 });
