@@ -161,7 +161,7 @@ export const MEDIA_COLORS = Object.freeze({
  "led-displays-lightboxes-50-imagegen-20261018": ["#a88878","#bca9ad","#c89b7a","#9d7c67","#503b2b",25],
  "led-displays-lightboxes-51-imagegen-20261018": ["#785838","#b8aea0","#967559","#6e4d30","#361e09",13],
  "led-displays-lightboxes-52-chatgpt-20261031": ["#a87848","#d1c26c","#b3783b","#9b531d","#492708",10],
- "led-displays-lightboxes-53-led-phong-kham-thu-y-20261113": ["#080808","#cac2ce","#8d8c8c","#625f65","#352d2b",17],
+ "led-displays-lightboxes-53-led-phong-kham-thu-y-20261113-v2": ["#080808","#d0c7d3","#8e8c8b","#646165","#342c2a",17],
  "meeting-acrylic-02": ["#a8a8a8","#b0b2b3","#7a8284","#424a4d","#25282a",22],
  "meeting-acrylic-02-audit-a149-v1": ["#d8d8d8","#dbdcdd","#aaacab","#64696b","#323638",31],
  "meeting-brushed-01": ["#c8c8c8","#cbc6c1","#a1978b","#7e654d","#423d36",59],
