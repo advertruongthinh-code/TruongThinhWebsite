@@ -135,7 +135,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ngay lúc bắt đầu nhịp cùng nền, khi mở ra thì đổi ở `0.3s` cùng nền | Mỗi lần header đổi tone |
-| Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: mark lật sang trắng ngay lúc bắt đầu; nền trắng, viền và chữ đậm giữ, nền bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng, không fade (owner 2026-11-09). Cỡ lớn nhất của nền: logo lớn nhất cách đều cạnh trên và cạnh dưới nền | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
+| Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: mark lật sang trắng và viền mất ngay lúc bắt đầu (owner 2026-11-15); nền trắng và chữ đậm giữ, nền bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng, không fade (owner 2026-11-09). Cỡ lớn nhất của nền: logo lớn nhất cách đều cạnh trên và cạnh dưới nền | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
 | Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s`, bắt đầu ngay (thu gọn, mở ra, bấm chuyển trang, trang đích gắn vào) hoặc từ `0.1s` (đổi tone theo section) | Theo state machine dưới |
 | Màu mark khi chuyển trang | Theo nhịp Espacio (owner 2026-11-15). Lúc bấm: chữ đổi dần sang `#2f2f2f` `0.3s expo.out`, mark đang trắng lật sang CMYK ngay (đang CMYK thì giữ), xong trước khi veil phủ kín (`0.75s`). Trang đích gắn vào dưới veil: chữ đổi dần `0.3s expo.out` sang tone trang đích, mark lật sang màu trang đích; veil mở ngay khi trang sẵn sàng, không giữ tối thiểu | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio. Đổi ngôn ngữ thì cả header ẩn ngay lúc bấm, veil trắng phủ trống tới khi trang mới tải (owner 2026-11-10) | Route mềm ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); đổi ngôn ngữ ([R4](../docs/specs/logo-route-crossfade.md#r4-đổi-ngôn-ngữ)) |
@@ -177,7 +177,8 @@ hiện thành xám thoáng qua.
 
 Khi thu gọn, nền trắng, viền và chữ đậm hiện ngay lúc logo và navbar bắt đầu
 chạy, không fade; nền bắt đầu ở cao cũ rồi co cùng logo và navbar trong `0.3s`
-(owner 2026-11-09). Khi mở ra (kéo lên), nền trắng, viền và chữ đậm giữ, nền
+(owner 2026-11-09). Khi mở ra (kéo lên), viền mất ngay lúc bắt đầu (owner 2026-11-15); nền trắng
+và chữ đậm giữ, nền
 bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi một lần sang
 nền trong, chữ trắng, không fade (owner 2026-11-09). Nền và chữ đổi cùng một
 frame nên chữ luôn đọc được: chữ đen chỉ hiện trên nền trắng, chữ trắng chỉ hiện
