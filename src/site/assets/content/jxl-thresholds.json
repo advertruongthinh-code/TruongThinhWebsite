@@ -2205,6 +2205,33 @@
   "1600": 278234,
   "2048": 288116
  },
+ "assets/content/projects/homestay-nha-go-ven-song-ban-an.jxl": {
+  "960": 61651,
+  "1600": 80543
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-goc-tra-hien.jxl": {
+  "960": 86832,
+  "1600": 121257
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-hien-gach-tau.jxl": {
+  "960": 70624,
+  "1600": 90594
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song-card-wide.jxl": {
+  "960": 117904,
+  "1600": 164646
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song.jxl": {
+  "960": 111499
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-phong-khach.jxl": {
+  "960": 57433,
+  "1600": 69968
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-phong-ngu-cua-so-tron.jxl": {
+  "960": 46982,
+  "1600": 56904
+ },
  "assets/content/projects/homestay-nha-go-ven-song-shot-1-card-wide.jxl": {
   "960": 93310,
   "1600": 135427
@@ -2235,6 +2262,14 @@
  "assets/content/projects/homestay-nha-go-ven-song-shot-7.jxl": {
   "960": 76563,
   "1600": 105408
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-tu-ao-go.jxl": {
+  "960": 27567,
+  "1600": 29572
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-tu-bep.jxl": {
+  "960": 34189,
+  "1600": 39678
  },
  "assets/content/projects/homestay-phong-ngu.jxl": {
   "960": 250236,
