@@ -201,8 +201,9 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 
 ## Gate còn mở
 
-Hai gate trước CMS (owner 2026-11-15, mỗi gate phỏng vấn owner trước): làm lại layout trang chuẩn theo Espacio (R6), và
-nghiên cứu motion chuyển trang giữa hero có ảnh và hero trắng cùng motion chữ trên hero trắng của Espacio.
+Gate trước CMS (owner 2026-11-15, mỗi gate phỏng vấn owner trước): làm lại layout trang chuẩn theo Espacio (R6) còn
+mở. Motion chuyển trang giữa hero ảnh và hero trắng đã xong ở PR #966 ([logo route](logo-route-crossfade.md)); trang
+chỉ gắn đúng layout, không có tham số motion.
 
 ## Chú thích thuật ngữ
 
