@@ -2,7 +2,7 @@
 
 ## Bắt đầu
 
-1. Mọi role dùng `ponytail` ultra. Skill của agent-skills, ponytail, impeccable, graphify, `i-have-adhd` do AI tự gọi; skill caveman (22 skill từ juliusbrussee/caveman) chỉ chạy khi user chỉ định (`disable-model-invocation: true` do `cloud-setup.sh`/`local-setup.ps1` gắn). Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
+1. Mọi role dùng `ponytail` ultra. Skill của agent-skills, ponytail, impeccable, graphify, `i-have-adhd` do AI tự gọi; skill caveman (22 skill từ juliusbrussee/caveman) chỉ chạy khi user chỉ định (`disable-model-invocation: true` do `cloud-setup.sh`/`local-setup.ps1` gắn). Không emoji ở mọi nơi (response, repo, commit, issue, card, Notion); dùng chữ thuần.
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
    Cần kiến thức ngoài module (tech stack, runtime, spec, decision): mở [docs index](docs/index.md), chọn đúng file `docs/*.md` rồi đọc; tech stack ở [Architecture](docs/architecture.md#tech-stack).
@@ -101,11 +101,12 @@ cache hay untracked worktree.
 - `STATE` mâu thuẫn hoặc nghi stale: repository evidence, test, accepted Git document thắng. Verify, sửa `STATE`; chưa rõ thì ghi unknown.
 - SSoT là GitHub, nhánh `main`. Checkout local, project memory, Notion đi theo `main`; lệch thì `main` thắng.
 - Project memory (`MEMORY.md` của Claude project, ngoài Git) chỉ giữ thứ repo không chứa: preference và cách làm việc của owner, thread nào sở hữu việc gì, device/Remote Control, link ngoài. Fact về repo (phase, active work, blocker, demo, command) thuộc `STATE` hoặc doc sở hữu; memory chỉ link tới, không copy.
+- Sửa agent: rule máy kiểm được thì thêm check [R11](docs/specs/docs-system.md#r11-rule-agentsmd-máy-kiểm-được), không chỉ thêm chữ.
 - Owner đổi cách làm việc: ghi memory; nếu đổi rule repo (branch, tool, gate) thì cập nhật `AGENTS.md`/doc sở hữu trong PR. Memory lệch `main` về fact repo: sửa memory.
 
 ## Viết và phản hồi
 
-- Code viết hoàn toàn bằng tiếng Anh: identifier, chuỗi, tên file, hàm và mọi code comment (JS, CSS, HTML comment, shell, PowerShell, workflow YAML, test). Không thuộc code nên giữ nguyên: text hiển thị trên UI, chuỗi i18n, dữ liệu nội dung, slug và URL tiếng Việt, tên file và ID hiện có. Áp dụng cho code mới và code sửa; comment tiếng Việt gặp trong file đang sửa thì dịch luôn. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md). Tên file Markdown là slug mô tả, không mã số.
+- Code viết hoàn toàn bằng tiếng Anh: identifier, chuỗi, tên file, hàm và mọi code comment (JS, CSS, HTML comment, shell, PowerShell, workflow YAML, test). Không thuộc code nên giữ nguyên: text hiển thị trên UI, chuỗi i18n, dữ liệu nội dung, slug và URL tiếng Việt, tên file và ID hiện có. `qa:docs` kiểm comment. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md). Tên file Markdown là slug mô tả, không mã số.
 - Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, việc đang chờ (không đoán thời gian khi không có số đo), lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 

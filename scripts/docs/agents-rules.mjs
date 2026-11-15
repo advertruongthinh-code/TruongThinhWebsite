@@ -1,0 +1,94 @@
+// AGENTS.md rules a machine can check (docs/specs/docs-system.md R11). Pure functions: callers pass file lists and a reader.
+import { dirname, join, normalize } from 'node:path';
+
+const TEXT = /\.(m?js|cjs|ts|css|html|md|json|ya?ml|toml|sh|ps1|psm1|py|txt|svg)$/i;
+const CODE = /\.(m?js|cjs|ts|css|html|ya?ml|toml|sh|ps1|psm1|py)$/i;
+const HASH_COMMENT = /\.(ya?ml|toml|sh|ps1|psm1|py)$/i;
+// Pictographs and dingbats; plain symbols such as arrows or the check mark in box-drawing are not emoji.
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B55}\u{FE0F}]/u;
+const VI_LETTER = /[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i;
+
+export function emojiErrors(files, read) {
+  const errors = [];
+  for (const file of files.filter((f) => TEXT.test(f) && f !== 'pnpm-lock.yaml')) {
+    read(file).split('\n').forEach((line, i) => {
+      if (EMOJI.test(line)) errors.push(`emoji: ${file}:${i + 1}: AGENTS.md bans emoji; write plain words`);
+    });
+  }
+  return errors;
+}
+
+// Comment text of each line: whole-line comments, block comment bodies and trailing comments.
+function comments(file, text) {
+  const hash = HASH_COMMENT.test(file);
+  const out = [];
+  let block = false;
+  text.split('\n').forEach((line, i) => {
+    const s = line.trim();
+    let body = null;
+    if (block) {
+      body = line;
+      if (/\*\/|-->/.test(line)) block = false;
+    } else if (/^(\/\/|\/\*|\*|<!--)/.test(s) || (hash && s.startsWith('#'))) {
+      body = s;
+      block = (s.startsWith('/*') && !s.includes('*/')) || (s.startsWith('<!--') && !s.includes('-->'));
+    } else {
+      body = line.match(/\s\/\/\s(.*)$/)?.[1] ?? (hash ? line.match(/\s#\s(.*)$/)?.[1] : null) ?? line.match(/\/\*(.*?)\*\//)?.[1] ?? null;
+    }
+    if (body) out.push([i + 1, body]);
+  });
+  return out;
+}
+
+// A comment is Vietnamese prose when, after dropping quoted UI copy, at least 3 words and 30% of words carry Vietnamese letters.
+// Quoting a Vietnamese label or name inside an English comment stays allowed (AGENTS.md: UI text is not code).
+export function isVietnameseProse(comment) {
+  const words = comment.replace(/"[^"]*"|`[^`]*`|“[^”]*”/g, ' ').split(/[^\p{L}]+/u).filter(Boolean);
+  const vi = words.filter((w) => VI_LETTER.test(w)).length;
+  return vi >= 3 && vi / words.length >= 0.3;
+}
+
+export function commentLanguageErrors(files, read) {
+  const errors = [];
+  for (const file of files.filter((f) => CODE.test(f) && !f.startsWith('design-system/'))) {
+    for (const [line, body] of comments(file, read(file))) {
+      if (isVietnameseProse(body)) errors.push(`comment language: ${file}:${line}: code comments are English (AGENTS.md); quote Vietnamese UI copy inside an English sentence`);
+    }
+  }
+  return errors;
+}
+
+// The static site never loads CMS code: src/site may not import src/worker, src/admin or src/db.
+export function cmsImportErrors(files, read) {
+  const errors = [];
+  for (const file of files.filter((f) => f.startsWith('src/site/') && /\.(m?js|cjs|html)$/.test(f))) {
+    for (const [, spec] of read(file).matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*|\bsrc=)["']([^"']+)["']/g)) {
+      const target = spec.startsWith('.') ? normalize(join(dirname(file), spec)) : spec.replace(/^\//, '');
+      if (/^src\/(worker|admin|db)\//.test(target)) errors.push(`cms import: ${file} loads ${spec}; static pages never use CMS code (AGENTS.md)`);
+    }
+  }
+  return errors;
+}
+
+// New Markdown files carry a descriptive slug: lowercase words joined by hyphens, no code prefix (F1, R4, P13) and no date.
+const UPPER_NAMES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md', 'SKILL.md', 'STATE.md', 'DESIGN.md', 'PRODUCT.md', 'TOOLING.md', 'CHANGELOG.md']);
+export function markdownNameErrors(addedFiles) {
+  const errors = [];
+  for (const file of addedFiles.filter((f) => f.endsWith('.md'))) {
+    const name = file.split('/').pop();
+    if (UPPER_NAMES.has(name) || name.startsWith('_')) continue;
+    const parts = name.slice(0, -3).split('-');
+    const bad = !/^[a-z0-9]+(-[a-z0-9]+)*\.md$/.test(name) || /^[a-z]?\d+[a-z]?$/.test(parts[0]) || /\d{4}/.test(name);
+    if (bad) errors.push(`markdown name: ${file}: use a descriptive lowercase slug without code or date (AGENTS.md)`);
+  }
+  return errors;
+}
+
+// A PR that changes site source states its screenshot QA: a filled `Ảnh QA` line, or why there is none.
+export function qaLineErrors(changedFiles, body) {
+  const ui = changedFiles.some((f) => f.startsWith('src/site/') && !f.endsWith('.md'));
+  if (!ui) return [];
+  const line = body.match(/^Ảnh QA[^:\n]*:[ \t]*(.*)$/m)?.[1]?.trim() ?? '';
+  if (line && !line.startsWith('<')) return [];
+  return ['qa line: the PR changes src/site/ but has no filled line "Ảnh QA (UI): <links or measures at 384, 768, 1024, 1280, 1440, 1920>" (or "Ảnh QA (UI): không đổi UI - <lý do>")'];
+}
