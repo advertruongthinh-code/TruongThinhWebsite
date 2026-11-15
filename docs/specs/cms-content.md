@@ -14,7 +14,7 @@ updated: 2026-11-15
 ## Mục đích
 
 Contract của những gì người soạn thêm, sửa, xóa trong CMS: kiểu nội dung và file chiếu, hai ngôn ngữ, media, card
-masonry, layout khóa theo số media, trang chuẩn, menu và CTA, soạn chữ. Nền tảng (quyền, trạng thái, lệnh admin, xuất
+masonry, layout khóa theo số media, trang chuẩn, menu và CTA, soạn chữ, tìm kiếm ngữ nghĩa. Nền tảng (quyền, trạng thái, lệnh admin, xuất
 bản, xem trước) ở [CMS](cms.md). Chưa có code theo spec này.
 
 ## Hành vi
@@ -179,6 +179,33 @@ When lưu
 Then trả 400, dữ liệu chữ không đổi
 ```
 
+### R9. Tìm kiếm ngữ nghĩa và hỗ trợ nhập
+
+Owner duyệt 2026-11-15 (thread tìm kiếm ngữ nghĩa). Lúc lưu, CMS gọi Worker Cloudflare tính vector, không chạy trên máy
+người soạn; mỗi media một vector, video lấy tới khoảng 10 giây hoặc từng đoạn 15 giây với clip dài.
+
+| Thao tác | Vector và lớp từ khóa |
+| --- | --- |
+| Thêm card hoặc media | Tạo vector, cập nhật từ khóa |
+| Sửa tên, mô tả, alt | Tính lại vector chữ |
+| Thay media | Tính lại vector của media đó |
+| Xóa | Gỡ vector và từ khóa |
+
+Worker lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; vector tính lại sau. Không có trường từ khóa riêng: lớp từ khóa
+tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ liệu Keyword Planner. Keyword Planner không
+chạy lại khi CRUD, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm sản phẩm; sau này bảng đồng nghĩa sửa được trong cài
+đặt CMS.
+
+Hỗ trợ nhập lúc upload (phase sau): Gemma 4 trên Workers AI đọc ảnh, soạn nháp tên, mô tả, alt VI/EN theo luật chữ của
+owner; 5 ảnh giống nhất gợi ý sản phẩm, nhóm, tag; gợi ý Keyword Planner hiện khi gõ; kiểm trước khi lưu (alt không
+trùng trong card, độ dài, chữ mồ côi). Không lưu gì tới khi người soạn bấm.
+
+```gherkin
+Given Worker tính vector đang lỗi
+When người soạn lưu một card mới
+Then card lưu và tìm được theo từ khóa, vector được tính lại khi Worker chạy lại
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -198,6 +225,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 | R3 | `pnpm qa:worker:security` (WebP, SVG an toàn); cần thêm: loại, cỡ, poster, alt trùng, orphan, crop |
 | R4 | `media-contract.mjs` hôm nay; cần thêm: card công trình từ 2 media, media thuộc trang |
 | R6, R7, R8 | chưa có; cần: placeholder slot, 6 mục menu, CTA đọc một nguồn, bộ kiểm chữ |
+| R9 | chưa có; cần: CRUD cập nhật vector, Worker lỗi vẫn lưu và thử lại |
 
 ## Gate còn mở
 
