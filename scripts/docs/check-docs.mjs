@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
+import { cmsImportErrors, commentLanguageErrors, emojiErrors, markdownNameErrors, qaLineErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -120,6 +121,9 @@ if (docsBase) {
   if ((PR_NUMBER || process.env.PR_BODY) && !/^Card: (https:\/\/(app\.notion\.com|www\.notion\.so)\/\S+|chờ tạo)/m.test(body)) {
     errors.push('card: the PR description or a commit message on this branch has no line, alone and unformatted: Card: <link Notion card> (or Card: chờ tạo when Notion is unreachable)');
   }
+  // AGENTS.md rules on the branch (R11): new Markdown names, and the Ảnh QA line on PRs (same PR_NUMBER or PR_BODY condition as the card gate).
+  errors.push(...markdownNameErrors(git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(Boolean)));
+  if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body));
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
@@ -153,6 +157,11 @@ if (docsBase) {
     }
   }
 }
+
+// AGENTS.md rules on every tracked file (R11): no emoji, English code comments, no CMS code in the static site.
+const tracked = git('ls-files').split('\n').filter((f) => f && existsSync(f));
+const readText = (f) => readFileSync(f, 'utf8');
+errors.push(...emojiErrors(tracked, readText), ...commentLanguageErrors(tracked, readText), ...cmsImportErrors(tracked, readText));
 
 // Design drift (design-system.md R1.2): every custom property in the top :root block of style.css has a token with the same name and value.
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));

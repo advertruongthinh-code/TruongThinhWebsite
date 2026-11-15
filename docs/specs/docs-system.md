@@ -1,16 +1,18 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-11-12
+updated: 2026-11-15
 source:
   - scripts/docs/check-docs.mjs
+  - scripts/docs/agents-rules.mjs
   - .github/pull_request_template.md
   - .github/workflows/docs.yml
 tests:
   - scripts/docs/check-docs.mjs
   - tests/tooling/docs-malformed-link.test.mjs
   - tests/tooling/docs-sync-local.test.mjs
-notion: none
+  - tests/tooling/agents-rules.test.mjs
+notion: https://app.notion.com/p/419332849a0e81648515dee0df69a0af
 ---
 
 # Hệ thống tài liệu gọn, spec sống theo code
@@ -195,6 +197,19 @@ plan và việc owner giao dạng ô tick ([sổ việc](../operations/notion.md
 owner 2026-10-25). Không spec nháp hay evidence trong Notion. Board Tasks là backlog của điều phối và mọi worker; quyền tạo, cập
 nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 
+### R11. Rule AGENTS.md máy kiểm được
+
+Mỗi lần sửa agent mà rule đó máy kiểm được thì thêm check, không chỉ thêm chữ (owner 2026-11-15). `pnpm qa:docs` chạy
+các check trong `scripts/docs/agents-rules.mjs`:
+
+| Check | Fail khi |
+| --- | --- |
+| emoji | File text Git quản lý có emoji |
+| comment language | Comment trong code (trừ `design-system/` sinh ra) là câu tiếng Việt: từ 3 từ và 30% số từ có dấu tiếng Việt, sau khi bỏ phần trong ngoặc kép; trích chữ UI tiếng Việt trong câu tiếng Anh vẫn được |
+| cms import | File trong `src/site/` import hoặc nạp `src/worker/`, `src/admin/`, `src/db/` |
+| markdown name | File Markdown mới trên branch không phải slug chữ thường nối gạch, hoặc mở đầu bằng mã (F1, R4, P13), hoặc có năm/ngày |
+| qa line | Chạy trên PR, branch đổi `src/site/` mà mô tả PR và commit message không có dòng `Ảnh QA ...:` đã điền (không còn `<...>` của template) |
+
 ## Ranh giới
 
 - Luôn: viết tiếng Việt, giữ English technical term; dùng
@@ -210,6 +225,7 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 | --- | --- |
 | R1, R8 | `pnpm qa:docs` (links) và liệt kê thư mục |
 | R2, R4, R9 | `pnpm qa:docs` (ownership, sync, budget) |
+| R11 | `pnpm qa:docs`; `tests/tooling/agents-rules.test.mjs` |
 | R3 | Agent đối chiếu từng requirement với source và test khi review PR |
 | R5-R7 | Xem [Design System và Impeccable](design-system.md#kiểm-tra) |
 | R10 | Owner xem board Notion |
