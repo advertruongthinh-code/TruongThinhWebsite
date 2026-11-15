@@ -174,13 +174,11 @@
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
-  // Soft route: the header is in veil tone (bold text, CMYK mark) from when the veil fully covers until it starts opening, even when the
-  // destination page mounts under the veil (logo-route-crossfade R1, R2).
+  // Soft route: the header is in veil tone (bold text, CMYK mark) from the click until the destination page mounts
+  // (logo-route-crossfade R1, R2; Espacio timing, owner 2026-11-15).
   let routeVeilInk = false;
-  // The veil covers fully for at least 0.7s (owner 2026-11-13, was 1s), longer than one mark flip (0.68s), even when the destination page is already cached: bold text and CMYK mark
-  // show long enough on the veil, the navbar does not flicker (owner 2026-11-09, logo-route-crossfade R2).
-  const routeVeilHold = 700;
-  let routeVeilCoveredAt;
+  // Route header tone changes tween text color over 0.3s expo.out like Espacio's colorHeader (owner 2026-11-15); scroll tone changes stay immediate.
+  let headerColorTween = false;
   let pageHeaderInk = false;
   let hardFallbackPending = false;
   let menuTimeline;
@@ -517,11 +515,20 @@
     applyLanguage(currentLanguage, false, !translatedByServer);
   };
 
-  // Logo text, nav, hamburger change color immediately, no motion (owner 2026-11-09), both while scrolling and during page transitions.
+  // Logo text, nav, hamburger change color immediately while scrolling (owner 2026-11-09); a page transition tweens them 0.3s expo.out
+  // (headerColorTween, logo-route-crossfade R1, R2).
   const colorHeader = (color) => {
     currentHeaderColor = color;
-    header.querySelectorAll("#header-logo, .desktop-nav a, .menu-button").forEach((target) => target.style.setProperty("color", color));
-    header.querySelectorAll(".menu-button line").forEach((target) => target.style.setProperty("stroke", color));
+    const texts = header.querySelectorAll("#header-logo, .desktop-nav a, .menu-button");
+    const lines = header.querySelectorAll(".menu-button line");
+    if (hasGsap) gsap.killTweensOf([...texts, ...lines], "color,stroke");
+    if (headerColorTween && hasGsap && !reduceMotion) {
+      gsap.to(texts, { color, duration: headerBeat, ease: "expo.out" });
+      gsap.to(lines, { stroke: color, duration: headerBeat, ease: "expo.out" });
+      return;
+    }
+    texts.forEach((target) => target.style.setProperty("color", color));
+    lines.forEach((target) => target.style.setProperty("stroke", color));
   };
 
   /**
@@ -678,7 +685,7 @@
     const collapsed = scrollY > 100 || document.body.classList.contains("is-detail");
     // The page's own tone, ignoring the route pin layer; playRouteEnter reads it to change the mark when the veil opens.
     pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
-    // Soft route (routeMarkHeld): veil tone only while the veil fully covers; direct entry: until the destination page is ready.
+    // Soft route (routeMarkHeld): veil tone from the click until the destination page mounts; direct entry: until the destination page is ready.
     const ink = (routeTransitionActive && (routeMarkHeld ? routeVeilInk : !routeDestinationReady)) || pageHeaderInk;
     const collapsedChanged =
       lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
@@ -1059,7 +1066,7 @@
     header.classList.remove("is-hidden");
     header.classList.add("is-route-pinned");
     routeDestinationReady = false;
-    // On click, text and mark keep their color; they change when the veil fully covers (inkRouteHeader).
+    // The click handler pins only; coverRoute switches to veil tone (inkRouteHeader) when the route starts.
     routeMarkHeld = true;
     routeVeilInk = false;
     void header.offsetHeight;
@@ -2195,16 +2202,20 @@
     pageState?.smoothScroll?.start();
   };
 
-  // Veil fully covering (owner 2026-11-09): text, nav, hamburger switch to bold immediately, no motion; a white mark flips to
-  // CMYK from exactly then, a CMYK mark stays (logo-route-crossfade R1).
-  const inkRouteHeader = () => {
-    if (!routeMarkHeld) return;
-    routeVeilInk = true;
-    routeVeilCoveredAt = performance.now();
+  // Route header tone (Espacio colorHeader, owner 2026-11-15): text, nav, hamburger tween 0.3s expo.out and the mark flips at once,
+  // to bold and CMYK at the click (R1), to the destination tone when the destination page mounts (R2). An unchanged tone does nothing.
+  const tweenRouteHeader = (ink) => {
+    routeVeilInk = ink;
+    if (!ink) updateToneRanges();
+    headerColorTween = true;
     updateHeader();
+    headerColorTween = false;
     headerMarkLeadFor = 0;
-    syncHeaderBrandSurface(true);
+    syncHeaderBrandSurface(ink || pageHeaderInk);
     headerMarkLeadFor = headerSettle;
+  };
+  const inkRouteHeader = () => {
+    if (routeMarkHeld) tweenRouteHeader(true);
   };
 
   const coverRoute = () => {
@@ -2213,11 +2224,11 @@
     routeMountReady = false;
     pinHeaderForRoute();
     document.body.classList.add("is-transitioning");
+    inkRouteHeader();
     pageState?.smoothScroll?.stop();
     const fade = new Promise((resolve) => {
       if (!hasGsap || reduceMotion) {
         setRouteVeil(1);
-        inkRouteHeader();
         resolve();
         return;
       }
@@ -2226,10 +2237,7 @@
         opacity: 1,
         duration: 0.75,
         ease: "power4.inOut",
-        onComplete: () => {
-          inkRouteHeader();
-          resolve();
-        },
+        onComplete: resolve,
       });
     });
     return fade;
@@ -2261,10 +2269,12 @@
       clearRouteEntry();
       return;
     }
+    // Destination page mounted: the header turns to the destination tone now, under the still covering veil (logo-route-crossfade R2).
+    // routeMarkHeld holds until clearRouteEntry so updateHeader while the veil opens does not redraw the mark.
+    if (routeMarkHeld && cover === routeCoverCount) tweenRouteHeader(false);
     // The veil also waits for fonts so hero text does not change font after being revealed; a failed font still completes ready (progressive-loading R4).
+    // No minimum covered time: the veil opens as soon as the page is ready, like Espacio (owner 2026-11-15).
     await document.fonts.ready;
-    const hold = routeMarkHeld && routeVeilInk ? routeVeilCoveredAt + routeVeilHold - performance.now() : 0;
-    if (hold > 0) await new Promise((resolve) => setTimeout(resolve, hold));
     // A route that started covering during the waits owns the veil now: killing its cover tween would drop the
     // onComplete that Barba's leave() awaits, so the transition would never finish (site-shell R6).
     if (cover !== routeCoverCount) return;
@@ -2275,16 +2285,6 @@
     setRouteVeil(1);
     startRouteReveal();
     pageState?.headerIntro?.play();
-    if (routeMarkHeld) {
-      // Veil starts opening: text switches immediately to the destination page's tone, the mark flips to the destination page's color from then (logo-route-crossfade R2);
-      // routeMarkHeld holds until clearRouteEntry so updateHeader while the veil opens does not redraw the mark.
-      routeVeilInk = false;
-      updateToneRanges();
-      updateHeader();
-      headerMarkLeadFor = 0;
-      syncHeaderBrandSurface(pageHeaderInk);
-      headerMarkLeadFor = headerSettle;
-    }
     return new Promise((resolve) => {
       routeTimeline = window.gsap.to(routeVeil, {
         opacity: 0,

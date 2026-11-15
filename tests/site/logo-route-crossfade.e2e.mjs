@@ -1,5 +1,5 @@
-// Veil fully covering: text switches to bold immediately, the mark flips to CMYK; veil opening: text switches immediately, the mark flips to the destination page color; the logo cluster
-// stays visible above the veil (docs/specs/logo-route-crossfade.md R1-R7).
+// Click: text tweens to bold and the mark flips to CMYK; destination mount: text tweens and the mark flips to the destination page color; no minimum
+// covered time; the logo cluster stays visible above the veil (docs/specs/logo-route-crossfade.md R1-R7).
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/logo-route-crossfade.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -85,15 +85,20 @@ const go = async (page, selector) => {
 const white = "rgb(255, 255, 255)";
 const ink = "rgb(47, 47, 47)";
 const cyan = "rgb(0, 160, 227)";
-// On the veil (owner 2026-11-09): at click, text and mark keep their color; when the veil fully covers, text switches to bold immediately and a white mark
-// flips to CMYK; when the veil starts opening, text switches immediately to the destination tone and the mark flips to the destination color. No color tween.
+// Espacio timing (owner 2026-11-15): leaving a white header, text tweens to bold and the mark flips to CMYK at the click; when the destination page mounts
+// (veil still covering) text tweens to the destination tone and the mark flips to the destination color; no minimum covered time.
+// texts: the colors the text settles on, in order (tween frames in between are allowed).
 const scenarios = [
   { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', texts: [white, ink, white], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-inverse" },
   { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', texts: [white, ink], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-color" },
   { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', texts: [ink, white], flip: { front: white, back: cyan, rate: -1 }, final: "is-brand-inverse" },
+  { name: "advertising to projects", from: "/vi/advertising-products/", link: 'a[href="/vi/projects/"]', texts: [ink], flip: null, final: "is-brand-color" },
 ];
-// One frame: the GSAP callback at full veil coverage may run before or after the recorder's read within the same frame.
+// One frame: the GSAP callback may run before or after the recorder's read within the same frame.
 const frame = 40;
+// Text tween: 0.3s expo.out, so a color reached counts from its first frame; the tween toward it starts one frame earlier.
+const settledColors = (texts) => texts.map(({ color }) => color).filter((color) => color === white || color === ink)
+  .filter((color, index, list) => color !== list[index - 1]);
 
 try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 412, height: 915 }]) {
@@ -106,25 +111,37 @@ try {
       assert.equal(record.tweens, 0, `${label}: mark never tweens its fill ${dump}`);
       assert.equal(record.markUnderFlip, 0, `${label}: original mark stays hidden under the flip layer ${dump}`);
       assert.equal(record.final, scenario.final, `${label}: final mark colour`);
-      // Text switches immediately, no tween: only these exact colors, no intermediate color.
-      assert.deepEqual(record.texts.map(({ color }) => color), scenario.texts, `${label}: text switches without a tween ${dump}`);
-      const toInk = record.texts.find(({ color }) => color === ink);
-      if (scenario.texts[0] !== ink) assert.ok(toInk.at >= record.veilClosed - frame, `${label}: text turns ink once the veil covers ${dump}`);
-      const toDestination = record.texts.find(({ color }, index) => index && color !== ink);
-      if (toDestination) {
-        assert.ok(toDestination.at >= record.veilClosed && toDestination.at <= record.veilOpening, `${label}: text turns to the destination tone as the veil starts to open ${dump}`);
+      assert.deepEqual(settledColors(record.texts), scenario.texts, `${label}: text settles on these colors ${dump}`);
+      // R1: leaving a white header, the text starts turning bold at the click and is bold before the veil fully covers.
+      if (scenario.texts[0] === white) {
+        assert.ok(record.texts[1].at <= record.click + 2 * frame, `${label}: text starts turning bold at the click ${dump}`);
+        const inkAt = record.texts.find(({ color }) => color === ink).at;
+        assert.ok(inkAt <= record.veilClosed + frame, `${label}: text is bold before the veil covers ${dump}`);
       }
-      // Veil stays fully covering at least 0.7s (owner 2026-11-13) even if the destination page loads instantly, so the navbar does not flicker.
-      assert.ok(record.veilOpening - record.veilClosed >= 700 - frame, `${label}: veil stays covered for the minimum hold ${dump}`);
-      // The mark flips (no tween) from full veil coverage or from veil opening start, not from the click.
-      assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
-      const { at, ...flip } = record.flips[0];
-      assert.deepEqual(flip, scenario.flip, `${label}: first flip ${dump}`);
-      assert.ok(at >= record.veilClosed - frame, `${label}: first flip waits for the full veil ${dump}`);
+      // R2: the text turns to the destination tone once the destination mounts under the covering veil, before the veil opens.
+      const lastInk = record.texts.findLastIndex(({ color }) => color === ink);
+      if (scenario.texts.at(-1) === white) {
+        const towardWhite = record.texts[lastInk + 1];
+        assert.ok(towardWhite.at >= record.veilClosed - frame && towardWhite.at <= record.veilOpening + frame, `${label}: text turns to the destination tone under the veil ${dump}`);
+      }
+      // No minimum covered time (owner 2026-11-15): the veil opens soon after the destination mounts.
+      if (scenario.texts.at(-1) === white) {
+        assert.ok(record.veilOpening - record.texts[lastInk + 1].at < 400, `${label}: the veil opens right after the destination mounts ${dump}`);
+      }
+      if (scenario.flip) {
+        assert.ok(record.flips.length >= 1, `${label}: mark flips ${dump}`);
+        const { at, ...flip } = record.flips[0];
+        assert.deepEqual(flip, scenario.flip, `${label}: first flip ${dump}`);
+        // Leaving a white header the CMYK flip starts at the click; entering from a CMYK mark it starts at destination mount.
+        if (scenario.texts[0] === white) assert.ok(at <= record.click + 2 * frame, `${label}: CMYK flip starts at the click ${dump}`);
+        else assert.ok(at >= record.veilClosed - frame && at <= record.veilOpening + frame, `${label}: flip starts at destination mount ${dump}`);
+      } else {
+        assert.equal(record.flips.length, 0, `${label}: white hero to white hero keeps the CMYK mark ${dump}`);
+      }
       // R7: the logo cluster is always visible above the veil; mark, text, nav, hamburger have no opacity of their own.
       assert.equal(record.logoMin, 1, `${label}: logo never fades ${dump}`);
       assert.equal(record.partsBelowOne, 0, `${label}: mark, text, nav, hamburger keep their own opacity`);
-      console.log(`PASS ${label}: text switches on the full veil, mark flips, no colour tween`);
+      console.log(`PASS ${label}: Espacio header timing, mark flips, no fill tween`);
       await context.close();
     }
   }
