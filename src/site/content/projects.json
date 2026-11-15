@@ -747,7 +747,7 @@
   {
     "id": "tiem-banh-ngot",
     "sector": "commercial",
-    "type": "cafe-nha-hang",
+    "type": "quan-cafe",
     "slugVi": "tiem-banh-ngot",
     "slugEn": "neighbourhood-bakery",
     "title": {
@@ -963,7 +963,7 @@
   {
     "id": "cafe-san-vuon",
     "sector": "commercial",
-    "type": "cafe-nha-hang",
+    "type": "quan-cafe",
     "slugVi": "cafe-san-vuon",
     "slugEn": "garden-cafe",
     "title": {
@@ -2941,7 +2941,7 @@
   {
     "id": "nha-hang-mon-viet",
     "sector": "commercial",
-    "type": "cafe-nha-hang",
+    "type": "nha-hang",
     "slugVi": "nha-hang-mon-viet",
     "slugEn": "vietnamese-restaurant",
     "title": {

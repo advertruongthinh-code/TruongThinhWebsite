@@ -109,10 +109,10 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
 test("Projects list: all, sectors with projects, every type; filter slugs are reserved; artifact passes the advertising card contract", async () => {
   const { kindFieldErrors, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
   const { projectListPages } = await import("../../scripts/site/project-list.mjs");
-  const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "cafe-nha-hang" }]);
+  const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "quan-cafe" }]);
   assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
     ["/projects/", 2], ["/projects/kinh-doanh/", 2], ["/projects/nha-pho/", 0], ["/projects/can-ho/", 0], ["/projects/homestay-khach-san/", 0],
-    ["/projects/showroom-cua-hang/", 0], ["/projects/cafe-nha-hang/", 1], ["/projects/van-phong/", 1],
+    ["/projects/quan-cafe/", 1], ["/projects/nha-hang/", 0], ["/projects/showroom-cua-hang/", 0], ["/projects/van-phong/", 1],
   ]);
   const { buildProjectArtifact } = await import("../../scripts/site/project-list.mjs");
   const { validateMasonryCards } = await import("../../src/site/masonry/layout.mjs");
@@ -130,7 +130,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   // An image with leftover area relative to the card frame (different ratio) is rejected.
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", id: "x", slugVi: "x", slugEn: "x", card: { width: 3, height: 2, media: [{ src: "/x.webp", width: 200, height: 300, altVi: "x", altEn: "x" }] } }, "p"), ["p: card.media[0] khác tỷ lệ khung thẻ 3x2"]);
   assert.equal(artifact.cards.find((card) => card.id === "b").mediaItems.length, 1);
-  assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-khach-san", "showroom-cua-hang", "cafe-nha-hang", "van-phong"]);
+  assert.deepEqual(artifact.pages.map((page) => page.filter), ["all", "nha-o", "kinh-doanh", "nha-pho", "can-ho", "homestay-khach-san", "quan-cafe", "nha-hang", "showroom-cua-hang", "van-phong"]);
   assert.equal(projectTypeHref("can-ho", "en"), "/en/projects/can-ho/");
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "can-ho", slugVi: "nha-o", slugEn: "can-ho" }, "p"), ["p: id hoặc slug nha-o trùng đường dẫn lọc công trình", "p: id hoặc slug can-ho trùng đường dẫn lọc công trình"]);
 });
@@ -148,7 +148,7 @@ test("Projects SEO: every filter page has its own title and a meta of at most 15
   assert.ok(projects.every((project) => project.seoTitle?.vi && project.seoTitle.en), "every project has seoTitle");
   assert.equal(new Set(projects.map((project) => project.seoTitle.vi)).size, projects.length, "seoTitle unique");
   assert.deepEqual(kindFieldErrors("projects", { id: "x", slugVi: "x", slugEn: "x", sector: "commercial", type: "van-phong", seoTitle: { vi: "a" } }, "p"), ["p: seoTitle phải có vi và en"]);
-  assert.deepEqual(RENAMED_FILTER_SLUGS, { "homestay-hotel": "homestay-khach-san" });
+  assert.deepEqual(RENAMED_FILTER_SLUGS, { "homestay-hotel": "homestay-khach-san", "cafe-nha-hang": "quan-cafe" });
   assert.match(renderRedirectPage("/vi/projects/homestay-khach-san/"), /<meta http-equiv="refresh" content="0; url=\/vi\/projects\/homestay-khach-san\/">/);
 });
 
@@ -191,6 +191,9 @@ test("Projects page: artifact JSON cannot close its script; empty type chips hid
   assert.doesNotMatch(html(null).match(/<main[\s\S]*<\/main>/)[0], /advertising-products\/standee|Dấu ấn tiếp theo/, "no Advertising tile or CTA copy left in the grid");
   assert.match(html(null), /aria-label="Ảnh công trình"[\s\S]*Không gian tiếp theo/, "project label and CTA copy replace the Advertising ones");
   assert.match(html("van-phong"), /class="projects-empty"[^>]* hidden/, "a filter with projects hides the empty line");
+  // The rail lists Tất cả and the types only, residential first (owner 2026-11-15); sector pages keep no chip.
+  assert.deepEqual([...html(null).matchAll(/<a class="project-filter"[^>]*data-masonry-filter="([^"]+)"/g)].map((match) => match[1]),
+    ["all", "nha-pho", "can-ho", "homestay-khach-san", "quan-cafe", "nha-hang", "showroom-cua-hang", "van-phong"]);
   // The only h1 is the filter keyword name; the slogan keeps its look as p.hero-title (owner 2026-11-15).
   const { FILTER_SEO } = await import("../../scripts/site/project-list.mjs");
   for (const slug of [null, "van-phong"]) {

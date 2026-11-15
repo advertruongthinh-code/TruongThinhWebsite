@@ -41,15 +41,18 @@ export const FILTER_SEO = {
   "showroom-cua-hang": { intro: { vi: `Thiết kế showroom, shop thời trang, cửa hàng mỹ phẩm: kệ trưng bày có đèn, quầy thu ngân, đảo sản phẩm theo luồng khách. ${WORKSHOP_VI}`, en: `Showroom, fashion and cosmetics store design: lit display shelving, cash counters and product islands laid out for customer flow. ${WORKSHOP_EN}` },
     title: { vi: "Thiết kế, thi công showroom, cửa hàng, shop", en: "Showroom and retail store design" },
     description: { vi: `Showroom, cửa hàng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: shop thời trang, mỹ phẩm. ${AREA_VI}`, en: `Showrooms and stores designed, CNC-built and installed by Trường Thịnh: fashion, cosmetics. ${AREA_EN}` } },
-  "cafe-nha-hang": { intro: { vi: `Thiết kế quán cafe sân vườn, nhà hàng, tiệm bánh: quầy bar, ghế băng, vách lam gỗ và biển hiệu đồng bộ. ${WORKSHOP_VI}`, en: `Garden cafe, restaurant and bakery design: bar counters, bench seating, timber louvres and matching signage. ${WORKSHOP_EN}` },
-    title: { vi: "Thiết kế thi công quán cafe, nhà hàng", en: "Cafe and restaurant design" },
-    description: { vi: `Quán cafe, nhà hàng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: sân vườn, tiệm bánh. ${AREA_VI}`, en: `Cafes and restaurants designed, CNC-built and installed by Trường Thịnh: garden cafes, bakeries. ${AREA_EN}` } },
+  "quan-cafe": { intro: { vi: `Thiết kế quán cafe sân vườn, tiệm bánh: quầy bar, tủ bánh, ghế băng, vách lam gỗ và biển hiệu đồng bộ. ${WORKSHOP_VI}`, en: `Garden cafe and bakery design: bar counters, cake cabinets, bench seating, timber louvres and matching signage. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế thi công quán cafe", en: "Cafe interior design" },
+    description: { vi: `Quán cafe, tiệm bánh do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: sân vườn, quầy bar. ${AREA_VI}`, en: `Cafes and bakeries designed, CNC-built and installed by Trường Thịnh: garden cafes, bar counters. ${AREA_EN}` } },
+  "nha-hang": { intro: { vi: `Thiết kế nhà hàng món Việt: quầy thu ngân, vách gỗ, bàn ghế và kệ trang trí theo phong cách quán. ${WORKSHOP_VI}`, en: `Vietnamese restaurant design: cashier counters, timber walls, tables and display shelving in the house style. ${WORKSHOP_EN}` },
+    title: { vi: "Thiết kế nhà hàng", en: "Restaurant interior design" },
+    description: { vi: `Nhà hàng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt trọn gói: quầy, vách gỗ, bàn ghế. ${AREA_VI}`, en: `Restaurants designed, CNC-built and installed by Trường Thịnh: counters, timber walls, tables. ${AREA_EN}` } },
   "van-phong": { intro: { vi: `Nội thất văn phòng công ty, phòng giám đốc, phòng họp: quầy lễ tân, bàn làm việc, vách logo theo nhận diện thương hiệu. ${WORKSHOP_VI}`, en: `Company office, director's office and meeting room interiors: reception desks, workstations and logo walls in the brand identity. ${WORKSHOP_EN}` },
     title: { vi: "Thiết kế, thi công nội thất văn phòng", en: "Office interior design" },
     description: { vi: `Nội thất văn phòng do Trường Thịnh thiết kế, sản xuất đồ gỗ tấm tại xưởng CNC, lắp đặt: phòng giám đốc, phòng họp. ${AREA_VI}`, en: `Offices designed, CNC-built and installed by Trường Thịnh: director's offices, meeting rooms. ${AREA_EN}` } },
 };
 // Renamed filter slugs (old -> new): the old path stays as a redirect page so shared links keep working.
-export const RENAMED_FILTER_SLUGS = { "homestay-hotel": "homestay-khach-san" };
+export const RENAMED_FILTER_SLUGS = { "homestay-hotel": "homestay-khach-san", "cafe-nha-hang": "quan-cafe" };
 
 const filterHref = (filter) => `/vi/projects/${filter.slug ? `${filter.slug}/` : ""}`;
 
@@ -72,7 +75,8 @@ export const projectListRoutes = (projects) => projectListPages(projects).flatMa
 // (clusterIds) for filtering; cards carry only an image like Advertising cards, with the detail page link and the cover image dominant color (computed at build) built in.
 export const buildProjectArtifact = (projects, colors = {}) => {
   const categories = [
-    ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], slugVi: PROJECT_FILTERS[sector], slugEn: PROJECT_FILTERS[sector], titleVi: SECTOR_LABEL[sector].vi, titleEn: SECTOR_LABEL[sector].en })),
+    // Sectors filter cards but have no rail chip (owner 2026-11-15).
+    ...SECTORS.map((sector) => ({ slug: PROJECT_FILTERS[sector], slugVi: PROJECT_FILTERS[sector], slugEn: PROJECT_FILTERS[sector], titleVi: SECTOR_LABEL[sector].vi, titleEn: SECTOR_LABEL[sector].en, rail: false })),
     ...Object.entries(PROJECT_TYPES).map(([type, { label }]) => ({ slug: type, slugVi: type, slugEn: type, titleVi: label.vi, titleEn: label.en })),
   ];
   const nextSourceOrder = new Map();
@@ -136,7 +140,8 @@ const indexSection = (template, projects, intro) => {
 const main = ({ filter, projects }, artifact, template) => {
   // Every page: the kicker is fixed as p, the slogan is p.hero-title, h1 is the filter keyword name (owner 2026-11-15); filters differ only in title, description and URL. The filter row follows the DOM contract of
   // catalog-runtime (like the Advertising page, without the viewer and product chips).
-  const chipLinks = artifact.pages.map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
+  // The rail lists Tất cả and the types only (owner 2026-11-15); the sector pages stay reachable from the menu and old links.
+  const chipLinks = artifact.pages.filter((page) => artifact.categories.find((entry) => entry.slug === page.filter)?.rail !== false).map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
           ${pageNameHeading(filter.name)}
