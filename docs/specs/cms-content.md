@@ -125,7 +125,8 @@ thêm renderer. Layout Bài News và Chi tiết công trình khóa cứng theo s
 và [công trình R4](projects.md#r4-ảnh-và-video-công-trình): mỗi dòng là một layout, mở khi bài có số media lớn hơn hoặc
 bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Người soạn chọn layout đã mở rồi điền chữ
 và media; không thêm, bớt hay đổi thứ tự khối. Media vượt sức chứa khối đơn dồn vào `media-carousel` trong giới hạn của
-dòng. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ.
+dòng. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
+motion (owner 2026-11-15).
 
 ```gherkin
 Given bài News có 5 media
