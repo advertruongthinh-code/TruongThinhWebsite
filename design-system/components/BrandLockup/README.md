@@ -18,11 +18,16 @@ màu theo [Brand guideline](../../brand.md#logo); chuyển trang: chữ đổi n
 - Khối chữ đo theo ink bounds của nguyên dòng, tính mọi dấu tiếng Việt. Tỷ lệ
   thân chữ (không tính dấu) subtitle/title `0.618 ± 0.005`; hai dòng cân mép
   trong `0.5px`.
-- SVG VI: title cỡ `46.68365`, `textLength="390.63185"`; subtitle cỡ
-  `28.85050`, baseline `147.19920`. Tracking chỉ dùng `textLength` với
-  `lengthAdjust="spacing"`, không `spacingAndGlyphs`, không scale ngang.
-- EN dùng đúng geometry VI, không transform hay đổi cỡ theo locale; subtitle
-  EN chỉ nén tracking để rộng bằng title.
+- Chữ là đường vector (outline), không còn `<text>`: mỗi glyph một `path` trong
+  nhóm `.brand-lockup__title`, `.brand-lockup__subtitle[data-lang="vi"]` và
+  `[data-lang="en"]`. Mọi trình duyệt vẽ cùng một hình, không phụ thuộc bộ vẽ
+  font của máy (owner 2026-11-15). Nhóm `en` mang `display="none"`; CSS hiện nó
+  và ẩn nhóm `vi` khi `html[lang="en"]`.
+- Outline dựng từ Plus Jakarta Sans 5.3.0 wght `600` ở đúng vị trí Chromium vẽ
+  `<text>` cũ: title cỡ `46.68365`, `textLength="390.63185"`; subtitle cỡ
+  `28.85050`, baseline `147.19920`, `textLength="390.87000"`,
+  `lengthAdjust="spacing"`. Đổi chữ logo thì dựng lại outline từ các số này.
+- EN dùng đúng cỡ và baseline VI; subtitle EN chỉ nén tracking để rộng bằng title.
 - Chiều cao ngoài: header expanded `brand-header-height` (67.515625px, còn
   57.59375px ở max-width 1200px), sticky 49.640625px, full menu 67.515625px
   (59.578125px ở max-width 1200px). Chiều ngang theo tỷ lệ logo Trường Thịnh.

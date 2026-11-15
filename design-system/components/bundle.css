@@ -340,6 +340,15 @@ html.route-enter .site-header {
   fill: currentColor;
 }
 
+/* Outlined subtitle: one glyph group per locale; the en group carries display="none" so the standalone SVG shows vi. */
+html[lang="en"] .brand-lockup__subtitle[data-lang="vi"] {
+  display: none;
+}
+
+html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
+  display: inline;
+}
+
 /* Mark color flip layer inserted by motion.js on color change, removed when the flip finishes (brand.md Motion). Each face is its own GPU layer. */
 #header-logo {
   position: relative;
