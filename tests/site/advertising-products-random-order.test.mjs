@@ -155,8 +155,8 @@ test("solver follows supplied presentation order without rewriting canonical car
     }
   }
 
-  // Catalog filter pools as large solver inputs. The main grids no longer run this solver: they replay the build-time
-  // cache (variantIndex + replayLayout, masonry-replay tests); the solver only lays out related masonry.
+  // Catalog filter pools as large solver inputs. The main grids no longer run this solver: they pack live
+  // (pack.mjs, masonry-pack tests); the solver only lays out related masonry.
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
     const eligible = ADVERTISING_CARDS.filter((card) => matchesFilter(card, filter));

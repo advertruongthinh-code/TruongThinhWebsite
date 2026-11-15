@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // V8 compile hint: compile every function on a background thread at load, so the first card tap does not compile lazily on the main thread
 // (about 20% of the click task when opening detail; decision phone-frame-budget).
-export const MASONRY_LAYOUT_VERSION = "masonry-grid-v17";
+export const MASONRY_LAYOUT_VERSION = "masonry-grid-v18";
 const MASONRY_IDEAL_SLOT_WIDTH = 220;
 const MASONRY_MIN_COLUMNS = 2;
 const MASONRY_MAX_COLUMNS = 4;

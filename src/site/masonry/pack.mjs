@@ -1,7 +1,8 @@
 // Masonry packer: places one card order on one width band with no holes; wide cards span two columns, trimming at most CROP_CAP.
-// Pure, no DOM; this file must never import packer.mjs.
-import { isWideMedia, layoutMedia } from "./layout.mjs";
-import { CROP_CAP, TRAIL } from "./replay.mjs";
+// Pure, no DOM: the visitor's layout Worker runs it (packLive) for every band; the main thread only when the Worker fails.
+import { filterRank, isWideMedia, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
+import { shuffleWithSeed } from "./random-order.mjs";
+import { CROP_CAP, TRAIL, replayLayout } from "./replay.mjs";
 
 // One stored layout serves a whole band: column bottoms are linear in card width, so checking both band ends covers it.
 // Widths are viewport widths; cw values are the card widths at the band ends (rounded outward) and at the scoring width.
@@ -47,7 +48,9 @@ export function packBand(cards, band, { rankOf } = {}) {
   // The longer column must stay longer across the band (trim only shrinks, plan P4).
   const nonNegative = (da, dk) => (cwMax === Infinity ? da >= -1e-12 : da * cwMax + dk >= -1e-9) && da * cwMin + dk >= -1e-9;
 
-  const tryWide = (wide, queue) => {
+  // deep: also try three partners. Only on a wide card's first attempt: retrying the 3-partner search on every deferred
+  // card made a few orders take 450-630 ms on 4 columns (cloud, 2026-11-15) for one or two fewer demotions.
+  const tryWide = (wide, queue, deep) => {
     const singles = [];
     let headRank;
     for (let i = 0; i < queue.length && singles.length < PARTNER_WINDOW; i += 1) {
@@ -82,7 +85,7 @@ export function packBand(cards, band, { rankOf } = {}) {
     };
     // Up to two partners on every pair first; three only when nothing fits (the costliest search).
     for (let left = 0; left < columns - 1; left += 1) for (let n = 0; n < MAX_PARTNERS; n += 1) tryPartners(left, n);
-    if (!best) for (let left = 0; left < columns - 1; left += 1) tryPartners(left, MAX_PARTNERS);
+    if (!best && deep) for (let left = 0; left < columns - 1; left += 1) tryPartners(left, MAX_PARTNERS);
     if (!best) return false;
     const { left, picks, ref, crop } = best;
     const picked = picks.map((pick) => ({ card: queue[pick.i], column: left + pick.k, i: pick.i }));
@@ -112,7 +115,7 @@ export function packBand(cards, band, { rankOf } = {}) {
       else putSingle(card, lowest());
       continue;
     }
-    if (tryWide(waiting, queue)) {
+    if (tryWide(waiting, queue, age === 0)) {
       waiting = null;
       age = 0;
       continue;
@@ -151,3 +154,36 @@ export function staggerViolations(layout) {
   }
   return violations;
 }
+
+// Fixed number of base orders the visitor packs per filter and band, keeping the best (plan C2): one order alone left about 1 in 5
+// orders off the organic rhythm and demoted wide cards on 4 columns; four brought stagger back to the old build cache level. A
+// count, never a time budget, so a slow phone draws the same grid as a fast one and Back returns to it.
+export const LIVE_CANDIDATES = 4;
+const compareScore = (x, y) => x.demoted - y.demoted || x.organicMiss - y.organicMiss || x.stagger - y.stagger || x.crop - y.crop || x.s - y.s;
+
+// The part of a filter's cards the packer needs, small enough to post to the Worker: i = index in cards.
+export const livePool = (cards, filter) => cards.flatMap((card, i) => {
+  if (!matchesFilter(card, filter)) return [];
+  const { width, height } = layoutMedia(card);
+  return [{ i, id: card.id, media: { width, height }, rank: filterRank(card, filter) }];
+});
+
+// One base order s of a filter pool packed on one band for a visit seed. pool: { i, id, media, rank } in catalog order, i = index in
+// the caller's cards. The same input always gives the same candidate.
+export function packCandidate({ pool, band, seed, filter }, s) {
+  const at = new Map(pool.map((card, j) => [card, j]));
+  const order = shuffleWithSeed(pool, seed, `grid:${filter}:${s}`).sort((x, y) => x.rank - y.rank);
+  const packed = packBand(order, band, { rankOf: (card) => card.rank });
+  const local = packed.entries.map(({ card, column, span }) => at.get(card) * 8 + (span === 1 ? column : 4 + column));
+  const layout = replayLayout({ entries: local, cards: pool, layoutViewportWidth: band.refWidth });
+  return {
+    s, demoted: packed.demoted.length, organicMiss: scoreOrganicRhythm(order).targetMet === false ? 1 : 0,
+    stagger: layout ? staggerViolations(layout) : Infinity, crop: packed.maxCrop,
+    entries: local.map((entry) => pool[entry >> 3].i * 8 + (entry & 7)),
+  };
+}
+
+// Entries (i * 8 + code, the replayLayout format) of the best candidate.
+export const bestEntries = (candidates) => candidates.reduce((best, candidate) => (compareScore(candidate, best) < 0 ? candidate : best)).entries;
+
+export const packLive = (job) => bestEntries(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packCandidate(job, s)));

@@ -90,10 +90,10 @@ async function runSecurityContract() {
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
     // SSR runtime is covered by runPublicContract on Wrangler, which provides HTMLRewriter.
-    // /advertising-products* is Worker-first: the masonry layout cache modules must still reach the static assets untouched.
-    const layoutCachePath = "/advertising-products/layout-cache/4-35/all.mjs";
+    // /advertising-products* is Worker-first: its JavaScript modules (the grid artifact) must still reach the static assets untouched.
+    const artifactModulePath = "/advertising-products/catalog-artifact.mjs";
     const assetPaths = [];
-    const layoutCache = await worker.default.fetch(new Request(`https://site.example${layoutCachePath}`), {
+    const artifactModuleResponse = await worker.default.fetch(new Request(`https://site.example${artifactModulePath}`), {
       PUBLIC_ORIGIN: "https://site.example",
       ASSETS: { fetch: async (request) => {
         assetPaths.push(new URL(request.url ?? request).pathname);
@@ -101,9 +101,9 @@ async function runSecurityContract() {
       } },
       DB: { prepare: () => ({ bind: () => ({ first: async () => null, all: async () => ({ results: [] }) }), all: async () => ({ results: [] }) }) },
     });
-    assert(layoutCache.status === 200, `layout cache module returned ${layoutCache.status}`);
-    assert.deepEqual(assetPaths, [layoutCachePath], "layout cache module is served from static assets");
-    assert(await layoutCache.text() === "export default {};", "layout cache module body passes through unchanged");
+    assert(artifactModuleResponse.status === 200, `grid artifact module returned ${artifactModuleResponse.status}`);
+    assert.deepEqual(assetPaths, [artifactModulePath], "grid artifact module is served from static assets");
+    assert(await artifactModuleResponse.text() === "export default {};", "grid artifact module body passes through unchanged");
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {
@@ -335,8 +335,8 @@ async function runPublicContract() {
     assert(new URL(result.headers.get("location")).pathname + new URL(result.headers.get("location")).search === destination, `${source} redirected to ${result.headers.get("location")}`);
   }
 
-  const layoutCacheModule = await response("/advertising-products/layout-cache/4-35/all.mjs");
-  assert(layoutCacheModule.status === 200 && /javascript/.test(layoutCacheModule.headers.get("content-type") || ""), `layout cache module returned ${layoutCacheModule.status}`);
+  const artifactModule = await response("/advertising-products/catalog-artifact.mjs");
+  assert(artifactModule.status === 200 && /javascript/.test(artifactModule.headers.get("content-type") || ""), `grid artifact module returned ${artifactModule.status}`);
 
   const robots = await response("/robots.txt");
   const robotsText = await robots.text();

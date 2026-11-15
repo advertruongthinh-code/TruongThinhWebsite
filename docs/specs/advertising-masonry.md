@@ -38,7 +38,7 @@ updated: 2026-11-12
 
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
 sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự, hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
-[detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md). Phần chung với related và trang Công trình (sân, reveal, item) ở [masonry dùng chung](masonry.md); bố cục tính sẵn của lưới chính ở [cache bố cục](masonry-layout-cache.md).
+[detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md). Phần chung với related và trang Công trình (sân, reveal, item) ở [masonry dùng chung](masonry.md); thuật toán xếp lưới chính ở [masonry xếp trực tiếp](masonry-live-layout.md).
 
 ## Hành vi
 
@@ -110,8 +110,8 @@ And mỗi lần bấm, aria-current nằm trên đúng một nút
 
 ### R4. Thứ tự ngẫu nhiên theo lượt duyệt
 
-Mỗi lượt duyệt có một seed (`createBrowseSeed`). Lưới chính: seed chọn một trong 8 tới 32 biến thể tính sẵn của filter ([cache R4](masonry-layout-cache.md#r4-đặt-lại-và-nạp-ở-runtime)), cùng seed và filter cho cùng biến thể ở mọi dải bề rộng, nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ; build ưu tiên 12 card đầu có cả ảnh cao (h/w
-`>= 1.15`) và thấp (`<= 0.9`). Không có cache: pool xáo Fisher-Yates bằng seed với scope `grid:<filter>` rồi xếp ổn định theo hạng (`filterRank`, taxonomy R1). Related giữ solver organic: 12 card đầu có cả hai loại, không
+Mỗi lượt duyệt có một seed (`createBrowseSeed`). Lưới chính: máy người xem xếp 4 thứ tự gốc của filter theo seed và giữ thứ tự tốt nhất ([xếp trực tiếp R2](masonry-live-layout.md#r2-packer)), cùng seed, filter và dải cho cùng lưới, nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ; mỗi dải xếp riêng nên đổi dải có thể ra thứ tự khác; packer ưu tiên 12 card đầu có cả ảnh cao (h/w
+`>= 1.15`) và thấp (`<= 0.9`). Chưa xếp xong: pool xáo Fisher-Yates bằng seed với scope `grid:<filter>` rồi xếp ổn định theo hạng (`filterRank`, taxonomy R1). Related giữ solver organic: 12 card đầu có cả hai loại, không
 quá 4 ảnh cùng loại liền nhau; không cải thiện được thì giữ thứ tự seed và ghi lý do. Seed mới khi F5, mở URL trực tiếp,
 vào trang bằng link hoặc route mềm mới. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
 state, kể cả khi Back lúc route mềm đang chạy làm trình duyệt tải hẳn trang), đổi ngôn ngữ (tải lại trang như F5, dùng handoff
@@ -129,7 +129,7 @@ Bề rộng tính từ `documentElement.clientWidth` (không gồm thanh cuộn)
 `<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề, không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng giữa.
 Card rộng một cột (trừ card hai cột dưới), cao bằng ảnh theo tỷ lệ gốc, mọi UI của card (tên, chấm hoặc bộ đếm) nằm trong ảnh nên card cao đúng bằng ảnh ở mọi masonry ([media-card R2](media-card.md#r2-canvas-và-hàng-pill-trong-media)). Không spacer, không giãn khoảng giữa, không crop để giả so le; chỉ cắt khép mép dưới card hai cột như đoạn sau.
 Card hai cột (owner 2026-11-09, chỉ lưới chính trang Quảng cáo và Công trình): ảnh bìa (`layoutMedia`) ngang có `w/h >= 1.618` (`isWideMedia`: `w × 1000 >= h × 1618`, không phép chia nên không lệch do làm tròn) rộng hai cột cộng một khoảng giữa khi `C >= 3`; `C = 2` (điện thoại), ảnh dưới tỷ lệ vàng, khối gợi ý và mọi card của related masonry luôn một cột, `layoutSpan` cũ không có tác dụng.
-Lưới chính trang Quảng cáo và Công trình (owner 2026-11-10, `masonry-grid-v17`): card đặt theo bố cục tính sẵn, giữa lưới không có khoảng trống nào ngoài khoảng giữa; phần chênh dưới card hai cột khép bằng cách cắt tối đa 3 card một cột cuối của cột dài hơn, không quá `5%` media mỗi card, chỉ thấp đi; không xếp được thì đổi chỗ vài card gần, rồi cắt, rồi riêng card đó về một cột ([cache R1](masonry-layout-cache.md#r1-luật-hình-học)). Card bị cắt: khung media thấp đi đúng phần cắt, ảnh và video phủ khung (`object-fit: cover`, cắt đều trên dưới), mọi media của card nhiều media cắt cùng mức; hàng pill và tên card nằm trong khung đã cắt, card tạm và khung chờ ảnh (Flow trên PC, lớp màu trên điện thoại) dùng đúng khung đã cắt (`mediaBleed` trên placement). Related masonry (owner 2026-11-10) dùng bộ tìm kiếm (`compileMasonryLayout`): mọi card một cột, đúng tỷ lệ gốc, không cắt, theo thứ tự vào cột thấp nhất (hòa thì cột trái), không lỗ; `layout.holes` luôn rỗng.
+Lưới chính trang Quảng cáo và Công trình (owner 2026-11-10, `masonry-grid-v18`): card đặt theo bố cục máy người xem tự xếp, giữa lưới không có khoảng trống nào ngoài khoảng giữa; phần chênh dưới card hai cột khép bằng cách cắt tối đa 3 card một cột cuối của cột dài hơn, không quá `5%` media mỗi card, chỉ thấp đi; không xếp được thì đổi chỗ vài card gần, rồi cắt, rồi riêng card đó về một cột ([xếp trực tiếp R1](masonry-live-layout.md#r1-luật-hình-học)). Card bị cắt: khung media thấp đi đúng phần cắt, ảnh và video phủ khung (`object-fit: cover`, cắt đều trên dưới), mọi media của card nhiều media cắt cùng mức; hàng pill và tên card nằm trong khung đã cắt, card tạm và khung chờ ảnh (Flow trên PC, lớp màu trên điện thoại) dùng đúng khung đã cắt (`mediaBleed` trên placement). Related masonry (owner 2026-11-10) dùng bộ tìm kiếm (`compileMasonryLayout`): mọi card một cột, đúng tỷ lệ gốc, không cắt, theo thứ tự vào cột thấp nhất (hòa thì cột trái), không lỗ; `layout.holes` luôn rỗng.
 
 ```gherkin
 Given viewport 768px, masonry đang ở All
@@ -143,7 +143,7 @@ And ở 390px (2 cột) mọi card rộng một cột
 
 Thời lượng và đường cong trong script đọc từ `masonry/motion-tokens.mjs`, bằng token CSS ([Token motion](../../design-system/motion.md#token-motion)). Card đổi vị trí hoặc kích thước chạy `--dur-card`, mốc `400ms`.
 
-Lưới chính đặt card từ cache build (`replayLayout`, một vòng O(n), không Worker; thuật toán, file, dự phòng `stackLayout`, chip chờ ở [cache bố cục](masonry-layout-cache.md)).
+Lưới chính xếp trong Web Worker rồi đặt card bằng `replayLayout` (một vòng O(n); thuật toán, Worker, dự phòng `stackLayout`, chip chờ ở [masonry xếp trực tiếp](masonry-live-layout.md)).
 Related: card đi theo thứ tự R4; mỗi card vào cột có đáy thấp nhất (hòa thì cột trái), top bằng đáy cột cộng khoảng
 giữa, card đầu mỗi cột ở top 0; mọi card một cột (R5). Pha ưu tiên đòi: mép dưới ảnh gần nhất ở hai cột kề lệch ít nhất 10% chiều cao ảnh cao
 hơn; mép ảnh và mép card không lặp nhịp gạch (lượng tử lệch theo `0.125 × bề rộng card`, cấm `ABABAB` và ba mức giống
@@ -206,7 +206,7 @@ Then hero không chạy lại, container giữ nguyên
 
 `detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), Masonry 4.2.2, LazySizes
 5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `masonry/runtime.mjs`.
-Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v17`, nhóm không rỗng, card hợp lệ), cần Masonry.
+Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v18`, nhóm không rỗng, card hợp lệ), cần Masonry.
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-masonry-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
@@ -249,8 +249,8 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `[data-project-grid]`, `[data-masonry-card]`, `[data-masonry-filter]`, `body.is-masonry-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
 | DOM hook | `data-masonry-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-masonry-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
-| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới). Artifact mang `layoutCacheFilterUrl`, `layoutCacheBandUrl` hoặc `layouts` nhúng ([cache R3](masonry-layout-cache.md#r3-file-cache)) |
-| Hàm public | `compileMasonryLayout`, `columnsForWidth`, `masonrySpacing`, `getVirtualWindow`, `isWideMedia` (`masonry/layout.mjs`); `createBrowseSeed`, `shuffleWithSeed` (`masonry/random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); lưới chính đặt card bằng `masonry/replay.mjs` ([cache bố cục](masonry-layout-cache.md#giao-diện-và-dữ-liệu)); solver related khi mở detail chạy trong Worker `masonry/layout-worker.mjs` (mở lúc tải trước detail, trang card mở lúc preload; mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module; trang Công trình không mở), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
+| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; card ở output không kèm `descriptionVi/En` và `related`: hai trường này nằm ở `catalog-detail.mjs` (theo id), tải ngay khi ảnh 8 card đầu xong, tối đa 6 s (vào thẳng URL photo: `detail.js` tải cùng artifact) và `showPhoto` chờ nếu chưa xong; test, CMS có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (đủ trường thì bỏ qua file detail; thiếu thì gắn từng trường còn thiếu, card CMS đã sửa giữ mô tả mới). Artifact không mang bố cục ([xếp trực tiếp](masonry-live-layout.md)) |
+| Hàm public | `compileMasonryLayout`, `columnsForWidth`, `masonrySpacing`, `getVirtualWindow`, `isWideMedia` (`masonry/layout.mjs`); `createBrowseSeed`, `shuffleWithSeed` (`masonry/random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); lưới chính xếp bằng `masonry/pack.mjs` trong Worker và đặt card bằng `masonry/replay.mjs` ([xếp trực tiếp](masonry-live-layout.md#giao-diện-và-dữ-liệu)); solver related khi mở detail chạy trong Worker `masonry/layout-worker.mjs` (mở lúc tải trước detail, trang card mở lúc preload; mỗi lần dùng mở sẵn Worker kế tiếp, mở detail không chờ tải lại module; trang Công trình không mở), lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
 | Hàm public | `mountMasonry(container, {signal, scroll, softNavigation, artifact, viewer})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhMasonry`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
@@ -273,7 +273,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 | R3 | `advertising-random-browse.e2e.mjs` (thứ tự, vị trí nút, EN, slug cũ và mới); `advertising-products-media.test.mjs` (cụm, sản phẩm, slug); `advertising-hero-once.e2e.mjs` (click trước runtime, mười vòng); `TT_E2E_ADVERTISING_RAPID_FILTER_ONLY`, `_HISTORY_ONLY` |
 | R4 | `advertising-products-random-order.test.mjs` (seed, history, handoff, reload); `advertising-random-browse.e2e.mjs`; `advertising-route-footer-p75.e2e.mjs` (route mới, F5) |
 | R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px; biên 1.618, solver related một cột, card tạm hai cột); `advertising-one-column.test.mjs` (dựng lại luật một cột của solver và related); `advertising-skeleton-flow.test.mjs` (batch dưới card hai cột); `advertising-products-static.test.mjs` (CSS) |
-| R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng của related); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY`; bố cục lưới chính: [cache bố cục](masonry-layout-cache.md#kiểm-tra) |
+| R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng của related); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY`; bố cục lưới chính: [xếp trực tiếp](masonry-live-layout.md#kiểm-tra) |
 | R7 | `advertising-products-layout.test.mjs` (`getVirtualWindow`, 3.000 card); `TT_E2E_ADVERTISING_KEYBOARD_ONLY`, `_3K_ONLY`; `masonry-first-build.e2e.mjs` (lần dựng đầu chia task) |
 | R8 | `advertising-card-interactions.e2e.mjs`; `advertising-no-titles.e2e.mjs`; `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` |
 | R9 | `advertising-hero-once.e2e.mjs`; `TT_E2E_ADVERTISING_HERO_ONLY` |

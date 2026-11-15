@@ -1,5 +1,5 @@
-// Visitor-side half of the masonry layout cache: places cards from a precomputed variant in one O(n) pass, no search.
-// The build-side packer (pack.mjs, packer.mjs) imports the shared constants from here; this file must never import either.
+// Places cards from packed entries (pack.mjs) in one O(n) pass, no search; also the stack fallback and the layout check.
+// The packer (pack.mjs) imports the shared constants from here; this file must never import pack.mjs.
 import {
   MASONRY_LAYOUT_VERSION,
   columnsForWidth,
@@ -19,16 +19,8 @@ export const CROP_CAP = 0.05;
 // Cards at the bottom of a column whose media share the trim under a wide card.
 export const TRAIL = 3;
 
-export const variantIndex = (seed, count) => fnv1a32(String(seed)) % count;
-
-// Width band of a stored layout: one per (columns, gap) pair; the runtime picks its cache file by it.
+// Width band of a packed layout: one per (columns, gap) pair; the runtime packs once per band.
 export const bandKey = (layoutViewportWidth) => `${columnsForWidth(layoutViewportWidth)}:${masonrySpacing(layoutViewportWidth).interCardGap}`;
-
-// Identity of a filter pool: a cache built for another catalog or another card size must not replay.
-export const poolSignature = (poolCards) => fnv1a32(poolCards.map((card) => {
-  const media = layoutMedia(card);
-  return `${card.id}:${media.width}:${media.height}`;
-}).join("|")).toString(16).padStart(8, "0");
 
 function frame(layoutViewportWidth) {
   const columns = columnsForWidth(layoutViewportWidth);
@@ -51,7 +43,7 @@ function result(f, placed, columnBottoms, { layoutViewportWidth, filter, setting
 }
 
 // entries: cardIndex * 8 + code; code 0-3 = one column at that column, 4-6 = two columns starting at code - 4.
-// Returns null when the variant does not fit this catalog or geometry; the caller then uses stackLayout.
+// Returns null when the entries do not fit these cards or this geometry; the caller then uses stackLayout.
 export function replayLayout({ entries, cards, layoutViewportWidth, filter = "all", settings }) {
   if (!Array.isArray(entries) || !Array.isArray(cards)) return null;
   const f = frame(layoutViewportWidth);
@@ -104,7 +96,7 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
     }
   }
   if (cards.reduce((n, card) => n + (matchesFilter(card, filter) ? 1 : 0), 0) !== seen.size) return null;
-  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "cache" });
+  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "pack" });
 }
 
 // Fallback for the whole grid (owner O3 last step): every card one column, in `order` (card objects), into the lowest column.

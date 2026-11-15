@@ -52,10 +52,8 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
 assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
-assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/replay\.mjs"/, "the layout cache replay is preloaded with the runtime");
-assert.doesNotMatch(builtIndex, /packer\.mjs/, "public pages never load the build-side layout packer (advertising-masonry R6)");
-assert.match(prepare, /buildLayoutCache(?:Memo)?\(\{ cards: artifact\.cards, filters: PUBLIC_GRID_FILTERS/, "prepare step builds and self-checks the masonry layout cache for every public filter (static-release R2)");
-assert.ok(prepare.indexOf("buildLayoutCacheMemo({") < prepare.indexOf("await rm(outputRoot"), "layout cache self-check precedes destructive output cleanup");
+assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/replay\.mjs"/, "the layout replay is preloaded with the runtime");
+assert.match(builtIndex, /rel="modulepreload" href="\/masonry\/pack\.mjs"/, "the live packer is preloaded with the runtime (masonry-live-layout R1)");
 assert.ok(prepare.indexOf("const artifact = buildAdvertisingArtifact();") < prepare.indexOf("await rm(outputRoot"), "artifact validation precedes destructive output cleanup");
 assert.match(runtime, /catalog-artifact\.mjs/, "runtime reads generated artifact");
 assert.equal(artifact.layoutAlgorithmVersion, MASONRY_LAYOUT_VERSION);
@@ -400,62 +398,11 @@ assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loadin
 // The "Xem lớn hơn" viewer has no shimmer and no 0.45s fade-in: the head script's markFrame must skip the dialog (loading-glass R5).
 assert.match(index, /!frame\.closest\("[^"]*\[data-detail-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
 
-// Built layout cache (plan T4 step 3.1): 5 whole-band files and one file per filter and band, every one importable, on
-// this layout version, and each one-filter file equal to its slice of the band file.
-const cacheRoot = new URL("../../.site-output/advertising-products/layout-cache/", import.meta.url);
-const bandFiles = (await readdir(cacheRoot)).filter((name) => name.endsWith(".mjs")).sort();
-assert.deepEqual(bandFiles, ["2-15.mjs", "3-15.mjs", "3-25.mjs", "4-25.mjs", "4-35.mjs"], "one cache file per width band");
-let filterFileCount = 0;
-for (const bandFile of bandFiles) {
-  const band = (await import(new URL(bandFile, cacheRoot))).default;
-  assert.equal(band.version, MASONRY_LAYOUT_VERSION, `${bandFile} is built for the current layout version`);
-  const dir = new URL(`${bandFile.replace(".mjs", "")}/`, cacheRoot);
-  const filterFiles = (await readdir(dir, { recursive: true })).filter((name) => name.endsWith(".mjs"));
-  assert.deepEqual(filterFiles.map((name) => name.replace(".mjs", "")).sort(), Object.keys(band.filters).sort(), `${bandFile} has one file per filter`);
-  for (const name of filterFiles) {
-    const single = (await import(new URL(name, dir))).default;
-    const filter = name.replace(".mjs", "");
-    assert.equal(single.version, MASONRY_LAYOUT_VERSION);
-    assert.equal(single.band, band.band);
-    assert.deepEqual(single.filters, { [filter]: band.filters[filter] }, `${bandFile} ${filter} matches its band slice`);
-    filterFileCount += 1;
-  }
+// No build layout cache (masonry-live-layout R1): the visitor packs the grid, so the build writes no cache files and grid pages
+// start no cache preload.
+assert.ok(!existsSync(new URL("../../.site-output/advertising-products/layout-cache/", import.meta.url)), "no layout cache output");
+for (const file of ["advertising-products/index.html", "vi/advertising-products/index.html", "vi/projects/index.html"]) {
+  assert.ok(!(await read(`.site-output/${file}`)).includes("layout-cache"), `${file} references no layout cache`);
 }
-// 150 after mobile-retail lost both product filters (counters merged into carts, a sole product has no page).
-assert.equal(filterFileCount, 150, "150 one-filter cache files");
-
-// Head preload of the one-filter cache file (plan T4b): every grid page starts it from an inline script before the deferred
-// vendor scripts; card pages and Projects pages start none.
-const preloadScripts = (html) => [...html.matchAll(/<script>(\(\(\)=>\{const w=document\.documentElement\.clientWidth;[\s\S]*?)<\/script>/g)].map(([, code]) => code);
-const preloadHref = (code, clientWidth) => {
-  let href = null;
-  const link = {};
-  vm.runInNewContext(code, {
-    document: { documentElement: { clientWidth }, head: { append: (node) => { href = node.href; } }, createElement: () => link },
-  });
-  return href;
-};
-const gridPages = [["advertising-products/index.html", "all"], ...["vi", "en"].flatMap((locale) => [[`${locale}/advertising-products/index.html`, "all"],
-  ...ADVERTISING_PAGES.map((page) => [`${locale}/advertising-products/${page[locale]}/index.html`, page.filter])])];
-for (const [file, filter] of gridPages) {
-  const html = await read(`.site-output/${file}`);
-  const scripts = preloadScripts(html);
-  assert.equal(scripts.length, 1, `${file} has exactly one cache preload script`);
-  assert.ok(html.indexOf(scripts[0]) < html.indexOf('<script defer src="/assets/vendor/'), `${file} preloads before the deferred scripts`);
-  assert.ok(html.indexOf(scripts[0]) < html.indexOf("<title"), `${file} preloads before the title`);
-  assert.ok(!html.includes("layout-cache-preload"), `${file} keeps no build marker`);
-  for (const width of [320, 384, 719, 720, 960, 961, 1004, 1005, 1200, 1201, 1440, 2560]) {
-    assert.equal(preloadHref(scripts[0], width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/${filter}.mjs`, `${file} ${width}px picks the band the runtime picks`);
-  }
-  assert.ok(existsSync(new URL(`../../.site-output${preloadHref(scripts[0], 1440)}`, import.meta.url)), `${file} preloads a file that exists`);
-}
-const everyWidth = preloadScripts(builtIndex)[0];
-for (let width = 320; width <= 2560; width += 1) {
-  assert.equal(preloadHref(everyWidth, width), `/advertising-products/layout-cache/${bandKey(width).replace(":", "-")}/all.mjs`, `${width}px: preload band equals bandKey`);
-}
-assert.equal(preloadHref(everyWidth, 0), null, "an unmeasured viewport preloads nothing");
-const cardPage = await read(`.site-output/vi/advertising-products/p/${artifact.cards[0].id}/index.html`);
-assert.equal(preloadScripts(cardPage).length, 0, "a direct card page starts no grid cache preload");
-assert.equal(preloadScripts(await read(".site-output/vi/projects/index.html")).length, 0, "the Projects page embeds its layouts and starts no cache preload");
 
 console.log(`[advertising-products-static] ${MASONRY_LAYOUT_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

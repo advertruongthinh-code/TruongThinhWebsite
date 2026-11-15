@@ -54,9 +54,7 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 
 ### R2. Preflight masonry và catalog artifact
 
-Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
-cache bố cục masonry (`buildLayoutCache`, [cache bố cục R2](masonry-layout-cache.md#r2-packer-build)) cho
-filter `all`, sáu cụm và mọi sản phẩm từ 5 card (có chip và trang riêng, [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card)) trên 5 dải bề rộng. Tự kiểm: mọi biến thể giữ lại phải đặt lại được và không lỗ, đủ card của pool, cắt không quá 5% ở đầu, giữa và cuối mỗi dải (dải mở `4:35` kiểm tới 4000 px); sai thì build dừng. Ghi 165 file `advertising-products/layout-cache/` (5 file cả dải, 160 file một filter; build 2026-11-10: một filter tối đa 15,9 KB brotli, cả dải 44 tới 49 KB brotli). Artifact chỉ nằm ở output:
+Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`); bố cục masonry không tính lúc build, máy người xem tự xếp ([masonry xếp trực tiếp](masonry-live-layout.md)). Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
@@ -65,9 +63,9 @@ x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ng
 mỗi thư mục cụm có `404.html` dạng trang R7 trỏ trang cụm, cho URL sản phẩm đã mất trang.
 
 ```gherkin
-Given một filter có biến thể bố cục để lỗ hoặc thiếu card ở một đầu dải
+Given dữ liệu Advertising có card không hợp lệ
 When chạy pnpm prepare:site
-Then build dừng với lỗi "layout-cache: self-check failed <filter> <dải> <bề rộng>px"
+Then build dừng trước khi xóa output cũ
 And .site-output/ của lần build trước vẫn còn nguyên
 ```
 

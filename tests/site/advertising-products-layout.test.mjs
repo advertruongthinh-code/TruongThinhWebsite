@@ -183,7 +183,8 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
   // 2026-11-10 (plan T4): 09e8f626/6bb197b9 -> 6eaee92f/d79391b8 only because MASONRY_LAYOUT_VERSION (v17) is in the hash.
   // 2026-11-11 (plan T5): the solver serves only related masonry and lays every card one column wide, so the 4-column
   // hash d79391b8 (12 two-column cards) became ec91bd55; the 2-column hash never had a wide card and is unchanged.
-  for (const [layoutViewportWidth, expectedHash] of [[390, "6eaee92f"], [1440, "ec91bd55"]]) {
+  // 2026-11-15 (masonry live pack): 6eaee92f/ec91bd55 -> 65bc8ec4/cc8dd7f2 only because MASONRY_LAYOUT_VERSION became v18.
+  for (const [layoutViewportWidth, expectedHash] of [[390, "65bc8ec4"], [1440, "cc8dd7f2"]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -302,7 +303,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v17");
+  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v18");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);

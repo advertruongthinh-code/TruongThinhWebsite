@@ -17,7 +17,8 @@ import {
   validateMasonryCards,
 } from "./layout.mjs";
 import { createDetailViewer } from "./detail-viewer.mjs";
-import { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } from "./replay.mjs";
+import { bandKey, replayLayout, stackLayout } from "./replay.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate } from "./pack.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
@@ -916,43 +917,55 @@ const attachCardDetail = (cards) => {
   });
 };
 
-// Masonry layout cache (advertising-masonry R6): files are keyed by URL, so a preload before mount and every mount share
-// one import. A load error, a wrong version or a 4 s timeout settles to null: the grid stacks one column. The import
-// keeps running past the timeout; a late file still lands in layoutCacheSettled and the grid relayouts once.
-const LAYOUT_CACHE_TIMEOUT_MS = 4000;
-const layoutCacheLoads = new Map();
-const layoutCacheImports = new Map();
-const layoutCacheSettled = new Map();
-const layoutCacheUrl = (template, band, filter = "") => template
-  && template.replace("{band}", band.replace(":", "-")).replace("{filter}", filter);
-// Import without a time limit; resolves to the cache or null.
-const loadLayoutCache = (url) => {
-  if (!url) return Promise.resolve(null);
-  if (!layoutCacheLoads.has(url)) {
-    layoutCacheLoads.set(url, import(url)
-      .then((module) => (module.default?.version === MASONRY_LAYOUT_VERSION ? module.default : null))
-      .catch(() => null)
-      .then((cache) => {
-        if (cache || !layoutCacheSettled.has(url)) layoutCacheSettled.set(url, cache);
-        return cache;
-      }));
-  }
-  return layoutCacheLoads.get(url);
+// Main grid layout (masonry-live-layout R1, R2): the visitor packs each (filter, band, seed) in one persistent Worker, so the
+// search never runs on the main thread. A Worker error drops to the main thread, one candidate order per task.
+let gridWorker = null;
+let gridWorkerFailed = false;
+let packJobId = 0;
+const packReplies = new Map();
+const failGridWorker = () => {
+  gridWorkerFailed = true;
+  gridWorker?.terminate();
+  gridWorker = null;
+  for (const resolve of packReplies.values()) resolve(null);
+  packReplies.clear();
 };
-// The same import, bounded by the timeout: what mount and filter changes wait for.
-const importLayoutCache = (url) => {
-  if (!url) return Promise.resolve(null);
-  if (!layoutCacheImports.has(url)) {
-    let timer;
-    const timeout = new Promise((resolve) => { timer = setTimeout(resolve, LAYOUT_CACHE_TIMEOUT_MS, null); });
-    layoutCacheImports.set(url, Promise.race([loadLayoutCache(url), timeout]).then((cache) => {
-      clearTimeout(timer);
-      if (!layoutCacheSettled.has(url)) layoutCacheSettled.set(url, cache);
-      return cache;
-    }));
+const ensureGridWorker = () => {
+  if (gridWorker || gridWorkerFailed) return gridWorker;
+  try {
+    gridWorker = startLayoutWorker();
+    gridWorker.onmessage = ({ data }) => {
+      const resolve = packReplies.get(data?.id);
+      packReplies.delete(data?.id);
+      resolve?.(Array.isArray(data?.entries) ? data.entries : null);
+    };
+    gridWorker.onerror = failGridWorker;
+  } catch {
+    failGridWorker();
   }
-  return layoutCacheImports.get(url);
+  return gridWorker;
 };
+const packInWorker = (job) => new Promise((resolve) => {
+  const worker = ensureGridWorker();
+  if (!worker) return resolve(null);
+  const id = ++packJobId;
+  packReplies.set(id, resolve);
+  try {
+    worker.postMessage({ id, pack: job });
+  } catch {
+    packReplies.delete(id);
+    resolve(null);
+  }
+});
+const packOnMain = async (job) => {
+  const candidates = [];
+  for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
+    await new Promise((resolve) => setTimeout(resolve));
+    candidates.push(packCandidate(job, s));
+  }
+  return bestEntries(candidates);
+};
+const packGrid = (job) => packInWorker(job).then((entries) => entries ?? packOnMain(job));
 // Filter of the first grid paint: ?category= first, then the cluster or product page path, else all.
 const initialFilter = ({ categories, cards, pages }) => resolveFilter(new URLSearchParams(location.search).get("category"), categories, cards)
   || advertisingPathFilter(location.pathname, pages || []) || "all";
@@ -962,15 +975,11 @@ let warmWorker;
 // loads right away when the artifact has video (video-delivery R3): waiting for the first video card means on slow 4G the library arrives after the card is
 // already shown (measured on cloud 2026-10-25 over HTTP/2: 2/64 videos did not start in time).
 export const preloadMasonry = () => {
-  // Only related masonry compiles in the Worker now; a direct card page needs it at once, a grid page warms it later.
+  // A direct card page needs the related Worker at once; a grid page starts the grid Worker so its module loads with the vendor scripts.
   if (detailId(new URL(location.href))) warmWorker ||= startLayoutWorker();
+  else ensureGridWorker();
   loadArtifact().then((artifact) => {
     if (artifact.cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
-    // Layout cache step 1: the one-filter file of this width band, in parallel with the vendor scripts. A direct card
-    // page keeps the grid hidden, so its cache waits until the grid is needed.
-    if (!detailId(new URL(location.href))) {
-      void importLayoutCache(layoutCacheUrl(artifact.layoutCacheFilterUrl, bandKey(document.documentElement.clientWidth), initialFilter(artifact)));
-    }
   }).catch(() => {});
 };
 
@@ -1835,11 +1844,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let detailLoaded = false;
   let detailReady;
   const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
-  // Layout cache step 2 rides the same moment: the whole-band file, so a filter click no longer waits on the network.
-  let bandLayoutsWanted = false;
-  const loadBandLayouts = () => {
-    if (bandLayoutsWanted) void importLayoutCache(layoutCacheUrl(artifact.layoutCacheBandUrl, bandKey(document.documentElement.clientWidth)));
-  };
+  // Once the first 8 images are in, every chip of the current band is packed in the background (masonry-live-layout R3), so
+  // a click finds its layout ready. warmPacks is defined with the geometry below; geometryRequest also calls it.
+  let warmPacksWanted = false;
+  let warmPacks = () => {};
   const prefetchDetail = (tries = 0) => {
     if (controller.signal.aborted) return;
     const images = [...document.querySelectorAll("[data-masonry-card] img")].slice(0, 8);
@@ -1848,11 +1856,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         ensureDetail();
         idleWorker ||= startLayoutWorker();
       }
-      bandLayoutsWanted = true;
-      loadBandLayouts();
+      warmPacksWanted = true;
+      void warmPacks();
     } else setTimeout(prefetchDetail, 250, tries + 1);
   };
-  if (viewer || artifact.layoutCacheBandUrl) prefetchDetail();
+  prefetchDetail();
   // Keep the CSS measurements ready for when the shell script cannot start.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
@@ -2243,22 +2251,46 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   grid.setAttribute("role", "list");
   relatedGrid?.setAttribute("role", "list");
 
-  // Main grid geometry replays a precomputed layout (advertising-masonry R6): no search on the visitor machine. Lookup
-  // order: layouts embedded in the artifact (Projects, CMS), the whole-band file, the one-filter file.
-  const cachedLayoutEntry = (band, targetFilter) => artifact.layouts?.[band]?.filters?.[targetFilter]
-    ?? layoutCacheSettled.get(layoutCacheUrl(artifact.layoutCacheBandUrl, band))?.filters?.[targetFilter]
-    ?? layoutCacheSettled.get(layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter))?.filters?.[targetFilter];
-  // Promise while the cache for this width and filter is still loading, null once it is ready, failed or absent.
-  const layoutCachePending = (targetFilter) => {
-    const band = bandKey(document.documentElement.clientWidth);
-    const url = layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter);
-    if (!url || cachedLayoutEntry(band, targetFilter) || layoutCacheSettled.has(url)) return null;
-    return importLayoutCache(url);
+  // Main grid geometry (masonry-live-layout R1, R2): entries packed for (filter, band, seed) once, then replayed at the real width.
+  // A resize inside the band, Back/Forward and a repeat filter only replay; the same seed always packs the same grid.
+  const packedEntries = new Map();
+  const packWaits = new Map();
+  const bandOf = (layoutViewportWidth) => LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
+  const packKey = (band, targetFilter) => `${targetFilter}|${band.key}|${browseHistory.current.seed}`;
+  // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
+  const layoutPending = (targetFilter) => {
+    const band = bandOf(document.documentElement.clientWidth);
+    if (!band) return null;
+    const key = packKey(band, targetFilter);
+    if (packedEntries.has(key)) return null;
+    if (!packWaits.has(key)) {
+      packWaits.set(key, packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter }).catch(() => null).then((entries) => {
+        packedEntries.set(key, entries);
+        packWaits.delete(key);
+      }));
+    }
+    return packWaits.get(key);
   };
-  // Filter clicks and band changes keep the current layout until the cache arrives, then place cards once (no stack
-  // layout in between). The latest request wins.
+  // One chip at a time: the Worker answers in order, so a click on a chip not packed yet waits behind one job at most.
+  let warming = false;
+  warmPacks = async () => {
+    if (!warmPacksWanted || warming) return;
+    warming = true;
+    const startBand = bandOf(document.documentElement.clientWidth);
+    const ids = [filters, ...chipGroups].flatMap((root) => (root ? [...root.querySelectorAll("[data-masonry-filter], [data-masonry-product]")] : []))
+      .map((control) => control.dataset.masonryFilter ?? control.dataset.masonryProduct);
+    for (const id of ids) {
+      if (controller.signal.aborted) break;
+      await layoutPending(id);
+    }
+    warming = false;
+    // The width crossed into another band meanwhile: warm that band from its first chip too.
+    if (!controller.signal.aborted && bandOf(document.documentElement.clientWidth) !== startBand) void warmPacks();
+  };
+  // Filter clicks and band changes keep the current layout until the pack is in, then place cards once (no stack layout in
+  // between). The latest request wins.
   let layoutWait = 0;
-  // The clicked chip shows its selected look (aria-busy) while the click waits, so a slow cache never reads as a dead click.
+  // The clicked chip shows its selected look (aria-busy) while the click waits, so a slow pack never reads as a dead click.
   let busyControl = null;
   const cancelLayoutWait = () => {
     layoutWait += 1;
@@ -2268,7 +2300,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const whenLayoutReady = (targetFilter, run, control) => {
     cancelLayoutWait();
     const ticket = layoutWait;
-    const pending = layoutCachePending(targetFilter);
+    const pending = layoutPending(targetFilter);
     if (!pending) return run();
     busyControl = control ?? null;
     busyControl?.setAttribute("aria-busy", "true");
@@ -2276,53 +2308,34 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (ticket === layoutWait && !controller.signal.aborted) run();
     });
   };
-  // A stack layout drawn while the cache was missing is replaced once that cache lands (late file, Back/Forward in the
-  // first seconds, a band change during a pending click). Only while filter and band are unchanged.
-  const relayoutWhenCached = (targetFilter, band) => {
-    const urls = [layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter)];
-    if (layoutCacheLoads.has(layoutCacheUrl(artifact.layoutCacheBandUrl, band))) urls.push(layoutCacheUrl(artifact.layoutCacheBandUrl, band));
-    for (const url of urls) {
-      void loadLayoutCache(url).then(() => {
-        // A card is open: the grid is hidden, so closing the card measures it (see staleStackGeometry).
-        if (controller.signal.aborted || filter !== targetFilter || geometry?.diagnostics?.source !== "stack"
-          || bandKey(document.documentElement.clientWidth) !== band || !cachedLayoutEntry(band, targetFilter)
-          || browseHistory.current.photo) return;
-        measure();
-      });
-    }
+  // A stack layout drawn while the pack was missing (Back/Forward to another seed, a band change while a card was open) is
+  // replaced once the pack lands. Only while filter and band are unchanged.
+  const relayoutWhenPacked = (targetFilter, band, wait) => {
+    void wait.then(() => {
+      // A card is open: the grid is hidden, so closing the card measures it (see staleStackGeometry).
+      if (controller.signal.aborted || filter !== targetFilter || geometry?.diagnostics?.source !== "stack"
+        || bandOf(document.documentElement.clientWidth) !== band || browseHistory.current.photo) return;
+      measure();
+    });
   };
-  // The grid still holds a stack layout although its cache has landed (it landed while a card was open).
-  const staleStackGeometry = () => geometry?.diagnostics?.source === "stack"
-    && Boolean(cachedLayoutEntry(bandKey(document.documentElement.clientWidth), filter));
-  const poolSignatures = new Map();
-  const loggedMisses = new Set();
+  // The grid still holds a stack layout although its pack has landed (it landed while a card was open).
+  const staleStackGeometry = () => {
+    const band = bandOf(document.documentElement.clientWidth);
+    return geometry?.diagnostics?.source === "stack" && Boolean(band && packedEntries.get(packKey(band, filter)));
+  };
   const geometryRequest = (targetFilter) => {
     const layoutViewportWidth = document.documentElement.clientWidth;
-    const band = bandKey(layoutViewportWidth);
-    loadBandLayouts();
-    const pool = cards.filter((card) => matchesFilter(card, targetFilter));
-    const entry = cachedLayoutEntry(band, targetFilter);
-    if (entry && !poolSignatures.has(targetFilter)) poolSignatures.set(targetFilter, poolSignature(pool));
-    const usable = Boolean(entry?.variants?.length) && entry.sig === poolSignatures.get(targetFilter);
-    const variant = usable ? variantIndex(browseHistory.current.seed, entry.variants.length) : null;
+    const band = bandOf(layoutViewportWidth);
+    const wait = band && layoutPending(targetFilter);
+    void warmPacks();
+    const entries = band && !wait ? packedEntries.get(packKey(band, targetFilter)) : null;
     const compile = () => {
-      const layout = usable && replayLayout({ entries: entry.variants[variant], cards, layoutViewportWidth, filter: targetFilter, settings });
+      const layout = entries && replayLayout({ entries, cards, layoutViewportWidth, filter: targetFilter, settings });
       if (layout) return layout;
-      // Only a declared cache that failed is a miss. No declared cache is stack by design; a cache still loading
-      // (Back/Forward in the first seconds) is not a failure either and must stay off console.warn.
-      const filterUrl = layoutCacheUrl(artifact.layoutCacheFilterUrl, band, targetFilter);
-      const bandUrl = layoutCacheUrl(artifact.layoutCacheBandUrl, band);
-      const loading = !entry && !artifact.layouts && (filterUrl || bandUrl)
-        && !layoutCacheSettled.has(filterUrl) && !layoutCacheSettled.has(bandUrl);
-      const missKey = `${targetFilter}|${band}`;
-      if (!entry && !artifact.layouts && (filterUrl || bandUrl)) relayoutWhenCached(targetFilter, band);
-      if (loading) console.debug("[masonry] layout cache loading", targetFilter, band);
-      else if ((artifact.layouts || filterUrl || bandUrl) && !loggedMisses.has(missKey)) {
-        loggedMisses.add(missKey);
-        console.warn("[masonry] layout cache miss", targetFilter, band, !entry ? "load" : !usable ? "signature" : "replay");
-      }
+      if (wait) relayoutWhenPacked(targetFilter, band, wait);
+      else if (band) console.warn("[masonry] live layout failed", targetFilter, band.key);
       // Fallback for the whole grid (owner O3 last step): every card one column, random within each rank (taxonomy R1).
-      const order = shuffleWithSeed(pool, browseHistory.current.seed, `grid:${targetFilter}`)
+      const order = shuffleWithSeed(cards.filter((card) => matchesFilter(card, targetFilter)), browseHistory.current.seed, `grid:${targetFilter}`)
         .sort((left, right) => filterRank(left, targetFilter) - filterRank(right, targetFilter));
       return stackLayout({ order, layoutViewportWidth, filter: targetFilter, settings });
     };
@@ -2331,7 +2344,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       artifactCacheIdentity.layoutAlgorithmVersion,
       targetFilter,
       layoutViewportWidth,
-      `${band}:${variant ?? `stack-${browseHistory.current.seed}`}:${usable ? entry.sig : ""}`,
+      `${band?.key}:${browseHistory.current.seed}:${entries ? "live" : "stack"}`,
     ].join(":");
     return { key, compile };
   };
@@ -5274,7 +5287,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     getHref: () => window.location.href,
     getLogicalScroll,
     onApply({ action, browse, reason }) {
-      // Back/Forward, opening or closing a card: a filter click still waiting for its cache must not overwrite it.
+      // Back/Forward, opening or closing a card: a filter click still waiting for its pack must not overwrite it.
       if (reason !== "category") cancelLayoutWait();
       clearTimeout(persistTimer);
       persistTimer = 0;
@@ -5456,8 +5469,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
       // Mount is still waiting for geometry from the Worker and will measure itself. Back during the wait already measured synchronously: resize must run.
       if (geometryPending && !geometry) return;
-      // Crossing into another width band: keep the current layout until that band's cache is in, then resize once.
-      const bandWait = layoutCachePending(filter);
+      // Crossing into another width band: keep the current layout until that band is packed, then resize once.
+      const bandWait = layoutPending(filter);
       if (bandWait) {
         void bandWait.then(() => controller.signal.aborted || scheduleResize());
         return;
@@ -5534,7 +5547,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.preventDefault();
     event.stopImmediatePropagation();
     const nextFilter = control.dataset.masonryFilter ?? control.dataset.masonryProduct;
-    // Clicking the active filter again cancels a click still waiting for its cache.
+    // Clicking the active filter again cancels a click still waiting for its pack.
     if (nextFilter === filter) {
       cancelLayoutWait();
       return;
@@ -5894,11 +5907,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (activeInstance?.container === container) activeInstance = undefined;
   };
   signal?.addEventListener("abort", cleanup, { once: true });
-  // Wait for the layout cache before exposing the adapter: an adapter call (ensurePhoto) during the wait would measure and
+  // Wait for the grid pack before exposing the adapter: an adapter call (ensurePhoto) during the wait would measure and
   // set the scroll, then the mount's own measure would overwrite it.
   if (!browseHistory.current.photo) {
     geometryPending = true;
-    await layoutCachePending(filter);
+    await layoutPending(filter);
     // Replay the layout (into the geometry cache) before the build; setup and the first build are separate tasks (R7, 50ms gate on the A04s).
     if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
     await nextTask();
@@ -5935,10 +5948,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    await layoutCachePending(filter);
+    await layoutPending(filter);
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
-    // Measure the hidden grid (layout cache replay) in its own task, not inside the Back task (A04s is slower on Back).
+    // Measure the hidden grid (pack replay) in its own task, not inside the Back task (A04s is slower on Back).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     if (!geometry) measure();
