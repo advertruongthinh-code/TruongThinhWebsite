@@ -157,18 +157,21 @@ function assertPersistentNavigationContracts() {
       /<g\b(?=[^>]*\bid="truong-thinh-mark")[^>]*\bclass="[^"]*\bbrand-lockup__mark\b"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      /<text\b(?=[^>]*\bid="truong-thinh-title")(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+      /<g\b(?=[^>]*\bid="truong-thinh-title")[^>]*\bclass="brand-lockup__title"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      /<text\b(?=[^>]*\bid="truong-thinh-subtitle")(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+      /<g\b(?=[^>]*\bid="truong-thinh-subtitle")[^>]*\bclass="brand-lockup__subtitle" data-lang="vi"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      (brandLockupSource.match(/<path\b/g) || []).length === 4 &&
-      (brandLockupSource.match(/<text\b/g) || []).length === 2 &&
+      /<g\b(?=[^>]*\bid="truong-thinh-subtitle-en")[^>]*\bclass="brand-lockup__subtitle" data-lang="en" display="none"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      (brandLockupSource.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+      !/<text\b/.test(brandLockupSource) &&
       !/<(?:use|image|style|metadata|clipPath|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
         brandLockupSource,
       ),
-    "The canonical Trường Thịnh lockup must keep four mark paths and two live text nodes",
+    "The canonical Trường Thịnh lockup must keep four mark paths and an outlined title and vi/en subtitle",
   );
 
   PUBLIC_HTML.forEach(([relativePath, namespace]) => {
@@ -326,18 +329,15 @@ function assertPersistentNavigationContracts() {
         /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           headerBrand,
         ) &&
-        (headerBrand.match(/<path\b/g) || []).length === 4 &&
-        (headerBrand.match(/<text\b/g) || []).length === 2 &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          headerBrand,
-        ) &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          headerBrand,
-        ) &&
+        (headerBrand.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+        !/<text\b/.test(headerBrand) &&
+        /<g class="brand-lockup__title">/.test(headerBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="vi">/.test(headerBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(headerBrand) &&
         !/<span class="brand-copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
           headerBrand,
         ),
-      `${relativePath} must inline the sanitized Trường Thịnh mark geometry and live text`,
+      `${relativePath} must inline the sanitized Trường Thịnh mark geometry and outlined wordmark`,
     );
     const menuBrand = menuSource?.match(
       /<a\b(?=[^>]*\bclass="[^"]*\bmenu-brand\b)[\s\S]*?<\/a>/,
@@ -347,18 +347,15 @@ function assertPersistentNavigationContracts() {
         /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           menuBrand,
         ) &&
-        (menuBrand.match(/<path\b/g) || []).length === 4 &&
-        (menuBrand.match(/<text\b/g) || []).length === 2 &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          menuBrand,
-        ) &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          menuBrand,
-        ) &&
+        (menuBrand.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+        !/<text\b/.test(menuBrand) &&
+        /<g class="brand-lockup__title">/.test(menuBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="vi">/.test(menuBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(menuBrand) &&
         !/<span class="menu-brand__copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
           menuBrand,
         ),
-      `${relativePath} full-menu logo must inline the sanitized mark geometry and live text`,
+      `${relativePath} full-menu logo must inline the sanitized mark geometry and outlined wordmark`,
     );
     for (const [location, markup] of [["header", headerBrand], ["menu", menuBrand]]) {
       assert(
@@ -586,7 +583,7 @@ function assertPersistentNavigationContracts() {
         styleSource,
       ) &&
       !/brand-mark|brand-copy|menu-brand__mark|menu-brand__copy/.test(styleSource),
-    "The header and menu lockups must keep the approved precise true-bounds matrix, live text, and visible geometry",
+    "The header and menu lockups must keep the approved precise true-bounds matrix, outlined wordmark, and visible geometry",
   );
   assert(
     /html\s*\{[\s\S]*?overflow-x:\s*hidden;/.test(styleSource) &&
@@ -10434,21 +10431,17 @@ function assertBrandShellSourceContracts() {
       assert(
         mark &&
           (mark.match(/<path\b/g) || []).length === 4 &&
-          (lockup.match(/<text\b/g) || []).length === 2 &&
-          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*>/.test(
-            lockup,
-          ) &&
-          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)(?=[^>]*\bdata-en="INTERIORS · ADVERTISING")[^>]*>/.test(
-            lockup,
-          ) &&
-          !/\blengthAdjust="spacingAndGlyphs"/.test(lockup) &&
+          !/<text\b/.test(lockup) &&
+          /<g class="brand-lockup__title">/.test(lockup) &&
+          /<g class="brand-lockup__subtitle" data-lang="vi">/.test(lockup) &&
+          /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(lockup) &&
           !/<(?:use|image|style|metadata|title|desc|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
             lockup,
           ),
         relativePath +
           " lockup " +
           (index + 1) +
-          " must keep four mark paths, two live text nodes, and undistorted locale copy",
+          " must keep four mark paths and the outlined title with vi and en subtitles",
       );
     });
 
@@ -10701,123 +10694,21 @@ async function readBrandLockupRuntimeState(page) {
       const lockup = root?.querySelector(".brand-lockup");
       const mark = lockup?.querySelector(".brand-lockup__mark");
       const title = lockup?.querySelector(".brand-lockup__title");
-      const subtitle = lockup?.querySelector(".brand-lockup__subtitle");
-      const bbox = (element) => {
-        try {
-          const value = element?.getBBox?.();
-          if (!value) return null;
-          return {
-            x: value.x,
-            y: value.y,
-            width: value.width,
-            height: value.height,
-          };
-        } catch {
-          return null;
-        }
-      };
-      const visualTextExtent = (element) => {
-        try {
-          const count = element?.getNumberOfChars?.() || 0;
-          const matrix = element?.getScreenCTM?.();
-          const style = element && getComputedStyle(element);
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          if (!count || !matrix || !style || !context) return null;
-          const sampleSize = 1000;
-          const scale = Number.parseFloat(style.fontSize) / sampleSize;
-          const text = element.textContent || "";
-          context.font = [
-            style.fontStyle,
-            style.fontWeight,
-            sampleSize + "px",
-            style.fontFamily,
-          ].join(" ");
-          const project = (x, y) => ({
-            x: matrix.a * x + matrix.c * y + matrix.e,
-            y: matrix.b * x + matrix.d * y + matrix.f,
-          });
-          const extents = [];
-          for (let index = 0; index < count; index += 1) {
-            const glyph = text[index];
-            if (!glyph || /\s/.test(glyph)) continue;
-            const point = element.getStartPositionOfChar(index);
-            const metrics = context.measureText(glyph);
-            const corners = [
-              project(
-                point.x - metrics.actualBoundingBoxLeft * scale,
-                point.y - metrics.actualBoundingBoxAscent * scale,
-              ),
-              project(
-                point.x + metrics.actualBoundingBoxRight * scale,
-                point.y + metrics.actualBoundingBoxDescent * scale,
-              ),
-            ];
-            extents.push({
-              top: Math.min(...corners.map((corner) => corner.y)),
-              right: Math.max(...corners.map((corner) => corner.x)),
-              bottom: Math.max(...corners.map((corner) => corner.y)),
-              left: Math.min(...corners.map((corner) => corner.x)),
-            });
-          }
-          if (!extents.length) return null;
-          const top = Math.min(...extents.map((value) => value.top));
-          const bottom = Math.max(...extents.map((value) => value.bottom));
-          const left = Math.min(...extents.map((value) => value.left));
-          const right = Math.max(...extents.map((value) => value.right));
-          return { top, right, bottom, left, width: right - left, height: bottom - top };
-        } catch {
-          return null;
-        }
-      };
-      const canvasMetricsAt1000 = (element) => {
-        if (!element) return null;
-        const style = getComputedStyle(element);
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return null;
-        const sampleSize = 1000;
-        const fontSize = Number.parseFloat(style.fontSize);
-        const matrix = element.getScreenCTM?.();
-        const verticalScale = matrix ? Math.hypot(matrix.c, matrix.d) : 1;
-        context.font = [
-          style.fontStyle,
-          style.fontWeight,
-          sampleSize + "px",
-          style.fontFamily,
-        ].join(" ");
-        const cap = context.measureText("H");
-        const ink = context.measureText(element.textContent || "");
-        const scale = (fontSize / sampleSize) * verticalScale;
-        return {
-          sampleSize,
-          capHeight:
-            (cap.actualBoundingBoxAscent + cap.actualBoundingBoxDescent) * scale,
-          inkHeight:
-            (ink.actualBoundingBoxAscent + ink.actualBoundingBoxDescent) * scale,
-          inkTop: ink.actualBoundingBoxAscent * scale,
-          inkBottom: ink.actualBoundingBoxDescent * scale,
-        };
-      };
-      const baselineY = (element) => {
-        try {
-          const point = element?.getStartPositionOfChar?.(0);
-          const matrix = element?.getScreenCTM?.();
-          if (!point || !matrix) return null;
-          return matrix.b * point.x + matrix.d * point.y + matrix.f;
-        } catch {
-          return null;
-        }
-      };
-      const titleNodes = title ? [title] : [];
-      const subtitleNodes = subtitle ? [subtitle] : [];
-      const text = [...titleNodes, ...subtitleNodes];
+      // The wordmark is outlined glyphs; the subtitle has one group per locale and only the active one renders.
+      const subtitles = [...(lockup?.querySelectorAll(".brand-lockup__subtitle") || [])];
+      const visibleSubtitles = subtitles.filter((group) => getComputedStyle(group).display !== "none");
+      const subtitle = visibleSubtitles[0];
+      // First glyphs (T; N or I) have flat tops and sit on the baseline, so their box is the cap body.
+      const firstGlyph = (group) => group?.querySelector("path");
+      const capHeight = (group) => rect(firstGlyph(group))?.height;
+      const baselineY = (group) => rect(firstGlyph(group))?.bottom ?? null;
+      const titleExtent = rect(title);
+      const subtitleExtent = subtitle ? rect(subtitle) : null;
+      const text = [title, subtitle].filter(Boolean);
       const markRect = union([mark]);
       const textRect = union(text);
       const trueRect = union([mark, ...text]);
       const svgRect = rect(lockup);
-      const titleExtent = visualTextExtent(title);
-      const subtitleExtent = visualTextExtent(subtitle);
       const textInk = [titleExtent, subtitleExtent].every(Boolean)
         ? {
             top: Math.min(titleExtent.top, subtitleExtent.top),
@@ -10847,43 +10738,22 @@ async function readBrandLockupRuntimeState(page) {
         markRect,
         textRect,
         trueRect,
-        titleRect: rect(title),
-        subtitleRect: rect(subtitle),
-        titleBBox: bbox(title),
-        subtitleBBox: bbox(subtitle),
         titleExtent,
         subtitleExtent,
+        visibleSubtitleLangs: visibleSubtitles.map((group) => group.dataset.lang),
         textInk,
         inkRect,
-        titleMetrics: canvasMetricsAt1000(title),
-        subtitleMetrics: canvasMetricsAt1000(subtitle),
+        titleCapHeight: capHeight(title),
+        subtitleCapHeight: capHeight(subtitle),
         titleBaselineY: baselineY(title),
         subtitleBaselineY: baselineY(subtitle),
         pathCount: mark?.querySelectorAll("path").length || 0,
+        titleGlyphCount: title?.querySelectorAll("path").length || 0,
+        subtitleGlyphCount: subtitle?.querySelectorAll("path").length || 0,
         hasUse: Boolean(lockup?.querySelector("use")),
         textCount: lockup?.querySelectorAll("text").length || 0,
-        titleFontSizes: titleNodes.map((node) =>
-          Number.parseFloat(getComputedStyle(node).fontSize),
-        ),
-        subtitleFontSizes: subtitleNodes.map((node) =>
-          Number.parseFloat(getComputedStyle(node).fontSize),
-        ),
-        subtitleLetterSpacings: subtitleNodes.map((node) => {
-          const value = getComputedStyle(node).letterSpacing;
-          return value === "normal" ? 0 : Number.parseFloat(value);
-        }),
-        titleLetterSpacings: titleNodes.map((node) => {
-          const value = getComputedStyle(node).letterSpacing;
-          return value === "normal" ? 0 : Number.parseFloat(value);
-        }),
-        titleTransforms: titleNodes.map((node) => getComputedStyle(node).transform),
-        subtitleTransforms: subtitleNodes.map(
-          (node) => getComputedStyle(node).transform,
-        ),
-        titleWeights: titleNodes.map((node) => getComputedStyle(node).fontWeight),
-        subtitleWeights: subtitleNodes.map(
-          (node) => getComputedStyle(node).fontWeight,
-        ),
+        titleTransform: title ? getComputedStyle(title).transform : null,
+        subtitleTransform: subtitle ? getComputedStyle(subtitle).transform : null,
         overflow:
           inkRect &&
           svgRect &&
@@ -10910,12 +10780,13 @@ function assertBrandLockupRuntimeState(state, label, width) {
   const validate = (measurement, name) => {
     const isVietnamese = state.lang === "vi";
     const y = measurement?.markRect?.height / 6;
-    const titleBodyHeight = measurement?.titleMetrics?.capHeight;
-    const subtitleBodyHeight = measurement?.subtitleMetrics?.capHeight;
+    const titleBodyHeight = measurement?.titleCapHeight;
+    const subtitleBodyHeight = measurement?.subtitleCapHeight;
     const interlineInkGap = measurement?.subtitleExtent?.top - measurement?.titleExtent?.bottom;
     const bodyInkHeight = measurement?.textInk?.height;
-    const topPadding = measurement?.textInk?.top - measurement?.markRect?.top;
-    const bottomPadding = measurement?.markRect?.bottom - measurement?.textInk?.bottom;
+    // Paddings use the lockup frame (the unsnapped mark box): the small-size mark snap may shift the drawn mark by half a device pixel (brand.md).
+    const topPadding = measurement?.textInk?.top - measurement?.svgRect?.top;
+    const bottomPadding = measurement?.svgRect?.bottom - measurement?.textInk?.bottom;
     const markToTextInkGap =
       Math.min(
         measurement?.titleExtent?.left || Infinity,
@@ -10925,17 +10796,16 @@ function assertBrandLockupRuntimeState(state, label, width) {
       measurement &&
         measurement.pathCount === 4 &&
         !measurement.hasUse &&
-        measurement.textCount === 2 &&
-        measurement.titleWeights.length === 1 &&
-        measurement.subtitleWeights.length === 1 &&
-        measurement.titleWeights[0] === "600" &&
-        measurement.subtitleWeights[0] === "600" &&
+        measurement.textCount === 0 &&
+        measurement.titleGlyphCount === 11 &&
+        measurement.subtitleGlyphCount === (isVietnamese ? 16 : 21) &&
+        JSON.stringify(measurement.visibleSubtitleLangs) === JSON.stringify([state.lang]) &&
+        measurement.titleTransform === "none" &&
+        measurement.subtitleTransform === "none" &&
         measurement.markRect &&
         measurement.textRect &&
         measurement.trueRect &&
         measurement.markRect.height > 0 &&
-        measurement.titleMetrics?.sampleSize === 1000 &&
-        measurement.subtitleMetrics?.sampleSize === 1000 &&
         titleBodyHeight > 0 &&
         subtitleBodyHeight > 0 &&
         measurement.titleExtent &&
@@ -10959,12 +10829,7 @@ function assertBrandLockupRuntimeState(state, label, width) {
             Math.abs(measurement.titleExtent.left - measurement.subtitleExtent.left) <= tolerance &&
             Math.abs(measurement.titleExtent.right - measurement.subtitleExtent.right) <= tolerance &&
             interlineInkGap <= 0.5 * y + tolerance
-          : Math.abs(measurement.titleFontSizes[0] - 46.68365) <= 0.001 &&
-            Math.abs(measurement.subtitleFontSizes[0] - 28.8505) <= 0.001 &&
-            measurement.titleLetterSpacings[0] === 0 &&
-            measurement.subtitleLetterSpacings[0] === 0 &&
-            measurement.titleTransforms[0] === "none" &&
-            measurement.subtitleTransforms[0] === "none"),
+          : true),
       label +
         " " +
         name +
@@ -11018,12 +10883,8 @@ function assertBrandLocaleMetricParity(viState, enState, label) {
     const viBaselineGap = vi.subtitleBaselineY - vi.titleBaselineY;
     const enBaselineGap = en.subtitleBaselineY - en.titleBaselineY;
     assert(
-      vi.titleFontSizes[0] === en.titleFontSizes[0] &&
-        vi.subtitleFontSizes[0] === en.subtitleFontSizes[0] &&
-        vi.titleLetterSpacings[0] === en.titleLetterSpacings[0] &&
-        vi.subtitleLetterSpacings[0] === en.subtitleLetterSpacings[0] &&
-        vi.titleTransforms[0] === en.titleTransforms[0] &&
-        vi.subtitleTransforms[0] === en.subtitleTransforms[0] &&
+      Math.abs(vi.titleCapHeight - en.titleCapHeight) <= 0.01 &&
+        Math.abs(vi.subtitleCapHeight - en.subtitleCapHeight) <= 0.01 &&
         Math.abs(viBaselineGap - enBaselineGap) <= tolerance &&
         ["top", "right", "bottom", "left"].every(
           (edge) => Math.abs(vi.titleExtent[edge] - en.titleExtent[edge]) <= tolerance,
@@ -11080,7 +10941,7 @@ async function runBrandLockupRuntimeChecks() {
 
   for (const { locale, route } of BRAND_LOCKUP_ROUTE_CASES) {
     await runPageCase(
-      `brand lockup text width ${locale} ${route}`,
+      `brand lockup locale wordmark ${locale} ${route}`,
       { route, viewport: { width: 390, height: 844 } },
       async (page) => {
         const diagnostics = monitorPage(page);
@@ -11090,24 +10951,6 @@ async function runBrandLockupRuntimeChecks() {
         await waitForBrandFonts(page);
         const state = await readBrandLockupRuntimeState(page);
         assertBrandLockupRuntimeState(state, route + " 390x844", 390);
-        const subtitles = await page
-          .locator(".brand-lockup__subtitle")
-          .allTextContents();
-        const titles = await page
-          .locator(".brand-lockup__title")
-          .allTextContents();
-        const expectedSubtitle =
-          locale === "en" ? "INTERIORS · ADVERTISING" : "NỘI THẤT · QUẢNG CÁO";
-        assert(
-          titles.length === 2 &&
-            titles.every((text) => text.replace(/\s+/g, " ").trim() === "TRƯỜNG THỊNH") &&
-            subtitles.length === 2 &&
-            subtitles.every(
-              (text) => text.replace(/\s+/g, " ").trim() === expectedSubtitle,
-            ),
-          `${route} must render both live brand title/subtitle nodes for ${locale}: ` +
-            JSON.stringify({ titles, subtitles }),
-        );
         assertDiagnostics(diagnostics);
       },
     );
@@ -11126,30 +10969,6 @@ async function runBrandLockupRuntimeChecks() {
         await readBrandLockupRuntimeState(page),
         "/en/ 1440x900",
         1440,
-      );
-      assertDiagnostics(diagnostics);
-    },
-  );
-
-  await runPageCase(
-    "brand lockup English subtitle",
-    { route: "/en/", viewport: { width: 390, height: 844 } },
-    async (page) => {
-      const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/en/");
-      await page.waitForFunction(
-        () => document.documentElement.lang === "en",
-      );
-      const subtitles = await page
-        .locator(".brand-lockup__subtitle")
-        .allTextContents();
-      assert(
-        subtitles.length === 2 &&
-          subtitles.every(
-            (text) => text.replace(/\s+/g, " ").trim() === "INTERIORS · ADVERTISING",
-          ),
-        "English route must translate both header and full-menu brand subtitles: " +
-          JSON.stringify(subtitles),
       );
       assertDiagnostics(diagnostics);
     },

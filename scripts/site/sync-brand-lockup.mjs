@@ -6,22 +6,19 @@ const canonicalPath = path.join(siteRoot, "assets", "brand", "truong-thinh-locku
 // The shell partials hold the only inline lockups: one in the header, one in the menu.
 const consumers = ["partials/header.html", "partials/menu.html"];
 const lockupPattern = /<svg class="brand-lockup" viewBox="[^\"]*" aria-hidden="true" data-parity-media>[\s\S]*?<\/svg>/g;
-const subtitleEnglishCopy = "INTERIORS · ADVERTISING";
-
 const canonical = await readFile(canonicalPath, "utf8");
 const geometry = canonical.match(/<svg\b[^>]*>([\s\S]*?)<\/svg>/)?.[1];
-if (!geometry || (geometry.match(/<path\b/g) || []).length !== 4 || (geometry.match(/<text\b/g) || []).length !== 2) {
-  throw new Error("Canonical lockup must contain exactly four paths and two text nodes.");
+const mark = geometry?.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0];
+// Wordmark is outlined glyph paths so every browser rasterizes the same geometry: one title group, one subtitle group per locale.
+if (
+  !mark || (mark.match(/<path\b/g) || []).length !== 4 || /<text\b/.test(geometry) ||
+  !/class="brand-lockup__title"/.test(geometry) ||
+  !/class="brand-lockup__subtitle" data-lang="vi"/.test(geometry) ||
+  !/class="brand-lockup__subtitle" data-lang="en"/.test(geometry)
+) {
+  throw new Error("Canonical lockup must contain four mark paths and outlined title, vi and en subtitle groups.");
 }
-const consumerGeometry = geometry
-  .replace(/\s+id="truong-thinh-(?:lockup|mark|title|subtitle)"/g, "")
-  .replace(
-    'class="brand-lockup__subtitle"',
-    `class="brand-lockup__subtitle" data-en="${subtitleEnglishCopy}"`,
-  );
-if (!consumerGeometry.includes(`data-en="${subtitleEnglishCopy}"`)) {
-  throw new Error("Canonical subtitle could not receive required English leaf copy.");
-}
+const consumerGeometry = geometry.replace(/\s+id="truong-thinh-(?:lockup|mark|title|subtitle|subtitle-en)"/g, "");
 
 let synchronized = 0;
 for (const relativePath of consumers) {

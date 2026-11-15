@@ -90,6 +90,8 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 
 - Hai dòng cân chiều ngang chỉ bằng tracking (`textLength`, `lengthAdjust
   ="spacing"`); không kéo giãn hay bóp glyph, không scale ngang.
+- Chữ trên site là outline vector của đúng các dòng trên, không phải chữ sống,
+  để mọi trình duyệt vẽ mép giống nhau (owner 2026-11-15).
 - EN dùng đúng hình dựng VI (correction R5): tiêu đề trùng VI; phụ đề EN cùng
   cỡ và khe với VI, chỉ nén tracking để bằng chiều ngang tiêu đề.
 
