@@ -181,14 +181,17 @@ Then trả 400, dữ liệu chữ không đổi
 
 ### R9. Tìm kiếm ngữ nghĩa và hỗ trợ nhập
 
-Owner duyệt 2026-11-15 (thread tìm kiếm ngữ nghĩa). Lúc lưu, CMS gọi Worker Cloudflare tính vector, không chạy trên máy
-người soạn; mỗi media một vector, video lấy tới khoảng 10 giây hoặc từng đoạn 15 giây với clip dài.
+Owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx), mục "Khi CMS thêm, sửa, xóa
+media"; thread tìm kiếm sở hữu phần tìm). Lúc lưu, CMS gọi Worker Cloudflare tính vector bằng Workers AI
+`@cf/google/embeddinggemma-2`, không chạy trên máy người soạn: mỗi media một vector (ảnh cộng alt; video lấy frame 1 giây
+một frame cộng poster), mỗi card một vector chữ (tên, mô tả, sản phẩm, cụm, tag). Nháp chỉ người dùng CMS tìm được. Đổi
+model thì tính lại toàn bộ một lần. Site không lưu nhật ký tìm kiếm.
 
 | Thao tác | Vector và lớp từ khóa |
 | --- | --- |
 | Thêm card hoặc media | Tạo vector, cập nhật từ khóa |
-| Sửa tên, mô tả, alt | Tính lại vector chữ |
-| Thay media | Tính lại vector của media đó |
+| Sửa tên, mô tả | Tính lại vector chữ của card |
+| Sửa alt hoặc thay media | Tính lại vector của media đó |
 | Xóa | Gỡ vector và từ khóa |
 
 Worker lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; vector tính lại sau. Không có trường từ khóa riêng: lớp từ khóa
