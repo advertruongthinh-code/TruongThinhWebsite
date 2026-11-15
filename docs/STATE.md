@@ -9,7 +9,7 @@
 
 ## Việc đang làm
 - PR mở: [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls); đã merge tự lên demo, chờ owner kiểm nhận ([card](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
-- Gate mở CMS ([card](https://app.notion.com/p/418332849a0e815ab486ef7dbc28bc77)): gate 2 tới 4 xong ([decision](decisions/cms-cloudflare-static-publish.md)); chờ owner chọn cách đóng gate 1 (LCP EN Nhà ở), rồi mở slice đầu.
+- Gate mở CMS ([card](https://app.notion.com/p/418332849a0e815ab486ef7dbc28bc77)): gate 1 tới 4 xong ([decision](decisions/cms-cloudflare-static-publish.md)); chờ owner mở slice đầu (gate 5).
 - Nước rút tới CMS: trang Công trình, dải công trình và News dựng từ khối ([spec #691](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/691), #694, #701, sáu trang lọc theo loại #703); hero, kicker trang Công trình đang chỉnh. CMS editor, quyền, publish do thread CMS sở hữu ([CMS](specs/cms.md)).
 - Menu sáu nhóm có Công trình (#704, #705), navbar có Công trình (#708); lỗi chữ menu chồng trang ở lần mở đầu sau khi chuyển trang sửa ở #713.
 - Ảnh: phone chỉ WebP tới 960, PC JXL (WebP dự phòng) tới 4K ([progressive-loading](specs/progressive-loading.md), #690); vuốt nhanh masonry #687, #692. Còn gate R8 trong spec.
@@ -20,7 +20,7 @@
 ## Blocker đã verify
 
 - Owner fact chưa xác nhận: năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
-- Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)); các câu
+- Phát hành: các câu
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
 - Máy đo chuẩn: Galaxy A04s SM-A047F qua adb ([Android thật](operations/android-real-device-debugging.md)); A05s là máy cũ.
