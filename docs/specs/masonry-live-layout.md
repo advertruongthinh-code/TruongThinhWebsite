@@ -72,10 +72,11 @@ Then hai mảng entries giống nhau
 
 ### R3. Worker và luồng chính
 
-Mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
+Dải `2:15` không có card ngang, mỗi ứng viên chỉ tốn cỡ một mili giây, nên xếp trên luồng chính, mỗi ứng viên một task, không tạo
+Worker (khởi động Worker trên A04s tốn hơn). Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
 `{ id, candidate }`), luồng chính giữ ứng viên tốt nhất bằng `bestEntries`, nên ra đúng `packLive` mà lưới đầu chỉ chờ một ứng
-viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). `detail.js` tạo các Worker ngay khi
-bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trình (`window.__TT_GRID_WORKERS__`, runtime nhận lại), song song với
+viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). Từ 720px, `detail.js` tạo các Worker ngay
+khi bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trình (`window.__TT_GRID_WORKERS__`, runtime nhận lại), song song với
 module runtime. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
 liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; đã có Worker trả một lượt thì lượt chậm sau đó vẫn được chờ)
 thì từ đó xếp trên luồng chính, mỗi ứng viên còn thiếu một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi

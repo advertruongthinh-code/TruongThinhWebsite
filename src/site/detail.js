@@ -115,7 +115,8 @@
   // module graph, so their modules are loaded by the time the runtime posts the first pack; the runtime adopts them.
   const startGridWorker = () => {
     try {
-      if (window.__TT_GRID_WORKERS__) return;
+      // Below 720px (the 2-column band, pack.mjs LAYOUT_BANDS) the grid packs on the main thread.
+      if (window.__TT_GRID_WORKERS__ || document.documentElement.clientWidth < 720) return;
       // One per live candidate order (pack.mjs LIVE_CANDIDATES); the runtime spreads candidates over however many start here.
       window.__TT_GRID_WORKERS__ = Array.from({ length: 4 }, () => {
         const worker = new Worker("/masonry/layout-worker.mjs", { type: "module" });

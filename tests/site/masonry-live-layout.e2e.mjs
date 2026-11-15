@@ -112,6 +112,9 @@ try {
       const dom = await settled(page);
       const layout = assertGrid(dom, await cardsOf(page, url), `${url} ${width}px`);
       assert.equal(layout.columns, LAYOUT_BANDS.find((band) => band.key === bandKey(width)).columns);
+      // R3: the 2-column band packs on the main thread and boots no grid Worker.
+      const workers = await page.evaluate(() => window.__TT_GRID_WORKERS__?.length ?? 0);
+      assert.ok(layout.columns === 2 ? workers === 0 : workers > 0, `${url} ${width}px: ${workers} grid Workers`);
       // Wide covers far below the window: mount some by id and read their committed span.
       const wideIds = (await cardsOf(page, url)).filter((card) => isWideMedia(layoutMedia(card))).slice(0, 4).map((card) => card.id);
       const spans = await page.evaluate((ids) => ids.map((id) => {

@@ -977,8 +977,11 @@ const packInWorker = (job, s) => new Promise((resolve) => {
     packReplies.delete(id);
   }
 });
+// The 2-column band has no wide card, so its candidates cost about a millisecond each: they pack on the main thread, which on a
+// phone beats booting Workers (plan, A04s 2026-11-15).
+const usesGridWorkers = (band) => band?.columns > 2;
 const packGrid = async (job) => {
-  const candidates = await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
+  const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
     await new Promise((resolve) => setTimeout(resolve));
@@ -996,9 +999,9 @@ let warmWorker;
 // loads right away when the artifact has video (video-delivery R3): waiting for the first video card means on slow 4G the library arrives after the card is
 // already shown (measured on cloud 2026-10-25 over HTTP/2: 2/64 videos did not start in time).
 export const preloadMasonry = () => {
-  // A direct card page needs the related Worker at once; a grid page starts the grid Worker so its module loads with the vendor scripts.
+  // A direct card page needs the related Worker at once; a grid page from 3 columns starts the grid Workers so their modules load with the vendor scripts.
   if (detailId(new URL(location.href))) warmWorker ||= startLayoutWorker();
-  else ensureGridWorkers();
+  else if (usesGridWorkers(bandFor(document.documentElement.clientWidth))) ensureGridWorkers();
   loadArtifact().then((artifact) => {
     if (artifact.cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
   }).catch(() => {});
