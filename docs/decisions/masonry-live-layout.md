@@ -31,8 +31,8 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 - Số thứ tự thử cố định `LIVE_CANDIDATES = 4` (plan C2), không theo ngân sách thời gian, để máy chậm và nhanh ra cùng lưới, Back
   về đúng lưới cũ.
 - Tìm 3 card lấp chỉ ở lần thử đầu của card ngang, chặn đuôi thời gian xếp.
-- Mọi dải xếp trong Worker, kể cả dải điện thoại; Worker lỗi thì xếp trên luồng chính, mỗi ứng viên một task, không có ngưỡng
-  chờ 1 giây như plan ghi (máy chậm chỉ làm việc hai lần).
+- Mọi dải xếp trong Worker, kể cả dải điện thoại; Worker lỗi hoặc treo quá 1 giây (plan) thì xếp trên luồng chính, mỗi ứng
+  viên một task.
 - CMS chỉ lưu card; contract R6 cũ (CMS tính cache khi lưu) bỏ.
 
 ## Alternative đã cân nhắc
@@ -43,7 +43,6 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 | Một thứ tự mỗi filter (N = 1) | Rẻ nhất | Khoảng 1 trong 5 thứ tự lệch nhịp organic, có thứ tự hạ card ngang; so le trung vị 36 so với 33 của cache |
 | Số thứ tự theo ngân sách thời gian | Máy mạnh thử nhiều hơn | Máy chậm ra lưới khác, Back không về đúng lưới |
 | Dải điện thoại xếp trên luồng chính | Không cần Worker ở 2 cột | Hai đường code cho một việc; Worker đã khởi động sớm |
-| Ngưỡng chờ Worker 1 giây rồi xếp trên luồng chính | Chặn Worker treo | Máy chậm vừa đợi vừa xếp lại, gấp đôi việc |
 
 ## Hệ quả
 

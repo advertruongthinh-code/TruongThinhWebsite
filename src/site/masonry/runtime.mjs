@@ -18,7 +18,7 @@ import {
 } from "./layout.mjs";
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, replayLayout, stackLayout } from "./replay.mjs";
-import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate } from "./pack.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, seededOrder } from "./pack.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
@@ -934,14 +934,18 @@ const ensureGridWorker = () => {
   if (gridWorker || gridWorkerFailed) return gridWorker;
   try {
     // detail.js may have started it already (masonry-live-layout R3).
+    // detail.js may have started it already; the global stays set so a later catalog load does not start another one.
     const early = window.__TT_GRID_WORKER__;
-    window.__TT_GRID_WORKER__ = undefined;
     if (early?.failed) throw new Error("grid Worker failed to load");
     gridWorker = early || startLayoutWorker();
+    window.__TT_GRID_WORKER__ = gridWorker;
     gridWorker.onmessage = ({ data }) => {
       const resolve = packReplies.get(data?.id);
       packReplies.delete(data?.id);
+      gridWorkerAnswered = true;
       resolve?.(Array.isArray(data?.entries) ? data.entries : null);
+      // A pack that threw in the Worker would throw on every job: pack on the main thread from now on (R3).
+      if (data?.error) failGridWorker();
     };
     gridWorker.onerror = failGridWorker;
   } catch {
@@ -949,16 +953,25 @@ const ensureGridWorker = () => {
   }
   return gridWorker;
 };
+// A Worker that has not answered its first job within 1 s (plan, masonry-live-layout R3) counts as stalled: that job and every
+// later one pack on the main thread. Both paths give the same entries, so the timeout changes when the grid appears, never the
+// grid. Once it has answered, a slow job is just slow and is waited for.
+const PACK_TIMEOUT_MS = 1000;
+let gridWorkerAnswered = false;
 const packInWorker = (job) => new Promise((resolve) => {
   const worker = ensureGridWorker();
   if (!worker) return resolve(null);
   const id = ++packJobId;
-  packReplies.set(id, resolve);
+  const timer = gridWorkerAnswered ? 0 : setTimeout(failGridWorker, PACK_TIMEOUT_MS);
+  packReplies.set(id, (entries) => {
+    clearTimeout(timer);
+    resolve(entries);
+  });
   try {
     worker.postMessage({ id, pack: job });
   } catch {
+    packReplies.get(id)(null);
     packReplies.delete(id);
-    resolve(null);
   }
 });
 const packOnMain = async (job) => {
@@ -970,6 +983,7 @@ const packOnMain = async (job) => {
   return bestEntries(candidates);
 };
 const packGrid = (job) => packInWorker(job).then((entries) => entries ?? packOnMain(job));
+const bandFor = (layoutViewportWidth) => LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
 // Filter of the first grid paint: ?category= first, then the cluster or product page path, else all.
 const initialFilter = ({ categories, cards, pages }) => resolveFilter(new URLSearchParams(location.search).get("category"), categories, cards)
   || advertisingPathFilter(location.pathname, pages || []) || "all";
@@ -2125,7 +2139,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let filter = initialFilter({ categories, cards, pages });
   // First pack on speculation (masonry-live-layout R3): a fresh visit's seed is drawn now and handed to the browse history below,
   // so the Worker packs while the mount sets up. A restored or handed-over seed, or another filter, makes it one wasted job.
-  const firstBand = LAYOUT_BANDS.find(({ key }) => key === bandKey(document.documentElement.clientWidth));
+  const firstBand = bandFor(document.documentElement.clientWidth);
   let firstPack = null;
   if (firstBand && !detailId(new URL(location.href))) {
     const seed = createBrowseSeed();
@@ -2267,11 +2281,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // A resize inside the band, Back/Forward and a repeat filter only replay; the same seed always packs the same grid.
   const packedEntries = new Map();
   const packWaits = new Map();
-  const bandOf = (layoutViewportWidth) => LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
+  const warnedPacks = new Set();
   const packKey = (band, targetFilter) => `${targetFilter}|${band.key}|${browseHistory.current.seed}`;
   // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
   const layoutPending = (targetFilter) => {
-    const band = bandOf(document.documentElement.clientWidth);
+    const band = bandFor(document.documentElement.clientWidth);
     if (!band) return null;
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
@@ -2288,9 +2302,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // One chip at a time: the Worker answers in order, so a click on a chip not packed yet waits behind one job at most.
   let warming = false;
   warmPacks = async () => {
-    if (!warmPacksWanted || warming) return;
+    // Main-thread packs cost a task each: after a Worker failure only clicks pack.
+    if (!warmPacksWanted || warming || gridWorkerFailed) return;
     warming = true;
-    const startBand = bandOf(document.documentElement.clientWidth);
+    const start = `${bandFor(document.documentElement.clientWidth)?.key}|${browseHistory.current.seed}`;
     const ids = [filters, ...chipGroups].flatMap((root) => (root ? [...root.querySelectorAll("[data-masonry-filter], [data-masonry-product]")] : []))
       .map((control) => control.dataset.masonryFilter ?? control.dataset.masonryProduct);
     for (const id of ids) {
@@ -2298,8 +2313,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       await layoutPending(id);
     }
     warming = false;
-    // The width crossed into another band meanwhile: warm that band from its first chip too.
-    if (!controller.signal.aborted && bandOf(document.documentElement.clientWidth) !== startBand) void warmPacks();
+    // The width crossed into another band, or Back brought another seed, meanwhile: warm that one from its first chip too.
+    if (!controller.signal.aborted && `${bandFor(document.documentElement.clientWidth)?.key}|${browseHistory.current.seed}` !== start) void warmPacks();
   };
   // Filter clicks and band changes keep the current layout until the pack is in, then place cards once (no stack layout in
   // between). The latest request wins.
@@ -2328,18 +2343,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     void wait.then(() => {
       // A card is open: the grid is hidden, so closing the card measures it (see staleStackGeometry).
       if (controller.signal.aborted || filter !== targetFilter || geometry?.diagnostics?.source !== "stack"
-        || bandOf(document.documentElement.clientWidth) !== band || browseHistory.current.photo) return;
+        || bandFor(document.documentElement.clientWidth) !== band || browseHistory.current.photo) return;
       measure();
     });
   };
   // The grid still holds a stack layout although its pack has landed (it landed while a card was open).
   const staleStackGeometry = () => {
-    const band = bandOf(document.documentElement.clientWidth);
+    const band = bandFor(document.documentElement.clientWidth);
     return geometry?.diagnostics?.source === "stack" && Boolean(band && packedEntries.get(packKey(band, filter)));
   };
   const geometryRequest = (targetFilter) => {
     const layoutViewportWidth = document.documentElement.clientWidth;
-    const band = bandOf(layoutViewportWidth);
+    const band = bandFor(layoutViewportWidth);
     const wait = band && layoutPending(targetFilter);
     void warmPacks();
     const entries = band && !wait ? packedEntries.get(packKey(band, targetFilter)) : null;
@@ -2347,10 +2362,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const layout = entries && replayLayout({ entries, cards, layoutViewportWidth, filter: targetFilter, settings });
       if (layout) return layout;
       if (wait) relayoutWhenPacked(targetFilter, band, wait);
-      else if (band) console.warn("[masonry] live layout failed", targetFilter, band.key);
+      else if (band && !warnedPacks.has(packKey(band, targetFilter))) {
+        warnedPacks.add(packKey(band, targetFilter));
+        console.warn("[masonry] live layout failed", targetFilter, band.key);
+      }
       // Fallback for the whole grid (owner O3 last step): every card one column, random within each rank (taxonomy R1).
-      const order = shuffleWithSeed(cards.filter((card) => matchesFilter(card, targetFilter)), browseHistory.current.seed, `grid:${targetFilter}`)
-        .sort((left, right) => filterRank(left, targetFilter) - filterRank(right, targetFilter));
+      const order = seededOrder(cards.filter((card) => matchesFilter(card, targetFilter)), browseHistory.current.seed, `grid:${targetFilter}`,
+        (card) => filterRank(card, targetFilter));
       return stackLayout({ order, layoutViewportWidth, filter: targetFilter, settings });
     };
     const key = [

@@ -148,11 +148,27 @@ try {
         const common = back.items.filter(({ id }) => dom.items.some((item) => item.id === id));
         assert.ok(common.length >= 8, "All shows the cards seen before");
         assert.deepEqual(byId(common), byId(dom.items.filter(({ id }) => common.some((item) => item.id === id))), "All returns the same coordinates");
+        // Real history Back (plan acceptance): open a card, Back; leave for the home page, Back. The grid keeps its coordinates.
+        const sameAsBefore = async (label) => {
+          const again = await settled(page);
+          const shared = again.items.filter(({ id }) => dom.items.some((item) => item.id === id));
+          assert.ok(shared.length >= 8, `${label}: the cards seen before are back`);
+          assert.deepEqual(byId(shared), byId(dom.items.filter(({ id }) => shared.some((item) => item.id === id))), `${label}: same coordinates`);
+        };
+        await page.locator("[data-project-grid] [data-masonry-card] a").first().click();
+        await page.waitForFunction(() => location.pathname.includes("/p/"));
+        await page.goBack();
+        await page.waitForFunction(() => !location.pathname.includes("/p/") && !document.body.classList.contains("is-detail"));
+        await sameAsBefore("card then Back");
+        await page.goto(`${base}/vi/`, { waitUntil: "domcontentloaded" });
+        await page.goBack({ waitUntil: "domcontentloaded" });
+        await page.waitForSelector("[data-project-grid] [data-masonry-item]", { state: "attached" });
+        await sameAsBefore("home page then Back");
       }
       await page.close();
     }
     assert.ok(firstCards.size >= 2, `8 reloads gave one first card only: ${[...firstCards]}`);
-    console.log(`PASS 8 reloads: ${firstCards.size} different first cards, no cache request, All keeps coordinates`);
+    console.log(`PASS 8 reloads: ${firstCards.size} different first cards, no cache request, All, card Back and page Back keep coordinates`);
   }
 
   // 3. Worker blocked: the main thread packs the same way, so wide cards still span 2 and nothing warns.
@@ -164,6 +180,15 @@ try {
     assert.deepEqual(log.warnings, [], "no masonry warning");
     await page.close();
     console.log("PASS blocked Worker: main-thread pack, no hole");
+  }
+  // 3b. Worker that never answers: after the 1 s pack timeout the main thread packs, so the grid still appears.
+  {
+    const { page } = await open(ADVERTISING, 1440, { setup: (target) => target.route(/\/masonry\/layout-worker\.mjs$/, (route) => route.fulfill({ contentType: "text/javascript", body: "onmessage = () => {};" })) });
+    const dom = await settled(page);
+    assertGrid(dom, ADVERTISING_CATALOG_ARTIFACT.cards, "stalled Worker");
+    assert.ok(dom.items.length > 8, "the grid shows cards although the Worker never answers");
+    await page.close();
+    console.log("PASS stalled Worker: grid packed on the main thread after the timeout");
   }
 
   // 4. Resize 1440 -> 1000 -> 768 keeps the layout hole free in each band.

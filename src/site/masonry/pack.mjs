@@ -1,6 +1,6 @@
 // Masonry packer: places one card order on one width band with no holes; wide cards span two columns, trimming at most CROP_CAP.
 // Pure, no DOM: the visitor's layout Worker runs it (packLive) for every band; the main thread only when the Worker fails.
-import { filterRank, isWideMedia, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
+import { canSpanTwoColumns, filterRank, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
 import { CROP_CAP, TRAIL, replayLayout } from "./replay.mjs";
 
@@ -27,7 +27,7 @@ const at = (column, cw) => column.a * cw + column.k;
 // Packs one base order on one band. Column bottoms are kept as a * cw + k so every check holds for the whole band.
 export function packBand(cards, band, { rankOf } = {}) {
   const { columns, gap, cwMin, cwMax, cwRef } = band;
-  const isWide = (card) => columns >= 3 && isWideMedia(layoutMedia(card));
+  const isWide = (card) => canSpanTwoColumns(columns, layoutMedia(card));
   const cols = Array.from({ length: columns }, () => ({ a: 0, k: 0, n: 0, trail: [] }));
   const entries = [], demoted = [];
   let maxCrop = 0;
@@ -161,6 +161,10 @@ export function staggerViolations(layout) {
 export const LIVE_CANDIDATES = 4;
 const compareScore = (x, y) => x.demoted - y.demoted || x.organicMiss - y.organicMiss || x.stagger - y.stagger || x.crop - y.crop || x.s - y.s;
 
+// A visit's card order for one filter: shuffled by seed and scope, then stably sorted by rank (taxonomy R1). Shared by the
+// packer's candidates and the runtime's one-column fallback.
+export const seededOrder = (items, seed, scope, rankOf) => shuffleWithSeed(items, seed, scope).sort((x, y) => rankOf(x) - rankOf(y));
+
 // The part of a filter's cards the packer needs, small enough to post to the Worker: i = index in cards.
 export const livePool = (cards, filter) => cards.flatMap((card, i) => {
   if (!matchesFilter(card, filter)) return [];
@@ -172,7 +176,7 @@ export const livePool = (cards, filter) => cards.flatMap((card, i) => {
 // the caller's cards. The same input always gives the same candidate.
 export function packCandidate({ pool, band, seed, filter }, s) {
   const at = new Map(pool.map((card, j) => [card, j]));
-  const order = shuffleWithSeed(pool, seed, `grid:${filter}:${s}`).sort((x, y) => x.rank - y.rank);
+  const order = seededOrder(pool, seed, `grid:${filter}:${s}`, (card) => card.rank);
   const packed = packBand(order, band, { rankOf: (card) => card.rank });
   const local = packed.entries.map(({ card, column, span }) => at.get(card) * 8 + (span === 1 ? column : 4 + column));
   const layout = replayLayout({ entries: local, cards: pool, layoutViewportWidth: band.refWidth });

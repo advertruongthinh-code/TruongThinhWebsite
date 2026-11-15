@@ -75,18 +75,20 @@ Then hai mảng entries giống nhau
 Mọi dải xếp trong `layout-worker.mjs` (một Worker sống suốt trang, nhận `{ id, pack }`, trả `{ id, entries }`). Trang
 Quảng cáo tạo Worker ngay khi `detail.js` bắt đầu nạp catalog (`window.__TT_GRID_WORKER__`, runtime nhận lại), song song với
 module runtime; trang Công trình tạo lúc mount. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
-liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) thì từ đó xếp trên luồng chính, mỗi ứng viên một task để
-không có tác vụ dài; không có ngưỡng thời gian chờ, vì máy chậm chỉ làm việc hai lần. Kết quả nhớ theo khóa
+liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; Worker đã trả một lượt thì lượt chậm sau đó vẫn được chờ)
+thì từ đó xếp trên luồng chính, mỗi ứng viên một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi
+Worker lỗi, chỉ filter được bấm mới xếp, không xếp nền. Kết quả nhớ theo khóa
 `<filter>|<dải>|<seed>` trong lượt mount. Filter đang xem xếp trước; khi 8 ảnh đầu tải xong (tối đa 6 s) mọi chip của dải
-hiện tại được xếp nền theo hàng đợi của Worker, và sang dải mới thì xếp nền lại cho dải đó, nên bấm chip thường thấy lưới
-ngay như cache cũ.
+hiện tại được xếp nền lần lượt từng chip (bấm chip chưa xếp chỉ chờ sau tối đa một lượt), sang dải mới hoặc Back về seed
+khác thì xếp nền lại, nên bấm chip thường thấy lưới ngay như cache cũ.
 
 ### R4. Đặt tọa độ và lượt chờ
 
 `replayLayout` đổi `entries` thành tọa độ ở bề rộng thật (một vòng O(n), cùng hình dạng layout với `compileMasonryLayout`,
-`diagnostics.source = "pack"`). Chưa có `entries` lúc dựng lần đầu thì cả lưới một cột theo thứ tự seed vào cột thấp nhất
-(`stackLayout`, không lỗ), rồi đặt lại một lần khi Worker trả. `replayLayout` trả `null` thì `stackLayout` và
-`console.warn("[masonry] live layout failed")`. Bấm filter hoặc kéo sang dải khác khi chưa xếp xong: giữ bố cục cũ, chip vừa bấm
+`diagnostics.source = "pack"`). Lần dựng đầu chờ lượt xếp của filter đang xem rồi đặt card một lần. Phải dựng khi lượt xếp
+chưa xong (Back/Forward sang seed khác, đổi dải lúc đang mở card) thì cả lưới một cột theo thứ tự seed vào cột thấp nhất
+(`stackLayout`, không lỗ), rồi đặt lại một lần khi xếp xong. `replayLayout` trả `null` thì `stackLayout` và
+`console.warn("[masonry] live layout failed")` một lần mỗi khóa. Bấm filter hoặc kéo sang dải khác khi chưa xếp xong: giữ bố cục cũ, chip vừa bấm
 mang `aria-busy="true"`, rồi đặt card đúng một lần; bấm lại filter đang chọn, Back/Forward hoặc mở card huỷ lượt chờ. Xếp xong
 lúc đang mở card thì lưới ẩn chưa đo, đo khi đóng card. Mỗi dải xếp riêng nên đổi dải có thể ra thứ tự card khác; quay lại dải
 cũ trong cùng lượt duyệt ra đúng lưới cũ.
