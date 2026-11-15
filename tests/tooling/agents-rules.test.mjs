@@ -16,7 +16,13 @@ test("Vietnamese prose comments fail, English comments quoting UI copy pass", ()
   assert.equal(isVietnameseProse("Small connecting words (và, là, trong, từng) are half size on PC, phone keeps uniform size."), false);
   const files = {
     "wrangler.toml": "# Dormant đến khi owner kích hoạt phase CMS.\nname = \"x\"\n",
-    "src/site/a.js": "// Tạm thời bỏ qua khi chưa có ảnh\nconst x = 1; // keep \"Tất cả\" first\n/" + "* Khối này chỉ chạy\n   khi có dữ liệu thật *" + "/\n",
+    // Built from parts so this file does not hold the comment markers it tests.
+    "src/site/a.js": [
+      "/" + "/ Tạm thời bỏ qua khi chưa có ảnh",
+      'const x = 1; /' + '/ keep "Tất cả" first',
+      "/" + "* Khối này chỉ chạy",
+      "   khi có dữ liệu thật *" + "/",
+    ].join("\n"),
     "src/site/b.mjs": "const u = 'https://chạy.vn/ không có ở đây';\n",
   };
   const lines = commentLanguageErrors(Object.keys(files), reader(files)).map((e) => e.split(": ")[1]);
