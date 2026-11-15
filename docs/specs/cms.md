@@ -105,13 +105,14 @@ Media là một bản ghi riêng, nội dung tham chiếu theo `mediaId`; một 
 - `kind`: `image` hoặc `video`. Ảnh có `width`, `height` thật. Video có `posterId` trỏ một ảnh, cùng tỷ lệ với video.
 - Alt: `altVi` bắt buộc, `altEn` theo R4; tả đúng thứ trong media, không trùng alt cùng ngôn ngữ trong một card
   ([media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)); CMS điền sẵn gợi ý được, người soạn duyệt.
+- Khung: mỗi chỗ ảnh có khung tỷ lệ khóa theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối); người
+  soạn kéo, phóng ảnh đều trong khung, CMS lưu vùng crop cùng bản gốc, lần dựng cắt biến thể theo vùng đó.
 - Upload: bỏ EXIF và GPS; tên file theo slug nội dung cộng số thứ tự. Đầu vào nhận JPEG, PNG, WebP, AVIF cho ảnh, MP4
   cho video; SVG chỉ cho `client-logo` qua `isSafeSvg` hiện có.
 - Bản public: biến thể sinh ở lần dựng theo chuẩn site ([tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
   [tải video](video-delivery.md)), đặt ở bucket public sau `media.truongthinhads.vn`; không bao giờ phát bản gốc.
 - Xóa media đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào trỏ tới (orphan) được
   dọn sau 30 ngày.
-
 - Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
   quyết định bản gốc trên NAS ngày 2026-10-12).
 
@@ -218,8 +219,8 @@ When bộ kiểm phát hành chạy
 Then không deploy, site giữ bản trước, admin báo id media lỗi
 ```
 
-Sao lưu: D1 Time Travel 7 ngày cho lỗi thường. Mỗi ngày export D1 ra R2 private; mỗi tuần chép export và bản gốc media về PC owner
-(rồi NAS). Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
+Sao lưu: D1 Time Travel 7 ngày; export D1 hằng ngày ra R2 private; mỗi tuần chép export và bản gốc media về PC owner rồi NAS.
+Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
 
 ### R11. Xem trước gần 1:1 với site
 
@@ -228,7 +229,9 @@ thứ hai: preview gọi đúng hàm render mà build dùng (`renderBlocks`, `re
 biến thể ảnh của site, trong một `iframe` có khung trang thật. Phần render tách khỏi phần đọc file: module render
 thuần (không `node:fs`, `node:path`) chạy được cả ở Node lẫn trình duyệt; phần kiểm file ảnh, đọc JSON ở lại adapter
 của build. Sửa một khối là sửa một chỗ, build và preview đổi cùng lúc. Chỗ khác duy nhất: media chưa có biến thể dùng
-bản tạm trên R2 private qua admin, khung preview ghi "bản xem trước".
+bản tạm trên R2 private qua admin, khung preview ghi "bản xem trước". Giao diện trực quan (owner 2026-11-15): soạn ngay
+trên preview, bấm chữ để sửa, bấm khung ảnh để kéo, phóng; layout khóa hiện hình thu nhỏ kèm số ảnh còn thiếu; đổi bề
+rộng preview theo sáu mốc 384 tới 1920.
 
 ```gherkin
 Given người soạn sửa tiêu đề một khối section-title
@@ -246,7 +249,6 @@ And test so HTML preview và HTML build của cùng dữ liệu trả kết qu�
 | Secret | `CMS_BOOTSTRAP_OWNER`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, service token | R2, R10; không ghi trong repo |
 | Header | `Cf-Access-Jwt-Assertion`, `Cf-Access-Authenticated-User-Email`, `Origin` | Đầu vào R2, R8 |
 | Endpoint | `/api/admin/<lệnh>` | R8; không có API public |
-| Hằng | `BLOCK_TYPES`, `KINDS` | R9; contract frontend sở hữu |
 
 ## UI
 
@@ -296,5 +298,3 @@ bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nố
 - **File chiếu**: file JSON CMS sinh ra cho build tĩnh đọc.
 - **Bản chụp**: bộ file chiếu tại một thời điểm, đầu vào của một lần dựng.
 - **Layout khóa**: chuỗi khối cố định, chỉ mở khi bài đủ số ảnh.
-- **Orphan**: object media không còn bản ghi nào dùng.
-- **Seat**: một người dùng được tính trong Zero Trust.
