@@ -89,8 +89,8 @@ Then trả 400, nêu id hai media trùng alt, không bản ghi nào đổi
 
 Card Advertising và card công trình dùng chung một contract [card nhiều media](media-card.md#r1-dữ-liệu-media-của-card):
 người soạn chọn khung card trước trong 8 tỷ lệ của [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối),
-rồi đặt từng media vào khung bằng cách kéo, phóng; lưu card kèm cache bố cục
-([masonry R6](masonry-layout-cache.md#r6-contract-cho-cms-chưa-làm)), không có trường span.
+rồi đặt từng media vào khung bằng cách kéo, phóng; CMS chỉ lưu card, không tính cache bố cục: máy người xem tự xếp
+lưới (owner 2026-11-15 bỏ cache dựng sẵn), không có trường span.
 
 | Trường | Card Advertising | Card công trình |
 | --- | --- | --- |
