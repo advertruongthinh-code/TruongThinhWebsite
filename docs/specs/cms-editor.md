@@ -279,7 +279,7 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 ## Gate còn mở
 
 - Khóa tự sinh theo thứ tự nguồn: sửa HTML nguồn trước một chỗ làm lệch khóa; dấu chỗ gốc bỏ sửa đổi lệch thay vì áp
-  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS R3](cms.md#r3-kiểu-nội-dung-và-file-chiếu)).
+  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS R3](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu)).
 - Motion trong bản xem trước giữ nguyên (owner 2026-10-31): nháp áp lúc parse, sửa chữ tại chỗ dùng revert/rebuild.
 - Hero đã sửa mất preload ảnh đầu (LCP chậm hơn); sinh lại preload cần ảnh mới có đủ biến thể.
 - linkedom tốn 6 đến 21 ms mỗi lần render (Node 22, 2026-11-01), Workers Free giới hạn 10 ms CPU: chốt gói, đo CPU Worker

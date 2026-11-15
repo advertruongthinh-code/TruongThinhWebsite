@@ -91,6 +91,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | design-system | `design-system.md` | `scripts/docs/build-*`, `capture-*`, `stage-*` | |
 | docs | `docs-system.md` | `check-docs.mjs`, PR template, `docs.yml` | |
 | cms | `cms.md` | contract CMS (planned); `src/worker/`, `src/db/migrations/`, `wrangler.toml` dormant | |
+| cms-content | `cms-content.md` | nội dung CMS: kiểu nội dung, media, card, layout, menu, soạn chữ (planned) | |
 | cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: editor placeholder, overlay, thư viện media (planned, slice 1 local) | |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) | |
 
