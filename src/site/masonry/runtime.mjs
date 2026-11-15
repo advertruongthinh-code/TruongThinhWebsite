@@ -18,7 +18,7 @@ import {
 } from "./layout.mjs";
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, replayLayout, stackLayout } from "./replay.mjs";
-import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, seededOrder } from "./pack.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, packLive, seededOrder } from "./pack.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
@@ -977,11 +977,12 @@ const packInWorker = (job, s) => new Promise((resolve) => {
     packReplies.delete(id);
   }
 });
-// The 2-column band has no wide card, so its candidates cost about a millisecond each: they pack on the main thread, which on a
-// phone beats booting Workers (plan, A04s 2026-11-15).
+// The 2-column band has no wide card, so its candidates cost about a millisecond each: they pack on the main thread in one task,
+// which on a phone beats booting Workers and yielding behind page-load tasks (plan, A04s 2026-11-15).
 const usesGridWorkers = (band) => band?.columns > 2;
 const packGrid = async (job) => {
-  const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
+  if (!usesGridWorkers(job.band)) return packLive(job);
+  const candidates = await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
     await new Promise((resolve) => setTimeout(resolve));
@@ -2308,8 +2309,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // One chip at a time: the Worker answers in order, so a click on a chip not packed yet waits behind one job at most.
   let warming = false;
   warmPacks = async () => {
-    // Main-thread packs cost a task each: after a Worker failure only clicks pack.
-    if (!warmPacksWanted || warming || gridWorkerFailed) return;
+    // Main-thread packs cost a task each: after a Worker failure, and on the 2-column band, only clicks pack.
+    if (!warmPacksWanted || warming || gridWorkerFailed || !usesGridWorkers(bandFor(document.documentElement.clientWidth))) return;
     warming = true;
     const start = `${bandFor(document.documentElement.clientWidth)?.key}|${browseHistory.current.seed}`;
     const ids = [filters, ...chipGroups].flatMap((root) => (root ? [...root.querySelectorAll("[data-masonry-filter], [data-masonry-product]")] : []))
