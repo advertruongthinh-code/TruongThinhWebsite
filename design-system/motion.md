@@ -284,10 +284,10 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   hiện `opacity 0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (`--dur-fade`, `--ease-expo-out`) trên lớp màu, xong gỡ lớp màu. Reduced motion: lớp màu đứng yên ở màu 1, ảnh hiện thẳng.
 - Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
-- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, nền màu chủ đạo, thở
-  (`media-breathe`, opacity `1 → 0.45 → 1`, `2s`) cùng pha. Card tạm lên card thật thì ảnh có sẵn hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s`
+- Vuốt rất nhanh: card chưa dựng kịp trong ngân sách frame có card tạm đúng chỗ và cỡ card, là lớp màu 4 màu chủ đạo của media bìa (như lớp màu
+  điện thoại ở trên, cùng pha), PC và điện thoại như nhau. Card tạm lên card thật thì ảnh có sẵn hiện dần trên lớp màu, opacity `0 → 1` trong `0.45s`
   `cubic-bezier(0.16, 1, 0.3, 1)` (cùng nhịp ảnh nội dung ngoài masonry), chỉ opacity; ảnh chưa xong thì card nhận khung Flow (điện thoại: lớp màu)
-  và card tạm gỡ ở frame sau, vì card thật đã phủ kín nó. Reduced motion: card tạm không thở, ảnh hiện thẳng.
+  và card tạm gỡ ở frame sau, vì card thật đã phủ kín nó. Reduced motion: lớp màu đứng yên ở màu 1, ảnh hiện thẳng.
 - Reduced motion: khung Flow đứng yên ở ảnh tĩnh của preset, tải xong thì ảnh hiện ngay, không Kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 - Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng

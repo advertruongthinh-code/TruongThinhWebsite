@@ -402,12 +402,12 @@ test("R5 a spanning multi-media card is exactly as tall as its two-column canvas
   assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "no strip or caption below the canvas");
   // The placeholder card (loading glass R10) covers the real card frame exactly: two columns wide, canvas tall.
   const previousDocument = globalThis.document;
-  const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, remove() {} });
+  const element = () => ({ style: { setProperty(name, value) { this[name] = value; } }, dataset: {}, setAttribute() {}, append() {}, remove() {} });
   globalThis.document = { createElement: element };
   try {
     const host = { prepend(layer) { layer.parentNode = host; } };
     const ghosts = createGhostLayer(host);
-    ghosts.show(card.id, placement, "rgb(1 2 3)");
+    ghosts.show(card.id, placement, () => Array(4).fill("rgb(1 2 3)"));
     const ghost = ghosts.take(card.id);
     assert.deepEqual([ghost.style.left, ghost.style.top, ghost.style.width], [`${placement.x}px`, `${placement.y}px`, `${placement.pixelWidth}px`]);
     assert.ok(Math.abs(Number.parseFloat(ghost.style.height) - placement.mediaPixelHeight) < 1e-6, "ghost covers the canvas");

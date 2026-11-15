@@ -36,6 +36,7 @@ test("mount shows ghosts for cards not allowed, reattaches queued cards and rele
       node.remove();
       queue?.put(id, node);
     },
+    waitColors: () => ["#111111", "#222222", "#333333", "#444444"],
   });
   const place = (id, y) => ({ card: { id }, x: 0, y, pixelWidth: 10, pixelHeight: 10 });
   const placements = [place("a", 0), place("b", 20), place("c", 40)];

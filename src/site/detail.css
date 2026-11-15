@@ -1914,8 +1914,8 @@ body.is-masonry-browse .masonry-grid {
   opacity: 1;
 }
 
-/* A placeholder card holds the place of a card not built in time during a fast swipe (advertising-masonry R7): the cover image's dominant color, breathing
-   (PC; the phone uses the color layer). The layer sits at the start of the grid, under every card, and takes no taps. */
+/* A placeholder card holds the place of a card not built in time during a fast swipe (advertising-masonry R7): the color layer cycling through the cover
+   image's 4 dominant colors, on PC and phone alike. The layer sits at the start of the grid, under every card, and takes no taps. */
 .masonry-ghost-layer {
   position: absolute;
   inset: 0;
@@ -1927,14 +1927,6 @@ body.is-masonry-browse .masonry-grid {
 .masonry-ghost {
   position: absolute;
   contain: strict;
-  background: #e9e6df;
-  animation: media-breathe 2s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .masonry-ghost {
-    animation: none;
-  }
 }
 
 /* Phone image wait (progressive-loading R9): masonry cards, the temp card and the Advertising primary frame wait on a flat layer cycling through the image's 4 dominant
@@ -1997,10 +1989,6 @@ body.is-masonry-browse .masonry-grid {
 /* Primary: a video and the live blur background sit above the color layer, so they wait hidden like the photo and background (the runtime fades them in with it). */
 .detail-view__hero-frame[data-media-wait="colors"][data-detail-loading] > :is([data-detail-video], .detail-view__live-background) {
   opacity: 0;
-}
-
-.masonry-ghost[data-media-wait="colors"] {
-  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
