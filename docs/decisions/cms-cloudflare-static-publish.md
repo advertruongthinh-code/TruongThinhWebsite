@@ -13,13 +13,13 @@ related_reports: []
 
 ## Context
 
-Điều kiện (3) và (4) để mở CMS ([cms.md](../specs/cms.md#điều-kiện-mở-cms-phase)): kiểm tài liệu chính thức về provider,
+Điều kiện (3) và (4) để mở CMS ([cms.md](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/f50a1af4f3a39934b406baacadaaa3ba754c9ac6/docs/specs/cms.md#điều-kiện-mở-cms-phase)): kiểm tài liệu chính thức về provider,
 rồi chốt provider, storage, schema và ranh giới bảo mật. Ý định owner: Cloudflare gói free, bảo mật là yêu cầu chính, site
 tĩnh luôn là đường lùi, khách không chạm Worker hay database (2026-10-12, giữ ở 2026-10-26); khoảng 50 bài đăng hoặc sửa
 mỗi tuần, khoảng 10 tài khoản.
 
 Code dormant trên `main` đi hướng khác: Worker chạy trước mọi trang public, đọc D1 mỗi lượt xem, trả 404 hoặc 503 khi D1
-thiếu hay lỗi ([cms.md R3](../specs/cms.md#r3-render-trang-locale-và-nội-dung-d1)), theo decision cũ
+thiếu hay lỗi ([cms.md R3](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/f50a1af4f3a39934b406baacadaaa3ba754c9ac6/docs/specs/cms.md#r3-render-trang-locale-và-nội-dung-d1)), theo decision cũ
 [D1 SSR ưu tiên](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/7dc3868067b5264ccd7b34db99c81a4af72ce43d/docs/decisions/d1-ssr-static-fallback.md) (bị thay bởi decision này). Hướng đó trái ý định trên và tiêu hạn mức Worker gói free cho mọi lượt xem.
 
 ## Decision

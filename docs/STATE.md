@@ -9,7 +9,7 @@
 
 ## Việc đang làm
 - PR mở: [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls); đã merge tự lên demo, chờ owner kiểm nhận ([card](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
-- Gate mở CMS ([card](https://app.notion.com/p/418332849a0e815ab486ef7dbc28bc77)): gate 2 tới 4 xong ([decision](decisions/cms-cloudflare-static-publish.md)); chờ owner chọn cách đóng gate 1 (LCP EN Nhà ở), rồi mở slice đầu.
+- CMS: gate 1 tới 4 xong ([decision](decisions/cms-cloudflare-static-publish.md)); slice Contract đang viết lại [spec CMS](specs/cms.md) ([card](https://app.notion.com/p/419332849a0e816388dbd2395acd97d4)), chờ owner duyệt.
 - Nước rút tới CMS: trang Công trình, dải công trình và News dựng từ khối ([spec #691](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/691), #694, #701, sáu trang lọc theo loại #703); hero, kicker trang Công trình đang chỉnh. CMS editor, quyền, publish do thread CMS sở hữu ([CMS](specs/cms.md)).
 - Menu sáu nhóm có Công trình (#704, #705), navbar có Công trình (#708); lỗi chữ menu chồng trang ở lần mở đầu sau khi chuyển trang sửa ở #713.
 - Ảnh: phone chỉ WebP tới 960, PC JXL (WebP dự phòng) tới 4K ([progressive-loading](specs/progressive-loading.md), #690); vuốt nhanh masonry #687, #692. Còn gate R8 trong spec.
