@@ -1,10 +1,10 @@
 // Disk memo of buildLayoutCache (plan T7): a hit skips the 15 s build, any change to cards or filters misses, CI never reads it.
 import assert from "node:assert/strict";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { buildLayoutCacheMemo, layoutCacheMemoKey } from "../../scripts/site/layout-cache-memo.mjs";
+import { MEMO_SOURCES, buildLayoutCacheMemo, layoutCacheMemoKey } from "../../scripts/site/layout-cache-memo.mjs";
 import { filterRank, matchesFilter } from "../../src/site/masonry/layout.mjs";
 
 const card = (id, width, height) => ({ id, category: "c", sourceOrder: Number(id.slice(1)), media: { src: `/${id}.jpg`, width, height } });
@@ -43,3 +43,15 @@ test("a missing memo file is rebuilt", () => withDir((dir) => {
   assert.ok(buildLayoutCacheMemo(args(), { enabled: true, dir })["4:35"]);
   assert.equal(readdirSync(dir).length, 1);
 }));
+
+test("the memo key covers every masonry module the packer imports", () => {
+  const dir = path.resolve(import.meta.dirname, "../../src/site/masonry");
+  const seen = new Set();
+  const visit = (name) => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    for (const [, dep] of readFileSync(path.join(dir, name), "utf8").matchAll(/from "\.\/([\w-]+\.mjs)"/g)) visit(dep);
+  };
+  visit("packer.mjs");
+  assert.deepEqual([...seen].filter((name) => !MEMO_SOURCES.includes(name)), []);
+});

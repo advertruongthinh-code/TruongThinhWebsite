@@ -3,7 +3,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { isWideMedia } from "../../src/site/masonry/layout.mjs";
-import { LAYOUT_BANDS, LAYOUT_CACHE_MAX_VARIANTS, LAYOUT_CACHE_MIN_VARIANTS, buildLayoutCache } from "../../src/site/masonry/packer.mjs";
+import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
+import { LAYOUT_CACHE_MAX_VARIANTS, LAYOUT_CACHE_MIN_VARIANTS, buildLayoutCache } from "../../src/site/masonry/packer.mjs";
 import { createSeededRandom } from "../../src/site/masonry/random-order.mjs";
 import { CROP_CAP, poolSignature, replayLayout, stackLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 

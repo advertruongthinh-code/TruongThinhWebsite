@@ -3,16 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_DATASET_VERSION, ADVERTISING_PRODUCT_CHIPS } from "../../src/site/advertising-products/catalog.mjs";
 import { columnsForWidth, filterRank, isWideMedia, layoutMedia, masonrySpacing, matchesFilter } from "../../src/site/masonry/layout.mjs";
-import {
-  LAYOUT_BANDS,
-  LAYOUT_CACHE_MAX_VARIANTS,
-  LAYOUT_CACHE_MIN_VARIANTS,
-  bandKey,
-  buildLayoutCache,
-  packBand,
-  poolSignature,
-  staggerViolations,
-} from "../../src/site/masonry/packer.mjs";
+import { LAYOUT_BANDS, packBand, staggerViolations } from "../../src/site/masonry/pack.mjs";
+import { LAYOUT_CACHE_MAX_VARIANTS, LAYOUT_CACHE_MIN_VARIANTS, bandKey, buildLayoutCache, poolSignature } from "../../src/site/masonry/packer.mjs";
 import { createSeededRandom, shuffleWithSeed } from "../../src/site/masonry/random-order.mjs";
 import { replayLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 

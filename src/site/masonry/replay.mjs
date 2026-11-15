@@ -1,5 +1,5 @@
 // Visitor-side half of the masonry layout cache: places cards from a precomputed variant in one O(n) pass, no search.
-// The build-side packer (packer.mjs) imports the shared constants from here; this file must never import packer.mjs.
+// The build-side packer (pack.mjs, packer.mjs) imports the shared constants from here; this file must never import either.
 import {
   MASONRY_LAYOUT_VERSION,
   columnsForWidth,

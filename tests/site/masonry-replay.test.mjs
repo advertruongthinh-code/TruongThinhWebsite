@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
-import { packBand, LAYOUT_BANDS } from "../../src/site/masonry/packer.mjs";
+import { packBand, LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
 import { poolSignature, replayLayout, stackLayout, variantIndex, verifyLayout } from "../../src/site/masonry/replay.mjs";
 
 const card = (id, width, height) => ({ id, category: "c", sourceOrder: Number(id.slice(1)), media: { src: `/${id}.jpg`, width, height } });
