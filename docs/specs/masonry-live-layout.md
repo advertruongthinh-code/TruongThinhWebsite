@@ -72,7 +72,7 @@ Then hai mảng entries giống nhau
 
 ### R3. Worker và luồng chính
 
-Dải `2:15` không có card ngang, mỗi ứng viên chỉ tốn cỡ một mili giây, nên xếp trên luồng chính trong một task (`packLive`), không tạo
+Dải `2:15` không có card ngang, mỗi ứng viên chỉ tốn cỡ một mili giây, nên xếp trên luồng chính, hai ứng viên một task (mỗi task dưới 50 ms), không tạo
 Worker (khởi động Worker và chờ sau các task tải trang trên A04s tốn hơn). Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
 `{ id, candidate }`), luồng chính giữ ứng viên tốt nhất bằng `bestEntries`, nên ra đúng `packLive` mà lưới đầu chỉ chờ một ứng
 viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). Từ 720px, `detail.js` tạo các Worker ngay

@@ -1,3 +1,5 @@
+//# allFunctionsCalledOnLoad
+// V8 compile hint (see layout.mjs): the first grid pack, on the main thread for the 2:15 band, does not compile lazily.
 // Places cards from packed entries (pack.mjs) in one O(n) pass, no search; also the stack fallback and the layout check.
 // The packer (pack.mjs) imports the shared constants from here; this file must never import pack.mjs.
 import {

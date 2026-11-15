@@ -1,5 +1,7 @@
+//# allFunctionsCalledOnLoad
+// V8 compile hint (see layout.mjs): the first grid pack, on the main thread for the 2:15 band, does not compile lazily.
 // Masonry packer: places one card order on one width band with no holes; wide cards span two columns, trimming at most CROP_CAP.
-// Pure, no DOM: the visitor's layout Worker runs it (packLive) for every band; the main thread only when the Worker fails.
+// Pure, no DOM: the grid Workers run one candidate each from 3 columns; the main thread runs the 2:15 band and Worker failures.
 import { canSpanTwoColumns, filterRank, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
 import { CROP_CAP, TRAIL, replayLayout } from "./replay.mjs";

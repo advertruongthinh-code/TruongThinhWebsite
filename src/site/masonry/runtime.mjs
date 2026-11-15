@@ -18,7 +18,7 @@ import {
 } from "./layout.mjs";
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, replayLayout, stackLayout } from "./replay.mjs";
-import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, packLive, seededOrder } from "./pack.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, seededOrder } from "./pack.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
@@ -977,15 +977,15 @@ const packInWorker = (job, s) => new Promise((resolve) => {
     packReplies.delete(id);
   }
 });
-// The 2-column band has no wide card, so its candidates cost about a millisecond each: they pack on the main thread in one task,
-// which on a phone beats booting Workers and yielding behind page-load tasks (plan, A04s 2026-11-15).
+// The 2-column band has no wide card, so its candidates are cheap: they pack on the main thread two per task (one yield behind
+// page-load tasks instead of four, each task under 50 ms), which on a phone beats booting Workers (plan, A04s 2026-11-15).
 const usesGridWorkers = (band) => band?.columns > 2;
 const packGrid = async (job) => {
-  if (!usesGridWorkers(job.band)) return packLive(job);
-  const candidates = await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
+  const onMain = !usesGridWorkers(job.band);
+  const candidates = onMain ? [] : await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
-    await new Promise((resolve) => setTimeout(resolve));
+    if (!onMain || s % 2 === 0) await new Promise((resolve) => setTimeout(resolve));
     candidates[s] = packCandidate(job, s);
   }
   return bestEntries(candidates);
