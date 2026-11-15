@@ -917,72 +917,75 @@ const attachCardDetail = (cards) => {
   });
 };
 
-// Main grid layout (masonry-live-layout R1, R2): the visitor packs each (filter, band, seed) in one persistent Worker, so the
-// search never runs on the main thread. A Worker error drops to the main thread, one candidate order per task.
-let gridWorker = null;
+// Main grid layout (masonry-live-layout R1-R3): the visitor packs each (filter, band, seed) off the main thread, its LIVE_CANDIDATES
+// base orders in parallel on persistent grid Workers, and keeps the best exactly as packLive does. A Worker error drops to the main
+// thread, one candidate order per task.
+let gridWorkers = null;
 let gridWorkerFailed = false;
 let packJobId = 0;
 const packReplies = new Map();
 const failGridWorker = () => {
   gridWorkerFailed = true;
-  gridWorker?.terminate();
-  gridWorker = null;
+  gridWorkers?.forEach((worker) => worker.terminate());
+  gridWorkers = null;
   for (const resolve of packReplies.values()) resolve(null);
   packReplies.clear();
 };
-const ensureGridWorker = () => {
-  if (gridWorker || gridWorkerFailed) return gridWorker;
+const onPackReply = ({ data }) => {
+  const resolve = packReplies.get(data?.id);
+  packReplies.delete(data?.id);
+  gridWorkerAnswered = true;
+  resolve?.(Array.isArray(data?.candidate?.entries) ? data.candidate : null);
+  // A pack that threw in a Worker would throw on every job: pack on the main thread from now on (R3).
+  if (data?.error) failGridWorker();
+};
+const ensureGridWorkers = () => {
+  if (gridWorkers || gridWorkerFailed) return gridWorkers;
   try {
-    // detail.js may have started it already (masonry-live-layout R3).
-    // detail.js may have started it already; the global stays set so a later catalog load does not start another one.
-    const early = window.__TT_GRID_WORKER__;
-    if (early?.failed) throw new Error("grid Worker failed to load");
-    gridWorker = early || startLayoutWorker();
-    window.__TT_GRID_WORKER__ = gridWorker;
-    gridWorker.onmessage = ({ data }) => {
-      const resolve = packReplies.get(data?.id);
-      packReplies.delete(data?.id);
-      gridWorkerAnswered = true;
-      resolve?.(Array.isArray(data?.entries) ? data.entries : null);
-      // A pack that threw in the Worker would throw on every job: pack on the main thread from now on (R3).
-      if (data?.error) failGridWorker();
-    };
-    gridWorker.onerror = failGridWorker;
+    // detail.js may have started them already; the global stays set so a later catalog load does not start more.
+    const early = window.__TT_GRID_WORKERS__;
+    if (early?.some((worker) => worker.failed)) throw new Error("grid Worker failed to load");
+    gridWorkers = early?.length ? early : Array.from({ length: LIVE_CANDIDATES }, () => startLayoutWorker());
+    window.__TT_GRID_WORKERS__ = gridWorkers;
+    for (const worker of gridWorkers) {
+      worker.onmessage = onPackReply;
+      worker.onerror = failGridWorker;
+    }
   } catch {
     failGridWorker();
   }
-  return gridWorker;
+  return gridWorkers;
 };
-// A Worker that has not answered its first job within 1 s (plan, masonry-live-layout R3) counts as stalled: that job and every
+// Grid Workers that have not answered a first job within 1 s (plan, masonry-live-layout R3) count as stalled: that job and every
 // later one pack on the main thread. Both paths give the same entries, so the timeout changes when the grid appears, never the
-// grid. Once it has answered, a slow job is just slow and is waited for.
+// grid. Once a Worker has answered, a slow job is just slow and is waited for.
 const PACK_TIMEOUT_MS = 1000;
 let gridWorkerAnswered = false;
-const packInWorker = (job) => new Promise((resolve) => {
-  const worker = ensureGridWorker();
-  if (!worker) return resolve(null);
+const packInWorker = (job, s) => new Promise((resolve) => {
+  const workers = ensureGridWorkers();
+  if (!workers) return resolve(null);
   const id = ++packJobId;
   const timer = gridWorkerAnswered ? 0 : setTimeout(failGridWorker, PACK_TIMEOUT_MS);
-  packReplies.set(id, (entries) => {
+  packReplies.set(id, (candidate) => {
     clearTimeout(timer);
-    resolve(entries);
+    resolve(candidate);
   });
   try {
-    worker.postMessage({ id, pack: job });
+    workers[s % workers.length].postMessage({ id, pack: job, s });
   } catch {
     packReplies.get(id)(null);
     packReplies.delete(id);
   }
 });
-const packOnMain = async (job) => {
-  const candidates = [];
+const packGrid = async (job) => {
+  const candidates = await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
+    if (candidates[s]) continue;
     await new Promise((resolve) => setTimeout(resolve));
-    candidates.push(packCandidate(job, s));
+    candidates[s] = packCandidate(job, s);
   }
   return bestEntries(candidates);
 };
-const packGrid = (job) => packInWorker(job).then((entries) => entries ?? packOnMain(job));
 const bandFor = (layoutViewportWidth) => LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
 // Filter of the first grid paint: ?category= first, then the cluster or product page path, else all.
 const initialFilter = ({ categories, cards, pages }) => resolveFilter(new URLSearchParams(location.search).get("category"), categories, cards)
@@ -995,7 +998,7 @@ let warmWorker;
 export const preloadMasonry = () => {
   // A direct card page needs the related Worker at once; a grid page starts the grid Worker so its module loads with the vendor scripts.
   if (detailId(new URL(location.href))) warmWorker ||= startLayoutWorker();
-  else ensureGridWorker();
+  else ensureGridWorkers();
   loadArtifact().then((artifact) => {
     if (artifact.cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
   }).catch(() => {});

@@ -62,26 +62,54 @@ export function packBand(cards, band, { rankOf } = {}) {
       singles.push(i);
     }
     let best = null;
-    const consider = (left, picks) => {
-      const sim = [left, left + 1].map((index) => ({ ...cols[index], trail: cols[index].trail.slice() }));
-      for (const pick of picks) push(sim[pick.k], inv(queue[pick.i]));
-      if ((sim[0].n === 0) !== (sim[1].n === 0)) return;
-      for (const ref of [0, 1]) {
-        const longer = sim[1 - ref], base = sim[ref];
-        const da = longer.a - base.a, dk = longer.k - base.k, S = longer.trail.reduce((sum, h) => sum + h, 0);
+    // Allocation-free: this runs thousands of times per pack. Same arithmetic, order and tie-break (strict <) as simulating
+    // push() on copies of the two columns, so the result is bit-identical.
+    const heights = singles.map((i) => inv(queue[i]));
+    const sideA = [0, 0, 0], sideK = [0, 0, 0], sideN = [0, 0], added = [[0, 0, 0], [0, 0, 0]], addedN = [0, 0];
+    const trailSum = (column, side) => {
+      const trail = column.trail, length = trail.length + addedN[side];
+      let sum = 0;
+      for (let index = Math.max(0, length - TRAIL); index < length; index += 1) sum += index < trail.length ? trail[index] : added[side][index - trail.length];
+      return sum;
+    };
+    // picks: up to three (x = index in singles, k = 0 left / 1 right) as flat arguments.
+    const consider = (left, count, x0, k0, x1, k1, x2, k2) => {
+      const c0 = cols[left], c1 = cols[left + 1];
+      sideA[0] = c0.a; sideK[0] = c0.k; sideN[0] = c0.n; addedN[0] = 0;
+      sideA[1] = c1.a; sideK[1] = c1.k; sideN[1] = c1.n; addedN[1] = 0;
+      let maxI = 0;
+      for (let p = 0; p < count; p += 1) {
+        const x = p === 0 ? x0 : p === 1 ? x1 : x2, side = p === 0 ? k0 : p === 1 ? k1 : k2, h = heights[x];
+        sideK[side] += sideN[side] ? gap : 0;
+        sideA[side] += h;
+        sideN[side] += 1;
+        added[side][addedN[side]++] = h;
+        maxI = Math.max(maxI, singles[x]);
+      }
+      if ((sideN[0] === 0) !== (sideN[1] === 0)) return;
+      for (let ref = 0; ref < 2; ref += 1) {
+        const longer = 1 - ref;
+        const da = sideA[longer] - sideA[ref], dk = sideK[longer] - sideK[ref], S = trailSum(cols[left + longer], longer);
         if (!nonNegative(da, dk)) continue;
         const crop = Math.max(share(da, dk, S, cwMin), share(da, dk, S, cwMax));
         if (crop > CROP_CAP + 1e-9) continue;
         // Least trim first, then fewest and nearest moved cards (owner O3: reorder before trimming).
-        const cost = crop + 0.004 * picks.length + 0.0002 * Math.max(0, ...picks.map((pick) => pick.i));
-        if (!best || cost < best.cost) best = { left, picks, ref, cost, crop };
+        const cost = crop + 0.004 * count + 0.0002 * maxI;
+        if (!best || cost < best.cost) {
+          const picks = [[x0, k0], [x1, k1], [x2, k2]].slice(0, count).map(([x, k]) => ({ i: singles[x], k }));
+          best = { left, picks, ref, cost, crop };
+        }
       }
     };
+    // Exact prune: cost >= 0.004 * count + 0.0002 * singles[last] (crop >= 0, singles ascending, IEEE addition is monotonic) and a
+    // candidate replaces best only when strictly cheaper, so once this bound reaches best.cost no later pick in the loop can win.
+    const beaten = (count, x) => best !== null && 0.004 * count + 0.0002 * singles[x] >= best.cost;
     const tryPartners = (left, n) => {
-      if (n === 0) consider(left, []);
-      if (n === 1) for (const i of singles) for (const k of [0, 1]) consider(left, [{ i, k }]);
-      if (n === 2) for (let x = 0; x < singles.length; x += 1) for (let y = x + 1; y < singles.length; y += 1) for (let m = 0; m < 4; m += 1) consider(left, [{ i: singles[x], k: m & 1 }, { i: singles[y], k: (m >> 1) & 1 }]);
-      if (n === 3) for (let x = 0; x < singles.length; x += 1) for (let y = x + 1; y < singles.length; y += 1) for (let z = y + 1; z < singles.length; z += 1) for (let m = 0; m < 8; m += 1) consider(left, [{ i: singles[x], k: m & 1 }, { i: singles[y], k: (m >> 1) & 1 }, { i: singles[z], k: (m >> 2) & 1 }]);
+      const m = singles.length;
+      if (n === 0) consider(left, 0);
+      if (n === 1) for (let x = 0; x < m && !beaten(1, x); x += 1) for (let k = 0; k < 2; k += 1) consider(left, 1, x, k);
+      if (n === 2) for (let x = 0; x < m; x += 1) for (let y = x + 1; y < m && !beaten(2, y); y += 1) for (let b = 0; b < 4; b += 1) consider(left, 2, x, b & 1, y, (b >> 1) & 1);
+      if (n === 3) for (let x = 0; x < m; x += 1) for (let y = x + 1; y < m; y += 1) for (let z = y + 1; z < m && !beaten(3, z); z += 1) for (let b = 0; b < 8; b += 1) consider(left, 3, x, b & 1, y, (b >> 1) & 1, z, (b >> 2) & 1);
     };
     // Up to two partners on every pair first; three only when nothing fits (the costliest search).
     for (let left = 0; left < columns - 1; left += 1) for (let n = 0; n < MAX_PARTNERS; n += 1) tryPartners(left, n);
@@ -179,7 +207,7 @@ export function packCandidate({ pool, band, seed, filter }, s) {
   const order = seededOrder(pool, seed, `grid:${filter}:${s}`, (card) => card.rank);
   const packed = packBand(order, band, { rankOf: (card) => card.rank });
   const local = packed.entries.map(({ card, column, span }) => at.get(card) * 8 + (span === 1 ? column : 4 + column));
-  const layout = replayLayout({ entries: local, cards: pool, layoutViewportWidth: band.refWidth });
+  const layout = replayLayout({ entries: local, cards: pool, layoutViewportWidth: band.refWidth, hash: false });
   return {
     s, demoted: packed.demoted.length, organicMiss: scoreOrganicRhythm(order).targetMet === false ? 1 : 0,
     stagger: layout ? staggerViolations(layout) : Infinity, crop: packed.maxCrop,

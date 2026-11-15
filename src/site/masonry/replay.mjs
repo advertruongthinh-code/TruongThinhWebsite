@@ -29,11 +29,12 @@ function frame(layoutViewportWidth) {
   return { columns, outer, interCardGap, availableWidth, cardWidth: (availableWidth - interCardGap * (columns - 1)) / columns };
 }
 
-function result(f, placed, columnBottoms, { layoutViewportWidth, filter, settings, source }) {
+function result(f, placed, columnBottoms, { layoutViewportWidth, filter, settings, source, hash = true }) {
   const placementOrder = placed.map((placement) => placement.card.id);
   const placements = placed.slice().sort(comparePlacement).map(({ natural, ...placement }, index) => ({ ...placement, index }));
   const totalPixelHeight = Math.max(0, ...columnBottoms);
-  const coordinateHash = fnv1a32(`${MASONRY_LAYOUT_VERSION}:${source}:${filter}:${layoutViewportWidth}:${f.columns}:${placementOrder.join(",")}:${coordinateKey(placements) || "empty"}`).toString(16).padStart(8, "0");
+  // The packer's candidate scoring only reads placements; the coordinate string and hash are most of a replay's cost.
+  const coordinateHash = hash && fnv1a32(`${MASONRY_LAYOUT_VERSION}:${source}:${filter}:${layoutViewportWidth}:${f.columns}:${placementOrder.join(",")}:${coordinateKey(placements) || "empty"}`).toString(16).padStart(8, "0");
   return {
     columns: f.columns, filter, settings: normalizeMasonrySettings(settings), outer: f.outer, interCardGap: f.interCardGap, spacing: { outer: f.outer, interCardGap: f.interCardGap },
     availableWidth: f.availableWidth, gridWidth: f.availableWidth, cardWidth: f.cardWidth, placements, holes: [], initialColumnBottoms: Array(f.columns).fill(0),
@@ -44,7 +45,7 @@ function result(f, placed, columnBottoms, { layoutViewportWidth, filter, setting
 
 // entries: cardIndex * 8 + code; code 0-3 = one column at that column, 4-6 = two columns starting at code - 4.
 // Returns null when the entries do not fit these cards or this geometry; the caller then uses stackLayout.
-export function replayLayout({ entries, cards, layoutViewportWidth, filter = "all", settings }) {
+export function replayLayout({ entries, cards, layoutViewportWidth, filter = "all", settings, hash }) {
   if (!Array.isArray(entries) || !Array.isArray(cards)) return null;
   const f = frame(layoutViewportWidth);
   const { columns, interCardGap: gap, cardWidth } = f;
@@ -96,7 +97,7 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
     }
   }
   if (cards.reduce((n, card) => n + (matchesFilter(card, filter) ? 1 : 0), 0) !== seen.size) return null;
-  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "pack" });
+  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "pack", hash });
 }
 
 // Fallback for the whole grid (owner O3 last step): every card one column, in `order` (card objects), into the lowest column.

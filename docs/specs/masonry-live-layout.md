@@ -72,11 +72,13 @@ Then hai mảng entries giống nhau
 
 ### R3. Worker và luồng chính
 
-Mọi dải xếp trong `layout-worker.mjs` (một Worker sống suốt trang, nhận `{ id, pack }`, trả `{ id, entries }`). Trang
-Quảng cáo tạo Worker ngay khi `detail.js` bắt đầu nạp catalog (`window.__TT_GRID_WORKER__`, runtime nhận lại), song song với
-module runtime; trang Công trình tạo lúc mount. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
-liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; Worker đã trả một lượt thì lượt chậm sau đó vẫn được chờ)
-thì từ đó xếp trên luồng chính, mỗi ứng viên một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi
+Mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
+`{ id, candidate }`), luồng chính giữ ứng viên tốt nhất bằng `bestEntries`, nên ra đúng `packLive` mà lưới đầu chỉ chờ một ứng
+viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). `detail.js` tạo các Worker ngay khi
+bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trình (`window.__TT_GRID_WORKERS__`, runtime nhận lại), song song với
+module runtime. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
+liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; đã có Worker trả một lượt thì lượt chậm sau đó vẫn được chờ)
+thì từ đó xếp trên luồng chính, mỗi ứng viên còn thiếu một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi
 Worker lỗi, chỉ filter được bấm mới xếp, không xếp nền. Kết quả nhớ theo khóa
 `<filter>|<dải>|<seed>` trong lượt mount. Filter đang xem xếp trước; khi 8 ảnh đầu tải xong (tối đa 6 s) mọi chip của dải
 hiện tại được xếp nền lần lượt từng chip (bấm chip chưa xếp chỉ chờ sau tối đa một lượt), sang dải mới hoặc Back về seed
@@ -113,7 +115,7 @@ kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộ
 | --- | --- | --- |
 | Hàm public | `packBand`, `LAYOUT_BANDS`, `staggerViolations`, `livePool`, `packCandidate`, `bestEntries`, `packLive`, `LIVE_CANDIDATES` (`pack.mjs`) | Xếp, thuần, không DOM (R2) |
 | Hàm public | `replayLayout`, `stackLayout`, `verifyLayout`, `bandKey` (`replay.mjs`) | Runtime và test (R4); không import `pack.mjs` |
-| Message | `{ id, pack }` → `{ id, entries }` hoặc `{ id, error }` (`layout-worker.mjs`) | Worker xếp (R3) |
+| Message | `{ id, pack, s }` → `{ id, candidate }` hoặc `{ id, error }` (`layout-worker.mjs`) | Worker xếp một ứng viên (R3) |
 | DOM hook | `aria-busy="true"` trên `[data-masonry-filter]` | Chip chờ xếp (R4) |
 
 ## UI
