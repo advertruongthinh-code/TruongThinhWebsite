@@ -136,8 +136,8 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng ngay, không motion, cùng nav và hamburger; khi thu gọn thì đổi ngay lúc bắt đầu nhịp cùng nền, khi mở ra thì đổi ở `0.3s` cùng nền | Mỗi lần header đổi tone |
 | Nhịp header | FLIP scale, navbar và nền chạy chung `0.3s expo.out`. Thu gọn: nền trắng, viền và chữ đậm hiện ngay lúc bắt đầu, không fade; nền bắt đầu ở cỡ lớn nhất rồi co cùng logo và navbar; mark lật sang CMYK cùng lúc, xong ở `0.68s`. Mở ra: mark lật sang trắng ngay lúc bắt đầu; nền trắng, viền và chữ đậm giữ, nền bắt đầu ở cao cũ rồi giãn cùng logo và navbar, hết `0.3s` mới đổi ngay sang nền trong, chữ trắng, không fade (owner 2026-11-09). Cỡ lớn nhất của nền: logo lớn nhất cách đều cạnh trên và cạnh dưới nền | Mỗi lần mark đổi màu khi cuộn; chuyển trang lật không chờ nhịp |
-| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s`, bắt đầu ngay (thu gọn, mở ra, veil phủ kín, veil bắt đầu mở) hoặc từ `0.1s` (đổi tone theo section) | Theo state machine dưới |
-| Màu mark khi chuyển trang | Lúc bấm giữ nguyên. Veil phủ kín: chữ đổi ngay sang `#2f2f2f`, mark đang trắng lật sang CMYK ngay lúc đó (đang CMYK thì giữ). Veil bắt đầu mở: chữ đổi ngay sang tone trang đích, mark lật sang màu trang đích. Chữ không có motion (owner 2026-11-09) | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Màu mark | Bốn dải lật quanh trục riêng, mặt tối dần khi nghiêng, sang CMYK cyan trước, về trắng đen trước, chạy `0.68s`, bắt đầu ngay (thu gọn, mở ra, bấm chuyển trang, trang đích gắn vào) hoặc từ `0.1s` (đổi tone theo section) | Theo state machine dưới |
+| Màu mark khi chuyển trang | Theo nhịp Espacio (owner 2026-11-15). Lúc bấm: chữ đổi dần sang `#2f2f2f` `0.3s expo.out`, mark đang trắng lật sang CMYK ngay (đang CMYK thì giữ), xong trước khi veil phủ kín (`0.75s`). Trang đích gắn vào dưới veil: chữ đổi dần `0.3s expo.out` sang tone trang đích, mark lật sang màu trang đích; veil mở ngay khi trang sẵn sàng, không giữ tối thiểu | Route mềm; đổi ngôn ngữ chỉ có pha phủ rồi tải lại trang ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio. Đổi ngôn ngữ thì cả header ẩn ngay lúc bấm, veil trắng phủ trống tới khi trang mới tải (owner 2026-11-10) | Route mềm ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)); đổi ngôn ngữ ([R4](../docs/specs/logo-route-crossfade.md#r4-đổi-ngôn-ngữ)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
@@ -226,15 +226,15 @@ thẳng trang: tới khi trang đích sẵn sàng).
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | Lật từ đen `#2b2a29` sang CMYK |
 | Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | Sticky: lật ngay cùng lúc nền trắng hiện; section: giữ trắng, từ `0.1s` lật sang CMYK |
 | CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Về đầu trang: lật ngay lúc header bắt đầu mở ra, nền tắt ở `0.3s`; section: giữ CMYK, từ `0.1s` lật sang trắng; đen trước |
-| Trắng | Veil chuyển route phủ kín | CMYK | Lật ngay, không chờ nhịp; chữ đổi ngay sang đậm |
-| CMYK | Veil bắt đầu mở, trang đích hero ảnh | Trắng | Lật ngay, đen trước; chữ đổi ngay sang trắng |
+| Trắng | Bấm chuyển route | CMYK | Lật ngay, không chờ nhịp; chữ đổi dần `0.3s` sang đậm |
+| CMYK | Trang đích hero ảnh gắn vào dưới veil | Trắng | Lật ngay, đen trước; chữ đổi dần `0.3s` sang trắng |
 | Đang lật | Đổi hướng giữa chừng | Trạng thái mới | Tua ngược từ chỗ đang dừng |
 
-- Chuyển route: lúc bấm link header ghim lại, chữ và mark giữ màu đang có.
-  Veil phủ kín thì chữ đổi ngay sang đậm và mark lật sang CMYK (đang CMYK thì
-  giữ); logo luôn hiện trên veil, HTML trang đích mount dưới veil không làm vẽ
-  lại mark. Veil bắt đầu mở thì chữ đổi ngay sang tone trang đích và mark lật
-  theo. Bấm link lúc mark đang lật dở thì lượt lật chạy tiếp (owner 2026-11-09).
+- Chuyển route: lúc bấm link header ghim lại, chữ đổi dần sang đậm và mark lật
+  sang CMYK ngay (đang CMYK thì giữ); logo luôn hiện trên veil. Trang đích gắn
+  vào dưới veil thì chữ đổi dần sang tone trang đích và mark lật theo, rồi veil
+  mở (nhịp Espacio, owner 2026-11-15). Bấm link lúc mark đang lật dở thì lượt
+  lật chạy tiếp (owner 2026-11-09).
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 

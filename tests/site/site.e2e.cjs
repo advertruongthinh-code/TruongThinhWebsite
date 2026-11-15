@@ -655,11 +655,13 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      // Logo text, nav and hamburger change color immediately, no tween, both while scrolling and while changing page (owner 2026-11-09).
+      // Logo text, nav and hamburger snap while scrolling; only a route change tweens them 0.3s expo.out like Espacio colorHeader (owner 2026-11-15, PR #966).
       /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
-      !/const colorHeader = \(color\) => \{(?:(?!\n  \};)[\s\S])*gsap/.test(motionSource) &&
+      /const colorHeader = \(color\) => \{[\s\S]*?if \(headerColorTween && hasGsap && !reduceMotion\) \{\s*gsap\.to\(texts, \{ color, duration: headerBeat, ease: "expo\.out" \}\);[\s\S]*?\n  \};/.test(motionSource) &&
+      /headerColorTween = true;\s*updateHeader\(\);\s*headerColorTween = false;/.test(motionSource) &&
+      (motionSource.match(/headerColorTween = true/g) || []).length === 1 &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
       /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
@@ -687,7 +689,7 @@ function assertPersistentNavigationContracts() {
       /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header text/hamburger instant color or the mark flip drifted",
+    "Header text/hamburger color (snap on scroll, 0.3s on route) or the mark flip drifted",
   );
   assert(
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
