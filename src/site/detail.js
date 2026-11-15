@@ -111,7 +111,18 @@
   // Vendor, catalog module and artifact load together. A soft route calls this the moment the link is clicked so the network runs in parallel with the veil
   // instead of queuing behind it (Shell R6). The artifact imports at the same time as the runtime: the runtime re-imports this exact URL so it shares
   // the module and nothing loads twice; if the import waited for the runtime to finish loading, the artifact would lag a network round trip.
-  const loadAdvertisingCatalog = () => Promise.all([
+  // The grid layout Worker (masonry-live-layout R3) starts here, in parallel with the runtime module graph, so its own modules are
+  // loaded by the time the runtime posts the first pack; the runtime adopts it.
+  const startGridWorker = () => {
+    try {
+      if (window.__TT_GRID_WORKER__) return;
+      const worker = new Worker("/masonry/layout-worker.mjs", { type: "module" });
+      // A load error before the runtime adopts the Worker would otherwise go unseen and leave the first pack waiting.
+      worker.addEventListener("error", () => { worker.failed = true; }, { once: true });
+      window.__TT_GRID_WORKER__ = worker;
+    } catch {}
+  };
+  const loadAdvertisingCatalog = () => (startGridWorker(), Promise.all([
     ensureAdvertisingDependencies(),
     import("/masonry/runtime.mjs").then((runtime) => {
       runtime.preloadMasonry();
@@ -120,7 +131,7 @@
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
     // Landing directly on a photo URL needs the detail (description, related) immediately: load it with the artifact; the runtime shares the module.
     location.pathname.includes("/p/") ? import("/advertising-products/catalog-detail.mjs").catch(() => {}) : null,
-  ]).then(([, runtime]) => runtime);
+  ]).then(([, runtime]) => runtime));
 
   const ensureAdvertisingCarouselStyle = () => {
     if (advertisingCarouselStylePromise) return advertisingCarouselStylePromise;

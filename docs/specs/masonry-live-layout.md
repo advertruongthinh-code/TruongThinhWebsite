@@ -72,8 +72,10 @@ Then hai mảng entries giống nhau
 
 ### R3. Worker và luồng chính
 
-Mọi dải xếp trong `layout-worker.mjs` (một Worker sống suốt trang, tạo sớm ở `preloadMasonry`, nhận `{ id, pack }`, trả
-`{ id, entries }`). Worker lỗi (không tạo được, `error`, trả `error`) thì từ đó xếp trên luồng chính, mỗi ứng viên một task để
+Mọi dải xếp trong `layout-worker.mjs` (một Worker sống suốt trang, nhận `{ id, pack }`, trả `{ id, entries }`). Trang
+Quảng cáo tạo Worker ngay khi `detail.js` bắt đầu nạp catalog (`window.__TT_GRID_WORKER__`, runtime nhận lại), song song với
+module runtime; trang Công trình tạo lúc mount. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
+liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) thì từ đó xếp trên luồng chính, mỗi ứng viên một task để
 không có tác vụ dài; không có ngưỡng thời gian chờ, vì máy chậm chỉ làm việc hai lần. Kết quả nhớ theo khóa
 `<filter>|<dải>|<seed>` trong lượt mount. Filter đang xem xếp trước; khi 8 ảnh đầu tải xong (tối đa 6 s) mọi chip của dải
 hiện tại được xếp nền theo hàng đợi của Worker, và sang dải mới thì xếp nền lại cho dải đó, nên bấm chip thường thấy lưới

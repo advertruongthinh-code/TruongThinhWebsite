@@ -933,7 +933,11 @@ const failGridWorker = () => {
 const ensureGridWorker = () => {
   if (gridWorker || gridWorkerFailed) return gridWorker;
   try {
-    gridWorker = startLayoutWorker();
+    // detail.js may have started it already (masonry-live-layout R3).
+    const early = window.__TT_GRID_WORKER__;
+    window.__TT_GRID_WORKER__ = undefined;
+    if (early?.failed) throw new Error("grid Worker failed to load");
+    gridWorker = early || startLayoutWorker();
     gridWorker.onmessage = ({ data }) => {
       const resolve = packReplies.get(data?.id);
       packReplies.delete(data?.id);
@@ -2119,6 +2123,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
   };
   let filter = initialFilter({ categories, cards, pages });
+  // First pack on speculation (masonry-live-layout R3): a fresh visit's seed is drawn now and handed to the browse history below,
+  // so the Worker packs while the mount sets up. A restored or handed-over seed, or another filter, makes it one wasted job.
+  const firstBand = LAYOUT_BANDS.find(({ key }) => key === bandKey(document.documentElement.clientWidth));
+  let firstPack = null;
+  if (firstBand && !detailId(new URL(location.href))) {
+    const seed = createBrowseSeed();
+    firstPack = { seed, key: `${filter}|${firstBand.key}|${seed}`, entries: packGrid({ pool: livePool(cards, filter), band: firstBand, seed, filter }) };
+  }
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
   let geometry;
@@ -2264,7 +2276,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
     if (!packWaits.has(key)) {
-      packWaits.set(key, packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter }).catch(() => null).then((entries) => {
+      const job = firstPack?.key === key ? firstPack.entries
+        : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter });
+      packWaits.set(key, job.catch(() => null).then((entries) => {
         packedEntries.set(key, entries);
         packWaits.delete(key);
       }));
@@ -5282,6 +5296,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     barbaHistory: window.barba?.history,
     browserHistory: window.history,
     restoredHistoryState: startupHistory?.state,
+    createSeed: () => firstPack?.seed ?? createBrowseSeed(),
     historyFallback: startupHistory?.historyFallback === true,
     softNavigation,
     getHref: () => window.location.href,
