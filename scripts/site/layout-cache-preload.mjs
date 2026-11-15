@@ -1,6 +1,6 @@
 // Inline <head> script that starts the one-filter masonry layout cache file (advertising-masonry R6) while the browser
 // still parses the page, in parallel with the deferred vendor scripts. Band thresholds come from LAYOUT_BANDS, never typed here.
-import { LAYOUT_BANDS } from "../../src/site/masonry/packer.mjs";
+import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
 
 export const LAYOUT_CACHE_ROOT = "/advertising-products/layout-cache";
 export const LAYOUT_CACHE_PRELOAD_MARKER = "<!-- layout-cache-preload -->";

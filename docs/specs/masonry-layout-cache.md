@@ -2,6 +2,7 @@
 title: Cache bố cục masonry
 status: live
 source:
+  - src/site/masonry/pack.mjs
   - src/site/masonry/packer.mjs
   - src/site/masonry/replay.mjs
   - scripts/site/layout-cache-preload.mjs
@@ -64,7 +65,7 @@ số mép thẳng hàng của ứng viên thứ 8, nên số biến thể khác 
 `cardIndex × 8 + code` (`code` 0–3 là cột của card một cột, 4–6 là `4 +` cột trái của card hai cột). Tự kiểm: mọi biến thể giữ lại
 phải `replayLayout` được và qua `verifyLayout` ở bề rộng nhỏ nhất, chuẩn, lớn nhất của dải; sai thì build `throw`
 (`layout-cache: self-check failed <filter> <dải> <bề rộng>px`). Kết quả của một catalog được nhớ trên đĩa khi chạy local
-(`scripts/site/layout-cache-memo.mjs`, khóa theo card, filter, `packer.mjs`, `replay.mjs`, `layout.mjs`, `random-order.mjs`); CI luôn build lại.
+(`scripts/site/layout-cache-memo.mjs`, khóa theo card, filter, `packer.mjs`, `pack.mjs`, `replay.mjs`, `layout.mjs`, `random-order.mjs`); CI luôn build lại.
 
 ```gherkin
 Given một filter có biến thể để lỗ hoặc thiếu card ở một đầu dải
@@ -124,8 +125,9 @@ trong Web Worker và không chặn nút lưu. (5) Cảnh báo người soạn kh
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Hàm public | `buildLayoutCache`, `packBand`, `LAYOUT_BANDS`, `staggerViolations` (`packer.mjs`) | Build và trang admin CMS sau này (R2, R6) |
-| Hàm public | `replayLayout`, `stackLayout`, `verifyLayout`, `variantIndex`, `bandKey`, `poolSignature` (`replay.mjs`) | Runtime, build tự kiểm, test (R3, R4); không import `packer.mjs` |
+| Hàm public | `packBand`, `LAYOUT_BANDS`, `staggerViolations` (`pack.mjs`) | Xếp một thứ tự card trên một dải bề rộng, thuần, không DOM (R2) |
+| Hàm public | `buildLayoutCache` (`packer.mjs`) | Build và trang admin CMS sau này (R2, R6) |
+| Hàm public | `replayLayout`, `stackLayout`, `verifyLayout`, `variantIndex`, `bandKey`, `poolSignature` (`replay.mjs`) | Runtime, build tự kiểm, test (R3, R4); không import `pack.mjs`, `packer.mjs` |
 | Data | `.site-output/advertising-products/layout-cache/*` | Build sinh, runtime `import()` (R3) |
 | Data | `artifact.layouts`, `layoutCacheFilterUrl`, `layoutCacheBandUrl` | Cache nhúng ở trang Công trình; URL ở trang Quảng cáo (R3) |
 | DOM hook | `aria-busy="true"` trên `[data-masonry-filter]` | Chip chờ cache (R4) |

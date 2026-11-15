@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { columnsForWidth, isWideMedia, layoutMedia, masonrySpacing } from "../../src/site/masonry/layout.mjs";
-import { LAYOUT_BANDS } from "../../src/site/masonry/packer.mjs";
+import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
 import { bandKey, verifyLayout } from "../../src/site/masonry/replay.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");

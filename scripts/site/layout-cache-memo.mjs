@@ -8,12 +8,12 @@ import { buildLayoutCache } from "../../src/site/masonry/packer.mjs";
 import { projectRoot, siteRoot } from "./lib.mjs";
 
 const masonryRoot = path.join(siteRoot, "masonry");
-const SOURCES = ["packer.mjs", "replay.mjs", "layout.mjs", "random-order.mjs"];
+export const MEMO_SOURCES = ["packer.mjs", "pack.mjs", "replay.mjs", "layout.mjs", "random-order.mjs"];
 const memoDir = path.join(projectRoot, "node_modules", ".cache", "layout-cache");
 
 export const layoutCacheMemoKey = ({ cards, filters, datasetVersion }) => {
   const hash = createHash("sha256");
-  for (const name of SOURCES) hash.update(readFileSync(path.join(masonryRoot, name)));
+  for (const name of MEMO_SOURCES) hash.update(readFileSync(path.join(masonryRoot, name)));
   hash.update(JSON.stringify({ cards, filters, datasetVersion }));
   return hash.digest("hex").slice(0, 32);
 };
