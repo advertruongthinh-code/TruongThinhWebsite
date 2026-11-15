@@ -4,7 +4,6 @@ import { DUR, EASE } from "./motion-tokens.mjs";
 
 export const GHOST_FADE_MS = DUR.fade;
 export const GHOST_FADE_EASING = EASE.expoOut;
-const BREATHE_MS = 2000;
 // One full color cycle of the phone image-wait layer: 4 dominant colors, 2s each (detail.css, [data-media-wait="colors"]).
 const COLORS_CYCLE_MS = 8000;
 // Swiping a viewport every 100ms only holds places and does not mount real cards.
@@ -20,10 +19,8 @@ const HOLD_FAST_MS = 120;
 // keeps a few cards per frame even when the measurement is low (a fast machine still mounts everything within a few frames).
 const MAX_MOUNTS_PER_FRAME = 8;
 
-// All breathing ghost cards share one phase: a negative delay equal to the current time modulo the cycle, so neighbors breathe in step.
-export const breathePhase = (now = performance.now()) => `${-(now % BREATHE_MS)}ms`;
-
-// Same idea for the phone wait layer: every color layer shares one phase, so a ghost card turning into a real card (or the primary frame) keeps its color.
+// Every color layer shares one phase (a negative delay equal to the current time modulo the cycle), so neighbors change color in step and a ghost card
+// turning into a real card (or the primary frame) keeps its color.
 export const colorsPhase = (now = performance.now()) => `${-(now % COLORS_CYCLE_MS)}ms`;
 
 // Phone image wait (progressive-loading R9): a flat layer cycling through the image's 4 dominant colors. `colors` is a list of 4 CSS colors.
@@ -114,17 +111,15 @@ export function createGhostLayer(host) {
     layer,
     ids: () => pending.keys(),
     has: (id) => pending.has(id),
-    // Place (or update) the ghost card of a placement. `waitColors` (called once, when the element is created) returns the 4 colors of the phone wait
-    // layer, or null to keep the breathing flat color.
-    show(id, placement, color, waitColors = null) {
+    // Place (or update) the ghost card of a placement. `waitColors` (called once, when the element is created) returns the 4 colors of its wait layer,
+    // the same layer on PC and phone (owner 2026-11-15).
+    show(id, placement, waitColors) {
       let element = pending.get(id);
       if (!element) {
         element = document.createElement("div");
         element.className = "masonry-ghost";
         element.dataset.masonryGhost = id;
-        const colors = waitColors?.();
-        if (colors) setColorWait(element, colors);
-        else element.style.animationDelay = breathePhase();
+        setColorWait(element, waitColors());
         pending.set(id, element);
         attach();
         layer.append(element);
@@ -133,14 +128,12 @@ export function createGhostLayer(host) {
       setStyle(element, "top", `${placement.y}px`);
       setStyle(element, "width", `${placement.pixelWidth}px`);
       setStyle(element, "height", `${placement.pixelHeight}px`);
-      if (color) setStyle(element, "backgroundColor", color);
     },
     // The real card takes its place: return the element so the card crossfades over it, then the caller removes it.
     take(id) {
       const element = pending.get(id);
       if (!element) return null;
       pending.delete(id);
-      element.style.animation = "none";
       return element;
     },
     drop(id) {

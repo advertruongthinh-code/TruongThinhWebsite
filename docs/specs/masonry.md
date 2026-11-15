@@ -51,7 +51,7 @@ lưới ở cả ba nơi. Related đặt primary và gợi ý là item ghim
 
 ### R4. Sân masonry
 
-Mỗi lưới là một instance của `createMasonryHost(root, { create, attach, detach, color, masonry })` (`masonry/host.mjs`):
+Mỗi lưới là một instance của `createMasonryHost(root, { create, attach, detach, waitColors, masonry })` (`masonry/host.mjs`):
 card đang dựng, tọa độ, media đang hiện của card nhiều media, card tạm, ngân sách dựng, hàng chờ LRU theo RAM máy
 (`masonry/mount-budget.mjs`), một Masonry chỉ lo motion. Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
 `release(keep, { queue })` (không gỡ card đang giữ focus), dựng lẻ là `ensure`; motion layout `layoutMotion(instant)`,
@@ -89,7 +89,7 @@ vào view, F5.
 | --- | --- | --- |
 | DOM hook | `[data-masonry-item]`, `[data-masonry-kind]` | Item masonry ở mọi lưới (R2) |
 | Hàm public | `createMasonryHost`, `pickMounts`, `isSizeMorph`, `cancelMasonryTransitions` (`masonry/host.mjs`) | Sân masonry (R4) |
-| Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh trên điện thoại (R4) |
+| Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh (card tạm cả PC và điện thoại, card chờ trên điện thoại) (R4) |
 | Runtime | `playReveal` (`masonry/runtime.mjs`, nội bộ) | Reveal chung (R5) |
 
 ## UI
@@ -116,4 +116,4 @@ Không có.
 
 - Sân masonry: state và vòng dựng của một lưới (card đang dựng, tọa độ, card tạm, hàng chờ).
 - Item ghim: item có chỗ cố định trong lưới related (primary, card gợi ý), card khác xếp quanh nó.
-- Card tạm: khối màu chủ đạo giữ chỗ card chưa tới lượt dựng (điện thoại: lớp đổi qua 4 màu chủ đạo của ảnh bìa, [loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)).
+- Card tạm: lớp đổi qua 4 màu chủ đạo của media bìa giữ chỗ card chưa tới lượt dựng (PC và điện thoại như nhau, [loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)).

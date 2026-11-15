@@ -51,8 +51,9 @@ import {
 // card share one ratio), so the value is the thumbnail width.
 const detailThumbSize = (width, ratio = 1) => (width + 8) / Math.max(1, Math.floor((width + 8) / (60 * ratio + 8))) - 8;
 // Width over height of a card's media (its cover), the ratio of its thumbnails.
+const coverItem = (card) => card?.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card?.media;
 const thumbRatio = (card) => {
-  const media = card?.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card?.media;
+  const media = coverItem(card);
   return media?.width && media?.height ? media.width / media.height : 1;
 };
 
@@ -134,6 +135,8 @@ let laneFlow = null;
 // The file a lane waits for (a video waits for its poster) and its 240 file.
 const laneWaitSource = (item) => item.kind === "video" ? item.posterSrc : item.src;
 const laneTinySource = (item) => responsiveSource(laneWaitSource(item), item.width, 240);
+// The 4 colors of a placeholder card: its cover media's, a video cover's poster (owner 2026-11-15), PC and phone alike.
+const coverWaitColors = (card, fallback) => waitColors(laneWaitSource(coverItem(card)), fallback);
 // flowFrame: a Flow frame already running for this media (the primary's first load), moved into the layer instead of a new one, so the
 // motion goes on while the lane slides (owner 2026-11-13).
 function createLaneWait(item, color, flowFrame = null) {
@@ -1887,8 +1890,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       (mediaId) => gridHost.mediaById.set(id, mediaId), syncCardSkeleton),
     attach: (node) => observeMediaCard(node),
     detach: (id, node, queue) => detachCard(id, node, queue),
-    color: cardColor,
-    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, cardColor(card)) : null,
+    waitColors: (card) => coverWaitColors(card, cardColor(card)),
   });
   const relatedHost = createMasonryHost(relatedGrid, {
     create: ({ card: { id }, card }) => createPhotoCard(card, locale, handleMediaLoaded, true,
@@ -1899,8 +1901,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       node.dataset.masonryRelatedItem = placement.card.id;
     },
     detach: (id, node, queue) => detachCard(id, node, queue),
-    color: (card) => mediaColors(card.media.src)?.[0],
-    waitColors: (card) => skeletonPhone() ? waitColors(card.media.src, mediaColors(card.media.src)?.[0]) : null,
+    waitColors: (card) => coverWaitColors(card, mediaColors(card.media.src)?.[0]),
     masonry: { itemSelector: "[data-masonry-related-item]", getId: (node) => node.dataset.masonryRelatedItem },
   });
   let relatedLayout;
@@ -3556,7 +3557,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       restoreCanonicalDomOrder();
       domOrderDirty = false;
     }
-    if (seeded.size) void grid.offsetHeight;
+    // The first build does not force style and layout here: the seeded start positions render in their own frame before the slide (below).
+    if (seeded.size && !firstBuild) void grid.offsetHeight;
     grid.style.height = `${gridHost.pixelHeight}px`;
     const applyLayout = () => {
       if (!shouldAnimate || reduced) placeRendered();
@@ -3587,11 +3589,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
     };
     if (seeded.size && animate && !reduced) {
-      void grid.offsetHeight;
-      gridHost.motionFrame = requestAnimationFrame(() => {
+      const slide = () => {
         gridHost.motionFrame = 0;
         applyLayout();
-      });
+      };
+      // The first build lets one frame paint the cards at their start positions, so the slide starts from them without forcing style and layout
+      // inside the build task (A04s: 30ms of a 95-157ms task). Later passes force it and slide in the next frame as before.
+      if (firstBuild) gridHost.motionFrame = requestAnimationFrame(() => { gridHost.motionFrame = requestAnimationFrame(slide); });
+      else {
+        void grid.offsetHeight;
+        gridHost.motionFrame = requestAnimationFrame(slide);
+      }
       return;
     }
     applyLayout();
@@ -3892,10 +3900,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }));
   };
   // Cards going around the primary run Web Animations on `translate`, separate from Masonry's `transform` (advertising-cta-center-parallax R10).
+  // Kept in a set: scanning getAnimations() forces a style update, which on the first build task is a full-page recalc.
+  const relatedDetours = new Set();
   const cancelRelatedDetours = () => {
-    for (const node of [...relatedHost.rendered.values(), suggestionNode]) {
-      node?.getAnimations().forEach((animation) => animation.id === "related-detour" && animation.cancel());
-    }
+    relatedDetours.forEach((animation) => animation.cancel());
+    relatedDetours.clear();
   };
   const cancelRelatedMotion = () => {
     relatedHost.stopMotion();
@@ -4031,11 +4040,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       relatedHost.motionFrame = 0;
       relatedHost.layoutMotion((element) => element.hidden || element === suggestionNode || detours.has(element));
       for (const [node, { from, to, plan }] of detours) {
-        node.animate([
+        relatedDetours.add(node.animate([
           { translate: `${from.x - to.x}px ${from.y - to.y}px` },
           { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset },
           { translate: "0px 0px" },
-        ], { id: "related-detour", duration: DUR.card, easing: "ease" });
+        ], { id: "related-detour", duration: DUR.card, easing: "ease" }));
       }
       relatedHost.motionTimer = setTimeout(() => {
         relatedHost.motionTimer = 0;
@@ -5943,16 +5952,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     firstBuild = false;
     restoreGridEntry(browseHistory.current, "direct");
   }
-  browseHistory.persistCurrent();
+  // A direct grid load stores its history state in a later task, off the first build task (A04s: about 10ms).
+  if (!ctaDeferred) browseHistory.persistCurrent();
   if (!ctaDeferred) return cleanup;
-  // Page motion awaits this mount: let it run in the next task, then the CTA batch below the grid in the task after.
+  // Page motion awaits this mount: let it run in the next task, then the CTA batch below the grid in a task after the next frame, so the style page
+  // motion just dirtied is computed in that frame and not forced again by the CTA copy measurement.
   await nextTask();
-  setTimeout(() => {
+  if (!controller.signal.aborted) browseHistory.persistCurrent();
+  requestAnimationFrame(() => setTimeout(() => {
     ctaDeferred = false;
     if (controller.signal.aborted || activePhotoId || !geometry) return;
     renderCtaSkeleton();
     window.dispatchEvent(new CustomEvent("site:layout"));
-  });
+  }));
   return cleanup;
 }
 

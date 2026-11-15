@@ -1,7 +1,7 @@
 // Per-frame card mount budget (advertising-masonry R7): quota by measured cost; very fast swipes only reserve space.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { breathePhase, clearColorWait, colorsPhase, createDetachedCards, createMountBudget, detachedCapacity, setColorWait } from "../../src/site/masonry/mount-budget.mjs";
+import { clearColorWait, colorsPhase, createDetachedCards, createMountBudget, detachedCapacity, setColorWait } from "../../src/site/masonry/mount-budget.mjs";
 
 const clock = () => {
   const state = { now: 1000 };
@@ -98,12 +98,6 @@ test("the base frame interval is clamped so a slow render does not widen its own
     budget.begin(0, 700);
   }
   assert.ok(budget.quota() <= 4, "34ms cap gives at most an 11ms budget with the 3ms default cost");
-});
-
-test("breathing phase is shared by absolute time", () => {
-  assert.equal(breathePhase(4000), "0ms");
-  assert.equal(breathePhase(4300), "-300ms");
-  assert.equal(breathePhase(5300), "-1300ms", "same phase as 3300ms: shifted by one period");
 });
 
 test("color wait phase is shared by absolute time, 8s cycle", () => {

@@ -220,14 +220,14 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 trong ngân sách đo trên máy đó: `quota = max(1, floor(budget / cost))`, `cost` là trung bình trượt chi phí một card đo bằng khoảng frame dôi
 ra sau lần dựng (gồm style, layout, paint, không chỉ phần JS), `budget` là một phần ba nhịp frame nền (kẹp `8` tới `34ms`); giao viewport trước, gần giữa màn hình trước
 (`mountQuota`, `createMountBudget`); trần cứng `8` card mỗi frame (số đo trượt chậm theo máy, trần giữ frame đầu sau khi
-dừng vuốt không dựng dồn), và một frame chỉ dựng một lần dù renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, nền
-là màu chủ đạo của ảnh bìa, thở `media-breathe` `2s` (điện thoại: lớp màu 4 màu của ảnh bìa như R1, cùng pha `--wait-phase`, không thở), `aria-hidden`, không link, ảnh hay observer, nằm trong lớp riêng đầu
+dừng vuốt không dựng dồn), và một frame chỉ dựng một lần dù renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, là lớp màu
+4 màu chủ đạo của media bìa (bìa là video: 4 màu của poster), PC và điện thoại như nhau (owner 2026-11-15), cùng pha `--wait-phase`, `aria-hidden`, không link, ảnh hay observer, nằm trong lớp riêng đầu
 grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhảy xa quá hai viewport, thì chỉ gắn card tạm; hết vuốt thì
-dựng dần mỗi frame (`requestAnimationFrame`). Mọi card tạm thở chung pha (`animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha màu (`colorsPhase`) nên không nhảy màu.
+dựng dần mỗi frame (`requestAnimationFrame`). Mọi lớp màu chung pha (`colorsPhase`, `animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha nên không nhảy màu.
 
-Card tạm lên card thật: ảnh đã có hiện dần từ màu chủ đạo, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
+Card tạm lên card thật: ảnh đã có hiện dần trên lớp màu, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
 (cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1 và card tạm gỡ ở frame kế (card thật với nền media đục đã phủ kín nó); card tạm
-ngoài viewport gỡ không motion. Giảm chuyển động (R8): card tạm không thở, ảnh có sẵn hiện thẳng.
+ngoài viewport gỡ không motion. Giảm chuyển động (R8): lớp màu đứng yên ở màu 1, ảnh có sẵn hiện thẳng.
 
 ```gherkin
 Given masonry All trên phone, CPU chậm 4 lần, ảnh đã có trong cache
