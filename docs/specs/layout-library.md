@@ -177,7 +177,7 @@ trên 48 trang công trình và 26 bài News ngày 2026-11-15 ở sáu bề rộ
 
 Khối phủ (`hero-project`, thẻ `project-slider`, `news-cards`, `banner-links`) đổi tỷ lệ theo thiết bị nên dùng ảnh
 nguồn khóa tỷ lệ cộng điểm giữ; preview cho xem cả sáu bề rộng. Card masonry: người soạn chọn khung card trước
-([media-card R1](media-card.md)), mọi media của card khớp khung đó theo cùng cách kéo, phóng.
+trong 8 tỷ lệ 3:2, 2:3, 1:1, 4:3, 3:4, 4:5, 16:9, 2:1 (owner 2026-11-15; [media-card R1](media-card.md)), mọi media của card khớp khung đó theo cùng cách kéo, phóng.
 
 ```gherkin
 Given người soạn đặt một ảnh 1200 × 1200 vào image-text
