@@ -79,6 +79,17 @@ Bài có ngày đăng và ngày cập nhật hiển thị khớp dữ liệu c�
 `BreadcrumbList`, `VideoObject` khi có video, theo [SEO](seo.md); ảnh, video trong bài theo [tải ảnh](media-delivery.md).
 Ảnh bài là ảnh riêng của bài đó, không dùng lại ảnh trang khác hay bài khác ([bộ kiểm nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung) mục 7); mỗi ảnh là một cảnh riêng minh họa đúng đoạn văn cạnh nó, không cần cùng một không gian (owner 2026-11-13). Mẫu ảnh mỗi bài: ảnh rộng đầu bài (cũng là bìa 3:2), cặp ảnh dọc 2:3, ảnh dọc 2:3 lệch phải.
 
+Số ảnh và bố cục (owner 2026-11-15, CMS khóa theo bảng): rút từ 26 bài `/en/news/` của Espacio tải ngày 2026-11-15 (ảnh
+thân bài, không tính ảnh banner dẫn link; ít nhất 2, trung vị 10). Mỗi khối ảnh đứng sau một đoạn văn; mọi chuỗi kết thúc
+bằng `news-cards`, `cta-arrow`.
+
+| Số ảnh | Bài Espacio | Chuỗi khối ([layout-library](layout-library.md)) |
+| --- | --- | --- |
+| 2-5 | 7 | `section-title`, `image-single`, `paragraph`, `image-pair` hoặc `image-single`, `quote` tùy chọn, `paragraph`, `image-single` |
+| 6-11 | 10 | như 2-5, thêm `paragraph`, `gallery-carousel` (2-6), `paragraph`, `image-pair` |
+| 12-16 | 7 | như 6-11, `gallery-carousel` 5-10 ảnh, hai `image-pair`, `gallery-carousel` thứ hai tùy chọn |
+| 17+ | 2 | hai `gallery-carousel` (8-10), hai tới bốn `image-pair`, `quote` tùy chọn |
+
 ```gherkin
 Given một bài thuộc nhóm Sản phẩm quảng cáo
 When mở bài

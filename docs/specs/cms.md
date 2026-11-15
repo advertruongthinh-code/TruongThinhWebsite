@@ -32,12 +32,6 @@ Admin là một Worker riêng ở `admin.truongthinhads.vn` (trước khi đổi
 ứng dụng Access team `truongthinh` đăng nhập Google. Media public ở `media.truongthinhads.vn` (R2 custom domain). CMS
 hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng cuối.
 
-```gherkin
-Given admin Worker bị tắt và D1 trả lỗi
-When khách mở /vi/news/<slug>/
-Then trang trả 200 từ bản dựng cuối, không request nào tới admin hay D1
-```
-
 ### R2. Tài khoản và vai trò
 
 Hai vai trò, lưu trong D1 (bảng tài khoản theo email, chữ thường). Email owner đầu tiên nằm ở secret
@@ -55,9 +49,8 @@ Hai vai trò, lưu trong D1 (bảng tài khoản theo email, chữ thường). E
 
 Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Ít nhất một
 owner luôn còn mở: lệnh khóa hay hạ vai trò owner cuối cùng trả 409. Danh sách email của chính sách Access phải khớp bảng
-tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat.
-[CẦN LÀM RÕ: trang tài khoản tự sửa chính sách Access qua API Cloudflare (token chỉ quyền Access, nằm ở secret) hay owner
-thêm email trên dashboard? Agent đề xuất tự sửa qua API, kiểm ở slice Storage.]
+tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat. Trang tài khoản tự thêm, gỡ email
+trong chính sách Access qua API Cloudflare bằng token chỉ có quyền Access, nằm ở secret (owner 2026-11-15).
 
 ```gherkin
 Given nhân viên đã đăng nhập
@@ -119,8 +112,9 @@ Media là một bản ghi riêng, nội dung tham chiếu theo `mediaId`; một 
 - Xóa media đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào trỏ tới (orphan) được
   dọn sau 30 ngày.
 
-[CẦN LÀM RÕ: bản gốc ở R2 private (decision) hay NAS (owner 2026-10-12)? Agent đề xuất R2 private để lần dựng trên GitHub
-Actions không cần PC, sao lưu tuần chép bản gốc về NAS.]
+- Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
+  quyết định bản gốc trên NAS ngày 2026-10-12).
+
 [CẦN LÀM RÕ: giới hạn cỡ file upload; thang video sinh ở lần dựng hay trên PC lúc upload.]
 
 ```gherkin
@@ -185,25 +179,29 @@ When POST lệnh save với Content-Type text/plain hoặc Origin của site kh�
 Then trả 403 hoặc 415, không phiên bản nào được tạo
 ```
 
-### R9. Bộ khối và preset
+### R9. Bộ khối và layout khóa theo số ảnh
 
-`layoutKey` của một khối là một kiểu trong `BLOCK_TYPES` (`scripts/site/blocks.mjs`, schema version 1); kiểu khác bị từ
-chối ở R3. Bản đầu có đúng hai preset, lấy từ khối mà 8 bài News và 18 công trình đang dùng
-([layout-library R2](layout-library.md)):
+`layoutKey` của một khối là một id trong danh mục [layout-library R1](layout-library.md#r1-danh-mục-khối) (đủ khối rút
+từ khảo sát Espacio); id ngoài danh mục bị từ chối ở R3. Khối đã có renderer trong `BLOCK_TYPES`
+(`scripts/site/blocks.mjs`) dùng được ngay; khối chưa có renderer (`statement`, `location-list`, băng logo, banner CTA)
+hiện khóa trong admin tới khi PR thêm renderer.
 
-| Preset | Kiểu nội dung | Khối bắt buộc | Khối thêm được |
-| --- | --- | --- | --- |
-| Bài News | `news` | `news-cards` | `paragraph`, `image-single`, `image-pair`, `gallery-carousel`, `quote`, `contact-quick`, `cta-arrow` |
-| Chi tiết công trình | `project` | `hero-project`, `facts-grid`, `project-slider` | `section-title`, `paragraph`, `image-single`, `image-text`, `image-pair`, `gallery-carousel`, `contact-quick`, `cta-arrow` |
+Layout của Bài News và Chi tiết công trình khóa cứng theo số ảnh, theo bảng của [News R3](news.md#r3-trang-bài) và
+[công trình R4](projects.md#r4-ảnh-và-video-công-trình) (owner 2026-11-15). Mỗi dòng bảng là một layout, mở khóa khi
+bài có số media lớn hơn hoặc bằng mức thấp nhất của dòng; dòng cao hơn bị khóa và admin ghi cần thêm mấy ảnh. Người soạn
+chọn một layout đã mở rồi điền chữ và media vào chuỗi khối của layout đó; không thêm, bớt hay đổi thứ tự khối. Media vượt
+sức chứa các khối đơn được dồn vào `gallery-carousel` trong giới hạn của dòng. Video tính như một media, đặt ở chỗ
+`image-single` thành `video-single`.
 
 Năm trang cố định (trang chủ, Nhà ở, Kinh doanh, About, Advertising) giữ layout hiện tại; CMS chỉ sửa chữ và media theo
-slot (`page-copy`). Thêm preset hay khối mới là việc code, qua PR, không làm từ admin. Field `template` cũ
-(`compact-gallery`, `editorial-case`, `process-film`) bỏ.
+slot (`page-copy`). Thêm layout hay khối mới là việc code, qua PR. Field `template` cũ (`compact-gallery`,
+`editorial-case`, `process-film`) bỏ.
 
 ```gherkin
-Given bài News đang soạn
-When gửi một khối có layoutKey "project-slider"
-Then trả 400 "khối không thuộc preset Bài News"
+Given bài News có 5 ảnh
+When mở chọn layout
+Then layout "2-5" mở, layout "6-11" khóa và ghi "thêm 1 ảnh để mở"
+And gửi lệnh save với layout "6-11" trả 400, không phiên bản nào được tạo
 ```
 
 ### R10. Xuất bản và rollback
@@ -212,7 +210,7 @@ Lần lưu `published` xếp một lần dựng; các lần lưu trong 2 phút g
 (GitHub Actions), lấy bản chụp từ admin bằng service token Access, chạy validator R3 và bộ kiểm phát hành hiện có, rồi
 deploy. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin hiện trạng thái: chờ, đang
 dựng, đã lên, lỗi. Owner quay về deployment trước bằng lệnh `rollback`; nội dung trong D1 không đổi theo.
-[CẦN LÀM RÕ: hẹn giờ đăng có trong bản đầu không (ý định 2026-10-12 mục 17)? Agent đề xuất để sau bản đầu.]
+Hẹn giờ đăng để sau bản đầu (owner 2026-11-15).
 
 ```gherkin
 Given lần dựng có một ảnh thiếu biến thể
@@ -220,10 +218,24 @@ When bộ kiểm phát hành chạy
 Then không deploy, site giữ bản trước, admin báo id media lỗi
 ```
 
-### R11. Sao lưu
-
-D1 Time Travel 7 ngày cho lỗi thường. Mỗi ngày export D1 ra R2 private; mỗi tuần chép export và bản gốc media về PC owner
+Sao lưu: D1 Time Travel 7 ngày cho lỗi thường. Mỗi ngày export D1 ra R2 private; mỗi tuần chép export và bản gốc media về PC owner
 (rồi NAS). Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
+
+### R11. Xem trước gần 1:1 với site
+
+Khung xem trước cập nhật ngay khi người soạn gõ hay đổi media, và giống trang thật (owner 2026-11-15). Không có renderer
+thứ hai: preview gọi đúng hàm render mà build dùng (`renderBlocks`, `renderBlockPage`), với cùng CSS, JS, motion và
+biến thể ảnh của site, trong một `iframe` có khung trang thật. Phần render tách khỏi phần đọc file: module render
+thuần (không `node:fs`, `node:path`) chạy được cả ở Node lẫn trình duyệt; phần kiểm file ảnh, đọc JSON ở lại adapter
+của build. Sửa một khối là sửa một chỗ, build và preview đổi cùng lúc. Chỗ khác duy nhất: media chưa có biến thể dùng
+bản tạm trên R2 private qua admin, khung preview ghi "bản xem trước".
+
+```gherkin
+Given người soạn sửa tiêu đề một khối section-title
+When gõ xong một ký tự
+Then preview hiện HTML bằng đúng hàm renderBlocks mà build dùng, không gọi lần dựng
+And test so HTML preview và HTML build của cùng dữ liệu trả kết quả giống nhau
+```
 
 ## Giao diện và dữ liệu
 
@@ -247,10 +259,11 @@ Admin là [editor](cms-editor.md), không thuộc Design System, không đưa to
 | --- | --- |
 | R1 | chưa có; cần: bản dựng không có route Worker public, trang mở được khi admin tắt |
 | R2, R8 | `pnpm qa:worker:security` kiểm JWT, Origin hôm nay; cần thêm: ma trận quyền, owner cuối |
-| R3, R4, R9 | validator dùng chung chạy trên fixture và bản chụp ([test không phụ thuộc nội dung](content-independent-tests.md)) |
+| R3, R4, R9 | validator dùng chung chạy trên fixture và bản chụp ([test không phụ thuộc nội dung](content-independent-tests.md)); cần thêm: layout khóa theo số ảnh |
 | R5 | `pnpm qa:worker:security` (WebP, SVG an toàn); cần thêm: loại, cỡ, poster, alt trùng, orphan |
+| R11 | cần: HTML preview bằng HTML build trên fixture mọi khối |
 | R6, R7, R10 | chưa có; cần integration lưu, thùng rác, version lệch, dựng lỗi giữ bản cũ |
-| R11 | diễn tập khôi phục, ghi kết quả trong PR slice Storage |
+| R10 sao lưu | diễn tập khôi phục, ghi kết quả trong PR slice Storage |
 
 ## Code dormant hiện có
 
@@ -266,9 +279,6 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 | Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Bỏ; viết `0001` mới theo spec này |
 | `wrangler.toml` (`run_worker_first` route public), `scripts/cms/` | gốc repo | Viết lại cho admin Worker |
 
-Chạy local hiện tại: `pnpm cms:dev` dựng site, admin, D1 và R2 giả lập, `wrangler dev` cổng 8788
-([editor R9](cms-editor.md#r9-chạy-local-và-ci)); không deploy.
-
 ## Gate còn mở
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng
@@ -282,12 +292,9 @@ bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nố
 
 ## Chú thích thuật ngữ
 
-- **Worker**: code Cloudflare chạy ở biên; ở đây chỉ phục vụ admin.
-- **D1, R2**: database SQL và kho file của Cloudflare.
 - **Access**: lớp đăng nhập Cloudflare đặt trước admin, cấp JWT (token có chữ ký).
 - **File chiếu**: file JSON CMS sinh ra cho build tĩnh đọc.
 - **Bản chụp**: bộ file chiếu tại một thời điểm, đầu vào của một lần dựng.
-- **Preset**: mẫu trang có sẵn bộ khối bắt buộc.
+- **Layout khóa**: chuỗi khối cố định, chỉ mở khi bài đủ số ảnh.
 - **Orphan**: object media không còn bản ghi nào dùng.
 - **Seat**: một người dùng được tính trong Zero Trust.
-- **Slice**: phần việc nhỏ owner mở riêng, có gate duyệt.
