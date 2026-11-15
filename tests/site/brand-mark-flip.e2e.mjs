@@ -166,13 +166,13 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const expandLead = await page.evaluate(flipLead);
-    // Expand (owner 2026-11-09): mark flips immediately; white background, border and bold text hold and grow with the logo, navbar 0.3s, only at the end of the beat
+    // Expand (owner 2026-11-09, border 2026-11-15): mark flips immediately; the border goes in the same frame; white background and bold text hold and grow with the logo, navbar 0.3s, only at the end of the beat
     // does it switch once to the transparent background and white text, no fade.
     await page.waitForFunction(() => window.__phases.lead.length >= 2);
     const expandSample = await page.evaluate(() => window.__phases.lead.at(-1));
     assert.deepEqual([expandSample.background, expandSample.text], ["rgb(255, 255, 255)", "rgb(47, 47, 47)"], `${label}: white background and ink text hold while the header grows`);
     assert.ok(expandLead >= -1 && expandLead < 20, `${label}: flip back to white starts with the expand (${expandLead.toFixed(0)}ms)`);
-    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgb(211, 211, 211)", text: "rgb(47, 47, 47)" }, `${label}: surface still white when the flip back starts`);
+    assert.deepEqual(await page.evaluate(() => window.__phases.surface.at(-1)), { background: "rgb(255, 255, 255)", border: "rgba(0, 0, 0, 0)", text: "rgb(47, 47, 47)" }, `${label}: background still white, border gone when the flip back starts`);
     // CMYK to white is the white to CMYK sequence run in reverse from the end: same faces, every animation rate -1, black leaves first.
     const back = await page.evaluate(async () => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");

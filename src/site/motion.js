@@ -665,6 +665,8 @@
     header.classList.toggle("is-ink", ink || headerSurfaceHeld);
     header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-surface", surface);
+    // Opening: the border goes the moment the beat starts, only the white background is held (owner 2026-11-15).
+    header.classList.toggle("is-surface-held", headerSurfaceHeld && !collapsed);
     const color = ink || headerSurfaceHeld ? "#2f2f2f" : "#ffffff";
     if (color !== currentHeaderColor) colorHeader(color);
   };

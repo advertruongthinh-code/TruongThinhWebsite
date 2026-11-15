@@ -344,6 +344,11 @@ html.route-enter .site-header {
   background: var(--white);
 }
 
+/* Opening: the border is gone from the start of the beat, the held background has none (owner 2026-11-15). */
+.site-header.is-surface-held::before {
+  border-bottom-color: transparent;
+}
+
 .site-header.is-collapsed .brand-lockup {
   height: min(49.640625px, var(--header-collapsed-row-height));
 }
