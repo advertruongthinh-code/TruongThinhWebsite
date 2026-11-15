@@ -57,12 +57,15 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 
 - Card đầu có tọa độ phụ thuộc thời gian khởi động Worker và xếp; đo trên A04s là gate của PR.
 - Mỗi dải xếp riêng nên đổi dải có thể ra thứ tự card khác (cache cũ dùng cùng biến thể cho mọi dải).
-- Chromium giảm tốc CPU không làm chậm Worker, nên số đo cloud không đại diện chi phí Worker; chỉ số A04s có giá trị.
+- Card đầu chỉ kịp như cache cũ khi Worker khởi động sớm (từ `detail.js`) và lượt xếp đầu gửi ngay khi có seed; thiếu hai
+  bước này thì chậm hơn main 100 tới 240 ms trên cloud giảm tốc CPU 6 lần.
 
 ## Evidence
 
 - Cloud, catalog thật, 4500 lượt xếp dải `4:35`: chặn tìm 3 card ở lần thử đầu đưa lượt lâu nhất từ 441 xuống khoảng 102 ms,
   số lần hạ card ngang tăng từ 17 lên 32 trên 4500 lượt, bị bộ chọn 4 ứng viên lọc hết.
+- Trace cloud giảm tốc CPU 6 lần, 1440px, từ mount tới card đầu có tọa độ: Quảng cáo 297 tới 319 ms, main 302 tới 309 ms;
+  Worker trả lượt đầu 16 ms sau khi mount cần (xếp 4 thứ tự mất 75 tới 100 ms, chạy song song với mount).
 - Nền A04s trên main d33ae601 (card đầu có tọa độ, trung vị 5 lần): Quảng cáo 1191 ms ở 1024px, 1156 ms ở 1440px; Công
   trình 1136 ms và 1116 ms. Số sau khi đổi ghi ở PR.
 
