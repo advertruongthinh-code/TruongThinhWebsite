@@ -1,10 +1,10 @@
 ---
 title: CMS trên Cloudflare, xuất bản ra trang tĩnh
-status: proposed
+status: accepted
 date: 2026-11-14
 scope: CMS phase
 tags: [cms, cloudflare, security]
-supersedes: []
+supersedes: [https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/7dc3868067b5264ccd7b34db99c81a4af72ce43d/docs/decisions/d1-ssr-static-fallback.md]
 related_specs: [../specs/cms.md, ../specs/cms-editor.md, ../specs/static-release.md]
 related_reports: []
 ---
@@ -20,7 +20,7 @@ mỗi tuần, khoảng 10 tài khoản.
 
 Code dormant trên `main` đi hướng khác: Worker chạy trước mọi trang public, đọc D1 mỗi lượt xem, trả 404 hoặc 503 khi D1
 thiếu hay lỗi ([cms.md R3](../specs/cms.md#r3-render-trang-locale-và-nội-dung-d1)), theo decision cũ
-[D1 SSR ưu tiên](d1-ssr-static-fallback.md). Hướng đó trái ý định trên và tiêu hạn mức Worker gói free cho mọi lượt xem.
+[D1 SSR ưu tiên](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/7dc3868067b5264ccd7b34db99c81a4af72ce43d/docs/decisions/d1-ssr-static-fallback.md) (bị thay bởi decision này). Hướng đó trái ý định trên và tiêu hạn mức Worker gói free cho mọi lượt xem.
 
 ## Decision
 
@@ -40,6 +40,15 @@ lưu nội dung vào D1 và media vào R2, xuất bản bằng một lần dựn
 - **Schema**: viết lại migration từ đầu (`0001` mới) theo contract slice Contract; năm migration cũ chưa áp lên D1 thật nào,
   không cần giữ.
 - **Sao lưu**: D1 Time Travel 7 ngày (gói free) cộng export hằng ngày ra R2 và sao lưu tuần về PC owner.
+
+Owner duyệt 2026-11-15 cùng các câu gate 2:
+
+- **Vai trò**: owner và nhân viên lưu là lên web, không có bước duyệt. Nhân viên được xóa nhưng nội dung vào thùng rác,
+  không hiện trên site, khôi phục được; owner quản lý tài khoản (thêm owner, nhân viên) trong một trang của CMS.
+- **Domain**: web `truongthinhads.vn`, admin `admin.truongthinhads.vn`, media `media.truongthinhads.vn`; trước khi chuyển
+  domain chạy trên workers.dev. Team Access `truongthinh.cloudflareaccess.com`. Email owner đầu tiên do owner cấp, nằm ở
+  secret, không ghi trong repo public.
+- **Rollback**: quay lại deployment trước của Workers static assets; bản tĩnh là đường lùi khi CMS hỏng.
 
 ## Alternative đã cân nhắc
 
@@ -90,8 +99,7 @@ Kiểm lại trang chính thức ngày 2026-11-14 (ngày cập nhật trang tron
 
 ## Follow-up
 
-- Owner duyệt decision này (gate 4) và trả lời gate 2: vai trò, review, domain, email admin.
-- Slice Contract: viết lại [cms.md](../specs/cms.md) theo decision, đổi status decision [D1 SSR](d1-ssr-static-fallback.md) thành superseded.
+- Slice Contract: viết lại [cms.md](../specs/cms.md) theo decision (thùng rác, trang tài khoản, bỏ public SSR).
 - Slice Storage: migration `0001` mới, bucket R2 private, export hằng ngày, đo thời gian một lần dựng.
 - Khi owner mở slice đầu (gate 5): pin lại Wrangler theo [khóa Wrangler](wrangler-deferred-until-cms.md).
 

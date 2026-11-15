@@ -245,15 +245,11 @@ fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback
 
 ### Quyết định owner chưa chốt
 
-- Provider, storage, region, backup, chi phí: Workers, D1, R2 chỉ là hướng ưu tiên ([goal](../goal.md#nguyên-tắc-hạ-tầng)).
-- [CẦN LÀM RÕ: team domain Access, audience, email admin, domain production cho `PUBLIC_ORIGIN`; kiểm `Origin` có đủ
-  thay CSRF token không; rate limit ở Worker hay Cloudflare?]
-- [CẦN LÀM RÕ: `src/admin/` không có trong `.site-output/`, `/admin/*` không chạy Worker trước; admin phục vụ từ đâu,
-  Access bảo vệ path nào?] Agent đề xuất ở slice Contract.
-- [CẦN LÀM RÕ: vai trò biên tập (không có bước duyệt, owner 2026-10-31); `template` có là `layoutKey` không, preset nào launch
-  trước; giới hạn cỡ, loại file và danh sách cỡ biến thể media?]
-- [CẦN LÀM RÕ: khi có `DB`, trang trả 404, 503 như R3 (theo [D1 SSR ưu tiên](../decisions/d1-ssr-static-fallback.md))
-  hay phục vụ bản tĩnh như invariant fallback dưới?]
+Provider, storage, vai trò, domain đã chốt ở [CMS xuất bản tĩnh](../decisions/cms-cloudflare-static-publish.md) (owner
+2026-11-15); spec này viết lại theo decision ở slice Contract. Còn mở:
+
+- [CẦN LÀM RÕ: kiểm `Origin` có đủ thay CSRF token không; rate limit ở Worker hay Cloudflare?] Agent đề xuất ở slice Contract.
+- [CẦN LÀM RÕ: `template` có là `layoutKey` không, preset nào launch trước; giới hạn cỡ, loại file và danh sách cỡ biến thể media?]
 
 ### Code chưa đạt invariant đã duyệt (agent sửa khi owner mở slice)
 
