@@ -2465,9 +2465,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     return layout;
   };
 
-  // `hysteresis`: a card is removed only when it is more than two viewports away, though it is built only within one viewport at most (R7).
+  // `hysteresis`: a card is built within the zone (budget zone, the same on both sides) but removed only beyond the zone plus one viewport (R7).
   // `mount` is the id that needs a real card; `keep` is the id that must not be removed.
   let lastWindowY;
+  // Cards meeting the viewport at the last evaluation: converts the queue capacity into a zone height.
+  let viewportCards = 0;
   const virtualWindow = ({ hysteresis = false } = {}) => {
     // Reading the rect is one forced layout per frame; caching by currentVisualY drifts while dragging the scrollbar (visual lags logical),
     // so keep the real read; the temp card layer has contain, so dirty layout is left only on newly real cards.
@@ -2475,15 +2477,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const visible = getVisibleViewport();
     const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
     // Smooth scroll (Locomotive, from 981px) moves the page after this frame's pass, so the window paints one scroll step behind; a long
-    // frame makes that step longer than the overscan and opens a gap. Stretch the window ahead by the last step, up to two viewports.
-    const step = hysteresis && lastWindowY !== undefined ? currentVisualY - lastWindowY : 0;
+    // frame makes that step longer than the zone and opens a gap. The zone on both sides is never narrower than the last step, up to two
+    // viewports (R7): a slow device scrolling fast moves more than two viewports a frame, and the next step is just as long.
+    const moved = hysteresis && lastWindowY !== undefined ? Math.abs(currentVisualY - lastWindowY) : 0;
+    const step = Math.min(moved, 2 * visible.height);
     lastWindowY = currentVisualY;
-    const lead = Math.max(-2 * visible.height, Math.min(2 * visible.height, step));
+    const zone = gridHost.zone(visible.height, viewportCards, step);
     const windowed = getVirtualWindow(geometry, {
-      scrollTop: scrollTop + Math.min(0, lead),
-      viewportHeight: visible.height + Math.abs(lead),
-      overscan: visible.height,
-      releaseOverscan: hysteresis ? visible.height * 2 : visible.height,
+      scrollTop,
+      viewportHeight: visible.height,
+      overscan: zone,
+      releaseOverscan: hysteresis ? zone + visible.height : zone,
     });
     const visiblePlacements = [...windowed.items];
     const mount = new Set(visiblePlacements.map((placement) => placement.card.id));
@@ -2505,6 +2509,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Grid-relative bottom of the visible region (scrollTop clamps at the grid top).
     const visibleBottom = currentVisualY + visible.top + visible.height - gridTop;
+    viewportCards = visiblePlacements.filter((placement) => placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop).length;
     return { keep, mount, visiblePlacements, scrollTop, viewportHeight: visible.height, visibleBottom };
   };
   const sameMembers = (left, right) => left.size === right.size && [...left].every((item) => right.has(item));
@@ -3545,7 +3550,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
 
   // `scrolling`: a scroll frame does not change geometry, so an already-built CTA batch is not re-measured (each frame's measurement forces layout).
-  const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
+  const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false, idle = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
     // A card-set change builds the CTA batch (15-115ms on a slow CPU) in its own task right after the click task, not inside it, nor
@@ -3573,7 +3578,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Normal scroll keeps cards in the hysteresis zone and builds within the frame budget; motion layout (animate) builds and removes by
     // the build zone as before (R7).
     const { keep: normalKeep, mount, visiblePlacements, scrollTop, viewportHeight, visibleBottom } = virtualWindow({ hysteresis: !animate });
-    const fastScroll = gridHost.budget.begin(currentVisualY, viewportHeight);
+    // An idle pass is not a frame: its gap would read as a frame interval and corrupt the measured cost (loading-glass R10).
+    const jump = !idle && gridHost.budget.begin(currentVisualY, viewportHeight);
     const currentKeep = new Set(gridHost.rendered.keys());
     const membershipChanged = [...mount].some((id) => !currentKeep.has(id))
       || [...currentKeep, ...gridHost.ghosts.ids()].some((id) => !normalKeep.has(id));
@@ -3615,8 +3621,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       allowed = gridHost.pickMounts({
         missing: [...placementOf.keys()].filter((id) => !gridHost.rendered.has(id)),
         mustMount: (id) => retainedPhotoIds.has(id),
+        meets: (id) => meetsViewport(placementOf.get(id)),
         distance: (id) => distance(placementOf.get(id)),
-        fast: fastScroll,
+        jump,
       });
     }
     if (origins && shouldAnimate && !reduced) {
@@ -3642,12 +3649,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // If temp cards still await building, build in the next frame; if that frame already has a scroll rAF running right after, one renderWindow is
     // enough, so reschedule for the next frame so no pass is lost.
     // While cards slide (motion layout), placing new cards would snap the sliding ones: settleMotion runs the pass after the slide.
-    const mountGhosts = () => {
+    // Temp cards meeting the viewport build on the next frame; the rest of the zone builds when idle (host scheduleIdle, loading-glass R10).
+    const mountGhosts = ({ idle: idlePass = false } = {}) => {
       if (gridHost.motionFrame || performance.now() < motionUntil) pendingScroll = true;
       else if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
-      else renderWindow({ scrolling: true });
+      else renderWindow({ scrolling: true, idle: idlePass });
     };
-    for (const [node, { card: { id }, x, y }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
+    for (const [node, { card: { id }, x, y }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts, meets: meetsViewport, idle })) {
       created.add(id);
       // The first build slides in from the column top. Later, a card new to the set is built at its target, its 4-color wait layer
       // showing at once and its media revealing as usual (masonry-live-layout R7, plan Q9 case 2), so it never flies across the sliding cards.
@@ -4090,21 +4098,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relatedHost.stopMotion();
     cancelRelatedDetours();
   };
-  const renderRelatedWindow = ({ animate = false, origins } = {}) => {
+  // Cards meeting the viewport at the last related evaluation (zone height, as `viewportCards` for the main grid).
+  let relatedViewportCards = 0;
+  const renderRelatedWindow = ({ animate = false, origins, idle = false } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
     // On direct entry related cards mount in their own task; a scroll or resize before then must not mount them before they animate.
     if (!animate && (relatedHost.motionFrame || relatedHost.motionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
     const relatedScrollTop = Math.max(0, getLogicalScroll() + visible.top - gridTop);
-    // Like the main masonry (R7): build within one viewport at most, remove beyond two viewports (does not apply to motion layout).
+    // Like the main masonry (R7): build within the zone, remove beyond the zone plus one viewport (does not apply to motion layout).
+    const relatedZone = relatedHost.zone(visible.height, relatedViewportCards);
     const windowed = getVirtualWindow(relatedLayout.layout, {
-      overscan: visible.height,
-      releaseOverscan: animate ? visible.height : visible.height * 2,
+      overscan: relatedZone,
+      releaseOverscan: animate ? relatedZone : relatedZone + visible.height,
       scrollTop: relatedScrollTop,
       viewportHeight: visible.height,
     });
-    const relatedFast = relatedHost.budget.begin(relatedScrollTop, visible.height);
+    const relatedMeets = (placement) => Boolean(placement) && placement.y < relatedScrollTop + visible.height && placement.y + placement.pixelHeight > relatedScrollTop;
+    relatedViewportCards = windowed.items.filter(relatedMeets).length;
+    const relatedJump = !idle && relatedHost.budget.begin(relatedScrollTop, visible.height);
     const normalKeep = new Set(windowed.items.map((placement) => placement.card.id));
     const suggestionId = relatedLayout.suggestionPlacement?.card.id;
     if (suggestionId && suggestionNode?.contains(document.activeElement)) normalKeep.add(suggestionId);
@@ -4144,13 +4157,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       relatedAllowed = relatedHost.pickMounts({
         missing: [...normalPhotoKeep].filter((id) => !relatedHost.rendered.has(id)),
         mustMount: (id) => retainedPhotoIds.has(id) || id === anchorId,
+        meets: (id) => relatedMeets(placementOf.get(id)),
         distance,
-        fast: relatedFast,
+        jump: relatedJump,
       });
     }
     relatedHost.ghosts.prune(keep);
     const photoPlacements = [...normalPhotoKeep].map((id) => placementOf.get(id));
-    relatedHost.mount(photoPlacements, { allowed: relatedAllowed, render: () => renderRelatedWindow() });
+    relatedHost.mount(photoPlacements, { allowed: relatedAllowed, render: ({ idle: idlePass = false } = {}) => renderRelatedWindow({ idle: idlePass }), meets: relatedMeets, idle });
     // A card already in the yard resizes to the new layout; a card that is still a temp card does not.
     photoPlacements.forEach(({ card: { id } }) => relatedHost.rendered.has(id) && ensureRelatedPhoto(id));
     if (keepSuggestion) ensureSuggestionCard();

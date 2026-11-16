@@ -1,5 +1,5 @@
 // Extremely fast swipe in masonry does not stall (advertising-masonry R7, loading-glass R3): cards not built in time show a placeholder in the dominant color,
-// each frame builds only a few real cards, and a card is removed only when it is more than two viewports away.
+// each frame builds within the measured quota, and a card is removed only when it leaves the build zone plus one viewport.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-fast-fling.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -130,11 +130,13 @@ try {
   assert.ok(worst >= floor, `every frame keeps the viewport covered by cards or ghosts, worst ${worst.toFixed(3)} below floor ${floor.toFixed(3)}`);
   assert.ok(fling.ghosts.length > 0, "ghost cards held the places of cards not yet mounted");
   const mostAdded = Math.max(...fling.added);
-  assert.ok(mostAdded <= 8, `a frame mounts at most a handful of real cards, most ${mostAdded}`);
-  // A swipe above the threshold yields almost only placeholders: real cards are built only when the visible scroll speed drops below the threshold
-  // within a frame (at most 8 cards), so the total real cards built during the swipe is only a small fraction of the cards passed.
-  const mounted = fling.added.reduce((sum, value) => sum + value, 0);
-  assert.ok(mounted * 4 <= fling.ghosts.length, `swiping above the fast threshold mounts a small share of the cards that pass, ${mounted} real vs ${fling.ghosts.length} ghosts`);
+  // No fixed ceiling (loading-glass R10): after a jump or a pause the quota ramps 2, 4, 8, ... per mounting frame, and a fast swipe builds within
+  // the measured quota, so a frame never dumps the cards that pass. The probe counts per animation frame, where an idle pass may add a few
+  // more, so a frame mounts at most double the frame before it plus 2.
+  fling.added.forEach((count, index) => {
+    const previous = fling.added[index - 1] ?? 0;
+    assert.ok(count <= 2 * previous + 2, `frame ${index} mounted ${count} cards after ${previous}: ${JSON.stringify(fling.added)}`);
+  });
 
   // Stop: every placeholder in the build zone becomes a real card, with the exact dominant color of the card.
   await settle(5000);
@@ -179,6 +181,79 @@ try {
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   assert.ok(crossfades > 0, "cached image fades in over 0.45s when a ghost becomes a real card");
   await context.close();
+
+  // PC (loading-glass R10): at 10 viewports per second without throttling, a temp card in the viewport turns into a real card or leaves the
+  // screen within 100 ms. The headless runner's frames jitter (17 ms median, 38 ms p95 even on frames that mount nothing), so CI gates only the
+  // median of the per-fling p95 at 8 frames: main measured 150 to 200 ms, this build 0 to 117 ms over 10 runs. The worst ghost is logged only;
+  // the 100 ms target is measured on a real PC and the A04s.
+  const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const desk = await desktop.newPage();
+  await desk.addInitScript(() => {
+    const life = new Map();
+    window.__ghostLife = { done: [], on: false };
+    const tick = (now) => {
+      if (window.__ghostLife.on) {
+        const seen = new Set();
+        for (const ghost of document.querySelectorAll(".masonry-ghost")) {
+          // A ghost crossfading under its real card is covered; only a ghost still waiting for its card counts.
+          if (document.querySelector(`[data-project-grid] [data-masonry-card="${ghost.dataset.masonryGhost}"]`)) continue;
+          const rect = ghost.getBoundingClientRect();
+          if (rect.bottom <= 0 || rect.top >= innerHeight) continue;
+          seen.add(ghost);
+          if (!life.has(ghost)) life.set(ghost, now);
+        }
+        for (const [ghost, since] of life) {
+          if (seen.has(ghost)) continue;
+          window.__ghostLife.done.push(now - since);
+          life.delete(ghost);
+        }
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  const p95s = [];
+  let worstGhost = 0;
+  for (let run = 0; run < 3; run += 1) {
+    await desk.goto(`${base}/vi/advertising-products/?fling=${run}`, { waitUntil: "domcontentloaded" });
+    await desk.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+    await desk.waitForTimeout(4000);
+    await desk.evaluate(() => new Promise((resolve) => {
+      window.__ghostLife.on = true;
+      const distance = 10 * innerHeight;
+      const begin = performance.now();
+      const frame = (now) => {
+        const progress = Math.min(1, (now - begin) / 1000);
+        window.TruongThinhMotion.setLogicalScroll(distance * progress);
+        if (progress < 1) requestAnimationFrame(frame);
+        else resolve();
+      };
+      requestAnimationFrame(frame);
+    }));
+    await desk.waitForTimeout(1000);
+    const lives = (await desk.evaluate(() => window.__ghostLife.done)).sort((a, b) => a - b);
+    p95s.push(lives.length ? lives[Math.floor(lives.length * 0.95)] : 0);
+    worstGhost = Math.max(worstGhost, lives.at(-1) ?? 0);
+  }
+  const medianP95 = [...p95s].sort((a, b) => a - b)[1];
+  assert.ok(medianP95 <= 134, `PC 10 viewports/s: a temp card on screen turns real within 8 frames (p95 per fling ${p95s.map(Math.round).join(", ")})`);
+
+  // Build zone the same on both sides (advertising-masonry R7): at rest mid-page, real cards reach past the top and bottom edges by about one viewport each.
+  // A fresh page jumps straight to the middle, so no card is held above by the hysteresis of an earlier scroll.
+  await desk.goto(`${base}/vi/advertising-products/?zone`, { waitUntil: "domcontentloaded" });
+  await desk.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+  await desk.waitForTimeout(2500);
+  const extent = await desk.evaluate(async () => {
+    const middle = (document.documentElement.scrollHeight - innerHeight) / 2;
+    window.TruongThinhMotion.setLogicalScroll(middle);
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const cards = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((node) => !node.hidden).map((node) => node.getBoundingClientRect());
+    return { above: -Math.min(...cards.map((rect) => rect.top)), below: Math.max(...cards.map((rect) => rect.bottom)) - innerHeight, viewport: innerHeight };
+  });
+  assert.ok(extent.above >= 0.8 * extent.viewport && extent.below >= 0.8 * extent.viewport, `real cards reach one viewport past both edges: ${JSON.stringify(extent)}`);
+  assert.ok(Math.abs(extent.above - extent.below) <= 0.4 * extent.viewport, `the build zone is the same above and below: ${JSON.stringify(extent)}`);
+  await desktop.close();
+  console.log(`advertising fast fling PC: p95 ${p95s.map(Math.round).join("/")} ms, worst ${Math.round(worstGhost)} ms, zone above ${Math.round(extent.above)} below ${Math.round(extent.below)}`);
   console.log(`advertising fast fling: worst coverage ${worst.toFixed(3)} (floor ${floor.toFixed(3)}), ${fling.ghosts.length} ghosts, most ${mostAdded} cards mounted per frame, crossfades ${crossfades}`);
 } finally {
   await browser.close();

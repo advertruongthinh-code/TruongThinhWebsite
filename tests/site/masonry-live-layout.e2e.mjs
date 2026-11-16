@@ -473,7 +473,8 @@ try {
     await page.locator(`[data-masonry-filter="${chip}"]`).first().click();
     const { cards: added, mediaFades } = await entering;
     assert.ok(mediaFades > 0, `cached media of new cards fades in on the ${chip} chip`);
-    assert.ok(added.length >= 2, `new cards enter on the ${chip} chip (${added.length})`);
+    // Only new cards meeting the viewport build in the chip task (R7, PR 4a), and the build zone may already hold more of them (PR 4b): at least one.
+    assert.ok(added.length >= 1, `new cards enter on the ${chip} chip (${added.length})`);
     await settled(page);
     const finals = await page.evaluate((ids) => ids.map((id) => {
       const node = document.querySelector(`[data-masonry-card="${id}"]`);
