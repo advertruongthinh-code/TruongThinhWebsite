@@ -111,6 +111,8 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
       return jump;
     },
     speed: () => speed,
+    // A frame was evaluated within the pause threshold: the page is scrolling, so there is no idle time to wait for.
+    moving: () => Boolean(sample) && clock() - sample.time < PAUSE_MS,
     quota: () => (spent ? 0 : Math.min(ramp, measured())),
     // `fresh` of the `count` cards were newly created (the rest reattached from the queue); only those measure the cost. An `idle` pass has no
     // frame of its own: the cost is read from the interval of the next two frames, whose first one lays out the new cards, unless a frame
@@ -134,8 +136,9 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
         spent = true;
       }
     },
-    // Build zone beyond each viewport edge, the same above and below (advertising-masonry R7): the largest of one viewport, the distance scrolled
-    // while one viewport of cards builds at the current quota (at most half the queue of removed cards), and the last scroll step.
+    // Build zone beyond each viewport edge, the same above and below (advertising-masonry R7): the larger of one viewport and the distance scrolled
+    // while one viewport of cards builds at the current quota (at most half the queue of removed cards), plus the last scroll step, since the
+    // page moves one more step after the pass.
     // At rest (no frame evaluation for a pause, only idle passes) speed and the budget's own step count as zero, so a fling's zone does not
     // stay wide. A step the caller measured between its own passes always counts: it is zero once scrolling stops, while a slow device's frame
     // can last past the pause threshold mid-fling and still move two viewports.
@@ -144,7 +147,7 @@ export function createMountBudget(clock = () => performance.now(), nextFrame = (
       const perViewport = Math.max(1, cardsPerViewport);
       const fillMs = perViewport / measured() * frameMs;
       const cap = viewportHeight * (capacity / 2) / perViewport;
-      return Math.max(viewportHeight, Math.min(cap, resting ? 0 : speed * fillMs), passStep ?? (resting ? 0 : step));
+      return Math.max(viewportHeight, Math.min(cap, resting ? 0 : speed * fillMs)) + (passStep ?? (resting ? 0 : step));
     },
   };
 }

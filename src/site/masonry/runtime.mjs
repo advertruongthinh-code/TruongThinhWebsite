@@ -2477,7 +2477,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const visible = getVisibleViewport();
     const scrollTop = Math.max(0, currentVisualY + visible.top - gridTop);
     // Smooth scroll (Locomotive, from 981px) moves the page after this frame's pass, so the window paints one scroll step behind; a long
-    // frame makes that step longer than the zone and opens a gap. The zone on both sides is never narrower than the last step, up to two
+    // frame makes that step longer than the zone and opens a gap. The zone on both sides adds the last step, up to two
     // viewports (R7): a slow device scrolling fast moves more than two viewports a frame, and the next step is just as long.
     const moved = hysteresis && lastWindowY !== undefined ? Math.abs(currentVisualY - lastWindowY) : 0;
     const step = Math.min(moved, 2 * visible.height);

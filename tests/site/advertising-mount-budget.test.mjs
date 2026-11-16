@@ -156,10 +156,11 @@ test("the build zone is the same on both sides, grows with speed, is capped by t
     budget.begin(index * 500, 700);
     state.now += 16;
   }
-  const fast = budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 48 });
+  const fast = budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 48, step: 0 });
   assert.ok(fast > 700, `a fast swipe widens the zone, ${fast}`);
-  assert.ok(fast <= 700 * 24 / 6, "at most half the queue per side");
-  assert.equal(budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 8 }), 700, "half a small queue is under one viewport: the floor wins");
+  assert.ok(fast <= 700 * 24 / 6, "the speed term is at most half the queue per side");
+  assert.equal(budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 48, step: 500 }), fast + 500, "the last step adds on top, as the page moves one more step after the pass");
+  assert.equal(budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 8, step: 0 }), 700, "half a small queue is under one viewport: the floor wins");
   assert.ok(budget.zone({ viewportHeight: 700, cardsPerViewport: 6, capacity: 48, step: 1500 }) >= 1500, "never narrower than the last scroll step");
   assert.ok(budget.zone({ viewportHeight: 700, cardsPerViewport: 20, capacity: 8, step: 1260 }) >= 1260, "the queue cap does not clip the scroll step");
   state.now += 500;

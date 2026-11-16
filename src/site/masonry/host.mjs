@@ -193,7 +193,8 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         host.budget.record(created.length, mountMs + performance.now() - start, fresh, { idle });
       }
       const waiting = render ? placements.filter((placement) => host.ghosts.has(placement.card.id)) : [];
-      if (waiting.some(meets)) host.scheduleGhosts(render);
+      // While scrolling there is no idle time: zone ghosts would still wait when they reach the viewport, so they build on frames too.
+      if (waiting.some(meets) || (waiting.length && host.budget.moving())) host.scheduleGhosts(render);
       else if (waiting.length) host.scheduleIdle(render);
       return created;
     },
