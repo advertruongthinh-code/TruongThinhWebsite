@@ -1,0 +1,73 @@
+[
+ {
+  "file": "home-cam-ket-chat-luong.png",
+  "sha256": "8b073cb698f3c7a90d78f06e19c4b481c165def01bc54ce7b58cfe8884277b07",
+  "bytes": 2294785,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "c2pa_generator": "ChatGPT",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong.txt",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai.png",
+  "sha256": "64e069e03da1cc2ab85d31ccb387328c1ebd4ddd6e0fcdbf41717d31e92a4c70",
+  "bytes": 2294016,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "c2pa_generator": "ChatGPT",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/home-cam-ket-hau-mai-ref-1.jpg",
+   "ref/home-cam-ket-hau-mai-ref-2.jpg",
+   "ref/home-cam-ket-hau-mai-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai.txt",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "about-vat-lieu.png",
+  "sha256": "ef0e48985ccd01996e1ae1739cbff3c0629d81b2971a057904330974603bb40e",
+  "bytes": 2389999,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "c2pa_generator": "ChatGPT",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/about-vat-lieu-ref-1.jpg",
+   "ref/about-vat-lieu-ref-2.jpg",
+   "ref/about-vat-lieu-ref-3.jpg"
+  ],
+  "prompt": "p-about-vat-lieu.txt",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "about-xuong.png",
+  "sha256": "fcce7f93fde0b9495034599faa0cbc2e69625d9e6aefc77182fde51faa5d6a46",
+  "bytes": 2439444,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "c2pa_generator": "ChatGPT",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg",
+   "ref/about-xuong-ref-3.jpg"
+  ],
+  "prompt": "p-about-xuong.txt",
+  "created": "2026-11-17"
+ }
+]
