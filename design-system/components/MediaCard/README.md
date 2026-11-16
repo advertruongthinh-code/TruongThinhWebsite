@@ -54,7 +54,7 @@ Contract runtime, history và test ở
 Catalog hiện chỉ có card một ảnh, nên trang public chưa hiện các trạng thái
 dưới đây. Preview chụp runtime thật ở 1440px với dữ liệu giả: một ảnh, ba
 item, 11 item đang ở item 7, video cover kèm một ảnh; item thêm lặp lại ảnh
-của chính card, video chỉ giữ poster. Project reel trang chủ và gallery
+của chính card, video chỉ giữ poster. Gallery
 Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết kế ở đây.
 
 ### Chỉ báo theo số item
