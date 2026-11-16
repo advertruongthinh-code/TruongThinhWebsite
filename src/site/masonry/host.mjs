@@ -1,6 +1,7 @@
 // Masonry yard (masonry-reuse step 7): state built from one grid's scroll window. The main masonry (Advertising, Projects)
 // and the related one in detail are two instances, so the build budget, placeholder cards and LRU queue are written only once (advertising-masonry R7).
 import { createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity } from "./mount-budget.mjs";
+import { DUR } from "./motion-tokens.mjs";
 
 // Shared environment queries, defined once in head-inline.js. The fallback covers pages without it (admin overlay, tests that load
 // modules alone); getters so importing in Node, where matchMedia does not exist, does not throw.
@@ -18,58 +19,30 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
   return new Set([...forced, ...rest.slice(0, fast ? 0 : quota())]);
 }
 
-// Masonry 4.2.2 only handles motion: positions come from the computed `positions`, it does not place cards itself or lay out on resize.
-function createMasonry(grid, positions, getHeight, { itemSelector = ".masonry-card", getId = (node) => node.dataset.masonryCard } = {}) {
-  const masonry = new window.Masonry(grid, {
-    itemSelector,
-    initLayout: false,
-    resize: false,
-    transitionDuration: "0.4s",
-    stagger: 0,
-  });
-  masonry._getItemLayoutPosition = (item) => positions.get(getId(item.element)) || { x: 0, y: 0 };
-  masonry._getContainerSize = () => ({ height: getHeight() });
-  // Outlayer reads the initial position with getComputedStyle then writes a transition for each card, so each card forces a style pass
-  // (Masonry rAF 46-66ms on the A04s). The runtime already writes left/top inline in px; motion runs only on transform so
-  // inline matches computed. A card without an inline position is still read from computed as before.
-  const itemize = masonry._itemize;
-  masonry._itemize = function (elements) {
-    const items = itemize.call(this, elements);
-    for (const item of items) {
-      const readComputed = item.getPosition;
-      item.getPosition = function () {
-        const { left, top } = this.element.style;
-        if (!left.endsWith("px") || !top.endsWith("px")) return readComputed.call(this);
-        this.position.x = parseFloat(left) - this.layout.size.paddingLeft;
-        this.position.y = parseFloat(top) - this.layout.size.paddingTop;
-      };
-    }
-    return items;
-  };
-  return masonry;
-}
-
+// Layout motion (masonry-live-layout R7): positions are precomputed, so a pass only slides each card from its inline left/top to its
+// target. The target is written at once and a Web Animation on `transform` plays the offset back to zero (FLIP): no layout read per
+// card, unlike Masonry 4.2.2 (getSize, 59-91 ms tasks on the A04s). DUR.card (0.4 s) and `ease`, as the card position
+// transition has always run (design-system/motion.md).
+export const SLIDE_ID = "masonry-slide";
 // The card size morph (morphSize) runs on the card's child using `scale`.
-export const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
-
-// Stop the running Masonry transition and size morph, placing the card at its target right away.
-export function cancelMasonryTransitions(instance) {
-  instance?.items.forEach((item) => {
-    for (const child of item.element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
-    item.disableTransition();
-    item._transn.ingProperties = {};
-    item._transn.clean = {};
-    item._transn.onEnd = {};
-    item.element.style.transform = "";
-    item.layoutPosition();
-  });
-}
+export const SIZE_ID = "masonry-size";
 
 // `create(placement)` builds a new card; `attach(node, placement)` attaches the observer and shared style when a card enters the yard (new or from the
 // queue); `detach(id, node, queue)` removes a card from the DOM, keeping it in `queue` if it can be reused; `waitColors(card)` the 4 colors of the
-// placeholder card's wait layer; `masonry` is the yard's own Masonry option (`itemSelector`, `getId`).
+// placeholder card's wait layer; `masonry` is the yard's item option (`itemSelector`, `getId`).
 export function createMasonryHost(root, { create, attach = () => {}, detach, waitColors, masonry = {},
   deviceMemory = globalThis.navigator?.deviceMemory } = {}) {
+  const { itemSelector = ".masonry-card", getId = (node) => node.dataset.masonryCard } = masonry;
+  // The yard's items as Outlayer found them: a root child matching the selector, or matching descendants of a child. A page
+  // without this yard (no related grid on a list page) has no root and no items.
+  const items = () => [...(root?.children ?? [])].flatMap((child) => (child.matches(itemSelector) ? [child] : [...child.querySelectorAll(itemSelector)]));
+  // Running slides and size morphs, kept in a set: scanning getAnimations() between left/top writes forces a style update per card.
+  const motions = new Set();
+  const cancelMotions = (keep = () => false) => motions.forEach((animation) => {
+    if (keep(animation)) return;
+    motions.delete(animation);
+    animation.cancel();
+  });
   const host = {
     root,
     // Cards currently in the DOM and their coordinates by id.
@@ -82,23 +55,53 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
     // Cards just detached whose image is still decoding, capacity by machine RAM (R7, V4).
     detached: createDetachedCards(detachedCapacity(deviceMemory)),
     ghostFrame: 0,
-    // Yard height from layout; Masonry reads it as the container size.
+    // Yard height from layout, written as the root height by a motion pass.
     pixelHeight: 0,
-    // Masonry only runs layout motion; created on first need. rAF before the motion pass and a scheduled end of the pass.
-    masonry: null,
+    // rAF before the motion pass and a scheduled end of the pass.
     motionFrame: 0,
     motionTimer: 0,
-    // One layout motion pass: cards slide from where they stand to `positions` over 0.4s; `instant(element)` places directly.
-    layoutMotion(instant) {
-      host.masonry ||= createMasonry(root, host.positions, () => host.pixelHeight, masonry);
-      // Without this option Outlayer treats the first layout as instant: the first build loses motion from the column start.
-      host.masonry.options.layoutInstant = false;
-      host.masonry.options.transitionDuration = "0.4s";
-      host.masonry.reloadItems();
-      host.masonry.items.forEach((item) => { item.isLayoutInstant = instant(item.element); });
-      host.masonry.layout();
+    items,
+    // Register a slide or size morph so it can be cancelled and timed without scanning the DOM.
+    track(animation) {
+      motions.add(animation);
+      const drop = () => motions.delete(animation);
+      animation.finished.then(drop, drop);
+      return animation;
     },
-    cancelTransitions: () => cancelMasonryTransitions(host.masonry),
+    // Time left of the running slides and size morphs.
+    remainingMotion() {
+      let remaining = 0;
+      for (const animation of motions) {
+        if (animation.playState !== "running") continue;
+        remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
+      }
+      return remaining;
+    },
+    // One layout motion pass: cards slide from where they stand (inline left/top) to `positions` over 0.4 s; `instant(element)`
+    // places directly. Positions are written for every item first, then the slides start, so no write sits between two reads.
+    layoutMotion(instant) {
+      root.style.height = `${host.pixelHeight}px`;
+      cancelMotions((animation) => animation.id !== SLIDE_ID);
+      const moves = [];
+      for (const element of items()) {
+        const to = host.positions.get(getId(element)) || { x: 0, y: 0 };
+        const { left, top } = element.style;
+        const from = left.endsWith("px") && top.endsWith("px") ? { x: parseFloat(left), y: parseFloat(top) } : null;
+        const x = `${to.x}px`;
+        const y = `${to.y}px`;
+        if (left !== x) element.style.left = x;
+        if (top !== y) element.style.top = y;
+        // Under half a pixel is not a move: the browser hands inline left/top back rounded to 3 decimals, so a card seeded at its
+        // exact target reads back a few thousandths off.
+        if (!from || instant(element) || Math.hypot(from.x - to.x, from.y - to.y) < 0.5) continue;
+        moves.push([element, from.x - to.x, from.y - to.y]);
+      }
+      for (const [element, dx, dy] of moves) {
+        host.track(element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { id: SLIDE_ID, duration: DUR.card, easing: "ease" }));
+      }
+    },
+    // Stop running slides and size morphs: each card stands at its target at once (left/top already hold it).
+    cancelTransitions: () => cancelMotions(),
     // Cancel the scheduled motion pass (rAF and scheduled end) then place cards right at the target.
     stopMotion() {
       if (host.motionFrame) cancelAnimationFrame(host.motionFrame);

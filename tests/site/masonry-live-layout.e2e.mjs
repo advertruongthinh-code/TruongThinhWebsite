@@ -1,7 +1,7 @@
 // Masonry live layout in a real browser (masonry-live-layout R1-R4): the grid people see is packed on their machine and must
 // pass verifyLayout on its own DOM geometry, wide cards included; Back returns the same coordinates; a failed Worker packs on
 // the main thread; the filter chip while a pack is late and a late pack behind an open card must hold. Search mode (R6) places
-// ranked results one column each in score order.
+// ranked results one column each in score order. Cards slide to a new layout without stepping back or jumping (R7).
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/masonry-live-layout.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { columnsForWidth, isWideMedia, layoutMedia, masonrySpacing } from "../../src/site/masonry/layout.mjs";
 import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
+import { GHOST_FADE_MS } from "../../src/site/masonry/mount-budget.mjs";
 import { bandKey, stackLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 import { slowPacks } from "./harness.mjs";
 
@@ -407,6 +408,170 @@ try {
     await searchMatches(early, ranked, "results set before mount");
     await early.close();
     console.log("PASS search mode");
+  }
+  // Case 2 (plan Q9): a card new to the set is built at its target with its wait layer fully shown; it never slides across the
+  // sliding cards. Returns the cards that entered on the click.
+  const entersAtTarget = async (page, chip) => {
+    const entering = page.evaluate((fadeMs) => new Promise((resolve) => {
+      const grid = document.querySelector("[data-project-grid]");
+      const before = new Set([...grid.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard));
+      new MutationObserver((records, observer) => {
+        const added = records.flatMap((record) => [...record.addedNodes]).filter((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard));
+        if (!added.length) return;
+        observer.disconnect();
+        requestAnimationFrame(() => {
+          const cards = added.filter((node) => !node.hidden).map((node) => ({
+            id: node.dataset.masonryCard,
+            slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
+            opacity: Number(getComputedStyle(node).opacity),
+            waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
+            at: [node.style.left, node.style.top],
+          }));
+          // Media already cached fades in over the card colour, as a card replacing a temp card does (GHOST_FADE_MS).
+          const fades = () => added.filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations()
+            .some((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame) && animation.effect.getTiming().duration === fadeMs)).length;
+          const start = performance.now();
+          const poll = () => (fades() || performance.now() - start > 500 ? resolve({ cards, mediaFades: fades() }) : requestAnimationFrame(poll));
+          poll();
+        });
+      }).observe(grid, { childList: true });
+    }), GHOST_FADE_MS);
+    await page.locator(`[data-masonry-filter="${chip}"]`).first().click();
+    const { cards: added, mediaFades } = await entering;
+    assert.ok(mediaFades > 0, `cached media of new cards fades in on the ${chip} chip`);
+    assert.ok(added.length >= 2, `new cards enter on the ${chip} chip (${added.length})`);
+    await settled(page);
+    const finals = await page.evaluate((ids) => ids.map((id) => {
+      const node = document.querySelector(`[data-masonry-card="${id}"]`);
+      return node && [node.style.left, node.style.top];
+    }), added.map((card) => card.id));
+    added.forEach((card, index) => {
+      assert.ok(!card.slides && card.opacity === 1, `${card.id} is built at its target, not sliding or fading: ${JSON.stringify(card)}`);
+      assert.ok(card.waits.every((opacity) => opacity === 1), `${card.id} shows its wait layer at once: ${card.waits}`);
+      if (finals[index]) assert.deepEqual(card.at, finals[index], `${card.id} starts where it ends`);
+    });
+    return added;
+  };
+  // 8. Slide (R7): a chip click slides each card from where it stood to its new place along one straight path, never stepping back
+  // and never jumping; a second click while cards still slide starts them from where they stand (relayoutTo seeds the visual
+  // origins), so no card jumps back to its old target. A step is bounded by the slide time it covers (the animation's own
+  // currentTime, or the time since a new slide started): at most three times the share of that slide's path (its first keyframe
+  // offset) the 0.4 s slide covers in that time (`ease` peaks at 2.29 times the mean speed), so a slow frame on a loaded machine
+  // is not a jump, while a restart from the old target is.
+  {
+    const { page } = await open(ADVERTISING, 1440);
+    await settled(page);
+    // Each frame: the visual position (inline geometry plus the slide transform) of every card that has a running slide.
+    const record = (ms) => page.evaluate((duration) => new Promise((resolve) => {
+      const grid = document.querySelector("[data-project-grid]");
+      const frames = [];
+      const slideNumbers = new WeakMap();
+      let slides = 0;
+      const start = performance.now();
+      const tick = () => {
+        const origin = grid.getBoundingClientRect();
+        const frame = {};
+        for (const node of grid.querySelectorAll("[data-masonry-item]")) {
+          const slide = node.getAnimations().find((animation) => animation.id === "masonry-slide");
+          if (!slide) continue;
+          if (!slideNumbers.has(slide)) slideNumbers.set(slide, (slides += 1));
+          const box = node.getBoundingClientRect();
+          const [dx = 0, dy = 0] = (slide.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+          frame[node.dataset.masonryCard] = [box.left - origin.left, box.top - origin.top, slide.currentTime || 0, slideNumbers.get(slide), Math.hypot(dx, dy)];
+        }
+        frames.push(frame);
+        if (performance.now() - start < duration) requestAnimationFrame(tick);
+        else resolve(frames);
+      };
+      requestAnimationFrame(tick);
+    }), ms);
+    const paths = (frames) => {
+      const byId = new Map();
+      for (const frame of frames) for (const [id, point] of Object.entries(frame)) byId.set(id, [...(byId.get(id) || []), point]);
+      return [...byId].filter(([, points]) => points.length >= 3);
+    };
+    const step = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    // The first step that covers more than twice the path share of its frame time, or undefined.
+    const jump = (points) => points.slice(1).map((point, index) => ({
+      index: index + 1, path: point[4], moved: step(point, points[index]), ms: point[3] === points[index][3] ? point[2] - points[index][2] : point[2],
+    }))
+      .find(({ path, moved, ms }) => moved > path * Math.min(1, (3 * ms) / 400) + 2);
+    const describe = (found) => found && `jumps ${found.moved.toFixed(0)}px of a ${found.path.toFixed(0)}px slide in ${found.ms.toFixed(0)} ms (frame ${found.index})`;
+    // One click: progress along the path from the first to the last sample never goes back.
+    const single = record(1200);
+    await page.locator('[data-masonry-filter="signage"]').click();
+    const one = paths(await single);
+    // Only cards in both sets slide (new ones are built at their target); how many depends on the seed.
+    assert.ok(one.length >= 1, `cards slide on a chip click (${one.length})`);
+    for (const [id, points] of one) {
+      const [first, last] = [points[0], points.at(-1)];
+      const length = step(first, last);
+      if (length < 6) continue;
+      const along = points.map(([x, y]) => ((x - first[0]) * (last[0] - first[0]) + (y - first[1]) * (last[1] - first[1])) / length);
+      along.slice(1).forEach((value, index) => assert.ok(value >= along[index] - 1, `${id}: steps back at frame ${index + 1}`));
+      assert.equal(describe(jump(points)), undefined, id);
+    }
+    await settled(page);
+    const added = await entersAtTarget(page, "all");
+    await page.locator('[data-masonry-filter="signage"]').click();
+    await settled(page);
+    // A second click mid-slide: no step outruns its slide time, across the restart too.
+    const twice = record(1400);
+    await page.locator('[data-masonry-filter="all"]').click();
+    // Early in the slide (eased progress about 0.2), so a card restarted from its old target would jump most of its path.
+    await page.waitForTimeout(40);
+    await page.locator('[data-masonry-filter="signage"]').click();
+    const two = paths(await twice);
+    assert.ok(two.length >= 1, `cards slide on two quick clicks (${two.length})`);
+    for (const [id, points] of two) {
+      assert.equal(describe(jump(points)), undefined, id);
+    }
+    assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two quick clicks");
+    // Two taps in one task: the first build waits for the next task, so the second tap drops it and only its own filter lays out.
+    const inTapTask = await page.evaluate(() => {
+      document.querySelector('[data-masonry-filter="led-displays"]').click();
+      document.querySelector('[data-masonry-filter="office-signs"]').click();
+      return document.querySelector('[data-masonry-filter="office-signs"]').getAttribute("aria-current");
+    });
+    assert.equal(inTapTask, "false", "the deferred build has not run inside the tap task");
+    await settled(page);
+    assert.equal(await page.locator('[data-masonry-filter="office-signs"]').getAttribute("aria-current"), "true", "the second tap wins");
+    assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two taps in one task");
+    // Search results reordered twice, 40 ms apart: every card is in both sets, so every card slides and none may jump on the restart.
+    const shown = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((node) => !node.hidden).map((node) => node.dataset.masonryCard).slice(0, 16));
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), shown);
+    await settled(page);
+    const reordered = record(1400);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), [...shown].reverse());
+    await page.waitForTimeout(40);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), [...shown.slice(8), ...shown.slice(0, 8)]);
+    const three = paths(await reordered);
+    assert.ok(three.length >= 8, `search cards slide on two quick reorders (${three.length})`);
+    for (const [id, points] of three) assert.equal(describe(jump(points)), undefined, `search reorder: ${id}`);
+    await page.evaluate(() => window.TruongThinhMasonry.clearResults());
+    await settled(page);
+    await page.close();
+    console.log(`PASS slide trajectory (${one.length} cards, ${added.length} entering, ${two.length} on the second click, ${three.length} on two search reorders)`);
+  }
+  // Phone (2:15 band): every chip is packed in idle periods after load, so a click on a chip never visited waits for no pack
+  // (no aria-busy) and its new cards still enter at their target.
+  {
+    const { page } = await open(ADVERTISING, 384);
+    await settled(page);
+    await page.waitForTimeout(8000);
+    const busy = page.evaluate(() => new Promise((resolve) => {
+      const chip = document.querySelector('[data-masonry-filter="signage"]');
+      let seen = false;
+      new MutationObserver(() => { seen ||= chip.getAttribute("aria-busy") === "true"; }).observe(chip, { attributes: true, attributeFilter: ["aria-busy"] });
+      setTimeout(() => resolve(seen), 1500);
+    }));
+    await page.locator('[data-masonry-filter="signage"]').first().click();
+    assert.equal(await busy, false, "phone chip click found its pack ready (idle warm)");
+    await settled(page);
+    const added = await entersAtTarget(page, "all");
+    await page.close();
+    console.log(`PASS phone idle warm and new cards at target (${added.length} entering)`);
   }
   console.log("masonry live layout e2e: ok");
 } finally {

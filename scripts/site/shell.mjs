@@ -15,7 +15,7 @@ export const SHELL_PAGES = {
   "residential/index.html": { ...home, route: "residential/", navVi: "Điều hướng trang nội thất nhà ở", navEn: "Residential spaces navigation", ctaAriaVi: "Gọi Zalo tư vấn nội thất nhà ở", ctaAriaEn: "Discuss home interiors on Zalo" },
   "commercial/index.html": { ...home, route: "commercial/", navVi: "Điều hướng trang nội thất kinh doanh", navEn: "Commercial spaces navigation", ctaAriaVi: "Gọi Zalo tư vấn nội thất kinh doanh", ctaAriaEn: "Discuss commercial interiors on Zalo" },
   "advertising-products/index.html": { ...home, ...project, route: "advertising-products/", navVi: "Điều hướng công trình và sản phẩm", navEn: "Projects and products navigation", logoEn: "— back to home", ctaEn: "Discuss on Zalo",
-    extraScripts: '\n<script defer src="/assets/vendor/masonry-4.2.2.min.js"></script>\n<script defer src="/assets/vendor/lazysizes-5.3.2.min.js"></script>' },
+    extraScripts: '\n<script defer src="/assets/vendor/lazysizes-5.3.2.min.js"></script>' },
   "about/index.html": { ...home, ...project, route: "about/", navVi: "Điều hướng trang giới thiệu", navEn: "About page navigation" },
   "404.html": { ...home, ...project, route: "", navVi: "Điều hướng chính", navEn: "Primary navigation" },
 };

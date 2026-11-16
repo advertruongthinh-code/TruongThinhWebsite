@@ -1,13 +1,13 @@
 # Masonry Advertising
 
-Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`, `src/site/masonry/pack.mjs`, `src/site/masonry/replay.mjs`; CSS `.masonry-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md), [Xếp trực tiếp](../../../docs/specs/masonry-live-layout.md).
+Nguồn: `src/site/masonry/host.mjs`, `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`, `src/site/masonry/pack.mjs`, `src/site/masonry/replay.mjs`; CSS `.masonry-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md), [Xếp trực tiếp](../../../docs/specs/masonry-live-layout.md).
 
 Lưới ảnh sản phẩm so le trên trang Advertising và Công trình. Lưới chính đặt card
 theo bố cục máy người xem tự xếp trong Web Worker (`masonry/pack.mjs`), `masonry/replay.mjs` đặt
 tọa độ, một vòng lặp; related masonry ở detail do `masonry/layout.mjs`
 tính (thuần, không đọc DOM). Card đổi vị trí hoặc kích thước chạy `--dur-card` `400ms`, card tạm hiện dần `--dur-fade` `450ms` (card tạm là lớp đổi qua 4 màu chủ đạo của media bìa, PC và điện thoại như nhau, [MediaCard](../MediaCard/README.md))
-(token motion: [motion.md](../../motion.md#token-motion)). `masonry/runtime.mjs` mount và ảo hóa; engine chuyển vị
-trí là `masonry-layout`.
+(token motion: [motion.md](../../motion.md#token-motion)). `masonry/runtime.mjs` mount và ảo hóa; card trượt tới tọa độ đã tính bằng Web Animations
+(`masonry/host.mjs`, không còn thư viện `masonry-layout`).
 
 ## Hình học
 

@@ -4765,11 +4765,13 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
       const style = tile ? getComputedStyle(tile) : null;
       const rect = tile?.getBoundingClientRect();
       const gridRect = grid.getBoundingClientRect();
+      // The card's slide (Web Animation, masonry-live-layout R7) in the shape of a CSS transition.
+      const slide = tile?.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
       return {
         id: pickedId,
-        delay: style?.transitionDelay,
-        duration: style?.transitionDuration,
-        property: style?.transitionProperty,
+        delay: `${(slide?.delay || 0) / 1000}s`,
+        duration: `${(slide?.duration || 0) / 1000}s`,
+        property: slide ? "transform" : "none",
         transform: style?.transform,
         left: Number.parseFloat(style?.left || "0"),
         top: Number.parseFloat(style?.top || "0"),
@@ -4780,10 +4782,14 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
     window.__ttMorphSamples = new Promise((resolve) => {
       (event === "click" ? document : window).addEventListener(event, () => {
         const samples = [];
-        const start = () => delays.forEach((delay, index) => setTimeout(() => {
-          samples[index] = sample();
+        // The rail click builds in the task after the click (masonry-live-layout R7): a sample waits, up to 1s, for its card to exist.
+        const sampleWhenBuilt = (index, until = performance.now() + 1_000) => {
+          const value = sample();
+          if (value.visualLeft === null && performance.now() < until) return void requestAnimationFrame(() => sampleWhenBuilt(index, until));
+          samples[index] = value;
           if (samples.filter(Boolean).length === delays.length) resolve(samples);
-        }, delay));
+        };
+        const start = () => delays.forEach((delay, index) => setTimeout(() => sampleWhenBuilt(index), delay));
         if (!fromMotion) return start();
         // If it has not slid after 1.5s, sample anyway so the assert reports the card that stood still.
         const deadline = performance.now() + 1_500;
@@ -4869,10 +4875,11 @@ async function runAdvertisingFilterCheck() {
         const style = tile ? getComputedStyle(tile) : null;
         const rect = tile?.getBoundingClientRect();
         const gridRect = grid.getBoundingClientRect();
+        const slide = tile?.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
         return {
-          delay: style?.transitionDelay,
-          duration: style?.transitionDuration,
-          property: style?.transitionProperty,
+          delay: `${(slide?.delay || 0) / 1000}s`,
+          duration: `${(slide?.duration || 0) / 1000}s`,
+          property: slide ? "transform" : "none",
           transform: style?.transform,
           left: Number.parseFloat(style?.left || "0"),
           top: Number.parseFloat(style?.top || "0"),
@@ -4887,16 +4894,17 @@ async function runAdvertisingFilterCheck() {
           during.property?.includes("transform") &&
           during.transform &&
           during.transform !== "none",
-        `Masonry transition did not morph the filter survivor ${survivorId}: ${JSON.stringify({ origin, during })}`,
+        `Slide did not morph the filter survivor ${survivorId}: ${JSON.stringify({ origin, during })}`,
       );
       await page.evaluate(() => window.__ttAdvertisingFilterLayout);
       await page.waitForTimeout(450);
       const settledTrajectory = await captureTrajectory();
       await page.waitForTimeout(80);
       const stableTrajectory = await captureTrajectory();
+      // Inline left/top hold the target from the first frame (FLIP, masonry-live-layout R7): travel starts at the visual origin.
       const travel = {
-        x: settledTrajectory.left - origin.left,
-        y: settledTrajectory.top - origin.top,
+        x: settledTrajectory.left - origin.visualLeft,
+        y: settledTrajectory.top - origin.visualTop,
       };
       const travelDistance = Math.hypot(travel.x, travel.y);
       const originToDestination = Math.hypot(origin.visualLeft - settledTrajectory.left, origin.visualTop - settledTrajectory.top);
@@ -4977,14 +4985,15 @@ async function runAdvertisingFilterCheck() {
       await armMorphSamples(page, { delays: [180], id: nextId });
       await page.locator(`[data-masonry-filter="${nextSlug}"]`).click();
       const [categoryDuring] = await readMorphSamples(page);
-      assert(
-        categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          categoryDuring.transform && categoryDuring.transform !== "none",
-        `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
-      );
       await page.waitForTimeout(450);
-      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug, fromMotion: true });
+      // A card new to the set is built at its target and does not slide across the sliding cards (masonry-live-layout R7, plan Q9 case 2).
+      const categorySettled = await page.locator(`[data-masonry-card="${nextId}"]`).evaluate((node) => ({ left: node.style.left, top: node.style.top }));
+      assert(
+        categoryDuring.transform === "none" && `${categoryDuring.left}px` === categorySettled.left && `${categoryDuring.top}px` === categorySettled.top &&
+          Math.hypot(categoryDuring.visualLeft - categoryDuring.left, categoryDuring.visualTop - categoryDuring.top) <= 1,
+        `A card new to the category was not built at its target: ${JSON.stringify({ categoryOriginMounted, categoryDuring, categorySettled })}`,
+      );
+      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug });
       await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForFunction(
         () =>
@@ -4992,25 +5001,16 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      const [reverseOrigin, reverseDuring, reverseSettled] = await readMorphSamples(page);
-      const reverseTravel = {
-        x: reverseSettled.left - reverseOrigin.left,
-        y: reverseSettled.top - reverseOrigin.top,
-      };
-      const reverseTravelDistance = Math.hypot(reverseTravel.x, reverseTravel.y);
-      const reverseOriginToDestination = Math.hypot(reverseOrigin.visualLeft - reverseSettled.left, reverseOrigin.visualTop - reverseSettled.top);
-      const reverseDuringToDestination = Math.hypot(reverseDuring.visualLeft - reverseSettled.left, reverseDuring.visualTop - reverseSettled.top);
-      const reverseObservedTravel = Math.hypot(reverseDuring.visualLeft - reverseOrigin.visualLeft, reverseDuring.visualTop - reverseOrigin.visualTop);
+      // A tile outside the category is new to the All set: it is built at its target and stands still while shared tiles slide
+      // (masonry-live-layout R7, plan Q9 case 2).
+      const reverseSamples = await readMorphSamples(page);
+      const [reverseOrigin] = reverseSamples;
       assert(
-        reverseOrigin.id === reverseDuring.id &&
-          reverseDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          reverseDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          reverseDuring.transform && reverseDuring.transform !== "none" &&
-          reverseTravelDistance > 1 && reverseOriginToDestination > 2 && reverseObservedTravel > 2 &&
-          reverseDuringToDestination > 2 && reverseDuringToDestination < reverseOriginToDestination &&
-          Math.hypot(reverseSettled.visualLeft - reverseSettled.left, reverseSettled.visualTop - reverseSettled.top) <= 2 &&
-          (!reverseSettled.transform || reverseSettled.transform === "none"),
-        `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
+        reverseSamples.every((sample) => sample.id === reverseOrigin.id && sample.visualLeft !== null &&
+          (!sample.transform || sample.transform === "none") && sample.property === "none" &&
+          sample.left === reverseOrigin.left && sample.top === reverseOrigin.top &&
+          Math.hypot(sample.visualLeft - sample.left, sample.visualTop - sample.top) <= 1),
+        `Category-to-all unshared tile was not built at its target: ${JSON.stringify(reverseSamples)}`,
       );
       await page.waitForTimeout(450);
       const beforeResize = await page.locator("[data-project-grid] .masonry-card").evaluateAll((tiles) =>
@@ -5048,8 +5048,9 @@ async function runAdvertisingFilterCheck() {
       // Card order is random by seed, so no fixed id is certain to be in the virtual window; take a tile that is mounted.
       await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const style = getComputedStyle(grid.querySelector(".masonry-card"));
-        return { duration: style.transitionDuration, transform: style.transform };
+        const tile = grid.querySelector(".masonry-card");
+        const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
+        return { duration: `${(slide?.duration || 0) / 1000}s`, transform: getComputedStyle(tile).transform };
       });
       assert(
         reduced.duration?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5095,7 +5096,7 @@ async function runAdvertisingFilterCheck() {
         const tiles = [...grid.querySelectorAll(".masonry-card")].map((tile) => ({
           top: Number.parseFloat(tile.style.top),
           bottom: Number.parseFloat(tile.style.top) + Number.parseFloat(tile.style.height),
-          instant: getComputedStyle(tile).transitionDuration.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01),
+          instant: !tile.getAnimations().some((animation) => animation.id === "masonry-slide"),
         }));
         return {
           count: tiles.length,
@@ -5207,7 +5208,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         const diagnostics = monitorPage(page);
         let vendorIntercepted = false;
         if (testCase.slowVendor) {
-          await page.route("**/assets/vendor/masonry-4.2.2.min.js", async (route) => {
+          await page.route("**/assets/vendor/lazysizes-5.3.2.min.js", async (route) => {
             vendorIntercepted = true;
             const response = await route.fetch();
             await new Promise((resolve) => setTimeout(resolve, 180));
@@ -5216,8 +5217,8 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         }
         await gotoRoute(page, `/${testCase.locale}/`);
         assert(
-          await page.evaluate(() => typeof window.Masonry !== "function"),
-          "fresh Home unexpectedly carried Advertising Masonry before public navigation",
+          await page.evaluate(() => !window.lazySizes),
+          "fresh Home unexpectedly carried Advertising LazySizes before public navigation",
         );
         const linkScope = testCase.viewport.width <= 980 ? "#site-menu" : "[data-site-header]";
         if (linkScope === "#site-menu") await openMenu(page);
@@ -5231,7 +5232,6 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
               grid?.querySelector(".masonry-card") &&
               window.gsap?.version === "3.15.0" &&
               typeof window.SplitText === "function" &&
-              typeof window.Masonry === "function" &&
               window.lazySizes?.loader,
             );
           },
@@ -5244,7 +5244,6 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           const artifact = cardCount === null ? null : await import(artifactPath);
           return {
             grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
-            masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
             gsap: window.gsap?.version,
@@ -5293,7 +5292,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           : null;
         assert(
           state.path === destination && state.transitioning && state.grids === 1 && state.tiles > 0 &&
-            state.masonry && state.lazySizes && state.splitText && state.gsap === "3.15.0" &&
+            state.lazySizes && state.splitText && state.gsap === "3.15.0" &&
             !state.rawNoScript && !state.noscript &&
             (expectedCardCount === null || state.artifactCards === expectedCardCount) &&
             (!expectedRuntime || (
@@ -5312,11 +5311,11 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
 }
 
 async function runAdvertisingDependencyRecoveryChecks() {
-  const vendorPattern = "**/assets/vendor/masonry-4.2.2.min.js";
+  const vendorPattern = "**/assets/vendor/lazysizes-5.3.2.min.js";
   const installFailedVendor = (page) => page.evaluate(async () => {
     const script = document.createElement("script");
-    script.setAttribute("src", "/assets/vendor/masonry-4.2.2.min.js");
-    script.dataset.ttAdvertisingDependency = "/assets/vendor/masonry-4.2.2.min.js";
+    script.setAttribute("src", "/assets/vendor/lazysizes-5.3.2.min.js");
+    script.dataset.ttAdvertisingDependency = "/assets/vendor/lazysizes-5.3.2.min.js";
     script.dataset.ttAdvertisingStatus = "failed";
     document.head.append(script);
     await new Promise((resolve) => script.addEventListener("error", resolve, { once: true }));
@@ -5338,9 +5337,9 @@ async function runAdvertisingDependencyRecoveryChecks() {
       const diagnostics = monitorPage(page);
       const state = await page.evaluate(async () => {
         await window.TruongThinhDetail.ensureAdvertisingDependencies();
-        return { masonry: typeof window.Masonry === "function" };
+        return { lazySizes: Boolean(window.lazySizes?.loader) };
       });
-      assert(state.masonry && requests === 2, `Failed vendor did not retry exactly once: ${JSON.stringify({ state, requests })}`);
+      assert(state.lazySizes && requests === 2, `Failed vendor did not retry exactly once: ${JSON.stringify({ state, requests })}`);
       assertDiagnostics(diagnostics);
     },
   );
@@ -5394,7 +5393,6 @@ async function runAdvertisingHistoryRemountChecks() {
           const grid = document.querySelector("[data-project-grid].masonry-grid");
           return {
             grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
-            masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
             raw: grid?.textContent.trim().startsWith("<figure") || false,
@@ -5405,7 +5403,7 @@ async function runAdvertisingHistoryRemountChecks() {
           await page.waitForFunction(() => document.querySelectorAll("[data-project-grid].masonry-grid .masonry-card").length > 0);
           const state = await catalogState();
           assert(
-            state.grids === 1 && state.tiles > 0 && state.masonry && state.lazySizes && state.splitText && !state.raw,
+            state.grids === 1 && state.tiles > 0 && state.lazySizes && state.splitText && !state.raw,
             `${label} did not converge on one ready catalog: ${JSON.stringify(state)}`,
           );
         };
@@ -5445,12 +5443,12 @@ async function runAdvertisingNoOpScrollCheck() {
           const grid = document.querySelector("[data-project-grid]");
           const ids = () => [...grid.querySelectorAll(".masonry-card")].map((tile) => tile.dataset.masonryCard).sort().join(",");
           const before = ids();
-          const calls = { layouts: 0, reloadItems: 0, events: 0 };
-          const masonry = window.Masonry.data(grid);
-          const originalLayout = masonry.layout;
-          const originalReload = masonry.reloadItems;
-          masonry.layout = function (...args) { calls.layouts += 1; return originalLayout.apply(this, args); };
-          masonry.reloadItems = function (...args) { calls.reloadItems += 1; return originalReload.apply(this, args); };
+          const calls = { slides: 0, events: 0 };
+          const originalAnimate = Element.prototype.animate;
+          Element.prototype.animate = function (keyframes, options) {
+            if (options?.id === "masonry-slide") calls.slides += 1;
+            return originalAnimate.call(this, keyframes, options);
+          };
           const count = () => { calls.events += 1; };
           window.addEventListener("site:layout", count);
           try {
@@ -5462,13 +5460,12 @@ async function runAdvertisingNoOpScrollCheck() {
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             return { before, after: ids(), ...calls };
           } finally {
-            masonry.layout = originalLayout;
-            masonry.reloadItems = originalReload;
+            Element.prototype.animate = originalAnimate;
             window.removeEventListener("site:layout", count);
           }
         });
         assert(
-          state.layouts === 0 && state.reloadItems === 0 && state.events === 0 && state.before === state.after,
+          state.slides === 0 && state.events === 0 && state.before === state.after,
           `same-frontier scroll committed a catalog layout: ${JSON.stringify(state)}`,
         );
         assertDiagnostics(diagnostics);
@@ -5510,6 +5507,10 @@ async function runAdvertisingRapidFilterCheck() {
           writable: true,
         });
       }, artifact);
+      // Only cards in both sets slide (plan Q9 case 2), so whether a travelling card lands far from the view depends on the shuffle:
+      // pin the seed for a fixed layout.
+      const { pinBrowseSeed } = await import("./harness.mjs");
+      await pinBrowseSeed(page, process.env.TT_RAPID_SEED || "rapid-filter-1");
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
@@ -5525,7 +5526,11 @@ async function runAdvertisingRapidFilterCheck() {
       });
       await page.waitForTimeout(50);
       await page.locator('[data-masonry-filter="printing-decals"]').evaluate((control) => control.click());
-      await page.waitForTimeout(120);
+      // The tap builds in a later task, after its pack when that is not ready (masonry-live-layout R7); an All tap before the build only
+      // cancels it. Wait for the build, then tap All while its cards slide.
+      await page.waitForFunction(() => document.querySelector('[data-masonry-filter="printing-decals"]')?.getAttribute("aria-current") === "true",
+        null, { polling: "raf", timeout: 5_000 });
+      await page.waitForTimeout(60);
       const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
         const gridRect = grid.getBoundingClientRect();
         const before = [...grid.querySelectorAll(".masonry-card")]
@@ -5536,16 +5541,24 @@ async function runAdvertisingRapidFilterCheck() {
           });
         const blockRapidTransitionEnd = (event) => {
           if (event.propertyName === "transform" &&
-              event.target?.dataset?.masonryCategory === "mobile-retail") {
+              event.target?.dataset?.masonryCategory === "printing-decals") {
             event.stopImmediatePropagation();
           }
         };
         grid.addEventListener("transitionend", blockRapidTransitionEnd, true);
         grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
         const scrollBefore = window.scrollY;
+        // Slides of the first tap may still run: only a slide started by the All tap counts.
+        const slidesOf = () => [...grid.querySelectorAll(".masonry-card")].flatMap((tile) => tile.getAnimations().filter((animation) => animation.id === "masonry-slide"));
+        const earlier = new Set(slidesOf());
         grid.closest('[data-barba-namespace="advertising-products"]')
-          ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
+          ?.querySelector('[data-masonry-filter="all"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
+        const sliding = () => slidesOf().some((animation) => !earlier.has(animation));
+        for (let frame = 0; frame < 6 && !sliding(); frame += 1) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
         // The runtime reads visible coordinates in the frame after the click, so a sliding card has moved one more frame (up to ~14px at peak
         // speed) relative to `before`; take another sample in this frame so the morph origin matches one of the two.
         const frameRect = grid.getBoundingClientRect();
@@ -5564,25 +5577,29 @@ async function runAdvertisingRapidFilterCheck() {
         );
         const gridDocumentTop = grid.getBoundingClientRect().top + window.scrollY;
         const futureCenter = Math.max(0, scrollTarget - gridDocumentTop) + innerHeight * 0.5;
-        const trackedItem = Reflect.get(window, "Masonry").data(grid).items
-          .filter((item) => !item.element.hidden && item.element.dataset.masonryCategory === "mobile-retail")
-          .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
-        if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
-        // Keep tracking the card's transform transition: when motion ends it must be "finished", when cut off it is "idle".
-        grid.__rapidMorph = trackedItem.element.getAnimations().find((animation) => animation.transitionProperty === "transform");
-        if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a transform transition on the tracked item");
-        grid.__rapidOldTransitionEnds = 0;
-        trackedItem.on("transitionEnd", () => {
-          grid.__rapidOldTransitionEnds += 1;
-        });
+        // Inline top already holds each card's target (masonry-live-layout R7, FLIP). A card new to the set is built at its target
+        // without a slide (plan Q9 case 2), so go back to All and track a printing card that is still mid-slide and travels again.
+        const offset = (tile) => {
+          const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
+          const [dx = 0, dy = 0] = (slide?.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+          return Math.hypot(dx, dy);
+        };
+        const tracked = [...grid.querySelectorAll(".masonry-card")]
+          .filter((tile) => !tile.hidden && tile.dataset.masonryCategory === "printing-decals" && offset(tile) > 4)
+          .sort((left, right) => Math.abs(Number.parseFloat(left.style.top) - futureCenter) - Math.abs(Number.parseFloat(right.style.top) - futureCenter))[0];
+        if (!tracked) throw new Error("Rapid filter did not expose a travelling printing-decals item");
+        // Keep tracking the card's slide: when motion ends it must be "finished", when cut off it is "idle".
+        grid.__rapidMorph = tracked.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
+        if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a slide on the tracked item");
         window.scrollTo({ top: scrollTarget, behavior: "instant" });
         window.dispatchEvent(new Event("scroll"));
         window.dispatchEvent(new CustomEvent("site:scroll", { detail: { y: window.scrollY } }));
         const morph = {
           duration: grid.__rapidMorph.effect.getComputedTiming().duration,
+          from: grid.__rapidMorph.effect.getKeyframes()[0].transform,
           to: grid.__rapidMorph.effect.getKeyframes().at(-1).transform,
         };
-        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.masonryCard };
+        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: tracked.dataset.masonryCard };
       });
       const { before, beforeFrame, membersBeforeScroll, morph, scrollTarget, trackedId } = rapidStart;
       const capture = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
@@ -5592,10 +5609,8 @@ async function runAdvertisingRapidFilterCheck() {
         const rect = tile?.getBoundingClientRect();
         const style = tile ? getComputedStyle(tile) : null;
         return {
-          duration: style?.transitionDuration,
           members: [...grid.querySelectorAll(".masonry-card")].map((item) => item.dataset.masonryCard),
           morph: grid.__rapidMorph?.playState,
-          staleTransitionEnds: grid.__rapidOldTransitionEnds || 0,
           transform: style?.transform,
           target: { x: Number.parseFloat(style?.left || "0"), y: Number.parseFloat(style?.top || "0") },
           visual: rect ? { x: rect.left - gridRect.left, y: rect.top - gridRect.top } : null,
@@ -5628,24 +5643,23 @@ async function runAdvertisingRapidFilterCheck() {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       }, trackedId);
       const afterStaleEnd = await capture();
-      const seededOrigin = origin.target;
+      // The slide starts at the target plus its first keyframe offset (FLIP) and plays the offset back to none.
+      const [fromX, fromY] = (morph.from.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+      const seededOrigin = { x: origin.target.x + fromX, y: origin.target.y + fromY };
       const nearestOrigin = Math.min(...[...before, ...beforeFrame].map((slot) => Math.hypot(seededOrigin.x - slot.x, seededOrigin.y - slot.y)));
       const travel = Math.hypot(settled.target.x - seededOrigin.x, settled.target.y - seededOrigin.y);
       const progressed = Math.hypot(during.visual.x - seededOrigin.x, during.visual.y - seededOrigin.y);
-      // A lagging frame on a runner may jump past the midpoint; the transition must travel fully from origin to target within 0.4s.
-      const [morphX, morphY] = (morph.to.match(/-?[\d.]+(?=px)/g) || []).map(Number);
-      const morphGap = Math.hypot(seededOrigin.x + morphX - settled.target.x, seededOrigin.y + morphY - settled.target.y);
+      // A lagging frame on a runner may jump past the midpoint; the slide must end at the target it wrote at the start, within 0.4s.
+      const morphGap = morph.to === "none" ? Math.hypot(origin.target.x - settled.target.x, origin.target.y - settled.target.y) : Infinity;
       const membershipChanged = membersBeforeScroll.length !== settled.members.length ||
         membersBeforeScroll.some((id) => !settled.members.includes(id)) ||
         settled.members.some((id) => !membersBeforeScroll.includes(id));
       const staleEndWasInert = JSON.stringify(afterStaleEnd.members) === JSON.stringify(settled.members) &&
         Math.hypot(afterStaleEnd.visual.x - afterStaleEnd.target.x, afterStaleEnd.visual.y - afterStaleEnd.target.y) <= 2 &&
         Math.hypot(afterStaleEnd.target.x - settled.target.x, afterStaleEnd.target.y - settled.target.y) <= 2 &&
-        afterStaleEnd.staleTransitionEnds === 0 &&
         (!afterStaleEnd.transform || afterStaleEnd.transform === "none");
       assert(
-        origin.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          // The "during" sample only means something when caught mid-way; a lagging frame on a runner may let the 0.4s transition finish
+        // The "during" sample only means something when caught mid-way; a lagging frame on a runner may let the 0.4s transition finish
           // before the measurement (morph "finished"), at which point the transform is none. A cut-off case still goes red at settled.morph and morphGap.
           (during.morph === "finished" || (during.transform && during.transform !== "none")) &&
           nearestOrigin <= 3 && travel > 1 && progressed > 2 && morph.duration === 400 && morphGap <= 2 &&
@@ -5654,7 +5668,7 @@ async function runAdvertisingRapidFilterCheck() {
           (!settled.transform || settled.transform === "none") &&
           staleEndWasInert &&
           Math.abs((await page.evaluate(() => window.scrollY)) - scrollTarget) <= 2,
-        `Rapid filter snapped instead of continuing the Masonry coordinate morph: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, morph, morphGap, nearestOrigin, travel, progressed, membershipChanged, staleEndWasInert, scrollTarget })}`,
+        `Rapid filter snapped instead of continuing the coordinate slide: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, morph, morphGap, nearestOrigin, travel, progressed, membershipChanged, staleEndWasInert, scrollTarget })}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -5669,7 +5683,7 @@ async function runAdvertisingDirectFailureCheck() {
       await page.addInitScript(() => {
         window.name = String(Number(window.name || "0") + 1);
       });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.abort("failed"));
+      await page.route("**/assets/vendor/lazysizes-5.3.2.min.js", (route) => route.abort("failed"));
       await gotoRoute(page, "/vi/advertising-products/?direct-vendor-failure=1");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6261,18 +6275,19 @@ async function runAdvertisingGridFocusedChecks() {
   }
 
   await runPageCase(
-    "advertising legacy rank-v2 artifact fails before Masonry",
+    "advertising legacy rank-v2 artifact fails before layout",
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
-        window.__ttMasonryConstructs = 0;
+        // Counts card slides: a bad artifact must fail before any card is laid out.
+        window.__ttMasonrySlides = 0;
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide") window.__ttMasonrySlides += 1;
+          return animate.call(this, keyframes, options);
+        };
       }, { ...artifact, layoutAlgorithmVersion: "advertising-rank-v2" });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
-      }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6280,27 +6295,28 @@ async function runAdvertisingGridFocusedChecks() {
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
-        constructs: window.__ttMasonryConstructs,
+        slides: window.__ttMasonrySlides,
         fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
-      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+      assert(state.slides === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before layout: ${JSON.stringify(state)}`);
     },
   );
 
   await runPageCase(
-    "advertising empty v6 artifact fails before Masonry",
+    "advertising empty v6 artifact fails before layout",
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
-        window.__ttMasonryConstructs = 0;
+        // Counts card slides: a bad artifact must fail before any card is laid out.
+        window.__ttMasonrySlides = 0;
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide") window.__ttMasonrySlides += 1;
+          return animate.call(this, keyframes, options);
+        };
       }, { ...artifact, cards: [] });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
-      }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6308,11 +6324,11 @@ async function runAdvertisingGridFocusedChecks() {
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
-        constructs: window.__ttMasonryConstructs,
+        slides: window.__ttMasonrySlides,
         fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
-      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+      assert(state.slides === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before layout: ${JSON.stringify(state)}`);
     },
   );
 }
@@ -8822,7 +8838,6 @@ async function runDelayedDetailFallbackChecks() {
         const grid = document.querySelector("[data-project-grid].masonry-grid");
         return Boolean(
           grid?.querySelector(".masonry-card") &&
-          typeof window.Masonry === "function" &&
           window.lazySizes?.loader &&
           typeof window.SplitText === "function" &&
           window.gsap?.version === "3.15.0",
@@ -8838,14 +8853,18 @@ async function runDelayedDetailFallbackChecks() {
   const exerciseFilter = async (page, category) => {
     await waitForAdvertisingCatalog(page);
     await page.evaluate(() => {
+      // One layout pass starts every card slide of the main grid in one synchronous loop (host layoutMotion).
       if (!window.__ttDelayedDetailMasonryProbe) {
-        const layout = window.Masonry.prototype.layout;
+        const animate = Element.prototype.animate;
+        let inPass = false;
         window.__ttDelayedDetailMasonryProbe = true;
-        window.Masonry.prototype.layout = function (...args) {
-          if (this.element?.matches?.("[data-project-grid].masonry-grid")) {
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide" && !inPass && this.closest?.("[data-project-grid].masonry-grid")) {
+            inPass = true;
             window.__ttDelayedDetailMasonryLayouts += 1;
+            queueMicrotask(() => { inPass = false; });
           }
-          return layout.apply(this, args);
+          return animate.call(this, keyframes, options);
         };
       }
       window.__ttDelayedDetailMasonryLayouts = 0;

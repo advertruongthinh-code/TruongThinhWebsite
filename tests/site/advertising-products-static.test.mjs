@@ -85,8 +85,8 @@ for (const folder of ["masonry", "media-lib"]) {
 }
 assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
-assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "Masonry owns the complete photo and skeleton height");
-assert.match(await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8"), /createMasonry\(root, host\.positions, \(\) => host\.pixelHeight/, "each masonry host sizes Masonry from its own pixel height");
+assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "the motion pass owns the complete photo and skeleton height");
+assert.match(await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8"), /layoutMotion\(instant\) \{\s*root\.style\.height = `\$\{host\.pixelHeight\}px`;/, "each masonry host sizes its yard from its own pixel height");
 // Owner 2026-10-27 reopened the Pinterest-style back button (detail R10): same image-action style, sharing the path with Escape.
 assert.match(index, /class="detail-view__image-action detail-view__back"[^>]*data-detail-back/, "photo Back reuses the image-action control");
 assert.match(runtime, /data-detail-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
