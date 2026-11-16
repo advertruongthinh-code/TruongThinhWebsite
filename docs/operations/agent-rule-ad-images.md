@@ -204,6 +204,11 @@ nằm ở [Chuỗi ảnh một không gian](agent-rule-image-series.md).
 - Ảnh owner duyệt lên site ngay bằng bản 1k AI gen, không giữ lại chờ phóng to; PNG 1k lưu ở
   `source-assets\topaz-goc-1k-20261110\_cho-len-site` kèm dòng `danh-sach.csv`, owner phóng to sau
   (owner 2026-11-16).
+- PNG gốc: mọi ảnh AI gen được duyệt đều giữ đúng file PNG do AI xuất ra (owner 2026-11-17).
+  Mỗi ảnh master trong `src/site/assets/content` có một dòng ở [png-goc.csv](png-goc.csv)
+  (`anh,png,sha256`, đường dẫn PNG tính từ `E:\TruongThinh-Website`). `pnpm qa:docs` báo đỏ khi
+  ảnh trên site không có dòng, hoặc PR thêm ảnh mới mà dòng thiếu PNG và sha256; ảnh không phải
+  AI gen ghi `PNG gốc: không có - <lý do>` trong PR. Dòng cũ để trống PNG là ảnh audit chưa tìm ra.
 - Owner tự phóng to ảnh gốc của site bằng Topaz Gigapixel (2026-11-12). Agent phóng to
   bằng workflow B (SeedVR2 chia khối, làm nét) trên runninghub.ai, 12 đến 15 coin mỗi ảnh
   (owner chọn 2026-10-24, xác nhận 2026-10-25).

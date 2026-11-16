@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
-import { cmsImportErrors, commentLanguageErrors, emojiErrors, markdownNameErrors, qaLineErrors } from './agents-rules.mjs';
+import { cmsImportErrors, commentLanguageErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -105,6 +105,8 @@ if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/
 // The PR description is read through the API at run time, not from the event: a re-run after editing the description reads the new text.
 // A local run without PR_NUMBER reads PR_BODY.
 const originMain = () => { try { return git('rev-parse', '--verify', '-q', 'origin/main').trim(); } catch { return ''; } };
+let pngAdded = [];
+let pngBody = '';
 const docsBase = process.env.DOCS_BASE ?? (process.env.CI ? '' : originMain());
 if (docsBase) {
   const { PR_NUMBER, GITHUB_API_URL, GITHUB_REPOSITORY, GH_TOKEN } = process.env;
@@ -124,6 +126,8 @@ if (docsBase) {
   // AGENTS.md rules on the branch (R11): new Markdown names, and the Ảnh QA line on PRs (same PR_NUMBER or PR_BODY condition as the card gate).
   errors.push(...markdownNameErrors(git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(Boolean)));
   if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body));
+  pngAdded = git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(isImageMaster);
+  pngBody = body;
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
@@ -162,6 +166,9 @@ if (docsBase) {
 const tracked = git('ls-files').split('\n').filter((f) => f && existsSync(f));
 const readText = (f) => readFileSync(f, 'utf8');
 errors.push(...emojiErrors(tracked, readText), ...commentLanguageErrors(tracked, readText), ...cmsImportErrors(tracked, readText));
+
+// Site image masters and their AI PNG originals (agent-rule-ad-images.md "PNG gốc").
+errors.push(...pngOriginErrors(git('ls-files', 'src/site/assets/content').split('\n').filter(isImageMaster), pngAdded, readText('docs/operations/png-goc.csv'), pngBody));
 
 // Design drift (design-system.md R1.2): every custom property in the top :root block of style.css has a token with the same name and value.
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
