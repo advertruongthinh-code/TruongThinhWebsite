@@ -23,9 +23,10 @@ hướng CMS trong [goal](../goal.md). Owner đồng ý chuyển ngày 2026-10-0
 
 ## Quyết định
 
-1. Demo tĩnh deploy bằng Worker chỉ có asset (assets-only), cấu hình tại
+1. Demo tĩnh ban đầu deploy bằng Worker chỉ có asset (assets-only), cấu hình tại
    `wrangler.static.toml`: không `main`, không binding, `directory` là
    `.site-output`, tên Worker `truong-thinh-demo`, URL `workers.dev`.
+   Từ [decision tìm kiếm](advertising-search-worker.md), Worker có script chỉ cho `/api/*`; route khác vẫn là asset.
 2. `pnpm deploy:demo` build `.site-output/` rồi deploy. `pnpm demo:wrangler`
    gọi Wrangler bản pin trong script `package.json` (`wrangler@4.124.0`) qua `pnpm dlx`, chỉ dùng
    cho login, dry-run và rollback của demo. Wrangler không vào dependency hay

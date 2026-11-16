@@ -39,7 +39,7 @@ flowchart LR
 | Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và 22 HTML VI/EN vào `.site-output/` |
 | Local preview | Đang dùng | `pnpm dev` chạy `prepare:site` rồi `scripts/tooling/serve-static-parity.mjs --port 8787` |
 | QA | Chỉ ở repository | `tests/` và scripts kiểm chứng source/build; không thuộc public output |
-| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; không Worker script, không binding |
+| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; Worker script chỉ cho `/api/*` ([tìm kiếm](decisions/advertising-search-worker.md)) |
 | Worker | Dormant | `src/worker/index.js` giữ route, SEO, API và CMS boundary; Wrangler chưa thuộc static gate |
 | Admin | Dev/dormant | `src/admin/` là shell private cho CMS, không copy vào public output |
 | CMS data | Planned | D1/R2/Access/provider chỉ chọn và verify khi owner mở CMS phase |
@@ -55,7 +55,7 @@ Nguồn: `package.json`, `pnpm-workspace.yaml`, `wrangler*.toml`, `.github/workf
 | Thư viện runtime | GSAP và SplitText, Locomotive Scroll, Barba, Masonry, Swiper, lazysizes | `prepare:site` chép từ `node_modules` vào `assets/vendor/` |
 | Font | Plus Jakarta Sans (`@fontsource-variable`) | Self-host, không gọi CDN |
 | Build | Node.js 22+, pnpm qua Corepack, script `scripts/site/prepare-static-assets.mjs` | `sharp` xử lý ảnh; output `.site-output/` |
-| Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Không Worker script, không binding |
+| Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Worker script chỉ cho `/api/*` ([decision](decisions/advertising-search-worker.md)), binding AI, ASSETS, rate limit |
 | CMS (dormant) | Cloudflare Worker, D1, R2, Access (`wrangler.toml`, `src/worker/`, `src/db/migrations/`) | Chưa activate, xem [CMS](specs/cms.md) |
 | Test | Playwright 1.64 (Chromium, Firefox, WebKit), `node --test`, contract script `.cjs` | [Bộ test CI](specs/ci-test-suites.md), [tests](../tests/README.md) |
 | CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |

@@ -38,7 +38,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
+import { SIZE_ID, createMasonryHost, env } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { mediaQueue } from "../media-lib/media-queue.mjs";
@@ -981,12 +981,14 @@ const packInWorker = (job, s) => new Promise((resolve) => {
 });
 // The 2-column band has no wide card, so its candidates are cheap: they pack on the main thread, one per task, which on a phone
 // beats booting Workers (plan, A04s 2026-11-15); a phone's first grid usually comes prebuilt with the page (phonePacks, R3).
+// A background warm (`idle`) packs each candidate in an idle period, so no candidate task lands inside a click (A04s, PR 3 review).
 const usesGridWorkers = (band) => band?.columns > 2;
-const packGrid = async (job) => {
+const nextIdle = () => new Promise((resolve) => (globalThis.requestIdleCallback ?? setTimeout)(resolve, { timeout: 250 }));
+const packGrid = async (job, { idle = false } = {}) => {
   const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
-    await new Promise((resolve) => setTimeout(resolve));
+    await (idle ? nextIdle() : new Promise((resolve) => setTimeout(resolve)));
     candidates[s] = packCandidate(job, s);
   }
   return bestEntries(candidates);
@@ -1855,11 +1857,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Keep the reference of the generated artifact as the cache identity; do not clone, only attach the detail fields to the card.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
-  if (typeof window.Masonry !== "function") {
-    const error = new Error("Advertising catalog requires Masonry 4.2.2 before mount");
-    console.error("[advertising-products] dependency readiness failed", error);
-    throw error;
-  }
   const controller = new AbortController();
   const ctaBatch = createCtaBatch({ skeleton: ctaSkeleton, cluster: gridCta, arcHome: gridSectionStyleTarget,
     signal: controller.signal, rearm: (root) => window.TruongThinhDetail?.rearmMotion?.(root) });
@@ -2004,13 +2001,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     for (const { node, media } of batch) {
       media.style.removeProperty("transition");
       // The real card replaces the temp card: the image fades in from the temp card's dominant color; with reduced motion it shows directly.
-      if (node.masonryGhost && !reduced) {
+      // A card built at its target during a slide (masonry-live-layout R7) fades its media in the same way, even when the file was cached.
+      if ((node.masonryGhost || node.masonryEnter) && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
         fading.set(node, fades);
       }
     }
     for (const { node } of batch) {
+      node.masonryEnter = false;
       if (!node.masonryGhost) continue;
       const fades = fading.get(node);
       if (fades) Promise.all(fades).then(() => removeGhost(node), () => removeGhost(node));
@@ -2116,12 +2115,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
-    nodes.forEach((node, index) => {
+    // Next frame: the entrance starts after its 0.3 s delay anyway, and getAnimations here would flush style inside the click task.
+    requestAnimationFrame(() => nodes.forEach((node, index) => {
       node.getAnimations().forEach((animation) => animation.cancel());
       node.animate([{ opacity: 0, transform }, { opacity: 1, transform: "none" }], {
         duration, easing, delay: delay + index * stagger, fill: "backwards",
       });
-    });
+    }));
   };
   const syncRail = ({ animate = false } = {}) => {
     filters.querySelectorAll("[data-masonry-filter]").forEach((item) => {
@@ -2140,8 +2140,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: EASE.expoOut, delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
       // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
+      // Next frame, so the rail writes above do not force a layout inside the click task.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
-      if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
+      if (current) requestAnimationFrame(() => {
+        group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
+      });
     });
   };
   let filter = initialFilter({ categories, cards, pages });
@@ -2213,7 +2216,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let firstBuild = false;
   let ctaDeferred = false;
   let lastMeasuredGridWidth = 0;
+  // The CTA batch of a card-set change waits for its own task (renderWindow).
+  let ctaPending = false;
+  const flushCta = () => {
+    if (!ctaPending) return;
+    ctaPending = false;
+    renderCtaSkeleton({ slide: true });
+  };
   let lastLayoutViewportWidth = 0;
+  // Set by a window resize that changes the width: innerWidth forces a layout in Chromium, so a card-set change cannot read it to
+  // notice a rotation; the resize task reads it instead. Height-only resizes (the phone URL bar hiding on scroll) keep the cache.
+  let resizedSinceMeasure = true;
+  let measuredInnerWidth = 0;
+  window.addEventListener("resize", () => { if (innerWidth !== measuredInnerWidth) resizedSinceMeasure = true; }, { signal: controller.signal });
   let lastGeometrySignature = "";
   // The geometry that positions reflects; whether the DOM order still matches the placement order.
   let positionsGeometry = null;
@@ -2320,8 +2335,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const warnedPacks = new Set();
   const packKey = (band, targetFilter) => `${targetFilter}|${band.key}|${browseHistory.current.seed}`;
   // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
-  const layoutPending = (targetFilter) => {
-    const band = bandFor(document.documentElement.clientWidth);
+  const layoutPending = (targetFilter, { idle = false, width = document.documentElement.clientWidth } = {}) => {
+    const band = bandFor(width);
     if (!band || isSearchKey(targetFilter)) return null;
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
@@ -2329,7 +2344,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const prebuilt = prebuiltEntries(band, targetFilter, browseHistory.current.seed);
       const job = firstPack?.key === key ? firstPack.entries
         : prebuilt ? Promise.resolve(prebuilt)
-          : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter });
+          : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter }, { idle });
       packWaits.set(key, job.catch(() => null).then((entries) => {
         packedEntries.set(key, entries);
         packWaits.delete(key);
@@ -2340,15 +2355,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // One chip at a time: the Worker answers in order, so a click on a chip not packed yet waits behind one job at most.
   let warming = false;
   warmPacks = async () => {
-    // Main-thread packs cost a task each: after a Worker failure, and on the 2-column band, only clicks pack.
-    if (!warmPacksWanted || warming || gridWorkerFailed || !usesGridWorkers(bandFor(document.documentElement.clientWidth))) return;
+    // After a Worker failure the wide bands pack on the main thread at a cost too big to warm: only clicks pack. The 2-column band
+    // warms its cheap candidates in idle periods.
+    const band = bandFor(document.documentElement.clientWidth);
+    if (!warmPacksWanted || warming || (gridWorkerFailed && usesGridWorkers(band))) return;
+    const idle = !usesGridWorkers(band);
     warming = true;
     const start = `${bandFor(document.documentElement.clientWidth)?.key}|${browseHistory.current.seed}`;
     const ids = [filters, ...chipGroups].flatMap((root) => (root ? [...root.querySelectorAll("[data-masonry-filter], [data-masonry-product]")] : []))
       .map((control) => control.dataset.masonryFilter ?? control.dataset.masonryProduct);
     for (const id of ids) {
       if (controller.signal.aborted) break;
-      await layoutPending(id);
+      await layoutPending(id, { idle });
     }
     warming = false;
     // The width crossed into another band, or Back brought another seed, meanwhile: warm that one from its first chip too.
@@ -2364,16 +2382,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     busyControl?.removeAttribute("aria-busy");
     busyControl = null;
   };
-  const whenLayoutReady = (targetFilter, run, control) => {
+  // `defer`: a ready layout still runs in the next task, so a chip tap's own task (input, hover style) and the card build stay
+  // two short tasks on the A04s instead of one long one (masonry-live-layout R7). A later click drops it through the same ticket.
+  const whenLayoutReady = (targetFilter, run, control, { defer = false } = {}) => {
     cancelLayoutWait();
     const ticket = layoutWait;
     const pending = layoutPending(targetFilter);
-    if (!pending) return run();
+    const runCurrent = () => {
+      if (ticket === layoutWait && !controller.signal.aborted) run();
+    };
+    if (!pending) return defer ? void setTimeout(runCurrent) : run();
     busyControl = control ?? null;
     busyControl?.setAttribute("aria-busy", "true");
-    void pending.then(() => {
-      if (ticket === layoutWait && !controller.signal.aborted) run();
-    });
+    void pending.then(runCurrent);
   };
   // A stack layout drawn while the pack was missing (Back/Forward to another seed, a band change while a card was open) is
   // replaced once the pack lands. Only while filter and band are unchanged.
@@ -2390,8 +2411,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const band = bandFor(document.documentElement.clientWidth);
     return geometry?.diagnostics?.source === "stack" && Boolean(band && packedEntries.get(packKey(band, filter)));
   };
-  const geometryRequest = (targetFilter) => {
-    const layoutViewportWidth = document.documentElement.clientWidth;
+  // `layoutViewportWidth`: the width measure already holds, so a card-set change reads no layout here.
+  const geometryRequest = (targetFilter, layoutViewportWidth = document.documentElement.clientWidth) => {
     if (isSearchKey(targetFilter)) {
       const order = targetFilter === search?.key ? search.order : [];
       return {
@@ -2400,8 +2421,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       };
     }
     const band = bandFor(layoutViewportWidth);
-    const wait = band && layoutPending(targetFilter);
-    void warmPacks();
+    const wait = band && layoutPending(targetFilter, { width: layoutViewportWidth });
+    // Warming reads the viewport width; started in its own task, it does not force a layout after the click task's DOM writes.
+    setTimeout(warmPacks);
     const entries = band && !wait ? packedEntries.get(packKey(band, targetFilter)) : null;
     const compile = () => {
       const layout = entries && replayLayout({ entries, cards, layoutViewportWidth, filter: targetFilter, settings });
@@ -2429,8 +2451,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (geometries.size >= GEOMETRY_CACHE_LIMIT) geometries.delete(geometries.keys().next().value);
     geometries.set(key, layout);
   };
-  const geometryFor = (targetFilter) => {
-    const { key, compile } = geometryRequest(targetFilter);
+  const geometryFor = (targetFilter, width) => {
+    const { key, compile } = geometryRequest(targetFilter, width);
     let layout = geometries.get(key);
     if (layout) {
       geometries.delete(key);
@@ -2533,18 +2555,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     restoreCanonicalDomOrder();
   };
   // A card resizes in step with its position: the card's child scales from the old size around the card's top-left corner, so a growing
-  // card does not cover the neighboring item mid-slide (owner 10/10). Masonry owns `transform`, so the scale sits on the child.
+  // card does not cover the neighboring item mid-slide (owner 10/10). The slide owns `transform`, so the scale sits on the child.
   const morphSize = (node, from) => {
     const sx = from.w / node.offsetWidth;
     const sy = from.h / node.offsetHeight;
     if (Math.abs(sx - 1) <= 0.01 && Math.abs(sy - 1) <= 0.01) return;
     for (const child of node.children) {
       const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
-      child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: DUR.card, easing: "ease" });
+      gridHost.track(child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { id: SIZE_ID, duration: DUR.card, easing: "ease" }));
     }
   };
-  // Position is precomputed; Masonry only needs to run the motion. Instant layout skips it so it does not re-measure every card
-  // (getSize) in the scroll frame and the Back task (decision phone-frame-budget). Write left/top like Masonry: the grid has no padding.
+  // Position is precomputed; a motion pass only slides cards (host layoutMotion). Instant layout writes left/top here and skips
+  // the pass in the scroll frame and the Back task (decision phone-frame-budget).
   const placeRendered = () => {
     for (const [id, node] of gridHost.rendered) {
       const position = gridHost.positions.get(id);
@@ -2555,21 +2577,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (node.style.top !== top) node.style.top = top;
     }
   };
-  // Remaining time of the transform transition (Masonry) and of the running scale pass on the card.
-  const remainingMotion = () => {
-    let remaining = 0;
-    gridHost.masonry?.items.forEach((item) => {
-      const animations = [
-        ...item.element.getAnimations().filter((animation) => animation.transitionProperty === "transform"),
-        ...[...item.element.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
-      ];
-      for (const animation of animations) {
-        if (animation.playState !== "running") continue;
-        remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
-      }
-    });
-    return remaining;
-  };
   const settleMotion = () => {
     gridHost.motionTimer = 0;
     if (performance.now() < motionUntil) {
@@ -2578,7 +2585,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Rasterizing a new region after a long scroll holds the frame, so the transition starts 400ms late relative to schedule; cutting in then makes the card
     // stand still then jump straight to the new place (masonry R6). Wait for the remainder; a hidden tab runs no frames so place it directly.
-    const remaining = document.hidden ? 0 : remainingMotion();
+    const remaining = document.hidden ? 0 : gridHost.remainingMotion();
     if (remaining > 0) {
       motionUntil = performance.now() + remaining;
       gridHost.motionTimer = setTimeout(settleMotion, remaining);
@@ -2595,6 +2602,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     placeRendered();
   };
   const cancelMotion = () => {
+    // A slide frame cancelled before it built the CTA batch builds it now, in place.
+    if (ctaPending) {
+      ctaPending = false;
+      renderCtaSkeleton();
+    }
     // No motion running: settleMotion already cancelled the transition and cleaned up the cohort; re-walking every card would only cost the open-detail task.
     if (!gridHost.motionFrame && !gridHost.motionTimer && !motionUntil && !pendingScroll) return;
     gridHost.stopMotion();
@@ -3536,8 +3548,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
+    // A card-set change builds the CTA batch (15-115ms on a slow CPU) in its own task right after the click task, not inside it, nor
+    // in the slide frame that already renders the new grid: each stays under the 50ms long-task line on the A04s (masonry-live-layout
+    // R7). The slide frame waits for that task (at most two frames, then builds it itself), so the batch slides with the cards.
+    const ctaSlide = animate && hasLaidOut && !reduced;
+    ctaPending = false;
     if (ctaDeferred) gridHost.pixelHeight = geometry.totalPixelHeight;
-    else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    else if (ctaSlide) {
+      ctaPending = true;
+      setTimeout(flushCta);
+    } else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: false });
     // The grid changing height makes the browser clamp the scroll (at page bottom); cards must start from where they are visible on
     // screen, otherwise they fly off by exactly the clamp amount then snap back (measured on PC, round 26).
     if (origins?.gridTop !== undefined) {
@@ -3559,12 +3579,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       || [...currentKeep, ...gridHost.ghosts.ids()].some((id) => !normalKeep.has(id));
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
-    if (hasLaidOut && !membershipChanged && !geometryChanged) return;
+    if (hasLaidOut && !membershipChanged && !geometryChanged) return flushCta();
     // Same geometry and no motion means coordinates are already in positions from last time: do not rebuild the 285-card map every scroll frame.
     const samePositions = hasLaidOut && !geometryChanged && !animate && positionsGeometry === geometry;
     const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
     const hasCoordinateDiff = samePositions ? false : coordinateChanged(nextPositions);
-    if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return;
+    if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return flushCta();
     const shouldAnimate = animate && (membershipChanged || hasCoordinateDiff || !hasLaidOut);
     const retainCohort = shouldAnimate && !reduced;
     const keep = retainCohort ? new Set([...currentKeep, ...normalKeep]) : normalKeep;
@@ -3578,10 +3598,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       gridHost.ghosts.clear();
       gridHost.detached.clear();
     }
+    const meetsViewport = (placement) => placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop;
     if (firstBuild) {
       // The rest of the window shows temp cards and mounts within the frame budget after the entry slide (mountGhosts).
-      allowed = new Set(visiblePlacements.filter((placement) => placement.index < 8
-        || (placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop)).map((placement) => placement.card.id));
+      allowed = new Set(visiblePlacements.filter((placement) => placement.index < 8 || meetsViewport(placement)).map((placement) => placement.card.id));
+    } else if (shouldAnimate) {
+      // A card-set change, reduced motion included, builds only the new cards meeting the viewport; cards already built pass anyway and
+      // slide. The rest of the build zone holds temp cards at their targets, built within the frame budget after the slide, or at once
+      // without one (advertising-masonry R7, masonry-live-layout R7).
+      allowed = new Set(visiblePlacements.filter((placement) => meetsViewport(placement) || retainedPhotoIds.has(placement.card.id))
+        .map((placement) => placement.card.id));
     } else if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);
@@ -3621,9 +3647,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       else if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
       else renderWindow({ scrolling: true });
     };
-    for (const [node, { card: { id }, x }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
+    for (const [node, { card: { id }, x, y }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
       created.add(id);
-      const origin = origins?.get(id) || (shouldAnimate && !reduced ? { x, y: 0 } : null);
+      // The first build slides in from the column top. Later, a card new to the set is built at its target, its 4-color wait layer
+      // showing at once and its media revealing as usual (masonry-live-layout R7, plan Q9 case 2), so it never flies across the sliding cards.
+      const enters = shouldAnimate && !reduced && !origins?.has(id) && hasLaidOut;
+      const origin = origins?.get(id) || (enters ? { x, y } : shouldAnimate && !reduced ? { x, y: 0 } : null);
+      node.masonryEnter = enters;
       if (origin) {
         node.style.left = `${origin.x}px`;
         node.style.top = `${origin.y}px`;
@@ -3647,8 +3677,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       restoreCanonicalDomOrder();
       domOrderDirty = false;
     }
-    // The first build does not force style and layout here: the seeded start positions render in their own frame before the slide (below).
-    if (seeded.size && !firstBuild) void grid.offsetHeight;
     grid.style.height = `${gridHost.pixelHeight}px`;
     const applyLayout = () => {
       if (!shouldAnimate || reduced) placeRendered();
@@ -3678,20 +3706,28 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         }
       }
     };
-    if (seeded.size && animate && !reduced) {
+    // A pending CTA batch (card-set change) also slides in the next frame, so a change that builds no new card (search results
+    // already on screen) keeps the CTA and the slide out of its own task.
+    if ((seeded.size || ctaPending) && animate && !reduced) {
+      // The CTA task has not run yet (a slow click task let the frame come first): wait one frame, the cards already stand at their
+      // visible origins, so the slide frame never also carries the CTA build.
+      let waits = 0;
       const slide = () => {
+        if (ctaPending && waits++ < 2) {
+          gridHost.motionFrame = requestAnimationFrame(slide);
+          return;
+        }
         gridHost.motionFrame = 0;
+        flushCta();
         applyLayout();
       };
-      // The first build lets one frame paint the cards at their start positions, so the slide starts from them without forcing style and layout
-      // inside the build task (A04s: 30ms of a 95-157ms task). Later passes force it and slide in the next frame as before.
+      // The slide reads its start from the seeded inline left/top (FLIP, masonry-live-layout R7), so no pass forces style and layout here.
+      // The first build lets one frame paint the cards at their start positions (A04s: 30ms of a 95-157ms task); later passes slide in the next frame.
       if (firstBuild) gridHost.motionFrame = requestAnimationFrame(() => { gridHost.motionFrame = requestAnimationFrame(slide); });
-      else {
-        void grid.offsetHeight;
-        gridHost.motionFrame = requestAnimationFrame(slide);
-      }
+      else gridHost.motionFrame = requestAnimationFrame(slide);
       return;
     }
+    flushCta();
     applyLayout();
   };
 
@@ -3712,19 +3748,27 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     window.lazySizes?.loader?.checkElems?.();
   };
 
-  const measure = ({ animate = false, origins } = {}) => {
-    const layoutViewportWidth = document.documentElement.clientWidth;
+  // `sameWidth`: a card-set change (filter, search) does not change widths, so it reuses the last measured ones instead of reading
+  // clientWidth after its own DOM writes (a forced layout of the whole page inside the click task, masonry-live-layout R7). A resize
+  // still measures through the resize handler.
+  const measure = ({ animate = false, origins, sameWidth = false } = {}) => {
+    // A resize since the last measure (a rotation while a card is open, grid width 0) measures again.
+    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth && !resizedSinceMeasure;
+    const layoutViewportWidth = cached ? lastLayoutViewportWidth : document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
     const projectIndex = grid.closest(".masonry-section");
-    projectIndex?.style.setProperty("--masonry-outer", `${outer}px`);
-    projectIndex?.style.setProperty("--masonry-gap", `${interCardGap}px`);
-    grid.style.setProperty("--masonry-gap", `${interCardGap}px`);
-    const gridWidth = grid.clientWidth;
+    setStyleVar(projectIndex, "--masonry-outer", `${outer}px`);
+    setStyleVar(projectIndex, "--masonry-gap", `${interCardGap}px`);
+    setStyleVar(grid, "--masonry-gap", `${interCardGap}px`);
+    const gridWidth = cached ? lastMeasuredGridWidth : grid.clientWidth;
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
-    geometry = geometryFor(gridKey());
+    resizedSinceMeasure = false;
+    // Layout is already fresh on an uncached measure, so this read is free; the cached (click) path skips it.
+    if (!cached) measuredInnerWidth = innerWidth;
+    geometry = geometryFor(gridKey(), layoutViewportWidth);
     renderWindow({ animate, origins });
   };
 
@@ -3744,7 +3788,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const leftSearch = search;
     apply();
     if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left"));
-    const origins = animate ? cachedCoordinates(gridKey(), visualOrigins) : undefined;
+    const origins = animate ? cachedCoordinates(visualOrigins) : undefined;
     cancelMotion();
     clearCtaSkeleton();
     resetSkeletonRevealState();
@@ -3752,7 +3796,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonRatioBandBySlot.clear();
     syncRail({ animate });
     syncPageHeading();
-    measure({ animate, origins });
+    measure({ animate, origins, sameWidth: true });
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
   const setActiveFilter = (nextFilter, options) => {
@@ -3959,8 +4003,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const clearRelatedCards = () => {
     cancelRelatedMotion();
-    relatedHost.masonry?.destroy();
-    relatedHost.masonry = null;
     relatedHost.rendered.forEach((node) => {
       releaseMediaCard(node);
       node.remove();
@@ -4037,7 +4079,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return [id, { x: position.left - rect.left, y: position.top - rect.top, w: position.width, h: position.height }];
       }));
   };
-  // Cards going around the primary run Web Animations on `translate`, separate from Masonry's `transform` (advertising-cta-center-parallax R10).
+  // Cards going around the primary run Web Animations on `translate`, separate from the slide's `transform` (advertising-cta-center-parallax R10).
   // Kept in a set: scanning getAnimations() forces a style update, which on the first build task is a full-page recalc.
   const relatedDetours = new Set();
   const cancelRelatedDetours = () => {
@@ -4167,7 +4209,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
-    // Without motion the position was already written above; drop Masonry like placeRendered, because layout() re-measures every card (getSize)
+    // Without motion the position was already written above; skip the motion pass like placeRendered: Masonry used to re-measure every card (getSize)
     // during related scrolling, a long task on an Android phone (decision phone-frame-budget).
     if (!motion) {
       relatedGrid.style.height = `${relatedHost.pixelHeight}px`;
@@ -5478,28 +5520,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setPending,
     setResults,
   };
-  const cachedCoordinates = (targetFilter, visualOrigins) => {
-    const targetGeometry = geometryFor(targetFilter);
+  // Start points of a card-set change: where each shown card stands now. A card new to the set has none, so it is built at its
+  // target and fades in (masonry-live-layout R7).
+  const cachedCoordinates = (visualOrigins) => {
     const origins = new Map();
-    const visualSlots = [...gridHost.rendered.entries()]
-      .filter(([, node]) => !node.hidden)
-      .map(([id]) => visualOrigins?.get(id) || gridHost.positions.get(id))
-      .filter(Boolean)
-      .sort((left, right) => left.y - right.y || left.x - right.x);
     for (const [id, node] of gridHost.rendered) {
       const position = visualOrigins?.get(id) || gridHost.positions.get(id);
       if (!node.hidden && position) origins.set(id, position);
     }
-    targetGeometry.placements.forEach((placement, index) => {
-      if (origins.has(placement.card.id) || !visualSlots.length) return;
-      for (let offset = 0; offset < visualSlots.length; offset += 1) {
-        const origin = visualSlots[(index + offset) % visualSlots.length];
-        if (origin.x !== placement.x || origin.y !== placement.y) {
-          origins.set(placement.card.id, origin);
-          return;
-        }
-      }
-    });
     return origins;
   };
   const scheduleScroll = () => {
@@ -5686,7 +5714,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     whenLayoutReady(nextFilter, () => {
       browseHistory.replaceCategory(nextFilter);
       setActiveFilter(nextFilter, { animate: true });
-    }, control);
+    }, control, { defer: true });
   };
   filters.addEventListener("click", onRailClick, { signal: controller.signal });
   chipGroups.forEach((group) => group.addEventListener("click", onRailClick, { signal: controller.signal }));
@@ -6017,7 +6045,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     mediaObserver.disconnect();
     wholeObserver.disconnect();
     clearTimeout(neighborTimer);
-    gridHost.masonry?.destroy();
+    gridHost.cancelTransitions();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
     gridHost.cancelGhosts();
     relatedHost.cancelGhosts();

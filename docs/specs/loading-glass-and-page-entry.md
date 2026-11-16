@@ -92,7 +92,7 @@ thì gắn lại đúng node cũ: ảnh còn giải mã nên không trống fram
 cache vẫn phải giải mã nên khung được trống lúc giải mã (một tới ba frame) rồi hiện thẳng opacity cuối. Ảnh không về trong `150ms`
 (`REMOUNT_CACHE_WAIT_MS`: cache tắt hoặc bị xóa nên phải tải lại) thì chờ như R1 và lộ qua R2, không để
 khung trắng tới khi tải xong. Áp cho masonry chính và masonry related;
-primary theo R4. Card thay chỗ một card tạm của lượt vuốt nhanh theo [R10](#r10-card-tạm-khi-vuốt-nhanh).
+primary theo R4. Card thay chỗ một card tạm của lượt vuốt nhanh theo [R10](#r10-card-tạm-khi-vuốt-nhanh). Ngoại lệ: card mới vào bộ lúc đổi filter hay tìm kiếm, dựng tại đích khi card khác trượt, thì media đã có cũng hiện dần ([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)).
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt

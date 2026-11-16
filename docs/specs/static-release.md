@@ -23,7 +23,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Phát hành tĩnh
@@ -31,7 +31,7 @@ updated: 2026-11-12
 ## Mục đích
 
 Biến `src/site/` thành `.site-output/` tĩnh VI/EN, phục vụ local preview cổng 8787 và đẩy cùng output lên demo
-Cloudflare khi CI xanh trên `main`. Không cần D1, R2, Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó;
+Cloudflare khi CI xanh trên `main`. Không cần D1, Access hay CMS secret; `/api/*` theo [tìm kiếm](advertising-search.md). Hành vi từng trang thuộc spec của capability đó;
 spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker nằm ngoài.
 
 ## Hành vi
@@ -85,7 +85,7 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 
 ### R4. Font và thư viện tự host
 
-Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
+Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: lazysizes 5.3.2, GSAP, SplitText
 3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file, bỏ `:root`, `:host`, `@keyframes`
 preloader vì chèn lúc cuộn làm style recalc toàn document), hls.js 1.7.3 (bản light, trang Advertising nạp cùng lúc tải
 artifact khi trình duyệt có Media Source, [video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
@@ -196,8 +196,8 @@ And không bước nào gọi Wrangler hoặc deploy
 
 ### R11. Phát hành demo Cloudflare
 
-`wrangler.static.toml`: Worker chỉ có asset `truong-thinh-demo`, `workers_dev`, `[assets] directory = ".site-output"`,
-`not_found_handling = "404-page"`, không `main`, không binding. Path không có file trả 404 kèm `404.html` gần nhất:
+`wrangler.static.toml`: Worker `truong-thinh-demo` có asset và script chỉ cho `/api/*`, `workers_dev`, `[assets] directory = ".site-output"`,
+`not_found_handling = "404-page"`, `main` và binding theo [decision tìm kiếm](../decisions/advertising-search-worker.md). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
 `pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
