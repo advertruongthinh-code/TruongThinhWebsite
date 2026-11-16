@@ -106,6 +106,40 @@ function assertGrid(dom, cards, label, { stacked = false } = {}) {
   return layout;
 }
 
+// R7 (4a): the chip build task creates only the new cards that meet the viewport; the rest of the build zone holds temp cards at their
+// targets, none of them on screen in the first frame after the task, and they become real cards at the same place after the slide with the
+// page still (no scroll to trigger a pass). Arm before the click, await after it.
+async function checkChipBuild(page) {
+  const { added: built, off, ghosts, ghostsOnScreen } = await page.evaluate(() => new Promise((resolve) => {
+    const grid = document.querySelector("[data-project-grid]");
+    const before = new Set([...grid.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard));
+    const onScreen = (node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    };
+    new MutationObserver((records, observer) => {
+      const added = records.flatMap((record) => [...record.addedNodes]).filter((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard));
+      if (!added.length) return;
+      observer.disconnect();
+      const off = added.filter((node) => !onScreen(node)).map((node) => node.dataset.masonryCard);
+      const ghostNodes = [...grid.querySelectorAll(".masonry-ghost")];
+      const ghosts = ghostNodes.map((node) => [node.dataset.masonryGhost, node.style.left, node.style.top]);
+      requestAnimationFrame(() => resolve({ added: added.length, off, ghosts,
+        ghostsOnScreen: ghostNodes.filter((node) => node.isConnected && onScreen(node)).map((node) => node.dataset.masonryGhost) }));
+    }).observe(grid, { childList: true });
+  }));
+  assert.deepEqual(off, [], `the chip build task creates only cards meeting the viewport (${built} built, off screen: ${off.join(", ")})`);
+  assert.ok(ghosts.length > 0, "the rest of the build zone holds temp cards");
+  assert.deepEqual(ghostsOnScreen, [], "no temp card meets the viewport in the first frame after the chip build task");
+  await page.waitForTimeout(1400);
+  const late = await page.evaluate((list) => list.map(([id, left, top]) => {
+    const node = document.querySelector(`[data-masonry-card="${id}"]`);
+    return { id, built: Boolean(node && !node.hidden), same: Boolean(node) && node.style.left === left && node.style.top === top,
+      slides: Boolean(node?.getAnimations().some((animation) => animation.id === "masonry-slide")) };
+  }), ghosts);
+  for (const card of late) assert.ok(card.built && card.same && !card.slides, `temp card becomes a real card in place within 1 s of the slide: ${JSON.stringify(card)}`);
+}
+
 try {
   // 1. Geometry from the DOM passes the same check as the build, on both grids and at every band.
   for (const url of [ADVERTISING, PROJECTS]) {
@@ -566,12 +600,24 @@ try {
       new MutationObserver(() => { seen ||= chip.getAttribute("aria-busy") === "true"; }).observe(chip, { attributes: true, attributeFilter: ["aria-busy"] });
       setTimeout(() => resolve(seen), 1500);
     }));
+    const chipBuild = checkChipBuild(page);
     await page.locator('[data-masonry-filter="signage"]').first().click();
     assert.equal(await busy, false, "phone chip click found its pack ready (idle warm)");
+    await chipBuild;
     await settled(page);
     const added = await entersAtTarget(page, "all");
     await page.close();
     console.log(`PASS phone idle warm and new cards at target (${added.length} entering)`);
+  }
+  {
+    const { page } = await open(ADVERTISING, 1440);
+    await settled(page);
+    await page.waitForTimeout(3000);
+    const chipBuild = checkChipBuild(page);
+    await page.locator('[data-masonry-filter="signage"]').first().click();
+    await chipBuild;
+    await page.close();
+    console.log("PASS desktop chip build meets the viewport only");
   }
   console.log("masonry live layout e2e: ok");
 } finally {

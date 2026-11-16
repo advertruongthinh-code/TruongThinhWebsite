@@ -3598,10 +3598,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       gridHost.ghosts.clear();
       gridHost.detached.clear();
     }
+    const meetsViewport = (placement) => placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop;
     if (firstBuild) {
       // The rest of the window shows temp cards and mounts within the frame budget after the entry slide (mountGhosts).
-      allowed = new Set(visiblePlacements.filter((placement) => placement.index < 8
-        || (placement.y < visibleBottom && placement.y + placement.pixelHeight > scrollTop)).map((placement) => placement.card.id));
+      allowed = new Set(visiblePlacements.filter((placement) => placement.index < 8 || meetsViewport(placement)).map((placement) => placement.card.id));
+    } else if (shouldAnimate && !reduced) {
+      // A card-set change builds only the new cards meeting the viewport; cards already built pass anyway and slide. The rest of the build
+      // zone holds temp cards at their targets, built within the frame budget after the slide (advertising-masonry R7, masonry-live-layout R7).
+      allowed = new Set(visiblePlacements.filter((placement) => meetsViewport(placement) || retainedPhotoIds.has(placement.card.id))
+        .map((placement) => placement.card.id));
     } else if (!animate && hasLaidOut) {
       const center = scrollTop + viewportHeight / 2;
       const distance = (placement) => Math.abs(placement.y + placement.pixelHeight / 2 - center);

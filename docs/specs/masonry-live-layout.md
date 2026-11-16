@@ -145,13 +145,13 @@ Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, 
 Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn thư viện Masonry 4.2.2: lượt chuyển của lưới chính và related
 (`layoutMotion` trong `host.mjs`) ghi ngay `left`, `top` đích cho mọi card rồi mới cho card trượt từ chỗ cũ về đích bằng Web
 Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
-card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới vào bộ dựng ngay tại đích, không bay
+card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới giao vùng nhìn thấy dựng ngay tại đích, không bay
 ngang qua card đang trượt: media chưa có thì lớp chờ hiện đủ ngay (4 màu trên điện thoại, kính mờ trên PC) rồi media hiện dần như
 mọi card; media đã có trong hàng tải cũng hiện dần trên màu nền của card như card thay khung tạm (`GHOST_FADE_MS`), khung card không mờ ([ngoại lệ của loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)). Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
 Đổi bộ card chia thành task ngắn để không task nào quá 50 ms trên A04s. Bấm chip chỉ nhận lượt bấm; card dựng ở task kế (hoặc
 khi bản xếp về, R4; bấm chip khác trước đó thì lượt trước bị bỏ); `setResults`, `clearResults` dựng ngay trong task gọi. Task dựng
-tạo card mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa
+tạo card mới giao vùng nhìn thấy (card mới còn lại là card tạm 4 màu tại đích, thành card thật đúng chỗ đó theo ngân sách frame sau cú trượt, không trượt; [advertising-masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)) và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa
 sổ ảo); task kế dựng cụm CTA và skeleton; khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Card lệch đích
 dưới nửa pixel không trượt. Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở khung sau.
 Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).
@@ -197,12 +197,12 @@ Then mỗi card mới vào bộ đứng ngay tại đích, không trượt, lớ
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
 | R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip và `clearResults` rời tìm kiếm; gọi trước khi dựng) |
-| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt và hai lần đổi thứ tự kết quả tìm kiếm cách 40 ms; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px; hai lần bấm chip trong một task: chỉ lượt sau dựng); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
+| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt và hai lần đổi thứ tự kết quả tìm kiếm cách 40 ms; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px; hai lần bấm chip trong một task: chỉ lượt sau dựng; bấm chip chưa ghé ở 384px: task dựng chỉ tạo card giao vùng nhìn thấy, card mới còn lại là card tạm tại đích rồi thành card thật cùng chỗ, không trượt, không cần cuộn, trong 1 s sau cú trượt); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
 
 ## Gate còn mở
 
 - Đo A04s ở 384px với bản xếp sẵn so với main d33ae601 (reviewer mục 3). Thread masonry.
-- Trace A04s R7: bấm chip, `setResults`, `clearResults` không task nào trên 50 ms, trừ task dựng CTA (PR 5), `settleMotion` và task dựng lần bấm chip đầu (PR 4) (reviewer PR 2, PR 3). Thread masonry.
+- Trace A04s R7: bấm chip, `setResults`, `clearResults` không task nào trên 50 ms, trừ task dựng CTA (PR 5) và `settleMotion` (PR 4b) (reviewer PR 2, PR 3). Thread masonry.
 
 ## Chú thích thuật ngữ
 
