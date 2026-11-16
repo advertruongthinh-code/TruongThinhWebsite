@@ -1663,27 +1663,22 @@ async function runPortalAlignmentChecks() {
               ...document.querySelectorAll("#nang-luc .service-portal"),
             ].map((card) => {
               const cardRect = card.getBoundingClientRect();
-              const title = card.querySelector(".portal-title-mask");
-              const subtitle = card.querySelector(".portal-subtitle");
-              const titleRect = title.getBoundingClientRect();
-              const subtitleRect = subtitle.getBoundingClientRect();
-              const titleStyle = getComputedStyle(title);
-              const subtitleStyle = getComputedStyle(subtitle);
+              const copy = card.querySelector(".commitment-copy");
+              const copyRect = copy.getBoundingClientRect();
+              const lines = [...card.querySelectorAll(".commitment-lead .portal-line")];
+              const lineWidth = Math.max(...lines.map((line) => {
+                const range = document.createRange();
+                range.selectNodeContents(line);
+                return range.getBoundingClientRect().width;
+              }));
+              const copyStyle = getComputedStyle(copy);
               return {
-                title: card.querySelector(".portal-line")?.textContent.trim(),
-                titleFontSize: Number.parseFloat(titleStyle.fontSize),
-                subtitleFontSize: Number.parseFloat(subtitleStyle.fontSize),
-                titleOverflow: title.scrollWidth - title.clientWidth,
-                subtitleOverflow: subtitle.scrollWidth - subtitle.clientWidth,
-                titleWhiteSpace: titleStyle.whiteSpace,
-                subtitleWhiteSpace: subtitleStyle.whiteSpace,
-                titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
-                subtitleWithin: subtitleRect.left >= cardRect.left + 8 && subtitleRect.right <= cardRect.right - 8,
-                titleCenterOffset:
-                  titleRect.top +
-                  titleRect.height / 2 -
-                  (cardRect.top + cardRect.height / 2),
-                gap: subtitleRect.top - titleRect.bottom,
+                title: card.querySelector(".commitment-title")?.textContent.replace(/\s+/g, " ").trim(),
+                leadLines: lines.length,
+                hasBody: Boolean(card.querySelector(".commitment-body .portal-subtitle")?.textContent.trim()),
+                leadFits: lineWidth <= cardRect.width - Number.parseFloat(copyStyle.paddingLeft) - Number.parseFloat(copyStyle.paddingRight) + 0.5,
+                bottomAnchored: Math.abs(cardRect.bottom - copyRect.bottom) <= 1 && copyStyle.textAlign === "left",
+                textShadow: copyStyle.textShadow !== "none",
               };
             }),
             advertisingImage: (() => {
@@ -1721,18 +1716,12 @@ async function runPortalAlignmentChecks() {
               serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
               serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
             };
-            if (document.querySelector("#nang-luc")) {
-              roles.capabilityTitles = read("#nang-luc .portal-title-mask");
-              roles.capabilitySubtitles = read("#nang-luc .portal-subtitle");
-            }
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
             if (role === "serviceKickers" && samples.length === 0) continue;
-            const expectedCount = role.startsWith("capability") ? 4 : 3;
-            const wraps = role === "capabilitySubtitles";
             assert(
-              samples.length === expectedCount && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && (wraps || whiteSpace === "nowrap") && within),
+              samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
               `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
             );
             const sizes = samples.map(({ fontSize }) => fontSize);
@@ -1749,10 +1738,8 @@ async function runPortalAlignmentChecks() {
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
-            state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
-              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "normal"
-              && card.titleWithin && card.subtitleWithin),
-            `Commitment portal text clips at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+            state.capabilityCards.every((card) => card.leadLines === 2 && card.leadFits && card.hasBody && card.bottomAnchored && card.textShadow),
+            `Commitment card text drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
@@ -1771,15 +1758,7 @@ async function runPortalAlignmentChecks() {
               (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
             `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
-          assert(
-            state.capabilityCards.length === 4 &&
-              state.capabilityCards.every(
-                (card) =>
-                  Math.abs(card.titleCenterOffset) <= 1 &&
-                  Math.abs(card.gap - 17.6) <= 0.25,
-              ),
-            `Capability portal title anchor or gap drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
-          );
+          assert(state.capabilityCards.length === 4, `Expected 4 commitment cards at ${locale}`);
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&

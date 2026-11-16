@@ -5,7 +5,7 @@ Nguồn: CSS `.service-portals`, `.service-portal`, `.portal-copy`; spec [trang 
 Ba card ảnh dẫn sang một lĩnh vực hoặc loại hình: trang chủ (ba lĩnh vực), Residential (Nhà phố, Căn hộ,
 Homestay), Commercial (loại hình kinh doanh). Markup `section.portal-stage` > `div.service-portals` >
 `article.service-portal`; preview lấy từ Residential, mẫu chuẩn owner chọn (2026-10-17). Biến thể
-`service-portals--four`: bốn cam kết trang chủ (Tư vấn, Sản xuất, Chất lượng, Hậu mãi), không link, phụ đề tối đa hai dòng.
+`service-portals--four`: bốn cam kết trang chủ (Tư vấn, Sản xuất, Chất lượng, Hậu mãi), không link. Chữ góc dưới trái trong `.commitment-copy`: `.commitment-title` nhãn nhỏ in hoa, `.commitment-lead` hai `.portal-line` (mask reveal dùng chung), `.commitment-body` (`.portal-subtitle`, hiện sau); nền dưới đậm dần.
 
 ## Hình học
 
@@ -13,7 +13,7 @@ Homestay), Commercial (loại hình kinh doanh). Markup `section.portal-stage` >
 | --- | --- | --- |
 | 1440 | `410 × 600` | ba cột, gap 70px, rộng tối đa 1570px, đệm ngang 35px |
 | 390 | `360 × 400` | một cột |
-| Bốn cam kết | 1440: bốn cột; tới 980px hai cột cao 34rem; tới 578px một cột cao 400px | cùng gap, đệm |
+| Bốn cam kết | 1440: bốn cột; tới 1200px hai cột cao 34rem; tới 578px một cột cao 400px | cùng gap, đệm |
 
 ## Chữ
 

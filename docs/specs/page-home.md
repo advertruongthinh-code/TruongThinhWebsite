@@ -49,7 +49,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | News | `.home-news` | 3 bài News mới nhất theo trang chủ Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)), build chèn vào `<!-- home-news -->` | Trang từng bài | ink |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
-| 4 | `#nang-luc` | Bốn cam kết (owner 2026-11-16), bốn `article.service-portal` không link, ảnh và chữ: Tư vấn, Sản xuất, Chất lượng, Hậu mãi (EN Consultation, Production, Quality, Aftercare); phụ đề là câu cam kết ngắn, tối đa hai dòng | Không | ink |
+| 4 | `#nang-luc` | Bốn cam kết (owner 2026-11-16), bốn `article.service-portal` không link, chữ góc dưới trái: tiêu đề Tư vấn, Sản xuất, Chất lượng, Hậu mãi (EN Consultation, Production, Quality, Aftercare), phụ đề hai dòng, nội dung; không số thứ tự | Không | ink |
 | 5 | `.blk-projects` | Dải công trình dùng chung (R8): card link sang trang công trình, dòng "Xem tất cả công trình" | Có | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
@@ -118,15 +118,15 @@ Then scroll cue có is-hidden và tabindex="-1"
 
 Portal dịch vụ có kicker, tiêu đề, phụ đề; portal năng lực có tiêu đề, phụ đề; tiêu đề nằm giữa card
 theo chiều dọc. Cỡ chữ theo bề rộng card (container query) nên ba portal cùng nhóm cùng cỡ cho từng vai
-trò. Toàn site chung token chữ portal: `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal cam kết cùng token; tiêu đề một dòng, phụ đề cam kết được xuống tối đa hai dòng cân bằng. Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
+trò. Toàn site chung token chữ portal: `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal cam kết theo ảnh mẫu owner 2026-11-16: chữ góc dưới trái, tiêu đề nhãn nhỏ in hoa, phụ đề lớn đúng hai dòng soạn sẵn không tự xuống dòng (không tách từ ghép), nội dung tối đa 34ch; nền dưới đậm dần tới đen 0.72. Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
 không ép bằng `scaleX` hay `textLength`. Layout ba cột cao 600px; tới 980px một cột cao `72svh`; tới
-680px cao 400px. Cam kết trang chủ bốn cột, tới 980px hai cột cao 34rem, tới 578px một cột cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
+680px cao 400px. Cam kết trang chủ bốn cột, tới 1200px hai cột cao 34rem, tới 578px một cột cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
 hoặc focus portal dịch vụ gạch chân phụ đề.
 
 ```gherkin
 Given /en/ ở 320px, cỡ chữ gốc 200%
-When đo bảy portal sau khi font tải xong
-Then kicker, tiêu đề, phụ đề mỗi cái một dòng (phụ đề cam kết tối đa hai dòng), nằm trong card cách mép ít nhất 8px
+When đo các portal sau khi font tải xong
+Then kicker, tiêu đề, phụ đề mỗi cái một dòng (cam kết: phụ đề hai dòng vừa card, chữ đáy trái), nằm trong card cách mép ít nhất 8px
 And các portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tràn ngang
 ```
 
