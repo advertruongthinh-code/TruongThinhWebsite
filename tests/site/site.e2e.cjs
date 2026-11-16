@@ -4981,14 +4981,15 @@ async function runAdvertisingFilterCheck() {
       await armMorphSamples(page, { delays: [180], id: nextId });
       await page.locator(`[data-masonry-filter="${nextSlug}"]`).click();
       const [categoryDuring] = await readMorphSamples(page);
-      assert(
-        categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          categoryDuring.transform && categoryDuring.transform !== "none",
-        `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
-      );
       await page.waitForTimeout(450);
-      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug, fromMotion: true });
+      // A card new to the set is built at its target and does not slide across the sliding cards (masonry-live-layout R7, plan Q9 case 2).
+      const categorySettled = await page.locator(`[data-masonry-card="${nextId}"]`).evaluate((node) => ({ left: node.style.left, top: node.style.top }));
+      assert(
+        categoryDuring.transform === "none" && `${categoryDuring.left}px` === categorySettled.left && `${categoryDuring.top}px` === categorySettled.top &&
+          Math.hypot(categoryDuring.visualLeft - categoryDuring.left, categoryDuring.visualTop - categoryDuring.top) <= 1,
+        `A card new to the category was not built at its target: ${JSON.stringify({ categoryOriginMounted, categoryDuring, categorySettled })}`,
+      );
+      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug });
       await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForFunction(
         () =>
@@ -4996,25 +4997,16 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      const [reverseOrigin, reverseDuring, reverseSettled] = await readMorphSamples(page);
-      const reverseTravel = {
-        x: reverseSettled.left - reverseOrigin.visualLeft,
-        y: reverseSettled.top - reverseOrigin.visualTop,
-      };
-      const reverseTravelDistance = Math.hypot(reverseTravel.x, reverseTravel.y);
-      const reverseOriginToDestination = Math.hypot(reverseOrigin.visualLeft - reverseSettled.left, reverseOrigin.visualTop - reverseSettled.top);
-      const reverseDuringToDestination = Math.hypot(reverseDuring.visualLeft - reverseSettled.left, reverseDuring.visualTop - reverseSettled.top);
-      const reverseObservedTravel = Math.hypot(reverseDuring.visualLeft - reverseOrigin.visualLeft, reverseDuring.visualTop - reverseOrigin.visualTop);
+      // A tile outside the category is new to the All set: it is built at its target and stands still while shared tiles slide
+      // (masonry-live-layout R7, plan Q9 case 2).
+      const reverseSamples = await readMorphSamples(page);
+      const [reverseOrigin] = reverseSamples;
       assert(
-        reverseOrigin.id === reverseDuring.id &&
-          reverseDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          reverseDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          reverseDuring.transform && reverseDuring.transform !== "none" &&
-          reverseTravelDistance > 1 && reverseOriginToDestination > 2 && reverseObservedTravel > 2 &&
-          reverseDuringToDestination > 2 && reverseDuringToDestination < reverseOriginToDestination &&
-          Math.hypot(reverseSettled.visualLeft - reverseSettled.left, reverseSettled.visualTop - reverseSettled.top) <= 2 &&
-          (!reverseSettled.transform || reverseSettled.transform === "none"),
-        `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
+        reverseSamples.every((sample) => sample.id === reverseOrigin.id && sample.visualLeft !== null &&
+          (!sample.transform || sample.transform === "none") && sample.property === "none" &&
+          sample.left === reverseOrigin.left && sample.top === reverseOrigin.top &&
+          Math.hypot(sample.visualLeft - sample.left, sample.visualTop - sample.top) <= 1),
+        `Category-to-all unshared tile was not built at its target: ${JSON.stringify(reverseSamples)}`,
       );
       await page.waitForTimeout(450);
       const beforeResize = await page.locator("[data-project-grid] .masonry-card").evaluateAll((tiles) =>
@@ -5537,7 +5529,7 @@ async function runAdvertisingRapidFilterCheck() {
           });
         const blockRapidTransitionEnd = (event) => {
           if (event.propertyName === "transform" &&
-              event.target?.dataset?.masonryCategory === "mobile-retail") {
+              event.target?.dataset?.masonryCategory === "printing-decals") {
             event.stopImmediatePropagation();
           }
         };
@@ -5545,7 +5537,7 @@ async function runAdvertisingRapidFilterCheck() {
         grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
         const scrollBefore = window.scrollY;
         grid.closest('[data-barba-namespace="advertising-products"]')
-          ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
+          ?.querySelector('[data-masonry-filter="all"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
         // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
         const sliding = () => [...grid.querySelectorAll(".masonry-card")].some((tile) => tile.getAnimations().some((animation) => animation.id === "masonry-slide"));
@@ -5570,11 +5562,17 @@ async function runAdvertisingRapidFilterCheck() {
         );
         const gridDocumentTop = grid.getBoundingClientRect().top + window.scrollY;
         const futureCenter = Math.max(0, scrollTarget - gridDocumentTop) + innerHeight * 0.5;
-        // Inline top already holds each card's target (masonry-live-layout R7, FLIP).
+        // Inline top already holds each card's target (masonry-live-layout R7, FLIP). A card new to the set is built at its target
+        // without a slide (plan Q9 case 2), so go back to All and track a printing card that is still mid-slide and travels again.
+        const offset = (tile) => {
+          const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide");
+          const [dx = 0, dy = 0] = (slide?.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+          return Math.hypot(dx, dy);
+        };
         const tracked = [...grid.querySelectorAll(".masonry-card")]
-          .filter((tile) => !tile.hidden && tile.dataset.masonryCategory === "mobile-retail")
+          .filter((tile) => !tile.hidden && tile.dataset.masonryCategory === "printing-decals" && offset(tile) > 4)
           .sort((left, right) => Math.abs(Number.parseFloat(left.style.top) - futureCenter) - Math.abs(Number.parseFloat(right.style.top) - futureCenter))[0];
-        if (!tracked) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
+        if (!tracked) throw new Error("Rapid filter did not expose a travelling printing-decals item");
         // Keep tracking the card's slide: when motion ends it must be "finished", when cut off it is "idle".
         grid.__rapidMorph = tracked.getAnimations().find((animation) => animation.id === "masonry-slide");
         if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a slide on the tracked item");
