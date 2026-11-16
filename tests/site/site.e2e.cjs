@@ -5547,6 +5547,11 @@ async function runAdvertisingRapidFilterCheck() {
         grid.closest('[data-barba-namespace="advertising-products"]')
           ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
+        const sliding = () => [...grid.querySelectorAll(".masonry-card")].some((tile) => tile.getAnimations().some((animation) => animation.id === "masonry-slide"));
+        for (let frame = 0; frame < 4 && !sliding(); frame += 1) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
         // The runtime reads visible coordinates in the frame after the click, so a sliding card has moved one more frame (up to ~14px at peak
         // speed) relative to `before`; take another sample in this frame so the morph origin matches one of the two.
         const frameRect = grid.getBoundingClientRect();
