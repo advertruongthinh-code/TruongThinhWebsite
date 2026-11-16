@@ -1,0 +1,20 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-chat-luong-v5a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: style-consultation and style-workshop-wide-x2 are style references only (light, tonal depth, lens feel, colour grade). home-cam-ket-chat-luong-v4 shows the cabinet finish the owner wants: warm wood-grain laminate, flat slab doors, recessed aluminium pulls (no protruding handles). Do not copy any layout.
+
+THE CARD THIS PHOTO ILLUSTRATES (do not print any of it): "Quality. Care in every detail. Materials match the quotation. Doors, runners, hinges and edge banding are all checked carefully before we hand the space over." The viewer must read this story from the picture alone: a careful final inspection of a newly finished built-in panel kitchen or storage wall in a Vietnamese home, before handover.
+
+FURNITURE RULES: any exposed panel cut edge shows black-core HDF; panels with laminate faces and matching edge banding; flat slab doors and drawer fronts with recessed aluminium pulls (gola channel or routed edge pull), nothing protruding; concealed cup hinges; full-extension metal drawer runners.
+VARIANT A: a Trường Thịnh technician (only his hands, forearms and the back of his dark sleeve; no face) adjusts the concealed cup hinge of an open base cabinet door with a screwdriver, a careful final fine-tuning before handover; the neighbouring closed doors and drawer fronts show perfectly even, straight gaps and flush recessed pulls; a drawer below is slightly open on its metal runner.
+
+COMPOSITION FOR THE SLOT: subject in the upper and middle of the frame; the lower 40 percent of the frame (plinth, floor, lower cabinet faces) is calmer and darker, in soft shadow with nothing bright there, because white text sits over it.
+
+AVOID: unnatural hands (every hand has five natural fingers); protruding bar handles; sliding-door wardrobes; any face; a tall cabinet beside a cooktop; any readable text, numbers or logo anywhere.
+
+LIGHT: one directional natural light source (low warm sun through a window, or soft side light), real shadows and falloff, darker corners. No flat even lighting, no evenly lit catalogue scene.
+
+CAMERA: an editorial interior photograph on a full-frame camera with a 35-50 mm lens, shallow-to-medium depth of field, a close foreground element slightly out of focus where natural; real material texture (wood grain, laminate micro texture, edge-banding seams), slight sensor grain. Not a stock photo, not a 3D render, no glossy airbrushed surfaces.
+
+COMPOSITION: intimate and specific, not a wide empty overview; the subject reads clearly even as a small card.
+
+RULES: Vietnamese context, a low-rise town in the Mekong Delta (Vĩnh Long), no towers, no resort. Clean, tidy and well kept: no dirt, stains, mould, peeling or rubbish; realism comes from light and grain, not grime. Furniture is functional and correctly built; no tall cabinet beside a cooktop. No faces seen clearly: people show only hands, back, or a head turned away. Appliances plain without logos. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere in the image.
