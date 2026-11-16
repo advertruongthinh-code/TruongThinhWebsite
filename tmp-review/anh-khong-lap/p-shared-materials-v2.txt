@@ -1,0 +1,8 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image old-materials.png (landscape 3:2, keep its framing; output at the largest size the tool supports for 3:2), then save the result into the current working directory as `shared-materials-v2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+CHANGE ONLY THE BOARD MATERIAL. The owner says every panel sample must be black-core HDF:
+- Every exposed cut edge of every wood-grain, white or beige board shows a dense, fine, smooth, uniformly BLACK core (black-core high-density fibreboard), with the thin decor layer visible on the top and bottom faces. No particleboard chips and no light brown MDF core anywhere.
+- The boards in the upper-left corner and under the hand that now show bare beige MDF faces become finished black-core HDF boards: give their faces a light natural oak laminate, and their cut edges the black core.
+- Edges stay crisp and straight; the cut face is matte and very fine, almost like dark slate.
+
+KEEP EXACTLY: framing, top-down camera angle, light and shadows, the hand and its pose holding the edge-banding strip, the coiled edge-banding rolls, the dark grey surface, the grey and black panels, the frosted acrylic square, the brushed aluminium panel, the LED modules with wires, the small orange and navy swatches, the laminate strips at the bottom. No text or logo anywhere. Do not change anything else.

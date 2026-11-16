@@ -240,5 +240,22 @@
   "round": 4,
   "change": "owner 2026-11-16 18:59 UTC: black-core HDF / recessed handles",
   "created": "2026-11-17"
+ },
+ {
+  "file": "shared-materials-v2.png",
+  "sha256": "3a0d223faad4d86ebab66c11cdcf3c6d53df01e9d9642dcab3dd16f4d12d1a1a",
+  "bytes": 2659319,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-materials.png (src/site/assets/content/shared/materials.webp, 3072x2048)"
+  ],
+  "prompt": "p-shared-materials-v2.txt",
+  "round": 5,
+  "change": "owner 2026-11-16 19:23 UTC: black-core HDF",
+  "created": "2026-11-17"
  }
 ]
