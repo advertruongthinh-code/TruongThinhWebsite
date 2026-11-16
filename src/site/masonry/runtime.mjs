@@ -59,6 +59,8 @@ const thumbRatio = (card) => {
 };
 
 let activeInstance;
+// The latest setResults call made before a grid mounted (masonry-live-layout R6); the next mount applies it before its first build.
+let heldResults = null;
 
 const startLayoutWorker = () => new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
 // One compile on a dedicated Worker; null when the Worker or clone fails so the caller compiles synchronously.
@@ -2143,6 +2145,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
   };
   let filter = initialFilter({ categories, cards, pages });
+  // Search mode (masonry-live-layout R6): ranked result ids replace the filter pool, every card one column in score order.
+  // The rail filter and history keep the browse state; leaving search returns to that filter.
+  let search = null;
+  const isSearchKey = (key) => key.startsWith("search:");
+  const gridKey = () => search?.key ?? filter;
+  const searchFor = (ids) => {
+    const seen = new Set();
+    const byId = new Map(cards.map((card) => [card.id, card]));
+    const order = (Array.isArray(ids) ? ids : []).map((id) => byId.get(id)).filter((card) => card && !seen.has(card.id) && seen.add(card.id));
+    return { key: `search:${fnv1a32(order.map((card) => card.id).join(","))}`, order };
+  };
+  if (heldResults) search = searchFor(heldResults);
+  heldResults = null;
   // Phone first grid (masonry-live-layout R3, owner 2026-11-16): the page's 2:15 packs of its own filter for a fixed set of seeds.
   // Read only on the 2-column band; a stamp that does not match these cards (page and artifact from different builds) packs live.
   const firstBand = bandFor(document.documentElement.clientWidth);
@@ -2307,7 +2322,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
   const layoutPending = (targetFilter) => {
     const band = bandFor(document.documentElement.clientWidth);
-    if (!band) return null;
+    if (!band || isSearchKey(targetFilter)) return null;
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
     if (!packWaits.has(key)) {
@@ -2377,6 +2392,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const geometryRequest = (targetFilter) => {
     const layoutViewportWidth = document.documentElement.clientWidth;
+    if (isSearchKey(targetFilter)) {
+      const order = targetFilter === search?.key ? search.order : [];
+      return {
+        key: [artifactCacheIdentity.datasetVersion, targetFilter, layoutViewportWidth].join(":"),
+        compile: () => stackLayout({ order, layoutViewportWidth, filter: targetFilter, settings, source: "search" }),
+      };
+    }
     const band = bandFor(layoutViewportWidth);
     const wait = band && layoutPending(targetFilter);
     void warmPacks();
@@ -3702,7 +3724,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
-    geometry = geometryFor(filter);
+    geometry = geometryFor(gridKey());
     renderWindow({ animate, origins });
   };
 
@@ -3716,27 +3738,75 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.dataset.en = page.titleEn;
     node.textContent = locale === "en" ? page.titleEn : page.titleVi;
   };
-  const setActiveFilter = (nextFilter, { animate = false } = {}) => {
-    cancelLayoutWait();
-    if (nextFilter === filter) return;
+  // Switches the grid to another card set (filter or search results), sliding cards from where they are now.
+  const relayoutTo = (apply, { animate = false } = {}) => {
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
-    const origins = animate ? cachedCoordinates(nextFilter, visualOrigins) : undefined;
+    const leftSearch = search;
+    apply();
+    if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left"));
+    const origins = animate ? cachedCoordinates(gridKey(), visualOrigins) : undefined;
     cancelMotion();
     clearCtaSkeleton();
     resetSkeletonRevealState();
     resetSkeletonAssignments();
     skeletonRatioBandBySlot.clear();
-    filter = nextFilter;
     syncRail({ animate });
     syncPageHeading();
     measure({ animate, origins });
+  };
+  // A filter change (rail click, Back to another category) also leaves search mode.
+  const setActiveFilter = (nextFilter, options) => {
+    cancelLayoutWait();
+    if (nextFilter === filter && !search) return;
+    // The dim and the late offer belong to search: a filter change drops them too.
+    setPending(false);
+    setOffer(null);
+    relayoutTo(() => {
+      search = null;
+      filter = nextFilter;
+    }, options);
+  };
+  let offer = null;
+  const setOffer = (ids) => {
+    offer?.remove();
+    offer = null;
+    if (!ids) return;
+    offer = document.createElement("button");
+    offer.type = "button";
+    offer.className = "masonry-offer";
+    offer.dataset.masonryOffer = "";
+    offer.dataset.vi = "Có thêm kết quả gợi ý";
+    offer.dataset.en = "More suggested results";
+    offer.textContent = locale === "en" ? offer.dataset.en : offer.dataset.vi;
+    offer.addEventListener("click", () => setResults(ids));
+    grid.before(offer);
+  };
+  const setPending = (pending) => grid.toggleAttribute("data-masonry-pending", Boolean(pending));
+  // Search API (masonry-live-layout R6): ids in score order; unknown and repeated ids are skipped, the latest call wins.
+  const setResults = (ids) => {
+    cancelLayoutWait();
+    setPending(false);
+    setOffer(null);
+    const next = searchFor(ids);
+    if (next.key === gridKey()) return;
+    relayoutTo(() => {
+      search = next;
+    }, { animate: true });
+  };
+  const clearResults = () => {
+    setPending(false);
+    setOffer(null);
+    if (!search) return cancelLayoutWait();
+    whenLayoutReady(filter, () => relayoutTo(() => {
+      search = null;
+    }, { animate: true }));
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
   const setLogicalScroll = (scrollY) => scroll?.setLogicalScroll?.(scrollY) ?? false;
   const ensurePhoto = (id, { focus = false, scrollIntoView = false } = {}) => {
     const card = cards.find((entry) => entry.id === id);
     if (!card) return null;
-    if (!matchesFilter(card, filter)) setActiveFilter(card.category);
+    if (!search && !matchesFilter(card, filter)) setActiveFilter(card.category);
     if (!geometry) measure();
     const placement = geometry?.placements.find((entry) => entry.card.id === id);
     if (!placement) return null;
@@ -5391,7 +5461,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     };
   }, { capture: true, signal: controller.signal });
   const adapter = {
+    clearResults,
     ensurePhoto,
+    offerResults: (ids) => setOffer(Array.isArray(ids) ? ids : null),
     getCardLink: (id) => gridHost.rendered.get(id)?.querySelector("a") || null,
     releasePhoto(id) {
       retainedPhotoIds.delete(id);
@@ -5403,6 +5475,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       ensurePhoto(id);
       return true;
     },
+    setPending,
+    setResults,
   };
   const cachedCoordinates = (targetFilter, visualOrigins) => {
     const targetGeometry = geometryFor(targetFilter);
@@ -5526,7 +5600,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // Mount is still waiting for geometry from the Worker and will measure itself. Back during the wait already measured synchronously: resize must run.
       if (geometryPending && !geometry) return;
       // Crossing into another width band: keep the current layout until that band is packed, then resize once.
-      const bandWait = layoutPending(filter);
+      const bandWait = layoutPending(gridKey());
       if (bandWait) {
         void bandWait.then(() => controller.signal.aborted || scheduleResize());
         return;
@@ -5603,8 +5677,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.preventDefault();
     event.stopImmediatePropagation();
     const nextFilter = control.dataset.masonryFilter ?? control.dataset.masonryProduct;
-    // Clicking the active filter again cancels a click still waiting for its pack.
-    if (nextFilter === filter) {
+    // Clicking the active filter again cancels a click still waiting for its pack; in search mode it returns to that filter.
+    if (nextFilter === filter && !search) {
       cancelLayoutWait();
       return;
     }
@@ -5967,9 +6041,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // set the scroll, then the mount's own measure would overwrite it.
   if (!browseHistory.current.photo) {
     geometryPending = true;
-    await layoutPending(filter);
+    await layoutPending(gridKey());
     // Replay the layout (into the geometry cache) before the build; setup and the first build are separate tasks (R7, 50ms gate on the A04s).
-    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
+    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(gridKey());
     await nextTask();
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
@@ -6004,7 +6078,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    await layoutPending(filter);
+    await layoutPending(gridKey());
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
     // Measure the hidden grid (pack replay) in its own task, not inside the Back task (A04s is slower on Back).
@@ -6045,6 +6119,10 @@ window.TruongThinhMasonry = {
   canHandlePopState: (previousHref, nextHref) => Boolean(activeInstance)
     && isQueryOnlyNavigation(previousHref || activeInstance.browseHistory.currentHref, nextHref, activeInstance.pages),
   captureDetail: (snapshot) => activeInstance?.browseHistory.captureDetail(snapshot) || null,
+  clearResults: () => {
+    heldResults = null;
+    activeInstance?.adapter.clearResults();
+  },
   getAdapter: () => activeInstance?.adapter || null,
   getBrowseState: () => activeInstance?.browseHistory.current || null,
   getCurrentHref: () => activeInstance?.browseHistory.currentHref || null,
@@ -6053,6 +6131,7 @@ window.TruongThinhMasonry = {
   handleViewerPopState: () => activeInstance?.photoViewer.popState() || false,
   mount: mountMasonry,
   navigatePhoto: (id) => Boolean(activeInstance?.browseHistory.openPhoto(id)),
+  offerResults: (ids) => activeInstance?.adapter.offerResults(ids),
   navigateQuery: (href, { reason = "navbar" } = {}) => {
     if (!activeInstance) return false;
     const next = new URL(href, window.location.href);
@@ -6065,5 +6144,11 @@ window.TruongThinhMasonry = {
     return false;
   },
   replaceTag: (tag) => Boolean(activeInstance?.browseHistory.replaceTag(tag)),
+  // Before a grid mounts, the latest results wait for it (masonry-live-layout R6).
+  setPending: (pending) => activeInstance?.adapter.setPending(pending),
+  setResults: (ids) => {
+    if (activeInstance) activeInstance.adapter.setResults(ids);
+    else heldResults = ids;
+  },
   unmount: unmountMasonry,
 };

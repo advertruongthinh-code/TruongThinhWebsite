@@ -102,8 +102,9 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
   return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "pack", hash });
 }
 
-// Fallback for the whole grid (owner O3 last step): every card one column, in `order` (card objects), into the lowest column.
-export function stackLayout({ order, layoutViewportWidth, filter = "all", settings }) {
+// Every card one column, in `order` (card objects), into the lowest column: the whole-grid fallback (owner O3 last step, source "stack")
+// and search results in score order (masonry-live-layout R6, source "search").
+export function stackLayout({ order, layoutViewportWidth, filter = "all", settings, source = "stack" }) {
   const f = frame(layoutViewportWidth);
   const bottoms = Array(f.columns).fill(0), count = Array(f.columns).fill(0);
   const placed = order.map((card) => {
@@ -113,7 +114,7 @@ export function stackLayout({ order, layoutViewportWidth, filter = "all", settin
     count[column] += 1;
     return p;
   });
-  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "stack" });
+  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source });
 }
 
 // Build and test check, not called at runtime: no holes, exact gaps, trim within the cap, wide cards on adjacent columns.

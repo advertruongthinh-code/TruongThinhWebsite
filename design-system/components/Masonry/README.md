@@ -44,6 +44,15 @@ trí là `masonry-layout`.
   vẫn đi qua được phần chưa mount.
 - Không có JavaScript: sáu card tĩnh trong HTML vẫn hiện.
 
+## Kết quả tìm kiếm
+
+Lưới chính nhận danh sách card theo điểm từ trang tìm kiếm: mọi card một cột, card thứ i vào cột đang thấp nhất, CTA và Flow
+vẫn ở cuối ([xếp trực tiếp R6](../../../docs/specs/masonry-live-layout.md#r6-chế-độ-tìm-kiếm)).
+
+- Đang chờ kết quả: lưới cũ mờ còn `opacity: 0.6`, chuyển `--dur-quick` `250ms` (giảm chuyển động: đổi ngay).
+- Kết quả gợi ý đến muộn: nút chữ đậm gạch chân "Có thêm kết quả gợi ý" / "More suggested results" giữa trang, ngay trên
+  lưới, cao tối thiểu 44px; bấm mới xếp lại.
+
 ## Tên card Công trình
 
 Trang Công trình mount cùng masonry, tên card như mọi card masonry: trên trái
