@@ -38,7 +38,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { createMasonryHost, env, isSizeMorph } from "./host.mjs";
+import { SLIDE_ID, createMasonryHost, env, isSizeMorph } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { mediaQueue } from "../media-lib/media-queue.mjs";
@@ -1855,11 +1855,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Keep the reference of the generated artifact as the cache identity; do not clone, only attach the detail fields to the card.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
-  if (typeof window.Masonry !== "function") {
-    const error = new Error("Advertising catalog requires Masonry 4.2.2 before mount");
-    console.error("[advertising-products] dependency readiness failed", error);
-    throw error;
-  }
   const controller = new AbortController();
   const ctaBatch = createCtaBatch({ skeleton: ctaSkeleton, cluster: gridCta, arcHome: gridSectionStyleTarget,
     signal: controller.signal, rearm: (root) => window.TruongThinhDetail?.rearmMotion?.(root) });
@@ -2533,7 +2528,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     restoreCanonicalDomOrder();
   };
   // A card resizes in step with its position: the card's child scales from the old size around the card's top-left corner, so a growing
-  // card does not cover the neighboring item mid-slide (owner 10/10). Masonry owns `transform`, so the scale sits on the child.
+  // card does not cover the neighboring item mid-slide (owner 10/10). The slide owns `transform`, so the scale sits on the child.
   const morphSize = (node, from) => {
     const sx = from.w / node.offsetWidth;
     const sy = from.h / node.offsetHeight;
@@ -2543,8 +2538,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: DUR.card, easing: "ease" });
     }
   };
-  // Position is precomputed; Masonry only needs to run the motion. Instant layout skips it so it does not re-measure every card
-  // (getSize) in the scroll frame and the Back task (decision phone-frame-budget). Write left/top like Masonry: the grid has no padding.
+  // Position is precomputed; a motion pass only slides cards (host layoutMotion). Instant layout writes left/top here and skips
+  // the pass in the scroll frame and the Back task (decision phone-frame-budget).
   const placeRendered = () => {
     for (const [id, node] of gridHost.rendered) {
       const position = gridHost.positions.get(id);
@@ -2555,19 +2550,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (node.style.top !== top) node.style.top = top;
     }
   };
-  // Remaining time of the transform transition (Masonry) and of the running scale pass on the card.
+  // Remaining time of the running slide and scale pass on the cards.
   const remainingMotion = () => {
     let remaining = 0;
-    gridHost.masonry?.items.forEach((item) => {
+    for (const node of gridHost.items()) {
       const animations = [
-        ...item.element.getAnimations().filter((animation) => animation.transitionProperty === "transform"),
-        ...[...item.element.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
+        ...node.getAnimations().filter((animation) => animation.id === SLIDE_ID),
+        ...[...node.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
       ];
       for (const animation of animations) {
         if (animation.playState !== "running") continue;
         remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
       }
-    });
+    }
     return remaining;
   };
   const settleMotion = () => {
@@ -3959,8 +3954,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   const clearRelatedCards = () => {
     cancelRelatedMotion();
-    relatedHost.masonry?.destroy();
-    relatedHost.masonry = null;
     relatedHost.rendered.forEach((node) => {
       releaseMediaCard(node);
       node.remove();
@@ -4037,7 +4030,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return [id, { x: position.left - rect.left, y: position.top - rect.top, w: position.width, h: position.height }];
       }));
   };
-  // Cards going around the primary run Web Animations on `translate`, separate from Masonry's `transform` (advertising-cta-center-parallax R10).
+  // Cards going around the primary run Web Animations on `translate`, separate from the slide's `transform` (advertising-cta-center-parallax R10).
   // Kept in a set: scanning getAnimations() forces a style update, which on the first build task is a full-page recalc.
   const relatedDetours = new Set();
   const cancelRelatedDetours = () => {
@@ -4167,7 +4160,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
-    // Without motion the position was already written above; drop Masonry like placeRendered, because layout() re-measures every card (getSize)
+    // Without motion the position was already written above; skip the motion pass like placeRendered: Masonry used to re-measure every card (getSize)
     // during related scrolling, a long task on an Android phone (decision phone-frame-budget).
     if (!motion) {
       relatedGrid.style.height = `${relatedHost.pixelHeight}px`;
@@ -6017,7 +6010,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     mediaObserver.disconnect();
     wholeObserver.disconnect();
     clearTimeout(neighborTimer);
-    gridHost.masonry?.destroy();
+    gridHost.cancelTransitions();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
     gridHost.cancelGhosts();
     relatedHost.cancelGhosts();

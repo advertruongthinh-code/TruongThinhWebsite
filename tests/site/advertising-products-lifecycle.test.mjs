@@ -26,8 +26,7 @@ assert.match(runtime, /compileMasonryLayout/);
 assert.match(runtime, /getVirtualWindow/);
 assert.match(runtime, /layoutAlgorithmVersion[^\n]*MASONRY_LAYOUT_VERSION/, "runtime fails closed on artifact schema mismatch");
 assert.ok(
-  runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("if (typeof window.Masonry")
-    && runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("const categories = artifact.categories"),
+  runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("const categories = artifact.categories"),
   "artifact version is validated before dependencies or runtime data are used",
 );
 assert.match(runtime, /if \(signal\?\.aborted\) return \(\) => \{\}/, "runtime checks route abort after artifact await");
@@ -48,11 +47,11 @@ assert.ok(
     < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
-assert.match(hostSource, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
-assert.match(hostSource, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
-assert.match(hostSource, /stagger: 0/, "Masonry has no stagger");
+assert.doesNotMatch(hostSource, /window\.Masonry/, "slides run on Web Animations, not the Masonry library (masonry-live-layout R7)");
+assert.match(hostSource, /const SLIDE_MS = 400;/, "slides keep the accepted 0.4 s duration");
+assert.match(hostSource, /\{ id: SLIDE_ID, duration: SLIDE_MS, easing: "ease" \}/, "slides keep Outlayer's ease, all cards at once (no stagger)");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
-assert.match(hostSource, /export function cancelMasonryTransitions\(instance\) \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
+assert.match(hostSource, /export function cancelSlides\(elements\) \{[\s\S]*?isSizeMorph\(animation\) && animation\.cancel\(\)[\s\S]*?slideOf\(element\)\.forEach\(\(animation\) => animation\.cancel\(\)\)/, "both grids cancel slides and size morphs before reconciliation");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");

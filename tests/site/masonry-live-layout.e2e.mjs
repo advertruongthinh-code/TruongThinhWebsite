@@ -1,7 +1,7 @@
 // Masonry live layout in a real browser (masonry-live-layout R1-R4): the grid people see is packed on their machine and must
 // pass verifyLayout on its own DOM geometry, wide cards included; Back returns the same coordinates; a failed Worker packs on
 // the main thread; the filter chip while a pack is late and a late pack behind an open card must hold. Search mode (R6) places
-// ranked results one column each in score order.
+// ranked results one column each in score order. Cards slide to a new layout without stepping back or jumping (R7).
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/masonry-live-layout.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -407,6 +407,69 @@ try {
     await searchMatches(early, ranked, "results set before mount");
     await early.close();
     console.log("PASS search mode");
+  }
+  // 8. Slide (R7): a chip click slides each card from where it stood to its new place along one straight path, never stepping back
+  // and never covering more than a third of the path in one frame; a second click while cards still slide starts them from where
+  // they stand (relayoutTo seeds the visual origins), so no card jumps back to its old target.
+  {
+    const { page } = await open(ADVERTISING, 1440);
+    await settled(page);
+    // Each frame: the visual position (inline geometry plus the slide transform) of every card that has a running slide.
+    const record = (ms) => page.evaluate((duration) => new Promise((resolve) => {
+      const grid = document.querySelector("[data-project-grid]");
+      const frames = [];
+      const start = performance.now();
+      const tick = () => {
+        const origin = grid.getBoundingClientRect();
+        const frame = {};
+        for (const node of grid.querySelectorAll("[data-masonry-item]")) {
+          if (!node.getAnimations().some((animation) => animation.id === "masonry-slide")) continue;
+          const box = node.getBoundingClientRect();
+          frame[node.dataset.masonryCard] = [box.left - origin.left, box.top - origin.top];
+        }
+        frames.push(frame);
+        if (performance.now() - start < duration) requestAnimationFrame(tick);
+        else resolve(frames);
+      };
+      requestAnimationFrame(tick);
+    }), ms);
+    const paths = (frames) => {
+      const byId = new Map();
+      for (const frame of frames) for (const [id, point] of Object.entries(frame)) byId.set(id, [...(byId.get(id) || []), point]);
+      return [...byId].filter(([, points]) => points.length >= 3);
+    };
+    const span = (points) => Math.max(...points.flatMap((a) => points.map((b) => Math.hypot(a[0] - b[0], a[1] - b[1]))));
+    const step = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const maxStep = (points) => Math.max(...points.slice(1).map((point, index) => step(point, points[index])));
+    // One click: progress along the path from the first to the last sample never goes back.
+    const single = record(1200);
+    await page.locator('[data-masonry-filter="signage"]').click();
+    const one = paths(await single);
+    assert.ok(one.length >= 3, `cards slide on a chip click (${one.length})`);
+    for (const [id, points] of one) {
+      const [first, last] = [points[0], points.at(-1)];
+      const length = step(first, last);
+      if (length < 6) continue;
+      const along = points.map(([x, y]) => ((x - first[0]) * (last[0] - first[0]) + (y - first[1]) * (last[1] - first[1])) / length);
+      along.slice(1).forEach((value, index) => assert.ok(value >= along[index] - 1, `${id}: steps back at frame ${index + 1}`));
+      assert.ok(maxStep(points) <= Math.max(length / 3, 2), `${id}: jumps ${maxStep(points).toFixed(0)}px of ${length.toFixed(0)}px in one frame`);
+    }
+    await settled(page);
+    // A second click mid-slide: no frame jump over a third of the ground the card covers.
+    const twice = record(1400);
+    await page.locator('[data-masonry-filter="all"]').click();
+    // Early in the slide (eased progress about 0.2), so a card restarted from its old target would jump most of its path.
+    await page.waitForTimeout(40);
+    await page.locator('[data-masonry-filter="signage"]').click();
+    const two = paths(await twice);
+    assert.ok(two.length >= 3, `cards slide on two quick clicks (${two.length})`);
+    for (const [id, points] of two) {
+      const ground = span(points);
+      assert.ok(maxStep(points) <= Math.max(ground / 3, 2), `${id}: jumps ${maxStep(points).toFixed(0)}px of ${ground.toFixed(0)}px in one frame`);
+    }
+    assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two quick clicks");
+    await page.close();
+    console.log(`PASS slide trajectory (${one.length} cards, ${two.length} on the second click)`);
   }
   console.log("masonry live layout e2e: ok");
 } finally {
