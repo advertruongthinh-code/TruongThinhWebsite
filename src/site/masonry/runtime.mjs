@@ -3385,6 +3385,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Reads the room below the CTA copy and fits the heading to it when the room, copy width or language changed; returns the reads the batch build
   // also needs. Its forced layout is the costly part of a first build, so a direct load runs it in a task of its own before the build (R7).
+  let ctaSettlePending = false;
+  const settleCtaCopy = () => {
+    if (!ctaSettlePending) return;
+    ctaSettlePending = false;
+    requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
+  };
   const fitCtaCopy = (gap) => {
     // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
     const viewportHeight = getLayoutViewportHeight();
@@ -3401,7 +3407,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
       gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
-      requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
+      // The settled mark (it turns on the copy's transition) waits until the batch build has computed style with these values; a frame
+      // between the fit task and the build task would otherwise animate the copy into place.
+      ctaSettlePending = true;
     }
     return { viewportHeight, footerHeight };
   };
@@ -3439,10 +3447,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Same geometry: layoutRelated just rewrote the canvas height to the related height, so reset the CTA bottom.
     if (ctaGeometryHash === nextCtaGeometryHash) {
       if (detailHost) setCtaHostHeight(ctaBottom);
+      settleCtaCopy();
       return;
     }
     gridCta?.style.setProperty("--masonry-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
+    settleCtaCopy();
     // The height just measured is the height ResizeObserver is about to report: do not treat it as a change that rebuilds a second time.
     observedCtaHeight = ctaHeight;
     const gridBottom = ctaTop + ctaHeight;

@@ -87,7 +87,8 @@ export function createGlassSurface(shape, steps = shape === "arc" ? Math.max(ARC
   // shows without grain until it arrives.
   if (grain === undefined) {
     grain = "";
-    (globalThis.requestIdleCallback || setTimeout)(makeGrain);
+    if (globalThis.requestIdleCallback) requestIdleCallback(makeGrain, { timeout: 1000 });
+    else setTimeout(makeGrain);
   }
   const glass = document.createElement("div");
   glass.className = "glass-surface";
