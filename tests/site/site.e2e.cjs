@@ -8916,6 +8916,10 @@ async function runDelayedDetailFallbackChecks() {
       `delayed detail mounts filters once with failed or slow motion ${viewport.width}x${viewport.height}`,
       { route: "/vi/advertising-products/", viewport },
       async (page) => {
+        // masonryLayouts counts card slides, and only cards in both sets slide (plan Q9 case 2): with most random orders no
+        // mounted card survives a filter change, so the pass has no slide and reads 0. Pin a seed that keeps a moving card.
+        const { pinBrowseSeed } = await import("./harness.mjs");
+        await pinBrowseSeed(page, process.env.DELAYED_DETAIL_SEED || "delayed-detail-1");
         await page.route(detailPattern, delayResponse(4_200));
         await page.route(motionPattern, (route) => route.abort("failed"));
         let abortedNavigationError;
