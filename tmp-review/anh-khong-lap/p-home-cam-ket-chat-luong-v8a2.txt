@@ -1,0 +1,5 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-chat-luong-v8a.png (portrait 2:3, keep its exact size and framing), then save the result into the current working directory as `home-cam-ket-chat-luong-v8a2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+CHANGE ONLY: remove the sink and the tap completely. Where they were, the stone countertop continues as one clean, uninterrupted surface with the same stone texture, colour and light, and the stone backsplash continues behind it with no hole, no outline and no shadow of the removed items.
+
+KEEP EXACTLY: framing, camera, light and shadows, all cabinets (upper, lower and the tall column with the oven), every door gap, the induction hob and the hood above it, the under-cabinet LED strip, the vase with the branch and the small bowl, the floor. No text or logo anywhere. Do not change anything else.
