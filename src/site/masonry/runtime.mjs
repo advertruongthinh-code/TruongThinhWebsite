@@ -2220,6 +2220,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderCtaSkeleton({ slide: true });
   };
   let lastLayoutViewportWidth = 0;
+  let lastInnerWidth = 0;
   let lastGeometrySignature = "";
   // The geometry that positions reflects; whether the DOM order still matches the placement order.
   let positionsGeometry = null;
@@ -3739,7 +3740,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // clientWidth after its own DOM writes (a forced layout of the whole page inside the click task, masonry-live-layout R7). A resize
   // still measures through the resize handler.
   const measure = ({ animate = false, origins, sameWidth = false } = {}) => {
-    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth;
+    // innerWidth reads no layout: a width change while the grid could not be measured (card open, grid width 0) measures again.
+    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth && innerWidth === lastInnerWidth;
     const layoutViewportWidth = cached ? lastLayoutViewportWidth : document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
@@ -3751,6 +3753,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
+    lastInnerWidth = innerWidth;
     geometry = geometryFor(gridKey());
     renderWindow({ animate, origins });
   };
