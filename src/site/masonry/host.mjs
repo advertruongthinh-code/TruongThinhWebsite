@@ -1,6 +1,7 @@
 // Masonry yard (masonry-reuse step 7): state built from one grid's scroll window. The main masonry (Advertising, Projects)
 // and the related one in detail are two instances, so the build budget, placeholder cards and LRU queue are written only once (advertising-masonry R7).
 import { createDetachedCards, createGhostLayer, createMountBudget, detachedCapacity } from "./mount-budget.mjs";
+import { DUR } from "./motion-tokens.mjs";
 
 // Shared environment queries, defined once in head-inline.js. The fallback covers pages without it (admin overlay, tests that load
 // modules alone); getters so importing in Node, where matchMedia does not exist, does not throw.
@@ -20,9 +21,9 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
 
 // Layout motion (masonry-live-layout R7): positions are precomputed, so a pass only slides each card from its inline left/top to its
 // target. The target is written at once and a Web Animation on `transform` plays the offset back to zero (FLIP): no layout read per
-// card, unlike Masonry 4.2.2 (getSize, 59-91 ms tasks on the A04s). Same 0.4 s and `ease` as Outlayer's transition.
+// card, unlike Masonry 4.2.2 (getSize, 59-91 ms tasks on the A04s). DUR.card (0.4 s) and `ease`, as the card position
+// transition has always run (design-system/motion.md).
 export const SLIDE_ID = "masonry-slide";
-const SLIDE_MS = 400;
 const slideOf = (element) => element.getAnimations().filter((animation) => animation.id === SLIDE_ID);
 
 // The card size morph (morphSize) runs on the card's child using `scale`.
@@ -83,7 +84,7 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         moves.push([element, from.x - to.x, from.y - to.y]);
       }
       for (const [element, dx, dy] of moves) {
-        element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { id: SLIDE_ID, duration: SLIDE_MS, easing: "ease" });
+        element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { id: SLIDE_ID, duration: DUR.card, easing: "ease" });
       }
     },
     cancelTransitions: () => cancelSlides(items()),

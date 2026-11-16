@@ -151,7 +151,7 @@ nhau liền nhau). Hết nửa ngân sách 300.000 phép thử thì pha dự ph�
 Cùng dataset, filter, bề rộng và thứ tự cho cùng tọa độ (`coordinateHash`). Lỗi đầu vào (`invalid-input`) hoặc hết
 ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-masonry-layout-status="failed"`; pool không đủ
 nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter hoặc bề rộng: card bị loại ẩn ngay, card còn lại và card mới đi
-từ vị trí cũ tới vị trí mới bằng `masonry-layout` ([motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
+từ vị trí cũ tới vị trí mới bằng Web Animations trên tọa độ đã tính ([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính), [motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
 dựng đầu card đi từ đầu cột. Card và khung skeleton ([R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)) trượt,
 co giãn từ chỗ, cỡ cũ; card ẩn giữa lúc trượt khi lộ lại lấy bề rộng cột mới; CTA, Kính trượt cùng nhịp `0.4s ease`: cả trang là một masonry (owner 10/10); đang kéo cạnh cửa sổ thì đặt thẳng. Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
 thành một lần cập nhật khi chuyển xong. `site:layout` chỉ phát khi chiều cao trang đổi
@@ -204,16 +204,16 @@ Then hero không chạy lại, container giữ nguyên
 
 ### R10. Phụ thuộc, lỗi và không JavaScript
 
-`detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), Masonry 4.2.2, LazySizes
+`detail.js` nạp tuần tự GSAP 3.15.0, SplitText 3.15.0 (tùy chọn: thiếu thì chỉ cảnh báo), LazySizes
 5.3.2 (bắt buộc), mỗi file chờ tối đa 4s, script có sẵn mà lỗi thì nạp lại một lần, rồi import `masonry/runtime.mjs`.
-Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v18`, nhóm không rỗng, card hợp lệ), cần Masonry.
+Runtime kiểm artifact (`layoutAlgorithmVersion` bằng `masonry-grid-v18`, nhóm không rỗng, card hợp lệ); không còn thư viện Masonry ([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)).
 Tải trực tiếp mà lỗi: masonry bị dọn và ẩn, container có `data-masonry-fallback="failed"`, html có
 `motion-fallback`; nếu khách đã bấm filter thì tải hẳn URL filter đó. Route mềm mà lỗi: tải hẳn URL đích. Không
 JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có JavaScript thì `<noscript>` không bao giờ hiện thành
 chữ thô (CSS chỉ áp trong `@media (scripting: none)`). Card tĩnh trong `<noscript>` là `figure.masonry-static-card` (ô lưới CSS thường, không có hình học tuyệt đối của `.masonry-card`); trang Công trình dùng cùng class.
 
 ```gherkin
-Given Masonry 4.2.2 không tải được khi vào thẳng /vi/advertising-products/
+Given LazySizes 5.3.2 không tải được khi vào thẳng /vi/advertising-products/
 When hết thời gian chờ
 Then masonry ẩn, container có data-masonry-fallback="failed", không còn markup thô
 ```

@@ -48,8 +48,7 @@ assert.ok(
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
 assert.doesNotMatch(hostSource, /window\.Masonry/, "slides run on Web Animations, not the Masonry library (masonry-live-layout R7)");
-assert.match(hostSource, /const SLIDE_MS = 400;/, "slides keep the accepted 0.4 s duration");
-assert.match(hostSource, /\{ id: SLIDE_ID, duration: SLIDE_MS, easing: "ease" \}/, "slides keep Outlayer's ease, all cards at once (no stagger)");
+assert.match(hostSource, /\{ id: SLIDE_ID, duration: DUR\.card, easing: "ease" \}/, "slides keep the 0.4 s card duration and ease, all cards at once (no stagger)");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
 assert.match(hostSource, /export function cancelSlides\(elements\) \{[\s\S]*?isSizeMorph\(animation\) && animation\.cancel\(\)[\s\S]*?slideOf\(element\)\.forEach\(\(animation\) => animation\.cancel\(\)\)/, "both grids cancel slides and size morphs before reconciliation");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");

@@ -6,12 +6,14 @@ source:
   - src/site/masonry/replay.mjs
   - src/site/masonry/layout-worker.mjs
   - src/site/masonry/runtime.mjs
+  - src/site/masonry/host.mjs
 tests:
   - tests/site/masonry-pack.test.mjs
   - tests/site/masonry-replay.test.mjs
   - tests/site/masonry-layout-fuzz.test.mjs
   - tests/site/masonry-live-layout.e2e.mjs
   - tests/site/advertising-layout-pending.e2e.mjs
+  - tests/site/masonry-hosts.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e814ea474c19b061cbae2
 updated: 2026-11-16
 ---
@@ -22,7 +24,7 @@ updated: 2026-11-16
 
 Lưới chính trang Quảng cáo và trang Công trình được máy người xem tự xếp khi tải trang: không lỗ giữa lưới, card ngang
 rộng hai cột; chỉ lưới đầu trên điện thoại (dải `2:15`) có bản xếp sẵn lúc build, nằm trong chính trang. Spec này sở hữu thuật toán xếp, Worker xếp, đường đặt tọa độ và lượt
-chờ. Hình học một cột, ảo hóa, chuyển vị trí ở [masonry Advertising](advertising-masonry.md); related masonry không dùng
+chờ. Hình học một cột, ảo hóa ở [masonry Advertising](advertising-masonry.md), cách trượt ở R7; related masonry không dùng
 packer. Lý do thiết kế: [decision](../decisions/masonry-live-layout.md).
 
 ## Hành vi
@@ -136,6 +138,21 @@ When trang tìm kiếm gọi setResults với 15 id, có id lạ và id lặp
 Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, CTA ở cuối; bấm chip Tất cả thì về lưới duyệt và phát masonry:search-left
 ```
 
+### R7. Trượt tới tọa độ đã tính
+
+Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn thư viện Masonry 4.2.2: lượt chuyển của lưới chính và related
+(`layoutMotion` trong `host.mjs`) ghi ngay `left`, `top` đích cho mọi card rồi mới cho card trượt từ chỗ cũ về đích bằng Web
+Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
+card. Card mới dựng hoặc card ẩn đặt thẳng. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
+thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
+Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).
+
+```gherkin
+Given lưới Quảng cáo đang duyệt ở 1440px
+When bấm chip Biển hiệu rồi bấm Tất cả và Biển hiệu liền nhau trong lúc card còn trượt
+Then mỗi khung hình card chỉ tiến về đích, không lùi, không nhảy; trang không tải masonry-4.2.2.min.js
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -149,6 +166,7 @@ Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, 
 | Hàm public | `window.TruongThinhMasonry.setResults(ids)`, `setPending(bool)`, `clearResults()`, `offerResults(ids)` (cũng có trên `getAdapter()`) | Chế độ tìm kiếm (R6) |
 | Sự kiện | `masonry:search-left` trên `window` | Lưới rời tìm kiếm (R6) |
 | DOM hook | `data-masonry-pending` trên lưới; `button[data-masonry-offer]` | Chờ kết quả, kết quả gợi ý đến muộn (R6) |
+| Hàm public | `layoutMotion(instant)`, `cancelTransitions()`, `items()`, `slides()` trên host; `SLIDE_ID`, `cancelSlides` (`host.mjs`) | Trượt card (R7) |
 
 ## UI
 
@@ -164,10 +182,12 @@ Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, 
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
 | R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip và `clearResults` rời tìm kiếm; gọi trước khi dựng) |
+| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
 
 ## Gate còn mở
 
 - Đo A04s ở 384px với bản xếp sẵn so với main d33ae601 (reviewer mục 3). Thread masonry.
+- Trace A04s R7: bấm chip và `setResults` không task nào trên 50 ms (reviewer PR 2). Thread masonry.
 
 ## Chú thích thuật ngữ
 

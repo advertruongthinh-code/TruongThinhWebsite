@@ -32,7 +32,6 @@
   const ADVERTISING_DEPENDENCIES = [
     { name: "GSAP 3.15.0", source: "/assets/vendor/gsap-3.15.0.min.js", ready: () => window.gsap?.version === "3.15.0", optional: true },
     { name: "SplitText 3.15.0", source: "/assets/vendor/SplitText-3.15.0.min.js", ready: () => typeof window.SplitText === "function", optional: true },
-    { name: "Masonry 4.2.2", source: "/assets/vendor/masonry-4.2.2.min.js", ready: () => typeof window.Masonry === "function" },
     { name: "LazySizes 5.3.2", source: "/assets/vendor/lazysizes-5.3.2.min.js", ready: () => Boolean(window.lazySizes?.loader) },
   ];
 

@@ -85,7 +85,7 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 
 ### R4. Font và thư viện tự host
 
-Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
+Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: lazysizes 5.3.2, GSAP, SplitText
 3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file, bỏ `:root`, `:host`, `@keyframes`
 preloader vì chèn lúc cuộn làm style recalc toàn document), hls.js 1.7.3 (bản light, trang Advertising nạp cùng lúc tải
 artifact khi trình duyệt có Media Source, [video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,

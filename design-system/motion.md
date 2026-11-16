@@ -71,7 +71,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Cụm chữ nguyên khối | Cả khối `scale 1.1 → 1` `2.5s cubic-bezier(0, 0, .26, 1)` (`--ease`) từ lúc trang bắt đầu lộ; câu rồi số fade nguyên khối `1s expo.out`, trễ `0.3s` và `0.6s`; không tách từ, không trượt | Trang 404 (mục Text), mẫu 404 của Espacio |
 | Parallax | Media trôi chậm hơn cuộn 20%; rail ngang `4`; CTA Advertising 10% | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), dải công trình Residential, Commercial, trang công trình ([Blocks](components/Blocks/README.md)), [Banner CTA](components/BannerCta/README.md) Advertising |
 | Nhô lên, trượt vào | `data-motion-up`: `y 60px → 0` và mờ sang rõ `0.6s` `--ease`, trễ theo `data-motion-delay`; `data-motion-left`: `x 60px → 0` không mờ, cùng nhịp; khi vào viewport | Ô thông số trang công trình (trễ 0, 0.15, 0.3, 0.45s), dải công trình (Residential, Commercial, trang công trình), khối chi tiết Residential, Commercial |
-| Chuyển vị trí card | `transform 0.4s ease` qua `masonry-layout` | [Masonry](components/Masonry/README.md), [Filter](components/Filter/README.md) |
+| Chuyển vị trí card | `transform 0.4s ease` (Web Animations, FLIP trên tọa độ đã tính, `masonry/host.mjs`) | [Masonry](components/Masonry/README.md), [Filter](components/Filter/README.md) |
 | Đổi nền hover | `0.3s ease-out` nền và chữ đảo màu | [Floating CTA](components/FloatingCta/README.md) |
 
 Motion chỉ một bề mặt dùng: header intro, collapse, ẩn hiện ([Header](components/Header/README.md));
@@ -245,8 +245,10 @@ nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opa
 
 ### Vị trí card (masonry)
 
-- `masonry-layout` là engine duy nhất cho re-layout và chuyển vị trí; không
-  có FLIP tự viết song song.
+- Tọa độ đã tính trước (packer, `replayLayout`); `layoutMotion` trong
+  `masonry/host.mjs` là đường chuyển vị trí duy nhất: ghi `left`, `top` đích rồi
+  trượt `transform` từ chỗ cũ bằng Web Animations (FLIP), không còn thư viện
+  `masonry-layout` ([xếp trực tiếp R7](../docs/specs/masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)).
 - Mọi thay đổi tọa độ (filter, resize, đổi số cột) chạy cùng một pipeline:
   card cũ ẩn ngay không fade; card còn lại và card mới đi từ vị trí cũ tới vị
   trí mới bằng `transform 0.4s ease`, không delay, không stagger. Đổi cỡ thì con

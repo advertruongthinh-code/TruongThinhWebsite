@@ -20,7 +20,6 @@ import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const outputRoot = path.join(projectRoot, ".site-output");
 const vendorAssets = [
-  ["node_modules/masonry-layout/dist/masonry.pkgd.min.js", "assets/vendor/masonry-4.2.2.min.js"],
   ["node_modules/lazysizes/lazysizes.min.js", "assets/vendor/lazysizes-5.3.2.min.js"],
   ["node_modules/gsap/dist/gsap.min.js", "assets/vendor/gsap-3.15.0.min.js"],
   ["node_modules/gsap/dist/SplitText.min.js", "assets/vendor/SplitText-3.15.0.min.js"],

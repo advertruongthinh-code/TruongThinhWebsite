@@ -409,8 +409,11 @@ try {
     console.log("PASS search mode");
   }
   // 8. Slide (R7): a chip click slides each card from where it stood to its new place along one straight path, never stepping back
-  // and never covering more than a third of the path in one frame; a second click while cards still slide starts them from where
-  // they stand (relayoutTo seeds the visual origins), so no card jumps back to its old target.
+  // and never jumping; a second click while cards still slide starts them from where they stand (relayoutTo seeds the visual
+  // origins), so no card jumps back to its old target. A step is bounded by the slide time it covers (the animation's own
+  // currentTime, or the time since a new slide started): at most three times the share of that slide's path (its first keyframe
+  // offset) the 0.4 s slide covers in that time (`ease` peaks at 2.29 times the mean speed), so a slow frame on a loaded machine
+  // is not a jump, while a restart from the old target is.
   {
     const { page } = await open(ADVERTISING, 1440);
     await settled(page);
@@ -418,14 +421,19 @@ try {
     const record = (ms) => page.evaluate((duration) => new Promise((resolve) => {
       const grid = document.querySelector("[data-project-grid]");
       const frames = [];
+      const slideNumbers = new WeakMap();
+      let slides = 0;
       const start = performance.now();
       const tick = () => {
         const origin = grid.getBoundingClientRect();
         const frame = {};
         for (const node of grid.querySelectorAll("[data-masonry-item]")) {
-          if (!node.getAnimations().some((animation) => animation.id === "masonry-slide")) continue;
+          const slide = node.getAnimations().find((animation) => animation.id === "masonry-slide");
+          if (!slide) continue;
+          if (!slideNumbers.has(slide)) slideNumbers.set(slide, (slides += 1));
           const box = node.getBoundingClientRect();
-          frame[node.dataset.masonryCard] = [box.left - origin.left, box.top - origin.top];
+          const [dx = 0, dy = 0] = (slide.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+          frame[node.dataset.masonryCard] = [box.left - origin.left, box.top - origin.top, slide.currentTime || 0, slideNumbers.get(slide), Math.hypot(dx, dy)];
         }
         frames.push(frame);
         if (performance.now() - start < duration) requestAnimationFrame(tick);
@@ -438,9 +446,13 @@ try {
       for (const frame of frames) for (const [id, point] of Object.entries(frame)) byId.set(id, [...(byId.get(id) || []), point]);
       return [...byId].filter(([, points]) => points.length >= 3);
     };
-    const span = (points) => Math.max(...points.flatMap((a) => points.map((b) => Math.hypot(a[0] - b[0], a[1] - b[1]))));
     const step = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-    const maxStep = (points) => Math.max(...points.slice(1).map((point, index) => step(point, points[index])));
+    // The first step that covers more than twice the path share of its frame time, or undefined.
+    const jump = (points) => points.slice(1).map((point, index) => ({
+      index: index + 1, path: point[4], moved: step(point, points[index]), ms: point[3] === points[index][3] ? point[2] - points[index][2] : point[2],
+    }))
+      .find(({ path, moved, ms }) => moved > path * Math.min(1, (3 * ms) / 400) + 2);
+    const describe = (found) => found && `jumps ${found.moved.toFixed(0)}px of a ${found.path.toFixed(0)}px slide in ${found.ms.toFixed(0)} ms (frame ${found.index})`;
     // One click: progress along the path from the first to the last sample never goes back.
     const single = record(1200);
     await page.locator('[data-masonry-filter="signage"]').click();
@@ -452,10 +464,10 @@ try {
       if (length < 6) continue;
       const along = points.map(([x, y]) => ((x - first[0]) * (last[0] - first[0]) + (y - first[1]) * (last[1] - first[1])) / length);
       along.slice(1).forEach((value, index) => assert.ok(value >= along[index] - 1, `${id}: steps back at frame ${index + 1}`));
-      assert.ok(maxStep(points) <= Math.max(length / 3, 2), `${id}: jumps ${maxStep(points).toFixed(0)}px of ${length.toFixed(0)}px in one frame`);
+      assert.equal(describe(jump(points)), undefined, id);
     }
     await settled(page);
-    // A second click mid-slide: no frame jump over a third of the ground the card covers.
+    // A second click mid-slide: no step outruns its slide time, across the restart too.
     const twice = record(1400);
     await page.locator('[data-masonry-filter="all"]').click();
     // Early in the slide (eased progress about 0.2), so a card restarted from its old target would jump most of its path.
@@ -464,8 +476,7 @@ try {
     const two = paths(await twice);
     assert.ok(two.length >= 3, `cards slide on two quick clicks (${two.length})`);
     for (const [id, points] of two) {
-      const ground = span(points);
-      assert.ok(maxStep(points) <= Math.max(ground / 3, 2), `${id}: jumps ${maxStep(points).toFixed(0)}px of ${ground.toFixed(0)}px in one frame`);
+      assert.equal(describe(jump(points)), undefined, id);
     }
     assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two quick clicks");
     await page.close();
