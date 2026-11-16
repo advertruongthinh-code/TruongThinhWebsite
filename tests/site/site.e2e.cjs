@@ -8852,8 +8852,6 @@ async function runDelayedDetailFallbackChecks() {
   };
   const exerciseFilter = async (page, category) => {
     await waitForAdvertisingCatalog(page);
-    // The build zone off screen fills when idle (loading-glass R10): wait for it, so built cards are there to slide on the filter.
-    await page.waitForFunction(() => !document.querySelector("[data-project-grid] .masonry-ghost"), null, { timeout: 5_000 });
     await page.evaluate(() => {
       // One layout pass starts every card slide of the main grid in one synchronous loop (host layoutMotion).
       if (!window.__ttDelayedDetailMasonryProbe) {

@@ -56,9 +56,8 @@ card đang dựng, tọa độ, media đang hiện của card nhiều media, car
 (`masonry/mount-budget.mjs`); motion là Web Animations trên tọa độ đã tính, không còn thư viện Masonry
 ([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)). Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
 `release(keep, { queue })` (không gỡ card đang giữ focus), dựng lẻ là `ensure`; motion layout `layoutMotion(instant)`,
-hủy `stopMotion()`. Thứ tự chọn card dựng (`pickMounts`): card bắt buộc, card giao viewport, card trong hàng chờ, rồi gần
-giữa màn hình, tối đa theo ngân sách frame; vuốt rất nhanh hoặc nhảy xa chỉ dựng card giao viewport. Bề rộng vùng dựng do
-`host.zone` tính từ ngân sách ([loading-glass R10](loading-glass-and-page-entry.md)). Vùng dựng, vùng trễ và bàn phím theo
+hủy `stopMotion()`. Thứ tự chọn card dựng (`pickMounts`): card bắt buộc, rồi card trong hàng chờ, rồi gần giữa màn hình,
+tối đa theo ngân sách frame; vuốt rất nhanh chỉ dựng card bắt buộc. Vùng dựng, vùng trễ và bàn phím theo
 [masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím).
 
 ```gherkin

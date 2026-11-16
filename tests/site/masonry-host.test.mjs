@@ -5,28 +5,20 @@ import { pickMounts } from "../../src/site/masonry/host.mjs";
 
 const distance = (id) => ({ a: 30, b: 10, c: 20, d: 5 })[id];
 
-test("forced cards, then cards meeting the viewport, then queued, then by distance, up to the quota", () => {
+test("forced cards always mount, the rest by queue then distance up to the quota", () => {
   const picked = pickMounts({
     missing: ["a", "b", "c", "d"],
     mustMount: (id) => id === "a",
-    meets: (id) => id === "b",
     distance,
     queued: (id) => id === "c",
     quota: () => 2,
   });
-  assert.deepEqual([...picked], ["a", "b", "c"]);
+  assert.deepEqual([...picked], ["a", "c", "d"]);
 });
 
-test("queued cards off screen never take the quota from cards meeting the viewport", () => {
-  const picked = pickMounts({ missing: ["q1", "q2", "v1"], meets: (id) => id === "v1", distance: () => 1, queued: (id) => id.startsWith("q"), quota: () => 1 });
-  assert.deepEqual([...picked], ["v1"]);
-});
-
-test("fast mode (more cards meeting the viewport missing than the quota, or a jump) mounts only those, nearest the center first", () => {
-  const meets = (id) => id !== "a";
-  assert.deepEqual([...pickMounts({ missing: ["a", "b", "c", "d"], meets, distance, quota: () => 2 })], ["d", "b"]);
-  assert.deepEqual([...pickMounts({ missing: ["a", "b"], meets, distance, jump: true, quota: () => 8 })], ["b"], "a jump builds no zone card");
-  assert.deepEqual([...pickMounts({ missing: ["a", "b"], meets, distance, quota: () => 8 })], ["b", "a"], "otherwise the zone follows");
+test("a fast fling mounts only forced cards", () => {
+  const picked = pickMounts({ missing: ["a", "b"], mustMount: (id) => id === "b", distance, fast: true, quota: () => 8 });
+  assert.deepEqual([...picked], ["b"]);
 });
 
 test("mount shows ghosts for cards not allowed, reattaches queued cards and release queues the rest", async () => {

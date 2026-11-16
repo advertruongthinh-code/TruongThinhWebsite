@@ -10,18 +10,13 @@ export const env = globalThis.TruongThinhEnv ?? {
   get phone() { return matchMedia("(hover: none) and (pointer: coarse)"); },
 };
 
-// Which cards are really built this frame (loading-glass R10): required cards always build; the rest up to `quota()` in this order: cards
-// meeting the viewport, queued cards (reattaching is cheaper than building new), then nearest the screen center. Fast mode, when more cards
-// meeting the viewport are missing than the quota or on a `jump`, builds only those cards meeting the viewport, nearest the center first.
-export function pickMounts({ missing, mustMount = () => false, meets = () => false, distance, queued = () => false, jump = false, quota }) {
+// Which cards are really built this frame: required cards always build; the rest are queued cards first (reattaching is cheaper than
+// building new), then those nearest the screen center first, up to `quota` cards. A very fast swipe (`fast`) builds only required cards.
+export function pickMounts({ missing, mustMount = () => false, distance, queued = () => false, fast = false, quota }) {
   const forced = missing.filter(mustMount);
-  const rest = missing.filter((id) => !mustMount(id));
-  const required = rest.filter(meets);
-  const limit = quota();
-  const fast = jump || required.length > limit;
-  const order = (fast ? required : rest)
-    .sort((a, b) => (meets(b) - meets(a)) || (queued(b) - queued(a)) || distance(a) - distance(b));
-  return new Set([...forced, ...order.slice(0, limit)]);
+  const rest = missing.filter((id) => !mustMount(id))
+    .sort((a, b) => (queued(b) - queued(a)) || distance(a) - distance(b));
+  return new Set([...forced, ...rest.slice(0, fast ? 0 : quota())]);
 }
 
 // Layout motion (masonry-live-layout R7): positions are precomputed, so a pass only slides each card from its inline left/top to its
@@ -60,7 +55,6 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
     // Cards just detached whose image is still decoding, capacity by machine RAM (R7, V4).
     detached: createDetachedCards(detachedCapacity(deviceMemory)),
     ghostFrame: 0,
-    idleTask: 0,
     // Yard height from layout, written as the root height by a motion pass.
     pixelHeight: 0,
     // rAF before the motion pass and a scheduled end of the pass.
@@ -123,28 +117,13 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         render();
       });
     },
-    // Only placeholder cards off screen remain: build them when the main thread is idle, yielding to input (loading-glass R10). The pass
-    // `render({ idle: true })` does not measure the frame clock.
-    scheduleIdle(render) {
-      if (host.ghostFrame || host.idleTask) return;
-      const run = () => {
-        host.idleTask = 0;
-        if (!document.hidden) render({ idle: true });
-      };
-      host.idleTask = globalThis.requestIdleCallback ? requestIdleCallback(run, { timeout: 500 }) : -setTimeout(run, 50);
-    },
     cancelGhosts() {
       if (host.ghostFrame) cancelAnimationFrame(host.ghostFrame);
       host.ghostFrame = 0;
-      if (host.idleTask > 0) cancelIdleCallback(host.idleTask);
-      else if (host.idleTask < 0) clearTimeout(-host.idleTask);
-      host.idleTask = 0;
     },
-    pickMounts: ({ missing, mustMount, meets, distance, jump }) => pickMounts({
-      missing, mustMount, meets, distance, jump, queued: (id) => host.detached.has(id), quota: host.budget.quota,
+    pickMounts: ({ missing, mustMount, distance, fast }) => pickMounts({
+      missing, mustMount, distance, fast, queued: (id) => host.detached.has(id), quota: host.budget.quota,
     }),
-    // Build zone beyond each viewport edge for this frame (advertising-masonry R7), shared by both yards.
-    zone: (viewportHeight, cardsPerViewport, step) => host.budget.zone({ viewportHeight, cardsPerViewport, capacity: host.detached.capacity, step }),
     // The placement's card: if built return the node; otherwise reattach from the queue or build new, then attach to `parent`.
     ensure(placement, parent = root) {
       const id = placement.card.id;
@@ -157,14 +136,12 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
       return node;
     },
     // One build pass of the scroll window: existing cards drop their placeholder; cards not yet their turn (`allowed`) show a placeholder; cards whose
-    // turn has come reattach or build new, crossfading over their placeholder. Build time counts against the budget; if placeholders remain,
-    // schedule `render` on the next frame when one meets the viewport (`meets`), otherwise when idle. Returns the `[node, placement]` pairs that
-    // just entered the yard.
-    mount(placements, { allowed = null, render, meets = () => true, idle = false } = {}) {
+    // turn has come reattach or build new, crossfading over their placeholder. Build time counts against the budget; if placeholders remain, schedule
+    // `render` on the next frame. Returns the `[node, placement]` pairs that just entered the yard.
+    mount(placements, { allowed = null, render } = {}) {
       const created = [];
       const fragment = document.createDocumentFragment();
       let mountMs = 0;
-      let fresh = 0;
       for (const placement of placements) {
         const id = placement.card.id;
         if (host.rendered.has(id)) {
@@ -180,22 +157,16 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         const node = host.ensure(placement, fragment);
         // A reattached card already has its image so it needs no placeholder to crossfade.
         if (reattached) host.ghosts.drop(id);
-        else {
-          node.masonryGhost = host.ghosts.take(id);
-          fresh += 1;
-        }
+        else node.masonryGhost = host.ghosts.take(id);
         mountMs += performance.now() - start;
         created.push([node, placement]);
       }
       if (created.length) {
         const start = performance.now();
         root.append(fragment);
-        host.budget.record(created.length, mountMs + performance.now() - start, fresh, { idle });
+        host.budget.record(created.length, mountMs + performance.now() - start);
       }
-      const waiting = render ? placements.filter((placement) => host.ghosts.has(placement.card.id)) : [];
-      // While scrolling there is no idle time: zone ghosts would still wait when they reach the viewport, so they build on frames too.
-      if (waiting.some(meets) || (waiting.length && host.budget.moving())) host.scheduleGhosts(render);
-      else if (waiting.length) host.scheduleIdle(render);
+      if (render && placements.some((placement) => host.ghosts.has(placement.card.id))) host.scheduleGhosts(render);
       return created;
     },
     // Remove cards outside `keep`, except the card holding focus; `queue` false means do not keep them in the queue (geometry or range changed).

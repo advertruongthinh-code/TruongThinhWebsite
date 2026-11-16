@@ -151,7 +151,7 @@ mọi card; media đã có trong hàng tải cũng hiện dần trên màu nền
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
 Đổi bộ card chia thành task ngắn để không task nào quá 50 ms trên A04s. Bấm chip chỉ nhận lượt bấm; card dựng ở task kế (hoặc
 khi bản xếp về, R4; bấm chip khác trước đó thì lượt trước bị bỏ); `setResults`, `clearResults` dựng ngay trong task gọi. Task dựng
-tạo card mới giao vùng nhìn thấy (card mới còn lại là card tạm 4 màu tại đích, thành card thật đúng chỗ đó theo ngân sách frame sau cú trượt, card ngoài màn hình dựng lúc trình duyệt rảnh, không trượt; [advertising-masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)) và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa
+tạo card mới giao vùng nhìn thấy (card mới còn lại là card tạm 4 màu tại đích, thành card thật đúng chỗ đó theo ngân sách frame sau cú trượt, không trượt; [advertising-masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)) và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa
 sổ ảo); task kế dựng cụm CTA và skeleton; khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Card lệch đích
 dưới nửa pixel không trượt. Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở khung sau.
 Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).

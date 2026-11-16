@@ -6,20 +6,18 @@ export const GHOST_FADE_MS = DUR.fade;
 export const GHOST_FADE_EASING = EASE.expoOut;
 // One full color cycle of the phone image-wait layer: 4 dominant colors, 2s each (detail.css, [data-media-wait="colors"]).
 const COLORS_CYCLE_MS = 8000;
-// A move over two viewports in one sample is a jump: the old content is no longer used and the cost measurement may be stale.
+// Swiping a viewport every 100ms only holds places and does not mount real cards.
+const FAST_VIEWPORTS_PER_S = 10;
 const JUMP_VIEWPORTS = 2;
 // One third of the frame interval is for mounting cards; the rest is for style, layout, paint.
 const BUDGET_SHARE = 1 / 3;
 const MIN_FRAME_MS = 8;
 const MAX_FRAME_MS = 34;
 const INITIAL_COST_MS = 3;
-// A gap this long between two evaluations says nothing about frame cadence (scrolling stopped), so the cost may be stale.
-const PAUSE_MS = 100;
-// After a jump or a pause the quota restarts here and doubles each frame that mounts, until it reaches the measured quota: a stale or low cost
-// cannot dump a burst of cards into the first frame (loading-glass R10).
-const RAMP_START = 2;
-// Card cost samples kept for the median.
-const COST_SAMPLES = 5;
+const HOLD_FAST_MS = 120;
+// The measured time covers only the card-mounting JS; the card's style and layout run later in the same frame so are not yet in the measurement. A hard cap
+// keeps a few cards per frame even when the measurement is low (a fast machine still mounts everything within a few frames).
+const MAX_MOUNTS_PER_FRAME = 8;
 
 // Every color layer shares one phase (a negative delay equal to the current time modulo the cycle), so neighbors change color in step and a ghost card
 // turning into a real card (or the primary frame) keeps its color.
@@ -40,114 +38,59 @@ export const clearColorWait = (node) => {
 
 // Per-card cost and frame cadence are measured on the device; a pure function of the clock passed in, for tests.
 // Cost is measured by frame interval: the mounting JS is only a small part, the card's style, layout and paint run later in the same frame and
-// delay the next frame (A04s: JS 0.5ms per card but the frame grows several ms longer per card). Only newly created cards feed it: a card
-// reattached from the queue is cheap and would pull the cost down.
+// delay the next frame (A04s: JS 0.5ms per card but the frame grows several ms longer per card).
 export function createMountBudget(clock = () => performance.now(), nextFrame = (callback) => requestAnimationFrame(callback)) {
   let costMs = INITIAL_COST_MS;
   // Frame cadence when no cards are mounted: the baseline that separates mount cost from the frame interval.
   let frameMs = 1000 / 60;
   let sample = null;
   let lastMount = null;
-  // Smoothed scroll speed in px/ms and the last scroll step in px, for the build zone.
-  let speed = 0;
-  let step = 0;
-  let ramp = RAMP_START;
   // The budget is per frame: one mount uses up that frame's share, and a second check in the same frame (ghost rAF then
   // scroll, a few ms apart because the first mount took time) mounts no more.
   let spent = false;
   const smooth = (previous, next) => previous + (next - previous) * 0.2;
   const clampFrame = (ms) => Math.min(MAX_FRAME_MS, Math.max(MIN_FRAME_MS, ms));
-  const measured = () => mountQuota({ budgetMs: frameMs * BUDGET_SHARE, costMs });
-  // Interval up to this frame: if cards were created in the previous frame, the excess over the baseline cadence is their cost; otherwise it is the baseline cadence.
-  // The cost is the median of the last few samples: one frame held by other work (image decode, a GC) does not read as several ms per card,
-  // while a device whose cards really cost more moves the cost within a few frames, in either direction.
-  const samples = [];
-  const learn = (mounted, elapsed) => {
-    const perCard = Math.max(mounted.jsMs, elapsed - frameMs) / mounted.count;
-    samples.push(Math.min(MAX_FRAME_MS, Math.max(0.05, perCard)));
-    if (samples.length > COST_SAMPLES) samples.shift();
-    const sorted = [...samples].sort((a, b) => a - b);
-    costMs = sorted[sorted.length >> 1];
-    return perCard;
-  };
-  // The ramp opens only while a frame's cost per card agrees with the cost known so far (at most double): a cost learned at rest (idle
-  // bracket) may read low, so a device whose cards stretch the frame stays at a card or two per frame until the median catches up, while a
-  // fast machine, where only an odd frame is held by other work, opens up within a few frames.
+  // Interval up to this frame: if cards were mounted in the previous frame, the excess over the baseline cadence is their cost; otherwise it is the baseline cadence.
   const measure = (elapsed) => {
     const mounted = lastMount;
     lastMount = null;
-    if (!mounted) {
-      frameMs = smooth(frameMs, clampFrame(elapsed));
-      return;
-    }
-    const known = costMs;
-    const perCard = learn(mounted, elapsed);
-    if (ramp < Infinity && perCard <= 2 * known) ramp = ramp * 2 > measured() ? Infinity : ramp * 2;
+    // A long pause means scrolling has stopped, saying nothing about frame cadence.
+    if (elapsed >= 100) return;
+    if (mounted) {
+      const perCard = Math.max(mounted.jsMs, elapsed - frameMs) / mounted.count;
+      costMs = smooth(costMs, Math.min(MAX_FRAME_MS, Math.max(0.05, perCard)));
+    } else frameMs = smooth(frameMs, clampFrame(elapsed));
   };
   return {
-    // Called once per frame when the window is evaluated (an idle pass does not call it: its gap is not a frame interval); returns true on a jump.
+    // Called each time the window is evaluated; returns true while swiping very fast.
     begin(y, viewportHeight) {
       const now = clock();
-      let jump = false;
+      let fast = false;
       if (sample) {
         const elapsed = now - sample.time;
-        // Second call in the same frame (ghost rAF then scroll): there is no distance to measure, keep the previous verdict and the old mark.
-        if (elapsed < 4) return sample.jump;
+        // Second call in the same frame (ghost rAF then scroll): there is no distance to measure, keep the previous conclusion and the old mark.
+        if (elapsed < 4) return sample.fast;
+        measure(elapsed);
+        // The frame reran because ghost cards remain (no further scrolling): if swiping fast it stays fast, ending only after standing still long enough.
+        if (y === sample.y) {
+          sample.time = now;
+          return sample.fast && now - sample.movedAt < HOLD_FAST_MS;
+        }
         const distance = Math.abs(y - sample.y);
-        if (elapsed >= PAUSE_MS) {
-          lastMount = null;
-          ramp = RAMP_START;
-          speed = 0;
-        } else {
-          measure(elapsed);
-          speed = smooth(speed, distance / elapsed);
-        }
-        // A long jump (dragging the scrollbar, returning to a previous spot) even after a long pause; it is not a scroll step for the zone.
-        jump = distance > viewportHeight * JUMP_VIEWPORTS;
-        step = jump ? 0 : distance;
-        if (jump) ramp = RAMP_START;
+        // A long jump (dragging the scrollbar, returning to a previous spot) counts as fast swiping even after a long pause: the old content is no longer used.
+        fast = distance / elapsed * 1000 > viewportHeight * FAST_VIEWPORTS_PER_S || distance > viewportHeight * JUMP_VIEWPORTS;
       }
-      sample = { y, time: now, jump };
-      return jump;
+      sample = { y, time: now, fast, movedAt: now };
+      return fast;
     },
-    speed: () => speed,
-    // A frame was evaluated within the pause threshold: the page is scrolling, so there is no idle time to wait for.
-    moving: () => Boolean(sample) && clock() - sample.time < PAUSE_MS,
-    quota: () => (spent ? 0 : Math.min(ramp, measured())),
-    // `fresh` of the `count` cards were newly created (the rest reattached from the queue); only those measure the cost. An `idle` pass has no
-    // frame of its own: the cost is read from the interval of the next two frames, whose first one lays out the new cards, unless a frame
-    // evaluation measured them first.
-    record(count, jsMs, fresh = count, { idle = false } = {}) {
+    quota: () => spent ? 0 : Math.min(MAX_MOUNTS_PER_FRAME, mountQuota({ budgetMs: frameMs * BUDGET_SHARE, costMs })),
+    record(count, jsMs) {
       if (count > 0) {
-        const mounted = fresh > 0 ? { count: fresh, jsMs } : null;
-        lastMount = mounted;
-        if (idle && mounted) {
-          nextFrame(() => {
-            const start = clock();
-            nextFrame(() => {
-              if (lastMount !== mounted) return;
-              lastMount = null;
-              learn(mounted, clock() - start);
-            });
-          });
-        }
+        lastMount = { count, jsMs };
         // When the budget runs out until the next frame starts (this callback registers before any follow-up mount rAF, so it runs before them).
         if (!spent) nextFrame(() => { spent = false; });
         spent = true;
       }
-    },
-    // Build zone beyond each viewport edge, the same above and below (advertising-masonry R7): the larger of one viewport and the distance scrolled
-    // while one viewport of cards builds at the current quota (at most half the queue of removed cards), plus the last scroll step, since the
-    // page moves one more step after the pass.
-    // At rest (no frame evaluation for a pause, only idle passes) speed and the budget's own step count as zero, so a fling's zone does not
-    // stay wide. A step the caller measured between its own passes always counts: it is zero once scrolling stops, while a slow device's frame
-    // can last past the pause threshold mid-fling and still move two viewports.
-    zone({ viewportHeight, cardsPerViewport, capacity, step: passStep }) {
-      const resting = !sample || clock() - sample.time >= PAUSE_MS;
-      const perViewport = Math.max(1, cardsPerViewport);
-      const fillMs = perViewport / measured() * frameMs;
-      const cap = viewportHeight * (capacity / 2) / perViewport;
-      return Math.max(viewportHeight, Math.min(cap, resting ? 0 : speed * fillMs)) + (passStep ?? (resting ? 0 : step));
     },
   };
 }
@@ -221,7 +164,6 @@ export const detachedCapacity = (deviceMemory = 4) => {
 export function createDetachedCards(capacity) {
   const queue = new Map();
   return {
-    capacity,
     get size() { return queue.size; },
     has: (id) => queue.has(id),
     // Enter the queue (or refresh); returns cards pushed out for exceeding capacity, oldest first.

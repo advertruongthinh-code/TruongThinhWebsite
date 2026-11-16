@@ -217,12 +217,13 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 ### R10. Card tạm khi vuốt nhanh
 
 Áp cho masonry chính và related ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)). Mỗi frame chỉ dựng card thật
-trong ngân sách đo trên máy đó: `quota = max(1, floor(budget / cost))`, `cost` là trung vị 5 mẫu gần nhất của chi phí một card đo bằng khoảng frame dôi
-ra sau lần dựng card mới (gồm style, layout, paint, không chỉ phần JS; card gắn lại từ hàng chờ không tính vào số đo), `budget` là một phần ba nhịp frame nền (kẹp `8` tới `34ms`)
-(`mountQuota`, `createMountBudget`); thứ tự dựng: card bắt buộc (vừa mở detail, focus), card giao viewport, card trong hàng chờ, rồi gần giữa màn hình trước. Không có trần cố định: sau một cú nhảy xa hoặc một lần dừng từ `100ms` (số đo cũ), quota tăng dần `2, 4, 8, ...` mỗi frame có dựng mà chi phí một card đo ở frame đó không quá gấp đôi chi phí đang biết, cho tới quota đo được, nên frame đầu sau khi dừng vuốt không dựng dồn và máy chậm giữ một hai card mỗi frame; lượt dựng lúc rảnh đo chi phí bằng khoảng hai frame kế tiếp; một frame chỉ dựng một lần dù renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, là lớp màu
+trong ngân sách đo trên máy đó: `quota = max(1, floor(budget / cost))`, `cost` là trung bình trượt chi phí một card đo bằng khoảng frame dôi
+ra sau lần dựng (gồm style, layout, paint, không chỉ phần JS), `budget` là một phần ba nhịp frame nền (kẹp `8` tới `34ms`); giao viewport trước, gần giữa màn hình trước
+(`mountQuota`, `createMountBudget`); trần cứng `8` card mỗi frame (số đo trượt chậm theo máy, trần giữ frame đầu sau khi
+dừng vuốt không dựng dồn), và một frame chỉ dựng một lần dù renderWindow chạy hai lần. Card cần dựng mà chưa tới lượt có card tạm: khối đúng vị trí và kích thước card, là lớp màu
 4 màu chủ đạo của media bìa (bìa là video: 4 màu của poster), PC và điện thoại như nhau (owner 2026-11-15), cùng pha `--wait-phase`, `aria-hidden`, không link, ảnh hay observer, nằm trong lớp riêng đầu
-grid dưới mọi card. Vuốt nhanh là khi số card giao viewport còn thiếu vượt quota của frame, hoặc nhảy xa quá hai viewport: khi đó frame chỉ dựng card
-giao viewport (tối đa quota, gần giữa trước), không dựng vùng dựng sẵn. Card tạm giao viewport dựng dần mỗi frame (`requestAnimationFrame`); card tạm ngoài viewport trong vùng dựng sẵn dựng mỗi frame khi đang cuộn (lúc cuộn không có thời gian rảnh), còn khi đã dừng thì dựng lúc rảnh (`requestIdleCallback`, mỗi lượt tối đa quota, không đo nhịp frame, không chạy khi đang trượt hay tab ẩn). Mọi lớp màu chung pha (`colorsPhase`, `animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha nên không nhảy màu.
+grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhảy xa quá hai viewport, thì chỉ gắn card tạm; hết vuốt thì
+dựng dần mỗi frame (`requestAnimationFrame`). Mọi lớp màu chung pha (`colorsPhase`, `animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha nên không nhảy màu.
 
 Card tạm lên card thật: ảnh đã có hiện dần trên lớp màu, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
 (cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1 và card tạm gỡ ở frame kế (card thật với nền media đục đã phủ kín nó); card tạm
