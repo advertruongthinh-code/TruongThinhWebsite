@@ -2111,12 +2111,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
-    nodes.forEach((node, index) => {
+    // Next frame: the entrance starts after its 0.3 s delay anyway, and getAnimations here would flush style inside the click task.
+    requestAnimationFrame(() => nodes.forEach((node, index) => {
       node.getAnimations().forEach((animation) => animation.cancel());
       node.animate([{ opacity: 0, transform }, { opacity: 1, transform: "none" }], {
         duration, easing, delay: delay + index * stagger, fill: "backwards",
       });
-    });
+    }));
   };
   const syncRail = ({ animate = false } = {}) => {
     filters.querySelectorAll("[data-masonry-filter]").forEach((item) => {
@@ -2135,8 +2136,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: EASE.expoOut, delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
       // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
+      // Next frame, so the rail writes above do not force a layout inside the click task.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
-      if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
+      if (current) requestAnimationFrame(() => {
+        group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
+      });
     });
   };
   let filter = initialFilter({ categories, cards, pages });
@@ -2208,6 +2212,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   let firstBuild = false;
   let ctaDeferred = false;
   let lastMeasuredGridWidth = 0;
+  // The CTA batch of a card-set change waits for its own task (renderWindow).
+  let ctaPending = false;
+  const flushCta = () => {
+    if (!ctaPending) return;
+    ctaPending = false;
+    renderCtaSkeleton({ slide: true });
+  };
   let lastLayoutViewportWidth = 0;
   let lastGeometrySignature = "";
   // The geometry that positions reflects; whether the DOM order still matches the placement order.
@@ -2590,6 +2601,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     placeRendered();
   };
   const cancelMotion = () => {
+    // A slide frame cancelled before it built the CTA batch builds it now, in place.
+    if (ctaPending) {
+      ctaPending = false;
+      renderCtaSkeleton();
+    }
     // No motion running: settleMotion already cancelled the transition and cleaned up the cohort; re-walking every card would only cost the open-detail task.
     if (!gridHost.motionFrame && !gridHost.motionTimer && !motionUntil && !pendingScroll) return;
     gridHost.stopMotion();
@@ -3531,8 +3547,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const renderWindow = ({ animate = false, origins: visualOrigins, scrolling = false } = {}) => {
     if (!geometry || activePhotoId) return;
     let origins = visualOrigins;
+    // A card-set change builds the CTA batch (15-115ms on a slow CPU) in its own task right after the click task, not inside it, nor
+    // in the slide frame that already renders the new grid: each stays under the 50ms long-task line on the A04s (masonry-live-layout
+    // R7). The slide frame waits for that task (at most two frames, then builds it itself), so the batch slides with the cards.
+    const ctaSlide = animate && hasLaidOut && !reduced;
+    ctaPending = false;
     if (ctaDeferred) gridHost.pixelHeight = geometry.totalPixelHeight;
-    else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    else if (ctaSlide) {
+      ctaPending = true;
+      setTimeout(flushCta);
+    } else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: false });
     // The grid changing height makes the browser clamp the scroll (at page bottom); cards must start from where they are visible on
     // screen, otherwise they fly off by exactly the clamp amount then snap back (measured on PC, round 26).
     if (origins?.gridTop !== undefined) {
@@ -3554,12 +3578,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       || [...currentKeep, ...gridHost.ghosts.ids()].some((id) => !normalKeep.has(id));
     const geometrySignature = geometry.coordinateHash;
     const geometryChanged = geometrySignature !== lastGeometrySignature;
-    if (hasLaidOut && !membershipChanged && !geometryChanged) return;
+    if (hasLaidOut && !membershipChanged && !geometryChanged) return flushCta();
     // Same geometry and no motion means coordinates are already in positions from last time: do not rebuild the 285-card map every scroll frame.
     const samePositions = hasLaidOut && !geometryChanged && !animate && positionsGeometry === geometry;
     const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map((placement) => [placement.card.id, { x: placement.x, y: placement.y }]));
     const hasCoordinateDiff = samePositions ? false : coordinateChanged(nextPositions);
-    if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return;
+    if (hasLaidOut && !membershipChanged && !hasCoordinateDiff && !geometryChanged) return flushCta();
     const shouldAnimate = animate && (membershipChanged || hasCoordinateDiff || !hasLaidOut);
     const retainCohort = shouldAnimate && !reduced;
     const keep = retainCohort ? new Set([...currentKeep, ...normalKeep]) : normalKeep;
@@ -3642,8 +3666,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       restoreCanonicalDomOrder();
       domOrderDirty = false;
     }
-    // The first build does not force style and layout here: the seeded start positions render in their own frame before the slide (below).
-    if (seeded.size && !firstBuild) void grid.offsetHeight;
     grid.style.height = `${gridHost.pixelHeight}px`;
     const applyLayout = () => {
       if (!shouldAnimate || reduced) placeRendered();
@@ -3674,19 +3696,25 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       }
     };
     if (seeded.size && animate && !reduced) {
+      // The CTA task has not run yet (a slow click task let the frame come first): wait one frame, the cards already stand at their
+      // visible origins, so the slide frame never also carries the CTA build.
+      let waits = 0;
       const slide = () => {
+        if (ctaPending && waits++ < 2) {
+          gridHost.motionFrame = requestAnimationFrame(slide);
+          return;
+        }
         gridHost.motionFrame = 0;
+        flushCta();
         applyLayout();
       };
-      // The first build lets one frame paint the cards at their start positions, so the slide starts from them without forcing style and layout
-      // inside the build task (A04s: 30ms of a 95-157ms task). Later passes force it and slide in the next frame as before.
+      // The slide reads its start from the seeded inline left/top (FLIP, masonry-live-layout R7), so no pass forces style and layout here.
+      // The first build lets one frame paint the cards at their start positions (A04s: 30ms of a 95-157ms task); later passes slide in the next frame.
       if (firstBuild) gridHost.motionFrame = requestAnimationFrame(() => { gridHost.motionFrame = requestAnimationFrame(slide); });
-      else {
-        void grid.offsetHeight;
-        gridHost.motionFrame = requestAnimationFrame(slide);
-      }
+      else gridHost.motionFrame = requestAnimationFrame(slide);
       return;
     }
+    flushCta();
     applyLayout();
   };
 
@@ -3707,15 +3735,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     window.lazySizes?.loader?.checkElems?.();
   };
 
-  const measure = ({ animate = false, origins } = {}) => {
-    const layoutViewportWidth = document.documentElement.clientWidth;
+  // `sameWidth`: a card-set change (filter, search) does not change widths, so it reuses the last measured ones instead of reading
+  // clientWidth after its own DOM writes (a forced layout of the whole page inside the click task, masonry-live-layout R7). A resize
+  // still measures through the resize handler.
+  const measure = ({ animate = false, origins, sameWidth = false } = {}) => {
+    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth;
+    const layoutViewportWidth = cached ? lastLayoutViewportWidth : document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
     const projectIndex = grid.closest(".masonry-section");
-    projectIndex?.style.setProperty("--masonry-outer", `${outer}px`);
-    projectIndex?.style.setProperty("--masonry-gap", `${interCardGap}px`);
-    grid.style.setProperty("--masonry-gap", `${interCardGap}px`);
-    const gridWidth = grid.clientWidth;
+    setStyleVar(projectIndex, "--masonry-outer", `${outer}px`);
+    setStyleVar(projectIndex, "--masonry-gap", `${interCardGap}px`);
+    setStyleVar(grid, "--masonry-gap", `${interCardGap}px`);
+    const gridWidth = cached ? lastMeasuredGridWidth : grid.clientWidth;
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
@@ -3747,7 +3779,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     skeletonRatioBandBySlot.clear();
     syncRail({ animate });
     syncPageHeading();
-    measure({ animate, origins });
+    measure({ animate, origins, sameWidth: true });
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
   const setActiveFilter = (nextFilter, options) => {
