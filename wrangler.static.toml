@@ -1,9 +1,29 @@
-# Static demo hosting: the Worker has assets only, no script, no binding.
+# Static demo hosting: assets plus a small script that runs only for /api/*
+# (decision docs/decisions/advertising-search-worker.md).
 # The CMS Worker config in wrangler.toml stays dormant until the CMS phase.
 name = "truong-thinh-demo"
+main = "src/search/worker.mjs"
 compatibility_date = "2026-07-31"
 workers_dev = true
 
 [assets]
 directory = ".site-output"
 not_found_handling = "404-page"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[ai]
+binding = "AI"
+
+[[ratelimits]]
+name = "SEARCH_TEXT_LIMIT"
+namespace_id = "7301"
+simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "SEARCH_IMAGE_LIMIT"
+namespace_id = "7302"
+simple = { limit = 10, period = 60 }
+
+[observability]
+enabled = false

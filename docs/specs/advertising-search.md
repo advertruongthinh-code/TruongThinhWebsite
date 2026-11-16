@@ -5,6 +5,7 @@ source:
   - src/search/**
   - src/site/search/**
   - scripts/search/**
+  - tests/search/**
 tests:
   - tests/search/keywords.test.mjs
   - tests/search/rank.test.mjs
@@ -293,8 +294,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 - **Chuẩn hóa L2**: chia vector cho độ dài của nó để độ dài bằng 1.
 - **Lượng tử int8**: lưu mỗi số bằng một byte kèm hệ số tỉ lệ, file nhỏ hơn 4 lần.
 - **Chỉ mục**: file chứa vector của mọi card. **K**: điểm lớp từ khóa của card.
-- **Cùng ý**: hai input có 5 card đầu trùng nhau từ 2 card.
-- **P@5**: tỉ lệ card đúng trong 5 card đầu.
+- **Cùng ý**: hai input có 5 card đầu trùng nhau từ 2 card. **P@5**: tỉ lệ card đúng trong 5 card đầu.
 - **Telex, VNI**: hai kiểu gõ tiếng Việt bằng phím chữ hoặc số khi chưa bật bộ gõ.
 - **Rate limit**: giới hạn số request trong một khoảng thời gian. **R2**: kho file của Cloudflare.
 - **Isolate**: một phiên chạy của Worker, giữ biến trong bộ nhớ giữa các request.
