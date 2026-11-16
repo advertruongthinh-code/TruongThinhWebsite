@@ -1,0 +1,15 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-chat-luong-v8b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+MUST SHOW (owner): all three kinds of kitchen cabinet clearly in one frame: UPPER wall cabinets, LOWER base cabinets, and a TALL full-height cabinet column.
+
+FRAMING (owner): close on the cabinetry. The ceiling and the floor take very little of the frame (a thin strip each at most); the cabinets fill the frame so the precise workmanship reads clearly.
+
+ATTACHED IMAGES: home-cam-ket-chat-luong-v7a.png and home-cam-ket-chat-luong-v7c2.png are references for the finish, light, colour and closeness the owner is moving toward; style-consultation is a reference for light and colour grade. Do not copy their layout.
+
+IDEA: a modern, fully equipped Vietnamese apartment kitchen by a panel furniture maker, shown so that the precision of the workmanship is readable: perfectly even 2-3 mm door and drawer gaps, crisp edge banding flush on every door edge, recessed gola channels or routed pulls running dead straight and aligned across all fronts, wood grain matched continuously across adjacent doors, stone countertop and backsplash joined tight, flush integrated appliances.
+
+VARIANT B: a slight angle along the run (camera level, verticals perfectly vertical), the TALL floor-to-ceiling column unit at the FAR end; warm wood-grain base cabinets, light matte upper cabinets and a light matte tall column with integrated appliances behind panel doors. The induction hob at the near part of the run with its hood FULLY inside the frame and centred above it; the sink between the hob and the tall column. The recessed gola channel lines continue straight and aligned from the base run into the tall unit. The hood is fully inside the frame and centred over the hob.
+
+RULES: every door and drawer CLOSED; recessed pulls only, nothing protruding; no people; level interior-photography camera with verticals perfectly vertical; appliances plain without logos; no tall cabinet right beside the hob (at least 90 cm of countertop between hob and tall unit). The lower 35-40 percent of the frame (lower cabinet faces) sits in soft, calmer shade with nothing bright, because white text sits over it. Natural directional light (side window) plus warm under-cabinet LED; real shadows and falloff. Photoreal like a real camera: slight sensor grain, real laminate micro texture, not a 3D render, no glossy airbrushed surfaces. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere in the image.
+
+AVOID: wide room views with large ceiling or floor areas; any open door or drawer; bar handles; tilted verticals.

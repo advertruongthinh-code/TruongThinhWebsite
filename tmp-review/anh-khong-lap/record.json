@@ -564,5 +564,62 @@
   "round": 7,
   "change": "owner 2026-11-16 22:59 UTC: closer, less ceiling/floor, precise detail",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v8a.png",
+  "sha256": "470198ce2219f675fbb3df2ed3c3c3c0ecae1222d8941d1e67ffd3095532c18c",
+  "bytes": 2238196,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v7a.png",
+   "home-cam-ket-chat-luong-v7c2.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v8a.txt",
+  "round": 8,
+  "change": "owner 2026-11-16 23:21 UTC: upper, lower and tall cabinets",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v8b.png",
+  "sha256": "b3797e1228133ce62fba950260782ef0120fca9422057f80be155b83c9589a7c",
+  "bytes": 1964575,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v7a.png",
+   "home-cam-ket-chat-luong-v7c2.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v8b.txt",
+  "round": 8,
+  "change": "owner 2026-11-16 23:21 UTC: upper, lower and tall cabinets",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v8c.png",
+  "sha256": "c9f962319a0eb11f4202e7a25ac8a8acc6a86d7eff2261403041777282b4b3f8",
+  "bytes": 2105521,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v7a.png",
+   "home-cam-ket-chat-luong-v7c2.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v8c.txt",
+  "round": 8,
+  "change": "owner 2026-11-16 23:21 UTC: upper, lower and tall cabinets",
+  "created": "2026-11-17"
  }
 ]
