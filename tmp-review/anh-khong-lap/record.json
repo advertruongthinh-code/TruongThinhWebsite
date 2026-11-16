@@ -488,5 +488,81 @@
   "round": 6,
   "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v7a.png",
+  "sha256": "286446e4ba5082a283d80cdf8969ffcfd6c607b3ee8993fa2c82cba4ef9f0f98",
+  "bytes": 2353162,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v6.png",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v7a.txt",
+  "round": 7,
+  "change": "owner 2026-11-16 22:59 UTC: closer, less ceiling/floor, precise detail",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v7b.png",
+  "sha256": "efce1b6fbe23d658a789f1e9db7bc0b948b67f909952d9eaa504500083ab1ef5",
+  "bytes": 2588763,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v6.png",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v7b.txt",
+  "round": 7,
+  "change": "owner 2026-11-16 22:59 UTC: closer, less ceiling/floor, precise detail",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v7c.png",
+  "sha256": "3f0b1f85f1e7f479830bb09434653e85e4e53656bb3699b198c671b1ce888681",
+  "bytes": 2491215,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v6.png",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v7c.txt",
+  "round": 7,
+  "change": "owner 2026-11-16 22:59 UTC: closer, less ceiling/floor, precise detail",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v7c2.png",
+  "sha256": "14d873cef3b4b8de7f292ffbe9126e59c5dcc92a9f3d07e6042c0eee9277fa94",
+  "bytes": 2395204,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v6.png",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v7c2.txt",
+  "round": 7,
+  "change": "owner 2026-11-16 22:59 UTC: closer, less ceiling/floor, precise detail",
+  "created": "2026-11-17"
  }
 ]

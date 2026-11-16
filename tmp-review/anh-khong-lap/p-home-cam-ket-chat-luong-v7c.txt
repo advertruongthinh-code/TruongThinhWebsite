@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-chat-luong-v7c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+FRAMING (most important, owner feedback): TIGHT on the cabinetry. The ceiling is at most a thin strip or not visible; the floor is at most a thin strip at the toe kick. The cabinet run fills the frame.
+
+ATTACHED IMAGES: home-cam-ket-chat-luong-v6.png is a style and material reference only (warm wood grain, light, colour); reframe completely. style-consultation and style-workshop-wide-x2 are style references for light, tonal depth and colour grade. Do not copy any layout.
+
+IDEA: a modern, fully equipped Vietnamese apartment kitchen by a panel furniture maker, shown so that the precision of the workmanship is readable: perfectly even 2-3 mm door and drawer gaps, crisp edge banding flush on every door edge, recessed gola channels or routed pulls running dead straight and aligned across all fronts, wood grain matched continuously across adjacent doors, stone countertop and backsplash joined tight, flush integrated appliances.
+
+VARIANT C: a slight angle along the cabinet run (camera still level, verticals perfectly vertical) so the even gaps and the gola lines recede in perspective; upper and lower cabinets with an integrated tall column (fridge or oven, flush panel fronts) at one end, well away from the hob.
+
+RULES: every door and drawer CLOSED; recessed pulls only, nothing protruding; no people; level interior-photography camera with verticals perfectly vertical; appliances plain without logos; no tall cabinet right beside the hob. The lower 35-40 percent of the frame (lower cabinet faces) sits in soft, calmer shade with nothing bright, because white text sits over it. Natural directional light (side window) plus warm under-cabinet LED; real shadows and falloff. Photoreal like a real camera: slight sensor grain, real laminate micro texture, not a 3D render, no glossy airbrushed surfaces. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere in the image.
+
+AVOID: wide room views with large ceiling or floor areas; any open door or drawer; bar handles; tilted verticals.
