@@ -252,8 +252,9 @@ nhịp mới), bằng Web Animations API trong `masonry/runtime.mjs`, chỉ `opa
 - Mọi thay đổi tọa độ (filter, resize, đổi số cột) chạy cùng một pipeline:
   card cũ ẩn ngay không fade; card còn lại đi từ vị trí cũ tới vị trí mới bằng
   `transform 0.4s ease`, không delay, không stagger. Card mới vào bộ dựng ngay tại
-  đích, lớp chờ 4 màu thấy ngay rồi media hiện dần như mọi card; chỉ lượt dựng
-  đầu card mới trượt từ đỉnh cột. Đổi cỡ thì con
+  đích: media chưa có thì lớp chờ (4 màu trên điện thoại, kính mờ trên PC) hiện
+  đủ ngay rồi media hiện dần như mọi card; media đã có thì card hiện đủ ngay. Chỉ
+  lượt dựng đầu card mới trượt từ đỉnh cột. Đổi cỡ thì con
   của card co giãn `scale` từ cỡ cũ cùng nhịp, quanh góc trên trái card, nên card
   lớn lên không phủ item kế bên. Khung skeleton của batch là item nối tiếp
   masonry: khung còn giữ trượt và co giãn từ chỗ cũ, khung mới xuất phát ngay dưới

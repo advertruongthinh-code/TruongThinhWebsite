@@ -86,8 +86,9 @@ khi bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trìn
 module runtime. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
 liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; đã có Worker trả một lượt thì lượt chậm sau đó vẫn được chờ)
 thì từ đó xếp trên luồng chính, mỗi ứng viên còn thiếu một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi
-Worker lỗi, các dải từ 3 cột chỉ xếp filter được bấm, không xếp nền; dải `2:15` xếp nền mỗi ứng viên trong một khoảng rảnh
-(`requestIdleCallback`, hạn 250 ms), nên task xếp không rơi vào lượt bấm chip trên A04s. Kết quả nhớ theo khóa
+Worker lỗi, các dải từ 3 cột chỉ xếp filter được bấm, không xếp nền. Dải `2:15` không dùng Worker; nó xếp nền mỗi ứng viên một
+task lúc trang rảnh, chậm nhất sau 250 ms (`requestIdleCallback` có hạn), nên lần bấm chip đầu thường thấy bản xếp sẵn; trang bận
+(vuốt ngay sau khi tải) thì một ứng viên vẫn có thể chạy như task thường. Kết quả nhớ theo khóa
 `<filter>|<dải>|<seed>` trong lượt mount. Filter đang xem xếp trước; khi 8 ảnh đầu tải xong (tối đa 6 s) mọi chip của dải
 hiện tại được xếp nền lần lượt từng chip (bấm chip chưa xếp chỉ chờ sau tối đa một lượt), sang dải mới hoặc Back về seed
 khác thì xếp nền lại, nên bấm chip thường thấy lưới ngay như cache cũ.
@@ -144,11 +145,13 @@ Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, 
 Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn thư viện Masonry 4.2.2: lượt chuyển của lưới chính và related
 (`layoutMotion` trong `host.mjs`) ghi ngay `left`, `top` đích cho mọi card rồi mới cho card trượt từ chỗ cũ về đích bằng Web
 Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
-card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới vào bộ dựng ngay tại đích, lớp chờ 4 màu
-thấy ngay rồi media hiện dần như mọi card, không bay ngang qua card đang trượt. Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
+card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới vào bộ dựng ngay tại đích, không bay
+ngang qua card đang trượt: media chưa có thì lớp chờ hiện đủ ngay (4 màu trên điện thoại, kính mờ trên PC) rồi media hiện dần như
+mọi card; media đã có trong hàng tải thì card hiện đủ ngay tại đích, không hiện dần (quyết định PR 3: không thêm fade riêng cho
+card, để không mờ cả lớp chờ). Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
 Đổi bộ card (chip, `setResults`, `clearResults`) chia thành ba task ngắn để không task nào quá 50 ms trên A04s: task bấm dựng card
-mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước, không đọc layout sau khi ghi DOM); task kế dựng cụm CTA và skeleton;
+mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa sổ ảo); task kế dựng cụm CTA và skeleton;
 khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở
 khung sau.
 Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).
@@ -157,6 +160,12 @@ Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../desig
 Given lưới Quảng cáo đang duyệt ở 1440px
 When bấm chip Biển hiệu rồi bấm Tất cả và Biển hiệu liền nhau trong lúc card còn trượt
 Then mỗi khung hình card chỉ tiến về đích, không lùi, không nhảy; trang không tải masonry-4.2.2.min.js
+```
+
+```gherkin
+Given lưới Quảng cáo đang ở chip Biển hiệu, bề rộng 384px và 1440px
+When bấm chip Tất cả
+Then mỗi card mới vào bộ đứng ngay tại đích, không trượt, lớp chờ hiện đủ; card có ở cả hai bộ trượt từ chỗ đang thấy
 ```
 
 ## Giao diện và dữ liệu

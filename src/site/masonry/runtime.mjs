@@ -2222,9 +2222,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderCtaSkeleton({ slide: true });
   };
   let lastLayoutViewportWidth = 0;
-  // Set by window resize: innerWidth itself forces a layout in Chromium, so a card-set change cannot read it to notice a rotation.
+  // Set by a window resize that changes the width: innerWidth forces a layout in Chromium, so a card-set change cannot read it to
+  // notice a rotation; the resize task reads it instead. Height-only resizes (the phone URL bar hiding on scroll) keep the cache.
   let resizedSinceMeasure = true;
-  window.addEventListener("resize", () => { resizedSinceMeasure = true; }, { signal: controller.signal });
+  let measuredInnerWidth = 0;
+  window.addEventListener("resize", () => { if (innerWidth !== measuredInnerWidth) resizedSinceMeasure = true; }, { signal: controller.signal });
   let lastGeometrySignature = "";
   // The geometry that positions reflects; whether the DOM order still matches the placement order.
   let positionsGeometry = null;
@@ -3752,6 +3754,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
     resizedSinceMeasure = false;
+    // Layout is already fresh on an uncached measure, so this read is free; the cached (click) path skips it.
+    if (!cached) measuredInnerWidth = innerWidth;
     geometry = geometryFor(gridKey(), layoutViewportWidth);
     renderWindow({ animate, origins });
   };
