@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_PRODUCT_CHIPS } from "../../src/site/advertising-products/catalog.mjs";
 import { columnsForWidth, filterRank, isWideMedia, layoutMedia, masonrySpacing } from "../../src/site/masonry/layout.mjs";
-import { LAYOUT_BANDS, LIVE_CANDIDATES, livePool, packBand, packCandidate, packLive, staggerViolations } from "../../src/site/masonry/pack.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, PHONE_SEEDS, livePool, packBand, packCandidate, packLive, phonePacks, phonePacksStamp, staggerViolations } from "../../src/site/masonry/pack.mjs";
 import { createSeededRandom, shuffleWithSeed } from "../../src/site/masonry/random-order.mjs";
 import { bandKey, replayLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 
@@ -130,4 +130,17 @@ test("the golden-ratio threshold: 1618x1000 is wide, 1617x1000 is not", () => {
   const band = LAYOUT_BANDS[4];
   assert.equal(packBand([card("a1", 1618, 1000)], band).entries[0].span, 2);
   assert.equal(packBand([card("a1", 1617, 1000)], band).entries[0].span, 1);
+});
+
+test("phone packs: one live 2:15 pack per fixed seed, stamped by card ids and media sizes", () => {
+  const filter = FILTERS[1];
+  const packs = phonePacks(ADVERTISING_CARDS, filter);
+  assert.equal(packs.filter, filter);
+  assert.deepEqual(packs.seeds, PHONE_SEEDS);
+  assert.equal(new Set(PHONE_SEEDS).size, 8);
+  packs.entries.forEach((entries, index) => assert.deepEqual(entries, pack(ADVERTISING_CARDS, filter, LAYOUT_BANDS[0], PHONE_SEEDS[index])));
+  assert.equal(packs.stamp, phonePacksStamp(ADVERTISING_CARDS.slice()));
+  const resized = ADVERTISING_CARDS.map((entry, index) => (index === 0 ? { ...entry, mediaItems: undefined, media: { ...layoutMedia(entry), height: layoutMedia(entry).height + 1 } } : entry));
+  assert.notEqual(phonePacksStamp(resized), packs.stamp, "a media size change changes the stamp");
+  assert.notEqual(phonePacksStamp(ADVERTISING_CARDS.slice(1)), packs.stamp, "a removed card changes the stamp");
 });

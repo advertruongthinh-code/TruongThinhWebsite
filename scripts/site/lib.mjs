@@ -13,7 +13,7 @@ export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 export const IMAGE_SRC = /^\/assets\/content\/[a-z0-9/-]+\.webp$/;
 
 // Phone first grid (masonry-live-layout R3): the 2:15 packs of a grid page's own filter; cards = the array the runtime packs from.
-export const phonePacksScript = (cards, filter) => `<script type="application/json" data-phone-packs>${JSON.stringify(phonePacks(cards, filter))}</script>`;
+export const phonePacksScript = (cards, filter) => `<script type="application/json" data-phone-packs>${JSON.stringify(phonePacks(cards, filter)).replace(/</g, "\\u003c")}</script>`;
 export const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
 export const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));

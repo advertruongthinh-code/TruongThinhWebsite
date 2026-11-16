@@ -405,4 +405,27 @@ for (const file of ["advertising-products/index.html", "vi/advertising-products/
   assert.ok(!(await read(`.site-output/${file}`)).includes("layout-cache"), `${file} references no layout cache`);
 }
 
+// Phone first grid (masonry-live-layout R3): a stamp that does not match falls back to a live pack silently, so every built page
+// with phone packs must carry the stamp of the very cards the runtime packs on it, and its own filter.
+{
+  const { ADVERTISING_CATALOG_ARTIFACT } = await import("../../.site-output/advertising-products/catalog-artifact.mjs");
+  const { PHONE_SEEDS, phonePacksStamp } = await import("../../src/site/masonry/pack.mjs");
+  const adStamp = phonePacksStamp(ADVERTISING_CATALOG_ARTIFACT.cards);
+  const pages = (await readdir(new URL("../../.site-output/", import.meta.url), { recursive: true })).filter((file) => file.endsWith("index.html"));
+  let checked = 0;
+  for (const file of pages) {
+    const html = await read(`.site-output/${file}`);
+    const blob = html.match(/<script type="application\/json" data-phone-packs>([^<]*)<\/script>/)?.[1];
+    if (!blob) continue;
+    const packs = JSON.parse(blob);
+    const projectArtifact = html.match(/<script type="application\/json" data-project-artifact>([^<]*)<\/script>/)?.[1];
+    const expected = projectArtifact ? phonePacksStamp(JSON.parse(projectArtifact).cards) : adStamp;
+    assert.equal(packs.stamp, expected, `${file}: phone packs stamp matches the cards the runtime packs`);
+    assert.deepEqual(packs.seeds, PHONE_SEEDS, `${file}: phone seeds`);
+    assert.equal(packs.entries.length, PHONE_SEEDS.length, `${file}: one pack per seed`);
+    checked += 1;
+  }
+  assert.ok(checked >= 40, `phone packs on ${checked} pages`);
+}
+
 console.log(`[advertising-products-static] ${MASONRY_LAYOUT_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);
