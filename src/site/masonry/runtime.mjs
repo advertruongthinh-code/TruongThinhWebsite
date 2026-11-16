@@ -38,7 +38,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { ENTER_ID, SIZE_ID, createMasonryHost, env } from "./host.mjs";
+import { SIZE_ID, createMasonryHost, env } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { mediaQueue } from "../media-lib/media-queue.mjs";
@@ -983,7 +983,7 @@ const packInWorker = (job, s) => new Promise((resolve) => {
 // beats booting Workers (plan, A04s 2026-11-15); a phone's first grid usually comes prebuilt with the page (phonePacks, R3).
 // A background warm (`idle`) packs each candidate in an idle period, so no candidate task lands inside a click (A04s, PR 3 review).
 const usesGridWorkers = (band) => band?.columns > 2;
-const nextIdle = () => new Promise((resolve) => (globalThis.requestIdleCallback ?? setTimeout)(resolve));
+const nextIdle = () => new Promise((resolve) => (globalThis.requestIdleCallback ?? setTimeout)(resolve, { timeout: 250 }));
 const packGrid = async (job, { idle = false } = {}) => {
   const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
@@ -2222,7 +2222,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     renderCtaSkeleton({ slide: true });
   };
   let lastLayoutViewportWidth = 0;
-  let lastInnerWidth = 0;
+  // Set by window resize: innerWidth itself forces a layout in Chromium, so a card-set change cannot read it to notice a rotation.
+  let resizedSinceMeasure = true;
+  window.addEventListener("resize", () => { resizedSinceMeasure = true; }, { signal: controller.signal });
   let lastGeometrySignature = "";
   // The geometry that positions reflects; whether the DOM order still matches the placement order.
   let positionsGeometry = null;
@@ -2329,8 +2331,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const warnedPacks = new Set();
   const packKey = (band, targetFilter) => `${targetFilter}|${band.key}|${browseHistory.current.seed}`;
   // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
-  const layoutPending = (targetFilter, { idle = false } = {}) => {
-    const band = bandFor(document.documentElement.clientWidth);
+  const layoutPending = (targetFilter, { idle = false, width = document.documentElement.clientWidth } = {}) => {
+    const band = bandFor(width);
     if (!band || isSearchKey(targetFilter)) return null;
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
@@ -2402,8 +2404,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const band = bandFor(document.documentElement.clientWidth);
     return geometry?.diagnostics?.source === "stack" && Boolean(band && packedEntries.get(packKey(band, filter)));
   };
-  const geometryRequest = (targetFilter) => {
-    const layoutViewportWidth = document.documentElement.clientWidth;
+  // `layoutViewportWidth`: the width measure already holds, so a card-set change reads no layout here.
+  const geometryRequest = (targetFilter, layoutViewportWidth = document.documentElement.clientWidth) => {
     if (isSearchKey(targetFilter)) {
       const order = targetFilter === search?.key ? search.order : [];
       return {
@@ -2412,8 +2414,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       };
     }
     const band = bandFor(layoutViewportWidth);
-    const wait = band && layoutPending(targetFilter);
-    void warmPacks();
+    const wait = band && layoutPending(targetFilter, { width: layoutViewportWidth });
+    // Warming reads the viewport width; started in its own task, it does not force a layout after the click task's DOM writes.
+    setTimeout(warmPacks);
     const entries = band && !wait ? packedEntries.get(packKey(band, targetFilter)) : null;
     const compile = () => {
       const layout = entries && replayLayout({ entries, cards, layoutViewportWidth, filter: targetFilter, settings });
@@ -2441,8 +2444,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (geometries.size >= GEOMETRY_CACHE_LIMIT) geometries.delete(geometries.keys().next().value);
     geometries.set(key, layout);
   };
-  const geometryFor = (targetFilter) => {
-    const { key, compile } = geometryRequest(targetFilter);
+  const geometryFor = (targetFilter, width) => {
+    const { key, compile } = geometryRequest(targetFilter, width);
     let layout = geometries.get(key);
     if (layout) {
       geometries.delete(key);
@@ -3633,8 +3636,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     };
     for (const [node, { card: { id }, x, y }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
       created.add(id);
-      // The first build slides in from the column top. Later, a card new to the set is built at its target and fades in over the slide,
-      // its 4-color wait layer showing at once (masonry-live-layout R7, plan Q9 case 2), so it never flies across the sliding cards.
+      // The first build slides in from the column top. Later, a card new to the set is built at its target, its 4-color wait layer
+      // showing at once and its media revealing as usual (masonry-live-layout R7, plan Q9 case 2), so it never flies across the sliding cards.
       const enters = shouldAnimate && !reduced && !origins?.has(id) && hasLaidOut;
       const origin = origins?.get(id) || (enters ? { x, y } : shouldAnimate && !reduced ? { x, y: 0 } : null);
       if (origin) {
@@ -3642,7 +3645,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         node.style.top = `${origin.y}px`;
         seeded.add(id);
       }
-      if (enters) gridHost.track(node.animate([{ opacity: 0 }, { opacity: 1 }], { id: ENTER_ID, duration: DUR.card, easing: "ease" }));
     }
     for (const placement of visiblePlacements) {
       const node = gridHost.rendered.get(placement.card.id);
@@ -3736,8 +3738,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // clientWidth after its own DOM writes (a forced layout of the whole page inside the click task, masonry-live-layout R7). A resize
   // still measures through the resize handler.
   const measure = ({ animate = false, origins, sameWidth = false } = {}) => {
-    // innerWidth reads no layout: a width change while the grid could not be measured (card open, grid width 0) measures again.
-    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth && innerWidth === lastInnerWidth;
+    // A resize since the last measure (a rotation while a card is open, grid width 0) measures again.
+    const cached = sameWidth && lastMeasuredGridWidth && lastLayoutViewportWidth && !resizedSinceMeasure;
     const layoutViewportWidth = cached ? lastLayoutViewportWidth : document.documentElement.clientWidth;
     if (!layoutViewportWidth) return;
     const { outer, interCardGap } = masonrySpacing(layoutViewportWidth);
@@ -3749,8 +3751,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!gridWidth) return;
     lastMeasuredGridWidth = gridWidth;
     lastLayoutViewportWidth = layoutViewportWidth;
-    lastInnerWidth = innerWidth;
-    geometry = geometryFor(gridKey());
+    resizedSinceMeasure = false;
+    geometry = geometryFor(gridKey(), layoutViewportWidth);
     renderWindow({ animate, origins });
   };
 

@@ -26,8 +26,6 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
 export const SLIDE_ID = "masonry-slide";
 // The card size morph (morphSize) runs on the card's child using `scale`.
 export const SIZE_ID = "masonry-size";
-// A card new to the set fades in at its target during a slide.
-export const ENTER_ID = "masonry-enter";
 
 // `create(placement)` builds a new card; `attach(node, placement)` attaches the observer and shared style when a card enters the yard (new or from the
 // queue); `detach(id, node, queue)` removes a card from the DOM, keeping it in `queue` if it can be reused; `waitColors(card)` the 4 colors of the
