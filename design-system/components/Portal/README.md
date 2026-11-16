@@ -24,7 +24,7 @@ Ba tầng, canh giữa card, chữ trắng hoa, bóng D ([README](../../README.m
 - Tagline `portal-tagline` `min(1rem, 3.8cqw)` 700, một dòng.
 - Copy dài thì rút gọn, không thu cỡ chữ. Ngoại lệ: portal loại hình Commercial không kicker, title hai dòng.
 
-Ảnh phủ `portal-shade` màu `media-label-overlay` (0.5). Hover và reveal ở [Motion](../../motion.md#hover).
+Ảnh phủ `portal-shade` màu `media-label-overlay` (0.3, như Espacio). Hover và reveal ở [Motion](../../motion.md#hover).
 
 ## Chú thích thuật ngữ
 

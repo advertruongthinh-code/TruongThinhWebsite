@@ -67,7 +67,7 @@ try {
     await portal.scrollIntoViewIfNeeded();
     const overlay = () => portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
     const normal = await overlay();
-    assert.equal(normal, "rgba(0, 0, 0, 0.5)", `${locale}: portal keeps the owner 0.5 overlay`);
+    assert.equal(normal, "rgba(0, 0, 0, 0.3)", `${locale}: portal keeps the Espacio 0.3 overlay`);
     await portal.hover();
     assert.equal(await overlay(), normal, `${locale}: portal hover keeps overlay darkness`);
     await portal.focus();

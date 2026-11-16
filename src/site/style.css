@@ -63,7 +63,7 @@
   --orange: #a34119;
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
-  --media-label-overlay: rgba(0, 0, 0, 0.5);
+  --media-label-overlay: rgba(0, 0, 0, 0.3);
   /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
      48px, then a linear fade to transparent at the bottom edge of the card. */
   --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);

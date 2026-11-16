@@ -141,7 +141,7 @@ assert.match(index, /data-detail-info[^>]*aria-label="Thông tin ảnh sản ph�
 assert.match(photoInfoMarkup, /data-detail-description[\s\S]*?data-detail-cta/, "CTA remains in primary information after the description pager");
 assert.doesNotMatch(index + runtime, /data-detail-tag-reset|masonrySuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
-assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.5\);/, "portal keeps the owner 0.5 overlay token");
+assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.3\);/, "portal keeps the Espacio 0.3 overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
 // Owner 2026-10-26: the suggestion button uses an always-visible 0.5 dark layer, not the portal token.
 assert.match(css, /\.detail-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");

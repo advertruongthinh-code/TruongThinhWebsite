@@ -135,7 +135,7 @@ And các portal cùng nhóm có cùng cỡ chữ theo vai trò, document không 
 Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
 `.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
-card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.5`) giữ nguyên độ
+card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.3` như Espacio) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
 
 ```gherkin
