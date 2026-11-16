@@ -3696,7 +3696,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         }
       }
     };
-    if (seeded.size && animate && !reduced) {
+    // A pending CTA batch (card-set change) also slides in the next frame, so a change that builds no new card (search results
+    // already on screen) keeps the CTA and the slide out of its own task.
+    if ((seeded.size || ctaPending) && animate && !reduced) {
       // The CTA task has not run yet (a slow click task let the frame come first): wait one frame, the cards already stand at their
       // visible origins, so the slide frame never also carries the CTA build.
       let waits = 0;
