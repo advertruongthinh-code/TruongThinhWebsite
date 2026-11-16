@@ -69,5 +69,84 @@
   ],
   "prompt": "p-about-xuong.txt",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v2.png",
+  "sha256": "3a2cd4d1010490ac429b8bb878379412f1dff65a4167db5a2f4b555812cf4564",
+  "bytes": 1996900,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v2.txt",
+  "round": 2,
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v2.png",
+  "sha256": "36b66b5f43adc26b12c33882f4bffdc82391b59fb2d80f6f10ad0f81da476d5d",
+  "bytes": 2025001,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/home-cam-ket-hau-mai-ref-1.jpg",
+   "ref/home-cam-ket-hau-mai-ref-2.jpg",
+   "ref/home-cam-ket-hau-mai-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v2.txt",
+  "round": 2,
+  "created": "2026-11-17"
+ },
+ {
+  "file": "about-vat-lieu-v2.png",
+  "sha256": "d72701eccab7a8dc2b5f1698bf73d56fe8f339ec4695f87c4987089fb909b5c0",
+  "bytes": 2435103,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-vat-lieu-ref-1.jpg",
+   "ref/about-vat-lieu-ref-2.jpg",
+   "ref/about-vat-lieu-ref-3.jpg"
+  ],
+  "prompt": "p-about-vat-lieu-v2.txt",
+  "round": 2,
+  "created": "2026-11-17"
+ },
+ {
+  "file": "about-xuong-v2.png",
+  "sha256": "0a8febaf34ad0f85ca3f1391e346a5411ee945ec61ae4734cd557c8de5c96545",
+  "bytes": 1881833,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg",
+   "ref/about-xuong-ref-3.jpg"
+  ],
+  "prompt": "p-about-xuong-v2.txt",
+  "round": 2,
+  "created": "2026-11-17"
  }
 ]

@@ -1,0 +1,15 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio (2048x3072 if possible), then save the generated image file into the current working directory as `home-cam-ket-chat-luong-v2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: the two images named style-consultation and style-workshop-wide-x2 are STYLE references only: match their light, tonal depth, lens feel and colour grade; never copy their content or layout. The other attached images are real photos from Vietnam, only to learn product type, material and construction (panel furniture in MFC/MDF/HDF with laminate and edge banding); do not copy their layout, people, text, logos or design.
+
+SUBJECT (portrait; subject in the upper and middle of the frame): close detail of quality control at handover in a newly finished Vietnamese home. Fingertips (only a hand and a bit of sleeve) check the even gap between two laminate cabinet doors, or the flush line of drawer fronts, on a built-in kitchen or wardrobe. Warm low side light grazes the surfaces so the straight edge banding and the crisp, even gaps read clearly. The lower third falls into soft shadow with nothing bright there, because white text will sit over the lower-left third.
+
+AVOID: a sliding-door wardrobe composition; any face; tools lying around.
+
+LIGHT: one directional natural light source (low warm sun through a window, or soft side light), real shadows and falloff, darker corners. No flat even lighting, no evenly lit catalogue scene.
+
+CAMERA: an editorial interior photograph on a full-frame camera with a 35-50 mm lens, shallow-to-medium depth of field, a close foreground element slightly out of focus where natural; real material texture (wood grain, laminate micro texture, edge-banding seams), slight sensor grain. Not a stock photo, not a 3D render, no glossy airbrushed surfaces.
+
+COMPOSITION: intimate and specific, not a wide empty overview; the subject reads clearly even as a small card.
+
+RULES: Vietnamese context, a low-rise town in the Mekong Delta (Vĩnh Long), no towers, no resort. Clean, tidy and well kept: no dirt, stains, mould, peeling or rubbish; realism comes from light and grain, not grime. Furniture is functional and correctly built; no tall cabinet beside a cooktop. No faces seen clearly: people show only hands, back, or a head turned away. Appliances plain without logos. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere in the image.
