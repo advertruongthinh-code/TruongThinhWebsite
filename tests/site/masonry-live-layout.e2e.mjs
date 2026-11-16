@@ -323,6 +323,8 @@ try {
         assert.ok(Math.abs(p.y - want.get(p.card.id).y) < 0.05, `${label}: ${p.card.id} y ${p.y} vs ${want.get(p.card.id).y}`);
       }
       await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 15000 });
+      // The Flow frames of the CTA batch are built for the results too.
+      assert.ok(await page.evaluate(() => document.querySelectorAll("[data-masonry-cta-slot]").length > 0), `${label}: Flow frames at the grid end`);
     };
     const errors = [];
     const { page } = await open(ADVERTISING, 1440, { setup: (target) => target.on("pageerror", (error) => errors.push(error.message)) });
@@ -345,6 +347,16 @@ try {
     await searchMatches(page, second, "search 768px");
     await page.setViewportSize({ width: 1440, height: 900 });
     await searchMatches(page, second, "search back to 1440px");
+    // A third set, wide covers last, at every QA width.
+    const third = [...all.filter((card) => !isWideMedia(layoutMedia(card))).slice(40, 50), ...wide].map((card) => card.id);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), third);
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height: 900 });
+      await searchMatches(page, third, `search ${width}px`);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), second);
+    await searchMatches(page, second, "search after widths");
     // A late offer waits for a press.
     await page.evaluate((ids) => window.TruongThinhMasonry.offerResults(ids), ranked);
     await page.locator("[data-masonry-offer]").waitFor();
@@ -357,11 +369,14 @@ try {
     await page.evaluate(() => window.TruongThinhMasonry.setResults([]));
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-masonry-item]:not([hidden])"), null, { timeout: 15000 });
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 15000 });
-    // A rail click leaves search for that filter and tells the search page.
+    // A rail click leaves search for that filter and tells the search page; the dim and a waiting offer go with it.
     await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
     await searchMatches(page, ranked, "search before rail click");
+    await page.evaluate((ids) => { window.TruongThinhMasonry.setPending(true); window.TruongThinhMasonry.offerResults(ids); }, second);
     await page.locator('[data-masonry-filter="all"]').click();
     await page.waitForFunction(() => window.__searchLeft === 1, null, { timeout: 15000 });
+    assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 0, "a rail click clears pending");
+    assert.equal(await page.locator("[data-masonry-offer]").count(), 0, "a rail click drops the offer");
     const browse = await settled(page);
     assertGrid(browse, all, "rail click after search");
     assert.ok(browse.items.length > ranked.length, "the whole filter is back");

@@ -3758,6 +3758,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const setActiveFilter = (nextFilter, options) => {
     cancelLayoutWait();
     if (nextFilter === filter && !search) return;
+    // The dim and the late offer belong to search: a filter change drops them too.
+    setPending(false);
+    setOffer(null);
     relayoutTo(() => {
       search = null;
       filter = nextFilter;
@@ -6038,9 +6041,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // set the scroll, then the mount's own measure would overwrite it.
   if (!browseHistory.current.photo) {
     geometryPending = true;
-    await layoutPending(filter);
+    await layoutPending(gridKey());
     // Replay the layout (into the geometry cache) before the build; setup and the first build are separate tasks (R7, 50ms gate on the A04s).
-    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(filter);
+    if (!controller.signal.aborted && document.documentElement.clientWidth) geometryFor(gridKey());
     await nextTask();
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
@@ -6075,7 +6078,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    await layoutPending(filter);
+    await layoutPending(gridKey());
     geometryPending = false;
     if (controller.signal.aborted) return cleanup;
     // Measure the hidden grid (pack replay) in its own task, not inside the Back task (A04s is slower on Back).
