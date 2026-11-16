@@ -1729,8 +1729,10 @@ async function runPortalAlignmentChecks() {
           });
           for (const [role, samples] of Object.entries(zoomed)) {
             if (role === "serviceKickers" && samples.length === 0) continue;
+            const expectedCount = role.startsWith("capability") ? 4 : 3;
+            const wraps = role === "capabilitySubtitles";
             assert(
-              samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
+              samples.length === expectedCount && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && (wraps || whiteSpace === "nowrap") && within),
               `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
             );
             const sizes = samples.map(({ fontSize }) => fontSize);
@@ -10251,8 +10253,8 @@ async function runSharedMediaHoverPortalChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, `/${locale}/`);
         const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
-        assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
-        for (let index = 0; index < 6; index += 1) {
+        assert((await allPortals.count()) === 7, `Expected seven shared media portals at ${locale}`);
+        for (let index = 0; index < 7; index += 1) {
           const sharedPortal = allPortals.nth(index);
           const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();

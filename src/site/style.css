@@ -1810,6 +1810,7 @@ em {
 
 /* Home commitments (page-home R5): four portals in one row. */
 .service-portals--four {
+  --portal-title-size: min(4rem, 9cqw);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -2116,8 +2117,7 @@ em {
   transition: transform var(--dur-hover) ease-out;
 }
 
-.project-card--low,
-.project-card--mid {
+.project-card--low {
   padding-top: 180px;
 }
 
