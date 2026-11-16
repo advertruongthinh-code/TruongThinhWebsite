@@ -619,6 +619,16 @@ try {
     await page.close();
     console.log("PASS desktop chip build meets the viewport only");
   }
+  {
+    const { page } = await open(ADVERTISING, 1440, { setup: (target) => target.emulateMedia({ reducedMotion: "reduce" }) });
+    await settled(page);
+    await page.waitForTimeout(3000);
+    const chipBuild = checkChipBuild(page);
+    await page.locator('[data-masonry-filter="signage"]').first().click();
+    await chipBuild;
+    await page.close();
+    console.log("PASS reduced-motion chip build meets the viewport only");
+  }
   console.log("masonry live layout e2e: ok");
 } finally {
   await browser.close();
