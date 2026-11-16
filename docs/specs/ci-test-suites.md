@@ -70,6 +70,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, kính mờ lộ ảnh, vệt chờ không tràn khỏi khung (`media-sweep-contained.e2e.mjs`) |
 | `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
+| `search` | advertising-search | Worker `/api/*` và hàm thuần của tìm kiếm (`node --test tests/search/*.test.mjs`) |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
 spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
@@ -295,6 +296,5 @@ Then mọi bộ được chọn vì harness nằm trong shared
 - **Merge base**: commit chung gần nhất giữa nhánh PR và `main`.
 - **Check tổng**: job gom kết quả mọi bộ thành một check duy nhất.
 - **Runner**: máy chạy job GitHub Actions; ở đây là `ubuntu-latest` do GitHub cấp.
-- **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm.
-- **Flaky**: test lúc xanh lúc đỏ dù code không đổi.
+- **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm. **Flaky**: test lúc xanh lúc đỏ dù code không đổi.
 - **Job summary**: trang tóm tắt của một job GitHub Actions, ghi từ `$GITHUB_STEP_SUMMARY`.

@@ -42,6 +42,7 @@
       "tests": [
         "pnpm qa:static",
         "node --test tests/tooling/*.test.mjs",
+        "node --test tests/search/*.test.mjs",
         "node scripts/site/build-image-variants.mjs --check",
         "pnpm qa:content",
         "pnpm qa:worker:security",
@@ -298,6 +299,10 @@
         "node tests/site/primary-flow-zoom-blur.e2e.mjs",
         "node tests/site/video-delivery.e2e.mjs"
       ]
+    },
+    "search": {
+      "specs": ["advertising-search"],
+      "tests": ["node --test tests/search/*.test.mjs"]
     }
   },
   "manual": {
