@@ -467,6 +467,30 @@ try {
       assert.equal(describe(jump(points)), undefined, id);
     }
     await settled(page);
+    // Case 2 (plan Q9): a card new to the set is built at its target and fades in; it never slides across the sliding cards.
+    const entering = page.evaluate(() => new Promise((resolve) => {
+      const grid = document.querySelector("[data-project-grid]");
+      const before = new Set([...grid.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard));
+      new MutationObserver((records, observer) => {
+        const added = records.flatMap((record) => [...record.addedNodes]).filter((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard));
+        if (!added.length) return;
+        observer.disconnect();
+        requestAnimationFrame(() => resolve(added.filter((node) => !node.hidden).map((node) => ({
+          id: node.dataset.masonryCard,
+          ids: node.getAnimations().map((animation) => animation.id),
+          opacity: Number(getComputedStyle(node).opacity),
+        }))));
+      }).observe(grid, { childList: true });
+    }));
+    await page.locator('[data-masonry-filter="all"]').click();
+    const added = await entering;
+    assert.ok(added.length >= 3, `new cards enter on the all chip (${added.length})`);
+    for (const card of added) {
+      assert.ok(card.ids.includes("masonry-enter") && !card.ids.includes("masonry-slide"), `${card.id} enters by fading, not sliding: ${card.ids}`);
+      assert.ok(card.opacity < 1, `${card.id} starts faded in (${card.opacity})`);
+    }
+    await page.locator('[data-masonry-filter="signage"]').click();
+    await settled(page);
     // A second click mid-slide: no step outruns its slide time, across the restart too.
     const twice = record(1400);
     await page.locator('[data-masonry-filter="all"]').click();
@@ -480,7 +504,7 @@ try {
     }
     assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two quick clicks");
     await page.close();
-    console.log(`PASS slide trajectory (${one.length} cards, ${two.length} on the second click)`);
+    console.log(`PASS slide trajectory (${one.length} cards, ${added.length} entering, ${two.length} on the second click)`);
   }
   console.log("masonry live layout e2e: ok");
 } finally {

@@ -89,7 +89,7 @@ vào view, F5.
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-masonry-item]`, `[data-masonry-kind]` | Item masonry ở mọi lưới (R2) |
-| Hàm public | `createMasonryHost`, `pickMounts`, `isSizeMorph`, `cancelSlides`, `SLIDE_ID` (`masonry/host.mjs`) | Sân masonry (R4) |
+| Hàm public | `createMasonryHost`, `pickMounts`, `SLIDE_ID`, `SIZE_ID`, `ENTER_ID` (`masonry/host.mjs`) | Sân masonry (R4) |
 | Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh (card tạm cả PC và điện thoại, card chờ trên điện thoại) (R4) |
 | Runtime | `playReveal` (`masonry/runtime.mjs`, nội bộ) | Reveal chung (R5) |
 

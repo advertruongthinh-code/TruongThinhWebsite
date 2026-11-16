@@ -24,18 +24,10 @@ export function pickMounts({ missing, mustMount = () => false, distance, queued 
 // card, unlike Masonry 4.2.2 (getSize, 59-91 ms tasks on the A04s). DUR.card (0.4 s) and `ease`, as the card position
 // transition has always run (design-system/motion.md).
 export const SLIDE_ID = "masonry-slide";
-const slideOf = (element) => element.getAnimations().filter((animation) => animation.id === SLIDE_ID);
-
 // The card size morph (morphSize) runs on the card's child using `scale`.
-export const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
-
-// Stop running slides and size morphs: each card stands at its target at once (left/top already hold it).
-export function cancelSlides(elements) {
-  for (const element of elements) {
-    for (const child of element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
-    slideOf(element).forEach((animation) => animation.cancel());
-  }
-}
+export const SIZE_ID = "masonry-size";
+// A card new to the set fades in at its target during a slide.
+export const ENTER_ID = "masonry-enter";
 
 // `create(placement)` builds a new card; `attach(node, placement)` attaches the observer and shared style when a card enters the yard (new or from the
 // queue); `detach(id, node, queue)` removes a card from the DOM, keeping it in `queue` if it can be reused; `waitColors(card)` the 4 colors of the
@@ -46,6 +38,13 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
   // The yard's items as Outlayer found them: a root child matching the selector, or matching descendants of a child. A page
   // without this yard (no related grid on a list page) has no root and no items.
   const items = () => [...(root?.children ?? [])].flatMap((child) => (child.matches(itemSelector) ? [child] : [...child.querySelectorAll(itemSelector)]));
+  // Running slides and size morphs, kept in a set: scanning getAnimations() between left/top writes forces a style update per card.
+  const motions = new Set();
+  const cancelMotions = (keep = () => false) => motions.forEach((animation) => {
+    if (keep(animation)) return;
+    motions.delete(animation);
+    animation.cancel();
+  });
   const host = {
     root,
     // Cards currently in the DOM and their coordinates by id.
@@ -64,18 +63,32 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
     motionFrame: 0,
     motionTimer: 0,
     items,
-    // Running slides on the yard's items.
-    slides: () => items().flatMap(slideOf),
+    // Register a slide or size morph so it can be cancelled and timed without scanning the DOM.
+    track(animation) {
+      motions.add(animation);
+      const drop = () => motions.delete(animation);
+      animation.finished.then(drop, drop);
+      return animation;
+    },
+    // Time left of the running slides and size morphs.
+    remainingMotion() {
+      let remaining = 0;
+      for (const animation of motions) {
+        if (animation.playState !== "running") continue;
+        remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
+      }
+      return remaining;
+    },
     // One layout motion pass: cards slide from where they stand (inline left/top) to `positions` over 0.4 s; `instant(element)`
     // places directly. Positions are written for every item first, then the slides start, so no write sits between two reads.
     layoutMotion(instant) {
       root.style.height = `${host.pixelHeight}px`;
+      cancelMotions((animation) => animation.id !== SLIDE_ID);
       const moves = [];
       for (const element of items()) {
         const to = host.positions.get(getId(element)) || { x: 0, y: 0 };
         const { left, top } = element.style;
         const from = left.endsWith("px") && top.endsWith("px") ? { x: parseFloat(left), y: parseFloat(top) } : null;
-        slideOf(element).forEach((animation) => animation.cancel());
         const x = `${to.x}px`;
         const y = `${to.y}px`;
         if (left !== x) element.style.left = x;
@@ -84,10 +97,11 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         moves.push([element, from.x - to.x, from.y - to.y]);
       }
       for (const [element, dx, dy] of moves) {
-        element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { id: SLIDE_ID, duration: DUR.card, easing: "ease" });
+        host.track(element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { id: SLIDE_ID, duration: DUR.card, easing: "ease" }));
       }
     },
-    cancelTransitions: () => cancelSlides(items()),
+    // Stop running slides and size morphs: each card stands at its target at once (left/top already hold it).
+    cancelTransitions: () => cancelMotions(),
     // Cancel the scheduled motion pass (rAF and scheduled end) then place cards right at the target.
     stopMotion() {
       if (host.motionFrame) cancelAnimationFrame(host.motionFrame);

@@ -86,7 +86,8 @@ khi bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trìn
 module runtime. Lượt duyệt mới rút seed ngay khi mount có artifact và gửi lượt xếp đầu
 liền đó, rồi trao seed cho browse history; seed khôi phục từ history hoặc trao qua đổi ngôn ngữ thì lượt đó bỏ phí. Worker lỗi (không tạo được, `error`, trả `error`) hoặc lượt đầu quá 1 s chưa trả (`PACK_TIMEOUT_MS`, Worker treo; đã có Worker trả một lượt thì lượt chậm sau đó vẫn được chờ)
 thì từ đó xếp trên luồng chính, mỗi ứng viên còn thiếu một task; hai đường ra cùng `entries`, nên hạn chờ chỉ đổi lúc lưới hiện. Sau khi
-Worker lỗi, và ở dải `2:15`, chỉ filter được bấm mới xếp, không xếp nền. Kết quả nhớ theo khóa
+Worker lỗi, các dải từ 3 cột chỉ xếp filter được bấm, không xếp nền; dải `2:15` xếp nền mỗi ứng viên trong một khoảng rảnh
+(`requestIdleCallback`), nên task xếp không rơi vào lượt bấm chip trên A04s. Kết quả nhớ theo khóa
 `<filter>|<dải>|<seed>` trong lượt mount. Filter đang xem xếp trước; khi 8 ảnh đầu tải xong (tối đa 6 s) mọi chip của dải
 hiện tại được xếp nền lần lượt từng chip (bấm chip chưa xếp chỉ chờ sau tối đa một lượt), sang dải mới hoặc Back về seed
 khác thì xếp nền lại, nên bấm chip thường thấy lưới ngay như cache cũ.
@@ -143,7 +144,9 @@ Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, 
 Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn thư viện Masonry 4.2.2: lượt chuyển của lưới chính và related
 (`layoutMotion` trong `host.mjs`) ghi ngay `left`, `top` đích cho mọi card rồi mới cho card trượt từ chỗ cũ về đích bằng Web
 Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
-card. Card mới dựng hoặc card ẩn đặt thẳng. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
+card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới vào bộ dựng ngay tại đích và hiện dần
+trong 0,4 giây (id `masonry-enter`), lớp chờ 4 màu thấy ngay, không bay ngang qua card đang trượt. Slide, morph kích thước và
+hiện dần được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
 Đổi bộ card (chip, `setResults`, `clearResults`) chia thành ba task ngắn để không task nào quá 50 ms trên A04s: task bấm dựng card
 mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước, không đọc layout sau khi ghi DOM); task kế dựng cụm CTA và skeleton;
@@ -170,7 +173,7 @@ Then mỗi khung hình card chỉ tiến về đích, không lùi, không nhảy
 | Hàm public | `window.TruongThinhMasonry.setResults(ids)`, `setPending(bool)`, `clearResults()`, `offerResults(ids)` (cũng có trên `getAdapter()`) | Chế độ tìm kiếm (R6) |
 | Sự kiện | `masonry:search-left` trên `window` | Lưới rời tìm kiếm (R6) |
 | DOM hook | `data-masonry-pending` trên lưới; `button[data-masonry-offer]` | Chờ kết quả, kết quả gợi ý đến muộn (R6) |
-| Hàm public | `layoutMotion(instant)`, `cancelTransitions()`, `items()`, `slides()` trên host; `SLIDE_ID`, `cancelSlides` (`host.mjs`) | Trượt card (R7) |
+| Hàm public | `layoutMotion(instant)`, `cancelTransitions()`, `track(animation)`, `remainingMotion()`, `items()` trên host; `SLIDE_ID`, `SIZE_ID`, `ENTER_ID` (`host.mjs`) | Trượt card (R7) |
 
 ## UI
 
@@ -191,7 +194,7 @@ Then mỗi khung hình card chỉ tiến về đích, không lùi, không nhảy
 ## Gate còn mở
 
 - Đo A04s ở 384px với bản xếp sẵn so với main d33ae601 (reviewer mục 3). Thread masonry.
-- Trace A04s R7: bấm chip và `setResults` không task nào trên 50 ms (reviewer PR 2). Thread masonry.
+- Trace A04s R7: bấm chip, `setResults`, `clearResults` không task nào trên 50 ms, trừ task dựng CTA (PR 5) và `settleMotion` (PR 4) (reviewer PR 2, PR 3). Thread masonry.
 
 ## Chú thích thuật ngữ
 

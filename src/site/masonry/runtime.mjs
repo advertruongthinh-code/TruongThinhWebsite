@@ -38,7 +38,7 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 import { createCtaBatch } from "./cta-batch.mjs";
 import { planAroundPinned } from "./detour-path.mjs";
-import { SLIDE_ID, createMasonryHost, env, isSizeMorph } from "./host.mjs";
+import { ENTER_ID, SIZE_ID, createMasonryHost, env } from "./host.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "../media-lib/video-source.mjs";
 import { MEDIA_COLORS } from "../media-lib/colors.mjs";
 import { mediaQueue } from "../media-lib/media-queue.mjs";
@@ -981,12 +981,14 @@ const packInWorker = (job, s) => new Promise((resolve) => {
 });
 // The 2-column band has no wide card, so its candidates are cheap: they pack on the main thread, one per task, which on a phone
 // beats booting Workers (plan, A04s 2026-11-15); a phone's first grid usually comes prebuilt with the page (phonePacks, R3).
+// A background warm (`idle`) packs each candidate in an idle period, so no candidate task lands inside a click (A04s, PR 3 review).
 const usesGridWorkers = (band) => band?.columns > 2;
-const packGrid = async (job) => {
+const nextIdle = () => new Promise((resolve) => (globalThis.requestIdleCallback ?? setTimeout)(resolve));
+const packGrid = async (job, { idle = false } = {}) => {
   const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
-    await new Promise((resolve) => setTimeout(resolve));
+    await (idle ? nextIdle() : new Promise((resolve) => setTimeout(resolve)));
     candidates[s] = packCandidate(job, s);
   }
   return bestEntries(candidates);
@@ -2327,7 +2329,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const warnedPacks = new Set();
   const packKey = (band, targetFilter) => `${targetFilter}|${band.key}|${browseHistory.current.seed}`;
   // Promise while this width's band and filter are still packing, null once packed (or for a width no band covers).
-  const layoutPending = (targetFilter) => {
+  const layoutPending = (targetFilter, { idle = false } = {}) => {
     const band = bandFor(document.documentElement.clientWidth);
     if (!band || isSearchKey(targetFilter)) return null;
     const key = packKey(band, targetFilter);
@@ -2336,7 +2338,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const prebuilt = prebuiltEntries(band, targetFilter, browseHistory.current.seed);
       const job = firstPack?.key === key ? firstPack.entries
         : prebuilt ? Promise.resolve(prebuilt)
-          : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter });
+          : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter }, { idle });
       packWaits.set(key, job.catch(() => null).then((entries) => {
         packedEntries.set(key, entries);
         packWaits.delete(key);
@@ -2347,15 +2349,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // One chip at a time: the Worker answers in order, so a click on a chip not packed yet waits behind one job at most.
   let warming = false;
   warmPacks = async () => {
-    // Main-thread packs cost a task each: after a Worker failure, and on the 2-column band, only clicks pack.
-    if (!warmPacksWanted || warming || gridWorkerFailed || !usesGridWorkers(bandFor(document.documentElement.clientWidth))) return;
+    // After a Worker failure the wide bands pack on the main thread at a cost too big to warm: only clicks pack. The 2-column band
+    // warms its cheap candidates in idle periods.
+    const band = bandFor(document.documentElement.clientWidth);
+    if (!warmPacksWanted || warming || (gridWorkerFailed && usesGridWorkers(band))) return;
+    const idle = !usesGridWorkers(band);
     warming = true;
     const start = `${bandFor(document.documentElement.clientWidth)?.key}|${browseHistory.current.seed}`;
     const ids = [filters, ...chipGroups].flatMap((root) => (root ? [...root.querySelectorAll("[data-masonry-filter], [data-masonry-product]")] : []))
       .map((control) => control.dataset.masonryFilter ?? control.dataset.masonryProduct);
     for (const id of ids) {
       if (controller.signal.aborted) break;
-      await layoutPending(id);
+      await layoutPending(id, { idle });
     }
     warming = false;
     // The width crossed into another band, or Back brought another seed, meanwhile: warm that one from its first chip too.
@@ -2547,7 +2552,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (Math.abs(sx - 1) <= 0.01 && Math.abs(sy - 1) <= 0.01) return;
     for (const child of node.children) {
       const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
-      child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: DUR.card, easing: "ease" });
+      gridHost.track(child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { id: SIZE_ID, duration: DUR.card, easing: "ease" }));
     }
   };
   // Position is precomputed; a motion pass only slides cards (host layoutMotion). Instant layout writes left/top here and skips
@@ -2562,21 +2567,6 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       if (node.style.top !== top) node.style.top = top;
     }
   };
-  // Remaining time of the running slide and scale pass on the cards.
-  const remainingMotion = () => {
-    let remaining = 0;
-    for (const node of gridHost.items()) {
-      const animations = [
-        ...node.getAnimations().filter((animation) => animation.id === SLIDE_ID),
-        ...[...node.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
-      ];
-      for (const animation of animations) {
-        if (animation.playState !== "running") continue;
-        remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
-      }
-    }
-    return remaining;
-  };
   const settleMotion = () => {
     gridHost.motionTimer = 0;
     if (performance.now() < motionUntil) {
@@ -2585,7 +2575,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Rasterizing a new region after a long scroll holds the frame, so the transition starts 400ms late relative to schedule; cutting in then makes the card
     // stand still then jump straight to the new place (masonry R6). Wait for the remainder; a hidden tab runs no frames so place it directly.
-    const remaining = document.hidden ? 0 : remainingMotion();
+    const remaining = document.hidden ? 0 : gridHost.remainingMotion();
     if (remaining > 0) {
       motionUntil = performance.now() + remaining;
       gridHost.motionTimer = setTimeout(settleMotion, remaining);
@@ -3641,14 +3631,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       else if (scrollFrame) gridHost.scheduleGhosts(mountGhosts);
       else renderWindow({ scrolling: true });
     };
-    for (const [node, { card: { id }, x }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
+    for (const [node, { card: { id }, x, y }] of gridHost.mount(visiblePlacements, { allowed, render: mountGhosts })) {
       created.add(id);
-      const origin = origins?.get(id) || (shouldAnimate && !reduced ? { x, y: 0 } : null);
+      // The first build slides in from the column top. Later, a card new to the set is built at its target and fades in over the slide,
+      // its 4-color wait layer showing at once (masonry-live-layout R7, plan Q9 case 2), so it never flies across the sliding cards.
+      const enters = shouldAnimate && !reduced && !origins?.has(id) && hasLaidOut;
+      const origin = origins?.get(id) || (enters ? { x, y } : shouldAnimate && !reduced ? { x, y: 0 } : null);
       if (origin) {
         node.style.left = `${origin.x}px`;
         node.style.top = `${origin.y}px`;
         seeded.add(id);
       }
+      if (enters) gridHost.track(node.animate([{ opacity: 0 }, { opacity: 1 }], { id: ENTER_ID, duration: DUR.card, easing: "ease" }));
     }
     for (const placement of visiblePlacements) {
       const node = gridHost.rendered.get(placement.card.id);
@@ -3776,7 +3770,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const leftSearch = search;
     apply();
     if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left"));
-    const origins = animate ? cachedCoordinates(gridKey(), visualOrigins) : undefined;
+    const origins = animate ? cachedCoordinates(visualOrigins) : undefined;
     cancelMotion();
     clearCtaSkeleton();
     resetSkeletonRevealState();
@@ -5508,28 +5502,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setPending,
     setResults,
   };
-  const cachedCoordinates = (targetFilter, visualOrigins) => {
-    const targetGeometry = geometryFor(targetFilter);
+  // Start points of a card-set change: where each shown card stands now. A card new to the set has none, so it is built at its
+  // target and fades in (masonry-live-layout R7).
+  const cachedCoordinates = (visualOrigins) => {
     const origins = new Map();
-    const visualSlots = [...gridHost.rendered.entries()]
-      .filter(([, node]) => !node.hidden)
-      .map(([id]) => visualOrigins?.get(id) || gridHost.positions.get(id))
-      .filter(Boolean)
-      .sort((left, right) => left.y - right.y || left.x - right.x);
     for (const [id, node] of gridHost.rendered) {
       const position = visualOrigins?.get(id) || gridHost.positions.get(id);
       if (!node.hidden && position) origins.set(id, position);
     }
-    targetGeometry.placements.forEach((placement, index) => {
-      if (origins.has(placement.card.id) || !visualSlots.length) return;
-      for (let offset = 0; offset < visualSlots.length; offset += 1) {
-        const origin = visualSlots[(index + offset) % visualSlots.length];
-        if (origin.x !== placement.x || origin.y !== placement.y) {
-          origins.set(placement.card.id, origin);
-          return;
-        }
-      }
-    });
     return origins;
   };
   const scheduleScroll = () => {
