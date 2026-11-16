@@ -6,7 +6,7 @@ export const nonPublicSourceAssets = [
   "advertising-products/photo-tags.mjs",
   "content/client-logos.json",
   "content/hero-slides.json",
-  "content/home-projects.json",
+  "content/project-reel.json",
   "content/projects.json",
   "content/news.json",
   "content/menu.json",
