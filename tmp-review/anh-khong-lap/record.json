@@ -362,5 +362,131 @@
   "round": 5,
   "change": "owner 2026-11-16 20:05 UTC: show card text, 3 variants",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6.png",
+  "sha256": "b96554c127c81d318e541f09953265c91f7fd2df3cc7179885e8e177dbb8546d",
+  "bytes": 2167687,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6a.png",
+  "sha256": "416d38815769f37d87ebb4225d9e673e724f630b342b96e417ebdc2b700279be",
+  "bytes": 2164177,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6a.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6b.png",
+  "sha256": "85e539c4997a7c23fd8ed56c33f6b094bcc4959ec2d295ca40cd0511c4d15d03",
+  "bytes": 1999109,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6b.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6c.png",
+  "sha256": "f1e663307cbe9d6ce6336af20e7e97bc7261b5861ed759f8585f6b003b4c72a0",
+  "bytes": 2127011,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6c.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6b2.png",
+  "sha256": "a252a0391ed0d03ba665558d86ca4f0666aa92e430fde6b373d467e6af058948",
+  "bytes": 1942747,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6b2.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v6c2.png",
+  "sha256": "a6def4b928beecc51290a3dad34d8923edee7b4f43cd103b100e82f2ec0a2ec1",
+  "bytes": 2049538,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "home-cam-ket-chat-luong-v4.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v6c2.txt",
+  "round": 6,
+  "change": "owner 2026-11-16 20:28 UTC: finished kitchen, all closed, level camera",
+  "created": "2026-11-17"
  }
 ]

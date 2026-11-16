@@ -1,0 +1,19 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-chat-luong-v6b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: style-consultation and style-workshop-wide-x2 are style references only (light, tonal depth, colour grade). home-cam-ket-chat-luong-v4 shows the cabinet finish the owner likes: warm wood-grain laminate, flat slab fronts, recessed aluminium pulls. The real Vietnam photos show typical kitchen layouts. Do not copy any layout.
+
+IDEA: the care and finish of a Trường Thịnh project shown through the finished furniture itself. A complete, modern, fully equipped kitchen in a newly finished Vietnamese town house or apartment: a run of upper wall cabinets above and base cabinets below, countertop and backsplash between them. Every door and drawer is CLOSED. The quality reads from the finish: perfectly even, straight 2-3 mm gaps forming continuous lines, flush fronts, crisp edges, recessed aluminium pulls (gola channel or routed edge pull, nothing protruding) aligned in one line, upper and lower runs aligned with each other, clean plinth.
+
+VARIANT B: an L-shaped kitchen, level two-point view from the open corner of the room with full vertical correction (verticals perfectly vertical); light greige matte laminate fronts with one warm wood-grain accent (an open shelf or the upper run); hob on one leg, sink under a window on the other. Integrated fridge column where it fits the layout.
+
+FULLY EQUIPPED: induction hob with an integrated or concealed range hood exactly as wide as the hob and centred above it, undermount sink with a tap, built-in oven or dishwasher with plain fronts, warm under-cabinet LED strip lighting the backsplash, a few tidy everyday items (a cutting board, a bowl of fruit, a small plant). Appliances plain without logos. No tall cabinet right beside the cooktop.
+
+CAMERA: a professional architectural interior photograph: camera level with the floor, all vertical lines perfectly vertical and parallel (no keystone, no tilt, no dutch angle), straight-on or gentle one-point perspective, a 24-35 mm lens on a tripod at chest height, the whole kitchen run in frame.
+
+SLOT: portrait card; the kitchen sits in the upper and middle of the frame; the lower 35-40 percent of the frame (base cabinets and floor) is calmer and in soft shade, with nothing bright there, because white text sits over it.
+
+LIGHT: natural daylight from one side window plus the warm under-cabinet strip; real shadows and falloff, not flat catalogue lighting.
+
+RULES: photoreal like a real camera, slight sensor grain, real laminate micro texture; not a 3D render, no glossy airbrushed surfaces. Vietnamese context, low-rise Mekong Delta town (Vĩnh Long). Clean and tidy. No people. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere in the image.
+
+AVOID: any open door or drawer; protruding bar handles; tilted or converging verticals; a tall cabinet beside the cooktop; clutter.
