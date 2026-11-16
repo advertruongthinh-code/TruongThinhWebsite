@@ -1679,6 +1679,7 @@ async function runPortalAlignmentChecks() {
                 leadFits: lineWidth <= cardRect.width - Number.parseFloat(copyStyle.paddingLeft) - Number.parseFloat(copyStyle.paddingRight) + 0.5,
                 bottomAnchored: Math.abs(cardRect.bottom - copyRect.bottom) <= 1 && copyStyle.textAlign === "left",
                 textShadow: copyStyle.textShadow !== "none",
+                titleOffset: card.querySelector(".commitment-title").getBoundingClientRect().top - cardRect.top,
               };
             }),
             advertisingImage: (() => {
@@ -1759,6 +1760,10 @@ async function runPortalAlignmentChecks() {
             `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
           assert(state.capabilityCards.length === 4, `Expected 4 commitment cards at ${locale}`);
+          if (width >= 579) {
+            const offsets = state.capabilityCards.map((card) => card.titleOffset);
+            assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${locale} ${width}px: ${offsets.join(", ")}`);
+          }
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&

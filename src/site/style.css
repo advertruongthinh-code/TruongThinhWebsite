@@ -1789,6 +1789,13 @@ em {
   text-wrap: pretty;
 }
 
+/* Side by side, every body reserves five lines so titles and leads line up across cards (owner 2026-11-16). */
+@media (min-width: 579px) {
+  .commitment-body {
+    min-height: calc(1.5em * 5);
+  }
+}
+
 /* The commitment body needs more contrast at the bottom than the shared 0.3 layer gives. */
 .service-portals--four .portal-shade {
   background: linear-gradient(180deg, var(--media-label-overlay) 35%, rgba(0, 0, 0, 0.72));
