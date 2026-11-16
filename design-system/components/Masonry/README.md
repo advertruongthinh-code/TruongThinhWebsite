@@ -1,10 +1,10 @@
 # Masonry Advertising
 
-Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`, `src/site/masonry/pack.mjs`, `src/site/masonry/packer.mjs`, `src/site/masonry/replay.mjs`; CSS `.masonry-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md), [Cache bố cục](../../../docs/specs/masonry-layout-cache.md).
+Nguồn: `src/site/masonry/layout.mjs`, `src/site/masonry/layout-worker.mjs`, `src/site/masonry/mount-budget.mjs`, `src/site/masonry/pack.mjs`, `src/site/masonry/replay.mjs`; CSS `.masonry-grid`; spec [Masonry](../../../docs/specs/advertising-masonry.md), [Xếp trực tiếp](../../../docs/specs/masonry-live-layout.md).
 
 Lưới ảnh sản phẩm so le trên trang Advertising và Công trình. Lưới chính đặt card
-theo bố cục tính sẵn lúc build (`masonry/pack.mjs` xếp, `masonry/packer.mjs` dựng cache), `masonry/replay.mjs` chỉ đặt
-lại, một vòng lặp, không tìm kiếm; related masonry ở detail do `masonry/layout.mjs`
+theo bố cục máy người xem tự xếp trong Web Worker (`masonry/pack.mjs`), `masonry/replay.mjs` đặt
+tọa độ, một vòng lặp; related masonry ở detail do `masonry/layout.mjs`
 tính (thuần, không đọc DOM). Card đổi vị trí hoặc kích thước chạy `--dur-card` `400ms`, card tạm hiện dần `--dur-fade` `450ms` (card tạm là lớp đổi qua 4 màu chủ đạo của media bìa, PC và điện thoại như nhau, [MediaCard](../MediaCard/README.md))
 (token motion: [motion.md](../../motion.md#token-motion)). `masonry/runtime.mjs` mount và ảo hóa; engine chuyển vị
 trí là `masonry-layout`.
@@ -24,8 +24,8 @@ trí là `masonry-layout`.
   giữa: `2:15`, `3:15`, `3:25`, `4:25`, `4:35`); phần chênh dưới card hai cột
   khép bằng cách cắt tối đa 3 card cuối cột dài hơn, mỗi card không quá 5% media
   (ảnh cover, cắt đều trên dưới), không xếp được thì đổi chỗ vài card gần, rồi
-  cắt, rồi riêng card ngang đó về một cột. Thiếu hoặc lệch cache thì cả lưới
-  một cột, không lỗ ([cache R1](../../../docs/specs/masonry-layout-cache.md#r1-luật-hình-học)).
+  cắt, rồi riêng card ngang đó về một cột. Chưa xếp xong hoặc xếp lỗi thì cả lưới
+  một cột, không lỗ ([xếp trực tiếp R4](../../../docs/specs/masonry-live-layout.md#r4-đặt-tọa-độ-và-lượt-chờ)).
 
 | Viewport | Lề ngoài | Cột | Gutter | Rộng card |
 | ---: | ---: | ---: | ---: | ---: |

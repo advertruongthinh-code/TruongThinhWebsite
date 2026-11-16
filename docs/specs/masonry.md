@@ -43,7 +43,7 @@ card masonry" chọn theo hai attribute này, không liệt kê từng loại ca
 
 Card thật, item ghim (primary và card gợi ý ở detail) và khung batch skeleton đều theo
 cùng luật span một hoặc hai cột ([masonry R5](advertising-masonry.md#r5-hình-học-masonry),
-[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Lưới chính đặt card theo bố cục tính sẵn (`replay.mjs`, [cache bố cục](masonry-layout-cache.md)), card hai
+[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Lưới chính đặt card theo bố cục máy người xem tự xếp (`pack.mjs`, `replay.mjs`, [xếp trực tiếp](masonry-live-layout.md)), card hai
 cột khép mép bằng cách cắt tối đa `5%` media; related xếp bằng solver của `masonry/layout.mjs`, mọi card một cột. Không lỗ giữa
 lưới ở cả ba nơi. Related đặt primary và gợi ý là item ghim
 ([detail R7](advertising-detail.md#r7-related)); skeleton đổi band và số khung bằng attribute trên batch

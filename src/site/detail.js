@@ -111,7 +111,22 @@
   // Vendor, catalog module and artifact load together. A soft route calls this the moment the link is clicked so the network runs in parallel with the veil
   // instead of queuing behind it (Shell R6). The artifact imports at the same time as the runtime: the runtime re-imports this exact URL so it shares
   // the module and nothing loads twice; if the import waited for the runtime to finish loading, the artifact would lag a network round trip.
-  const loadAdvertisingCatalog = () => Promise.all([
+  // The grid layout Workers (masonry-live-layout R3) start here (and on the Projects page mount below), in parallel with the runtime
+  // module graph, so their modules are loaded by the time the runtime posts the first pack; the runtime adopts them.
+  const startGridWorker = () => {
+    try {
+      // Below 720px (the 2-column band, pack.mjs LAYOUT_BANDS) the grid packs on the main thread.
+      if (window.__TT_GRID_WORKERS__ || document.documentElement.clientWidth < 720) return;
+      // One per live candidate order (pack.mjs LIVE_CANDIDATES); the runtime spreads candidates over however many start here.
+      window.__TT_GRID_WORKERS__ = Array.from({ length: 4 }, () => {
+        const worker = new Worker("/masonry/layout-worker.mjs", { type: "module" });
+        // A load error before the runtime adopts the Worker would otherwise go unseen and leave the first pack waiting.
+        worker.addEventListener("error", () => { worker.failed = true; }, { once: true });
+        return worker;
+      });
+    } catch {}
+  };
+  const loadAdvertisingCatalog = () => (startGridWorker(), Promise.all([
     ensureAdvertisingDependencies(),
     import("/masonry/runtime.mjs").then((runtime) => {
       runtime.preloadMasonry();
@@ -120,7 +135,7 @@
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
     // Landing directly on a photo URL needs the detail (description, related) immediately: load it with the artifact; the runtime shares the module.
     location.pathname.includes("/p/") ? import("/advertising-products/catalog-detail.mjs").catch(() => {}) : null,
-  ]).then(([, runtime]) => runtime);
+  ]).then(([, runtime]) => runtime));
 
   const ensureAdvertisingCarouselStyle = () => {
     if (advertisingCarouselStylePromise) return advertisingCarouselStylePromise;
@@ -309,6 +324,7 @@
       // The "updating" line follows the active filter (the runtime changes aria-current when filtering in place).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");
+      startGridWorker();
       state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/masonry/runtime.mjs")])
         .then(([artifact, , { mountMasonry }]) => {
           if (emptyLine && rail) {

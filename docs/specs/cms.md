@@ -228,7 +228,7 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, đổi domain khi owner chưa mở phase
 ([khóa Wrangler](../decisions/wrangler-deferred-until-cms.md)). Mỗi slice giữ route tĩnh đọc được khi CMS không chạy;
-không page builder đa dụng, không multi-tenant, không thay source tĩnh. Lưu card từ admin phải kèm cache bố cục masonry ([contract](masonry-layout-cache.md#r6-contract-cho-cms-chưa-làm)).
+không page builder đa dụng, không multi-tenant, không thay source tĩnh. Lưu card không cần tính bố cục masonry: máy người xem tự xếp; riêng lưới đầu điện thoại được build trang sinh kèm ([masonry xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)), nên đăng bài vẫn build lại trang.
 
 ### Điều kiện mở CMS phase
 

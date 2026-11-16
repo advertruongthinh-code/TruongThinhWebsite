@@ -4712,26 +4712,20 @@ async function runMenuChecks() {
   }
 }
 
-// Main-grid expectation on the runtime path (advertising-masonry R6): the built cache variant
-// variantIndex(seed, variants.length) placed by replayLayout; no cache, a pool signature mismatch or a failed replay
-// means stackLayout. `layouts` maps band -> { filters } like artifact.layouts; omitted, it reads the built band file
-// in .site-output; null means a cacheless artifact (injected test fixtures). Related masonry keeps compileMasonryLayout.
-async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed, layouts = artifact.layouts }) {
-  const { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+// Main-grid expectation on the runtime path (masonry-live-layout R1, R2): packLive for the visit seed on the width's band, placed
+// by replayLayout; a width no band covers or a failed replay means stackLayout. Related masonry keeps compileMasonryLayout.
+async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed }) {
+  const { bandKey, replayLayout, stackLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+  const { LAYOUT_BANDS, livePool, packLive } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/pack.mjs")).href);
   const { filterRank, matchesFilter, normalizeMasonrySettings } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
-  const band = bandKey(layoutViewportWidth);
+  const band = LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
   const settings = normalizeMasonrySettings(artifact.settings);
-  const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
-  const bandCache = layouts === undefined
-    ? (await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "layout-cache", `${band.replace(":", "-")}.mjs`)).href)).default
-    : layouts?.[band];
-  const entry = bandCache?.filters?.[filter];
-  const replayed = entry?.variants?.length && entry.sig === poolSignature(pool) && replayLayout({
-    entries: entry.variants[variantIndex(seed, entry.variants.length)], cards: artifact.cards, layoutViewportWidth, filter, settings,
+  const replayed = band && replayLayout({
+    entries: packLive({ pool: livePool(artifact.cards, filter), band, seed, filter }), cards: artifact.cards, layoutViewportWidth, filter, settings,
   });
   return replayed || stackLayout({
-    order: shuffleWithSeed(pool, seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
+    order: shuffleWithSeed(artifact.cards.filter((card) => matchesFilter(card, filter)), seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
     layoutViewportWidth, filter, settings,
   });
 }
@@ -7228,7 +7222,7 @@ async function runAdvertisingThreeThousandCardProbe() {
   // The grid is laid out in the browse visit's random order (R4): rebuild with the same seed and pool as the runtime.
   // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
   const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
-    artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+    artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
   });
   const scrollTargetFor = async (page, layout, id) => {
     const target = layout.placements.find((placement) => placement.card.id === id);
@@ -7416,7 +7410,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
         // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
         const layout = await expectedGridLayout({
-          artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
+          artifact, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
         // Scroll to the placement farthest from the kiosk so the kiosk surely leaves the virtualized DOM.

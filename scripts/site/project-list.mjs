@@ -1,10 +1,9 @@
 // Projects page (projects R2): built on the Advertising products page shell, running that page's own masonry runtime
 // (masonry/runtime.mjs) with the project card set, no detail view. Each filter has its own crawlable page; the artifact
 // is embedded in the page so the runtime changes the filter in place.
-import { MASONRY_LAYOUT_VERSION, filterRank, fnv1a32, matchesFilter, scheduleRank } from "../../src/site/masonry/layout.mjs";
-import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
+import { MASONRY_LAYOUT_VERSION, fnv1a32, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, pageNameHeading } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, pageNameHeading, phonePacksScript } from "./lib.mjs";
 
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
@@ -101,11 +100,9 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     titleVi: `${filter.name.vi} — Trường Thịnh`, titleEn: `${filter.name.en} — Trường Thịnh`, kickerVi: ROOT_KICKER.vi, kickerEn: ROOT_KICKER.en,
   }));
   const datasetVersion = `projects-${fnv1a32(JSON.stringify(cards))}`;
-  // Few cards, so the masonry layout cache rides inside the page artifact instead of separate files (advertising-masonry R6).
-  const layouts = buildLayoutCacheMemo({ cards, filters: pages.map(({ filter }) => filter), datasetVersion, rankOf: filterRank, matches: matchesFilter });
   return {
     datasetVersion, layoutAlgorithmVersion: MASONRY_LAYOUT_VERSION,
-    settings: {}, tagRegistry: [], categories, pages, cards, layouts,
+    settings: {}, tagRegistry: [], categories, pages, cards,
   };
 };
 
@@ -160,6 +157,7 @@ const main = ({ filter, projects }, artifact, template) => {
         </section>
         ${indexSection(template, projects, filter.intro)}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>
+        ${phonePacksScript(artifact.cards, filter.slug ?? "all")}
       </main>`;
 };
 

@@ -164,7 +164,7 @@ Ràng buộc cho phase CMS (người dùng tự upload ảnh, gắn hoặc tạo
 - Sản phẩm mới chỉ hiện (chip và trang) khi đạt 5 card, nên CMS cho đăng card theo batch (owner 2026-11-10): một lượt từ 5
   card cho sản phẩm mới, hoặc giữ nháp tới khi đủ. Sản phẩm đã live không được tụt dưới 5 do xóa hay đổi card: CMS cảnh báo
   trước khi lưu vì chip và trang sẽ mất. Tag tự do không lên rail; nâng tag thành sản phẩm là tạo sản phẩm mới theo ràng buộc trên.
-- Đếm theo card đã duyệt, đổi số card thì sinh lại rail, trang, artifact, cache bố cục; sitemap chỉ lấy trang R4 (`ADVERTISING_PAGES`).
+- Đếm theo card đã duyệt, đổi số card thì sinh lại rail, trang, artifact; sitemap chỉ lấy trang R4 (`ADVERTISING_PAGES`).
 
 ```gherkin
 Given sản phẩm "Menu" có 9 card và sản phẩm "In ấn văn phòng" có 11 card

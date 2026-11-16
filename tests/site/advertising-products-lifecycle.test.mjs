@@ -37,11 +37,10 @@ assert.match(runtime, /document\.documentElement\.clientWidth/, "geometry uses f
 assert.match(runtime, /layoutViewportWidth(?::| =) document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
 assert.match(runtime, /layoutViewportWidth/, "shared core receives the full viewport width");
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
-// Main grid replays the build-time cache (advertising-masonry R6): embedded layouts first, then the cache files.
+// Main grid replays entries the visitor packed for (filter, band, seed) (masonry-live-layout R1, R2).
 const mainGridRequest = runtime.slice(runtime.indexOf("const geometryRequest = "), runtime.indexOf("const cacheGeometry = "));
-assert.match(runtime, /artifact\.layouts\?\.\[band\]\?\.filters\?\.\[targetFilter\]/, "runtime reads layouts embedded in the artifact");
-assert.match(mainGridRequest, /variantIndex\(browseHistory\.current\.seed, entry\.variants\.length\)/, "variant follows the browse seed");
-assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays a cached variant");
+assert.match(runtime, /const packKey = \(band, targetFilter\) => `\$\{targetFilter\}\|\$\{band\.key\}\|\$\{browseHistory\.current\.seed\}`/, "packed entries follow filter, band and browse seed");
+assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays packed entries");
 assert.match(mainGridRequest, /stackLayout\(\{/, "main grid falls back to the stack layout");
 assert.doesNotMatch(mainGridRequest, /compileInWorker|compileMasonryLayout|takeWorker/, "main grid never runs the search solver");
 assert.ok(

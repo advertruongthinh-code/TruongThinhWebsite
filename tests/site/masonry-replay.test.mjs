@@ -1,9 +1,9 @@
-// Masonry layout cache, visitor side (plan T3): replay result shape, rejection cases, stack fallback.
+// Masonry replay: result shape, rejection cases, stack fallback.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
 import { packBand, LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
-import { poolSignature, replayLayout, stackLayout, variantIndex, verifyLayout } from "../../src/site/masonry/replay.mjs";
+import { replayLayout, stackLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 
 const card = (id, width, height) => ({ id, category: "c", sourceOrder: Number(id.slice(1)), media: { src: `/${id}.jpg`, width, height } });
 // 12 cards, 2 of them wide; packed on 4:35 so the replay crosses at least one trimmed or levelled pair.
@@ -19,7 +19,7 @@ test("replay returns the layout shape runtime reads, with 2-column wide cards an
     assert.deepEqual(layout[field], reference[field], field);
   }
   assert.deepEqual(layout.holes, []);
-  assert.equal(layout.diagnostics.source, "cache");
+  assert.equal(layout.diagnostics.source, "pack");
   assert.equal(layout.placements.filter(({ width }) => width === 2).length, 2);
   assert.ok(layout.placements.every((p, i) => p.index === i && p.pixelHeight === p.mediaPixelHeight));
   assert.match(layout.coordinateHash, /^[0-9a-f]{8}$/);
@@ -36,8 +36,7 @@ test("replay rejects variants that do not fit the catalog or the grid", () => {
   assert.equal(replay(three.map((entry) => (entry & 7) >= 4 ? (entry & ~7) + 6 : entry), 800), null, "code 6 on a 3-column grid");
   assert.equal(replay(entries.map((entry) => (entry & 7) >= 4 ? entry : (entry & ~7) + 4)), null, "2-column card that is not wide");
   const narrowed = cards.map((entry) => (entry.media.width >= 1618 ? card(entry.id, 100, 100) : entry));
-  assert.equal(replay(entries, 1440, narrowed), null, "cache of another catalog");
-  assert.notEqual(poolSignature(narrowed), poolSignature(cards));
+  assert.equal(replay(entries, 1440, narrowed), null, "entries of another catalog");
 });
 
 test("stackLayout puts every card in one column without holes", () => {
@@ -58,7 +57,3 @@ test("verifyLayout catches a hole and an over-cap trim", () => {
   assert.equal(verifyLayout(cut).ok, false);
 });
 
-test("variantIndex is stable per seed and inside the variant count", () => {
-  assert.equal(variantIndex("seed-1", 20), variantIndex("seed-1", 20));
-  for (let i = 0; i < 100; i += 1) assert.ok(variantIndex(`s${i}`, 8) < 8);
-});

@@ -52,3 +52,11 @@ export const pinBrowseSeed = (target, seed) => target.addInitScript(([key, value
     sessionStorage.setItem(key, JSON.stringify({ version: 1, url: location.href.split("#")[0], seed: value, expiresAt: Date.now() + 30_000 }));
   } catch { /* Storage blocked: the visit keeps its random seed. */ }
 }, ["tt-advertising-visit-seed-handoff-v1", seed]);
+
+// Serves a wrapper for the masonry layout Worker that holds grid pack jobs (all, or one filter's) for `ms` before the real Worker
+// runs them (masonry-live-layout R3): the way a test sees the page while a pack is still running.
+export const slowPacks = (target, ms, filter = null) => target.route(/\/masonry\/layout-worker\.mjs$/, (route) => route.fulfill({
+  contentType: "text/javascript",
+  body: `import "./layout-worker.mjs?inner"; const real = self.onmessage; self.onmessage = (event) => {
+    const job = event.data?.pack; if (job && (${JSON.stringify(filter)} === null || job.filter === ${JSON.stringify(filter)})) setTimeout(() => real(event), ${ms}); else real(event); };`,
+}));
