@@ -55,7 +55,6 @@ const setGrain = (glass) => {
 // Static mono noise, one texel per device pixel: gray for the overlay (an overlay kept pure white stays white), and
 // the same noise as white alpha for the arc (detail.css).
 function makeGrain() {
-  grain = "";
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = GRAIN_SIZE;
   const context = canvas.getContext("2d");
@@ -84,7 +83,12 @@ function makeGrain() {
 // A static surface looks the same through one full step or three stacked steps, at lower cost;
 // a surface that fades in/out step by step (spec R6) needs all three.
 export function createGlassSurface(shape, steps = shape === "arc" ? Math.max(ARC_STEPS, arcLayers().band) : 1) {
-  if (grain === undefined) makeGrain();
+  // The grain is drawn in an idle task of its own, not inside the task that builds the first glass (A04s: 15-20ms with its garbage); the glass
+  // shows without grain until it arrives.
+  if (grain === undefined) {
+    grain = "";
+    (globalThis.requestIdleCallback || setTimeout)(makeGrain);
+  }
   const glass = document.createElement("div");
   glass.className = "glass-surface";
   glass.dataset.glassShape = shape;

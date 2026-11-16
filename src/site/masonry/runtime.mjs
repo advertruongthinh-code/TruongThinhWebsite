@@ -3383,6 +3383,28 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       grid.style.height = `${height}px`;
     }
   };
+  // Reads the room below the CTA copy and fits the heading to it when the room, copy width or language changed; returns the reads the batch build
+  // also needs. Its forced layout is the costly part of a first build, so a direct load runs it in a task of its own before the build (R7).
+  const fitCtaCopy = (gap) => {
+    // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
+    const viewportHeight = getLayoutViewportHeight();
+    const footerHeight = siteFooter?.offsetHeight || 0;
+    const room = viewportHeight / 2 - footerHeight - gap;
+    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
+    if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
+      ctaCopyKey = copyKey;
+      ctaCopyMetrics = fitGridCtaHeading(room);
+      // The copy size after fit is the size ResizeObserver is about to report: do not treat it as a change that rebuilds a second time. Read while layout
+      // is still clean after fit's measurement, before the variable writes below.
+      const copyRect = gridCtaCopy.getBoundingClientRect();
+      observedCopySize = `${copyRect.width}x${copyRect.height}`;
+      // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
+      gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
+      gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
+      requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
+    }
+    return { viewportHeight, footerHeight };
+  };
   const renderCtaSkeleton = ({ slide = false } = {}) => {
     const detailHost = ctaInDetail();
     const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
@@ -3399,32 +3421,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     cancelCtaSlides(slideOrigins?.keys() || []);
     const gap = hostGeometry.interCardGap;
     const ctaTop = hostGeometry.totalPixelHeight + gap;
-    // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
-    const viewportHeight = getLayoutViewportHeight();
-    lastCtaViewportHeight = viewportHeight;
-    const footerHeight = siteFooter?.offsetHeight || 0;
-    const room = viewportHeight / 2 - footerHeight - gap;
-    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
-    // In detail the variables are set directly on the CTA cluster (the only place that uses them), not on the canvas: a changed inherited variable on the canvas
-    // recomputes style for all of related. In the grid the runtime writes the in-between value onto .masonry-section when measuring masonry.
-    const ctaVarHost = detailHost ? gridCta : gridSectionStyleTarget;
-    setStyleVar(ctaVarHost, "--masonry-cta-top", `${ctaTop}px`);
+    // In detail the gap comes from the canvas yard, set on the cluster before the copy is measured; in the grid it inherits from .masonry-section.
     if (detailHost) {
       setStyleVar(gridCta, "--masonry-gap", `${gap}px`);
       gridCta?.style.removeProperty("visibility");
     }
-    if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
-      ctaCopyKey = copyKey;
-      ctaCopyMetrics = fitGridCtaHeading(room);
-      // The copy size after fit is the size ResizeObserver is about to report: do not treat it as a change that rebuilds a second time. Read while layout
-      // is still clean after fit's measurement, before the variable writes below.
-      const copyRect = gridCtaCopy.getBoundingClientRect();
-      observedCopySize = `${copyRect.width}x${copyRect.height}`;
-      // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
-      gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
-      gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
-      requestAnimationFrame(() => { gridCta.dataset.masonryCtaSettled = "true"; });
-    }
+    const { viewportHeight, footerHeight } = fitCtaCopy(gap);
+    lastCtaViewportHeight = viewportHeight;
+    // The batch top is set directly on the CTA cluster (the only place that uses it), in both yards: an inherited variable changed on the canvas
+    // or on .masonry-section recomputes style for every card under it (A04s-class CPU: about 20ms per build).
+    setStyleVar(gridCta, "--masonry-cta-top", `${ctaTop}px`);
     // The last baseline sits D above the batch bottom; if the window is too short, the button keeps a gap from it.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(hostGeometry.cardWidth * 0.25) + 1,
@@ -6130,11 +6136,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // motion just dirtied is computed in that frame and not forced again by the CTA copy measurement.
   await nextTask();
   if (!controller.signal.aborted) browseHistory.persistCurrent();
+  const ctaAborted = () => controller.signal.aborted || activePhotoId || !geometry;
   requestAnimationFrame(() => setTimeout(() => {
-    ctaDeferred = false;
-    if (controller.signal.aborted || activePhotoId || !geometry) return;
-    renderCtaSkeleton();
-    window.dispatchEvent(new CustomEvent("site:layout"));
+    // The heading fit and the batch build each force a layout: two tasks, each under the long-task line on the A04s.
+    if (!ctaAborted()) fitCtaCopy(geometry.interCardGap);
+    setTimeout(() => {
+      ctaDeferred = false;
+      if (ctaAborted()) return;
+      renderCtaSkeleton();
+      window.dispatchEvent(new CustomEvent("site:layout"));
+    });
   }));
   return cleanup;
 }

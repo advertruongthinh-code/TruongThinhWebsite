@@ -116,7 +116,9 @@ Kính có lớp hạt nhiễu đơn sắc tĩnh, độ đậm `3%` (độ lệch
 giữa), để che sọc màu (banding) ở dải trắng lớn và cho cảm giác kính mờ. Lớp
 hạt hòa trộn `overlay` và ở dạng cung mờ dần về 0 tới vòng trắng tuyệt đối, nên
 vùng trắng tuyệt đối (R3) giữ nguyên trắng. Hạt nhiễu không chuyển động; một
-hạt bằng một pixel thiết bị.
+hạt bằng một pixel thiết bị. Ảnh hạt vẽ một lần cho cả trang, ở task rảnh riêng
+(`requestIdleCallback`, thiếu thì `setTimeout`), không trong task dựng Kính đầu tiên;
+Kính hiện không hạt tới lúc ảnh hạt xong.
 
 Dạng cung dùng cùng nhiễu ở dạng hạt trắng, hòa trộn thường, opacity `0.12`:
 trên kính sáng nó làm sáng `0.12 × nhiễu × (1 - nền)`, đúng bằng overlay, và
