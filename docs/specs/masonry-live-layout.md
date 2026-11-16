@@ -145,6 +145,10 @@ Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn
 Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
 card. Card mới dựng hoặc card ẩn đặt thẳng. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
+Đổi bộ card (chip, `setResults`, `clearResults`) chia thành ba task ngắn để không task nào quá 50 ms trên A04s: task bấm dựng card
+mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước, không đọc layout sau khi ghi DOM); task kế dựng cụm CTA và skeleton;
+khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở
+khung sau.
 Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).
 
 ```gherkin

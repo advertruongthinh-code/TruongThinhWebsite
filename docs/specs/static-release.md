@@ -23,7 +23,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Phát hành tĩnh

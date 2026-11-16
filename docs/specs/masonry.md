@@ -11,7 +11,7 @@ tests:
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
 notion: none
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Masonry dùng chung
@@ -53,7 +53,8 @@ lưới ở cả ba nơi. Related đặt primary và gợi ý là item ghim
 
 Mỗi lưới là một instance của `createMasonryHost(root, { create, attach, detach, waitColors, masonry })` (`masonry/host.mjs`):
 card đang dựng, tọa độ, media đang hiện của card nhiều media, card tạm, ngân sách dựng, hàng chờ LRU theo RAM máy
-(`masonry/mount-budget.mjs`), một Masonry chỉ lo motion. Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
+(`masonry/mount-budget.mjs`); motion là Web Animations trên tọa độ đã tính, không còn thư viện Masonry
+([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)). Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
 `release(keep, { queue })` (không gỡ card đang giữ focus), dựng lẻ là `ensure`; motion layout `layoutMotion(instant)`,
 hủy `stopMotion()`. Thứ tự chọn card dựng (`pickMounts`): card bắt buộc, rồi card trong hàng chờ, rồi gần giữa màn hình,
 tối đa theo ngân sách frame; vuốt rất nhanh chỉ dựng card bắt buộc. Vùng dựng, vùng trễ và bàn phím theo
@@ -88,7 +89,7 @@ vào view, F5.
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-masonry-item]`, `[data-masonry-kind]` | Item masonry ở mọi lưới (R2) |
-| Hàm public | `createMasonryHost`, `pickMounts`, `isSizeMorph`, `cancelMasonryTransitions` (`masonry/host.mjs`) | Sân masonry (R4) |
+| Hàm public | `createMasonryHost`, `pickMounts`, `isSizeMorph`, `cancelSlides`, `SLIDE_ID` (`masonry/host.mjs`) | Sân masonry (R4) |
 | Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh (card tạm cả PC và điện thoại, card chờ trên điện thoại) (R4) |
 | Runtime | `playReveal` (`masonry/runtime.mjs`, nội bộ) | Reveal chung (R5) |
 

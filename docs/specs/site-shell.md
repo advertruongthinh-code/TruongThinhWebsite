@@ -24,7 +24,7 @@ tests:
   - tests/site/projects-back-scroll.e2e.mjs
   - tests/site/back-to-top.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-11-13
+updated: 2026-11-16
 ---
 
 # Shell website
@@ -123,7 +123,7 @@ ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, c
 phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (hiện, chữ đổi dần sang ink, mark lật sang CMYK ngay lúc bấm theo
 [logo đổi màu](logo-route-crossfade.md)); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
 alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ lớp lật và class `is-brand-*` của mark), CTA, menu;
-lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil ngay khi trang sẵn sàng, không giữ tối thiểu ([logo đổi màu R2](logo-route-crossfade.md#r2-trang-đích-gắn-vào-tone-trang-đích)). Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header. Route mềm bắt đầu khi màn gỡ veil của lần tải trực tiếp (R7) còn chờ font hoặc giữ veil thì màn gỡ cũ bỏ lượt, không dừng veil đang phủ của route mới; route vẫn xong (lỗi cũ: Barba treo quá 60s).
+lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil ngay khi trang sẵn sàng, không giữ tối thiểu ([logo đổi màu R2](logo-route-crossfade.md#r2-trang-đích-gắn-vào-tone-trang-đích)). Đích Advertising tải vendor (LazySizes; không còn Masonry 4.2.2), catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header. Route mềm bắt đầu khi màn gỡ veil của lần tải trực tiếp (R7) còn chờ font hoặc giữ veil thì màn gỡ cũ bỏ lượt, không dừng veil đang phủ của route mới; route vẫn xong (lỗi cũ: Barba treo quá 60s).
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
