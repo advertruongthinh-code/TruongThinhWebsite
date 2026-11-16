@@ -2002,15 +2002,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       media.style.removeProperty("transition");
       // The real card replaces the temp card: the image fades in from the temp card's dominant color; with reduced motion it shows directly.
       // A card built at its target during a slide (masonry-live-layout R7) fades its media in the same way, even when the file was cached.
-      const entering = node.masonryEnter;
-      node.masonryEnter = false;
-      if ((node.masonryGhost || entering) && !reduced) {
+      if ((node.masonryGhost || node.masonryEnter) && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
         fading.set(node, fades);
       }
     }
     for (const { node } of batch) {
+      node.masonryEnter = false;
       if (!node.masonryGhost) continue;
       const fades = fading.get(node);
       if (fades) Promise.all(fades).then(() => removeGhost(node), () => removeGhost(node));

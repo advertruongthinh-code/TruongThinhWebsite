@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { columnsForWidth, isWideMedia, layoutMedia, masonrySpacing } from "../../src/site/masonry/layout.mjs";
 import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
+import { GHOST_FADE_MS } from "../../src/site/masonry/mount-budget.mjs";
 import { bandKey, stackLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 import { slowPacks } from "./harness.mjs";
 
@@ -411,7 +412,7 @@ try {
   // Case 2 (plan Q9): a card new to the set is built at its target with its wait layer fully shown; it never slides across the
   // sliding cards. Returns the cards that entered on the click.
   const entersAtTarget = async (page, chip) => {
-    const entering = page.evaluate(() => new Promise((resolve) => {
+    const entering = page.evaluate((fadeMs) => new Promise((resolve) => {
       const grid = document.querySelector("[data-project-grid]");
       const before = new Set([...grid.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard));
       new MutationObserver((records, observer) => {
@@ -426,11 +427,15 @@ try {
             waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
             at: [node.style.left, node.style.top],
           }));
-          // Media already cached fades in over the card, as a card replacing a temp card does.
-          setTimeout(() => resolve({ cards, mediaFades: added.filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations().length).length }), 120);
+          // Media already cached fades in over the card colour, as a card replacing a temp card does (GHOST_FADE_MS).
+          const fades = () => added.filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations()
+            .some((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame) && animation.effect.getTiming().duration === fadeMs)).length;
+          const start = performance.now();
+          const poll = () => (fades() || performance.now() - start > 500 ? resolve({ cards, mediaFades: fades() }) : requestAnimationFrame(poll));
+          poll();
         });
       }).observe(grid, { childList: true });
-    }));
+    }), GHOST_FADE_MS);
     await page.locator(`[data-masonry-filter="${chip}"]`).first().click();
     const { cards: added, mediaFades } = await entering;
     assert.ok(mediaFades > 0, `cached media of new cards fades in on the ${chip} chip`);
