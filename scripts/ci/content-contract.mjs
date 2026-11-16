@@ -1,11 +1,11 @@
 // Real-content checks (docs/specs/content-independent-tests.md R2): node scripts/ci/content-contract.mjs
-// Advertising, hero slides and the home project strip reuse their validators; HTML and CSS are checked here. Image variants are
+// Advertising and the home rail reuse the existing validator; HTML and CSS are checked here. Image variants are
 // guarded by scripts/site/build-image-variants.mjs --check, in the same fast suite.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
-import { validateHomeProjects } from "../site/home-projects.mjs";
+import { validateProjectReel } from "../site/project-reel.mjs";
 import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
@@ -100,6 +100,10 @@ export async function checkSiteContent(siteRoot) {
   if (existsSync(heroFile)) {
     await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
   }
+  const reelFile = path.join(siteRoot, "content/project-reel.json");
+  if (existsSync(reelFile)) {
+    await validateProjectReel(JSON.parse(readFileSync(reelFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
+  }
   // Project and News pages built from blocks (layout-library R4): blocks, VI/EN text, images, linked ids.
   const pages = {};
   for (const kind of ["projects", "news"]) {
@@ -113,8 +117,6 @@ export async function checkSiteContent(siteRoot) {
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
-  const homeProjectsFile = path.join(siteRoot, "content/home-projects.json");
-  if (existsSync(homeProjectsFile)) errors.push(...validateHomeProjects(JSON.parse(readFileSync(homeProjectsFile, "utf8")), ctx.projects));
   // Site menu featured items: project ids and Advertising group slugs must exist.
   const menuFile = path.join(siteRoot, "content/menu.json");
   if (existsSync(menuFile)) {

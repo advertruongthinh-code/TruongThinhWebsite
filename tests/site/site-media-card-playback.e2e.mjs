@@ -22,7 +22,7 @@ const photoId = "signage-raised-letters-18";
 const families = [
   { route: "advertising-products/", name: "advertising-parent", selector: "[data-masonry-card]" },
   { route: "advertising-products/?photo=signage-raised-letters-18", name: "advertising-related", selector: "[data-masonry-related-card]" },
-  { route: "", name: "home-strip", selector: ".blk-projects__track > .project-card" },
+  { route: "", name: "home-reel", selector: ".project-track > .project-card" },
   { route: "", name: "home-portal", selector: ".service-portal" },
   { route: "residential/", name: "residential-gallery", selector: ".detail-gallery__item" },
   { route: "residential/", name: "residential-editorial", selector: ".editorial-item, .detail-duo figure, .service-portal" },

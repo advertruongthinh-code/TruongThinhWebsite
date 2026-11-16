@@ -69,11 +69,11 @@ const pages = [
 ];
 await writeFile(path.join(admin, "pages.json"), JSON.stringify(pages));
 
-// Alt text available by image path: the Advertising catalog, project covers, the <img> tags of the four pages.
+// Alt text available by image path: the Advertising catalog, the project rail, the <img> tags of the four pages.
 const alts = new Map();
 const remember = (src, altVi, altEn) => src && (altVi || altEn) && !alts.has(src) && alts.set(src, { altVi: altVi || "", altEn: altEn || altVi || "" });
 ADVERTISING_CARDS.forEach((card) => [card.media, ...(card.mediaItems || [])].forEach((item) => remember(item?.src, item?.altVi, item?.altEn)));
-JSON.parse(await readFile(path.join(root, "src/site/content/projects.json"), "utf8")).forEach(({ cover }) => remember(cover.src, cover.altVi, cover.altEn));
+JSON.parse(await readFile(path.join(root, "src/site/content/project-reel.json"), "utf8")).forEach((item) => remember(item.src, item.altVi, item.altEn));
 const attribute = (tag, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
 Object.values(sources).forEach((html) => html.match(/<img\b[^>]*>/g)?.forEach((tag) => {
   remember(attribute(tag, "data-src") || attribute(tag, "src"), attribute(tag, "alt"), attribute(tag, "data-en-alt"));

@@ -30,7 +30,7 @@ Mỗi assertion thuộc đúng một loại:
 | Bất biến | Hành vi đúng với mọi nội dung hợp lệ: không chồng lấn, giữ thứ tự, không card lấp chỗ, không tràn khung, số card bằng độ dài manifest | Tính từ chính dữ liệu lúc chạy |
 | Golden | Kết quả chính xác từng pixel hoặc hash của thuật toán | Fixture cố định trong `tests/fixtures/` (R3) |
 
-Assertion trên nội dung thật (`media-manifest.mjs`, `photo-tags.mjs`, `home-projects.json`, HTML trang) không chứa
+Assertion trên nội dung thật (`media-manifest.mjs`, `photo-tags.mjs`, `project-reel.json`, HTML trang) không chứa
 literal phụ thuộc nội dung: số card, số file ảnh, hash tọa độ, số card liên quan, id card hay đường dẫn ảnh cụ thể.
 Giá trị đó tính từ dữ liệu, hoặc test chuyển sang fixture.
 
@@ -44,7 +44,7 @@ Then không test nào đỏ và PR không sửa file nào trong tests/
 
 `scripts/ci/content-contract.mjs` là entrypoint duy nhất kiểm nội dung thật, chạy trong bộ `fast` và bằng
 `pnpm qa:content`. Advertising và rail trang chủ dùng lại validator đang có (`media-contract.mjs` chạy khi import
-catalog, `validateHomeProjects`); biến thể ảnh do `build-image-variants.mjs --check` cùng bộ `fast` kiểm theo
+catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs --check` cùng bộ `fast` kiểm theo
 [chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh). Script kiểm thêm trên HTML và CSS của `src/site/`:
 
 1. Mọi ảnh `/assets/content/` được tham chiếu tồn tại; `<img>` WebP khai `width`, `height` bằng pixel thật.

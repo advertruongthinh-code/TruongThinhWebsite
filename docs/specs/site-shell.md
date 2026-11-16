@@ -175,7 +175,7 @@ nghỉ, hiện khi hover sát mép phải hoặc khi cuộn. Kéo thumb tới m�
 khi trang chưa tới đích thì trang trượt tiếp tới đích, nấc lăn kế tiếp chỉ đi một nấc; menu mở giữa lúc kéo thì dừng kéo, giữ
 vị trí; cuộn bị khóa thì thumb không nhận kéo. Mỗi route, ngôn ngữ, Back chỉ có một `.c-scrollbar`. Dưới 981px, reduced motion, fallback:
 scrollbar native mặc định, app không style scrollbar document. Rail ngang (`.editorial-strip`,
-`.detail-gallery__track`, `.project-filters`) ẩn thanh ngang, vẫn kéo, vuốt được.
+`.project-track`, `.detail-gallery__track`, `.project-filters`) ẩn thanh ngang, vẫn kéo, vuốt được.
 
 ```gherkin
 Given /vi/about/ ở 1440×900
