@@ -68,7 +68,7 @@ Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và 
 | Khớp bản bỏ dấu, chỉ khi câu không có dấu nào | 0,85 |
 | Khớp qua đồng nghĩa | 0,7 |
 | Khớp khi cho một từ sai: từ đến 4 chữ cái sai 1, dài hơn sai đến 2 (khoảng cách sửa trên bản có dấu) | 0,6 |
-| Ít nhất nửa số từ của câu có trong cụm từ của card | 0,4 |
+| Ít nhất nửa số từ của câu (so bản bỏ dấu) có trong cụm từ của card | 0,4 |
 
 Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI ("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ
 tiếng Anh như "coffee" không bị đổi sai. Không dùng LLM.
@@ -123,10 +123,10 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
 1. Ngưỡng 0,42 áp cho điểm từng input; input không có card nào đạt bị bỏ và nêu trong dòng trạng thái.
 2. Top 5 của input là 5 card điểm cao nhất của nó. Hai input nối nhau khi top 5 trùng từ 2 card; mỗi thành phần liên thông
    là một nhóm (cùng ý).
-3. Điểm nhóm: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có chữ thì điểm nhóm = 0,3 điểm chữ (đã gồm K) + 0,7
-   phần ảnh. Ngưỡng 0,42 áp lại cho điểm nhóm.
+3. Điểm nhóm của card: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có cả chữ thì = 0,3 điểm chữ (đã gồm K) + 0,7
+   phần ảnh; nhóm chỉ có chữ lấy điểm chữ. Ngưỡng 0,42 áp lại; thứ tự nhóm theo điểm card cao nhất của nhóm.
 4. Một nhóm: card đạt ngưỡng xếp theo điểm. Từ hai nhóm: card đạt ngưỡng ở từ 2 nhóm lên đầu, xếp theo điểm trung bình các
-   nhóm đó; sau đó xen kẽ, mỗi lượt lấy card kế tiếp chưa đặt của từng nhóm theo thứ tự nhóm (nhóm có điểm cao nhất đi trước).
+   nhóm đó; sau đó xen kẽ, mỗi lượt lấy card kế tiếp chưa đặt của từng nhóm theo thứ tự nhóm.
 5. Hòa điểm: giữ thứ tự catalog. Tên nhóm: sản phẩm chính (`productIds[0]`) gặp nhiều nhất trong 5 card đầu của nhóm, hòa thì
    lấy sản phẩm của card đầu.
 6. Dòng trạng thái có một nút cho mỗi nhóm; bấm thì `setResults` chỉ card của nhóm đó, card thuộc 2 nhóm có mặt ở cả hai.
@@ -191,8 +191,9 @@ Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
 
 ### R9. Không có kết quả, hỏi giá, nội thất
 
-Không card nào đạt ngưỡng: gọi `clearResults()` để lưới về chế độ duyệt và bỏ qua sự kiện `masonry:search-left` do chính
-lượt gọi này sinh ra (cờ chặn, xoá khi nhận sự kiện), nên ô chữ và khay ảnh giữ nguyên; dòng trạng thái hiện nút Zalo. Bấm
+Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì đặt cờ chặn rồi gọi
+`clearResults()`; sự kiện `masonry:search-left` kế tiếp gặp cờ thì chỉ xoá cờ, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt
+thì không gọi gì. Mỗi lần gửi tìm mới cũng xoá cờ. Dòng trạng thái hiện nút Zalo. Bấm
 nút thì chép câu khách gõ vào clipboard, mở link Zalo lấy từ partial có sẵn của site, báo "Đã chép nội dung, dán vào khung
 chat Zalo" (link Zalo không mang sẵn tin nhắn). Chỉ 1 đến 2 card đạt ngưỡng: thêm dòng "Chưa đúng ý? Gửi qua Zalo". Ảnh không
 khớp: "Không tìm thấy theo ảnh n". Câu có từ hỏi giá (giá, bao nhiêu, báo giá, chi phí; EN price, cost, how much, quote) vẫn
@@ -208,13 +209,15 @@ Then lưới hiện card hộp đèn tay vẫy và dòng trạng thái có lời
 
 ### R10. Câu tìm trong link và link chia sẻ
 
-Mỗi lần tìm, chữ ghi vào `#tim=<encodeURIComponent(chữ)>` bằng `history.replaceState(history.state, "", url)`, giữ state của
-lưới, không chồng lịch sử, không gửi lên máy chủ. Ảnh giữ trong `sessionStorage` của tab; đầy bộ nhớ (`QuotaExceededError`)
-thì bỏ ảnh đã lưu và báo. Tải lại, Back từ card, đổi ngôn ngữ hay mở link có `#tim=` thì chạy lại tìm kiếm và gọi lại
-`setResults`. `masonry:search-left` không do R9 sinh ra (bấm chip, Back sang filter khác) thì xoá ô chữ, khay ảnh và phần `#`.
+Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ
+(`QuotaExceededError`) thì bỏ ảnh đã lưu và báo. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
+và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ thì đọc phiên, chạy lại tìm và
+gọi lại `setResults`. Link `#tim=<encodeURIComponent(chữ)>`: boot của `motion.js` chuyển phần `#` cho tìm kiếm trước khi
+viết lại URL (sửa nhỏ ngoài `src/site/search/`), tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` không gặp cờ R9
+(bấm chip, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
 
-Nút "Sao chép link" trong dòng trạng thái: không có ảnh thì chép link hiện tại. Có ảnh thì `POST /api/search/share` gửi các
-ảnh đã thu nhỏ; Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
+Nút "Sao chép link" trong dòng trạng thái chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
+thu nhỏ (body quá 1,6 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
 12 ký tự base62 từ `crypto.getRandomValues`; link thành `#tim=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
 `Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong
@@ -223,7 +226,8 @@ khoảng 24 giờ sau mốc). Mã hết hạn thì link vẫn tìm theo chữ v�
 ```gherkin
 Given khách tìm "hộp đèn" kèm 2 ảnh rồi bấm Sao chép link
 When người khác mở link đó trong ngày
-Then trang tìm bằng "hộp đèn" và đúng 2 ảnh đó
+Then trang tìm bằng "hộp đèn" và đúng 2 ảnh đó trên mọi card
+And đổi ngôn ngữ rồi Back từ một card thì vẫn còn câu tìm, ảnh và kết quả
 And sau 31 ngày mở lại thì chỉ tìm theo chữ, kèm thông báo ảnh đã hết hạn
 ```
 
@@ -277,22 +281,20 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 - Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
-- Khe `[data-search-dock]` và `event.detail.reason` cho `masonry:search-left`: thread masonry (thay cờ chặn ở R9 khi có).
+- Khe `[data-search-dock]`, `event.detail.reason` cho `masonry:search-left` (thay cờ chặn R9) và chỗ boot `motion.js` chuyển
+  phần `#` cho tìm kiếm: thread masonry duyệt.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
 
 ## Chú thích thuật ngữ
 
-- **Vector, embedding**: dãy số model sinh ra để so độ giống nghĩa giữa chữ, ảnh.
-- **Cosine**: độ giống giữa hai vector, từ -1 đến 1.
+- **Vector, embedding**: dãy số model sinh ra để so độ giống nghĩa giữa chữ, ảnh; **cosine** đo độ giống, từ -1 đến 1.
 - **Chuẩn hóa L2**: chia vector cho độ dài của nó để độ dài bằng 1.
 - **Lượng tử int8**: lưu mỗi số bằng một byte kèm hệ số tỉ lệ, file nhỏ hơn 4 lần.
-- **Chỉ mục**: file chứa vector của mọi card.
-- **K**: điểm lớp từ khóa của card.
+- **Chỉ mục**: file chứa vector của mọi card. **K**: điểm lớp từ khóa của card.
 - **Cùng ý**: hai input có 5 card đầu trùng nhau từ 2 card.
 - **P@5**: tỉ lệ card đúng trong 5 card đầu.
 - **Telex, VNI**: hai kiểu gõ tiếng Việt bằng phím chữ hoặc số khi chưa bật bộ gõ.
-- **Rate limit**: giới hạn số request trong một khoảng thời gian.
-- **R2**: kho file của Cloudflare.
+- **Rate limit**: giới hạn số request trong một khoảng thời gian. **R2**: kho file của Cloudflare.
 - **Isolate**: một phiên chạy của Worker, giữ biến trong bộ nhớ giữa các request.
