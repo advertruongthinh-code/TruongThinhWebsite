@@ -201,6 +201,9 @@ nằm ở [Chuỗi ảnh một không gian](agent-rule-image-series.md).
 
 ## Phóng to
 
+- Ảnh owner duyệt lên site ngay bằng bản 1k AI gen, không giữ lại chờ phóng to; PNG 1k lưu ở
+  `source-assets\topaz-goc-1k-20261110\_cho-len-site` kèm dòng `danh-sach.csv`, owner phóng to sau
+  (owner 2026-11-16).
 - Owner tự phóng to ảnh gốc của site bằng Topaz Gigapixel (2026-11-12). Agent phóng to
   bằng workflow B (SeedVR2 chia khối, làm nét) trên runninghub.ai, 12 đến 15 coin mỗi ảnh
   (owner chọn 2026-10-24, xác nhận 2026-10-25).
