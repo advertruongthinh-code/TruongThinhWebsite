@@ -418,17 +418,22 @@ try {
         const added = records.flatMap((record) => [...record.addedNodes]).filter((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard));
         if (!added.length) return;
         observer.disconnect();
-        requestAnimationFrame(() => resolve(added.filter((node) => !node.hidden).map((node) => ({
-          id: node.dataset.masonryCard,
-          slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
-          opacity: Number(getComputedStyle(node).opacity),
-          waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
-          at: [node.style.left, node.style.top],
-        }))));
+        requestAnimationFrame(() => {
+          const cards = added.filter((node) => !node.hidden).map((node) => ({
+            id: node.dataset.masonryCard,
+            slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
+            opacity: Number(getComputedStyle(node).opacity),
+            waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
+            at: [node.style.left, node.style.top],
+          }));
+          // Media already cached fades in over the card, as a card replacing a temp card does.
+          setTimeout(() => resolve({ cards, mediaFades: added.filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations().length).length }), 120);
+        });
       }).observe(grid, { childList: true });
     }));
     await page.locator(`[data-masonry-filter="${chip}"]`).first().click();
-    const added = await entering;
+    const { cards: added, mediaFades } = await entering;
+    assert.ok(mediaFades > 0, `cached media of new cards fades in on the ${chip} chip`);
     assert.ok(added.length >= 2, `new cards enter on the ${chip} chip (${added.length})`);
     await settled(page);
     const finals = await page.evaluate((ids) => ids.map((id) => {

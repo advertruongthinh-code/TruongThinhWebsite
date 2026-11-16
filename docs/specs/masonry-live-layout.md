@@ -147,8 +147,7 @@ Tọa độ đã có trước khi card trượt (R4, R6), nên trang không còn
 Animations trên `transform` (FLIP, id `masonry-slide`), `DUR.card` 0,4 giây, `ease`, mọi card cùng lúc, không đọc layout từng
 card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh cột; từ lượt sau, card mới vào bộ dựng ngay tại đích, không bay
 ngang qua card đang trượt: media chưa có thì lớp chờ hiện đủ ngay (4 màu trên điện thoại, kính mờ trên PC) rồi media hiện dần như
-mọi card; media đã có trong hàng tải thì card hiện đủ ngay tại đích, không hiện dần (quyết định PR 3: không thêm fade riêng cho
-card, để không mờ cả lớp chờ). Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
+mọi card; media đã có trong hàng tải cũng hiện dần trên nền card như card thay khung tạm (`GHOST_FADE_MS`), khung card không mờ. Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
 Đổi bộ card (chip, `setResults`, `clearResults`) chia thành ba task ngắn để không task nào quá 50 ms trên A04s: task bấm dựng card
 mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa sổ ảo); task kế dựng cụm CTA và skeleton;
