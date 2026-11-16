@@ -71,8 +71,11 @@ try {
       await route.continue().catch(() => {});
     });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    // PC: wait for the Flow frames themselves, not the loading mark: right after the mark appears the frames can be missing from the media box
+    // for one task (main and branch alike); they are there by the next animation frame, before any paint.
     await page.waitForFunction((selector) => document.querySelectorAll(selector).length > 2,
-      phone ? "[data-project-grid] [data-masonry-card][data-media-wait='colors']" : "[data-project-grid] [data-masonry-media-loading]");
+      phone ? "[data-project-grid] [data-masonry-card][data-media-wait='colors']"
+        : "[data-project-grid] [data-masonry-media-loading] .masonry-card__media [data-masonry-loading-skeleton]");
     if (phone) {
       const layers = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card][data-media-wait='colors']")].map((tile) => {
         const card = tile.getBoundingClientRect();
