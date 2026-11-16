@@ -1,0 +1,9 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-hau-mai-v2.png (portrait 2:3, keep its exact size), then save the result into the current working directory as `home-cam-ket-hau-mai-v3.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+EDIT ONLY THE TECHNICIAN'S ARMS AND HANDS. The owner likes this photo; only the pose of the hands looks wrong (the right hand reaches inside the drawer box from below in an awkward grip).
+
+KEEP EXACTLY: the framing, camera angle, light, colours, the kitchen, countertop, plant, fruit bowl, window, the out-of-focus leaves in the lower right, the technician's head turned away, his dark shirt, his body position and the pulled-out drawer.
+
+CHANGE: a natural, believable working pose. His left hand rests on the top edge of the pulled-out drawer front, holding it steady. His right hand holds the screwdriver in a normal grip (fingers wrapped around the handle, thumb along it, wrist straight) and drives a screw on the metal runner from the outside of the drawer box, the shaft lined up straight with the screw head. Both hands have five correct fingers, natural proportions and real skin texture; forearms connect correctly to the sleeves.
+
+No face visible, no text or logo anywhere. Do not change anything else.

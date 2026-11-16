@@ -148,5 +148,63 @@
   "prompt": "p-about-xuong-v2.txt",
   "round": 2,
   "created": "2026-11-17"
+ },
+ {
+  "file": "about-vat-lieu-v3.png",
+  "sha256": "b874ef3b107b3c6630fb2ba2444afda500fd36776a0a7893f9229299ef1aaac0",
+  "bytes": 2337694,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-materials.png",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-vat-lieu-ref-1.jpg",
+   "ref/about-vat-lieu-ref-3.jpg"
+  ],
+  "prompt": "p-about-vat-lieu-v3.txt",
+  "round": 3,
+  "change": "owner 2026-11-16 18:19 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v3.png",
+  "sha256": "7886dc777eeed01ef1da24745b3a9e49d7a13b372bf4ae47f5698fb97af58eeb",
+  "bytes": 1925720,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v2.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v3.txt",
+  "round": 3,
+  "change": "owner 2026-11-16 18:19 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v3.png",
+  "sha256": "c04332d346229a295ff06000846046a6c12655de8ba6180d69df98a6acb846f5",
+  "bytes": 2268154,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/home-cam-ket-chat-luong-ref-1.jpg",
+   "ref/home-cam-ket-chat-luong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v3.txt",
+  "round": 3,
+  "change": "owner 2026-11-16 18:19 UTC notes",
+  "created": "2026-11-17"
  }
 ]
