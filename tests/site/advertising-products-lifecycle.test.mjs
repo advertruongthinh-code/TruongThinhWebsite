@@ -59,7 +59,7 @@ assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualiz
 const filterClickHandler = runtime.slice(runtime.indexOf("const onRailClick = (event) => {"));
 assert.ok(
   filterClickHandler.indexOf("event.preventDefault();")
-    < filterClickHandler.indexOf("if (nextFilter === filter) {"),
+    < filterClickHandler.indexOf("if (nextFilter === filter && !search) {"),
   "active filter clicks are canceled before the same-filter no-op",
 );
 assert.match(runtime, /normalizeMasonrySettings/);

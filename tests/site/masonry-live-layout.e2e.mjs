@@ -1,6 +1,7 @@
 // Masonry live layout in a real browser (masonry-live-layout R1-R4): the grid people see is packed on their machine and must
 // pass verifyLayout on its own DOM geometry, wide cards included; Back returns the same coordinates; a failed Worker packs on
-// the main thread; the filter chip while a pack is late and a late pack behind an open card must hold.
+// the main thread; the filter chip while a pack is late and a late pack behind an open card must hold. Search mode (R6) places
+// ranked results one column each in score order.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/masonry-live-layout.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -9,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { columnsForWidth, isWideMedia, layoutMedia, masonrySpacing } from "../../src/site/masonry/layout.mjs";
 import { LAYOUT_BANDS } from "../../src/site/masonry/pack.mjs";
-import { bandKey, verifyLayout } from "../../src/site/masonry/replay.mjs";
+import { bandKey, stackLayout, verifyLayout } from "../../src/site/masonry/replay.mjs";
 import { slowPacks } from "./harness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -301,6 +302,96 @@ try {
     assert.deepEqual(spans, wideIds.map(() => 2), "the packed layout (wide cards) is behind the card");
     await page.close();
     console.log("PASS slow pack with a card open");
+  }
+  // 7. Search mode (R6): setResults places the ranked ids one column each, card i into the lowest column (stackLayout), with the
+  // CTA batch at the end; unknown and repeated ids are skipped; the latest call wins; a band change replays without a pack;
+  // pending dims the grid; a late offer relayouts only when pressed; a rail click or clearResults leaves search.
+  {
+    const all = ADVERTISING_CATALOG_ARTIFACT.cards;
+    const wide = all.filter((card) => isWideMedia(layoutMedia(card))).slice(0, 3);
+    const ranked = [...wide, ...all.filter((card) => !isWideMedia(layoutMedia(card))).slice(20, 32)].map((card) => card.id);
+    const byId = new Map(all.map((card) => [card.id, card]));
+    const searchMatches = async (page, ids, label) => {
+      const dom = await settled(page);
+      const order = ids.map((id) => byId.get(id));
+      const expected = stackLayout({ order, layoutViewportWidth: dom.viewportWidth, source: "search" });
+      const layout = assertGrid(dom, all, label, { stacked: true });
+      assert.deepEqual(layout.placements.map((p) => p.card.id).sort(), [...ids].sort(), `${label}: exactly the results`);
+      const want = new Map(expected.placements.map((p) => [p.card.id, p]));
+      for (const p of layout.placements) {
+        assert.equal(p.left, want.get(p.card.id).left, `${label}: ${p.card.id} column`);
+        assert.ok(Math.abs(p.y - want.get(p.card.id).y) < 0.05, `${label}: ${p.card.id} y ${p.y} vs ${want.get(p.card.id).y}`);
+      }
+      await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 15000 });
+    };
+    const errors = [];
+    const { page } = await open(ADVERTISING, 1440, { setup: (target) => target.on("pageerror", (error) => errors.push(error.message)) });
+    await settled(page);
+    await page.evaluate(() => {
+      window.__searchLeft = 0;
+      window.addEventListener("masonry:search-left", () => { window.__searchLeft += 1; });
+    });
+    await page.evaluate(() => window.TruongThinhMasonry.setPending(true));
+    assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 1, "pending marks the grid");
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults([...ids, "no-such-card", ids[0]]), ranked);
+    assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 0, "results clear pending");
+    await searchMatches(page, ranked, "search 1440px");
+    // Latest call wins while the first is still sliding.
+    const second = ranked.slice(4).reverse();
+    await page.evaluate(([a, b]) => { window.TruongThinhMasonry.setResults(a); window.TruongThinhMasonry.setResults(b); }, [ranked, second]);
+    await searchMatches(page, second, "search latest call");
+    // A band change replays the results at the new width.
+    await page.setViewportSize({ width: 768, height: 900 });
+    await searchMatches(page, second, "search 768px");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await searchMatches(page, second, "search back to 1440px");
+    // A late offer waits for a press.
+    await page.evaluate((ids) => window.TruongThinhMasonry.offerResults(ids), ranked);
+    await page.locator("[data-masonry-offer]").waitFor();
+    assert.equal(await page.locator("[data-masonry-offer]").textContent(), "Có thêm kết quả gợi ý");
+    await searchMatches(page, second, "offer alone keeps the grid");
+    await page.locator("[data-masonry-offer]").click();
+    assert.equal(await page.locator("[data-masonry-offer]").count(), 0, "the offer goes once pressed");
+    await searchMatches(page, ranked, "offer pressed");
+    // No results: an empty grid with the CTA batch.
+    await page.evaluate(() => window.TruongThinhMasonry.setResults([]));
+    await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-masonry-item]:not([hidden])"), null, { timeout: 15000 });
+    await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 15000 });
+    // A rail click leaves search for that filter and tells the search page.
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
+    await searchMatches(page, ranked, "search before rail click");
+    await page.locator('[data-masonry-filter="all"]').click();
+    await page.waitForFunction(() => window.__searchLeft === 1, null, { timeout: 15000 });
+    const browse = await settled(page);
+    assertGrid(browse, all, "rail click after search");
+    assert.ok(browse.items.length > ranked.length, "the whole filter is back");
+    // clearResults returns to the filter too.
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), second);
+    await searchMatches(page, second, "search before clear");
+    await page.evaluate(() => window.TruongThinhMasonry.clearResults());
+    await page.waitForFunction(() => window.__searchLeft === 2, null, { timeout: 15000 });
+    assertGrid(await settled(page), all, "clearResults");
+    assert.deepEqual(errors, [], "no page errors");
+    await page.close();
+    // Phone width: results stay one column each in two columns.
+    const phone = await open(ADVERTISING, 384, { height: 800 });
+    await settled(phone.page);
+    await phone.page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
+    await searchMatches(phone.page, ranked, "search 384px");
+    await phone.page.close();
+    // A call before the grid mounts waits for it.
+    const early = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await early.addInitScript((ids) => {
+      const timer = setInterval(() => {
+        if (!window.TruongThinhMasonry) return;
+        clearInterval(timer);
+        window.TruongThinhMasonry.setResults(ids);
+      });
+    }, ranked);
+    await early.goto(`${base}${ADVERTISING}`, { waitUntil: "domcontentloaded" });
+    await searchMatches(early, ranked, "results set before mount");
+    await early.close();
+    console.log("PASS search mode");
   }
   console.log("masonry live layout e2e: ok");
 } finally {

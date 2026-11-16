@@ -114,6 +114,28 @@ không bao giờ có lỗ. Test ngẫu nhiên (`masonry-layout-fuzz.test.mjs`: b
 kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộng nhỏ nhất, chuẩn và lớn nhất, mỗi card một lần, cắt không quá
 5%, `stackLayout` không lỗ; `LAYOUT_FUZZ_COUNTS=150,285,600` chạy bản dài bằng tay.
 
+### R6. Chế độ tìm kiếm
+
+Trang tìm kiếm đưa danh sách id card xếp theo điểm; lưới chính bỏ pool của filter và đặt đúng danh sách đó: mọi card một cột,
+card thứ i vào cột đang thấp nhất (`stackLayout`, source `search`), không đổi chỗ, không cắt, không Worker, không xếp sẵn; CTA và
+khung Flow vẫn ở cuối lưới (plan Q2, Q3, Q6, owner 2026-11-15 19:30). Id lạ và id lặp bị bỏ, lượt gọi mới nhất thắng, đổi dải
+chỉ đặt lại tọa độ. Thứ tự media trong card không đổi; lưới không nhận `mediaId` (thread tìm kiếm chốt 2026-11-16).
+
+- `setPending(true)`: lưới cũ mờ còn 0,6 (`data-masonry-pending`) trong lúc chờ; `setResults` hoặc `clearResults` bỏ mờ.
+  Giảm chuyển động thì đổi ngay, không mờ dần.
+- `offerResults(ids)`: hiện nút "Có thêm kết quả gợi ý" / "More suggested results" ngay trên lưới; bấm mới đặt `ids`.
+- Gọi `setResults` trước khi lưới dựng xong: lượt mới nhất được giữ và áp ngay lần dựng đầu, không có lưới duyệt chớp qua.
+- Rời tìm kiếm: `clearResults`, bấm chip (kể cả chip đang chọn) hoặc Back sang filter khác đưa lưới về filter đó và phát
+  sự kiện `masonry:search-left` trên `window`, để trang tìm kiếm xóa ô tìm.
+- Kết quả không lưu trong history: sau F5, đổi ngôn ngữ hoặc Back tải lại hẳn trang, lưới về chế độ duyệt; trang tìm kiếm gọi lại
+  `setResults` nếu vẫn còn truy vấn.
+
+```gherkin
+Given lưới Quảng cáo đang duyệt ở 1440px
+When trang tìm kiếm gọi setResults với 15 id, có id lạ và id lặp
+Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, CTA ở cuối; bấm chip Tất cả thì về lưới duyệt và phát masonry:search-left
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -124,6 +146,9 @@ kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộ
 | Hàm public | `replayLayout`, `stackLayout`, `verifyLayout`, `bandKey` (`replay.mjs`) | Runtime và test (R4); không import `pack.mjs` |
 | Message | `{ id, pack, s }` → `{ id, candidate }` hoặc `{ id, error }` (`layout-worker.mjs`) | Worker xếp một ứng viên (R3) |
 | DOM hook | `aria-busy="true"` trên `[data-masonry-filter]` | Chip chờ xếp (R4) |
+| Hàm public | `window.TruongThinhMasonry.setResults(ids)`, `setPending(bool)`, `clearResults()`, `offerResults(ids)` (cũng có trên `getAdapter()`) | Chế độ tìm kiếm (R6) |
+| Sự kiện | `masonry:search-left` trên `window` | Lưới rời tìm kiếm (R6) |
+| DOM hook | `data-masonry-pending` trên lưới; `button[data-masonry-offer]` | Chờ kết quả, kết quả gợi ý đến muộn (R6) |
 
 ## UI
 
@@ -138,6 +163,7 @@ kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộ
 | R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo; 384px không tạo grid Worker; lưới đầu điện thoại dùng seed xếp sẵn, Back cùng tọa độ, stamp lệch thì xếp trực tiếp); `advertising-products-static.test.mjs` (mọi trang có bản xếp sẵn mang stamp đúng card runtime dùng); `masonry-pack.test.mjs` (`phonePacks` bằng `packLive` cho 8 seed) |
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
+| R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip và `clearResults` rời tìm kiếm; gọi trước khi dựng) |
 
 ## Gate còn mở
 
