@@ -5507,6 +5507,10 @@ async function runAdvertisingRapidFilterCheck() {
           writable: true,
         });
       }, artifact);
+      // Only cards in both sets slide (plan Q9 case 2), so whether a travelling card lands far from the view depends on the shuffle:
+      // pin the seed for a fixed layout.
+      const { pinBrowseSeed } = await import("./harness.mjs");
+      await pinBrowseSeed(page, process.env.TT_RAPID_SEED || "rapid-filter-1");
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
@@ -5522,7 +5526,11 @@ async function runAdvertisingRapidFilterCheck() {
       });
       await page.waitForTimeout(50);
       await page.locator('[data-masonry-filter="printing-decals"]').evaluate((control) => control.click());
-      await page.waitForTimeout(120);
+      // The tap builds in a later task, after its pack when that is not ready (masonry-live-layout R7); an All tap before the build only
+      // cancels it. Wait for the build, then tap All while its cards slide.
+      await page.waitForFunction(() => document.querySelector('[data-masonry-filter="printing-decals"]')?.getAttribute("aria-current") === "true",
+        null, { polling: "raf", timeout: 5_000 });
+      await page.waitForTimeout(60);
       const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
         const gridRect = grid.getBoundingClientRect();
         const before = [...grid.querySelectorAll(".masonry-card")]
@@ -5540,11 +5548,14 @@ async function runAdvertisingRapidFilterCheck() {
         grid.addEventListener("transitionend", blockRapidTransitionEnd, true);
         grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
         const scrollBefore = window.scrollY;
+        // Slides of the first tap may still run: only a slide started by the All tap counts.
+        const slidesOf = () => [...grid.querySelectorAll(".masonry-card")].flatMap((tile) => tile.getAnimations().filter((animation) => animation.id === "masonry-slide"));
+        const earlier = new Set(slidesOf());
         grid.closest('[data-barba-namespace="advertising-products"]')
           ?.querySelector('[data-masonry-filter="all"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
         // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
-        const sliding = () => [...grid.querySelectorAll(".masonry-card")].some((tile) => tile.getAnimations().some((animation) => animation.id === "masonry-slide"));
+        const sliding = () => slidesOf().some((animation) => !earlier.has(animation));
         for (let frame = 0; frame < 6 && !sliding(); frame += 1) {
           await new Promise((resolve) => requestAnimationFrame(resolve));
         }
@@ -5569,7 +5580,7 @@ async function runAdvertisingRapidFilterCheck() {
         // Inline top already holds each card's target (masonry-live-layout R7, FLIP). A card new to the set is built at its target
         // without a slide (plan Q9 case 2), so go back to All and track a printing card that is still mid-slide and travels again.
         const offset = (tile) => {
-          const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide");
+          const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
           const [dx = 0, dy = 0] = (slide?.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
           return Math.hypot(dx, dy);
         };
@@ -5578,7 +5589,7 @@ async function runAdvertisingRapidFilterCheck() {
           .sort((left, right) => Math.abs(Number.parseFloat(left.style.top) - futureCenter) - Math.abs(Number.parseFloat(right.style.top) - futureCenter))[0];
         if (!tracked) throw new Error("Rapid filter did not expose a travelling printing-decals item");
         // Keep tracking the card's slide: when motion ends it must be "finished", when cut off it is "idle".
-        grid.__rapidMorph = tracked.getAnimations().find((animation) => animation.id === "masonry-slide");
+        grid.__rapidMorph = tracked.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
         if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a slide on the tracked item");
         window.scrollTo({ top: scrollTarget, behavior: "instant" });
         window.dispatchEvent(new Event("scroll"));
