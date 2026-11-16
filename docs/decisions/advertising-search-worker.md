@@ -1,6 +1,6 @@
 ---
 title: Worker tìm kiếm chạy cùng Worker demo tĩnh
-status: proposed
+status: accepted
 date: 2026-11-16
 scope: static website release, advertising search
 tags: [search, cloudflare, workers-ai, r2]
@@ -72,8 +72,6 @@ Thêm một Worker script nhỏ vào chính Worker demo (`wrangler.static.toml`)
 
 ## Follow-up
 
-- PR chuyển decision sang accepted: sửa decision demo mục 1, câu ranh giới AGENTS.md.
-- PR code đầu tiên: sửa `wrangler.static.toml`, [static release](../specs/static-release.md).
 - Owner tạo bucket R2 `truong-thinh-search-share` với luật xoá sau 30 ngày, hoặc thread làm bằng token khi token có quyền.
 
 ## Chú thích thuật ngữ
