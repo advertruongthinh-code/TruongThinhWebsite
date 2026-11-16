@@ -16,6 +16,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | 2026-09-01 | accepted | [Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md) |
 | 2026-10-04 | accepted | [Skill Claude chỉ đến từ plugin pin ở user scope](claude-skills-from-pinned-plugins.md) |
 | 2026-10-03 | accepted | [Demo tĩnh chạy trên Cloudflare Workers static assets](cloudflare-workers-static-demo.md) |
+| 2026-11-16 | proposed | [Worker tìm kiếm chạy cùng Worker demo tĩnh](advertising-search-worker.md) |
 | 2026-10-04 | accepted | [Hệ thống tài liệu](documentation-system.md) |
 | 2026-07-30 | accepted | [Chính sách editorial image](editorial-image-policy.md) |
 | 2026-08-09 | accepted | [Quản trị Git–Notion](git-notion-governance.md) |
