@@ -1748,9 +1748,9 @@ async function runPortalAlignmentChecks() {
           );
           assert(
             state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
-              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "nowrap"
+              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "normal"
               && card.titleWithin && card.subtitleWithin),
-            `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+            `Commitment portal text clips at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
@@ -1765,12 +1765,12 @@ async function runPortalAlignmentChecks() {
             );
           } else {
           assert(
-            state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
-            `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
+            state.capabilityCards.map((card) => card.title).join("|") ===
+              (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
+            `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
           assert(
-            state.capabilityCards.length === 3 &&
+            state.capabilityCards.length === 4 &&
               state.capabilityCards.every(
                 (card) =>
                   Math.abs(card.titleCenterOffset) <= 1 &&
@@ -9709,7 +9709,7 @@ async function runPhysicalWheelTransformChecks() {
     { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "home project rail", route: "/vi/", selector: ".project-track", axis: "x", limit: 1 },
+    { name: "home project strip", route: "/vi/", selector: ".blk-projects__track", axis: "x", limit: 1 },
   ];
 
   for (const testCase of cases) {
@@ -9975,8 +9975,8 @@ async function runHomeMotionRegressionCheck() {
             height: item.getBoundingClientRect().height,
           })),
           track: {
-            speed: document.querySelector(".project-track")?.dataset.scrollSpeed,
-            direction: document.querySelector(".project-track")?.dataset
+            speed: document.querySelector(".blk-projects__track")?.dataset.scrollSpeed,
+            direction: document.querySelector(".blk-projects__track")?.dataset
               .scrollDirection,
           },
           hero: {
@@ -10084,7 +10084,7 @@ async function runHomeMotionRegressionCheck() {
         "A text mask can clip Vietnamese font ink",
       );
       assert(
-        contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
+        contract.media.length === require(path.join(SITE_ROOT, "content", "home-projects.json")).length &&
           contract.media.every(
             // An image frame waiting to load gets overflow: clip from .media-gate (media-delivery R6), hidden once loaded; both clip the mask.
             ({ overflow, height }) =>

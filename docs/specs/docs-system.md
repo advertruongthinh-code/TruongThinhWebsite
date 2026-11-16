@@ -75,7 +75,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | ID | Spec sở hữu | Source chính | Spec con |
 | --- | --- | --- | --- |
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
-| home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
+| home | `page-home.md` | `src/site/index.html`, logo khách, dải công trình | |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
 | masonry | `masonry.md` | phần chung mọi masonry: `masonry/host.mjs`, `masonry/mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |

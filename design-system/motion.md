@@ -59,8 +59,8 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 
 | Motion | Thông số | Bề mặt UI |
 | --- | --- | --- |
-| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), neo trái theo chữ. Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
-| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | Portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy. [Project reel](components/ProjectReel/README.md) tự viết riêng, không qua primitive và không có focus |
+| Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md), [Filter](components/Filter/README.md) cụm trên máy có hover (chip dày 2px), neo trái theo chữ |
+| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | Portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
 | Slideshow hero | Thứ tự mọi slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải; ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut` (điện thoại: `1.1 → 1`, hoặc lia thẳng trái, phải, lên, xuống `8%` chiều cao khung cùng nhịp, theo `data-hero-move`); mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ, Residential, Commercial (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`masonry/suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005` | [Hero](components/Hero/README.md) About, trang công trình (`data-motion-hero-media`) |
 | Zoom khối chữ hero | Khối chữ `scale 1.2 → 1` `2.5s var(--ease)` (`data-motion-hero-wrapper-zoom`); mức đầu và vị trí là tham số `--hero-zoom-from`, `--hero-zoom-place` | [Hero](components/Hero/README.md) Advertising (1.2, căn giữa tuyệt đối); [News list](components/NewsList/README.md) dòng nhỏ và tiêu đề (1.1, trong luồng) |
@@ -69,7 +69,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Flow | Gradient bốn màu chảy bằng WebGL, 12 preset | [Skeleton](components/Skeleton/README.md) |
 | Line reveal, word fade | `1.9s power4.out` theo dòng; `1s expo.out` theo từ | Tiêu đề [Hero](components/Hero/README.md), tiêu đề section và [Banner CTA](components/BannerCta/README.md) (mục Text) |
 | Cụm chữ nguyên khối | Cả khối `scale 1.1 → 1` `2.5s cubic-bezier(0, 0, .26, 1)` (`--ease`) từ lúc trang bắt đầu lộ; câu rồi số fade nguyên khối `1s expo.out`, trễ `0.3s` và `0.6s`; không tách từ, không trượt | Trang 404 (mục Text), mẫu 404 của Espacio |
-| Parallax | Media trôi chậm hơn cuộn 20%; rail ngang `4`; CTA Advertising 10% | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), dải công trình Residential, Commercial, trang công trình ([Blocks](components/Blocks/README.md)), [Banner CTA](components/BannerCta/README.md) Advertising |
+| Parallax | Media trôi chậm hơn cuộn 20%; rail ngang `4`; CTA Advertising 10% | [Hero](components/Hero/README.md), dải công trình trang chủ, Residential, Commercial, trang công trình ([Blocks](components/Blocks/README.md)), [Banner CTA](components/BannerCta/README.md) Advertising |
 | Nhô lên, trượt vào | `data-motion-up`: `y 60px → 0` và mờ sang rõ `0.6s` `--ease`, trễ theo `data-motion-delay`; `data-motion-left`: `x 60px → 0` không mờ, cùng nhịp; khi vào viewport | Ô thông số trang công trình (trễ 0, 0.15, 0.3, 0.45s), dải công trình (Residential, Commercial, trang công trình), khối chi tiết Residential, Commercial |
 | Chuyển vị trí card | `transform 0.4s ease` qua `masonry-layout` | [Masonry](components/Masonry/README.md), [Filter](components/Filter/README.md) |
 | Đổi nền hover | `0.3s ease-out` nền và chữ đảo màu | [Floating CTA](components/FloatingCta/README.md) |
@@ -125,7 +125,7 @@ dung, speed dương làm nó chạy nhanh hơn.
 | Phần tử | Trang | Speed | Cảm nhận |
 | --- | --- | --- | --- |
 | Ảnh hero `.hero-slides`, `.hero-photo` | Trang chủ, Residential, Commercial, About | `-2` | Trôi chậm hơn cuộn 20% |
-| Rail dự án `.project-track`, dải `.blk-projects__track` | Trang chủ; Residential, Commercial, trang công trình | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
+| Dải công trình `.blk-projects__track` | Trang chủ, Residential, Commercial, trang công trình | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
 
 Quy tắc: parallax chỉ ở hero có chữ lớn trên nền ảnh hoặc video, lớp media nền
 speed `-2`, chữ đi theo trang, không lộ mép. Ngoài hero chỉ có rail trang chủ, dải công trình và

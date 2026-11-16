@@ -39,7 +39,7 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 ### R1. Build `.site-output/` từ `src/site/`
 
 `pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
-nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; rail công trình, [trang chủ R8](page-home.md#r8-rail-công-trình)), xóa `.site-output/`, chép
+nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; dải công trình, [trang chủ R8](page-home.md#r8-dải-công-trình)), xóa `.site-output/`, chép
 `src/site/` rồi chèn card rail vào `index.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), minify JS app (esbuild: `motion.js`, `detail.js`, `advertising-products/*.mjs`; giữ dòng đầu `//# allFunctionsCalledOnLoad`;
 -53 KB brotli, 8 card đầu nhanh hơn khoảng 0,3 s), `modulepreload` runtime, artifact và mọi module runtime import tĩnh vào trang Advertising (đọc từ câu `import`, không viết tay; gộp ba đợt mạng, 8 card đầu nhanh hơn khoảng 0,2 s), xử lý HTML (R5, R6), 22 route locale (R5). Menu và navbar không nằm trong source: `readPageSource` (`sync-site-menu.mjs`) dựng chúng từ `content/menu.json` khi build vào đầu ra ([Shell R4](site-shell.md#r4-full-menu)). Khung chung (header, menu, footer...) cũng không nằm trong trang nguồn: `renderShell` chèn từ `src/site/partials/` ([Shell R1](site-shell.md#r1-markup-chung-và-thứ-tự-lớp)); thư mục `partials/` không lên đầu ra (R3). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
@@ -73,7 +73,7 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 `scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
-manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
+manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin
