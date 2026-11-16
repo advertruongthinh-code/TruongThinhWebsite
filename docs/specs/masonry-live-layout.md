@@ -149,10 +149,11 @@ card. Card ẩn đặt thẳng. Lượt đầu, card mới trượt từ đỉnh
 ngang qua card đang trượt: media chưa có thì lớp chờ hiện đủ ngay (4 màu trên điện thoại, kính mờ trên PC) rồi media hiện dần như
 mọi card; media đã có trong hàng tải cũng hiện dần trên màu nền của card như card thay khung tạm (`GHOST_FADE_MS`), khung card không mờ ([ngoại lệ của loading glass R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)). Slide và morph kích thước được giữ trong một Set của host, nên hủy và tính thời gian còn lại không quét `getAnimations()` giữa các lần ghi `left`, `top`. Bấm chip khi card còn đang trượt: card trượt tiếp từ chỗ đang thấy (tọa độ nhìn
 thấy được lấy trước khi đổi), không nhảy về đích cũ. Hủy lượt (mở card, cuộn tới card bằng bàn phím) đưa card về đích ngay.
-Đổi bộ card (chip, `setResults`, `clearResults`) chia thành ba task ngắn để không task nào quá 50 ms trên A04s: task bấm dựng card
-mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa sổ ảo); task kế dựng cụm CTA và skeleton;
-khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở
-khung sau.
+Đổi bộ card chia thành task ngắn để không task nào quá 50 ms trên A04s. Bấm chip chỉ nhận lượt bấm; card dựng ở task kế (hoặc
+khi bản xếp về, R4; bấm chip khác trước đó thì lượt trước bị bỏ); `setResults`, `clearResults` dựng ngay trong task gọi. Task dựng
+tạo card mới và ghi điểm xuất phát (dùng lại bề rộng đo lần trước; còn đúng một lần đọc layout sau khi ghi DOM: vị trí lưới cho cửa
+sổ ảo); task kế dựng cụm CTA và skeleton; khung kế tiếp cho card trượt (chờ tối đa hai khung nếu task CTA chưa chạy). Card lệch đích
+dưới nửa pixel không trượt. Hiệu ứng hàng chip và cuộn chip trên điện thoại chạy ở khung sau.
 Nhịp, cụm CTA, Kính và khung skeleton trượt cùng: [motion](../../design-system/motion.md#vị-trí-card-masonry).
 
 ```gherkin
@@ -196,7 +197,7 @@ Then mỗi card mới vào bộ đứng ngay tại đích, không trượt, lớ
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
 | R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip và `clearResults` rời tìm kiếm; gọi trước khi dựng) |
-| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
+| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt và hai lần đổi thứ tự kết quả tìm kiếm cách 40 ms; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px; hai lần bấm chip trong một task: chỉ lượt sau dựng); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
 
 ## Gate còn mở
 

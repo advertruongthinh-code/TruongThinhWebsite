@@ -2382,16 +2382,19 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     busyControl?.removeAttribute("aria-busy");
     busyControl = null;
   };
-  const whenLayoutReady = (targetFilter, run, control) => {
+  // `defer`: a ready layout still runs in the next task, so a chip tap's own task (input, hover style) and the card build stay
+  // two short tasks on the A04s instead of one long one (masonry-live-layout R7). A later click drops it through the same ticket.
+  const whenLayoutReady = (targetFilter, run, control, { defer = false } = {}) => {
     cancelLayoutWait();
     const ticket = layoutWait;
     const pending = layoutPending(targetFilter);
-    if (!pending) return run();
+    const runCurrent = () => {
+      if (ticket === layoutWait && !controller.signal.aborted) run();
+    };
+    if (!pending) return defer ? void setTimeout(runCurrent) : run();
     busyControl = control ?? null;
     busyControl?.setAttribute("aria-busy", "true");
-    void pending.then(() => {
-      if (ticket === layoutWait && !controller.signal.aborted) run();
-    });
+    void pending.then(runCurrent);
   };
   // A stack layout drawn while the pack was missing (Back/Forward to another seed, a band change while a card was open) is
   // replaced once the pack lands. Only while filter and band are unchanged.
@@ -5705,7 +5708,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     whenLayoutReady(nextFilter, () => {
       browseHistory.replaceCategory(nextFilter);
       setActiveFilter(nextFilter, { animate: true });
-    }, control);
+    }, control, { defer: true });
   };
   filters.addEventListener("click", onRailClick, { signal: controller.signal });
   chipGroups.forEach((group) => group.addEventListener("click", onRailClick, { signal: controller.signal }));

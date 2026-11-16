@@ -501,7 +501,8 @@ try {
     const single = record(1200);
     await page.locator('[data-masonry-filter="signage"]').click();
     const one = paths(await single);
-    assert.ok(one.length >= 3, `cards slide on a chip click (${one.length})`);
+    // Only cards in both sets slide (new ones are built at their target); how many depends on the seed.
+    assert.ok(one.length >= 1, `cards slide on a chip click (${one.length})`);
     for (const [id, points] of one) {
       const [first, last] = [points[0], points.at(-1)];
       const length = step(first, last);
@@ -521,13 +522,37 @@ try {
     await page.waitForTimeout(40);
     await page.locator('[data-masonry-filter="signage"]').click();
     const two = paths(await twice);
-    assert.ok(two.length >= 3, `cards slide on two quick clicks (${two.length})`);
+    assert.ok(two.length >= 1, `cards slide on two quick clicks (${two.length})`);
     for (const [id, points] of two) {
       assert.equal(describe(jump(points)), undefined, id);
     }
     assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two quick clicks");
+    // Two taps in one task: the first build waits for the next task, so the second tap drops it and only its own filter lays out.
+    const inTapTask = await page.evaluate(() => {
+      document.querySelector('[data-masonry-filter="led-displays"]').click();
+      document.querySelector('[data-masonry-filter="office-signs"]').click();
+      return document.querySelector('[data-masonry-filter="office-signs"]').getAttribute("aria-current");
+    });
+    assert.equal(inTapTask, "false", "the deferred build has not run inside the tap task");
+    await settled(page);
+    assert.equal(await page.locator('[data-masonry-filter="office-signs"]').getAttribute("aria-current"), "true", "the second tap wins");
+    assertGrid(await settled(page), await cardsOf(page, ADVERTISING), "after two taps in one task");
+    // Search results reordered twice, 40 ms apart: every card is in both sets, so every card slides and none may jump on the restart.
+    const shown = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
+      .filter((node) => !node.hidden).map((node) => node.dataset.masonryCard).slice(0, 16));
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), shown);
+    await settled(page);
+    const reordered = record(1400);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), [...shown].reverse());
+    await page.waitForTimeout(40);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), [...shown.slice(8), ...shown.slice(0, 8)]);
+    const three = paths(await reordered);
+    assert.ok(three.length >= 8, `search cards slide on two quick reorders (${three.length})`);
+    for (const [id, points] of three) assert.equal(describe(jump(points)), undefined, `search reorder: ${id}`);
+    await page.evaluate(() => window.TruongThinhMasonry.clearResults());
+    await settled(page);
     await page.close();
-    console.log(`PASS slide trajectory (${one.length} cards, ${added.length} entering, ${two.length} on the second click)`);
+    console.log(`PASS slide trajectory (${one.length} cards, ${added.length} entering, ${two.length} on the second click, ${three.length} on two search reorders)`);
   }
   // Phone (2:15 band): every chip is packed in idle periods after load, so a click on a chip never visited waits for no pack
   // (no aria-busy) and its new cards still enter at their target.

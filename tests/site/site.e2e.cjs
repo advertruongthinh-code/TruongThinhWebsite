@@ -4782,10 +4782,14 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
     window.__ttMorphSamples = new Promise((resolve) => {
       (event === "click" ? document : window).addEventListener(event, () => {
         const samples = [];
-        const start = () => delays.forEach((delay, index) => setTimeout(() => {
-          samples[index] = sample();
+        // The rail click builds in the task after the click (masonry-live-layout R7): a sample waits, up to 1s, for its card to exist.
+        const sampleWhenBuilt = (index, until = performance.now() + 1_000) => {
+          const value = sample();
+          if (value.visualLeft === null && performance.now() < until) return void requestAnimationFrame(() => sampleWhenBuilt(index, until));
+          samples[index] = value;
           if (samples.filter(Boolean).length === delays.length) resolve(samples);
-        }, delay));
+        };
+        const start = () => delays.forEach((delay, index) => setTimeout(() => sampleWhenBuilt(index), delay));
         if (!fromMotion) return start();
         // If it has not slid after 1.5s, sample anyway so the assert reports the card that stood still.
         const deadline = performance.now() + 1_500;
@@ -5541,7 +5545,7 @@ async function runAdvertisingRapidFilterCheck() {
         await new Promise((resolve) => requestAnimationFrame(resolve));
         // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
         const sliding = () => [...grid.querySelectorAll(".masonry-card")].some((tile) => tile.getAnimations().some((animation) => animation.id === "masonry-slide"));
-        for (let frame = 0; frame < 4 && !sliding(); frame += 1) {
+        for (let frame = 0; frame < 6 && !sliding(); frame += 1) {
           await new Promise((resolve) => requestAnimationFrame(resolve));
         }
         // The runtime reads visible coordinates in the frame after the click, so a sliding card has moved one more frame (up to ~14px at peak

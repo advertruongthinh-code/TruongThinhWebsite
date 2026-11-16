@@ -91,7 +91,9 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
         const y = `${to.y}px`;
         if (left !== x) element.style.left = x;
         if (top !== y) element.style.top = y;
-        if (!from || instant(element) || (from.x === to.x && from.y === to.y)) continue;
+        // Under half a pixel is not a move: the browser hands inline left/top back rounded to 3 decimals, so a card seeded at its
+        // exact target reads back a few thousandths off.
+        if (!from || instant(element) || Math.hypot(from.x - to.x, from.y - to.y) < 0.5) continue;
         moves.push([element, from.x - to.x, from.y - to.y]);
       }
       for (const [element, dx, dy] of moves) {
