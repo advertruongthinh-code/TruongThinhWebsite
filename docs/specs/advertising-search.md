@@ -252,7 +252,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | Data | `.site-output/search/advertising-index.bin`, `.json` | Vector int8 và meta (R1), sinh lúc deploy |
 | Data | `src/search/synonyms.json`, `src/search/score-config.json` | Đồng nghĩa; trọng số, 4 cặp mốc, ngưỡng |
 | Hàm public | `cardTerms`, `keywordScores`, `decodeTelex`, `decodeVni` (`src/search/keywords.mjs`) | R2 |
-| Hàm public | `rankSearch({ inputs, keyword, config })` (`src/search/rank.mjs`) | `{ ids, groups, unmatched }` (R5) |
+| Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |
 | Endpoint | `POST /api/search/share`, `GET /api/search/share/<mã>/<n>` | R10 |
 | DOM hook | `[data-search-dock]` | Khe dưới tiêu đề CTA, thread masonry thêm |
@@ -271,7 +271,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 | R1 | chưa có test (`tests/search/index.test.mjs`, Workers AI giả) |
 | R2 | chưa có test (`tests/search/keywords.test.mjs`) |
 | R3, R4 | chưa có test (`tests/search/worker.test.mjs`: dạng phản hồi, 400, 413, 429, không log) |
-| R5, R6 | chưa có test (`tests/search/rank.test.mjs`) |
+| R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6 chưa có test (`tests/site/advertising-search.e2e.mjs`) |
 | R7 đến R10 | chưa có test (`tests/site/advertising-search.e2e.mjs`, Worker giả qua route Playwright, 6 bề rộng) |
 | R11 | `pnpm search:calibrate` trên máy có token |
 
