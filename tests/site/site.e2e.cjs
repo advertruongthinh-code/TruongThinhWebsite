@@ -4819,6 +4819,16 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
+      // The rail rises in after the first cards (opacity and translateY). Clicking a filter mid-rise makes Playwright scroll it
+      // into view, which scrolls the page 130-520px and mounts cards outside the window measured below.
+      await page.waitForFunction(
+        () => [...document.querySelectorAll(".detail-index-hero .project-filter")].every((filter) => {
+          const styles = getComputedStyle(filter);
+          return styles.visibility !== "hidden" && Number.parseFloat(styles.opacity) > 0.99 && styles.transform === "none";
+        }),
+        null,
+        { timeout: 5_000 },
+      );
       const before = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
         tiles: [...grid.querySelectorAll("[data-masonry-category]")].map(
