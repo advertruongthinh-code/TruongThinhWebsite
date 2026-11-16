@@ -29,7 +29,7 @@ tests:
   - tests/site/masonry-first-build.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Masonry Advertising
@@ -113,7 +113,7 @@ And mỗi lần bấm, aria-current nằm trên đúng một nút
 Mỗi lượt duyệt có một seed (`createBrowseSeed`). Lưới chính: máy người xem xếp 4 thứ tự gốc của filter theo seed và giữ thứ tự tốt nhất ([xếp trực tiếp R2](masonry-live-layout.md#r2-packer)), cùng seed, filter và dải cho cùng lưới, nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ; mỗi dải xếp riêng nên đổi dải có thể ra thứ tự khác; packer ưu tiên 12 card đầu có cả ảnh cao (h/w
 `>= 1.15`) và thấp (`<= 0.9`). Chưa xếp xong: pool xáo Fisher-Yates bằng seed với scope `grid:<filter>` rồi xếp ổn định theo hạng (`filterRank`, taxonomy R1). Related giữ solver organic: 12 card đầu có cả hai loại, không
 quá 4 ảnh cùng loại liền nhau; không cải thiện được thì giữ thứ tự seed và ghi lý do. Seed mới khi F5, mở URL trực tiếp,
-vào trang bằng link hoặc route mềm mới. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
+vào trang bằng link hoặc route mềm mới; ở dải điện thoại 2:15 seed mới rút từ 8 seed xếp sẵn ([xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)), nên khoảng 1 trong 8 lượt mới trùng lưới lượt trước. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
 state, kể cả khi Back lúc route mềm đang chạy làm trình duyệt tải hẳn trang), đổi ngôn ngữ (tải lại trang như F5, dùng handoff
 `sessionStorage` một lần, hết hạn sau 30s, chỉ nhận khi `navigate` đúng URL đích).
 
