@@ -184,11 +184,11 @@ Then mỗi khung hình card chỉ tiến về đích, không lùi, không nhảy
 | --- | --- |
 | R1 | `masonry-pack.test.mjs` (bảng dải, biên 1618×1000, không lỗ ở bề rộng dải); `masonry-replay.test.mjs` (`verifyLayout`, `null`, `stackLayout`) |
 | R2 | `masonry-pack.test.mjs` (không hạ card ngang trên catalog thật, giữ hạng, so le tốt hơn thứ tự ngẫu nhiên, cùng input cùng kết quả) |
-| R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo; 384px không tạo grid Worker; lưới đầu điện thoại dùng seed xếp sẵn, Back cùng tọa độ, stamp lệch thì xếp trực tiếp); `advertising-products-static.test.mjs` (mọi trang có bản xếp sẵn mang stamp đúng card runtime dùng); `masonry-pack.test.mjs` (`phonePacks` bằng `packLive` cho 8 seed) |
+| R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo; 384px không tạo grid Worker; lưới đầu điện thoại dùng seed xếp sẵn, Back cùng tọa độ, stamp lệch thì xếp trực tiếp; 384px bấm chip chưa xem không chờ xếp nhờ xếp nền lúc rảnh); `advertising-products-static.test.mjs` (mọi trang có bản xếp sẵn mang stamp đúng card runtime dùng); `masonry-pack.test.mjs` (`phonePacks` bằng `packLive` cho 8 seed) |
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
 | R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip và `clearResults` rời tìm kiếm; gọi trước khi dựng) |
-| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
+| R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
 
 ## Gate còn mở
 
