@@ -33,11 +33,11 @@ const artifact = {
   products: [{ id: "p1", labelVi: "Bảng hiệu", labelEn: "Signs" }],
   clusters: [{ id: "c1", labelVi: "Biển", labelEn: "Boards" }],
   tagRegistry: [{ id: "p1", group: "product", labelVi: "Bảng hiệu", labelEn: "Signs" }, { id: "t2", group: "format", labelVi: "Ngang", labelEn: "Wide" }],
-  cards: ["x", "y"].map((id) => ({
+  cards: ["x", "y"].map((id, n) => ({
     id, titleVi: `T ${id}`, titleEn: "T", descriptionVi: "D", descriptionEn: "E", productIds: ["p1"], clusterIds: ["c1"], tagIds: ["p1", "t2"],
     mediaItems: [
       { kind: "image", src: `/${id}-1.webp`, altVi: "a1", altEn: "b1" },
-      { kind: "video", src: "/v.mp4", altVi: "a2", altEn: "b2" },
+      { kind: "video", src: "/v.mp4", ...(n === 0 && { posterSrc: "/v.jpg" }), altVi: "a2", altEn: "b2" },
     ],
   })),
 };
@@ -57,16 +57,16 @@ const okFetch = (calls) => async (_url, init) => {
   return { ok: true, json: async () => ({ result: { data: Array.from({ length: n }, (_, i) => ({ embedding: fakeVec(i + 1) })) } }) };
 };
 
-test("run indexes every card, skipping videos without poster", async () => {
+test("run indexes every card, video via posterSrc, skipping a video without one", async () => {
   const outDir = await mkdtemp(join(tmpdir(), "idx-"));
   const calls = [];
   const env = { CLOUDFLARE_API_TOKEN: "t", CLOUDFLARE_ACCOUNT_ID: "a" };
   const out = await run({ fetch: okFetch(calls), env, artifact, outDir, readImage: async () => "AAA" });
   assert.equal(out.status, "ok");
   assert.equal(out.meta.cards.length, 2);
-  assert.deepEqual(out.meta.cards.map((c) => c.media.length), [1, 1]);
-  assert.equal(calls.reduce((a, b) => a + b), 4);
-  assert.equal((await readFile(`${outDir}/advertising-index.bin`)).length, 4 * DIMS);
+  assert.deepEqual(out.meta.cards.map((c) => c.media.length), [2, 1]);
+  assert.equal(calls.reduce((a, b) => a + b), 5);
+  assert.equal((await readFile(`${outDir}/advertising-index.bin`)).length, 5 * DIMS);
 });
 
 test("run retries a failed call then succeeds", async () => {
@@ -74,8 +74,11 @@ test("run retries a failed call then succeeds", async () => {
   const inner = okFetch([]);
   const fetch = async (...args) => (failures-- > 0 ? { ok: false, status: 500 } : inner(...args));
   const env = { CLOUDFLARE_API_TOKEN: "t", CLOUDFLARE_ACCOUNT_ID: "a" };
-  const out = await run({ fetch, env, artifact, outDir: await mkdtemp(join(tmpdir(), "idx-")), readImage: async () => "AAA", sleep: async () => {} });
+  const waits = [];
+  const sleep = async (ms) => waits.push(ms);
+  const out = await run({ fetch, env, artifact, outDir: await mkdtemp(join(tmpdir(), "idx-")), readImage: async () => "AAA", sleep });
   assert.equal(out.status, "ok");
+  assert.deepEqual(waits, [1000, 2000]);
 });
 
 test("run writes unavailable on missing token or persistent failure", async () => {
@@ -83,9 +86,13 @@ test("run writes unavailable on missing token or persistent failure", async () =
   assert.equal((await run({ env: {}, artifact, outDir })).status, "unavailable");
   assert.equal(JSON.parse(await readFile(`${outDir}/advertising-index.json`)).status, "unavailable");
   const env = { CLOUDFLARE_API_TOKEN: "t", CLOUDFLARE_ACCOUNT_ID: "a" };
-  const fetch = async () => ({ ok: false, status: 403 });
-  const out = await run({ fetch, env, artifact, outDir, readImage: async () => "AAA", sleep: async () => {} });
+  let calls = 0;
+  const fetch = async () => (calls++, { ok: false, status: 403 });
+  const waits = [];
+  const out = await run({ fetch, env, artifact, outDir, readImage: async () => "AAA", sleep: async (ms) => waits.push(ms) });
   assert.equal(out.status, "unavailable");
+  assert.deepEqual(waits, [1000, 2000, 4000]);
+  assert.equal(calls, 4); // 1 call + 3 retries, then the other workers stop
 });
 
 test("run throws on duplicate card id", async () => {

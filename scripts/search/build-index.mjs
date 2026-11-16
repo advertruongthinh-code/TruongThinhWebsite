@@ -4,10 +4,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { cardMedia, documentText, mediaInput, modelRequest, MODEL, readVectors, TEXT_BATCH } from "../../src/search/embed-input.mjs";
-import { encodeIndex, unavailableMeta, unit } from "../../src/search/index-format.mjs";
+import { encodeIndex, unavailableMeta } from "../../src/search/index-format.mjs";
 
 const PARALLEL = 4;
 const RETRY_MS = [1000, 2000, 4000];
+const CALL_TIMEOUT_MS = 30_000;
+const DEADLINE_MS = 4 * 60_000; // plan P2: the deploy job has timeout-minutes 10
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -48,7 +50,7 @@ export async function run({
     slots.push([cardIndex, -1]);
     let mediaIndex = 0;
     for (const media of cardMedia(card)) {
-      const file = media.kind === "video" ? media.poster : media.src;
+      const file = media.kind === "video" ? media.posterSrc : media.src;
       if (!file) continue; // video without poster: indexed by the card text only
       inputs.push(mediaInput(media, await readImage(`src/site${file}`)));
       slots.push([cardIndex, mediaIndex++]);
@@ -61,7 +63,10 @@ export async function run({
   const embed = async (chunk) => {
     for (let attempt = 0; ; attempt++) {
       try {
+        if (failed) throw failed;
+        if (Date.now() - started > DEADLINE_MS) throw new Error("deadline of 4 minutes exceeded");
         const res = await fetch(url, {
+          signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
           method: "POST",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify(modelRequest(chunk)),
@@ -69,16 +74,17 @@ export async function run({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return readVectors((await res.json()).result, chunk.length);
       } catch (error) {
-        if (attempt === RETRY_MS.length) throw error;
+        if (failed || attempt === RETRY_MS.length || error.message.startsWith("deadline")) throw (failed ??= error);
         await sleep(RETRY_MS[attempt]);
       }
     }
   };
+  let failed = null; // first error: stops the other workers from spending more calls
   const results = new Array(chunks.length);
   let next = 0;
   try {
     await Promise.all(Array.from({ length: PARALLEL }, async () => {
-      while (next < chunks.length) {
+      while (next < chunks.length && !failed) {
         const i = next++;
         results[i] = await embed(chunks[i]);
       }

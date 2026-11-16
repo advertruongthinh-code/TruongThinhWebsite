@@ -42,7 +42,7 @@ export function modelRequest(inputs) {
 
 // `result` is the model output; REST callers pass body.result.
 export function readVectors(result, expected) {
-  const vectors = result.data.map((item) => item.embedding);
+  const vectors = [...result.data].sort((a, b) => (a.index ?? 0) - (b.index ?? 0)).map((item) => item.embedding);
   if (vectors.length !== expected || vectors.some((v) => v.length !== DIMS)) {
     throw new Error(`model returned ${vectors.length} vectors (expected ${expected} of ${DIMS} dims)`);
   }
