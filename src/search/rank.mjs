@@ -27,9 +27,9 @@ export function rankSearch({ inputs, keyword = new Map(), config, catalogOrder, 
   const live = [];
   const unmatched = [];
   scored.forEach((score, i) => {
-    const ids = passing(score);
-    if (ids.length) live.push({ i, top: new Set(ids.slice(0, TOP)) });
-    else unmatched.push(i);
+    if (!passing(score).length) return unmatched.push(i);
+    // Top 5 ignores the threshold (spec R5.2) but not zeros: clamped-to-0 cards would tie and link unrelated inputs by catalog order.
+    live.push({ i, top: new Set(sortIds([...score.keys()].filter((id) => score.get(id) > 0), score).slice(0, TOP)) });
   });
 
   const parent = inputs.map((_, i) => i);

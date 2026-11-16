@@ -136,3 +136,18 @@ test("group name: tie between products that do not include the first card's prod
   const out = rank([text({ a1: [1, 1], b1: [0.9, 1], b2: [0.9, 1], c1: [0.8, 1], c2: [0.8, 1] })]);
   assert.equal(out.groups[0].name, "product-b");
 });
+
+test("top 5 ignores the threshold: an input with 1 passing card links through below-threshold cards", () => {
+  const out = rank([
+    image({ a1: [0, 0.9], a2: [0, 0.5], a3: [0, 0.5] }),
+    image({ b1: [0, 0.9], a2: [0, 0.5], a3: [0, 0.5] }),
+  ]);
+  assert.equal(out.groups.length, 1);
+  assert.deepEqual(out.groups[0].inputIdx, [0, 1]);
+  assert.deepEqual(out.ids, ["a1", "b1"]);
+});
+
+test("zero-score cards never link inputs", () => {
+  const out = rank([image({ a1: [0, 0.9] }), image({ b1: [0, 0.9] })]);
+  assert.equal(out.groups.length, 2);
+});
