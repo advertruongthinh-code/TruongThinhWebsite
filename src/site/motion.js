@@ -1504,7 +1504,6 @@
         card,
         target: card.querySelector(".portal-subtitle"),
       }));
-      const projectTrack = state.container.querySelector(".project-track");
       const heroWords = selectAll(".hero-word");
       const heroLabels = selectAll("[data-hero-label]");
       const heroShade = state.hero?.querySelector(".hero-shade");
@@ -1583,7 +1582,6 @@
         portalSubtitles.forEach(({ card }) =>
           card.classList.add("is-subtitle-inview"),
         );
-        projectTrack?.classList.add("is-inview");
         if (heroWords.length) gsap.set(heroWords, { opacity: 1 });
       } else {
         if (revealItems.length) gsap.set(revealItems, { opacity: 0, y: 60 });
@@ -1620,7 +1618,7 @@
             });
           }
         }),
-        onceInView(watch([...heritageImages, projectTrack]), (target) => target.classList.add("is-inview")),
+        onceInView(watch(heritageImages), (target) => target.classList.add("is-inview")),
         onceInView(watch(portalTitles.map(({ target }) => target)), (target) => {
           const portal = portalTitles.find((item) => item.target === target);
           revealLines(portal.lines.length ? portal.lines : portal.card.querySelectorAll(".portal-copy strong"), {
@@ -1897,7 +1895,7 @@
     if (heroShuffle?.tagName === "SCRIPT") {
       heroShuffle.replaceWith(Object.assign(document.createElement("script"), { textContent: heroShuffle.textContent }));
     }
-    const projectTrack = container.querySelector(".project-track, .blk-projects__track");
+    const projectTrack = container.querySelector(".blk-projects__track");
     if (heroMedia) {
       heroMedia.setAttribute("data-scroll", "");
       heroMedia.setAttribute("data-scroll-speed", "-2");

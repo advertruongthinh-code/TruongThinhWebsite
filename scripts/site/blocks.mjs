@@ -199,7 +199,8 @@ const BLOCKS = {
     ids: "projects",
     // Cards staggered high and low like the home rail (ProjectReel); click opens the project page.
     render: (block, ctx, page) => {
-      const variants = ["high", "low"];
+      // Full class names so the design-system class check finds them.
+      const variants = ["project-card--high", "project-card--low"];
       // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
       const onProjectPage = ctx.projects.has(page.id);
       return [
@@ -211,7 +212,7 @@ const BLOCKS = {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
-            `    <a class="project-card project-card--${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
+            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
             `      <span class="project-card__media">${image(cover)}</span>`,
             `      ${localized("span", project.title, ' class="blk-projects__name"')}`,
             "    </a>",

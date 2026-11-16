@@ -3,7 +3,6 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { expandHero, readHeroSources } from '../site/hero-slides.mjs';
-import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
 import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
@@ -37,7 +36,6 @@ const COMPONENTS = [
   { name: 'FloatingCta', group: 'Shell', height: 120, file: 'src/site/index.html', start: /<a\s+class="floating-cta"/,
     frames: [{ cls: 'show', height: 120 }] },
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
-  { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   // also: add other blocks, from the same file or [file, regex].
   { name: 'Portal', group: 'Page', height: 720, file: 'src/site/residential/index.html', start: /<section\s+class="portal-stage/ },
@@ -125,12 +123,10 @@ addEventListener("load", () => requestAnimationFrame(() => {
   return frame(`<div data-ds-frame>\n${body.trim()}\n</div>`, { height: c.height });
 }
 
-// The project card rail is generated at build time from content/project-reel.json (page-home R8); the preview inserts it as built, and the build already validated it.
 const hero = readHeroSources('src/site');
-const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
 
 for (const c of COMPONENTS) {
-  const html = expandHero(readSource(c.file), hero.data, hero.orderScript).replace('<!-- project-reel-cards -->', () => projectReelCards);
+  const html = expandHero(readSource(c.file), hero.data, hero.orderScript);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
     // Captures keep fixed px of the 1440 viewport (capture-design-system.mjs); width=1440 makes claude.ai render at that size and scale down, without cropping edges.
