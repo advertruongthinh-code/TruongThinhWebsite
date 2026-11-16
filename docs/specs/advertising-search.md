@@ -82,7 +82,7 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 ### R3. Endpoint tìm kiếm
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
-cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2 MB trả 413. Worker đổi câu (tiền tố
+cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
 `task: search result | query:`) và mọi ảnh thành vector trong một lần gọi `env.AI.run` đồng bộ, chuẩn hóa L2, so cosine
 với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
@@ -211,13 +211,13 @@ Then lưới hiện card hộp đèn tay vẫy và dòng trạng thái có lời
 
 Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ
 (`QuotaExceededError`) thì bỏ ảnh đã lưu và báo. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
-và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ thì đọc phiên, chạy lại tìm và
-gọi lại `setResults`. Link `#tim=<encodeURIComponent(chữ)>`: boot của `motion.js` chuyển phần `#` cho tìm kiếm trước khi
+và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ (nút đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại,
+gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: boot của `motion.js` chuyển phần `#` cho tìm kiếm trước khi
 viết lại URL (sửa nhỏ ngoài `src/site/search/`), tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` không gặp cờ R9
 (bấm chip, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
 
 Nút "Sao chép link" trong dòng trạng thái chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
-thu nhỏ (body quá 1,6 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
+thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
 12 ký tự base62 từ `crypto.getRandomValues`; link thành `#tim=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
 `Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong
