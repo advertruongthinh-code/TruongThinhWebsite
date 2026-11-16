@@ -206,5 +206,39 @@
   "round": 3,
   "change": "owner 2026-11-16 18:19 UTC notes",
   "created": "2026-11-17"
+ },
+ {
+  "file": "about-vat-lieu-v4.png",
+  "sha256": "757666a43abd915882a5e04cd598e675e82d6ec37406e0038442fecc5930f941",
+  "bytes": 2187623,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "about-vat-lieu-v3.png"
+  ],
+  "prompt": "p-about-vat-lieu-v4.txt",
+  "round": 4,
+  "change": "owner 2026-11-16 18:59 UTC: black-core HDF / recessed handles",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v4.png",
+  "sha256": "120613368fad31b3cab952b73ed30fba1484a195b3b5e8ebedd619598df1e2ea",
+  "bytes": 1962766,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v3.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v4.txt",
+  "round": 4,
+  "change": "owner 2026-11-16 18:59 UTC: black-core HDF / recessed handles",
+  "created": "2026-11-17"
  }
 ]
