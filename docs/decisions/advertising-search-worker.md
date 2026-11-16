@@ -25,8 +25,9 @@ ngân sách 0 đồng trong gói miễn phí Cloudflare, site không lưu vết,
 
 Thêm một Worker script nhỏ vào chính Worker demo (`wrangler.static.toml`): `main = "src/search/worker.mjs"`,
 `run_worker_first = ["/api/*"]` để chỉ `/api/*` chạy code, mọi route khác vẫn phục vụ thẳng từ asset như hiện nay. Binding:
-`AI` (Workers AI), `ASSETS` (đọc chỉ mục tĩnh), rate limit, và R2 `SEARCH_SHARE` chỉ cho ảnh của link chia sẻ. Không D1,
-không KV, không Access, không secret CMS. Workers Logs tắt.
+`AI` (Workers AI), `ASSETS` (đọc chỉ mục tĩnh), ba rate limit (chữ, ảnh, link chia sẻ, mỗi cái một `namespace_id`), và R2
+`SEARCH_SHARE` chỉ cho ảnh của link chia sẻ. Không D1, không KV, không Access, không secret CMS, không AI Gateway.
+`[observability] enabled = false`; code không `console.*` dữ liệu request.
 
 ## Alternative đã cân nhắc
 
@@ -47,16 +48,22 @@ không KV, không Access, không secret CMS. Workers Logs tắt.
 
 ### Tiêu cực hoặc cost đã chấp nhận
 
-- Worker demo không còn assets-only; `cloudflare-workers-static-demo.md` mục 1 và câu ranh giới trong AGENTS.md phải sửa
-  trong PR code đầu tiên của tìm kiếm.
+- Worker demo không còn assets-only; `cloudflare-workers-static-demo.md` mục 1 và câu ranh giới trong AGENTS.md sửa trong
+  PR chuyển decision này sang accepted.
+- Gói Free cho Worker 10 ms CPU mỗi request: ảnh thu về 768 px, tối đa 300 KB, chỉ mục nhị phân giải mã một lần mỗi isolate,
+  một lần gọi `AI.run` cho mọi input.
+- `_headers` không áp cho phản hồi do Worker sinh; header bảo mật của `/api/*` đặt trong code.
 - Workflow `Deploy demo` cần token có quyền Workers AI (chỉ mục) và R2 (link chia sẻ).
 - R2 giữ ảnh khách tới 30 ngày khi khách tự bấm Sao chép link; luật vòng đời của bucket là nơi xoá.
+- Bật R2 có thể đòi thẻ thanh toán dù dùng trong hạn mức miễn phí (suy luận, chưa kiểm); nếu vậy cần owner đồng ý.
 
 ## Evidence
 
 - Đo thử EmbeddingGemma 2 trên Workers AI với 203 card: top 5 đạt 100% cả chữ và ảnh, P@5 0,86, chữ p50 0,6 giây
   (tài liệu hướng đi, mục Kết quả đo thử).
-- Chính sách dữ liệu Workers AI: Cloudflare không giữ input, output sau khi xử lý và không dùng để train model.
+- [Chính sách dữ liệu Workers AI](https://developers.cloudflare.com/workers-ai/platform/data-usage/): Cloudflare không giữ
+  input, output sau khi xử lý xong request và không dùng để train model; ngoại lệ là khi dùng R2, KV, Vectorize, AI Gateway
+  hoặc batch, nên decision này không dùng AI Gateway và batch.
 - [Static assets binding](https://developers.cloudflare.com/workers/static-assets/binding/): `run_worker_first` nhận mảng
   route, ví dụ `["/api/*"]`. Binding Workers AI, R2 cạnh `ASSETS` trong cùng Worker là suy luận từ danh sách binding,
   kiểm bằng `wrangler deploy --dry-run` trong PR code.
@@ -65,7 +72,8 @@ không KV, không Access, không secret CMS. Workers Logs tắt.
 
 ## Follow-up
 
-- PR code đầu tiên: sửa `wrangler.static.toml`, decision demo mục 1, câu ranh giới AGENTS.md, [static release](../specs/static-release.md).
+- PR chuyển decision sang accepted: sửa decision demo mục 1, câu ranh giới AGENTS.md.
+- PR code đầu tiên: sửa `wrangler.static.toml`, [static release](../specs/static-release.md).
 - Owner tạo bucket R2 `truong-thinh-search-share` với luật xoá sau 30 ngày, hoặc thread làm bằng token khi token có quyền.
 
 ## Chú thích thuật ngữ
