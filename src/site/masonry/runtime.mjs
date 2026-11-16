@@ -18,7 +18,7 @@ import {
 } from "./layout.mjs";
 import { createDetailViewer } from "./detail-viewer.mjs";
 import { bandKey, replayLayout, stackLayout } from "./replay.mjs";
-import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, seededOrder } from "./pack.mjs";
+import { LAYOUT_BANDS, LIVE_CANDIDATES, bestEntries, livePool, packCandidate, phonePacksStamp, seededOrder } from "./pack.mjs";
 import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { keepLanes, moveStrip, placeStrip, releaseNode, releaseTiming, retargetStrip, stripOffset, trackStripSwipe } from "./strip.mjs";
 import { createBrowseSeed, shuffleWithSeed } from "./random-order.mjs";
@@ -977,15 +977,14 @@ const packInWorker = (job, s) => new Promise((resolve) => {
     packReplies.delete(id);
   }
 });
-// The 2-column band has no wide card, so its candidates are cheap: they pack on the main thread two per task (one yield behind
-// page-load tasks instead of four, each task under 50 ms), which on a phone beats booting Workers (plan, A04s 2026-11-15).
+// The 2-column band has no wide card, so its candidates are cheap: they pack on the main thread, one per task, which on a phone
+// beats booting Workers (plan, A04s 2026-11-15); a phone's first grid usually comes prebuilt with the page (phonePacks, R3).
 const usesGridWorkers = (band) => band?.columns > 2;
 const packGrid = async (job) => {
-  const onMain = !usesGridWorkers(job.band);
-  const candidates = onMain ? [] : await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s)));
+  const candidates = usesGridWorkers(job.band) ? await Promise.all(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packInWorker(job, s))) : [];
   for (let s = 0; s < LIVE_CANDIDATES; s += 1) {
     if (candidates[s]) continue;
-    if (!onMain || s % 2 === 0) await new Promise((resolve) => setTimeout(resolve));
+    await new Promise((resolve) => setTimeout(resolve));
     candidates[s] = packCandidate(job, s);
   }
   return bestEntries(candidates);
@@ -2144,13 +2143,28 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     });
   };
   let filter = initialFilter({ categories, cards, pages });
-  // First pack on speculation (masonry-live-layout R3): a fresh visit's seed is drawn now and handed to the browse history below,
-  // so the Worker packs while the mount sets up. A restored or handed-over seed, or another filter, makes it one wasted job.
+  // Phone first grid (masonry-live-layout R3, owner 2026-11-16): the page's 2:15 packs of its own filter for a fixed set of seeds.
+  // Read only on the 2-column band; a stamp that does not match these cards (page and artifact from different builds) packs live.
   const firstBand = bandFor(document.documentElement.clientWidth);
+  let phone = null;
+  if (firstBand && !usesGridWorkers(firstBand)) {
+    try {
+      const blob = JSON.parse(container.querySelector("script[data-phone-packs]")?.textContent ?? "null");
+      if (blob?.stamp === phonePacksStamp(cards)) phone = blob;
+    } catch { /* A broken blob packs live. */ }
+  }
+  const prebuiltEntries = (band, targetFilter, seed) => {
+    const at = phone && !usesGridWorkers(band) && phone.filter === targetFilter ? phone.seeds.indexOf(seed) : -1;
+    return at < 0 ? null : phone.entries[at];
+  };
+  // First pack on speculation (R3): a fresh visit's seed is drawn now (on a phone, one of the prebuilt seeds) and handed to the
+  // browse history below, so the pack runs while the mount sets up. A restored or handed-over seed, or another filter, wastes it.
   let firstPack = null;
   if (firstBand && !detailId(new URL(location.href))) {
-    const seed = createBrowseSeed();
-    firstPack = { seed, key: `${filter}|${firstBand.key}|${seed}`, entries: packGrid({ pool: livePool(cards, filter), band: firstBand, seed, filter }) };
+    const prebuiltSeed = phone?.filter === filter ? phone.seeds[Math.floor(Math.random() * phone.seeds.length)] : null;
+    const seed = prebuiltSeed ?? createBrowseSeed();
+    const entries = prebuiltEntries(firstBand, filter, seed);
+    firstPack = { seed, key: `${filter}|${firstBand.key}|${seed}`, entries: entries ? Promise.resolve(entries) : packGrid({ pool: livePool(cards, filter), band: firstBand, seed, filter }) };
   }
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
@@ -2297,8 +2311,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const key = packKey(band, targetFilter);
     if (packedEntries.has(key)) return null;
     if (!packWaits.has(key)) {
+      const prebuilt = prebuiltEntries(band, targetFilter, browseHistory.current.seed);
       const job = firstPack?.key === key ? firstPack.entries
-        : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter });
+        : prebuilt ? Promise.resolve(prebuilt)
+          : packGrid({ pool: livePool(cards, targetFilter), band, seed: browseHistory.current.seed, filter: targetFilter });
       packWaits.set(key, job.catch(() => null).then((entries) => {
         packedEntries.set(key, entries);
         packWaits.delete(key);

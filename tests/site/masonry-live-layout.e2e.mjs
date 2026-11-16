@@ -194,6 +194,39 @@ try {
     console.log("PASS stalled Worker: grid packed on the main thread after the timeout");
   }
 
+  // 3c. Phone first grid (R3): at 384 the page's prebuilt 2:15 pack places the grid with one of its seeds; a stamp that does not
+  // match the cards (page and artifact from different builds) packs live with a fresh seed instead.
+  {
+    const seedOf = (page) => page.evaluate(() => JSON.stringify(history.state).match(/"seed":"([^"]+)"/)?.[1] ?? null);
+    for (const url of [ADVERTISING, PROJECTS]) {
+      const { page } = await open(url, 384, { height: 800 });
+      const dom = await settled(page);
+      assertGrid(dom, await cardsOf(page, url), `${url} prebuilt phone grid`);
+      assert.match(await seedOf(page), /^phone-\d$/, `${url}: the phone grid uses a prebuilt seed`);
+      if (url === ADVERTISING) {
+        // Back to a prebuilt seed takes the same prebuilt entries: same coordinates.
+        const at = (items) => Object.fromEntries(items.map(({ id, left, top }) => [id, [left, top]]));
+        await page.goto(`${base}/vi/`, { waitUntil: "domcontentloaded" });
+        await page.goBack({ waitUntil: "domcontentloaded" });
+        await page.waitForSelector("[data-project-grid] [data-masonry-item]", { state: "attached" });
+        const again = await settled(page);
+        const shared = again.items.filter(({ id }) => dom.items.some((item) => item.id === id));
+        assert.ok(shared.length >= 8, "phone Back: the cards seen before are back");
+        assert.deepEqual(at(shared), at(dom.items.filter(({ id }) => shared.some((item) => item.id === id))), "phone Back: same coordinates");
+      }
+      await page.close();
+    }
+    const { page } = await open(ADVERTISING, 384, { height: 800, setup: (target) => target.route(/\/vi\/advertising-products\/$/, async (route) => {
+      const response = await route.fetch();
+      await route.fulfill({ response, body: (await response.text()).replace(/"stamp":\d+/, '"stamp":1') });
+    }) });
+    const dom = await settled(page);
+    assertGrid(dom, ADVERTISING_CATALOG_ARTIFACT.cards, "stale phone packs");
+    assert.doesNotMatch(await seedOf(page), /^phone-/, "a stale stamp packs live");
+    await page.close();
+    console.log("PASS phone first grid: prebuilt seed on ads and projects, Back keeps coordinates, stale stamp packs live");
+  }
+
   // 4. Resize 1440 -> 1000 -> 768 keeps the layout hole free in each band.
   {
     const { page } = await open(ADVERTISING, 1440);

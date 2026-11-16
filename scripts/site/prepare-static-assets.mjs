@@ -15,7 +15,7 @@ import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsL
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, phonePacksScript, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const outputRoot = path.join(projectRoot, ".site-output");
@@ -204,8 +204,13 @@ const advertisingListHead = (page, vi, en, crumbs) => {
       items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/vi/advertising-products/p/${card.id}/`]), crumbs }),
   ];
 };
-await writeFile(advertisingIndexPath, advertisingTemplate.replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
-    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "utf8");
+// The root and every cluster and product page carry the phone packs of their own filter (masonry-live-layout R3); card pages none.
+const withPhonePacks = (html, filter) => {
+  if (html.split("</main>").length !== 2) throw new Error("advertising template must have exactly one </main> for the phone packs");
+  return html.replace("</main>", () => `${phonePacksScript(gridCards, filter)}\n      </main>`);
+};
+await writeFile(advertisingIndexPath, withPhonePacks(advertisingTemplate.replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
+    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "all"), "utf8");
 
 // Cluster and product pages (taxonomy R4): the root page template, changing title, meta, canonical, hreflang, the selected rail item and
 // noscript (intro, links to every page). The source file is written to both locale directories; the ROUTES loop below translates.
@@ -233,7 +238,7 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
   .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
-  const html = renderAdvertisingPage(page);
+  const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
     const destination = path.join(outputRoot, locale, "advertising-products", page[locale], "index.html");
     await mkdir(path.dirname(destination), { recursive: true });

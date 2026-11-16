@@ -54,7 +54,7 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 
 ### R2. Preflight masonry và catalog artifact
 
-Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`); bố cục masonry không tính lúc build, máy người xem tự xếp ([masonry xếp trực tiếp](masonry-live-layout.md)). Artifact chỉ nằm ở output:
+Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`); bố cục masonry không tính lúc build, máy người xem tự xếp, trừ lưới đầu điện thoại nằm sẵn trong từng trang lưới ([masonry xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)). Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào

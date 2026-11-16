@@ -2,7 +2,7 @@
 // V8 compile hint (see layout.mjs): the first grid pack, on the main thread for the 2:15 band, does not compile lazily.
 // Masonry packer: places one card order on one width band with no holes; wide cards span two columns, trimming at most CROP_CAP.
 // Pure, no DOM: the grid Workers run one candidate each from 3 columns; the main thread runs the 2:15 band and Worker failures.
-import { canSpanTwoColumns, filterRank, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
+import { MASONRY_LAYOUT_VERSION, canSpanTwoColumns, filterRank, fnv1a32, layoutMedia, matchesFilter, scoreOrganicRhythm } from "./layout.mjs";
 import { shuffleWithSeed } from "./random-order.mjs";
 import { CROP_CAP, TRAIL, replayLayout } from "./replay.mjs";
 
@@ -221,3 +221,16 @@ export function packCandidate({ pool, band, seed, filter }, s) {
 export const bestEntries = (candidates) => candidates.reduce((best, candidate) => (compareScore(candidate, best) < 0 ? candidate : best)).entries;
 
 export const packLive = (job) => bestEntries(Array.from({ length: LIVE_CANDIDATES }, (_, s) => packCandidate(job, s)));
+
+// Phone first grid (owner 2026-11-16, masonry-live-layout R3): each grid page carries the 2:15 packs of its own filter for a fixed
+// set of seeds, built here, so a phone's first grid needs no pack. The stamp ties them to the card array and packer version they
+// index into: a page whose stamp does not match the cards it runs with packs live instead.
+export const PHONE_SEEDS = Object.freeze(Array.from({ length: 8 }, (_, index) => `phone-${index}`));
+export const phonePacksStamp = (cards) => fnv1a32(`${MASONRY_LAYOUT_VERSION}|${cards.map((card) => {
+  const { width, height } = layoutMedia(card);
+  return `${card.id}:${width}x${height}`;
+}).join(",")}`);
+export const phonePacks = (cards, filter) => ({
+  stamp: phonePacksStamp(cards), filter, seeds: PHONE_SEEDS,
+  entries: PHONE_SEEDS.map((seed) => packLive({ pool: livePool(cards, filter), band: LAYOUT_BANDS[0], seed, filter })),
+});

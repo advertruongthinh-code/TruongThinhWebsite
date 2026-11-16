@@ -13,7 +13,7 @@ tests:
   - tests/site/masonry-live-layout.e2e.mjs
   - tests/site/advertising-layout-pending.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e814ea474c19b061cbae2
-updated: 2026-11-15
+updated: 2026-11-16
 ---
 
 # Masonry xếp trực tiếp
@@ -21,7 +21,7 @@ updated: 2026-11-15
 ## Mục đích
 
 Lưới chính trang Quảng cáo và trang Công trình được máy người xem tự xếp khi tải trang: không lỗ giữa lưới, card ngang
-rộng hai cột, không có file bố cục tính sẵn lúc build. Spec này sở hữu thuật toán xếp, Worker xếp, đường đặt tọa độ và lượt
+rộng hai cột; chỉ lưới đầu trên điện thoại (dải `2:15`) có bản xếp sẵn lúc build, nằm trong chính trang. Spec này sở hữu thuật toán xếp, Worker xếp, đường đặt tọa độ và lượt
 chờ. Hình học một cột, ảo hóa, chuyển vị trí ở [masonry Advertising](advertising-masonry.md); related masonry không dùng
 packer. Lý do thiết kế: [decision](../decisions/masonry-live-layout.md).
 
@@ -72,8 +72,12 @@ Then hai mảng entries giống nhau
 
 ### R3. Worker và luồng chính
 
-Dải `2:15` không có card ngang, mỗi ứng viên chỉ tốn cỡ một mili giây, nên xếp trên luồng chính, hai ứng viên một task (mỗi task dưới 50 ms), không tạo
-Worker (khởi động Worker và chờ sau các task tải trang trên A04s tốn hơn). Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
+Dải `2:15` không có card ngang nên xếp trên luồng chính, mỗi ứng viên một task, không tạo Worker. Lưới đầu của điện thoại
+không xếp: mỗi trang lưới (Quảng cáo gốc, cụm, sản phẩm; mọi trang Công trình) mang `<script type="application/json"
+data-phone-packs>` gồm `entries` dải 2:15 của filter của trang cho 8 seed cố định `PHONE_SEEDS` (`phonePacks`, sinh lúc build từ
+đúng mảng card runtime dùng). Lượt duyệt mới trên điện thoại rút ngẫu nhiên một trong 8 seed đó; seed khôi phục từ history nằm
+trong 8 seed cũng dùng bản xếp sẵn. `stamp` (`phonePacksStamp`: phiên bản packer, id và kích thước media mọi card) không khớp
+card đang chạy thì bỏ bản xếp sẵn và xếp trực tiếp, không cảnh báo. Owner chọn 2026-11-16. Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
 `{ id, candidate }`), luồng chính giữ ứng viên tốt nhất bằng `bestEntries`, nên ra đúng `packLive` mà lưới đầu chỉ chờ một ứng
 viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). Từ 720px, `detail.js` tạo các Worker ngay
 khi bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trình (`window.__TT_GRID_WORKERS__`, runtime nhận lại), song song với
@@ -115,6 +119,8 @@ kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộ
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Hàm public | `packBand`, `LAYOUT_BANDS`, `staggerViolations`, `livePool`, `packCandidate`, `bestEntries`, `packLive`, `LIVE_CANDIDATES` (`pack.mjs`) | Xếp, thuần, không DOM (R2) |
+| Hàm public | `PHONE_SEEDS`, `phonePacks`, `phonePacksStamp` (`pack.mjs`); `phonePacksScript` (`scripts/site/lib.mjs`) | Lưới đầu xếp sẵn của điện thoại (R3) |
+| DOM hook | `script[data-phone-packs]` `{ stamp, filter, seeds, entries }` | Bản xếp sẵn 2:15 của trang (R3) |
 | Hàm public | `replayLayout`, `stackLayout`, `verifyLayout`, `bandKey` (`replay.mjs`) | Runtime và test (R4); không import `pack.mjs` |
 | Message | `{ id, pack, s }` → `{ id, candidate }` hoặc `{ id, error }` (`layout-worker.mjs`) | Worker xếp một ứng viên (R3) |
 | DOM hook | `aria-busy="true"` trên `[data-masonry-filter]` | Chip chờ xếp (R4) |
@@ -129,13 +135,13 @@ kiểm `packLive` không `throw`, replay không lỗ trên 5 dải ở bề rộ
 | --- | --- |
 | R1 | `masonry-pack.test.mjs` (bảng dải, biên 1618×1000, không lỗ ở bề rộng dải); `masonry-replay.test.mjs` (`verifyLayout`, `null`, `stackLayout`) |
 | R2 | `masonry-pack.test.mjs` (không hạ card ngang trên catalog thật, giữ hạng, so le tốt hơn thứ tự ngẫu nhiên, cùng input cùng kết quả) |
-| R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo) |
+| R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo; 384px không tạo grid Worker; lưới đầu điện thoại dùng seed xếp sẵn, Back cùng tọa độ, stamp lệch thì xếp trực tiếp) |
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
 
 ## Gate còn mở
 
-- Đo thời điểm card đầu có tọa độ trên A04s ở 1024 và 1440px so với main d33ae601. Thread masonry.
+- Đo A04s ở 384px với bản xếp sẵn so với main d33ae601 (reviewer mục 3). Thread masonry.
 
 ## Chú thích thuật ngữ
 

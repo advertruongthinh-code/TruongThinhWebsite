@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { phonePacks } from "../../src/site/masonry/pack.mjs";
 
 export const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const siteRoot = path.join(projectRoot, "src", "site");
@@ -11,6 +12,8 @@ export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 // Content images are WebP only, under assets/content, kebab-case path (media-delivery R5).
 export const IMAGE_SRC = /^\/assets\/content\/[a-z0-9/-]+\.webp$/;
 
+// Phone first grid (masonry-live-layout R3): the 2:15 packs of a grid page's own filter; cards = the array the runtime packs from.
+export const phonePacksScript = (cards, filter) => `<script type="application/json" data-phone-packs>${JSON.stringify(phonePacks(cards, filter))}</script>`;
 export const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
 export const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));

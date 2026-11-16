@@ -1,7 +1,7 @@
 ---
 title: Masonry xếp trực tiếp trên máy người xem
 status: accepted
-date: 2026-11-15
+date: 2026-11-16
 scope: lưới chính trang Quảng cáo và trang Công trình
 tags: [masonry, performance, cms]
 supersedes:
@@ -31,9 +31,14 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 - Số thứ tự thử cố định `LIVE_CANDIDATES = 4` (plan C2), không theo ngân sách thời gian, để máy chậm và nhanh ra cùng lưới, Back
   về đúng lưới cũ.
 - Tìm 3 card lấp chỉ ở lần thử đầu của card ngang, chặn đuôi thời gian xếp.
-- Mọi dải xếp trong Worker, kể cả dải điện thoại; Worker lỗi hoặc treo quá 1 giây (plan) thì xếp trên luồng chính, mỗi ứng
+- Từ 3 cột, 4 ứng viên xếp song song trên 4 Worker; Worker lỗi hoặc treo quá 1 giây (plan) thì xếp trên luồng chính, mỗi ứng
   viên một task.
-- CMS chỉ lưu card; contract R6 cũ (CMS tính cache khi lưu) bỏ.
+- Dải điện thoại `2:15` (không có card ngang) xếp trên luồng chính, không tạo Worker. Lưới đầu của điện thoại dùng bản xếp
+  sẵn lúc build: mỗi trang lưới mang 2:15 của filter của nó cho 8 seed cố định (`phonePacks`), lượt duyệt mới trên điện thoại
+  rút một trong 8 seed đó. Owner chọn 2026-11-16 (cmsg_01B68yUiC1bJVJ45iU8uGEKMN7ZJBcuz4VAykE9Wk3q6dq): "opt b chỉ dùng trên
+  phone"; máy tính và tablet vẫn xếp trực tiếp, chấp nhận chậm hơn main như số đo dưới.
+- CMS chỉ lưu card; contract R6 cũ (CMS tính cache khi lưu) bỏ. Bản xếp sẵn cho điện thoại sinh khi build trang (cùng lúc
+  với artifact), nên CMS đăng bài phải build lại trang như hiện nay; trang và artifact lệch build thì điện thoại xếp trực tiếp.
 
 ## Alternative đã cân nhắc
 
@@ -42,7 +47,9 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 | Giữ cache build | Máy người xem không xếp | Không dùng được cho kết quả tìm kiếm; CMS phải tính cache khi lưu; 165 file mỗi build |
 | Một thứ tự mỗi filter (N = 1) | Rẻ nhất | Khoảng 1 trong 5 thứ tự lệch nhịp organic, có thứ tự hạ card ngang; so le trung vị 36 so với 33 của cache |
 | Số thứ tự theo ngân sách thời gian | Máy mạnh thử nhiều hơn | Máy chậm ra lưới khác, Back không về đúng lưới |
-| Dải điện thoại xếp trên luồng chính | Không cần Worker ở 2 cột | Hai đường code cho một việc; Worker đã khởi động sớm |
+| Xếp sẵn lúc build cho mọi bề rộng | Ngang main ở mọi bề rộng | Quay lại file bố cục lớn mỗi build; owner chỉ chọn cho điện thoại |
+| 2 ứng viên thay vì 4 | Nhanh khoảng gấp đôi | Đổi quyết định C2, lưới kém so le hơn |
+| 2 Worker thay vì 4 | Ít khởi động Worker | A04s không nhanh hơn (1440: 1129 so với 1124 ms) |
 
 ## Hệ quả
 
@@ -54,7 +61,10 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
 
 ### Tiêu cực hoặc cost đã chấp nhận
 
-- Card đầu có tọa độ phụ thuộc thời gian khởi động Worker và xếp; đo trên A04s là gate của PR.
+- Từ 3 cột, card đầu có tọa độ phụ thuộc thời gian khởi động Worker và xếp: A04s chậm hơn main 96 ms ở 1024px và 218 ms ở
+  1440px (owner chấp nhận khi chọn chỉ xếp sẵn cho điện thoại).
+- Mỗi trang lưới nặng thêm khoảng 2,8 KB brotli (trang Quảng cáo gốc) cho bản xếp sẵn điện thoại; điện thoại chỉ có 8 cách xếp
+  lưới đầu mỗi filter.
 - Mỗi dải xếp riêng nên đổi dải có thể ra thứ tự card khác (cache cũ dùng cùng biến thể cho mọi dải).
 - Card đầu chỉ kịp như cache cũ khi Worker khởi động sớm (từ `detail.js`) và lượt xếp đầu gửi ngay khi có seed; thiếu hai
   bước này thì chậm hơn main 100 tới 240 ms trên cloud giảm tốc CPU 6 lần.
@@ -65,8 +75,9 @@ chỗ rồi cắt tối đa 5% rồi hạ về một cột, so le là ưu tiên 
   số lần hạ card ngang tăng từ 17 lên 32 trên 4500 lượt, bị bộ chọn 4 ứng viên lọc hết.
 - Trace cloud giảm tốc CPU 6 lần, 1440px, từ mount tới card đầu có tọa độ: Quảng cáo 297 tới 319 ms, main 302 tới 309 ms;
   Worker trả lượt đầu 16 ms sau khi mount cần (xếp 4 thứ tự mất 75 tới 100 ms, chạy song song với mount).
-- Nền A04s trên main d33ae601 (card đầu có tọa độ, trung vị 5 lần): Quảng cáo 1191 ms ở 1024px, 1156 ms ở 1440px; Công
-  trình 1136 ms và 1116 ms. Số sau khi đổi ghi ở PR.
+- A04s cùng phiên, main d33ae601 so với nhánh (card đầu có tọa độ, trung vị 5 lần), 2026-11-15: một Worker xếp 4 ứng viên
+  tuần tự chậm hơn 93 tới 468 ms; 4 Worker song song và tìm kiếm rẻ hơn (kết quả y hệt) còn 124 tới 157 ms; dải 2:15 trên luồng
+  chính còn 68 ms ở 384px, 96 ms ở 1024px, 218 ms ở 1440px. Số đo bản xếp sẵn điện thoại ghi ở PR.
 
 ## Follow-up
 
