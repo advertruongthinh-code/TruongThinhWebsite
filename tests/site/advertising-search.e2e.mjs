@@ -23,8 +23,16 @@ const open = async (browser, viewport = WIDE, url = PAGE, api = { status: 503 })
   await mockApi(page, api);
   await page.goto(url, { waitUntil: "load" });
   await page.waitForSelector(".search-bar", { timeout: 20000 });
+  // The page is ready once the entry veil lifts: until then it covers the bar in the top slot.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"), null, { timeout: 20000 });
   return { context, page };
 };
+// Before a click: the bar is not sliding or morphing and has not moved between two frames.
+const barStill = (page) => page.waitForFunction(() => new Promise((resolve) => {
+  const bar = document.querySelector(".search-bar");
+  const top = bar.getBoundingClientRect().top;
+  requestAnimationFrame(() => requestAnimationFrame(() => resolve(!bar.getAnimations({ subtree: true }).length && bar.getBoundingClientRect().top === top)));
+}), null, { timeout: 6000 });
 const search = async (page, text) => {
   await page.fill(".search-bar input", text);
   await page.press(".search-bar input", "Enter");
@@ -222,6 +230,7 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
     assert.equal(await trayCount(page), 5);
     assert.match(await page.locator(".search-bar [data-search-count]").textContent(), /5\/5 ảnh/i);
 
+    await barStill(page);
     await page.click(".search-bar .search-bar__go");
     await announced(page, /kết quả/);
     const sent = bodies.at(-1);
@@ -237,6 +246,7 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
 
     // Removing an image after results searches again after reSearchMs.
     const before = bodies.length;
+    await barStill(page);
     await page.locator(".search-bar .search-bar__unthumb").first().click();
     await page.waitForTimeout(900);
     assert.equal(bodies.length, before + 1, "searched again");
