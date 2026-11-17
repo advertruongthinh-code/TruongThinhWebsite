@@ -18,16 +18,19 @@ function groupName(ids, productOf) {
 }
 
 export function rankSearch({ inputs, keyword = new Map(), config, catalogOrder, productOf }) {
-  const { threshold, groupTextWeight } = config;
+  const { threshold, groupTextWeight, keywordMin = Infinity } = config;
   const order = new Map(catalogOrder.map((id, i) => [id, i]));
   const sortIds = (ids, score) => [...ids].sort((a, b) => score.get(b) - score.get(a) || (order.get(a) ?? order.size) - (order.get(b) ?? order.size));
-  const passing = (score) => sortIds([...score.keys()].filter((id) => score.get(id) >= threshold - EPS), score);
+  // A card whose words match the text (K from keywordMin) always passes with a text input: weighted at 0.2 K alone it fell
+  // under the threshold whenever the vectors missed it, so typed words like "kios" lost cards the keyword fallback had shown.
+  const passing = (score, withText) => sortIds([...score.keys()].filter((id) => score.get(id) >= threshold - EPS
+    || (withText && (keyword.get(id) ?? 0) >= keywordMin)), score);
 
   const scored = inputs.map((input) => inputScores(input, keyword, config.weights));
   const live = [];
   const unmatched = [];
   scored.forEach((score, i) => {
-    if (!passing(score).length) return unmatched.push(i);
+    if (!passing(score, inputs[i].kind === "text").length) return unmatched.push(i);
     // Top 5 ignores the threshold (spec R5.2) but not zeros: clamped-to-0 cards would tie and link unrelated inputs by catalog order.
     live.push({ i, top: new Set(sortIds([...score.keys()].filter((id) => score.get(id) > 0), score).slice(0, TOP)) });
   });
@@ -46,7 +49,7 @@ export function rankSearch({ inputs, keyword = new Map(), config, catalogOrder, 
     const best = (list, id) => Math.max(...list.map((m) => m.get(id) ?? 0));
     const score = new Map([...new Set(inputIdx.flatMap((i) => [...scored[i].keys()]))].map((id) => [id,
       texts.length && images.length ? groupTextWeight * best(texts, id) + (1 - groupTextWeight) * best(images, id) : best(texts.length ? texts : images, id)]));
-    const ids = passing(score);
+    const ids = passing(score, texts.length > 0);
     return { ids, score, inputIdx, top: score.get(ids[0]) };
   }).sort((a, b) => b.top - a.top || a.inputIdx[0] - b.inputIdx[0]);
 
