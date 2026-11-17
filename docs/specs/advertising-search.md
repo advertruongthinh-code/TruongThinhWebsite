@@ -84,8 +84,8 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
 cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
-`task: search result | query:`) và mọi ảnh thành vector trong một lần gọi `env.AI.run` đồng bộ, chuẩn hóa L2, so cosine
-với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
+`task: search result | query:`) và ảnh thành vector bằng `env.AI.run` đồng bộ: chữ qua `input` (qua `messages` P@5 tụt 0,86
+xuống 0,66), mọi ảnh một lần qua `messages`, có cả hai thì gọi song song; chuẩn hóa L2, so cosine với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
 cao nhất của card (card một media lấy media đó). Phản hồi: mỗi input một mảng `[id, sText, sMedia]` cho mọi card. Sai dạng
 trả 400; vượt giới hạn tần suất 429; model lỗi 503. Không có `mediaId`; thứ tự media trong card không đổi.
@@ -269,7 +269,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | --- | --- |
 | R1 | chưa có test (`tests/search/index.test.mjs`, Workers AI giả) |
 | R2 | `node --test tests/search/keywords.test.mjs` |
-| R3, R4 | chưa có test (`tests/search/worker.test.mjs`: dạng phản hồi, 400, 413, 429, không log) |
+| R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
 | R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, hỏi giá, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
 | R8, R10 (ảnh) | chưa có test (P7, P8) |
