@@ -1,0 +1,19 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v19a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real shopfront and sign photos used ONLY to learn structure, materials and proportions. Do not copy their layout, text, logos or design.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SCENE (owner): a technician inspecting the electrical control cabinet of the LED sign-lighting system of a small, modern hair salon in a low-rise Mekong Delta town. A frontal level view of the whole salon facade in daylight, the lit channel-letter sign across the top.
+
+SIGN: the salon sign reads exactly BLOOM HAIR STUDIO (invented name), in clean modern raised channel letters with warm white LED backlight on a dark or wood-slat fascia; a simple scissors or comb icon. No other words, no phone number. Neat new mounting.
+
+ACTION: The grey steel electrical control cabinet of the sign lighting is mounted on the facade wall beside the entrance at chest height; its door is open, showing DIN-rail breakers, a digital timer and LED power supplies with neat wiring; the technician stands on the pavement and checks it with a multimeter. One man in a plain black work shirt and black work trousers, seen from the back or three-quarter back, face not visible, balanced natural posture, correct anatomy, both hands on the task. A small tool bag nearby.
+
+SALON INTERIOR through the glass: panel-furniture styling stations with mirrors, a reception counter with recessed handles, shelves of hair products, warm light.
+
+STREET: no other people; parked motorbikes allowed, no moving vehicles; clean pavement.
+
+GEOMETRY: level camera, every vertical truly vertical, consistent vanishing points. Sky or ceiling at most the top 10 percent; pavement or floor at most the bottom 15 percent. The lower 35 percent of the frame is calmer and darker, because white text sits over it.
+
+PHOTO: editorial photograph on a full-frame camera, real shadows, slight sensor grain, real material texture; not a 3D render. No real brand logos anywhere; no readable text other than the sign.

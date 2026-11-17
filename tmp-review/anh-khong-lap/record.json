@@ -1621,5 +1621,79 @@
   "round": 18,
   "change": "owner 2026-11-17 13:16 UTC: technician at coconut cosmetics shopfront sign",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v7a2.png",
+  "sha256": "9b2d81305cc94180c240decf392f3abfa37a1d2601f51800f0ae1b25784b5235",
+  "bytes": 2257327,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v7a.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v7a2.txt",
+  "round": 19,
+  "change": "owner 2026-11-17 14:02 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v19a.png",
+  "sha256": "57ac19d67f9dae25bf1a856e54857660334186d9dbd18b6b60b32a26bbfc62b1",
+  "bytes": 2627816,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r19-ref-1.jpg",
+   "ref/r19-ref-2.jpg",
+   "ref/r19-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v19a.txt",
+  "round": 19,
+  "change": "owner 2026-11-17 14:02 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v19b.png",
+  "sha256": "5741b8c432bf75ebc504f9c427bc917a39c8dc2d81c60a259d09f461d05c8516",
+  "bytes": 2590815,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r19-ref-1.jpg",
+   "ref/r19-ref-2.jpg",
+   "ref/r19-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v19b.txt",
+  "round": 19,
+  "change": "owner 2026-11-17 14:02 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v19c.png",
+  "sha256": "f75a3633d4fae64c84462c53ac0417e82561e8fb6cdbf61445149879a41e1416",
+  "bytes": 2327518,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r19-ref-1.jpg",
+   "ref/r19-ref-2.jpg",
+   "ref/r19-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v19c.txt",
+  "round": 19,
+  "change": "owner 2026-11-17 14:02 UTC notes",
+  "created": "2026-11-17"
  }
 ]

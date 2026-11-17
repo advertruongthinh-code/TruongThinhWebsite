@@ -1,0 +1,7 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-san-xuat-v7a.png (portrait 2:3, keep its exact size, framing and content), then save the result into the current working directory as `home-cam-ket-san-xuat-v7a2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+CHANGE ONLY THE BOARD ON THE CNC BED (owner):
+1. The board is thinner: a standard 17 mm panel, visibly thinner than now, in correct proportion to the machine bed and gantry.
+2. Its core is BLACK: every cut edge, every routed groove between the nested parts and the outer board edge show a dense, uniformly black HDF core under the thin wood-grain laminate face. No light brown or beige core anywhere.
+
+KEEP EXACTLY: the workshop, the CNC router and gantry, the dust hood and duct, the twin-bag dust collector, the panel rack, tool cabinet, extinguisher, air-hose reel, windows with coconut palms, light, floor and camera. Do not change anything else.
