@@ -168,7 +168,7 @@ const readText = (f) => readFileSync(f, 'utf8');
 errors.push(...emojiErrors(tracked, readText), ...commentLanguageErrors(tracked, readText), ...cmsImportErrors(tracked, readText));
 
 // Site image masters and their AI PNG originals (agent-rule-ad-images.md "PNG gốc").
-errors.push(...pngOriginErrors(git('ls-files', 'src/site/assets/content').split('\n').filter(isImageMaster), pngAdded, readText('docs/operations/png-goc.csv'), pngBody));
+errors.push(...pngOriginErrors(git('ls-files', 'src/site/assets/content').split('\n').filter(isImageMaster), pngAdded, existsSync('docs/operations/png-goc.csv') ? readText('docs/operations/png-goc.csv') : '', pngBody));
 
 // Design drift (design-system.md R1.2): every custom property in the top :root block of style.css has a token with the same name and value.
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
