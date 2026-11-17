@@ -1877,5 +1877,107 @@
   "round": 22,
   "change": "owner 2026-11-17 15:21 UTC: 2b no vehicles, no icon, two-line name, lights off, door handle right",
   "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v4a.png",
+  "sha256": "94a0de659ac17211d7a9735460c9ee26f2c3f92368d16cb7826010393d008b9c",
+  "bytes": 2363471,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v3b.png"
+  ],
+  "prompt": "p-process-cnc-v4a.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v4b.png",
+  "sha256": "738261340e6ae53ba8f752b15cc429885b20453323311983d81b27a4396bbf23",
+  "bytes": 2375454,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v3b.png"
+  ],
+  "prompt": "p-process-cnc-v4b.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v22a.png",
+  "sha256": "4a8fee584c7979aa5bfe9291b8eaf2ec222b8097a5b524ccede4b622b1060a52",
+  "bytes": 2275185,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v21b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v22a.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v22b.png",
+  "sha256": "99707e5055d67ba9aa8be18347ac1dbd4901ea39de58bde2e5b3c02128565eb2",
+  "bytes": 2145502,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v21b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v22b.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v22a2.png",
+  "sha256": "cdf4629a707b7d6194714ad95c72a2a6fd600488987f266f817ba2aace4c0928",
+  "bytes": 2169675,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v21b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v22a2.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v22b2.png",
+  "sha256": "f1a6c869202ac5eeeed085e835dfb4639aab3c1e7ac32a4e9c605d3413c2eeef",
+  "bytes": 2274297,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v21b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v22b2.txt",
+  "round": 23,
+  "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
+  "created": "2026-11-17"
  }
 ]
