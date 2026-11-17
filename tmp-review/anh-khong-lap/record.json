@@ -1494,5 +1494,56 @@
   "round": 16,
   "change": "owner 2026-11-17 12:24 UTC final try",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v16a2.png",
+  "sha256": "0720615fd03f2fb0f57cd7c8811e2c437ff79a0e743140754e1ef688ed29af2b",
+  "bytes": 2327687,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol (from v16a)",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v16a.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v16a2.txt",
+  "round": 17,
+  "change": "owner 2026-11-17 12:49 UTC: fix geometry and vanishing points",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v17a.png",
+  "sha256": "393da7ecc456a5cbd4268bb09b4ac58261060f04c4a6a572f0eff2ffd4d797c3",
+  "bytes": 2319222,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol (from v16a)",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v16a.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v17a.txt",
+  "round": 17,
+  "change": "owner 2026-11-17 12:49 UTC: fix geometry and vanishing points",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v17b.png",
+  "sha256": "eae6e74693f066997b0c622bcad656faba0aa9c72fea90eb1a9af62d04143167",
+  "bytes": 2341917,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol (from v16a)",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v16a.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v17b.txt",
+  "round": 17,
+  "change": "owner 2026-11-17 12:49 UTC: fix geometry and vanishing points",
+  "created": "2026-11-17"
  }
 ]

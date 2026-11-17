@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE photograph based closely on the attached image home-cam-ket-hau-mai-v16a.png, portrait 2:3 at the largest size the tool supports, then save the result into the current working directory as `home-cam-ket-hau-mai-v17a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+FIX THE GEOMETRY AND PERSPECTIVE (owner):
+- Level camera; every vertical line is truly vertical and parallel: wall corners, cabinet sides, ladder rails, light box sides, the pendant cord.
+- ONE-POINT perspective: a frontal view square to the back wall, a single vanishing point on the horizon at the camera eye level; all receding lines meet there.
+- Horizontal lines (ceiling edge, cabinet tops and bottoms, shelves, counter top, the floor and wall joint, the light box top and bottom) converge consistently with that perspective; no bent or conflicting lines.
+- Furniture and ladder are in correct proportion and scale with the room (counter about 90 cm high). The menu light box sits flat on its wall plane with visible brackets.
+
+KEEP THE SAME DESIGN: walnut and cream palette, the fluted rounded counter, the wall cabinets and shelves, the menu light box content (CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K, spelled exactly, no shop name), the technician in a black shirt on an aluminium A-frame ladder on the customer side with four feet on the floor and spreaders locked.
+
+ALSO FIX: upper cabinets use recessed handles only (no protruding handles). The technician is seen from the back: his face and cheek are NOT visible.
+
+Photoreal like a real camera, slight grain, no logos or other text anywhere. The lower 35 percent of the frame is calmer, because white text sits over it.

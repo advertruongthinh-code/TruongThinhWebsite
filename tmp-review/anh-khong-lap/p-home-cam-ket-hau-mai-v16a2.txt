@@ -1,0 +1,9 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-hau-mai-v16a.png (portrait 2:3, keep its exact size, framing and content), then save the result into the current working directory as `home-cam-ket-hau-mai-v16a2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+FIX ONLY THE GEOMETRY AND PERSPECTIVE (owner): make the photo obey correct geometry as if shot with a level camera and a shift lens:
+- every vertical line (wall corners, cabinet sides, door edges, the light box sides, the counter ends, the pendant cord, the ladder rails seen from the side) is perfectly vertical and parallel;
+- all horizontal lines of the room, cabinets, shelves, counter top, light box and floor tile joints converge consistently to ONE vanishing point on the horizon at the camera's eye level (one-point perspective), with no bent, curved or conflicting lines;
+- the ladder's four feet sit on the same floor plane with correct perspective; the counter, upper cabinets and shelves have consistent depth and parallel edges;
+- proportions stay realistic (counter about 90 cm, upper cabinets aligned in one straight row).
+
+KEEP: the same room design, walnut and cream palette, the menu light box and its text (CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K, spelled exactly, no shop name), the technician in black on the ladder seen from behind, the tool bag, plants, light and colours. Also make the upper cabinet handles recessed (no protruding pulls). No text or logo anywhere else.
