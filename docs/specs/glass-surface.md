@@ -3,6 +3,8 @@ title: Kính dùng chung cho mọi bề mặt glass
 status: live
 source:
   - src/site/masonry/glass-surface.mjs
+  - src/site/masonry/grain.mjs
+  - src/site/masonry/grain-worker.mjs
 tests:
   - tests/site/glass-surface.test.mjs
   - tests/site/advertising-audit.test.mjs
@@ -116,9 +118,11 @@ Kính có lớp hạt nhiễu đơn sắc tĩnh, độ đậm `3%` (độ lệch
 giữa), để che sọc màu (banding) ở dải trắng lớn và cho cảm giác kính mờ. Lớp
 hạt hòa trộn `overlay` và ở dạng cung mờ dần về 0 tới vòng trắng tuyệt đối, nên
 vùng trắng tuyệt đối (R3) giữ nguyên trắng. Hạt nhiễu không chuyển động; một
-hạt bằng một pixel thiết bị. Ảnh hạt vẽ một lần cho cả trang, ở task rảnh riêng
-(`requestIdleCallback`, thiếu thì `setTimeout`), không trong task dựng Kính đầu tiên;
-Kính hiện không hạt tới lúc ảnh hạt xong.
+hạt bằng một pixel thiết bị. Ảnh hạt vẽ một lần cho cả trang, trong Worker
+(`OffscreenCanvas`, A04s: vẽ trên luồng chính tốn 50-60ms kể cả dọn rác), không trong
+task dựng Kính đầu tiên. Thiếu Worker hoặc `OffscreenCanvas`, hay Worker lỗi, thì vẽ trên
+luồng chính ở task rảnh riêng (`requestIdleCallback`, thiếu thì `setTimeout`). Hai cách
+cho cùng pixel. Kính hiện không hạt tới lúc ảnh hạt xong.
 
 Dạng cung dùng cùng nhiễu ở dạng hạt trắng, hòa trộn thường, opacity `0.12`:
 trên kính sáng nó làm sáng `0.12 × nhiễu × (1 - nền)`, đúng bằng overlay, và
@@ -182,6 +186,7 @@ Kính dạng cung là bề mặt tĩnh, giữ nguyên khi giảm chuyển độn
 | CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): ba bậc `16.07`, `54.84`, `82.07px` (mức `16.07`, `57.14`, `100px`), dạng cung phone `4.5`, `11.12`, `25.3px`, chín bậc PC và lõi `100px` do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.1935`, `1.0132`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung phone `28px` (PC đặt inline `100px`, R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Hai ảnh hạt nhiễu 160×160 cùng nhiễu, xám cho overlay và trắng theo alpha cho dạng cung (`--glass-grain-white`), sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
 | Runtime | `masonry/glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung PC 9, phone 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `desktopArcSteps({radius, band})` mức nhòe và bán kính bật, tắt của chín bậc PC; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC lõi và 9 bậc band, phone lõi và 1 bậc band |
+| Runtime | `masonry/grain.mjs`, `masonry/grain-worker.mjs` | `grainImages()` tạo hai ảnh hạt (xám, trắng) dùng chung; Worker vẽ ra hai PNG bằng `OffscreenCanvas`, lỗi thì trả `null` để trang vẽ trên luồng chính (R4) |
 | Runtime | `masonry/runtime.mjs` | Gắn kính cung vào `.masonry-section`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-detail-glass` |
 
 ## UI
