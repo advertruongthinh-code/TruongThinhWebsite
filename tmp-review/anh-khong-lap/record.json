@@ -2582,5 +2582,39 @@
   "round": 30,
   "change": "owner artifact comment 2026-11-17 22:10 UTC: windows to corrugated metal wall, more workshop items",
   "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v9ab1.png",
+  "sha256": "29e271ad40aace26ae420a3099c9a0a87e219063a0c986a4afa5de05a894fb7a",
+  "bytes": 2366094,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v9ab.png"
+  ],
+  "prompt": "p-process-cnc-v9ab1.txt",
+  "round": 31,
+  "change": "owner artifact comment 2026-11-17 22:31 UTC: wall items too fake",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v9ab2.png",
+  "sha256": "f909bef4a25282cff2f9fb2a5ae86680e4fb5a321ac27548dc125a1bed843303",
+  "bytes": 2305736,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v9ab.png"
+  ],
+  "prompt": "p-process-cnc-v9ab2.txt",
+  "round": 31,
+  "change": "owner artifact comment 2026-11-17 22:31 UTC: wall items too fake",
+  "created": "2026-11-18"
  }
 ]
