@@ -310,6 +310,16 @@
               softNavigation,
             });
           }
+        })
+        .then((result) => {
+          // Search bar after the grid (Barba does not rerun scripts outside the container); a failed grid keeps the plain CTA link.
+          // Idle time: the bar must not compete with the first cards (plan P6 performance gate).
+          const loadSearch = () => !abort.signal.aborted && import("/advertising-products/search.mjs")
+            .then((search) => !abort.signal.aborted && search.mount(container, { signal: abort.signal, softNavigation }))
+            .catch(() => {});
+          if (window.requestIdleCallback) window.requestIdleCallback(loadSearch, { timeout: 1500 });
+          else setTimeout(loadSearch, 200);
+          return result;
         });
     }
 

@@ -164,8 +164,8 @@ And khi điểm vector về, nút "Có thêm kết quả gợi ý" hiện, bấm
 Theo thiết kế owner duyệt ([bản thử, biến thể 1 Đường kẻ](https://claude.ai/artifact/9zKp1Fdq1t7VYSsvLtGSUi)). Một thanh
 dài nổi ở đáy màn hình. Bên phải ô chữ: nút xoá chữ (chỉ hiện khi đã gõ), vạch ngăn, nút tìm bằng ảnh, nút kính lúp. Ảnh vào
 bằng nút, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán; khay ảnh có thumbnail, nút bỏ từng ảnh và "n/5 ảnh". Thanh
-là phần tử `position: sticky; bottom` trong khe `[data-search-dock]` ngay dưới tiêu đề CTA; khe nằm trong phần tử cha chứa
-cả lưới và CTA, nên thanh nổi suốt lưới rồi dừng ở khe. Tới khe thì viền tan thành đường kẻ dài dưới tiêu đề, chữ to hơn, nút
+nổi trong lớp cố định ở đáy màn hình, tới khe `[data-search-dock]` ngay dưới tiêu đề CTA thì vào khe (cuộn mượt dịch trang
+bằng `transform` nên không dùng `sticky`); lên lại trên khe thì nổi. Tới khe thì viền tan thành đường kẻ dài dưới tiêu đề, chữ to hơn, nút
 "Trao đổi ý tưởng" mở ra ở cuối đường kẻ (điện thoại: "Trao đổi"); ô chữ, khay ảnh vẫn dùng được. Rời khe thì phần mở thêm
 thu lại ngay, không mờ dần; thanh luôn nền đặc. Thanh gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có
 JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; dòng trạng thái là vùng `aria-live`. Giảm chuyển động thì đổi trạng
@@ -192,9 +192,9 @@ Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
 
 ### R9. Không có kết quả, hỏi giá, nội thất
 
-Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì đặt cờ chặn rồi gọi
-`clearResults()`; sự kiện `masonry:search-left` kế tiếp gặp cờ thì chỉ xoá cờ, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt
-thì không gọi gì. Mỗi lần gửi tìm mới cũng xoá cờ. Dòng trạng thái hiện nút Zalo. Bấm
+Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi
+`clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới
+đang duyệt thì không gọi gì. Dòng trạng thái hiện nút Zalo. Bấm
 nút thì chép câu khách gõ vào clipboard, mở link Zalo lấy từ partial có sẵn của site, báo "Đã chép nội dung, dán vào khung
 chat Zalo" (link Zalo không mang sẵn tin nhắn). Chỉ 1 đến 2 card đạt ngưỡng: thêm dòng "Chưa đúng ý? Gửi qua Zalo". Ảnh không
 khớp: "Không tìm thấy theo ảnh n". Câu có từ hỏi giá (giá, bao nhiêu, báo giá, chi phí; EN price, cost, how much, quote) vẫn
@@ -213,9 +213,8 @@ Then lưới hiện card hộp đèn tay vẫy và dòng trạng thái có lời
 Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ
 (`QuotaExceededError`) thì bỏ ảnh đã lưu và báo. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
 và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ (nút đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại,
-gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: boot của `motion.js` chuyển phần `#` cho tìm kiếm trước khi
-viết lại URL (sửa nhỏ ngoài `src/site/search/`), tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` không gặp cờ R9
-(bấm chip, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
+gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"`
+(bấm chip, navbar, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
 
 Nút "Sao chép link" trong dòng trạng thái chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
 thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
@@ -262,8 +261,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 
 ## UI
 
-Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm component `SearchBar` vào
-[Design System](../../design-system/README.md) và link ở đây.
+Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar](../../design-system/components/SearchBar/README.md).
 
 ## Kiểm tra
 
@@ -272,18 +270,17 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 | R1 | chưa có test (`tests/search/index.test.mjs`, Workers AI giả) |
 | R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
-| R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6 chưa có test (`tests/site/advertising-search.e2e.mjs`) |
-| R7 đến R10 | chưa có test (`tests/site/advertising-search.e2e.mjs`, Worker giả qua route Playwright, 6 bề rộng) |
+| R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
+| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, hỏi giá, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
+| R8, R10 (ảnh) | chưa có test (P7, P8) |
 | R11 | `pnpm search:calibrate` trên máy có token |
 
 ## Gate còn mở
 
-- Toàn bộ R1 đến R11 chưa code; chờ owner duyệt spec rồi plan (advisor duyệt trước mỗi lần).
+- Chưa code: R1 (chỉ mục), phần thật của R3, R4 (endpoint), R8 (ảnh), ảnh trong R10 (link chia sẻ), R11 (hiệu chỉnh).
 - Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
-- Khe `[data-search-dock]`, `event.detail.reason` cho `masonry:search-left` (thay cờ chặn R9) và chỗ boot `motion.js` chuyển
-  phần `#` cho tìm kiếm: thread masonry duyệt.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.

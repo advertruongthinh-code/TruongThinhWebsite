@@ -526,7 +526,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   position: fixed;
   z-index: 975;
   right: 35px;
-  bottom: 35px;
+  bottom: calc(35px + var(--search-bar-offset, 0px));
   display: grid;
   box-sizing: content-box;
   width: auto;
@@ -588,7 +588,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
     position: fixed;
     z-index: 975;
     right: 15px;
-    bottom: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
     display: grid;
     box-sizing: content-box;
     width: 35px;
@@ -2907,7 +2907,7 @@ em {
 @media (max-width: 1200px) {
   .floating-cta {
     right: 25px;
-    bottom: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
   }
 }
 
