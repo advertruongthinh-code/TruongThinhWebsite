@@ -2548,5 +2548,39 @@
   "round": 29,
   "change": "owner 2026-11-17 20:27 UTC: slanted camera like site cnc.webp, approved 6B space",
   "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v9aa.png",
+  "sha256": "d5339ec5b0ab500360374e3b0dbe4d74a8b3940ba33da375559e7c07e3ff5810",
+  "bytes": 2387378,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v9a.png"
+  ],
+  "prompt": "p-process-cnc-v9aa.txt",
+  "round": 30,
+  "change": "owner artifact comment 2026-11-17 22:10 UTC: windows to corrugated metal wall, more workshop items",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v9ab.png",
+  "sha256": "be37272d82e536f254439ac4c6888d1fbdbafd1cf22714e5df443bd42e8f8992",
+  "bytes": 2493015,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v9a.png"
+  ],
+  "prompt": "p-process-cnc-v9ab.txt",
+  "round": 30,
+  "change": "owner artifact comment 2026-11-17 22:10 UTC: windows to corrugated metal wall, more workshop items",
+  "created": "2026-11-18"
  }
 ]

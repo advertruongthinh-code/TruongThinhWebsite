@@ -1,0 +1,8 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image process-cnc-v9a.png (landscape 3:2, keep its exact size, camera, framing and perspective), then save the result into the current working directory as `process-cnc-v9ab.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER CHANGES:
+1. Remove the windows looking outside (no palms, no sky): the back and side walls are solid light grey corrugated metal sheet walls, with the same steel frame columns.
+2. The background must not look empty: along those walls add tidy, realistic workshop items: a wall-mounted pegboard with hand tools, a steel shelving unit with labelled-free hardware bins, a stack of edge-banding rolls on a shelf, a wall-mounted fire extinguisher, a cart of stacked cut parts. Each item once, in correct scale and perspective, standing on the floor or mounted on the wall; nothing in front of the CNC.
+3. Keep the ceiling to a thin strip at most.
+
+KEEP EXACTLY: the white CNC router, gantry, spindle and brush dust hood, the white flexible dust hose to the overhead duct, the white control cabinet with monitor, the black-core nested sheet with its cut paths and shelf-pin holes, the light and camera. No people, no plants. No text, logos or numbers anywhere.
