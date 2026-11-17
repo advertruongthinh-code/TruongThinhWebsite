@@ -59,7 +59,7 @@ And thiếu token thì log deploy có cảnh báo và chỉ mục ghi status una
 
 ### R2. Lớp từ khóa
 
-`cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, cụm, tag (không lấy mô tả, vì lưới không tải mô tả); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
+`cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, tag (không lấy mô tả, vì lưới không tải mô tả; không lấy tên cụm vì một cụm gộp 3 sản phẩm); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
 nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu
 (`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; mỗi lần đổi đúng một thành viên, so bản bỏ dấu.
 "Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card. K của card là mức cao nhất đạt được:
