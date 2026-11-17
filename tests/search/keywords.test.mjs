@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { canonical, cardTerms, decodeTelex, decodeVni, keywordScores, plain } from "../../src/search/keywords.mjs";
+import { canonical, cardTerms, decodeTelex, decodeVni, keywordScores, plain, warmIndex } from "../../src/search/keywords.mjs";
 
 const card = (id, titleVi, extra = {}) => ({ id, titleVi, titleEn: extra.titleEn ?? titleVi, mediaItems: [], ...extra });
 const artifactOf = (...cards) => ({ cards, products: [], clusters: [], tagRegistry: [] });
@@ -137,4 +137,19 @@ test("real catalog: 203 cards, keyword hits and speed under 5 ms a query", () =>
     const average = (performance.now() - start) / 60;
     assert.ok(average < 5, `average ${average.toFixed(2)} ms per query`);
   }
+});
+
+test("warmIndex builds the same index in slices, and a search during warming still scores every card", () => {
+  const cards = Array.from({ length: 5 }, (_, i) => card(`c${i}`, `Hộp đèn mẫu ${i}`));
+  const cold = keywordScores("hop den", "vi", artifactOf(...cards));
+  const warmed = artifactOf(...cards);
+  const steps = [...warmIndex(warmed, "vi", 2)];
+  assert.equal(steps.length, 3);
+  assert.deepEqual(keywordScores("hop den", "vi", warmed), cold);
+  const midway = artifactOf(...cards);
+  const warming = warmIndex(midway, "vi", 2);
+  warming.next();
+  assert.deepEqual(keywordScores("hop den", "vi", midway), cold);
+  assert.equal(warming.next().done, true);
+  assert.deepEqual(keywordScores("hop den", "vi", midway), cold);
 });

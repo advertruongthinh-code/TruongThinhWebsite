@@ -1,6 +1,6 @@
 // Text search against /api/search with the keyword fallback (advertising-search R6) and the no-result, price and interior lines (R9).
 import { keywordOnly, rankSearch, suggestProducts } from "../../search/rank.mjs";
-import { keywordScores, plain } from "../../search/keywords.mjs";
+import { keywordScores, plain, warmIndex } from "../../search/keywords.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 
 const PRICE = { vi: /(^| )(gia|bao nhieu|bao gia|chi phi)( |$)/, en: /\b(price|cost|how much|quote)\b/i };
@@ -142,6 +142,21 @@ export function createClient(ui) {
     return true;
   }
 
+  // Build the keyword index in idle slices once the visitor reaches for the bar, so the first Enter is not one long task.
+  let warming = null;
+  const warm = () => {
+    if (warming) return;
+    warming = warmIndex(artifact, locale);
+    const idle = window.requestIdleCallback ?? ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 16));
+    const step = (deadline) => {
+      while (deadline.timeRemaining() > 4) {
+        if (warming.next().done) return keywordScores("hop den", locale, artifact);
+      }
+      idle(step);
+    };
+    idle(step);
+  };
+
   // Typing during a request cancels it; search runs only on Enter or the button (no search-as-you-type in the spec).
   const cancel = () => {
     if (!abort || abort.signal.aborted) return;
@@ -156,5 +171,5 @@ export function createClient(ui) {
     ui.session.clear();
     ui.setStatus([]);
   };
-  return { submit, cancel, reset, stop, get active() { return Boolean(lastText); } };
+  return { submit, cancel, reset, stop, warm, get active() { return Boolean(lastText); } };
 }

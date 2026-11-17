@@ -105,6 +105,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     client.submit(input.value);
   }, { signal });
   input.addEventListener("input", client.cancel, { signal });
+  form.addEventListener("focusin", client.warm, { once: true, signal });
   input.addEventListener("keydown", (event) => {
     if (event.key === "Escape") leave(true);
   }, { signal });

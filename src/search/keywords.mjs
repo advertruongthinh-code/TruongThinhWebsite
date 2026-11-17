@@ -105,16 +105,33 @@ export function cardTerms(card, artifact, locale, maps = labelMaps(artifact)) {
 
 // The index is built on the first search, not at page load, and kept per artifact and locale.
 const indexes = new WeakMap();
+const localeIndexes = (artifact) => indexes.get(artifact) ?? indexes.set(artifact, new Map()).get(artifact);
+const indexEntry = (card, artifact, locale, maps) => {
+  const terms = cardTerms(card, artifact, locale, maps);
+  return { id: card.id, terms, wordSet: new Set(terms.flatMap((term) => term.plainWords)) };
+};
 function indexFor(artifact, locale) {
-  const perLocale = indexes.get(artifact) ?? indexes.set(artifact, new Map()).get(artifact);
+  const perLocale = localeIndexes(artifact);
   if (!perLocale.has(locale)) {
     const maps = labelMaps(artifact);
-    perLocale.set(locale, artifact.cards.map((card) => {
-      const terms = cardTerms(card, artifact, locale, maps);
-      return { id: card.id, terms, wordSet: new Set(terms.flatMap((term) => term.plainWords)) };
-    }));
+    perLocale.set(locale, artifact.cards.map((card) => indexEntry(card, artifact, locale, maps)));
   }
   return perLocale.get(locale);
+}
+
+/**
+ * Builds the same index in slices, one per step, so a page can warm it in idle time before the first search (a cold build is
+ * a long task on slow phones). A search before the last step builds the index itself; the steps then stop.
+ */
+export function* warmIndex(artifact, locale, slice = 40) {
+  const perLocale = localeIndexes(artifact);
+  const maps = labelMaps(artifact);
+  const built = [];
+  for (let at = 0; at < artifact.cards.length && !perLocale.has(locale); at += slice) {
+    for (const card of artifact.cards.slice(at, at + slice)) built.push(indexEntry(card, artifact, locale, maps));
+    yield;
+  }
+  if (!perLocale.has(locale)) perLocale.set(locale, built);
 }
 
 const synonymGroups = {};
