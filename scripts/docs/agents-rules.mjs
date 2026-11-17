@@ -92,3 +92,29 @@ export function qaLineErrors(changedFiles, body) {
   if (line && !line.startsWith('<')) return [];
   return ['qa line: the PR changes src/site/ but has no filled line "Ảnh QA (UI): <links or measures at 384, 768, 1024, 1280, 1440, 1920>" (or "Ảnh QA (UI): không đổi UI - <lý do>")'];
 }
+
+// Every site image master has a row in docs/operations/png-goc.csv naming the approved AI PNG it came from
+// (agent-rule-ad-images.md "PNG gốc"). Old rows may leave png empty (known gap from the audit); a master added
+// by this branch needs png and sha256, unless the PR states why it has no AI PNG.
+const SIZE_VARIANT = /-(240|480|960|1600)\.webp$/;
+export const isImageMaster = (f) => /^src\/site\/assets\/content\/.+\.(webp|jpg|png)$/.test(f) && !SIZE_VARIANT.test(f);
+export const masterKey = (f) => f.replace(/^src\/site\/assets\/content\//, '').replace(/\.(webp|jpg|png)$/, '');
+
+export function pngOriginErrors(masters, addedMasters, csvText, body) {
+  const rows = new Map(csvText.split('\n').slice(1).filter(Boolean).map((line) => {
+    const [anh, png = '', sha256 = ''] = line.split(',');
+    return [anh, { png, sha256 }];
+  }));
+  const errors = [];
+  for (const key of new Set(masters.map(masterKey))) {
+    if (!rows.has(key)) errors.push(`png goc: ${key} has no row in docs/operations/png-goc.csv (anh,png,sha256)`);
+  }
+  const waived = /^PNG gốc: không có - (?!<)\S/m.test(body);
+  for (const key of new Set(addedMasters.map(masterKey))) {
+    const row = rows.get(key);
+    if (row && !(row.png && /^[0-9a-f]{64}$/.test(row.sha256)) && !waived) {
+      errors.push(`png goc: new image ${key} needs the approved AI PNG path and its sha256 in docs/operations/png-goc.csv, or this line in the PR body: PNG gốc: không có - <lý do>`);
+    }
+  }
+  return errors;
+}
