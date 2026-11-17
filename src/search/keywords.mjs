@@ -82,17 +82,20 @@ function labelMaps(artifact) {
 }
 
 /**
- * Phrases of one card in one locale ("vi" or "en"): title, every media alt, product and tag labels. The cluster label is left out:
+ * Phrases of one card in one locale ("vi" or "en"): title, every media alt, product and tag labels. A card merged from several
+ * products also keeps each merged media's own title and products. The cluster label is left out:
  * it names three products at once ("Bảng hiệu, chữ nổi & hộp đèn"), so every light box would match "chữ nổi" exactly.
  */
 export function cardTerms(card, artifact, locale, maps = labelMaps(artifact)) {
   const suffix = locale === "en" ? "En" : "Vi";
   const { products, tags } = maps;
   const label = (map, id) => map.get(id)?.[`label${suffix}`];
+  const media = card.mediaItems ?? [card.media];
+  const productIds = new Set([...(card.productIds ?? []), ...media.flatMap((item) => item?.productIds ?? [])]);
   const texts = [
     card[`title${suffix}`],
-    ...(card.mediaItems ?? [card.media]).map((media) => media?.[`alt${suffix}`]),
-    ...(card.productIds ?? []).map((id) => label(products, id)),
+    ...media.flatMap((item) => [item?.[`title${suffix}`], item?.[`alt${suffix}`]]),
+    ...[...productIds].map((id) => label(products, id)),
     ...(card.tagIds ?? []).map((id) => (TAG_GROUPS.has(tags.get(id)?.group) ? label(tags, id) : null)),
   ];
   const seen = new Map();
@@ -152,15 +155,19 @@ function candidates(query) {
   return [typed, ...[telexParts, vniParts].map((decode) => make(words.map(decode))).filter((candidate) => candidate.marks)];
 }
 
-// Query copies with one synonym member swapped for another member of its group (plain words).
+// Query copies with one synonym member swapped for another member of its group (plain words). A member typed with one word
+// off ("kios" for "kiosk") still swaps; that copy is marked `typo` and scores at the typo level.
 function synonymQueries(list, locale) {
   const swapped = [];
   for (const { plainWords } of list) {
     for (const group of groupsFor(locale)) {
       for (const from of group) {
         for (let at = 0; at + from.length <= plainWords.length; at++) {
-          if (!from.every((word, i) => plainWords[at + i] === word)) continue;
-          for (const to of group) if (to !== from) swapped.push([...plainWords.slice(0, at), ...to, ...plainWords.slice(at + from.length)]);
+          const off = from.filter((word, i) => plainWords[at + i] !== word);
+          if (off.length > 1 || (off.length && !from.some((word, i) => word !== plainWords[at + i] && closeWords(plainWords[at + i], word)))) continue;
+          for (const to of group) {
+            if (to !== from) swapped.push({ words: [...plainWords.slice(0, at), ...to, ...plainWords.slice(at + from.length)], typo: off.length > 0 });
+          }
         }
       }
     }
@@ -210,7 +217,8 @@ function phraseLevel(term, list, swaps) {
     if (contains(term.words, candidate.words)) return LEVEL.exact;
     if (!candidate.marks && contains(term.plainWords, candidate.plainWords)) best = LEVEL.plain;
   }
-  if (!best && swaps.some((swap) => contains(term.plainWords, swap))) best = LEVEL.synonym;
+  if (!best && swaps.some((swap) => !swap.typo && contains(term.plainWords, swap.words))) best = LEVEL.synonym;
+  if (!best && swaps.some((swap) => swap.typo && contains(term.plainWords, swap.words))) best = LEVEL.typo;
   if (!best && list.some((c) => (c.marks ? containsWithTypo(term.words, c.words) : containsWithTypo(term.plainWords, c.plainWords)))) best = LEVEL.typo;
   return best;
 }

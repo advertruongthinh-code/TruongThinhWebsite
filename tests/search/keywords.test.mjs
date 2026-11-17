@@ -70,6 +70,21 @@ test("synonym match gives 0.7 and a direct match still wins", () => {
   assert.equal(keywordScores("bảng hiệu quán trà", "vi", artifact).get("sign"), 0.7);
 });
 
+test("a synonym typed with one word off still swaps, at the typo level", () => {
+  const artifact = artifactOf(card("booth", "Gian hàng triển lãm cho dừa"));
+  assert.equal(kOf(artifact, "kiosk"), 0.7);
+  assert.equal(kOf(artifact, "kios"), 0.6);
+  assert.equal(kOf(artifact, "ki ot"), 0.7);
+});
+
+test("a merged card keeps the title and products of every media it holds", () => {
+  const artifact = { cards: [card("cover", "Gian hàng triển lãm", { productIds: ["p1"], tagIds: [],
+    mediaItems: [{ altVi: "Ảnh bìa" }, { titleVi: "Quầy cong veneer óc chó", altVi: "Ảnh hai", productIds: ["p2"] }] })],
+  products: [{ id: "p1", labelVi: "Gian hàng hội chợ" }, { id: "p2", labelVi: "Chữ nổi" }], tagRegistry: [] };
+  assert.equal(kOf(artifact, "quầy cong veneer"), 1);
+  assert.equal(kOf(artifact, "chữ nổi"), 1);
+});
+
 test("English queries use the English text and keep words like coffee intact", () => {
   const artifact = artifactOf(card("c", "Quầy", { titleEn: "Coffee cart with steel frame" }), card("s", "Biển", { titleEn: "Aluminium sign for a shop" }));
   const scores = keywordScores("coffee", "en", artifact);
@@ -137,6 +152,24 @@ test("real catalog: 203 cards, keyword hits and speed under 5 ms a query", () =>
     const average = (performance.now() - start) / 60;
     assert.ok(average < 5, `average ${average.toFixed(2)} ms per query`);
   }
+});
+
+test("real catalog recall: every card and every merged media is found by each part of its own title and product names", () => {
+  const artifact = buildAdvertisingArtifact();
+  const missing = [];
+  for (const locale of ["vi", "en"]) {
+    const suffix = locale === "en" ? "En" : "Vi";
+    const products = new Map(artifact.products.map((product) => [product.id, product[`label${suffix}`]]));
+    for (const entry of artifact.cards) {
+      const items = entry.mediaItems ?? [];
+      // Phrases end at a comma or ampersand (R2), so each part of a title or product name is one query.
+      const queries = [entry[`title${suffix}`], ...items.map((item) => item[`title${suffix}`]),
+        ...[...entry.productIds ?? [], ...items.flatMap((item) => item.productIds ?? [])].map((id) => products.get(id))]
+        .flatMap((text) => text?.split(/[,&]/) ?? []).map((query) => query.trim()).filter(Boolean);
+      for (const query of queries) if ((keywordScores(query, locale, artifact).get(entry.id) ?? 0) < 1) missing.push(`${locale} ${entry.id}: ${query}`);
+    }
+  }
+  assert.deepEqual(missing, []);
 });
 
 test("warmIndex builds the same index in slices, and a search during warming still scores every card", () => {

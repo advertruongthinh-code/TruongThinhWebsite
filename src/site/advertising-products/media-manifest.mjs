@@ -419,9 +419,9 @@ export const MERGED_CARD_REDIRECTS = Object.freeze(Object.fromEntries(Object.ent
   .flatMap(([coverId, mergedIds]) => mergedIds.map((id) => [id, coverId]))));
 
 // The cover item keeps the card's legacy media and name. A merged item keeps its own name (shown while it is the active
-// media, media-card R7); every item carries its own photo alt.
+// media, media-card R7) and products, so search still finds the card by them; every item carries its own photo alt.
 const mediaItemOf = (record, merged) => Object.freeze({ id: record.id, kind: "image", ...record.media,
-  ...(merged ? { titleVi: record.titleVi, titleEn: record.titleEn } : {}) });
+  ...(merged ? { titleVi: record.titleVi, titleEn: record.titleEn, productIds: record.productIds } : {}) });
 const recordById = new Map(authoredMedia.map((record) => [record.id, record]));
 const nextOrderByCategory = new Map();
 

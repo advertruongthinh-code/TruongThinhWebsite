@@ -13,7 +13,7 @@ tests:
   - tests/search/calibrate.test.mjs
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e8118ba24ffb730cdecf5
-updated: 2026-11-17
+updated: 2026-11-18
 ---
 
 # Tìm kiếm theo nghĩa cho sản phẩm quảng cáo
@@ -59,9 +59,9 @@ And thiếu token thì log deploy có cảnh báo và chỉ mục ghi status una
 
 ### R2. Lớp từ khóa
 
-`cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, tag (không lấy mô tả, vì lưới không tải mô tả; không lấy tên cụm vì một cụm gộp 3 sản phẩm); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
+`cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, tag; card gộp nhiều media lấy thêm tiêu đề và sản phẩm riêng của từng media (không lấy mô tả, vì lưới không tải mô tả; không lấy tên cụm vì một cụm gộp 3 sản phẩm); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
 nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu
-(`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; mỗi lần đổi đúng một thành viên, so bản bỏ dấu.
+(`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; "kiosk" cùng nhóm "gian hàng" (owner 2026-11-18: gõ "kios" phải ra gian hàng hội chợ); mỗi lần đổi đúng một thành viên, so bản bỏ dấu. Thành viên gõ sai một từ ("kios") vẫn được đổi, K ở mức 0,6.
 "Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card. K của card là mức cao nhất đạt được:
 
 | Mức | K |
@@ -123,7 +123,7 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
 | Chữ | 0,45 sText + 0,35 sMedia + 0,2 K |
 | Ảnh | 0,3 sText + 0,7 sMedia |
 
-1. Ngưỡng (`threshold` trong config, hiệu chỉnh R11) áp cho điểm từng input; input không có card nào đạt bị bỏ.
+1. Ngưỡng (`threshold` trong config, hiệu chỉnh R11) áp cho điểm từng input; input không có card nào đạt bị bỏ. Có input chữ thì card có K từ `keywordMin` luôn đạt (xếp theo điểm, thường ở cuối): chỉ 0,2 K thì card khớp chữ rơi dưới ngưỡng khi vector trượt, kết quả vector về sau xóa mất card mà lớp từ khóa đã hiện.
 2. Top 5 của input là 5 card điểm cao nhất của nó. Hai input nối nhau khi top 5 trùng từ 2 card; mỗi thành phần liên thông
    là một nhóm (cùng ý).
 3. Điểm nhóm của card: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có cả chữ thì = 0,3 điểm chữ (đã gồm K) + 0,7
