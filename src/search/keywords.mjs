@@ -78,19 +78,21 @@ function phrase(text) {
 
 function labelMaps(artifact) {
   const byId = (list) => new Map((list ?? []).map((entry) => [entry.id, entry]));
-  return { products: byId(artifact.products), clusters: byId(artifact.clusters), tags: byId(artifact.tagRegistry) };
+  return { products: byId(artifact.products), tags: byId(artifact.tagRegistry) };
 }
 
-/** Phrases of one card in one locale ("vi" or "en"): title, every media alt, product, cluster and tag labels. */
+/**
+ * Phrases of one card in one locale ("vi" or "en"): title, every media alt, product and tag labels. The cluster label is left out:
+ * it names three products at once ("Bảng hiệu, chữ nổi & hộp đèn"), so every light box would match "chữ nổi" exactly.
+ */
 export function cardTerms(card, artifact, locale, maps = labelMaps(artifact)) {
   const suffix = locale === "en" ? "En" : "Vi";
-  const { products, clusters, tags } = maps;
+  const { products, tags } = maps;
   const label = (map, id) => map.get(id)?.[`label${suffix}`];
   const texts = [
     card[`title${suffix}`],
     ...(card.mediaItems ?? [card.media]).map((media) => media?.[`alt${suffix}`]),
     ...(card.productIds ?? []).map((id) => label(products, id)),
-    label(clusters, card.category),
     ...(card.tagIds ?? []).map((id) => (TAG_GROUPS.has(tags.get(id)?.group) ? label(tags, id) : null)),
   ];
   const seen = new Map();
@@ -217,7 +219,7 @@ function phraseLevel(term, list, swaps) {
  * K score of every card the query reaches, as Map<cardId, 0.4..1>; cards below 0.4 are absent.
  * @param {string} query text typed by the visitor
  * @param {"vi"|"en"} locale
- * @param {{ cards: any[], products?: any[], clusters?: any[], tagRegistry?: any[] }} artifact advertising catalog artifact
+ * @param {{ cards: any[], products?: any[], tagRegistry?: any[] }} artifact advertising catalog artifact
  */
 export function keywordScores(query, locale, artifact) {
   const list = candidates(query);

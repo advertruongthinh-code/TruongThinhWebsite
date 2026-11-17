@@ -107,7 +107,7 @@ test("phrases do not match across a comma or ampersand", () => {
   assert.equal(kOf(artifact, "kệ"), 1);
 });
 
-test("cardTerms reads title, every media alt, product, cluster and tag labels but not framing tags", () => {
+test("cardTerms reads title, every media alt, product and tag labels but not cluster or framing labels", () => {
   const artifact = {
     cards: [],
     products: [{ id: "p1", labelVi: "Hộp đèn", labelEn: "Light boxes" }],
@@ -116,8 +116,8 @@ test("cardTerms reads title, every media alt, product, cluster and tag labels bu
   };
   const sample = card("x", "Tiêu đề", { category: "c1", productIds: ["p1"], tagIds: ["p1", "t1", "t2"], mediaItems: [{ altVi: "Ảnh một" }, { altVi: "Ảnh hai" }] });
   const plains = cardTerms(sample, artifact, "vi").map((term) => term.plainWords.join(" "));
-  assert.deepEqual(plains, ["tieu de", "anh mot", "anh hai", "hop den", "bang hieu", "chu noi", "hop den bat 3m"]);
-  assert.deepEqual(cardTerms(sample, artifact, "en").map((term) => term.plainWords.join(" ")), ["tieu de", "light boxes", "signage", "3m fabric light boxes"]);
+  assert.deepEqual(plains, ["tieu de", "anh mot", "anh hai", "hop den", "hop den bat 3m"]);
+  assert.deepEqual(cardTerms(sample, artifact, "en").map((term) => term.plainWords.join(" ")), ["tieu de", "light boxes", "3m fabric light boxes"]);
 });
 
 test("real catalog: 203 cards, keyword hits and speed under 5 ms a query", () => {
@@ -160,4 +160,16 @@ test("modelQuery sends catalog words for Telex and VNI, the typed text otherwise
   assert.equal(modelQuery("ho65p d9e2n", "vi", artifact), "hộp đèn");
   assert.equal(modelQuery("hop den", "vi", artifact), "hop den");
   assert.equal(modelQuery("booth sampling", "vi", artifact), "booth sampling");
+});
+
+// Owner report 2026-11-17: "chữ nổi" showed a light box (led-displays-lightboxes-12) because the cluster label matched.
+test("real catalog: an exact product phrase matches exactly only that product's cards", () => {
+  const artifact = buildAdvertisingArtifact();
+  for (const [query, product] of [["chữ nổi", "signage/raised-letters"], ["hộp đèn", "signage/light-boxes"]]) {
+    const exact = [...keywordScores(query, "vi", artifact)].filter(([, k]) => k === 1).map(([id]) => artifact.cards.find((c) => c.id === id));
+    assert.ok(exact.length > 0, query);
+    const stray = exact.filter((c) => !c.productIds.includes(product) && !cardTerms(c, artifact, "vi").some((t) => t.typed.join(" ").includes(query)));
+    assert.deepEqual(stray.map((c) => c.id), [], query);
+  }
+  assert.notEqual(keywordScores("chữ nổi", "vi", artifact).get("led-displays-lightboxes-12"), 1);
 });
