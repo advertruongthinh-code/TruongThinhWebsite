@@ -62,7 +62,7 @@ And thiếu token thì log deploy có cảnh báo và chỉ mục ghi status una
 `cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, tag; card gộp nhiều media lấy thêm tiêu đề và sản phẩm riêng của từng media (không lấy mô tả, vì lưới không tải mô tả; không lấy tên cụm vì một cụm gộp 3 sản phẩm); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
 nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu
 (`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; "kiosk" cùng nhóm "gian hàng" (owner 2026-11-18: gõ "kios" phải ra gian hàng hội chợ); mỗi lần đổi đúng một thành viên, so bản bỏ dấu. Thành viên gõ sai một từ ("kios") vẫn được đổi, K ở mức 0,6.
-"Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card; từ gõ có dấu so bản có dấu, từ gõ không dấu so bản bỏ dấu, nên "hộp den" vẫn khớp. Câu được thử thêm bản bỏ từ đệm (`src/search/stopwords.json`: "làm", "cho", "mẫu", "giá rẻ", "quảng cáo"...), K lấy bản cao hơn. K của card là mức cao nhất đạt được (rà soát 2026-11-18):
+"Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card; từ gõ có dấu so bản có dấu, từ gõ không dấu so bản bỏ dấu, nên "hộp den" vẫn khớp. Câu được thử thêm bản bỏ từ đệm (`src/search/stopwords.json`: "làm", "cho", "mẫu", "giá rẻ", "quảng cáo"...) khi cả câu không khớp card nào từ mức 0,85; từ đệm gõ không dấu mà cũng là từ khác của catalog ("cua": của, cửa) chỉ bỏ khi còn lại từ 2 từ; câu chỉ có từ đệm không khớp gì. K của card là mức cao nhất đạt được (rà soát 2026-11-18):
 
 | Mức | K |
 | --- | --- |
