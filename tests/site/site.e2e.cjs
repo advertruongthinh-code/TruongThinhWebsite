@@ -10184,7 +10184,7 @@ async function runHomeMotionRegressionCheck() {
       const hover = await firstCard.evaluate((card) => {
         const media = card.querySelector(".project-card__media");
         const image = media.querySelector("img");
-        const caption = card.querySelector("figcaption");
+        const caption = card.querySelector("figcaption, .blk-projects__name");
         const mediaRect = media.getBoundingClientRect();
         const imageRect = image.getBoundingClientRect();
         const captionRect = caption.getBoundingClientRect();
