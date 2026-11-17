@@ -206,7 +206,7 @@ Then lưới về trạng thái duyệt, ô chữ giữ câu đã gõ, không c�
 ### R10. Câu tìm trong link và link chia sẻ
 
 Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ
-(`QuotaExceededError`) thì bỏ ảnh đã lưu và báo. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
+(`QuotaExceededError`) thì bỏ ảnh đã lưu, chỉ giữ chữ. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
 và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ (nút đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại,
 gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"`
 (bấm chip, navbar, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
@@ -279,6 +279,8 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
+- Thông báo về ảnh của R6, R8 (đang chậm kèm thử lại, tạm nghỉ, tối đa 5 ảnh, file không dùng được) không còn dòng trạng thái:
+  P7 đề xuất đặt chúng thành một dòng ngắn trong khay ảnh, bên trong thanh; owner duyệt khi xem P7.
 
 ## Chú thích thuật ngữ
 

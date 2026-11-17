@@ -66,7 +66,7 @@ test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector res
   }
 });
 
-test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then offers Zalo", async () => {
+test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then shows nothing", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000, ids: [] });
