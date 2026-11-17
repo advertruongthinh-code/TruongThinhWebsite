@@ -1,7 +1,8 @@
+import { GRAIN_SIZE, grainImages } from "./grain.mjs";
+
 
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
 // The blur steps (increments in detail.css), then a white tint and grain. Levels 16.07, 57.14, 100px (ceiling 100px, owner 06/10); the arc band
-import { GRAIN_SIZE, grainImages } from "./grain.mjs";
 // has three on phone (4.5, 12, 28px; owner, 05/10, for Android phones), and nine on PC (ARC_DESKTOP_LEVELS, owner 2026-11-01).
 const ARC_STEPS = 3;
 // The owner's arc (06/10): apex at -15% of the CTA group (above the title edge, owner 10/10, so the text sits inside the core), radius 3.5 viewport widths, band 1.75 group heights,
