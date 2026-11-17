@@ -153,9 +153,6 @@ const main = ({ filter, projects }, artifact, template) => {
               ${chipLinks}
             </div>
           </div>
-          <button class="scroll-cue detail-index-hero__scroll" type="button" data-scroll-cue aria-label="Cuộn đến phần tiếp theo" data-en-aria-label="Scroll to the next section">
-            <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
-          </button>
         </section>
         ${indexSection(template, projects, filter.intro)}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>

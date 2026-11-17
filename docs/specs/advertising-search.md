@@ -160,16 +160,16 @@ And khi điểm vector về, nút "Có thêm kết quả gợi ý" hiện, bấm
 
 ### R7. Thanh tìm kiếm
 
-Theo thiết kế owner duyệt ([bản thử, biến thể 1 Đường kẻ](https://claude.ai/artifact/9zKp1Fdq1t7VYSsvLtGSUi)). Một thanh
-dài nổi ở đáy màn hình. Bên phải ô chữ: nút xoá chữ (chỉ hiện khi đã gõ), vạch ngăn, nút tìm bằng ảnh, nút kính lúp. Ảnh vào
-bằng nút, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán; khay ảnh có thumbnail, nút bỏ từng ảnh và "n/5 ảnh". Thanh
-nổi trong lớp cố định ở đáy màn hình, tới khe `[data-search-dock]` ngay dưới tiêu đề CTA thì vào khe (cuộn mượt dịch trang
-bằng `transform` nên không dùng `sticky`); lên lại trên khe thì nổi. Tới khe thì viền tan thành đường kẻ dài dưới tiêu đề, chữ to hơn, nút
-"Trao đổi ý tưởng" mở ra ở cuối đường kẻ (điện thoại: "Trao đổi"); ô chữ, khay ảnh vẫn dùng được. Rời khe thì phần mở thêm
-thu lại ngay, không mờ dần. Thanh nổi nền đặc; ở khe nền trong suốt, chỉ còn đường kẻ (owner 2026-11-17). Thanh gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có
-JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Không có dòng trạng thái trên màn hình
-(owner 2026-11-17): số kết quả chỉ báo qua vùng `aria-live` ẩn. Giảm chuyển động thì đổi trạng
-thái ngay. Chữ trên thanh, thông báo và đồng nghĩa có bản EN.
+Theo thiết kế owner duyệt ([bản thử, biến thể 1 Đường kẻ](https://claude.ai/artifact/9zKp1Fdq1t7VYSsvLtGSUi)). Một thanh dài nổi ở đáy màn hình. Bên phải ô chữ: nút xoá chữ (chỉ hiện khi đã
+gõ), vạch ngăn, nút tìm bằng ảnh, nút kính lúp. Ảnh vào bằng nút, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán; khay ảnh có thumbnail, nút bỏ từng ảnh và "n/5 ảnh". Thanh có ba chỗ
+(owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` thế chỗ hàng nhóm dưới tiêu đề hero, hàng nhóm và chip lùi xuống một bậc (chỗ cũ của "Cuộn xuống", trang có lưới masonry bỏ chữ
+này); thanh ở đây khi cả khe hiện dưới hàng header. Giữa trang: nổi trong lớp cố định ở đáy màn hình. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA, cách tiêu đề bằng `--masonry-gap`
+như link CTA trang Công trình; thanh vào khe khi khe lên tới mép trên thanh nổi, nên thanh như `sticky` của bản thử: trượt theo trang, dừng ở khe rồi mới giãn (cuộn mượt dịch trang bằng
+`transform` nên không dùng `sticky` thật). Ở hai khe viền tan thành đường kẻ dài 1000px, nền trong suốt (owner 2026-11-17), hàng cao 44px, chữ 16px; ở khe CTA nút "Trao đổi ý tưởng" mở ra ở
+cuối đường kẻ (điện thoại: "Trao đổi"). Mỗi lần đổi chỗ là một morph 0,7 giây `--ease-card` cả hai chiều: thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt từ chỗ cũ tới chỗ mới; ô chữ,
+khay ảnh vẫn dùng được. Hai vạch dọc (trước nút ảnh và trước "Trao đổi ý tưởng") cùng cao 26px. Khoảng cách hai đầu theo mắt: mép trái tới chữ 21px, đầu cán kính lúp tới mép phải 18px. Thanh
+gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Không có dòng trạng thái trên màn
+hình (owner 2026-11-17): số kết quả chỉ báo qua vùng `aria-live` ẩn. Giảm chuyển động thì đổi trạng thái ngay. Chữ trên thanh, thông báo và đồng nghĩa có bản EN.
 
 ```gherkin
 Given trang /vi/advertising-products/ ở 384px
@@ -193,28 +193,29 @@ Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
 
 ### R9. Không có kết quả
 
-Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi
-`clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới
-đang duyệt thì không gọi gì. Không hiện gì thêm (owner chọn 2026-11-17, bỏ nút Zalo, lời mời hỏi giá và link Công trình);
-khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
+Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi `clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên
+bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt thì không gọi gì. Thanh hiện một dòng chữ nhỏ màu xám "Chưa thấy mẫu phù hợp" ở chỗ thông báo của khay (thanh dừng: ngay dưới đường
+kẻ), tự tắt sau 4 giây (owner 2026-11-18; không nút Zalo, lời mời hỏi giá hay link Công trình); khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
 
 ```gherkin
 Given khách gõ "xqzw vbnk" và không card nào đạt ngưỡng
 When kết quả về
-Then lưới về trạng thái duyệt, ô chữ giữ câu đã gõ, không có khung nào hiện trên thanh
+Then lưới về trạng thái duyệt, ô chữ giữ câu đã gõ, thanh hiện "Chưa thấy mẫu phù hợp" rồi tắt sau 4 giây
 ```
 
 ### R10. Câu tìm trong link và link chia sẻ
 
-Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ
-(`QuotaExceededError`) thì bỏ ảnh đã lưu, chỉ giữ chữ. Thanh địa chỉ không mang câu tìm, vì boot của `motion.js`, nút đổi ngôn ngữ
-và lịch sử của lưới đều viết lại URL không có phần `#`. Tải lại, Back từ card, đổi ngôn ngữ (nút đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại,
-gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"`
-(bấm chip, navbar, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
+Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ (`QuotaExceededError`) thì bỏ ảnh đã lưu, chỉ giữ chữ. Tìm có chữ thì thanh địa chỉ ghi
+`#q=<encodeURIComponent(chữ)>` bằng `history.replaceState` giữ nguyên state của lưới (owner 2026-11-18), bỏ tìm thì xoá; ảnh chưa vào link (chờ P8). Tải lại, Back từ card, đổi ngôn ngữ (nút
+đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại, gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#q=` (link `#tim=` cũ vẫn mở được):
+script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"` (navbar,
+breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card; lúc bắt đầu tìm rail chọn "Tất cả". Trong lúc tìm, nhóm và chip không có kết quả nào ẩn đi, số
+trên chip là số kết quả; các mục còn lại trượt về chỗ mới, mục hiện lại thì hiện dần (owner 2026-11-18). Bấm một nhóm hoặc chip thì lưới chỉ còn kết quả thuộc mục đó, câu tìm giữ nguyên, URL
+và lịch sử duyệt không đổi; bấm "Tất cả" thì về đủ kết quả.
 
-Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
+Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
 thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
-12 ký tự base62 từ `crypto.getRandomValues`; link thành `#tim=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
+12 ký tự base62 từ `crypto.getRandomValues`; link thành `#q=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
 `Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong
 khoảng 24 giờ sau mốc). Mã hết hạn thì link vẫn tìm theo chữ và báo ảnh đã hết hạn.
@@ -267,7 +268,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
-| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, không có khung trạng thái, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
+| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
 | R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: tối đa 5 ảnh, không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
 | R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |

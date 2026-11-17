@@ -129,13 +129,17 @@ chỉ đặt lại tọa độ. Thứ tự media trong card không đổi; lư�
   Giảm chuyển động thì đổi ngay, không mờ dần.
 - `offerResults(ids)`: hiện nút "Có thêm kết quả gợi ý" / "More suggested results" ngay trên lưới; bấm mới đặt `ids`.
 - Gọi `setResults` trước khi lưới dựng xong: lượt mới nhất được giữ và áp ngay lần dựng đầu, không có lưới duyệt chớp qua.
-- Rời tìm kiếm: `clearResults`, bấm chip (kể cả chip đang chọn) hoặc Back sang filter khác đưa lưới về filter đó và phát
+- Lọc trong kết quả (owner 2026-11-18): lúc vào tìm, rail chọn "Tất cả"; nhóm và chip không có kết quả nào mang
+  `data-search-empty` và ẩn, số trên chip thành số kết quả; mục còn lại trượt về chỗ mới (FLIP 0,5 giây), mục hiện lại thì hiện
+  dần. Bấm nhóm hoặc chip thì lưới còn các kết quả thuộc mục đó, đúng thứ tự điểm, vẫn ở chế độ tìm; URL và history duyệt không
+  đổi; bấm "Tất cả" về đủ kết quả.
+- Rời tìm kiếm: `clearResults`, navbar, breadcrumb hoặc Back sang filter khác đưa lưới về filter duyệt và phát
   sự kiện `masonry:search-left` trên `window`, để trang tìm kiếm xóa ô tìm. `event.detail.reason` chỉ có 3 giá trị (plan tìm kiếm
-  0.5): `"clear"` do `clearResults`; `"filter"` do một lần bấm (chip, kể cả chip đang chọn; navbar hoặc breadcrumb từ card về lưới);
+  0.5): `"clear"` do `clearResults`; `"filter"` do một lần bấm (navbar hoặc breadcrumb từ card về lưới);
   `"history"` do Back/Forward sang filter khác.
 - Khe thanh tìm kiếm: `<div data-search-dock>` rỗng ngay dưới tiêu đề CTA, trong `.detail-cta__copy`, chỉ trên trang Sản phẩm
-  quảng cáo (VI, EN, mọi trang filter và card); trang Công trình bỏ khe lúc build. Chiều cao cố định bằng CSS, `min-height` 56px
-  dưới 1024px và 72px từ 1024px, bằng thanh tìm kiếm lúc dừng, nên CTA không đổi cao sau khi lưới xếp. Khe đi theo CTA khi CTA
+  quảng cáo (VI, EN, mọi trang filter và card); trang Công trình bỏ khe lúc build. Chiều cao cố định bằng CSS, `min-height` 48px,
+  bằng thanh tìm kiếm lúc dừng, cách tiêu đề `--masonry-gap` như link CTA trang Công trình, nên CTA không đổi cao sau khi lưới xếp. Khe đi theo CTA khi CTA
   chuyển vào trang card. Thanh tìm kiếm (search P6) tự chuyển vào khe; chưa có P6 hoặc không có JS thì khe là khoảng trống.
 - Kết quả không lưu trong history: sau F5, đổi ngôn ngữ hoặc Back tải lại hẳn trang, lưới về chế độ duyệt; trang tìm kiếm gọi lại
   `setResults` nếu vẫn còn truy vấn.
@@ -143,7 +147,7 @@ chỉ đặt lại tọa độ. Thứ tự media trong card không đổi; lư�
 ```gherkin
 Given lưới Quảng cáo đang duyệt ở 1440px
 When trang tìm kiếm gọi setResults với 15 id, có id lạ và id lặp
-Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, CTA ở cuối; bấm chip Tất cả thì về lưới duyệt và phát masonry:search-left
+Then lưới chỉ còn 15 card, mỗi card một cột theo đúng thứ tự, CTA ở cuối; bấm một nhóm thì chỉ còn kết quả của nhóm đó, clearResults thì về lưới duyệt và phát masonry:search-left
 ```
 
 ### R7. Trượt tới tọa độ đã tính
@@ -202,7 +206,7 @@ Then mỗi card mới vào bộ đứng ngay tại đích, không trượt, lớ
 | R3 | `masonry-live-layout.e2e.mjs` (chặn Worker: xếp trên luồng chính, không cảnh báo; 384px không tạo grid Worker; lưới đầu điện thoại dùng seed xếp sẵn, Back cùng tọa độ, stamp lệch thì xếp trực tiếp; 384px bấm chip chưa xem không chờ xếp nhờ xếp nền lúc rảnh); `advertising-products-static.test.mjs` (mọi trang có bản xếp sẵn mang stamp đúng card runtime dùng); `masonry-pack.test.mjs` (`phonePacks` bằng `packLive` cho 8 seed) |
 | R4 | `masonry-live-layout.e2e.mjs` (`verifyLayout` trên hình học DOM 384–1920px, 8 lần tải khác card đầu, Back cùng tọa độ, resize, chip chờ, mở card khi đang xếp); `advertising-layout-pending.e2e.mjs` |
 | R5 | `masonry-layout-fuzz.test.mjs` |
-| R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; chip, chip đang chọn, `clearResults` và Back rời tìm kiếm với đúng `detail.reason`; gọi trước khi dựng) |
+| R6 | `masonry-live-layout.e2e.mjs` mục 7 (đúng `stackLayout` ở 1440, 768, 384px; id lạ, id lặp; gọi liên tiếp; 0 kết quả; nút gợi ý; rail lọc trong kết quả và ẩn mục không có kết quả, `clearResults` và Back rời tìm kiếm với đúng `detail.reason`; gọi trước khi dựng) |
 | R7 | `masonry-live-layout.e2e.mjs` mục 8 (quỹ đạo từng khung: không lùi, không nhảy, kể cả bấm chip lần hai lúc đang trượt và hai lần đổi thứ tự kết quả tìm kiếm cách 40 ms; card mới dựng tại đích, lớp chờ hiện ngay, ở 1440 và 384px; hai lần bấm chip trong một task: chỉ lượt sau dựng; bấm chip chưa ghé ở 384px: task dựng chỉ tạo card giao vùng nhìn thấy, card mới còn lại là card tạm tại đích rồi thành card thật cùng chỗ, không trượt, không cần cuộn, trong 1 s sau cú trượt); `masonry-hosts.e2e.mjs`; `advertising-products-lifecycle.test.mjs` (không `window.Masonry`, `DUR.card`, `ease`); `site.e2e.cjs` (không cuộn nào tạo lượt trượt, artifact hỏng dừng trước khi đặt card) |
 
 ## Gate còn mở

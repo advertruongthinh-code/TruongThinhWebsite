@@ -4,14 +4,16 @@
 <script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>
 <script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready");</script>
 <style>/* Search bar (advertising-search R7): approved prototype variant 1 "Đường kẻ", in site tokens. Floats in .search-host, docks in
-   [data-search-dock] under the CTA heading (slot height 56px, 72px from 1024px; the docked bar keeps a 2px gap at the top). */
+   [data-search-dock-top] over the hero rail and in [data-search-dock] under the CTA heading (both slots 48px: row 44px + rule).
+   The host is as wide as the docked bar, so a bar leaving a slot starts from its docked width and narrows to 760px. */
 .search-host {
   --search-row-h: 60px;
+  --search-morph: 700ms;
   position: fixed;
   z-index: 974;
   left: 50%;
   bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
-  width: min(760px, 100% - 32px);
+  width: min(1000px, 100% - 32px);
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -59,13 +61,14 @@ body.is-detail .search-host {
   stroke-width: 1.8;
 }
 
+/* Both ways morph at the same pace (owner 2026-11-18): the docked rules below set the arrival, these the departure. */
 .search-bar__shell {
   position: relative;
-  width: 100%;
+  width: min(760px, 100%);
   margin-inline: auto;
   border: 1px solid var(--ink);
   background: var(--paper);
-  transition: width var(--dur-fast) ease-out, border-color var(--dur-fast) ease-out, background-color var(--dur-fast) ease-out;
+  transition: width 700ms var(--ease-card), border-color 700ms var(--ease-card), background-color 700ms var(--ease-card);
 }
 
 .search-bar__row {
@@ -73,7 +76,10 @@ body.is-detail .search-host {
   align-items: center;
   height: var(--search-row-h);
   margin: 0;
-  padding: 0 6px 0 10px;
+  /* Optical, not equal (owner 2026-11-18): the first letter's stem sits 21px in; the magnifier's thin handle tip 18px from the
+     end, which reads as the same distance because its mass (the ring) sits further in. Phones reach 18px with their 40px tools. */
+  padding: 0 4px 0 10px;
+  transition: height 700ms var(--ease-card);
 }
 
 .search-bar__row input {
@@ -88,7 +94,6 @@ body.is-detail .search-host {
   color: inherit;
   font: inherit;
   font-size: 16px;
-  transition: font-size var(--dur-fast) ease-out;
 }
 
 .search-bar__row input::placeholder {
@@ -141,7 +146,7 @@ body.is-detail .search-host {
   background: var(--ink);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform var(--dur-fast) ease-out;
+  transition: transform 700ms var(--ease-card);
 }
 
 .search-bar__talk {
@@ -150,10 +155,11 @@ body.is-detail .search-host {
   align-items: center;
   max-width: 0;
   height: 100%;
-  margin-left: 6px;
-  padding: 0 0 0 20px;
+  position: relative;
+  /* Closed it takes no room at all, so the search icon keeps the row's end padding (optical spacing, owner 2026-11-18). */
+  margin-left: 0;
+  padding: 0;
   overflow: hidden;
-  border-left: 1px solid var(--line);
   color: var(--ink);
   font-size: 1rem;
   font-weight: 700;
@@ -164,7 +170,19 @@ body.is-detail .search-host {
   clip-path: inset(0 100% 0 0);
   visibility: hidden;
   pointer-events: none;
-  transition: max-width var(--dur-fast) ease-out, clip-path var(--dur-fast) ease-out, visibility 0s linear var(--dur-fast);
+  transition: max-width 700ms var(--ease-card), padding 700ms var(--ease-card), clip-path 400ms var(--ease-card), visibility 0s linear 700ms;
+}
+
+/* The same short divider as .search-bar__sep (owner 2026-11-18: both lines equal, the short one is right). */
+.search-bar__talk::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1px;
+  height: 26px;
+  margin-top: -13px;
+  content: "";
+  background: var(--line);
 }
 
 .search-bar__talk .search-bar__icon {
@@ -242,8 +260,9 @@ body.is-detail .search-host {
   text-transform: uppercase;
 }
 
+/* Notes (image problems, no result) read as small grey text, like the count (owner 2026-11-18). */
 .search-bar__note {
-  color: var(--ink);
+  color: var(--muted);
 }
 
 .search-bar__count button {
@@ -289,24 +308,23 @@ body.is-detail .search-host {
 
 /* Docked: the border and the white ground melt into a ruled line over the CTA background (owner 2026-11-17: no white box),
    bigger text, "Trao đổi ý tưởng" opens at the end of the line. */
-/* Padding, not margin: a margin would collapse through the slot and push the CTA down. Shell = row + 2px border = slot - 2px. */
-.search-bar.is-docked {
-  padding-top: 2px;
-}
-
+/* Docked: row 44px like the Projects CTA link, text 16px like that link (owner 2026-11-18); shell = row + 2px border = slot - 2px. */
 .search-bar.is-docked .search-bar__shell {
   width: min(1000px, 100%);
   border-color: transparent;
   background: transparent;
-  transition: width 700ms var(--ease-card), border-color 700ms var(--ease-card), background-color 700ms var(--ease-card);
 }
 
 .search-bar.is-docked .search-bar__row {
-  height: 52px;
+  height: 44px;
 }
 
-/* The slot has a fixed height: the docked tray hangs below the ruled line. */
+/* The CTA slot has a fixed height: the docked tray hangs below the ruled line. Over the hero it stays in flow and pushes the rail. */
 .search-bar.is-docked .search-bar__tray {
+  padding: 0 0 8px;
+}
+
+.search-bar.is-docked[data-dock="cta"] .search-bar__tray {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
@@ -317,26 +335,16 @@ body.is-detail .search-host {
 .search-bar__shell:focus-within .search-bar__rule,
 .search-bar.is-docked .search-bar__rule {
   transform: scaleX(1);
-  transition: transform 700ms var(--ease-card);
 }
 
-.search-bar.is-docked .search-bar__row input {
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
-  transition: font-size 700ms var(--ease-card);
-}
-
-.search-bar.is-docked .search-bar__talk {
+/* "Trao đổi ý tưởng" opens at the CTA only; over the hero the bar is for finding. */
+.search-bar.is-docked[data-dock="cta"] .search-bar__talk {
   max-width: 320px;
+  padding-left: 20px;
   clip-path: inset(0 0 0 0);
   visibility: visible;
   pointer-events: auto;
-  transition: max-width 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
-}
-
-@media (min-width: 1024px) {
-  .search-bar.is-docked .search-bar__row {
-    height: 68px;
-  }
+  transition: max-width 700ms var(--ease-card), padding 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
 }
 
 @media (max-width: 750px) {
@@ -348,14 +356,24 @@ body.is-detail .search-host {
     width: 40px;
   }
 
+  .search-bar__row {
+    padding-right: 6px;
+  }
+
   .search-bar__sep {
     margin: 0 2px;
   }
 
   .search-bar__talk {
-    margin-left: 2px;
-    padding-left: 10px;
     font-size: 12px;
+  }
+
+  .search-bar.is-docked[data-dock="cta"] .search-bar__talk {
+    padding-left: 10px;
+  }
+
+  .detail-cta[data-masonry-grid-cta] .search-bar a.search-bar__talk {
+    margin-left: 2px;
   }
 
   .search-bar__talk .search-bar__icon {
@@ -365,17 +383,13 @@ body.is-detail .search-host {
   }
 
   .search-bar__long,
-  .search-bar.is-docked .search-bar__go,
-  .search-bar.is-docked .search-bar__sep {
+  .search-bar.is-docked[data-dock="cta"] .search-bar__go,
+  .search-bar.is-docked[data-dock="cta"] .search-bar__sep {
     display: none;
   }
 
-  .search-bar.is-docked .search-bar__talk {
+  .search-bar.is-docked[data-dock="cta"] .search-bar__talk {
     max-width: 120px;
-  }
-
-  .search-bar.is-docked .search-bar__row input {
-    font-size: 1.05rem;
   }
 }
 
@@ -403,7 +417,7 @@ body.is-detail .search-host {
     <span class="search-bar__rule" aria-hidden="true"></span>
   </div>
 </div></div></div>
-<div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock><div class="search-bar is-docked">
+<div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock><div class="search-bar is-docked" data-dock="cta">
   <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
     <div class="search-bar__tray" data-search-tray hidden><div class="search-bar__thumbs" data-search-thumbs></div><span class="search-bar__count" data-search-count></span></div>

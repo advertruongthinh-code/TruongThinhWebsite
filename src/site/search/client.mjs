@@ -39,7 +39,8 @@ export function createClient(ui) {
       inSearch = false;
       grid.clearResults(); // its masonry:search-left carries reason "clear" and is ignored
     }
-    ui.announce(copy.empty);
+    // A short grey line in the bar (owner 2026-11-18), gone after 4 s like the image notes.
+    ui.notice(copy.empty);
   };
 
   // images: JPEG base64 strings from images.mjs. Text alone gets the keyword fallback at 0.8 s; with images the grid waits for
