@@ -62,18 +62,19 @@ And thiếu token thì log deploy có cảnh báo và chỉ mục ghi status una
 `cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, tag; card gộp nhiều media lấy thêm tiêu đề và sản phẩm riêng của từng media (không lấy mô tả, vì lưới không tải mô tả; không lấy tên cụm vì một cụm gộp 3 sản phẩm); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
 nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu
 (`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; "kiosk" cùng nhóm "gian hàng" (owner 2026-11-18: gõ "kios" phải ra gian hàng hội chợ); mỗi lần đổi đúng một thành viên, so bản bỏ dấu. Thành viên gõ sai một từ ("kios") vẫn được đổi, K ở mức 0,6.
-"Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card. K của card là mức cao nhất đạt được:
+"Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card; từ gõ có dấu so bản có dấu, từ gõ không dấu so bản bỏ dấu, nên "hộp den" vẫn khớp. Câu được thử thêm bản bỏ từ đệm (`src/search/stopwords.json`: "làm", "cho", "mẫu", "giá rẻ", "quảng cáo"...), K lấy bản cao hơn. K của card là mức cao nhất đạt được (rà soát 2026-11-18):
 
 | Mức | K |
 | --- | --- |
 | Khớp bản có dấu | 1 |
-| Khớp bản bỏ dấu, chỉ khi câu không có dấu nào | 0,85 |
+| Khớp khi có từ gõ không dấu | 0,85 |
 | Khớp qua đồng nghĩa | 0,7 |
-| Khớp khi cho một từ sai: từ đến 4 chữ cái sai 1, dài hơn sai đến 2 (khoảng cách sửa trên bản có dấu) | 0,6 |
+| Mọi từ của câu (từ 2 từ, sau khi bỏ từ đệm) có trong card, không cần liền nhau ("hộp đèn inox") | 0,7 |
+| Khớp khi cho một từ sai: cùng chữ cái đầu, sai 1, sai 2 chỉ khi cả hai từ từ 7 chữ cái (khoảng cách sửa trên bản có dấu) | 0,6 |
 | Ít nhất nửa số từ của câu (so bản bỏ dấu) có trong cụm từ của card | 0,4 |
 
-Mức 0,6 chỉ xét từ từ 3 chữ cái trở lên, khoảng cách Levenshtein (đảo hai chữ cái tính 2). Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI
-("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ tiếng Anh như "coffee" không bị đổi sai. Không dùng LLM.
+Mức 0,6 chỉ xét từ từ 3 chữ cái trở lên, khoảng cách Levenshtein (đảo hai chữ cái tính 2), và bỏ qua từ đã có trong catalog trừ khi chỉ khác dấu ("quang" là "quảng", không phải "bảng" sai; "hộp đen" vẫn là "hộp đèn" sai dấu). Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI
+("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ tiếng Anh như "coffee" không bị đổi sai; bản Telex, VNI không xét mức 0,6. Không dùng LLM.
 
 ```gherkin
 Given card có tiêu đề "Hộp đèn tròn inox cho cà phê rang xay"
@@ -123,7 +124,7 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
 | Chữ | 0,45 sText + 0,35 sMedia + 0,2 K |
 | Ảnh | 0,3 sText + 0,7 sMedia |
 
-1. Ngưỡng (`threshold` trong config, hiệu chỉnh R11) áp cho điểm từng input; input không có card nào đạt bị bỏ. Có input chữ thì card có K từ `keywordMin` luôn đạt (xếp theo điểm, thường ở cuối): chỉ 0,2 K thì card khớp chữ rơi dưới ngưỡng khi vector trượt, kết quả vector về sau xóa mất card mà lớp từ khóa đã hiện.
+1. Ngưỡng (`threshold` trong config, hiệu chỉnh R11) áp cho điểm từng input; input không có card nào đạt bị bỏ. Chỉ có chữ (input chữ, nhóm chỉ có chữ) và có card K từ `keywordMin` thì card còn phải đạt `textRelativeMin` (0,8) lần điểm card cao nhất, để bỏ đuôi vector lỏng; câu mô tả nhu cầu không khớp từ khóa giữ ngưỡng thường (rà soát 2026-11-18: độ chính xác 0,76 lên 0,89, độ phủ 0,84 xuống 0,82 trên 157 câu). Có input chữ thì card có K từ `keywordMin` luôn đạt (xếp theo điểm, thường ở cuối): chỉ 0,2 K thì card khớp chữ rơi dưới ngưỡng khi vector trượt, kết quả vector về sau xóa mất card mà lớp từ khóa đã hiện.
 2. Top 5 của input là 5 card điểm cao nhất của nó. Hai input nối nhau khi top 5 trùng từ 2 card; mỗi thành phần liên thông
    là một nhóm (cùng ý).
 3. Điểm nhóm của card: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có cả chữ thì = 0,3 điểm chữ (đã gồm K) + 0,7
@@ -145,8 +146,7 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 ### R6. Chờ, dự phòng và lỗi
 
 Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
-Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector
-về muộn thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
+Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector về muộn mà khách chưa cuộn, chạm hay bấm phím từ lúc đó thì `setResults` luôn kết quả R5 (cùng câu ra cùng lưới dù mạng nhanh hay chậm, rà soát 2026-11-18); khách đã thao tác thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
 Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
@@ -156,7 +156,8 @@ giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào 
 Given Worker trả sau 2 giây
 When khách tìm "bảng hiệu"
 Then sau 0,8 giây lưới hiện kết quả theo K
-And khi điểm vector về, nút "Có thêm kết quả gợi ý" hiện, bấm mới xếp lại
+And khi điểm vector về mà khách chưa thao tác, lưới đổi sang kết quả R5
+And khách đã cuộn thì nút "Có thêm kết quả gợi ý" hiện, bấm mới xếp lại
 ```
 
 ### R7. Thanh tìm kiếm
@@ -248,7 +249,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | --- | --- | --- |
 | Command | `pnpm search:index`, `pnpm search:calibrate` | R1, R11; cần `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` có quyền Workers AI |
 | Data | `.site-output/search/advertising-index.bin`, `.json` | Vector int8 và meta (R1), sinh lúc deploy |
-| Data | `src/search/synonyms.json`, `src/search/score-config.json` | Đồng nghĩa; trọng số, 4 cặp mốc, ngưỡng |
+| Data | `src/search/synonyms.json`, `src/search/stopwords.json`, `src/search/score-config.json` | Đồng nghĩa; từ đệm; trọng số, 4 cặp mốc, ngưỡng, `textRelativeMin` |
 | Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain`, `modelQuery(query, locale, artifact)` (chữ gửi model: Telex/VNI đổi sang từ catalog có dấu) (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
 | Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |

@@ -17,6 +17,13 @@ export function createClient(ui) {
   let inSearch = false;
   let lastText = "";
   let lastImages = 0;
+  // Set by any scroll, tap or key after the keyword results showed: late vector results then wait for a click instead of moving
+  // the grid under the visitor. Untouched, the late results replace the keyword ones, so a query ends on the same list however
+  // fast the Worker was (2026-11-18 review).
+  let touched = false;
+  for (const type of ["wheel", "touchmove", "pointerdown", "keydown"]) {
+    window.addEventListener(type, () => { touched = true; }, { capture: true, passive: true, signal: ui.signal });
+  }
 
   const clearTimers = () => {
     timers.forEach(clearTimeout);
@@ -77,6 +84,7 @@ export function createClient(ui) {
         if (ids.length) {
           shown = ids;
           show(ids);
+          touched = false;
         } else {
           timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
         }
@@ -108,8 +116,11 @@ export function createClient(ui) {
     const ranked = rankSearch({ inputs: data.inputs, keyword, config: cfg, catalogOrder: order, productOf });
     if (shown) {
       if (ranked.ids.length && !sameIds(ranked.ids, shown)) {
-        grid.offerResults(ranked.ids);
-        ui.announce(copy.more);
+        if (!touched) show(ranked.ids);
+        else {
+          grid.offerResults(ranked.ids);
+          ui.announce(copy.more);
+        }
       }
     } else {
       ranked.ids.length ? show(ranked.ids) : finishEmpty();

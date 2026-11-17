@@ -157,3 +157,14 @@ test("zero-score cards never link inputs", () => {
   const out = rank([image({ a1: [0, 0.9] }), image({ b1: [0, 0.9] })]);
   assert.equal(out.groups.length, 2);
 });
+
+// 2026-11-18 review: a text search listed every loosely related card above the threshold ("biển phòng ban": 48 cards).
+test("text with keyword matches keeps cards from textRelativeMin of the best score; no keyword match or images skip that cut", () => {
+  const cut = { ...config, threshold: 0.3, keywordMin: 0.6, textRelativeMin: 0.8 };
+  const run = (inputs, keyword = new Map()) => rankSearch({ inputs, keyword, config: cut, catalogOrder, productOf }).ids;
+  const vectors = text({ a1: [1, 1], a2: [1, 1], a3: [0.6, 0.6] }); // 1.0 with K, 0.8, 0.48
+  assert.deepEqual(run([vectors], new Map([["a1", 1]])), ["a1", "a2"]);
+  assert.deepEqual(run([vectors], new Map([["a1", 1], ["a3", 0.6]])), ["a1", "a2", "a3"]);
+  assert.deepEqual(run([vectors]), ["a1", "a2", "a3"]);
+  assert.deepEqual(run([image({ a1: [1, 1], a2: [0.5, 0.5] })], new Map([["a1", 1]])), ["a1", "a2"]);
+});
