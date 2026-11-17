@@ -99,8 +99,9 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
 test("R9: results show on the grid only, with nothing above the bar", async () => {
   const browser = await launchBrowser();
   try {
+    // keywordMin 0.6: the keyword fallback needs a whole catalog phrase, so the query is a product name.
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
-    await search(page, "giá hộp đèn tay vẫy bao nhiêu");
+    await search(page, "hộp đèn");
     await announced(page, /kết quả/);
     assert.equal(await page.locator(".search-host > :not(.search-bar):not([data-search-file])").count(), 0, "host holds only the bar");
     assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0);
@@ -124,7 +125,13 @@ for (const viewport of [WIDE, PHONE]) {
       assert.deepEqual(hero, { aboveRail: true, cue: 0, talk: "hidden" });
       await scrollToGrid(page);
       await scrollToSlot(page);
-      await page.waitForTimeout(800);
+      // The smooth scroller eases for about 2 s: wait until the slide and morph end and the shell rests in the slot.
+      await page.waitForFunction(() => {
+        const bar = document.querySelector("[data-search-dock] .search-bar");
+        if (!bar || bar.getAnimations({ subtree: true }).length) return false;
+        const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();
+        return Math.round(bar.querySelector(".search-bar__shell").getBoundingClientRect().top) === Math.round(slot.top);
+      }, null, { timeout: 6000 });
       const docked = await page.evaluate(() => {
         const talk = document.querySelector("[data-search-dock] .search-bar__talk");
         const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();
@@ -298,7 +305,7 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
 test("R10: a #q= link searches and the bar writes #q=; an older #tim= link still opens", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("chữ nổi")}`);
+    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("chữ nổi")}`, {});
     await announced(page, /kết quả/);
     assert.equal(await page.inputValue(".search-bar input"), "chữ nổi");
     await page.waitForFunction(() => location.hash === `#q=${encodeURIComponent("chữ nổi")}`, null, { timeout: 4000 });
@@ -316,7 +323,8 @@ test("R10: a #q= link searches and the bar writes #q=; an older #tim= link still
 test("R10: a language switch keeps the query; Esc and the x clear it; the rail filters inside the results", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${PAGE}#q=${encodeURIComponent("hộp đèn")}`);
+    // A working Worker: with keywordMin 0.6 a Vietnamese query on the EN page has no keyword fallback.
+    const { context, page } = await open(browser, WIDE, `${PAGE}#q=${encodeURIComponent("hộp đèn")}`, {});
     await announced(page, /kết quả/);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
 

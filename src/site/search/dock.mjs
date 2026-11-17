@@ -24,12 +24,13 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     const from = centerY();
     parentOf(next).append(bar);
     // Reading the box here resolves the old look in the new place, so the class switch below transitions from it.
+    // A jump longer than a screen (End, Home, a restored scroll) only morphs: a slide that long would streak across the page.
     const shift = from - centerY();
     place = next;
     bar.classList.toggle("is-docked", next !== "float");
     if (next === "float") delete bar.dataset.dock;
     else bar.dataset.dock = next;
-    if (animate && !window.TruongThinhEnv?.reducedMotion.matches && Math.abs(shift) > 1) {
+    if (animate && !window.TruongThinhEnv?.reducedMotion.matches && Math.abs(shift) > 1 && Math.abs(shift) <= innerHeight) {
       bar.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: MORPH_MS, easing: EASE });
     }
     if (focused) {

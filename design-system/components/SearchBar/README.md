@@ -16,7 +16,7 @@ không có JavaScript thì CTA giữ link "Trao đổi ý tưởng" cũ. CSS n�
 - Dừng (`is-docked`, `data-dock="top"` hoặc `"cta"`): viền tan thành đường kẻ 3px dài tới 1000px, nền trong suốt, hàng 44px,
   chữ 16px như link CTA trang Công trình. Khe cao 48px; khe CTA cách tiêu đề `--masonry-gap`. Ở khe CTA "Trao đổi ý tưởng" mở
   bằng `clip-path` ở cuối đường kẻ, vạch trước nó cũng 26px (điện thoại: "Trao đổi", ẩn kính lúp); ở khe đầu trang không có.
-- Đổi chỗ: morph 700ms `ease-card` cả hai chiều. Thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt (`translateY`) từ chỗ cũ;
+- Đổi chỗ: morph 700ms `ease-card` cả hai chiều. Thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt (`translateY`) từ chỗ cũ, trừ khi xa hơn một màn hình;
   vào khe CTA đúng lúc khe chạm mép trên thanh nổi nên thanh trôi theo trang như `sticky` rồi giãn ra.
 - Không có dòng trạng thái trên màn hình (owner 2026-11-17): kết quả chỉ hiện trên lưới. Không ra kết quả thì khay hiện dòng
   "Chưa thấy mẫu phù hợp" chữ hoa 12.8px `muted`, tự tắt sau 4 giây (owner 2026-11-18). Screen reader đọc số kết quả qua vùng
