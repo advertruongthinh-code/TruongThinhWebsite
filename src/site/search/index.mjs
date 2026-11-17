@@ -11,6 +11,7 @@ import * as session from "./session.mjs";
 export function mount(container, { signal, softNavigation = false } = {}) {
   const grid = window.TruongThinhMasonry;
   const slot = container.querySelector("[data-search-dock]");
+  const topSlot = container.querySelector("[data-search-dock-top]");
   if (!grid || !slot || signal?.aborted) return;
   if (!document.querySelector("style[data-search-style]")) {
     document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
@@ -148,9 +149,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   };
   let dock;
   dock = mountDock({
-    host, bar, slot, input, signal,
-    onChange: (docked) => {
-      input.placeholder = docked ? copy.placeholderDocked : copy.placeholder;
+    host, bar, top: topSlot, cta: slot, input, signal,
+    onChange: (place) => {
+      input.placeholder = place === "cta" ? copy.placeholderDocked : copy.placeholder;
       syncOffset();
     },
   });

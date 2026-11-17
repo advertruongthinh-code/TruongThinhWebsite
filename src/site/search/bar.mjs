@@ -65,7 +65,7 @@ const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-h
 const escape = (text) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 // Markup string, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs).
-export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search-bar${docked ? " is-docked" : ""}">
+export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search-bar${docked ? ' is-docked" data-dock="cta' : ""}">
   <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
     <div class="search-bar__tray" data-search-tray hidden><div class="search-bar__thumbs" data-search-thumbs></div><span class="search-bar__count" data-search-count></span></div>

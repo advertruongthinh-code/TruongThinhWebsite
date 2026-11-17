@@ -2108,8 +2108,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.remove();
     if (keepable) queue.put(id, node);
   };
+  // The rail shows the browse filter, or in search mode the filter inside the results (owner 2026-11-18).
+  const railFilter = () => (search ? searchFilter : filter);
   // A product filter (id "<cluster>/<slug>") still marks its cluster on the rail.
-  const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
+  const isRailCurrent = (slug) => railFilter() === slug || railFilter().startsWith(`${slug}/`);
+  // In search mode a rail entry or chip with no result hides (owner 2026-11-18); "all" and the entry in use always show.
+  const inResults = (slug) => !search || slug === "all" || slug === searchFilter || search.order.some((card) => matchesFilter(card, slug));
+  const railEntries = () => [...filters.querySelectorAll("[data-masonry-filter]"), ...container.querySelectorAll("[data-masonry-product]")];
+  const shown = (node) => !node.hidden && !node.hasAttribute("data-search-empty") && !node.closest("[hidden]");
   // Two-tier rail (taxonomy R3): the selected cluster shows a chip row; the product entry matching the filter has aria-current.
   const chipGroups = [...container.querySelectorAll("[data-masonry-chips]")];
   // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
@@ -2124,11 +2130,36 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }));
   };
   const syncRail = ({ animate = false } = {}) => {
+    // Entries that stay slide from their old place (FLIP); entries that come back enter like the chips below.
+    const slide = animate && !reducedMotionQuery.matches;
+    const before = slide ? new Map(railEntries().filter(shown).map((node) => [node, node.getBoundingClientRect()])) : null;
     filters.querySelectorAll("[data-masonry-filter]").forEach((item) => {
       item.setAttribute("aria-current", String(isRailCurrent(item.dataset.masonryFilter)));
+      item.toggleAttribute("data-search-empty", !inResults(item.dataset.masonryFilter));
     });
     container.querySelectorAll("[data-masonry-product]").forEach((item) => {
-      item.setAttribute("aria-current", String(item.dataset.masonryProduct === filter));
+      item.setAttribute("aria-current", String(item.dataset.masonryProduct === railFilter()));
+      item.toggleAttribute("data-search-empty", !inResults(item.dataset.masonryProduct));
+      // The chip count follows the results while searching.
+      const count = item.querySelector("sup");
+      if (!count) return;
+      count.dataset.total ??= count.textContent;
+      count.textContent = search ? String(search.order.filter((card) => matchesFilter(card, item.dataset.masonryProduct)).length) : count.dataset.total;
+    });
+    if (before) requestAnimationFrame(() => {
+      const entering = [];
+      railEntries().filter(shown).forEach((node) => {
+        const from = before.get(node);
+        if (!from) return entering.push(node);
+        const to = node.getBoundingClientRect();
+        const dx = from.left - to.left;
+        const dy = from.top - to.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        node.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 500, easing: EASE.expoOut });
+      });
+      entering.forEach((node, index) => node.animate([{ opacity: 0, transform: "translate3d(0, 12px, 0)" }, { opacity: 1, transform: "none" }], {
+        duration: 500, easing: EASE.expoOut, delay: 100 + index * 40, fill: "backwards",
+      }));
     });
     chipGroups.forEach((group) => {
       const wasHidden = group.hidden;
@@ -2151,8 +2182,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Search mode (masonry-live-layout R6): ranked result ids replace the filter pool, every card one column in score order.
   // The rail filter and history keep the browse state; leaving search returns to that filter.
   let search = null;
+  // Filter inside the results: a rail click in search mode narrows the results and keeps the search (owner 2026-11-18).
+  let searchFilter = "all";
   const isSearchKey = (key) => key.startsWith("search:");
-  const gridKey = () => search?.key ?? filter;
+  const gridKey = () => (search ? `${search.key}|${searchFilter}` : filter);
   const searchFor = (ids) => {
     const seen = new Set();
     const byId = new Map(cards.map((card) => [card.id, card]));
@@ -2414,7 +2447,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // `layoutViewportWidth`: the width measure already holds, so a card-set change reads no layout here.
   const geometryRequest = (targetFilter, layoutViewportWidth = document.documentElement.clientWidth) => {
     if (isSearchKey(targetFilter)) {
-      const order = targetFilter === search?.key ? search.order : [];
+      const order = search && targetFilter === gridKey() ? search.order.filter((card) => matchesFilter(card, searchFilter)) : [];
       return {
         key: [artifactCacheIdentity.datasetVersion, targetFilter, layoutViewportWidth].join(":"),
         compile: () => stackLayout({ order, layoutViewportWidth, filter: targetFilter, settings, source: "search" }),
@@ -3856,8 +3889,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setOffer(null);
     relayoutTo(() => {
       search = null;
+      searchFilter = "all";
       filter = nextFilter;
     }, options);
+  };
+  const setSearchFilter = (nextFilter) => {
+    if (!search || nextFilter === searchFilter) return;
+    relayoutTo(() => {
+      searchFilter = nextFilter;
+    }, { animate: true });
   };
   let offer = null;
   const setOffer = (ids) => {
@@ -3881,9 +3921,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setPending(false);
     setOffer(null);
     const next = searchFor(ids);
-    if (next.key === gridKey()) return;
+    if (next.key === search?.key && searchFilter === "all") return;
     relayoutTo(() => {
       search = next;
+      searchFilter = "all";
     }, { animate: true });
   };
   const clearResults = () => {
@@ -3892,6 +3933,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!search) return cancelLayoutWait();
     whenLayoutReady(filter, () => relayoutTo(() => {
       search = null;
+      searchFilter = "all";
     }, { animate: true, reason: "clear" }));
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
@@ -5754,7 +5796,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     event.preventDefault();
     event.stopImmediatePropagation();
     const nextFilter = control.dataset.masonryFilter ?? control.dataset.masonryProduct;
-    // Clicking the active filter again cancels a click still waiting for its pack; in search mode it returns to that filter.
+    // In search mode the rail filters the results in place; the browse filter and its history entry stay for after the search.
+    if (search) {
+      if (grid.contains(document.activeElement)) control.focus();
+      setSearchFilter(nextFilter);
+      return;
+    }
+    // Clicking the active filter again cancels a click still waiting for its pack.
     if (nextFilter === filter && !search) {
       cancelLayoutWait();
       return;

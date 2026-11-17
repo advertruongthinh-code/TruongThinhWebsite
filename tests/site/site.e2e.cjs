@@ -471,13 +471,13 @@ function assertPersistentNavigationContracts() {
       projectsHeroContent?.includes('data-en="always in sight"') &&
       !projectsHeroContent?.includes("project-filters") &&
       !projectsHeroContent?.includes("detail-hero-motto") &&
-      /class="scroll-cue detail-index-hero__scroll"[\s\S]*?data-scroll-cue[\s\S]*?data-en="SCROLL DOWN"[\s\S]*?CUỘN XUỐNG/.test(
-        projectsHeroSection,
-      ) &&
+      // Masonry pages have no scroll cue (owner 2026-11-18); the search bar takes the rail's place.
+      !projectsHeroSection.includes("data-scroll-cue") &&
+      projectsHeroSection.includes("data-search-dock-top") &&
       detailCss.includes("height: calc(100svh - 50px);") &&
       detailCss.includes("width: min(calc(100% - 2 * var(--gutter)), 1500px);") &&
       styleSource.includes(".scroll-cue"),
-    "Advertising hero must use the approved Projects-style copy, sibling filters, scroll cue, and viewport-minus-50 layout",
+    "Advertising hero must use the approved Projects-style copy, sibling filters, search top slot without a scroll cue, and viewport-minus-50 layout",
   );
 
   const clientLogoMarquee = homeSource.match(
@@ -863,6 +863,11 @@ function assertPersistentNavigationContracts() {
 function assertEspacioTypographyMotionSourceContracts() {
   for (const [relativePath] of PUBLIC_HTML) {
     const source = readPageSource(relativePath);
+    // Masonry pages have no scroll cue (owner 2026-11-18).
+    if (source.includes("masonry-section")) {
+      assert(!source.includes("data-scroll-cue"), `${relativePath} is a masonry page without a scroll cue`);
+      continue;
+    }
     assert(
       (source.match(/\bdata-scroll-cue(?!-)/g) || []).length === 1 &&
         /<button\b[^>]*\bdata-scroll-cue\b[\s\S]*?\bdata-scroll-cue-label\b/.test(
