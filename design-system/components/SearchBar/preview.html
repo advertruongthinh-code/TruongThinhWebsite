@@ -21,6 +21,7 @@ body.is-detail .search-host {
   display: none;
 }
 
+.search-host [hidden],
 .search-bar [hidden],
 .detail-cta[data-masonry-grid-cta] .detail-cta__copy .legacy-link[hidden] {
   display: none;
@@ -172,9 +173,13 @@ body.is-detail .search-host {
   stroke-width: 2.4;
 }
 
-/* Status line above the floating bar: results, groups, Zalo, copy link. */
+/* Status line in the fixed host, above the floating bar, or at the screen bottom while the bar is docked: results, groups,
+   Zalo, copy link. */
 .search-bar__status {
   position: absolute;
+  z-index: 1;
+  color: var(--ink);
+  pointer-events: auto;
   bottom: calc(100% + 8px);
   left: 50%;
   display: flex;
@@ -253,6 +258,7 @@ body.is-detail .search-host {
   height: 52px;
 }
 
+.search-bar__shell:focus-within .search-bar__rule,
 .search-bar.is-docked .search-bar__rule {
   transform: scaleX(1);
   transition: transform 700ms var(--ease-card);
@@ -269,10 +275,6 @@ body.is-detail .search-host {
   visibility: visible;
   pointer-events: auto;
   transition: max-width 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
-}
-
-.search-bar.is-docked .search-bar__status {
-  display: none;
 }
 
 @media (min-width: 1024px) {
@@ -313,7 +315,7 @@ body.is-detail .search-host {
   }
 
   .search-bar.is-docked .search-bar__talk {
-    max-width: 110px;
+    max-width: 120px;
   }
 
   .search-bar.is-docked .search-bar__row input {
@@ -329,8 +331,8 @@ body.is-detail .search-host {
   }
 }
 </style>
-<div style="position: relative; height: 150px; transform: translateZ(0);"><div class="search-host"><div class="search-bar">
-  <div class="search-bar__status" data-search-status aria-live="polite" ><div class="search-bar__lines"><p><span>12 kết quả cho “hộp đèn”</span><button type="button">Sao chép link</button></p></div></div>
+<div style="position: relative; height: 150px; transform: translateZ(0);"><div class="search-host"><div class="search-bar__status" data-search-status><div class="search-bar__lines"><p><span>12 kết quả cho “hộp đèn”</span><button type="button">Sao chép link</button></p></div></div><div class="search-bar">
+  <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
     <form class="search-bar__row" role="search">
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>
@@ -345,7 +347,7 @@ body.is-detail .search-host {
   </div>
 </div></div></div>
 <div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock><div class="search-bar is-docked">
-  <div class="search-bar__status" data-search-status aria-live="polite" hidden></div>
+  <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
     <form class="search-bar__row" role="search">
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>

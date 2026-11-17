@@ -10,7 +10,7 @@ const INTERIOR = {
 };
 const sameIds = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
-// ui: { grid, artifact, locale, copy, zaloHref, setStatus(lines|null), onResults(), session }
+// ui: { grid, artifact, locale, copy, zaloHref, setStatus(lines), toast(text), session }
 export function createClient(ui) {
   const { grid, artifact, locale, copy } = ui;
   const order = artifact.cards.map((card) => card.id);

@@ -130,6 +130,27 @@ for (const viewport of [WIDE, PHONE]) {
   });
 }
 
+for (const viewport of [WIDE, PHONE]) {
+  test(`R7, R9 at ${viewport.width}px: a search from the docked bar shows its status and the Zalo button`, async () => {
+    const browser = await launchBrowser();
+    try {
+      const { context, page } = await open(browser, viewport, PAGE, { ids: [] });
+      await scrollToSlot(page);
+      await search(page, "xqzw vbnk");
+      const zalo = page.locator("[data-search-status] button", { hasText: /zalo/i });
+      await zalo.waitFor({ state: "visible", timeout: 5000 });
+      const box = await zalo.boundingBox();
+      const size = page.viewportSize();
+      assert(box && box.height > 0 && box.y + box.height <= size.height && box.x >= 0, `Zalo button on screen: ${JSON.stringify(box)}`);
+      assert(await isDocked(page), "still docked");
+      assert.match(await page.locator("[data-search-live]").textContent(), /chưa thấy/i, "announced in the live region");
+      await context.close();
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
 test("R10: a #tim= link searches; a language switch keeps the query; Esc and a chip clear it", async () => {
   const browser = await launchBrowser();
   try {

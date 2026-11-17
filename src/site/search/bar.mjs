@@ -57,9 +57,11 @@ const ICON = {
 const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 const escape = (text) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-// Markup string, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs).
+// Markup strings, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs).
+// The status lives in the fixed host, not in the bar: it stays on screen when the bar is docked in the CTA.
+export const statusMarkup = (lines = "") => `<div class="search-bar__status" data-search-status${lines ? "" : " hidden"}>${lines}</div>`;
 export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search-bar${docked ? " is-docked" : ""}">
-  <div class="search-bar__status" data-search-status aria-live="polite" hidden></div>
+  <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
     <form class="search-bar__row" role="search">
       <label class="search-bar__sr" for="search-bar-input">${escape(copy.label)}</label>
@@ -76,14 +78,15 @@ export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search
 
 export function createBar(copy, zaloHref) {
   const template = document.createElement("template");
-  template.innerHTML = barMarkup(copy, zaloHref);
-  const bar = template.content.firstElementChild;
+  template.innerHTML = statusMarkup() + barMarkup(copy, zaloHref);
+  const [statusNode, bar] = template.content.children;
   return {
     bar,
     form: bar.querySelector("form"),
     input: bar.querySelector("input"),
     clearText: bar.querySelector("[data-search-clear-text]"),
-    statusNode: bar.querySelector("[data-search-status]"),
+    statusNode,
+    liveNode: bar.querySelector("[data-search-live]"),
   };
 }
 

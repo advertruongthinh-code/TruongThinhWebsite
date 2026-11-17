@@ -16,6 +16,7 @@ body.is-detail .search-host {
   display: none;
 }
 
+.search-host [hidden],
 .search-bar [hidden],
 .detail-cta[data-masonry-grid-cta] .detail-cta__copy .legacy-link[hidden] {
   display: none;
@@ -167,9 +168,13 @@ body.is-detail .search-host {
   stroke-width: 2.4;
 }
 
-/* Status line above the floating bar: results, groups, Zalo, copy link. */
+/* Status line in the fixed host, above the floating bar, or at the screen bottom while the bar is docked: results, groups,
+   Zalo, copy link. */
 .search-bar__status {
   position: absolute;
+  z-index: 1;
+  color: var(--ink);
+  pointer-events: auto;
   bottom: calc(100% + 8px);
   left: 50%;
   display: flex;
@@ -248,6 +253,7 @@ body.is-detail .search-host {
   height: 52px;
 }
 
+.search-bar__shell:focus-within .search-bar__rule,
 .search-bar.is-docked .search-bar__rule {
   transform: scaleX(1);
   transition: transform 700ms var(--ease-card);
@@ -264,10 +270,6 @@ body.is-detail .search-host {
   visibility: visible;
   pointer-events: auto;
   transition: max-width 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
-}
-
-.search-bar.is-docked .search-bar__status {
-  display: none;
 }
 
 @media (min-width: 1024px) {
@@ -308,7 +310,7 @@ body.is-detail .search-host {
   }
 
   .search-bar.is-docked .search-bar__talk {
-    max-width: 110px;
+    max-width: 120px;
   }
 
   .search-bar.is-docked .search-bar__row input {

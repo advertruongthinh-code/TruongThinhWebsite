@@ -16,18 +16,23 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }
   const locale = document.documentElement.lang === "en" ? "en" : "vi";
   const copy = COPY[locale];
-  // One source for the Zalo link: partials/floating-cta.html.
-  const zaloHref = document.querySelector(".floating-cta")?.href || "https://zalo.me/0949131050";
-  const { bar, form, input, clearText, statusNode } = createBar(copy, zaloHref);
+  // One source for the Zalo link: partials/floating-cta.html (on every page); without it the plain CTA link stays.
+  const zaloHref = document.querySelector(".floating-cta")?.href;
+  if (!zaloHref) return;
+  const { bar, form, input, clearText, statusNode, liveNode } = createBar(copy, zaloHref);
   const host = Object.assign(document.createElement("div"), { className: "search-host" });
-  host.append(bar);
+  host.append(statusNode, bar);
   document.body.append(host);
   const legacy = container.querySelector(".detail-cta .legacy-link");
   legacy?.setAttribute("hidden", "");
 
   let toastTimer;
+  // The live region stays in the DOM; the visible status box toggles separately so screen readers catch the first message.
+  const announce = (lines) => { liveNode.textContent = lines.map((line) => line.text).filter(Boolean).join(". "); };
   const toast = (text) => {
     renderStatus(statusNode, [{ text }]);
+    announce([{ text }]);
+    syncOffset();
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => setStatus(lastLines), 2400);
   };
@@ -35,6 +40,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   const setStatus = (lines) => {
     lastLines = lines;
     renderStatus(statusNode, lines, copy.clearSearch, () => leave(true));
+    announce(lines);
+    syncOffset();
   };
   const client = createClient({ grid, artifact, locale, copy, zaloHref, setStatus, toast, session });
 
@@ -44,8 +51,13 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     input.value = "";
   };
 
-  const syncOffset = () => document.body.style.setProperty("--search-bar-offset", dock.docked ? "0px" : `${bar.offsetHeight + 12}px`);
-  const dock = mountDock({
+  // Floating buttons stand above whatever the host shows: the floating bar and the status line.
+  const syncOffset = () => {
+    const height = (dock?.docked ? 0 : bar.offsetHeight + 12) + (statusNode.hidden ? 0 : statusNode.offsetHeight + 8);
+    document.body.style.setProperty("--search-bar-offset", `${height}px`);
+  };
+  let dock;
+  dock = mountDock({
     host, bar, slot, input, signal,
     onChange: (docked) => {
       input.placeholder = docked ? copy.placeholderDocked : copy.placeholder;
