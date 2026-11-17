@@ -1,6 +1,5 @@
 import { GRAIN_SIZE, grainImages } from "./grain.mjs";
 
-
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
 // The blur steps (increments in detail.css), then a white tint and grain. Levels 16.07, 57.14, 100px (ceiling 100px, owner 06/10); the arc band
 // has three on phone (4.5, 12, 28px; owner, 05/10, for Android phones), and nine on PC (ARC_DESKTOP_LEVELS, owner 2026-11-01).
