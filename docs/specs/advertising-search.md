@@ -101,7 +101,8 @@ Then phản hồi có 3 input, mỗi input đủ mọi card dạng [id, sText, s
 
 Worker không ghi câu tìm, ảnh hay IP vào log, KV, D1 hay R2 (trừ R10); không `console.*` dữ liệu request; gọi `env.AI.run`
 không kèm `gateway`, không dùng batch API bất đồng bộ; `wrangler.static.toml` ghi `[observability] enabled = false`. Ảnh
-chỉ nằm trong bộ nhớ lúc xử lý. Ba binding rate limit, khóa là IP, đếm theo cửa sổ 60 giây, không chứa nội dung: chữ 30,
+chỉ nằm trong bộ nhớ lúc xử lý. Vector của câu chữ được giữ trong bộ nhớ isolate 5 phút (tối đa 500 câu), khóa là SHA-256
+của câu, không giữ chữ, để câu lặp lại ra cùng kết quả (owner chọn 2026-11-18); ảnh không giữ. Ba binding rate limit, khóa là IP, đếm theo cửa sổ 60 giây, không chứa nội dung: chữ 30,
 có ảnh 10, link chia sẻ 5 lần mỗi phút. IP chung của mạng di động có thể gây 429 giả; khi đó R6 vẫn cho kết quả từ khóa.
 Trình duyệt giải mã ảnh bằng `createImageBitmap(blob, { imageOrientation: "from-image" })`, không xoay tay, vẽ lên canvas
 nền trắng rồi xuất JPEG chất lượng 0,85, nên EXIF và GPS không rời máy khách.
@@ -122,11 +123,11 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
 | Chữ | 0,45 sText + 0,35 sMedia + 0,2 K |
 | Ảnh | 0,3 sText + 0,7 sMedia |
 
-1. Ngưỡng 0,42 áp cho điểm từng input; input không có card nào đạt bị bỏ.
+1. Ngưỡng (`threshold` trong config, hiệu chỉnh R11) áp cho điểm từng input; input không có card nào đạt bị bỏ.
 2. Top 5 của input là 5 card điểm cao nhất của nó. Hai input nối nhau khi top 5 trùng từ 2 card; mỗi thành phần liên thông
    là một nhóm (cùng ý).
 3. Điểm nhóm của card: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có cả chữ thì = 0,3 điểm chữ (đã gồm K) + 0,7
-   phần ảnh; nhóm chỉ có chữ lấy điểm chữ. Ngưỡng 0,42 áp lại; thứ tự nhóm theo điểm card cao nhất của nhóm.
+   phần ảnh; nhóm chỉ có chữ lấy điểm chữ. Ngưỡng áp lại; thứ tự nhóm theo điểm card cao nhất của nhóm.
 4. Một nhóm: card đạt ngưỡng xếp theo điểm. Từ hai nhóm: card đạt ngưỡng ở từ 2 nhóm lên đầu, xếp theo điểm trung bình các
    nhóm đó; sau đó xen kẽ, mỗi lượt lấy card kế tiếp chưa đặt của từng nhóm theo thứ tự nhóm.
 5. Hòa điểm: giữ thứ tự catalog. Tên nhóm: sản phẩm chính (`productIds[0]`) gặp nhiều nhất trong 5 card đầu của nhóm, hòa thì
@@ -144,8 +145,8 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 ### R6. Chờ, dự phòng và lỗi
 
 Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
-Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ 0,4 thì `setResults` các card đó xếp theo K; điểm vector
-về muộn thì `offerResults`. Không card nào có K từ 0,4 mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
+Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector
+về muộn thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
 Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
