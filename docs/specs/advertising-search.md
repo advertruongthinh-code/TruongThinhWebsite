@@ -12,7 +12,7 @@ tests:
   - tests/search/worker.test.mjs
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e8118ba24ffb730cdecf5
-updated: 2026-11-16
+updated: 2026-11-17
 ---
 
 # Tìm kiếm theo nghĩa cho sản phẩm quảng cáo
@@ -84,7 +84,9 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
 cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
-`task: search result | query:`) và mọi ảnh thành vector trong một lần gọi `env.AI.run` đồng bộ, chuẩn hóa L2, so cosine
+`task: search result | query:`) và mọi ảnh thành vector bằng `env.AI.run` đồng bộ: chữ một lần gọi qua `input`, mọi ảnh
+một lần gọi qua `messages`, hai lần chạy song song khi có cả hai (chữ qua `messages` cho vector khác, P@5 tụt 0,86 xuống 0,66
+khi đo trên PC 17/11). Worker chuẩn hóa L2, so cosine
 với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
 cao nhất của card (card một media lấy media đó). Phản hồi: mỗi input một mảng `[id, sText, sMedia]` cho mọi card. Sai dạng
@@ -271,7 +273,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 | --- | --- |
 | R1 | chưa có test (`tests/search/index.test.mjs`, Workers AI giả) |
 | R2 | `node --test tests/search/keywords.test.mjs` |
-| R3, R4 | chưa có test (`tests/search/worker.test.mjs`: dạng phản hồi, 400, 413, 429, không log) |
+| R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6 chưa có test (`tests/site/advertising-search.e2e.mjs`) |
 | R7 đến R10 | chưa có test (`tests/site/advertising-search.e2e.mjs`, Worker giả qua route Playwright, 6 bề rộng) |
 | R11 | `pnpm search:calibrate` trên máy có token |
