@@ -1,9 +1,8 @@
 /* Search bar (advertising-search R7): approved prototype variant 1 "Đường kẻ", in site tokens. Floats in .search-host, docks in
-   [data-search-dock-top] over the hero rail and in [data-search-dock] under the CTA heading (both slots 48px: row 44px + rule).
+   [data-search-dock-top] over the hero rail and in [data-search-dock] under the CTA heading (both slots 48px: row 44px + frame or rule).
    The host is as wide as the docked bar, so a bar leaving a slot starts from its docked width and narrows to 760px. */
 .search-host {
   --search-row-h: 60px;
-  --search-morph: 700ms;
   position: fixed;
   z-index: 974;
   left: 50%;
@@ -36,6 +35,10 @@ body.is-detail .search-host {
   pointer-events: auto;
   color: var(--ink);
   font-weight: 500;
+  /* Every place change (dock.mjs reads these too): the card curve over 1s, the length of the site's other screen-sized moves
+     (Floating CTA, route uncover); 700ms read too fast (owner 2026-11-18). */
+  --search-morph: 1s;
+  --search-ease: var(--ease-card);
 }
 
 .search-bar__sr {
@@ -63,7 +66,7 @@ body.is-detail .search-host {
   margin-inline: auto;
   border: 1px solid var(--ink);
   background: var(--paper);
-  transition: width 700ms var(--ease-card), border-color 700ms var(--ease-card), background-color 700ms var(--ease-card);
+  transition: width var(--search-morph) var(--search-ease), border-color var(--search-morph) var(--search-ease), background-color var(--search-morph) var(--search-ease);
 }
 
 .search-bar__row {
@@ -74,7 +77,7 @@ body.is-detail .search-host {
   /* Optical, not equal (owner 2026-11-18): the first letter's stem sits 21px in; the magnifier's thin handle tip 18px from the
      end, which reads as the same distance because its mass (the ring) sits further in. Phones reach 18px with their 40px tools. */
   padding: 0 4px 0 10px;
-  transition: height 700ms var(--ease-card);
+  transition: height var(--search-morph) var(--search-ease);
 }
 
 .search-bar__row input {
@@ -141,7 +144,7 @@ body.is-detail .search-host {
   background: var(--ink);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 700ms var(--ease-card);
+  transition: transform var(--search-morph) var(--search-ease);
 }
 
 .search-bar__talk {
@@ -165,7 +168,7 @@ body.is-detail .search-host {
   clip-path: inset(0 100% 0 0);
   visibility: hidden;
   pointer-events: none;
-  transition: max-width 700ms var(--ease-card), padding 700ms var(--ease-card), clip-path 400ms var(--ease-card), visibility 0s linear 700ms;
+  transition: max-width var(--search-morph) var(--search-ease), padding var(--search-morph) var(--search-ease), clip-path var(--dur-hover) var(--search-ease), visibility 0s linear var(--search-morph);
 }
 
 /* The same short divider as .search-bar__sep (owner 2026-11-18: both lines equal, the short one is right). */
@@ -301,11 +304,14 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Docked: the border and the white ground melt into a ruled line over the CTA background (owner 2026-11-17: no white box),
-   bigger text, "Trao đổi ý tưởng" opens at the end of the line. */
-/* Docked: row 44px like the Projects CTA link, text 16px like that link (owner 2026-11-18); shell = row + 2px border = slot - 2px. */
+/* Docked: row 44px like the Projects CTA link, text 16px like that link (owner 2026-11-18); shell = row + 2px border = slot - 2px.
+   Over the hero it keeps the floating bar's frame (owner 2026-11-18); at the CTA the border and the white ground melt into a ruled
+   line over the CTA background (owner 2026-11-17: no white box) and "Trao đổi ý tưởng" opens at the end of the line. */
 .search-bar.is-docked .search-bar__shell {
   width: min(1000px, 100%);
+}
+
+.search-bar.is-docked[data-dock="cta"] .search-bar__shell {
   border-color: transparent;
   background: transparent;
 }
@@ -328,7 +334,7 @@ body.is-detail .search-host {
 }
 
 .search-bar__shell:focus-within .search-bar__rule,
-.search-bar.is-docked .search-bar__rule {
+.search-bar.is-docked[data-dock="cta"] .search-bar__rule {
   transform: scaleX(1);
 }
 
@@ -339,7 +345,7 @@ body.is-detail .search-host {
   clip-path: inset(0 0 0 0);
   visibility: visible;
   pointer-events: auto;
-  transition: max-width 700ms var(--ease-card), padding 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
+  transition: max-width var(--search-morph) var(--search-ease), padding var(--search-morph) var(--search-ease), clip-path 700ms var(--search-ease) 300ms, visibility 0s;
 }
 
 @media (max-width: 750px) {

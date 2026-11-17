@@ -425,3 +425,48 @@ test("R7: no horizontal scroll at the six widths, floating and docked", async ()
     await browser.close();
   }
 });
+
+test("R7: over the hero the bar is framed; at the CTA it is a ruled line", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser);
+    // The look once the 1s morph has settled (the end of the page can keep a slow machine busy for a while).
+    const look = async () => {
+      await page.waitForFunction(() => !document.querySelector(".search-bar").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
+      return page.evaluate(() => {
+        const shell = getComputedStyle(document.querySelector(".search-bar__shell"));
+        const rule = getComputedStyle(document.querySelector(".search-bar__rule"));
+        return { border: shell.borderTopColor, ruled: rule.transform !== "matrix(0, 0, 0, 1, 0, 0)" };
+      });
+    };
+    assert.deepEqual(await look(), { border: "rgb(32, 33, 32)", ruled: false }, "top: framed");
+    await scrollToSlot(page);
+    await page.waitForTimeout(100);
+    assert.deepEqual(await look(), { border: "rgba(0, 0, 0, 0)", ruled: true }, "cta: ruled line");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R7: keys that move the caret in the input do not scroll the page", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser);
+    await scrollToGrid(page);
+    await barStill(page);
+    await page.fill(".search-bar input", "hộp đèn led");
+    const before = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    for (const key of ["Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "Space"]) {
+      await page.press(".search-bar input", key);
+      await page.waitForTimeout(400);
+      const after = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      assert(Math.abs(after - before) < 2, `${key} scrolled the page ${Math.round(after - before)}px`);
+    }
+    await page.press(".search-bar input", "Home");
+    assert.equal(await page.evaluate(() => document.activeElement.selectionStart), 0, "Home moves the caret to the start");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});

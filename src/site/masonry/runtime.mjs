@@ -5869,15 +5869,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     restoreRelatedDomOrder();
   }, { signal: controller.signal });
   photoDescriptionScroll?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
-  // Locomotive captures wheel and keys at the container so the whole page scrolls; when the text can still scroll keep the input in the description.
+  // Locomotive captures the wheel at the container so the whole page scrolls; when the text can still scroll keep the wheel in the
+  // description (keys: motion.js keyOwnedByTarget).
   photoDescriptionScroll?.addEventListener("wheel", (event) => {
     const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
     if (event.deltaY < 0 ? scrollTop > 0 : event.deltaY > 0 && scrollTop < scrollHeight - clientHeight - 1) event.stopPropagation();
   }, { passive: true, signal: controller.signal });
-  photoDescriptionScroll?.addEventListener("keydown", (event) => {
-    if (photoDescriptionScroll.scrollHeight > photoDescriptionScroll.clientHeight + 1
-      && ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) event.stopPropagation();
-  }, { signal: controller.signal });
   // Dragging the scrollbar thumb: shift the pointer in proportion to the hidden text over the distance the thumb can travel.
   photoDescriptionBar?.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
