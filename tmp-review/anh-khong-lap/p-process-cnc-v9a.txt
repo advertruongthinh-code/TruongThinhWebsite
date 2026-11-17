@@ -1,0 +1,9 @@
+Use your built-in image generation tool to create ONE new photograph, landscape 3:2 at the largest size the tool supports, then save the generated image file into the current working directory as `process-cnc-v9a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+SAME SPACE: as the attached process-cnc-v8b.png and the approved home-cam-ket-san-xuat-v8b.png: same white CNC router, separate white control cabinet with monitor, white flexible dust hose rising straight to the overhead rigid duct, same walls, windows with coconut palms and light. Same 17 mm black-core HDF nested sheet (light wood-grain face, black cut grooves, shelf-pin hole rows, no labels).
+
+CAMERA (owner): a slightly SLANTED, oblique view across the machine bed like the attached 105-cnc.png (the current site photo): a low camera near the front corner of the bed looking diagonally across the sheet, the sheet's front edge running diagonally from the lower left, the gantry and spindle at the upper right, cutting near the far end. Level camera with vertical lines vertical; two-point perspective, consistent vanishing points.
+
+FRAMING: the sheet fills most of the frame; ceiling at most a thin strip; floor at most 10 percent.
+
+No sliding table saw, no worker, no people, no plants. No text, logos or numbers anywhere. Photoreal like a real camera.
