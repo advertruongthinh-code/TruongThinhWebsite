@@ -27,6 +27,7 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
 - CTA Advertising có khe thanh tìm kiếm `[data-search-dock]` rỗng ngay dưới tiêu đề, cao cố định 56px dưới 1024px và 72px
   từ 1024px, nên nút Zalo nằm thấp hơn đúng chừng đó; thanh tìm kiếm tự chuyển vào khe
   ([masonry-live-layout R6](../../../docs/specs/masonry-live-layout.md#r6-chế-độ-tìm-kiếm)). CTA trang Công trình không có khe.
+  [Thanh tìm kiếm](../SearchBar/README.md) gắn xong thì ẩn link Zalo cũ (`.legacy-link`); không có JavaScript thì link còn.
 - Nhãn nút `.legacy-link` + `.portal-subtitle` ("VỀ CHÚNG TÔI", "GỌI ZALO TƯ VẤN"):
   16px, viết hoa, không mũi tên; subtitle (nếu có) nằm trên tiêu đề. CTA trang con
   đặt nét chữ nhìn thấy của tiêu đề (không tính dấu) đúng tâm khối theo chiều
