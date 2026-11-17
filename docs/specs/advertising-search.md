@@ -43,7 +43,7 @@ Thứ tự làm: tìm bằng chữ (index, keywords, worker, rank, bar), rồi t
 ### R1. Chỉ mục vector lúc deploy
 
 Workflow `Deploy demo` chạy `pnpm search:index` sau `prepare:site`, trước deploy. Script gọi Workers AI REST, model
-`@cf/google/embeddinggemma-2`, 256 chiều. Mỗi card có một vector chữ: tiêu đề, mô tả, alt mọi media, tên sản phẩm, cụm, tag,
+`@cf/google/embeddinggemma-2`, 256 chiều. Mỗi card có một vector chữ: tiêu đề, mô tả, alt mọi media, tên sản phẩm, tag (không lấy tên cụm),
 chữ VI và EN trong một input theo mẫu `title: ... | text: ...`. Mỗi media một vector: ảnh thu bằng `sharp` về cạnh dài 768 px
 kèm alt của media; video lấy poster kèm alt. Mọi vector chuẩn hóa L2 rồi lượng tử int8 kèm hệ số `s` của từng vector, ghi
 `.site-output/search/advertising-index.bin` và `advertising-index.json` (meta: model, dims, status, thứ tự id, số media mỗi

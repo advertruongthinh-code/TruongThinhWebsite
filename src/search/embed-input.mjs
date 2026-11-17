@@ -13,12 +13,12 @@ const labelsOf = (ids, list, pick = () => true) =>
 
 export const cardMedia = (card) => card.mediaItems ?? [card.media];
 
+// No cluster label: one cluster names three products ("Bảng hiệu, chữ nổi & hộp đèn") and pulled every card of it toward each.
 export function documentText(card, artifact) {
   const media = cardMedia(card);
   const parts = [
     card.descriptionVi, card.titleEn, card.descriptionEn, ...media.map((m) => m.altVi), ...media.map((m) => m.altEn),
     ...labelsOf(card.productIds, artifact.products),
-    ...labelsOf(card.clusterIds, artifact.clusters),
     ...labelsOf(card.tagIds, artifact.tagRegistry, (tag) => tag.group === "product"),
   ];
   return `title: ${card.titleVi} | text: ${parts.join(" | ")}`;
