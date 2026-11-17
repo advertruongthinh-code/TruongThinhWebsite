@@ -143,6 +143,7 @@
 .detail-heading,
 .detail-process,
 .detail-duo,
+.detail-places,
 .masonry-section,
 .detail-cta {
   width: min(calc(100% - 2 * var(--gutter)), 1370px);
@@ -4928,5 +4929,69 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
   [data-barba-namespace="project"] .blk-projects .project-card--low {
     padding-top: 120px;
+  }
+}
+
+/* Supplier brand row under the materials note; slots stay neutral until the owner supplies the brand logos. */
+.brand-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.brand-slot {
+  display: grid;
+  min-height: clamp(5rem, 8vw, 7.5rem);
+  place-items: center;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Places block on the Commercial page: head office, workshop, consultation; portrait photo above a short caption. */
+.detail-places {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+}
+
+.detail-places figure {
+  margin: 0;
+}
+
+.detail-places img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.detail-places figcaption {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 1.25rem;
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
+  line-height: 1.5;
+}
+
+.detail-places strong {
+  font-size: clamp(1.25rem, 1.6vw, 1.625rem);
+  font-weight: 600;
+}
+
+.detail-places a {
+  color: inherit;
+}
+
+@media (max-width: 750px) {
+  .detail-places {
+    grid-template-columns: 1fr;
   }
 }

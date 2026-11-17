@@ -1780,7 +1780,7 @@ em {
 }
 
 /* Three-tier portal (home, child page types): kicker, title always at the card center, tagline. */
-:is(#dich-vu, #loai-hinh) .portal-copy {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-copy {
   --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   --portal-upper-gap: 0.85rem;
   --portal-lower-gap: 1.1rem;
@@ -1793,7 +1793,7 @@ em {
   --portal-title-half-line: calc(var(--portal-title-size) * 1.08);
 }
 
-:is(#dich-vu, #loai-hinh) .portal-copy strong {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-copy strong {
   position: absolute;
   inset: 0;
   font-size: var(--portal-title-size);
@@ -1805,8 +1805,8 @@ em {
   display: none;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet,
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-title__quiet,
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-title__strong {
   position: absolute;
   /* Fixed 8px like the tagline: "KHU LÀM VIỆC" still fits when the root text is 200% at 320px. */
   right: 8px;
@@ -1815,7 +1815,7 @@ em {
   white-space: nowrap;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
   font-weight: 700;
@@ -1824,14 +1824,14 @@ em {
   word-spacing: var(--word-spacing-body);
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-title__strong {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
   font-weight: 600;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-copy small {
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-copy small {
   position: absolute;
   top: calc(50% + var(--portal-title-half-line) + var(--portal-lower-gap));
   /* Fixed 8px: a long tagline (EN Commercial) still fits one line when the root text is 200% (page-home R5). */
@@ -1843,7 +1843,7 @@ em {
   letter-spacing: 0;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-subtitle,
+:is(#dich-vu, #loai-hinh, #hang-muc) .portal-subtitle,
 .legacy-link .portal-subtitle {
   position: relative;
   width: fit-content;
@@ -3556,6 +3556,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-heading,
 .detail-process,
 .detail-duo,
+.detail-places,
 .masonry-section,
 .detail-cta {
   width: min(calc(100% - 2 * var(--gutter)), 1370px);
@@ -8341,6 +8342,70 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
   [data-barba-namespace="project"] .blk-projects .project-card--low {
     padding-top: 120px;
+  }
+}
+
+/* Supplier brand row under the materials note; slots stay neutral until the owner supplies the brand logos. */
+.brand-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.brand-slot {
+  display: grid;
+  min-height: clamp(5rem, 8vw, 7.5rem);
+  place-items: center;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Places block on the Commercial page: head office, workshop, consultation; portrait photo above a short caption. */
+.detail-places {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+}
+
+.detail-places figure {
+  margin: 0;
+}
+
+.detail-places img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.detail-places figcaption {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 1.25rem;
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
+  line-height: 1.5;
+}
+
+.detail-places strong {
+  font-size: clamp(1.25rem, 1.6vw, 1.625rem);
+  font-weight: 600;
+}
+
+.detail-places a {
+  color: inherit;
+}
+
+@media (max-width: 750px) {
+  .detail-places {
+    grid-template-columns: 1fr;
   }
 }
 
