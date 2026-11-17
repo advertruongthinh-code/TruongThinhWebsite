@@ -2394,5 +2394,68 @@
   "round": 27,
   "change": "owner 2026-11-17 19:40 UTC: aftercare fresh from scratch, all requirements",
   "created": "2026-11-18"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v26a.png",
+  "sha256": "79adffab47a3c4967123240a982a78a3527d516ff312084539e4e6f8d6ec8d0e",
+  "bytes": 2756816,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r28-ref-1.jpg",
+   "ref/r28-ref-2.jpg",
+   "ref/r28-ref-3.jpg",
+   "ref/r28-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v26a.txt",
+  "round": 28,
+  "change": "owner 2026-11-17 20:10 UTC: power box hidden (underside hatch / side hatch / pier box), never on sign front",
+  "research": "LED sign power supplies are hidden behind the wall, inside the sign box or raceway, wired through conduit; never on the sign front (ref/sources.json r28)",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v26b.png",
+  "sha256": "62c87f9d18198773dfdcc593c1035a6b5ce6f5094a8d701a1abda3804ec761d2",
+  "bytes": 2698502,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r28-ref-1.jpg",
+   "ref/r28-ref-2.jpg",
+   "ref/r28-ref-3.jpg",
+   "ref/r28-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v26b.txt",
+  "round": 28,
+  "change": "owner 2026-11-17 20:10 UTC: power box hidden (underside hatch / side hatch / pier box), never on sign front",
+  "research": "LED sign power supplies are hidden behind the wall, inside the sign box or raceway, wired through conduit; never on the sign front (ref/sources.json r28)",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v26c.png",
+  "sha256": "7f9fcbdab0dbb44dd551723d4768f4dd7dfcb4aeb5096253fb2dc7914325d0db",
+  "bytes": 2694956,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r28-ref-1.jpg",
+   "ref/r28-ref-2.jpg",
+   "ref/r28-ref-3.jpg",
+   "ref/r28-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v26c.txt",
+  "round": 28,
+  "change": "owner 2026-11-17 20:10 UTC: power box hidden (underside hatch / side hatch / pier box), never on sign front",
+  "research": "LED sign power supplies are hidden behind the wall, inside the sign box or raceway, wired through conduit; never on the sign front (ref/sources.json r28)",
+  "created": "2026-11-18"
  }
 ]
