@@ -1,0 +1,19 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v1b2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+MUST FIX (previous attempt showed only one cabinet): ALL THREE pieces must be clearly visible together in the frame, roughly equal in visual weight: LEFT a wood-grain kitchen or wardrobe carcass, CENTRE a cafe or shop counter module with a solid-colour laminate front and a stone top, RIGHT an illuminated sign light box standing upright, glowing evenly, with no letters. Medium shot from slightly above so all three read at small card size.
+
+THE CARD THIS PHOTO ILLUSTRATES (do not print any of it): "Production. Made in our own workshop. Every part is CNC-cut, edge-banded and test-assembled in our workshop to keep accuracy and schedule in check before we install." The viewer must read precise, controlled in-house production from the picture, and see that the same workshop makes ALL THREE lines of the company equally: home interiors, business spaces (shops, cafes, offices) and advertising products (signs, light boxes, LED decor). Do not favour one line.
+
+ATTACHED IMAGES: old-production.png is the CURRENT photo in this slot (a CNC router bed with nested parts in an empty foreign-looking factory); the owner wants it replaced, so do not copy it. style-consultation and style-workshop-wide-x2 are style references for light, tonal depth, lens feel and colour grade. The real Vietnam workshop photos show typical local workshops; learn materials only.
+
+VARIANT B, TEST ASSEMBLY OF ALL THREE LINES: a clean test-assembly area in the workshop where three pieces stand side by side being checked before delivery: a wood-grain laminate kitchen or wardrobe carcass for a home, a modern cafe or shop counter module with a solid-colour laminate front, and a slim illuminated sign light box (aluminium frame, opal acrylic face lit evenly, plain with no letters) fitted with LED modules. Two workers seen from behind or with heads bent (faces hidden) fit and check them with a cordless screwdriver and a spirit level.
+
+MATERIAL: the furniture panels are black-core HDF with wood-grain or solid-colour laminate faces and matching edge banding; every exposed cut edge shows a dense, uniformly black core, never particleboard chips or beige MDF.
+
+SETTING: a clean, organised, modern panel-furniture workshop in a low-rise steel-roofed building in the Mekong Delta (Vĩnh Long); swept concrete floor; daylight from high windows; dust extraction ducts. Workers wear plain work clothes without logos and show only hands, arms or backs; no face is seen.
+
+SLOT: tall portrait card; the subject sits in the upper and middle of the frame; the lower 35-40 percent is calmer and in soft shade with nothing bright, because white text sits over it.
+
+PHOTO: an editorial photograph on a full-frame camera, 35-50 mm lens, one directional natural light source, real shadows and falloff, slight sensor grain, real material texture; intimate and specific, not a wide empty overview; not a 3D render, no glossy airbrushed surfaces. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere, including on machines.
+
+AVOID: an edge banding machine as the main subject (used on another page); a wide panorama of the whole workshop with the team; any face; sawdust piles; clutter.

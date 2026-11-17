@@ -1,0 +1,17 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v1a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+THE CARD THIS PHOTO ILLUSTRATES (do not print any of it): "Production. Made in our own workshop. Every part is CNC-cut, edge-banded and test-assembled in our workshop to keep accuracy and schedule in check before we install." The viewer must read precise, controlled in-house production from the picture, and see that the same workshop makes ALL THREE lines of the company equally: home interiors, business spaces (shops, cafes, offices) and advertising products (signs, light boxes, LED decor). Do not favour one line.
+
+ATTACHED IMAGES: old-production.png is the CURRENT photo in this slot (a CNC router bed with nested parts in an empty foreign-looking factory); the owner wants it replaced, so do not copy it. style-consultation and style-workshop-wide-x2 are style references for light, tonal depth, lens feel and colour grade. The real Vietnam workshop photos show typical local workshops; learn materials only.
+
+VARIANT A, CNC CUTTING FOR ALL THREE LINES: medium close shot at a CNC router bed. On the bed and on a cart beside it, freshly cut parts of three kinds of work lie side by side: laminate-faced black-core HDF panels for home furniture (cabinet sides and doors), curved panels for a shop or cafe counter, and thick coloured acrylic shapes for an illuminated sign (abstract icon shapes such as a leaf, a cup and a circle; no letters, no readable words). The spindle with its dust hood is cutting; one worker's gloved hands (no face) lift a finished part off the bed.
+
+MATERIAL: the furniture panels are black-core HDF with wood-grain or solid-colour laminate faces and matching edge banding; every exposed cut edge shows a dense, uniformly black core, never particleboard chips or beige MDF.
+
+SETTING: a clean, organised, modern panel-furniture workshop in a low-rise steel-roofed building in the Mekong Delta (Vĩnh Long); swept concrete floor; daylight from high windows; dust extraction ducts. Workers wear plain work clothes without logos and show only hands, arms or backs; no face is seen.
+
+SLOT: tall portrait card; the subject sits in the upper and middle of the frame; the lower 35-40 percent is calmer and in soft shade with nothing bright, because white text sits over it.
+
+PHOTO: an editorial photograph on a full-frame camera, 35-50 mm lens, one directional natural light source, real shadows and falloff, slight sensor grain, real material texture; intimate and specific, not a wide empty overview; not a 3D render, no glossy airbrushed surfaces. There is no text, lettering, numbers, logo, brand name, label or watermark anywhere, including on machines.
+
+AVOID: an edge banding machine as the main subject (used on another page); a wide panorama of the whole workshop with the team; any face; sawdust piles; clutter.

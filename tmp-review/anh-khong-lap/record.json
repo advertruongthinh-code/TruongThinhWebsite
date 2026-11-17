@@ -638,5 +638,89 @@
   "round": 9,
   "change": "owner 2026-11-16 23:46 UTC: remove sink and tap",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v1a.png",
+  "sha256": "0bbe22b450a15baba062999494280aea696a676acac4c5d4aa0e27fafca3e541",
+  "bytes": 2473398,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-production.png (projects/workshop-wide-x2.webp)",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v1a.txt",
+  "round": 1,
+  "change": "owner 2026-11-17 00:00-00:02 UTC: regenerate production portal, balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v1b.png",
+  "sha256": "4c2ffd08223a2a1af816955f514569ea1ff8dd613016c238ec23b10b440ab3aa",
+  "bytes": 2055805,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-production.png (projects/workshop-wide-x2.webp)",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v1b.txt",
+  "round": 1,
+  "change": "owner 2026-11-17 00:00-00:02 UTC: regenerate production portal, balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v1b2.png",
+  "sha256": "fecba0330caabe1a938684bdcf96cd2436ebd1aac4f5d0c973e44739d6bc5002",
+  "bytes": 2217495,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-production.png (projects/workshop-wide-x2.webp)",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v1b2.txt",
+  "round": 1,
+  "change": "owner 2026-11-17 00:00-00:02 UTC: regenerate production portal, balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v1c.png",
+  "sha256": "8a733c2fc436ff22c8b2f7eb81cb5d8e94ce5d824a90e4b7b5b742f928ba86a7",
+  "bytes": 2162037,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/old-production.png (projects/workshop-wide-x2.webp)",
+   "ref/style-consultation.png",
+   "ref/style-workshop-wide-x2.png",
+   "ref/about-xuong-ref-1.jpg",
+   "ref/about-xuong-ref-2.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v1c.txt",
+  "round": 1,
+  "change": "owner 2026-11-17 00:00-00:02 UTC: regenerate production portal, balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
  }
 ]
