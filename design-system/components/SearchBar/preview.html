@@ -215,6 +215,13 @@ body.is-detail .search-host {
   cursor: pointer;
 }
 
+/* 20px to the eye, 32px to the finger. */
+.search-bar__unthumb::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
 .search-bar__unthumb .search-bar__icon {
   width: 10px;
   height: 10px;
