@@ -1,7 +1,7 @@
 // docs-system.md R11: AGENTS.md rules checked by qa:docs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cmsImportErrors, commentLanguageErrors, emojiErrors, isVietnameseProse, markdownNameErrors, qaLineErrors } from "../../scripts/docs/agents-rules.mjs";
+import { cmsImportErrors, commentLanguageErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors } from "../../scripts/docs/agents-rules.mjs";
 
 const reader = (files) => (file) => files[file];
 
@@ -49,4 +49,16 @@ test("a PR changing src/site needs a filled Ảnh QA line", () => {
   assert.equal(qaLineErrors(["src/site/style.css"], "Kiểm: ok").length, 1);
   assert.equal(qaLineErrors(["src/site/style.css"], "Ảnh QA (UI): 384 và 1440 https://claude.ai/artifact/x").length, 0);
   assert.equal(qaLineErrors(["src/site/content/news.json"], "Ảnh QA (UI): không đổi UI - chỉ đổi chữ").length, 0);
+});
+
+test("every site image master has a PNG row; new masters need png and sha256", () => {
+  const dir = "src/site/assets/content/projects/";
+  const files = [`${dir}a.webp`, `${dir}a-480.webp`, `${dir}b.webp`, `${dir}c.jpg`, `${dir}a.avif`].filter(isImageMaster);
+  assert.deepEqual(files, [`${dir}a.webp`, `${dir}b.webp`, `${dir}c.jpg`]);
+  const sha = "a".repeat(64);
+  const csv = `anh,png,sha256\nprojects/a,,\nprojects/b,source-assets/b.png,${sha}\n`;
+  assert.deepEqual(pngOriginErrors(files, [], csv, "").map((e) => e.split(": ")[1].split(" ")[0]), ["projects/c"]);
+  assert.equal(pngOriginErrors([`${dir}a.webp`, `${dir}b.webp`], [`${dir}b.webp`], csv, "").length, 0);
+  assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "").length, 1);
+  assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "PNG gốc: không có - logo vẽ tay").length, 0);
 });

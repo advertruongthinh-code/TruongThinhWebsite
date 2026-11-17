@@ -1,3 +1,4 @@
+import { GRAIN_SIZE, grainImages } from "./grain.mjs";
 
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
 // The blur steps (increments in detail.css), then a white tint and grain. Levels 16.07, 57.14, 100px (ceiling 100px, owner 06/10); the arc band
@@ -39,7 +40,6 @@ const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
 // and every row of the box is one more blurred row per frame.
 const FADE = 48;
 const STEP_REACH = [5, 12, 26];
-const GRAIN_SIZE = 160;
 // The mean white the arc's grain adds (opacity 0.12 x mean alpha 0.5, detail.css); the tint carries exactly that much less.
 const GRAIN_WHITE = 0.06;
 let grain;
@@ -52,39 +52,61 @@ const setGrain = (glass) => {
   glass.style.setProperty("--glass-grain-size", `${GRAIN_SIZE / (window.devicePixelRatio || 1)}px`);
 };
 
-// Static mono noise, one texel per device pixel: gray for the overlay (an overlay kept pure white stays white), and
-// the same noise as white alpha for the arc (detail.css).
+const applyGrain = (greyUrl, whiteUrl) => {
+  grain = { grey: greyUrl, white: whiteUrl };
+  waitingForGrain.splice(0).forEach(setGrain);
+};
+
+// Main-thread fallback (no Worker or OffscreenCanvas): one canvas, in an idle task of its own. toBlob copies the bitmap when called, so one
+// canvas serves both images.
 function makeGrain() {
-  grain = "";
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = GRAIN_SIZE;
   const context = canvas.getContext("2d");
   if (!context) return;
-  const [grey, white] = [0, 1].map(() => context.createImageData(GRAIN_SIZE, GRAIN_SIZE));
-  const [greyPixels, whitePixels] = [grey, white].map((image) => new Uint32Array(image.data.buffer));
-  let state = 0x9e3779b9;
-  for (let index = 0; index < greyPixels.length; index += 1) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const value = state >>> 24;
-    greyPixels[index] = 0xff000000 | value * 0x10101;
-    whitePixels[index] = (value << 24 | 0xffffff) >>> 0;
-  }
-  // toBlob copies the bitmap when called, so one canvas serves both.
   const url = (image) => new Promise((resolve) => {
     context.putImageData(image, 0, 0);
     canvas.toBlob((blob) => resolve(blob && `url(${URL.createObjectURL(blob)})`));
   });
-  Promise.all([url(grey), url(white)]).then(([greyUrl, whiteUrl]) => {
-    if (!greyUrl || !whiteUrl) return;
-    grain = { grey: greyUrl, white: whiteUrl };
-    waitingForGrain.splice(0).forEach(setGrain);
+  Promise.all(grainImages((width, height) => context.createImageData(width, height)).map(url)).then(([greyUrl, whiteUrl]) => {
+    if (greyUrl && whiteUrl) applyGrain(greyUrl, whiteUrl);
   });
+}
+const makeGrainLater = () => {
+  if (globalThis.requestIdleCallback) requestIdleCallback(makeGrain, { timeout: 1000 });
+  else setTimeout(makeGrain);
+};
+
+// The grain is drawn once per page, in a Worker (A04s: 50-60ms of canvas work and garbage on the main thread); the glass shows without grain
+// until it arrives.
+function startGrain() {
+  if (typeof Worker === "undefined" || typeof OffscreenCanvas === "undefined") return makeGrainLater();
+  let worker;
+  try {
+    worker = new Worker(new URL("./grain-worker.mjs", import.meta.url), { type: "module" });
+  } catch {
+    return makeGrainLater();
+  }
+  const fallback = () => {
+    worker.terminate();
+    makeGrainLater();
+  };
+  worker.onerror = fallback;
+  worker.onmessage = ({ data }) => {
+    if (!data) return fallback();
+    worker.terminate();
+    applyGrain(...data.map((blob) => `url(${URL.createObjectURL(blob)})`));
+  };
+  worker.postMessage(null);
 }
 
 // A static surface looks the same through one full step or three stacked steps, at lower cost;
 // a surface that fades in/out step by step (spec R6) needs all three.
 export function createGlassSurface(shape, steps = shape === "arc" ? Math.max(ARC_STEPS, arcLayers().band) : 1) {
-  if (grain === undefined) makeGrain();
+  if (grain === undefined) {
+    grain = "";
+    startGrain();
+  }
   const glass = document.createElement("div");
   glass.className = "glass-surface";
   glass.dataset.glassShape = shape;
