@@ -122,7 +122,7 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
 | Chữ | 0,45 sText + 0,35 sMedia + 0,2 K |
 | Ảnh | 0,3 sText + 0,7 sMedia |
 
-1. Ngưỡng 0,42 áp cho điểm từng input; input không có card nào đạt bị bỏ và nêu trong dòng trạng thái.
+1. Ngưỡng 0,42 áp cho điểm từng input; input không có card nào đạt bị bỏ.
 2. Top 5 của input là 5 card điểm cao nhất của nó. Hai input nối nhau khi top 5 trùng từ 2 card; mỗi thành phần liên thông
    là một nhóm (cùng ý).
 3. Điểm nhóm của card: phần ảnh là điểm cao nhất trong các ảnh của nhóm; có cả chữ thì = 0,3 điểm chữ (đã gồm K) + 0,7
@@ -131,16 +131,14 @@ And Worker không ghi gì về request vào log hay kho lưu trữ
    nhóm đó; sau đó xen kẽ, mỗi lượt lấy card kế tiếp chưa đặt của từng nhóm theo thứ tự nhóm.
 5. Hòa điểm: giữ thứ tự catalog. Tên nhóm: sản phẩm chính (`productIds[0]`) gặp nhiều nhất trong 5 card đầu của nhóm, hòa thì
    lấy sản phẩm của card đầu.
-6. Dòng trạng thái có một nút cho mỗi nhóm; bấm thì `setResults` chỉ card của nhóm đó, card thuộc 2 nhóm có mặt ở cả hai.
-   Một nhóm mà card đạt ngưỡng thuộc từ 3 sản phẩm chính trở lên (từ chung chung như "biển") thì dòng trạng thái gợi ý tối
-   đa 4 sản phẩm nhiều card nhất để bấm lọc.
+6. Không có dòng trạng thái, nút nhóm hay gợi ý sản phẩm (owner bỏ khung kết quả, 2026-11-17): lưới chỉ hiện card theo
+   thứ tự trên.
 7. Câu 1 đến 2 ký tự chỉ dùng K, không gọi Worker. Có ảnh thì vector của câu chữ về cùng request với ảnh.
 
 ```gherkin
 Given khách gửi ảnh xe bán hàng, ảnh biển văn phòng và chữ "quà tặng sinh nhật"
 When chữ không có card nào đạt ngưỡng
 Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen kẽ
-And dòng trạng thái có 2 nút nhóm và dòng "Không tìm thấy theo chữ"
 ```
 
 ### R6. Chờ, dự phòng và lỗi
@@ -168,8 +166,9 @@ bằng nút, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc
 nổi trong lớp cố định ở đáy màn hình, tới khe `[data-search-dock]` ngay dưới tiêu đề CTA thì vào khe (cuộn mượt dịch trang
 bằng `transform` nên không dùng `sticky`); lên lại trên khe thì nổi. Tới khe thì viền tan thành đường kẻ dài dưới tiêu đề, chữ to hơn, nút
 "Trao đổi ý tưởng" mở ra ở cuối đường kẻ (điện thoại: "Trao đổi"); ô chữ, khay ảnh vẫn dùng được. Rời khe thì phần mở thêm
-thu lại ngay, không mờ dần; thanh luôn nền đặc. Thanh gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có
-JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; dòng trạng thái là vùng `aria-live`. Giảm chuyển động thì đổi trạng
+thu lại ngay, không mờ dần. Thanh nổi nền đặc; ở khe nền trong suốt, chỉ còn đường kẻ (owner 2026-11-17). Thanh gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có
+JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Không có dòng trạng thái trên màn hình
+(owner 2026-11-17): số kết quả chỉ báo qua vùng `aria-live` ẩn. Giảm chuyển động thì đổi trạng
 thái ngay. Chữ trên thanh, thông báo và đồng nghĩa có bản EN.
 
 ```gherkin
@@ -191,22 +190,17 @@ When khách thả thêm 3 ảnh
 Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
 ```
 
-### R9. Không có kết quả, hỏi giá, nội thất
+### R9. Không có kết quả
 
 Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi
 `clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới
-đang duyệt thì không gọi gì. Dòng trạng thái hiện nút Zalo. Bấm
-nút thì chép câu khách gõ vào clipboard, mở link Zalo lấy từ partial có sẵn của site, báo "Đã chép nội dung, dán vào khung
-chat Zalo" (link Zalo không mang sẵn tin nhắn). Chỉ 1 đến 2 card đạt ngưỡng: thêm dòng "Chưa đúng ý? Gửi qua Zalo". Ảnh không
-khớp: "Không tìm thấy theo ảnh n". Câu có từ hỏi giá (giá, bao nhiêu, báo giá, chi phí; EN price, cost, how much, quote) vẫn
-hiện card, thêm dòng mời hỏi giá qua Zalo. Có ảnh mà câu chữ bị bỏ vì không khớp card (ví dụ "cái này làm được không") thì
-thêm dòng mời gửi câu hỏi qua Zalo. Câu về nội thất (danh sách tĩnh, ví dụ tủ bếp, giường, sofa) mà không có card đạt ngưỡng
-thì thêm link sang trang Công trình. Câu phủ định không được hiểu (giới hạn của model).
+đang duyệt thì không gọi gì. Không hiện gì thêm (owner chọn 2026-11-17, bỏ nút Zalo, lời mời hỏi giá và link Công trình);
+khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
 
 ```gherkin
-Given khách gõ "giá hộp đèn tay vẫy bao nhiêu"
+Given khách gõ "xqzw vbnk" và không card nào đạt ngưỡng
 When kết quả về
-Then lưới hiện card hộp đèn tay vẫy và dòng trạng thái có lời mời hỏi giá qua Zalo
+Then lưới về trạng thái duyệt, ô chữ giữ câu đã gõ, không có khung nào hiện trên thanh
 ```
 
 ### R10. Câu tìm trong link và link chia sẻ
@@ -217,7 +211,7 @@ và lịch sử của lưới đều viết lại URL không có phần `#`. T�
 gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#tim=<encodeURIComponent(chữ)>`: script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"`
 (bấm chip, navbar, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card, không theo chip đang chọn.
 
-Nút "Sao chép link" trong dòng trạng thái chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
+Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#tim=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
 thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
 12 ký tự base62 từ `crypto.getRandomValues`; link thành `#tim=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
@@ -272,7 +266,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
-| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, hỏi giá, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
+| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, không có khung trạng thái, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
 | R8, R10 (ảnh) | chưa có test (P7, P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 

@@ -1,22 +1,16 @@
-// Text search against /api/search with the keyword fallback (advertising-search R6) and the no-result, price and interior lines (R9).
-import { keywordOnly, rankSearch, suggestProducts } from "../../search/rank.mjs";
+// Text search against /api/search with the keyword fallback (advertising-search R6). Results go to the grid only (R9).
+import { keywordOnly, rankSearch } from "../../search/rank.mjs";
 import { keywordScores, modelQuery, plain, warmIndex } from "../../search/keywords.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 
-const PRICE = { vi: /(^| )(gia|bao nhieu|bao gia|chi phi)( |$)/, en: /\b(price|cost|how much|quote)\b/i };
-const INTERIOR = {
-  vi: ["tu bep", "tu ao", "giuong", "sofa", "ban an", "ke tivi", "noi that"],
-  en: ["kitchen cabinet", "wardrobe", "bed", "sofa", "dining table", "tv cabinet", "interior"],
-};
 const sameIds = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
-// ui: { grid, artifact, locale, copy, zaloHref, setStatus(lines), toast(text), session, signal }
+// ui: { grid, artifact, locale, copy, announce(text), session, signal }
 export function createClient(ui) {
   const { grid, artifact, locale, copy } = ui;
   const order = artifact.cards.map((card) => card.id);
   const productOfMap = new Map(artifact.cards.map((card) => [card.id, card.productIds?.[0]]));
   const productOf = (id) => productOfMap.get(id);
-  const productLabel = new Map((artifact.products ?? []).map((p) => [p.id, locale === "en" ? p.labelEn : p.labelVi]));
   let turn = 0;
   let abort;
   let timers = [];
@@ -33,50 +27,10 @@ export function createClient(ui) {
     clearTimers();
   };
 
-  const zalo = async () => {
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(lastText);
-      copied = true;
-    } catch {}
-    window.open(ui.zaloHref, "_blank", "noreferrer");
-    ui.toast(copied ? copy.zaloCopied : copy.zaloPaste);
-  };
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(`${location.origin}${location.pathname}#tim=${encodeURIComponent(lastText)}`);
-      ui.toast(copy.linkCopied);
-    } catch {}
-  };
-  const zaloAction = (label) => ({ label, onClick: zalo });
-  const extraLines = (count) => {
-    const lines = [];
-    const text = locale === "en" ? lastText : plain(lastText);
-    if (PRICE[locale].test(text)) lines.push({ actions: [zaloAction(copy.price)] });
-    if (count === 0 && INTERIOR[locale].some((term) => plain(lastText).includes(term))) {
-      lines.push({ actions: [{ label: copy.projects, href: `/${locale}/projects/` }] });
-    }
-    return lines;
-  };
-
-  const show = (ids, ranked) => {
+  const show = (ids) => {
     grid.setResults(ids);
     inSearch = true;
-    const lines = [{ text: copy.results(ids.length, lastText), actions: [{ label: copy.copyLink, onClick: copyLink }] }];
-    const groups = ranked?.groups.filter((group) => group.ids.length) ?? [];
-    const nameOf = (product) => productLabel.get(product) ?? product;
-    if (groups.length > 1) {
-      lines.push({ actions: groups.map((group) => ({ label: nameOf(group.name), onClick: () => grid.setResults(group.ids) })) });
-    } else {
-      const products = suggestProducts({ ids }, productOf);
-      if (products.length) {
-        lines.push({ actions: products.map((product) => ({
-          label: nameOf(product), onClick: () => grid.setResults(ids.filter((id) => productOf(id) === product)),
-        })) });
-      }
-    }
-    if (ids.length <= 2) lines.push({ actions: [zaloAction(copy.few)] });
-    ui.setStatus([...lines, ...extraLines(ids.length)]);
+    ui.announce(copy.results(ids.length, lastText));
   };
   const finishEmpty = () => {
     grid.setPending(false);
@@ -84,7 +38,7 @@ export function createClient(ui) {
       inSearch = false;
       grid.clearResults(); // its masonry:search-left carries reason "clear" and is ignored
     }
-    ui.setStatus([{ text: copy.empty, actions: [zaloAction(copy.zalo)] }, ...extraLines(0)]);
+    ui.announce(copy.empty);
   };
 
   async function submit(text) {
@@ -93,15 +47,15 @@ export function createClient(ui) {
     stop();
     const my = turn;
     lastText = text;
-    if (ui.session.save({ text, images: [] }) === "quota") ui.toast(copy.quota);
+    ui.session.save({ text, images: [] });
     const keyword = keywordScores(text, locale, artifact);
     if ([...text].length <= 2) {
       const ids = keywordOnly(keyword, order, cfg);
-      ids.length ? show(ids, null) : finishEmpty();
+      ids.length ? show(ids) : finishEmpty();
       return true;
     }
     grid.setPending(true);
-    ui.setStatus([{ text: copy.searching }]);
+    ui.announce(copy.searching);
     abort = new AbortController();
     let shown = null;
     timers.push(setTimeout(() => {
@@ -109,7 +63,7 @@ export function createClient(ui) {
       const ids = keywordOnly(keyword, order, cfg);
       if (ids.length) {
         shown = ids;
-        show(ids, null);
+        show(ids);
       } else {
         timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
       }
@@ -130,14 +84,14 @@ export function createClient(ui) {
     clearTimers();
     if (data?.status !== "ok") {
       const ids = shown ?? keywordOnly(keyword, order, cfg);
-      if (!shown) ids.length ? show(ids, null) : finishEmpty();
+      if (!shown) ids.length ? show(ids) : finishEmpty();
       return true;
     }
     const ranked = rankSearch({ inputs: data.inputs, keyword, config: cfg, catalogOrder: order, productOf });
     if (shown) {
       if (ranked.ids.length && !sameIds(ranked.ids, shown)) grid.offerResults(ranked.ids);
     } else {
-      ranked.ids.length ? show(ranked.ids, ranked) : finishEmpty();
+      ranked.ids.length ? show(ranked.ids) : finishEmpty();
     }
     return true;
   }
@@ -171,7 +125,7 @@ export function createClient(ui) {
     inSearch = false;
     lastText = "";
     ui.session.clear();
-    ui.setStatus([]);
+    ui.announce("");
   };
   return { submit, cancel, reset, stop, warm, get active() { return Boolean(lastText); } };
 }

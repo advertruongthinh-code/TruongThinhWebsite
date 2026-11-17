@@ -15,8 +15,8 @@ Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floati
   `.detail-cta` đã có nút "Gọi Zalo tư vấn". Ẩn cả khi footer lọt vào
   viewport (trang ngắn như 404), nên footer không chừa làn nút.
 - Hover: nền trắng, chữ `ink`, `0.3s ease-out`.
-- Trang có [thanh tìm kiếm](../SearchBar/README.md) nổi: `bottom` cộng thêm `--search-bar-offset` (cao thanh và dòng trạng
-  thái đang hiện) để nút đứng trên chúng; thanh dừng ở CTA thì chỉ còn phần dòng trạng thái. Nút về đầu trang cũng vậy.
+- Trang có [thanh tìm kiếm](../SearchBar/README.md) nổi: `bottom` cộng thêm `--search-bar-offset` (cao thanh nổi) để nút
+  đứng trên thanh; thanh dừng ở CTA thì offset về 0. Nút về đầu trang cũng vậy.
 
 ## Nút về đầu trang
 

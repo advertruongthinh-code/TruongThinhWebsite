@@ -1,4 +1,5 @@
-// Search bar markup (advertising-search R7, approved prototype variant 1 "Đường kẻ") and the status line.
+// Search bar markup (advertising-search R7, approved prototype variant 1 "Đường kẻ"). No visible status (owner 2026-11-17):
+// results show on the grid; the outcome is only announced to screen readers.
 export const COPY = {
   vi: {
     label: "Tìm sản phẩm quảng cáo",
@@ -9,19 +10,9 @@ export const COPY = {
     search: "Tìm",
     talk: "Trao đổi",
     talkLong: "\u00a0ý tưởng",
-    clearSearch: "Bỏ tìm kiếm",
     searching: "Đang tìm...",
     results: (n, text) => `${n} kết quả cho “${text}”`,
-    copyLink: "Sao chép link",
-    linkCopied: "Đã chép link",
     empty: "Chưa thấy mẫu phù hợp",
-    zalo: "Gửi câu hỏi qua Zalo",
-    few: "Chưa đúng ý? Gửi qua Zalo",
-    price: "Hỏi giá qua Zalo",
-    zaloCopied: "Đã chép nội dung, dán vào khung chat Zalo",
-    zaloPaste: "Dán câu hỏi vào khung chat Zalo",
-    projects: "Xem công trình nội thất",
-    quota: "Không giữ được ảnh khi tải lại trang",
   },
   en: {
     label: "Search advertising products",
@@ -32,19 +23,9 @@ export const COPY = {
     search: "Search",
     talk: "Discuss",
     talkLong: "\u00a0an idea",
-    clearSearch: "Clear search",
     searching: "Searching...",
     results: (n, text) => `${n} results for “${text}”`,
-    copyLink: "Copy link",
-    linkCopied: "Link copied",
     empty: "No matching work yet",
-    zalo: "Ask us on Zalo",
-    few: "Not quite it? Ask on Zalo",
-    price: "Ask for a price on Zalo",
-    zaloCopied: "Copied, paste it into the Zalo chat",
-    zaloPaste: "Paste your question into the Zalo chat",
-    projects: "See interior projects",
-    quota: "Images could not be kept for a reload",
   },
 };
 
@@ -57,9 +38,7 @@ const ICON = {
 const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 const escape = (text) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-// Markup strings, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs).
-// The status lives in the fixed host, not in the bar: it stays on screen when the bar is docked in the CTA.
-export const statusMarkup = (lines = "") => `<div class="search-bar__status" data-search-status${lines ? "" : " hidden"}>${lines}</div>`;
+// Markup string, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs).
 export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search-bar${docked ? " is-docked" : ""}">
   <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
@@ -78,44 +57,13 @@ export const barMarkup = (copy, zaloHref, docked = false) => `<div class="search
 
 export function createBar(copy, zaloHref) {
   const template = document.createElement("template");
-  template.innerHTML = statusMarkup() + barMarkup(copy, zaloHref);
-  const [statusNode, bar] = template.content.children;
+  template.innerHTML = barMarkup(copy, zaloHref);
+  const bar = template.content.firstElementChild;
   return {
     bar,
     form: bar.querySelector("form"),
     input: bar.querySelector("input"),
     clearText: bar.querySelector("[data-search-clear-text]"),
-    statusNode,
     liveNode: bar.querySelector("[data-search-live]"),
   };
-}
-
-export function renderStatus(node, lines, closeLabel, onClose) {
-  const list = document.createElement("div");
-  list.className = "search-bar__lines";
-  node.replaceChildren(list);
-  node.hidden = !lines.length;
-  for (const { text, actions = [] } of lines) {
-    const line = document.createElement("p");
-    if (text) line.append(Object.assign(document.createElement("span"), { textContent: text }));
-    for (const action of actions) {
-      const el = document.createElement(action.href ? "a" : "button");
-      el.textContent = action.label;
-      if (action.href) el.href = action.href;
-      else {
-        el.type = "button";
-        el.addEventListener("click", action.onClick);
-      }
-      line.append(el);
-    }
-    list.append(line);
-  }
-  if (!lines.length || !onClose) return;
-  const close = document.createElement("button");
-  close.type = "button";
-  close.className = "search-bar__close";
-  close.setAttribute("aria-label", closeLabel);
-  close.innerHTML = icon("close");
-  close.addEventListener("click", onClose);
-  node.append(close);
 }

@@ -1,7 +1,7 @@
 // On-page search of the advertising pages (advertising-search R6, R7, R9, R10; text part). detail.js mounts it after the grid.
 import artifact from "/advertising-products/catalog-artifact.mjs";
 import css from "./search.css";
-import { COPY, createBar, renderStatus } from "./bar.mjs";
+import { COPY, createBar } from "./bar.mjs";
 import { createClient } from "./client.mjs";
 import { mountDock } from "./dock.mjs";
 import * as session from "./session.mjs";
@@ -19,31 +19,16 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   // One source for the Zalo link: partials/floating-cta.html (on every page); without it the plain CTA link stays.
   const zaloHref = document.querySelector(".floating-cta")?.href;
   if (!zaloHref) return;
-  const { bar, form, input, clearText, statusNode, liveNode } = createBar(copy, zaloHref);
+  const { bar, form, input, clearText, liveNode } = createBar(copy, zaloHref);
   const host = Object.assign(document.createElement("div"), { className: "search-host" });
-  host.append(statusNode, bar);
+  host.append(bar);
   document.body.append(host);
   const legacy = container.querySelector(".detail-cta .legacy-link");
   legacy?.setAttribute("hidden", "");
 
-  let toastTimer;
-  // The live region stays in the DOM; the visible status box toggles separately so screen readers catch the first message.
-  const announce = (lines) => { liveNode.textContent = lines.map((line) => line.text).filter(Boolean).join(". "); };
-  const toast = (text) => {
-    renderStatus(statusNode, [{ text }]);
-    announce([{ text }]);
-    syncOffset();
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => setStatus(lastLines), 2400);
-  };
-  let lastLines = [];
-  const setStatus = (lines) => {
-    lastLines = lines;
-    renderStatus(statusNode, lines, copy.clearSearch, () => leave(true));
-    announce(lines);
-    syncOffset();
-  };
-  const client = createClient({ grid, artifact, locale, copy, zaloHref, setStatus, toast, session, signal });
+  // No visible status (owner 2026-11-17): the outcome is only announced to screen readers.
+  const announce = (text) => { liveNode.textContent = text; };
+  const client = createClient({ grid, artifact, locale, copy, announce, session, signal });
 
   const leave = (tellGrid) => {
     if (tellGrid) grid.clearResults();
@@ -51,41 +36,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     input.value = "";
   };
 
-  // Floating buttons stand above whatever the host shows: the floating bar and the status line.
-  const setOffset = () => {
-    const height = (dock?.docked ? 0 : bar.offsetHeight + 12) + (statusNode.hidden ? 0 : statusNode.offsetHeight + 8) + lift;
-    document.body.style.setProperty("--search-bar-offset", `${height}px`);
-  };
+  // The floating buttons stand above the floating bar.
   const syncOffset = () => {
-    setOffset();
-    placeStatus();
-  };
-  // While docked the status sits at the screen bottom; when the docked bar passes behind it, lift the status above the bar so the
-  // input stays visible. Checked each frame only while both are shown (the page may scroll by transform, without scroll events).
-  const shell = bar.querySelector(".search-bar__shell");
-  let lift = 0;
-  let frame = 0;
-  const placeStatus = () => {
-    cancelAnimationFrame(frame);
-    if (!dock?.docked || statusNode.hidden) {
-      if (lift) {
-        lift = 0;
-        setOffset();
-      }
-      statusNode.style.removeProperty("translate");
-      return;
-    }
-    const box = shell.getBoundingClientRect();
-    const own = statusNode.getBoundingClientRect();
-    const top = own.top + lift;
-    const bottom = own.bottom + lift;
-    const next = top < box.bottom && bottom > box.top - 8 ? Math.ceil(bottom - box.top + 8) : 0;
-    if (next !== lift) {
-      lift = next;
-      statusNode.style.translate = lift ? `0 ${-lift}px` : "";
-      setOffset();
-    }
-    frame = requestAnimationFrame(placeStatus);
+    document.body.style.setProperty("--search-bar-offset", `${dock?.docked ? 0 : bar.offsetHeight + 12}px`);
   };
   let dock;
   dock = mountDock({
@@ -109,7 +62,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   input.addEventListener("keydown", (event) => {
     if (event.key === "Escape") leave(true);
   }, { signal });
+  // The x clears the text and, with a search on the grid, leaves the search too.
   clearText.addEventListener("click", () => {
+    if (client.active) leave(true);
     input.value = "";
     input.focus();
   }, { signal });
@@ -122,8 +77,6 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }, { capture: true, signal });
 
   signal?.addEventListener("abort", () => {
-    clearTimeout(toastTimer);
-    cancelAnimationFrame(frame);
     client.stop(); // the session stays for Back and reload
     bar.remove();
     host.remove();
