@@ -49,6 +49,25 @@ function ownImageReuse(siteRoot, kind, pages, label) {
   return errors;
 }
 
+// One photo, one page (owner 2026-11-16): a photo in a hand-written page may not appear in another hand-written page.
+// Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are SVG logos and placeholders.
+function pageImageReuse(siteRoot, files) {
+  const errors = [];
+  const owner = new Map();
+  for (const file of files) {
+    const page = path.relative(siteRoot, file);
+    const text = readFileSync(file, "utf8").replace(/<a\b[^>]*\shref=[^>]*>[\s\S]*?<\/a>/g, "");
+    for (const tag of new Set(text.match(/<img\b[^>]*>/g) ?? [])) {
+      const src = attribute(tag, "src");
+      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || path.basename(src).startsWith("placeholder")) continue;
+      const stem = imageStem(src);
+      if (!owner.has(stem)) owner.set(stem, page);
+      else if (owner.get(stem) !== page) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);
+    }
+  }
+  return errors;
+}
+
 // Returns errors as "<file>: <image path>: <rule>", without stopping at the first one.
 export async function checkSiteContent(siteRoot) {
   const { default: sharp } = await import("sharp");
@@ -95,6 +114,8 @@ export async function checkSiteContent(siteRoot) {
       }
     }
   }
+
+  errors.push(...pageImageReuse(siteRoot, filesUnder(siteRoot, ".html").filter((file) => !file.startsWith(path.join(siteRoot, "assets") + path.sep))));
 
   const heroFile = path.join(siteRoot, "content/hero-slides.json");
   if (existsSync(heroFile)) {

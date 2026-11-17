@@ -61,6 +61,8 @@ catalog, `validateHomeProjects`); biến thể ảnh do `build-image-variants.mj
    trang cùng loại khác, trang, file data hay CSS nào trong `src/site/` (trừ `assets/`) dùng lại ảnh đó, so theo tên gốc
    nên biến thể và định dạng khác cũng tính; ảnh tạm `placeholder-*` được miễn
    ([tạo media AI](../operations/agent-rule-ad-images.md#tạo-ảnh); ảnh công trình: owner 2026-11-13).
+8. Mỗi ảnh chụp chỉ xuất hiện trên một trang viết tay (`src/site/**/*.html`, trừ `assets/`), so theo tên gốc như luật 7;
+   card liên kết (`<img>` nằm trong `<a href>`) trỏ về trang sở hữu ảnh, logo SVG và `placeholder-*` được miễn (owner 2026-11-16).
 
 Lỗi nêu file, id và luật bị vi phạm, không dừng ở lỗi đầu tiên.
 
