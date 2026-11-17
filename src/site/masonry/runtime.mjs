@@ -3317,7 +3317,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     if (cardSkeletons.has(node)) revealCard(node);
   };
+  // A first-load build reveals its batch in a later task (renderCtaSkeleton `split`); any other build or clear drops that pending reveal.
+  let ctaRevealToken = 0;
   const clearCtaSkeleton = () => {
+    ctaRevealToken += 1;
     ctaGeometryHash = "";
     for (const frame of skeletonFrameBySlot.values()) {
       skeletonObserver?.unobserve(frame);
@@ -3413,7 +3416,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     return { viewportHeight, footerHeight };
   };
-  const renderCtaSkeleton = ({ slide = false } = {}) => {
+  // `split` (first load only): build the frames into the hidden batch in this task, then reveal it, place the Kính and start Flow in a task after
+  // the next frame, so the batch's style and layout do not land in the build task (A04s: the 52ms first-load build, PR 5 device run 2).
+  const renderCtaSkeleton = ({ slide = false, split = false } = {}) => {
+    ctaRevealToken += 1;
     const detailHost = ctaInDetail();
     const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
     if (!ctaSkeleton || !hostGeometry) {
@@ -3507,57 +3513,74 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         frame.style.height = `${height}px`;
         frame.style.setProperty("--masonry-cta-frame-opacity", "1");
     });
-    ctaGeometryHash = nextCtaGeometryHash;
+    if (split) ctaSkeleton.hidden = true;
     ctaSkeleton.append(fragment);
-    ctaSkeleton.hidden = false;
-    ctaSkeleton.dataset.masonryCtaColumns = String(hostGeometry.columns);
-    ctaSkeleton.dataset.masonryCtaReady = "true";
-    ctaSkeleton.dataset.masonryCtaRealBottom = String(hostGeometry.totalPixelHeight);
-    ctaSkeleton.dataset.masonryCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
-    if (arcGlass) {
-      // CTA cluster (from heading start to link end) at the scroll limit, where parallax is zero.
-      const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
-      // Show before measuring: a hidden box has no width.
-      arcGlass.hidden = false;
-      layoutArcGlass(arcGlass, arcGlassGeometry({
-        width: arcGlass.clientWidth,
-        batchBottom: skeletonBoundaryBottom,
-        realBottom: hostGeometry.totalPixelHeight,
-        cardWidth: hostGeometry.cardWidth,
-        clusterTop: clusterBottom - ctaCopyMetrics.baseline - ctaCopyMetrics.below,
-        clusterBottom,
-      }));
-    }
-    ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
-    setCtaHostHeight(gridBottom);
-    ctaBatch.placed();
-    ctaSkeleton.querySelectorAll("[data-masonry-cta-frame]").forEach((frame) => {
-      if (skeletonObserver) skeletonObserver.observe(frame);
-      else visibleSkeletonFrames.add(frame);
-    });
-    syncSkeletonMotion();
-    syncCtaParallax();
-    // The arc Glass changes shape with the new width; it slides by the CTA cluster's displacement.
-    if (slideOrigins && gridCta && arcGlass) {
-      const cta = slideOrigins.get(gridCta);
-      const glass = slideOrigins.get(arcGlass);
-      if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
-        arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
-    }
-    // The new frame starts right below the frame that preceded it in the old layout, like the next item of the old masonry.
-    if (slideOrigins) {
-      let previous = null;
-      frameLayout.forEach(({ slot }) => {
-        const frame = skeletonFrameBySlot.get(slot);
-        if (!slideOrigins.has(frame) && previous) {
-          const { width, height } = frame.getBoundingClientRect();
-          const scale = previous.width / width;
-          slideOrigins.set(frame, new DOMRect(previous.left, previous.bottom + gap * scale, previous.width, height * scale));
-        }
-        previous = slideOrigins.get(frame);
+    const revealCtaBatch = () => {
+      ctaGeometryHash = nextCtaGeometryHash;
+      ctaSkeleton.hidden = false;
+      ctaSkeleton.dataset.masonryCtaColumns = String(hostGeometry.columns);
+      ctaSkeleton.dataset.masonryCtaReady = "true";
+      ctaSkeleton.dataset.masonryCtaRealBottom = String(hostGeometry.totalPixelHeight);
+      ctaSkeleton.dataset.masonryCtaSignature = `${ctaGeometryHash}:${gridBottom.toFixed(3)}`;
+      if (arcGlass) {
+        // CTA cluster (from heading start to link end) at the scroll limit, where parallax is zero.
+        const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
+        // Show before measuring: a hidden box has no width.
+        arcGlass.hidden = false;
+        layoutArcGlass(arcGlass, arcGlassGeometry({
+          width: arcGlass.clientWidth,
+          batchBottom: skeletonBoundaryBottom,
+          realBottom: hostGeometry.totalPixelHeight,
+          cardWidth: hostGeometry.cardWidth,
+          clusterTop: clusterBottom - ctaCopyMetrics.baseline - ctaCopyMetrics.below,
+          clusterBottom,
+        }));
+      }
+      ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
+      setCtaHostHeight(gridBottom);
+      ctaBatch.placed();
+      ctaSkeleton.querySelectorAll("[data-masonry-cta-frame]").forEach((frame) => {
+        if (skeletonObserver) skeletonObserver.observe(frame);
+        else visibleSkeletonFrames.add(frame);
       });
-    }
-    slideOrigins?.forEach((before, node) => slideFrom(node, before));
+      syncCtaParallax();
+      // Flow reads every frame's rect after the Kính's writes, a second forced layout of the page in this task (cloud 5x CPU: 9ms of a 51ms
+      // reveal). A split reveal syncs it in a task after the next frame, on clean layout and out of the frame task that page motion fills; it is
+      // named so a trace attributes it to the CTA batch, not to the helper other paths share.
+      if (split) {
+        requestAnimationFrame(() => setTimeout(function startCtaFlow() {
+          if (!controller.signal.aborted) syncSkeletonMotion();
+        }));
+      } else syncSkeletonMotion();
+      // The arc Glass changes shape with the new width; it slides by the CTA cluster's displacement.
+      if (slideOrigins && gridCta && arcGlass) {
+        const cta = slideOrigins.get(gridCta);
+        const glass = slideOrigins.get(arcGlass);
+        if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
+          arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
+      }
+      // The new frame starts right below the frame that preceded it in the old layout, like the next item of the old masonry.
+      if (slideOrigins) {
+        let previous = null;
+        frameLayout.forEach(({ slot }) => {
+          const frame = skeletonFrameBySlot.get(slot);
+          if (!slideOrigins.has(frame) && previous) {
+            const { width, height } = frame.getBoundingClientRect();
+            const scale = previous.width / width;
+            slideOrigins.set(frame, new DOMRect(previous.left, previous.bottom + gap * scale, previous.width, height * scale));
+          }
+          previous = slideOrigins.get(frame);
+        });
+      }
+      slideOrigins?.forEach((before, node) => slideFrom(node, before));
+    };
+    if (!split) return revealCtaBatch();
+    const token = ctaRevealToken;
+    requestAnimationFrame(() => setTimeout(() => {
+      if (token !== ctaRevealToken || controller.signal.aborted || activePhotoId) return;
+      revealCtaBatch();
+      window.dispatchEvent(new CustomEvent("site:layout"));
+    }));
   };
 
   // `scrolling`: a scroll frame does not change geometry, so an already-built CTA batch is not re-measured (each frame's measurement forces layout).
@@ -6153,8 +6176,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setTimeout(() => {
       ctaDeferred = false;
       if (ctaAborted()) return;
-      renderCtaSkeleton();
-      window.dispatchEvent(new CustomEvent("site:layout"));
+      renderCtaSkeleton({ split: true });
     });
   }));
   return cleanup;
