@@ -1439,7 +1439,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.decoding = "async";
         layer.alt = english ? item.altEn : item.altVi;
         layer.addEventListener("load", updateLoading);
-        layer.addEventListener("load", () => layer.decode().catch(() => {}).then(() => dismissWait(index)));
+        layer.addEventListener("load", () => {
+          // A failed media that loads on a later try (head-inline retry after a network cut) is selectable again.
+          failedImages.delete(item.id);
+          void layer.decode().catch(() => {}).then(() => dismissWait(index));
+        });
       }
       layer.addEventListener("error", () => {
         waits.get(item.id)?.remove();
