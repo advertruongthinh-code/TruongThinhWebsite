@@ -1,0 +1,18 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v16b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos used ONLY to learn structure, materials and proportions. Do not copy their layout, people, text, logos or design.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SPACE: a small Vietnamese cafe or drinks shop shown as a SPACE at medium distance, with an entirely new furniture design in a pale ash and charcoal palette. Panel furniture: a service counter about 90 cm high with a clearly visible staff entrance gap at one end, wall cabinetry with closed units and open shelves, recessed handles only, black-core HDF with laminate faces, correct buildable construction. The furniture reads as well-made home-style storage as much as shop furniture.
+
+STRUCTURAL LOGIC:
+- The backlit menu light box is mounted on a SIDE wall, or on a front fascia, where it can be reached from the CUSTOMER side of the counter. It is fixed with visible steel brackets, or hung on two rods fixed into the ceiling.
+- The aluminium A-frame step ladder stands on open floor on the customer side, NEVER behind or inside the counter. Four feet flat on the floor, both spreaders locked, evenly spaced steps.
+- The technician wears a plain black shirt and black work trousers, seen from the back or three-quarter back, face hidden. He stands centred with both feet on a middle step, the light box at his chest-to-face height. One hand steadies the box; the other uses a screwdriver on its side. Balanced, anatomically correct. He takes at most one third of the frame height. A small tool bag on the floor.
+
+MENU: evenly backlit, drink photos, names and prices in large bold correctly spelled Vietnamese (CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K). NO shop name and NO logo anywhere.
+
+FRAMING (owner, main complaint): the ceiling and roof take at most the top 10 percent of the frame; the floor at most the bottom 15 percent.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; level camera, all verticals perfectly vertical, consistent vanishing points; not a 3D render. Vietnamese context, Mekong Delta (Vinh Long). No logos, brand names or readable text except the menu. The lower 35 percent of the frame is calmer, because white text sits over it.

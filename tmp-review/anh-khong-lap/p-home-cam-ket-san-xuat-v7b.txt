@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v7b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos used ONLY to learn structure, materials and proportions. Do not copy their layout, people, text, logos or design.
+
+WORKSHOP (owner liked this): steel frame, corrugated metal roof, high windows with coconut palms outside, clean concrete floor.
+
+SUBJECT: an industrial CNC router standing near a back corner, actively cutting a nested sheet of furniture parts whose cut edges show a black HDF core; a fabric-bag dust collector with twin white bags ducted to the CNC's dust hood. A few workshop items at the edges: a vertical panel rack, a steel tool cabinet, a wall-mounted fire extinguisher, an air-hose reel.
+
+FRAMING (owner, main complaint): the ceiling and roof take at most the top 10 percent of the frame; the floor at most the bottom 15 percent. The CNC and the dust collector fill the middle of the frame, about 70 percent of its height and most of its width. Medium shot, camera at the height of the CNC bed, a few metres away. Because the frame is portrait, the long machine is seen end-on or at a steep three-quarter angle so it fits. View: a steep three-quarter view from the left, the vertical panel rack behind the machine.
+
+No people, no plants indoors, no edge banding machine, no table or cart of blanks, no macro close-up of the bit, no text or numbers on the machine.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; level camera, all verticals perfectly vertical, consistent vanishing points; not a 3D render. Vietnamese context, Mekong Delta (Vinh Long). No logos, brand names or readable text except the menu. The lower 35 percent of the frame is calmer, because white text sits over it.
