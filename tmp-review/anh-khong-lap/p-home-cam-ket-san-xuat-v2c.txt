@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the result into the current working directory as `home-cam-ket-san-xuat-v2c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER BRIEF: the Production card must show a CNC machine actively machining wood furniture parts in the Trường Thịnh workshop. Card text (do not print): "Every part is CNC-cut, edge-banded and test-assembled in our workshop to keep accuracy and schedule in check."
+
+ATTACHED IMAGES: references only for light, colour grade and the real workshop look; old-production.png is the current photo the owner rejected (empty, foreign-looking); do not copy it.
+
+SUBJECT: A wider level shot of the CNC bed: a full nested sheet of furniture parts (cabinet sides with shelf-pin rows, doors, a curved counter panel) with the spindle cutting, and a cart of cut parts beside the machine.
+
+MATERIAL: laminate-faced black-core HDF boards; every fresh cut edge shows a dense black core, never particleboard chips or beige MDF.
+
+PHOTO: editorial photograph on a full-frame camera, 35-50 mm lens, natural daylight from high windows plus workshop light, real shadows, slight sensor grain, real material texture; not a 3D render. Clean, organised modern workshop in a low-rise steel-roofed building in the Mekong Delta (Vĩnh Long). No faces: people only as hands, arms or backs. No text, numbers, logos or brand names on machines or anywhere. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it.
+
+AVOID: an edge banding machine as the main subject; an empty factory without activity; any face; sawdust piles; clutter.
