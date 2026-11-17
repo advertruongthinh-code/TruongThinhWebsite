@@ -259,3 +259,17 @@ test("real catalog: a whole product name, with or without marks, reaches every c
   }
   assert.deepEqual(missing, []);
 });
+
+// Advisor review 2026-11-18: unaccented fillers are also real words ("cua": của or cửa, "cho": cho or chợ, "gia": giá or gia).
+test("real catalog: filler words never widen an unaccented query, and fillers alone match nothing", () => {
+  const artifact = buildAdvertisingArtifact();
+  const atLeast = (query, k) => [...keywordScores(query, "vi", artifact).values()].filter((v) => v >= k).length;
+  assert.equal(atLeast("cua hang", 0.85), atLeast("cửa hàng", 1));
+  assert.equal(atLeast("hoi cho", 0.85), atLeast("hội chợ", 1));
+  assert.ok(atLeast("bien cho", 0.6) <= 2);
+  assert.equal(atLeast("gia cong", 0.6), 0);
+  assert.equal(keywordScores("làm cho", "vi", artifact).size, 0);
+  assert.equal(atLeast("den den", 0.6), 0);
+  assert.ok(atLeast("lam hop den", 0.85) >= atLeast("hộp đèn", 1));
+  assert.equal(atLeast("bảng quảng cáo", 1), 3);
+});

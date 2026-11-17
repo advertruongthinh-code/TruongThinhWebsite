@@ -122,7 +122,11 @@ const indexEntry = (card, artifact, locale, maps) => {
 const vocabularies = new WeakMap();
 function vocabularyOf(index) {
   if (!vocabularies.has(index)) {
-    vocabularies.set(index, { plain: new Set(index.flatMap((entry) => [...entry.wordSet])), canon: new Set(index.flatMap((entry) => [...entry.canonSet])) });
+    const canon = new Set(index.flatMap((entry) => [...entry.canonSet]));
+    // Words typed without marks that stand for more than one catalog word ("cua": của, cửa).
+    const readings = new Map();
+    for (const word of canon) readings.set(plain(word.replace(/[1-5]$/, "")), (readings.get(plain(word.replace(/[1-5]$/, ""))) ?? 0) + 1);
+    vocabularies.set(index, { plain: new Set(index.flatMap((entry) => [...entry.wordSet])), canon, ambiguous: new Set([...readings].filter(([, n]) => n > 1).map(([w]) => w)) });
   }
   return vocabularies.get(index);
 }
@@ -160,24 +164,34 @@ const stopsFor = (locale) => (stopPhrases[locale] ??= (stopwords[locale] ?? []).
 const wordAt = (candidate, i, words, plainWords, at) => (candidate.marked[i] ? words[at] === candidate.words[i] : plainWords[at] === candidate.plainWords[i]);
 
 // The candidate without filler words ("làm", "cho", "quảng cáo"); null when nothing or nothing new is left.
-function stripped(candidate, locale) {
-  const keep = candidate.words.map(() => true);
-  for (const stop of stopsFor(locale)) {
-    for (let at = 0; at + stop.words.length <= keep.length; at++) {
-      const probe = { ...candidate, words: stop.words, plainWords: stop.plainWords, marked: candidate.marked.slice(at, at + stop.words.length) };
-      if (stop.words.every((_, i) => wordAt(probe, i, candidate.words, candidate.plainWords, at + i))) stop.words.forEach((_, i) => (keep[at + i] = false));
+function stripped(candidate, locale, ambiguous) {
+  // strict keeps an unmarked word that reads as several catalog words ("cua": của or cửa, "cho": cho or chợ); loose drops it too,
+  // and is used only when it leaves no word (fillers only) or two words or more ("lam hop den"), never one ("gia cong" is not "cong").
+  const drop = (strict) => {
+    const keep = candidate.words.map(() => true);
+    for (const stop of stopsFor(locale)) {
+      for (let at = 0; at + stop.words.length <= keep.length; at++) {
+        const probe = { ...candidate, words: stop.words, plainWords: stop.plainWords, marked: candidate.marked.slice(at, at + stop.words.length) };
+        if (stop.words.every((_, i) => wordAt(probe, i, candidate.words, candidate.plainWords, at + i)
+          && (!strict || candidate.marked[at + i] || !ambiguous.has(candidate.plainWords[at + i])))) stop.words.forEach((_, i) => (keep[at + i] = false));
+      }
     }
-  }
+    return keep;
+  };
+  const loose = drop(false);
+  const kept = loose.filter(Boolean).length;
+  const keep = kept === 0 || kept >= 2 ? loose : drop(true);
   const pick = (list) => list.filter((_, i) => keep[i]);
   const left = pick(candidate.words);
-  return left.length && left.length < keep.length
+  if (!left.length) return { ...candidate, words: [], plainWords: [], marked: [], kind: "stripped" };
+  return left.length < keep.length
     ? { ...candidate, words: left, plainWords: pick(candidate.plainWords), marked: pick(candidate.marked), kind: "stripped" }
     : null;
 }
 
 // Query candidates: the text as typed and, for text without marks, its Telex and VNI readings that gained marks; each also without
 // its filler words. Only the typed text (and its stripped copy) gets the typo level: a Telex reading is already a guess.
-function candidates(query, locale = "vi") {
+function candidates(query, locale = "vi", ambiguous = new Set()) {
   const words = tokens(query);
   const make = (parts, kind) => {
     const marked = parts.map(({ base, tone }) => Boolean(tone) || plain(base) !== base);
@@ -186,22 +200,48 @@ function candidates(query, locale = "vi") {
   const typed = make(words.map(split), "typed");
   const list = typed.marks ? [typed]
     : [typed, ...[["telex", telexParts], ["vni", vniParts]].map(([kind, decode]) => make(words.map(decode), kind)).filter((candidate) => candidate.marks)];
-  return [...list, ...list.map((candidate) => {
-    const left = stripped(candidate, locale);
-    return left && { ...left, fuzzy: candidate.kind === "typed" };
-  }).filter(Boolean)].map((candidate) => ({ fuzzy: candidate.kind === "typed", ...candidate }));
+  const copies = [];
+  for (const candidate of list) {
+    const left = stripped(candidate, locale, ambiguous);
+    // A candidate holding a filler word ("cua" may be "của") skips the words level; its copy without fillers may use it.
+    candidate.loose = !stripped(candidate, locale, new Set());
+    candidate.fuzzy = candidate.kind === "typed";
+    if (left) copies.push({ ...left, loose: true, fuzzy: candidate.kind === "typed" });
+  }
+  return [...list, ...copies];
+}
+
+// Card scores for one candidate list (see keywordScores).
+function scoreList(list, locale, index) {
+  const vocabulary = vocabularyOf(index);
+  const swaps = synonymQueries(list, locale, vocabulary.plain);
+  const levels = new Map();
+  const levelOf = (term) => {
+    if (!levels.has(term.key)) levels.set(term.key, phraseLevel(term, list, swaps, vocabulary));
+    return levels.get(term.key);
+  };
+  const scores = new Map();
+  for (const entry of index) {
+    const { id, terms, wordSet } = entry;
+    let best = Math.max(0, ...terms.map(levelOf));
+    if (best < LEVEL.words && list.some((candidate) => allWords(candidate, entry))) best = LEVEL.words;
+    // Half of the words known to the card; a single word is either a match above or nothing.
+    if (!best && list.some(({ plainWords: words }) => words.length >= 2 && words.filter((word) => wordSet.has(word)).length * 2 >= words.length)) best = LEVEL.partial;
+    if (best) scores.set(id, best);
+  }
+  return scores;
 }
 
 // Query copies with one synonym member swapped for another member of its group (plain words). A member typed with one word
 // off ("kios" for "kiosk") still swaps; that copy is marked `typo` and scores at the typo level.
 function synonymQueries(list, locale, known) {
   const swapped = [];
-  for (const { plainWords } of list) {
+  for (const { plainWords, fuzzy } of list) {
     for (const group of groupsFor(locale)) {
       for (const from of group) {
         for (let at = 0; at + from.length <= plainWords.length; at++) {
           const off = from.filter((word, i) => plainWords[at + i] !== word);
-          if (off.length > 1 || (off.length && !from.some((word, i) => word !== plainWords[at + i] && !known.has(plainWords[at + i]) && closeWords(plainWords[at + i], word)))) continue;
+          if (off.length > 1 || (off.length && (!fuzzy || !from.some((word, i) => word !== plainWords[at + i] && !known.has(plainWords[at + i]) && closeWords(plainWords[at + i], word))))) continue;
           for (const to of group) {
             if (to !== from) swapped.push({ words: [...plainWords.slice(0, at), ...to, ...plainWords.slice(at + from.length)], typo: off.length > 0 });
           }
@@ -236,11 +276,12 @@ function distance(a, b) {
 // Catalog words repeat across thousands of phrases, so each word pair is judged once per search.
 let closeMemo = new Map();
 function closeWords(a, b) {
-  if (Math.abs(a.length - b.length) > 2 || plain(a)[0] !== plain(b)[0]) return false;
+  if (Math.abs(a.length - b.length) > 2) return false;
   const key = `${a}|${b}`;
   if (!closeMemo.has(key)) {
     const letters = [a, b].map((word) => (word.match(/\p{L}/gu) ?? []).length);
-    closeMemo.set(key, Math.min(...letters) >= MIN_FUZZY_LETTERS && distance(a, b) <= (Math.min(...letters) >= TWO_EDIT_LETTERS ? 2 : 1));
+    closeMemo.set(key, plain(a[0]) === plain(b[0]) && Math.min(...letters) >= MIN_FUZZY_LETTERS
+      && distance(a, b) <= (Math.min(...letters) >= TWO_EDIT_LETTERS ? 2 : 1));
   }
   return closeMemo.get(key);
 }
@@ -272,7 +313,7 @@ function phraseLevel(term, list, swaps, vocabulary) {
 }
 
 // Every word of a 2+ word candidate is somewhere in the card, not necessarily side by side ("hộp đèn inox").
-const allWords = (candidate, { wordSet, canonSet }) => candidate.words.length >= 2
+const allWords = (candidate, { wordSet, canonSet }) => candidate.loose && new Set(candidate.plainWords).size >= 2
   && candidate.words.every((word, i) => (candidate.marked[i] ? canonSet.has(word) : wordSet.has(candidate.plainWords[i])));
 
 /**
@@ -282,27 +323,17 @@ const allWords = (candidate, { wordSet, canonSet }) => candidate.words.length >=
  * @param {{ cards: any[], products?: any[], tagRegistry?: any[] }} artifact advertising catalog artifact
  */
 export function keywordScores(query, locale, artifact) {
-  const list = candidates(query, locale);
-  closeMemo = new Map();
-  const scores = new Map();
-  if (!list[0].words.length) return scores;
   const index = indexFor(artifact, locale);
-  const vocabulary = vocabularyOf(index);
-  const swaps = synonymQueries(list, locale, vocabulary.plain);
-  const levels = new Map();
-  const levelOf = (term) => {
-    if (!levels.has(term.key)) levels.set(term.key, phraseLevel(term, list, swaps, vocabulary));
-    return levels.get(term.key);
-  };
-  for (const entry of index) {
-    const { id, terms, wordSet } = entry;
-    let best = Math.max(0, ...terms.map(levelOf));
-    if (best < LEVEL.words && list.some((candidate) => allWords(candidate, entry))) best = LEVEL.words;
-    // Half of the words known to the card; a single word is either a match above or nothing.
-    if (!best && list.some(({ plainWords: words }) => words.length >= 2 && words.filter((word) => wordSet.has(word)).length * 2 >= words.length)) best = LEVEL.partial;
-    if (best) scores.set(id, best);
-  }
-  return scores;
+  const all = candidates(query, locale, vocabularyOf(index).ambiguous);
+  closeMemo = new Map();
+  if (!all[0].words.length) return new Map();
+  // Only filler words ("làm cho"): nothing to match, the vectors answer.
+  if (all.some(({ kind, words }) => kind === "stripped" && !words.length)) return new Map();
+  // Copies without filler words are a fallback: an unaccented filler is also a real word ("cua" is "của" and "cửa", "cho" is
+  // "chợ"), so they count only when the whole query matched no card at the unaccented level or better.
+  const whole = scoreList(all.filter(({ kind }) => kind !== "stripped"), locale, index);
+  if ([...whole.values()].some((k) => k >= LEVEL.plain) || all.every(({ kind }) => kind !== "stripped")) return whole;
+  return scoreList(all, locale, index);
 }
 
 /**
