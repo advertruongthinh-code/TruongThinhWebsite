@@ -82,7 +82,7 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 | --- | --- | --- | --- |
 | 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
-| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
+| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "2006", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
 | 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `materials`, `cnc-operator-b` | ink |
 | 12–15 | `#cam-ket`, chapter lead, ảnh `workshop-wide`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
@@ -199,7 +199,7 @@ Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít n
 `.about-timeline`: `h2.sr-only`, hai mốc có đoạn kể; đường dọc ở 54% bề rộng, tới 980px 47%, tới 680px sát trái.
 `.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột cùng một hàng,
 tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
-cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc thời gian trung tính, chưa có bảo hành tới khi owner xác nhận fact.
+cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc đầu là năm 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
 Given /vi/about/ ở 390px
