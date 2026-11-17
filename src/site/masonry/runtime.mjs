@@ -3319,8 +3319,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // A first-load build reveals its batch in a later task (renderCtaSkeleton `split`); any other build or clear drops that pending reveal.
   let ctaRevealToken = 0;
+  // While a reveal waits, scrolling and viewport resizes do not rebuild the batch inline (that full build is the long task the split removes).
+  let ctaRevealPending = false;
   const clearCtaSkeleton = () => {
     ctaRevealToken += 1;
+    ctaRevealPending = false;
     ctaGeometryHash = "";
     for (const frame of skeletonFrameBySlot.values()) {
       skeletonObserver?.unobserve(frame);
@@ -3420,6 +3423,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // the next frame, so the batch's style and layout do not land in the build task (A04s: the 52ms first-load build, PR 5 device run 2).
   const renderCtaSkeleton = ({ slide = false, split = false } = {}) => {
     ctaRevealToken += 1;
+    ctaRevealPending = false;
     const detailHost = ctaInDetail();
     const hostGeometry = detailHost ? relatedLayout?.layout : (activePhotoId ? null : geometry);
     if (!ctaSkeleton || !hostGeometry) {
@@ -3576,9 +3580,14 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     };
     if (!split) return revealCtaBatch();
     const token = ctaRevealToken;
+    ctaRevealPending = true;
     requestAnimationFrame(() => setTimeout(() => {
-      if (token !== ctaRevealToken || controller.signal.aborted || activePhotoId) return;
-      revealCtaBatch();
+      if (token !== ctaRevealToken) return;
+      ctaRevealPending = false;
+      if (controller.signal.aborted || activePhotoId) return;
+      // A viewport resize skipped while waiting: build again in full, rare (the address bar moving during the first second).
+      if (getLayoutViewportHeight() !== lastCtaViewportHeight) renderCtaSkeleton();
+      else revealCtaBatch();
       window.dispatchEvent(new CustomEvent("site:layout"));
     }));
   };
@@ -3596,7 +3605,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     else if (ctaSlide) {
       ctaPending = true;
       setTimeout(flushCta);
-    } else if (!scrolling || !ctaGeometryHash) renderCtaSkeleton({ slide: false });
+    } else if (!scrolling || (!ctaGeometryHash && !ctaRevealPending)) renderCtaSkeleton({ slide: false });
     // The grid changing height makes the browser clamp the scroll (at page bottom); cards must start from where they are visible on
     // screen, otherwise they fly off by exactly the clamp amount then snap back (measured on PC, round 26).
     if (origins?.gridTop !== undefined) {
@@ -5686,7 +5695,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         lastResizeAt = now;
         if (dragging) cancelCtaSlides(ctaSlideNodes());
         measure({ animate: !dragging, origins });
-      } else if (!ctaDeferred && (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight)) {
+      } else if (!ctaDeferred && !ctaRevealPending && (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight)) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
