@@ -84,10 +84,8 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
 cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
-`task: search result | query:`) và mọi ảnh thành vector bằng `env.AI.run` đồng bộ: chữ một lần gọi qua `input`, mọi ảnh
-một lần gọi qua `messages`, hai lần chạy song song khi có cả hai (chữ qua `messages` cho vector khác, P@5 tụt 0,86 xuống 0,66
-khi đo trên PC 17/11). Worker chuẩn hóa L2, so cosine
-với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
+`task: search result | query:`) và ảnh thành vector bằng `env.AI.run` đồng bộ: chữ qua `input` (qua `messages` P@5 tụt 0,86
+xuống 0,66), mọi ảnh một lần qua `messages`, có cả hai thì gọi song song; chuẩn hóa L2, so cosine với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
 cao nhất của card (card một media lấy media đó). Phản hồi: mỗi input một mảng `[id, sText, sMedia]` cho mọi card. Sai dạng
 trả 400; vượt giới hạn tần suất 429; model lỗi 503. Không có `mediaId`; thứ tự media trong card không đổi.
