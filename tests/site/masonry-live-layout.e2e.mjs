@@ -366,7 +366,11 @@ try {
     await settled(page);
     await page.evaluate(() => {
       window.__searchLeft = 0;
-      window.addEventListener("masonry:search-left", () => { window.__searchLeft += 1; });
+      window.__searchLeftReasons = [];
+      window.addEventListener("masonry:search-left", (event) => {
+        window.__searchLeft += 1;
+        window.__searchLeftReasons.push(event.detail?.reason);
+      });
     });
     await page.evaluate(() => window.TruongThinhMasonry.setPending(true));
     assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 1, "pending marks the grid");
@@ -421,6 +425,27 @@ try {
     await page.evaluate(() => window.TruongThinhMasonry.clearResults());
     await page.waitForFunction(() => window.__searchLeft === 2, null, { timeout: 15000 });
     assertGrid(await settled(page), all, "clearResults");
+    // Clicking the chip already selected leaves search too.
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), second);
+    await searchMatches(page, second, "search before active chip");
+    await page.locator('[data-masonry-filter="all"]').click();
+    await page.waitForFunction(() => window.__searchLeft === 3, null, { timeout: 15000 });
+    await settled(page);
+    // Back to another filter: a breadcrumb return pushes a grid entry of the card's cluster, then Back twice lands on All again.
+    await page.locator("[data-project-grid] [data-masonry-item]:not([hidden]) a").first().click();
+    await page.waitForSelector("[data-detail-crumb]");
+    const crumb = await page.locator("[data-detail-crumb]").first().getAttribute("data-detail-crumb");
+    assert.notEqual(crumb, "all", "the first crumb is a cluster");
+    await page.locator("[data-detail-crumb]").first().click();
+    await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
+    await settled(page);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
+    // setResults enters search in the same call; only the reason is checked here, the layout of results is covered above.
+    await page.goBack();
+    await page.waitForFunction(() => document.body.classList.contains("is-detail"));
+    await page.goBack();
+    await page.waitForFunction(() => window.__searchLeft === 4, null, { timeout: 15000 });
+    assert.deepEqual(await page.evaluate(() => window.__searchLeftReasons), ["filter", "clear", "filter", "history"], "search-left reasons");
     assert.deepEqual(errors, [], "no page errors");
     await page.close();
     // Phone width: results stay one column each in two columns.
