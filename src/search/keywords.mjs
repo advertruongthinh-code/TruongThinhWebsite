@@ -73,7 +73,7 @@ function phrase(text) {
   const words = tokens(text);
   if (!words.length) return null;
   const canon = words.map(canonical);
-  return { key: canon.join(" "), words: canon, plainWords: words.map(plain) };
+  return { key: canon.join(" "), words: canon, plainWords: words.map(plain), typed: words };
 }
 
 function labelMaps(artifact) {
@@ -166,7 +166,8 @@ function synonymQueries(list, locale) {
   return swapped;
 }
 
-const contains = (hay, needle) => needle.length > 0 && hay.some((_, at) => needle.every((word, i) => hay[at + i] === word));
+const indexOfWords = (hay, needle) => (needle.length ? hay.findIndex((_, at) => needle.every((word, i) => hay[at + i] === word)) : -1);
+const contains = (hay, needle) => indexOfWords(hay, needle) >= 0;
 
 function distance(a, b) {
   let row = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -236,4 +237,21 @@ export function keywordScores(query, locale, artifact) {
     if (best) scores.set(id, best);
   }
   return scores;
+}
+
+/**
+ * Text to send to the embedding model: a Telex or VNI query is replaced by the catalog words it decodes to, with marks
+ * ("hoopj ddenf" -> "hộp đèn"), because the model cannot read the raw keys. Any other query is returned as typed.
+ */
+export function modelQuery(query, locale, artifact) {
+  const [, ...decoded] = candidates(query);
+  for (const { words } of decoded) {
+    for (const { terms } of indexFor(artifact, locale)) {
+      for (const term of terms) {
+        const at = indexOfWords(term.words, words);
+        if (at >= 0) return term.typed.slice(at, at + words.length).join(" ");
+      }
+    }
+  }
+  return query;
 }

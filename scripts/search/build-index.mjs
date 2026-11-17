@@ -3,7 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { cardMedia, documentText, mediaInput, modelRequest, IMAGE_BATCH, MODEL, readVectors, TEXT_BATCH } from "../../src/search/embed-input.mjs";
+import { cardMedia, documentText, embedRest, mediaInput, IMAGE_BATCH, TEXT_BATCH } from "../../src/search/embed-input.mjs";
 import { encodeIndex, unavailableMeta } from "../../src/search/index-format.mjs";
 
 const PARALLEL = 4;
@@ -63,20 +63,12 @@ export async function run({
     const idx = inputs.flatMap((input, i) => ((typeof input === "string") === isText ? [i] : []));
     for (let i = 0; i < idx.length; i += size) chunks.push(idx.slice(i, i + size));
   }
-  const url = `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${MODEL}`;
   const embed = async (chunk) => {
     for (let attempt = 0; ; attempt++) {
       try {
         if (failed) throw failed;
         if (Date.now() - started > DEADLINE_MS) throw new Error("deadline of 4 minutes exceeded");
-        const res = await fetch(url, {
-          signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(modelRequest(chunk.map((i) => inputs[i]))),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return readVectors((await res.json()).result, chunk.length);
+        return await embedRest({ fetch, token, account, signal: AbortSignal.timeout(CALL_TIMEOUT_MS) }, chunk.map((i) => inputs[i]));
       } catch (error) {
         if (failed || attempt === RETRY_MS.length || error.message.startsWith("deadline")) throw (failed ??= error);
         await sleep(RETRY_MS[attempt]);

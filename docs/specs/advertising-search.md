@@ -10,6 +10,7 @@ tests:
   - tests/search/keywords.test.mjs
   - tests/search/rank.test.mjs
   - tests/search/worker.test.mjs
+  - tests/search/calibrate.test.mjs
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e8118ba24ffb730cdecf5
 updated: 2026-11-17
@@ -251,7 +252,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | Command | `pnpm search:index`, `pnpm search:calibrate` | R1, R11; cần `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` có quyền Workers AI |
 | Data | `.site-output/search/advertising-index.bin`, `.json` | Vector int8 và meta (R1), sinh lúc deploy |
 | Data | `src/search/synonyms.json`, `src/search/score-config.json` | Đồng nghĩa; trọng số, 4 cặp mốc, ngưỡng |
-| Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain` (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
+| Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain`, `modelQuery(query, locale, artifact)` (chữ gửi model: Telex/VNI đổi sang từ catalog có dấu) (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
 | Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |
 | Endpoint | `POST /api/search/share`, `GET /api/search/share/<mã>/<n>` | R10 |
@@ -273,11 +274,11 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
 | R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, hỏi giá, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
 | R8, R10 (ảnh) | chưa có test (P7, P8) |
-| R11 | `pnpm search:calibrate` trên máy có token |
+| R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
 ## Gate còn mở
 
-- Chưa code: R1 (chỉ mục), phần thật của R3, R4 (endpoint), R8 (ảnh), ảnh trong R10 (link chia sẻ), R11 (hiệu chỉnh).
+- Chưa code: R1 (chỉ mục), phần thật của R3, R4 (endpoint), R8 (ảnh), ảnh trong R10 (link chia sẻ).
 - Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.

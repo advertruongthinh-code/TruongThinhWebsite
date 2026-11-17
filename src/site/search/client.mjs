@@ -1,6 +1,6 @@
 // Text search against /api/search with the keyword fallback (advertising-search R6) and the no-result, price and interior lines (R9).
 import { keywordOnly, rankSearch, suggestProducts } from "../../search/rank.mjs";
-import { keywordScores, plain, warmIndex } from "../../search/keywords.mjs";
+import { keywordScores, modelQuery, plain, warmIndex } from "../../search/keywords.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 
 const PRICE = { vi: /(^| )(gia|bao nhieu|bao gia|chi phi)( |$)/, en: /\b(price|cost|how much|quote)\b/i };
@@ -119,7 +119,7 @@ export function createClient(ui) {
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, images: [] }),
+        body: JSON.stringify({ text: modelQuery(text, locale, artifact), images: [] }),
         signal: abort.signal,
       });
       data = response.ok ? await response.json() : null;

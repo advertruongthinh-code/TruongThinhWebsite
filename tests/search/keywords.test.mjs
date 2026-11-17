@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { canonical, cardTerms, decodeTelex, decodeVni, keywordScores, plain, warmIndex } from "../../src/search/keywords.mjs";
+import { canonical, cardTerms, decodeTelex, decodeVni, keywordScores, modelQuery, plain, warmIndex } from "../../src/search/keywords.mjs";
 
 const card = (id, titleVi, extra = {}) => ({ id, titleVi, titleEn: extra.titleEn ?? titleVi, mediaItems: [], ...extra });
 const artifactOf = (...cards) => ({ cards, products: [], clusters: [], tagRegistry: [] });
@@ -152,4 +152,12 @@ test("warmIndex builds the same index in slices, and a search during warming sti
   assert.deepEqual(keywordScores("hop den", "vi", midway), cold);
   assert.equal(warming.next().done, true);
   assert.deepEqual(keywordScores("hop den", "vi", midway), cold);
+});
+
+test("modelQuery sends catalog words for Telex and VNI, the typed text otherwise", () => {
+  const artifact = { cards: [{ id: "a", titleVi: "Hộp đèn quảng cáo", productIds: [], tagIds: [], media: {} }] };
+  assert.equal(modelQuery("hoopj ddenf", "vi", artifact), "hộp đèn");
+  assert.equal(modelQuery("ho65p d9e2n", "vi", artifact), "hộp đèn");
+  assert.equal(modelQuery("hop den", "vi", artifact), "hop den");
+  assert.equal(modelQuery("booth sampling", "vi", artifact), "booth sampling");
 });

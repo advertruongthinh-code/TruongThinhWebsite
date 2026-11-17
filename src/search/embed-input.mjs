@@ -53,3 +53,15 @@ export function readVectors(result, expected) {
   }
   return vectors;
 }
+
+// One Workers AI REST call (index build and calibration). Throws on HTTP errors; callers own retries.
+export async function embedRest({ fetch = globalThis.fetch, token, account, signal }, inputs) {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${MODEL}`, {
+    signal,
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(modelRequest(inputs)),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return readVectors((await res.json()).result, inputs.length);
+}
