@@ -1,11 +1,11 @@
 // Text search against /api/search with the keyword fallback (advertising-search R6). Results go to the grid only (R9).
 import { keywordOnly, rankSearch } from "../../search/rank.mjs";
-import { keywordScores, modelQuery, plain, warmIndex } from "../../search/keywords.mjs";
+import { keywordScores, modelQuery, warmIndex } from "../../search/keywords.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 
 const sameIds = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
-// ui: { grid, artifact, locale, copy, announce(text), session, signal }
+// ui: { grid, artifact, locale, copy, announce(text), notice(text, action?), session, signal }
 export function createClient(ui) {
   const { grid, artifact, locale, copy } = ui;
   const order = artifact.cards.map((card) => card.id);
@@ -16,6 +16,7 @@ export function createClient(ui) {
   let timers = [];
   let inSearch = false;
   let lastText = "";
+  let lastImages = 0;
 
   const clearTimers = () => {
     timers.forEach(clearTimeout);
@@ -30,7 +31,7 @@ export function createClient(ui) {
   const show = (ids) => {
     grid.setResults(ids);
     inSearch = true;
-    ui.announce(copy.results(ids.length, lastText));
+    ui.announce(copy.results(ids.length, lastText || copy.imageCount(lastImages)));
   };
   const finishEmpty = () => {
     grid.setPending(false);
@@ -41,15 +42,19 @@ export function createClient(ui) {
     ui.announce(copy.empty);
   };
 
-  async function submit(text) {
+  // images: JPEG base64 strings from images.mjs. Text alone gets the keyword fallback at 0.8 s; with images the grid waits for
+  // the vector scores up to imageWaitMs, then stops waiting, offers a retry and still applies a late answer.
+  async function submit({ text = "", images = [] }) {
     text = text.trim().slice(0, 300);
-    if (!text) return false;
+    if (!text && !images.length) return false;
     stop();
     const my = turn;
     lastText = text;
-    ui.session.save({ text, images: [] });
-    const keyword = keywordScores(text, locale, artifact);
-    if ([...text].length <= 2) {
+    lastImages = images.length;
+    ui.session.save({ text, images });
+    ui.notice("");
+    const keyword = text ? keywordScores(text, locale, artifact) : new Map();
+    if (!images.length && [...text].length <= 2) {
       const ids = keywordOnly(keyword, order, cfg);
       ids.length ? show(ids) : finishEmpty();
       return true;
@@ -58,22 +63,30 @@ export function createClient(ui) {
     ui.announce(copy.searching);
     abort = new AbortController();
     let shown = null;
-    timers.push(setTimeout(() => {
-      if (my !== turn) return;
-      const ids = keywordOnly(keyword, order, cfg);
-      if (ids.length) {
-        shown = ids;
-        show(ids);
-      } else {
-        timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
-      }
-    }, cfg.timing.textWaitMs));
+    if (images.length) {
+      timers.push(setTimeout(() => {
+        if (my !== turn) return;
+        grid.setPending(false);
+        ui.notice(copy.slow, { label: copy.retry, onClick: () => submit({ text, images }) });
+      }, cfg.timing.imageWaitMs));
+    } else {
+      timers.push(setTimeout(() => {
+        if (my !== turn) return;
+        const ids = keywordOnly(keyword, order, cfg);
+        if (ids.length) {
+          shown = ids;
+          show(ids);
+        } else {
+          timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
+        }
+      }, cfg.timing.textWaitMs));
+    }
     let data = null;
     try {
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: modelQuery(text, locale, artifact), images: [] }),
+        body: JSON.stringify({ ...(text && { text: modelQuery(text, locale, artifact) }), images }),
         signal: abort.signal,
       });
       data = response.ok ? await response.json() : null;
@@ -83,10 +96,12 @@ export function createClient(ui) {
     if (my !== turn) return true;
     clearTimers();
     if (data?.status !== "ok") {
+      if (images.length) ui.notice(copy.paused);
       const ids = shown ?? keywordOnly(keyword, order, cfg);
       if (!shown) ids.length ? show(ids) : finishEmpty();
       return true;
     }
+    ui.notice("");
     const ranked = rankSearch({ inputs: data.inputs, keyword, config: cfg, catalogOrder: order, productOf });
     if (shown) {
       if (ranked.ids.length && !sameIds(ranked.ids, shown)) grid.offerResults(ranked.ids);
@@ -124,8 +139,10 @@ export function createClient(ui) {
     stop();
     inSearch = false;
     lastText = "";
+    lastImages = 0;
     ui.session.clear();
     ui.announce("");
+    ui.notice("");
   };
-  return { submit, cancel, reset, stop, warm, get active() { return Boolean(lastText); } };
+  return { submit, cancel, reset, stop, warm, get active() { return Boolean(lastText || lastImages); } };
 }

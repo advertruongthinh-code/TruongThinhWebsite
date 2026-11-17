@@ -147,7 +147,7 @@ Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K nga
 Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ 0,4 thì `setResults` các card đó xếp theo K; điểm vector
 về muộn thì `offerResults`. Không card nào có K từ 0,4 mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
-Hết hạn mức hoặc mất mạng: chữ chạy bằng K, nút ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
+Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
 giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào ô chữ.
 
@@ -182,7 +182,8 @@ And không có cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px
 
 Tối đa 5 ảnh; thả hơn 5 thì lấy 5 ảnh đầu và báo "Tối đa 5 ảnh". Ảnh trùng (cùng nội dung sau khi thu nhỏ) bị bỏ. PNG trong
 suốt và GIF (khung đầu) được vẽ trên nền trắng; HEIC chỉ đọc được trên Safari. Trình duyệt không đọc được thì báo "Chưa đọc
-được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh".
+được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này là một dòng ngắn trong khay ảnh, bên
+trong thanh, tự tắt sau 4 giây; khay khi thanh dừng treo ngay dưới đường kẻ để khe giữ chiều cao.
 
 ```gherkin
 Given khay đã có 4 ảnh
@@ -267,20 +268,21 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
 | R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: dừng ở khe 1440 và 384px, không cuộn ngang ở 6 bề rộng, không có khung trạng thái, `#tim=`, đổi ngôn ngữ, Esc, chip, chuyển trang mềm |
-| R8, R10 (ảnh) | chưa có test (P7, P8) |
+| R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: tối đa 5 ảnh, không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
+| R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
 ## Gate còn mở
 
-- Chưa code: R1 (chỉ mục), phần thật của R3, R4 (endpoint), R8 (ảnh), ảnh trong R10 (link chia sẻ).
+- Chưa code: ảnh trong R10 (link chia sẻ).
 - Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
-- Thông báo về ảnh của R6, R8 (đang chậm kèm thử lại, tạm nghỉ, tối đa 5 ảnh, file không dùng được) không còn dòng trạng thái:
-  P7 đề xuất đặt chúng thành một dòng ngắn trong khay ảnh, bên trong thanh; owner duyệt khi xem P7.
+- Thông báo về ảnh của R6, R8 (đang chậm kèm thử lại, tạm nghỉ, tối đa 5 ảnh, file không dùng được): P7 đặt thành một dòng
+  ngắn trong khay ảnh, bên trong thanh, không phải khung trên thanh; chờ owner xem trên demo.
 
 ## Chú thích thuật ngữ
 

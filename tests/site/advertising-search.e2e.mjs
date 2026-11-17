@@ -1,4 +1,4 @@
-// On-page search bar of the advertising pages (advertising-search R6, R7, R9, R10; text part). /api/search is mocked with fixed scores.
+// On-page search bar of the advertising pages (advertising-search R6 to R10, text and images). /api/search is mocked with fixed scores.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/advertising-search.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -88,7 +88,7 @@ test("R9: results show on the grid only, with nothing above the bar", async () =
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
     await search(page, "giá hộp đèn tay vẫy bao nhiêu");
     await announced(page, /kết quả/);
-    assert.equal(await page.evaluate(() => document.querySelector(".search-host").children.length), 1, "host holds only the bar");
+    assert.equal(await page.locator(".search-host > :not(.search-bar):not([data-search-file])").count(), 0, "host holds only the bar");
     assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0);
     await context.close();
   } finally {
@@ -151,6 +151,117 @@ for (const viewport of [WIDE, PHONE]) {
     }
   });
 }
+
+// A JPEG drawn in the page, with an APP1 (EXIF) block carrying a fake GPS marker spliced in after SOI.
+const makeJpeg = async (page, hue) => {
+  const base64 = await page.evaluate((h) => {
+    const canvas = Object.assign(document.createElement("canvas"), { width: 1200, height: 900 });
+    const context = canvas.getContext("2d");
+    context.fillStyle = `hsl(${h} 60% 50%)`;
+    context.fillRect(0, 0, 1200, 900);
+    context.fillStyle = "#fff";
+    context.fillRect(100 + h, 100, 300, 200);
+    return canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
+  }, hue);
+  const jpeg = Buffer.from(base64, "base64");
+  const payload = Buffer.from("Exif\0\0GPSLatitude 10.2", "binary");
+  const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, 0, payload.length + 2]), payload]);
+  return { name: `photo-${hue}.jpg`, mimeType: "image/jpeg", buffer: Buffer.concat([jpeg.subarray(0, 2), app1, jpeg.subarray(2)]) };
+};
+const trayCount = (page) => page.locator(".search-bar [data-search-thumbs] img").count();
+
+test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG and video are turned away", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE, PAGE, { ids: VECTOR_IDS });
+    const bodies = [];
+    page.on("request", (request) => request.url().endsWith("/api/search") && bodies.push(request.postDataJSON()));
+    await page.setInputFiles("[data-search-file]", await Promise.all([10, 60, 110, 160].map((h) => makeJpeg(page, h))));
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 4);
+    await page.setInputFiles("[data-search-file]", await Promise.all([210, 260, 310].map((h) => makeJpeg(page, h))));
+    await page.waitForFunction(() => /tối đa 5 ảnh/i.test(document.querySelector(".search-bar [data-search-count]").textContent));
+    assert.equal(await trayCount(page), 5);
+    assert.match(await page.locator(".search-bar [data-search-count]").textContent(), /5\/5 ảnh/i);
+
+    await page.click(".search-bar .search-bar__go");
+    await announced(page, /kết quả/);
+    const sent = bodies.at(-1);
+    assert.equal(sent.images.length, 5);
+    assert.equal(sent.text, undefined, "no text sent when the input is empty");
+    for (const image of sent.images) {
+      const bytes = Buffer.from(image, "base64");
+      assert.equal(bytes.subarray(0, 3).toString("hex"), "ffd8ff", "JPEG");
+      assert.equal(bytes.includes(Buffer.from("GPSLatitude")), false, "no GPS");
+      assert.equal(bytes.includes(Buffer.from([0xff, 0xe1])), false, "no APP1 block");
+      assert(bytes.length <= 300 * 1024, "at most 300 KB");
+    }
+
+    // Removing an image after results searches again after reSearchMs.
+    const before = bodies.length;
+    await page.locator(".search-bar .search-bar__unthumb").first().click();
+    await page.waitForTimeout(900);
+    assert.equal(bodies.length, before + 1, "searched again");
+    assert.equal(bodies.at(-1).images.length, 4);
+
+    await page.locator(".search-bar input").press("Escape");
+    assert.equal(await trayCount(page), 0, "Esc empties the tray");
+    await page.setInputFiles("[data-search-file]", { name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>") });
+    await page.waitForFunction(() => /jpg hoặc png/i.test(document.querySelector(".search-bar [data-search-count]").textContent));
+    await page.setInputFiles("[data-search-file]", { name: "clip.mp4", mimeType: "video/mp4", buffer: Buffer.from("0000") });
+    await page.waitForFunction(() => /chỉ tìm bằng ảnh/i.test(document.querySelector(".search-bar [data-search-count]").textContent));
+    assert.equal(await trayCount(page), 0);
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R8, R10: images survive a reload, and the same image added again is still dropped as a duplicate", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE, PAGE, { ids: VECTOR_IDS });
+    const files = await Promise.all([40, 90].map((h) => makeJpeg(page, h)));
+    await page.setInputFiles("[data-search-file]", files);
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2);
+    await page.click(".search-bar .search-bar__go");
+    await announced(page, /kết quả/);
+    await page.reload({ waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2, null, { timeout: 20000 });
+    await page.setInputFiles("[data-search-file]", files[0]);
+    await page.waitForTimeout(800);
+    assert.equal(await trayCount(page), 2, "duplicate dropped after reload");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and offers a retry", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, PHONE, PAGE, { delay: 5000, ids: VECTOR_IDS });
+    const { buffer } = await makeJpeg(page, 30);
+    await page.evaluate((b64) => {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const data = new DataTransfer();
+      data.items.add(new File([bytes], "pasted.jpg", { type: "image/jpeg" }));
+      document.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true }));
+    }, buffer.toString("base64"));
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 1);
+    await page.fill(".search-bar input", "biển hiệu");
+    const start = Date.now();
+    await page.press(".search-bar input", "Enter");
+    await page.waitForFunction(() => /đang chậm/i.test(document.querySelector(".search-bar [data-search-count]").textContent), null, { timeout: 5000 });
+    const waited = Date.now() - start;
+    assert(waited >= 2800 && waited < 4500, `slow note at ${waited} ms`);
+    assert.equal(await page.locator("[data-masonry-pending]").count(), 0, "grid no longer pending");
+    assert(await page.locator(".search-bar [data-search-count] button", { hasText: /thử lại/i }).isVisible());
+    await announced(page, /kết quả/, 6000); // the late answer still applies
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
 
 test("R10: a #tim= link searches; a language switch keeps the query; Esc and a chip clear it", async () => {
   const browser = await launchBrowser();

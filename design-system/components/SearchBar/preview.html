@@ -172,6 +172,121 @@ body.is-detail .search-host {
   stroke-width: 2.4;
 }
 
+/* Image tray (R8): thumbnails, "n/5 ảnh" and a short note for image problems, inside the bar above the input row. */
+.search-bar__tray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 4px;
+}
+
+.search-bar__thumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.search-bar__thumb {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: var(--line);
+}
+
+.search-bar__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-bar__unthumb {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+/* 20px to the eye, 32px to the finger. */
+.search-bar__unthumb::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
+.search-bar__unthumb .search-bar__icon {
+  width: 10px;
+  height: 10px;
+  stroke-width: 3.2;
+}
+
+.search-bar__count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12.8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.search-bar__note {
+  color: var(--ink);
+}
+
+.search-bar__count button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+/* Files dragged over the page. */
+.search-drop {
+  position: fixed;
+  z-index: 990;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+  border: 3px dashed var(--ink);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  color: var(--ink);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}
+
+.search-drop[hidden] {
+  display: none;
+}
+
+.search-drop small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* Docked: the border and the white ground melt into a ruled line over the CTA background (owner 2026-11-17: no white box),
    bigger text, "Trao đổi ý tưởng" opens at the end of the line. */
 /* Padding, not margin: a margin would collapse through the slot and push the CTA down. Shell = row + 2px border = slot - 2px. */
@@ -188,6 +303,15 @@ body.is-detail .search-host {
 
 .search-bar.is-docked .search-bar__row {
   height: 52px;
+}
+
+/* The slot has a fixed height: the docked tray hangs below the ruled line. */
+.search-bar.is-docked .search-bar__tray {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  padding: 0;
 }
 
 .search-bar__shell:focus-within .search-bar__rule,
@@ -266,12 +390,13 @@ body.is-detail .search-host {
 <div style="position: relative; height: 110px; transform: translateZ(0);"><div class="search-host"><div class="search-bar">
   <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
+    <div class="search-bar__tray" data-search-tray hidden><div class="search-bar__thumbs" data-search-thumbs></div><span class="search-bar__count" data-search-count></span></div>
     <form class="search-bar__row" role="search">
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>
       <input id="search-bar-input" type="search" autocomplete="off" enterkeyhint="search" maxlength="300" placeholder="Tìm biển hiệu, hộp đèn, chữ nổi...">
       <button type="button" class="search-bar__tool search-bar__clear" data-search-clear-text aria-label="Xóa chữ" title="Xóa chữ"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="search-bar__sep" aria-hidden="true"></span>
-      <button type="button" class="search-bar__tool" data-search-image aria-label="Tìm bằng ảnh" title="Tìm bằng ảnh" hidden><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/></svg></button>
+      <button type="button" class="search-bar__tool" data-search-image aria-label="Tìm bằng ảnh" title="Tìm bằng ảnh"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/></svg></button>
       <button type="submit" class="search-bar__tool search-bar__go" aria-label="Tìm" title="Tìm"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
       <a class="search-bar__talk" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer">Trao đổi<span class="search-bar__long"> ý tưởng</span><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a>
     </form>
@@ -281,12 +406,13 @@ body.is-detail .search-host {
 <div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock><div class="search-bar is-docked">
   <span class="search-bar__sr" data-search-live aria-live="polite"></span>
   <div class="search-bar__shell">
+    <div class="search-bar__tray" data-search-tray hidden><div class="search-bar__thumbs" data-search-thumbs></div><span class="search-bar__count" data-search-count></span></div>
     <form class="search-bar__row" role="search">
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>
       <input id="search-bar-input" type="search" autocomplete="off" enterkeyhint="search" maxlength="300" placeholder="Bạn cần làm gì?">
       <button type="button" class="search-bar__tool search-bar__clear" data-search-clear-text aria-label="Xóa chữ" title="Xóa chữ"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="search-bar__sep" aria-hidden="true"></span>
-      <button type="button" class="search-bar__tool" data-search-image aria-label="Tìm bằng ảnh" title="Tìm bằng ảnh" hidden><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/></svg></button>
+      <button type="button" class="search-bar__tool" data-search-image aria-label="Tìm bằng ảnh" title="Tìm bằng ảnh"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/></svg></button>
       <button type="submit" class="search-bar__tool search-bar__go" aria-label="Tìm" title="Tìm"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
       <a class="search-bar__talk" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer">Trao đổi<span class="search-bar__long"> ý tưởng</span><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a>
     </form>

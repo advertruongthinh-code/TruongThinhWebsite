@@ -167,6 +167,121 @@ body.is-detail .search-host {
   stroke-width: 2.4;
 }
 
+/* Image tray (R8): thumbnails, "n/5 ảnh" and a short note for image problems, inside the bar above the input row. */
+.search-bar__tray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 4px;
+}
+
+.search-bar__thumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.search-bar__thumb {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: var(--line);
+}
+
+.search-bar__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-bar__unthumb {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+/* 20px to the eye, 32px to the finger. */
+.search-bar__unthumb::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
+.search-bar__unthumb .search-bar__icon {
+  width: 10px;
+  height: 10px;
+  stroke-width: 3.2;
+}
+
+.search-bar__count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12.8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.search-bar__note {
+  color: var(--ink);
+}
+
+.search-bar__count button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+/* Files dragged over the page. */
+.search-drop {
+  position: fixed;
+  z-index: 990;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+  border: 3px dashed var(--ink);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  color: var(--ink);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}
+
+.search-drop[hidden] {
+  display: none;
+}
+
+.search-drop small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* Docked: the border and the white ground melt into a ruled line over the CTA background (owner 2026-11-17: no white box),
    bigger text, "Trao đổi ý tưởng" opens at the end of the line. */
 /* Padding, not margin: a margin would collapse through the slot and push the CTA down. Shell = row + 2px border = slot - 2px. */
@@ -183,6 +298,15 @@ body.is-detail .search-host {
 
 .search-bar.is-docked .search-bar__row {
   height: 52px;
+}
+
+/* The slot has a fixed height: the docked tray hangs below the ruled line. */
+.search-bar.is-docked .search-bar__tray {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  padding: 0;
 }
 
 .search-bar__shell:focus-within .search-bar__rule,
