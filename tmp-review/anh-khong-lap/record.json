@@ -1809,5 +1809,73 @@
   "round": 21,
   "change": "owner 2026-11-17 14:32 UTC: 6A with the 105-cnc machine",
   "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v3a.png",
+  "sha256": "f6023448ea71339e42b0b6b9c5cfd20ae88cfd68793ca0a2a048b97e6c1c1951",
+  "bytes": 2423323,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v2a.png"
+  ],
+  "prompt": "p-process-cnc-v3a.txt",
+  "round": 22,
+  "change": "owner 2026-11-17 15:18 UTC: P1 remove labels, move dust collector, edge bander + extinguisher",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v3b.png",
+  "sha256": "f5fbd066f7a1460bdbf4b9690c3744ad03a286d5bde91027e47ed940ea215db0",
+  "bytes": 2361892,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v2a.png"
+  ],
+  "prompt": "p-process-cnc-v3b.txt",
+  "round": 22,
+  "change": "owner 2026-11-17 15:18 UTC: P1 remove labels, move dust collector, sliding saw + tool cabinet + extinguisher",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v21a.png",
+  "sha256": "786fce3a7fd1665becd79c6167992e8d9fe8a3be2819de9113eeca7a77dede14",
+  "bytes": 2500509,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v20b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v21a.txt",
+  "round": 22,
+  "change": "owner 2026-11-17 15:21 UTC: 2b no vehicles, no icon, one-line name, lights off, door handle right",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v21b.png",
+  "sha256": "0e7c60952e4714859269d1a8c7247b61c98598cbf72d4a0aefd2f8b960ebd224",
+  "bytes": 2414190,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v20b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v21b.txt",
+  "round": 22,
+  "change": "owner 2026-11-17 15:21 UTC: 2b no vehicles, no icon, two-line name, lights off, door handle right",
+  "created": "2026-11-17"
  }
 ]

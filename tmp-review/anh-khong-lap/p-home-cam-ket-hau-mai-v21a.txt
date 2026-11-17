@@ -1,0 +1,9 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-hau-mai-v20b.png (portrait 2:3, keep its exact size, camera and framing), then save the result into the current working directory as `home-cam-ket-hau-mai-v21a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER CHANGES:
+1. Remove ALL vehicles: no motorbikes or any vehicle anywhere; the pavement and street there are clean and empty.
+2. Remove the scissors icon completely. The sign shows ONLY the name BLOOM HAIR STUDIO (spelled exactly), re-laid out so it is well balanced and centred on the dark wood-slat fascia (one line, even letter spacing, comfortable margins).
+3. The sign letters are switched OFF: no LED glow, no halo light; they read as solid raised letters in daylight.
+4. The glass entrance door has a vertical pull handle on its RIGHT side.
+
+KEEP EXACTLY: the technician in black on the aluminium A-frame ladder (face hidden), his pose and hands at the small open LED power supply box under the sign edge, the tool bag, the salon interior through the glass, the facade, light, colours and camera. No other text or logos anywhere.
