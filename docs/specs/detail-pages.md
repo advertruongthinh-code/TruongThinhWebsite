@@ -84,8 +84,8 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
 | 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
-| 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `materials`, `cnc-operator-b` | ink |
-| 12–15 | `#cam-ket`, chapter lead, ảnh `workshop-wide`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
+| 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `about-materials-samples-20261117`, `cnc-operator-b` | ink |
+| 12–15 | `#cam-ket`, chapter lead, ảnh `about-workshop-edgebander-20261117`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
 | 16 | `.detail-cta#tu-van` | "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo" | inverse |
 | 17 | `.capability-marquee` | Giá trị và cách làm | ink |
 

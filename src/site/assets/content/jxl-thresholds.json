@@ -2642,6 +2642,12 @@
   "960": 79123,
   "1600": 84068
  },
+ "assets/content/shared/about-materials-samples-20261117.jxl": {
+  "960": 39802
+ },
+ "assets/content/shared/about-workshop-edgebander-20261117.jxl": {
+  "960": 34575
+ },
  "assets/content/shared/after-sales-commercial.jxl": {
   "960": 142946,
   "1600": 156625,
@@ -2708,6 +2714,9 @@
   "960": 127505,
   "1600": 141934,
   "2048": 148059
+ },
+ "assets/content/shared/materials-black-hdf-20261117.jxl": {
+  "960": 39438
  },
  "assets/content/shared/materials.jxl": {
   "960": 442186,
