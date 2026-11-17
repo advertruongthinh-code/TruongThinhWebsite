@@ -216,6 +216,26 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
   }
 });
 
+test("R8, R10: images survive a reload, and the same image added again is still dropped as a duplicate", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE, PAGE, { ids: VECTOR_IDS });
+    const files = await Promise.all([40, 90].map((h) => makeJpeg(page, h)));
+    await page.setInputFiles("[data-search-file]", files);
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2);
+    await page.click(".search-bar .search-bar__go");
+    await announced(page, /kết quả/);
+    await page.reload({ waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2, null, { timeout: 20000 });
+    await page.setInputFiles("[data-search-file]", files[0]);
+    await page.waitForTimeout(800);
+    assert.equal(await trayCount(page), 2, "duplicate dropped after reload");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
 test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and offers a retry", async () => {
   const browser = await launchBrowser();
   try {

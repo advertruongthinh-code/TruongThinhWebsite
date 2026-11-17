@@ -14,6 +14,9 @@ const base64Of = (blob) => new Promise((resolve, reject) => {
   reader.readAsDataURL(blob);
 });
 
+// Identity of a prepared image, for dropping duplicates (also used for images restored from the session).
+export const hashOf = async (blob) => hex(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()));
+
 // Why a file is turned away before it is read, or null.
 export function rejectReason(file) {
   if (file.type.startsWith("video/")) return "videoOnly";
@@ -52,7 +55,7 @@ export async function prepareImage(file) {
     for (const quality of QUALITIES) {
       const blob = await toJpeg(bitmap, quality);
       if (blob && blob.size <= MAX_JPEG) {
-        return { blob, base64: await base64Of(blob), hash: hex(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer())) };
+        return { blob, base64: await base64Of(blob), hash: await hashOf(blob) };
       }
     }
     return { error: "tooLarge" };

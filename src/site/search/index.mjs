@@ -4,7 +4,7 @@ import css from "./search.css";
 import { COPY, createBar, renderThumbs } from "./bar.mjs";
 import { createClient } from "./client.mjs";
 import { mountDock } from "./dock.mjs";
-import { MAX_IMAGES, prepareImage } from "./images.mjs";
+import { MAX_IMAGES, hashOf, prepareImage } from "./images.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 import * as session from "./session.mjs";
 
@@ -110,7 +110,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     fileInput.value = "";
   }, { signal });
   document.addEventListener("paste", (event) => {
-    if (event.clipboardData?.files.length) {
+    // Office copies carry text and a picture of it: text wins, so a paste into the input stays text.
+    if (event.clipboardData?.files.length && !event.clipboardData.types.includes("text/plain")) {
       event.preventDefault();
       addFiles(event.clipboardData.files);
     }
@@ -198,7 +199,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     input.value = restored.text;
     Promise.all(restored.images.map(async (base64) => {
       const blob = await (await fetch(`data:image/jpeg;base64,${base64}`)).blob();
-      return { base64, blob, hash: base64.slice(-64) };
+      return { base64, blob, hash: await hashOf(blob) };
     })).then((list) => {
       if (signal?.aborted) return;
       list.forEach(addImage);
