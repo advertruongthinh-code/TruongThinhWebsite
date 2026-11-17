@@ -32,7 +32,7 @@
   },
   "keywordMin": 0.4,
   "timing": {
-    "textWaitMs": 800,
+    "textWaitMs": 3000,
     "imageWaitMs": 3000,
     "reSearchMs": 400
   }

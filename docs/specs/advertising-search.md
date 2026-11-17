@@ -143,8 +143,8 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 
 ### R6. Chờ, dự phòng và lỗi
 
-Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
-Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ 0,4 thì `setResults` các card đó xếp theo K; điểm vector
+Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 3 giây thì `setResults` theo R5.
+Quá 3 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ 0,4 thì `setResults` các card đó xếp theo K; điểm vector
 về muộn thì `offerResults`. Không card nào có K từ 0,4 mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
 Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
@@ -152,9 +152,9 @@ Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo t�
 giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào ô chữ.
 
 ```gherkin
-Given Worker trả sau 2 giây
+Given Worker trả sau 4 giây
 When khách tìm "bảng hiệu"
-Then sau 0,8 giây lưới hiện kết quả theo K
+Then sau 3 giây lưới hiện kết quả theo K
 And khi điểm vector về, nút "Có thêm kết quả gợi ý" hiện, bấm mới xếp lại
 ```
 
