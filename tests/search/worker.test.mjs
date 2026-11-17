@@ -153,10 +153,16 @@ test("malformed bodies are 400", async () => {
   assert.equal(calls.ai.length, 1);
 });
 
-test("bodies over 2.2 MB are 413 by header or by length", async () => {
+test("bodies over 2.2 MB are 413 by header, by length or as a stream without Content-Length", async () => {
   const worker = await loadWorker();
   const { env, calls } = makeEnv();
   assert.equal((await post(worker, env, { text: "a" }, { "content-length": "2200001" })).status, 413);
+  const chunk = new Uint8Array(1_000_000).fill(0x61);
+  let sent = 0;
+  const stream = new ReadableStream({ pull(c) { if (sent++ < 10) c.enqueue(chunk); else c.close(); } });
+  const streamed = await worker.fetch(new Request("https://x.test/api/search", { method: "POST", body: stream, duplex: "half" }), env);
+  assert.equal(streamed.status, 413);
+  assert.ok(sent <= 4, `read ${sent} chunks`);
   const res = await post(worker, env, { text: "a".repeat(2_200_001) });
   assert.equal(res.status, 413);
   assert.deepEqual(await res.json(), { status: "too_large" });
@@ -204,19 +210,25 @@ test("the index is fetched once per isolate and nothing is logged", async (t) =>
   assert.deepEqual(logged, []);
 });
 
-test("scoreInput: sMedia is the mean of the two best media, clamped by the anchors", () => {
+test("scoreInput uses the anchor pair of its kind and averages the two best media", () => {
   const q = fakeVec(2);
   const unitQ = q.map((x) => x / Math.hypot(...q));
   const { meta, bin } = makeIndex(CARDS);
   const decoded = decodeIndex(meta, bin);
-  const anchors = { "image-text": [0, 1], "image-image": [0, 1] };
+  // Text pairs would score everything 0, so a kind mix-up fails.
+  const anchors = { "image-text": [0.2, 0.9], "image-image": [-0.5, 1], "text-text": [5, 6], "text-image": [5, 6] };
+  const cos = ({ q: v, s: k }) => k * v.reduce((sum, x, i) => sum + x * unitQ[i], 0);
+  const r3 = (x) => Math.round(x * 1000) / 1000;
   const [a, b, c] = scoreInput(unitQ, "image", decoded, anchors);
+  const media = decoded.cards[0].media.map((m) => normalize(cos(m), anchors["image-image"])).sort((x, y) => y - x);
+  assert.equal(a[1], r3(normalize(cos({ q: decoded.cards[0].text, s: decoded.cards[0].ts }), anchors["image-text"])));
+  assert.equal(a[2], r3((media[0] + media[1]) / 2));
+  assert.equal(b[2], r3(normalize(cos(decoded.cards[1].media[0]), anchors["image-image"])));
   assert.equal(c[2], 0);
-  assert.ok(Math.abs(b[2] - a[2]) > 0.01);
-  assert.ok(a[2] > 0.5 && a[2] <= 1);
   assert.equal(normalize(2, [0, 1]), 1);
   assert.equal(normalize(0.5, [0.25, 0.75]), 0.5);
   assert.equal(normalize(-1, [0, 1]), 0);
+  assert.equal(normalize(0.5, [0.4, 0.4]), 0);
 });
 
 test("jpegSize reads SOF0-2 and skips fill bytes; rejects other data", () => {
@@ -224,6 +236,11 @@ test("jpegSize reads SOF0-2 and skips fill bytes; rejects other data", () => {
   const progressive = jpeg(10, 20);
   progressive[21] = 0xc2;
   assert.deepEqual(jpegSize(progressive), { width: 10, height: 20 });
+  const fill = new Uint8Array(1000);
+  fill.set(jpeg(10, 20).subarray(0, 20), 0);
+  fill[20] = 0xff;
+  fill.set(jpeg(10, 20).subarray(20, 40), 21);
+  assert.deepEqual(jpegSize(fill), { width: 10, height: 20 });
   const sos = jpeg(10, 20);
   sos[21] = 0xda;
   assert.equal(jpegSize(sos), null);

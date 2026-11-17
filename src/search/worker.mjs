@@ -12,7 +12,7 @@ const MAX_IMAGE_BYTES = 300 * 1024;
 const MAX_SIDE = 768;
 const MAX_TEXT = 300;
 // Only this many leading base64 chars (6 KB) are decoded, for the CPU budget: the SOF segment must sit there, as it does in
-// canvas JPEGs. The rest is not validated here; invalid base64 makes the model call fail (503).
+// canvas JPEGs. The rest is not validated here; it reaches the model as is (a model error is 503).
 const HEAD_CHARS = 8192;
 
 const json = (body, status) =>
@@ -70,17 +70,43 @@ function parse(raw) {
   return query || images.length ? { text: query, images } : null;
 }
 
+// Counts bytes while reading, so a body without Content-Length stops at the cap instead of buffering in full.
+async function readBody(request) {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 // Text goes through `input` and images through `messages` (see modelRequest), so both kinds mean two parallel calls.
 const embed = (env, inputs) => env.AI.run(MODEL, modelRequest(inputs)).then((result) => readVectors(result, inputs.length));
 
 async function search(request, env) {
   if (Number(request.headers.get("content-length") || 0) > MAX_BODY) return json({ status: "too_large" }, 413);
-  const raw = await request.text();
-  if (raw.length > MAX_BODY) return json({ status: "too_large" }, 413);
+  const raw = await readBody(request);
+  if (raw === null) return json({ status: "too_large" }, 413);
   const body = parse(raw);
   if (!body) return json({ status: "bad_request" }, 400);
   const { text, images } = body;
 
+  // Both limiters are declared in wrangler.static.toml; only local runs without bindings skip the limit.
   const limiter = images.length ? env.SEARCH_IMAGE_LIMIT : env.SEARCH_TEXT_LIMIT;
   const key = request.headers.get("CF-Connecting-IP") || "unknown";
   if (limiter && !(await limiter.limit({ key })).success) return json({ status: "rate_limited" }, 429);

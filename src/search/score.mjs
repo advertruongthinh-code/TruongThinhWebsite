@@ -1,7 +1,8 @@
 // Scores one query vector against every card of the decoded index (advertising-search R3).
 import { DIMS } from "./embed-input.mjs";
 
-export const normalize = (x, [lo, hi]) => Math.min(1, Math.max(0, (x - lo) / (hi - lo)));
+// A collapsed pair (hi <= lo) scores 0 instead of NaN.
+export const normalize = (x, [lo, hi]) => (hi > lo ? Math.min(1, Math.max(0, (x - lo) / (hi - lo))) : 0);
 const round3 = (x) => Math.round(x * 1000) / 1000;
 
 const cosine = (query, q, s) => {
