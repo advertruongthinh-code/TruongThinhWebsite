@@ -1,0 +1,12 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the result into the current working directory as `home-cam-ket-san-xuat-v3a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER BRIEF: the Production card shows a CNC cutting machine machining wood furniture parts in the Trường Thịnh workshop. NO PEOPLE in the frame. NOT a close-up of the router bit: show the machine and its work at medium or wide distance.
+
+ATTACHED IMAGES: references for light, colour grade and the real workshop look; home-cam-ket-san-xuat-v2c is the closest previous attempt; do not copy its composition.
+
+SUBJECT: a frontal level view of the whole CNC router with the gantry and dust hood moving mid-sheet, the nested furniture parts clearly visible across the bed; no people.
+
+SETTING: a clean, organised modern panel-furniture workshop in a low-rise steel-roofed building in the Mekong Delta; swept concrete floor; daylight from high windows. Fresh cut edges show a dense black HDF core. No text, numbers or logos on the machine or anywhere.
+
+PHOTO: editorial photograph on a full-frame camera, 35-50 mm lens, natural directional light, real shadows, slight sensor grain, real material texture; level camera, straight verticals; not a 3D render. Vietnamese context, a low-rise town in the Mekong Delta (Vĩnh Long); clean and tidy. Panel furniture is black-core HDF with laminate faces; recessed pulls only. No logos or real brand names. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it.
+AVOID: any person; a close-up of the spindle or bit; an edge banding machine as the subject; sawdust piles; clutter.

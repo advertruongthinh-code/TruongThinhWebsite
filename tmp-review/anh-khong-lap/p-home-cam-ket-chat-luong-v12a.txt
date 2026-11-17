@@ -1,0 +1,5 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-chat-luong-v10b.png (portrait 2:3, keep its exact size and framing), then save the result into the current working directory as `home-cam-ket-chat-luong-v12a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+CHANGE ONLY the picture shown in the framed backlit panel on the wall: replace the coffee cup photo with a calm, beautiful nature photograph (for example a Mekong Delta river landscape with coconut palms at soft morning light, or green tropical leaves), evenly backlit, no text, no logo.
+
+KEEP EXACTLY: framing, light, all cabinets and doors, the curved counter, the shelves and every item on them, the arch LED lamp, the plant, the counter items, the floor. Do not change anything else.
