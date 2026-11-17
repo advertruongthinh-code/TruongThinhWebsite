@@ -44,7 +44,7 @@ const artifact = {
 
 test("documentText and request shapes", () => {
   assert.equal(documentText(artifact.cards[0], artifact),
-    "title: T x | text: D | T | E | a1 | a2 | b1 | b2 | Bảng hiệu | Signs | Biển | Boards | Bảng hiệu | Signs");
+    "title: T x | text: D | T | E | a1 | a2 | b1 | b2 | Bảng hiệu | Signs | Bảng hiệu | Signs");
   assert.deepEqual(modelRequest(["q", "r"]), { input: ["q", "r"], dimensions: DIMS });
   const req = modelRequest([mediaInput({}, "AAA"), mediaInput({ altVi: "a", altEn: "b" }, "BBB")]);
   assert.equal(req.dimensions, DIMS);
