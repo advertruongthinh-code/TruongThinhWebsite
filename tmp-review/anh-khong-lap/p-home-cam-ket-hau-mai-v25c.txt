@@ -1,0 +1,19 @@
+Use your built-in image generation tool to create ONE new photograph from scratch, portrait 2:3 at the largest size the tool supports, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v25c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos used ONLY to learn structure: small LED sign power supplies, and a technician on a ladder working at a sign. Do not copy their layout, text or logos.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SCENE: the street-level facade of a small modern hair salon in a Vietnamese town, daytime. Camera: a level view with a gentle three-quarter angle from the left (two-point perspective, verticals straight). Level camera, vertical lines exactly vertical, correct vanishing points. Ceiling or sky only a modest strip; paving only a modest strip. The lower 35 percent of the frame is calmer, because white text sits over it.
+
+SIGN: a dark wood-slat fascia across the top with raised, UNLIT dark letters in two lines: "BLOOM" large on top and "HAIR STUDIO" smaller below. Spell exactly B-L-O-O-M and H-A-I-R S-T-U-D-I-O. The letters are perfectly straight, their baselines parallel to the fascia's top and bottom edges, and the two-line block is centred both horizontally and vertically on the fascia (equal left/right margins, equal top/bottom margins). No icon, no logo, no other text.
+
+TECHNICIAN: one man in a plain dark work shirt and trousers, seen from the back or three-quarter back, face hidden. He stands on a real aluminium A-frame step ladder with all four feet flat on the paving and both spreaders locked, both feet on one step, body balanced and centred. His hands, at chest-to-face height, check a SMALL LED power supply box (about shoebox size, grey weatherproof enclosure, lid open, perforated metal power supply inside, neat wires) mounted at the lower corner of the sign. A small tool bag on the paving.
+
+SHOPFRONT: full-height glass with the salon interior visible (styling stations with mirrors, a reception counter with recessed handles, product shelves, warm light). The glass entrance door has a vertical pull bar on its RIGHT leaf, set back from the door frame by a clear gap.
+
+RIGHT SIDE: the salon is directly attached to the neighbouring house, a plain painted townhouse front with a closed door and a window, in the same facade line with no gap: no street, alley or passage anywhere.
+
+GROUND: clean, even square paving tiles with straight joints in correct perspective, no noise. No vehicles, no other people.
+
+PHOTO: editorial photograph on a full-frame camera, real shadows, slight sensor grain, real material texture; not a 3D render.

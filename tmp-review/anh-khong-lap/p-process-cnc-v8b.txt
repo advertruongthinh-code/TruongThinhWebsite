@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, landscape 3:2 at the largest size the tool supports, then save the generated image file into the current working directory as `process-cnc-v8b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+SAME SPACE: the attached cnc-neo-v6b.png and home-cam-ket-san-xuat-v8b.png (approved by the owner) show the workshop. Use the same white CNC router, the same separate white control cabinet with monitor, the same white flexible dust hose, the same overhead rigid duct, the same walls, windows and light. process-cnc-v5a.png only shows the camera position the owner wants.
+
+CAMERA: low and level at the near end of the CNC bed, one-point perspective along the bed: all receding lines of the bed and sheet converge to one vanishing point; every vertical line exactly vertical. the spindle carriage at the right, cutting closer to the camera, the brush hood large and sharp.
+
+FRAMING: the nested sheet fills most of the frame. No ceiling, or at most a thin strip of 5 percent at the top. Floor at most 10 percent.
+
+SHEET: a 17 mm black-core HDF sheet with a light wood-grain melamine face, nested cabinet parts with shelf-pin hole rows, every cut groove and edge showing a dense BLACK core, crisp and even. No labels.
+
+DUST HOSE: from the round brush dust hood, the white flexible hose rises straight up to the overhead rigid duct exactly as in home-cam-ket-san-xuat-v8b.png; one continuous route, nothing loose.
+
+BACKGROUND: only the back wall of the same workshop, with at most a rack of upright panels (black-core edges) and the control cabinet. NO sliding table saw, NO worker, no people, no plants. No text, logos or numbers anywhere. Photoreal like a real camera.
