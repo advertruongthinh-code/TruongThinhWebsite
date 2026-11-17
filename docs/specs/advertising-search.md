@@ -10,6 +10,7 @@ tests:
   - tests/search/keywords.test.mjs
   - tests/search/rank.test.mjs
   - tests/search/worker.test.mjs
+  - tests/search/calibrate.test.mjs
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e8118ba24ffb730cdecf5
 updated: 2026-11-17
@@ -274,11 +275,10 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6 chưa có test (`tests/site/advertising-search.e2e.mjs`) |
 | R7 đến R10 | chưa có test (`tests/site/advertising-search.e2e.mjs`, Worker giả qua route Playwright, 6 bề rộng) |
-| R11 | `pnpm search:calibrate` trên máy có token |
+| R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
 ## Gate còn mở
 
-- Toàn bộ R1 đến R11 chưa code; chờ owner duyệt spec rồi plan (advisor duyệt trước mỗi lần).
 - Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
