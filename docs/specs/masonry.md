@@ -30,7 +30,9 @@ hoặc ở spec chi tiết được trỏ tới, không chép sang từng trang.
 Ba lưới chạy chung `mountMasonry` (`masonry/runtime.mjs`). Trang Công trình mount với `viewer: false` (không
 detail, related, gợi ý, chip sản phẩm, không khung detail ẩn trong HTML). Phần lưới của trang Công
 trình (grid, thẻ tĩnh noscript, batch skeleton, CTA đuôi) lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ
-CTA ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)): thêm attribute ở trang quảng cáo thì trang Công trình có theo.
+CTA ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)): thêm attribute ở trang quảng cáo thì trang Công trình có theo. Ngoại lệ
+duy nhất: khe thanh tìm kiếm `[data-search-dock]` bị bỏ lúc build, vì tìm kiếm chỉ chạy ở trang quảng cáo
+([masonry-live-layout R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm)).
 
 ### R2. Item masonry
 
