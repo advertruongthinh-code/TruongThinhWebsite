@@ -722,5 +722,138 @@
   "round": 1,
   "change": "owner 2026-11-17 00:00-00:02 UTC: regenerate production portal, balanced across residential/commercial/advertising",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v9a.png",
+  "sha256": "047fd90551fbf19780d0d18e869430da8a80466f79f0315de34d9d246eef7619",
+  "bytes": 2109480,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v9a.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v9b.png",
+  "sha256": "2db1886c4388711fb9ebd73b7b01caf274b7ac995ee82cf7e8cffab729228914",
+  "bytes": 2141902,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v9b.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-chat-luong-v9c.png",
+  "sha256": "23384a489185fdb4f63acfe5dfc25359a53db95c613698ff63f49e8268aefa0e",
+  "bytes": 2339860,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-chat-luong-v9c.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v9a.png",
+  "sha256": "041a6848890a6202454074621161e892e5e8283748e3cf9c85f5921d1a7427ec",
+  "bytes": 2372898,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v9a.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v9a2.png",
+  "sha256": "dd27f97127008a10b0edda40f3ab7e28911614d0fedfa53b5d6d303d5ec5794e",
+  "bytes": 2078542,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v9a2.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v9b.png",
+  "sha256": "40f95036a7342b595b5e4d1c8d2cdf0b3b1044812555d414613611edeafb0d77",
+  "bytes": 2339114,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v9b.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v9c.png",
+  "sha256": "77dbe7a5cfc55b094a532e82dce6ea6f0e37df6e00575d0feacfcd0a252d8245",
+  "bytes": 2175304,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-chat-luong-v8a2.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v9c.txt",
+  "round": 9,
+  "change": "owner 2026-11-17: commitment images balanced across residential/commercial/advertising",
+  "created": "2026-11-17"
  }
 ]
