@@ -98,6 +98,23 @@ async function readBody(request) {
 // Text goes through `input` and images through `messages` (see modelRequest), so both kinds mean two parallel calls.
 const embed = (env, inputs) => env.AI.run(MODEL, modelRequest(inputs)).then((result) => readVectors(result, inputs.length));
 
+// Text query vectors are kept in this isolate for 5 minutes, keyed by a SHA-256 of the query (the text itself is not kept),
+// so a repeated query skips the model and always gets the same scores (owner choice B, 2026-11-18). Images are never cached.
+const TEXT_TTL_MS = 5 * 60_000;
+const TEXT_CACHE_MAX = 500;
+const textCache = new Map();
+async function embedText(env, text) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+  const key = Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
+  const hit = textCache.get(key);
+  if (hit && Date.now() - hit.at < TEXT_TTL_MS) return hit.vectors;
+  const vectors = await embed(env, [queryText(text)]);
+  textCache.delete(key);
+  textCache.set(key, { at: Date.now(), vectors });
+  if (textCache.size > TEXT_CACHE_MAX) textCache.delete(textCache.keys().next().value);
+  return vectors;
+}
+
 async function search(request, env) {
   if (Number(request.headers.get("content-length") || 0) > MAX_BODY) return json({ status: "too_large" }, 413);
   const raw = await readBody(request);
@@ -118,7 +135,7 @@ async function search(request, env) {
   let imageVectors;
   try {
     [textVectors, imageVectors] = await Promise.all([
-      text ? embed(env, [queryText(text)]) : [],
+      text ? embedText(env, text) : [],
       images.length ? embed(env, images.map((b64) => mediaInput({}, b64))) : [],
     ]);
   } catch {

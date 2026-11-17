@@ -85,8 +85,9 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
 test("R9: results show on the grid only, with nothing above the bar", async () => {
   const browser = await launchBrowser();
   try {
+    // keywordMin 0.6: the keyword fallback needs a whole catalog phrase, so the query is a product name.
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
-    await search(page, "giá hộp đèn tay vẫy bao nhiêu");
+    await search(page, "hộp đèn");
     await announced(page, /kết quả/);
     assert.equal(await page.locator(".search-host > :not(.search-bar):not([data-search-file])").count(), 0, "host holds only the bar");
     assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0);
@@ -266,7 +267,8 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
 test("R10: a #tim= link searches; a language switch keeps the query; Esc and a chip clear it", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("hộp đèn")}`);
+    // A working Worker: with keywordMin 0.6 a Vietnamese query on the EN page has no keyword fallback.
+    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("hộp đèn")}`, {});
     await announced(page, /kết quả/);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
 
