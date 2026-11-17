@@ -37,12 +37,21 @@ const fromHash = (hash) => {
   try { return part ? decodeURIComponent(part.slice(4)) : null; } catch { return null; }
 };
 
-// Query to search again on mount: a #tim= link, a language switch, or a reload/Back of this page. A soft navigation from the menu starts clean.
-export function restoredText(softNavigation) {
+// Search to run again on mount ({ text, images } or null): a #tim= link (text only), a language switch, or a reload/Back of this
+// page. A soft navigation from the menu starts clean.
+export function restored(softNavigation) {
   const hash = take(HASH);
   const restore = take(RESTORE);
-  if (hash) return fromHash(hash);
+  if (hash) {
+    const text = fromHash(hash);
+    return text ? { text, images: [] } : null;
+  }
   const type = performance.getEntriesByType("navigation")[0]?.type;
   if (!restore && (softNavigation || (type !== "reload" && type !== "back_forward"))) return null;
-  try { return JSON.parse(read(SESSION))?.text || null; } catch { return null; }
+  try {
+    const { text = "", images = [] } = JSON.parse(read(SESSION)) ?? {};
+    return text || images.length ? { text, images } : null;
+  } catch {
+    return null;
+  }
 }
