@@ -226,7 +226,7 @@ And so với baseline cùng cohort, không mục nào vượt ngân sách
 Media tải lỗi có dấu báo lỗi (owner 2026-10-18): khung giữ tỷ lệ, nền xám phẳng `#e4e4e2` không dải màu, biểu tượng ảnh vỡ
 mảnh 24px ở giữa, một dòng 12px "Không tải được" / "Couldn't load" (theo `lang`), không nút thử lại. Script đầu `<head>` của
 R6 gọi `settle(image, true)` khi `error` tới hoặc ảnh Barba chèn vào đã lỗi sẵn: khung nhận `.is-media-settled` và
-`.is-media-error`; `load` tới sau đó thì gỡ. CSS vẽ dấu bằng `::before` của khung (`z-index: -1` trong `isolation: isolate`),
+`.is-media-error`; `load` tới sau đó thì gỡ. Ảnh nội dung (`/assets/content/`) lỗi thì tự tải lại (owner 2026-11-17: mạng gián đoạn làm media chờ hay báo lỗi mãi tới khi F5): ngay khi trình duyệt báo `online`, nếu không thì sau 2s, nhân đôi tới tối đa 30s trong lúc còn ảnh lỗi; gán lại đúng `src` để mở request mới. CSS vẽ dấu bằng `::before` của khung (`z-index: -1` trong `isolation: isolate`),
 ảnh lỗi `visibility: hidden`. Hero, CTA, portal mang chữ trắng nên dùng nền tối `media-loading-surface`, dấu `#b8b8b6`, lớp
 phủ vẫn ẩn; dấu có thể chồng chữ vì nằm giữa khung. Loại trừ `.client-logo-marquee`. Card, primary Advertising: runtime
 tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)).
