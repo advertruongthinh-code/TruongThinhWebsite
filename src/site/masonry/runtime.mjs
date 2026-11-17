@@ -3830,12 +3830,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     node.dataset.en = page.titleEn;
     node.textContent = locale === "en" ? page.titleEn : page.titleVi;
   };
-  // Switches the grid to another card set (filter or search results), sliding cards from where they are now.
-  const relayoutTo = (apply, { animate = false } = {}) => {
+  // Switches the grid to another card set (filter or search results), sliding cards from where they are now. reason tells the search
+  // page why search ended (R6): "clear", "filter" (a click: rail, active chip, navbar, breadcrumb) or "history" (Back/Forward).
+  const relayoutTo = (apply, { animate = false, reason = "filter" } = {}) => {
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const leftSearch = search;
     apply();
-    if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left"));
+    if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left", { detail: { reason } }));
     const origins = animate ? cachedCoordinates(visualOrigins) : undefined;
     cancelMotion();
     clearCtaSkeleton();
@@ -3891,7 +3892,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!search) return cancelLayoutWait();
     whenLayoutReady(filter, () => relayoutTo(() => {
       search = null;
-    }, { animate: true }));
+    }, { animate: true, reason: "clear" }));
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
   const setLogicalScroll = (scrollY) => scroll?.setLogicalScroll?.(scrollY) ?? false;
@@ -5447,7 +5448,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     document.body.classList.remove("is-detail");
     delete document.body.dataset.detailActive;
     const focusId = browse.grid.focusId;
-    if (browse.category !== filter) setActiveFilter(browse.category);
+    if (browse.category !== filter) setActiveFilter(browse.category, { reason: reason === "history" ? "history" : "filter" });
     if (!geometry || staleStackGeometry()) measure();
     const node = focusId ? ensurePhoto(focusId) : null;
     const gridMediaId = viewedMediaId || browse.grid.mediaId;

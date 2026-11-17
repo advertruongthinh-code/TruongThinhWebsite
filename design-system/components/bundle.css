@@ -6874,6 +6874,18 @@ body.is-masonry-browse .site-footer {
   line-height: 1.2;
 }
 
+/* Search dock slot (search plan 0.5): a fixed height equal to the docked search bar, so the CTA never changes height after the grid
+   is laid out. The search page moves its bar in here; the slot stays empty without JavaScript. */
+.detail-cta[data-masonry-grid-cta] [data-search-dock] {
+  min-height: 56px;
+}
+
+@media (min-width: 1024px) {
+  .detail-cta[data-masonry-grid-cta] [data-search-dock] {
+    min-height: 72px;
+  }
+}
+
 /* The runtime fits size synchronously; the reduced-motion transition would report the old size. */
 .detail-cta[data-masonry-grid-cta] h2,
 .detail-cta[data-masonry-grid-cta] h2 * {
