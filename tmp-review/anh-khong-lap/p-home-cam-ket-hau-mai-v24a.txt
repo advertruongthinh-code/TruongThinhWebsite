@@ -1,0 +1,7 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-hau-mai-v23a.png (portrait 2:3, keep its exact size, camera and framing), then save the result into the current working directory as `home-cam-ket-hau-mai-v24a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER CHANGES:
+1. On the right side, the salon's facade is directly attached to the NEIGHBOURING TOWNHOUSE (nhà liền kề): the neighbour's facade continues immediately at the right edge of the salon pillar, flush in the same plane, with no gap, no alley, no passage, no road and no walkway between them. The neighbour is a plain painted Vietnamese tube-house front with a closed wooden door and a window; no text, no people, no vehicles.
+2. The tiled pavement in front of the salon is clean and photographic: regular square tiles with straight, even joints in correct perspective, natural texture; remove all AI noise, smudges, warped tiles and random speckles.
+
+KEEP EXACTLY: the sign BLOOM / HAIR STUDIO (centred, straight, unlit), the technician in black on the A-frame ladder (face hidden) at the small open LED power box, the tool bag, the glass door and its handle, the salon interior, the light and colours.

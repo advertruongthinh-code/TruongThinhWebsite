@@ -2243,5 +2243,39 @@
   "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
   "created": "2026-11-18",
   "anchor": "cnc-neo-v6c.png"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v24a.png",
+  "sha256": "d02c347224d0a2154b9362958eae033f300c9b0940e577a70e97ddba46c29e43",
+  "bytes": 2267354,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v23a.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v24a.txt",
+  "round": 26,
+  "change": "owner 2026-11-17 19:21 UTC: attached neighbour house, clean pavement",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v24b.png",
+  "sha256": "ad71152a5c0813f06c9f78b29866ae912372156ba496d45852145c626dba5a61",
+  "bytes": 2116275,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v23a.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v24b.txt",
+  "round": 26,
+  "change": "owner 2026-11-17 19:21 UTC: attached neighbour house, clean pavement",
+  "created": "2026-11-18"
  }
 ]
