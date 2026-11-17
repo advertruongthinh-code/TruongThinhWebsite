@@ -1,0 +1,19 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v18a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real shopfront and sign photos used ONLY to learn structure, materials and proportions. Do not copy their layout, text, logos or design.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SCENE: the street-level shopfront of a small coconut cosmetics shop in a low-rise Mekong Delta town (Bến Tre, Vĩnh Long). Daytime, natural light. Frontal one-point view of the whole shopfront, camera level, square to the facade.
+
+SIGN: The sign is a backlit light box band across the top of the shopfront. The technician stands on an aluminium A-frame step ladder on the pavement and is replacing one face panel of the light box, one hand holding the panel edge, the other a screwdriver. The sign text is exactly MỸ PHẨM DỪA in large, bold, correctly spelled Vietnamese capitals (spell M-Ỹ P-H-Ẩ-M D-Ừ-A), with a simple coconut or palm-leaf icon. No other words, no brand or shop name, no phone number. The sign is neat, modern and new, with a clean mounting.
+
+TECHNICIAN: one man in a plain black work shirt and black work trousers, seen from the back or three-quarter back, face not visible. He stands on a real aluminium ladder: an A-frame with four feet flat on the pavement and spreaders locked (or, if it fits better, a proper extension ladder leaning safely against the facade). Both feet on a step, the work at a natural reach height between chest and face, body balanced and centred, correct anatomy. A small tool bag on the pavement.
+
+INTERIOR through the glass: panel-furniture display shelving and a sales counter in light wood with recessed handles, filled with coconut skincare products (bottles, jars, coconut-shell soaps), neat and lit.
+
+STREET: no other people; parked motorbikes are allowed, no moving vehicles; coconut palms may appear; clean pavement.
+
+GEOMETRY: level camera, every vertical truly vertical, consistent vanishing points. Sky or ceiling at most the top 10 percent; pavement at most the bottom 15 percent. The lower 35 percent of the frame is calmer and darker, because white text sits over it.
+
+PHOTO: editorial photograph on a full-frame camera, real shadows, slight sensor grain, real material texture; not a 3D render. No logos anywhere.

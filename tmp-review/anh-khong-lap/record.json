@@ -1545,5 +1545,81 @@
   "round": 17,
   "change": "owner 2026-11-17 12:49 UTC: fix geometry and vanishing points",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v18a.png",
+  "sha256": "5a55fd4acfaea97674f3c0a7780be76ad2f0067dc62f1aeba0864b0c6fcbd967",
+  "bytes": 2578239,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r18-ref-1.jpg",
+   "ref/r18-ref-2.jpg",
+   "ref/r18-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v18a.txt",
+  "round": 18,
+  "change": "owner 2026-11-17 13:16 UTC: technician at coconut cosmetics shopfront sign",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v18b.png",
+  "sha256": "34ac294af9c647703d11b9acdc00cfa96acda7014021313ffa5ad05c05f61d6d",
+  "bytes": 2783515,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r18-ref-1.jpg",
+   "ref/r18-ref-2.jpg",
+   "ref/r18-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v18b.txt",
+  "round": 18,
+  "change": "owner 2026-11-17 13:16 UTC: technician at coconut cosmetics shopfront sign",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v18b2.png",
+  "sha256": "cc077f6298fd21e0ac8843444462d8d67088300182aa9d38472586bc5942dedc",
+  "bytes": 2909307,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r18-ref-1.jpg",
+   "ref/r18-ref-2.jpg",
+   "ref/r18-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v18b2.txt",
+  "round": 18,
+  "change": "owner 2026-11-17 13:16 UTC: technician at coconut cosmetics shopfront sign",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v18c.png",
+  "sha256": "95357b1d8bd64f888324fe34d409e478806023b4d87133625e727b123a747961",
+  "bytes": 2627242,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r18-ref-1.jpg",
+   "ref/r18-ref-2.jpg",
+   "ref/r18-ref-3.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v18c.txt",
+  "round": 18,
+  "change": "owner 2026-11-17 13:16 UTC: technician at coconut cosmetics shopfront sign",
+  "created": "2026-11-17"
  }
 ]
