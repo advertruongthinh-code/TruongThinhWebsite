@@ -106,9 +106,11 @@ test("text plus two images: one input call, one messages call, a score row per c
     }
   }
   assert.equal(calls.ai.length, 2);
-  assert.deepEqual(calls.ai[0].input, ["task: search result | query: hộp đèn tay vẫy"]);
-  assert.equal(calls.ai[1].messages.length, 2);
-  assert.deepEqual(calls.ai[1].messages[0][0].content, [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${IMG}` } }]);
+  // The two calls run in parallel, so their order is not part of the contract.
+  const [textCall, imageCall] = [calls.ai.find((c) => c.input), calls.ai.find((c) => c.messages)];
+  assert.deepEqual(textCall.input, ["task: search result | query: hộp đèn tay vẫy"]);
+  assert.equal(imageCall.messages.length, 2);
+  assert.deepEqual(imageCall.messages[0][0].content, [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${IMG}` } }]);
   assert.deepEqual(calls.limit, [["image", "203.0.113.9"]]);
 });
 
@@ -246,4 +248,23 @@ test("jpegSize reads SOF0-2 and skips fill bytes; rejects other data", () => {
   assert.equal(jpegSize(sos), null);
   assert.equal(jpegSize(Uint8Array.from([0x89, 0x50, 0x4e, 0x47])), null);
   assert.equal(jpegSize(jpeg(10, 20).subarray(0, 25)), null);
+});
+
+// Owner report 2026-11-17: the same query gave different results; a repeated text query now reuses its vector.
+test("a repeated text query reuses its vector for 5 minutes; images always call the model", async (t) => {
+  const worker = await loadWorker();
+  const { env, calls } = makeEnv();
+  const post = (body) => worker.fetch(new Request("https://x/api/search", { method: "POST", body: JSON.stringify(body) }), env);
+  const first = await (await post({ text: "hộp đèn" })).json();
+  const second = await (await post({ text: "hộp đèn" })).json();
+  assert.deepEqual(second, first);
+  assert.equal(calls.ai.length, 1);
+  await post({ text: "chữ nổi" });
+  assert.equal(calls.ai.length, 2);
+  await post({ images: [IMG] });
+  await post({ images: [IMG] });
+  assert.equal(calls.ai.length, 4);
+  t.mock.timers.enable({ apis: ["Date"], now: Date.now() + 5 * 60_000 + 1 });
+  await post({ text: "hộp đèn" });
+  assert.equal(calls.ai.length, 5);
 });

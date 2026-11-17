@@ -30,7 +30,7 @@
       0.86
     ]
   },
-  "keywordMin": 0.4,
+  "keywordMin": 0.6,
   "timing": {
     "textWaitMs": 800,
     "imageWaitMs": 3000,
