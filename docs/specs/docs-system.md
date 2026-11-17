@@ -210,6 +210,7 @@ các check trong `scripts/docs/agents-rules.mjs`:
 | cms import | File trong `src/site/` import hoặc nạp `src/worker/`, `src/admin/`, `src/db/` |
 | markdown name | File Markdown mới trên branch không phải slug chữ thường nối gạch, hoặc mở đầu bằng mã (F1, R4, P13), hoặc có năm/ngày |
 | qa line | Chạy trên PR, branch đổi `src/site/` mà mô tả PR và commit message không có dòng `Ảnh QA ...:` đã điền (không còn `<...>` của template) |
+| png goc | Ảnh master trong `src/site/assets/content` không có dòng trong `docs/operations/png-goc.csv`; hoặc branch thêm ảnh master mà dòng thiếu PNG và sha256, và PR không có dòng `PNG gốc: không có - <lý do>` |
 
 ## Ranh giới
 

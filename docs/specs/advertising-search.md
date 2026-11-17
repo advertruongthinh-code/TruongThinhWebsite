@@ -58,9 +58,9 @@ And thiếu token thì log deploy có cảnh báo và chỉ mục ghi status una
 
 ### R2. Lớp từ khóa
 
-`cardTerms(card, locale)` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, cụm, tag (không lấy mô tả, vì lưới không tải mô tả).
-Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu (bỏ dấu,
-`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo".
+`cardTerms` lấy cụm từ trong tiêu đề, alt, tên sản phẩm, cụm, tag (không lấy mô tả, vì lưới không tải mô tả); cụm là đoạn cắt ở dấu phẩy, `&`, gạch, ngoặc;
+nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và "hòa" là một). Mỗi cụm giữ bản có dấu và bản bỏ dấu
+(`đ` thành `d`). Bảng `src/search/synonyms.json` (VI, EN) nối cụm cùng nghĩa, ví dụ "bảng hiệu", "biển hiệu", "biển quảng cáo"; mỗi lần đổi đúng một thành viên, so bản bỏ dấu.
 "Khớp" nghĩa là các từ của câu nằm liền nhau trong một cụm của card. K của card là mức cao nhất đạt được:
 
 | Mức | K |
@@ -71,8 +71,8 @@ Chữ được chuẩn NFC và đặt dấu thanh theo một kiểu ("hoà" và 
 | Khớp khi cho một từ sai: từ đến 4 chữ cái sai 1, dài hơn sai đến 2 (khoảng cách sửa trên bản có dấu) | 0,6 |
 | Ít nhất nửa số từ của câu (so bản bỏ dấu) có trong cụm từ của card | 0,4 |
 
-Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI ("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ
-tiếng Anh như "coffee" không bị đổi sai. Không dùng LLM.
+Mức 0,6 chỉ xét từ từ 3 chữ cái trở lên, khoảng cách Levenshtein (đảo hai chữ cái tính 2). Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI
+("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ tiếng Anh như "coffee" không bị đổi sai. Không dùng LLM.
 
 ```gherkin
 Given card có tiêu đề "Hộp đèn tròn inox cho cà phê rang xay"
@@ -252,7 +252,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | Command | `pnpm search:index`, `pnpm search:calibrate` | R1, R11; cần `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` có quyền Workers AI |
 | Data | `.site-output/search/advertising-index.bin`, `.json` | Vector int8 và meta (R1), sinh lúc deploy |
 | Data | `src/search/synonyms.json`, `src/search/score-config.json` | Đồng nghĩa; trọng số, 4 cặp mốc, ngưỡng |
-| Hàm public | `cardTerms`, `keywordScores`, `decodeTelex`, `decodeVni` (`src/search/keywords.mjs`) | R2 |
+| Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain` (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
 | Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |
 | Endpoint | `POST /api/search/share`, `GET /api/search/share/<mã>/<n>` | R10 |
@@ -270,7 +270,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7). Khi code xong, thêm 
 | R | Test hoặc command |
 | --- | --- |
 | R1 | chưa có test (`tests/search/index.test.mjs`, Workers AI giả) |
-| R2 | chưa có test (`tests/search/keywords.test.mjs`) |
+| R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | chưa có test (`tests/search/worker.test.mjs`: dạng phản hồi, 400, 413, 429, không log) |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6 chưa có test (`tests/site/advertising-search.e2e.mjs`) |
 | R7 đến R10 | chưa có test (`tests/site/advertising-search.e2e.mjs`, Worker giả qua route Playwright, 6 bề rộng) |
