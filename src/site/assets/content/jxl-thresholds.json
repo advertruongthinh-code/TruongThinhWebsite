@@ -2605,11 +2605,6 @@
  "assets/content/projects/tiem-banh-ngot-shot-7.jxl": {
   "960": 98627
  },
- "assets/content/projects/workshop-wide-x2.jxl": {
-  "960": 157291,
-  "1600": 166442,
-  "2048": 171800
- },
  "assets/content/projects/workshop-wide-x7.jxl": {
   "960": 144154,
   "1600": 150455,
@@ -2670,6 +2665,9 @@
  },
  "assets/content/shared/commitment-aftercare-drawer-20261117.jxl": {
   "960": 29008
+ },
+ "assets/content/shared/commitment-production-cnc-20261117.jxl": {
+  "960": 70173
  },
  "assets/content/shared/commitment-quality-shop-20261117.jxl": {
   "960": 49147
