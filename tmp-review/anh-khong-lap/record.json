@@ -2616,5 +2616,56 @@
   "round": 31,
   "change": "owner artifact comment 2026-11-17 22:31 UTC: wall items too fake",
   "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v1a.png",
+  "sha256": "bed836a21ce15a49efda760a65147cb94dc34953e6b928ce8f2dfc0f20381745",
+  "bytes": 1945090,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v1a.txt",
+  "round": 32,
+  "change": "owner 2026-11-17 23:27 UTC: P set, artistic backlit, worker assembling furniture",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v1b.png",
+  "sha256": "7f855d38faf931bbe7fe56a05747471f8e1633248801b148051a68d758b0f4b3",
+  "bytes": 2026290,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v1b.txt",
+  "round": 32,
+  "change": "owner 2026-11-17 23:27 UTC: P set, artistic backlit, worker assembling furniture",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v1c.png",
+  "sha256": "a3b2aa17186065ba6ea38337876a9c9046c055bc1d87718c1f07e5484f986821",
+  "bytes": 1799234,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v1c.txt",
+  "round": 32,
+  "change": "owner 2026-11-17 23:27 UTC: P set, artistic backlit, worker assembling furniture",
+  "created": "2026-11-18"
  }
 ]
