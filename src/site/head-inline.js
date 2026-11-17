@@ -13,6 +13,8 @@ try {
   }
   const routeLocale = document.documentElement.dataset.routeLocale;
   document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
+  // A #tim= search link: kept for the search bar before motion.js drops the hash (advertising-search R10).
+  if (location.hash.startsWith("#tim=")) sessionStorage.setItem("tt-search-hash", location.hash);
 } catch {}
 // The image frame keeps its shimmer until the image has loaded and decoded; listening from the head so no image's event is missed.
 document.documentElement.classList.add("media-gate");

@@ -310,6 +310,15 @@
               softNavigation,
             });
           }
+        })
+        .then((result) => {
+          // Search bar after the grid (Barba does not rerun scripts outside the container); a failed grid keeps the plain CTA link.
+          if (!abort.signal.aborted) {
+            import("/advertising-products/search.mjs")
+              .then((search) => !abort.signal.aborted && search.mount(container, { signal: abort.signal, softNavigation }))
+              .catch(() => {});
+          }
+          return result;
         });
     }
 

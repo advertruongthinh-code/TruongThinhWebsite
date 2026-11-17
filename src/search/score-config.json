@@ -1,0 +1,8 @@
+{
+  "weights": { "text": { "sText": 0.45, "sMedia": 0.35, "k": 0.2 }, "image": { "sText": 0.3, "sMedia": 0.7 } },
+  "groupTextWeight": 0.3,
+  "threshold": 0.42,
+  "anchors": { "text-text": [0, 1], "text-image": [0, 1], "image-text": [0, 1], "image-image": [0, 1] },
+  "keywordMin": 0.4,
+  "timing": { "textWaitMs": 800, "imageWaitMs": 3000, "reSearchMs": 400 }
+}
