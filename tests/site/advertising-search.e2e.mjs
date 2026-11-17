@@ -176,6 +176,13 @@ for (const viewport of [PHONE]) {
       });
       assert(status.bottom <= shell.top || status.top >= shell.bottom, `status ${JSON.stringify(status)} covers shell ${JSON.stringify(shell)}`);
       assert(status.top >= 0, "status on screen");
+      // The floating buttons stand above the lifted status, so its close button stays the way out.
+      await page.waitForTimeout(400);
+      const closeHit = await page.evaluate(() => {
+        const rect = document.querySelector("[data-search-status] .search-bar__close").getBoundingClientRect();
+        return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)?.closest(".search-bar__close") !== null;
+      });
+      assert(closeHit, "close button not covered");
       await context.close();
     } finally {
       await browser.close();

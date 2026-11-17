@@ -52,9 +52,12 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   };
 
   // Floating buttons stand above whatever the host shows: the floating bar and the status line.
-  const syncOffset = () => {
-    const height = (dock?.docked ? 0 : bar.offsetHeight + 12) + (statusNode.hidden ? 0 : statusNode.offsetHeight + 8);
+  const setOffset = () => {
+    const height = (dock?.docked ? 0 : bar.offsetHeight + 12) + (statusNode.hidden ? 0 : statusNode.offsetHeight + 8) + lift;
     document.body.style.setProperty("--search-bar-offset", `${height}px`);
+  };
+  const syncOffset = () => {
+    setOffset();
     placeStatus();
   };
   // While docked the status sits at the screen bottom; when the docked bar passes behind it, lift the status above the bar so the
@@ -65,7 +68,10 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   const placeStatus = () => {
     cancelAnimationFrame(frame);
     if (!dock?.docked || statusNode.hidden) {
-      lift = 0;
+      if (lift) {
+        lift = 0;
+        setOffset();
+      }
       statusNode.style.removeProperty("translate");
       return;
     }
@@ -77,6 +83,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     if (next !== lift) {
       lift = next;
       statusNode.style.translate = lift ? `0 ${-lift}px` : "";
+      setOffset();
     }
     frame = requestAnimationFrame(placeStatus);
   };
