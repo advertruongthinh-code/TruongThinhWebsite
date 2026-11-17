@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v6c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos used ONLY to learn structure, materials and proportions. Do not copy their layout, people, text, logos or design.
+
+SUBJECT: an industrial CNC router cutting a nested sheet of furniture parts (laminate-faced black-core HDF, dark cut edges) and the fabric-bag dust collector ducted to its dust hood, in a clean Vietnamese panel-furniture workshop.
+
+FRAMING (owner, main fix): TIGHT. The ceiling and roof are NOT visible, or at most a thin strip in the top 5 percent. The floor is at most the bottom 10-15 percent. The machine and the dust collector fill most of the frame; the camera is close to the machine.
+
+VIEW: The gantry and Z-axis with the dust hood and flexible duct in the upper part of the frame, nested cut furniture parts with dark black-core edges filling the lower part, dust collector bags at one side.
+
+A few secondary workshop items at the edges only (a panel rack, a steel tool cabinet). No people, no plants, no edge banding machine, no table or cart of blanks, no macro close-up of the bit. No text or numbers on the machine.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; level camera, verticals perfectly vertical, consistent vanishing points; not a 3D render. Vietnamese context, Mekong Delta (Vinh Long). No logos or brand names anywhere. The lower 35 percent of the frame is calmer and darker, because white text sits over it.

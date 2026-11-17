@@ -1,0 +1,18 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v15b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos used ONLY to learn structure, materials and proportions. Do not copy their layout, people, text, logos or design.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SPACE (an entirely new furniture design; no light oak with moss green, no curved counter with a glass pastry case on the left): A white and terrazzo tea shop: a low service counter with a rounded-corner white panel front and a terrazzo top; a wall unit with arched open niches and closed cabinets below; a clear staff gap at the end of the counter. All panel furniture is correctly built, realistically proportioned (counters about 90 cm high), black-core HDF with laminate faces, recessed pulls only. The cabinetry reads as a well-made home-style storage system as much as shop furniture.
+
+MENU LIGHT BOX: evenly backlit with drink photos, names and prices in large bold correctly spelled Vietnamese (CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K). NO shop name and NO logo anywhere.
+
+STRUCTURE AND POSTURE (owner, main fix):
+- The menu light box is mounted believably: on the wall with visible steel brackets, or hung from the ceiling on two rods fixed into the ceiling.
+- The ladder is a real aluminium A-frame step ladder: four feet flat on the floor, both spreader braces locked, evenly spaced steps, correct perspective with the floor. It stands on the floor in front of the wall, outside the counter.
+- The technician wears a plain black shirt and black work trousers, seen from the back or three-quarter back, face not visible. Both feet stand squarely on one step at a height where his hands reach the light box between chest and face level. His body is balanced and centred over the ladder, not leaning outward, not on the top cap. One hand steadies the light box; the other drives a screwdriver into its side panel. Correct anatomy, five fingers per hand. A small tool bag on the floor beside the ladder.
+
+FRAMING: the floor is a modest strip and the ceiling a thin strip.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; level camera, verticals perfectly vertical, consistent vanishing points; not a 3D render. Vietnamese context, Mekong Delta (Vinh Long). No logos or brand names anywhere. The lower 35 percent of the frame is calmer and darker, because white text sits over it.
