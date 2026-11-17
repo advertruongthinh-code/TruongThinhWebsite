@@ -10,7 +10,7 @@ const INTERIOR = {
 };
 const sameIds = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
-// ui: { grid, artifact, locale, copy, zaloHref, setStatus(lines), toast(text), session }
+// ui: { grid, artifact, locale, copy, zaloHref, setStatus(lines), toast(text), session, signal }
 export function createClient(ui) {
   const { grid, artifact, locale, copy } = ui;
   const order = artifact.cards.map((card) => card.id);
@@ -150,6 +150,8 @@ export function createClient(ui) {
     const idle = window.requestIdleCallback ?? ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 16));
     const step = (deadline) => {
       while (deadline.timeRemaining() > 4) {
+        if (ui.signal?.aborted) return;
+        // One small query after the build compiles the scoring path, so the first real search runs warm code too.
         if (warming.next().done) return keywordScores("hop den", locale, artifact);
       }
       idle(step);

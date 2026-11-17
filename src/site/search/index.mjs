@@ -43,7 +43,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     announce(lines);
     syncOffset();
   };
-  const client = createClient({ grid, artifact, locale, copy, zaloHref, setStatus, toast, session });
+  const client = createClient({ grid, artifact, locale, copy, zaloHref, setStatus, toast, session, signal });
 
   const leave = (tellGrid) => {
     if (tellGrid) grid.clearResults();
