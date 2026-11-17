@@ -3918,7 +3918,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     offer.addEventListener("click", () => setResults(ids));
     grid.before(offer);
   };
-  const setPending = (pending) => grid.toggleAttribute("data-masonry-pending", Boolean(pending));
+  const setPending = (pending) => {
+    grid.toggleAttribute("data-masonry-pending", Boolean(pending));
+    // Screen readers hear that the dimmed grid is still loading search results.
+    grid.setAttribute("aria-busy", String(Boolean(pending)));
+  };
   // Search API (masonry-live-layout R6): ids in score order; unknown and repeated ids are skipped, the latest call wins.
   const setResults = (ids) => {
     cancelLayoutWait();
