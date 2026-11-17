@@ -202,7 +202,7 @@ Then mỗi card mới vào bộ đứng ngay tại đích, không trượt, lớ
 ## Gate còn mở
 
 - Đo A04s ở 384px với bản xếp sẵn so với main d33ae601 (reviewer mục 3). Thread masonry.
-- Trace A04s R7: bấm chip, `setResults`, `clearResults` không task nào trên 50 ms, trừ task dựng CTA (PR 5) và `settleMotion` (PR 4b) (reviewer PR 2, PR 3). Thread masonry.
+- Trace A04s R7: bấm chip, `setResults`, `clearResults` không task nào trên 50 ms, trừ `settleMotion` (reviewer PR 2, PR 3). Task dựng CTA: PR 5 đặt `--masonry-cta-top` trên cụm CTA thay vì section, cloud CPU chậm 5 lần còn 15 tới 20 ms; A04s 2026-11-17 còn 1/5 lần tải 52 ms ở task dựng cụm, nên lần tải đầu chia thêm task hiện cụm; A04s lượt 3 (8c23aaaf): ĐẠT, không task CTA nào trên 50 ms ở 5 lần tải (dài nhất 35 ms, main 74 tới 127 ms), hạt kính chỉ ở Worker, bấm chip và tìm kiếm không task CTA trên 50 ms. Thread masonry.
 
 ## Chú thích thuật ngữ
 
