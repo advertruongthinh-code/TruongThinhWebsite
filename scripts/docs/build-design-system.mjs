@@ -7,6 +7,9 @@ import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
 import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
+import { COPY as SEARCH_COPY, barMarkup, statusMarkup } from '../../src/site/search/bar.mjs';
+// The Zalo link has one source, the floating CTA partial.
+const ZALO_HREF = readFileSync('src/site/partials/floating-cta.html', 'utf8').match(/href="([^"]+)"/)[1];
 
 const OUT = 'design-system';
 // Source pages keep menu markers; the preview reads them with the menu rendered, as the build does.
@@ -65,6 +68,14 @@ const COMPONENTS = [
   ...[['Gallery', 1100, 0, 960, 'Page'], ['Filter', 240, 40], ['MediaCard', 580, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480],
     ['Primary', 760, 40], ['Glass', 760, 40], ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size, group = 'Advertising']) => ({ name, group, height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
+  // Search bar (advertising-search R7): its own CSS is injected by the page, not in style.css; the preview inlines it. Floating above, docked below.
+  { name: 'SearchBar', group: 'Advertising', height: 280, file: 'src/site/search/bar.mjs', start: /export const barMarkup/,
+    before: () => `<style>${readFileSync('src/site/search/search.css', 'utf8')}</style>`,
+    markup: '<div style="position: relative; height: 150px; transform: translateZ(0);"><div class="search-host">'
+      + statusMarkup('<div class="search-bar__lines"><p><span>12 kết quả cho “hộp đèn”</span><button type="button">Sao chép link</button></p></div>')
+      + barMarkup(SEARCH_COPY.vi, ZALO_HREF)
+      + '</div></div>\n<div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock>'
+      + barMarkup(SEARCH_COPY.vi, ZALO_HREF, true) + '</div></div></div>' },
   // The sweep shows until the image settles; the preview has no head script, so the frame and button stay in the waiting state.
   // src uses single quotes so localizeImages skips it: the frame still matches the /assets/content/ selector but the image never shows.
   { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /The content image frame waits with a light streak/, htmlClass: 'media-gate',

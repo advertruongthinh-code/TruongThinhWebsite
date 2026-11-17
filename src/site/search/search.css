@@ -1,0 +1,327 @@
+/* Search bar (advertising-search R7): approved prototype variant 1 "Đường kẻ", in site tokens. Floats in .search-host, docks in
+   [data-search-dock] under the CTA heading (slot height 56px, 72px from 1024px; the docked bar keeps a 2px gap at the top). */
+.search-host {
+  --search-row-h: 60px;
+  position: fixed;
+  z-index: 974;
+  left: 50%;
+  bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+  width: min(760px, 100% - 32px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+body.menu-open .search-host,
+body.is-detail .search-host {
+  display: none;
+}
+
+.search-host [hidden],
+.search-bar [hidden],
+.detail-cta[data-masonry-grid-cta] .detail-cta__copy .legacy-link[hidden] {
+  display: none;
+}
+
+/* detail.css styles every link in the CTA copy (flex, max-content, top margin); the docked bar lives there. */
+.detail-cta[data-masonry-grid-cta] .search-bar a.search-bar__talk {
+  display: flex;
+  width: auto;
+  min-height: 0;
+  margin: 0 0 0 6px;
+}
+
+.search-bar {
+  position: relative;
+  pointer-events: auto;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.search-bar__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.search-bar__icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.search-bar__shell {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  transition: width var(--dur-fast) ease-out, border-color var(--dur-fast) ease-out;
+}
+
+.search-bar__row {
+  display: flex;
+  align-items: center;
+  height: var(--search-row-h);
+  margin: 0;
+  padding: 0 6px 0 10px;
+}
+
+.search-bar__row input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  transition: font-size var(--dur-fast) ease-out;
+}
+
+.search-bar__row input::placeholder {
+  color: var(--muted);
+}
+
+.search-bar__row input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search-bar__tool {
+  display: grid;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.search-bar__tool:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.search-bar__clear {
+  color: var(--muted);
+}
+
+.search-bar__row input:placeholder-shown ~ .search-bar__clear {
+  display: none;
+}
+
+.search-bar__sep {
+  flex: none;
+  width: 1px;
+  height: 26px;
+  margin: 0 6px;
+  background: var(--line);
+}
+
+.search-bar__rule {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-fast) ease-out;
+}
+
+.search-bar__talk {
+  display: flex;
+  flex: none;
+  align-items: center;
+  max-width: 0;
+  height: 100%;
+  margin-left: 6px;
+  padding: 0 0 0 20px;
+  overflow: hidden;
+  border-left: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  visibility: hidden;
+  pointer-events: none;
+  transition: max-width var(--dur-fast) ease-out, clip-path var(--dur-fast) ease-out, visibility 0s linear var(--dur-fast);
+}
+
+.search-bar__talk .search-bar__icon {
+  margin-left: 10px;
+  stroke-width: 2.4;
+}
+
+/* Status line in the fixed host, above the floating bar, or at the screen bottom while the bar is docked: results, groups,
+   Zalo, copy link. */
+.search-bar__status {
+  position: absolute;
+  z-index: 1;
+  color: var(--ink);
+  pointer-events: auto;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  max-width: 100%;
+  transform: translateX(-50%);
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-size: 12.8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.search-bar__lines {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-bar__status p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 12px;
+  min-width: 0;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 12px;
+}
+
+.search-bar__status p + p {
+  border-top: 1px solid var(--line);
+}
+
+.search-bar__status span {
+  padding: 8px 0;
+}
+
+.search-bar__status a,
+.search-bar__status button {
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.search-bar__status .search-bar__close {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  color: var(--ink);
+}
+
+/* Docked: the border melts into a ruled line, bigger text, "Trao đổi ý tưởng" opens at the end of the line. */
+/* Padding, not margin: a margin would collapse through the slot and push the CTA down. Shell = row + 2px border = slot - 2px. */
+.search-bar.is-docked {
+  padding-top: 2px;
+}
+
+.search-bar.is-docked .search-bar__shell {
+  width: min(1000px, 100%);
+  border-color: transparent;
+  transition: width 700ms var(--ease-card), border-color 700ms var(--ease-card);
+}
+
+.search-bar.is-docked .search-bar__row {
+  height: 52px;
+}
+
+.search-bar__shell:focus-within .search-bar__rule,
+.search-bar.is-docked .search-bar__rule {
+  transform: scaleX(1);
+  transition: transform 700ms var(--ease-card);
+}
+
+.search-bar.is-docked .search-bar__row input {
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  transition: font-size 700ms var(--ease-card);
+}
+
+.search-bar.is-docked .search-bar__talk {
+  max-width: 320px;
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+  pointer-events: auto;
+  transition: max-width 700ms var(--ease-card), clip-path 500ms var(--ease-card) 200ms, visibility 0s;
+}
+
+@media (min-width: 1024px) {
+  .search-bar.is-docked .search-bar__row {
+    height: 68px;
+  }
+}
+
+@media (max-width: 750px) {
+  .search-host {
+    --search-row-h: 56px;
+  }
+
+  .search-bar__tool {
+    width: 40px;
+  }
+
+  .search-bar__sep {
+    margin: 0 2px;
+  }
+
+  .search-bar__talk {
+    margin-left: 2px;
+    padding-left: 10px;
+    font-size: 12px;
+  }
+
+  .search-bar__talk .search-bar__icon {
+    margin-left: 6px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .search-bar__long,
+  .search-bar.is-docked .search-bar__go,
+  .search-bar.is-docked .search-bar__sep {
+    display: none;
+  }
+
+  .search-bar.is-docked .search-bar__talk {
+    max-width: 120px;
+  }
+
+  .search-bar.is-docked .search-bar__row input {
+    font-size: 1.05rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-bar *,
+  .search-bar *::before,
+  .search-bar *::after {
+    transition: none !important;
+  }
+}

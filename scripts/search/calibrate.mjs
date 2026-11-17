@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { cardMedia, embedRest, IMAGE_BATCH, mediaInput, queryText, TEXT_BATCH } from "../../src/search/embed-input.mjs";
 import { decodeIndex, unit } from "../../src/search/index-format.mjs";
-import { keywordScores } from "../../src/search/keywords.mjs";
+import { keywordScores, modelQuery } from "../../src/search/keywords.mjs";
 import { keywordOnly, rankSearch } from "../../src/search/rank.mjs";
 import { scoreInput } from "../../src/search/score.mjs";
 
@@ -55,7 +55,7 @@ export async function buildInputs(queries, artifact, readCrop) {
   for (const q of queries) {
     const parts = q.type === "mixed" ? q.expect : [q.expect];
     const inputs = [];
-    if (q.text) inputs.push({ kind: "text", model: queryText(q.text) });
+    if (q.text) inputs.push({ kind: "text", model: queryText(modelQuery(q.text, localeOf(q), artifact)) });
     for (const ref of q.images ?? []) {
       const [id, n = 0] = ref.split("#");
       const media = cardMedia(cards.get(id))[Number(n)];
@@ -83,6 +83,7 @@ async function embedAll(queries, embed, cachePath) {
   for (const input of all) input.vec = unit(cache[key(input.model)]);
 }
 
+const localeOf = (q) => (q.type === "en" ? "en" : "vi");
 const scoresOf = (input, index, anchors) => scoreInput(input.vec, input.kind, index, anchors);
 
 // lo = 5th percentile of wrong pairs, hi = 95th percentile of right pairs, per query kind and target.
@@ -102,7 +103,7 @@ export function evaluate(queries, { index, artifact, config }) {
   const catalogOrder = artifact.cards.map((c) => c.id);
   const productOf = (id) => artifact.cards.find((c) => c.id === id)?.productIds[0];
   return queries.map((q) => {
-    const keyword = q.text ? keywordScores(q.text, q.type === "en" ? "en" : "vi", artifact) : new Map();
+    const keyword = q.text ? keywordScores(q.text, localeOf(q), artifact) : new Map();
     const inputs = q.inputs.map((input) => ({ kind: input.kind, scores: scoresOf(input, index, config.anchors) }));
     const { ids } = rankSearch({ inputs, keyword, config, catalogOrder, productOf });
     const top = ids.slice(0, 5);

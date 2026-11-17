@@ -302,7 +302,7 @@
     },
     "search": {
       "specs": ["advertising-search"],
-      "tests": ["node --test tests/search/*.test.mjs"]
+      "tests": ["node --test tests/search/*.test.mjs", "node tests/site/advertising-search.e2e.mjs"]
     }
   },
   "manual": {

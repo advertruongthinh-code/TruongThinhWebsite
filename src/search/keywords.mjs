@@ -73,7 +73,7 @@ function phrase(text) {
   const words = tokens(text);
   if (!words.length) return null;
   const canon = words.map(canonical);
-  return { key: canon.join(" "), words: canon, plainWords: words.map(plain) };
+  return { key: canon.join(" "), words: canon, plainWords: words.map(plain), typed: words };
 }
 
 function labelMaps(artifact) {
@@ -105,16 +105,33 @@ export function cardTerms(card, artifact, locale, maps = labelMaps(artifact)) {
 
 // The index is built on the first search, not at page load, and kept per artifact and locale.
 const indexes = new WeakMap();
+const localeIndexes = (artifact) => indexes.get(artifact) ?? indexes.set(artifact, new Map()).get(artifact);
+const indexEntry = (card, artifact, locale, maps) => {
+  const terms = cardTerms(card, artifact, locale, maps);
+  return { id: card.id, terms, wordSet: new Set(terms.flatMap((term) => term.plainWords)) };
+};
 function indexFor(artifact, locale) {
-  const perLocale = indexes.get(artifact) ?? indexes.set(artifact, new Map()).get(artifact);
+  const perLocale = localeIndexes(artifact);
   if (!perLocale.has(locale)) {
     const maps = labelMaps(artifact);
-    perLocale.set(locale, artifact.cards.map((card) => {
-      const terms = cardTerms(card, artifact, locale, maps);
-      return { id: card.id, terms, wordSet: new Set(terms.flatMap((term) => term.plainWords)) };
-    }));
+    perLocale.set(locale, artifact.cards.map((card) => indexEntry(card, artifact, locale, maps)));
   }
   return perLocale.get(locale);
+}
+
+/**
+ * Builds the same index in slices, one per step, so a page can warm it in idle time before the first search (a cold build is
+ * a long task on slow phones). A search before the last step builds the index itself; the steps then stop.
+ */
+export function* warmIndex(artifact, locale, slice = 40) {
+  const perLocale = localeIndexes(artifact);
+  const maps = labelMaps(artifact);
+  const built = [];
+  for (let at = 0; at < artifact.cards.length && !perLocale.has(locale); at += slice) {
+    for (const card of artifact.cards.slice(at, at + slice)) built.push(indexEntry(card, artifact, locale, maps));
+    yield;
+  }
+  if (!perLocale.has(locale)) perLocale.set(locale, built);
 }
 
 const synonymGroups = {};
@@ -149,7 +166,8 @@ function synonymQueries(list, locale) {
   return swapped;
 }
 
-const contains = (hay, needle) => needle.length > 0 && hay.some((_, at) => needle.every((word, i) => hay[at + i] === word));
+const indexOfWords = (hay, needle) => (needle.length ? hay.findIndex((_, at) => needle.every((word, i) => hay[at + i] === word)) : -1);
+const contains = (hay, needle) => indexOfWords(hay, needle) >= 0;
 
 function distance(a, b) {
   let row = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -219,4 +237,21 @@ export function keywordScores(query, locale, artifact) {
     if (best) scores.set(id, best);
   }
   return scores;
+}
+
+/**
+ * Text to send to the embedding model: a Telex or VNI query is replaced by the catalog words it decodes to, with marks
+ * ("hoopj ddenf" -> "hộp đèn"), because the model cannot read the raw keys. Any other query is returned as typed.
+ */
+export function modelQuery(query, locale, artifact) {
+  const [, ...decoded] = candidates(query);
+  for (const { words } of decoded) {
+    for (const { terms } of indexFor(artifact, locale)) {
+      for (const term of terms) {
+        const at = indexOfWords(term.words, words);
+        if (at >= 0) return term.typed.slice(at, at + words.length).join(" ");
+      }
+    }
+  }
+  return query;
 }
