@@ -1,0 +1,14 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v14a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: home-cam-ket-hau-mai-v13b.png is the version the owner says is close (bright bakery-cafe, pale oak, white and sage green, hanging menu light box, technician in black on a step ladder). Keep its overall mood, palette, the menu light box design (drink photos, names and prices, no shop name) and the technician's look; rebuild as a new photograph with these fixes.
+
+OWNER FIXES:
+1. CABINETRY: Redesign the cabinetry as a clean built-in system: a full-height panel storage wall in pale oak laminate with flat doors and recessed pulls, an open display niche with LED strip for bread and packaged goods, sage-green accent panels. Black-core HDF panels, crisp even gaps, recessed pulls only.
+2. DISPLAY COUNTER: redesign as a well-proportioned service counter with a glass pastry display case set properly into it, a stone top, a clear staff entrance gap at one end, and a cash point; realistic heights (counter about 90 cm, case on top).
+3. LADDER: a correct A-frame aluminium step ladder standing fully open and level on the floor, both pairs of legs on the floor, spreader bars locked, rungs evenly spaced; the technician stands on a step (not the top cap), his body balanced, reaching the light box naturally with a screwdriver; nothing about the ladder floats or intersects the counter.
+
+MENU (keep): CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K, with drink photos, large bold correctly spelled Vietnamese, NO shop name, no logo.
+
+Technician: plain black shirt and trousers, seen from behind, head turned away; small tool bag on the floor.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; not a 3D render. Vietnamese context, Mekong Delta (Vĩnh Long). No text, numbers, logos or brand names anywhere. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it. Level camera, straight verticals, floor only a modest strip.

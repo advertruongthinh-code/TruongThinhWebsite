@@ -1196,5 +1196,75 @@
   "round": 13,
   "change": "owner 2026-11-17 10:34 UTC notes",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v5a.png",
+  "sha256": "7075a6cb9f8298f7e82139da5f963cd702357b58d879f8050762d932ecae04c4",
+  "bytes": 2600483,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v4a.png",
+   "ref/old-production.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v5a.txt",
+  "round": 14,
+  "change": "owner 2026-11-17 11:40 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v5b.png",
+  "sha256": "2af31c4cd4fea645c2b474c22dca4bd655813cef2b7a477d90088af3fcba7b90",
+  "bytes": 2588352,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v4a.png",
+   "ref/old-production.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v5b.txt",
+  "round": 14,
+  "change": "owner 2026-11-17 11:40 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v14a.png",
+  "sha256": "8e562c924cc297346586eac285bb4f852138c7c6f27d548187fcceb326cad0a3",
+  "bytes": 2427704,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v13b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v14a.txt",
+  "round": 14,
+  "change": "owner 2026-11-17 11:40 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v14b.png",
+  "sha256": "df40be24687080834210a661594f0f2d457730465ac3c35a474b8f94820716fb",
+  "bytes": 2359129,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v13b.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v14b.txt",
+  "round": 14,
+  "change": "owner 2026-11-17 11:40 UTC notes",
+  "created": "2026-11-17"
  }
 ]

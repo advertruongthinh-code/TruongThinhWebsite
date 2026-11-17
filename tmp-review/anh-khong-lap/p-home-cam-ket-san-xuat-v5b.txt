@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v5b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: home-cam-ket-san-xuat-v4a.png is the version the owner says is close (workshop structure, CNC in the corner, bag dust collector with duct). Rebuild it as a new photograph with these fixes; do not trace it.
+
+OWNER FIXES:
+1. NO edge banding machine.
+2. GEOMETRY (owner): the image must obey correct perspective: camera level, all vertical lines perfectly vertical and parallel; all lines of the building (roof purlins, window rows, wall base, floor joints) and of the machine (bed rails, gantry) converge correctly to consistent vanishing points; machine and building proportions are realistic and consistent with each other. Camera: two-point perspective: camera level at chest height, a clean three-quarter view of the CNC and the dust collector in the corner, two consistent vanishing points outside the frame.
+3. The main subject stays the CNC router actively cutting a nested sheet of furniture parts (laminate-faced black-core HDF, dark cut edges) together with the bag dust collector and its duct to the dust hood.
+4. Add a few believable workshop objects so the space is not empty, kept secondary and tidy, placed along the walls: a vertical rack of full boards leaning against the wall, a closed steel tool cabinet, a compressed-air hose reel, a wall-mounted fire extinguisher, a broom and dustpan, a small spare-bits rack. No tables or carts of blanks, no indoor plants, no people.
+
+SETTING: low-rise steel-roofed panel-furniture workshop, high windows with coconut palms outside, clean swept concrete floor.
+
+PHOTO: editorial photograph on a full-frame camera, natural directional light, real shadows, slight sensor grain, real material texture; not a 3D render. Vietnamese context, Mekong Delta (Vĩnh Long). No text, numbers, logos or brand names anywhere. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it.
