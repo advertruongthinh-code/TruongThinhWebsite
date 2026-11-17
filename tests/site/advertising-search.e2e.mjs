@@ -151,6 +151,38 @@ for (const viewport of [WIDE, PHONE]) {
   });
 }
 
+// The phone is where the status is taller than the gap under the docked bar; End would scroll past the first dock point.
+for (const viewport of [PHONE]) {
+  test(`R7 at ${viewport.width}px: the status never covers the docked bar at the first dock point`, async () => {
+    const browser = await launchBrowser();
+    try {
+      const { context, page } = await open(browser, viewport, PAGE, { status: 503 });
+      await page.mouse.move(viewport.width / 2, viewport.height / 2);
+      for (let i = 0; i < 400 && !(await isDocked(page)); i++) {
+        await page.mouse.wheel(0, 60);
+        await page.waitForTimeout(40);
+      }
+      await page.waitForTimeout(800);
+      assert(await isDocked(page), "docked by wheel");
+      await search(page, "giá xqzw vbnk bao nhiêu");
+      await page.locator("[data-search-status] button", { hasText: /zalo/i }).first().waitFor({ state: "visible", timeout: 5000 });
+      await page.waitForTimeout(300);
+      const { status, shell } = await page.evaluate(() => {
+        const box = (selector) => {
+          const { top, bottom } = document.querySelector(selector).getBoundingClientRect();
+          return { top: Math.round(top), bottom: Math.round(bottom) };
+        };
+        return { status: box("[data-search-status]"), shell: box("[data-search-dock] .search-bar__shell") };
+      });
+      assert(status.bottom <= shell.top || status.top >= shell.bottom, `status ${JSON.stringify(status)} covers shell ${JSON.stringify(shell)}`);
+      assert(status.top >= 0, "status on screen");
+      await context.close();
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
 test("R10: a #tim= link searches; a language switch keeps the query; Esc and a chip clear it", async () => {
   const browser = await launchBrowser();
   try {

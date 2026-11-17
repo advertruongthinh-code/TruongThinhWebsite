@@ -55,6 +55,30 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   const syncOffset = () => {
     const height = (dock?.docked ? 0 : bar.offsetHeight + 12) + (statusNode.hidden ? 0 : statusNode.offsetHeight + 8);
     document.body.style.setProperty("--search-bar-offset", `${height}px`);
+    placeStatus();
+  };
+  // While docked the status sits at the screen bottom; when the docked bar passes behind it, lift the status above the bar so the
+  // input stays visible. Checked each frame only while both are shown (the page may scroll by transform, without scroll events).
+  const shell = bar.querySelector(".search-bar__shell");
+  let lift = 0;
+  let frame = 0;
+  const placeStatus = () => {
+    cancelAnimationFrame(frame);
+    if (!dock?.docked || statusNode.hidden) {
+      lift = 0;
+      statusNode.style.removeProperty("translate");
+      return;
+    }
+    const box = shell.getBoundingClientRect();
+    const own = statusNode.getBoundingClientRect();
+    const top = own.top + lift;
+    const bottom = own.bottom + lift;
+    const next = top < box.bottom && bottom > box.top - 8 ? Math.ceil(bottom - box.top + 8) : 0;
+    if (next !== lift) {
+      lift = next;
+      statusNode.style.translate = lift ? `0 ${-lift}px` : "";
+    }
+    frame = requestAnimationFrame(placeStatus);
   };
   let dock;
   dock = mountDock({
@@ -91,6 +115,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
 
   signal?.addEventListener("abort", () => {
     clearTimeout(toastTimer);
+    cancelAnimationFrame(frame);
     client.stop(); // the session stays for Back and reload
     bar.remove();
     host.remove();
