@@ -45,15 +45,19 @@ const artifact = {
 test("documentText and request shapes", () => {
   assert.equal(documentText(artifact.cards[0], artifact),
     "title: T x | text: D | T | E | a1 | a2 | b1 | b2 | Bảng hiệu | Signs | Biển | Boards | Bảng hiệu | Signs");
-  const req = modelRequest(["q", mediaInput({}, "AAA")]);
+  assert.deepEqual(modelRequest(["q", "r"]), { input: ["q", "r"], dimensions: DIMS });
+  const req = modelRequest([mediaInput({}, "AAA"), mediaInput({ altVi: "a", altEn: "b" }, "BBB")]);
   assert.equal(req.dimensions, DIMS);
-  assert.deepEqual(req.messages[1][0].content, [{ type: "image_url", image_url: { url: "data:image/jpeg;base64,AAA" } }]);
+  assert.deepEqual(req.messages[0][0].content, [{ type: "image_url", image_url: { url: "data:image/jpeg;base64,AAA" } }]);
+  assert.equal(req.messages[1][0].content[1].text, "a | b");
+  assert.throws(() => modelRequest(["q", mediaInput({}, "AAA")]), /cannot share/);
   assert.throws(() => readVectors({ data: [{ embedding: [1, 2] }] }, 1), /dims/);
 });
 
 const okFetch = (calls) => async (_url, init) => {
-  const n = JSON.parse(init.body).messages.length;
-  calls.push(n);
+  const body = JSON.parse(init.body);
+  const n = (body.input ?? body.messages).length;
+  calls.push(body.input ? ["input", n] : ["messages", n]);
   return { ok: true, json: async () => ({ result: { data: Array.from({ length: n }, (_, i) => ({ embedding: fakeVec(i + 1) })) } }) };
 };
 
@@ -65,14 +69,16 @@ test("run indexes every card, video via posterSrc, skipping a video without one"
   assert.equal(out.status, "ok");
   assert.equal(out.meta.cards.length, 2);
   assert.deepEqual(out.meta.cards.map((c) => c.media.length), [2, 1]);
-  assert.equal(calls.reduce((a, b) => a + b), 5);
+  // text and images never share a request: 1 text call (2 cards), 1 image call (3 media)
+  assert.deepEqual(calls.sort(), [["input", 2], ["messages", 3]]);
   assert.equal((await readFile(`${outDir}/advertising-index.bin`)).length, 5 * DIMS);
 });
 
 test("run retries a failed call then succeeds", async () => {
   let failures = 2;
   const inner = okFetch([]);
-  const fetch = async (...args) => (failures-- > 0 ? { ok: false, status: 500 } : inner(...args));
+  // Only the text request fails, so the retry schedule is deterministic.
+  const fetch = async (url, init) => (JSON.parse(init.body).input && failures-- > 0 ? { ok: false, status: 500 } : inner(url, init));
   const env = { CLOUDFLARE_API_TOKEN: "t", CLOUDFLARE_ACCOUNT_ID: "a" };
   const waits = [];
   const sleep = async (ms) => waits.push(ms);
@@ -91,8 +97,8 @@ test("run writes unavailable on missing token or persistent failure", async () =
   const waits = [];
   const out = await run({ fetch, env, artifact, outDir, readImage: async () => "AAA", sleep: async (ms) => waits.push(ms) });
   assert.equal(out.status, "unavailable");
-  assert.deepEqual(waits, [1000, 2000, 4000]);
-  assert.equal(calls, 4); // 1 call + 3 retries, then the other workers stop
+  assert.deepEqual([...new Set(waits)].sort(), [1000, 2000, 4000]);
+  assert.ok(calls <= 8); // each of the two requests: 1 call + 3 retries, the other stops once one fails
 });
 
 test("run throws on duplicate card id", async () => {

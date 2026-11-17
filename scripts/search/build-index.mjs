@@ -3,7 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { cardMedia, documentText, mediaInput, modelRequest, MODEL, readVectors, TEXT_BATCH } from "../../src/search/embed-input.mjs";
+import { cardMedia, documentText, mediaInput, modelRequest, IMAGE_BATCH, MODEL, readVectors, TEXT_BATCH } from "../../src/search/embed-input.mjs";
 import { encodeIndex, unavailableMeta } from "../../src/search/index-format.mjs";
 
 const PARALLEL = 4;
@@ -57,8 +57,12 @@ export async function run({
     }
   }
 
+  // Text and images need different request shapes, so each kind is chunked on its own.
   const chunks = [];
-  for (let i = 0; i < inputs.length; i += TEXT_BATCH) chunks.push(inputs.slice(i, i + TEXT_BATCH));
+  for (const [isText, size] of [[true, TEXT_BATCH], [false, IMAGE_BATCH]]) {
+    const idx = inputs.flatMap((input, i) => ((typeof input === "string") === isText ? [i] : []));
+    for (let i = 0; i < idx.length; i += size) chunks.push(idx.slice(i, i + size));
+  }
   const url = `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${MODEL}`;
   const embed = async (chunk) => {
     for (let attempt = 0; ; attempt++) {
@@ -69,7 +73,7 @@ export async function run({
           signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
           method: "POST",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(modelRequest(chunk)),
+          body: JSON.stringify(modelRequest(chunk.map((i) => inputs[i]))),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return readVectors((await res.json()).result, chunk.length);
@@ -94,8 +98,10 @@ export async function run({
   }
 
   const entries = artifact.cards.map(({ id }) => ({ id, text: null, media: [] }));
-  results.flat().forEach((vec, i) => {
-    const [cardIndex, mediaIndex] = slots[i];
+  const vectors = results.flat();
+  chunks.flat().forEach((inputIndex, i) => {
+    const vec = vectors[i];
+    const [cardIndex, mediaIndex] = slots[inputIndex];
     if (mediaIndex < 0) entries[cardIndex].text = vec;
     else entries[cardIndex].media[mediaIndex] = vec;
   });
@@ -106,4 +112,4 @@ export async function run({
   return { status: "ok", meta };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) await run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await run();

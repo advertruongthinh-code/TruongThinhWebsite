@@ -1,7 +1,9 @@
 // Single source of the Workers AI embedding call format: the index script, the Worker and calibration all import it.
 export const MODEL = "@cf/google/embeddinggemma-2";
 export const DIMS = 256;
-export const TEXT_BATCH = 16;
+// Per-call input counts proven by the 2026-11-16 trial.
+export const TEXT_BATCH = 50;
+export const IMAGE_BATCH = 8;
 
 const labelsOf = (ids, list, pick = () => true) =>
   ids.flatMap((id) => {
@@ -30,9 +32,12 @@ export const mediaInput = (media, jpegBase64) => ({
   text: [media.altVi, media.altEn].filter(Boolean).join(" | "),
 });
 
+// Text goes through `input`: the `messages` path gives different vectors (P@5 0.86 -> 0.66 in the 2026-11-17 measurement).
+// Only images use `messages`. A request holds one kind: callers batch text and images separately.
 export function modelRequest(inputs) {
+  if (inputs.every((input) => typeof input === "string")) return { input: inputs, dimensions: DIMS };
   const messages = inputs.map((input) => {
-    if (typeof input === "string") return [{ role: "user", content: [{ type: "text", text: input }] }];
+    if (typeof input === "string") throw new Error("modelRequest: text and image inputs cannot share a request");
     const content = [{ type: "image_url", image_url: { url: input.image } }];
     if (input.text) content.push({ type: "text", text: input.text });
     return [{ role: "user", content }];
@@ -42,7 +47,7 @@ export function modelRequest(inputs) {
 
 // `result` is the model output; REST callers pass body.result.
 export function readVectors(result, expected) {
-  const vectors = [...result.data].sort((a, b) => (a.index ?? 0) - (b.index ?? 0)).map((item) => item.embedding);
+  const vectors = [...result.data].sort((a, b) => (a.index ?? 0) - (b.index ?? 0)).map((item) => item.embedding ?? item);
   if (vectors.length !== expected || vectors.some((v) => v.length !== DIMS)) {
     throw new Error(`model returned ${vectors.length} vectors (expected ${expected} of ${DIMS} dims)`);
   }
