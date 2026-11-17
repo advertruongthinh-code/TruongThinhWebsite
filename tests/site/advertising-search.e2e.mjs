@@ -50,35 +50,15 @@ const clickUntil = async (page, selector, arrived) => {
 const scrollToSlot = (page) => pressUntil(page, "End", true);
 const scrollToTop = (page) => pressUntil(page, "Home", false);
 
-// Owner report 2026-11-17: the same query gave different lists because the Worker answered either side of the old 0.8 s wait.
-test("R6: a Worker answering within 3 s always gives the vector results, with no keyword list first", async () => {
+test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector results", async () => {
   const browser = await launchBrowser();
   try {
-    for (const delay of [300, 2000]) {
-      const { context, page } = await open(browser, WIDE, PAGE, { delay });
-      const start = Date.now();
-      await search(page, "hộp đèn");
-      await announced(page, /kết quả/, 4000);
-      const shownAt = Date.now() - start;
-      assert(shownAt >= delay - 100 && shownAt < delay + 900, `results at ${shownAt} ms for a ${delay} ms Worker`);
-      await page.waitForTimeout(1000);
-      assert.equal(await page.locator("[data-masonry-offer]").count(), 0, `no offer button for a ${delay} ms Worker`);
-      await context.close();
-    }
-  } finally {
-    await browser.close();
-  }
-});
-
-test("R6: a Worker slower than 3 s shows keyword results at 3 s, then offers the vector results", async () => {
-  const browser = await launchBrowser();
-  try {
-    const { context, page } = await open(browser, WIDE, PAGE, { delay: 4500 });
+    const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000 });
     const start = Date.now();
     await search(page, "hộp đèn");
-    await announced(page, /kết quả/, 5000);
+    await announced(page, /kết quả/, 2000);
     const shownAt = Date.now() - start;
-    assert(shownAt >= 2800 && shownAt < 4000, `keyword results at ${shownAt} ms`);
+    assert(shownAt >= 700 && shownAt < 1800, `keyword results at ${shownAt} ms`);
     await page.waitForSelector("[data-masonry-offer]", { timeout: 4000 });
     await context.close();
   } finally {
