@@ -26,6 +26,7 @@ export const COPY = {
     searching: "Đang tìm...",
     results: (n, text) => `${n} kết quả cho “${text}”`,
     empty: "Chưa thấy mẫu phù hợp",
+    more: "Có thêm kết quả gợi ý",
   },
   en: {
     label: "Search advertising products",
@@ -52,6 +53,7 @@ export const COPY = {
     searching: "Searching...",
     results: (n, text) => `${n} results for “${text}”`,
     empty: "No matching work yet",
+    more: "More suggested results",
   },
 };
 

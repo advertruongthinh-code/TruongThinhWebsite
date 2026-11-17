@@ -265,17 +265,21 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
   }
 });
 
-test("R8, R10: images survive a reload, and the same image added again is still dropped as a duplicate", async () => {
+test("R8, R10: text and images survive a reload (#q= in the URL), and the same image added again is still dropped", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { ids: VECTOR_IDS });
     const files = await Promise.all([40, 90].map((h) => makeJpeg(page, h)));
     await page.setInputFiles("[data-search-file]", files);
     await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2);
+    // Text with images writes #q=; the reload reads the hash and must still restore the images of the same session.
+    await page.fill(".search-bar input", "hộp đèn");
     await page.click(".search-bar .search-bar__go");
     await announced(page, /kết quả/);
+    assert.match(page.url(), /#q=/);
     await page.reload({ waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2, null, { timeout: 20000 });
+    assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     await page.setInputFiles("[data-search-file]", files[0]);
     await page.waitForTimeout(800);
     assert.equal(await trayCount(page), 2, "duplicate dropped after reload");

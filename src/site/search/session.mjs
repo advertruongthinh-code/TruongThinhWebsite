@@ -54,16 +54,18 @@ const fromHash = (hash) => {
 export function restored(softNavigation) {
   const hash = take(HASH);
   const restore = take(RESTORE);
+  const saved = () => {
+    try { return JSON.parse(read(SESSION)) ?? {}; } catch { return {}; }
+  };
+  // A reload keeps #q= in the address bar: the session of the same text still holds its images.
   if (hash) {
     const text = fromHash(hash);
-    return text ? { text, images: [] } : null;
+    const session = saved();
+    if (!text) return null;
+    return session.text === text ? { text, images: session.images ?? [] } : { text, images: [] };
   }
   const type = performance.getEntriesByType("navigation")[0]?.type;
   if (!restore && (softNavigation || (type !== "reload" && type !== "back_forward"))) return null;
-  try {
-    const { text = "", images = [] } = JSON.parse(read(SESSION)) ?? {};
-    return text || images.length ? { text, images } : null;
-  } catch {
-    return null;
-  }
+  const { text = "", images = [] } = saved();
+  return text || images.length ? { text, images } : null;
 }

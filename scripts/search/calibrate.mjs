@@ -49,7 +49,7 @@ async function crop(file, random) {
 // Queries become model inputs: one text input (if any) then one per image, each with its own expected card set.
 export async function buildInputs(queries, artifact, readCrop) {
   const cards = new Map(artifact.cards.map((c) => [c.id, c]));
-  const resolve = (refs) => new Set(refs.flatMap((r) => (cards.has(r) ? [r] : artifact.cards.filter((c) => c.productIds.includes(r)).map((c) => c.id))));
+  const resolve = (refs) => new Set(refs.flatMap((r) => (cards.has(r) ? [r] : artifact.cards.filter((c) => [c.productIds, ...cardMedia(c).map((m) => m.productIds ?? [])].some((ids) => ids?.includes(r))).map((c) => c.id))));
   const random = rng(SEED);
   const out = [];
   for (const q of queries) {
