@@ -1,0 +1,14 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v13c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: references for finish, light and the technician's look only; do not copy their layout.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SUBJECT: A neighbourhood tea shop in warm grey and light wood: L-shaped counter with a staff opening; a slim menu light box mounted high on the wall; a built-in panel wardrobe-style storage unit and open shelves with products. A technician in a plain black work shirt and trousers, seen from behind with the head turned away, stands on a step ladder placed on the FLOOR and services the menu light box with a screwdriver; a small tidy tool bag on the floor.
+
+MENU LIGHT BOX (owner): designed, evenly backlit, with appetising drink photos, drink names and prices in large, bold, correctly spelled Vietnamese (for example CÀ PHÊ ĐEN 20K, CÀ PHÊ SỮA 25K, BẠC XỈU 25K, TRÀ ĐÀO 30K). NO shop name, NO title, NO logo on the menu or anywhere: only drink names and prices.
+
+BALANCE: show home-style panel cabinetry as clearly as the shop counter and the light box. Panel furniture is black-core HDF with laminate faces; ALL handles are recessed (gola channel or routed edge pull), nothing protruding.
+
+PHOTO: editorial photograph on a full-frame camera, 35-50 mm lens, natural directional light, real shadows, slight sensor grain, real material texture; level camera, straight verticals; not a 3D render. Vietnamese context, Mekong Delta (Vĩnh Long). No logos, no real brand names. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it. Floor at most a modest strip; focus on counter, cabinetry and the light box.
+AVOID: a shop name anywhere; protruding handles; a ladder on the counter; any face.

@@ -1082,5 +1082,119 @@
   "round": 12,
   "change": "owner 2026-11-17 01:43 UTC notes",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v4a.png",
+  "sha256": "80062c3e1aa37e77ce02bbb9a5379b2af910c35483dfcb8fffe011b95efb5a79",
+  "bytes": 2378773,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v3c.png",
+   "ref/old-production.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v4a.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v4b.png",
+  "sha256": "b592803226e1a6f04a44fd8041e34f454ddb735177037444567445b534de1c02",
+  "bytes": 2785091,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v3c.png",
+   "ref/old-production.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v4b.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v4c.png",
+  "sha256": "1aa9513dc584e30a507528485a5bd71405f1182e368535b5a818ee73969ed09e",
+  "bytes": 2383418,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v3c.png",
+   "ref/old-production.png",
+   "ref/style-workshop-wide-x2.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v4c.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v13a.png",
+  "sha256": "9b5187eed9c84f66acc3aa3343162a39cba157b1352d6de66334dd204d2ceec6",
+  "bytes": 2391933,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v12a.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v13a.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v13b.png",
+  "sha256": "5925f5f3f2b95492979f6d58577032f875b201f8af590e1fd5179c91bbde75fe",
+  "bytes": 2308774,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v12a.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v13b.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v13c.png",
+  "sha256": "0fd0974f9099b148ee0f836dd491e992c25458ec5d93ff4ab26b82a984945e77",
+  "bytes": 2247939,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v12a.png",
+   "home-cam-ket-hau-mai-v3.png",
+   "ref/style-consultation.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v13c.txt",
+  "round": 13,
+  "change": "owner 2026-11-17 10:34 UTC notes",
+  "created": "2026-11-17"
  }
 ]

@@ -1,0 +1,18 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-san-xuat-v4a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: home-cam-ket-san-xuat-v3c.png is the version the owner liked for its workshop structure (steel frame, metal roof, high windows with palms outside, concrete floor, white CNC router with nested sheet). old-production.png is the current site photo; copy ONLY its type of dust extraction (tall white cloth-bag dust collectors with a large duct to the machine). Do not copy either layout exactly.
+
+OWNER CHANGES (must all hold):
+1. Swap positions: the CNC router stands IN THE CORNER of the workshop at the back; the edge banding machine is OUT in the open floor area, nearer the front, not the focus.
+2. NO plants anywhere indoors (this is a workshop, not a home).
+3. The camera focuses on the CNC router, running, with a nested sheet of furniture parts (laminate-faced black-core HDF, dark cut edges) on its bed.
+4. NO table or cart of blanks or cut parts.
+5. Show the dust extraction: tall white bag dust collectors and the duct connected to the CNC dust hood, like the current site photo.
+No people. No close-up of the bit.
+
+CAMERA: Camera at eye level in front of the CNC, slightly to one side, the machine filling most of the frame.
+
+SETTING: same low-rise steel-roofed panel-furniture workshop, clean swept concrete floor, daylight from high windows. No text, numbers or logos on machines.
+
+PHOTO: editorial photograph on a full-frame camera, 35-50 mm lens, natural directional light, real shadows, slight sensor grain, real material texture; level camera, straight verticals; not a 3D render. Vietnamese context, Mekong Delta (Vĩnh Long). No logos, no real brand names. The lower 35-40 percent of the frame is calmer and in soft shade, because white text sits over it.
+AVOID: indoor plants; people; tables or carts of boards; close-up of the spindle.
