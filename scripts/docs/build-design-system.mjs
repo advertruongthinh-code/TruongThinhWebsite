@@ -7,7 +7,7 @@ import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
 import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
-import { COPY as SEARCH_COPY, barMarkup, statusMarkup } from '../../src/site/search/bar.mjs';
+import { COPY as SEARCH_COPY, barMarkup } from '../../src/site/search/bar.mjs';
 // The Zalo link has one source, the floating CTA partial.
 const ZALO_HREF = readFileSync('src/site/partials/floating-cta.html', 'utf8').match(/href="([^"]+)"/)[1];
 
@@ -69,10 +69,9 @@ const COMPONENTS = [
     ['Primary', 760, 40], ['Glass', 760, 40], ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size, group = 'Advertising']) => ({ name, group, height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
   // Search bar (advertising-search R7): its own CSS is injected by the page, not in style.css; the preview inlines it. Floating above, docked below.
-  { name: 'SearchBar', group: 'Advertising', height: 280, file: 'src/site/search/bar.mjs', start: /export const barMarkup/,
+  { name: 'SearchBar', group: 'Advertising', height: 240, file: 'src/site/search/bar.mjs', start: /export const barMarkup/,
     before: () => `<style>${readFileSync('src/site/search/search.css', 'utf8')}</style>`,
-    markup: '<div style="position: relative; height: 150px; transform: translateZ(0);"><div class="search-host">'
-      + statusMarkup('<div class="search-bar__lines"><p><span>12 kết quả cho “hộp đèn”</span><button type="button">Sao chép link</button></p></div>')
+    markup: '<div style="position: relative; height: 110px; transform: translateZ(0);"><div class="search-host">'
       + barMarkup(SEARCH_COPY.vi, ZALO_HREF)
       + '</div></div>\n<div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock>'
       + barMarkup(SEARCH_COPY.vi, ZALO_HREF, true) + '</div></div></div>' },

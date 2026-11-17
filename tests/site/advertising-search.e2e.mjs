@@ -29,7 +29,8 @@ const search = async (page, text) => {
   await page.fill(".search-bar input", text);
   await page.press(".search-bar input", "Enter");
 };
-const statusText = (page) => page.locator("[data-search-status]").innerText();
+const liveText = (page) => page.locator("[data-search-live]").textContent();
+const announced = (page, pattern, timeout = 5000) => page.waitForFunction((source) => new RegExp(source, "i").test(document.querySelector("[data-search-live]")?.textContent || ""), pattern.source, { timeout });
 const isDocked = (page) => page.evaluate(() => Boolean(document.querySelector("[data-search-dock] .search-bar")));
 // End/Home like a visitor; repeated because the smooth scroller may still be starting after the bar mounts.
 const pressUntil = async (page, key, docked) => {
@@ -55,7 +56,7 @@ test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector res
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000 });
     const start = Date.now();
     await search(page, "hộp đèn");
-    await page.waitForFunction(() => /kết quả/i.test(document.querySelector("[data-search-status]").textContent), null, { timeout: 2000 });
+    await announced(page, /kết quả/, 2000);
     const shownAt = Date.now() - start;
     assert(shownAt >= 700 && shownAt < 1800, `keyword results at ${shownAt} ms`);
     await page.waitForSelector("[data-masonry-offer]", { timeout: 4000 });
@@ -65,7 +66,7 @@ test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector res
   }
 });
 
-test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then offers Zalo", async () => {
+test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then shows nothing", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000, ids: [] });
@@ -73,20 +74,22 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
     await page.waitForTimeout(1500);
     assert(await page.locator("[data-masonry-pending]").count(), "still pending at 1.5 s");
     await page.waitForFunction(() => !document.querySelector("[data-masonry-pending]"), null, { timeout: 4000 });
-    assert.match(await statusText(page), /zalo/i);
+    assert.match(await liveText(page), /chưa thấy/i);
+    assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0, "no status panel");
     await context.close();
   } finally {
     await browser.close();
   }
 });
 
-test("R9: a price question keeps the cards and adds the price invitation", async () => {
+test("R9: results show on the grid only, with nothing above the bar", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
     await search(page, "giá hộp đèn tay vẫy bao nhiêu");
-    await page.waitForFunction(() => /kết quả/i.test(document.querySelector("[data-search-status]").textContent));
-    assert.match(await statusText(page), /hỏi giá qua zalo/i);
+    await announced(page, /kết quả/);
+    assert.equal(await page.evaluate(() => document.querySelector(".search-host").children.length), 1, "host holds only the bar");
+    assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0);
     await context.close();
   } finally {
     await browser.close();
@@ -131,58 +134,17 @@ for (const viewport of [WIDE, PHONE]) {
 }
 
 for (const viewport of [WIDE, PHONE]) {
-  test(`R7, R9 at ${viewport.width}px: a search from the docked bar shows its status and the Zalo button`, async () => {
+  test(`R7 at ${viewport.width}px: a search from the docked bar works, and the docked bar has no white ground`, async () => {
     const browser = await launchBrowser();
     try {
       const { context, page } = await open(browser, viewport, PAGE, { ids: [] });
       await scrollToSlot(page);
-      await search(page, "xqzw vbnk");
-      const zalo = page.locator("[data-search-status] button", { hasText: /zalo/i });
-      await zalo.waitFor({ state: "visible", timeout: 5000 });
-      const box = await zalo.boundingBox();
-      const size = page.viewportSize();
-      assert(box && box.height > 0 && box.y + box.height <= size.height && box.x >= 0, `Zalo button on screen: ${JSON.stringify(box)}`);
-      assert(await isDocked(page), "still docked");
-      assert.match(await page.locator("[data-search-live]").textContent(), /chưa thấy/i, "announced in the live region");
-      await context.close();
-    } finally {
-      await browser.close();
-    }
-  });
-}
-
-// The phone is where the status is taller than the gap under the docked bar; End would scroll past the first dock point.
-for (const viewport of [PHONE]) {
-  test(`R7 at ${viewport.width}px: the status never covers the docked bar at the first dock point`, async () => {
-    const browser = await launchBrowser();
-    try {
-      const { context, page } = await open(browser, viewport, PAGE, { status: 503 });
-      await page.mouse.move(viewport.width / 2, viewport.height / 2);
-      for (let i = 0; i < 400 && !(await isDocked(page)); i++) {
-        await page.mouse.wheel(0, 60);
-        await page.waitForTimeout(40);
-      }
       await page.waitForTimeout(800);
-      assert(await isDocked(page), "docked by wheel");
-      await search(page, "giá xqzw vbnk bao nhiêu");
-      await page.locator("[data-search-status] button", { hasText: /zalo/i }).first().waitFor({ state: "visible", timeout: 5000 });
-      await page.waitForTimeout(300);
-      const { status, shell } = await page.evaluate(() => {
-        const box = (selector) => {
-          const { top, bottom } = document.querySelector(selector).getBoundingClientRect();
-          return { top: Math.round(top), bottom: Math.round(bottom) };
-        };
-        return { status: box("[data-search-status]"), shell: box("[data-search-dock] .search-bar__shell") };
-      });
-      assert(status.bottom <= shell.top || status.top >= shell.bottom, `status ${JSON.stringify(status)} covers shell ${JSON.stringify(shell)}`);
-      assert(status.top >= 0, "status on screen");
-      // The floating buttons stand above the lifted status, so its close button stays the way out.
-      await page.waitForTimeout(400);
-      const closeHit = await page.evaluate(() => {
-        const rect = document.querySelector("[data-search-status] .search-bar__close").getBoundingClientRect();
-        return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)?.closest(".search-bar__close") !== null;
-      });
-      assert(closeHit, "close button not covered");
+      const ground = await page.evaluate(() => getComputedStyle(document.querySelector("[data-search-dock] .search-bar__shell")).backgroundColor);
+      assert.equal(ground, "rgba(0, 0, 0, 0)", "transparent when docked");
+      await search(page, "xqzw vbnk");
+      await announced(page, /chưa thấy/);
+      assert(await isDocked(page), "still docked");
       await context.close();
     } finally {
       await browser.close();
@@ -194,22 +156,29 @@ test("R10: a #tim= link searches; a language switch keeps the query; Esc and a c
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("hộp đèn")}`);
-    await page.waitForFunction(() => /kết quả/i.test(document.querySelector("[data-search-status]")?.textContent || ""));
+    await announced(page, /kết quả/);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
 
     await page.click("[data-menu-open]");
     await page.click('[data-language-option="en"]');
     await page.waitForURL(/\/en\/advertising-products\//);
     await page.waitForSelector(".search-bar", { timeout: 20000 });
-    await page.waitForFunction(() => /results/i.test(document.querySelector("[data-search-status]").textContent), null, { timeout: 6000 });
+    await announced(page, /results/, 6000);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
 
     await page.press(".search-bar input", "Escape");
     assert.equal(await page.inputValue(".search-bar input"), "");
-    assert.equal(await page.locator("[data-search-status]").isHidden(), true);
+    assert.equal(await liveText(page), "");
 
     await search(page, "hộp đèn");
-    await page.waitForFunction(() => /results/i.test(document.querySelector("[data-search-status]").textContent));
+    await announced(page, /results/);
+    // The x leaves the search too.
+    const cleared = page.evaluate(() => new Promise((resolve) => addEventListener("masonry:search-left", (e) => resolve(e.detail?.reason), { once: true })));
+    await page.click(".search-bar [data-search-clear-text]");
+    assert.equal(await cleared, "clear");
+    assert.equal(await page.inputValue(".search-bar input"), "");
+    await search(page, "hộp đèn");
+    await announced(page, /results/);
     const left = page.evaluate(() => new Promise((resolve) => addEventListener("masonry:search-left", (e) => resolve(e.detail?.reason), { once: true })));
     await page.locator("[data-masonry-filter]").nth(1).click();
     assert.equal(await left, "filter");
@@ -225,7 +194,7 @@ test("R10: soft navigation from the menu does not restore, and leaving the page 
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
     await search(page, "hộp đèn");
-    await page.waitForFunction(() => /kết quả/i.test(document.querySelector("[data-search-status]").textContent));
+    await announced(page, /kết quả/);
     // The grid is still sliding to the results; a click during a page transition is ignored, so click until the route changes.
     await clickUntil(page, "#header-logo", () => !location.pathname.includes("advertising-products"));
     await page.waitForFunction(() => !document.querySelector(".search-bar"), null, { timeout: 8000 });

@@ -11,18 +11,17 @@ không có JavaScript thì CTA giữ link "Trao đổi ý tưởng" cũ. CSS n�
   nền `paper`, hàng cao 60px (56px dưới 751px). Bên phải ô chữ: nút xoá chữ (chỉ khi đã gõ), vạch, nút ảnh (ẩn tới P7),
   kính lúp; ô vuông 44px (40px dưới 751px), icon 22px nét 1.8.
 - Dừng: khe `[data-search-dock]` dưới tiêu đề CTA lên trên mép thanh nổi thì thanh vào khe (`is-docked`): viền tan thành
-  đường kẻ 3px, chữ to hơn, "Trao đổi ý tưởng" mở bằng `clip-path` ở cuối đường kẻ (điện thoại: "Trao đổi", ẩn kính lúp).
+  đường kẻ 3px, nền trong suốt trên nền CTA, chữ to hơn, "Trao đổi ý tưởng" mở bằng `clip-path` ở cuối đường kẻ (điện thoại: "Trao đổi", ẩn kính lúp).
   Thanh dừng chừa 2px phía trên và cao đúng bằng khe (72px từ 1024px, 56px dưới đó), nên CTA không đổi chiều cao.
   Vào khe 700ms `ease-card`; rời khe 150ms `ease-out`, không mờ dần.
-- Dòng trạng thái `[data-search-status]` nằm trong lớp cố định, ngay trên thanh nổi; khi thanh dừng ở khe thì dòng ở đáy
-  màn hình, nên tìm từ khe vẫn thấy kết quả và nút Zalo. Nội dung: số kết quả, Sao chép link, nhóm hoặc sản phẩm gợi ý, mời
-  hỏi qua Zalo. Link màu `blue`, chữ hoa 12.8px. Screen reader đọc qua vùng `aria-live` ẩn luôn có sẵn trong thanh.
+- Không có dòng trạng thái trên màn hình (owner 2026-11-17): kết quả chỉ hiện trên lưới, không ra kết quả thì lưới giữ
+  nguyên. Screen reader đọc số kết quả qua vùng `aria-live` ẩn luôn có sẵn trong thanh. Đang tìm mà bấm nút xoá chữ thì bỏ tìm.
 - Ô chữ đang focus: đường kẻ 3px dưới thanh hiện ra (thay outline).
-- Thanh nổi và dòng trạng thái đẩy nút nổi lên bằng `--search-bar-offset` ([Floating CTA](../FloatingCta/README.md)). Ẩn khi menu hoặc
+- Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset` ([Floating CTA](../FloatingCta/README.md)). Ẩn khi menu hoặc
   detail view mở; thanh đang ở khe thì vẫn theo CTA vào detail view.
 - Giảm chuyển động: đổi trạng thái ngay.
 
-Preview: trên là thanh nổi kèm dòng trạng thái, dưới là thanh dừng trong khe.
+Preview: trên là thanh nổi, dưới là thanh dừng trong khe.
 
 ## Chú thích thuật ngữ
 
