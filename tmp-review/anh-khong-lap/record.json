@@ -2055,5 +2055,193 @@
   "round": 24,
   "change": "owner 2026-11-17 16:42 UTC notes",
   "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v5a2.png",
+  "sha256": "b8612c4eb12a9c85a944121bc56b7d301d7bb1ada14490539650719ff5d6a3d5",
+  "bytes": 2599344,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v5a.png"
+  ],
+  "prompt": "p-process-cnc-v5a2.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "cnc-neo-v6a.png",
+  "sha256": "b45912fbbf5767d9f3ce6875ea89017b864a6189e673aa5dad5d7e338d7ea4a9",
+  "bytes": 2537574,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5b.png"
+  ],
+  "prompt": "p-cnc-neo-v6a.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v6a.png",
+  "sha256": "19c2889ddb07e028e5ae75c458b0460448f6a74c52911287ecab050e2f20c148",
+  "bytes": 2682093,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6a.png",
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5a.png"
+  ],
+  "prompt": "p-process-cnc-v6a.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6a.png"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v8a.png",
+  "sha256": "b8c797e9cbad4e5bd9487997f657b1e72fa95fccd1386955bb4816279b111cce",
+  "bytes": 2422295,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6a.png",
+   "ref/ref-cnc-owner.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v8a.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6a.png"
+ },
+ {
+  "file": "cnc-neo-v6b.png",
+  "sha256": "e96a154054e3a4ed7352273967194eafcd30eca0a20bb770688e7d25356cc341",
+  "bytes": 2852387,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5b.png"
+  ],
+  "prompt": "p-cnc-neo-v6b.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v6b.png",
+  "sha256": "55b6c7995a6791a24efd42c860dd90d414f4242090a59b78587bd63ff8873e4a",
+  "bytes": 2915111,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6b.png",
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5a.png"
+  ],
+  "prompt": "p-process-cnc-v6b.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6b.png"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v8b.png",
+  "sha256": "d3756486e0adc8a3555b5fc20209b880c889202295b0f5519c2fe8d527362ccd",
+  "bytes": 2455556,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6b.png",
+   "ref/ref-cnc-owner.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v8b.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6b.png"
+ },
+ {
+  "file": "cnc-neo-v6c.png",
+  "sha256": "e688392bf543afa236e8b860d6e4d3c7c58ef2a0333237f449debb1f7b26ba11",
+  "bytes": 2887646,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5b.png"
+  ],
+  "prompt": "p-cnc-neo-v6c.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v6c.png",
+  "sha256": "b1cb2a2185a8dd34207746890a4fd733216ac803ab338c6dba2332bdc2cf11c0",
+  "bytes": 3025834,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6c.png",
+   "ref/ref-cnc-owner.jpg",
+   "process-cnc-v5a.png"
+  ],
+  "prompt": "p-process-cnc-v6c.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6c.png"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v8c.png",
+  "sha256": "1c8c61ab4eb4d66d5a93c81736caafcbb0c26894b2397ac2ddd500580aa3b102",
+  "bytes": 2740071,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "cnc-neo-v6c.png",
+   "ref/ref-cnc-owner.jpg"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v8c.txt",
+  "round": 25,
+  "change": "owner 2026-11-17 17:13 UTC: owner CNC photo, anchor-consistent sets, owner audits",
+  "created": "2026-11-18",
+  "anchor": "cnc-neo-v6c.png"
  }
 ]

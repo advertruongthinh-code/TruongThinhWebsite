@@ -1,0 +1,9 @@
+Use your built-in image generation tool to create ONE new photograph, landscape 3:2 at the largest size the tool supports for that ratio, then save the result into the current working directory as `process-cnc-v6a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+THIS IS ANOTHER CAMERA ANGLE OF THE SAME WORKSHOP as the attached anchor image cnc-neo-v6a.png: the same CNC machine, control cabinet, duct routing, dust collector, sheet, assembly zone, saw, tool cabinet, walls, roof, windows and light. Keep everything consistent with the anchor; only the camera moves. ref-cnc-owner.jpg is the owner's real machine for reference.
+
+NEW CAMERA: the same low, level camera as the attached process-cnc-v5a.png: at the near end of the CNC bed, the nested sheet filling most of the frame, the spindle carriage cutting on the right, the workshop behind. Level camera, verticals vertical, consistent vanishing points. Floor and ceiling only modest strips.
+
+SHEET ON THE BED (owner: must look as real as process-cnc-v5b.png): a 17 mm black-core HDF sheet with a light wood-grain melamine face, nested cabinet parts with shelf-pin hole rows, every cut groove and edge showing a dense BLACK core, crisp and even; the spindle cutting one groove. No labels.
+
+If a worker appears at the assembly bench he stands on the floor in front of or beside it, never intersecting it, seen from the back, face not visible. No plants indoors; no vehicles; no text, logos or numbers anywhere. Photoreal like a real camera.

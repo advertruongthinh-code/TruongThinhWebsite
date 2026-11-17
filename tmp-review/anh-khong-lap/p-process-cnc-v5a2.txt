@@ -1,0 +1,5 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image process-cnc-v5a.png (landscape 3:2, keep its exact size and framing), then save the result into the current working directory as `process-cnc-v5a2.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+CHANGE ONLY THE ASSEMBLY WORKER (owner): he currently stands through the bench top. Move him so he stands on the floor on the far side of the assembly bench (or at its end), his body fully behind the bench, hands working on the cabinet carcass on the bench top; seen from the back or side, face not visible. Nothing intersects the bench.
+
+KEEP EXACTLY everything else: the CNC machine, the nested black-core sheet, the saw, cabinet, extinguisher, panels, workshop, light and camera. No text or logos.

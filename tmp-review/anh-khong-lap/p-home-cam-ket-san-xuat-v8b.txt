@@ -1,0 +1,9 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3 at the largest size the tool supports for that ratio, then save the result into the current working directory as `home-cam-ket-san-xuat-v8b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+THIS IS ANOTHER CAMERA ANGLE OF THE SAME WORKSHOP as the attached anchor image cnc-neo-v6b.png: the same CNC machine, control cabinet, duct routing, dust collector, sheet, assembly zone, saw, tool cabinet, walls, roof, windows and light. Keep everything consistent with the anchor; only the camera moves. ref-cnc-owner.jpg is the owner's real machine for reference.
+
+NEW CAMERA: a level medium view of the CNC cutting the sheet with the spindle dust hood and the white duct hose looping up toward the roof as the subject; the control cabinet at one side. Level camera, verticals vertical, consistent vanishing points. The lower 35 percent of the frame is calmer and darker, because white text sits over it. Ceiling at most the top 10 percent, floor at most the bottom 15 percent.
+
+SHEET ON THE BED (owner: must look as real as process-cnc-v5b.png): a 17 mm black-core HDF sheet with a light wood-grain melamine face, nested cabinet parts with shelf-pin hole rows, every cut groove and edge showing a dense BLACK core, crisp and even; the spindle cutting one groove. No labels.
+
+If a worker appears at the assembly bench he stands on the floor in front of or beside it, never intersecting it, seen from the back, face not visible. No plants indoors; no vehicles; no text, logos or numbers anywhere. Photoreal like a real camera.
