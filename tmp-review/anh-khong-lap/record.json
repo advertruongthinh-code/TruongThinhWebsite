@@ -1695,5 +1695,119 @@
   "round": 19,
   "change": "owner 2026-11-17 14:02 UTC notes",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v20a.png",
+  "sha256": "551e82c8a7805d2ba71580598eff41325315aecb2ccd63c88b6a4b4035b3354a",
+  "bytes": 2855613,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r20-ref-1.jpg",
+   "ref/r20-ref-2.jpg",
+   "ref/r20-ref-3.jpg",
+   "ref/r20-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v20a.txt",
+  "round": 20,
+  "change": "owner 2026-11-17 14:29 UTC: technician on ladder at small LED power box",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v20b.png",
+  "sha256": "21d4830cbd6a12780036d190a091d7c61ae554f64bdd810cd8675a9777eb0dfe",
+  "bytes": 2653980,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r20-ref-1.jpg",
+   "ref/r20-ref-2.jpg",
+   "ref/r20-ref-3.jpg",
+   "ref/r20-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v20b.txt",
+  "round": 20,
+  "change": "owner 2026-11-17 14:29 UTC: technician on ladder at small LED power box",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v20c.png",
+  "sha256": "f8b47cbdfa2a5469c9f19e05dafda185e5b14c6ee48faeea93950ba0222f780c",
+  "bytes": 2790032,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/r20-ref-1.jpg",
+   "ref/r20-ref-2.jpg",
+   "ref/r20-ref-3.jpg",
+   "ref/r20-ref-4.jpg"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v20c.txt",
+  "round": 20,
+  "change": "owner 2026-11-17 14:29 UTC: technician on ladder at small LED power box",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v2a.png",
+  "sha256": "27f95a73c7e87753f1730ae8596afe4b7ecb95699d8ae10559e28e18eb1ddae7",
+  "bytes": 2463150,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/105-cnc.png",
+   "home-cam-ket-san-xuat-v7a.png"
+  ],
+  "prompt": "p-process-cnc-v2a.txt",
+  "round": 21,
+  "change": "owner 2026-11-17 14:32 UTC: residential process CNC, black core, 6A workshop",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "process-cnc-v2b.png",
+  "sha256": "f065560fc2a27eb38103b7119f84dd4388b0ae5178600de2fa8e232f7e04ba38",
+  "bytes": 2539396,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/105-cnc.png",
+   "home-cam-ket-san-xuat-v7a.png"
+  ],
+  "prompt": "p-process-cnc-v2b.txt",
+  "round": 21,
+  "change": "owner 2026-11-17 14:32 UTC: residential process CNC, black core, 6A workshop",
+  "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-san-xuat-v7a3.png",
+  "sha256": "c0dd0c0ca6b444fd26ed06c76c8b1215a6082aa80c573948e709f03569408701",
+  "bytes": 2397751,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-san-xuat-v7a2.png",
+   "ref/105-cnc.png"
+  ],
+  "prompt": "p-home-cam-ket-san-xuat-v7a3.txt",
+  "round": 21,
+  "change": "owner 2026-11-17 14:32 UTC: 6A with the 105-cnc machine",
+  "created": "2026-11-17"
  }
 ]

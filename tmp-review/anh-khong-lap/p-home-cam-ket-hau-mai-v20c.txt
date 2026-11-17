@@ -1,0 +1,21 @@
+Use your built-in image generation tool to create ONE new photograph, portrait 2:3, at the largest size the tool supports for that ratio, then save the generated image file into the current working directory as `home-cam-ket-hau-mai-v20c.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: real photos of small LED sign power supplies (metal mesh "honeycomb" supply, slim waterproof LED driver) and a technician on a ladder at a sign. Use them ONLY to learn the real size and look of the power box and how technicians work; do not copy layout, text or logos.
+
+THE CARD (do not print): "Aftercare. Maintenance, adjustment and repair on site whenever you need it, so furniture and signs keep working well."
+
+SCENE (owner): a technician on a ladder working on the SMALL power supply box of the LED sign lighting of a small modern hair salon in a low-rise Mekong Delta town. A level three-quarter view of the facade and the side of the sign.
+
+SIGN: the salon sign reads exactly BLOOM HAIR STUDIO, raised channel letters with warm white LED backlight on a dark wood-slat fascia, with a simple scissors icon. No other words, no phone number.
+
+THE POWER BOX (owner, main point): SMALL, about the size of a shoebox or smaller (roughly 30 x 20 x 10 cm): a grey metal or plastic weatherproof enclosure with its small lid open, showing a perforated metal LED power supply inside and a few neat wires running into the sign. NOT a large electrical cabinet.
+
+TECHNICIAN: one man in a plain black work shirt and black work trousers, seen from the back or three-quarter back, face NOT visible. He climbs a proper aluminium extension ladder leaning safely against the facade wall (feet on the pavement at a safe angle); the small power supply box is fixed to the wall just behind the side end of the sign. Both feet on a rung or step, his hands at the open box at chest-to-face height: one holds a multimeter probe or tightens a terminal with a small screwdriver. Balanced, natural posture, correct anatomy. A small tool bag on the pavement.
+
+SALON INTERIOR through the glass: panel-furniture styling stations with mirrors, a reception counter with recessed handles, product shelves, warm light.
+
+STREET: no other people; parked motorbikes only; clean pavement.
+
+GEOMETRY: level camera, every vertical truly vertical, consistent vanishing points. Sky at most the top 10 percent; pavement at most the bottom 15 percent. The lower 35 percent of the frame is calmer, because white text sits over it.
+
+PHOTO: editorial photograph on a full-frame camera, daylight, real shadows, slight sensor grain, real material texture; not a 3D render. No real brand logos; no readable text other than the sign.

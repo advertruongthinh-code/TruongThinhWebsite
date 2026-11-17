@@ -1,0 +1,9 @@
+Use your built-in image generation tool: IMAGE EDIT the attached 105-cnc.png directly, landscape 3:2 at the largest size the tool supports, then save the result into the current working directory as `process-cnc-v2a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+KEEP from 105-cnc.png (owner): the low camera angle and framing, the lens look, the same CNC router model as in 105-cnc.png: a white-grey gantry beam with bolted linear rails, a dark navy-blue spindle carriage with blue side brackets, a clear ribbed flexible dust duct going down into a round brush dust hood, and a black cable drag chain with yellow dots, the nested furniture parts and their cut paths, the spindle cutting near the top centre.
+
+CHANGE:
+1. The panel on the bed is a 17 mm black-core HDF board with thin light wood-tone decor faces: every routed kerf, cut edge, drilled hole and the outer board edge show a dense, uniformly BLACK core. No beige or brown core anywhere. The small white labels on the parts stay.
+2. The background becomes the workshop of home-cam-ket-san-xuat-v7a.png: steel frame, corrugated metal roof and walls, high windows with coconut palms outside, a twin white fabric-bag dust collector on a green base, a vertical panel rack, a steel tool cabinet, clean concrete floor, daylight. No people, no plants indoors, no stacks of boards on pallets. home-cam-ket-san-xuat-v7a.png is a reference for the background only.
+
+Photoreal like a real camera; no text, logos or numbers anywhere.
