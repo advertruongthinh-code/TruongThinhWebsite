@@ -1,0 +1,7 @@
+Use your built-in image generation tool in IMAGE EDIT mode on the attached image home-cam-ket-hau-mai-v22b2.png (portrait 2:3, keep its exact size, camera and framing), then save the result into the current working directory as `home-cam-ket-hau-mai-v23b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER CHANGES:
+1. Remove the street or road on the right side of the image entirely. Replace it with a continuation of the tiled pavement and a neighbouring small shopfront with a closed roller shutter (no text), so no road, no vehicles and no people are visible anywhere.
+2. The sign letters "BLOOM" (larger, top) and "HAIR STUDIO" (smaller, below) sit exactly centred VERTICALLY on the wood-slat fascia: the gap from the fascia's top edge to the top of "BLOOM" equals the gap from the bottom of "HAIR STUDIO" to the fascia's bottom edge. Letters stay straight, level, parallel to the fascia edges, centred horizontally, unlit, spelled exactly.
+
+KEEP EXACTLY: the technician in black on the A-frame ladder (face hidden) at the small open LED power box, the tool bag, the glass door with its handle set in from the frame on the right, the salon interior, the light and colours. No other text or logos.

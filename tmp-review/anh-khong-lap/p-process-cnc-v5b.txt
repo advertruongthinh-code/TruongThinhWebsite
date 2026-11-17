@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph from scratch (do NOT edit or trace the attached pixels; the previous version has AI artefacts), landscape 3:2 at the largest size the tool supports, then save the generated image file into the current working directory as `process-cnc-v5b.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+ATTACHED IMAGES: process-cnc-v4b.png is the previous version, used ONLY for framing and the CNC machine model; 105-cnc.png shows the same CNC machine model; the r24-saw photos are real mini sliding table saws sold in Vietnam, used ONLY to learn the saw's structure (a compact steel table with a sliding carriage on rails, a blade guard and a rip fence). Do not copy any text, logo or layout from the refs.
+
+CAMERA: a slightly higher, slightly wider level view than process-cnc-v4b.png, so the assembly zone along the back wall reads more clearly, the CNC gantry and nested sheet still the main subject on the right. Level camera, vertical lines vertical, consistent vanishing points.
+
+CNC MACHINE (keep the model exactly): white-grey gantry beam with bolted linear rails, dark navy-blue Z-axis spindle housing with blue side brackets, round brush dust hood, clear ribbed flexible hose rising to a rigid overhead metal duct, black cable drag chain with yellow dots.
+
+SHEET ON THE BED: a fresh, clean 17 mm black-core HDF sheet with a light wood-grain melamine face, nested cabinet parts (sides with shelf-pin holes, doors, shelves) with crisp, even, black cut grooves; the spindle cutting one groove. No white labels, no melted or duplicated shapes, straight even edges.
+
+BACK WALL ZONE (where the previous version had the saw and tool cabinet): a tidy assembly zone along the corrugated metal wall: an assembly bench with a cabinet carcass being assembled (black-core edges visible on its panels), a few bar clamps, a cordless drill and a small hardware bin; a mini sliding table saw as in the refs; a steel tool cabinet; a wall-mounted fire extinguisher; a short rack of upright panels with black-core edges. One or two workers in plain work clothes may work at the bench, seen from the back or side, faces not visible.
+
+WORKSHOP: steel frame, corrugated metal roof and walls, high windows with coconut palms outside, clean concrete floor, daylight. No plants indoors. No text, logos or numbers anywhere. Photoreal like a real camera; avoid AI artefacts: straight panel edges, legible hardware, nothing melted or duplicated.

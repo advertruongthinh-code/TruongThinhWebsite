@@ -1979,5 +1979,81 @@
   "round": 23,
   "change": "owner 2026-11-17 15:44 UTC: P2 fill back wall; 2b handle offset, straight centred lettering",
   "created": "2026-11-17"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v23a.png",
+  "sha256": "994bb5366303b9e010c9d843e2bc3cea5a2b262c72fc5ada50c663a5ebfe27ad",
+  "bytes": 2106326,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v22b2.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v23a.txt",
+  "round": 24,
+  "change": "owner 2026-11-17 16:42 UTC notes",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "home-cam-ket-hau-mai-v23b.png",
+  "sha256": "6f8179be4c6f816d3db13841d82281f3128442fa05cf733c276b6cd48754585d",
+  "bytes": 2262213,
+  "width": 1024,
+  "height": 1536,
+  "tool": "Codex CLI gpt-6-sol image edit",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "home-cam-ket-hau-mai-v22b2.png"
+  ],
+  "prompt": "p-home-cam-ket-hau-mai-v23b.txt",
+  "round": 24,
+  "change": "owner 2026-11-17 16:42 UTC notes",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v5a.png",
+  "sha256": "4ed7d508e86a967fb8de689c030d8d838153d8c9104e71eeeeb1c64c2bea2f98",
+  "bytes": 2924783,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v4b.png",
+   "ref/105-cnc.png",
+   "ref/r24-saw-ref-1.jpg",
+   "ref/r24-saw-ref-2.jpg",
+   "ref/r24-saw-ref-3.jpg"
+  ],
+  "prompt": "p-process-cnc-v5a.txt",
+  "round": 24,
+  "change": "owner 2026-11-17 16:42 UTC notes",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-cnc-v5b.png",
+  "sha256": "22a56219f322731e86a1cd749da429ba5e477c4b572ea11c0a97fb23f9ffcf3c",
+  "bytes": 2912194,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "process-cnc-v4b.png",
+   "ref/105-cnc.png",
+   "ref/r24-saw-ref-1.jpg",
+   "ref/r24-saw-ref-2.jpg",
+   "ref/r24-saw-ref-3.jpg"
+  ],
+  "prompt": "p-process-cnc-v5b.txt",
+  "round": 24,
+  "change": "owner 2026-11-17 16:42 UTC notes",
+  "created": "2026-11-18"
  }
 ]
