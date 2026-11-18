@@ -21,8 +21,10 @@ runtime `masonry/runtime.mjs` cập nhật trạng thái.
 - Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
-  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh, chữ "Cuộn xuống" vẫn
-  hiện bên dưới (owner 2026-10-17). Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
+  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh (owner 2026-10-17). Trang có lưới masonry không có chữ
+  "Cuộn xuống"; trang có thanh tìm kiếm đặt thanh ở chỗ rail, rail và chip lùi xuống một bậc (owner 2026-11-18).
+- Đang tìm: rail chọn "Tất cả", nhóm và chip không có kết quả ẩn (`data-search-empty`), số trên chip là số kết quả, mục còn
+  lại trượt về chỗ mới; bấm một mục thì lọc trong kết quả, không rời tìm kiếm. Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
   tràn xuống dưới nên hàng đầu luôn đứng một vị trí; tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
 - Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
   chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím

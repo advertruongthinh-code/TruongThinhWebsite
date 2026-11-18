@@ -130,6 +130,8 @@ const indexSection = (template, projects, intro) => {
     [/aria-label="[^"]*"(\s+)data-en-aria-label="[^"]*"/, (_match, space) => `aria-label="Ảnh công trình"${space}data-en-aria-label="Project photos"`, "index label"],
     [/<noscript>[\s\S]*?<\/noscript>/, () => `<noscript><p data-en="${escapeHtml(intro.en)}">${escapeHtml(intro.vi)}</p>${projects.map(noscriptCard).join("")}</noscript>`, "noscript"],
     [/(<h2 id="cta-title" data-motion-lines>)[\s\S]*?(<\/h2>)/, (_match, open, close) => `${open}${CTA.map((text) => `<span data-motion-line-source data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</span>`).join("")}${close}`, "cta title"],
+    // Search runs on the Advertising page only (search plan 0.5): no empty dock slot under the Projects CTA heading.
+    [/\s*<div data-search-dock><\/div>/, () => "", "search dock"],
     [/(\s*)<section\s+class="detail-cta"/, (match, space) => `${space}<p class="projects-empty" data-en="Projects in this category are coming soon."${projects.length ? " hidden" : ""}>Công trình loại này đang cập nhật.</p>${match}`, "cta section"],
   ].reduce((html, [pattern, replacement, name]) => replaceCounted(html, pattern, replacement, name), sections[0]);
 };
@@ -151,9 +153,6 @@ const main = ({ filter, projects }, artifact, template) => {
               ${chipLinks}
             </div>
           </div>
-          <button class="scroll-cue detail-index-hero__scroll" type="button" data-scroll-cue aria-label="Cuộn đến phần tiếp theo" data-en-aria-label="Scroll to the next section">
-            <span data-scroll-cue-label data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN">CUỘN XUỐNG</span>
-          </button>
         </section>
         ${indexSection(template, projects, filter.intro)}
         <script type="application/json" data-project-artifact>${JSON.stringify(artifact).replace(/</g, "\\u003c")}</script>

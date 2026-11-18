@@ -63,7 +63,8 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
   0.4, viền 1px trắng alpha 0.58, icon `16 × 16` đổi giữa pause và play; góc phải dưới, cách đáy 98px ở 1440,
   96px ở 390 ([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
 - **Scroll cue** `button.scroll-cue`: nhãn "CUỘN XUỐNG" `label` 12.8px 700 trắng, khung `128 × 33.9`, giữa đáy hero
-  (cách đáy 45px ở 1440, 24px ở 390); bấm thì cuộn tới section kế. Có cả trên About.
+  (cách đáy 45px ở 1440, 24px ở 390); bấm thì cuộn tới section kế. Có cả trên About; trang có lưới masonry (Sản phẩm quảng
+  cáo, Công trình) không có (owner 2026-11-18).
 
 ## Motion
 

@@ -494,13 +494,9 @@
  "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-02-three-colour-matrix-led-signs.jxl": {
   "960": 69967
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-full-colour-matrix-led-signs-v2.jxl": {
-  "960": 208974,
-  "1600": 224651,
-  "2048": 234662
- },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-full-colour-matrix-led-signs.jxl": {
-  "960": 49302
+ "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-led-module-screen-20261118.jxl": {
+  "960": 83619,
+  "1600": 115302
  },
  "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-04-indoor-matrix-led-systems-v2.jxl": {
   "960": 162599,
@@ -1659,8 +1655,8 @@
   "960": 74772,
   "1600": 88441
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-brewtiful-20261115.jxl": {
-  "960": 34287
+ "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-brewtiful-20261117.jxl": {
+  "960": 34234
  },
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-imagegen-20261014.jxl": {
   "960": 69125
@@ -2658,11 +2654,6 @@
   "1600": 110021,
   "2048": 112737
  },
- "assets/content/shared/cnc.jxl": {
-  "960": 128105,
-  "1600": 138127,
-  "2048": 141278
- },
  "assets/content/shared/commitment-aftercare-sign-20261118.jxl": {
   "960": 77605
  },
@@ -2832,6 +2823,9 @@
  },
  "assets/content/shared/news-tu-ao-am-tuong-d-20261113.jxl": {
   "960": 12573
+ },
+ "assets/content/shared/process-assembly-residential-20261118.jxl": {
+  "960": 29904
  },
  "assets/content/shared/survey-modern.jxl": {
   "960": 32370

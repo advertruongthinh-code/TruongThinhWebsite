@@ -12,6 +12,7 @@ export const nonPublicSourceAssets = [
   "content/menu.json",
   "head-inline.js",
   "partials",
+  "search",
   "hero-order-inline.js",
   "assets/brand/truong-thinh-lockup.svg",
   "assets/content/projects/advertising-kiosk-posm-cover.jpg",

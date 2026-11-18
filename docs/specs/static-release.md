@@ -199,7 +199,7 @@ And không bước nào gọi Wrangler hoặc deploy
 `wrangler.static.toml`: Worker `truong-thinh-demo` có asset và script chỉ cho `/api/*`, `workers_dev`, `[assets] directory = ".site-output"`,
 `not_found_handling = "404-page"`, `main` và binding theo [decision tìm kiếm](../decisions/advertising-search-worker.md). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
-`pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
+`pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
 `CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.

@@ -114,7 +114,9 @@ zoom, pan, vuốt đóng ([Viewer](components/Viewer/README.md)); trượt vào 
 ### Smooth scroll và parallax
 
 Locomotive Scroll 4.1.4 chỉ bật khi cửa sổ rộng từ 981px và không giảm chuyển
-động (`lerp 0.085`, `multiplier 0.9`, `motion.js`). Dưới 981px, khi giảm chuyển
+động (`lerp 0.085`, `multiplier 0.9`, `motion.js`). Phím cuộn (Home, End, PageUp, PageDown, mũi tên, Space) không cuộn trang khi
+focus ở ô nhập, select, vùng sửa được, trong một khung tự cuộn, hoặc khi handler khác đã `preventDefault`; Tab giữ hành vi của
+Locomotive (`keyOwnedByTarget` trong `motion.js`). Dưới 981px, khi giảm chuyển
 động hoặc khi menu mở, trang dùng scroll native và không có parallax Locomotive.
 
 Phần tử có `data-scroll` và `data-scroll-speed` lệch theo công thức của

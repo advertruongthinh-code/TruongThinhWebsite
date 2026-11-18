@@ -340,7 +340,8 @@ try {
   }
   // 7. Search mode (R6): setResults places the ranked ids one column each, card i into the lowest column (stackLayout), with the
   // CTA batch at the end; unknown and repeated ids are skipped; the latest call wins; a band change replays without a pack;
-  // pending dims the grid; a late offer relayouts only when pressed; a rail click or clearResults leaves search.
+  // pending dims the grid; a late offer relayouts only when pressed; a rail click narrows the results in place (owner 2026-11-18)
+  // and hides rail entries with no result; clearResults, the navbar, a breadcrumb or Back leaves search.
   {
     const all = ADVERTISING_CATALOG_ARTIFACT.cards;
     const wide = all.filter((card) => isWideMedia(layoutMedia(card))).slice(0, 3);
@@ -366,7 +367,11 @@ try {
     await settled(page);
     await page.evaluate(() => {
       window.__searchLeft = 0;
-      window.addEventListener("masonry:search-left", () => { window.__searchLeft += 1; });
+      window.__searchLeftReasons = [];
+      window.addEventListener("masonry:search-left", (event) => {
+        window.__searchLeft += 1;
+        window.__searchLeftReasons.push(event.detail?.reason);
+      });
     });
     await page.evaluate(() => window.TruongThinhMasonry.setPending(true));
     assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 1, "pending marks the grid");
@@ -404,23 +409,44 @@ try {
     await page.evaluate(() => window.TruongThinhMasonry.setResults([]));
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-masonry-item]:not([hidden])"), null, { timeout: 15000 });
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true", null, { timeout: 15000 });
-    // A rail click leaves search for that filter and tells the search page; the dim and a waiting offer go with it.
+    // A rail click inside search narrows the results to that cluster and keeps the search; rail entries with no result hide,
+    // "all" brings every result back.
     await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
     await searchMatches(page, ranked, "search before rail click");
-    await page.evaluate((ids) => { window.TruongThinhMasonry.setPending(true); window.TruongThinhMasonry.offerResults(ids); }, second);
+    const inCluster = (id, slug) => byId.get(id).category === slug || byId.get(id).clusterIds?.includes(slug) || byId.get(id).productIds?.includes(slug);
+    const rail = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-filter]")].map((node) => [node.dataset.masonryFilter, node.hasAttribute("data-search-empty")]));
+    for (const [slug, empty] of rail) {
+      assert.equal(empty, slug !== "all" && !ranked.some((id) => inCluster(id, slug)), `rail ${slug} hidden only without results`);
+    }
+    const cluster = rail.find(([slug, empty]) => slug !== "all" && !empty && ranked.some((id) => !inCluster(id, slug)))[0];
+    await page.locator(`[data-masonry-filter="${cluster}"]`).click();
+    await searchMatches(page, ranked.filter((id) => inCluster(id, cluster)), "rail inside search");
+    assert.equal(await page.getAttribute(`[data-masonry-filter="${cluster}"]`, "aria-current"), "true");
     await page.locator('[data-masonry-filter="all"]').click();
-    await page.waitForFunction(() => window.__searchLeft === 1, null, { timeout: 15000 });
-    assert.equal(await page.locator("[data-project-grid][data-masonry-pending]").count(), 0, "a rail click clears pending");
-    assert.equal(await page.locator("[data-masonry-offer]").count(), 0, "a rail click drops the offer");
-    const browse = await settled(page);
-    assertGrid(browse, all, "rail click after search");
-    assert.ok(browse.items.length > ranked.length, "the whole filter is back");
-    // clearResults returns to the filter too.
-    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), second);
-    await searchMatches(page, second, "search before clear");
+    await searchMatches(page, ranked, "all inside search");
+    assert.equal(await page.evaluate(() => window.__searchLeft), 0, "the rail does not leave search");
+    // clearResults returns to the filter.
     await page.evaluate(() => window.TruongThinhMasonry.clearResults());
+    await page.waitForFunction(() => window.__searchLeft === 1, null, { timeout: 15000 });
+    const browse = await settled(page);
+    assertGrid(browse, all, "clearResults");
+    assert.ok(browse.items.length > ranked.length, "the whole filter is back");
+    assert.equal(await page.locator("[data-search-empty]").count(), 0, "every rail entry is back");
+    // Back to another filter: a breadcrumb return pushes a grid entry of the card's cluster, then Back twice lands on All again.
+    await page.locator("[data-project-grid] [data-masonry-item]:not([hidden]) a").first().click();
+    await page.waitForSelector("[data-detail-crumb]");
+    const crumb = await page.locator("[data-detail-crumb]").first().getAttribute("data-detail-crumb");
+    assert.notEqual(crumb, "all", "the first crumb is a cluster");
+    await page.locator("[data-detail-crumb]").first().click();
+    await page.waitForFunction(() => !document.body.classList.contains("is-detail"));
+    await settled(page);
+    await page.evaluate((ids) => window.TruongThinhMasonry.setResults(ids), ranked);
+    // setResults enters search in the same call; only the reason is checked here, the layout of results is covered above.
+    await page.goBack();
+    await page.waitForFunction(() => document.body.classList.contains("is-detail"));
+    await page.goBack();
     await page.waitForFunction(() => window.__searchLeft === 2, null, { timeout: 15000 });
-    assertGrid(await settled(page), all, "clearResults");
+    assert.deepEqual(await page.evaluate(() => window.__searchLeftReasons), ["clear", "history"], "search-left reasons");
     assert.deepEqual(errors, [], "no page errors");
     await page.close();
     // Phone width: results stay one column each in two columns.

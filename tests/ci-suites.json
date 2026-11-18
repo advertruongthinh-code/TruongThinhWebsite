@@ -296,13 +296,14 @@
         "node tests/site/site-media-card-r6.e2e.mjs",
         "node tests/site/site-media-card-slideshow.e2e.mjs",
         "node tests/site/site-media-card-wait.e2e.mjs",
+        "node tests/site/media-card-stuck-wait.e2e.mjs",
         "node tests/site/primary-flow-zoom-blur.e2e.mjs",
         "node tests/site/video-delivery.e2e.mjs"
       ]
     },
     "search": {
       "specs": ["advertising-search"],
-      "tests": ["node --test tests/search/*.test.mjs"]
+      "tests": ["node --test tests/search/*.test.mjs", "node tests/site/advertising-search.e2e.mjs"]
     }
   },
   "manual": {

@@ -1190,6 +1190,16 @@
     },
   };
 
+  // True when the key belongs to the focused element: a text field, a select, an editable region, or a box (up to the page root)
+  // that scrolls on its own.
+  const keyOwnedByTarget = (target, root) => {
+    for (let node = target; node instanceof Element && node !== root && node !== document.body; node = node.parentElement) {
+      if (node.matches("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return true;
+      if (node.scrollHeight > node.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(node).overflowY)) return true;
+    }
+    return false;
+  };
+
   const initSmoothScroll = (state, scrollY) => {
     if (
       reduceMotion ||
@@ -1219,6 +1229,15 @@
     // Locomotive 4.1.4 drops the keyboard's start timestamp and only sets a flag for stop().
     const smooth = state.smoothScroll;
     const core = smooth.scroll;
+    // Locomotive scrolls the page on Home, End, PageUp, PageDown even with the caret in a field, and on arrows and Space inside a box
+    // that scrolls itself. A key a field, a scrolling box or a page handler already owns stays there; Tab keeps the vendor's centring.
+    window.removeEventListener("keydown", core.checkKey, false);
+    const checkKey = core.checkKey;
+    core.checkKey = (event) => {
+      if (event.key !== "Tab" && (event.defaultPrevented || keyOwnedByTarget(event.target, state.container))) return;
+      checkKey(event);
+    };
+    window.addEventListener("keydown", core.checkKey, false);
     if (core.scrollbarThumb) {
       let thumbMoveFrame;
       const cancelThumbMove = () => {

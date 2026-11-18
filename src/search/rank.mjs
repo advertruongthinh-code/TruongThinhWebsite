@@ -4,9 +4,12 @@ const TOP = 5;
 const EPS = 1e-9;
 
 // scores: [id, sText, sMedia][] of one input; kind picks the weight row. Image weights have no `k`.
+// A keyword card missing from the Worker answer (an index older than the page) still scores by K alone.
 function inputScores({ kind, scores }, keyword, weights) {
   const w = weights[kind];
-  return new Map(scores.map(([id, sText, sMedia]) => [id, w.sText * sText + w.sMedia * sMedia + (w.k ?? 0) * (keyword.get(id) ?? 0)]));
+  const map = new Map(scores.map(([id, sText, sMedia]) => [id, w.sText * sText + w.sMedia * sMedia + (w.k ?? 0) * (keyword.get(id) ?? 0)]));
+  if (w.k) for (const [id, k] of keyword) if (!map.has(id)) map.set(id, w.k * k);
+  return map;
 }
 
 function groupName(ids, productOf) {
@@ -18,16 +21,26 @@ function groupName(ids, productOf) {
 }
 
 export function rankSearch({ inputs, keyword = new Map(), config, catalogOrder, productOf }) {
-  const { threshold, groupTextWeight } = config;
+  const { threshold, groupTextWeight, keywordMin = Infinity, textRelativeMin = 0 } = config;
   const order = new Map(catalogOrder.map((id, i) => [id, i]));
   const sortIds = (ids, score) => [...ids].sort((a, b) => score.get(b) - score.get(a) || (order.get(a) ?? order.size) - (order.get(b) ?? order.size));
-  const passing = (score) => sortIds([...score.keys()].filter((id) => score.get(id) >= threshold - EPS), score);
+  // A card whose words match the text (K from keywordMin) always passes with a text input: weighted at 0.2 K alone it fell
+  // under the threshold whenever the vectors missed it, so typed words like "kios" lost cards the keyword fallback had shown.
+  // Text alone, once the keyword layer found the words, also cuts the vector tail under textRelativeMin of the best card: without it
+  // "biển phòng ban" listed 48 cards, most of them other office signs. A described need ("quán mới cần bảng hiệu sáng đèn") has no
+  // keyword match and keeps the plain threshold (2026-11-18 review over 157 queries: precision 0.76 -> 0.89, recall 0.84 -> 0.82).
+  const anchored = [...keyword.values()].some((k) => k >= keywordMin);
+  const passing = (score, withText, textOnly = false) => {
+    const floor = Math.max(threshold, textOnly && anchored ? Math.max(0, ...score.values()) * textRelativeMin : 0) - EPS;
+    return sortIds([...score.keys()].filter((id) => score.get(id) >= floor
+      || (withText && (keyword.get(id) ?? 0) >= keywordMin)), score);
+  };
 
   const scored = inputs.map((input) => inputScores(input, keyword, config.weights));
   const live = [];
   const unmatched = [];
   scored.forEach((score, i) => {
-    if (!passing(score).length) return unmatched.push(i);
+    if (!passing(score, inputs[i].kind === "text", inputs[i].kind === "text").length) return unmatched.push(i);
     // Top 5 ignores the threshold (spec R5.2) but not zeros: clamped-to-0 cards would tie and link unrelated inputs by catalog order.
     live.push({ i, top: new Set(sortIds([...score.keys()].filter((id) => score.get(id) > 0), score).slice(0, TOP)) });
   });
@@ -46,7 +59,7 @@ export function rankSearch({ inputs, keyword = new Map(), config, catalogOrder, 
     const best = (list, id) => Math.max(...list.map((m) => m.get(id) ?? 0));
     const score = new Map([...new Set(inputIdx.flatMap((i) => [...scored[i].keys()]))].map((id) => [id,
       texts.length && images.length ? groupTextWeight * best(texts, id) + (1 - groupTextWeight) * best(images, id) : best(texts.length ? texts : images, id)]));
-    const ids = passing(score);
+    const ids = passing(score, texts.length > 0, texts.length > 0 && !images.length);
     return { ids, score, inputIdx, top: score.get(ids[0]) };
   }).sort((a, b) => b.top - a.top || a.inputIdx[0] - b.inputIdx[0]);
 
