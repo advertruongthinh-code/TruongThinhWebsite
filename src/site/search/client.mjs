@@ -17,6 +17,13 @@ export function createClient(ui) {
   let inSearch = false;
   let lastText = "";
   let lastImages = 0;
+  // Set by any scroll, tap or key after the keyword results showed: late vector results then wait for a click instead of moving
+  // the grid under the visitor. Untouched, the late results replace the keyword ones, so a query ends on the same list however
+  // fast the Worker was (2026-11-18 review).
+  let touched = false;
+  for (const type of ["wheel", "touchmove", "pointerdown", "keydown"]) {
+    window.addEventListener(type, () => { touched = true; }, { capture: true, passive: true, signal: ui.signal });
+  }
 
   const clearTimers = () => {
     timers.forEach(clearTimeout);
@@ -33,13 +40,14 @@ export function createClient(ui) {
     inSearch = true;
     ui.announce(copy.results(ids.length, lastText || copy.imageCount(lastImages)));
   };
-  const finishEmpty = () => {
+  const finishEmpty = (note = copy.empty) => {
     grid.setPending(false);
     if (inSearch) {
       inSearch = false;
       grid.clearResults(); // its masonry:search-left carries reason "clear" and is ignored
     }
-    ui.announce(copy.empty);
+    // A short grey line in the bar (owner 2026-11-18), gone after 4 s like the image notes.
+    ui.notice(note);
   };
 
   // images: JPEG base64 strings from images.mjs. Text alone gets the keyword fallback at 0.8 s; with images the grid waits for
@@ -76,6 +84,7 @@ export function createClient(ui) {
         if (ids.length) {
           shown = ids;
           show(ids);
+          touched = false;
         } else {
           timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
         }
@@ -96,15 +105,23 @@ export function createClient(ui) {
     if (my !== turn) return true;
     clearTimers();
     if (data?.status !== "ok") {
-      if (images.length) ui.notice(copy.paused);
+      // Image search paused: that note stays instead of "no match", which would blame the visitor's images.
+      const note = images.length ? copy.paused : copy.empty;
       const ids = shown ?? keywordOnly(keyword, order, cfg);
-      if (!shown) ids.length ? show(ids) : finishEmpty();
+      if (!shown) ids.length ? show(ids) : finishEmpty(note);
+      if (images.length && (shown || ids.length)) ui.notice(note);
       return true;
     }
     ui.notice("");
     const ranked = rankSearch({ inputs: data.inputs, keyword, config: cfg, catalogOrder: order, productOf });
     if (shown) {
-      if (ranked.ids.length && !sameIds(ranked.ids, shown)) grid.offerResults(ranked.ids);
+      if (ranked.ids.length && !sameIds(ranked.ids, shown)) {
+        if (!touched) show(ranked.ids);
+        else {
+          grid.offerResults(ranked.ids);
+          ui.announce(copy.more);
+        }
+      }
     } else {
       ranked.ids.length ? show(ranked.ids) : finishEmpty();
     }

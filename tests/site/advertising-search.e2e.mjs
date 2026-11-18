@@ -22,23 +22,37 @@ const open = async (browser, viewport = WIDE, url = PAGE, api = { status: 503 })
   const { context, page } = await openPage(browser, viewport);
   await mockApi(page, api);
   await page.goto(url, { waitUntil: "load" });
-  await page.waitForSelector(".search-host .search-bar, [data-search-dock] .search-bar", { timeout: 20000 });
+  await page.waitForSelector(".search-bar", { timeout: 20000 });
+  // The page is ready once the entry veil lifts: until then it covers the bar in the top slot.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"), null, { timeout: 20000 });
   return { context, page };
 };
+// Before a click: the bar is not sliding or morphing and has not moved between two frames.
+const barStill = (page) => page.waitForFunction(() => new Promise((resolve) => {
+  const bar = document.querySelector(".search-bar");
+  const top = bar.getBoundingClientRect().top;
+  requestAnimationFrame(() => requestAnimationFrame(() => resolve(!bar.getAnimations({ subtree: true }).length && bar.getBoundingClientRect().top === top)));
+}), null, { timeout: 6000 });
 const search = async (page, text) => {
   await page.fill(".search-bar input", text);
   await page.press(".search-bar input", "Enter");
 };
 const liveText = (page) => page.locator("[data-search-live]").textContent();
 const announced = (page, pattern, timeout = 5000) => page.waitForFunction((source) => new RegExp(source, "i").test(document.querySelector("[data-search-live]")?.textContent || ""), pattern.source, { timeout });
-const isDocked = (page) => page.evaluate(() => Boolean(document.querySelector("[data-search-dock] .search-bar")));
+// "top" (over the hero rail), "cta" (under the CTA heading) or "float".
+const placeOf = (page) => page.evaluate(() => {
+  const bar = document.querySelector(".search-bar");
+  const place = bar.closest("[data-search-dock-top]") ? "top" : bar.closest("[data-search-dock]") ? "cta" : "float";
+  return place === (bar.dataset.dock ?? "float") ? place : `mismatch ${place}/${bar.dataset.dock}`;
+});
+const isDocked = async (page) => (await placeOf(page)) === "cta";
 // End/Home like a visitor; repeated because the smooth scroller may still be starting after the bar mounts.
-const pressUntil = async (page, key, docked) => {
-  for (let i = 0; i < 10 && (await isDocked(page)) !== docked; i++) {
+const pressUntil = async (page, key, place) => {
+  for (let i = 0; i < 10 && (await placeOf(page)) !== place; i++) {
     await page.keyboard.press(key);
     await page.waitForTimeout(800);
   }
-  assert.equal(await isDocked(page), docked, `${key}: docked ${docked}`);
+  assert.equal(await placeOf(page), place, `${key}: ${place}`);
 };
 const clickUntil = async (page, selector, arrived) => {
   for (let i = 0; i < 5; i++) {
@@ -47,18 +61,32 @@ const clickUntil = async (page, selector, arrived) => {
   }
   assert.fail(`${selector} did not navigate`);
 };
-const scrollToSlot = (page) => pressUntil(page, "End", true);
-const scrollToTop = (page) => pressUntil(page, "Home", false);
+const scrollToSlot = (page) => pressUntil(page, "End", "cta");
+const scrollToTop = (page) => pressUntil(page, "Home", "top");
+// Half a screen past the hero, where the bar floats.
+const scrollToGrid = async (page) => {
+  await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(innerHeight * 1.5) || scrollTo({ top: innerHeight * 1.5, behavior: "instant" }));
+  await page.waitForFunction(() => !document.querySelector(".search-bar").dataset.dock, null, { timeout: 5000 });
+};
 
-test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector results", async () => {
+test("R6: slow Worker shows keyword results at 0.8 s; late vector results replace them untouched, or are offered after a scroll", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000 });
+    const count = () => page.evaluate(() => Number(/\d+/.exec(document.querySelector("[data-search-live]").textContent)?.[0]));
     const start = Date.now();
     await search(page, "hộp đèn");
     await announced(page, /kết quả/, 2000);
     const shownAt = Date.now() - start;
     assert(shownAt >= 700 && shownAt < 1800, `keyword results at ${shownAt} ms`);
+    const keywordCount = await count();
+    // Untouched: the vector answer (keyword cards plus the 3 mocked ids) takes the grid, no offer button.
+    await page.waitForFunction((before) => Number(/\d+/.exec(document.querySelector("[data-search-live]").textContent)?.[0]) > before, keywordCount, { timeout: 4000 });
+    assert.equal(await page.locator("[data-masonry-offer]").count(), 0);
+    // Scrolled after the keyword results: the late answer waits behind the offer button.
+    await search(page, "chữ nổi");
+    await announced(page, /kết quả cho “chữ nổi”/, 2000);
+    await page.mouse.wheel(0, 200);
     await page.waitForSelector("[data-masonry-offer]", { timeout: 4000 });
     await context.close();
   } finally {
@@ -66,7 +94,7 @@ test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector res
   }
 });
 
-test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then shows nothing", async () => {
+test("R6, R9: no keyword match keeps the grid pending until the Worker answers empty, then says so in a short line", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000, ids: [] });
@@ -75,6 +103,9 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
     assert(await page.locator("[data-masonry-pending]").count(), "still pending at 1.5 s");
     await page.waitForFunction(() => !document.querySelector("[data-masonry-pending]"), null, { timeout: 4000 });
     assert.match(await liveText(page), /chưa thấy/i);
+    assert.match(await page.locator(".search-bar [data-search-count]").textContent(), /chưa thấy mẫu phù hợp/i, "short line in the bar");
+    assert(await page.locator(".search-bar [data-search-tray]").isVisible());
+    await page.waitForFunction(() => document.querySelector(".search-bar [data-search-tray]").hidden, null, { timeout: 6000 });
     assert.equal(await page.locator(".search-bar__status, [data-search-status]").count(), 0, "no status panel");
     await context.close();
   } finally {
@@ -98,24 +129,47 @@ test("R9: results show on the grid only, with nothing above the bar", async () =
 });
 
 for (const viewport of [WIDE, PHONE]) {
-  test(`R7 at ${viewport.width}px: the bar docks under the CTA heading, stays there to the footer and floats again above`, async () => {
+  test(`R7 at ${viewport.width}px: the bar sits over the rail on the first screen, floats over the grid, docks under the CTA heading and goes back`, async () => {
     const browser = await launchBrowser();
     try {
       const { context, page } = await open(browser, viewport);
-      assert.equal(await isDocked(page), false, "floats on the first screen");
+      assert.equal(await placeOf(page), "top", "over the rail on the first screen");
+      const hero = await page.evaluate(() => {
+        const bar = document.querySelector(".search-bar__shell").getBoundingClientRect();
+        const rail = document.querySelector(".project-filters").getBoundingClientRect();
+        return { aboveRail: bar.bottom <= rail.top + 1, cue: document.querySelectorAll("[data-scroll-cue]").length, talk: getComputedStyle(document.querySelector(".search-bar__talk")).visibility };
+      });
+      assert.deepEqual(hero, { aboveRail: true, cue: 0, talk: "hidden" });
+      await scrollToGrid(page);
       await scrollToSlot(page);
+      // The smooth scroller eases for about 2 s: wait until the slide and morph end and the shell rests in the slot.
+      await page.waitForFunction(() => {
+        const bar = document.querySelector("[data-search-dock] .search-bar");
+        if (!bar || bar.getAnimations({ subtree: true }).length) return false;
+        const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();
+        return Math.round(bar.querySelector(".search-bar__shell").getBoundingClientRect().top) === Math.round(slot.top);
+      }, null, { timeout: 6000 });
       const docked = await page.evaluate(() => {
         const talk = document.querySelector("[data-search-dock] .search-bar__talk");
         const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();
         const bar = document.querySelector("[data-search-dock] .search-bar__shell").getBoundingClientRect();
+        const heading = document.querySelector("#cta-title").getBoundingClientRect();
         const legacy = document.querySelector(".detail-cta .legacy-link");
-        return { talk: getComputedStyle(talk).visibility, below: Math.round(bar.top - slot.top) === 2 && Math.round(bar.bottom) <= Math.round(slot.bottom), legacy: legacy && getComputedStyle(legacy).display };
+        const input = document.querySelector("[data-search-dock] input");
+        return {
+          talk: getComputedStyle(talk).visibility,
+          inSlot: Math.round(bar.top) === Math.round(slot.top) && Math.round(bar.bottom) <= Math.round(slot.bottom),
+          belowHeading: slot.top >= heading.bottom - 1,
+          font: getComputedStyle(input).fontSize,
+          legacy: legacy && getComputedStyle(legacy).display,
+        };
       });
-      assert.deepEqual(docked, { talk: "visible", below: true, legacy: "none" });
+      assert.deepEqual(docked, { talk: "visible", inSlot: true, belowHeading: true, font: "16px", legacy: "none" });
       await page.fill(".search-bar input", "chữ nổi");
       assert.equal(await page.inputValue(".search-bar input"), "chữ nổi", "typeable when docked");
       await page.locator(".search-bar input").blur();
       await scrollToTop(page);
+      await scrollToGrid(page);
       if (viewport.hasTouch) {
         // Past the first screen the back-to-top button shows; the floating bar must not cover it.
         await page.evaluate(() => scrollTo({ top: innerHeight * 3, behavior: "instant" }));
@@ -140,9 +194,10 @@ for (const viewport of [WIDE, PHONE]) {
     try {
       const { context, page } = await open(browser, viewport, PAGE, { ids: [] });
       await scrollToSlot(page);
-      await page.waitForTimeout(800);
-      const ground = await page.evaluate(() => getComputedStyle(document.querySelector("[data-search-dock] .search-bar__shell")).backgroundColor);
-      assert.equal(ground, "rgba(0, 0, 0, 0)", "transparent when docked");
+      // The morph runs 0.7 s; a busy runner may need longer.
+      const ground = () => page.evaluate(() => getComputedStyle(document.querySelector("[data-search-dock] .search-bar__shell")).backgroundColor);
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-search-dock] .search-bar__shell")).backgroundColor === "rgba(0, 0, 0, 0)", null, { timeout: 5000 }).catch(() => {});
+      assert.equal(await ground(), "rgba(0, 0, 0, 0)", "transparent when docked");
       await search(page, "xqzw vbnk");
       await announced(page, /chưa thấy/);
       assert(await isDocked(page), "still docked");
@@ -184,6 +239,7 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
     assert.equal(await trayCount(page), 5);
     assert.match(await page.locator(".search-bar [data-search-count]").textContent(), /5\/5 ảnh/i);
 
+    await barStill(page);
     await page.click(".search-bar .search-bar__go");
     await announced(page, /kết quả/);
     const sent = bodies.at(-1);
@@ -199,6 +255,7 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
 
     // Removing an image after results searches again after reSearchMs.
     const before = bodies.length;
+    await barStill(page);
     await page.locator(".search-bar .search-bar__unthumb").first().click();
     await page.waitForTimeout(900);
     assert.equal(bodies.length, before + 1, "searched again");
@@ -217,17 +274,21 @@ test("R8, R4: images by the button, up to 5, without EXIF in the request; SVG an
   }
 });
 
-test("R8, R10: images survive a reload, and the same image added again is still dropped as a duplicate", async () => {
+test("R8, R10: text and images survive a reload (#q= in the URL), and the same image added again is still dropped", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { ids: VECTOR_IDS });
     const files = await Promise.all([40, 90].map((h) => makeJpeg(page, h)));
     await page.setInputFiles("[data-search-file]", files);
     await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2);
+    // Text with images writes #q=; the reload reads the hash and must still restore the images of the same session.
+    await page.fill(".search-bar input", "hộp đèn");
     await page.click(".search-bar .search-bar__go");
     await announced(page, /kết quả/);
+    assert.match(page.url(), /#q=/);
     await page.reload({ waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll(".search-bar [data-search-thumbs] img").length === 2, null, { timeout: 20000 });
+    assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     await page.setInputFiles("[data-search-file]", files[0]);
     await page.waitForTimeout(800);
     assert.equal(await trayCount(page), 2, "duplicate dropped after reload");
@@ -264,11 +325,29 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
   }
 });
 
-test("R10: a #tim= link searches; a language switch keeps the query; Esc and a chip clear it", async () => {
+test("R10: a #q= link searches and the bar writes #q=; an older #tim= link still opens", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("chữ nổi")}`, {});
+    await announced(page, /kết quả/);
+    assert.equal(await page.inputValue(".search-bar input"), "chữ nổi");
+    await page.waitForFunction(() => location.hash === `#q=${encodeURIComponent("chữ nổi")}`, null, { timeout: 4000 });
+    await page.press(".search-bar input", "Escape");
+    await page.waitForFunction(() => location.hash === "");
+    await search(page, "hộp đèn");
+    await announced(page, /kết quả/);
+    assert.equal(await page.evaluate(() => location.hash), `#q=${encodeURIComponent("hộp đèn")}`);
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R10: a language switch keeps the query; Esc and the x clear it; the rail filters inside the results", async () => {
   const browser = await launchBrowser();
   try {
     // A working Worker: with keywordMin 0.6 a Vietnamese query on the EN page has no keyword fallback.
-    const { context, page } = await open(browser, WIDE, `${PAGE}#tim=${encodeURIComponent("hộp đèn")}`, {});
+    const { context, page } = await open(browser, WIDE, `${PAGE}#q=${encodeURIComponent("hộp đèn")}`, {});
     await announced(page, /kết quả/);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
 
@@ -292,10 +371,31 @@ test("R10: a #tim= link searches; a language switch keeps the query; Esc and a c
     assert.equal(await page.inputValue(".search-bar input"), "");
     await search(page, "hộp đèn");
     await announced(page, /results/);
-    const left = page.evaluate(() => new Promise((resolve) => addEventListener("masonry:search-left", (e) => resolve(e.detail?.reason), { once: true })));
-    await page.locator("[data-masonry-filter]").nth(1).click();
-    assert.equal(await left, "filter");
-    await page.waitForFunction(() => document.querySelector(".search-bar input").value === "");
+    // Only entries with a result show; a click narrows the results and keeps the search.
+    await page.waitForTimeout(600);
+    const rail = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-filter]")].map((node) => ({
+      filter: node.dataset.masonryFilter, empty: node.hasAttribute("data-search-empty"), shown: getComputedStyle(node).display !== "none",
+    })));
+    assert(rail.every((entry) => entry.empty !== entry.shown), "hidden exactly when empty");
+    assert(rail.some((entry) => entry.empty), "some cluster has no result");
+    const target = rail.find((entry) => entry.shown && entry.filter !== "all").filter;
+    const total = await page.locator("[data-masonry-card]").count();
+    let left = false;
+    await page.evaluate(() => addEventListener("masonry:search-left", () => { window.__left = true; }, { once: true }));
+    await page.click(`[data-masonry-filter="${target}"]`);
+    await page.waitForTimeout(900);
+    left = await page.evaluate(() => Boolean(window.__left));
+    assert.equal(left, false, "still searching");
+    assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
+    assert.equal(await page.getAttribute(`[data-masonry-filter="${target}"]`, "aria-current"), "true");
+    const narrowed = await page.evaluate((slug) => {
+      const ids = [...document.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard);
+      return { count: ids.length };
+    }, target);
+    assert(narrowed.count <= total, "narrowed");
+    await page.click('[data-masonry-filter="all"]');
+    await page.waitForTimeout(900);
+    assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     await context.close();
   } finally {
     await browser.close();
@@ -334,6 +434,51 @@ test("R7: no horizontal scroll at the six widths, floating and docked", async ()
       }
       await context.close();
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R7: over the hero the bar is framed; at the CTA it is a ruled line", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser);
+    // The look once the 1s morph has settled (the end of the page can keep a slow machine busy for a while).
+    const look = async () => {
+      await page.waitForFunction(() => !document.querySelector(".search-bar").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
+      return page.evaluate(() => {
+        const shell = getComputedStyle(document.querySelector(".search-bar__shell"));
+        const rule = getComputedStyle(document.querySelector(".search-bar__rule"));
+        return { border: shell.borderTopColor, ruled: rule.transform !== "matrix(0, 0, 0, 1, 0, 0)" };
+      });
+    };
+    assert.deepEqual(await look(), { border: "rgb(32, 33, 32)", ruled: false }, "top: framed");
+    await scrollToSlot(page);
+    await page.waitForTimeout(100);
+    assert.deepEqual(await look(), { border: "rgba(0, 0, 0, 0)", ruled: true }, "cta: ruled line");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R7: keys that move the caret in the input do not scroll the page", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser);
+    await scrollToGrid(page);
+    await barStill(page);
+    await page.fill(".search-bar input", "hộp đèn led");
+    const before = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    for (const key of ["Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", "Space"]) {
+      await page.press(".search-bar input", key);
+      await page.waitForTimeout(400);
+      const after = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      assert(Math.abs(after - before) < 2, `${key} scrolled the page ${Math.round(after - before)}px`);
+    }
+    await page.press(".search-bar input", "Home");
+    assert.equal(await page.evaluate(() => document.activeElement.selectionStart), 0, "Home moves the caret to the start");
+    await context.close();
   } finally {
     await browser.close();
   }

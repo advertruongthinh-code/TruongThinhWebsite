@@ -11,19 +11,19 @@
     }
   },
   "groupTextWeight": 0.3,
-  "threshold": 0.6,
+  "threshold": 0.59,
   "anchors": {
     "text-text": [
-      0.56,
-      0.807
+      0.548,
+      0.806
     ],
     "text-image": [
       0.566,
       0.792
     ],
     "image-text": [
-      0.556,
-      0.77
+      0.544,
+      0.774
     ],
     "image-image": [
       0.632,
@@ -31,6 +31,7 @@
     ]
   },
   "keywordMin": 0.6,
+  "textRelativeMin": 0.8,
   "timing": {
     "textWaitMs": 800,
     "imageWaitMs": 3000,

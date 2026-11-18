@@ -13,8 +13,8 @@ try {
   }
   const routeLocale = document.documentElement.dataset.routeLocale;
   document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
-  // A #tim= search link: kept for the search bar before motion.js drops the hash (advertising-search R10).
-  if (location.hash.startsWith("#tim=") && location.pathname.includes("/advertising-products/")) sessionStorage.setItem("tt-search-hash", location.hash);
+  // A #q= search link (or an older #tim= one): kept for the search bar before motion.js drops the hash (advertising-search R10).
+  if (/^#(q|tim)=/.test(location.hash) && location.pathname.includes("/advertising-products/")) sessionStorage.setItem("tt-search-hash", location.hash);
 } catch {}
 // The image frame keeps its shimmer until the image has loaded and decoded; listening from the head so no image's event is missed.
 document.documentElement.classList.add("media-gate");
@@ -194,10 +194,38 @@ document.documentElement.classList.add("media-gate");
   addEventListener("scroll", () => { scrolledAt = performance.now(); }, { capture: true, passive: true });
   document.addEventListener("load", ({ target }) => {
     if (!isImage(target)) return;
+    if (!retrying.size) retryDelay = 2000;
     watchUpgrade(target);
     target.decode().catch(() => {}).then(() => settle(target));
   }, true);
-  document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
+  // A content image that failed (network cut, owner 2026-11-17: media stayed broken until F5) loads again once the network is back: on
+  // the online event, else after 2s, doubling up to 30s while some image still fails. Setting the same src starts a new request.
+  const retrying = new Set();
+  let retryTimer = 0;
+  let retryDelay = 2000;
+  const retryFailed = () => {
+    clearTimeout(retryTimer);
+    retryTimer = 0;
+    retrying.forEach((image) => {
+      retrying.delete(image);
+      const src = image.getAttribute("src");
+      if (image.isConnected && src) image.src = src;
+    });
+  };
+  addEventListener("online", () => {
+    retryDelay = 2000;
+    retryFailed();
+  });
+  document.addEventListener("error", ({ target }) => {
+    if (!isImage(target)) return;
+    settle(target, true);
+    if (!target.getAttribute("src")?.startsWith("/assets/content/")) return;
+    retrying.add(target);
+    if (!retryTimer) {
+      retryTimer = setTimeout(retryFailed, retryDelay);
+      retryDelay = Math.min(retryDelay * 2, 30_000);
+    }
+  }, true);
   // sizes follows the part of the image visible after the cover crop (media-delivery R2). ResizeObserver runs after layout,
   // before lazy loading starts fetching, and again when the frame changes size; only raises the variant, never lowers it.
   // The cap is the largest variant: the original loads only through the R10 upgrade step when a large frame is visible and the page is idle. Without a cap a phone at

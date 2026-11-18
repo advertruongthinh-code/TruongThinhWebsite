@@ -57,3 +57,19 @@ test("started downloads are never restarted, a repeat request shares the promise
   await loader.end("x");
   assert.equal(queue.loaded("x"), true);
 });
+
+test("a download that stalls gives up its slot but keeps running, so the queue moves on", async () => {
+  const loader = manualLoader();
+  const queue = createMediaQueue({ limit: 1, load: loader.load, stallMs: 20 });
+  const stuckView = queue.load("stuck-view", { current: true });
+  queue.load("stuck", { rank: 1 });
+  queue.load("next", { rank: 2 });
+  queue.load("view", { current: true });
+  assert.deepEqual(loader.started, ["stuck-view", "stuck"], "both slots taken by files that never answer");
+  await new Promise((done) => setTimeout(done, 40));
+  assert.deepEqual(loader.started, ["stuck-view", "stuck", "view", "next"], "stalled files free their slots");
+  await loader.end("stuck-view");
+  await stuckView;
+  assert.equal(queue.loaded("stuck-view"), true, "a stalled file that ends late still counts as loaded");
+  assert.deepEqual(loader.started.filter((url) => url === "stuck-view"), ["stuck-view"], "a stalled file is never started again");
+});

@@ -11,6 +11,7 @@ import * as session from "./session.mjs";
 export function mount(container, { signal, softNavigation = false } = {}) {
   const grid = window.TruongThinhMasonry;
   const slot = container.querySelector("[data-search-dock]");
+  const topSlot = container.querySelector("[data-search-dock-top]");
   if (!grid || !slot || signal?.aborted) return;
   if (!document.querySelector("style[data-search-style]")) {
     document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
@@ -65,7 +66,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     images.forEach((image) => URL.revokeObjectURL(image.url));
     images = [];
   };
+  let reSearch;
   const leave = (tellGrid) => {
+    clearTimeout(reSearch);
     if (tellGrid) grid.clearResults();
     client.reset();
     input.value = "";
@@ -73,11 +76,12 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     renderTray();
   };
 
-  let reSearch;
   function removeImage(i) {
     URL.revokeObjectURL(images[i].url);
     images.splice(i, 1);
     renderTray();
+    // The tray is rebuilt: keep the keyboard on the next remove button, or on the image button when none is left.
+    (thumbs.querySelectorAll("button")[Math.min(i, images.length - 1)] ?? imageButton).focus();
     if (!client.active) return;
     clearTimeout(reSearch);
     reSearch = setTimeout(() => (input.value.trim() || images.length ? client.submit(query()) : leave(true)), cfg.timing.reSearchMs);
@@ -148,9 +152,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   };
   let dock;
   dock = mountDock({
-    host, bar, slot, input, signal,
-    onChange: (docked) => {
-      input.placeholder = docked ? copy.placeholderDocked : copy.placeholder;
+    host, bar, top: topSlot, cta: slot, input, signal,
+    onChange: (place) => {
+      input.placeholder = place === "cta" ? copy.placeholderDocked : copy.placeholder;
       syncOffset();
     },
   });
@@ -161,6 +165,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     if (!input.value.trim() && !images.length) return input.focus();
     // Phones: close the keyboard so the results show (and the bar may dock).
     if (window.TruongThinhEnv?.phone.matches) input.blur();
+    clearTimeout(reSearch);
     client.submit(query());
   }, { signal });
   input.addEventListener("input", client.cancel, { signal });
