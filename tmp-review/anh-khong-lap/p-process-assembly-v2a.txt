@@ -1,0 +1,13 @@
+Use your built-in image generation tool to create ONE new photograph, landscape 3:2 at the largest size the tool supports, then save the generated image file into the current working directory as `process-assembly-v2a.png` (copy it there if the tool saves elsewhere; never overwrite an existing file). Do not resize, crop, convert or re-save it. Do not edit any other file. After saving, print one JSON line: {"file": ..., "image_model": <exact model name your image tool reports, or "unknown">, "width": ..., "height": ...}.
+
+OWNER BRIEF: an artistic, backlit photograph (ngược sáng) of a Trường Thịnh worker ASSEMBLING panel furniture in the workshop, his figure read as a silhouette (bóng dáng); his face is NOT visible at all: turned away or fully in shadow, no cheek showing.
+
+STYLE (owner): match the attached style-legacy-hands-audit-v4.png (the image on the About page): warm golden backlight through an open workshop door, amber haze and fine dust in the air, soft cinematic contrast, shallow depth of field, the worker read partly as a silhouette with a warm rim light, wood tones warm. Make it SLIGHTLY BRIGHTER than that reference: lift the shadows a little so the furniture, the black-core edges and the worker's hands read clearly. Style only: do not copy its scene, machine or composition (each photo may appear on only one page). Copy only the style, not its layout or content.
+
+SAME WORKSHOP: the attached home-cam-ket-san-xuat-v8b.png (approved) shows the space: corrugated metal walls, steel frame, the white CNC router with its white dust hose may appear softly in the background. Keep it consistent; the CNC is NOT the subject here.
+
+SCENE: The worker, side-on, drives a screw into a carcass joint with a cordless drill; the bright open roller door behind him. Fine dust in the light beams; shallow depth of field. The white CNC router with its clear dust hose only far in the background, out of focus.
+
+FURNITURE: real panel furniture of black-core HDF with light wood-grain or white laminate faces and matching edge banding; exposed cut edges show a dense black core; correct, buildable construction; recessed handles only.
+
+PHOTO: editorial, cinematic but real: a full-frame camera, 35-50 mm lens, level camera with straight verticals, strong natural backlight, deep shadows, glowing rim light, slight haze and sensor grain; the worker's posture natural and anatomically correct, body never intersecting furniture. Ceiling at most a thin strip, floor modest. Only one person. No text, logos, brand names or numbers anywhere; no vehicles; no plants.
