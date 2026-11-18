@@ -2659,11 +2659,6 @@
   "1600": 110021,
   "2048": 112737
  },
- "assets/content/shared/cnc.jxl": {
-  "960": 128105,
-  "1600": 138127,
-  "2048": 141278
- },
  "assets/content/shared/consultation-materials.jxl": {
   "960": 115464,
   "1600": 126543
@@ -2829,6 +2824,9 @@
  },
  "assets/content/shared/news-tu-ao-am-tuong-d-20261113.jxl": {
   "960": 12573
+ },
+ "assets/content/shared/process-assembly-residential-20261118.jxl": {
+  "960": 29904
  },
  "assets/content/shared/survey-modern.jxl": {
   "960": 32370
