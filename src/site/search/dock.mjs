@@ -3,8 +3,6 @@
 // and [data-search-dock] under the CTA heading once that slot is above the floating bar (the approved prototype's sticky stop).
 // A bar moved to a new parent has no old style to transition from, so a move first lays the old look out in the new place, then
 // switches class: the CSS morph runs, and a slide covers the distance between the two places (owner 2026-11-18).
-const MORPH_MS = 700;
-const EASE = "cubic-bezier(0.65, 0, 0.35, 1)"; // --ease-card
 
 export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
   let place = "float";
@@ -31,7 +29,13 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     if (next === "float") delete bar.dataset.dock;
     else bar.dataset.dock = next;
     if (animate && !window.TruongThinhEnv?.reducedMotion.matches && Math.abs(shift) > 1 && Math.abs(shift) <= innerHeight) {
-      bar.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: MORPH_MS, easing: EASE });
+      // The slide takes the CSS morph's pace (--search-morph, --search-ease in search.css), so both stay one value.
+      const style = getComputedStyle(bar);
+      const morph = style.getPropertyValue("--search-morph").trim();
+      bar.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], {
+        duration: Number.parseFloat(morph) * (morph.endsWith("ms") ? 1 : 1000),
+        easing: style.getPropertyValue("--search-ease").trim(),
+      });
     }
     if (focused) {
       input.focus({ preventScroll: true });

@@ -13,10 +13,11 @@ không có JavaScript thì CTA giữ link "Trao đổi ý tưởng" cũ. CSS n�
   để thanh rời khe bắt đầu từ bề rộng lúc dừng); viền 1px `ink`, nền `paper`, hàng cao 60px (56px dưới 751px). Bên phải ô chữ:
   nút xoá chữ (chỉ khi đã gõ), vạch 26px, nút tìm bằng ảnh, kính lúp; ô vuông 44px (40px dưới 751px), icon 22px nét 1.8.
   Hai đầu theo mắt: mép trái tới chữ 21px, đầu cán kính lúp tới mép phải 18px.
-- Dừng (`is-docked`, `data-dock="top"` hoặc `"cta"`): viền tan thành đường kẻ 3px dài tới 1000px, nền trong suốt, hàng 44px,
-  chữ 16px như link CTA trang Công trình. Khe cao 48px; khe CTA cách tiêu đề `--masonry-gap`. Ở khe CTA "Trao đổi ý tưởng" mở
+- Dừng (`is-docked`, `data-dock="top"` hoặc `"cta"`): rộng tới 1000px, hàng 44px, chữ 16px như link CTA trang Công trình.
+  Khe đầu trang giữ khung như thanh nổi (viền 1px `ink`, nền `paper`, owner 2026-11-18); khe CTA: viền tan thành đường kẻ 3px,
+  nền trong suốt. Khe cao 48px; khe CTA cách tiêu đề `--masonry-gap`. Ở khe CTA "Trao đổi ý tưởng" mở
   bằng `clip-path` ở cuối đường kẻ, vạch trước nó cũng 26px (điện thoại: "Trao đổi", ẩn kính lúp); ở khe đầu trang không có.
-- Đổi chỗ: morph 700ms `ease-card` cả hai chiều. Thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt (`translateY`) từ chỗ cũ, trừ khi xa hơn một màn hình;
+- Đổi chỗ: morph 1s `ease-card` cả hai chiều (700ms owner thấy nhanh, 2026-11-18; 1s như các chuyển động cỡ màn hình khác: Floating CTA, veil); `--search-morph`, `--search-ease` trên `.search-bar`, `dock.mjs` đọc lại cho cú trượt. Thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt (`translateY`) từ chỗ cũ, trừ khi xa hơn một màn hình;
   vào khe CTA đúng lúc khe chạm mép trên thanh nổi nên thanh trôi theo trang như `sticky` rồi giãn ra.
 - Không có dòng trạng thái trên màn hình (owner 2026-11-17): kết quả chỉ hiện trên lưới. Không ra kết quả thì khay hiện dòng
   "Chưa thấy mẫu phù hợp" chữ hoa 12.8px `muted`, tự tắt sau 4 giây (owner 2026-11-18). Screen reader đọc số kết quả qua vùng
@@ -25,7 +26,8 @@ không có JavaScript thì CTA giữ link "Trao đổi ý tưởng" cũ. CSS n�
   thông báo về ảnh (tối đa 5 ảnh, file không dùng được, đang chậm kèm "Thử lại", tạm nghỉ) là một dòng ngắn cũng ở đây, tự
   tắt sau 4 giây trừ dòng có nút. Thanh nổi và khe đầu trang: khay nằm trên hàng chữ. Khe CTA: khay treo ngay dưới đường kẻ để
   khe giữ nguyên chiều cao. Kéo file vào trang thì lớp phủ `.search-drop` "Thả ảnh vào đây để tìm" hiện toàn màn hình.
-- Ô chữ đang focus: đường kẻ 3px dưới thanh hiện ra (thay outline).
+- Ô chữ đang focus: đường kẻ 3px dưới thanh hiện ra (thay outline). Home, End, PageUp, PageDown, mũi tên, Space khi đang gõ chỉ
+  di con trỏ, không cuộn trang ([cuộn mượt](../../motion.md#smooth-scroll-và-parallax)).
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset` ([Floating CTA](../FloatingCta/README.md)). Ẩn khi menu hoặc
   detail view mở; thanh đang ở khe thì vẫn theo CTA vào detail view.
 - Giảm chuyển động: đổi trạng thái ngay.

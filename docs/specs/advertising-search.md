@@ -166,10 +166,11 @@ gõ), vạch ngăn, nút tìm bằng ảnh, nút kính lúp. Ảnh vào bằng n
 (owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` thế chỗ hàng nhóm dưới tiêu đề hero, hàng nhóm và chip lùi xuống một bậc (chỗ cũ của "Cuộn xuống", trang có lưới masonry bỏ chữ
 này); thanh ở đây khi cả khe hiện dưới hàng header. Giữa trang: nổi trong lớp cố định ở đáy màn hình. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA, cách tiêu đề bằng `--masonry-gap`
 như link CTA trang Công trình; thanh vào khe khi khe lên tới mép trên thanh nổi, nên thanh như `sticky` của bản thử: trượt theo trang, dừng ở khe rồi mới giãn (cuộn mượt dịch trang bằng
-`transform` nên không dùng `sticky` thật). Ở hai khe viền tan thành đường kẻ dài 1000px, nền trong suốt (owner 2026-11-17), hàng cao 44px, chữ 16px; ở khe CTA nút "Trao đổi ý tưởng" mở ra ở
-cuối đường kẻ (điện thoại: "Trao đổi"). Mỗi lần đổi chỗ là một morph 0,7 giây `--ease-card` cả hai chiều: thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt từ chỗ cũ tới chỗ mới (xa hơn một màn hình thì chỉ morph); ô chữ,
+`transform` nên không dùng `sticky` thật). Ở hai khe thanh rộng tới 1000px, hàng cao 44px, chữ 16px; khe đầu trang giữ khung như thanh nổi (owner 2026-11-18), khe CTA viền tan thành đường kẻ,
+nền trong suốt (owner 2026-11-17) và nút "Trao đổi ý tưởng" mở ra ở cuối đường kẻ (điện thoại: "Trao đổi"). Mỗi lần đổi chỗ là một morph 1 giây
+`--ease-card` cả hai chiều (owner 2026-11-18: 0,7 giây nhanh quá): thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt từ chỗ cũ tới chỗ mới (xa hơn một màn hình thì chỉ morph); ô chữ,
 khay ảnh vẫn dùng được. Hai vạch dọc (trước nút ảnh và trước "Trao đổi ý tưởng") cùng cao 26px. Khoảng cách hai đầu theo mắt: mép trái tới chữ 21px, đầu cán kính lúp tới mép phải 18px. Thanh
-gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Không có dòng trạng thái trên màn
+gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ, không cuộn trang. Không có dòng trạng thái trên màn
 hình (owner 2026-11-17): số kết quả chỉ báo qua vùng `aria-live` ẩn. Giảm chuyển động thì đổi trạng thái ngay. Chữ trên thanh, thông báo và đồng nghĩa có bản EN.
 
 ```gherkin
@@ -269,7 +270,7 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
-| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
+| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, khung ở khe đầu trang và đường kẻ ở khe CTA, phím di con trỏ không cuộn trang, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
 | R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: tối đa 5 ảnh, không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
 | R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
