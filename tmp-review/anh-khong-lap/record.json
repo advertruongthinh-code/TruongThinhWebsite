@@ -2721,5 +2721,59 @@
   "round": 33,
   "change": "owner 2026-11-18 11:05 UTC: style like legacy-hands-audit on About page, a little brighter",
   "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v3a.png",
+  "sha256": "4cfffbb62617f9580da698a82a8b9c09850e5b3adf4e22d762280bea5ef75a8d",
+  "bytes": 2090452,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-legacy-hands-audit-v4.png (style and pose only)",
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v3a.txt",
+  "round": 34,
+  "change": "owner 2026-11-18 11:51 UTC: face partly visible but not clear, eyes on the furniture",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v3b.png",
+  "sha256": "6fc22999341f2ee86ca44dae0c1ffd0546ab17109c7d4f1c2cd931321ad4cb1a",
+  "bytes": 1896689,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-legacy-hands-audit-v4.png (style and pose only)",
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v3b.txt",
+  "round": 34,
+  "change": "owner 2026-11-18 11:51 UTC: face partly visible but not clear, eyes on the furniture",
+  "created": "2026-11-18"
+ },
+ {
+  "file": "process-assembly-v3c.png",
+  "sha256": "3e0464f7954ebab15a63545a783d13996f9fbbfd39a03b5970b5074faf7a9f46",
+  "bytes": 1821568,
+  "width": 1536,
+  "height": 1024,
+  "tool": "Codex CLI gpt-6-sol",
+  "image_model": "ChatGPT gpt-image",
+  "c2pa_signer": "OpenAI",
+  "refs": [
+   "ref/style-legacy-hands-audit-v4.png (style and pose only)",
+   "home-cam-ket-san-xuat-v8b.png"
+  ],
+  "prompt": "p-process-assembly-v3c.txt",
+  "round": 34,
+  "change": "owner 2026-11-18 11:51 UTC: face partly visible but not clear, eyes on the furniture",
+  "created": "2026-11-18"
  }
 ]
