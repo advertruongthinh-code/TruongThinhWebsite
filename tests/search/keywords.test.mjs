@@ -221,6 +221,18 @@ test("real catalog recall: every product, variant and use tag label finds every 
   assert.deepEqual(missing, []);
 });
 
+test("real catalog: a group name alone reaches the whole group, with more words only the group cards matching them", () => {
+  const artifact = buildAdvertisingArtifact();
+  const group = new Set(artifact.cards.filter((entry) => entry.tagIds.includes("group-print-decals")).map((entry) => entry.id));
+  const reached = (query, locale = "vi") => new Set([...keywordScores(query, locale, artifact)].filter(([, k]) => k >= 0.6).map(([id]) => id));
+  for (const query of ["in ấn", "in aans", "in ấn giá rẻ"]) assert.deepEqual([...group].filter((id) => !reached(query).has(id)), [], query);
+  assert.deepEqual([...group].filter((id) => !reached("printing", "en").has(id)), []);
+  const menu = reached("in ấn menu");
+  const menuCards = [...reached("menu")].filter((id) => group.has(id));
+  assert.ok(menuCards.length > 0 && menuCards.every((id) => menu.has(id)));
+  assert.ok(menu.size < group.size);
+});
+
 test("warmIndex builds the same index in slices, and a search during warming still scores every card", () => {
   const cards = Array.from({ length: 5 }, (_, i) => card(`c${i}`, `Hộp đèn mẫu ${i}`));
   const cold = keywordScores("hop den", "vi", artifactOf(...cards));

@@ -1,5 +1,7 @@
 // Keyword layer of advertising search (spec advertising-search R2). Pure functions: no DOM, no network.
 // A card's K score is the best match level of the query against the phrases of its title, alt text, product, cluster and tag labels.
+// A query that is exactly a service group name (groups.json) also reaches every card of that group.
+import groups from "./groups.json" with { type: "json" };
 import stopwords from "./stopwords.json" with { type: "json" };
 import synonyms from "./synonyms.json" with { type: "json" };
 
@@ -316,6 +318,31 @@ function phraseLevel(term, list, swaps, vocabulary) {
 const allWords = (candidate, { wordSet, canonSet }) => candidate.loose && new Set(candidate.plainWords).size >= 2
   && candidate.words.every((word, i) => (candidate.marked[i] ? canonSet.has(word) : wordSet.has(candidate.plainWords[i])));
 
+// Names of the service groups ("in ấn"), per locale, from groups.json.
+const groupNames = {};
+const groupNamesFor = (locale) => (groupNames[locale] ??= Object.entries(groups).flatMap(([id, names]) => (names[locale] ?? []).map((name) => ({ id, ...phrase(name) }))));
+const nameAt = (candidate, name) => candidate.words.findIndex((_, at) => at + name.words.length <= candidate.words.length
+  && name.words.every((_, i) => wordAt(candidate, at + i, name.words, name.plainWords, i)));
+
+// A query holding a group name: alone (or with filler words) it reaches every card of the group at the unaccented level;
+// with other words ("in ấn menu") it reaches the cards of the group that match those words, at their own level.
+function withGroups(scores, list, locale, artifact) {
+  for (const name of groupNamesFor(locale)) {
+    for (const candidate of list) {
+      const at = nameAt(candidate, name);
+      if (at < 0) continue;
+      const rest = candidate.words.filter((_, i) => i < at || i >= at + name.words.length).join(" ");
+      const onlyFiller = !rest || candidates(rest, locale).some(({ kind, words }) => kind === "stripped" && !words.length);
+      const restScores = onlyFiller ? null : keywordScores(rest, locale, artifact);
+      for (const card of artifact.cards) {
+        const level = !card.tagIds?.includes(name.id) ? 0 : onlyFiller ? LEVEL.plain : (restScores.get(card.id) ?? 0);
+        if (level > (scores.get(card.id) ?? 0)) scores.set(card.id, level);
+      }
+    }
+  }
+  return scores;
+}
+
 /**
  * K score of every card the query reaches, as Map<cardId, 0.4..1>; cards below 0.4 are absent.
  * @param {string} query text typed by the visitor
@@ -331,9 +358,10 @@ export function keywordScores(query, locale, artifact) {
   if (all.some(({ kind, words }) => kind === "stripped" && !words.length)) return new Map();
   // Copies without filler words are a fallback: an unaccented filler is also a real word ("cua" is "của" and "cửa", "cho" is
   // "chợ"), so they count only when the whole query matched no card at the unaccented level or better.
-  const whole = scoreList(all.filter(({ kind }) => kind !== "stripped"), locale, index);
-  if ([...whole.values()].some((k) => k >= LEVEL.plain) || all.every(({ kind }) => kind !== "stripped")) return whole;
-  return scoreList(all, locale, index);
+  const typed = all.filter(({ kind }) => kind !== "stripped");
+  const whole = scoreList(typed, locale, index);
+  if ([...whole.values()].some((k) => k >= LEVEL.plain) || typed.length === all.length) return withGroups(whole, typed, locale, artifact);
+  return withGroups(scoreList(all, locale, index), all, locale, artifact);
 }
 
 /**

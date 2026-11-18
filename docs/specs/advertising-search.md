@@ -74,7 +74,7 @@ nhãn tag chỉ lấy nhóm `product`, `variant`, `use`. Chữ được chuẩn 
 | Ít nhất nửa số từ của câu (so bản bỏ dấu) có trong cụm từ của card | 0,4 |
 
 Mức 0,6 chỉ xét từ từ 3 chữ cái trở lên, khoảng cách Levenshtein (đảo hai chữ cái tính 2), và bỏ qua từ đã có trong catalog trừ khi chỉ khác dấu ("quang" là "quảng", không phải "bảng" sai; "hộp đen" vẫn là "hộp đèn" sai dấu). Câu không dấu được thử thêm bản đổi từ Telex ("hoopj ddenf") và VNI
-("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ tiếng Anh như "coffee" không bị đổi sai; bản Telex, VNI không xét mức 0,6. Không dùng LLM.
+("ho65p d9e2n"); K lấy mức cao nhất trong các bản, nên chữ tiếng Anh như "coffee" không bị đổi sai; bản Telex, VNI không xét mức 0,6. Không dùng LLM. Tên nhóm dịch vụ (`src/search/groups.json`, ví dụ "in ấn") gõ riêng hoặc kèm từ đệm cho cả nhóm K 0,85; kèm từ khác ("in ấn menu") chỉ cho card trong nhóm khớp các từ còn lại, ở mức của chúng (owner 2026-11-18).
 
 ```gherkin
 Given card có tiêu đề "Hộp đèn tròn inox cho cà phê rang xay"
@@ -249,7 +249,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | --- | --- | --- |
 | Command | `pnpm search:index`, `pnpm search:calibrate` | R1, R11; cần `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` có quyền Workers AI |
 | Data | `.site-output/search/advertising-index.bin`, `.json` | Vector int8 và meta (R1), sinh lúc deploy |
-| Data | `src/search/synonyms.json`, `src/search/stopwords.json`, `src/search/score-config.json` | Đồng nghĩa; từ đệm; trọng số, 4 cặp mốc, ngưỡng, `textRelativeMin` |
+| Data | `src/search/synonyms.json`, `src/search/stopwords.json`, `src/search/groups.json`, `src/search/score-config.json` | Đồng nghĩa; từ đệm; tên nhóm dịch vụ; trọng số, 4 cặp mốc, ngưỡng, `textRelativeMin` |
 | Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain`, `modelQuery(query, locale, artifact)` (chữ gửi model: Telex/VNI đổi sang từ catalog có dấu) (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
 | Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |
