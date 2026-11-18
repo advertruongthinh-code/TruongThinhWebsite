@@ -208,6 +208,19 @@ test("real catalog recall: every card and every merged media is found by each pa
   assert.deepEqual(missing, []);
 });
 
+test("real catalog recall: every product, variant and use tag label finds every card that carries the tag", () => {
+  const artifact = buildAdvertisingArtifact();
+  const missing = [];
+  for (const tag of artifact.tagRegistry.filter((entry) => ["product", "variant", "use"].includes(entry.group))) {
+    const owners = artifact.cards.filter((entry) => [entry, ...entry.mediaItems ?? []].some((item) => item.tagIds?.includes(tag.id)));
+    for (const [locale, query] of [["vi", tag.labelVi], ["vi", plain(tag.labelVi)], ["en", tag.labelEn]]) {
+      const scores = keywordScores(query, locale, artifact);
+      for (const entry of owners) if ((scores.get(entry.id) ?? 0) < 0.6) missing.push(`${locale} ${tag.id}: ${query} -> ${entry.id}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
 test("warmIndex builds the same index in slices, and a search during warming still scores every card", () => {
   const cards = Array.from({ length: 5 }, (_, i) => card(`c${i}`, `Hộp đèn mẫu ${i}`));
   const cold = keywordScores("hop den", "vi", artifactOf(...cards));
