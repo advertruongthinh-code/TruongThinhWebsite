@@ -608,7 +608,6 @@ projects/xam-phong-tam,source-assets/topaz-goc-1k-20261110/102-xam-phong-tam.png
 projects/xam-tu-ao,source-assets/topaz-goc-1k-20261110/101-xam-tu-ao.png,77ba3c8527ab30ac3ab5fb1d6d1b0385f7f937fe1c051e4548a85dc41128fb0c
 shared/after-sales,source-assets/topaz-goc-1k-20261110/106-after-sales.png,ff3f3694133709ae5acff00673fe94abee12a4e6b8c33062ee277eb04ff686c8
 shared/after-sales-commercial,source-assets/topaz-goc-1k-20261110/662-after-sales-commercial.png,8687ed311963f87bb8c07729f86fd6a2e0e7b80d3de310b7f66db143d7aed23e
-shared/cnc,source-assets/anh-goc-theo-the/105-cnc.png,89c0a57bb52ae686de088ccfd9faf38e3196d9fb71c3bd288f7f9d7f7f9cb2cb
 shared/cnc-operator-b,source-assets/anh-goc-theo-the/607-cnc-operator-b.png,ff46460e6ee357253680cbfd557ed74ef35cdfc8819307fbf8fa778bd507f52a
 shared/consultation,source-assets/anh-khong-lap-20261117/ref/style-consultation.png,26eda27103efdbf339e780913cc86a0182283a19f8d98aded19dc5ceaf95279a
 shared/consultation-materials,source-assets/anh-goc-theo-the/104-consultation-materials.png,042f4627b81769d5a182a35d4f2e34c7e43c03eb7fad362831b999f63a14b03b
@@ -659,3 +658,7 @@ shared/news-tu-ao-am-tuong-c-20261113,source-assets/news-20261113/news-tu-ao-am-
 shared/news-tu-ao-am-tuong-d-20261113,source-assets/news-20261113/news-tu-ao-am-tuong-d.png,c3cdaa10025a1bc641e3df6738fe948c73c5a2323d401388d45f6cc94c57eb42
 shared/survey-modern,,
 shared/workshop-wide-v2,source-assets/topaz-goc-1k-20261110/17-workshop-wide-v2.png,dce1484f5ffa4656b00b4ce869813dd55646de8cb4c19ba6afcad74c3bafb99e
+shared/about-materials-samples-20261117,source-assets/topaz-goc-1k-20261110/_cho-len-site/about-materials-samples-20261117.png,757666a43abd915882a5e04cd598e675e82d6ec37406e0038442fecc5930f941
+shared/about-workshop-edgebander-20261117,source-assets/topaz-goc-1k-20261110/_cho-len-site/about-workshop-edgebander-20261117.png,0a8febaf34ad0f85ca3f1391e346a5411ee945ec61ae4734cd557c8de5c96545
+shared/materials-black-hdf-20261117,source-assets/topaz-goc-1k-20261110/_cho-len-site/materials-black-hdf-20261117.png,3a0d223faad4d86ebab66c11cdcf3c6d53df01e9d9642dcab3dd16f4d12d1a1a
+shared/process-assembly-residential-20261118,source-assets/topaz-goc-1k-20261110/_cho-len-site/process-assembly-residential-20261118.png,6fc22999341f2ee86ca44dae0c1ffd0546ab17109c7d4f1c2cd931321ad4cb1a

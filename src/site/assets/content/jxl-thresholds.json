@@ -2638,6 +2638,12 @@
   "960": 79123,
   "1600": 84068
  },
+ "assets/content/shared/about-materials-samples-20261117.jxl": {
+  "960": 39802
+ },
+ "assets/content/shared/about-workshop-edgebander-20261117.jxl": {
+  "960": 34575
+ },
  "assets/content/shared/after-sales-commercial.jxl": {
   "960": 142946,
   "1600": 156625,
@@ -2652,11 +2658,6 @@
   "960": 104998,
   "1600": 110021,
   "2048": 112737
- },
- "assets/content/shared/cnc.jxl": {
-  "960": 128105,
-  "1600": 138127,
-  "2048": 141278
  },
  "assets/content/shared/consultation-materials.jxl": {
   "960": 115464,
@@ -2704,6 +2705,9 @@
   "960": 127505,
   "1600": 141934,
   "2048": 148059
+ },
+ "assets/content/shared/materials-black-hdf-20261117.jxl": {
+  "960": 39438
  },
  "assets/content/shared/materials.jxl": {
   "960": 442186,
@@ -2820,6 +2824,9 @@
  },
  "assets/content/shared/news-tu-ao-am-tuong-d-20261113.jxl": {
   "960": 12573
+ },
+ "assets/content/shared/process-assembly-residential-20261118.jxl": {
+  "960": 29904
  },
  "assets/content/shared/survey-modern.jxl": {
   "960": 32370
