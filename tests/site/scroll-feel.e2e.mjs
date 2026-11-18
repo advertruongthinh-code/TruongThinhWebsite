@@ -24,7 +24,7 @@ const pages = {
   category: "advertising-products/?category=kiosk-posm",
 };
 const parallax = {
-  home: [".hero-slides:-2", ".project-track:4"],
+  home: [".hero-slides:-2", ".blk-projects__track:4"],
   // The project strip drifts sideways like Espacio's layout-slider-proyectos (speed 4, horizontal).
   residential: [".blk-projects__track:4", ".hero-slides:-2"],
   commercial: [".blk-projects__track:4", ".hero-slides:-2"],

@@ -1,11 +1,11 @@
 // Real-content checks (docs/specs/content-independent-tests.md R2): node scripts/ci/content-contract.mjs
-// Advertising and the home rail reuse the existing validator; HTML and CSS are checked here. Image variants are
+// Advertising, hero slides and the home project strip reuse their validators; HTML and CSS are checked here. Image variants are
 // guarded by scripts/site/build-image-variants.mjs --check, in the same fast suite.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
-import { validateProjectReel } from "../site/project-reel.mjs";
+import { validateHomeProjects } from "../site/home-projects.mjs";
 import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
@@ -44,6 +44,25 @@ function ownImageReuse(siteRoot, kind, pages, label) {
   for (const file of files) {
     for (const src of new Set(readFileSync(file, "utf8").match(CONTENT_PATH) ?? [])) {
       if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
+    }
+  }
+  return errors;
+}
+
+// One photo, one page (owner 2026-11-16): a photo in a hand-written page may not appear in another hand-written page.
+// Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are SVG logos and placeholders.
+function pageImageReuse(siteRoot, files) {
+  const errors = [];
+  const owner = new Map();
+  for (const file of files) {
+    const page = path.relative(siteRoot, file);
+    const text = readFileSync(file, "utf8").replace(/<a\b[^>]*\shref=[^>]*>[\s\S]*?<\/a>/g, "");
+    for (const tag of new Set(text.match(/<img\b[^>]*>/g) ?? [])) {
+      const src = attribute(tag, "src");
+      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || path.basename(src).startsWith("placeholder")) continue;
+      const stem = imageStem(src);
+      if (!owner.has(stem)) owner.set(stem, page);
+      else if (owner.get(stem) !== page) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);
     }
   }
   return errors;
@@ -96,13 +115,11 @@ export async function checkSiteContent(siteRoot) {
     }
   }
 
+  errors.push(...pageImageReuse(siteRoot, filesUnder(siteRoot, ".html").filter((file) => !file.startsWith(path.join(siteRoot, "assets") + path.sep))));
+
   const heroFile = path.join(siteRoot, "content/hero-slides.json");
   if (existsSync(heroFile)) {
     await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
-  }
-  const reelFile = path.join(siteRoot, "content/project-reel.json");
-  if (existsSync(reelFile)) {
-    await validateProjectReel(JSON.parse(readFileSync(reelFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
   }
   // Project and News pages built from blocks (layout-library R4): blocks, VI/EN text, images, linked ids.
   const pages = {};
@@ -117,6 +134,8 @@ export async function checkSiteContent(siteRoot) {
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
+  const homeProjectsFile = path.join(siteRoot, "content/home-projects.json");
+  if (existsSync(homeProjectsFile)) errors.push(...validateHomeProjects(JSON.parse(readFileSync(homeProjectsFile, "utf8")), ctx.projects));
   // Site menu featured items: project ids and Advertising group slugs must exist.
   const menuFile = path.join(siteRoot, "content/menu.json");
   if (existsSync(menuFile)) {

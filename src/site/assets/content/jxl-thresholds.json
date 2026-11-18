@@ -2601,11 +2601,6 @@
  "assets/content/projects/tiem-banh-ngot-shot-7.jxl": {
   "960": 98627
  },
- "assets/content/projects/workshop-wide-x2.jxl": {
-  "960": 157291,
-  "1600": 166442,
-  "2048": 171800
- },
  "assets/content/projects/workshop-wide-x7.jxl": {
   "960": 144154,
   "1600": 150455,
@@ -2659,6 +2654,15 @@
   "1600": 110021,
   "2048": 112737
  },
+ "assets/content/shared/commitment-aftercare-sign-20261118.jxl": {
+  "960": 77605
+ },
+ "assets/content/shared/commitment-production-cnc-v3-20261117.jxl": {
+  "960": 67584
+ },
+ "assets/content/shared/commitment-quality-shop-20261117.jxl": {
+  "960": 49147
+ },
  "assets/content/shared/consultation-materials.jxl": {
   "960": 115464,
   "1600": 126543
@@ -2708,11 +2712,6 @@
  },
  "assets/content/shared/materials-black-hdf-20261117.jxl": {
   "960": 39438
- },
- "assets/content/shared/materials.jxl": {
-  "960": 442186,
-  "1600": 442186,
-  "2048": 442186
  },
  "assets/content/shared/montage-commitment-option-3-knot.jxl": {
   "960": 118439,

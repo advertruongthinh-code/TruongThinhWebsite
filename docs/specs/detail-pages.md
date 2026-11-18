@@ -62,8 +62,10 @@ footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lờ
 | 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure` (tính từ HTML), sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 17 `figure` (tính từ HTML): ảnh lẻ và chuỗi "Văn phòng chia sẻ" (R7) | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện" | Cùng eyebrow, `h2` "Tối ưu từ bản vẽ / bền bỉ sau ngày mở cửa" | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
+| 7a | `.detail-heading#vat-lieu` + `.detail-note` | Eyebrow "VẬT LIỆU VÀ PHỤ KIỆN", `h2` "Vật liệu và phụ kiện / *đi cùng chúng tôi*", một đoạn về nhà cung cấp ván và phụ kiện, dưới đó `.brand-slots` sáu ô thương hiệu để trống tới khi owner gửi logo (như Espacio, owner 2026-11-17) | Eyebrow "VẬT LIỆU", `h2` "Vật liệu chịu được / *nhịp kinh doanh*", một đoạn về vật liệu theo cường độ sử dụng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
+| 9a | `.portal-stage#hang-muc` (R), `.detail-heading#ghe-tham` + `.detail-places` (C) | Ba card hạng mục cùng kiểu card cam kết trang chủ (nhãn, lead hai dòng, đoạn mô tả, ảnh dọc): Tủ bếp, Tủ áo, Hoàn thiện (owner 2026-11-17) | Eyebrow "GHÉ CHÚNG TÔI", `h2` "Ghé xưởng / *và văn phòng*", ba ô ảnh dọc 4:5 kèm chú thích: Trụ sở (địa chỉ, điện thoại), Xưởng (địa chỉ đang cập nhật), Tư vấn (hotline). Cả hai dùng ảnh placeholder tới khi có ảnh duyệt | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát" | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 | 12 | `.blk-projects` | Dải công trình nhà ở như Espacio `/en/interior-design`, sinh từ `content/projects.json` ([projects R1](projects.md#r1-dải-công-trình-trên-trang-nhà-ở-và-kinh-doanh)) | Dải công trình kinh doanh như `/en/kitchens` | ink |
@@ -82,7 +84,7 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 | --- | --- | --- | --- |
 | 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
-| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
+| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "2006", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
 | 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `about-materials-samples-20261117`, `cnc-operator-b` | ink |
 | 12–15 | `#cam-ket`, chapter lead, ảnh `about-workshop-edgebander-20261117`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
@@ -164,9 +166,7 @@ nên không crop và khung đúng tỷ lệ trước khi tải. Khối `gallery-
 Kéo, vuốt như gallery Espacio (đo Espacio): gallery cách viewport một màn hình thì `detail.js` tải Swiper
 14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),
 `spaceBetween` 20 (dưới 600px 10; `.detail-gallery__item` đặt `transition: none` để giảm chuyển động không làm Swiper đo margin cũ), `grabCursor`, `edgeSwipeDetection`, `watchOverflow`, `mousewheel.forceToAxis`, resistance
-0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải
-trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
-20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
+0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen 20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
 Ảnh `draggable=false`, chặn `dragstart`; hàng chấm nằm trong track như Espacio và cả track nhận kéo (`touchEventsTarget: "container"`), nên kéo bắt đầu ở khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption (chữ vẫn chọn được). Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
 snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: sáu chuỗi công trình theo thứ tự nhà
 ống, nhà giếng trời 2 tầng, nhà giếng trời 1 tầng, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
@@ -199,7 +199,7 @@ Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít n
 `.about-timeline`: `h2.sr-only`, hai mốc có đoạn kể; đường dọc ở 54% bề rộng, tới 980px 47%, tới 680px sát trái.
 `.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột cùng một hàng,
 tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
-cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc thời gian trung tính, chưa có bảo hành tới khi owner xác nhận fact.
+cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc đầu là năm 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
 Given /vi/about/ ở 390px
