@@ -117,5 +117,7 @@
   {"id":"image-21","type":"image","images":["office-signs-wayfinding-14"],"expect":["office-signs/room-signs"]},
   {"id":"image-22","type":"image","images":["office-signs-wayfinding-05"],"expect":["office-signs/desk-nameplates"]},
   {"id":"image-23","type":"image","images":["office-signs-wayfinding-33"],"expect":["office-signs/awards-plaques"]},
-  {"id":"image-24","type":"image","images":["mobile-retail-03"],"expect":["mobile-retail/carts"]}
+  {"id":"image-24","type":"image","images":["mobile-retail-03"],"expect":["mobile-retail/carts"]},
+  {"id":"image-25","type":"image","images":["signage-raised-letters-16"],"expect":["signage/light-boxes"]},
+  {"id":"image-26","type":"image","images":["print-decals-36"],"expect":["signage/aluminium-signs-facades"]}
 ]
