@@ -1,0 +1,8 @@
+{
+  "group-print-decals": { "vi": ["in ấn", "in ấn và decal"], "en": ["print", "printing", "print and decal"] },
+  "group-kiosk-posm": { "vi": ["trưng bày"], "en": ["display"] },
+  "group-mobile-retail": { "vi": ["bán hàng lưu động"], "en": ["mobile retail"] },
+  "group-signage-raised-letters": { "vi": ["bảng hiệu"], "en": ["signage"] },
+  "group-office-signs-wayfinding": { "vi": ["biển chỉ dẫn"], "en": ["wayfinding"] },
+  "group-led-displays-lightboxes": { "vi": ["led và hộp đèn"], "en": ["led and lightbox"] }
+}

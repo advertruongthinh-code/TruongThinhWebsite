@@ -116,10 +116,46 @@ test("empty and punctuation-only queries return an empty map", () => {
   for (const query of ["", "   ", "?!.,", "- - -"]) assert.equal(keywordScores(query, "vi", artifact).size, 0);
 });
 
-test("phrases do not match across a comma or ampersand", () => {
+test("phrases do not match across a comma or ampersand; all words in the card still reach the words level", () => {
   const artifact = artifactOf(card("a", "Standee, kệ & backdrop"));
-  assert.equal(kOf(artifact, "standee kệ"), 0.4);
+  assert.equal(kOf(artifact, "standee kệ"), 0.7);
   assert.equal(kOf(artifact, "kệ"), 1);
+});
+
+// Owner review 2026-11-18: a correct extra word ("inox") or a filler word ("làm", "quảng cáo") lost every keyword match.
+test("words level: every word somewhere in the card gives 0.7; filler words are dropped first", () => {
+  const artifact = artifactOf(lamp);
+  assert.equal(kOf(artifact, "hộp đèn inox"), 0.7);
+  assert.equal(kOf(artifact, "hop den inox"), 0.7);
+  assert.equal(kOf(artifact, "hộp đèn quảng cáo"), 1);
+  assert.equal(kOf(artifact, "làm hộp đèn giá rẻ"), 1);
+  assert.equal(kOf(artifact, "hộp đèn mica"), 0.4);
+});
+
+test("a query part with marks and part without still matches (hộp den)", () => {
+  const artifact = artifactOf(lamp);
+  assert.equal(kOf(artifact, "hộp den"), 0.85);
+  assert.equal(kOf(artifact, "hop đèn"), 0.85);
+  assert.equal(kOf(artifact, "hộp dèn"), 0.6);
+});
+
+// Owner review 2026-11-18: "quang" matched 198 of 203 cards, "banner" 92 and "tem" 98 through the typo level.
+test("typo level skips words the catalog knows, needs the same first letter and two edits only from 7 letters", () => {
+  const artifact = artifactOf(card("sign", "Bảng hiệu quán cà phê"), card("ad", "Pano quảng cáo dán tem"), card("shop", "Decal cho tiệm trà"));
+  assert.equal(kOf(artifact, "quang", "vi", "sign"), 0);
+  assert.equal(kOf(artifact, "quang", "vi", "ad"), 0.85);
+  assert.equal(kOf(artifact, "banner", "vi", "sign"), 0);
+  assert.equal(kOf(artifact, "tem", "vi", "shop"), 0);
+  assert.equal(kOf(artifact, "bảng hiệy", "vi", "sign"), 0.6);
+  assert.equal(kOf(artifact, "vang hiệu", "vi", "sign"), 0.4); // partial only: "vang" is not a typo of "bảng"
+});
+
+test("real catalog: no single word floods the results through typos", () => {
+  const artifact = buildAdvertisingArtifact();
+  for (const word of ["quang", "trang", "tem", "banner", "khung", "hop"]) {
+    const typoOnly = [...keywordScores(word, "vi", artifact).values()].filter((k) => k === 0.6).length;
+    assert.ok(typoOnly <= 10, `${word}: ${typoOnly} cards at the typo level`);
+  }
 });
 
 test("cardTerms reads title, every media alt, product and tag labels but not cluster or framing labels", () => {
@@ -172,6 +208,31 @@ test("real catalog recall: every card and every merged media is found by each pa
   assert.deepEqual(missing, []);
 });
 
+test("real catalog recall: every product, variant and use tag label finds every card that carries the tag", () => {
+  const artifact = buildAdvertisingArtifact();
+  const missing = [];
+  for (const tag of artifact.tagRegistry.filter((entry) => ["product", "variant", "use"].includes(entry.group))) {
+    const owners = artifact.cards.filter((entry) => [entry, ...entry.mediaItems ?? []].some((item) => item.tagIds?.includes(tag.id)));
+    for (const [locale, query] of [["vi", tag.labelVi], ["vi", plain(tag.labelVi)], ["en", tag.labelEn]]) {
+      const scores = keywordScores(query, locale, artifact);
+      for (const entry of owners) if ((scores.get(entry.id) ?? 0) < 0.6) missing.push(`${locale} ${tag.id}: ${query} -> ${entry.id}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
+test("real catalog: a group name alone reaches the whole group, with more words only the group cards matching them", () => {
+  const artifact = buildAdvertisingArtifact();
+  const group = new Set(artifact.cards.filter((entry) => entry.tagIds.includes("group-print-decals")).map((entry) => entry.id));
+  const reached = (query, locale = "vi") => new Set([...keywordScores(query, locale, artifact)].filter(([, k]) => k >= 0.6).map(([id]) => id));
+  for (const query of ["in ấn", "in aans", "in ấn giá rẻ"]) assert.deepEqual([...group].filter((id) => !reached(query).has(id)), [], query);
+  assert.deepEqual([...group].filter((id) => !reached("printing", "en").has(id)), []);
+  const menu = reached("in ấn menu");
+  const menuCards = [...reached("menu")].filter((id) => group.has(id));
+  assert.ok(menuCards.length > 0 && menuCards.every((id) => menu.has(id)));
+  assert.ok(menu.size < group.size);
+});
+
 test("warmIndex builds the same index in slices, and a search during warming still scores every card", () => {
   const cards = Array.from({ length: 5 }, (_, i) => card(`c${i}`, `Hộp đèn mẫu ${i}`));
   const cold = keywordScores("hop den", "vi", artifactOf(...cards));
@@ -205,4 +266,35 @@ test("real catalog: an exact product phrase matches exactly only that product's 
     assert.deepEqual(stray.map((c) => c.id), [], query);
   }
   assert.notEqual(keywordScores("chữ nổi", "vi", artifact).get("led-displays-lightboxes-12"), 1);
+});
+
+// 2026-11-18 review: 11 of 24 product names typed whole ("Bảng hiệu alu & mặt dựng") found no card in the keyword fallback.
+test("real catalog: a whole product name, with or without marks, reaches every card of that product at keywordMin", () => {
+  const artifact = buildAdvertisingArtifact();
+  const missing = [];
+  for (const locale of ["vi", "en"]) {
+    const suffix = locale === "en" ? "En" : "Vi";
+    for (const product of artifact.products) {
+      const owners = artifact.cards.filter((c) => [c.productIds, ...(c.mediaItems ?? []).map((m) => m.productIds)].some((ids) => ids?.includes(product.id)));
+      for (const query of [product[`label${suffix}`], plain(product[`label${suffix}`])]) {
+        const scores = keywordScores(query, locale, artifact);
+        for (const c of owners) if ((scores.get(c.id) ?? 0) < 0.6) missing.push(`${locale} ${query}: ${c.id}`);
+      }
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
+// Advisor review 2026-11-18: unaccented fillers are also real words ("cua": của or cửa, "cho": cho or chợ, "gia": giá or gia).
+test("real catalog: filler words never widen an unaccented query, and fillers alone match nothing", () => {
+  const artifact = buildAdvertisingArtifact();
+  const atLeast = (query, k) => [...keywordScores(query, "vi", artifact).values()].filter((v) => v >= k).length;
+  assert.equal(atLeast("cua hang", 0.85), atLeast("cửa hàng", 1));
+  assert.equal(atLeast("hoi cho", 0.85), atLeast("hội chợ", 1));
+  assert.ok(atLeast("bien cho", 0.6) <= 2);
+  assert.equal(atLeast("gia cong", 0.6), 0);
+  assert.equal(keywordScores("làm cho", "vi", artifact).size, 0);
+  assert.equal(atLeast("den den", 0.6), 0);
+  assert.ok(atLeast("lam hop den", 0.85) >= atLeast("hộp đèn", 1));
+  assert.equal(atLeast("bảng quảng cáo", 1), 3);
 });

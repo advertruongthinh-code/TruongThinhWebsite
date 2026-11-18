@@ -69,15 +69,24 @@ const scrollToGrid = async (page) => {
   await page.waitForFunction(() => !document.querySelector(".search-bar").dataset.dock, null, { timeout: 5000 });
 };
 
-test("R6: slow Worker shows keyword results at 0.8 s, then offers the vector results", async () => {
+test("R6: slow Worker shows keyword results at 0.8 s; late vector results replace them untouched, or are offered after a scroll", async () => {
   const browser = await launchBrowser();
   try {
     const { context, page } = await open(browser, WIDE, PAGE, { delay: 2000 });
+    const count = () => page.evaluate(() => Number(/\d+/.exec(document.querySelector("[data-search-live]").textContent)?.[0]));
     const start = Date.now();
     await search(page, "hộp đèn");
     await announced(page, /kết quả/, 2000);
     const shownAt = Date.now() - start;
     assert(shownAt >= 700 && shownAt < 1800, `keyword results at ${shownAt} ms`);
+    const keywordCount = await count();
+    // Untouched: the vector answer (keyword cards plus the 3 mocked ids) takes the grid, no offer button.
+    await page.waitForFunction((before) => Number(/\d+/.exec(document.querySelector("[data-search-live]").textContent)?.[0]) > before, keywordCount, { timeout: 4000 });
+    assert.equal(await page.locator("[data-masonry-offer]").count(), 0);
+    // Scrolled after the keyword results: the late answer waits behind the offer button.
+    await search(page, "chữ nổi");
+    await announced(page, /kết quả cho “chữ nổi”/, 2000);
+    await page.mouse.wheel(0, 200);
     await page.waitForSelector("[data-masonry-offer]", { timeout: 4000 });
     await context.close();
   } finally {
