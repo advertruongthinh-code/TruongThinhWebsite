@@ -325,7 +325,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
     // The old group's product labels live only in the tag registry now: variant tag product-<productKey> holds the label.
     const products = ADVERTISING_TAG_REGISTRY.filter(({ id }) => id.startsWith(`product-${category.slug}-product-`));
-    assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
+    assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 15, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, products.length, `${category.slug} covers all taxonomy products`);
     // Card names in both languages are niche keywords written from the photo (owner 2026-11-13 VI, 2026-11-15 EN).
