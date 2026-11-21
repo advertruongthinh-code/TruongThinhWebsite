@@ -20,7 +20,7 @@ updated: 2026-11-22
 
 ## Mục đích
 
-Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 đến 5 ảnh,
+Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 ảnh (owner 2026-11-21),
 kể cả khi gõ không dấu, gõ sai hay quên bật bộ gõ. Kết quả hiện trên lưới masonry chính, xếp theo điểm. Site không lưu câu
 tìm hay ảnh, trừ ảnh của link chia sẻ. Lưới thuộc [masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm); spec này chỉ gọi
 API của lưới. Tìm trong CMS và tính vector lúc CMS lưu card thuộc [CMS](cms.md), ghi ở Gate còn mở.
@@ -85,7 +85,7 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 ### R3. Endpoint tìm kiếm
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
-cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
+cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 1 ảnh; body quá 450 KB trả 413. Worker đổi câu (tiền tố
 `task: search result | query:`) và ảnh thành vector bằng `env.AI.run` đồng bộ: chữ qua `input` (qua `messages` P@5 tụt 0,86
 xuống 0,66), mọi ảnh một lần qua `messages`, có cả hai thì gọi song song; chuẩn hóa L2, so cosine với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
@@ -167,15 +167,15 @@ nổi ở đáy và khe CTA; hàng chip lọc trong kết quả khi nổi; một
 
 ### R8. Ảnh khách đưa vào
 
-Tối đa 5 ảnh; thả hơn 5 thì lấy 5 ảnh đầu và báo "Tối đa 5 ảnh". Ảnh trùng (cùng nội dung sau khi thu nhỏ) bị bỏ. PNG trong
+Mỗi lần tìm 1 ảnh (owner 2026-11-21). Thả hoặc dán nhiều ảnh thì lấy ảnh đầu; đưa ảnh mới thì thay ảnh đang có. PNG trong
 suốt và GIF (khung đầu) được vẽ trên nền trắng; HEIC chỉ đọc được trên Safari. Trình duyệt không đọc được thì báo "Chưa đọc
 được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này trượt vào chỗ chữ trong ô, tự tắt sau 4 giây
 ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)).
 
 ```gherkin
-Given khay đã có 4 ảnh
+Given thanh đã có 1 ảnh
 When khách thả thêm 3 ảnh
-Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
+Then thanh chỉ còn ảnh đầu trong 3 ảnh vừa thả và tìm lại theo ảnh đó
 ```
 
 ### R9. Không có kết quả
@@ -199,8 +199,8 @@ breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. T
 trên chip là số kết quả; các mục còn lại trượt về chỗ mới, mục hiện lại thì hiện dần (owner 2026-11-18). Bấm một nhóm hoặc chip thì lưới chỉ còn kết quả thuộc mục đó, câu tìm giữ nguyên, URL
 và lịch sử duyệt không đổi; bấm "Tất cả" thì về đủ kết quả.
 
-Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
-thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
+Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi ảnh đã
+thu nhỏ (body quá 450 KB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
 12 ký tự base62 từ `crypto.getRandomValues`; link thành `#q=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
 `Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong

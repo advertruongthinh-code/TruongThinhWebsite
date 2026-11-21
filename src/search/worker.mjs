@@ -6,8 +6,9 @@ import { jpegSize } from "./jpeg.mjs";
 import { scoreInput } from "./score.mjs";
 import config from "./score-config.json" with { type: "json" };
 
-const MAX_BODY = 2_200_000;
-const MAX_IMAGES = 5;
+// One customer image (owner 2026-11-21): 300 KB JPEG is about 410 KB as base64, plus text and JSON.
+const MAX_BODY = 450_000;
+const MAX_IMAGES = 1;
 const MAX_IMAGE_BYTES = 300 * 1024;
 const MAX_SIDE = 768;
 const MAX_TEXT = 300;
