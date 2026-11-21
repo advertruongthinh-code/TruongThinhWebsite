@@ -8388,29 +8388,6 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Supplier brand row under the materials note; slots stay neutral until the owner supplies the brand logos. */
-.brand-slots {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 1px;
-  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
-  padding: 0;
-  list-style: none;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-
-.brand-slot {
-  display: grid;
-  min-height: clamp(5rem, 8vw, 7.5rem);
-  place-items: center;
-  background: var(--paper);
-  color: var(--muted);
-  font-size: 0.875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 /* Places block on the Commercial page: head office, workshop, consultation; portrait photo above a short caption. */
 .detail-places {
   display: grid;
