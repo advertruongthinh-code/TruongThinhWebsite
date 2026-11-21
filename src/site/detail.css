@@ -5081,50 +5081,83 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Supplier logos under the materials note (detail-pages 7a): one row, no frames, grouped only by order (wood panels, aluminium,
-   cabinet hardware, kitchen appliances, then machines). Each logo carries an em box sized for equal visual weight (area, not
-   width); the row centres them on one axis (owner 2026-11-22). */
-.detail-note:has(> .supplier-logos) {
-  container-type: inline-size;
+/* Supplier logos under the materials note (detail-pages 7a): one full-width looping row like the home client logos, no frames,
+   grouped only by order (wood panels, aluminium, cabinet hardware, kitchen appliances, then machines). Each logo carries an em
+   box sized for equal visual weight (area, not width) and the row centres them on one axis. Two copies of the list run side by
+   side; the second is aria-hidden. A phone held upright, reduced motion and print show the first list as static centred rows
+   (owner 2026-11-22). */
+.supplier-marquee {
+  display: flex;
+  width: 100vw;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0 calc(50% - 50vw);
+  overflow: hidden;
 }
 
-/* The em unit is solved so the whole set fits one row across the column with 1.5rem gaps; below 0.6rem (phone) it wraps
-   into centred rows instead of shrinking further. */
 .supplier-logos {
-  --logo-gap: 1.5rem;
+  --logo-gap: clamp(3rem, 5vw, 5.5rem);
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem var(--logo-gap);
-  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
-  padding: 0;
-  font-size: max(0.6rem, min(1.1rem, calc((100cqw - (var(--logo-count) - 1) * var(--logo-gap) - 1px) / var(--logo-em-sum))));
+  gap: var(--logo-gap);
+  margin: 0;
+  /* one gap after the last logo so the join between the two copies is evenly spaced */
+  padding: 0 var(--logo-gap) 0 0;
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
   list-style: none;
+  animation: marquee 40s linear infinite;
 }
 
 .supplier-logos li {
   display: flex;
+  flex: none;
 }
 
 .supplier-logo {
   display: block;
-  max-width: 100%;
+  max-width: none;
   object-fit: contain;
 }
 
-@media (max-width: 750px) {
+.motion-paused .supplier-logos {
+  animation-play-state: paused;
+}
+
+@media (max-width: 750px) and (orientation: portrait), (prefers-reduced-motion: reduce), print {
+  .supplier-marquee {
+    width: auto;
+    margin-left: 0;
+  }
+
   .supplier-logos {
+    flex: 1;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 1.25rem 1.75rem;
+    padding: 0;
+    animation: none;
+  }
+
+  .supplier-logos[aria-hidden="true"] {
+    display: none;
   }
 }
 
-/* Project strips on Home, Residential and Commercial: every frame the same size and on one line, four whole cards across a PC
-   so no card is cut at the edge; the rail still scrolls for more (owner 2026-11-22). Project pages keep their staggered strip. */
+/* Project strips on Home, Residential and Commercial: every frame the same size, four whole cards across a PC so no card is cut
+   at the edge, every second card dropped like Espacio's home slider (180px, 120px from 1200px down, phone included); the rail
+   still scrolls for more (owner 2026-11-22). */
 :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card {
   width: auto;
   padding-top: 0;
+}
+
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+  padding-top: 180px;
+}
+
+@media (max-width: 1200px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+    padding-top: 120px;
+  }
 }
 
 @media (min-width: 981px) {

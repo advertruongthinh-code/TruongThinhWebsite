@@ -42,7 +42,7 @@ const COMPONENTS = [
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   // also: add other blocks, from the same file or [file, regex].
   { name: 'Portal', group: 'Page', height: 720, file: 'src/site/residential/index.html', start: /<section\s+class="portal-stage section-gap"\s+id="loai-hinh"/ },
-  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/residential/index.html', start: /<section\s+class="capability-marquee section-gap"/,
+  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/about/index.html', start: /<section\s+class="capability-marquee section-gap"/,
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
     also: [/<section\s+class="detail-heading/, ['src/site/about/index.html', /<section\s+class="detail-duo/]] },
