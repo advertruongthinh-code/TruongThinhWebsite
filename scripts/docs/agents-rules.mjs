@@ -1,5 +1,6 @@
 // AGENTS.md rules a machine can check (docs/specs/docs-system.md R11). Pure functions: callers pass file lists and a reader.
 import { dirname, join, normalize } from 'node:path';
+import { SECRET_FILE } from '../tooling/pre-tool-guard.mjs';
 
 const TEXT = /\.(m?js|cjs|ts|css|html|md|json|ya?ml|toml|sh|ps1|psm1|py|txt|svg)$/i;
 const CODE = /\.(m?js|cjs|ts|css|html|ya?ml|toml|sh|ps1|psm1|py)$/i;
@@ -117,4 +118,46 @@ export function pngOriginErrors(masters, addedMasters, csvText, body) {
     }
   }
   return errors;
+}
+
+// SSoT (AGENTS.md "SSoT"): GitHub holds the product only. Decisions (ADR) and work state live on Notion.
+const OFF_SSOT = [/^docs\/decisions\//, /^docs\/STATE\.md$/];
+export function ssotPathErrors(files) {
+  return files.filter((f) => OFF_SSOT.some((re) => re.test(f)))
+    .map((f) => `ssot: ${f} belongs on Notion (ADR, work state), not in Git (AGENTS.md SSoT)`);
+}
+
+// Secrets never enter Git: env files, keytabs, private keys, real databases (AGENTS.md SSoT).
+export function secretFileErrors(files) {
+  return files.filter((f) => SECRET_FILE.test(f)).map((f) => `secret file: ${f} is tracked; remove it from Git and rotate the secret if it was real`);
+}
+
+// Token shapes anchored on length so ordinary words (kiosk-posm, --mask-x) never match. The value is never printed.
+const SECRET_TEXT = [
+  ['OpenAI-style key', /\bsk-[A-Za-z0-9_-]{20,}/],
+  ['AWS key', /\bAKIA[0-9A-Z]{16}\b/],
+  ['GitHub token', /\b(ghp|gho|ghs|ghu|ghr)_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{30,}/],
+  ['Cloudflare token', /\bcfat_[A-Za-z0-9_-]{20,}/],
+  ['Notion token', /\b(ntn|secret)_[A-Za-z0-9]{40,}/],
+  ['Slack token', /\bxox[abpr]-[A-Za-z0-9-]{20,}/],
+  ['private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
+];
+export function secretTextErrors(files, read) {
+  const errors = [];
+  for (const file of files.filter((f) => TEXT.test(f) && f !== 'pnpm-lock.yaml')) {
+    read(file).split('\n').forEach((line, i) => {
+      const hit = SECRET_TEXT.find(([, re]) => re.test(line));
+      if (hit) errors.push(`secret text: ${file}:${i + 1}: looks like a ${hit[0]}; never commit secrets (value not shown)`);
+    });
+  }
+  return errors;
+}
+
+// No application code before an owner-approved design (AGENTS.md "Mức 0/Mức 1"): a PR that changes application
+// source names the approved design, or declares the change level 0 with a reason.
+const APP_SOURCE = /^src\/(site|search|worker|admin|db)\/(?!.*\.md$)/;
+export function designLineErrors(changedFiles, body) {
+  if (!changedFiles.some((f) => APP_SOURCE.test(f))) return [];
+  if (/^Design: (https?:\/\/\S+|docs\/specs\/\S+)/m.test(body) || /^Mức 0: (?!<)\S/m.test(body)) return [];
+  return ['design line: the PR changes application source but has no line "Design: <link to the approved spec or Notion page>" or "Mức 0: <lý do>" (AGENTS.md)'];
 }

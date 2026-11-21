@@ -8,7 +8,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 - [Scripts map](agent-rule-scripts.md) là canonical ownership/fallback. Rule chỉ nêu trigger/boundary.
 - Hook, watcher, wrapper, launcher tự chạy normal mechanics. Git `pre-commit`/`pre-push` chạy `claude -p /ponytail-review` mức ultra, read-only trên diff code (bỏ qua `*.md`), chặn khi đề xuất cắt hơn 20 dòng hoặc review lỗi. Graphify `post-commit`/`post-checkout` là repository automation, không phải agent lifecycle hook.
-- Không có agent lifecycle hook project. Skill đến từ plugin pin ở user scope (cloud: `cloud-setup.sh`, local: `local-setup.ps1`), repo không vendor skill; không persona, MCP definition project-local. Không tạo/sửa hook, helper ngoài approved tooling repair.
+- Agent hook duy nhất là secret guard `scripts/tooling/pre-tool-guard.mjs` (owner 2026-11-21): chặn đọc `.env`, `.dev.vars`, keytab, khóa riêng và force-push, `reset --hard`, `--no-verify`. Nối ở `.claude/settings.json` (PC), `.agents/hooks.json` (Antigravity), `~/.claude/settings.json` do `cloud-setup.sh` ghi (cloud). Guard là lớp phụ; check secret của `qa:docs` mới là gate. Codex giữ `features.hooks = false`. Skill đến từ plugin pin ở user scope (cloud: `cloud-setup.sh`, local: `local-setup.ps1`), repo không vendor skill; không persona, MCP definition project-local. Không tạo/sửa hook, helper ngoài approved tooling repair.
 
 ## Pin
 
@@ -76,8 +76,7 @@ environment `Default` tại claude.ai/code. Nguồn chuẩn là
 Script chạy bằng root trước khi Claude Code khởi động; kết quả được cache
 khoảng 7 ngày, nên áp dụng cho mọi cloud session, mọi repo.
 
-Cơ chế, theo rule global "never install agent lifecycle hooks": cloud chỉ có
-skill, command, agent, MCP. Mỗi plugin là skills-directory plugin
+Cơ chế: cloud chỉ có skill, command, agent, MCP và secret guard ở trên. Mỗi plugin là skills-directory plugin
 `~/.claude/skills/<tên>`, symlink tới checkout pin trong `/opt/agent-tools/src`;
 script xóa `hooks/hooks.json` và khóa `hooks` của manifest ngay trong checkout
 (thư mục bọc bằng symlink từng phần bị Claude Code từ chối: "Path escapes plugin

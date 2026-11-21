@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
-import { cmsImportErrors, commentLanguageErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors } from './agents-rules.mjs';
+import { cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -125,7 +125,7 @@ if (docsBase) {
   }
   // AGENTS.md rules on the branch (R11): new Markdown names, and the Ảnh QA line on PRs (same PR_NUMBER or PR_BODY condition as the card gate).
   errors.push(...markdownNameErrors(git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(Boolean)));
-  if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body));
+  if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body), ...designLineErrors(changed, body));
   pngAdded = git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(isImageMaster);
   pngBody = body;
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
@@ -166,6 +166,8 @@ if (docsBase) {
 const tracked = git('ls-files').split('\n').filter((f) => f && existsSync(f));
 const readText = (f) => readFileSync(f, 'utf8');
 errors.push(...emojiErrors(tracked, readText), ...commentLanguageErrors(tracked, readText), ...cmsImportErrors(tracked, readText));
+// SSoT (AGENTS.md): no secret files or token-shaped text in Git; ADR and work state live on Notion.
+errors.push(...secretFileErrors(tracked), ...secretTextErrors(tracked, readText), ...ssotPathErrors(tracked));
 
 // Site image masters and their AI PNG originals (agent-rule-ad-images.md "PNG gốc").
 errors.push(...pngOriginErrors(git('ls-files', 'src/site/assets/content').split('\n').filter(isImageMaster), pngAdded, existsSync('docs/operations/png-goc.csv') ? readText('docs/operations/png-goc.csv') : '', pngBody));
