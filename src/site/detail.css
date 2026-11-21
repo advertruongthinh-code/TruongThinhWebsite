@@ -5081,30 +5081,65 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Supplier logo row under the materials note (detail-pages 7a): six static bordered cells, logos in colour, no marquee (owner 2026-11-22). */
-.brand-slots {
+/* Supplier logos under the materials note (detail-pages 7a): grouped by supplier type, no frames. Each logo carries its own
+   em box sized for equal visual weight (area, not width), and every row centres them on one axis (owner 2026-11-22). */
+.supplier-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 1px;
+  gap: 2.25rem;
   margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
-  padding: 0;
-  list-style: none;
-  background: var(--line);
-  border: 1px solid var(--line);
 }
 
-.brand-slot {
+.supplier-group {
   display: grid;
-  min-height: clamp(5rem, 8vw, 7.5rem);
-  padding: 1rem 1.5rem;
-  place-items: center;
-  background: var(--paper);
+  grid-template-columns: 11rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.brand-logo {
+.detail-note .supplier-group__label {
+  max-width: none;
+  margin: 0;
+  text-indent: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.supplier-group__logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem 3.5rem;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  list-style: none;
+}
+
+.supplier-group__logos li {
+  display: flex;
+}
+
+.supplier-logo {
   display: block;
-  width: 100%;
-  max-width: 9rem;
-  height: clamp(2.5rem, 4vw, 3.5rem);
+  max-width: 100%;
   object-fit: contain;
+}
+
+@media (max-width: 750px) {
+  .supplier-groups {
+    gap: 2rem;
+  }
+
+  .supplier-group {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .supplier-group__logos {
+    gap: 1rem 2.25rem;
+    font-size: 0.8rem;
+  }
 }

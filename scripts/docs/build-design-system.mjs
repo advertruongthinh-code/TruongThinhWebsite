@@ -45,7 +45,7 @@ const COMPONENTS = [
   { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/residential/index.html', start: /<section\s+class="capability-marquee section-gap"/,
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
-    also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
+    also: [/<section\s+class="detail-heading/, ['src/site/about/index.html', /<section\s+class="detail-duo/]] },
   // Project and News blocks (layout-library R1): rendered from the fixed blocks-preview.json, independent of site content.
   // The project hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
   { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.project-hero { height: 720px; min-height: 0; }',

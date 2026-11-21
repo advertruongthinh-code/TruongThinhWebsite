@@ -50,7 +50,7 @@ function ownImageReuse(siteRoot, kind, pages, label) {
 }
 
 // One photo, one page (owner 2026-11-16): a photo in a hand-written page may not appear in another hand-written page.
-// Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are SVG logos and placeholders.
+// Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are logos (SVG or supplier-logos/) and placeholders.
 function pageImageReuse(siteRoot, files) {
   const errors = [];
   const owner = new Map();
@@ -59,7 +59,7 @@ function pageImageReuse(siteRoot, files) {
     const text = readFileSync(file, "utf8").replace(/<a\b[^>]*\shref=[^>]*>[\s\S]*?<\/a>/g, "");
     for (const tag of new Set(text.match(/<img\b[^>]*>/g) ?? [])) {
       const src = attribute(tag, "src");
-      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || path.basename(src).startsWith("placeholder")) continue;
+      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || src.includes("/supplier-logos/") || path.basename(src).startsWith("placeholder")) continue;
       const stem = imageStem(src);
       if (!owner.has(stem)) owner.set(stem, page);
       else if (owner.get(stem) !== page) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);

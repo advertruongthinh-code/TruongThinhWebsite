@@ -3444,7 +3444,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 /* Four commitments: two columns up to 1200px so the lead keeps a readable size, one on phone (page-home R5); after the shared portal breakpoints so it wins. */
 @media (max-width: 1200px) {
+  /* Two rows need their own height; the shared one-row 600px box let them spill over the next block (owner 2026-11-22). */
   .service-portals--four {
+    height: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
