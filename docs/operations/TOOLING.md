@@ -14,7 +14,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 | Scope | Nội dung đã cài (2026-10-17) |
 | --- | --- |
-| User global | Graphify 0.9.97, Serena 2.1.0, chrome-devtools-mcp 1.12.0, uv 0.13.1, Impeccable CLI 4.8.0/skill 4.8.0, jq 1.8.2, 59 direct skill và native persona |
+| User global | Graphify 0.9.97, Serena 2.1.0, chrome-devtools-mcp 1.12.0, uv 0.13.1, Impeccable CLI 4.8.0/skill 4.8.0, jq 1.8.2, 67 direct skill (gồm 8 skill EGM 0.1.1) và native persona |
 | Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.graphifyignore`, Git hook, watcher và policy |
 | Encode ảnh | `cjxl`, `djxl` libjxl 0.11.1 Linux x86_64 (`scripts/tooling/install-jxl.sh` cài vào `.tooling/libjxl/`, kiểm SHA-256 ghim; chỉ cần khi sinh JXL) |
 
