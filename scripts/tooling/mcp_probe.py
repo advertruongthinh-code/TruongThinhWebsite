@@ -44,10 +44,12 @@ async def probe(root: Path, service: str, timeout: float) -> dict[str, object]:
                 async with ClientSession(read_stream, write_stream) as session:
                     result = await session.initialize()
                     tools = await session.list_tools()
+                    # mcp 2.x renamed serverInfo to server_info; accept both so the probe survives the upgrade.
+                    info = getattr(result, "server_info", None) or result.serverInfo
                     payload: dict[str, object] = {
                         "service": service,
-                        "server": result.serverInfo.name,
-                        "version": result.serverInfo.version,
+                        "server": info.name,
+                        "version": info.version,
                         "tools": len(tools.tools),
                         "tool_names": [tool.name for tool in tools.tools],
                     }

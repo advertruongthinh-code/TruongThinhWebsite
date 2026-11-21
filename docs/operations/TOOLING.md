@@ -99,7 +99,7 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | graphify | `graphifyy[all]` 0.9.97, skill global, MCP `graphify` |
 | serena | `serena-agent` 2.1.0, MCP `serena`, context `claude-code` |
 | chrome-devtools | `chrome-devtools-mcp` 1.12.0, MCP `chrome-devtools`, không cửa sổ |
-| find-skills, kie-models, kie-chat-agents | Skill thường trong `~/.claude/skills`; kie tải tarball từ kie.ai, kiểm SHA-256 ghim |
+| find-skills | Skill thường trong `~/.claude/skills`. kie-models, kie-chat-agents đã bỏ khỏi bộ chuẩn (owner 2026-11-21): chỉ dùng kie.ai khi owner nêu tên ảnh |
 
 Pin trong script khớp `tooling-versions.json`; đổi pin thì sửa cả hai rồi dán
 lại script, cache tự build lại.
