@@ -148,7 +148,7 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
 Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector về muộn mà khách chưa cuộn, chạm hay bấm phím từ lúc đó thì `setResults` luôn kết quả R5 (cùng câu ra cùng lưới dù mạng nhanh hay chậm, rà soát 2026-11-18); khách đã thao tác thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
-Hết hạn mức hoặc mất mạng: chữ chạy bằng K, thanh báo tạm nghỉ (R7, Thông báo), không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
+Hết hạn mức hoặc mất mạng: chữ chạy bằng K, thanh báo tạm nghỉ ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)), không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
 giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào ô chữ.
 
@@ -162,88 +162,15 @@ And khách đã cuộn thì nút "Có thêm kết quả gợi ý" hiện, bấm 
 
 ### R7. Thanh tìm kiếm
 
-Theo bản thiết kế lại owner duyệt 2026-11-22 ([mock v8](https://claude.ai/artifact/8D3Be52xYXqdiwhakvjaoE), thay bản thử "Đường kẻ" cũ). Số đo dưới đây lấy từ mock; khi code xong phải
-audit trang thật với mock (R7a).
-
-**Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
-không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
-Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe như nay (trượt theo trang như
-`sticky`, dừng ở khe rồi mới đổi bề rộng).
-
-| | PC và tablet (từ 751px) | Phone (dưới 751px) |
-| --- | --- | --- |
-| Nổi, chưa có kết quả | rộng `min(560px, 100% - 32px)`, cách đáy 35px, bóng `0 12px 32px rgb(0 0 0 / 18%)` | rộng 100% trừ 16px mỗi bên, cách đáy 16px cộng `safe-area-inset-bottom`, cùng bóng |
-| Nổi, có kết quả | rộng `min(760px, 100% - 32px)`, thêm hàng chip phía trên | như trên, thêm hàng chip |
-| Khe đầu trang, khe CTA | rộng bằng khe, tối đa 1000px; không bóng, không hàng chip | rộng bằng khe; không bóng, không hàng chip |
-
-**Hàng chữ** cao 48px ở mọi chỗ: ô chữ 16px (16px để iOS không phóng to khi gõ), đệm trái 18px; bên phải: nút xoá chữ (chỉ hiện khi đã gõ), vạch 1px cao 22px
-(màu `ink` 14%, cách hai bên 4px), nút ảnh, nút kính lúp, mỗi nút ô 40px, icon 20px nét 1.8, đệm phải 4px. Nút xoá chữ đứng trước vạch. Ô chữ đang focus: viền khối
-dày thêm 1px vào trong (bóng `inset 0 0 0 1px ink`), không outline; nút, chip, link và nút về đầu trang focus bằng bàn phím: outline 2px `ink` cách 2px. Bỏ đường kẻ
-3px `.search-bar__rule`, nút `.search-bar__talk`, chữ `placeholderDocked` và quy tắc ẩn `legacy-link`.
-
-**Hàng chip** (chỉ khi nổi và đang có kết quả): cao 44px, nằm trên hàng chữ trong cùng khối, ngăn bằng đường mảnh 1px `ink` 14%; đệm ngang 14px. Một hàng, không
-rail nhóm, không chip "Tất cả" (như mock): các sản phẩm có ít nhất một kết quả, theo thứ tự rail của trang (hero đang chọn một nhóm thì chỉ sản phẩm của nhóm đó);
-bấm chip là lọc trong kết quả, câu tìm giữ nguyên (gọi cùng bộ lọc của lưới như chip ở hero); bấm lại chip đang chọn thì về toàn bộ kết quả. Chip là `button`
-có `aria-pressed`, theo thứ tự Tab sau ô chữ và các nút. Số cạnh tên là số kết quả của sản phẩm đó. Chip chữ 13px đậm 600, cách nhau 18px; số kết quả nhỏ 10px đậm 700 màu `muted` cạnh tên; chip đang chọn gạch dưới 2px, cách chữ 5px.
-Dài quá thì cuộn ngang trong hàng, mép phải mờ dần (chỉ khi còn chip bị che). Chữ phóng 200% thì hàng chip cao theo chữ. Bỏ tìm thì hàng chip đóng. Hàng chip mở và đóng bằng chiều cao 0 tới 44px cùng nhịp đổi bề rộng.
-
-**Chữ gợi ý.** Ô trống, không focus, không rê chuột thì chữ mờ (`muted`) đổi mỗi 3 giây; câu cũ trượt lên 60% và mờ đi, câu mới trượt từ dưới lên,
-`--dur-fade` `--ease-expo-out`. Focus, rê chuột hoặc đã có chữ thì dừng ở câu đang hiện. Giảm chuyển động: không đổi, chỉ hiện câu đầu. Đang có ảnh mà chưa gõ chữ thì
-hiện cố định "Thêm chữ để tìm sát hơn" / "Add words to narrow it down". Mỗi câu tối đa 28 ký tự để vừa ô chữ phone 390px (khoảng 215px); dài hơn thì cắt bằng "…".
-Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi, kệ…" / "Search lightboxes, letters…"; "Thử: chữ nổi inox" / "Try: steel letters"; "Mẹo: tìm bằng một ảnh mẫu" /
-"Tip: search with a photo"; "Gõ không dấu cũng được" / "Typos are fine"; "Thử: kệ trưng bày mỹ phẩm" / "Try: cosmetics display". Lớp chữ gợi ý là `aria-hidden`; ô chữ giữ
-`placeholder` tĩnh cho trình đọc màn hình.
-
-**Ảnh: một tấm.** Ảnh vào bằng nút ảnh, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán. Thumbnail 30px nằm đúng chỗ nút ảnh, góc trên phải có nút bỏ 14px nền `ink`
-chữ trắng (vùng bấm 32px); thanh không cao thêm, không còn khay ảnh. Bấm thumbnail thì mở chọn ảnh để thay. Đưa ảnh mới (một hay nhiều file) thì ảnh đầu thay ảnh
-cũ (R8). Bỏ ảnh thì focus về nút ảnh. Phần tìm (1 ảnh gửi API) thuộc thread rà soát tìm kiếm (R8).
-
-**Thông báo** ("Chưa thấy mẫu phù hợp", thông báo về ảnh của R8, đang chậm, tạm nghỉ): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
-tạm trong suốt), trượt vào và ra như chữ gợi ý, chữ `ink` đậm 600 để khác chữ gợi ý; 4 giây rồi chữ khách gõ hiện lại. Khách gõ hoặc bấm vào ô thì thông báo tắt
-ngay. Đang chậm và tạm nghỉ (R6): thông báo ở lại tới khi khách làm gì đó, cuối thông báo có nút chữ "Thử lại" / "Retry". Phone: dùng câu ngắn ("Ảnh chưa đọc
-được, thử JPG" ...), tối đa 28 ký tự. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
-
-**Khe CTA.** Thanh không còn nút "Trao đổi ý tưởng". Link "Trao đổi ý tưởng" của CTA luôn hiện, nằm dưới khe, giống trang Công trình (chữ hoa đậm, rê chuột thì
-gạch chân 3px chạy ra, `--ease-underline`). Khoảng trống trên và dưới thanh bằng nhau theo nét chữ: chân chữ dòng cuối tiêu đề tới đỉnh thanh bằng đáy thanh tới
-đỉnh chữ hoa của link (mock: 48px PC, 23px phone). Khi trang cuộn tới tận cuối, tâm cụm tiêu đề và thanh nằm ở tâm thị giác của vùng nhìn thấy: giữa đáy header và
-đỉnh footer, nhích lên 5% chiều cao vùng đó (thay quy tắc cũ "đường chân chữ dòng cuối ở giữa viewport"). Link không tính vào cụm. Cửa sổ thấp quá thì giữ quy tắc
-dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
-
-**Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Khi thanh nổi: ô 50px nền `paper`, viền 1px `ink`, cùng bóng
-với thanh, nằm hàng riêng phía trên thanh, sát mép phải của thanh, cách 10px. Thanh ở khe thì nút ẩn (như mock). `--search-bar-offset` = chiều cao khối (gồm hàng
-chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên không cộng hàng nút.
-
-**Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
-
-**Chuyển động.** Đổi chỗ: morph `--search-morph` 1s `--search-ease` (`--ease-card`) cả hai chiều cho vị trí, bề rộng, bóng; trượt từ chỗ cũ tới chỗ mới như nay
-(xa hơn một màn hình thì chỉ morph). Có kết quả và bỏ tìm: bề rộng 560 và 760px cùng nhịp đó. Giảm chuyển động: đổi trạng thái ngay.
-
-**Giữ nguyên:** Enter tìm, Esc bỏ tìm; đang tìm thì nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ. Không có dòng
-trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating CTA lên bằng `--search-bar-offset`. Không có JavaScript thì CTA vẫn có link cũ. Chữ trên thanh,
-chữ gợi ý, thông báo có bản EN. Không cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px.
-
-```gherkin
-Given trang /vi/advertising-products/ ở 1440px, khách đã tìm "hộp đèn"
-When khách cuộn xuống giữa lưới
-Then thanh nổi rộng 760px, có hàng chip "Tất cả" và các sản phẩm có kết quả, bấm "Chữ nổi" thì lưới chỉ còn kết quả Chữ nổi, ô chữ vẫn là "hộp đèn"
-
-Given trang ở 384px, cuộn tới tận cuối
-Then khoảng trống trên và dưới thanh lệch nhau không quá 2px, link "Trao đổi ý tưởng" nằm dưới thanh, không có nút "Trao đổi" trong thanh
-```
-
-#### R7a. Audit so với mock
-
-Owner yêu cầu (2026-11-22): xong code phải audit trang thật với mock trước khi đưa owner xem. Script Playwright chụp trang thật ở 1440px và 390px, ba chỗ (khe đầu
-trang, nổi, khe CTA) và ba trạng thái (chưa tìm, có kết quả, 1 ảnh), đo các số trong R7 (bề rộng, chiều cao hàng, vị trí, viền, cỡ chữ, khoảng trống CTA, tâm
-cụm CTA, vị trí nút về đầu trang) và so với số CSS của mock (mock thu nhỏ bằng `transform`, nên không so pixel ảnh), lệch tối đa 2px; màu và bóng so đúng giá trị
-CSS. Hai ngoại lệ ở R7 không tính là lệch. Kết quả là một trang so sánh đặt ảnh trang thật cạnh mock cho owner xem.
+Giao diện, chỗ đứng, chuyển động và audit của thanh theo spec con [Thanh tìm kiếm](search-bar.md) (owner duyệt mock 2026-11-22): một khối trắng ở khe đầu trang,
+nổi ở đáy và khe CTA; hàng chip lọc trong kết quả khi nổi; một ảnh; chữ gợi ý; link CTA dưới thanh ở tâm thị giác.
 
 ### R8. Ảnh khách đưa vào
 
 Tối đa 5 ảnh; thả hơn 5 thì lấy 5 ảnh đầu và báo "Tối đa 5 ảnh". Ảnh trùng (cùng nội dung sau khi thu nhỏ) bị bỏ. PNG trong
 suốt và GIF (khung đầu) được vẽ trên nền trắng; HEIC chỉ đọc được trên Safari. Trình duyệt không đọc được thì báo "Chưa đọc
 được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này trượt vào chỗ chữ trong ô, tự tắt sau 4 giây
-(R7, Thông báo).
+([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)).
 
 ```gherkin
 Given khay đã có 4 ảnh
@@ -254,7 +181,7 @@ Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
 ### R9. Không có kết quả
 
 Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi `clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên
-bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt thì không gọi gì. Thanh hiện "Chưa thấy mẫu phù hợp" ở chỗ chữ trong ô (R7, Thông báo), tự tắt sau 4 giây (owner 2026-11-18; không nút Zalo, lời mời hỏi giá hay link Công trình); khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
+bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt thì không gọi gì. Thanh hiện "Chưa thấy mẫu phù hợp" ở chỗ chữ trong ô ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)), tự tắt sau 4 giây (owner 2026-11-18; không nút Zalo, lời mời hỏi giá hay link Công trình); khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
 
 ```gherkin
 Given khách gõ "xqzw vbnk" và không card nào đạt ngưỡng
@@ -317,7 +244,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 
 ## UI
 
-Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo R7a; component [SearchBar](../../design-system/components/SearchBar/README.md).
+Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo [Thanh tìm kiếm R6](search-bar.md#r6-audit-so-với-mock); component [SearchBar](../../design-system/components/SearchBar/README.md).
 
 ## Kiểm tra
 
@@ -341,7 +268,7 @@ Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo R7a; 
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
-- Audit R7a chạy sau khi code; owner xem trang so sánh trước khi merge.
+- Audit ([Thanh tìm kiếm R6](search-bar.md#r6-audit-so-với-mock)) chạy sau khi code; owner xem trang so sánh trước khi merge.
 
 ## Chú thích thuật ngữ
 
