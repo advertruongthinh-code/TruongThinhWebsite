@@ -260,7 +260,7 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 
 Pointer Events thuần, không thêm thư viện gesture. Page pinch ngoài viewer giữ
 nguyên vì meta viewport không đổi. Xoay chỉ đổi `transform` của ảnh, không đổi
-layout hay filter, để giữ [gate fps phone Android](../decisions/phone-frame-budget.md).
+layout hay filter, để giữ [gate fps phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android).
 
 ## UI
 

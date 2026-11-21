@@ -257,7 +257,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | Endpoint | `POST /api/search/share`, `GET /api/search/share/<mã>/<n>` | R10 |
 | DOM hook | `[data-search-dock]` | Khe dưới tiêu đề CTA, thread masonry thêm |
 | Hàm lưới | `setResults`, `setPending`, `clearResults`, `offerResults`; sự kiện `masonry:search-left` | [Masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm) |
-| Cấu hình | `wrangler.static.toml`: `main`, `run_worker_first = ["/api/*"]`, `AI`, `ASSETS`, 3 rate limit, R2 `SEARCH_SHARE`, observability tắt | [Decision](../decisions/advertising-search-worker.md) |
+| Cấu hình | `wrangler.static.toml`: `main`, `run_worker_first = ["/api/*"]`, `AI`, `ASSETS`, 3 rate limit, R2 `SEARCH_SHARE`, observability tắt | R3, R10 |
 
 ## UI
 

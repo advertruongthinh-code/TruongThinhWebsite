@@ -17,7 +17,7 @@ chung chung và lưới bất động sản rập khuôn.
 
 ## Song ngữ VI/EN
 
-- Tiếng Việt là bản gốc; tiếng Anh là bản tương ứng.
+- Tiếng Việt là bản gốc; tiếng Anh nằm ở `data-en`, `data-en-alt`, `data-en-aria-label`, `data-en-content` trên đúng node chứa chữ (leaf) để không phá markup ([phát hành tĩnh](../docs/specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale)); locale nhớ ở `tt-lang`.
 - Dấu câu bản EN theo bản VI (owner 2026-10-18): dấu chấm, dấu phẩy đặt cùng chỗ với câu VI tương ứng;
   liệt kê không dùng dấu phẩy trước `and` (VI không có dấu phẩy trước `và`), trừ khi câu VI có dấu phẩy ở đúng chỗ đó.
 - Không công bố dữ kiện owner chưa xác nhận (Zalo, năm thành lập, bảo hành);

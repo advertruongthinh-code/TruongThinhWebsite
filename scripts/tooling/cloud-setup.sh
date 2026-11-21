@@ -5,7 +5,8 @@
 # chrome-devtools, find-skills, kie-models, kie-chat-agents, egm (google/elephant-goldfish-model).
 # Ponytail 5 drops ponytail-mcp; the ultra rule loads via CLAUDE.md and the skill.
 #
-# Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
+# Owner rule: skills, commands, agents and MCP only; the one agent hook is the secret guard
+# scripts/tooling/pre-tool-guard.mjs (owner 2026-11-21), fetched from main because this file is pasted.
 # Each plugin loads as a skills-directory plugin (~/.claude/skills/<name>/ with
 # .claude-plugin/plugin.json) linked to a pinned checkout with hooks removed.
 # MCP servers live in the local plugin "cloud-stack". Pins match tooling-versions.json.
@@ -67,7 +68,7 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 
 1. Always load `ponytail` in ultra mode; it controls implementation minimalism. The `i-have-adhd` skill self-invokes to shape actionable structure. Caveman skills run only when the user invokes them; never self-invoke them. A closer project `AGENTS.md` may explicitly disable Caveman.
 2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use `rg` for exact symbols and references. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
-3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
+3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; the only agent hook is the secret guard `scripts/tooling/pre-tool-guard.mjs`.
 4. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
 5. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
 6. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
@@ -144,9 +145,20 @@ cat > "$P/.mcp.json" <<EOF
 EOF
 ln -sfnT "$P" "$CFG/skills/cloud-stack"
 
+# Secret guard: the only agent hook (AGENTS.md SSoT). Blocks reading .env, keytabs, private keys and force-push.
+curl -fsSL https://raw.githubusercontent.com/advertruongthinh-code/TruongThinhWebsite/main/scripts/tooling/pre-tool-guard.mjs \
+  -o "$T/pre-tool-guard.mjs" &&
+  node -e '
+const fs = require("fs"), f = process.argv[1], cmd = process.argv[2];
+const s = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
+s.hooks = s.hooks || {};
+s.hooks.PreToolUse = (s.hooks.PreToolUse || []).filter((h) => !JSON.stringify(h).includes("pre-tool-guard"));
+s.hooks.PreToolUse.push({ matcher: "Bash|Read|Edit|Write|Grep", hooks: [{ type: "command", command: cmd }] });
+fs.writeFileSync(f, JSON.stringify(s, null, 2));' "$CFG/settings.json" "node $T/pre-tool-guard.mjs"
+
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,egm,cloud-stack}/.claude-plugin/plugin.json \
   "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
-  "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
+  "$CFG/CLAUDE.md" "$T/pre-tool-guard.mjs" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
 done

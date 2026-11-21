@@ -104,7 +104,7 @@ And mark, chữ, mục menu và hamburger không có opacity riêng
 ## Hiệu năng
 
 Đổi màu chữ là một tween GSAP `color`/`stroke` `0.3s` trên vài phần tử header, chạy lúc bấm và lúc trang đích gắn vào. Lật mark là lớp lật của Brand, chỉ chạy transform và
-opacity. Giữ [gate phone Android](../decisions/phone-frame-budget.md) (fps trung bình từ 60) trong lúc chuyển trang.
+opacity. Giữ [gate phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android) (fps trung bình từ 60) trong lúc chuyển trang.
 
 ## UI
 

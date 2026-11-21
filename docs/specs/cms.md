@@ -227,7 +227,7 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 ## Gate còn mở
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, đổi domain khi owner chưa mở phase
-([khóa Wrangler](../decisions/wrangler-deferred-until-cms.md)). Mỗi slice giữ route tĩnh đọc được khi CMS không chạy;
+(Wrangler chỉ pin lại và nối vào CI, deploy khi owner mở slice đầu). Mỗi slice giữ route tĩnh đọc được khi CMS không chạy;
 không page builder đa dụng, không multi-tenant, không thay source tĩnh. Lưu card không cần tính bố cục masonry: máy người xem tự xếp; riêng lưới đầu điện thoại được build trang sinh kèm ([masonry xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)), nên đăng bài vẫn build lại trang.
 
 ### Điều kiện mở CMS phase
@@ -243,11 +243,14 @@ media; gate migration có snapshot, backup, retention, đường lùi), Publishi
 audit, idempotent, xử lý lỗi; gate test contract, security, integration), Public projection (renderer deterministic,
 fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback; giữ nội dung tĩnh tới khi đạt).
 
-### Quyết định owner chưa chốt
+### Hướng CMS đã chốt và câu còn mở
 
-Provider, storage, vai trò, domain đã chốt ở [CMS xuất bản tĩnh](../decisions/cms-cloudflare-static-publish.md) (owner
-2026-11-15); spec này viết lại theo decision ở slice Contract. Còn mở:
+Spec này viết lại theo hướng sau ở slice Contract; code dormant còn đi hướng cũ (Worker SSR public đọc D1, xem mục dưới):
 
+- Public và admin: khách chỉ nhận file tĩnh (Workers static assets, không `run_worker_first` cho route public, không đọc D1), nên CMS hỏng thì site giữ bản dựng gần nhất. CMS là một Worker riêng ở `admin.truongthinhads.vn` sau một ứng dụng Access (Google, danh sách email; team `truongthinh.cloudflareaccess.com`), giữ kiểm JWT, email, `Origin` như R5; email owner đầu tiên nằm ở secret, không ghi trong repo. Trước khi chuyển domain chạy trên workers.dev.
+- Storage (gói free): D1 vị trí `apac` giữ nội dung, nháp, lịch sử, nhật ký, tài khoản, vai trò; R2 private giữ bản gốc media, biến thể public sinh khi xuất bản và phục vụ từ `media.truongthinhads.vn` (không đóng vào static assets vì giới hạn 20.000 file mỗi version). Migration viết lại từ `0001` theo contract; năm migration cũ chưa áp lên D1 thật nào. Sao lưu: D1 Time Travel 7 ngày, export hằng ngày ra R2, sao lưu tuần về PC owner.
+- Xuất bản: admin ghi bản chụp đã duyệt rồi gọi workflow `Deploy demo` (lấy bản chụp qua Access service token); dựng lỗi thì không deploy; rollback bằng deployment trước của Workers. Bài mới lên sau một lần dựng, không tức thì.
+- Vai trò: owner và nhân viên lưu là lên web, không bước duyệt; nhân viên xóa vào thùng rác (ẩn khỏi site, khôi phục được); owner thêm owner, nhân viên trong một trang của CMS.
 - [CẦN LÀM RÕ: kiểm `Origin` có đủ thay CSRF token không; rate limit ở Worker hay Cloudflare?] Agent đề xuất ở slice Contract.
 - [CẦN LÀM RÕ: `template` có là `layoutKey` không, preset nào launch trước; giới hạn cỡ, loại file và danh sách cỡ biến thể media?]
 
@@ -275,8 +278,7 @@ Provider, storage, vai trò, domain đã chốt ở [CMS xuất bản tĩnh](../
 - SEO media ([media-seo](media-seo.md), owner 2026-10-18): nhân viên chỉ nhập tên, mô tả card và alt VI/EN từng media
   (bắt buộc, không trùng trong card, CMS điền sẵn gợi ý được); hệ thống tự sinh trang card, canonical, og:image, JSON-LD,
   image sitemap (Worker `/sitemap.xml` trỏ `sitemap-advertising.xml`) và tên file upload theo tên sản phẩm.
-- [Slot project trong menu](../decisions/optional-cms-project-slots.md) chỉ áp dụng khi dựng lại `data-menu-projects`;
-  `src/site/` chưa có slot nên menu feed R4 chưa có consumer.
+- Slot project trong menu là optional trên menu tĩnh: khi dựng lại, nhóm 01 đến 03 có `data-menu-projects`; `menu_group`, `menu_order` chỉ thay nhóm có project published hợp lệ, `motion.js` sort theo order rồi slug, link `/{locale}/projects/{slug}/`; API lỗi, metadata hoặc tên localized thiếu thì giữ slot tĩnh. `src/site/` chưa có slot nên menu feed R4 chưa có consumer.
 - Seed và test lệch source: cover category seed trỏ `/assets/site/...` không có trong `src/site/`; phần public
   `worker-contract.cjs` chờ `data-cms="hero.qualifier"`, `hero.title` ở advertising-products và kicker commercial khác
   cả HTML tĩnh lẫn seed (suy luận: `pnpm qa:worker` sẽ fail; chưa chạy vì cần runtime Wrangler).
@@ -287,7 +289,7 @@ Provider, storage, vai trò, domain đã chốt ở [CMS xuất bản tĩnh](../
 ## Chú thích thuật ngữ
 
 - **Worker**: code Cloudflare chạy ở biên, xử lý route, API và render.
-- **D1, R2**: database SQL và object storage của Cloudflare, ứng viên cho CMS, chưa chọn chính thức.
+- **D1, R2**: database SQL và object storage của Cloudflare, đã chọn cho CMS, chưa activate.
 - **Access**: lớp đăng nhập Cloudflare đặt trước admin, cấp JWT (token có chữ ký) cho request.
 - **Upsert**: ghi mới hoặc cập nhật nếu id đã có.
 - **Allowlist**: tập giá trị được phép, như template hay email admin.

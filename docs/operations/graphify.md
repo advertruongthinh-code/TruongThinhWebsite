@@ -76,7 +76,7 @@ Agent không dừng watcher để query. Sau khi watcher xử lý save, agent d�
 ## Corpus project content
 
 `.graphifyignore` gồm meaningful non-media project content như source, Markdown,
-spec, ADR, configuration, SQL, HTML, JSON, YAML, PDF và Office document. Nó loại
+spec, configuration, SQL, HTML, JSON, YAML, PDF và Office document. Nó loại
 image, video, audio, font, generated output, runtime state và vendor tree. Raw
 reference archive bị loại qua `.gitignore`: Graphify đọc `.gitignore` trừ khi chạy
 `--no-gitignore`.

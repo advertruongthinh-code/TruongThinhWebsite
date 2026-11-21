@@ -34,7 +34,7 @@ thuộc CMS phase. Phát hành chính thức chỉ khi xong CMS, tức admin và
 (owner 2026-10-18); bản tĩnh luôn là fallback và rollback.
 
 Public copy vẫn cần owner xác nhận Zalo, founding year và warranty; địa chỉ
-trụ sở đã có [decision xác nhận](docs/decisions/head-office-address-confirmed.md).
+trụ sở đã xác nhận ([PRODUCT](PRODUCT.md)).
 Không tự invent các giá trị này.
 
 ## Command
@@ -56,13 +56,12 @@ Worker contract dormant đến CMS phase. Browser matrix và evidence contract �
 GitHub là source of truth. Pull request chạy static và browser smoke gate.
 Demo tĩnh chạy trên Cloudflare Workers static assets: workflow `Deploy demo`
 tự chạy `pnpm deploy:demo` khi CI xanh trên `main` theo
-[quyết định demo](docs/decisions/cloudflare-workers-static-demo.md) và
 [các bước phát hành](docs/specs/static-release.md#r11-phát-hành-demo-cloudflare).
-CMS chưa activate. Trạng thái phát hành thực tế xem [STATE](docs/STATE.md); lịch sử thay đổi
+CMS chưa activate. Trạng thái phát hành thực tế xem [trang Notion Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824); lịch sử thay đổi
 đọc trong PR và `git log`.
 Wrangler cho CMS Worker chỉ được cài và activate
 khi owner mở CMS phase theo
-[`Khóa Wrangler đến phase CMS`](docs/decisions/wrangler-deferred-until-cms.md).
+[điều kiện mở CMS](docs/specs/cms.md#điều-kiện-mở-cms-phase).
 
 ## Cây thư mục và trạng thái
 
@@ -81,7 +80,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ src/admin/, src/db/migrations/   # DEV: CMS shell và schema
 ├─ scripts/                         # site build, media, tooling
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
-├─ docs/                            # STATE, index, goal, architecture.md, terminology,
+├─ docs/                            # index, goal, architecture.md, terminology,
 │                                   # specs, decisions, operations, reference
 ├─ source-assets/                   # LOCAL: nguồn ảnh/provenance, backup live, ngoài Git
 ├─ research/reference-site/         # RESEARCH: archive cũ local, ngoài Git
