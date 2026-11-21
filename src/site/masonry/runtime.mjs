@@ -2858,9 +2858,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const container = sharedFlowContainer(frame);
     return container ? sharedFlowLayer(container) : null;
   };
-  // PC: create the main grid's layer while the page is still covered, so the WebGL context and shader compile do not drop frames
-  // when the first cards start waiting (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
-  if (grid && !skeletonPhone() && !skeletonMotionPreference.matches) sharedFlowLayer(grid);
+  // Create a container's layer ahead of its first frame, so the WebGL context and shader compile do not stall a scroll frame.
+  // PC main grid: while the page is still covered (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
+  // CTA batch (every device): at idle after load; creating it when the batch neared the screen held the main thread 211ms in Brave 1.100
+  // (owner 2026-11-21: stutter on reaching the batch).
+  if (!skeletonMotionPreference.matches) {
+    if (grid && !skeletonPhone()) sharedFlowLayer(grid);
+    const loaded = document.readyState === "complete" ? Promise.resolve()
+      : new Promise((resolve) => addEventListener("load", resolve, { once: true, signal: controller.signal }));
+    if (ctaSkeleton) loaded.then(nextIdle).then(() => !controller.signal.aborted && !skeletonDocumentParked && sharedFlowLayer(ctaSkeleton));
+  }
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);

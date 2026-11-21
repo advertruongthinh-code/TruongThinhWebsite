@@ -1229,45 +1229,36 @@
  "assets/content/projects/advertising/office-signs-wayfinding/washroom-projecting-03.jxl": {
   "960": 35725
  },
- "assets/content/projects/advertising/print-decals/print-decals-01-business-cards.jxl": {
-  "960": 76877,
-  "1600": 91666,
-  "2048": 97858
+ "assets/content/projects/advertising/print-decals/print-decals-01-business-cards-alder-form-20261122.jxl": {
+  "960": 51306,
+  "1600": 75660
  },
  "assets/content/projects/advertising/print-decals/print-decals-02-flyers.jxl": {
   "960": 82421,
   "1600": 88402,
   "2048": 91289
  },
- "assets/content/projects/advertising/print-decals/print-decals-03-brochures-and-folded-leaflets.jxl": {
-  "960": 96051,
-  "1600": 106693,
-  "2048": 110699
+ "assets/content/projects/advertising/print-decals/print-decals-03-tile-showroom-brochures-20261122.jxl": {
+  "960": 53222,
+  "1600": 70633
  },
- "assets/content/projects/advertising/print-decals/print-decals-04-catalogues.jxl": {
-  "960": 97761,
-  "1600": 105936,
-  "2048": 110074
+ "assets/content/projects/advertising/print-decals/print-decals-04-catalogues-northfield-20261122.jxl": {
+  "960": 53844
  },
- "assets/content/projects/advertising/print-decals/print-decals-05-wedding-and-invitation-cards.jxl": {
-  "960": 117077,
-  "1600": 130654,
-  "2048": 135167
+ "assets/content/projects/advertising/print-decals/print-decals-05-wedding-invitations-floral-20261122.jxl": {
+  "960": 67777
  },
- "assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.jxl": {
-  "960": 350348,
-  "1600": 350348,
-  "2048": 350348
+ "assets/content/projects/advertising/print-decals/print-decals-06-certificates-envelopes-northvale-20261122.jxl": {
+  "960": 52969
  },
- "assets/content/projects/advertising/print-decals/print-decals-07-hard-cover-leather-and-timber-menus.jxl": {
-  "960": 151415,
-  "1600": 164614,
-  "2048": 186499
+ "assets/content/projects/advertising/print-decals/print-decals-07-leather-timber-menus-alder-ember-20261122.jxl": {
+  "960": 93375
  },
- "assets/content/projects/advertising/print-decals/print-decals-08-waterproof-plastic-menus.jxl": {
-  "960": 360329,
-  "1600": 360329,
-  "2048": 360329
+ "assets/content/projects/advertising/print-decals/print-decals-08-waterproof-plastic-menus-thuc-don-20261122.jxl": {
+  "960": 76147
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-09-acrylic-table-menus-food-drinks-20261122.jxl": {
+  "960": 83668
  },
  "assets/content/projects/advertising/print-decals/print-decals-09-booklet-table-and-acrylic-menus.jxl": {
   "960": 61257,
@@ -1292,10 +1283,8 @@
  "assets/content/projects/advertising/print-decals/print-decals-11-window-wall-vehicle-and-die-cut-decals.jxl": {
   "960": 35411
  },
- "assets/content/projects/advertising/print-decals/print-decals-12-canvas-and-decorative-wall-prints.jxl": {
-  "960": 92802,
-  "1600": 96815,
-  "2048": 97757
+ "assets/content/projects/advertising/print-decals/print-decals-12-canvas-wall-prints-set-a-20261122.jxl": {
+  "960": 60406
  },
  "assets/content/projects/advertising/print-decals/print-decals-13-imagegen-20261019.jxl": {
   "960": 88607,
@@ -1315,10 +1304,8 @@
  "assets/content/projects/advertising/print-decals/print-decals-15-brochures-and-folded-leaflets.jxl": {
   "960": 24890
  },
- "assets/content/projects/advertising/print-decals/print-decals-16-catalogues.jxl": {
-  "960": 104185,
-  "1600": 107935,
-  "2048": 110542
+ "assets/content/projects/advertising/print-decals/print-decals-16-interior-catalogues-display-20261122.jxl": {
+  "960": 66902
  },
  "assets/content/projects/advertising/print-decals/print-decals-17-owner-20260924.jxl": {
   "960": 164288,
@@ -1350,10 +1337,8 @@
   "1600": 176144,
   "2048": 181244
  },
- "assets/content/projects/advertising/print-decals/print-decals-23-owner-20261012.jxl": {
-  "960": 120210,
-  "1600": 128171,
-  "2048": 130277
+ "assets/content/projects/advertising/print-decals/print-decals-23-member-cards-envelopes-alder-20261122.jxl": {
+  "960": 67095
  },
  "assets/content/projects/advertising/print-decals/print-decals-24-owner-20261012.jxl": {
   "960": 161844,
@@ -1438,6 +1423,12 @@
  },
  "assets/content/projects/advertising/print-decals/print-decals-43-the-ve-moi-20261113.jxl": {
   "960": 62794
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-44-canvas-wall-prints-set-b-20261122.jxl": {
+  "960": 52239
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-45-canvas-wall-prints-set-c-20261122.jxl": {
+  "960": 49387
  },
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-01-aluminium-composite-facades-v2-audit-a237-v1.jxl": {
   "960": 181104,
