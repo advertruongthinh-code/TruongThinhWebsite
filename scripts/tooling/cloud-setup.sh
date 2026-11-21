@@ -2,7 +2,7 @@
 # Setup script for the Claude Code cloud environment ("Default" at claude.ai/code).
 # Installs the owner's global agent stack for every cloud session and every repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena,
-# chrome-devtools, find-skills, kie-models, kie-chat-agents.
+# chrome-devtools, find-skills.
 # Ponytail 5 drops ponytail-mcp; the ultra rule loads via CLAUDE.md and the skill.
 #
 # Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
@@ -42,15 +42,6 @@ npm install -g --silent --no-audit --no-fund \
   impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
 wait
 
-# The kie.ai skill has no Git repo: download the tarball, verify the pinned SHA-256, then extract.
-kie() { # <name> <sha256>
-  local d="$CFG/skills/$1" a="$T/$1.tar.gz"
-  curl -fsSL "https://kie.ai/.well-known/agent-skills/$1.tar.gz" -o "$a" &&
-    echo "$2  $a" | sha256sum -c --quiet &&
-    rm -rf "$d" && mkdir -p "$d" && tar -xzf "$a" -C "$d"
-}
-kie kie-models f6247b734033fad6ba75e0875bc105e2307c9b7e7790317a26c1b68838209f22
-kie kie-chat-agents f1cbf185af32ff7162dd67d9d257cd527e79846d94cae804e2bb83e08a47e8b0
 ln -sfnT "$T/src/skills/skills/find-skills" "$CFG/skills/find-skills"
 
 # Hide the npm CLI so the skill's launcher caches the pinned engine (engine 0.1.18).
@@ -108,7 +99,10 @@ done
 # Stale protection without lifecycle hooks: one watcher per repo, graphify-mcp reloads graph.json itself.
 cat > "$T/graphify-mcp-live" <<EOF
 #!/bin/sh
-root="\$(git rev-parse --show-toplevel 2>/dev/null)" && cd "\$root"
+# Project threads start in /home/user with the repo cloned below it: fall back to the only child Git repo.
+root="\$(git rev-parse --show-toplevel 2>/dev/null)" ||
+  { set -- */.git; [ "\$#" -eq 1 ] && [ -e "\$1" ] && root="\$(dirname "\$1")"; }
+[ -n "\$root" ] && cd "\$root"
 if [ -f .graphifyignore ] || [ -d graphify-out ]; then
   mkdir -p graphify-out
   pid="\$(cat graphify-out/.watch.pid 2>/dev/null)"
@@ -142,7 +136,7 @@ EOF
 ln -sfnT "$P" "$CFG/skills/cloud-stack"
 
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
-  "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
+  "$CFG"/skills/{graphify,find-skills}/SKILL.md \
   "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
