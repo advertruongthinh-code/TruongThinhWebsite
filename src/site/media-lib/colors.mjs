@@ -122,7 +122,7 @@ export const MEDIA_COLORS = Object.freeze({
  "led-displays-lightboxes-12-snap-frame-illuminated-displays-v2": ["#a8c8a8","#b2c7ae","#91958f","#686559","#394037",36],
  "led-displays-lightboxes-13-single-colour-matrix-led-signs-v2": ["#181818","#ccd6da","#9f9d98","#716d5f","#373c2d",29],
  "led-displays-lightboxes-14-three-colour-matrix-led-signs-v2": ["#180808","#b15a27","#5a6882","#4a2f1d","#26180e",3],
- "led-displays-lightboxes-15-full-colour-matrix-led-signs-v2": ["#787878","#afb6be","#79776d","#197de9","#45463a",16],
+ "led-displays-lightboxes-15-western-union-led-projecting-sign-20261121": ["#181818","#cfd2d7","#a2924e","#63615b","#262625",14],
  "led-displays-lightboxes-16-indoor-matrix-led-systems-v2": ["#b8a8a8","#bfc8ca","#a3a09a","#7c5f59","#391212",46],
  "led-displays-lightboxes-17-imagegen-20261019": ["#080808","#bec7d1","#7a7567","#c52828","#352424",28],
  "led-displays-lightboxes-18-event-led-screens": ["#282828","#c6c7d4","#91907c","#525649","#242325",4],
