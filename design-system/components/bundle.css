@@ -6855,7 +6855,8 @@ body.is-masonry-browse .site-footer {
 .detail-cta[data-masonry-grid-cta] .detail-cta__copy {
   z-index: 2;
   width: min(78rem, 100%);
-  margin-bottom: calc(max(50dvh - var(--masonry-cta-footer-height, 0px),
+  /* --masonry-cta-anchor: with the search slot the anchor is the heading-and-bar cluster's centre at the optical centre (search-bar R4). */
+  margin-bottom: calc(max(var(--masonry-cta-anchor, 50dvh - var(--masonry-cta-footer-height, 0px)),
     var(--masonry-gap) + var(--masonry-cta-copy-below, 0px)) - var(--masonry-cta-copy-below, 0px));
 }
 
@@ -6880,7 +6881,7 @@ body.is-masonry-browse .site-footer {
    is laid out. The search page moves its bar in here; the slot stays empty without JavaScript. It sits the same gap under the
    heading as the Projects CTA link (owner 2026-11-18). */
 .detail-cta[data-masonry-grid-cta] [data-search-dock] {
-  min-height: 48px;
+  min-height: 50px;
   margin-top: var(--masonry-gap);
 }
 
@@ -6900,6 +6901,12 @@ body.is-masonry-browse .site-footer {
   display: flex;
   width: max-content;
   margin: var(--masonry-gap) auto 0;
+}
+
+/* Under the search slot the link starts as far below the bar as the heading's baseline sits above it; the runtime measures it
+   (search-bar R4). */
+.detail-cta[data-masonry-grid-cta] [data-search-dock] ~ .legacy-link {
+  margin-top: var(--masonry-cta-link-gap, var(--masonry-gap));
 }
 
 @media (max-width: 750px) {
@@ -7345,7 +7352,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
    the scroll cue left. The slot is as tall as the docked bar, so the hero does not move when the bar arrives. */
 .detail-index-hero .hero-search {
   width: min(calc(100% - 2 * var(--gutter)), 62.5rem);
-  min-height: 48px;
+  min-height: 50px;
   justify-self: center;
 }
 

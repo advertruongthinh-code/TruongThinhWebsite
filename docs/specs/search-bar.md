@@ -67,7 +67,7 @@ ngay. Đang chậm và tạm nghỉ ([Tìm kiếm R6](advertising-search.md#r6-c
 **Khe CTA.** Thanh không còn nút "Trao đổi ý tưởng". Link "Trao đổi ý tưởng" của CTA luôn hiện, nằm dưới khe, giống trang Công trình (chữ hoa đậm, rê chuột thì
 gạch chân 3px chạy ra, `--ease-underline`). Khoảng trống trên và dưới thanh bằng nhau theo nét chữ: chân chữ dòng cuối tiêu đề tới đỉnh thanh bằng đáy thanh tới
 đỉnh chữ hoa của link (mock: 48px PC, 23px phone). Khi trang cuộn tới tận cuối, tâm cụm tiêu đề và thanh nằm ở tâm thị giác của vùng nhìn thấy: giữa đáy header và
-đỉnh footer, nhích lên 5% chiều cao vùng đó (thay quy tắc cũ "đường chân chữ dòng cuối ở giữa viewport"). Link không tính vào cụm. Cửa sổ thấp quá thì giữ quy tắc
+đỉnh footer, nhích lên 5% chiều cao vùng đó; điện thoại tới cuối trang bằng cuộn xuống nên header đã khuất ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), vùng tính từ mép trên màn hình (thay quy tắc cũ "đường chân chữ dòng cuối ở giữa viewport"). Link không tính vào cụm. Cửa sổ thấp quá thì giữ quy tắc
 dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
 
 ### R5. Nút về đầu trang, phone và chuyển động

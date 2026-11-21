@@ -1,6 +1,6 @@
 // Images the visitor adds to a search (advertising-search R8, R4): read in the browser, redrawn on white as a small JPEG, so
 // EXIF and GPS never leave the device.
-export const MAX_IMAGES = 5;
+export const MAX_IMAGES = 1; // one image per search (owner 2026-11-22, search-bar R3)
 const MAX_FILE = 25 * 1024 * 1024;
 const MAX_JPEG = 300 * 1024;
 const LONG_SIDE = 768;
