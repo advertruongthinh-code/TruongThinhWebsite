@@ -5081,44 +5081,29 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Supplier logos under the materials note (detail-pages 7a): grouped by supplier type, no frames. Each logo carries its own
-   em box sized for equal visual weight (area, not width), and every row centres them on one axis (owner 2026-11-22). */
-.supplier-groups {
-  display: grid;
-  gap: 2.25rem;
-  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+/* Supplier logos under the materials note (detail-pages 7a): one row, no frames, grouped only by order (wood panels, aluminium,
+   cabinet hardware, kitchen appliances, then machines). Each logo carries an em box sized for equal visual weight (area, not
+   width); the row centres them on one axis (owner 2026-11-22). */
+.detail-note:has(> .supplier-logos) {
+  container-type: inline-size;
 }
 
-.supplier-group {
-  display: grid;
-  grid-template-columns: 11rem minmax(0, 1fr);
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.detail-note .supplier-group__label {
-  max-width: none;
-  margin: 0;
-  text-indent: 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.supplier-group__logos {
+/* The em unit is solved so the whole set fits one row across the column with 1.5rem gaps; below 0.6rem (phone) it wraps
+   into centred rows instead of shrinking further. */
+.supplier-logos {
+  --logo-gap: 1.5rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1.25rem 3.5rem;
-  margin: 0;
+  justify-content: space-between;
+  gap: 1.25rem var(--logo-gap);
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
   padding: 0;
-  font-size: 1rem;
+  font-size: max(0.6rem, min(1.1rem, calc((100cqw - (var(--logo-count) - 1) * var(--logo-gap) - 1px) / var(--logo-em-sum))));
   list-style: none;
 }
 
-.supplier-group__logos li {
+.supplier-logos li {
   display: flex;
 }
 
@@ -5129,17 +5114,23 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 }
 
 @media (max-width: 750px) {
-  .supplier-groups {
-    gap: 2rem;
+  .supplier-logos {
+    justify-content: center;
+    gap: 1.25rem 1.75rem;
   }
+}
 
-  .supplier-group {
-    grid-template-columns: 1fr;
-    gap: 0.875rem;
-  }
+/* Project strips on Home, Residential and Commercial: every frame the same size and on one line, four whole cards across a PC
+   so no card is cut at the edge; the rail still scrolls for more (owner 2026-11-22). Project pages keep their staggered strip. */
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card {
+  width: auto;
+  padding-top: 0;
+}
 
-  .supplier-group__logos {
-    gap: 1rem 2.25rem;
-    font-size: 0.8rem;
+@media (min-width: 981px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects__track {
+    --strip-gap: clamp(1.5rem, 3vw, 3rem);
+    grid-auto-columns: calc((100% - 3 * var(--strip-gap)) / 4);
+    gap: var(--strip-gap);
   }
 }

@@ -116,6 +116,16 @@ export async function checkSiteContent(siteRoot) {
   }
 
   errors.push(...pageImageReuse(siteRoot, filesUnder(siteRoot, ".html").filter((file) => !file.startsWith(path.join(siteRoot, "assets") + path.sep))));
+  // Block containers must close exactly: a stray </div> or </section> closes the page container early and every block after it
+  // loses its motion (owner 2026-11-22: the CTA vanished after an extra </div> in the supplier logos).
+  for (const file of filesUnder(siteRoot, ".html").filter((f) => !f.startsWith(path.join(siteRoot, "assets") + path.sep))) {
+    const html = readFileSync(file, "utf8").replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style|template|noscript)\b[\s\S]*?<\/\1>/g, "");
+    for (const tag of ["div", "section", "main", "article", "ul"]) {
+      const open = (html.match(new RegExp(`<${tag}\\b`, "g")) ?? []).length;
+      const close = (html.match(new RegExp(`</${tag}>`, "g")) ?? []).length;
+      if (open !== close) errors.push(`${path.relative(siteRoot, file)}: ${open} <${tag}> but ${close} </${tag}>`);
+    }
+  }
 
   const heroFile = path.join(siteRoot, "content/hero-slides.json");
   if (existsSync(heroFile)) {
