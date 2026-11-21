@@ -105,7 +105,7 @@ Then mọi bộ được chọn
 Given CI chạy do push vào main và merge có file code
 Then mọi bộ được chọn
 
-Given CI chạy do push vào main và merge chỉ đổi docs/STATE.md
+Given CI chạy do push vào main và merge chỉ đổi README.md
 Then không bộ nào được chọn
 ```
 

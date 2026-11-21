@@ -94,7 +94,7 @@ Then header và logo giữ nguyên chiều cao (412×915: header 71px, logo 50px
 ## Hiệu năng
 
 Chỉ ghi `transform` một lần mỗi frame. `H` đọc `offsetHeight` một lần khi header đổi thu gọn, resize
-hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate phone Android](../decisions/phone-frame-budget.md)
+hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android)
 (fps trung bình từ 60) khi cuộn trang dài.
 
 ## Kiểm tra

@@ -213,7 +213,7 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 ### R8. Hiệu năng
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
-30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](../decisions/phone-frame-budget.md)
+30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](scroll-feel.md#r7-trên-60fps-trên-phone-android)
 (trên 60fps), mọi khung trong viewport đều chạy. Batch đạt gate nhờ một canvas chung nửa độ phân giải (R5); điện thoại không có khung chờ ảnh (lớp màu,
 [tải theo nấc R9](progressive-loading.md#r9-card-chờ-ảnh-bằng-flow-hoặc-lớp-màu)). Không hạ preset, noise hay số khung chạy để đạt gate.
 Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận

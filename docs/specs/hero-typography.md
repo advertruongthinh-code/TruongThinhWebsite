@@ -81,7 +81,7 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
 ### R3. Không cắt dấu, không đè dòng
 
 Ở mọi bề rộng từ 320 tới 2560px, khung glyph thật của mọi ký tự (kể cả Ể, Ệ, Ấ, Ỗ, Ự) nằm trong mask của dòng
-đó. Glyph của hai dòng kề nhau không chồng lên nhau. Trang không cuộn ngang.
+đó. Glyph của hai dòng kề nhau không chồng lên nhau. Trang không cuộn ngang. Mask chữ đo ink thật bằng Canvas `TextMetrics` (`--mask-ink-overflow`, mở cả hai cạnh clip) và dựng lại khi font sẵn sàng, resize, đổi ngôn ngữ, không dùng padding cố định.
 
 ```gherkin
 Given mọi trang có hero, VI và EN
