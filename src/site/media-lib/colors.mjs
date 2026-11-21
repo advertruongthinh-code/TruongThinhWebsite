@@ -278,7 +278,7 @@ export const MEDIA_COLORS = Object.freeze({
  "print-decals-04-catalogues-northfield-20261122": ["#c8b8b8","#c7c0bd","#a09288","#72655c","#403935",28],
  "print-decals-05-wedding-invitations-floral-20261122": ["#e8d8c8","#dacec1","#bba590","#998067","#71563c",33],
  "print-decals-06-certificates-envelopes-northvale-20261122": ["#d8c8b8","#d7c9bc","#af9885","#814e34","#34353c",42],
- "print-decals-07-hard-cover-leather-and-timber-menus": ["#383838","#ccb39b","#735d51","#3d3d37","#1a1713",8],
+ "print-decals-07-leather-timber-menus-alder-ember-20261122": ["#e8d8c8","#d9cbbc","#9d7a5c","#5c4e39","#26291d",25],
  "print-decals-08-waterproof-plastic-menus-thuc-don-20261122": ["#b8b8b8","#bcbcbd","#969082","#575e5b","#262b2b",11],
  "print-decals-09-acrylic-table-menus-food-drinks-20261122": ["#c8b8a8","#c9b6a4","#aa8e72","#8d6141","#514732",23],
  "print-decals-09-booklet-table-and-acrylic-menus": ["#d8d8d8","#d4d3d0","#af9b8a","#856b58","#31403d",30],
