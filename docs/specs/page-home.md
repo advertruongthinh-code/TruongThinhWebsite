@@ -101,7 +101,7 @@ Then nút có aria-pressed="true", slide và marquee đứng yên
 
 Bốn `.hero-word` hiện dần theo từ, bắt đầu 0,9s sau khi trang mount, ở mọi lần vào (tải trực tiếp,
 route mềm); tải trực tiếp thì chạy song song lúc veil mở ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)).
-Tải trực tiếp: nhánh intro (giữ nền tối, slide đầu mờ vào, kèm header intro) chạy dưới veil; route
+Tải trực tiếp: nhánh intro (giữ slide và shade ẩn trên nền đơn `#2b2c2b` tới khi title hiện xong, rồi ảnh đầu và shade mờ vào `1,6s`, kèm header intro) chạy dưới veil, thuộc timeline hero nên dừng cùng khi tab ẩn hoặc hero khuất; route
 mềm bỏ nhánh này, slide đầu và shade hiện ngay lúc mount. Scroll cue "CUỘN XUỐNG" /
 "SCROLL DOWN": sau 3s ký tự lần lượt hiện rồi ẩn, lặp; bấm thì cuộn tới `#dich-vu`; cuộn quá 200px
 thì cue mờ đi, rời thứ tự Tab.
@@ -287,8 +287,8 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ Zalo `https://zalo.me/0949131050`, cùng số hotline ([PRODUCT](../../PRODUCT.md)).
-- [ADR hero trang chủ](../decisions/home-hero-crossfade-drift.md) ghi giữ media `2.6s` khi vào thẳng; code giữ `1s`
-  (`introOffset` trong `motion.js`). [CẦN LÀM RÕ: giữ `2.6s` hay `1s`?] Owner.
+- Giữ media khi vào thẳng: code giữ `1s` (`introOffset` trong `motion.js`) để title reveal xong trước khi ảnh hiện.
+  [CẦN LÀM RÕ: giữ `1s` hay `2.6s`?] Owner.
 
 ## Chú thích thuật ngữ
 

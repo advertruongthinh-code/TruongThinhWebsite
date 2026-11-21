@@ -636,7 +636,8 @@ function assertPersistentNavigationContracts() {
   assert(
     /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-detail"\);/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
-      /directionStartY - scrollY > 150/.test(motionSource) &&
+      // Scrolling up does not reveal the header (owner 2026-11-22; behaviour checked in phone-header-scroll.e2e).
+      !/directionStartY - scrollY > 150/.test(motionSource) &&
       /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(
         motionSource,
       ) &&

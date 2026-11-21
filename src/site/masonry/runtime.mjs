@@ -1991,6 +1991,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // Show immediately at the final opacity, bypassing the CSS opacity transition (R3): read the style to pin `none` before restoring.
   // All media shown in the same task share one forced style (read opacity once for the whole batch) instead of one per media.
   const mediaToShow = [];
+  // Phone: a card waiting for its media shows the color layer from the moment it is built, in or out of view, so it never paints its single
+  // dominant color first and then jumps to the layer when the visibility observer reports it (owner 2026-11-21: flicker while swiping). Setting the
+  // layer again would shift its phase, so a node that has it keeps it.
+  const holdColors = (node) => {
+    if (!skeletonPhone() || node.dataset.mediaWait || !node.advertisingPendingMediaId?.()) return;
+    // A temp card hands over its own colors so the layer does not jump when the real card shows a different media than the cover.
+    const ghost = node.masonryGhost;
+    setColorWait(node, ghost?.dataset.mediaWait
+      ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
+  };
   const removeGhost = (node) => {
     const ghost = node.masonryGhost;
     if (!ghost) return;
@@ -2012,12 +2022,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         fading.set(node, fades);
       }
     }
+    // The temp card and a color layer held without a skeleton entry (holdColors) go once the media covers them; earlier, the media box's
+    // dominant color would show under the fade.
+    const settle = (node) => {
+      removeGhost(node);
+      if (!cardSkeletons.has(node)) clearColorWait(node);
+    };
     for (const { node } of batch) {
       node.masonryEnter = false;
-      if (!node.masonryGhost) continue;
       const fades = fading.get(node);
-      if (fades) Promise.all(fades).then(() => removeGhost(node), () => removeGhost(node));
-      else removeGhost(node);
+      if (fades) Promise.all(fades).then(() => settle(node), () => settle(node));
+      else settle(node);
     }
   };
   const showMedia = (node) => {
@@ -2052,6 +2067,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         visibleMediaCards.delete(id);
         // The skeleton's color is tied to the media id, so dropping it here still keeps the color for the next entry.
         dropCardSkeleton(node);
+        holdColors(node);
         return;
       }
       if (!entry.isIntersecting) return;
@@ -2077,6 +2093,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   }, { threshold: [0, 0.99] });
   document.addEventListener("scroll", () => wholeCards.size && preloadWholeCards(), { capture: true, passive: true, signal: controller.signal });
   const observeMediaCard = (node) => {
+    holdColors(node);
     mediaObserver.observe(node);
     if (node.advertisingPreloadNeighbors) wholeObserver.observe(node);
   };
@@ -3218,12 +3235,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     // Phone: a flat layer cycling through the image's 4 dominant colors; the image stays hidden until decoded, then fades in (progressive-loading R9).
     const phone = skeletonPhone();
-    if (phone) {
-      // A temp card hands over its own colors so the layer does not jump when the real card shows a different media than the cover.
-      const ghost = node.masonryGhost;
-      setColorWait(node, ghost?.dataset.mediaWait
-        ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : node.advertisingWaitColors());
-    }
+    holdColors(node);
     // PC: the image stays hidden under a Flow frame in its own 4 colors on the grid's shared canvas (progressive-loading R9); without a full palette Flow
     // keeps the preset colors. The data attribute marks the card as waiting (just-viewed label, detail.css).
     let frame = null;
@@ -3353,6 +3365,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       return;
     }
     if (cardSkeletons.has(node)) revealCard(node);
+    // A held layer under a media that failed: the error frame covers the card, the layer only costs its animation.
+    else if (node.querySelector(".is-media-error")) clearColorWait(node);
   };
   // A first-load build reveals its batch in a later task (renderCtaSkeleton `split`); any other build or clear drops that pending reveal.
   let ctaRevealToken = 0;

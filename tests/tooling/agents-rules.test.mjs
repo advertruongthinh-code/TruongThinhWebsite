@@ -1,7 +1,7 @@
 // docs-system.md R11: AGENTS.md rules checked by qa:docs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cmsImportErrors, commentLanguageErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors } from "../../scripts/docs/agents-rules.mjs";
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
 
 const reader = (files) => (file) => files[file];
 
@@ -61,4 +61,50 @@ test("every site image master has a PNG row; new masters need png and sha256", (
   assert.equal(pngOriginErrors([`${dir}a.webp`, `${dir}b.webp`], [`${dir}b.webp`], csv, "").length, 0);
   assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "").length, 1);
   assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "PNG gốc: không có - logo vẽ tay").length, 0);
+});
+
+test("ADR and work-state files fail; specs pass", () => {
+  assert.deepEqual(ssotPathErrors(["docs/decisions/x.md", "docs/STATE.md", "docs/specs/seo.md"]).length, 2);
+});
+
+test("secret files fail, .env.example and SQL migrations pass", () => {
+  const files = [".env", "src/.env.local", ".dev.vars", "ops/ad.keytab", "k/id_ed25519", "c/server.pem", "data/site.sqlite", ".env.example", "src/db/migrations/0001.sql", "docs/key-terms.md"];
+  assert.deepEqual(secretFileErrors(files).map((e) => e.split(": ")[1].split(" ")[0]), files.slice(0, 7));
+});
+
+test("token-shaped text fails, ordinary words pass", () => {
+  // Built from parts so this test file holds no token.
+  const files = {
+    "a.mjs": "const k = 's" + "k-" + "A".repeat(24) + "';\n",
+    "b.yml": "token: gh" + "p_" + "a".repeat(36) + "\n",
+    "c.txt": "-----BEGIN OPENSSH " + "PRIVATE KEY-----\n",
+    "d.css": ".kiosk-posm { --mask-ink-overflow: 1px; }\n",
+  };
+  assert.deepEqual(secretTextErrors(Object.keys(files), reader(files)).map((e) => e.split(": ")[1]), ["a.mjs:1", "b.yml:1", "c.txt:1"]);
+  assert.ok(!secretTextErrors(["a.mjs"], reader(files))[0].includes("AAAA"));
+});
+
+test("application source needs a Design or Mức 0 line", () => {
+  assert.equal(designLineErrors(["docs/specs/seo.md"], "").length, 0);
+  assert.equal(designLineErrors(["src/search/index.mjs"], "").length, 1);
+  assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: <lý do>").length, 1);
+  assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: sửa lỗi chính tả").length, 0);
+  assert.equal(designLineErrors(["src/worker/a.mjs"], "Design: https://app.notion.com/p/abc").length, 0);
+});
+
+test("one PR per card: another open PR with the same card fails", () => {
+  const body = "x\nCard: https://app.notion.com/p/41f332849a0e81db9d01c30d47251df6?pvs=4\n";
+  assert.equal(cardId(body), "41f332849a0e81db9d01c30d47251df6");
+  assert.equal(cardId("Card: chờ tạo"), null);
+  const open = [{ number: 5, body }, { number: 7, body: "Card: https://www.notion.so/Name-41f332849a0e81db9d01c30d47251df6" }, { number: 8, body: "Card: chờ tạo" }];
+  assert.deepEqual(sameCardErrors(5, body, open).map((e) => e.split(": ")[1].split(" ")[0]), ["#7"]);
+  assert.equal(sameCardErrors(8, "Card: chờ tạo", open).length, 0);
+});
+
+test("card claim needs In progress (or Done) and an Agent", () => {
+  const page = (status, agent) => ({ properties: { Status: { status: { name: status } }, Agent: { rich_text: agent ? [{ plain_text: agent }] : [] } } });
+  assert.equal(cardClaimErrors(page("In progress", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Done", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Not started", "Claude thread X")).length, 1);
+  assert.equal(cardClaimErrors(page("In progress", "")).length, 1);
 });

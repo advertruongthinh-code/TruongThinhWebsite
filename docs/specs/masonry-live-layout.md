@@ -25,7 +25,7 @@ updated: 2026-11-16
 Lưới chính trang Quảng cáo và trang Công trình được máy người xem tự xếp khi tải trang: không lỗ giữa lưới, card ngang
 rộng hai cột; chỉ lưới đầu trên điện thoại (dải `2:15`) có bản xếp sẵn lúc build, nằm trong chính trang. Spec này sở hữu thuật toán xếp, Worker xếp, đường đặt tọa độ và lượt
 chờ. Hình học một cột, ảo hóa ở [masonry Advertising](advertising-masonry.md), cách trượt ở R7; related masonry không dùng
-packer. Lý do thiết kế: [decision](../decisions/masonry-live-layout.md).
+packer. Không có cache bố cục lúc build: kết quả tìm kiếm là danh sách card bất kỳ nên không xếp sẵn được, và CMS chỉ lưu card, không tính bố cục.
 
 ## Hành vi
 
@@ -79,7 +79,7 @@ không xếp: mỗi trang lưới (Quảng cáo gốc, cụm, sản phẩm; mọ
 data-phone-packs>` gồm `entries` dải 2:15 của filter của trang cho 8 seed cố định `PHONE_SEEDS` (`phonePacks`, sinh lúc build từ
 đúng mảng card runtime dùng). Lượt duyệt mới trên điện thoại rút ngẫu nhiên một trong 8 seed đó; seed khôi phục từ history nằm
 trong 8 seed cũng dùng bản xếp sẵn. `stamp` (`phonePacksStamp`: phiên bản packer, id và kích thước media mọi card) không khớp
-card đang chạy thì bỏ bản xếp sẵn và xếp trực tiếp, không cảnh báo. Owner chọn 2026-11-16. Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
+card đang chạy thì bỏ bản xếp sẵn và xếp trực tiếp, không cảnh báo. Bản xếp sẵn sinh cùng lúc build trang, nên CMS đăng bài phải build lại trang. Từ 3 cột, mọi dải xếp trong `layout-worker.mjs`: 4 Worker sống suốt trang, mỗi Worker xếp một ứng viên (nhận `{ id, pack, s }`, trả
 `{ id, candidate }`), luồng chính giữ ứng viên tốt nhất bằng `bestEntries`, nên ra đúng `packLive` mà lưới đầu chỉ chờ một ứng
 viên (A04s 2026-11-15: xếp 4 ứng viên tuần tự trong một Worker chậm hơn main 93 tới 468 ms). Từ 720px, `detail.js` tạo các Worker ngay
 khi bắt đầu nạp catalog trang Quảng cáo hoặc mount trang Công trình (`window.__TT_GRID_WORKERS__`, runtime nhận lại), song song với

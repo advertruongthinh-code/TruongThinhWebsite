@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/phone-header-scroll.e2e.mjs
 notion: none
-updated: 2026-10-11
+updated: 2026-11-22
 ---
 
 # Header đi theo ngón tay trên điện thoại
@@ -13,7 +13,7 @@ updated: 2026-10-11
 ## Mục đích
 
 Trên điện thoại header chiếm chỗ và hiện lại quá dễ khi đọc, xem ảnh. Spec này thay
-[Shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên) trên điện thoại: header đi theo
+[Shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống) trên điện thoại: header đi theo
 quãng cuộn từng pixel như app mạng xã hội X, không ngưỡng, không animation ẩn hiện một lượt. Desktop,
 tablet và mọi phần khác của header giữ [Shell R2, R3](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 Owner chốt intent 2026-10-10 qua interview-me.
@@ -91,10 +91,26 @@ When cuộn quá 100px
 Then header và logo giữ nguyên chiều cao (412×915: header 71px, logo 50px), chỉ nền và màu đổi
 ```
 
+### R7. Thanh địa chỉ trình duyệt chạy trước
+
+Trình duyệt có thanh địa chỉ co giãn (Chrome Android: `100lvh` lớn hơn `100svh`) thì thanh đó chạy trước,
+header chạy sau (owner chốt 2026-11-22). Trạng thái thanh đọc từ `visualViewport.height` mỗi frame: bằng
+`100svh` là hiện hẳn, bằng `100lvh` là ẩn hẳn, ở giữa là đang trượt. Cuộn xuống chỉ cộng `delta` vào `offset`
+khi thanh đã ẩn hẳn; cuộn lên chỉ trừ khi thanh đã hiện hẳn; lúc thanh đang trượt header đứng yên (Chrome đẩy
+`scrollY` ngược khoảng 30px lúc này). `offset ≤ scrollY` của R2 vẫn giữ. Không có thanh co giãn hoặc đang
+pinch zoom thì chạy R2 như cũ. Số đo A04s Chrome 158: thanh 56px, bắt đầu trượt sau khoảng 30px cuộn cùng
+chiều (từ đầu trang khoảng 134px), tự trượt hết trong 120 đến 200ms.
+
+```gherkin
+Given A04s Chrome giữa trang, thanh địa chỉ và header đều đang ẩn
+When kéo lên chậm
+Then thanh địa chỉ hiện hẳn trước, header đứng yên tới lúc đó rồi mới lộ ra theo ngón tay
+```
+
 ## Hiệu năng
 
 Chỉ ghi `transform` một lần mỗi frame. `H` đọc `offsetHeight` một lần khi header đổi thu gọn, resize
-hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate phone Android](../decisions/phone-frame-budget.md)
+hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android)
 (fps trung bình từ 60) khi cuộn trang dài.
 
 ## Kiểm tra

@@ -23,7 +23,7 @@ Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, kh�
 `qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
 duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` theo
-[decision demo Cloudflare](../decisions/cloudflare-workers-static-demo.md);
+[phát hành demo Cloudflare](../specs/static-release.md#r11-phát-hành-demo-cloudflare);
 agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy khi CI xanh trên `main`.
 
 ## Chấm ảnh Advertising
@@ -32,9 +32,9 @@ Chỉ là con trỏ: mọi rule tạo, chấm ảnh AI nằm ở [Tạo và ch�
 
 ## Handoff
 
-- Behavior/project policy đổi: update spec hoặc decision; evidence (command, kết quả, scope) vào mô tả PR.
+- Behavior/project policy đổi: update spec; evidence (command, kết quả, scope) vào mô tả PR.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
-- Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#state-và-living-docs);
+- Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#ssot-và-living-docs);
   chạy `pnpm qa:docs`, kiểm symbol/example, status. Test PASS không thay docs gate.
 - Xóa hoặc gộp docs: kiểm consumer (link, script) trước và sau; Git history giữ bản gốc.
   Không chạy lại full UI/parity chỉ vì đổi Markdown.

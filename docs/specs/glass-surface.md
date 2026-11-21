@@ -163,7 +163,7 @@ Then không phần tử nào mang data-glass-reveal
 
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
 trên phone Android khi cuộn tới kính dạng cung:
-gate [phone Android trên 60fps](../decisions/phone-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
+gate [phone Android trên 60fps](scroll-feel.md#r7-trên-60fps-trên-phone-android) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (năm bậc rơi gate trên phone, owner chọn ba bậc cho dạng cung phone). Số lớp theo loại máy (R2); trần
 `100px` của ảnh nền primary chưa đo trên phone Android. Card chờ ảnh không đặt Kính thường trực (A04s kéo trang chỉ 9 đến 11 FPS),
 và không bề mặt nào hiện hay tan Kính (R6). Có tiền tố

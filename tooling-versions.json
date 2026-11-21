@@ -10,6 +10,7 @@
       "i-have-adhd",
       "caveman",
       "ponytail",
+      "egm",
       "jq"
     ],
     "project": [
@@ -25,7 +26,8 @@
     "impeccable-skill": "4.8.0",
     "ponytail-count": 6,
     "ponytail-skill": "5.3.2",
-    "global-total": 59
+    "global-total": 67,
+    "egm-version": "0.1.1"
   },
   "python": {
     "graphifyy": "0.9.97",
@@ -62,7 +64,8 @@
     "pbakaus/impeccable": "414603bf14c7a344edb466bb1f85690c77ce8b7d",
     "microsoft/playwright": "cfe490d941f992655948eee8fd4fd94e1c4234bf",
     "dietrichgebert/ponytail": "16352ac229eb08a9598dcae48fe9f2b342567d86",
-    "vercel-labs/skills": "92a9a34ac3bf88e695e468b90c7bf32f163d32c8"
+    "vercel-labs/skills": "92a9a34ac3bf88e695e468b90c7bf32f163d32c8",
+    "google/elephant-goldfish-model": "7d1b721e51448518cc9b0336465041230200dd10"
   },
   "repository_urls": {
     "ayghri/i-have-adhd": "https://github.com/ayghri/i-have-adhd.git",
@@ -71,6 +74,7 @@
     "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
     "microsoft/playwright": "https://github.com/microsoft/playwright.git",
     "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git",
-    "vercel-labs/skills": "https://github.com/vercel-labs/skills.git"
+    "vercel-labs/skills": "https://github.com/vercel-labs/skills.git",
+    "google/elephant-goldfish-model": "https://github.com/google/elephant-goldfish-model.git"
   }
 }
