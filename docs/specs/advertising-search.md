@@ -183,15 +183,15 @@ And không có cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px
 
 ### R8. Ảnh khách đưa vào
 
-Tối đa 5 ảnh; thả hơn 5 thì lấy 5 ảnh đầu và báo "Tối đa 5 ảnh". Ảnh trùng (cùng nội dung sau khi thu nhỏ) bị bỏ. PNG trong
+Mỗi lần tìm 1 ảnh (owner 2026-11-21). Thả hoặc dán nhiều ảnh thì lấy ảnh đầu; đưa ảnh mới thì thay ảnh đang có. PNG trong
 suốt và GIF (khung đầu) được vẽ trên nền trắng; HEIC chỉ đọc được trên Safari. Trình duyệt không đọc được thì báo "Chưa đọc
 được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này là một dòng ngắn trong khay ảnh, bên
 trong thanh, tự tắt sau 4 giây; khay khi thanh dừng treo ngay dưới đường kẻ để khe giữ chiều cao.
 
 ```gherkin
-Given khay đã có 4 ảnh
+Given thanh đã có 1 ảnh
 When khách thả thêm 3 ảnh
-Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
+Then thanh chỉ còn ảnh đầu trong 3 ảnh vừa thả và tìm lại theo ảnh đó
 ```
 
 ### R9. Không có kết quả
