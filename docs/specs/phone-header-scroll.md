@@ -13,7 +13,7 @@ updated: 2026-10-11
 ## Mục đích
 
 Trên điện thoại header chiếm chỗ và hiện lại quá dễ khi đọc, xem ảnh. Spec này thay
-[Shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên) trên điện thoại: header đi theo
+[Shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống) trên điện thoại: header đi theo
 quãng cuộn từng pixel như app mạng xã hội X, không ngưỡng, không animation ẩn hiện một lượt. Desktop,
 tablet và mọi phần khác của header giữ [Shell R2, R3](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 Owner chốt intent 2026-10-10 qua interview-me.

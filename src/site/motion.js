@@ -784,10 +784,9 @@
         directionStartY = scrollY;
         lastDirection = direction;
       }
+      // Scrolling up no longer reveals the header (owner 2026-11-22); it shows again outside the middle zone or by mouse at the top edge.
       if (isMiddle && direction === "down" && scrollY - directionStartY > 150) {
         header.classList.add("is-hidden");
-      } else if (isMiddle && direction === "up" && directionStartY - scrollY > 150) {
-        header.classList.remove("is-hidden");
       }
     }
     lastScrollY = settledY;
