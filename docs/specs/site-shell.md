@@ -68,11 +68,11 @@ When trang đo layout
 Then nav có inert và aria-hidden, header một hàng, logo và nút menu vẫn hiện
 ```
 
-### R3. Header ẩn khi cuộn xuống, hiện khi cuộn lên
+### R3. Header ẩn khi cuộn xuống
 
 Header chỉ ẩn trong vùng `0.5 × viewport < scrollY < pageHeight - 1.25 × viewport`
 ([motion](../../design-system/motion.md#shell)): trong vùng, cuộn xuống quá 150px tính từ chỗ đổi
-chiều thì header `is-hidden`, cuộn lên quá 150px thì hiện; ngoài vùng (đầu và cuối trang) hiện
+chiều thì header `is-hidden`, cuộn lên không làm hiện (owner 2026-11-22); ngoài vùng (đầu và cuối trang) hiện
 ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chuột thật (`any-hover: hover`
 và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
 giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3.
@@ -80,7 +80,7 @@ giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](pho
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
 When cuộn tới cách cuối trang chưa tới 1,25 lần chiều cao cửa sổ
-Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px thì header ẩn lại
+Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px thì header ẩn lại; cuộn lên trong vùng giữa thì vẫn ẩn
 ```
 
 ### R4. Full menu
