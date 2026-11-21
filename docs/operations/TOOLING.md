@@ -23,7 +23,7 @@ từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill 
 chỉ chạy khi user gọi; `i-have-adhd` tự gọi.
 
 Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` gọi bản
-pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-demo.md).
+pin qua `pnpm dlx` theo [phát hành demo](../specs/static-release.md#r11-phát-hành-demo-cloudflare).
 `src/worker/` và `wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
 
 ## Path user-global
@@ -64,7 +64,7 @@ Một nguồn skill duy nhất: năm plugin pin, cùng quy tắc ở mọi nơi 
 chỉ user gọi, `i-have-adhd` tự gọi). Cloud cài bằng `cloud-setup.sh` (mục dưới),
 máy local bằng `pwsh -NoProfile -File scripts/tooling/local-setup.ps1` (một lần mỗi
 máy, restart Claude Code; `bootstrap.ps1` cũng gọi script này). Repo không còn
-`.claude/skills`; decision: [skill từ plugin pin](../decisions/claude-skills-from-pinned-plugins.md).
+`.claude/skills`.
 Trên Linux/cloud không có PowerShell: Graphify chạy qua
 `scripts/tooling/invoke-graphify.sh`, tự cài Graphify pin lần đầu.
 

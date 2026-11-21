@@ -54,7 +54,7 @@ Chế độ 2 hạ xuống mức Pareto rẻ hơn chỉ khi điểm Category g�
 | Phân tích số liệu (thống kê ảnh, số đo, log) | Data Analysis | opus medium, Max | = | sonnet, haiku dưới 60 điểm |
 | Research (SEO, đối thủ, tài liệu ngoài) | Research | opus medium, Max | sonnet high | 85.0 so với 83.6; haiku high chỉ để gom link |
 | QA trình duyệt, đo thiết bị (Playwright, CDP, adb) | Browser Use | haiku xhigh, kie | = | chẩn đoán số đo thuộc thread perf |
-| Docs, STATE, Notion, memory | Reasoning | haiku xhigh, kie | = | sonnet high (Max) khi context dài hoặc owner chê |
+| Docs, Notion, memory | Reasoning | haiku xhigh, kie | = | sonnet high (Max) khi context dài hoặc owner chê |
 | Relay, kiểm tra CI/PR, đổi status card, search chỉ đọc | Reasoning | haiku medium, kie | = | haiku không sửa code sẽ merge |
 | Chạy lại hoặc thêm runner CI | Long Agentic ngắn | haiku xhigh, kie | = | lên sonnet high (Max) nếu quá vài bước |
 | Chấm ảnh | không có | sonnet high, Max | = | không benchmark nào đo vision; theo gate trong [QA ảnh](agent-rule-ad-images.md#chấm-điểm) |
@@ -119,7 +119,7 @@ Nếu một task thuộc nhiều dòng, dùng dòng có rủi ro cao nhất.
 | Việc | Model, effort mặc định | Căn cứ và khi nâng |
 | --- | --- | --- |
 | Relay, CI/PR status, search chỉ đọc, đổi status card | `gpt-6.1-sol`, low | medium khi phải đối chiếu nhiều nguồn |
-| Docs, STATE, Notion, memory; QA browser hoặc chạy runner có quy trình rõ | `gpt-6.1-sol`, medium | high khi có conflict evidence hoặc phải chẩn đoán |
+| Docs, Notion, memory; QA browser hoặc chạy runner có quy trình rõ | `gpt-6.1-sol`, medium | high khi có conflict evidence hoặc phải chẩn đoán |
 | interview-me, spec, plan cho scope nhỏ, rõ | `gpt-6.1-sol`, high | Reasoning gần bằng ở max; xhigh khi có tradeoff khó |
 | Motion/UI, design, bug có reproduction, sửa e2e có test đỏ rõ | `gpt-6.1-sol`, high | xhigh khi chẩn đoán qua nhiều file |
 | Research, phân tích log và số đo | `gpt-6.1-sol`, high | Research/Data Analysis gần bằng ở max; xhigh khi nguồn mâu thuẫn |

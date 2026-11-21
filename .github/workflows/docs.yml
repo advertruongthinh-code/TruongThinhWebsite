@@ -36,3 +36,5 @@ jobs:
           DOCS_BASE: ${{ github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.base.sha || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ github.token }}
+          # Optional: reads the PR card on Notion (AGENTS.md SSoT). Unset or Notion down = warning, not pass.
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}

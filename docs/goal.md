@@ -4,13 +4,10 @@ type: project
 status: living
 updated: 2026-10-18
 related_docs:
-  - STATE.md
   - ../PRODUCT.md
   - architecture.md
   - specs/static-release.md
   - specs/cms.md
-related_decisions:
-  - decisions/wrangler-deferred-until-cms.md
 ---
 
 # Mục tiêu dự án và hai phase
@@ -28,8 +25,8 @@ Product truth nằm ở [PRODUCT.md](../PRODUCT.md).
 ## Nguyên tắc hạ tầng
 
 Ưu tiên stack free hoặc phí thấp; hướng hiện tại là Cloudflare (Workers, D1, R2)
-vì khớp scaffold dormant có sẵn. Đây là ưu tiên, chưa phải provider decision:
-provider, storage, region, backup và cost vẫn phải revalidate bằng tài liệu
+vì khớp scaffold dormant có sẵn. Provider và storage đã chốt ([hướng CMS](specs/cms.md#hướng-cms-đã-chốt-và-câu-còn-mở));
+region, backup và cost vẫn phải revalidate bằng tài liệu
 chính thức ở CMS discovery theo [spec CMS](specs/cms.md#điều-kiện-mở-cms-phase).
 
 Static route luôn là fallback và rollback path; CMS lỗi không được làm mất trang
@@ -39,13 +36,13 @@ public.
 
 | Phase | Trạng thái | Phạm vi | Nguồn chuẩn |
 | --- | --- | --- | --- |
-| 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md), [STATE](STATE.md) |
+| 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md) |
 | 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [Spec CMS](specs/cms.md) |
 
 Phát hành chính thức trên `truongthinhads.vn` chỉ sau phase 2, khi admin và nhân viên CRUD được nội dung
 (owner 2026-10-18); bản tĩnh vẫn là fallback và rollback.
 
-Việc còn mở của phase 1 (owner kiểm nhận giao diện, fact chưa xác minh) được [STATE](STATE.md) theo dõi; không lặp lại ở đây.
+Việc còn mở của phase 1 (owner kiểm nhận giao diện, fact chưa xác minh) được [trang Notion Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824) theo dõi; không lặp lại ở đây.
 
 ## Điều kiện chuyển sang phase 2
 

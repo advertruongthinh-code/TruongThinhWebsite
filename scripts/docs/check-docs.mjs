@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
-import { cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -63,7 +63,7 @@ for (const file of files) {
 }
 
 // Line limits (docs/specs/docs-system.md R4, R9).
-const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
+const BUDGET = { 'docs/index.md': 80 };
 for (const file of files) {
   const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
   // Do not count the empty string after the file's final newline.
@@ -104,6 +104,18 @@ if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/
 // A local run without DOCS_BASE checks against origin/main, so the gap shows before the push, not as a red PR.
 // The PR description is read through the API at run time, not from the event: a re-run after editing the description reads the new text.
 // A local run without PR_NUMBER reads PR_BODY.
+// Hot files (AGENTS.md: no two agents on the same sensitive area): a warning only, since a shared file is not always a clash.
+const HOT_FILES = ['src/site/advertising-products/catalog.mjs', 'src/site/motion.js', 'src/site/masonry/skeleton-flow.mjs', 'scripts/site/build-image-variants.mjs', '.github/workflows/ci.yml', 'AGENTS.md'];
+async function hotFileWarnings(api, prNumber, changed, openPrs) {
+  const mine = changed.filter((f) => HOT_FILES.includes(f));
+  if (!mine.length) return;
+  for (const pr of openPrs.filter((p) => p.number !== Number(prNumber))) {
+    const res = await api(`/pulls/${pr.number}/files?per_page=100`);
+    const shared = res.ok ? (await res.json()).map((f) => f.filename).filter((f) => mine.includes(f)) : [];
+    if (shared.length) console.warn(`WARN hot files: #${pr.number} also changes ${shared.join(', ')}; agree the merge order first`);
+  }
+}
+
 const originMain = () => { try { return git('rev-parse', '--verify', '-q', 'origin/main').trim(); } catch { return ''; } };
 let pngAdded = [];
 let pngBody = '';
@@ -126,6 +138,21 @@ if (docsBase) {
   // AGENTS.md rules on the branch (R11): new Markdown names, and the Ảnh QA line on PRs (same PR_NUMBER or PR_BODY condition as the card gate).
   errors.push(...markdownNameErrors(git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(Boolean)));
   if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body), ...designLineErrors(changed, body));
+  // One PR per card and the card claimed on Notion (AGENTS.md SSoT). Both need a real PR; Notion trouble warns, never passes silently.
+  if (PR_NUMBER) {
+    const api = (path) => fetch(`${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}${path}`, { headers: { authorization: `Bearer ${GH_TOKEN}` } });
+    const open = await api('/pulls?state=open&per_page=100');
+    if (!open.ok) throw new Error(`one pr per card: cannot list open PRs, HTTP ${open.status}`);
+    const openPrs = await open.json();
+    errors.push(...sameCardErrors(PR_NUMBER, body, openPrs));
+    await hotFileWarnings(api, PR_NUMBER, changed, openPrs);
+    const id = cardId(body);
+    if (id && process.env.NOTION_TOKEN) {
+      const page = await fetch(`https://api.notion.com/v1/pages/${id}`, { headers: { authorization: `Bearer ${process.env.NOTION_TOKEN}`, 'notion-version': '2022-06-28' } }).catch(() => null);
+      if (page?.ok) errors.push(...cardClaimErrors(await page.json()));
+      else console.warn(`WARN card claim: Notion answered ${page?.status ?? 'no response'}; card status not checked`);
+    } else if (id) console.warn('WARN card claim: secret NOTION_TOKEN is not set; card status not checked');
+  }
   pngAdded = git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(isImageMaster);
   pngBody = body;
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);

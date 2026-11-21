@@ -2,7 +2,7 @@
 
 ## Rule
 
-1. Board Tasks trên Notion là backlog; Git `main` giữ spec, evidence (mô tả PR) và thắng khi lệch ([quản trị Git–Notion](../decisions/git-notion-governance.md)).
+1. Board Tasks trên Notion là backlog; Git `main` giữ spec sống, `PRODUCT.md`, `design-system/` và evidence (mô tả PR), thắng khi lệch. ADR, bản nháp, trạng thái làm việc ([Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824)) và nhật ký triển khai nằm trên Notion, không vào repo ([docs-system](../specs/docs-system.md#r1-cấu-trúc-tài-liệu)).
 2. Mọi việc có card trước khi làm. Điều phối tạo card (hoặc chọn card có sẵn) và ghi link trong brief trước khi giao; việc owner giao thẳng trong thread thì thread tự tạo.
 3. Thread làm tiếp việc cũ: `search` card cũ và cập nhật, không tạo trùng, không để card đứng yên.
 4. Card nhỏ (dưới 50 LOC và một PR): chỉ tên, `Status`, `Evidence` (link PR). Card lớn (từ 50 LOC hoặc nhiều PR): đủ sổ việc bên dưới, task từ 200 LOC ghi estimate.

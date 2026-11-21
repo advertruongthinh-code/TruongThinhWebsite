@@ -29,7 +29,7 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 - Skill chỉ có một nguồn: plugin pin ở user scope ([TOOLING](TOOLING.md#claude-code-skill)); repo không vendor skill.
 - `/build auto` không thay hai human gate.
 - Rule/context: `context-engineering`. UI: `frontend-ui-engineering`, `impeccable`; browser thật: `browser-testing-with-devtools`.
-- Durable decision: `documentation-and-adrs`. Xóa consumed document: `deprecation-and-migration` trước. Trước handoff: `ponytail` bỏ complexity thừa.
+- Durable decision: `documentation-and-adrs`, ghi lên Notion, không vào repo. Xóa consumed document: `deprecation-and-migration` trước. Trước handoff: `ponytail` bỏ complexity thừa.
 - Không cài router runtime riêng hoặc model pin chung; effective model/effort thiếu evidence ghi unknown.
 
 ## Automation

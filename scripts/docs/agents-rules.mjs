@@ -161,3 +161,25 @@ export function designLineErrors(changedFiles, body) {
   if (/^Design: (https?:\/\/\S+|docs\/specs\/\S+)/m.test(body) || /^Mức 0: (?!<)\S/m.test(body)) return [];
   return ['design line: the PR changes application source but has no line "Design: <link to the approved spec or Notion page>" or "Mức 0: <lý do>" (AGENTS.md)'];
 }
+
+// One PR per card (AGENTS.md, owner 2026-11-21): the Notion page id of the PR's `Card:` line, or null for `Card: chờ tạo`.
+export function cardId(body) {
+  const url = body.match(/^Card: (https:\/\/(?:app\.notion\.com|www\.notion\.so)\/\S+)/m)?.[1];
+  return url?.split('?')[0].match(/([0-9a-f]{32})$/i)?.[1].toLowerCase() ?? null;
+}
+
+// Another open PR naming the same card fails: finish or close it first, or open a new card.
+export function sameCardErrors(prNumber, body, openPrs) {
+  const id = cardId(body);
+  if (!id) return [];
+  return openPrs.filter((pr) => pr.number !== Number(prNumber) && cardId(pr.body ?? '') === id)
+    .map((pr) => `one pr per card: #${pr.number} is already open for this card; one card has exactly one PR (AGENTS.md)`);
+}
+
+// The card is claimed before the work: Status In progress (Done once merged) and the Agent column filled (owner 2026-11-21).
+export function cardClaimErrors(page) {
+  const status = page?.properties?.Status?.status?.name;
+  const agent = (page?.properties?.Agent?.rich_text ?? []).map((t) => t.plain_text).join('').trim();
+  if (['In progress', 'Done'].includes(status) && agent) return [];
+  return [`card claim: the card is "${status ?? 'unknown'}" with Agent "${agent}"; set Status In progress and fill Agent before opening the PR (AGENTS.md)`];
+}

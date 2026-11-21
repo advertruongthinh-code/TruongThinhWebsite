@@ -1,6 +1,6 @@
 name: Deploy demo
 
-# Auto-deploy the demo when CI is green on main (decision cloudflare-workers-static-demo.md).
+# Auto-deploy the demo when CI is green on main (docs/specs/static-release.md R11).
 # Called by ci.yml (job deploy-demo) instead of workflow_run: a CI run dispatched by Automerge with
 # GITHUB_TOKEN does not trigger workflow_run, so the demo used to miss updates after auto-merged PRs.
 on:

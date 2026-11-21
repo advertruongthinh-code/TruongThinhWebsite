@@ -1,7 +1,7 @@
 // docs-system.md R11: AGENTS.md rules checked by qa:docs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
 
 const reader = (files) => (file) => files[file];
 
@@ -90,4 +90,21 @@ test("application source needs a Design or Mức 0 line", () => {
   assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: <lý do>").length, 1);
   assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: sửa lỗi chính tả").length, 0);
   assert.equal(designLineErrors(["src/worker/a.mjs"], "Design: https://app.notion.com/p/abc").length, 0);
+});
+
+test("one PR per card: another open PR with the same card fails", () => {
+  const body = "x\nCard: https://app.notion.com/p/41f332849a0e81db9d01c30d47251df6?pvs=4\n";
+  assert.equal(cardId(body), "41f332849a0e81db9d01c30d47251df6");
+  assert.equal(cardId("Card: chờ tạo"), null);
+  const open = [{ number: 5, body }, { number: 7, body: "Card: https://www.notion.so/Name-41f332849a0e81db9d01c30d47251df6" }, { number: 8, body: "Card: chờ tạo" }];
+  assert.deepEqual(sameCardErrors(5, body, open).map((e) => e.split(": ")[1].split(" ")[0]), ["#7"]);
+  assert.equal(sameCardErrors(8, "Card: chờ tạo", open).length, 0);
+});
+
+test("card claim needs In progress (or Done) and an Agent", () => {
+  const page = (status, agent) => ({ properties: { Status: { status: { name: status } }, Agent: { rich_text: agent ? [{ plain_text: agent }] : [] } } });
+  assert.equal(cardClaimErrors(page("In progress", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Done", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Not started", "Claude thread X")).length, 1);
+  assert.equal(cardClaimErrors(page("In progress", "")).length, 1);
 });
