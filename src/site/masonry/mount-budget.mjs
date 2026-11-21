@@ -75,9 +75,9 @@ const holdColors = (delay) => {
   colorsTimer = setTimeout(resumeColors, delay);
 };
 const holdColorsWhileScrolling = () => {
-  if (colorsWatched || typeof document === "undefined") return;
+  if (colorsWatched || typeof globalThis.addEventListener !== "function") return;
   colorsWatched = true;
-  const settle = "onscrollend" in window ? COLORS_SCROLL_SETTLE_MS : COLORS_SCROLL_IDLE_MS;
+  const settle = "onscrollend" in globalThis ? COLORS_SCROLL_SETTLE_MS : COLORS_SCROLL_IDLE_MS;
   addEventListener("scroll", () => holdColors(settle), { capture: true, passive: true });
   addEventListener("scrollend", () => colorsStill >= 0 && holdColors(COLORS_SCROLL_IDLE_MS), { capture: true });
 };
