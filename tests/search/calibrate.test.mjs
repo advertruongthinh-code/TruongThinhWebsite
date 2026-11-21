@@ -12,6 +12,8 @@ test("fixture has the R11 query mix and every reference resolves to cards", asyn
   const count = (type) => fixture.filter((q) => q.type === type).length;
   assert.deepEqual(["keyword", "chat", "typo", "mixed", "en"].map(count), [40, 15, 15, 10, 15]);
   assert.equal(new Set(fixture.map((q) => q.id)).size, fixture.length);
+  // Customers search with one image at most (owner 2026-11-21), so the fixture only measures that.
+  assert.ok(fixture.every((q) => (q.images?.length ?? 0) <= 1));
   const queries = await buildInputs(fixture, buildAdvertisingArtifact(), async () => "QUJD");
   for (const q of queries) {
     assert.equal(q.inputs.length, (q.text ? 1 : 0) + (q.images?.length ?? 0), q.id);
