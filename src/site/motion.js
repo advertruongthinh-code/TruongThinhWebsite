@@ -763,8 +763,13 @@
         headerFollowHeight = height;
         headerFollowStale = false;
       }
+      // Browser URL bar first (owner 2026-11-22, phone-header-scroll R7): scrolling down moves the header only once the bar
+      // is fully hidden, scrolling up only once it is fully shown; while the bar slides, Chrome pushes scrollY back, so hold.
+      const delta = settledY - lastScrollY;
+      const bar = urlBarState();
+      const held = bar && (delta > 0 ? bar !== "hidden" : delta < 0 && bar !== "shown");
       headerOffset = Math.min(
-        Math.max(0, Math.min(headerOffset + settledY - lastScrollY, headerFollowHeight)),
+        held ? headerOffset : Math.max(0, Math.min(headerOffset + delta, headerFollowHeight)),
         settledY,
       );
       if (headerOffset) header.style.transform = `translateY(${-headerOffset}px)`;
@@ -791,6 +796,22 @@
     }
     lastScrollY = settledY;
     ticking = false;
+  };
+
+  // Dynamic URL bar state from the visual viewport: "shown" at 100svh, "hidden" at 100lvh, "moving" between; null when the
+  // browser has no dynamic bar or the page is pinch-zoomed.
+  const urlBarProbe = document.createElement("div");
+  urlBarProbe.setAttribute("aria-hidden", "true");
+  urlBarProbe.style.cssText =
+    "position:fixed;top:0;left:0;width:100lvh;height:100svh;visibility:hidden;pointer-events:none;contain:strict";
+  document.body.append(urlBarProbe);
+  const urlBarState = () => {
+    const visible = window.visualViewport;
+    if (!visible || visible.scale !== 1) return null;
+    const { width: large, height: small } = urlBarProbe.getBoundingClientRect();
+    if (large - small < 1) return null;
+    if (visible.height <= small + 1) return "shown";
+    return visible.height >= large - 1 ? "hidden" : "moving";
   };
 
   const requestHeaderUpdate = () => {
