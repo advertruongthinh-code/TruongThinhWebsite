@@ -444,8 +444,8 @@ function assertPersistentNavigationContracts() {
   )?.[0];
   assert(
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
-      commercialHeroContent?.includes("CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG") &&
-      commercialHeroContent?.includes('data-en="CAFE · RESTAURANT · SHOWROOM · OFFICE"') &&
+      commercialHeroContent?.includes("SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC") &&
+      commercialHeroContent?.includes('data-en="SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE"') &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
       commercialHeroContent?.includes('<span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em>') &&

@@ -4975,43 +4975,143 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Places block on the Commercial page: head office, workshop, consultation; portrait photo above a short caption. */
+/* Places block on the Commercial page (detail-pages 9a): Espacio kitchens "showrooms" list. Index line, 300px photo, uppercase name
+   with the shared hover underline, short text; the whole card is the link, the photo zooms on hover. Columns 3 / 2 (<=960) / 1 (<=578). */
 .detail-places {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 35px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 60px 35px;
 }
 
-.detail-places figure {
+.detail-place {
+  position: relative;
   margin: 0;
 }
 
-.detail-places img {
+.detail-place__link {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+.detail-place__index {
+  margin: 0 0 25px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.detail-place__media {
+  position: relative;
+  overflow: hidden;
+  height: 300px;
+  background: var(--media-loading-surface);
+}
+
+.detail-place__media img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
   object-fit: cover;
 }
 
-.detail-places figcaption {
-  display: grid;
-  gap: 0.35rem;
-  padding-top: 1.25rem;
-  font-size: clamp(1rem, 1.1vw, 1.125rem);
-  line-height: 1.5;
+.detail-place__name {
+  position: relative;
+  display: inline-block;
+  margin: 1em 0 5px;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
-.detail-places strong {
-  font-size: clamp(1.25rem, 1.6vw, 1.625rem);
-  font-weight: 600;
+.detail-place__name::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: currentColor;
+  transition: transform var(--dur-base) var(--ease-underline);
 }
 
-.detail-places a {
+@media (hover: hover) and (pointer: fine) {
+  .detail-place:hover .detail-place__name::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+.detail-place:focus-within .detail-place__name::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.detail-place__text {
+  margin: 16px 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* Phone numbers stay tappable above the card link. */
+.detail-place__text a {
+  position: relative;
+  z-index: 2;
   color: inherit;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 1200px) {
+  .detail-places {
+    column-gap: 25px;
+  }
+}
+
+@media (max-width: 960px) {
+  .detail-places {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 578px) {
   .detail-places {
     grid-template-columns: 1fr;
+    column-gap: 15px;
+  }
+}
+
+/* Supplier banners on the Residential page (detail-pages 7a): Espacio "brands" banner rows, white logo and category over a photo.
+   Two rows of the shared service portals; the row gap follows the column gap at each width. */
+.supplier-portals .service-portals + .service-portals {
+  margin-top: 70px;
+}
+
+.supplier-copy {
+  gap: 1rem;
+}
+
+.supplier-logo {
+  display: block;
+  width: min(77cqw, 20rem);
+  height: min(30cqw, 7.5rem);
+  object-fit: contain;
+}
+
+@media (max-width: 1200px) {
+  .supplier-portals .service-portals + .service-portals {
+    margin-top: 25px;
+  }
+}
+
+@media (max-width: 980px) {
+  .supplier-portals .service-portals + .service-portals {
+    margin-top: 1.25rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .supplier-portals .service-portals + .service-portals {
+    margin-top: 30px;
   }
 }
