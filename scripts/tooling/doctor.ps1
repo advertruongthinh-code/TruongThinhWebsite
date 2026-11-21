@@ -57,7 +57,7 @@ foreach ($obsolete in @(
 }
 
 $pluginRoot = Join-Path $env:USERPROFILE ".claude\skills"
-$missingPlugins = @("agent-skills", "caveman", "ponytail", "impeccable", "i-have-adhd" | Where-Object {
+$missingPlugins = @("agent-skills", "caveman", "ponytail", "impeccable", "i-have-adhd", "egm" | Where-Object {
   -not (Test-Path -LiteralPath (Join-Path $pluginRoot "$_\.claude-plugin\plugin.json") -PathType Leaf)
 })
 if ($missingPlugins.Count -eq 0) { $passes += "Claude skill plugins installed" }

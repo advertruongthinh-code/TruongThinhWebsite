@@ -1,5 +1,5 @@
 # Local version of cloud-setup.sh for Claude Code skills: install the pinned plugins
-# agent-skills, caveman, ponytail, impeccable and i-have-adhd into
+# agent-skills, caveman, ponytail, impeccable, i-have-adhd and egm into
 # ~/.claude/skills as skills-directory plugins, with the same owner rules:
 # no plugin hooks (the repo secret guard in .claude/settings.json is the only agent hook), i-have-adhd self-invokes, caveman skills run only when the user invokes them.
 # MCP servers are still handled by bootstrap.ps1. Run once per machine, then restart Claude Code:
@@ -24,6 +24,7 @@ $plugins = [ordered]@{
   "ponytail"     = "dietrichgebert/ponytail"
   "impeccable"   = "pbakaus/impeccable"
   "i-have-adhd"  = "ayghri/i-have-adhd"
+  "egm"          = "google/elephant-goldfish-model"
 }
 foreach ($name in $plugins.Keys) {
   $repo = $plugins[$name]
