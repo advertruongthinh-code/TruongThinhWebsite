@@ -169,7 +169,7 @@ body {
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Arial, sans-serif;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
   /* Site-wide orphan rule: inherited by every text block, so no paragraph ends on a lone word; headings that set balance keep it. */

@@ -264,7 +264,7 @@ Component [Hero](../../design-system/components/Hero/README.md), [Gallery](../..
 [Footer](../../design-system/components/Footer/README.md). Motion [text](../../design-system/motion.md#text),
 [hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax); `detail.css` đọc thời lượng, đường cong từ [token motion](../../design-system/motion.md#token-motion). Copy và
 ảnh: [hero ba route](../../design-system/content.md#hero-ba-route-dịch-vụ), [mạch nội dung](../../design-system/content.md#mạch-nội-dung-theo-route),
-[crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md).
+[crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md); ngoài hero và trang masonry, chữ và khung theo Espacio (owner 2026-11-22): tiêu đề mục 400, 64 / 56 / 48 / 40px (1200, 960, 750), đoạn 400, 24 / 20.8px, thẻ tên 500, nhãn 600, tiêu đề CTA 500 64 / 48px, line-height 1.4, khung 1500px, lề 35 / 25 / 15px.
 
 ## Kiểm tra
 

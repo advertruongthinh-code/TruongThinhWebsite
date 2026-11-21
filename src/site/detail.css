@@ -146,7 +146,7 @@
 .detail-places,
 .masonry-section,
 .detail-cta {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
@@ -564,7 +564,7 @@
 
 .process-step h3 {
   margin: auto 0 1rem;
-  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1370px max frame. */
+  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
@@ -1188,7 +1188,7 @@
 
 .about-timeline {
   position: relative;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
   padding: 6rem 0 2rem;
 }
@@ -1256,7 +1256,7 @@
 
 .about-chapter-lead {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 20rem;
   padding: 3.5rem 0;
   margin-inline: auto;
@@ -1277,7 +1277,7 @@
 
 .about-process-note {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 15rem;
   padding-top: 2rem;
   margin-inline: auto;
@@ -1297,7 +1297,7 @@
 
 .about-commitments {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 25rem;
   margin-inline: auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3949,7 +3949,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 /* Project and News page blocks (layout-library R1, scripts/site/blocks.mjs). Learns the layout of Espacio's /en/projects/ child pages,
    following the site's text, color and spacing; same width frame as the detail blocks. */
 .blk {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
@@ -4994,11 +4994,6 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   inset: 0;
 }
 
-.detail-place__index {
-  margin: 0 0 25px;
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
 
 .detail-place__media {
   position: relative;
@@ -5019,7 +5014,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: inline-block;
   margin: 1em 0 5px;
   font-size: 1.8rem;
-  font-weight: 400;
+  /* Espacio sets the card name in its medium cut and the address in regular (silka-medium / silka-regular, measured 2026-11-22). */
+  font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -5052,6 +5048,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .detail-place__text {
   margin: 16px 0;
   font-size: 1rem;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -5165,5 +5162,103 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
     --strip-gap: clamp(1.5rem, 3vw, 3rem);
     grid-auto-columns: calc((100% - 3 * var(--strip-gap)) / 4);
     gap: var(--strip-gap);
+  }
+}
+
+/* Espacio type scale and frame (owner 2026-11-22, measured on espaciohomedesign.com at 1920, 1440, 1100, 900, 700 and 384).
+   Espacio sets section titles in silka-regular, body in silka-regular, card names and banner titles in silka-medium and small
+   labels in silka-semibold; mapped to Plus Jakarta Sans 400, 400, 500 and 600. Section titles 64px, 56px from 1200px, 48px from
+   960px, 40px from 750px, line height 1.4; body 24px, 20.8px from 960px; content frame 1500px with 35 / 25 / 15px gutters.
+   Hero blocks and masonry pages keep their own type and frame. */
+:root {
+  --espacio-title: 64px;
+  --espacio-body: 24px;
+  --espacio-banner: 64px;
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --espacio-title: 56px;
+  }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --espacio-title: 48px;
+    --espacio-body: 20.8px;
+  }
+}
+
+@media (max-width: 750px) {
+  :root {
+    --espacio-title: 40px;
+    --espacio-banner: 48px;
+  }
+
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"], [data-barba-namespace="about"], [data-barba-namespace="project"], [data-barba-namespace="news"]) main > :not(.hero) {
+    --gutter: 15px;
+  }
+}
+
+.detail-heading h2,
+.detail-lead__title,
+.detail-gallery > h2,
+.blk-title h2,
+[data-barba-namespace="project"] .blk-title h2,
+.blk-contact__title,
+.blk-projects__title {
+  font-size: var(--espacio-title);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-lead__copy,
+.detail-note p,
+.detail-intro__copy,
+.about-chapter-lead p:last-child,
+.blk-paragraph p,
+.blk-quote p {
+  font-size: var(--espacio-body);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.detail-cta:not([data-masonry-grid-cta]) {
+  --cta-title-size: var(--espacio-banner);
+}
+
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy h2 {
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-eyebrow,
+.detail-cta__copy p,
+.commitment-title {
+  font-weight: 600;
+}
+
+/* Espacio body column: 600px wide against the right edge, first line indented 100px (50px on phone). */
+.detail-lead__copy,
+.detail-note p {
+  max-width: 37.5rem;
+  text-indent: 100px;
+}
+
+@media (max-width: 750px) {
+  .detail-lead__copy,
+  .detail-note p {
+    text-indent: 50px;
+  }
+}
+
+@media (max-width: 750px) {
+  .service-portals,
+  .editorial-strip,
+  .heritage-montage {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 }
