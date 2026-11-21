@@ -46,7 +46,7 @@ try {
         probe.crossfades = Math.max(probe.crossfades, document.getAnimations().filter((animation) => {
           const timing = animation.effect?.getTiming?.();
           const frames = animation.effect?.getKeyframes?.() ?? [];
-          return timing?.duration === 450 && frames.length === 2 && frames.every((frame) => "opacity" in frame);
+          return timing?.duration === 600 && frames.length === 2 && frames.every((frame) => "opacity" in frame);
         }).length);
       }
       added = 0;
@@ -165,7 +165,7 @@ try {
   assert.deepEqual(after.wrong, [], "ghost cycles through the 4 wait colours of the card it holds");
   assert.equal(after.blank, 0, "every visible card shows its image once scrolling stops");
 
-  // Images already present: jump straight to the section just viewed, and placeholders turning into real cards fade the image in over 0.45s.
+  // Images already present: jump straight to the section just viewed, and placeholders turning into real cards fade the image in over 0.6s.
   const back = start + 6 * viewport;
   await scrollTo(page, back);
   await settle(2500);
@@ -177,7 +177,7 @@ try {
   await page.waitForTimeout(2500);
   const crossfades = await page.evaluate(() => window.__probe.crossfades);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
-  assert.ok(crossfades > 0, "cached image fades in over 0.45s when a ghost becomes a real card");
+  assert.ok(crossfades > 0, "cached image fades in over 0.6s when a ghost becomes a real card");
   await context.close();
   console.log(`advertising fast fling: worst coverage ${worst.toFixed(3)} (floor ${floor.toFixed(3)}), ${fling.ghosts.length} ghosts, most ${mostAdded} cards mounted per frame, crossfades ${crossfades}`);
 } finally {

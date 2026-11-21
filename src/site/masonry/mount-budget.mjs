@@ -2,8 +2,10 @@
 import { mountQuota } from "./layout.mjs";
 import { DUR, EASE } from "./motion-tokens.mjs";
 
-export const GHOST_FADE_MS = DUR.fade;
-export const GHOST_FADE_EASING = EASE.expoOut;
+// Media crossfade over a wait layer (temp card, phone color layer): 0.6s symmetric ease-in-out. The 0.45s expo-out it replaced did most of
+// the change in its first 100ms, so on a phone the photo read as appearing at once (owner 2026-11-22: "đơn giản nhất là crossfade").
+export const GHOST_FADE_MS = DUR.hover;
+export const GHOST_FADE_EASING = EASE.card;
 // One full color cycle of the phone image-wait layer: 4 dominant colors, 2s each (detail.css, [data-media-wait="colors"]).
 const COLORS_CYCLE_MS = 8000;
 // Swiping a viewport every 100ms only holds places and does not mount real cards.

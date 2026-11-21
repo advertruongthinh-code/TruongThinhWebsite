@@ -2012,11 +2012,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!batch.length) return;
     getComputedStyle(batch[0].media).opacity;
     const fading = new Map();
-    for (const { node, media } of batch) {
+    const onScreen = (node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    };
+    for (const { node, media, waited } of batch) {
       media.style.removeProperty("transition");
       // The real card replaces the temp card: the image fades in from the temp card's dominant color; with reduced motion it shows directly.
       // A card built at its target during a slide (masonry-live-layout R7) fades its media in the same way, even when the file was cached.
-      if ((node.masonryGhost || node.masonryEnter) && !reduced) {
+      // An on-screen card that waited under its color layer without a reveal of its own (held layer, or a skeleton dropped before the reveal)
+      // fades in over that layer too: shown at once, the photo replaced the breathing colors with no motion (owner 2026-11-22).
+      if ((node.masonryGhost || node.masonryEnter || (waited && onScreen(node))) && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
         fading.set(node, fades);
@@ -2040,7 +2046,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     mediaLayers(node).forEach((media) => {
       media.style.setProperty("transition", "none", "important");
       media.classList.add("is-masonry-media-ready");
-      mediaToShow.push({ node, media });
+      mediaToShow.push({ node, media, waited: node.dataset.mediaWait === "colors" });
     });
     if (!queued && mediaToShow.length) queueMicrotask(flushShownMedia);
   };
@@ -3260,6 +3266,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     cardSkeletons.set(node, { frame, colors: phone, revealing: false, animations: [] });
   };
+  // The media shows now without a reveal: the color layer stays under the fade and goes when it ends (flushShownMedia).
+  const showOverColors = (node) => {
+    const entry = cardSkeletons.get(node);
+    if (entry) entry.colors = false;
+    dropCardSkeleton(node);
+    showMedia(node);
+  };
   const dropCardSkeleton = (node) => {
     removeGhost(node);
     const entry = cardSkeletons.get(node);
@@ -3299,8 +3312,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const layer = mediaLayers(node).find((media) => !media.hidden);
     const failed = layer instanceof HTMLImageElement && !layer.naturalWidth;
     if (failed || reduced || !visibleMediaCards.has(id)) {
-      dropCardSkeleton(node);
-      if (!failed) showMedia(node);
+      if (failed) dropCardSkeleton(node);
+      else showOverColors(node);
       return;
     }
     if (!entry) {
@@ -3317,8 +3330,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       if (!visibleMediaCards.has(id)) {
-        dropCardSkeleton(node);
-        showMedia(node);
+        showOverColors(node);
         return;
       }
       const layers = mediaLayers(node);
