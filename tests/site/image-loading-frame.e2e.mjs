@@ -352,8 +352,10 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // The Flow frame or color layer goes within 0.6 s after the last image finishes loading.
-    await page.waitForFunction((selector) => !document.querySelector(selector), phoneView ? "[data-project-grid] [data-masonry-card][data-media-wait]"
+    // The Flow frame or color layer goes within 0.6 s after the last image finishes loading. On the phone a rendered card whose image has not
+    // started (outside the lazy window) keeps its color layer from the moment it is built, so only cards with a loaded image count.
+    await page.waitForFunction((selector) => ![...document.querySelectorAll(selector)].some((node) => !node.closest("[data-masonry-card]")
+      .advertisingPendingMediaId?.()), phoneView ? "[data-project-grid] [data-masonry-card][data-media-wait]"
       : "[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]", { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the Flow frame or color layer`));
     // When loading finishes the breathing stops: no attribute, animation or half-done opacity remains (image-wait spec S2).

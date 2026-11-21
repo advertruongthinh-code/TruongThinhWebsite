@@ -125,12 +125,14 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
       missing, mustMount, distance, fast, queued: (id) => host.detached.has(id), quota: host.budget.quota,
     }),
     // The placement's card: if built return the node; otherwise reattach from the queue or build new, then attach to `parent`.
-    ensure(placement, parent = root) {
+    // `ghost`: the placeholder this card replaces, set before `attach` so the card's wait layer starts from the placeholder's colors.
+    ensure(placement, parent = root, ghost = null) {
       const id = placement.card.id;
       let node = host.rendered.get(id);
       if (node) return node;
       node = host.detached.take(id) || create(placement);
       host.rendered.set(id, node);
+      node.masonryGhost = ghost;
       attach(node, placement);
       parent.append(node);
       return node;
@@ -153,11 +155,11 @@ export function createMasonryHost(root, { create, attach = () => {}, detach, wai
           continue;
         }
         const start = performance.now();
-        const reattached = host.detached.has(id);
-        const node = host.ensure(placement, fragment);
         // A reattached card already has its image so it needs no placeholder to crossfade.
-        if (reattached) host.ghosts.drop(id);
-        else node.masonryGhost = host.ghosts.take(id);
+        let ghost = null;
+        if (host.detached.has(id)) host.ghosts.drop(id);
+        else ghost = host.ghosts.take(id);
+        const node = host.ensure(placement, fragment, ghost);
         mountMs += performance.now() - start;
         created.push([node, placement]);
       }
