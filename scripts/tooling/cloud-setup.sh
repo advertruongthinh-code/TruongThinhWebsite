@@ -2,7 +2,7 @@
 # Setup script for the Claude Code cloud environment ("Default" at claude.ai/code).
 # Installs the owner's global agent stack for every cloud session and every repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena,
-# chrome-devtools, find-skills, kie-models, kie-chat-agents.
+# chrome-devtools, find-skills, kie-models, kie-chat-agents, egm (google/elephant-goldfish-model).
 # Ponytail 5 drops ponytail-mcp; the ultra rule loads via CLAUDE.md and the skill.
 #
 # Owner rule: skills, commands, agents and MCP only; the one agent hook is the secret guard
@@ -35,6 +35,7 @@ fetch dietrichgebert/ponytail 16352ac229eb08a9598dcae48fe9f2b342567d86 &
 fetch pbakaus/impeccable 414603bf14c7a344edb466bb1f85690c77ce8b7d &
 fetch ayghri/i-have-adhd 1ecea1993b7fce257ffbd686c070948b5e07eda6 &
 fetch vercel-labs/skills 92a9a34ac3bf88e695e468b90c7bf32f163d32c8 &
+fetch google/elephant-goldfish-model 7d1b721e51448518cc9b0336465041230200dd10 &
 {
   uv tool install -q --python 3.13 "graphifyy[all]==0.9.97"
   uv tool install -q --python 3.13 "serena-agent==2.1.0"
@@ -97,6 +98,8 @@ unhook "$T/src/caveman" caveman
 unhook "$T/src/ponytail" ponytail
 unhook "$T/src/impeccable/plugin" impeccable
 unhook "$T/src/i-have-adhd" i-have-adhd
+# EGM keeps its own disable-model-invocation: agents read its SKILL.md and follow it (docs/claude.md upstream).
+unhook "$T/src/elephant-goldfish-model" egm
 # Owner choice: i-have-adhd self-invokes (same as local-setup.ps1).
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
@@ -153,7 +156,7 @@ s.hooks.PreToolUse = (s.hooks.PreToolUse || []).filter((h) => !JSON.stringify(h)
 s.hooks.PreToolUse.push({ matcher: "Bash|Read|Edit|Write|Grep", hooks: [{ type: "command", command: cmd }] });
 fs.writeFileSync(f, JSON.stringify(s, null, 2));' "$CFG/settings.json" "node $T/pre-tool-guard.mjs"
 
-for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
+for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,egm,cloud-stack}/.claude-plugin/plugin.json \
   "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
   "$CFG/CLAUDE.md" "$T/pre-tool-guard.mjs" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
   "$HOME/.impeccable/bin"; do

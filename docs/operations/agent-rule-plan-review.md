@@ -1,6 +1,16 @@
 # Spec, plan cho implementer và thread reviewer
 
-Owner yêu cầu 2026-10-31. Lifecycle và human gate ở [Skill lifecycle](agent-rule-workflow-tools.md#skill-lifecycle); model, effort ở [Claude routing](agent-rule-model-routing.md#bảng-mặc-định). File này chỉ thêm hai rule: độ chi tiết của spec, plan và khi nào cần thread reviewer riêng.
+Owner yêu cầu 2026-10-31. Lifecycle và human gate ở [Skill lifecycle](agent-rule-workflow-tools.md#skill-lifecycle); model, effort ở [Claude routing](agent-rule-model-routing.md#bảng-mặc-định). File này thêm ba rule: thiết kế bằng EGM, độ chi tiết của spec, plan và khi nào cần thread reviewer riêng.
+
+## Thiết kế bằng EGM
+
+Owner chọn 2026-11-21, học theo PrintWork: việc Mức 1 (đổi giao diện, hợp đồng, vùng nhạy cảm) thiết kế bằng plugin EGM (Elephant-Goldfish Model, pin ở `tooling-versions.json`), kết hợp agent-skills theo ba chặng.
+
+1. Thiết kế: `egm-brainstorm` (hỏi owner từng câu, reviewer Goldfish phản biện) -> `egm-draft` -> `egm-review`. Skill EGM tắt tự gọi: agent đọc `SKILL.md` của skill rồi làm theo trong cùng thread, owner không phải gõ lệnh. Nháp và report ghi vào `.tmp/egm/<slug>/` (ghi dòng `EGM artifact directory: .tmp/egm/<slug>` trong prompt), không commit; chép sang Library và gắn link vào card Notion. Advisor của owner review bản đã qua Goldfish; owner duyệt thì nội dung vào `docs/specs/`, PR ghi `Design: <link>`.
+2. Thi công, test, sửa lỗi: agent-skills tự gọi cùng `ponytail` ultra; việc Mức 0 vào thẳng chặng này. Không dùng `egm-lite` cho việc nhỏ.
+3. Nghiệm thu: five-axis review như mục dưới; wrap-up session chạy `egm-drift-report docs/specs/` để đối chiếu spec với code, lệch thì báo owner chọn sửa spec hay code.
+
+Goldfish cần subagent ngữ cảnh mới: host không có thì dừng, không review trong cùng ngữ cảnh. PC đã cài `egm@egm` qua marketplace thì gỡ (`claude plugin uninstall egm@egm`) trước khi chạy `local-setup.ps1`, tránh hai bản.
 
 ## Spec và plan viết cho implementer yếu hơn
 
@@ -55,3 +65,5 @@ Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 40
 - **Finding**: một lỗi hoặc điểm cần sửa do review tìm ra.
 - **File nóng**: file nhiều thread cùng sửa, dễ conflict.
 - **Blast radius**: phạm vi code bị ảnh hưởng khi đổi một chỗ.
+- **EGM**: Elephant-Goldfish Model, plugin thiết kế: Elephant giữ ngữ cảnh và viết nháp, Goldfish review với ngữ cảnh mới.
+- **Wrap-up session**: phiên dọn cuối đợt khi mọi thread xong việc.
