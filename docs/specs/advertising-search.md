@@ -22,7 +22,7 @@ updated: 2026-11-18
 
 Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 đến 5 ảnh,
 kể cả khi gõ không dấu, gõ sai hay quên bật bộ gõ. Kết quả hiện trên lưới masonry chính, xếp theo điểm. Site không lưu câu
-tìm hay ảnh, trừ ảnh của link chia sẻ. Lưới thuộc [masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm); spec này chỉ gọi
+tìm hay ảnh. Lưới thuộc [masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm); spec này chỉ gọi
 API của lưới. Tìm trong CMS và tính vector lúc CMS lưu card thuộc [CMS](cms.md), ghi ở Gate còn mở.
 
 ## Bản đồ module
@@ -34,9 +34,9 @@ API của lưới. Tìm trong CMS và tính vector lúc CMS lưu card thuộc [C
 | `search-worker` | `/api/search`: đổi câu, ảnh thành vector, trả điểm từng input | `search-index` |
 | `search-rank` | Trình duyệt gộp điểm, ngưỡng, nhóm, dự phòng | `search-keywords`, `search-worker` |
 | `search-bar` | Thanh tìm kiếm nổi, ghép vào CTA cuối lưới | `search-rank`, lưới R6 |
-| `search-share` | Chữ trong `#`, ảnh lên R2 khi bấm Sao chép link | `search-bar` |
+| `search-share` | Chữ trong `#` (link không mang ảnh) | `search-bar` |
 
-Thứ tự làm: tìm bằng chữ (index, keywords, worker, rank, bar), rồi tìm bằng ảnh, rồi link chia sẻ có ảnh.
+Thứ tự làm: tìm bằng chữ (index, keywords, worker, rank, bar), rồi tìm bằng ảnh. Link chia sẻ có ảnh đã bỏ (owner 2026-11-18).
 
 ## Hành vi
 
@@ -100,11 +100,11 @@ Then phản hồi có 3 input, mỗi input đủ mọi card dạng [id, sText, s
 
 ### R4. Không lưu vết
 
-Worker không ghi câu tìm, ảnh hay IP vào log, KV, D1 hay R2 (trừ R10); không `console.*` dữ liệu request; gọi `env.AI.run`
+Worker không ghi câu tìm, ảnh hay IP vào log, KV, D1 hay R2; không `console.*` dữ liệu request; gọi `env.AI.run`
 không kèm `gateway`, không dùng batch API bất đồng bộ; `wrangler.static.toml` ghi `[observability] enabled = false`. Ảnh
 chỉ nằm trong bộ nhớ lúc xử lý. Vector của câu chữ được giữ trong bộ nhớ isolate 5 phút (tối đa 500 câu), khóa là SHA-256
-của câu, không giữ chữ, để câu lặp lại ra cùng kết quả (owner chọn 2026-11-18); ảnh không giữ. Ba binding rate limit, khóa là IP, đếm theo cửa sổ 60 giây, không chứa nội dung: chữ 30,
-có ảnh 10, link chia sẻ 5 lần mỗi phút. IP chung của mạng di động có thể gây 429 giả; khi đó R6 vẫn cho kết quả từ khóa.
+của câu, không giữ chữ, để câu lặp lại ra cùng kết quả (owner chọn 2026-11-18); ảnh không giữ. Hai binding rate limit, khóa là IP, đếm theo cửa sổ 60 giây, không chứa nội dung: chữ 30,
+có ảnh 10 lần mỗi phút. IP chung của mạng di động có thể gây 429 giả; khi đó R6 vẫn cho kết quả từ khóa.
 Trình duyệt giải mã ảnh bằng `createImageBitmap(blob, { imageOrientation: "from-image" })`, không xoay tay, vẽ lên canvas
 nền trắng rồi xuất JPEG chất lượng 0,85, nên EXIF và GPS không rời máy khách.
 
@@ -209,26 +209,20 @@ Then lưới về trạng thái duyệt, ô chữ giữ câu đã gõ, thanh hi�
 ### R10. Câu tìm trong link và link chia sẻ
 
 Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab, không gửi lên máy chủ; đầy bộ nhớ (`QuotaExceededError`) thì bỏ ảnh đã lưu, chỉ giữ chữ. Tìm có chữ thì thanh địa chỉ ghi
-`#q=<encodeURIComponent(chữ)>` bằng `history.replaceState` giữ nguyên state của lưới (owner 2026-11-18), bỏ tìm thì xoá; ảnh chưa vào link (chờ P8). Tải lại, Back từ card, đổi ngôn ngữ (nút
+`#q=<encodeURIComponent(chữ)>` bằng `history.replaceState` giữ nguyên state của lưới (owner 2026-11-18), bỏ tìm thì xoá; ảnh không vào link. Tải lại, Back từ card, đổi ngôn ngữ (nút
 đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại, gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#q=` (link `#tim=` cũ vẫn mở được):
 script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"` (navbar,
 breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card; lúc bắt đầu tìm rail chọn "Tất cả". Trong lúc tìm, nhóm và chip không có kết quả nào ẩn đi, số
 trên chip là số kết quả; các mục còn lại trượt về chỗ mới, mục hiện lại thì hiện dần (owner 2026-11-18). Bấm một nhóm hoặc chip thì lưới chỉ còn kết quả thuộc mục đó, câu tìm giữ nguyên, URL
 và lịch sử duyệt không đổi; bấm "Tất cả" thì về đủ kết quả.
 
-Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
-thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
-12 ký tự base62 từ `crypto.getRandomValues`; link thành `#q=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
-ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
-`Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong
-khoảng 24 giờ sau mốc). Mã hết hạn thì link vẫn tìm theo chữ và báo ảnh đã hết hạn.
+Không có nút "Sao chép link" và link không mang ảnh (owner bỏ link chia sẻ có ảnh 2026-11-18): khách chép link trên thanh
+địa chỉ, link chỉ mang chữ; ảnh chỉ nằm trong phiên của tab. Site không dùng R2.
 
 ```gherkin
-Given khách tìm "hộp đèn" kèm 2 ảnh rồi bấm Sao chép link
-When người khác mở link đó trong ngày
-Then trang tìm bằng "hộp đèn" và đúng 2 ảnh đó trên mọi card
-And đổi ngôn ngữ rồi Back từ một card thì vẫn còn câu tìm, ảnh và kết quả
-And sau 31 ngày mở lại thì chỉ tìm theo chữ, kèm thông báo ảnh đã hết hạn
+Given khách tìm "hộp đèn" kèm 2 ảnh rồi chép link trên thanh địa chỉ
+When người khác mở link đó
+Then trang tìm bằng "hộp đèn", không có ảnh
 ```
 
 ### R11. Bộ câu thử và hiệu chỉnh
@@ -254,10 +248,9 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 | Hàm public | `cardTerms(card, artifact, locale)`, `keywordScores(query, locale, artifact)`, `decodeTelex(word)`, `decodeVni(word)`, `canonical`, `plain`, `modelQuery(query, locale, artifact)` (chữ gửi model: Telex/VNI đổi sang từ catalog có dấu) (`src/search/keywords.mjs`) | R2; `keywordScores` trả `Map<id, K>` chỉ gồm card có K từ 0,4 |
 | Hàm public | `rankSearch({ inputs, keyword, config, catalogOrder, productOf })`, `suggestProducts(group, productOf)`, `keywordOnly(keyword, catalogOrder, config)` (`src/search/rank.mjs`) | `{ ids, groups: [{ name, ids, inputIdx }], unmatched }` (R5); sản phẩm gợi ý; id card theo K (R6) |
 | Endpoint | `POST /api/search` | R3; 400, 413, 429, 503 |
-| Endpoint | `POST /api/search/share`, `GET /api/search/share/<mã>/<n>` | R10 |
 | DOM hook | `[data-search-dock]` | Khe dưới tiêu đề CTA, thread masonry thêm |
 | Hàm lưới | `setResults`, `setPending`, `clearResults`, `offerResults`; sự kiện `masonry:search-left` | [Masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm) |
-| Cấu hình | `wrangler.static.toml`: `main`, `run_worker_first = ["/api/*"]`, `AI`, `ASSETS`, 3 rate limit, R2 `SEARCH_SHARE`, observability tắt | [Decision](../decisions/advertising-search-worker.md) |
+| Cấu hình | `wrangler.static.toml`: `main`, `run_worker_first = ["/api/*"]`, `AI`, `ASSETS`, 2 rate limit, observability tắt | [Decision](../decisions/advertising-search-worker.md) |
 
 ## UI
 
@@ -273,15 +266,12 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
 | R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, khung ở khe đầu trang và đường kẻ ở khe CTA, phím di con trỏ không cuộn trang, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
 | R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: tối đa 5 ảnh, không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
-| R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
 ## Gate còn mở
 
-- Chưa code: ảnh trong R10 (link chia sẻ).
-- Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI và R2 chưa kiểm; thiếu thì owner thêm quyền.
+- Token `CLOUDFLARE_API_TOKEN` của workflow có quyền Workers AI chưa kiểm; thiếu thì owner thêm quyền.
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
-- Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
 - Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
@@ -296,5 +286,5 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 - **Chỉ mục**: file chứa vector của mọi card. **K**: điểm lớp từ khóa của card.
 - **Cùng ý**: hai input có 5 card đầu trùng nhau từ 2 card. **P@5**: tỉ lệ card đúng trong 5 card đầu.
 - **Telex, VNI**: hai kiểu gõ tiếng Việt bằng phím chữ hoặc số khi chưa bật bộ gõ.
-- **Rate limit**: giới hạn số request trong một khoảng thời gian. **R2**: kho file của Cloudflare.
+- **Rate limit**: giới hạn số request trong một khoảng thời gian.
 - **Isolate**: một phiên chạy của Worker, giữ biến trong bộ nhớ giữa các request.
