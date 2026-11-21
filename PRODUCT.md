@@ -30,7 +30,7 @@ Tuyên bố “hơn 20 năm” được phép dùng. Năm thành lập chính x�
 
 Website phục vụ khách hàng, văn phòng và xưởng trong chuỗi từ khảo sát đến thi công. Tiếng Việt là source text; tiếng Anh là leaf copy tương ứng. Mỗi route cần giữ ngữ cảnh khi đổi locale, reload, dùng keyboard hoặc touch.
 
-Địa chỉ trụ sở đã được owner xác nhận và phải dùng đúng chuỗi sau trong footer và các nội dung địa chỉ:
+Địa chỉ trụ sở đã được owner xác nhận và phải dùng đúng chuỗi sau trong footer và các nội dung địa chỉ, giữ nguyên ở cả locale VI và EN (không dịch tên riêng hành chính):
 
 `E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long`
 
@@ -86,7 +86,7 @@ Public canonical routes theo locale:
 
 Các đường dẫn legacy không locale (`/`, `/nha-o/`, `/kinh-doanh/`, `/quang-cao/`, `/gioi-thieu/`) không phải route canonical; không dùng chúng làm route public mới. Chỉ Worker CMS (`src/worker/`, chưa bật) chuyển hướng chúng về route locale canonical. Bản static hiện tại không chuyển hướng: `/` phục vụ thẳng trang chủ tiếng Việt, bốn path còn lại trả 404. Root repository là source của website, không phải lý do để tạo thêm hierarchy public.
 
-Quy trình nội dung canonical có năm bước: **Khảo sát → Tư vấn → Sản xuất → Lắp đặt → Hậu mãi** (owner thêm Hậu mãi 2026-10-15). Bàn giao, khi có trong hồ sơ dự án, là phần kết thúc của lắp đặt, không tạo bước riêng. Hậu mãi là cam kết chung, không ghi thời hạn hay điều khoản bảo hành khi owner chưa xác nhận.
+Quy trình nội dung canonical có năm bước: **Khảo sát → Tư vấn → Sản xuất → Lắp đặt → Hậu mãi** (owner thêm Hậu mãi 2026-10-15). Thứ tự này là câu chuyện năng lực và là acceptance check, không đổi theo route. Bàn giao, khi có trong hồ sơ dự án, là phần kết thúc của lắp đặt, không tạo bước riêng. Hậu mãi là cam kết chung, không ghi thời hạn hay điều khoản bảo hành khi owner chưa xác nhận.
 
 Ràng buộc public:
 
@@ -114,7 +114,6 @@ Ràng buộc public:
 Các nguồn chuẩn đã đọc cho bản ghi này:
 
 - Route và copy contract: `docs/specs/detail-pages.md`.
-- Địa chỉ đã xác nhận: `docs/decisions/head-office-address-confirmed.md`.
 - Public source: `src/site/`, đặc biệt `src/site/style.css`, các route locale và `src/site/advertising-products/`.
 - Architecture boundary: `docs/architecture.md`.
 - Brand geometry: `design-system/brand.md`; giọng văn: `design-system/content.md`.

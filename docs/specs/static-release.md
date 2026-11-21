@@ -197,12 +197,12 @@ And không bước nào gọi Wrangler hoặc deploy
 ### R11. Phát hành demo Cloudflare
 
 `wrangler.static.toml`: Worker `truong-thinh-demo` có asset và script chỉ cho `/api/*`, `workers_dev`, `[assets] directory = ".site-output"`,
-`not_found_handling = "404-page"`, `main` và binding theo [decision tìm kiếm](../decisions/advertising-search-worker.md). Path không có file trả 404 kèm `404.html` gần nhất:
+`not_found_handling = "404-page"`, `main` và binding theo [spec tìm kiếm](advertising-search.md#giao-diện-và-dữ-liệu). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
 `pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
+`CLOUDFLARE_ACCOUNT_ID` (không nằm trong repo hay chat); log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy: agent không deploy tay, chỉ `--dry-run`; owner deploy tay được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
 
 ```gherkin
@@ -218,8 +218,8 @@ And CI đỏ, PR hoặc push từ fork không deploy
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Mở CMS theo
-[khóa Wrangler](../decisions/wrangler-deferred-until-cms.md), [spec CMS](cms.md).
+`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+theo [điều kiện mở CMS](cms.md#điều-kiện-mở-cms-phase).
 
 ```gherkin
 Given phase tĩnh

@@ -159,6 +159,26 @@ When nhấn chuột giữa lên một link
 Then không có biểu tượng gốc
 ```
 
+### R7. Trên 60fps trên phone Android
+
+Phone Android, Chrome thật, màn 90Hz: mọi trang public và mọi hiệu ứng (cuộn, mở và đóng chi tiết, viewer, menu,
+skeleton, Kính) có fps trung bình của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên, hướng tới tần số
+quét của màn (`90fps`, `11.1ms`). Fps trung bình là số frame chia tổng khoảng present-to-present trong lượt đo, bỏ khoảng
+lặng từ `100ms` (trang đứng yên, không phải giật). Long task không còn là điều kiện pass; p5 và long task vẫn ghi để tìm
+chỗ giật. Màn chỉ có video đang phát, không cử chỉ: đạt khi video hiện đủ mọi frame của clip, không frame rơi
+(`requestVideoFrameCallback`, `getVideoPlaybackQuality`), không chấm fps SurfaceFlinger vì màn chỉ đổi hình theo nhịp clip;
+cử chỉ và hiệu ứng trên màn đó vẫn chấm `60fps`. Gate này thay mọi sàn `30fps` riêng của spec khác; spec khác chỉ link
+về đây. Không hạ độ phân giải hay bỏ hiệu ứng đã duyệt để đạt gate; phải đổi thiết kế thì báo owner kèm số đo trước.
+Đo trên máy thật ([Android thật](../operations/android-real-device-debugging.md)), vì CDP throttling trên cloud chỉ là
+ước lượng: cử chỉ thật qua `adb shell input swipe`, nguồn chính `dumpsys SurfaceFlinger --timestats`, phụ là probe rAF và
+long task (`tests/site/scroll-trace.mjs`); `dumpsys gfxinfo` không dùng được vì Chrome vẽ qua surface riêng.
+
+```gherkin
+Given phone Android thật, màn 90Hz, trang Advertising
+When cuộn nhanh bằng `adb shell input swipe` và mở rồi đóng một detail
+Then fps trung bình của layer Chrome từ 60fps trở lên
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -185,12 +205,15 @@ làm tròn theo pixel màn hình, nên không răng cưa ở tỉ lệ 100%, 125
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
 | R6 | `tests/site/middle-autoscroll.e2e.mjs` (1440px: chế độ dính, nhấn giữ kéo, vận tốc ở 116px và 216px theo công thức Chrome, icon bám pixel ở DPR 1, 1.25, 1.5, dừng bằng lăn, nút, phím; link, viewer, menu, 390px, giảm chuyển động không bắt đầu) |
+| R7 | Máy thật qua `adb`: `dumpsys SurfaceFlinger --timestats`, `tests/site/scroll-trace.mjs`; không chạy được trên cloud |
 
 ## Chú thích thuật ngữ
 
 - **Smooth scroll**: cuộn có quán tính do Locomotive tính, thay vì nhảy theo từng nấc chuột.
 - **Parallax**: lớp nền trôi khác tốc độ với chữ khi cuộn, tạo chiều sâu.
 - **Speed `-2`**: độ lệch bằng khoảng cách tâm viewport tới tâm phần tử nhân `0.2`, tức trôi chậm hơn 20%.
+- **Fps trung bình**: số frame chia tổng thời gian giữa các frame trong lượt đo.
+- **SurfaceFlinger**: dịch vụ Android ghép và đưa frame lên màn.
 - **Frame rớt**: frame trình duyệt không vẽ kịp trong nhịp màn hình, mắt thấy là khựng.
 - **Task trên 50ms**: việc chặn luồng chính đủ lâu để cuộn và nhập liệu bị trễ.
 - **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh tại trang card `p/<id>`.

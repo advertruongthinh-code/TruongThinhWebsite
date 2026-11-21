@@ -1,6 +1,6 @@
 # Tài liệu Trường Thịnh
 
-Bắt đầu bằng [STATE](STATE.md), rồi chọn nguồn theo việc cần làm. Git `main` giữ kiến thức
+Bắt đầu bằng [trang Notion Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824) và card của task, rồi chọn nguồn theo việc cần làm. Git `main` giữ kiến thức
 đã chấp nhận; [Notion](operations/notion.md) chỉ giữ backlog card. Evidence của mỗi thay đổi
 nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git show <commit>:<path>`.
 
@@ -11,7 +11,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Mục tiêu và phase | [Goal](goal.md): static (đang ở), CMS (chưa mở) |
 | Tech stack, runtime, ownership, deploy | [Architecture](architecture.md#tech-stack), [phát hành tĩnh](specs/static-release.md) |
 | Sửa một phần website | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống): mỗi phần một spec sống |
-| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo đổi màu khi chuyển trang](specs/logo-route-crossfade.md), [mở trực tiếp giống chuyển trang](specs/first-load-parity.md), [chữ hero và khoảng cách dòng](specs/hero-typography.md), [bộ khối theo Espacio](specs/layout-library.md), [công trình](specs/projects.md), [News](specs/news.md) (planned) |
+| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn và gate 60fps phone Android](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo đổi màu khi chuyển trang](specs/logo-route-crossfade.md), [mở trực tiếp giống chuyển trang](specs/first-load-parity.md), [chữ hero và khoảng cách dòng](specs/hero-typography.md), [bộ khối theo Espacio](specs/layout-library.md), [công trình](specs/projects.md), [News](specs/news.md) (planned) |
 | Advertising | [Masonry dùng chung](specs/masonry.md), [masonry Advertising](specs/advertising-masonry.md), [masonry xếp trực tiếp](specs/masonry-live-layout.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang và related](specs/advertising-cta-center-parallax.md), [phân loại](specs/advertising-taxonomy.md), [tìm kiếm theo nghĩa](specs/advertising-search.md) (planned) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [SEO media](specs/media-seo.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md), [player video primary](specs/primary-video-player.md), [video thích ứng mạng](specs/video-delivery.md), [ảnh JPEG XL progressive và thứ tự tải](specs/progressive-loading.md) (planned) |
 | SEO, Google, bot AI | [SEO](specs/seo.md), planned, tạm dừng tới khi đủ feature website |
@@ -20,7 +20,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Reference hành vi | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo), [Pinterest photo view](reference/pinterest-photo-view.md); không tự thành target |
 | Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) (mỗi họ một file, chỉ nạp họ cần) |
 | Gate NOT PASS còn mở | Mục "Gate còn mở" của spec sở hữu |
-| Quyết định | [Decisions](decisions/index.md) |
+| Quyết định | ADR trên Notion; quyết định đã duyệt nằm trong spec sở hữu |
 | Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [bộ test CI](specs/ci-test-suites.md), [test không phụ thuộc nội dung](specs/content-independent-tests.md), [Android thật](operations/android-real-device-debugging.md) |
 | Tên gọi | [Tên gọi chuẩn](terminology.md) |
 | Giấy phép bên thứ ba | [Thông báo](third-party-notices.md) |
@@ -46,17 +46,19 @@ target. Spec chỉ link contract ngoài phần của mình, không giữ bản s
 
 ## Supersession
 
-Decision đã duyệt đổi: tạo hoặc sửa decision mới, ghi permalink bản cũ vào `supersedes` rồi
-xóa file cũ (owner duyệt), cập nhật tài liệu sở hữu contract và mọi link trong cùng PR.
+Quyết định đã duyệt đổi: ghi ADR mới trên Notion (trang ADR), sửa chính văn spec sở hữu
+contract và mọi link trong cùng PR; Git history giữ bản cũ.
 Source đổi mà target đã duyệt chưa đổi: ghi phần lệch vào "Gate còn mở", không tự sửa
 yêu cầu thiết kế.
 
 ## Duy trì
 
-Gate docs ở [AGENTS.md](../AGENTS.md#state-và-living-docs) và `pnpm qa:docs`. Docs tổ chức
+Gate docs ở [AGENTS.md](../AGENTS.md#ssot-và-living-docs) và `pnpm qa:docs`. Docs tổ chức
 theo phần website, không tạo folder theo ngày hoặc task. Link tới `.tmp/`, `research/` và
 `source-assets/` là evidence local trên máy owner, không nằm trong gói website; thiếu raw
 artifact thì dùng kết luận trong spec và PR, không tự tạo lại.
+HTML, bundle và media của web tham khảo chỉ để research, nằm ngoài Git (`research/reference-site/`), production không load,
+Graphify bỏ qua; thông số motion lấy từ [Motion](../design-system/motion.md), không nhập từ bundle đó.
 
 ## Chú thích thuật ngữ
 
