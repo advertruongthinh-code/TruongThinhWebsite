@@ -15,7 +15,7 @@ tests:
   - tests/site/advertising-layout-pending.e2e.mjs
   - tests/site/masonry-hosts.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e814ea474c19b061cbae2
-updated: 2026-11-16
+updated: 2026-11-22
 ---
 
 # Masonry xếp trực tiếp
@@ -138,8 +138,9 @@ chỉ đặt lại tọa độ. Thứ tự media trong card không đổi; lư�
   0.5): `"clear"` do `clearResults`; `"filter"` do một lần bấm (navbar hoặc breadcrumb từ card về lưới);
   `"history"` do Back/Forward sang filter khác.
 - Khe thanh tìm kiếm: `<div data-search-dock>` rỗng ngay dưới tiêu đề CTA, trong `.detail-cta__copy`, chỉ trên trang Sản phẩm
-  quảng cáo (VI, EN, mọi trang filter và card); trang Công trình bỏ khe lúc build. Chiều cao cố định bằng CSS, `min-height` 48px,
-  bằng thanh tìm kiếm lúc dừng, cách tiêu đề `--masonry-gap` như link CTA trang Công trình, nên CTA không đổi cao sau khi lưới xếp. Khe đi theo CTA khi CTA
+  quảng cáo (VI, EN, mọi trang filter và card); trang Công trình bỏ khe lúc build. Chiều cao cố định bằng CSS, `min-height` 50px,
+  bằng thanh tìm kiếm lúc dừng, nên CTA không đổi cao sau khi lưới xếp; khoảng cách tới tiêu đề và link "Trao đổi ý tưởng" bên dưới,
+  vị trí cụm theo [Thanh tìm kiếm R4](search-bar.md#r4-khe-cta) (runtime đo và ghi `--masonry-cta-link-gap`). Khe đi theo CTA khi CTA
   chuyển vào trang card. Thanh tìm kiếm (search P6) tự chuyển vào khe; chưa có P6 hoặc không có JS thì khe là khoảng trống.
 - Kết quả không lưu trong history: sau F5, đổi ngôn ngữ hoặc Back tải lại hẳn trang, lưới về chế độ duyệt; trang tìm kiếm gọi lại
   `setResults` nếu vẫn còn truy vấn.

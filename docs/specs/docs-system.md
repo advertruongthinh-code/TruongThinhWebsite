@@ -81,7 +81,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | adv-detail | `advertising-detail.md` | `masonry/suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
 | adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
-| adv-search | `advertising-search.md` | `src/search/`, `src/site/search/`, `scripts/search/`: tìm kiếm theo nghĩa (planned) | |
+| adv-search | `advertising-search.md` | `src/search/`, `src/site/search/`, `scripts/search/`: tìm kiếm theo nghĩa (planned) | `search-bar.md` |
 | glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
 | media | `media-delivery.md` | biến thể ảnh, `media-lib/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
 | progressive | `progressive-loading.md` | `sw.js`, `media-lib/colors.mjs` | |

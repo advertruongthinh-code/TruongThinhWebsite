@@ -1,12 +1,12 @@
-/* Search bar (advertising-search R7): approved prototype variant 1 "Đường kẻ", in site tokens. Floats in .search-host, docks in
-   [data-search-dock-top] over the hero rail and in [data-search-dock] under the CTA heading (both slots 48px: row 44px + frame or rule).
-   The host is as wide as the docked bar, so a bar leaving a slot starts from its docked width and narrows to 760px. */
+/* Search bar (search-bar R1 to R5, mock approved 2026-11-22): one white block, 1px ink border, in three places. Floats in .search-host,
+   docks in [data-search-dock-top] over the hero rail and in [data-search-dock] under the CTA heading (slots 50px: row 48px + border).
+   Only place, width and shadow change between places; the floating block also opens a chip row while there are results. */
 .search-host {
-  --search-row-h: 60px;
+  --search-row-h: 48px;
   position: fixed;
   z-index: 974;
   left: 50%;
-  bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(35px + env(safe-area-inset-bottom, 0px));
   width: min(1000px, 100% - 32px);
   transform: translateX(-50%);
   pointer-events: none;
@@ -17,17 +17,8 @@ body.is-detail .search-host {
   display: none;
 }
 
-.search-bar [hidden],
-.detail-cta[data-masonry-grid-cta] .detail-cta__copy .legacy-link[hidden] {
-  display: none;
-}
-
-/* detail.css styles every link in the CTA copy (flex, max-content, top margin); the docked bar lives there. */
-.detail-cta[data-masonry-grid-cta] .search-bar a.search-bar__talk {
-  display: flex;
-  width: auto;
-  min-height: 0;
-  margin: 0 0 0 6px;
+.search-bar [hidden] {
+  display: none !important;
 }
 
 .search-bar {
@@ -39,6 +30,8 @@ body.is-detail .search-host {
      (Floating CTA, route uncover); 700ms read too fast (owner 2026-11-18). */
   --search-morph: 1s;
   --search-ease: var(--ease-card);
+  --search-hair: color-mix(in srgb, var(--ink) 14%, transparent);
+  --search-shadow: 0 12px 32px rgb(0 0 0 / 18%);
 }
 
 .search-bar__sr {
@@ -52,61 +45,221 @@ body.is-detail .search-host {
 
 .search-bar__icon {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
 }
 
-/* Both ways morph at the same pace (owner 2026-11-18): the docked rules below set the arrival, these the departure. */
+/* The block. Floating: 560px, 760px with results, shadow. Docked: the slot's width, no shadow. The chip row is the first grid row,
+   0fr until there are results, so it opens with the same morph as the width. */
 .search-bar__shell {
   position: relative;
-  width: min(760px, 100%);
+  display: grid;
+  grid-template-rows: 0fr auto;
+  width: min(560px, 100%);
   margin-inline: auto;
   border: 1px solid var(--ink);
   background: var(--paper);
-  transition: width var(--search-morph) var(--search-ease), border-color var(--search-morph) var(--search-ease), background-color var(--search-morph) var(--search-ease);
+  box-shadow: var(--search-shadow);
+  transition: width var(--search-morph) var(--search-ease), box-shadow var(--search-morph) var(--search-ease),
+    grid-template-rows var(--search-morph) var(--search-ease);
+}
+
+.search-bar[data-results]:not(.is-docked) .search-bar__shell {
+  grid-template-rows: 1fr auto;
+  width: min(760px, 100%);
+}
+
+.search-bar.is-docked .search-bar__shell {
+  width: min(1000px, 100%);
+  box-shadow: 0 0 0 transparent;
+}
+
+/* Focus in the input: the border grows 1px inward, no outline (search-bar R1). */
+.search-bar__shell:has(input:focus) {
+  box-shadow: var(--search-shadow), inset 0 0 0 1px var(--ink);
+}
+
+.search-bar.is-docked .search-bar__shell:has(input:focus) {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.search-bar :is(button, a):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Chip row (search-bar R2): products with results; again on the chip in use returns to all results. */
+.search-bar__chips {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.search-bar__chiprow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 44px;
+  padding: 0 14px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--search-hair);
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.search-bar__chiprow::-webkit-scrollbar {
+  display: none;
+}
+
+.search-bar__chiprow[data-more] {
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+
+.search-bar__chip {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.search-bar__chip b {
+  font-weight: inherit;
+}
+
+.search-bar__chip[aria-pressed="true"],
+.search-bar__chip:hover {
+  color: var(--ink);
+}
+
+.search-bar__chip[aria-pressed="true"] b {
+  text-decoration: underline 2px;
+  text-underline-offset: 5px;
+}
+
+.search-bar__chip sup {
+  margin-left: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 0;
+  vertical-align: 0.5em;
+}
+
+.search-bar.is-docked .search-bar__chips {
+  visibility: hidden;
 }
 
 .search-bar__row {
   display: flex;
   align-items: center;
-  height: var(--search-row-h);
+  height: var(--search-row-h, 48px);
+  min-height: 48px;
   margin: 0;
-  /* Optical, not equal (owner 2026-11-18): the first letter's stem sits 21px in; the magnifier's thin handle tip 18px from the
-     end, which reads as the same distance because its mass (the ring) sits further in. Phones reach 18px with their 40px tools. */
-  padding: 0 4px 0 10px;
-  transition: height var(--search-morph) var(--search-ease);
+  padding: 0 4px 0 18px;
 }
 
-.search-bar__row input {
+/* The input with two layers over it: the rotating tip (instead of the placeholder, which stays for screen readers) and notices. */
+.search-bar__field {
+  position: relative;
   flex: 1;
-  width: 0;
   min-width: 0;
   height: 100%;
-  padding: 0 10px;
+  overflow: hidden;
+}
+
+.search-bar__field input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
   border: 0;
   outline: none;
   background: transparent;
   color: inherit;
   font: inherit;
+  /* 16px everywhere: iOS zooms into a smaller input (search-bar R1, an intended difference from the mock's 15px). */
   font-size: 16px;
 }
 
-.search-bar__row input::placeholder {
+.search-bar__field input::placeholder {
+  color: transparent;
+}
+
+.search-bar__field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search-bar__hint,
+.search-bar__note {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.search-bar__hint > span,
+.search-bar__note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 16px;
+}
+
+.search-bar__hint > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  align-content: center;
+  text-overflow: ellipsis;
   color: var(--muted);
 }
 
-.search-bar__row input::-webkit-search-cancel-button {
-  appearance: none;
+.search-bar__field input:not(:placeholder-shown) ~ .search-bar__hint,
+.search-bar.has-note .search-bar__hint {
+  visibility: hidden;
+}
+
+/* A notice hides the typed text for its 4 seconds; it reads darker than a tip. */
+.search-bar.has-note .search-bar__field input {
+  color: transparent;
+}
+
+.search-bar__note {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.search-bar__note span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-bar__note button {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .search-bar__tool {
   display: grid;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   place-items: center;
   border: 0;
@@ -123,93 +276,44 @@ body.is-detail .search-host {
   color: var(--muted);
 }
 
-.search-bar__row input:placeholder-shown ~ .search-bar__clear {
+.search-bar__row:has(input:placeholder-shown) .search-bar__clear {
   display: none;
 }
 
 .search-bar__sep {
   flex: none;
   width: 1px;
-  height: 26px;
-  margin: 0 6px;
-  background: var(--line);
+  height: 22px;
+  margin: 0 4px;
+  background: var(--search-hair);
 }
 
-.search-bar__rule {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 3px;
-  background: var(--ink);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--search-morph) var(--search-ease);
-}
-
-.search-bar__talk {
-  display: flex;
+/* One image (search-bar R3): its thumbnail takes the image button's place; the block never grows. */
+.search-bar__media {
+  display: grid;
   flex: none;
-  align-items: center;
-  max-width: 0;
-  height: 100%;
-  position: relative;
-  /* Closed it takes no room at all, so the search icon keeps the row's end padding (optical spacing, owner 2026-11-18). */
-  margin-left: 0;
-  padding: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-  clip-path: inset(0 100% 0 0);
-  visibility: hidden;
-  pointer-events: none;
-  transition: max-width var(--search-morph) var(--search-ease), padding var(--search-morph) var(--search-ease), clip-path var(--dur-hover) var(--search-ease), visibility 0s linear var(--search-morph);
-}
-
-/* The same short divider as .search-bar__sep (owner 2026-11-18: both lines equal, the short one is right). */
-.search-bar__talk::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 1px;
-  height: 26px;
-  margin-top: -13px;
-  content: "";
-  background: var(--line);
-}
-
-.search-bar__talk .search-bar__icon {
-  margin-left: 10px;
-  stroke-width: 2.4;
-}
-
-/* Image tray (R8): thumbnails, "n/5 ảnh" and a short note for image problems, inside the bar above the input row. */
-.search-bar__tray {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px 4px;
-}
-
-.search-bar__thumbs {
-  display: flex;
-  gap: 8px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
 }
 
 .search-bar__thumb {
   position: relative;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  background: var(--line);
+  width: 30px;
+  height: 30px;
 }
 
-.search-bar__thumb img {
+.search-bar__retake {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.search-bar__retake img {
   display: block;
   width: 100%;
   height: 100%;
@@ -221,8 +325,8 @@ body.is-detail .search-host {
   top: -6px;
   right: -6px;
   display: grid;
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   padding: 0;
   place-items: center;
   border: 0;
@@ -231,48 +335,17 @@ body.is-detail .search-host {
   cursor: pointer;
 }
 
-/* 20px to the eye, 32px to the finger. */
+/* 14px to the eye, 32px to the finger. */
 .search-bar__unthumb::before {
   position: absolute;
-  inset: -6px;
+  inset: -9px;
   content: "";
 }
 
 .search-bar__unthumb .search-bar__icon {
-  width: 10px;
-  height: 10px;
-  stroke-width: 3.2;
-}
-
-.search-bar__count {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 12.8px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-align: right;
-  text-transform: uppercase;
-}
-
-/* Notes (image problems, no result) read as small grey text, like the count (owner 2026-11-18). */
-.search-bar__note {
-  color: var(--muted);
-}
-
-.search-bar__count button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--blue);
-  font: inherit;
-  letter-spacing: inherit;
-  text-decoration: underline;
-  text-transform: inherit;
-  cursor: pointer;
+  width: 8px;
+  height: 8px;
+  stroke-width: 3.6;
 }
 
 /* Files dragged over the page. */
@@ -304,93 +377,50 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Docked: row 44px like the Projects CTA link, text 16px like that link (owner 2026-11-18); shell = row + 2px border = slot - 2px.
-   Over the hero it keeps the floating bar's frame (owner 2026-11-18); at the CTA the border and the white ground melt into a ruled
-   line over the CTA background (owner 2026-11-17: no white box) and "Trao đổi ý tưởng" opens at the end of the line. */
-.search-bar.is-docked .search-bar__shell {
-  width: min(1000px, 100%);
-}
+/* Phone back-to-top (search-bar R5): while the bar floats it is white like the block, on its own row above the block's right end;
+   with the bar in a slot it stays out. */
+@media (hover: none) and (pointer: coarse) {
+  body[data-search-place="float"] .back-to-top {
+    right: var(--search-block-right, 16px);
+    bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
+    box-sizing: border-box;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  }
 
-.search-bar.is-docked[data-dock="cta"] .search-bar__shell {
-  border-color: transparent;
-  background: transparent;
-}
+  body[data-search-place="cta"] .back-to-top.show {
+    transform: translateX(150%);
+  }
 
-.search-bar.is-docked .search-bar__row {
-  height: 44px;
-}
+  /* Keyboard open: only the input row stays above it. */
+  .search-bar:not(.is-docked):has(input:focus) .search-bar__shell {
+    grid-template-rows: 0fr auto;
+  }
 
-/* The CTA slot has a fixed height: the docked tray hangs below the ruled line. Over the hero it stays in flow and pushes the rail. */
-.search-bar.is-docked .search-bar__tray {
-  padding: 0 0 8px;
-}
-
-.search-bar.is-docked[data-dock="cta"] .search-bar__tray {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  left: 0;
-  padding: 0;
-}
-
-.search-bar__shell:focus-within .search-bar__rule,
-.search-bar.is-docked[data-dock="cta"] .search-bar__rule {
-  transform: scaleX(1);
-}
-
-/* "Trao đổi ý tưởng" opens at the CTA only; over the hero the bar is for finding. */
-.search-bar.is-docked[data-dock="cta"] .search-bar__talk {
-  max-width: 320px;
-  padding-left: 20px;
-  clip-path: inset(0 0 0 0);
-  visibility: visible;
-  pointer-events: auto;
-  transition: max-width var(--search-morph) var(--search-ease), padding var(--search-morph) var(--search-ease), clip-path 700ms var(--search-ease) 300ms, visibility 0s;
+  body:has(.search-bar input:focus) .back-to-top {
+    visibility: hidden;
+  }
 }
 
 @media (max-width: 750px) {
   .search-host {
-    --search-row-h: 56px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
-  .search-bar__tool {
-    width: 40px;
+  .search-bar__shell,
+  .search-bar[data-results]:not(.is-docked) .search-bar__shell {
+    width: 100%;
   }
+}
 
-  .search-bar__row {
-    padding-right: 6px;
-  }
-
-  .search-bar__sep {
-    margin: 0 2px;
-  }
-
-  .search-bar__talk {
-    font-size: 12px;
-  }
-
-  .search-bar.is-docked[data-dock="cta"] .search-bar__talk {
-    padding-left: 10px;
-  }
-
-  .detail-cta[data-masonry-grid-cta] .search-bar a.search-bar__talk {
-    margin-left: 2px;
-  }
-
-  .search-bar__talk .search-bar__icon {
-    margin-left: 6px;
-    width: 14px;
-    height: 14px;
-  }
-
-  .search-bar__long,
-  .search-bar.is-docked[data-dock="cta"] .search-bar__go,
-  .search-bar.is-docked[data-dock="cta"] .search-bar__sep {
-    display: none;
-  }
-
-  .search-bar.is-docked[data-dock="cta"] .search-bar__talk {
-    max-width: 120px;
+@media (hover: none) and (pointer: coarse) and (max-width: 750px) {
+  body[data-search-place="float"] .back-to-top {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 }
 

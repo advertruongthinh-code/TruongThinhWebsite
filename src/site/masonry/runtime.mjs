@@ -1771,6 +1771,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridCta = container.querySelector("[data-masonry-grid-cta]");
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
+  // With the search slot the CTA anchors the heading-and-bar cluster at the optical centre instead of the last baseline (search-bar R4).
+  const gridCtaSlot = gridCtaCopy?.querySelector("[data-search-dock]");
+  const gridCtaLabel = gridCtaCopy?.querySelector(".legacy-link .portal-subtitle");
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".masonry-section");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
@@ -2305,11 +2308,31 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Measure the revealed state: remove the line's current reveal offset, then place it at 0.1em like detail.js.
     const reveal = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42
       + 0.1 * Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize) : 0;
-    const copyRect = gridCtaCopy.getBoundingClientRect();
+    let copyRect = gridCtaCopy.getBoundingClientRect();
     const baseline = ctaBaselineProbe.getBoundingClientRect().top - copyRect.top - reveal;
     ctaBaselineProbe.remove();
-    return { baseline, below: copyRect.height - baseline };
+    if (!gridCtaSlot) return { baseline, below: copyRect.height - baseline };
+    // Equal optical space around the bar: heading baseline to bar top = bar bottom to the link's capitals (about 0.3em below its box top).
+    let slotRect = gridCtaSlot.getBoundingClientRect();
+    // The label sits inside the link's 44px tap box; its capitals start about 0.3em below the label's top.
+    const capOffset = gridCtaLabel ? gridCtaLabel.getBoundingClientRect().top - gridCtaLabel.closest("a").getBoundingClientRect().top
+      + 0.3 * Number.parseFloat(getComputedStyle(gridCtaLabel).fontSize) : 0;
+    gridCta.style.setProperty("--masonry-cta-link-gap", `${slotRect.top - copyRect.top - baseline - capOffset}px`);
+    copyRect = gridCtaCopy.getBoundingClientRect();
+    slotRect = gridCtaSlot.getBoundingClientRect();
+    // "baseline" is the anchor: the centre between the heading's top and the bar's bottom.
+    const anchor = (gridCtaHeading.getBoundingClientRect().top + slotRect.bottom) / 2 - copyRect.top;
+    return { baseline: anchor, below: copyRect.height - anchor };
   };
+  // Distance from the batch bottom (the footer's top at the scroll limit) up to the anchor. Search slot: the optical centre of the room
+  // between header and footer, 5% of that room above its middle; otherwise the viewport's middle.
+  // At the scroll limit the header is collapsed: 10px padding top and bottom, its row, a 1px border (style.css .site-header.is-collapsed).
+  // Phones reach the end scrolling down, which slides the header away (phone-header-scroll R2): the room starts at the screen's top.
+  const followHeader = matchMedia("(hover: none) and (pointer: coarse) and (max-width: 750px), (hover: none) and (pointer: coarse) and (max-height: 750px)");
+  const ctaHeaderHeight = () => (gridCtaSlot && !followHeader.matches
+    ? 21 + (Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) || 0) : 0);
+  const ctaAnchorGap = (viewportHeight, footerHeight, headerHeight) => (gridCtaSlot
+    ? 0.55 * (viewportHeight - headerHeight - footerHeight) : viewportHeight / 2 - footerHeight);
   // Shrink the heading just enough that the space below the last baseline is sufficient, no smaller than 1.3rem.
   const fitGridCtaHeading = (room) => {
     gridCtaHeading.style.removeProperty("font-size");
@@ -3459,7 +3482,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
     const viewportHeight = getLayoutViewportHeight();
     const footerHeight = siteFooter?.offsetHeight || 0;
-    const room = viewportHeight / 2 - footerHeight - gap;
+    const headerHeight = ctaHeaderHeight();
+    const room = ctaAnchorGap(viewportHeight, footerHeight, headerHeight) - gap;
     const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
@@ -3471,11 +3495,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
       gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
+      if (gridCtaSlot) gridCta.style.setProperty("--masonry-cta-anchor", `calc(0.55 * (100dvh - ${headerHeight + footerHeight}px))`);
       // The settled mark (it turns on the copy's transition) waits until the batch build has computed style with these values; a frame
       // between the fit task and the build task would otherwise animate the copy into place.
       ctaSettlePending = true;
     }
-    return { viewportHeight, footerHeight };
+    return { viewportHeight, footerHeight, headerHeight };
   };
   // `split` (first load only): build the frames into the hidden batch in this task, then reveal it, place the Kính and start Flow in a task after
   // the next frame, so the batch's style and layout do not land in the build task (A04s: the 52ms first-load build, PR 5 device run 2).
@@ -3502,13 +3527,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       setStyleVar(gridCta, "--masonry-gap", `${gap}px`);
       gridCta?.style.removeProperty("visibility");
     }
-    const { viewportHeight, footerHeight } = fitCtaCopy(gap);
+    const { viewportHeight, footerHeight, headerHeight } = fitCtaCopy(gap);
     lastCtaViewportHeight = viewportHeight;
     // The batch top is set directly on the CTA cluster (the only place that uses it), in both yards: an inherited variable changed on the canvas
     // or on .masonry-section recomputes style for every card under it (A04s-class CPU: about 20ms per build).
     setStyleVar(gridCta, "--masonry-cta-top", `${ctaTop}px`);
     // The last baseline sits D above the batch bottom; if the window is too short, the button keeps a gap from it.
-    const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
+    const baselineGap = Math.max(ctaAnchorGap(viewportHeight, footerHeight, headerHeight), gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(hostGeometry.cardWidth * 0.25) + 1,
       viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
     const nextCtaGeometryHash = `${detailHost ? "detail" : "grid"}:${hostGeometry.coordinateHash}:${tailHeight.toFixed(3)}`;
