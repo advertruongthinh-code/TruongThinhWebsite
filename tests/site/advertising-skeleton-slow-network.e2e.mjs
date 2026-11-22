@@ -412,8 +412,10 @@ try {
     assert.ok(frost.copies > 0 && frost.uploads > 0, `burst: cards reveal through frosted glass ${JSON.stringify(frost)}`);
     const states = await cardStates(page);
     assert.deepEqual(states.filter(({ loaded, skeleton, marked, glass }) => loaded && (skeleton || marked || glass)), [], "burst: revealed cards drop Flow, mark and Kính");
+    // A slideshow card keeps its next image loaded in a hidden layer (media-card R4, owner 2026-11-22); only shown images count.
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]
-      .filter((image) => image.naturalWidth && getComputedStyle(image).opacity !== "1").length), 0, "burst: no loaded image stuck below opacity 1");
+      .filter((image) => image.naturalWidth && image.getClientRects().length && getComputedStyle(image).opacity !== "1").length), 0,
+    "burst: no loaded image stuck below opacity 1");
     await context.close();
   }
 

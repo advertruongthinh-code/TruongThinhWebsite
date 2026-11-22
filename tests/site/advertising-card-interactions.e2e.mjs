@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
+const { ADVERTISING_CARDS } = await import("../../src/site/advertising-products/catalog.mjs");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 const browser = await chromium.launch({ headless: true });
@@ -37,10 +38,13 @@ try {
         const title = tile.querySelector(".masonry-card__title");
         return { scrim: scrim.backgroundColor, band: scrim.backgroundImage === "linear-gradient(rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)",
           scrimOpacity: scrim.opacity, title: title?.textContent ?? null,
-          titleOpacity: title && getComputedStyle(title).opacity, alt: tile.querySelector("img").alt };
+          titleOpacity: title && getComputedStyle(title).opacity, id: tile.dataset.masonryRelatedCard || tile.dataset.masonryCard };
       });
+      // media-card R3: the name is the card title (titleVi/titleEn), which the SEO rewrite made differ from the photo alt.
+      const cardRecord = ADVERTISING_CARDS.find((entry) => entry.id === hovered.id);
+      hovered.expectedTitle = locale === "vi" ? cardRecord?.titleVi : cardRecord?.titleEn;
       assert.equal(hovered.scrimOpacity, "1", `${locale} ${detail ? "detail" : "parent"} hover shows the overlay`);
-      assert.deepEqual([hovered.scrim, hovered.band, hovered.title, hovered.titleOpacity], ["rgba(0, 0, 0, 0)", true, hovered.alt, "1"],
+      assert.deepEqual([hovered.scrim, hovered.band, hovered.title, hovered.titleOpacity], ["rgba(0, 0, 0, 0)", true, hovered.expectedTitle, "1"],
         `${locale} ${detail ? "related" : "parent"} hover shows the card title over the Pinterest shade: ${JSON.stringify(hovered)}`);
       await page.mouse.move(0, 0);
       await page.keyboard.press("Tab");

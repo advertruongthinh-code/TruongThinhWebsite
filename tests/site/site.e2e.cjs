@@ -4809,6 +4809,20 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
+      // At the top the floating search bar covers the filter rail, so a click would first scroll the page and mount more cards than the
+      // measured cohort: bring the rail to the upper part of the view before measuring.
+      await page.evaluate(() => {
+        const rail = document.querySelector('[data-masonry-filter="all"]').getBoundingClientRect();
+        window.scrollTo({ top: scrollY + rail.top - 200, behavior: "instant" });
+      });
+      // The first window keeps mounting while the page settles (fonts, hero, catalog restore); measure the cohort once the set of mounted
+      // cards has held still for 600ms.
+      await page.waitForFunction(() => {
+        const ids = [...document.querySelectorAll("[data-project-grid] .masonry-card")].map((tile) => tile.dataset.masonryCard).join();
+        const now = performance.now();
+        if (window.__ttCohortIds !== ids) Object.assign(window, { __ttCohortIds: ids, __ttCohortSince: now });
+        return now - window.__ttCohortSince >= 600;
+      }, null, { timeout: 8_000, polling: 100 });
       const before = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
         tiles: [...grid.querySelectorAll("[data-masonry-category]")].map(
@@ -4940,7 +4954,7 @@ async function runAdvertisingFilterCheck() {
         "Settled filter DOM does not equal the expected normal virtual window");
       const allowedCohort = new Set([...before.tiles.map((tile) => tile.id), ...expectedWindow]);
       assert(cohortSnapshots.length > 1 && cohortSnapshots.every((ids) => ids.every((id) => allowedCohort.has(id))),
-        `Filter cohort escaped old/new virtual-window union: ${JSON.stringify(cohortSnapshots)}`);
+        `Filter cohort escaped old/new virtual-window union: ${JSON.stringify({ escaped: [...new Set(cohortSnapshots.flat())].filter((id) => !allowedCohort.has(id)), before: before.tiles.map((tile) => tile.id), expectedWindow: [...expectedWindow], cohortSnapshots })}`);
       assert(visible.length > 0, `${filterSlug} filter did not mount a top-page destination window`);
       assert(
         // A cluster includes cards with a secondary product in the cluster (taxonomy R1), so compare with the filter window instead of the category.
@@ -6382,11 +6396,16 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       await page.locator(`[data-masonry-card="${expected[0].id}"] a`).focus();
       const states = [];
       for (let index = 0; index < expected.length; index += 1) {
+        let state;
         if (index > 0) {
-          await page.keyboard.press("Tab");
-          await page.waitForTimeout(25);
-        }
-        const state = await readState();
+          // A multi-media card has its own media buttons after its link (media-card R7); Tab past them to the next card.
+          for (let stop = 0; stop < 8; stop += 1) {
+            await page.keyboard.press("Tab");
+            await page.waitForTimeout(25);
+            state = await readState();
+            if (state.activeId !== expected[index - 1].id) break;
+          }
+        } else state = await readState();
         assert(
           state.activeId === expected[index].id,
           `Tab left canonical advertising order before item ${index + 1}: ${JSON.stringify(state)}`,
@@ -6943,7 +6962,11 @@ async function runAdvertisingMediaFocusedChecks() {
       const initialTileIds = initial.tiles.map((tile) => tile.id);
       let timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const initialRequests = new Set(mediaRequestPaths);
-      const initialSources = new Set(initial.tiles.map((tile) => originalPath(tile.source)));
+      // A mounted card may load every one of its media: the next slide during the dwell (media-card R4, owner 2026-11-22) and, on PC,
+      // the 240 file of each other media for its frosted wait layer (media-card R5, owner 2026-11-12).
+      const cardMedia = new Map(require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
+        .map((card) => [card.id, card.mediaItems.flatMap((item) => [item.src, item.posterSrc]).filter(Boolean).map(originalPath)]));
+      const initialSources = new Set(initial.tiles.flatMap((tile) => [originalPath(tile.source), ...(cardMedia.get(tile.id) || [])]));
       assert(
         initialRequests.size > 0 && initialRequests.size < expectedCardCount &&
           [...initialRequests].every((pathname) => initialSources.has(pathname)),
@@ -6986,7 +7009,7 @@ async function runAdvertisingMediaFocusedChecks() {
         );
         // A card is pinned only once the transition runs fully (R6); a busy runner does that later than 400ms.
         await page.waitForFunction(
-          () => [...document.querySelectorAll("[data-project-grid] .masonry-card")].every((tile) => !tile.style.transform),
+          () => [...document.querySelectorAll("[data-project-grid] .masonry-card")].every((tile) => ["", "none"].includes(tile.style.transform)),
           null,
           { timeout: 3_000 },
         );
@@ -7031,12 +7054,15 @@ async function runAdvertisingMediaFocusedChecks() {
       // (media-card R3, R7 merged cards) loads its next item, which is not a lazy-window request. Park it off the grid.
       await page.mouse.move(0, 0);
       const step = 450;
+      // The shared queue never cancels a download (media-card R5, owner 2026-11-12), so a file asked for by a card mounted at an earlier
+      // step may start now: count every media of every card mounted so far.
+      const mounted = new Set(initialSources);
       for (let localY = 0; localY <= pageLayout.totalPixelHeight; localY += step) {
         const requestedBefore = new Set(mediaRequestPaths);
         await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop + localY);
         await page.waitForTimeout(180);
         const state = await settledGridState(page, pageLayout, `stepped scroll ${localY}px`);
-        const mounted = new Set(state.tiles.map((tile) => originalPath(tile.source)));
+        for (const tile of state.tiles) [originalPath(tile.source), ...(cardMedia.get(tile.id) || [])].forEach((media) => mounted.add(media));
         const requestedNow = [...mediaRequestPaths].filter((pathname) => !requestedBefore.has(pathname));
         assert(
           requestedNow.every((pathname) => mounted.has(pathname)),
@@ -7054,10 +7080,12 @@ async function runAdvertisingMediaFocusedChecks() {
       const badResponses = [...mediaResponseStatuses].filter(([, statuses]) =>
         statuses.split(",").some((status) => Number(status) !== 200));
       assert(
-        requested.size === expectedCardCount && [...expectedMediaPaths].every((pathname) => requested.has(pathname)) &&
+        // Every card shown, plus other media of multi-media cards (slideshow next image, PC 240 wait files), never a file outside the catalog.
+        [...expectedMediaPaths].every((pathname) => requested.has(pathname)) &&
+          [...requested].every((pathname) => [...cardMedia.values()].some((media) => media.includes(pathname))) &&
           responded.size === requested.size && [...requested].every((pathname) => responded.has(pathname)) &&
           badResponses.length === 0,
-        `Stepped lazy sweep did not load exactly the ${expectedCardCount} approved media paths with HTTP 200: ${JSON.stringify({ requested: [...requested], expected: [...expectedMediaPaths], badResponses })}`,
+        `Stepped lazy sweep did not load the ${expectedCardCount} card media (and only catalog media) with HTTP 200: ${JSON.stringify({ requested: [...requested], expected: [...expectedMediaPaths], badResponses })}`,
       );
 
       // The pointer is still on the filter button just clicked: a card re-attached under it runs the 600ms hover darkness (R3), not the entrance effect.
@@ -7082,6 +7110,8 @@ async function runAdvertisingMediaFocusedChecks() {
           ready: image?.classList.contains("is-masonry-media-ready"),
           opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
           runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
+          animations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running")
+            .map((animation) => `${animation.animationName || animation.transitionProperty}:${animation.effect?.target?.className}`),
         };
       }, replayFixtureId);
       // loading-glass R3, masonry R8: a card whose image already loaded shows the image immediately on re-attach, without rerunning the entrance effect.
@@ -7113,12 +7143,15 @@ async function runAdvertisingMediaFocusedChecks() {
       const focusedTarget = gridTop + Math.max(0, pageLayout.totalPixelHeight - 900);
       // html has scroll-behavior: smooth; scroll instantly so the virtual window measures correctly at focusedTarget.
       await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), focusedTarget);
-      await page.waitForTimeout(400);
       const focusedWindowCount = getVirtualWindow(pageLayout, {
         scrollTop: Math.max(0, focusedTarget - gridTop),
         viewportHeight: 900,
         overscan: 900,
       }).items.length;
+      await page.waitForTimeout(400);
+      // A busy runner unmounts the cards left behind a frame or two later; give it up to 3s before counting.
+      await page.waitForFunction((limit) => document.querySelectorAll("[data-project-grid] .masonry-card").length <= limit,
+        focusedWindowCount + 1, { timeout: 3_000 }).catch(() => {});
       const focusedState = await page.locator("[data-project-grid]").evaluate((grid, id) => {
         const retained = grid.querySelector(`[data-masonry-card="${id}"]`);
         return {
