@@ -4,11 +4,13 @@ Owner yêu cầu 2026-10-31. Lifecycle và human gate ở [Skill lifecycle](agen
 
 ## Thiết kế bằng EGM
 
-Owner chọn 2026-11-21, học theo PrintWork: việc Mức 1 (đổi giao diện, hợp đồng, vùng nhạy cảm) thiết kế bằng plugin EGM (Elephant-Goldfish Model, pin ở `tooling-versions.json`), kết hợp agent-skills theo ba chặng.
+Owner chọn 2026-11-21, học theo PrintWork: việc Mức 1 (đổi giao diện, hợp đồng, vùng nhạy cảm) có thể thiết kế bằng plugin EGM (Elephant-Goldfish Model, pin ở `tooling-versions.json`), kết hợp agent-skills theo ba chặng.
+
+Chỉ chạy EGM khi owner chỉ thị tường minh (owner 2026-11-22): owner tự viết trong thread, hoặc brief trích nguyên tin owner, rằng việc đó dùng EGM. Ví dụ hợp lệ: owner yêu cầu EGM cho spec và plan CMS ngày 2026-11-22. Không có chỉ thị thì không gọi skill `egm-*` nào, kể cả `egm-drift-report`; coordinator, advisor hay reviewer đề xuất không thay được chỉ thị owner. Khi đó việc Mức 1 thiết kế bằng `spec-driven-development`, advisor review như cũ, owner duyệt design.
 
 1. Thiết kế: `egm-brainstorm` (hỏi owner từng câu, reviewer Goldfish phản biện) -> `egm-draft` -> `egm-review`. Skill EGM tắt tự gọi: agent đọc `SKILL.md` của skill rồi làm theo trong cùng thread, owner không phải gõ lệnh. Nháp và report ghi vào `.tmp/egm/<slug>/` (ghi dòng `EGM artifact directory: .tmp/egm/<slug>` trong prompt), không commit; chép sang Library và gắn link vào card Notion. Advisor của owner review bản đã qua Goldfish; owner duyệt thì nội dung vào `docs/specs/`, PR ghi `Design: <link>`.
 2. Thi công, test, sửa lỗi: agent-skills tự gọi cùng `ponytail` ultra; việc Mức 0 vào thẳng chặng này. Không dùng `egm-lite` cho việc nhỏ.
-3. Nghiệm thu: five-axis review như mục dưới; wrap-up session chạy `egm-drift-report docs/specs/` để đối chiếu spec với code, lệch thì báo owner chọn sửa spec hay code.
+3. Nghiệm thu: five-axis review như mục dưới; việc đã có chỉ thị EGM thì wrap-up session chạy `egm-drift-report docs/specs/` để đối chiếu spec với code, lệch thì báo owner chọn sửa spec hay code.
 
 Phỏng vấn (`egm-brainstorm`, `interview-me` hay câu hỏi thường): đáp án đoán sẵn chỉ nằm trong phạm vi câu owner đã nói; thêm thiết bị, trang hay tính năng owner chưa nhắc thì hỏi câu riêng, không kèm đáp án đoán (owner 2026-11-22).
 
