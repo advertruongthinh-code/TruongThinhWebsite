@@ -52,7 +52,8 @@ try {
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   // Click a cluster: the just-shown chip row runs its entrance (opacity 0 before entering); the kicker stays still (taxonomy R3, owner 2026-11-08).
   const entrance = () => page.evaluate(() => ({
-    kickerText: document.querySelector("[data-motion-hero-kicker]").textContent.trim(),
+    // The build ties the last two words with a no-break space (hero-typography R7).
+    kickerText: document.querySelector("[data-motion-hero-kicker]").textContent.replaceAll("\u00a0", " ").trim(),
     kicker: document.querySelector("[data-motion-hero-kicker]").getAnimations().filter((a) => !(a instanceof CSSTransition)).length,
     chips: [...document.querySelectorAll(".rail-chips:not([hidden]) .rail-chip")].map((chip) => chip.getAnimations().filter((a) => !(a instanceof CSSTransition)).length),
   }));
@@ -89,7 +90,15 @@ try {
   const firstRowTop = async (cluster) => {
     await page.locator(`[data-masonry-filter="${cluster}"]`).click();
     await page.waitForFunction((c) => !document.querySelector(`[data-masonry-chips="${c}"]`).hidden
-      && [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].every((chip) => !chip.getAnimations().length), cluster);
+      // Wait for the whole staggered entrance: every chip and its label without animations and fully opaque.
+      && [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].every((chip) => !chip.getAnimations({ subtree: true }).length
+        && [chip, ...chip.children].every((node) => getComputedStyle(node).opacity === "1")), cluster);
+    // The staggered entrance may start a moment after the click (each chip waits at +20px): wait until every chip sits at its layout spot.
+    await page.waitForFunction((c) => {
+      const box = document.querySelector(`[data-masonry-chips="${c}"]`);
+      const top = box.getBoundingClientRect().top;
+      return [...box.querySelectorAll(".rail-chip")].every((chip) => Math.abs(chip.getBoundingClientRect().top - top - chip.offsetTop) < 0.5);
+    }, cluster, { timeout: 8000 });
     return page.evaluate((c) => {
       const chips = [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].map((chip) => chip.getBoundingClientRect());
       return { top: Math.round(Math.min(...chips.map((r) => r.top))), rows: new Set(chips.map((r) => Math.round(r.top))).size,
@@ -119,7 +128,7 @@ try {
   assert.ok(menuIds.size >= 10, "Menu has all 10 cards");
   assert.deepEqual(menuShown.sort(), [...menuIds].sort(), "masonry has only Menu cards");
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
-  assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).trim(), "Sản phẩm tiêu biểu", "kicker unchanged when filtering a product");
+  assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).replaceAll("\u00a0", " ").trim(), "Sản phẩm tiêu biểu", "kicker unchanged when filtering a product");
   await page.locator('[data-masonry-filter="all"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "chip row hidden when returning to Tất cả");
@@ -138,7 +147,8 @@ try {
   await page.goto(`${baseUrl}${menuUrl}`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-masonry-card]");
   assert.equal(await page.evaluate(() => location.pathname), menuUrl);
-  assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), menuUrl);
+  // Canonical is absolute on the live domain since the SEO audit (57d259cf).
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), `https://truongthinhads.vn${menuUrl}`);
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
   // A lost product page URL (dropped below the R5 threshold) returns the cluster 404 and then redirects to the cluster page.
   const gone = await page.goto(`${baseUrl}/vi/advertising-products/in-an-decal/da-go/?utm=a`);

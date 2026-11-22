@@ -5925,7 +5925,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             const kickerRect = rect(kicker);
             const filtersRect = rect(element.querySelector(".project-filters"));
             const scrollCue = element.querySelector(".detail-index-hero__scroll");
-            const scrollRect = rect(scrollCue);
+            // Masonry pages drop the "Cuộn xuống" cue (owner 2026-11-18).
+            const scrollRect = scrollCue && rect(scrollCue);
             const gridRect = rect(document.querySelector("[data-project-grid]"));
             const firstImageRect = rect(
               document.querySelector("[data-project-grid] img"),
@@ -5941,7 +5942,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               backgroundIsWhite: isWhite(styles.backgroundColor),
               filterBorders: [...element.querySelectorAll(".project-filter")].map((filter) => getComputedStyle(filter).borderStyle),
               hasHeroSlides: element.querySelector(".hero-slides") !== null,
-              hasHeroMedia: Boolean(element.querySelector("img, figure")),
+              // The search bar (root Advertising page only, owner 2026-11-22) keeps an empty img for an uploaded photo; it is not hero media.
+              hasHeroMedia: [...element.querySelectorAll("img, figure")].some((node) => !node.closest(".search-bar")),
               hasHeroKicker: Boolean(kicker),
               hasHeroMotto: element.querySelector(".detail-hero-motto") !== null,
               oneH1: document.querySelectorAll("main h1").length === 1,
@@ -5959,7 +5961,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               headingLineCount: lineRects.length,
               headingText: normalize(heading.textContent),
               kickerText: normalize(kicker.textContent),
-              scrollText: normalize(scrollCue.textContent),
+              hasScrollCue: Boolean(scrollCue),
               letterSpacing: Number.parseFloat(getComputedStyle(heading).letterSpacing),
               titleAlignment:
                 textRects.length === 2 &&
@@ -5977,7 +5979,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               activeUnderlineVisible: matchMedia("(hover: hover) and (pointer: fine)").matches
                 ? activeFilterAfter.transform === "matrix(1, 0, 0, 1, 0, 0)" && activeFilterAfter.height === "3px"
                 : activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
-              contentIsWithinHero: [contentRect, kickerRect, headingRect, filtersRect, scrollRect].every(
+              contentIsWithinHero: [contentRect, kickerRect, headingRect, filtersRect].every(
                 (rect) =>
                   rect.top >= heroRect.top - 1 &&
                   rect.bottom <= heroRect.bottom + 1 &&
@@ -6002,11 +6004,6 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               gridGutterMatches:
                 Math.abs(gridRect.left - expectedGutter) <= 1 &&
                 Math.abs(window.innerWidth - gridRect.right - expectedGutter) <= 1,
-              scrollBottomMatches:
-                Math.abs(
-                  heroRect.bottom - scrollRect.bottom -
-                    (window.innerWidth <= 750 ? 60 : window.innerWidth <= 1200 ? 30 : 45),
-                ) <= 1,
               noHorizontalOverflow: document.documentElement.scrollWidth - window.innerWidth <= 1,
               tone: element.dataset.headerTone,
             };
@@ -6020,10 +6017,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             locale === "en"
               ? "Our featured products"
               : "Sản phẩm tiêu biểu";
-          const expectedScroll = locale === "en" ? "SCROLL DOWN" : "CUỘN XUỐNG";
           assert(hero.tone === "ink" && hero.headerIsInk, `${locale} ${viewport.width}x${viewport.height}: header did not start in ink tone`);
           assert(hero.backgroundIsWhite && hero.headingColorIsInk, `${locale} ${viewport.width}x${viewport.height}: editorial hero is not white with ink content`);
-          assert(!hero.hasHeroSlides && !hero.hasHeroMedia && hero.hasHeroKicker && !hero.hasHeroMotto && hero.oneH1, `${locale} ${viewport.width}x${viewport.height}: Projects-style text hierarchy or media-free hero contract failed`);
+          assert(!hero.hasHeroSlides && !hero.hasHeroMedia && hero.hasHeroKicker && !hero.hasHeroMotto && hero.oneH1, `${locale} ${viewport.width}x${viewport.height}: Projects-style text hierarchy or media-free hero contract failed ${JSON.stringify({ slides: hero.hasHeroSlides, media: hero.hasHeroMedia, kicker: hero.hasHeroKicker, motto: hero.hasHeroMotto, oneH1: hero.oneH1 })}`);
           assert(hero.viewportMinusFifty && hero.gridStartsAtHero && hero.gridEntersViewport, `${locale} ${viewport.width}x${viewport.height}: hero does not end 50px before the viewport with the first project row attached`);
           assert(hero.contentIsWithinHero && hero.titleBlockStartsWithinHero, `${locale} ${viewport.width}x${viewport.height}: hero title or controls escape above the hero viewport`);
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
@@ -6032,7 +6028,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           // Only "tầm mắt" / "sight" is italic, and every italic hero part is bold 600 (owner 2026-11-22).
           assert(hero.strongLineStyle?.lineStyle === "normal" && hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "600" && hero.strongLineStyle?.accentText === (locale === "en" ? "sight" : "tầm mắt"), `${locale} ${viewport.width}x${viewport.height}: hero emphasis is not only the bold italic last words ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
-          assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
+          assert(!hero.hasScrollCue, `${locale} ${viewport.width}x${viewport.height}: masonry pages drop the scroll cue (owner 2026-11-18)`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
           const kioskFilter = page.locator('[data-masonry-filter="displays-booths"]');
           await kioskFilter.focus();
