@@ -183,3 +183,41 @@ export function cardClaimErrors(page) {
   if (['In progress', 'Done'].includes(status) && agent) return [];
   return [`card claim: the card is "${status ?? 'unknown'}" with Agent "${agent}"; set Status In progress and fill Agent before opening the PR (AGENTS.md)`];
 }
+
+// Owner decisions stay put (owner 2026-11-22): a PR that drops or rewrites a spec sentence carrying an owner date, or deletes
+// a test assertion without adding one in the same file, needs the owner's own words: a line `Owner đổi: <link to his message>`.
+// Sentences are compared whole and trimmed, so a moved sentence or a re-indented assertion passes.
+const OWNER_DATE = /owner[^)\n]{0,40}?20\d\d-\d\d-\d\d/i;
+const ASSERTION = /\b(assert(\.\w+)?|expect)\s*\(/;
+const sentences = (lines) => new Set(lines.flatMap((l) => l.split(/(?<=[.;:])\s+/)).map((s) => s.trim()).filter(Boolean));
+
+export function diffLines(diff) {
+  const removed = [];
+  const added = [];
+  let header = true;
+  for (const line of diff.split('\n')) {
+    if (line.startsWith('@@')) header = false;
+    else if (header) continue;
+    else if (line.startsWith('-')) removed.push(line.slice(1));
+    else if (line.startsWith('+')) added.push(line.slice(1));
+  }
+  return { removed, added };
+}
+
+export function ownerLockErrors(diffs, body) {
+  if (/^Owner đổi: https?:\/\/\S+/m.test(body)) return [];
+  const errors = [];
+  for (const { file, removed, added } of diffs) {
+    if (/^docs\/specs\/.*\.md$/.test(file)) {
+      const kept = sentences(added);
+      for (const s of sentences(removed)) {
+        if (OWNER_DATE.test(s) && !kept.has(s)) errors.push(`owner lock: ${file} drops or rewrites an owner decision: "${s.slice(0, 160)}"`);
+      }
+    } else if (/^tests\/.*\.(m?js|cjs|ts)$/.test(file)) {
+      const gone = [...new Set(removed.filter((l) => ASSERTION.test(l)).map((l) => l.trim()))].filter((l) => !added.some((a) => a.trim() === l));
+      if (gone.length && !added.some((l) => ASSERTION.test(l))) errors.push(`owner lock: ${file} deletes assertions and adds none: ${gone.map((l) => `"${l.slice(0, 100)}"`).join(', ')}`);
+    }
+  }
+  const ask = '; show the owner the old and new text, and after he says ok in his own words add the line: Owner đổi: <link to his message>';
+  return errors.map((e) => e + ask);
+}

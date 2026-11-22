@@ -1,7 +1,7 @@
 // docs-system.md R11: AGENTS.md rules checked by qa:docs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, ownerLockErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
 
 const reader = (files) => (file) => files[file];
 
@@ -107,4 +107,35 @@ test("card claim needs In progress (or Done) and an Agent", () => {
   assert.equal(cardClaimErrors(page("Done", "Claude thread X")).length, 0);
   assert.equal(cardClaimErrors(page("Not started", "Claude thread X")).length, 1);
   assert.equal(cardClaimErrors(page("In progress", "")).length, 1);
+});
+
+test("owner lock: dropping or rewriting an owner-dated spec sentence or deleting an assertion needs the owner's words", () => {
+  // The #1030 case: the phone-only rule from 2026-11-13 rewritten for every device.
+  const spec = {
+    file: "docs/specs/site-shell.md",
+    removed: ["là nút vuông chỉ icon; Advertising browse ẩn nó. Nút về đầu trang `button.back-to-top` (owner 2026-11-13) chỉ có trên điện thoại. Footer giữ nguyên."],
+    added: ["là nút vuông chỉ icon; Advertising browse ẩn nó. Nút về đầu trang `button.back-to-top` (owner 2026-11-13; mọi thiết bị từ 2026-11-22) ở trang có masonry. Footer giữ nguyên."],
+  };
+  const errors = ownerLockErrors([spec], "");
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /site-shell\.md.*owner 2026-11-13/);
+  assert.deepEqual(ownerLockErrors([spec], "Owner đổi: https://claude.ai/code/project/x?thread=y"), []);
+  assert.equal(ownerLockErrors([spec], "Owner đổi: <link>").length, 1, "a template placeholder is not the owner's words");
+  // A sentence that only moved, or an untagged sentence that changed, passes.
+  const moved = { file: "docs/specs/a.md", removed: ["Một câu (owner 2026-11-13) giữ nguyên.", "Câu cũ."], added: ["Câu mới.", "Một câu (owner 2026-11-13) giữ nguyên."] };
+  assert.deepEqual(ownerLockErrors([moved], ""), []);
+  // Tests: an assertion deleted with none added in the same file fails; rewritten assertions pass.
+  const dropped = { file: "tests/site/back-to-top.e2e.mjs", removed: ['    assert(!result.shown, "PC never shows it");'], added: ["    // removed"] };
+  assert.equal(ownerLockErrors([dropped], "").length, 1);
+  const rewritten = { file: "tests/site/back-to-top.e2e.mjs", removed: ['    assert(!result.shown, "PC never shows it");'], added: ['      assert.equal(result.size, 0, "PC never shows it");'] };
+  assert.deepEqual(ownerLockErrors([rewritten], ""), []);
+  const reindented = { file: "tests/a.test.mjs", removed: ["  assert.equal(a, 1);"], added: ["      assert.equal(a, 1);"] };
+  assert.deepEqual(ownerLockErrors([reindented], ""), []);
+  // Files outside docs/specs and tests are not checked.
+  assert.deepEqual(ownerLockErrors([{ file: "docs/operations/notion.md", removed: ["Một câu (owner 2026-11-13)."], added: [] }], ""), []);
+});
+
+test("unified diff with -U0 splits into removed and added lines", () => {
+  const diff = ["diff --git a/x b/x", "--- a/x", "+++ b/x", "@@ -1 +1 @@", "-old line", "+new line", "+-- not a header"].join("\n");
+  assert.deepEqual(diffLines(diff), { removed: ["old line"], added: ["new line", "-- not a header"] });
 });
