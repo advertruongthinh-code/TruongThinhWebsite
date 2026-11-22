@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 
-const BASE = process.env.BASE_URL || "https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev";
+const BASE = process.env.BASE_URL || "https://truongthinhads.vn";
 const CARD = process.env.CARD_ID || "led-displays-lightboxes-43";
 const JUMP_INDEX = 5;
 const JUMP_AFTER_MS = 600;

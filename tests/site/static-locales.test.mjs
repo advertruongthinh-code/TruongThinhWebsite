@@ -22,11 +22,15 @@ test("static hosting gets the same localized HTML as the preview server", async 
   }
 });
 
-test("the Worker custom domain is the host that canonical, sitemap and og:url point to", async () => {
+test("production serves the canonical host, staging its subdomain, and no workers.dev URL is public", async () => {
   const config = await readFile(new URL("../../wrangler.static.toml", import.meta.url), "utf8");
-  const domains = [...config.matchAll(/^\[\[routes\]\]\npattern = "([^"]+)"\ncustom_domain = true$/gm)].map((match) => match[1]);
-  assert.deepEqual(domains, [new URL(PUBLIC_ORIGIN).host]);
-  assert.match(config, /^workers_dev = true$/m, "workers.dev stays on as the preview URL");
+  const domains = [...config.matchAll(/^\[\[(env\.production\.)?routes\]\]\npattern = "([^"]+)"\ncustom_domain = true$/gm)]
+    .map((match) => `${match[1] ? "production" : "staging"} ${match[2]}`);
+  const host = new URL(PUBLIC_ORIGIN).host;
+  assert.deepEqual(domains, [`staging staging.${host}`, `production ${host}`]);
+  assert.equal(config.match(/^workers_dev = false$/gm)?.length, 2, "workers.dev off for staging and production");
+  assert.equal(config.match(/^preview_urls = false$/gm)?.length, 2, "preview URLs off for staging and production");
+  assert.doesNotMatch(config, /^workers_dev = true$/m);
 });
 
 test("demo and preview serve the localized 404 page for unknown paths", async () => {

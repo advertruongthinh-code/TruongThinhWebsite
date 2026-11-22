@@ -177,8 +177,8 @@ có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` gi
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
-hành hiện có, rồi deploy. Hiện tại `Deploy demo` đưa lên demo; khi domain chuyển sang `truongthinhads.vn` cùng workflow
-đưa lên site thật ([phát hành tĩnh](static-release.md)). Mục tiêu: lên site trong 10 phút sau lần lưu cuối, cộng thời
+hành hiện có, rồi deploy. Hiện tại `Deploy demo` chỉ đưa lên bản thử staging; site thật chỉ cập nhật qua `Release site` khi owner nói
+"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); slice Publishing chốt lần lưu CMS lên site thật thế nào. Mục tiêu: lên site trong 10 phút sau lần lưu cuối, cộng thời
 gian job biến thể nếu có media mới (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing).
 
 Từ khi CMS mở, mọi lần dựng kể cả merge code vào `main` đều lấy bản chụp mới nhất; file chiếu trong repo là seed và
