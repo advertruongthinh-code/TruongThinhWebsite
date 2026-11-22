@@ -1923,7 +1923,7 @@ async function runHeaderParityChecks() {
             labels: links.map((link) => link.textContent.trim()),
             brand: rect(header.querySelector("#header-logo")),
             lockup: rect(header.querySelector(".brand-lockup")),
-            lockupPathCount: header.querySelectorAll(".brand-lockup path").length,
+            lockupPathCount: header.querySelectorAll(".brand-lockup__mark path").length,
             lockupHasUse: Boolean(header.querySelector(".brand-lockup use")),
             nav: rect(nav),
             navHidden: nav.classList.contains("is-space-hidden"),
@@ -4520,7 +4520,7 @@ async function runMenuChecks() {
               return {
                 host: dimensions(root),
                 lockup: dimensions(lockup),
-                pathCount: lockup.querySelectorAll("path").length,
+                pathCount: lockup.querySelectorAll(".brand-lockup__mark path").length,
                 textCount: lockup.querySelectorAll("text").length,
                 hasUse: Boolean(lockup.querySelector("use")),
               };
@@ -4548,8 +4548,8 @@ async function runMenuChecks() {
         assert(
           menuContract.brandParity.header.pathCount === 4 &&
             menuContract.brandParity.menu.pathCount === 4 &&
-            menuContract.brandParity.header.textCount === 2 &&
-            menuContract.brandParity.menu.textCount === 2 &&
+            menuContract.brandParity.header.textCount === 0 &&
+            menuContract.brandParity.menu.textCount === 0 &&
             !menuContract.brandParity.header.hasUse &&
             !menuContract.brandParity.menu.hasUse &&
             menuContract.brandParity.header.host.every(

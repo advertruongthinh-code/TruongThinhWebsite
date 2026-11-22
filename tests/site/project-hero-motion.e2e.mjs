@@ -64,7 +64,7 @@ try {
         ink.selectNodeContents(title.firstElementChild);
         const style = getComputedStyle(kicker);
         return {
-          kickerTag: kicker.tagName, kickerText: kicker.textContent.trim(), kickerSize: style.fontSize, kickerCase: style.textTransform,
+          kickerTag: kicker.tagName, kickerText: kicker.textContent.replaceAll("\u00a0", " ").trim(), kickerSize: style.fontSize, kickerCase: style.textTransform,
           kickerVisible: rect(kicker).width > 10 && style.opacity === "1",
           kickerAboveTitle: rect(kicker).bottom <= rect(title).top + 2,
           ctaGap: Math.round(rect(cta).top - rect(title).bottom),
@@ -101,8 +101,13 @@ try {
       // The CTA scrolls to the Zalo block.
       await page.click(".project-hero .hero-cta");
       await page.waitForTimeout(2000);
-      const contactTop = await page.evaluate(() => Math.round(document.getElementById("lien-he").getBoundingClientRect().top));
-      assert.ok(contactTop >= -2 && contactTop < viewport.height / 2, `${at}: CTA brings the Zalo block to the top, top ${contactTop}`);
+      // The CTA block closes the page above the footer (owner 2026-11-22), so the Zalo block may sit at the page end
+      // and cannot reach the top; it must be fully on screen.
+      const contact = await page.evaluate(() => {
+        const { top, bottom } = document.getElementById("lien-he").getBoundingClientRect();
+        return { top: Math.round(top), bottom: Math.round(bottom) };
+      });
+      assert.ok(contact.top >= -2 && contact.bottom <= viewport.height, `${at}: CTA brings the Zalo block on screen ${JSON.stringify(contact)}`);
 
       if (reducedMotion === "no-preference") {
         // Body motion: scroll through the page so the facts and the strip enter the viewport.

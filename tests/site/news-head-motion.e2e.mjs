@@ -71,7 +71,7 @@ try {
         return {
           kicker: Math.round(kicker.top), titleGap: Math.round(title.top - kicker.bottom),
           filterGap: Math.round(filter.top - title.bottom), gridGap: Math.round(rect(".blk-news-card__media").top - filter.bottom),
-          kickerText: document.querySelector(".blk-article-head__kicker")?.textContent.trim(),
+          kickerText: document.querySelector(".blk-article-head__kicker")?.textContent.replaceAll("\u00a0", " ").trim(),
           zoomEnd: new DOMMatrixReadOnly(getComputedStyle(document.querySelector(".blk-article-head__titles")).transform).a,
           wordsEnd: Math.min(...[...document.querySelectorAll(".blk-article-head__titles .motion-word")].map((word) => Number(getComputedStyle(word).opacity)), 1),
           samples: window.__headSamples,
