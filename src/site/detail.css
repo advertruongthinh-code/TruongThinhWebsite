@@ -143,9 +143,10 @@
 .detail-heading,
 .detail-process,
 .detail-duo,
+.detail-places,
 .masonry-section,
 .detail-cta {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
@@ -563,7 +564,7 @@
 
 .process-step h3 {
   margin: auto 0 1rem;
-  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1370px max frame. */
+  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
@@ -1187,7 +1188,7 @@
 
 .about-timeline {
   position: relative;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
   padding: 6rem 0 2rem;
 }
@@ -1255,7 +1256,7 @@
 
 .about-chapter-lead {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 20rem;
   padding: 3.5rem 0;
   margin-inline: auto;
@@ -1276,7 +1277,7 @@
 
 .about-process-note {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 15rem;
   padding-top: 2rem;
   margin-inline: auto;
@@ -1296,7 +1297,7 @@
 
 .about-commitments {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 25rem;
   margin-inline: auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3970,7 +3971,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 /* Project and News page blocks (layout-library R1, scripts/site/blocks.mjs). Learns the layout of Espacio's /en/projects/ child pages,
    following the site's text, color and spacing; same width frame as the detail blocks. */
 .blk {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
@@ -4993,5 +4994,293 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
   [data-barba-namespace="project"] .blk-projects .project-card--low {
     padding-top: 120px;
+  }
+}
+
+/* Places block on the Commercial page (detail-pages 9a): Espacio kitchens "showrooms" list. Index line, 300px photo, uppercase name
+   with the shared hover underline, short text; the whole card is the link, the photo zooms on hover. Columns 3 / 2 (<=960) / 1 (<=578). */
+.detail-places {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 60px 35px;
+}
+
+.detail-place {
+  position: relative;
+  margin: 0;
+}
+
+.detail-place__link {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+
+.detail-place__media {
+  position: relative;
+  overflow: hidden;
+  height: 300px;
+  background: var(--media-loading-surface);
+}
+
+.detail-place__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-place__name {
+  position: relative;
+  display: inline-block;
+  margin: 1em 0 5px;
+  font-size: 1.8rem;
+  /* Espacio sets the card name in its medium cut and the address in regular (silka-medium / silka-regular, measured 2026-11-22). */
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.detail-place__name::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: currentColor;
+  transition: transform var(--dur-base) var(--ease-underline);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .detail-place:hover .detail-place__name::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+.detail-place:focus-within .detail-place__name::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.detail-place__text {
+  margin: 16px 0;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Phone numbers stay tappable above the card link. */
+.detail-place__text a {
+  position: relative;
+  z-index: 2;
+  color: inherit;
+}
+
+@media (max-width: 1200px) {
+  .detail-places {
+    column-gap: 25px;
+  }
+}
+
+@media (max-width: 960px) {
+  .detail-places {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 578px) {
+  .detail-places {
+    grid-template-columns: 1fr;
+    column-gap: 15px;
+  }
+}
+
+/* Supplier logos under the materials note (detail-pages 7a): one full-width looping row like the home client logos, no frames,
+   grouped only by order (wood panels, aluminium, cabinet hardware, kitchen appliances, then machines). Each logo carries an em
+   box sized for equal visual weight (area, not width) and the row centres them on one axis. Two copies of the list run side by
+   side; the second is aria-hidden. A phone held upright, reduced motion and print show the first list as static centred rows
+   (owner 2026-11-22). */
+.supplier-marquee {
+  display: flex;
+  width: 100vw;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0 calc(50% - 50vw);
+  overflow: hidden;
+}
+
+.supplier-logos {
+  --logo-gap: clamp(3rem, 5vw, 5.5rem);
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--logo-gap);
+  margin: 0;
+  /* one gap after the last logo so the join between the two copies is evenly spaced */
+  padding: 0 var(--logo-gap) 0 0;
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+  list-style: none;
+  animation: marquee 40s linear infinite;
+}
+
+.supplier-logos li {
+  display: flex;
+  flex: none;
+}
+
+.supplier-logo {
+  display: block;
+  max-width: none;
+  object-fit: contain;
+}
+
+.motion-paused .supplier-logos {
+  animation-play-state: paused;
+}
+
+@media (max-width: 750px) and (orientation: portrait), (prefers-reduced-motion: reduce), print {
+  .supplier-marquee {
+    width: auto;
+    margin-left: 0;
+  }
+
+  .supplier-logos {
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.25rem 1.75rem;
+    padding: 0;
+    animation: none;
+  }
+
+  .supplier-logos[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* Project strips on Home, Residential and Commercial: every frame the same size, four whole cards across a PC so no card is cut
+   at the edge, every second card dropped like Espacio's home slider (180px, 120px from 1200px down, phone included); the rail
+   still scrolls for more (owner 2026-11-22). */
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card {
+  width: auto;
+  padding-top: 0;
+}
+
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+  padding-top: 180px;
+}
+
+@media (max-width: 1200px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+    padding-top: 120px;
+  }
+}
+
+@media (min-width: 981px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects__track {
+    --strip-gap: clamp(1.5rem, 3vw, 3rem);
+    grid-auto-columns: calc((100% - 3 * var(--strip-gap)) / 4);
+    gap: var(--strip-gap);
+  }
+}
+
+/* Espacio type scale and frame (owner 2026-11-22, measured on espaciohomedesign.com at 1920, 1440, 1100, 900, 700 and 384).
+   Espacio sets section titles in silka-regular, body in silka-regular, card names and banner titles in silka-medium and small
+   labels in silka-semibold; mapped to Plus Jakarta Sans 400, 400, 500 and 600. Section titles 64px, 56px from 1200px, 48px from
+   960px, 40px from 750px, line height 1.4; body 24px, 20.8px from 960px; content frame 1500px with 35 / 25 / 15px gutters.
+   Hero blocks and masonry pages keep their own type and frame. */
+:root {
+  --espacio-title: 64px;
+  --espacio-body: 24px;
+  --espacio-banner: 64px;
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --espacio-title: 56px;
+  }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --espacio-title: 48px;
+    --espacio-body: 20.8px;
+  }
+}
+
+@media (max-width: 750px) {
+  :root {
+    --espacio-title: 40px;
+    --espacio-banner: 48px;
+  }
+
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"], [data-barba-namespace="about"], [data-barba-namespace="project"], [data-barba-namespace="news"]) main > :not(.hero) {
+    --gutter: 15px;
+  }
+}
+
+.detail-heading h2,
+.detail-lead__title,
+.detail-gallery > h2,
+.blk-title h2,
+[data-barba-namespace="project"] .blk-title h2,
+.blk-contact__title,
+.blk-projects__title {
+  font-size: var(--espacio-title);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-lead__copy,
+.detail-note p,
+.detail-intro__copy,
+.about-chapter-lead p:last-child,
+.blk-paragraph p,
+.blk-quote p {
+  font-size: var(--espacio-body);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.detail-cta:not([data-masonry-grid-cta]) {
+  --cta-title-size: var(--espacio-banner);
+}
+
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy h2 {
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-eyebrow,
+.detail-cta__copy p,
+.commitment-title {
+  font-weight: 600;
+}
+
+/* Espacio body column: 600px wide against the right edge, first line indented 100px (50px on phone). */
+.detail-lead__copy,
+.detail-note p {
+  max-width: 37.5rem;
+  text-indent: 100px;
+}
+
+@media (max-width: 750px) {
+  .detail-lead__copy,
+  .detail-note p {
+    text-indent: 50px;
+  }
+}
+
+@media (max-width: 750px) {
+  .service-portals,
+  .editorial-strip,
+  .heritage-montage {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 }

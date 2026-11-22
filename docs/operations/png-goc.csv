@@ -601,7 +601,6 @@ projects/tiem-banh-ngot-shot-4,.tmp/ctm-artifact/in/tiem-banh-ngot/cam-06.png,c3
 projects/tiem-banh-ngot-shot-5,.tmp/ctm-artifact/in/tiem-banh-ngot/cam-07.png,94a958c115be5b27f34eaaac8072d209a4530fd0d44605441cc7da5b55da0b4e
 projects/tiem-banh-ngot-shot-6,.tmp/ctm-artifact/in/tiem-banh-ngot/cam-08.png,d90989d6d40e270585d8490a864fe676f47b707ee5aa514999b49ef768f9570e
 projects/tiem-banh-ngot-shot-7,.tmp/ctm-artifact/in/tiem-banh-ngot/cam-09.png,820b604f304a6f693e1939544878f21c9253d1b5e0384aff8781c13008bdb6f7
-projects/workshop-wide-x2,source-assets/anh-khong-lap-20261117/ref/old-production.png,f75d4751b9850543fa67d01f6810fe4e07036a993b56410b8e07b2d003c4a3e4
 projects/workshop-wide-x7,source-assets/topaz-goc-1k-20261110/31-workshop-wide-x7.png,266d75c9cc43d86f6daa3a96b4c96604c42b9d3cd4684a69799745dcd6f70644
 projects/xam-bep,source-assets/topaz-goc-1k-20261110/_lech-master/97-xam-bep.png,8a93ce565f9337dadefd181ce145df8daaeb5facb4a20a9b92b481f3250f18a3
 projects/xam-cau-thang,source-assets/topaz-goc-1k-20261110/98-xam-cau-thang.png,c549504dc94be2e187ad0ddcb2bf935268843b103cb38e598c13d2108b2c98c9
@@ -614,6 +613,7 @@ shared/about-workshop-edgebander-20261117,source-assets/topaz-goc-1k-20261110/_c
 shared/after-sales,source-assets/topaz-goc-1k-20261110/106-after-sales.png,ff3f3694133709ae5acff00673fe94abee12a4e6b8c33062ee277eb04ff686c8
 shared/after-sales-commercial,source-assets/topaz-goc-1k-20261110/662-after-sales-commercial.png,8687ed311963f87bb8c07729f86fd6a2e0e7b80d3de310b7f66db143d7aed23e
 shared/cnc-operator-b,source-assets/anh-goc-theo-the/607-cnc-operator-b.png,ff46460e6ee357253680cbfd557ed74ef35cdfc8819307fbf8fa778bd507f52a
+shared/commitment-quality-shop-20261117,source-assets/topaz-goc-1k-20261110/_cho-len-site/commitment-quality-shop-20261117.png,6f4e1e254a5221ce4dd561eb0c95693adaf0affc602d954ada3a06226ca4f6c6
 shared/consultation,source-assets/anh-khong-lap-20261117/ref/style-consultation.png,26eda27103efdbf339e780913cc86a0182283a19f8d98aded19dc5ceaf95279a
 shared/consultation-materials,source-assets/anh-goc-theo-the/104-consultation-materials.png,042f4627b81769d5a182a35d4f2e34c7e43c03eb7fad362831b999f63a14b03b
 shared/design-sketch,source-assets/anh-goc-theo-the/606-design-sketch.png,61147a7f63f31c9b918cdbada7d52f3a63e63873a4e3d1d0f809a1188a4a5bb4
@@ -665,3 +665,14 @@ shared/news-tu-ao-am-tuong-d-20261113,source-assets/news-20261113/news-tu-ao-am-
 shared/process-assembly-residential-20261118,source-assets/topaz-goc-1k-20261110/_cho-len-site/process-assembly-residential-20261118.png,6fc22999341f2ee86ca44dae0c1ffd0546ab17109c7d4f1c2cd931321ad4cb1a
 shared/survey-modern,,
 shared/workshop-wide-v2,source-assets/topaz-goc-1k-20261110/17-workshop-wide-v2.png,dce1484f5ffa4656b00b4ce869813dd55646de8cb4c19ba6afcad74c3bafb99e
+shared/commitment-production-cnc-v3-20261117,source-assets/topaz-goc-1k-20261110/_cho-len-site/commitment-production-cnc-v3-20261117.png,d3756486e0adc8a3555b5fc20209b880c889202295b0f5519c2fe8d527362ccd
+shared/commitment-aftercare-sign-20261118,source-assets/topaz-goc-1k-20261110/_cho-len-site/commitment-aftercare-sign-20261118.png,79adffab47a3c4967123240a982a78a3527d516ff312084539e4e6f8d6ec8d0e
+supplier-logos/ba-thanh,,
+supplier-logos/eurogold,,
+supplier-logos/trieu-chen,,
+supplier-logos/dmestik,,
+supplier-logos/gerari,,
+supplier-logos/kaff,,
+supplier-logos/graphtec,,
+projects/commercial-portal-cafe-v2,source-assets/portal-kinh-doanh-20261122/commercial-portal-cafe-v2.png,777349bcd4d6a1998725a297abffa6a171b70afc33975434e1e6c29622cb20d7
+projects/commercial-portal-office-v1,source-assets/portal-kinh-doanh-20261122/commercial-portal-office-v1.png,eb8c515f2ce377aafa083c6eab07c284bf59e917d099143c3c168696a933070a

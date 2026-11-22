@@ -444,8 +444,8 @@ function assertPersistentNavigationContracts() {
   )?.[0];
   assert(
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
-      commercialHeroContent?.includes("CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG") &&
-      commercialHeroContent?.includes('data-en="CAFE · RESTAURANT · SHOWROOM · OFFICE"') &&
+      commercialHeroContent?.includes("SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC") &&
+      commercialHeroContent?.includes('data-en="SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE"') &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
       commercialHeroContent?.includes('<span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em>') &&
@@ -1669,27 +1669,23 @@ async function runPortalAlignmentChecks() {
               ...document.querySelectorAll("#nang-luc .service-portal"),
             ].map((card) => {
               const cardRect = card.getBoundingClientRect();
-              const title = card.querySelector(".portal-title-mask");
-              const subtitle = card.querySelector(".portal-subtitle");
-              const titleRect = title.getBoundingClientRect();
-              const subtitleRect = subtitle.getBoundingClientRect();
-              const titleStyle = getComputedStyle(title);
-              const subtitleStyle = getComputedStyle(subtitle);
+              const copy = card.querySelector(".commitment-copy");
+              const copyRect = copy.getBoundingClientRect();
+              const lines = [...card.querySelectorAll(".commitment-lead .portal-line")];
+              const lineWidth = Math.max(...lines.map((line) => {
+                const range = document.createRange();
+                range.selectNodeContents(line);
+                return range.getBoundingClientRect().width;
+              }));
+              const copyStyle = getComputedStyle(copy);
               return {
-                title: card.querySelector(".portal-line")?.textContent.trim(),
-                titleFontSize: Number.parseFloat(titleStyle.fontSize),
-                subtitleFontSize: Number.parseFloat(subtitleStyle.fontSize),
-                titleOverflow: title.scrollWidth - title.clientWidth,
-                subtitleOverflow: subtitle.scrollWidth - subtitle.clientWidth,
-                titleWhiteSpace: titleStyle.whiteSpace,
-                subtitleWhiteSpace: subtitleStyle.whiteSpace,
-                titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
-                subtitleWithin: subtitleRect.left >= cardRect.left + 8 && subtitleRect.right <= cardRect.right - 8,
-                titleCenterOffset:
-                  titleRect.top +
-                  titleRect.height / 2 -
-                  (cardRect.top + cardRect.height / 2),
-                gap: subtitleRect.top - titleRect.bottom,
+                title: card.querySelector(".commitment-title")?.textContent.replace(/\s+/g, " ").trim(),
+                leadLines: lines.length,
+                hasBody: Boolean(card.querySelector(".commitment-body .portal-subtitle")?.textContent.trim()),
+                leadFits: lineWidth <= cardRect.width - Number.parseFloat(copyStyle.paddingLeft) - Number.parseFloat(copyStyle.paddingRight) + 0.5,
+                bottomAnchored: Math.abs(cardRect.bottom - copyRect.bottom) <= 1 && copyStyle.textAlign === "left",
+                textShadow: copyStyle.textShadow !== "none",
+                titleOffset: card.querySelector(".commitment-title").getBoundingClientRect().top - cardRect.top,
               };
             }),
             advertisingImage: (() => {
@@ -1727,10 +1723,6 @@ async function runPortalAlignmentChecks() {
               serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
               serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
             };
-            if (document.querySelector("#nang-luc")) {
-              roles.capabilityTitles = read("#nang-luc .portal-title-mask");
-              roles.capabilitySubtitles = read("#nang-luc .portal-subtitle");
-            }
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
@@ -1753,10 +1745,8 @@ async function runPortalAlignmentChecks() {
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
-            state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
-              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "nowrap"
-              && card.titleWithin && card.subtitleWithin),
-            `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+            state.capabilityCards.every((card) => card.leadLines === 2 && card.leadFits && card.hasBody && card.bottomAnchored && card.textShadow),
+            `Commitment card text drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
@@ -1771,19 +1761,15 @@ async function runPortalAlignmentChecks() {
             );
           } else {
           assert(
-            state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
-            `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
+            state.capabilityCards.map((card) => card.title).join("|") ===
+              (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
+            `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
-          assert(
-            state.capabilityCards.length === 3 &&
-              state.capabilityCards.every(
-                (card) =>
-                  Math.abs(card.titleCenterOffset) <= 1 &&
-                  Math.abs(card.gap - 17.6) <= 0.25,
-              ),
-            `Capability portal title anchor or gap drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
-          );
+          assert(state.capabilityCards.length === 4, `Expected 4 commitment cards at ${locale}`);
+          if (width >= 579) {
+            const offsets = state.capabilityCards.map((card) => card.titleOffset);
+            assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${locale} ${width}px: ${offsets.join(", ")}`);
+          }
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
@@ -9734,7 +9720,7 @@ async function runPhysicalWheelTransformChecks() {
     { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "home project rail", route: "/vi/", selector: ".project-track", axis: "x", limit: 1 },
+    { name: "home project strip", route: "/vi/", selector: ".blk-projects__track", axis: "x", limit: 1 },
   ];
 
   for (const testCase of cases) {
@@ -10000,8 +9986,8 @@ async function runHomeMotionRegressionCheck() {
             height: item.getBoundingClientRect().height,
           })),
           track: {
-            speed: document.querySelector(".project-track")?.dataset.scrollSpeed,
-            direction: document.querySelector(".project-track")?.dataset
+            speed: document.querySelector(".blk-projects__track")?.dataset.scrollSpeed,
+            direction: document.querySelector(".blk-projects__track")?.dataset
               .scrollDirection,
           },
           hero: {
@@ -10109,7 +10095,7 @@ async function runHomeMotionRegressionCheck() {
         "A text mask can clip Vietnamese font ink",
       );
       assert(
-        contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
+        contract.media.length === require(path.join(SITE_ROOT, "content", "home-projects.json")).length &&
           contract.media.every(
             // An image frame waiting to load gets overflow: clip from .media-gate (media-delivery R6), hidden once loaded; both clip the mask.
             ({ overflow, height }) =>
@@ -10204,7 +10190,7 @@ async function runHomeMotionRegressionCheck() {
       const hover = await firstCard.evaluate((card) => {
         const media = card.querySelector(".project-card__media");
         const image = media.querySelector("img");
-        const caption = card.querySelector("figcaption");
+        const caption = card.querySelector("figcaption, .blk-projects__name");
         const mediaRect = media.getBoundingClientRect();
         const imageRect = image.getBoundingClientRect();
         const captionRect = caption.getBoundingClientRect();
@@ -10276,8 +10262,8 @@ async function runSharedMediaHoverPortalChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, `/${locale}/`);
         const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
-        assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
-        for (let index = 0; index < 6; index += 1) {
+        assert((await allPortals.count()) === 7, `Expected seven shared media portals at ${locale}`);
+        for (let index = 0; index < 7; index += 1) {
           const sharedPortal = allPortals.nth(index);
           const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();

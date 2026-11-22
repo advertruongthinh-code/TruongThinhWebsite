@@ -63,7 +63,7 @@
   --orange: #a34119;
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
-  --media-label-overlay: rgba(0, 0, 0, 0.5);
+  --media-label-overlay: rgba(0, 0, 0, 0.3);
   /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
      48px, then a linear fade to transparent at the bottom edge of the card. */
   --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
@@ -169,7 +169,7 @@ body {
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Arial, sans-serif;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
   /* Site-wide orphan rule: inherited by every text block, so no paragraph ends on a lone word; headings that set balance keep it. */
@@ -239,11 +239,11 @@ a {
 }
 
 /* Keep the touch and drag rail usable without exposing a horizontal scrollbar. */
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters) {
+:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -1532,8 +1532,7 @@ em {
   font-size: clamp(1rem, 1.4vw, 1.25rem);
 }
 
-.editorial-strip:focus-visible,
-.project-track:focus-visible {
+.editorial-strip:focus-visible {
   outline-width: 3px;
   outline-offset: -3px;
 }
@@ -1752,43 +1751,54 @@ em {
   line-height: 1.4;
 }
 
-#nang-luc .portal-copy {
-  inset: 0;
+/* Home commitments (page-home R5): text sits bottom-left like the owner's reference; title is a small label,
+   the lead is the large line (shared portal mask reveal), the body fades in (shared portal subtitle reveal). */
+.commitment-copy {
+  inset: auto 0 0;
   display: block;
+  padding: min(1.75rem, 7.5cqw);
   transform: none;
+  text-align: left;
+  text-transform: none;
 }
 
-/* Capabilities use the same site-wide portal text token; copy stays short enough to fit one line (page-home R5). */
-#nang-luc .portal-copy .portal-title-mask {
-  font-size: var(--portal-title-size);
+.commitment-title {
+  margin: 0 0 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+/* Two authored lines, never re-wrapped, so compounds such as "gia công" stay together (owner orphan rule). */
+.commitment-lead {
+  margin: 0 0 0.875rem;
+  font-size: min(2.25rem, 8.4cqw);
+  font-weight: 400;
+  line-height: 1.12;
   white-space: nowrap;
 }
 
-#nang-luc .portal-subtitle {
-  font-size: var(--portal-subtitle-size);
-  white-space: nowrap;
+.commitment-body {
+  max-width: 34ch;
+  margin: 0;
+  font-size: min(1rem, 4.8cqw);
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
-#nang-luc .capability-title-anchor {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  left: 0.75rem;
-  transform: translateY(-50%);
+/* Side by side, every body reserves five lines so titles and leads line up across cards (owner 2026-11-16). */
+@media (min-width: 579px) {
+  .commitment-body {
+    min-height: calc(1.5em * 5);
+  }
 }
 
-#nang-luc .portal-copy strong {
-  display: block;
-}
-
-#nang-luc .portal-copy small {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  margin-top: 1.1rem;
+/* The commitment body needs more contrast at the bottom than the shared 0.3 layer gives (home commitments, residential items). */
+.service-portal:has(.commitment-copy) .portal-shade {
+  background: linear-gradient(180deg, var(--media-label-overlay) 35%, rgba(0, 0, 0, 0.72));
 }
 
 .service-portals .service-portal:nth-child(1) {
@@ -1801,6 +1811,15 @@ em {
 
 .service-portals .service-portal:nth-child(3) {
   --portal-subtitle-delay: 0.9s;
+}
+
+.service-portals .service-portal:nth-child(4) {
+  --portal-subtitle-delay: 1.2s;
+}
+
+/* Home commitments (page-home R5): four portals in one row. */
+.service-portals--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .motion-enabled .service-portal .portal-subtitle {
@@ -2087,33 +2106,6 @@ em {
   transform: translateX(0);
 }
 
-.project-reel {
-  position: relative;
-  padding: 35px 35px 0;
-  overflow: hidden;
-  background: var(--white);
-}
-
-.project-track {
-  display: grid;
-  max-width: 1730px;
-  min-height: 650px;
-  margin: 0 auto;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  gap: clamp(1.5rem, 3.4vw, 4.1rem);
-}
-
-.motion-enabled .project-track {
-  translate: 60px 0;
-  transition: translate var(--dur-hover) var(--ease);
-  will-change: transform, translate;
-}
-
-.motion-enabled .project-track.is-inview {
-  translate: 0 0;
-}
-
 .project-card {
   min-width: 0;
   margin: 0;
@@ -2133,8 +2125,7 @@ em {
   transition: transform var(--dur-hover) ease-out;
 }
 
-.project-card--low,
-.project-card--mid {
+.project-card--low {
   padding-top: 180px;
 }
 
@@ -2708,15 +2699,6 @@ em {
     padding-left: 25px;
   }
 
-  .project-reel {
-    padding-right: 25px;
-    padding-left: 25px;
-  }
-
-  .project-track {
-    gap: 25px;
-  }
-
 }
 
 @media (max-width: 1024px) {
@@ -2921,22 +2903,6 @@ em {
     margin-left: 10px;
   }
 
-  .project-reel {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  .project-track {
-    display: flex;
-    height: 34rem;
-    min-height: 0;
-    padding: 0 25px 1rem;
-    gap: 1.25rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-  }
-
   .project-card {
     width: min(70vw, 24rem);
     flex: 0 0 auto;
@@ -3099,16 +3065,6 @@ em {
 
   .story-link svg {
     width: 7.5rem;
-  }
-
-  .project-reel {
-    padding-top: 20px;
-  }
-
-  .project-track {
-    height: 32rem;
-    padding-right: 20px;
-    padding-left: 20px;
   }
 
   .project-card {
@@ -3446,7 +3402,6 @@ html.motion-fallback .reveal,
 html.motion-fallback .heritage-line,
 html.motion-fallback .portal-line,
 html.motion-fallback .motion-line,
-html.motion-fallback .project-track,
 html.motion-fallback .heritage-image,
 html.motion-fallback .legacy-copy > p {
   opacity: 1 !important;
@@ -3484,5 +3439,29 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 @media (max-width: 578px) {
   .legacy-closer + section {
     margin-top: 30px;
+  }
+}
+
+/* Four commitments: two columns up to 1200px so the lead keeps a readable size, one on phone (page-home R5); after the shared portal breakpoints so it wins. */
+@media (max-width: 1200px) {
+  /* Two rows need their own height; the shared one-row 600px box let them spill over the next block (owner 2026-11-22). */
+  .service-portals--four {
+    height: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-portals--four .service-portal {
+    height: 34rem;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 578px) {
+  .service-portals--four {
+    grid-template-columns: 1fr;
+  }
+
+  .service-portals--four .service-portal {
+    height: 400px;
   }
 }
