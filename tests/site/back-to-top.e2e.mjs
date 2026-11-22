@@ -1,5 +1,5 @@
-// Back to top (shell, owner 2026-11-13, every device since 2026-11-22): a page with a masonry layout shows an icon-only white 50px button
-// once the first screen is passed; a tap or click scrolls to the top and the button goes. Pages without masonry never show it.
+// Back to top (shell, owner 2026-11-13; phones only, owner 2026-11-22): on a phone a page with a masonry layout shows an icon-only white
+// 50px button once the first screen is passed; a tap or click scrolls to the top and the button goes. Pages without masonry never show it.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/back-to-top.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -14,8 +14,8 @@ const state = (page) => page.evaluate(() => {
 });
 const scrollPast = (page) => page.evaluate(() => scrollTo({ top: innerHeight * 3, behavior: "instant" }));
 
-for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true], ["PC", VIEWPORTS.desktop, false]]) {
-  test(`${name} masonry page: the same white button shows past the first screen and goes back to the top`, async () => {
+for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true]]) {
+  test(`${name} masonry page: the white button shows past the first screen and goes back to the top`, async () => {
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
     try {
@@ -32,8 +32,8 @@ for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true], ["PC", 
       await page.waitForTimeout(1200);
       const shown = await state(page);
       assert(shown.shown && shown.onScreen, `shown in the corner: ${JSON.stringify(shown)}`);
-      assert.deepEqual(shown.size, [50, 50], "50px square on every device");
-      assert.equal(shown.background, "rgb(255, 255, 255)", "white on every device");
+      assert.deepEqual(shown.size, [50, 50], "50px square");
+      assert.equal(shown.background, "rgb(255, 255, 255)", "white");
       assert.equal(shown.text, "", "icon only");
       assert(await page.evaluate(() => Number(getComputedStyle(document.querySelector(".back-to-top")).zIndex)
         < Number(getComputedStyle(document.querySelector(".search-host")).zIndex)), "its shadow stays under the search bar");
@@ -48,6 +48,22 @@ for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true], ["PC", 
     }
   });
 }
+
+test("PC never shows it (owner 2026-11-22)", async () => {
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, VIEWPORTS.desktop, { hasTouch: false, isMobile: false });
+  try {
+    await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
+    await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(innerHeight * 3) || scrollTo({ top: innerHeight * 3 }));
+    await page.waitForTimeout(1500);
+    const result = await state(page);
+    assert(!result.shown && result.size[0] === 0, `PC: ${JSON.stringify(result)}`);
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
 
 test("pages without masonry never show it", async () => {
   const browser = await launchBrowser();

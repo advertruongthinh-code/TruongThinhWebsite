@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
-import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, emojiErrors, isImageMaster, markdownNameErrors, ownerLockErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -138,6 +138,9 @@ if (docsBase) {
   // AGENTS.md rules on the branch (R11): new Markdown names, and the Ảnh QA line on PRs (same PR_NUMBER or PR_BODY condition as the card gate).
   errors.push(...markdownNameErrors(git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(Boolean)));
   if (PR_NUMBER || process.env.PR_BODY) errors.push(...qaLineErrors(changed, body), ...designLineErrors(changed, body));
+  // Owner lock (R11): owner-dated spec sentences and test assertions change only with the owner's own words.
+  const locked = changed.filter((f) => /^docs\/specs\/.*\.md$|^tests\/.*\.(m?js|cjs|ts)$/.test(f));
+  errors.push(...ownerLockErrors(locked.map((file) => ({ file, ...diffLines(git('diff', '-U0', base, '--', file)) })), body));
   // One PR per card and the card claimed on Notion (AGENTS.md SSoT). Both need a real PR; Notion trouble warns, never passes silently.
   if (PR_NUMBER) {
     const api = (path) => fetch(`${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}${path}`, { headers: { authorization: `Bearer ${GH_TOKEN}` } });

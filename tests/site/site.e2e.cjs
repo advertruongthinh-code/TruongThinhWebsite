@@ -466,9 +466,8 @@ function assertPersistentNavigationContracts() {
       projectsHeroContent?.includes("Sản phẩm tiêu biểu") &&
       projectsHeroContent?.includes('data-en="Our featured products"') &&
       projectsHeroContent?.includes("để thương hiệu") &&
-      projectsHeroContent?.includes("luôn trong tầm mắt") &&
+      projectsHeroContent?.includes('<span data-en="always in">luôn trong</span> <em data-en="sight">tầm mắt</em>') &&
       projectsHeroContent?.includes('data-en="Keep your brand"') &&
-      projectsHeroContent?.includes('data-en="always in sight"') &&
       !projectsHeroContent?.includes("project-filters") &&
       !projectsHeroContent?.includes("detail-hero-motto") &&
       // Masonry pages have no scroll cue (owner 2026-11-18); the search bar takes the rail's place.
@@ -5953,8 +5952,10 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               headingFontSize: Number.parseFloat(getComputedStyle(heading).fontSize),
               strongLineStyle: (() => {
                 const strong = heading.querySelector(".detail-title__strong");
+                const accent = strong?.querySelector("em");
                 const style = strong && getComputedStyle(strong);
-                return style ? { fontStyle: style.fontStyle, fontWeight: style.fontWeight } : null;
+                const accentStyle = accent && getComputedStyle(accent);
+                return style && accentStyle ? { lineStyle: style.fontStyle, fontStyle: accentStyle.fontStyle, fontWeight: accentStyle.fontWeight, accentText: normalize(accent.textContent) } : null;
               })(),
               headingLineCount: lineRects.length,
               headingText: normalize(heading.textContent),
@@ -6029,7 +6030,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
           assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment ${JSON.stringify({ text: hero.headingText, lines: hero.headingLineCount, fits: hero.headingFits, aligned: hero.titleAlignment })}`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
-          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "500", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
+          // Only "tầm mắt" / "sight" is italic, and every italic hero part is bold 600 (owner 2026-11-22).
+          assert(hero.strongLineStyle?.lineStyle === "normal" && hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "600" && hero.strongLineStyle?.accentText === (locale === "en" ? "sight" : "tầm mắt"), `${locale} ${viewport.width}x${viewport.height}: hero emphasis is not only the bold italic last words ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);

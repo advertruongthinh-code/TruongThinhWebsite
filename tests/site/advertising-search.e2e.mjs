@@ -588,6 +588,8 @@ for (const viewport of [WIDE, PHONE]) {
       await page.waitForTimeout(1200);
       const end = await state();
       assert.equal(end.place, "cta");
+      // The CTA block centres its text; the bar's tip stays left aligned as in every other place (owner 2026-11-22).
+      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".search-bar__hint")).textAlign), "start");
       await to(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY) - Math.round(viewport.height * 0.6));
       await page.waitForTimeout(400);
       assert.equal((await state()).place, "float", "far above the slot the bar floats again");

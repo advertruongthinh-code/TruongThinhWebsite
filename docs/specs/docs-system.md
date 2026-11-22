@@ -213,6 +213,7 @@ các check trong `scripts/docs/agents-rules.mjs`; file nóng chung với PR mở
 | secret text | File text có chuỗi dạng token (OpenAI, AWS, GitHub, Cloudflare, Notion, Slack, khối `PRIVATE KEY`); báo vị trí, không in giá trị |
 | design line | PR đổi `src/site/`, `src/search/`, `src/worker/`, `src/admin/`, `src/db/` mà không có dòng `Design: <link spec hoặc trang Notion owner duyệt>` hoặc `Mức 0: <lý do>` |
 | one pr per card | Một PR đang mở khác có cùng card trong dòng `Card:` |
+| owner lock | Branch bỏ hoặc sửa một câu trong `docs/specs/` có nhãn owner kèm ngày, hoặc xóa assert trong `tests/` mà không thêm assert nào cùng file (so cả câu, bỏ khoảng trắng đầu cuối; câu chỉ dời chỗ không tính), và không có dòng `Owner đổi: <link tin nhắn owner>`. Owner tự gõ "ok" cho câu cũ và câu mới thì thread mới thêm dòng (owner 2026-11-22) |
 | card claim | Có secret `NOTION_TOKEN`: card không ở `In progress`/`Done` hoặc cột `Agent` trống. Thiếu secret hoặc Notion lỗi: chỉ cảnh báo |
 
 ## Ranh giới

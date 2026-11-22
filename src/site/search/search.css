@@ -26,6 +26,8 @@ body.is-detail .search-host {
   pointer-events: auto;
   color: var(--ink);
   font-weight: 500;
+  /* The CTA block centres its text; the bar keeps one alignment in every place (owner 2026-11-22). */
+  text-align: start;
   /* The results morph while floating (560 to 760px, chip row): the card curve over 1s, like the site's other screen-sized moves
      (owner 2026-11-18). Place changes follow the scroll instead (search-bar R7). */
   --search-morph: 1s;
@@ -416,7 +418,7 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Back-to-top (search-bar R5): with the bar in a slot it stays out on every device. On phones, while the bar floats, it sits on its own
+/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats, it sits on its own
    row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
 body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
   transform: translateX(150%);
