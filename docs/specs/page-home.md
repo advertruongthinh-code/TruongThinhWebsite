@@ -132,7 +132,7 @@ And các portal cùng nhóm có cùng cỡ chữ theo vai trò, document không 
 
 ### R6. Hover ảnh dùng chung
 
-Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
+Portal có link là consumer của primitive hover ảnh dùng chung; portal không link không zoom ảnh khi hover (owner 2026-11-22). Primitive gồm trigger `.media-hover-zoom-trigger`, ảnh
 `.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
 card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.3` như Espacio) giữ nguyên độ

@@ -5,7 +5,7 @@ Nguồn: CSS `.service-portals`, `.service-portal`, `.portal-copy`; spec [trang 
 Card ảnh lớn, hai kiểu theo việc có link hay không (owner 2026-11-22). Markup `section.portal-stage` > `div.service-portals` > card.
 
 - Có link (`a.service-portal`): ba lĩnh vực trang chủ `#dich-vu`, chữ ba tầng giữa card (mục Chữ dưới).
-- Không link (`article.service-portal`): luôn là card cam kết, không tạo biến thể mới. Chữ góc dưới trái trong `.commitment-copy`: `.commitment-title` nhãn nhỏ in hoa, `.commitment-lead` hai `.portal-line` soạn sẵn (mask reveal dùng chung), `.commitment-body` (`.portal-subtitle`, hiện sau); nền dưới đậm dần; ảnh hover zoom. Dùng ở: bốn cam kết trang chủ (`service-portals--four`), loại hình và hạng mục Residential, loại hình Commercial.
+- Không link (`article.service-portal`): luôn là card cam kết, không tạo biến thể mới. Chữ góc dưới trái trong `.commitment-copy`: `.commitment-title` nhãn nhỏ in hoa, `.commitment-lead` hai `.portal-line` soạn sẵn (mask reveal dùng chung), `.commitment-body` (`.portal-subtitle`, hiện sau); nền dưới đậm dần; ảnh không zoom khi hover (owner 2026-11-22). Dùng ở: bốn cam kết trang chủ (`service-portals--four`), loại hình và hạng mục Residential, loại hình Commercial.
 
 Preview: ba lĩnh vực trang chủ, rồi ba loại hình Residential.
 

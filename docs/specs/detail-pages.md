@@ -185,7 +185,7 @@ Dải `.editorial-strip.detail-process-editorial` là `region` focus được, g
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
 đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
 đầu tràn mép. `.portal-stage`: ba
-`article.service-portal` không link, là card cam kết của [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ) (owner 2026-11-22: portal không link luôn dùng card này), ảnh hover zoom;
+`article.service-portal` không link, là card cam kết của [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ) (owner 2026-11-22: portal không link luôn dùng card này), ảnh không zoom khi hover (owner 2026-11-22);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
 ```gherkin
