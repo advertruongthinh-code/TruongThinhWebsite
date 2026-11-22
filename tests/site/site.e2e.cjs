@@ -2771,33 +2771,18 @@ async function runPersistentBarbaNavigationChecks() {
             ),
           `Header left the viewport while entering ${destination}: ${JSON.stringify(state.headerTrace.slice(0, 4))}`,
         );
-        // logo-route-crossfade R1: on click the header text holds its tone; once the veil covers it switches at once to
-        // ink, before the veil starts to open. No color tween at any point (site-shell R2, owner 2026-11-09).
+        // logo-route-crossfade R1 (owner 2026-11-15, Espacio timing): on click the header text eases to ink (#2f2f2f, 0.3s expo.out) and is
+        // ink by the time the veil has covered the page; it only darkens on the way.
         const trace = state.headerTrace;
         const coverIndex = trace.findIndex((sample) => sample.veilOpacity >= 0.99);
-        const openIndex = trace.findIndex(
-          (sample, index) => index > coverIndex && sample.veilOpacity < 0.99,
-        );
         const isInk = (sample) => sample.tone.every((value) => Math.abs(value - 47) <= 1);
-        const inkIndex = trace.findIndex(
-          (sample, index) => index >= coverIndex && sample.ink && isInk(sample),
-        );
-        const holdsTone = trace
-          .slice(0, coverIndex)
-          .every((sample) =>
-            sample.tone.every((value, toneIndex) => Math.abs(value - trace[0].tone[toneIndex]) <= 1),
-          );
-        const noTween = trace.every((sample) =>
-          sample.tone.every((value) => Math.abs(value - 47) <= 1 || value >= 254),
-        );
+        const inkIndex = trace.findIndex((sample) => sample.ink && isInk(sample));
+        const darkensToInk = trace.slice(1, inkIndex + 1)
+          .every((sample, index) => sample.tone.every((value, toneIndex) => value <= trace[index].tone[toneIndex] + 1));
         assert(
-          coverIndex >= 0 &&
-            holdsTone &&
-            noTween &&
-            inkIndex >= 0 &&
-            (openIndex < 0 || inkIndex < openIndex),
-          `Header route tone did not hold, then switch to ink under the closed veil for ${destination}: ${JSON.stringify(
-            { coverIndex, openIndex, inkIndex, holdsTone, noTween, trace: trace.map((sample) => [Math.round(sample.time), sample.veilOpacity, sample.ink ? 1 : 0, sample.tone.join("/")].join(" ")) },
+          coverIndex >= 0 && inkIndex >= 0 && inkIndex <= coverIndex && darkensToInk,
+          `Header route tone did not ease to ink before the veil covered ${destination}: ${JSON.stringify(
+            { coverIndex, inkIndex, darkensToInk, trace: trace.map((sample) => [Math.round(sample.time), sample.veilOpacity, sample.ink ? 1 : 0, sample.tone.join("/")].join(" ")) },
           )}`,
         );
         const firstHidden = state.trace.find((sample) => sample.outgoingHidden);
@@ -8073,7 +8058,8 @@ async function runEarlyHeroAccessibilityCheck() {
           ),
       );
       assert(
-        heading?.name?.value?.toLowerCase().includes("nơi tái tạo"),
+        // Compare normalized text: the build's orphan tie puts no-break spaces in titles (hero-typography R7).
+        heading?.name?.value?.normalize("NFC").replace(/\s+/g, " ").toLowerCase().includes("nơi tái tạo".normalize("NFC")),
         `Early AX h1 missing: ${JSON.stringify(heading?.name?.value)}`,
       );
       const early = await page.locator("h1").evaluate((element) => {
