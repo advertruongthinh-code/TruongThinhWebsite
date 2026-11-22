@@ -9,7 +9,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-11-14
+updated: 2026-11-23
 ---
 
 # Bộ test CI chia theo phần website
@@ -77,21 +77,15 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 
 ### R3. Chọn bộ theo file PR sửa
 
-`suites.mjs --select` so file đổi với merge base của `main`; `pnpm qa:suite --changed` (R6) dùng kết quả này. Trên CI,
-PR và push chỉ dùng nó để biết có code hay không (R4):
+`suites.mjs --select` so file đổi với merge base của `main`; `pnpm qa:suite --changed` (R6) dùng kết quả này. Trên CI, PR và push chỉ dùng nó để biết có code hay không (R4):
 
 1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
-2. File khớp `fastOnly` (`AGENTS.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
-   khác CI): chỉ `fast`.
-3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
-   `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
-   `scripts/tooling/serve-static-parity.mjs`, `scripts/ci/**`, `tests/ci-suites.json`, `.github/workflows/ci.yml`,
-   helper dùng chung trong `tests/site/`): mọi bộ.
+2. File khớp `fastOnly` (`AGENTS.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow khác CI): chỉ `fast`.
+3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`, `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`, `scripts/tooling/serve-static-parity.mjs`, `scripts/ci/**`, `tests/ci-suites.json`, `.github/workflows/ci.yml`, helper dùng chung trong `tests/site/`): mọi bộ.
 4. File khớp đường kích hoạt của một bộ: bộ đó.
 5. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
 
-Push vào `main` và `workflow_dispatch` so với commit `main` trước đó: chỉ có tài liệu (mục 1) thì không bộ nào được
-chọn, còn lại chọn mọi bộ. PR có code luôn có `fast`.
+Push vào `main` và `workflow_dispatch` so với commit `main` trước đó: chỉ có tài liệu (mục 1) thì không bộ nào được chọn, còn lại chọn mọi bộ. PR có code luôn có `fast`.
 
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
@@ -114,18 +108,12 @@ Then không bộ nào được chọn
 Owner chọn 2026-10-26 ("Chỉ fast"): đủ bộ tốn khoảng 106 phút job và 11 đến 17 phút mỗi lượt mà ít bắt lỗi thật; lỗi
 chủ yếu do owner và agent review tìm ra. Vì vậy:
 
-- PR (nháp hay sẵn sàng), push và `workflow_dispatch` không có input: chỉ `fast` khi R3 chọn ít nhất một bộ, không thì
-  không bộ nào. Mục tiêu: xong trong khoảng 3 phút.
+- PR (nháp hay sẵn sàng), push và `workflow_dispatch` không có input: chỉ `fast` khi R3 chọn ít nhất một bộ, không thì không bộ nào. Mục tiêu: xong trong khoảng 3 phút.
 - `schedule` mỗi đêm lúc 19:00 UTC (02:00 giờ Việt Nam) trên `main`, hoặc `workflow_dispatch` với `full: true`: mọi bộ.
 
-Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
-`.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ
-không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview,
-`test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
+Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview, `test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
 
-Push mới lên cùng PR hủy lượt CI đang chạy của PR đó; trên `main` lượt đang chạy không bị hủy để Deploy demo vẫn chạy
-khi merge dồn dập (lượt chờ mới nhất thay lượt chờ cũ hơn). Merge queue của GitHub không dùng được: chỉ có ở repo của tổ chức (public, hoặc private gói Enterprise
-Cloud).
+Push mới lên cùng PR hủy lượt CI đang chạy của PR đó; trên `main` lượt đang chạy không bị hủy để Deploy demo vẫn chạy khi merge dồn dập (lượt chờ mới nhất thay lượt chờ cũ hơn). Merge queue của GitHub không dùng được: chỉ có ở repo của tổ chức (public, hoặc private gói Enterprise Cloud).
 
 ```gherkin
 Given PR sẵn sàng sửa `style.css`
@@ -144,10 +132,7 @@ And check của PR ghi rõ bộ adv-grid đỏ
 
 ### R5. Check tổng giữ tên `static-release`
 
-Job `static-release` chạy sau mọi bộ (`if: !cancelled()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
-Cả lượt CI bị hủy (push mới, PR rời nháp) thì check skipped, không đỏ; Automerge chỉ nhận `success`.
-Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft`; Automerge vẫn đọc check
-`static-release` và không merge PR nháp.
+Job `static-release` chạy sau mọi bộ (`if: !cancelled()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy. Cả lượt CI bị hủy (push mới, PR rời nháp) thì check skipped, không đỏ; Automerge chỉ nhận `success`. Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft`; Automerge vẫn đọc check `static-release` và không merge PR nháp.
 
 Trên PR và push, `static-release` chính là kết quả `fast`, nên Deploy demo chờ `static-release` tức là chỉ chờ `fast`
 (owner chọn 2026-10-26). Lượt đêm không deploy. Lượt đêm đỏ: GitHub đánh dấu workflow đỏ và job summary nêu id bộ, lệnh
@@ -238,7 +223,11 @@ Export đúng các tên sau:
 | `openPage(browser, viewport, contextOptions)` | Tách `width`, `height` khỏi option thiết bị của viewport, mở context và trang; trả `{ context, page }` |
 | `frames(page, count = 2)` | Chờ `count` lần `requestAnimationFrame` |
 | `settleTransitions(page)` | Chờ hai frame rồi chờ tới khi không còn CSS transition đang chạy |
+| `mouseDrag(page, from, to, steps = 12)` | Kéo chuột thật (`page.mouse`) giữa hai điểm viewport `{ x, y }` |
+| `touchSwipe(page, from, to, steps = 12)` | Vuốt bằng touch event CDP; context cần `hasTouch` |
+| `trackMotion(page, selector, act, ms = 1500)` | Đo hình hộp phần tử mỗi frame trong lúc `act` chạy; trả `jump`: bước lớn nhất giữa hai frame chia cho toàn biên độ (đổi tức thì là 1, morph nhỏ hơn nhiều) |
 
+Test thao tác và motion dùng ba helper cuối ([vai kiểm tra](../operations/agent-rule-verification-roles.md#vai) 2, 3), không dùng `locator.click()` hay đặt `scrollLeft` thay cho kéo, vuốt.
 Test mới dùng harness thay cho tự mở trình duyệt, tự đọc `BASE_URL`, tự khai ba cỡ trên, dải quét hay ngưỡng điện thoại. Cỡ khác ba cỡ trên, hoặc cỡ
 trùng kích thước nhưng khác cờ thiết bị, giữ literal tại chỗ. Test cũ chuyển sang harness khi một task đụng tới chính file đó,
 không chuyển hàng loạt. `site.e2e.cjs` là CommonJS và giữ `launchBrowser` riêng.
@@ -253,6 +242,17 @@ When chạy pnpm qa:suite --changed
 Then mọi bộ được chọn vì harness nằm trong shared
 ```
 
+### R13. Test đã thấy đỏ
+
+PR sẵn sàng (không nháp) có code, đổi `src/site/` và thêm hoặc sửa file `tests/site/*.e2e.mjs`, `*.test.mjs`: job `red-before` dựng lại `src/site/` của `main` (giữ test của PR), build, mở preview rồi chạy từng file test đó. Xanh khi ít nhất một file đỏ; mọi file xanh thì job đỏ, vì test chưa từng đỏ chưa chứng minh thay đổi ([kim tự tháp niềm tin](../operations/agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin) tầng 2). PR chỉ dời code hoặc chỉ sửa test cũ ghi dòng `Test đỏ trước: không áp dụng - <lý do>` (không tính dòng còn `<`). `static-release` cần job này xanh hoặc skipped.
+Test chạy tay (`manual`, `pending`) không tính. Local: `node scripts/ci/red-before.mjs` (so với `origin/main`; `src/site/` phải sạch, script trả lại bản của branch khi xong).
+
+```gherkin
+Given PR #1061 thêm test "Hiện tất cả (N)" và sửa src/site/search/
+When job red-before chạy test đó trên src/site/ của main
+Then advertising-search.e2e.mjs đỏ, job xanh
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -260,7 +260,8 @@ Then mọi bộ được chọn vì harness nằm trong shared
 | Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `shared`, `manual`; agent sửa khi thêm test |
 | Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
-| Helper | `tests/site/harness.mjs` | `BASE_URL`, `VIEWPORTS`, mở trình duyệt và trang, chờ frame và transition cho test ESM (R12) |
+| Helper | `tests/site/harness.mjs` | `BASE_URL`, `VIEWPORTS`, mở trình duyệt và trang, chờ frame và transition, kéo, vuốt, đo motion cho test ESM (R12) |
+| Script | `scripts/ci/red-before.mjs` | R13: chạy test PR đổi trên `src/site/` của `main`; `plan()` chọn file hoặc lý do bỏ qua |
 | Check | `static-release` | Check tổng mà Automerge đọc |
 
 ## Kiểm tra
@@ -273,17 +274,15 @@ Then mọi bộ được chọn vì harness nằm trong shared
 | R4, R5 | Run CI thật trên một PR docs-only, một PR có code (chỉ `fast`), một lượt `workflow_dispatch` với `full: true` |
 | R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
 | R12 | Bốn test mẫu dùng harness (`image-loading-frame`, `masonry-hosts`, `site-media-card-m01b`, `hero-text-shadow`) xanh như trước; `tests/tooling/ci-suites.test.mjs` xanh khi harness nằm trong `shared` |
+| R12, R13 | `tests/site/harness-input.test.mjs`: chuột không cuộn hàng tràn thường, vuốt thì cuộn; morph `jump` tối đa 0,5, đổi tức thì 1. `ci-suites.test.mjs`: `plan()` của red-before |
 | R7 | Mỗi bộ xanh trên runner CI tại PR đưa nó vào |
 | R2 | Thời gian từng job trong log Actions, ghi vào mô tả PR |
 
 ## Gate còn mở
 
-- File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
-  gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
+- File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
 - Bộ browser không còn chặn PR: lỗi chỉ thấy ở lượt đêm, sau khi đã merge và deploy demo. Demo là bản kiểm nhận nên chấp nhận được; trước khi lên production cần xem lại.
-- Repo public từ 2026-10-15 nên CI chạy trên runner GitHub-hosted; số job cùng lúc là giới hạn gói Free. Đo 2026-10-26 với 25 job: wall time đủ bộ median 10,8 phút, p90 16,8; khoảng 30% là hàng đợi runner. Lượt đêm chạy một mình nên hàng đợi không ảnh hưởng ai.
-- WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở). CI chỉ chạy WebKit ở bộ `adv-browse`
-  (`advertising-random-browse.e2e.mjs`, job đó cài thêm WebKit); các bộ khác chạy Chromium (`LIFECYCLE_ENGINES`);
+- Repo public từ 2026-10-15 nên CI chạy trên runner GitHub-hosted; số job cùng lúc là giới hạn gói Free. Đo 2026-10-26 với 25 job: wall time đủ bộ median 10,8 phút, p90 16,8; khoảng 30% là hàng đợi runner. Lượt đêm chạy một mình nên hàng đợi không ảnh hưởng ai. - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở). CI chỉ chạy WebKit ở bộ `adv-browse` (`advertising-random-browse.e2e.mjs`, job đó cài thêm WebKit); các bộ khác chạy Chromium (`LIFECYCLE_ENGINES`);
   Firefox và phần WebKit còn lại chạy tay.
 - Harness (R12) mới có bốn file dùng: các test còn lại (khoảng 70 file ESM) vẫn tự gọi `chromium.launch` và tự khai cỡ; mỗi task sau chuyển file nó đụng tới.
 
@@ -297,4 +296,5 @@ Then mọi bộ được chọn vì harness nằm trong shared
 - **Check tổng**: job gom kết quả mọi bộ thành một check duy nhất.
 - **Runner**: máy chạy job GitHub Actions; ở đây là `ubuntu-latest` do GitHub cấp.
 - **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm. **Flaky**: test lúc xanh lúc đỏ dù code không đổi.
+- **Test đã thấy đỏ**: test chạy đỏ khi bỏ thay đổi và xanh khi có; chỉ test như vậy mới chứng minh thay đổi.
 - **Job summary**: trang tóm tắt của một job GitHub Actions, ghi từ `$GITHUB_STEP_SUMMARY`.
