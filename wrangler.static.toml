@@ -6,6 +6,12 @@ main = "src/search/worker.mjs"
 compatibility_date = "2026-07-31"
 workers_dev = true
 
+# Production hostname (zone on Cloudflare, nameservers moved from Sapo); workers.dev stays on as the preview URL.
+# www redirects to this host through a zone Redirect Rule, see docs/specs/static-release.md R11.
+[[routes]]
+pattern = "truongthinhads.vn"
+custom_domain = true
+
 [assets]
 directory = ".site-output"
 not_found_handling = "404-page"
