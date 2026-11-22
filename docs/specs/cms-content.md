@@ -16,7 +16,7 @@ updated: 2026-11-22
 
 Contract của những gì người soạn thêm, sửa, xóa trong CMS: kiểu nội dung và file chiếu, hai ngôn ngữ, media, card
 masonry, layout khóa theo số media, trang chuẩn, menu và CTA, soạn chữ, tìm kiếm ngữ nghĩa. Nền tảng (quyền, trạng thái, lệnh admin, xuất
-bản, xem trước) ở [CMS](cms.md). Chưa có code theo spec này.
+bản, xem trước) ở [CMS](cms.md). Chưa có code mới; validator tái dùng nằm ở bảng R1.
 
 ## Hành vi
 
@@ -34,8 +34,8 @@ là bộ file này, qua cùng validator với build (một module dùng chung, k
 | `menu` | `content/menu.json` (mở rộng theo R7) | `menuErrors` |
 | `client-logo` | `content/client-logos.json` | chưa có; thêm ở slice Storage |
 | `advertising-card` | `content/advertising-cards.json` (mới) | luật card hiện ở `catalog.mjs` và `media-contract.mjs`, tách ra file dữ liệu |
-| `page-copy` | `content/page-copy.json` (mới) | chữ và media theo slot của trang chuẩn (R6) |
-| `contact` | `content/contact.json` (mới) | cách liên hệ và nút CTA (R7) |
+| `page-copy` | `content/page-copy.json` (mới) | chưa có; plan viết, chữ và media theo slot trang chuẩn (R6) |
+| `contact` | `content/contact.json` (mới) | chưa có; plan viết, cách liên hệ và nút CTA (R7) |
 
 Định danh: `id` khớp `^[a-z0-9][a-z0-9-]{0,79}$`, không đổi sau khi tạo. `slugVi`, `slugEn` kebab-case theo
 [SEO media](media-seo.md); đổi slug sau khi đăng thì bản dựng thêm redirect 301 từ slug cũ. [CẦN LÀM RÕ: khóa slot của `page-copy` lấy từ `data-cms` hiện có hay đặt lại; chốt ở slice editor.]
@@ -66,7 +66,7 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
 
 - `kind`: `image` hoặc `video`. Ảnh có `width`, `height` thật. Video có `posterId` trỏ một ảnh, cùng tỷ lệ với video.
 - Alt: `altVi` bắt buộc, `altEn` theo R2; tả đúng thứ trong media, không trùng alt cùng ngôn ngữ trong một card
-  ([media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)); CMS điền sẵn gợi ý được, người soạn duyệt.
+  ([media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)); gợi ý tự động để sau bản đầu (R9).
 - Khung: mỗi chỗ media có khung tỷ lệ khóa theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối); người
   soạn kéo, phóng ảnh đều trong khung, CMS lưu vùng crop cùng bản gốc, lần dựng cắt biến thể theo vùng đó.
 - Upload: bỏ EXIF và GPS; tên file theo slug nội dung cộng số thứ tự. Đầu vào nhận JPEG, PNG, WebP, AVIF cho ảnh, MP4
@@ -219,12 +219,12 @@ hash đổi, tính lại toàn bộ một lần. Site không lưu nhật ký tì
 | Sửa alt hoặc thay media | Tính lại vector của media đó |
 | Xóa | Gỡ vector và từ khóa |
 
-Worker lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; cache thiếu được lần dựng kế tiếp tính bù. Không có trường từ khóa riêng: lớp từ khóa
+Admin Worker gọi Workers AI lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; cache thiếu được lần dựng kế tiếp tính bù. Không có trường từ khóa riêng: lớp từ khóa
 tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ liệu Keyword Planner. Keyword Planner không
-chạy lại khi CRUD, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm sản phẩm; sau này bảng đồng nghĩa sửa được trong cài
-đặt CMS.
+chạy lại khi CRUD, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm sản phẩm; sửa bảng đồng nghĩa trong CMS để sau bản
+đầu.
 
-Hỗ trợ nhập lúc upload (phase sau): Gemma 4 trên Workers AI đọc ảnh, soạn nháp tên, mô tả, alt VI/EN theo luật chữ của
+Hỗ trợ nhập lúc upload (phase sau): Gemma 4 trên Workers AI (suy luận, kiểm khi mở phase) đọc ảnh, soạn nháp tên, mô tả, alt VI/EN theo luật chữ của
 owner; 5 ảnh giống nhất gợi ý sản phẩm, nhóm, tag; gợi ý Keyword Planner hiện khi gõ; kiểm trước khi lưu (alt không
 trùng trong card, độ dài, chữ mồ côi). Không lưu gì tới khi người soạn bấm.
 
@@ -251,15 +251,13 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 | --- | --- |
 | R1, R2, R5 | validator dùng chung trên fixture và bản chụp ([test không phụ thuộc nội dung](content-independent-tests.md)); cần thêm: layout khóa theo số media |
 | R3 | `pnpm qa:worker:security` (WebP, SVG an toàn); cần thêm: loại, cỡ, poster, alt trùng, orphan, crop |
-| R4 | `media-contract.mjs` hôm nay; cần thêm: card công trình từ 2 media, media thuộc trang |
+| R4 | `media-contract.mjs` hiện tại; cần thêm: card công trình từ 2 media, media thuộc trang |
 | R6, R7, R8 | chưa có; cần: placeholder slot, 6 mục menu, CTA đọc một nguồn, bộ kiểm chữ |
-| R9 | test thuộc [tìm kiếm Advertising](advertising-search.md); CMS cần: lưu vẫn chạy khi Worker vector lỗi |
+| R9 | test thuộc [tìm kiếm Advertising](advertising-search.md); CMS cần: lưu vẫn chạy khi admin Worker gọi Workers AI lỗi |
 
 ## Gate còn mở
 
-Gate trước CMS (owner 2026-11-15, mỗi gate phỏng vấn owner trước): làm lại layout trang chuẩn theo Espacio (R6) xong
-ở PR #978. Motion chuyển trang giữa hero ảnh và hero trắng đã xong ở PR #966 ([logo route](logo-route-crossfade.md)); trang
-chỉ gắn đúng layout, không có tham số motion.
+Mục `[CẦN LÀM RÕ]` của R1 và R3; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ
 
@@ -267,4 +265,5 @@ chỉ gắn đúng layout, không có tham số motion.
 - **Slot**: chỗ đặt nội dung cố định trong một trang chuẩn.
 - **Placeholder**: nội dung tạm hiện khi slot trống.
 - **Layout khóa**: chuỗi khối cố định, chỉ mở khi bài đủ số media.
-- **Token**: giá trị thiết kế đặt tên sẵn (cỡ chữ, màu, khoảng cách) trong Design System.
+- **Token**: khóa truy cập cho máy (token GitHub, token R2); token Design System là giá trị thiết kế đặt tên sẵn.
+- **Bản chụp**, **orphan**, **slice**: như [CMS](cms.md#chú-thích-thuật-ngữ).
