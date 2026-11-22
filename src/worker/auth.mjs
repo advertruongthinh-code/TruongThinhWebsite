@@ -98,6 +98,7 @@ function accessTeamOrigin(env) {
   }
 }
 
+// shortcut: keys refresh only when the cache expires, so an Access key rotation can refuse logins for up to an hour.
 async function accessJwk(teamOrigin, kid) {
   if (Date.now() >= accessJwksCache.expiresAt) {
     try {
