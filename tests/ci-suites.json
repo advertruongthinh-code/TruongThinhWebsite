@@ -10,6 +10,8 @@
     "scripts/cms/**",
     "tests/admin/**",
     "src/db/**",
+    "src/cms/**",
+    "tests/cms/**",
     "wrangler.toml",
     ".github/workflows/docs.yml",
     ".github/workflows/automerge.yml",

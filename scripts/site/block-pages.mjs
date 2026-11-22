@@ -2,6 +2,7 @@
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
 import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml } from "./lib-pure.mjs";
+import { layoutErrors } from "../../src/cms/layouts.mjs";
 
 export { NEWS_GROUPS };
 
@@ -238,6 +239,7 @@ const cardErrors = (card, at) => {
       ? [] : [`${at}: card.media[${index}] khác tỷ lệ khung thẻ ${card.width}x${card.height}`]),
   ]);
 };
+const pageLayoutErrors = (kind, page, at) => layoutErrors(kind, page).map(({ message }) => `${at}: ${message}`);
 export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
@@ -248,13 +250,15 @@ export const kindFieldErrors = (kind, page, at) => {
     ...cardErrors(page.card, at),
     // The Zalo CTA block is always the last block, right above the footer (owner 2026-11-22).
     ...(page.blocks?.some((block) => block.type === "contact-quick") && page.blocks.at(-1)?.type !== "contact-quick" ? [`${at}: contact-quick (CTA) must be the last block`] : []),
+    // Layout locked by media count (cms-content R5).
+    ...pageLayoutErrors(kind, page, at),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
   // id is also the source file directory (news/<id>/index.html); colliding with a group, year or pagination page would overwrite the list page.
   for (const slug of new Set([page.id, page.slugVi, page.slugEn])) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug) || /^\d{4}$/.test(slug ?? "")) errors.push(`${at}: id hoặc slug ${slug} trùng đường dẫn nhóm, năm hoặc phân trang`);
-  return errors;
+  return [...errors, ...pageLayoutErrors(kind, page, at)];
 };
 
 // All-projects page (projects R2): staggered grid like Advertising products, clicking a card opens the project page.
