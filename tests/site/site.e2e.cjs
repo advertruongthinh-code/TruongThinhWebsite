@@ -1606,7 +1606,8 @@ async function runSmokeMatrix() {
 }
 
 async function runPortalAlignmentChecks() {
-  // The three-tier portal shares the site-wide text tokens (page-home R5): the home page and the sub-page types.
+  // The three-tier portal is the home field portal (page-home R5); every portal without a link is a commitment card
+  // (owner 2026-11-22), on the home page and on the sub-pages.
   for (const [label, path] of [["root", ""], ["residential", "residential/"], ["commercial", "commercial/"]]) {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
@@ -1620,7 +1621,7 @@ async function runPortalAlignmentChecks() {
           const diagnostics = monitorPage(page);
           await gotoRoute(page, route);
           const state = await page.evaluate(() => ({
-            cards: [...document.querySelectorAll(":is(#dich-vu, #loai-hinh) .service-portal")].map(
+            cards: [...document.querySelectorAll("#dich-vu .service-portal")].map(
               (card) => {
                 const cardRect = card.getBoundingClientRect();
                 const upper = card.querySelector(".portal-title__quiet");
@@ -1665,10 +1666,11 @@ async function runPortalAlignmentChecks() {
               },
             ),
             capabilityCards: [
-              ...document.querySelectorAll("#nang-luc .service-portal"),
+              ...document.querySelectorAll(".service-portal:not([href])"),
             ].map((card) => {
               const cardRect = card.getBoundingClientRect();
               const copy = card.querySelector(".commitment-copy");
+              if (!copy) return { commitment: false, html: card.outerHTML.slice(0, 120) };
               const copyRect = copy.getBoundingClientRect();
               const lines = [...card.querySelectorAll(".commitment-lead .portal-line")];
               const lineWidth = Math.max(...lines.map((line) => {
@@ -1678,6 +1680,8 @@ async function runPortalAlignmentChecks() {
               }));
               const copyStyle = getComputedStyle(copy);
               return {
+                commitment: true,
+                group: [...document.querySelectorAll(".service-portals")].indexOf(card.parentElement),
                 title: card.querySelector(".commitment-title")?.textContent.replace(/\s+/g, " ").trim(),
                 leadLines: lines.length,
                 hasBody: Boolean(card.querySelector(".commitment-body .portal-subtitle")?.textContent.trim()),
@@ -1718,14 +1722,14 @@ async function runPortalAlignmentChecks() {
               })(),
             }));
             const roles = {
-              serviceTitles: read(":is(#dich-vu, #loai-hinh) .portal-title__strong"),
-              serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
-              serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
+              serviceTitles: read("#dich-vu .portal-title__strong"),
+              serviceKickers: read("#dich-vu .portal-title__quiet"),
+              serviceSubtitles: read("#dich-vu .portal-subtitle"),
             };
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
-            if (role === "serviceKickers" && samples.length === 0) continue;
+            if (path) continue;
             assert(
               samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
               `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
@@ -1744,21 +1748,32 @@ async function runPortalAlignmentChecks() {
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
+            state.capabilityCards.every((card) => card.commitment),
+            `Portal without a link must be a commitment card at ${route}: ${JSON.stringify(state.capabilityCards.filter((card) => !card.commitment))}`,
+          );
+          assert(
             state.capabilityCards.every((card) => card.leadLines === 2 && card.leadFits && card.hasBody && card.bottomAnchored && card.textShadow),
             `Commitment card text drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
+          if (path) {
+            // Sub-pages: residential types and items, commercial types; titles level within each row.
+            const expected = { "residential/": 6, "commercial/": 3 }[path];
+            assert(state.capabilityCards.length === expected, `Expected ${expected} commitment cards at ${route}, found ${state.capabilityCards.length}`);
+            if (width >= 579) {
+              for (const group of new Set(state.capabilityCards.map((card) => card.group))) {
+                const offsets = state.capabilityCards.filter((card) => card.group === group).map((card) => card.titleOffset);
+                assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${route} ${width}px: ${offsets.join(", ")}`);
+              }
+            }
+            assert(state.horizontalOverflow <= 0, `Portals introduced ${state.horizontalOverflow}px horizontal overflow at ${route}`);
+            assertDiagnostics(diagnostics);
+            return;
+          }
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
             new Set(state.cards.map(({ hasKicker }) => hasKicker)).size === 1,
             `Portal kicker must be all or none in a group at ${route}: ${JSON.stringify(state.cards)}`,
           );
-          if (path) {
-            // Sub-pages match the home portal's text tokens at the same card width.
-            assert(
-              state.cards.every((card) => card.titleWeight === "500" && (!card.hasKicker || card.upperWeight === "600") && card.lowerWeight === "600"),
-              `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
-            );
-          } else {
           assert(
             state.capabilityCards.map((card) => card.title).join("|") ===
               (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
@@ -1776,7 +1791,6 @@ async function runPortalAlignmentChecks() {
               state.advertisingImage.declaredHeight === 3072,
             `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
           );
-          }
           assert(
             state.cards.every(
               (card) =>

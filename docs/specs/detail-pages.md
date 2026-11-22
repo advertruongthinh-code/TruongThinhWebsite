@@ -64,7 +64,7 @@ footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lờ
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 7a | `.detail-heading#vat-lieu` + `.detail-note` | Eyebrow "VẬT LIỆU VÀ PHỤ KIỆN", `h2` "Vật liệu và phụ kiện / *đi cùng chúng tôi*", một đoạn về nhà cung cấp ván và phụ kiện, dưới đoạn là `.supplier-marquee`: một hàng `.supplier-logos` không khung chạy vòng tràn ngang màn hình như logo khách hàng trang chủ (hai bản danh sách, bản sau `aria-hidden`; điện thoại dọc, giảm chuyển động và in thì đứng yên, xếp dòng canh giữa), nhóm chỉ bằng thứ tự trong hàng (ván gỗ: An Cường, Ba Thanh, KES; tấm alu: Triều Chen; phụ kiện tủ: Häfele, Blum, Eurogold, Gerari; thiết bị bếp: KAFF, Dmestik), mỗi logo có hộp em theo diện tích để nặng thị giác bằng nhau, canh giữa một trục (owner 2026-11-22) | Eyebrow "VẬT LIỆU", `h2` "Vật liệu chịu được / *nhịp kinh doanh*", một đoạn về vật liệu theo cường độ sử dụng, rồi cùng hàng `.supplier-logos` thêm Mimaki, Graphtec ở cuối | ink |
 | 8 | (bỏ) | Khối hai ảnh `.detail-duo` bỏ vì layout Espacio không có (owner 2026-11-22) | Như Residential | |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
+| 9 | `.portal-stage#loai-hinh` | Ba card cam kết (không link, owner 2026-11-22): Nhà phố, Căn hộ, Homestay | Ba card cam kết: Showroom · Cửa hàng, Cafe · Nhà hàng, Văn phòng · Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
 | 9a | `.portal-stage#hang-muc` (R) | Ba card hạng mục cùng kiểu card cam kết trang chủ (nhãn, lead hai dòng, đoạn mô tả, ảnh dọc): Tủ bếp, Tủ áo, Hoàn thiện (owner 2026-11-17) | Không có: khối "Ghé chúng tôi" (`.detail-heading#ghe-tham` + `.detail-places`, thẻ như showroom Espacio) chuyển lên trang chủ, ngay sau dải công trình (owner 2026-11-22) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát" | inverse |
 | 11 | (bỏ) | Dải chữ `.capability-marquee` bỏ khỏi Nhà ở và Kinh doanh (owner 2026-11-22) | Như Residential | |
@@ -185,7 +185,7 @@ Dải `.editorial-strip.detail-process-editorial` là `region` focus được, g
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
 đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
 đầu tràn mép. `.portal-stage`: ba
-`article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
+`article.service-portal` không link, là card cam kết của [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ) (owner 2026-11-22: portal không link luôn dùng card này), ảnh hover zoom;
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
 ```gherkin

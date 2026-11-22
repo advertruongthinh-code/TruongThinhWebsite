@@ -40,7 +40,9 @@ const COMPONENTS = [
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   // also: add other blocks, from the same file or [file, regex].
-  { name: 'Portal', group: 'Page', height: 720, file: 'src/site/residential/index.html', start: /<section\s+class="portal-stage section-gap"\s+id="loai-hinh"/ },
+  // Linked field portal (home) above the card every portal without a link reuses (owner 2026-11-22).
+  { name: 'Portal', group: 'Page', height: 1400, file: 'src/site/index.html', start: /<section\s+class="portal-stage section-gap"\s+id="dich-vu"/,
+    also: [['src/site/residential/index.html', /<section\s+class="portal-stage section-gap"\s+id="loai-hinh"/]] },
   { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/about/index.html', start: /<section\s+class="capability-marquee section-gap"/,
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
