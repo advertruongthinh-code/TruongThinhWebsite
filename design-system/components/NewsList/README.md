@@ -28,7 +28,8 @@ Rê chuột hoặc focus thẻ: gạch chân 3px chạy theo bề rộng chữ t
 
 Khối News duy nhất ngoài trang News, ngay dưới hero trang chủ, theo trang chủ Espacio (đo lại 2026-11-11, lề và số cột đo 384 tới 1920 ngày 2026-11-14): 3 bài mới nhất, mỗi
 bài ảnh bìa trái (tối thiểu 5:6, cao theo chữ khi chữ dài hơn), phải là nhóm chữ hoa, tiêu đề, "Đọc tiếp". Cuối trang bài,
-khối "Tin khác" dùng đúng thẻ này dưới tiêu đề căn giữa 64px (40px phone). Rê chuột hoặc focus: ảnh phóng 1.2 trong `0.6s ease-out`,
+khối "Tin khác" dùng đúng thẻ này dưới tiêu đề căn giữa 64px (40px phone); 3 bài do build chọn: cùng nhóm trước, rồi bài liên quan
+nhất ([news R3](../../../docs/specs/news.md#r3-trang-bài), owner 2026-11-22). Rê chuột hoặc focus: ảnh phóng 1.2 trong `0.6s ease-out`,
 nhóm có gạch chân 3px mọc từ trái, "Đọc tiếp" hiện dần (`0.6s` vào, `0.3s` ra).
 
 | Phần | 1440 | 390 |

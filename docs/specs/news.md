@@ -74,7 +74,12 @@ And hàng lọc chỉ có "Tất cả" và các năm, trang năm có noindex
 ### R3. Trang bài
 
 Theo mẫu Bài News của [layout-library R2](layout-library.md): tiêu đề, khối nội dung theo chuỗi người soạn ghép, cuối bài là
-khối "Tin khác" (`news-cards`, tiêu đề căn giữa rồi 3 bài dạng dải trang chủ R4, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, mới nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài mới nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
+khối "Tin khác" (`news-cards`, tiêu đề căn giữa rồi 3 bài dạng dải trang chủ R4, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, rồi bài liên quan nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài liên quan nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
+Mức liên quan (owner 2026-11-22, chuẩn cho CMS và SEO): độ giống chữ tiếng Việt giữa hai bài (TF-IDF cosine trên tiêu đề tính 3 lần, mô tả,
+đoạn văn, trích dẫn; từ đơn và cặp từ liền nhau), bằng nhau thì bài mới hơn rồi theo `id`; trang EN dùng cùng thứ tự. Người soạn ghim tay
+bằng `newsIds` (id có thật, không trỏ chính bài). Ba bài là link tĩnh trong HTML. Đăng hoặc sửa một bài có thể đổi "Tin khác" của bài
+khác, nên CMS đăng bài phải build lại mọi trang bài; việc đó không đổi `dateModified` của bài khác. CMS lọc bài nháp và bài hẹn giờ
+đăng trước khi build, để chúng không hiện ở đây.
 Bài có ngày đăng và ngày cập nhật hiển thị khớp dữ liệu cấu trúc, tác giả là người duyệt. Dữ liệu cấu trúc `BlogPosting`,
 `BreadcrumbList`, `VideoObject` khi có video, theo [SEO](seo.md); ảnh, video trong bài theo [tải ảnh](media-delivery.md).
 Ảnh bài là ảnh riêng của bài đó, không dùng lại ảnh trang khác hay bài khác ([bộ kiểm nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung) mục 7); mỗi ảnh là một cảnh riêng minh họa đúng đoạn văn cạnh nó, không cần cùng một không gian (owner 2026-11-13). Mẫu ảnh mỗi bài: ảnh rộng đầu bài (cũng là bìa 3:2), cặp ảnh dọc 2:3, ảnh dọc 2:3 lệch phải.
@@ -93,7 +98,7 @@ bằng `news-cards`, `cta-arrow`.
 ```gherkin
 Given một bài thuộc nhóm Sản phẩm quảng cáo
 When mở bài
-Then cuối bài có 3 bài khác cùng nhóm, mới nhất trước, và link tới trang News
+Then cuối bài có 3 bài khác, cùng nhóm trước, bài có nội dung gần nhất trước bài mới hơn, và link tới trang News
 ```
 
 ### R4. News trên các trang khác
