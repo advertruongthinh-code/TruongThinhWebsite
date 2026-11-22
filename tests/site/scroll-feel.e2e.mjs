@@ -124,7 +124,8 @@ try {
         const titleBox = title.getBoundingClientRect();
         const link = section.querySelector(".legacy-link");
         const label = link?.querySelector(".portal-subtitle")?.getBoundingClientRect();
-        const next = section.nextElementSibling.getBoundingClientRect();
+        // The closer is the last section of main (owner 2026-11-22): the space below runs to the invitation after main.
+        const next = (section.nextElementSibling ?? section.closest("main").nextElementSibling).getBoundingClientRect();
         return {
           height: box.height,
           left: box.left,
