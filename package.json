@@ -26,6 +26,7 @@
     "qa:worker:security": "node --test tests/worker/auth.test.mjs",
     "qa:site": "node tests/site/site.e2e.cjs",
     "qa:worker": "node --test tests/worker/*.test.mjs",
+    "cms:seed": "node scripts/cms/seed.mjs",
     "qa:cross-browser": "playwright test tests/site/cross-browser.smoke.spec.cjs",
     "tooling:bootstrap": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/bootstrap.ps1",
     "tooling:doctor": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1"

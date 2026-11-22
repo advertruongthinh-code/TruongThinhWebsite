@@ -218,7 +218,7 @@ cho owner tới khi có [editor](cms-editor.md) mới.
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `node --test tests/worker/schema.test.mjs`; còn cần `tests/worker/records.test.mjs` (P1) |
+| R1 | `node --test tests/worker/schema.test.mjs`; seed: `node --test tests/cms/seed.test.mjs`; còn cần `tests/worker/records.test.mjs` (P1) |
 | R2, R3 | chưa có; cần test khứ hồi `tests/cms/projection.test.mjs`, test redirect trong `tests/site/` |
 | R4 | `node --test tests/tooling/wrangler-config.test.mjs` |
 | R5 | chưa có; cần `tests/cms/build-variants.test.mjs`, `tests/worker/variants.test.mjs` |
