@@ -39,7 +39,7 @@
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -58,7 +58,7 @@
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .detail-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline is bold italic like the
@@ -89,7 +89,7 @@
 
 .project-hero .hero-title em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .project-hero .hero-content:has(> .hero-title > :only-child) > .hero-kicker {
@@ -103,7 +103,7 @@
   margin: 32px auto 0;
   color: inherit;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   text-transform: uppercase;
@@ -122,7 +122,7 @@
 
 .commercial-hero h1 em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* Residential hero: the accent line "năng lượng sống" is bold 700 and italic (owner 2026-10-24). */
@@ -153,7 +153,7 @@
 .detail-heading h2,
 .masonry-section h1 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -323,7 +323,7 @@
 .detail-eyebrow {
   margin: 0;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-wrap: balance;
@@ -427,7 +427,7 @@
 .detail-lead__title {
   margin: 0;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
 }
 
@@ -504,7 +504,7 @@
   margin-top: 10px;
   color: var(--ink);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -559,14 +559,14 @@
 .process-step > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .process-step h3 {
   margin: auto 0 1rem;
   /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   word-spacing: 0.08em;
 }
@@ -687,7 +687,7 @@
 .detail-cta__copy p {
   margin: 0 0 1rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
 }
 
@@ -695,7 +695,7 @@
   margin: 0;
   font-size: var(--cta-title-size);
   text-wrap: balance;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 0.98;
   word-spacing: var(--word-spacing-display);
@@ -709,7 +709,7 @@
   align-items: center;
   margin-top: 2rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -738,7 +738,7 @@
   padding-left: 0.5rem;
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -775,7 +775,7 @@
   color: var(--muted);
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
   transition: color var(--dur-base) ease-out, text-decoration-color var(--dur-base) ease-out;
@@ -853,7 +853,7 @@
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   margin-left: 0.25em;
   vertical-align: 0.45em;
@@ -1234,7 +1234,7 @@
   margin: 0;
   /* Floor lets the tied last two words share a line in the 768px column (hero-typography R7). */
   font-size: clamp(2rem, 4.5vw, 5.4rem);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 0.95;
   word-spacing: var(--word-spacing-display);
@@ -1251,7 +1251,7 @@
 }
 
 .about-timeline__copy strong {
-  font-weight: 700;
+  font-weight: inherit;
 }
 
 .about-chapter-lead {
@@ -1320,7 +1320,7 @@
 .about-commitment > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .about-commitment h3 {
@@ -1328,7 +1328,7 @@
   max-width: 16ch;
   margin: auto 0 1rem;
   font-size: clamp(2rem, 3vw, 3.7rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 1;
   word-spacing: 0.1em;
@@ -1595,7 +1595,7 @@ body.is-masonry-browse .masonry-grid {
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -1675,7 +1675,7 @@ body.is-masonry-browse .masonry-grid {
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   text-shadow: var(--text-shadow-d);
   pointer-events: none;
@@ -2569,7 +2569,7 @@ body.is-masonry-browse .site-footer {
 .video-player__time {
   margin: 0 0 0 20px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.5rem;
   white-space: nowrap;
@@ -3034,7 +3034,7 @@ body.is-masonry-browse .site-footer {
   background: transparent;
   color: var(--ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   text-transform: uppercase;
   text-decoration: none;
@@ -3086,7 +3086,7 @@ body.is-masonry-browse .site-footer {
   max-width: none;
   margin: 1rem 0 0;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   letter-spacing: normal;
 }
@@ -3210,7 +3210,7 @@ body.is-masonry-browse .site-footer {
   place-items: center;
   color: var(--white);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
   text-align: center;
   text-wrap: balance;
@@ -4129,7 +4129,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 60px 0 0;
   padding-inline: var(--gutter);
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
   text-wrap: pretty;
@@ -4175,7 +4175,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   max-width: 20ch;
   margin: 0;
   font-size: clamp(2.5rem, 6vw, 5.5rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
@@ -4186,7 +4186,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   max-width: 22ch;
   font-size: clamp(2.25rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
   text-wrap: balance;
 }
@@ -4330,13 +4330,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .blk-facts__label {
   margin: 0 0 0.5rem;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -4375,7 +4375,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   color: var(--white);
   background: var(--ink);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4393,7 +4393,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   gap: 1.5rem;
   color: var(--ink);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4434,7 +4434,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: block;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -4443,7 +4443,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 var(--section-gap, 90px);
   padding-top: 50px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -4529,7 +4529,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-news-pager a {
   color: var(--ink);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4605,7 +4605,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-block: 0.83em;
   color: #2f2f2f;
   font-size: 1.3rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -4700,7 +4700,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 /* Projects page hero tagline: only the accent text (em) bold 700 italic, the rest 500 like line one (owner 2026-11-08). */
 .projects-title__accent em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* Projects page type with no project yet (projects R2): the "đang cập nhật" line; build and detail.js toggle hidden by the filter. */
@@ -4713,7 +4713,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 /* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com (layout-bloque-noticias, measured 2026-11-11 and
    2026-11-14 from 384 to 1920): content capped at 1500px and centred; 3 columns 70px apart, 50px from 1200px, 2 columns from 960px, 30px from
-   750px, 1 column from 578px; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
+   750px, 1 column from 578px; each item a cover column (golden ratio 1fr : 1.618fr) and text 20px apart; the cover keeps at least 1 : 1.618 and stretches when
    the text is taller. Group 16px bold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
    semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
@@ -4727,7 +4727,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .home-news__item {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  /* Golden ratio (owner 2026-11-22): cover : text = 1 : 1.618 and the cover is 1 : 1.618 portrait. */
+  grid-template-columns: 1fr 1.618fr;
   column-gap: 20px;
   color: #222;
   text-decoration: none;
@@ -4741,7 +4742,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media::before {
   content: "";
   display: block;
-  padding-top: 120%;
+  padding-top: 161.8%;
 }
 
 .home-news__media img {
@@ -4769,7 +4770,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-top: 15px;
   color: #2f2f2f;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -4777,7 +4778,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__title {
   margin-block: 1.2rem;
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -4809,7 +4810,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 
   .home-news__item {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1.618fr;
   }
 }
 
@@ -4893,7 +4894,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   color: inherit;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 [data-barba-namespace="project"] .blk-facts__label {
@@ -4906,7 +4907,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 [data-barba-namespace="project"] .blk-facts__text {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 @media (max-width: 980px) {
@@ -4969,7 +4970,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 35px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -5036,7 +5037,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: inline-block;
   margin: 1em 0 5px;
   font-size: 1.8rem;
-  /* Espacio sets the card name in its medium cut and the address in regular (silka-medium / silka-regular, measured 2026-11-22). */
+  /* Same weight as the menu group titles, 500 like Espacio mid headings (owner 2026-11-22); the address stays regular. */
   font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;

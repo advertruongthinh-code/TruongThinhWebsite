@@ -504,7 +504,7 @@ function assertSuggestionAndRelated(evidence, label, expected, { textScale = 1 }
   assert(evidence.suggestion.rect.width <= evidence.infoRect.width + 1, `${label}: suggestion group exceeds information width`);
   closeTo(evidence.suggestion.title.fontSize, 14 * textScale, `${label}: suggestion title size`, 0.1);
   closeTo(evidence.suggestion.title.lineHeight, 18.9 * textScale, `${label}: suggestion title line-height`, 0.1);
-  assert.equal(evidence.suggestion.title.fontWeight, "700", `${label}: suggestion title weight`);
+  assert.equal(evidence.suggestion.title.fontWeight, "600", `${label}: suggestion title weight`);
   closeTo(evidence.suggestion.linksGap, 8, `${label}: suggestion banner gap`, 0.1);
   closeTo(evidence.suggestion.linksMarginTop, 8, `${label}: suggestion title-banner gap`, 0.1);
   assert.equal(evidence.suggestion.banners.length, 4, `${label}: detail spec R5 fills four suggestion slots for this photo`);
@@ -529,7 +529,7 @@ function assertSuggestionAndRelated(evidence, label, expected, { textScale = 1 }
     assert.equal(banner.image.objectFit, "cover", `${label}: suggestion banner ${index + 1} does not use accepted cover crop`);
     closeTo(banner.label.fontSize, 16 * textScale, `${label}: suggestion banner ${index + 1} label size`, 0.1);
     closeTo(banner.label.lineHeight, 24 * textScale, `${label}: suggestion banner ${index + 1} label line-height`, 0.1);
-    assert.equal(banner.label.fontWeight, "700", `${label}: suggestion banner ${index + 1} label weight`);
+    assert.equal(banner.label.fontWeight, "600", `${label}: suggestion banner ${index + 1} label weight`);
     if (banner.pressed === "true") {
       assert.equal(banner.backgroundColor, "rgb(255, 255, 255)", `${label}: active suggestion does not expose its white surface`);
       assert(banner.image.opacity <= 0.01, `${label}: active suggestion full-frame image still covers its white surface`);

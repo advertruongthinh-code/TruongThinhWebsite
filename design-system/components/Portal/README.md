@@ -30,3 +30,5 @@ Ba tầng, canh giữa card, chữ trắng hoa, bóng D ([README](../../README.m
 
 - **Portal**: card ảnh lớn dẫn sang một trang con.
 - **cqw**: phần trăm bề rộng container (card), để chữ co theo card.
+
+Weight (owner 2026-11-22, 3 mức như Espacio): tiêu đề portal 500, kicker và phụ đề chữ hoa nhỏ 600, chữ thường kiểu câu 400.

@@ -10,7 +10,7 @@ chuỗi ảnh nền.
 ## Hành vi
 
 - Mỗi nút một dòng, nền là ảnh cover crop của tag kèm lớp tối, nhãn chữ trắng
-  đậm căn giữa, đủ chữ.
+  600 căn giữa, đủ chữ.
 - Bấm để lọc ảnh liên quan theo tag; chỉ một tag bật, bấm lại để tắt. Trạng
   thái bật dùng `aria-pressed`, khác hover và focus; thứ tự nút không đổi khi
   bật hoặc tắt.

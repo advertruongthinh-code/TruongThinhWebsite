@@ -92,7 +92,7 @@ export async function checkSiteContent(siteRoot) {
       for (const line of [vi, en]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
     }
     // A heading split into styled parts, or a statement split by <br>: each part is a line, same rule.
-    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1\s*>/g)) {
       const parts = [...inner.matchAll(/data-en="([^"]*)"[^>]*>([^<]*)</g)];
       if (!(name.startsWith("h") ? parts.length > 1 : inner.includes("<br"))) continue;
       for (const [, en, vi] of parts) for (const line of [en, vi.trim()]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
