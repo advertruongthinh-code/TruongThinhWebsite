@@ -4,7 +4,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
-import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.mjs";
+import { newsListPages } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 import { projectListPages } from "../../scripts/site/project-list.mjs";
 import { legacyRedirects } from "../../scripts/site/redirects.mjs";
 
