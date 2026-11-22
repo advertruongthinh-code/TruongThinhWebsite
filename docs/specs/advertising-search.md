@@ -219,7 +219,8 @@ And sau 31 ngày mở lại thì chỉ tìm theo chữ, kèm thông báo ảnh �
 `pnpm search:calibrate` chạy `tests/search/fixtures/queries.json` trên chỉ mục thật: câu từ Keyword Planner, 15 câu trò
 chuyện, 15 câu gõ sai và Telex, VNI, 10 bộ trộn input không liên quan, câu EN. Script ghi cặp mốc của 4 loại truy vấn-đích
 và ngưỡng vào `src/search/score-config.json`; trọng số và ngưỡng chỉ đổi qua file này. Cổng: card đúng trong 5 card đầu từ
-80% câu mỗi loại; P@5 chung không dưới 0,8. Câu nhắm video chưa vào cổng khi catalog chưa có video.
+80% câu mỗi loại; P@5 chung không dưới 0,8 và không thấp hơn config đang chạy (2026-11-21: config mới đạt cổng
+nhưng kém config cũ thì không ghi). Câu nhắm video chưa vào cổng khi catalog chưa có video.
 
 ```gherkin
 Given chỉ mục thật và bộ câu thử
