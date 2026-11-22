@@ -419,7 +419,8 @@ body.is-detail .search-host {
 /* Phone back-to-top (search-bar R5): while the bar floats it is white like the block, on its own row above the block's right end;
    with the bar in a slot it stays out. */
 @media (hover: none) and (pointer: coarse) {
-  body[data-search-place="float"] .back-to-top {
+  /* The white look holds in every place, so a button leaving as the bar docks does not flash black on its way out. */
+  body[data-search-place]:not([data-search-place="off"]) .back-to-top {
     right: var(--search-block-right, 16px);
     bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
     box-sizing: border-box;
@@ -432,7 +433,7 @@ body.is-detail .search-host {
     box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
   }
 
-  body[data-search-place="cta"] .back-to-top.show {
+  body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
     transform: translateX(150%);
   }
 
@@ -458,7 +459,7 @@ body.is-detail .search-host {
 }
 
 @media (hover: none) and (pointer: coarse) and (max-width: 750px) {
-  body[data-search-place="float"] .back-to-top {
+  body[data-search-place]:not([data-search-place="off"]) .back-to-top {
     bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 }
