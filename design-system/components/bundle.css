@@ -6899,7 +6899,7 @@ body.is-masonry-browse .site-footer {
 
 /* Under the search slot the link starts as far below the bar as the heading's baseline sits above it; the runtime measures it
    (search-bar R4). */
-.detail-cta[data-masonry-grid-cta] [data-search-dock] ~ .legacy-link {
+[data-barba-namespace]:not([data-search-off]) .detail-cta[data-masonry-grid-cta] [data-search-dock] ~ .legacy-link {
   margin-top: var(--masonry-cta-link-gap, var(--masonry-gap));
 }
 
@@ -7342,6 +7342,11 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
+/* Off the root grid (filter pages, cards) there is no search bar and no slot (search-bar R8). */
+[data-search-off] :is(.hero-search, [data-search-dock]) {
+  display: none;
+}
+
 /* Search top slot (advertising-search R7): the bar takes the rail's place and the rail and chips move one step down, into the room
    the scroll cue left. The slot is as tall as the docked bar, so the hero does not move when the bar arrives. */
 .detail-index-hero .hero-search {
@@ -7351,7 +7356,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 }
 
 @media (min-width: 1025px) {
-  .detail-index-hero:has(.hero-search) .hero-search {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .hero-search {
     position: absolute;
     bottom: calc(15vh + 3.5rem);
     left: 50%;
@@ -7359,11 +7364,11 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
     transform: translateX(-50%);
   }
 
-  .detail-index-hero:has(.hero-search) .project-filters {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .project-filters {
     bottom: 15vh;
   }
 
-  .detail-index-hero:has(.hero-search) .rail-chips {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .rail-chips {
     bottom: calc(15vh - 3.25rem);
   }
 }

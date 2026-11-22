@@ -4,7 +4,7 @@ status: planned
 source: []
 tests:
   - tests/site/advertising-search.e2e.mjs
-notion: https://app.notion.com/p/41f332849a0e81d48e76c008816e01c4
+notion: https://app.notion.com/p/420332849a0e81dda7d5ecc5fa185ea2
 updated: 2026-11-22
 ---
 
@@ -22,8 +22,7 @@ audit trang thật với mock (R6).
 
 **Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
 không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
-Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe như nay (trượt theo trang như
-`sticky`, dừng ở khe rồi mới đổi bề rộng).
+Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe theo quãng cuộn ([R7](#r7-vào-khe-theo-quãng-cuộn)); chỉ trang gốc có thanh ([R8](#r8-chỉ-trang-gốc-có-thanh)).
 
 | | PC và tablet (từ 751px) | Phone (dưới 751px) |
 | --- | --- | --- |
@@ -78,8 +77,8 @@ chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên k
 
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
 
-**Chuyển động.** Đổi chỗ: morph `--search-morph` 1s `--search-ease` (`--ease-card`) cả hai chiều cho vị trí, bề rộng, bóng; trượt từ chỗ cũ tới chỗ mới như nay
-(xa hơn một màn hình thì chỉ morph). Có kết quả và bỏ tìm: bề rộng 560 và 760px cùng nhịp đó. Giảm chuyển động: đổi trạng thái ngay.
+**Chuyển động.** Đổi chỗ giữa nổi và khe theo [R7](#r7-vào-khe-theo-quãng-cuộn), không có morph chạy theo thời gian. Có kết quả và bỏ tìm khi đang nổi: bề rộng 560 và 760px, hàng chip đổi bằng morph
+`--search-morph` 1s `--search-ease` (`--ease-card`). Giảm chuyển động: morph đó đổi ngay; R7 vẫn đi theo cuộn vì chỉ chạy khi khách cuộn.
 
 **Giữ nguyên.** Enter tìm, Esc bỏ tìm; đang tìm thì nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ. Không có dòng
 trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating CTA lên bằng `--search-bar-offset`. Không có JavaScript thì CTA vẫn có link cũ. Chữ trên thanh,
@@ -101,11 +100,58 @@ trang, nổi, khe CTA) và ba trạng thái (chưa tìm, có kết quả, 1 ản
 cụm CTA, vị trí nút về đầu trang) và so với số CSS của mock (mock thu nhỏ bằng `transform`, nên không so pixel ảnh), lệch tối đa 2px; màu và bóng so đúng giá trị
 CSS. Hai ngoại lệ ở R1 không tính là lệch. Kết quả là một trang so sánh đặt ảnh trang thật cạnh mock cho owner xem.
 
+### R7. Vào khe theo quãng cuộn
+
+Owner chọn 2026-11-22 (thay cú bay 1 giây): thanh vào và rời khe theo đúng quãng cuộn, cả PC lẫn phone. Không có chuyển động tự chạy: cuộn dừng là thanh
+đứng yên giữa đường, cuộn ngược là thanh đi ngược lại. Ở khe CTA, bề rộng đổi dần từ bề rộng nổi (560px, 760px khi có kết quả) sang bề rộng khe, bóng mờ dần,
+hàng chip (nếu có) gập dần; tới khe là đúng dáng ở khe của R1.
+
+- **Khe đầu trang.** Owner sửa 2026-11-22 (thanh đi chéo giữa màn hình che nhiều nội dung): thanh nằm yên trong khe và cuộn đi cùng trang. Khi hàng
+  nhập của khe đã chui dưới header, thanh nổi trồi lên từ mép dưới màn hình trong 120px cuộn tiếp, rồi nằm ở chỗ nổi. Thanh không bao giờ đi ngang qua
+  giữa màn hình. Cuộn lên thì ngược lại.
+- **Khe CTA.** Thanh nổi tới khi khe chạm thanh, rồi nằm trong khe và trôi lên theo trang; trong một phần tư chiều cao màn hình cuộn tiếp, thanh mở dần ra
+  bằng khe (ngắn hơn nếu trang hết sớm hơn), nên ở cuối trang thanh luôn đúng dáng khe. Lúc còn hàng chip, hàng chip nhô lên trên khe, khe không đổi cao.
+- **Nhảy cuộn** (Home, End, tải lại giữa trang, Back): thanh đứng ngay ở chỗ và dáng của vị trí mới, không chạy hiệu ứng.
+- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ; đang trồi lên thì về chỗ nổi trước. Nút về đầu trang chỉ hiện khi
+  thanh nổi hẳn.
+
+```gherkin
+Given trang gốc ở 1440px, đầu trang, thanh trong khe đầu trang
+When cuộn xuống 60px
+Then thanh vẫn trong khe, lên theo trang đúng 60px
+When cuộn tiếp tới khi khe chui dưới header rồi thêm 40px
+Then thanh nổi đang trồi lên, còn nằm dưới chỗ nổi; cuộn lên lại đầu trang thì thanh về khe
+
+Given thanh đang nổi giữa lưới ở 390px
+When cuộn xuống tới khi khe CTA chạm thanh rồi cuộn tiếp tới cuối trang
+Then thanh nằm trong khe trôi lên theo trang, mở dần ra, ở cuối trang rộng bằng khe và không còn bóng
+```
+
+### R8. Chỉ trang gốc có thanh
+
+Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/vi/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
+con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
+tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
+
+- Trên trang gốc, đang không tìm mà bấm một nhóm hoặc chip ở hero (sang trang con), hoặc mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình
+  (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng khe.
+- Đang tìm: bấm chip trong kết quả thì thanh vẫn ở (R2). Bấm một nhóm ở hero là rời tìm (như nay) nên thanh ẩn như trên.
+- Về "Tất cả" hoặc đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
+
+```gherkin
+Given trang gốc ở 1440px, chưa tìm
+When bấm nhóm "Bảng hiệu"
+Then URL sang trang nhóm, không còn thanh và khe; bấm "Tất cả" thì thanh hiện lại trong khe đầu trang
+```
+
+Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang con và trang card; runtime masonry bật, tắt thuộc tính này khi đổi nhóm, mở hoặc đóng card;
+`dock.mjs` tính độ vào khe mỗi frame cuộn và chỉ đọc vị trí hai khe.
+
 ## Kiểm tra
 
 | R | Test |
 | --- | --- |
-| R1 đến R5 | `node tests/site/advertising-search.e2e.mjs` (bảng ở [Tìm kiếm](advertising-search.md#kiểm-tra)) |
+| R1 đến R5, R7, R8 | `node tests/site/advertising-search.e2e.mjs` (bảng ở [Tìm kiếm](advertising-search.md#kiểm-tra)); R7 và R8 có test riêng `search-bar R7`, `search-bar R8` |
 | R6 | script audit chạy trên dev server; số và ảnh đính kèm PR |
 
 ## Chú thích thuật ngữ
