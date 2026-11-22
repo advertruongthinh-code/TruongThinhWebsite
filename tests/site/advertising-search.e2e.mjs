@@ -501,6 +501,8 @@ test("search-bar R4: at the end of the page the space above and below the bar is
       await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(1e6) || scrollTo({ top: 1e6, behavior: "instant" }));
       await page.waitForFunction(() => !document.querySelector(".search-bar").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
       await page.waitForTimeout(1500);
+      // The bottom zone reveals the header (site-shell R3); a slow runner may still be sliding it, so measure once it stands still.
+      await page.waitForFunction(() => !document.querySelector(".site-header").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
       const cta = await page.evaluate(() => {
         const heading = document.querySelector("#cta-title").getBoundingClientRect();
         const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();
