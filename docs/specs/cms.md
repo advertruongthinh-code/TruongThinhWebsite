@@ -193,10 +193,10 @@ mới (plan viết), workflow chỉ nhận id một trong 10 deployment gần nh
 demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback đặt cờ tạm dừng trong D1; trong lúc dừng,
 `snapshot` trả 423 nên mọi lần dựng, kể cả merge code, dừng ở bước lấy bản chụp. Owner sửa hoặc đưa bản ghi lỗi vào
 thùng rác rồi bấm "tiếp tục đăng"; bản sửa code khẩn cũng chờ tới lúc đó. Bản đầu không dọn biến thể public tự động: biến thể chỉ bị xóa khi
-`purge` bản gốc của nó, nên deployment cũ vẫn có đủ ảnh khi rollback.
+`purge` bản gốc của nó, nên deployment cũ vẫn có đủ ảnh khi rollback, trừ media đã `purge`.
 
 ```gherkin
-Given lần dựng có một ảnh thiếu biến thể
+Given một biến thể đã mất khỏi bucket public
 When bộ kiểm phát hành chạy
 Then không deploy, site giữ bản trước, admin báo id media lỗi
 ```
