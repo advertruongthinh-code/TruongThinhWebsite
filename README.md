@@ -61,7 +61,7 @@ CMS chưa activate. Trạng thái phát hành thực tế xem [trang Notion Tr�
 đọc trong PR và `git log`.
 Wrangler cho CMS Worker chỉ được cài và activate
 khi owner mở CMS phase theo
-[điều kiện mở CMS](docs/specs/cms.md#điều-kiện-mở-cms-phase).
+[điều kiện mở CMS](docs/specs/cms.md#gate-còn-mở).
 
 ## Cây thư mục và trạng thái
 

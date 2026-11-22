@@ -111,7 +111,7 @@ hoặc CMS provider decision từ tài liệu này; các claim đó cần eviden
 ## Deployment và kiểm chứng
 
 Demo hosting theo [phát hành demo Cloudflare](specs/static-release.md#r11-phát-hành-demo-cloudflare);
-Wrangler cho CMS khóa tới khi owner mở CMS phase ([điều kiện](specs/cms.md#điều-kiện-mở-cms-phase)).
+Wrangler cho CMS khóa tới khi owner mở CMS phase ([điều kiện](specs/cms.md#gate-còn-mở)).
 
 Các command có trong repository:
 

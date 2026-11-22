@@ -125,8 +125,8 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 [card nhiều media](media-card.md) (mọi media cùng tỷ lệ cover, alt VI/EN riêng, không trùng) và SEO như
 [SEO media](media-seo.md): HTML đọc được khi không chạy JavaScript, JSON-LD, ảnh vào image sitemap.
 
-Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
-dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
+Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, CMS khóa
+layout theo số ảnh ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)). Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
 luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
 `cta-arrow`, `contact-quick`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
 Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh chưa duyệt dùng ảnh giữ chỗ `placeholder-ngang`,
