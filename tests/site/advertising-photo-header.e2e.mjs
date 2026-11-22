@@ -16,7 +16,7 @@ try {
   for (const [width, height, mobile, expected, gutter] of [[390, 844, true, 71, 15], [1440, 900, false, 81, 35]]) {
     const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile });
     const page = await context.newPage();
-    await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "load" });
+    await page.goto(`${base}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout);
     await page.waitForTimeout(800);
     const label = `${width}px`;

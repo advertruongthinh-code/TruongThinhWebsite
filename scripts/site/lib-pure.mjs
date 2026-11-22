@@ -14,7 +14,7 @@ export function imageFieldErrors(image, where, isSrc = (src) => IMAGE_SRC.test(s
 }
 
 // Structured data shared by every page kind (SEO audit 2026-11-15): breadcrumb trail and list pages as CollectionPage + ItemList.
-// Items are [name, path] with a /vi/... path; JSON is escaped so it cannot close its script tag.
+// Items are [name, path] with a site path; JSON is escaped so it cannot close its script tag.
 const absolute = (pathname) => `${PUBLIC_ORIGIN}${pathname}`;
 export const breadcrumbLd = (items) => ({
   "@type": "BreadcrumbList",
@@ -37,3 +37,6 @@ export const alternateLinks = (vi, en) => [
 export const pageName = ({ titleVi, titleEn }) => ({ vi: titleVi.replace(/ — Trường Thịnh$/, ""), en: titleEn.replace(/ — Trường Thịnh$/, "") });
 // The page's keyword name as its h1 (media-seo R6): screen readers and search engines read it; the visible kicker and slogan keep their look.
 export const pageNameHeading = ({ vi, en }) => `<h1 class="sr-only" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</h1>`;
+// Public URL prefix per locale (owner 2026-11-22): Vietnamese pages live at the root, English under /en; old /vi/ URLs 301 to the root.
+export const localePrefix = (locale) => (locale === "en" ? "/en" : "");
+export const routeLocale = (pathname) => (/^\/en(?:\/|$)/.test(pathname) ? "en" : "vi");

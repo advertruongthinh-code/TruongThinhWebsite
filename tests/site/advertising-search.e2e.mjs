@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./harness.mjs";
 
-const PAGE = `${BASE_URL}/vi/advertising-products/`;
+const PAGE = `${BASE_URL}/advertising-products/`;
 const WIDE = { width: 1440, height: 900 };
 const PHONE = { width: 384, height: 724, isMobile: true, hasTouch: true };
 const VECTOR_IDS = ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-03"];
@@ -431,7 +431,7 @@ test("R10: soft navigation from the menu does not restore, and leaving the page 
     // The grid is still sliding to the results; a click during a page transition is ignored, so click until the route changes.
     await clickUntil(page, "#header-logo", () => !location.pathname.includes("advertising-products"));
     await page.waitForFunction(() => !document.querySelector(".search-bar"), null, { timeout: 8000 });
-    await clickUntil(page, '[data-site-header] .desktop-nav a[href="/vi/advertising-products/"]', () => location.pathname.includes("advertising-products"));
+    await clickUntil(page, '[data-site-header] .desktop-nav a[href="/advertising-products/"]', () => location.pathname.includes("advertising-products"));
     await page.waitForSelector(".search-bar", { timeout: 20000 });
     await page.waitForTimeout(500);
     assert.equal(await page.locator(".search-bar").count(), 1, "exactly one bar");
@@ -672,7 +672,7 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
 test("search-bar R8: no bar on a filter page; filtering to a group hides it and back to all shows it", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${BASE_URL}/vi/advertising-products/bang-hieu-quang-cao/`);
+    const { context, page } = await open(browser, WIDE, `${BASE_URL}/advertising-products/bang-hieu-quang-cao/`);
     await page.waitForSelector(".search-host", { state: "attached", timeout: 20000 });
     const off = () => page.evaluate(() => ({
       off: document.querySelector("[data-barba-namespace]").hasAttribute("data-search-off"),

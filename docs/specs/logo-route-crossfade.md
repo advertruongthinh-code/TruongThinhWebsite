@@ -32,7 +32,7 @@ Bấm link route mềm: header ghim lại; chữ, nav và hamburger đổi dần
 mark đang CMYK thì giữ, không lật.
 
 ```gherkin
-Given /vi/ ở đầu trang, mark và chữ trắng trên hero ảnh, 1440px hoặc 412×915
+Given / ở đầu trang, mark và chữ trắng trên hero ảnh, 1440px hoặc 412×915
 When click Residential
 Then chữ bắt đầu đổi sang #2f2f2f ngay lúc bấm và đậm hẳn trước khi veil phủ kín
 And mark bắt đầu lật sang CMYK ngay lúc bấm, không có tween fill
@@ -47,7 +47,7 @@ trang sẵn sàng (chờ font như cũ), không có thời gian phủ kín tối
 trang đích đã đổi (layout còn dịch), mark lật sang đúng màu.
 
 ```gherkin
-Given /vi/ ở đầu trang
+Given / ở đầu trang
 When click Residential, chờ veil mở xong
 Then chữ dừng ở đúng ba màu: trắng, #2f2f2f, trắng
 And lần đổi sang trắng bắt đầu khi veil còn phủ kín, veil mở trong 400 ms sau đó
@@ -61,7 +61,7 @@ Trang hero trắng (Advertising, Công trình, Tin tức): đi từ hero ảnh v
 chữ giữ `#2f2f2f`, mark không lật.
 
 ```gherkin
-Given /vi/advertising-products/ ở đầu trang, mark CMYK
+Given /advertising-products/ ở đầu trang, mark CMYK
 When click Công trình, chờ veil mở xong
 Then chữ giữ #2f2f2f, mark không lật
 ```
@@ -95,7 +95,7 @@ thấy logo: chữ `#2f2f2f`, mark CMYK. Áp dụng cho PC và điện thoại, 
 hero trắng. Đổi ngôn ngữ là ngoại lệ: header ẩn cả cụm (R4, owner 2026-11-10). Owner bỏ kiểu cả cụm mờ cùng veil.
 
 ```gherkin
-Given /vi/ ở đầu trang, 1440px hoặc 412×915
+Given / ở đầu trang, 1440px hoặc 412×915
 When click Residential
 Then opacity của cụm logo giữ 1 suốt lúc veil phủ và mở
 And mark, chữ, mục menu và hamburger không có opacity riêng
@@ -117,7 +117,7 @@ Code: `pinHeaderForRoute`, `inkRouteHeader` (gọi lúc bấm trong `coverRoute`
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R3 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, `/vi/` sang Residential, Advertising, Advertising sang `/vi/` và Công trình; ghi mỗi frame màu chữ, lớp lật, opacity veil; không tween fill mark, không clip-path; chữ dừng đúng các màu đích, bắt đầu đổi sang đậm lúc bấm và đậm hẳn trước khi veil kín, đổi sang tone trang đích khi veil còn kín; lượt lật CMYK bắt đầu lúc bấm, lượt lật về trắng lúc trang đích gắn vào; veil mở trong 400 ms sau khi trang đích gắn; trắng sang trắng không lật |
+| R1–R3 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, `/` sang Residential, Advertising, Advertising sang `/` và Công trình; ghi mỗi frame màu chữ, lớp lật, opacity veil; không tween fill mark, không clip-path; chữ dừng đúng các màu đích, bắt đầu đổi sang đậm lúc bấm và đậm hẳn trước khi veil kín, đổi sang tone trang đích khi veil còn kín; lượt lật CMYK bắt đầu lúc bấm, lượt lật về trắng lúc trang đích gắn vào; veil mở trong 400 ms sau khi trang đích gắn; trắng sang trắng không lật |
 | R5 | `tests/site/logo-route-crossfade.e2e.mjs`: bấm link lúc đang lật, lượt lật chạy tiếp, không tween fill |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (đổi màu khi cuộn), `TT_E2E_REDUCED_ONLY`; `brand-mark-flip.e2e.mjs` (từng dải lật quanh trục riêng, cyan trước, chỉ transform và opacity, đổi hướng giữ mặt đang hiện) |

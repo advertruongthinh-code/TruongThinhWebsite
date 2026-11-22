@@ -15,7 +15,7 @@ await fs.mkdir(output, { recursive: true });
 const results = [];
 const assets = {};
 const runnerSha256 = createHash("sha256").update(await fs.readFile(new URL(import.meta.url))).digest("hex");
-const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
+const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `${locale === "en" ? "/en" : ""}/${route}`));
 for (const file of ["motion.js", "style.css", "detail.css", "masonry/runtime.mjs", "masonry/detail-viewer.mjs"]) {
   const source = await fs.readFile(`src/site/${file}`);
   const response = await fetch(`${base}/${file}`);
@@ -101,7 +101,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
   page.on("response", response => { if (response.status() >= 400) issues.push(`${response.status()}: ${response.url()}`); });
   try {
     if (["all", "shell"].includes(scope)) {
-      await page.goto(`${base}/vi/`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/`, { waitUntil: "networkidle" });
       await ready(page);
       const before = await snapshot(page);
       await page.evaluate(() => window.__changeVisibleViewport(650));
@@ -118,7 +118,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     }
     if (["all", "advertising"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await ready(page, true);
       const before = await snapshot(page);
       await page.evaluate(() => window.__changeVisibleViewport(650));
@@ -136,7 +136,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     assert.deepEqual(issues, [], "console/page/network/HTTP issues");
     if (["all", "viewer"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await ready(page, true);
       const motion = await page.evaluate(async () => {
         document.querySelector("[data-detail-expand]").click();
@@ -191,7 +191,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     }
     if (["all", "visibility"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/standee-ke-trung-bay/`, { waitUntil: "networkidle" });
       await ready(page);
       await page.evaluate(() => {
         const frame = document.querySelector("[data-masonry-cta-frame]");
@@ -222,7 +222,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     if (["all", "fallback"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.route("**/motion.js", route => route.fulfill({ status: 200, contentType: "application/javascript", body: "/* Deliberate unavailable shell script boundary. */" }));
-      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.complete && document.querySelector("[data-detail-related-grid]")?.style.height);
       await page.evaluate(() => document.fonts.ready);
       const before = await snapshot(page);

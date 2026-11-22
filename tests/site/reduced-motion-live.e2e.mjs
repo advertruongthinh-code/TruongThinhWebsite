@@ -8,7 +8,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 
 try {
   const page = await browser.newPage({ viewport: { width: 360, height: 800 }, reducedMotion: "reduce" });
-  await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   const paused = () => page.evaluate(() => document.body.classList.contains("motion-paused"));
   assert.equal(await paused(), true, "reduced motion pauses the page");
 

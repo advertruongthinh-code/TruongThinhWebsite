@@ -13,7 +13,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "split");
   const first = await page.evaluate(() => {
     const suggestion = document.querySelector('[data-detail-suggestion]');
@@ -91,7 +91,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.masonrySuggestionTag), "format-square",
     "deep-scroll split-to-full resize lost focus within suggestion UI");
 
-  await page.goto(`${baseUrl}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-02`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-02`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector('[data-detail-view]')?.dataset.detailLayout === "pinterest");
   const focusedSuggestion = page.locator('[data-detail-suggestion] [data-masonry-suggestion-tag]').first();
   await focusedSuggestion.focus();

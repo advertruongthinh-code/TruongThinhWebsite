@@ -8,12 +8,12 @@ import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./h
 
 const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));
 const routes = ["vi", "en"].flatMap((locale) => [
-  `/${locale}/`,
-  `/${locale}/about/`,
-  `/${locale}/residential/`,
-  `/${locale}/commercial/`,
-  `/${locale}/advertising-products/`,
-  `/${locale}/news/`,
+  `${locale === "en" ? "/en" : ""}/`,
+  `${locale === "en" ? "/en" : ""}/about/`,
+  `${locale === "en" ? "/en" : ""}/residential/`,
+  `${locale === "en" ? "/en" : ""}/commercial/`,
+  `${locale === "en" ? "/en" : ""}/advertising-products/`,
+  `${locale === "en" ? "/en" : ""}/news/`,
   pageHref("news", locale, news[0]),
   pageHref("projects", locale, projects[0]),
 ]);

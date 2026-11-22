@@ -38,7 +38,7 @@ const candidatePaths = {
   "catalog-runtime": ["src/site/masonry/runtime.mjs", ".site-output/masonry/runtime.mjs"],
   motion: ["src/site/motion.js", ".site-output/motion.js"],
   "photo-viewer": ["src/site/masonry/detail-viewer.mjs", ".site-output/masonry/detail-viewer.mjs"],
-  "vi-advertising-html": ["src/site/advertising-products/index.html", ".site-output/vi/advertising-products/index.html"],
+  "vi-advertising-html": ["src/site/advertising-products/index.html", ".site-output/advertising-products/index.html"],
   "en-advertising-html": ["src/site/advertising-products/index.html", ".site-output/en/advertising-products/index.html"],
 };
 
@@ -155,7 +155,7 @@ async function inventory(browser) {
   try {
     for (const locale of ["vi", "en"]) {
       for (const route of [...new Set(families.map((item) => item.route))]) {
-        await page.goto(url(`${locale}/${route}`), { waitUntil: "domcontentloaded" });
+        await page.goto(url(`${locale === "en" ? "en/" : ""}${route}`), { waitUntil: "domcontentloaded" });
         if (route.startsWith("advertising-products/")) {
           await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), undefined, { timeout: 12_000 });
           if (route.includes("photo=")) await page.waitForFunction(() => !document.querySelector("[data-detail-view]")?.hidden);
@@ -201,7 +201,7 @@ try {
   await writeFile(path.join(evidenceDir, "inventory.json"), JSON.stringify(familyInventory, null, 2), { flag: "wx" });
 
   await runCase(browser, "card-carousel-capability", async (page) => {
-    await advertisingReady(page, "vi/advertising-products/");
+    await advertisingReady(page, "advertising-products/");
     await page.waitForFunction(() => document.querySelectorAll("[data-masonry-card]").length > 0);
     const card = await page.locator("[data-masonry-card]").first().evaluate((node) => ({ id: node.dataset.masonryCard,
       mediaElements: node.querySelectorAll("img,video").length, videoElements: node.querySelectorAll("video").length }));
@@ -212,7 +212,7 @@ try {
   });
 
   await runCase(browser, "active-media-opens-primary", async (page, context) => {
-    await advertisingReady(page, "vi/advertising-products/");
+    await advertisingReady(page, "advertising-products/");
     await page.waitForFunction(() => document.querySelectorAll("[data-masonry-card]").length > 0);
     const card = page.locator("[data-masonry-card] > a").first();
     await card.scrollIntoViewIfNeeded();
@@ -257,7 +257,7 @@ try {
   }, { touch: true, viewport: { width: 390, height: 844 } });
 
   await runCase(browser, "no-grid-morph-and-last-viewed-marker", async (page) => {
-    await advertisingReady(page, "vi/advertising-products/?category=signage-raised-letters");
+    await advertisingReady(page, "advertising-products/?category=signage-raised-letters");
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), photoId);
     const card = page.locator(`[data-masonry-card="${photoId}"] > a`);
     await card.scrollIntoViewIfNeeded();
@@ -283,7 +283,7 @@ try {
   });
 
   await runCase(browser, "history-entry-scroll-and-photo-identity", async (page) => {
-    await advertisingReady(page, "vi/advertising-products/?category=signage-raised-letters");
+    await advertisingReady(page, "advertising-products/?category=signage-raised-letters");
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), photoId);
     const card = page.locator(`[data-masonry-card="${photoId}"] > a`);
     await card.scrollIntoViewIfNeeded();
@@ -322,8 +322,8 @@ try {
       localeCategorySeedTag: [grid, detail, back, forward].every((item) =>
         // The grid on a cluster page (taxonomy slugVi), detail at /p/<id>/ (advertising-detail R1).
         new URL(item.url).pathname === (item.photo
-          ? `/vi/advertising-products/p/${photoId}/`
-          : `/vi/advertising-products/${ADVERTISING_CLUSTERS.find((cluster) => cluster.id === "signage").slugVi}/`)
+          ? `/advertising-products/p/${photoId}/`
+          : `/advertising-products/${ADVERTISING_CLUSTERS.find((cluster) => cluster.id === "signage").slugVi}/`)
         && item.category === "signage" && item.seed === grid.seed && item.tag === grid.tag),
       oneHistoryEntry: detail.length === grid.length + 1 && back.length === detail.length && forward.length === detail.length,
     };
@@ -333,7 +333,7 @@ try {
   });
 
   await runCase(browser, "focus-hover-one-cover-video", async (page) => {
-    await advertisingReady(page, "vi/advertising-products/");
+    await advertisingReady(page, "advertising-products/");
     const videoCount = await page.locator("[data-masonry-card] video").count();
     if (!videoCount) return { status: "RED_SOURCE_ABSENT", videoCount,
       expectation: "Eligible cover videos permit one player, focus schedule and hover override" };
@@ -341,7 +341,7 @@ try {
   });
 
   await runCase(browser, "viewer-two-finger-image-pinch", async (page, context) => {
-    await advertisingReady(page, `vi/advertising-products/?photo=${photoId}`);
+    await advertisingReady(page, `advertising-products/?photo=${photoId}`);
     await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.naturalWidth > 0);
     // A touch screen hides the expand button from view, tapping the primary image opens the viewer (viewer touch R7, R8).
     await page.locator("[data-detail-image]").tap();

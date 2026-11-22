@@ -70,7 +70,7 @@ nhỏ hơn nhu cầu mới, nên trình duyệt chỉ nâng lên bản lớn hơ
 Ảnh `contain` hoặc không crop giữ bề rộng khung. Nhu cầu chặn ở variant 2048px; bản gốc chỉ tới qua [R10](progressive-loading.md#r10-lên-bản-gốc-sau-khi-hiện) (2026-10-31).
 
 ```gherkin
-Given /vi/residential/ ở 1440×900 DPR 1, mạng thường
+Given /residential/ ở 1440×900 DPR 1, mạng thường
 When cuộn tới gallery và ảnh gallery tải xong
 Then mỗi ảnh gallery tải biến thể có bề rộng ít nhất 0.9 lần phần hiển thị sau crop (hoặc bản gốc nếu gốc nhỏ hơn)
 And không ảnh nào bị request hai lần cùng URL
@@ -118,7 +118,7 @@ head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng ứng viên
 tải. Advertising chỉ tải ảnh card trong cửa sổ ảo hóa; primary eager, ưu tiên cao.
 
 ```gherkin
-Given /vi/residential/ tải với cache trống, ảnh bị trễ 1,5s
+Given /residential/ tải với cache trống, ảnh bị trễ 1,5s
 When đọc DOM và request ảnh tới khi cuộn hết trang
 Then ảnh hero có fetchpriority="high", mọi ảnh khác lazy, đúng như HTML build
 And không URL ảnh nào bị request hai lần
@@ -178,7 +178,7 @@ CSS chỉ ẩn ảnh khi có class này, nên không JavaScript thì ảnh hiệ
 Nút suggestion detail dùng cùng vệt thay thanh chạy đáy ([detail R6](advertising-detail.md#r6-slideshow-suggestion)) qua `data-media-frame` trên nút, không CSS vệt riêng; nút đang bật (`aria-pressed="true"`) có một rule ghi đè tắt vệt.
 
 ```gherkin
-Given ảnh /assets/content/ của /vi/about/ bị trễ 1,5s, viewport 390px
+Given ảnh /assets/content/ của /about/ bị trễ 1,5s, viewport 390px
 When trang vẽ trước khi ảnh về
 Then mỗi khung ảnh đang hiện đã đúng kích thước cuối, nền #2b2c2b, có vệt lướt và ảnh opacity 0
 And khi ảnh load và decode xong, khung có is-media-settled, không còn vệt, ảnh fade lên opacity 1 trong 0.45s
@@ -194,7 +194,7 @@ Then độ sáng tăng dần từ nền tới tâm rồi giảm dần, tâm từ
 And độ dốc trung bình trên cửa sổ 24px đổi tối đa 0,1 mức/px giữa hai cửa sổ kề (dải 5 điểm cùng tâm 0,33)
 
 Given trình duyệt tắt JavaScript
-When mở /vi/residential/
+When mở /residential/
 Then ảnh hiện ngay khi tải, không bị opacity 0
 ```
 

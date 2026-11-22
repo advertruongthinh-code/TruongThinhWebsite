@@ -63,7 +63,7 @@ async function run(suiteIds) {
   const timings = [];
   const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: ["ignore", log, log] });
   try {
-    for (let i = 0; !(await fetch(`${baseUrl}/vi/`).then((r) => r.ok, () => false)); i++) {
+    for (let i = 0; !(await fetch(`${baseUrl}/`).then((r) => r.ok, () => false)); i++) {
       if (i > 30) throw new Error(`preview did not start on ${baseUrl}`);
       await new Promise((r) => setTimeout(r, 1000));
     }

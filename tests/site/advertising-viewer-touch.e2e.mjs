@@ -190,7 +190,7 @@ async function runPhone({ locale, width, height }) {
   const { page, cdp, close } = await phonePage({ width, height });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${origin}/${locale}/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${origin}${locale === "en" ? "/en" : ""}/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
   const touch = touchDriver(page, cdp);
   await openViewer(page, touch, { double: true });
   const state = () => page.evaluate(readState);
@@ -461,7 +461,7 @@ async function runMotion() {
 async function runDesktop() {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
-  await page.goto(`${origin}/vi/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${origin}/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("[data-detail-image]")?.complete);
   await page.locator("[data-detail-expand]").click();
   await settled(page);

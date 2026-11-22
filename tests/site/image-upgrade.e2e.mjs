@@ -27,7 +27,7 @@ try {
   // Static page: the hero shows the frame-fit version first, when scrolling stops it switches to the original, and the original loads exactly once.
   {
     const { page, originals } = await open();
-    await page.goto(`${base}/vi/residential/`, { waitUntil: "load" });
+    await page.goto(`${base}/residential/`, { waitUntil: "load" });
     const hero = ".detail-hero .hero-slide.is-active img";
     await page.waitForFunction((selector) => document.querySelector(selector)?.closest(".is-media-settled"), hero);
     assert.match(await pathOf(page, hero), VARIANT, "hero shows its fitted variant first");
@@ -88,7 +88,7 @@ try {
   // Advertising: masonry cards are small frames so they keep the frame-fit version; the large detail image (large frame) upgrades to the original.
   {
     const { page, originals } = await open();
-    await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+    await page.goto(`${base}/advertising-products/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-card] img").length > 8);
     await page.waitForTimeout(5000);
     const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card] img")]
@@ -119,7 +119,7 @@ try {
   // 1920x940: a 436px related card upgrading to the original froze 200-480ms on each decode, 2026-11-09).
   {
     const { page } = await open({ viewport: { width: 1920, height: 940 } });
-    await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+    await page.goto(`${base}/advertising-products/`, { waitUntil: "load" });
     await page.locator("[data-masonry-card] > a").first().click();
     await page.waitForTimeout(6000);
     // A small original (no variant larger than the frame) is still a valid candidate; only an original much larger than the frame is a wrong upgrade.
@@ -134,7 +134,7 @@ try {
   // an original slide smaller than 2048 has no 2048 variant, so the original is the largest candidate.
   {
     const { page } = await open({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true });
-    await page.goto(`${base}/vi/`, { waitUntil: "load" });
+    await page.goto(`${base}/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll(".hero-slide:not(.is-active) img[srcset]").length >= 9, null, { timeout: 10_000 });
     await page.waitForTimeout(1500);
     const hidden = await page.evaluate(() => [...document.querySelectorAll(".hero-slide:not(.is-active) img")].map((image) => ({

@@ -7,8 +7,8 @@ import { ADVERTISING_CATALOG_ARTIFACT } from '../../.site-output/advertising-pro
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8787';
 const OUT = 'scripts/docs/captures';
-const GRID = '/vi/advertising-products/';
-const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-25';
+const GRID = '/advertising-products/';
+const PHOTO = '/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-25';
 const CLIP = '/__design_system__/clip.mp4';
 // MediaCard takes the first four cards of the grid with a fixed seed (the virtual grid keeps only cards near the viewport), then turns them
 // into 1 item, 3 items, 11 items and a video cover plus one image (docs/specs/media-card.md).
@@ -39,7 +39,7 @@ const CAPTURES = [
   // Glass on the main detail-page image frame; the runtime grain is a blob URL so the build assigns a substitute grain (spec design-system R3.9).
   { name: 'Glass', route: PHOTO, select: '.detail-view__hero-frame' },
   // The gallery dot strip is built by detail.js when the block enters the frame.
-  { name: 'Gallery', route: '/vi/residential/', select: '.detail-gallery',
+  { name: 'Gallery', route: '/residential/', select: '.detail-gallery',
     setup: (page) => page.locator('.detail-gallery').scrollIntoViewIfNeeded() },
 ];
 

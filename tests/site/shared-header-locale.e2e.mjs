@@ -14,7 +14,7 @@ const ready = page => page.waitForFunction(() => document.documentElement.classL
 try {
   for (const route of ["residential", "commercial"]) {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${baseUrl}/vi/${route}/`);
+    await page.goto(`${baseUrl}/${route}/`);
     await ready(page);
     await page.locator("[data-menu-open]").click();
     await page.waitForFunction(() => document.querySelector("#site-menu").open);
@@ -47,7 +47,7 @@ try {
   // First Back after an in-place language switch on Advertising: the page language must match the URL locale.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${baseUrl}/vi/advertising-products/`);
+    await page.goto(`${baseUrl}/advertising-products/`);
     await ready(page);
     await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card a[href*='/p/']"));
     const photo = await page.locator("[data-project-grid] .masonry-card a[href*='/p/']").first().getAttribute("href");
@@ -57,7 +57,7 @@ try {
     await page.locator('#site-menu [data-language-option="en"]').click();
     await page.waitForFunction(() => document.documentElement.lang === "en" && !document.body.classList.contains("is-transitioning"));
     await page.evaluate(() => history.back());
-    await page.waitForFunction(() => location.pathname.startsWith("/vi/") && !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
+    await page.waitForFunction(() => location.pathname.startsWith("/") && !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
     await page.waitForTimeout(1500);
     const back = await page.evaluate(() => ({ path: location.pathname, language: document.documentElement.lang }));
     assert.equal(back.language, "vi", `Back after an in-place locale switch: ${JSON.stringify(back)}`);
@@ -65,7 +65,7 @@ try {
   }
 
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(`${baseUrl}/vi/`);
+  await page.goto(`${baseUrl}/`);
   await ready(page);
   const link = page.locator('.site-header a[href*="/commercial/"]').first();
   const modifier = process.platform === "darwin" ? "Meta" : "Control";

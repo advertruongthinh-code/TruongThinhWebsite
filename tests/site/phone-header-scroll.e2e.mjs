@@ -19,7 +19,7 @@ const headerBox = page => page.evaluate(() => {
 });
 const open = async (viewport, touch) => {
   const page = await browser.newPage({ viewport, hasTouch: touch, isMobile: touch, reducedMotion: "reduce" });
-  await page.goto(`${origin}/vi/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.evaluate(() => document.fonts.ready);
   await frames(page);

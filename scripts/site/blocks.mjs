@@ -7,8 +7,8 @@ export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-// ponytail: only internal /vi|/en links or Zalo; extend when the CMS needs checked external links.
-const SAFE_HREF = /^(?:\/(?:vi|en)\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
+// ponytail: only internal links (VI at the root, EN under /en) or Zalo; extend when the CMS needs checked external links.
+const SAFE_HREF = /^(?:\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
 // ponytail: v1 text is just plain paragraphs split by blank lines; bold, italic, in-paragraph links when the CMS needs them.
 const paragraphs = (text) => text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
@@ -40,7 +40,7 @@ export const NEWS_GROUPS = {
 export const newsTeaser = (post) => {
   const group = NEWS_GROUPS[post.group];
   return [
-    `    <a class="home-news__item" href="/vi/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">`,
+    `    <a class="home-news__item" href="/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">`,
     `      <span class="home-news__media">${image(post.cover)}</span>`,
     '      <span class="home-news__text">',
     `        ${localized("span", group, ' class="home-news__group"')}`,
@@ -240,7 +240,7 @@ const BLOCKS = {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
-            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
+            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
             `      <span class="project-card__media">${image(cover)}</span>`,
             `      ${localized("span", project.title, ' class="blk-projects__name"')}`,
             "    </a>",

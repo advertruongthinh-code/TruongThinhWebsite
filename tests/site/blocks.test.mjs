@@ -32,11 +32,11 @@ const fixture = () => ({
     { id: "facts", type: "facts-grid", items: [{ label: t("Loại", "Type"), text: t("Căn hộ", "Apartment") }, { label: t("Khu vực", "Area"), text: t("Bến Tre", "Ben Tre") }] },
     { id: "contact", type: "contact-quick", title: t("Tư vấn", "Talk to us") },
     { id: "slider", type: "project-slider", projectIds: ["other"] },
-    { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/vi/residential/", hrefEn: "/en/residential/" },
+    { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/residential/", hrefEn: "/en/residential/" },
     { id: "quote", type: "quote", text: t("Trích", "Quote") },
     { id: "news", type: "news-cards", newsIds: ["other"] },
     { id: "beside", type: "media-text", image: photo, text: t("Cạnh ảnh.", "Beside.") },
-    { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/vi/residential/", hrefEn: "/en/residential/" }] },
+    { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/residential/", hrefEn: "/en/residential/" }] },
   ],
 });
 const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map([["other", other]]), news: new Map([["other", other]]) };
@@ -151,7 +151,7 @@ test("strip and News blocks without ids pick their items at build", () => {
     projects: new Map(["a", "b", "c", "d"].map((id, index) => [id, project(id, index === 2 ? "commercial" : "residential")])),
     news: new Map([post("old-home", "nha-o", "2026-01-01"), post("new-trend", "xu-huong", "2026-03-01"), post("new-home", "nha-o", "2026-02-01"), post("self", "nha-o", "2026-04-01"), post("older-trend", "xu-huong", "2025-12-01")].map((item) => [item.id, item])),
   };
-  const links = (html) => [...html.matchAll(/href="\/vi\/(?:projects|news)\/([^/]+)\//g)].map((match) => match[1]);
+  const links = (html) => [...html.matchAll(/href="\/(?:projects|news)\/([^/]+)\//g)].map((match) => match[1]);
   // Project page: other projects of the same sector in data order.
   const page = { ...project("a", "residential"), blocks: [{ type: "project-slider" }] };
   assert.deepEqual(links(renderBlocks(page, auto)), ["b", "d"]);

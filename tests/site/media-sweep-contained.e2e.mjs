@@ -21,7 +21,7 @@ try {
   for (const slug of slugs) {
     const page = await context.newPage();
     try {
-      await page.goto(`${origin}/vi/projects/${slug}/`, { waitUntil: "load" });
+      await page.goto(`${origin}/projects/${slug}/`, { waitUntil: "load" });
       const image = page.locator(".blk-gallery img").first();
       await page.evaluate(() => {
         const top = document.querySelector(".blk-gallery img").getBoundingClientRect().top + scrollY;

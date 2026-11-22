@@ -32,7 +32,7 @@ try {
   const context = await browser.newContext({ serviceWorkers: "allow", viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   // The site no longer registers a Service Worker; /sw.js only removes a previously installed one.
-  await page.goto(`${origin}/vi/residential/`, { waitUntil: "load" });
+  await page.goto(`${origin}/residential/`, { waitUntil: "load" });
   await page.waitForTimeout(1500);
   assert.equal(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length), 0, "site registers no Service Worker");
 
@@ -70,7 +70,7 @@ try {
       }
     }).observe(document, { attributes: true, attributeFilter: ["class"], subtree: true });
   });
-  await page.goto(`${origin}/vi/advertising-products/`);
+  await page.goto(`${origin}/advertising-products/`);
   await page.waitForFunction(() => window.__blurTrace.length >= 3, null, { timeout: 30_000 });
   const blur = await page.evaluate(() => window.__blurTrace);
   assert.ok(blur.every(({ complete }) => complete), `card reveals before the photo finishes ${JSON.stringify(blur.slice(0, 5))}`);

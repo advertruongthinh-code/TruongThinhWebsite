@@ -6,8 +6,8 @@ import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.m
 // Checks the output of pnpm prepare:site (media-seo R1, R6).
 const ORIGIN = "https://truongthinhads.vn";
 // The build ties the last two words with a no-break space (hero-typography R7); these checks compare copy, not spacing.
-const page = async (locale, id) => (await readFile(new URL(`../../.site-output/${locale}/advertising-products/p/${id}/index.html`, import.meta.url), "utf8")).replaceAll("\u00a0", " ");
-const cardUrl = (locale, id) => `${ORIGIN}/${locale}/advertising-products/p/${id}/`;
+const page = async (locale, id) => (await readFile(new URL(`../../.site-output${locale === "en" ? "/en" : ""}/advertising-products/p/${id}/index.html`, import.meta.url), "utf8")).replaceAll("\u00a0", " ");
+const cardUrl = (locale, id) => `${ORIGIN}${locale === "en" ? "/en" : ""}/advertising-products/p/${id}/`;
 const cover = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
 
 test("every card has a VI and EN page with its title, absolute canonical, hreflang and og:image", async () => {
