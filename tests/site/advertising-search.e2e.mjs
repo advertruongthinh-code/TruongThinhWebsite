@@ -480,7 +480,10 @@ test("search-bar R1, R2: one white block in the three places; floating it narrow
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     await page.locator(".search-bar__chip[aria-pressed=true]").click();
     await page.waitForFunction(() => !document.querySelector(".search-bar__chip[aria-pressed=true]"), null, { timeout: 5000 });
+    // At the scroll limit the bar has finished turning into its docked look (search-bar R7).
     await scrollToSlot(page);
+    await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(1e6) || scrollTo({ top: 1e6, behavior: "instant" }));
+    await page.waitForTimeout(600);
     assert.deepEqual(await look(), { ...block, shadow: false, width: 1000, height: 50 }, "cta slot: no chip row, no shadow");
     await context.close();
   } finally {
@@ -532,6 +535,77 @@ test("R7: keys that move the caret in the input do not scroll the page", async (
     }
     await page.press(".search-bar input", "Home");
     assert.equal(await page.evaluate(() => document.activeElement.selectionStart), 0, "Home moves the caret to the start");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+// search-bar R7: no timed morph; the scroll position alone sets where the bar is and how docked it looks.
+for (const viewport of [WIDE, PHONE]) {
+  test(`search-bar R7 at ${viewport.width}px: the bar follows the scroll into the top slot and the CTA slot, with no animation`, async () => {
+    const browser = await launchBrowser();
+    try {
+      const { context, page } = await open(browser, viewport);
+      const to = (y) => page.evaluate((value) => window.TruongThinhMotion?.setLogicalScroll(value) || scrollTo({ top: value, behavior: "instant" }), y);
+      const state = () => page.evaluate(() => {
+        const bar = document.querySelector(".search-bar");
+        const shell = bar.querySelector(".search-bar__shell").getBoundingClientRect();
+        return { place: document.body.dataset.searchPlace, width: shell.width, top: shell.top, running: bar.getAnimations({ subtree: true }).length };
+      });
+      await to(0);
+      await page.waitForTimeout(400);
+      const home = await state();
+      assert.equal(home.place, "top");
+      // A quarter of the way down the hero: on the way, between the docked and the floating width, and nothing animates on its own.
+      await to(Math.round(viewport.height * 0.12));
+      await page.waitForTimeout(400);
+      const between = await state();
+      assert.equal(between.place, "link");
+      assert.equal(between.running, 0, "no timed animation under the finger");
+      assert(between.top > home.top - viewport.height * 0.12, "the bar has started down toward its floating place");
+      // Back to the top: in the slot again.
+      await to(0);
+      await page.waitForTimeout(400);
+      assert.equal((await state()).place, "top");
+      // The CTA slot: the bar rides in the slot before it reaches the scroll limit and is fully docked at the limit.
+      await to(1e6);
+      await page.waitForTimeout(1200);
+      const end = await state();
+      assert.equal(end.place, "cta");
+      await to(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY) - Math.round(viewport.height * 0.6));
+      await page.waitForTimeout(400);
+      assert.equal((await state()).place, "float", "far above the slot the bar floats again");
+      await context.close();
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
+// search-bar R8: the bar lives on the root page only.
+test("search-bar R8: no bar on a filter page; filtering to a group hides it and back to all shows it", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE, `${BASE_URL}/vi/advertising-products/bang-hieu-quang-cao/`);
+    await page.waitForSelector(".search-host", { state: "attached", timeout: 20000 });
+    const off = () => page.evaluate(() => ({
+      off: document.querySelector("[data-barba-namespace]").hasAttribute("data-search-off"),
+      hidden: getComputedStyle(document.querySelector(".search-host")).visibility === "hidden",
+      slots: [...document.querySelectorAll(".hero-search, [data-search-dock]")].every((node) => getComputedStyle(node).display === "none"),
+    }));
+    await page.waitForTimeout(600);
+    assert.deepEqual(await off(), { off: true, hidden: true, slots: true }, "filter page");
+    await page.goto(PAGE, { waitUntil: "load" });
+    await page.waitForSelector(".search-bar", { timeout: 20000 });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"), null, { timeout: 20000 });
+    assert.deepEqual(await off(), { off: false, hidden: false, slots: false }, "root page");
+    await page.click('[data-masonry-filter="signage"]');
+    await page.waitForTimeout(800);
+    assert.deepEqual(await off(), { off: true, hidden: true, slots: true }, "a group picked from the root page");
+    await page.click('[data-masonry-filter="all"]');
+    await page.waitForTimeout(800);
+    assert.deepEqual(await off(), { off: false, hidden: false, slots: false }, "back to all");
     await context.close();
   } finally {
     await browser.close();

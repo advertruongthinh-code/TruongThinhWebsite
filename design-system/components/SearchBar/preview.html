@@ -36,7 +36,38 @@ body.is-detail .search-host {
   --search-morph: 1s;
   --search-ease: var(--ease-card);
   --search-hair: color-mix(in srgb, var(--ink) 14%, transparent);
-  --search-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  /* --search-lift (dock.mjs) fades the shadow while the bar turns into its docked look under the finger (search-bar R7). */
+  --search-shadow: 0 12px 32px rgb(0 0 0 / calc(18% * var(--search-lift, 1)));
+}
+
+/* Docked, the bar hangs from the slot's bottom: while it still carries the chip row on its way in, the row reaches above the slot
+   and the slot keeps its height. */
+:where([data-search-dock], [data-search-dock-top]) {
+  position: relative;
+}
+
+.search-bar[data-dock] {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Under the finger the inline values move every frame: no transition may smooth them after the fact. */
+.search-bar.is-linked .search-bar__shell {
+  transition: none;
+}
+
+/* Off the root grid (search-bar R8): the floating bar slides down out of view; from a slot it is gone at once. */
+.search-host.is-off {
+  visibility: hidden;
+  transform: translate(-50%, calc(100% + 80px));
+  transition: transform 450ms var(--ease-card), visibility 0s linear 450ms;
+}
+
+.search-host.is-off-now {
+  visibility: hidden;
+  transition: none;
 }
 
 .search-bar__sr {

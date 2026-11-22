@@ -1772,7 +1772,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
   // With the search slot the CTA anchors the heading-and-bar cluster at the optical centre instead of the last baseline (search-bar R4).
-  const gridCtaSlot = gridCtaCopy?.querySelector("[data-search-dock]");
+  const gridCtaSlotNode = gridCtaCopy?.querySelector("[data-search-dock]");
+  // The search bar lives on the root grid only (search-bar R8): elsewhere the slots are off and the CTA keeps its plain layout.
+  const ctaSlot = () => (gridCtaSlotNode && !container.hasAttribute("data-search-off") ? gridCtaSlotNode : null);
   const gridCtaLabel = gridCtaCopy?.querySelector(".legacy-link .portal-subtitle");
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".masonry-section");
@@ -2311,6 +2313,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     let copyRect = gridCtaCopy.getBoundingClientRect();
     const baseline = ctaBaselineProbe.getBoundingClientRect().top - copyRect.top - reveal;
     ctaBaselineProbe.remove();
+    const gridCtaSlot = ctaSlot();
     if (!gridCtaSlot) return { baseline, below: copyRect.height - baseline };
     // Equal optical space around the bar: heading baseline to bar top = bar bottom to the link's capitals (about 0.3em below its box top).
     let slotRect = gridCtaSlot.getBoundingClientRect();
@@ -2329,9 +2332,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // At the scroll limit the header is collapsed: 10px padding top and bottom, its row, a 1px border (style.css .site-header.is-collapsed).
   // Phones reach the end scrolling down, which slides the header away (phone-header-scroll R2): the room starts at the screen's top.
   const followHeader = matchMedia("(hover: none) and (pointer: coarse) and (max-width: 750px), (hover: none) and (pointer: coarse) and (max-height: 750px)");
-  const ctaHeaderHeight = () => (gridCtaSlot && !followHeader.matches
+  const ctaHeaderHeight = () => (ctaSlot() && !followHeader.matches
     ? 21 + (Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) || 0) : 0);
-  const ctaAnchorGap = (viewportHeight, footerHeight, headerHeight) => (gridCtaSlot
+  const ctaAnchorGap = (viewportHeight, footerHeight, headerHeight) => (ctaSlot()
     ? 0.55 * (viewportHeight - headerHeight - footerHeight) : viewportHeight / 2 - footerHeight);
   // Shrink the heading just enough that the space below the last baseline is sufficient, no smaller than 1.3rem.
   const fitGridCtaHeading = (room) => {
@@ -3484,7 +3487,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const footerHeight = siteFooter?.offsetHeight || 0;
     const headerHeight = ctaHeaderHeight();
     const room = ctaAnchorGap(viewportHeight, footerHeight, headerHeight) - gap;
-    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
+    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}:${Boolean(ctaSlot())}`;
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
@@ -3495,7 +3498,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
       gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
-      if (gridCtaSlot) gridCta.style.setProperty("--masonry-cta-anchor", `calc(0.55 * (100dvh - ${headerHeight + footerHeight}px))`);
+      if (ctaSlot()) gridCta.style.setProperty("--masonry-cta-anchor", `calc(0.55 * (100dvh - ${headerHeight + footerHeight}px))`);
+      else gridCta.style.removeProperty("--masonry-cta-anchor");
       // The settled mark (it turns on the copy's transition) waits until the batch build has computed style with these values; a frame
       // between the fit task and the build task would otherwise animate the copy into place.
       ctaSettlePending = true;
@@ -3919,6 +3923,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const leftSearch = search;
     apply();
+    syncSearchOff();
     if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left", { detail: { reason } }));
     const origins = animate ? cachedCoordinates(visualOrigins) : undefined;
     cancelMotion();
@@ -3931,6 +3936,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     measure({ animate, origins, sameWidth: true });
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
+  // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
+  const syncSearchOff = () => {
+    if (!gridCtaSlotNode) return;
+    container.toggleAttribute("data-search-off", Boolean(activePhotoId) || (filter !== "all" && !search));
+  };
   const setActiveFilter = (nextFilter, options) => {
     cancelLayoutWait();
     if (nextFilter === filter && !search) return;
@@ -5356,6 +5366,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const generation = ++detailRenderGeneration;
     cancelMotion();
     activePhotoId = record.id;
+    syncSearchOff();
     // Changing tag within the same photo keeps the batch frames so they slide or go around the primary (CTA R9, R10); changing photo rebuilds.
     if (previousPhotoId !== record.id || !ctaInDetail()) {
       clearCtaSkeleton();
@@ -5522,6 +5533,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
     activePrimaryMediaId = null;
+    syncSearchOff();
     closePrimaryStrip();
     photoVideo?.pause();
     clearRelatedCards();

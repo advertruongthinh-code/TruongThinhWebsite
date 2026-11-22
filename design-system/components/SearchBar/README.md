@@ -25,7 +25,8 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
   Screen reader đọc số kết quả qua vùng `aria-live` ẩn.
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
-- Đổi chỗ: morph 1s `ease-card` (`--search-morph`, `--search-ease` trên `.search-bar`, `dock.mjs` đọc lại cho cú trượt).
+- Đổi chỗ theo quãng cuộn ([R7](../../../docs/specs/search-bar.md#r7-vào-khe-theo-quãng-cuộn)): `dock.mjs` tính độ vào khe `p` mỗi frame, bề rộng, bóng (`--search-lift`) và hàng chip đi theo `p`, không có morph chạy theo thời gian; ở khe, thanh treo từ đáy khe.
+- Chỉ trang gốc có thanh ([R8](../../../docs/specs/search-bar.md#r8-chỉ-trang-gốc-có-thanh)): trang con và card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`,
   `--search-block-right` đặt nút về đầu trang trên điện thoại ([Floating CTA](../FloatingCta/README.md)). Bàn phím điện thoại mở
   thì hàng chip gập lại. Ẩn khi menu hoặc detail view mở. Giảm chuyển động: đổi trạng thái ngay.
