@@ -3943,7 +3943,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Switches the grid to another card set (filter or search results), sliding cards from where they are now. reason tells the search
   // page why search ended (R6): "clear", "filter" (a click: rail, active chip, navbar, breadcrumb) or "history" (Back/Forward).
-  const relayoutTo = (apply, { animate = false, reason = "filter" } = {}) => {
+  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for new
+  // results; for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
+  const glideToGrid = (always) => requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!always && !(gridCta && gridCta.getBoundingClientRect().top < innerHeight)) return;
+    const y = getLogicalScroll();
+    const target = scroll?.masonryTop?.(y);
+    if (target != null && Math.abs(target - y) > 1) scroll.glideTo(target);
+  }));
+  const relayoutTo = (apply, { animate = false, reason = "filter", toGrid } = {}) => {
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const leftSearch = search;
     apply();
@@ -3958,6 +3966,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     syncRail({ animate });
     syncPageHeading();
     measure({ animate, origins, sameWidth: true });
+    if (toGrid) glideToGrid(toGrid === "always");
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
   // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
@@ -3981,7 +3990,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!search || nextFilter === searchFilter) return;
     relayoutTo(() => {
       searchFilter = nextFilter;
-    }, { animate: true });
+    }, { animate: true, toGrid: "cta" });
   };
   let offer = null;
   const setOffer = (ids) => {
@@ -4013,7 +4022,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relayoutTo(() => {
       search = next;
       searchFilter = "all";
-    }, { animate: true });
+    }, { animate: true, toGrid: "always" });
   };
   const clearResults = () => {
     setPending(false);
@@ -4022,7 +4031,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     whenLayoutReady(filter, () => relayoutTo(() => {
       search = null;
       searchFilter = "all";
-    }, { animate: true, reason: "clear" }));
+    }, { animate: true, reason: "clear", toGrid: "cta" }));
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
   const setLogicalScroll = (scrollY) => scroll?.setLogicalScroll?.(scrollY) ?? false;

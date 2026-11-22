@@ -37,6 +37,13 @@ const search = async (page, text) => {
   await page.fill(".search-bar input", text);
   await page.press(".search-bar input", "Enter");
 };
+// A search glides the page to the grid top (search-bar R9), past the hero rail and with the header slid away: back to the top first,
+// once the 600ms glide has ended.
+const backToTop = async (page) => {
+  await page.waitForTimeout(800);
+  await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(0) || scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(400);
+};
 const liveText = (page) => page.locator("[data-search-live]").textContent();
 const announced = (page, pattern, timeout = 5000) => page.waitForFunction((source) => new RegExp(source, "i").test(document.querySelector("[data-search-live]")?.textContent || ""), pattern.source, { timeout });
 // "top" (over the hero rail), "cta" (under the CTA heading) or "float".
@@ -391,6 +398,7 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     assert(rail.some((entry) => entry.empty), "some cluster has no result");
     const target = rail.find((entry) => entry.shown && entry.filter !== "all").filter;
     const total = await page.locator("[data-masonry-card]").count();
+    await backToTop(page);
     let left = false;
     await page.evaluate(() => addEventListener("masonry:search-left", () => { window.__left = true; }, { once: true }));
     await page.click(`[data-masonry-filter="${target}"]`);
@@ -419,6 +427,7 @@ test("R10: soft navigation from the menu does not restore, and leaving the page 
     const { context, page } = await open(browser, WIDE, PAGE, { status: 503 });
     await search(page, "hộp đèn");
     await announced(page, /kết quả/);
+    await backToTop(page);
     // The grid is still sliding to the results; a click during a page transition is ignored, so click until the route changes.
     await clickUntil(page, "#header-logo", () => !location.pathname.includes("advertising-products"));
     await page.waitForFunction(() => !document.querySelector(".search-bar"), null, { timeout: 8000 });
@@ -541,17 +550,18 @@ test("R7: keys that move the caret in the input do not scroll the page", async (
   }
 });
 
-// search-bar R7: no timed morph; the scroll position alone sets where the bar is and how docked it looks.
+// search-bar R7: place changes are decisive; the bar is always in exactly one place with that place's look.
 for (const viewport of [WIDE, PHONE]) {
-  test(`search-bar R7 at ${viewport.width}px: the bar follows the scroll into the top slot and the CTA slot, with no animation`, async () => {
+  test(`search-bar R7 at ${viewport.width}px: the bar leaves the top slot only once out of sight and snaps into the CTA slot`, async () => {
     const browser = await launchBrowser();
     try {
       const { context, page } = await open(browser, viewport);
       const to = (y) => page.evaluate((value) => window.TruongThinhMotion?.setLogicalScroll(value) || scrollTo({ top: value, behavior: "instant" }), y);
       const state = () => page.evaluate(() => {
-        const bar = document.querySelector(".search-bar");
-        const shell = bar.querySelector(".search-bar__shell").getBoundingClientRect();
-        return { place: document.body.dataset.searchPlace, width: shell.width, top: shell.top, running: bar.getAnimations({ subtree: true }).length };
+        const shell = document.querySelector(".search-bar__shell").getBoundingClientRect();
+        const slot = document.querySelector("[data-search-dock-top]").getBoundingClientRect();
+        const header = document.querySelector(".site-header").getBoundingClientRect();
+        return { place: document.body.dataset.searchPlace, width: Math.round(shell.width), top: shell.top, slotBottom: slot.bottom, headerBottom: Math.max(0, header.bottom) };
       });
       await to(0);
       await page.waitForTimeout(400);
@@ -563,31 +573,31 @@ for (const viewport of [WIDE, PHONE]) {
       const scrolled = await state();
       assert.equal(scrolled.place, "top");
       assert(Math.abs(scrolled.top - (home.top - 60)) < 3, "the bar scrolls away with the slot");
-      // Once the slot is under the header, the floating bar rises from below the bottom edge, never from mid-screen.
-      const past = await page.evaluate(() => {
-        const slot = document.querySelector("[data-search-dock-top]").getBoundingClientRect();
-        const header = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-row-height")) || 80;
-        return Math.ceil(slot.bottom - 49 - header);
-      });
-      await to(60 + past + 40);
-      await page.waitForTimeout(400);
-      const rising = await state();
-      assert.equal(rising.place, "link");
-      assert.equal(rising.running, 0, "no timed animation under the finger");
-      const floating = await page.evaluate(() => innerHeight - 49 - (Number.parseFloat(getComputedStyle(document.querySelector(".search-host")).bottom) || 0));
-      assert(rising.top > floating + 5, "the rising bar is below its floating row");
-      await to(60 + past + 400);
-      await page.waitForTimeout(400);
-      assert.equal((await state()).place, "float");
-      // Back to the top: in the slot again.
+      // The floating bar shows only once the whole slotted bar is out of sight.
+      for (let y = 80; y < 1200; y += 20) {
+        await to(y);
+        await page.waitForTimeout(120);
+        const now = await state();
+        if (now.place === "top") continue;
+        assert.equal(now.place, "float");
+        assert(now.slotBottom <= now.headerBottom + 20, `left the slot while it was still in sight (${now.slotBottom} > ${now.headerBottom})`);
+        break;
+      }
       await to(0);
       await page.waitForTimeout(400);
       assert.equal((await state()).place, "top");
-      // The CTA slot: the bar rides in the slot before it reaches the scroll limit and is fully docked at the limit.
+      // The CTA slot: only the floating width and the slot width, nothing in between.
+      const ctaY = await page.evaluate(() => Math.round(document.querySelector("[data-search-dock]").getBoundingClientRect().top + (window.TruongThinhMotion?.getLogicalScroll() ?? scrollY)));
+      const widths = new Set();
+      for (let y = ctaY - innerHeightOf(viewport); y <= ctaY; y += 25) {
+        await to(y);
+        await page.waitForTimeout(120);
+        widths.add((await state()).width);
+      }
+      assert(widths.size <= 2, `widths seen: ${[...widths].join(", ")}`);
       await to(1e6);
       await page.waitForTimeout(1200);
-      const end = await state();
-      assert.equal(end.place, "cta");
+      assert.equal((await state()).place, "cta");
       // The CTA block centres its text; the bar's tip stays left aligned as in every other place (owner 2026-11-22).
       assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".search-bar__hint")).textAlign), "start");
       await to(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY) - Math.round(viewport.height * 0.6));
@@ -598,6 +608,33 @@ for (const viewport of [WIDE, PHONE]) {
       await browser.close();
     }
   });
+}
+const innerHeightOf = (viewport) => viewport.height;
+
+// search-bar R9: a search glides the page so the grid's top sits one outer margin below the header.
+for (const viewport of [WIDE, PHONE]) {
+  for (const from of ["top", "mid", "cta"]) {
+    test(`search-bar R9 at ${viewport.width}px from ${from}: a search glides to the grid top`, async () => {
+      const browser = await launchBrowser();
+      try {
+        const { context, page } = await open(browser, viewport);
+        const to = (y) => page.evaluate((value) => window.TruongThinhMotion?.setLogicalScroll(value) || scrollTo({ top: value, behavior: "instant" }), y);
+        if (from === "mid") await to(4000);
+        if (from === "cta") await to(1e6);
+        await page.waitForTimeout(800);
+        await search(page, "hộp đèn");
+        await page.waitForFunction(() => {
+          const grid = document.querySelector("[data-project-grid]").getBoundingClientRect().top;
+          const header = Math.max(0, document.querySelector(".site-header").getBoundingClientRect().bottom);
+          const outer = Number.parseFloat(getComputedStyle(document.querySelector(".masonry-section")).getPropertyValue("--masonry-outer"));
+          return Math.abs(grid - header - outer) <= 2;
+        }, null, { timeout: 8000 });
+        await context.close();
+      } finally {
+        await browser.close();
+      }
+    });
+  }
 }
 
 // search-bar R8: the bar lives on the root page only.

@@ -18,6 +18,22 @@
   const floatingCta = document.querySelector(".floating-cta");
   const backToTop = document.querySelector(".back-to-top");
   const phoneQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
+  // The masonry grid's top in page coordinates (offsetTop ignores Locomotive's transform), read again after a layout change.
+  let masonryGridTop;
+  // The scroll that puts the masonry grid's top one outer margin under the header (search-bar R9, phone back-to-top). The header comes
+  // back going up and slides away going down (phone-header-scroll R2), so `from` says which way the page will move. Null off a masonry page.
+  const masonryTop = (from = getPageScroll()) => {
+    const grid = document.querySelector("[data-project-grid]");
+    if (!grid) return null;
+    if (masonryGridTop === undefined) {
+      masonryGridTop = 0;
+      for (let node = grid; node; node = node.offsetParent) masonryGridTop += node.offsetTop;
+    }
+    const outer = Number.parseFloat(getComputedStyle(grid.closest(".masonry-section") || grid).getPropertyValue("--masonry-outer")) || 0;
+    const headerBottom = header.offsetTop + header.offsetHeight;
+    const top = masonryGridTop - outer;
+    return Math.max(0, top - headerBottom < from ? top - headerBottom : top);
+  };
   const dialog = document.querySelector("#site-menu");
   const openButton = document.querySelector("[data-menu-open]");
   const closeButton = document.querySelector("[data-menu-close]");
@@ -730,9 +746,10 @@
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta?.classList.toggle("show", nextCtaShown);
     }
-    // Back to top (owner 2026-11-13; phones only, owner 2026-11-22): on a page with a masonry layout, once the first screen is passed.
+    // Back to top (owner 2026-11-13; phones only, owner 2026-11-22): on a page with a masonry layout.
     // It takes the corner the floating CTA leaves at that point (masonry browse hides the CTA altogether).
-    const topShown = phoneQuery.matches && scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
+    // Owner 2026-11-23: it shows once the page is below the masonry top and takes the page back there.
+    const topShown = phoneQuery.matches && Boolean(document.querySelector("[data-masonry-item]")) && scrollY > (masonryTop(scrollY) ?? Infinity) + 1;
     if (backToTop && topShown !== backToTop.classList.contains("show")) {
       backToTop.classList.toggle("show", topShown);
       backToTop.tabIndex = topShown ? 0 : -1;
@@ -1099,6 +1116,7 @@
     if (layoutUpdateFrame) return;
     layoutUpdateFrame = window.requestAnimationFrame(() => {
       layoutUpdateFrame = undefined;
+      masonryGridTop = undefined;
       headerFollowStale = true;
       measureDesktopNav();
       pageState?.smoothScroll?.update();
@@ -1173,6 +1191,8 @@
       },
     };
   };
+  let glideFrame = 0;
+  let glideStop;
   window.TruongThinhMotion = {
     maskHiddenY,
     openTextMask,
@@ -1181,6 +1201,35 @@
     onceInView,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
+    masonryTop,
+    // Glides the page to y on the card curve (search-bar R9: to the grid top after a search). Native scroll (phones) has no duration
+    // option, so it is tweened here; a touch, wheel or key stops it.
+    glideTo(y, duration = 600) {
+      const target = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
+      if (pageState?.smoothScroll) {
+        pageState.smoothScroll.scrollTo(target, { duration: reduceMotion ? 0 : duration, easing: [0.65, 0, 0.35, 1], disableLerp: reduceMotion });
+        return;
+      }
+      cancelAnimationFrame(glideFrame);
+      glideStop?.abort();
+      const from = window.scrollY;
+      if (reduceMotion || Math.abs(target - from) < 1) {
+        window.scrollTo({ top: target, behavior: "instant" });
+        return;
+      }
+      const stop = (glideStop = new AbortController());
+      const halt = () => { cancelAnimationFrame(glideFrame); stop.abort(); };
+      for (const type of ["touchstart", "wheel", "keydown"]) window.addEventListener(type, halt, { passive: true, once: true, signal: stop.signal });
+      const start = performance.now();
+      const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        window.scrollTo({ top: from + (target - from) * ease(t), behavior: "instant" });
+        if (t < 1) glideFrame = requestAnimationFrame(step);
+        else stop.abort();
+      };
+      glideFrame = requestAnimationFrame(step);
+    },
     lockLogicalScroll() {
       if (logicalScrollLock) return logicalScrollLock.scrollY;
       logicalScrollLock = {
@@ -2739,10 +2788,7 @@
   );
 
   // Phones scroll natively (Locomotive is off there); reduced motion jumps.
-  backToTop?.addEventListener("click", () => {
-    if (pageState?.smoothScroll) pageState.smoothScroll.scrollTo(0, { duration: reduceMotion ? 0 : undefined });
-    else window.scrollTo({ top: 0, behavior: reduceMotion ? "instant" : "smooth" });
-  }, { signal: runtimeAbort.signal });
+  backToTop?.addEventListener("click", () => window.TruongThinhMotion.glideTo(masonryTop() ?? 0), { signal: runtimeAbort.signal });
   openButton.addEventListener("click", openMenu, {
     signal: runtimeAbort.signal,
   });
