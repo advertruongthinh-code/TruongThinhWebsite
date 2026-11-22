@@ -143,6 +143,9 @@ test("the service token reaches only machine paths, and a user JWT never does", 
   assert.equal((await call(env, "snapshot", { jwt: await token({ email: "owner@example.test" }) })).status, 403);
   assert.equal((await call(env, "snapshot", { jwt: await token({ email: "owner@example.test", aud: ["service-aud"] }) })).status, 403);
   assert.equal((await call(env, "build-status", { jwt: service })).status, 403);
+  // A person never reaches a machine command, even the local dev owner.
+  const dev = { ...env, CMS_LOCAL_ADMIN_EMAIL: "admin@localhost" };
+  assert.equal((await worker.fetch(new Request("http://127.0.0.1:8788/api/admin/snapshot"), dev)).status, 403);
 });
 
 test("write refusals before the handler each write one audit row", async () => {
