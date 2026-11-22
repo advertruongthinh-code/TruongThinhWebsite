@@ -218,10 +218,11 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 `wrangler.toml` là admin Worker `truong-thinh-admin` của CMS (`main = "src/worker/index.js"`, chỉ chạy Worker cho
 `/api/*`), chưa deploy, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
-`pnpm qa:worker` (import Worker trong Node, D1 giả). Redirect `/` sang
-`/vi/` và redirect `projects-products` của Worker CMS cũ đã bỏ cùng Worker đó, không chuyển sang static assets (owner 2026-11-22: giữ
+`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
+`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
 trang gốc như hiện tại). Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
+Từ task S2 của CMS, Worker CMS chỉ còn API admin; hai redirect đó đã bỏ cùng Worker cũ.
 
 ```gherkin
 Given phase tĩnh
