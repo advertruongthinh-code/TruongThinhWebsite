@@ -5812,7 +5812,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         lastResizeAt = now;
         if (dragging) cancelCtaSlides(ctaSlideNodes());
         measure({ animate: !dragging, origins });
-      } else if (!ctaDeferred && !ctaRevealPending && (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight)) {
+      // A card-set change already queued its CTA build (`ctaPending`, sliding with the cards): building here too would build the
+      // batch twice and report a second layout in the same click.
+      } else if (!ctaDeferred && !ctaRevealPending && !ctaPending && (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight)) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
