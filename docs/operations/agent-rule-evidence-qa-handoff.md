@@ -18,6 +18,8 @@ UI change hoặc website release phải chạy local web, có đủ evidence:
 5. Nhìn ảnh, không chỉ đọc số: đo và chụp state đã đổi ở đủ dải `SWEEP_WIDTHS` của [harness](../specs/ci-test-suites.md#r12-harness-test-trình-duyệt) (384, 768, 1024, 1280, 1440, 1920), trước và sau, bằng `pnpm qa:shots` (`--label truoc`, `--label sau`); có site tham chiếu thì so số đo ở cùng bề rộng. Test tự động của phần đã đổi quét cùng dải đó qua harness. Agent tự xem ảnh tìm chồng lấp, tràn, lệch trước handoff (skill `browser-testing-with-devtools`). Không xem được ảnh thì QA blocked.
 6. Đổi state có cache, dựng một lần, inline style hoặc lifecycle (timeline, observer, route sync): test chạy cả chuỗi mở, đổi route, mở lại, resize, không chỉ end state. Bug hồi quy: viết test đỏ trước, sửa cho xanh (skill `test-driven-development`, Prove-It).
 
+Sau khi tự QA xanh, gọi kiểm độc lập theo [vai kiểm tra](agent-rule-verification-roles.md); tự QA là claim, chưa là evidence ([kim tự tháp niềm tin](agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin)).
+
 Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, không thay Playwright). Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
 
 `qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.

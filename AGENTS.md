@@ -44,7 +44,7 @@
 Board Tasks trên Notion là backlog; Git `main` giữ contract, card chỉ trỏ tới đó. Mọi việc có card trước khi làm, card ở `In progress` và cột `Agent` ghi thread (`qa:docs` kiểm); hai thread không sửa cùng file nóng cùng lúc: điều phối
 tạo và ghi link trong brief, việc owner giao thẳng thì thread tự tạo. Card nhỏ (dưới 50 LOC, một PR) chỉ tên, status, link PR;
 card lớn là plan, không bỏ bước chưa tick khi owner chưa nói bỏ. Mọi PR có dòng `Card: <link>` (không vào được Notion:
-`Card: chờ tạo`), qa-docs kiểm. Chi tiết: [Notion và Git](docs/operations/notion.md#rule).
+`Card: chờ tạo`), qa-docs kiểm.
 
 ## Routing theo path
 
@@ -60,10 +60,10 @@ File `untracked` review riêng trước khi stage; không stage hàng loạt.
 - Mỗi card một branch ngắn từ `main` và đúng một PR, không PR lẻ tẻ (`qa:docs` chặn PR mở thứ hai cùng card); `main` là nhánh dài hạn duy nhất,
   GitHub tự xóa branch sau merge.
 - Trước khi push, đo hoặc dựa vào số liệu: fetch `main` và đọc lại trang Trạng thái.
-- Thread tự review PR (five-axis), sửa finding, resolve review thread và tự merge khi
-  CI xanh; không chờ owner duyệt hay xác nhận merge. Workflow `Automerge` tự merge PR khi CI và Docs xanh, kể cả
+- Thread tự review PR (five-axis), gọi [vai kiểm tra](docs/operations/agent-rule-verification-roles.md) theo tầng, sửa finding,
+  resolve review thread, tự merge khi CI xanh; không chờ owner duyệt merge. Workflow `Automerge` tự merge PR khi CI và Docs xanh, kể cả
   khi thread không còn chạy; muốn giữ PR chưa merge thì để draft hoặc gắn nhãn `hold`.
-- PR tạo dạng draft (mặc định của hệ thống) thì thread tự bỏ draft khi CI xanh và hết lý do giữ;
+- PR tạo dạng draft thì thread tự bỏ draft khi CI xanh và hết lý do giữ;
   không nhờ owner bấm "Ready for review".
 - PR conflict với `main`: merge `main` vào branch (không rebase, không force-push),
   tự resolve, chạy lại quick check, push rồi merge khi CI xanh.
