@@ -543,7 +543,7 @@ export function compileRelatedLayout({
       minimumDescriptionHeight: typeof measureDescriptionMinimumHeight === "function" ? measureDescriptionMinimumHeight(basePrimary.descriptionWidth, basePrimary.mode, basePrimary) : 0 })
     : basePrimary;
   const { gap } = primary;
-  const hasSuggestion = suggestionCard?.kind === "suggestion" && primary.span === columns;
+  const hasSuggestion = suggestionCard?.kind === "suggestion";
   const singlePhotoBesidePrimary = !hasSuggestion && related.length === 1 && primary.span < columns;
   const initialColumnBottoms = Array.from({ length: columns }, (_, index) => index < primary.span ? primary.height : 0);
   const solverCategory = categoryOrder[0];
@@ -3458,8 +3458,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     let corner = null;
     if (box?.width) {
       const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
-      // Pinned items as on related cards: the primary, then the pinned suggestion below it (detail R5).
-      const pin = suggestionNode?.parentElement === relatedGrid && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
+      // Pinned items as on related cards: the primary, then the pinned suggestion card (detail R5).
+      const pin = suggestionNode && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
       const pinned = [{ x: 0, y: 0, width: box.width, height: box.height },
         ...(pin?.width ? [{ x: pin.left - box.left, y: pin.top - box.top, width: pin.width, height: pin.height }] : [])];
       const to = { x: after.left - box.left, y: after.top - box.top };
@@ -4324,7 +4324,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoPlacements.forEach(({ card: { id } }) => relatedHost.rendered.has(id) && ensureRelatedPhoto(id));
     if (keepSuggestion) ensureSuggestionCard();
     // Not placed in the related grid yet (primary phase of direct-entry) so it stays hidden until the solver places it.
-    else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
+    else if (suggestionNode) suggestionNode.hidden = true;
     for (const [id, node] of relatedHost.rendered) {
       if (!keep.has(id)) continue;
       node.hidden = motion && !normalKeep.has(id);
@@ -4341,7 +4341,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       x: suggestionPosition.x, y: suggestionPosition.y,
       width: suggestionPlacement.pixelWidth, height: suggestionPlacement.pixelHeight,
     } : null;
-    // Pinned items: primary, then the pinned suggestion below it; cards go around both, not sliding underneath (owner 2026-11-07).
+    // Pinned items: primary, then the pinned suggestion card; cards go around both, not sliding underneath (owner 2026-11-07).
     const pinned = [{ x: 0, y: 0, width: relatedLayout.primary.width, height: relatedLayout.primary.height },
       ...(suggestionBox ? [suggestionBox] : [])];
     const planDetour = (id, node, origin, destination) => {
@@ -4358,7 +4358,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const destination = relatedHost.positions.get(id);
       if (!destination || node.hidden) continue;
       // A new card enters from the top of the column: below the primary, or below the suggestion in its column.
-      const columnHead = suggestionBox && destination.x < suggestionBox.x + suggestionBox.width
+      const columnHead = suggestionBox && destination.x >= suggestionBox.x - 1 && destination.x < suggestionBox.x + suggestionBox.width
         ? suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap
         : destination.x < relatedLayout.primary.width ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
       let origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
@@ -4427,32 +4427,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     cancelRelatedMotion();
     const { outer, interCardGap } = masonrySpacing(viewportWidth);
     const columns = columnsForWidth(viewportWidth);
-    const suggestionInRelated = columns <= 3;
     const gridWidth = viewportWidth - (2 * outer);
     const suggestionWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
     photoView.style.setProperty("--gutter", `${outer}px`);
     // The header on detail is always collapsed: 10px top and bottom padding and a 1px border (advertising-detail R10).
     const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) + 21;
     const viewStyle = getComputedStyle(photoView);
-    const suggestionParent = suggestionInRelated ? relatedGrid : photoInfo;
-    if (suggestionNode && suggestionParent && suggestionNode.parentElement !== suggestionParent) {
-      const focused = suggestionNode.contains(document.activeElement) ? document.activeElement : null;
-      suggestionNode.removeAttribute("role");
-      suggestionNode.removeAttribute("aria-posinset");
-      suggestionNode.removeAttribute("aria-setsize");
-      suggestionNode.style.removeProperty("left");
-      suggestionNode.style.removeProperty("top");
-      suggestionNode.style.removeProperty("transform");
-      suggestionNode.style.removeProperty("position");
-      suggestionNode.style.removeProperty("width");
-      suggestionNode.style.removeProperty("height");
-      suggestionParent.append(suggestionNode);
-      focused?.focus({ preventScroll: true });
-    }
-    photoView.dataset.detailLayout = suggestionInRelated ? "pinterest" : "split";
+    photoView.dataset.detailLayout = columns <= 3 ? "pinterest" : "split";
     let suggestionHeight = 0;
-    // In the related grid, the suggestion is a related card: the primary phase leaves it to the solver phase.
-    const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
+    // The suggestion is the first related card: the primary phase leaves it to the solver phase.
+    const relatedSuggestion = directEntryPhase !== "primary";
     if (suggestionSlots.length && suggestionNode) {
       suggestionNode.hidden = false;
       suggestionNode.style.width = `${suggestionWidth}px`;
@@ -4564,13 +4548,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relatedHost.pixelHeight = height;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Measured but not placed: keep it out of every frame painted before the mount task.
-      if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
+      if (suggestionNode) suggestionNode.hidden = true;
       return;
     }
     if (directEntryPhase === "primary") {
       // Hidden, not placed: the mount task animates them from the origin position.
       relatedHost.rendered.forEach((node) => { node.hidden = true; });
-      if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
+      if (suggestionNode) suggestionNode.hidden = true;
       return;
     }
     renderCtaSkeleton({ slide: Boolean(origins) && !reduced });

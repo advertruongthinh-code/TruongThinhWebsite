@@ -100,25 +100,11 @@ function stableIdentity(state) {
   return state.buttons.map(({ id, index, representative, rect }) => ({ id, index, representative, rect }));
 }
 
-function assertContained(state, label) {
-  const [infoX, infoY, infoWidth, infoHeight] = state.info;
-  const [linksX, linksY, linksWidth] = state.links;
-  assert.equal(state.buttons.length, 4, `${label}: needs exactly four buttons`);
-  assert.equal(new Set(state.buttons.map(({ id }) => id)).size, 4, `${label}: duplicate tag IDs`);
-  assert(Math.abs(linksX - infoX) <= 1 && Math.abs(linksWidth - infoWidth) <= 1, `${label}: links do not fill info width`);
-  assert(state.suggestion[1] >= state.body[1] + state.body[3] - 1, `${label}: suggestion does not follow the description body`);
-  assert(Math.abs(state.suggestion[0] - infoX) <= 1 && Math.abs(state.suggestion[2] - infoWidth) <= 1, `${label}: suggestion does not fill info width`);
-  assert(state.buttons.every(({ rect: [x, y, width, height] }) => x >= infoX - 1 && y >= infoY - 1
-    && x + width <= infoX + infoWidth + 1 && y + height <= infoY + infoHeight + 1), `${label}: button escapes description info`);
-  assert(state.overflow <= 1, `${label}: horizontal overflow ${state.overflow}px`);
-  assert.equal(state.inInfo, true, `${label}: split suggestion is outside primary info`);
-  assert.equal(state.inRelated, false, `${label}: split suggestion remains in related grid`);
-}
-
-function assertFullSpan(state, label) {
+// Every layout pins the suggestion as the first related card (owner 2026-11-22).
+function assertPinnedCard(state, label) {
   const [x, y, width, height] = state.suggestion;
-  assert.equal(state.inRelated, true, `${label}: full-span suggestion is outside related grid`);
-  assert.equal(state.inInfo, false, `${label}: full-span suggestion remains in primary info`);
+  assert.equal(state.inRelated, true, `${label}: suggestion is outside related grid`);
+  assert.equal(state.inInfo, false, `${label}: suggestion remains in primary info`);
   assert.equal(state.buttons.length, 4, `${label}: needs exactly four buttons`);
   assert(state.buttons.every(({ rect: [left, top, buttonWidth, buttonHeight] }) =>
     left >= x - 1 && top >= y - 1 && left + buttonWidth <= x + width + 1 && top + buttonHeight <= y + height + 1),
@@ -145,7 +131,7 @@ try {
     const split = await page.evaluate(readSuggestions);
     assert.equal(split.layout, "split", `${locale}: fixture must exercise split primary`);
     assert.equal(split.span, "3", `${locale}: desktop primary must span three columns`);
-    assertContained(split, `${locale} split desktop`);
+    assertPinnedCard(split, `${locale} split desktop`);
     assert.equal(new Set(split.buttons.map(({ rect }) => rect[0])).size, 1, `${locale}: split needs one suggestion column`);
     assert.equal(new Set(split.buttons.map(({ rect }) => rect[1])).size, 4, `${locale}: split needs four suggestion rows`);
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-1569x912.png`) });
@@ -166,7 +152,7 @@ try {
     const secondDesktop = await page.evaluate(readSuggestions);
     assert.equal(secondDesktop.layout, "split", `${locale}: intrinsic ratio cannot change desktop mode`);
     assert.equal(secondDesktop.span, "3", `${locale}: second desktop primary must span three columns`);
-    assertContained(secondDesktop, `${locale} second desktop`);
+    assertPinnedCard(secondDesktop, `${locale} second desktop`);
     assert.equal(new Set(secondDesktop.buttons.map(({ rect }) => rect[0])).size, 1, `${locale}: second desktop needs one suggestion column`);
     assert.equal(new Set(secondDesktop.buttons.map(({ rect }) => rect[1])).size, 4, `${locale}: second desktop needs four suggestion rows`);
 
@@ -177,7 +163,7 @@ try {
       && document.documentElement.scrollWidth <= document.documentElement.clientWidth);
     const tablet = await page.evaluate(readSuggestions);
     assert.equal(tablet.span, "3", `${locale}: tablet primary must span three columns`);
-    assertFullSpan(tablet, `${locale} tablet`);
+    assertPinnedCard(tablet, `${locale} tablet`);
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-820x1180.png`) });
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -187,7 +173,7 @@ try {
     const narrow = await page.evaluate(readSuggestions);
     assert.equal(narrow.layout, "pinterest", `${locale}: phone primary must use full-span Pinterest mode`);
     assert.equal(narrow.span, "2", `${locale}: phone keeps span min(3, N)`);
-    assertFullSpan(narrow, `${locale} full-span mobile`);
+    assertPinnedCard(narrow, `${locale} full-span mobile`);
     assert(new Set(narrow.buttons.map(({ rect }) => rect[1])).size > 1, `${locale}: stacked mobile must wrap`);
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-390x844.png`) });
 
@@ -197,7 +183,7 @@ try {
     await page.setViewportSize({ width: 1165, height: 910 });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.detailLayout === "split");
     const splitAfterResize = await page.evaluate(readSuggestions);
-    assertContained(splitAfterResize, `${locale} full-span to split resize`);
+    assertPinnedCard(splitAfterResize, `${locale} full-span to split resize`);
   }
   assert.deepEqual(errors, [], "D17 layout emits no browser errors");
   await page.close();

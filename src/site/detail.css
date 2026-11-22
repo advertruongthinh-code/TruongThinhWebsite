@@ -3107,15 +3107,6 @@ body.is-masonry-browse .site-footer {
   touch-action: pan-y;
 }
 
-[data-detail-layout="split"] .detail-view__info .detail-view__suggestion {
-  position: relative;
-  flex: 0 0 auto;
-  width: 100%;
-  height: auto;
-  margin-top: auto;
-  overflow: visible;
-}
-
 .detail-view__suggestion-link {
   position: relative;
   box-sizing: border-box;
