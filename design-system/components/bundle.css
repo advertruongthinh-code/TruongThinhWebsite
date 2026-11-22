@@ -8630,6 +8630,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   line-height: 1.4;
 }
 
+/* hero-typography R7: a contact title whose tied last two words do not fit the phone column (scripts/site/blocks.mjs) steps down. */
+@media (max-width: 750px) {
+  .blk-contact__title--long-tail {
+    font-size: 32px;
+  }
+}
+
 .detail-lead__copy,
 .detail-note p,
 .detail-intro__copy,
