@@ -93,6 +93,10 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
   const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b" }, "p"), []);
   assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
+  // The CTA block closes every project page (owner 2026-11-22).
+  const blocks = (...types) => types.map((type) => ({ type }));
+  assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b", blocks: blocks("project-slider", "cta-arrow", "contact-quick") }, "p"), []);
+  assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b", blocks: blocks("contact-quick", "project-slider", "cta-arrow") }, "p"), ["p: contact-quick (CTA) must be the last block"]);
   assert.deepEqual(kindFieldErrors("projects", { sector: "residential", type: "van-phong" }, "p"), ["p: type phải là loại thuộc mảng residential: nha-pho, can-ho, homestay-khach-san"]);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "a", slugEn: "b" }, "n"), []);
   assert.deepEqual(kindFieldErrors("news", { group: "nha-o", published: "2026-11-07", slugVi: "2026", slugEn: "b" }, "n"), ["n: id hoặc slug 2026 trùng đường dẫn nhóm, năm hoặc phân trang"]);

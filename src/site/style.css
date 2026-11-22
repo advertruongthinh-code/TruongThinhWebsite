@@ -2227,11 +2227,6 @@ em {
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* Do not use `+ *`: a rule adjacent to a universal subject makes every Advertising card insertion into the grid restyle the whole page (decision phone-frame-budget). */
-.legacy-closer + section {
-  margin-top: 90px;
-}
-
 /* The whole block is clickable ("Giữ nghề", child page CTA); the label reuses the subtitle of the service portal.
    The text area is the containing block so the click layer spills out -100vmax, and the block overflow: clip cuts at exactly its edge. */
 .legacy-link::before {
@@ -3440,21 +3435,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   .legacy-closer {
     min-height: 400px;
   }
-
-  .legacy-closer + section {
-    margin-top: 60px;
-  }
 }
 
 @media (max-width: 750px) {
   .legacy-closer {
     width: calc(100% - 30px);
-  }
-}
-
-@media (max-width: 578px) {
-  .legacy-closer + section {
-    margin-top: 30px;
   }
 }
 

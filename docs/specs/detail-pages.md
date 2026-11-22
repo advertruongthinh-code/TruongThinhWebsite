@@ -50,7 +50,7 @@ Then html có lang="en", title "Commercial spaces — Trường Thịnh", hero p
 
 ### R2. Residential và Commercial: section và nội dung
 
-`main#noi-dung` có một `h1`, mười hai khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
+`main#noi-dung` có một `h1`, mười hai khối theo bảng, riêng khối 12 (dải công trình) đứng trước khối 10: `.detail-cta#tu-van` luôn là khối cuối của `main`, ngay trên footer (owner 2026-11-22) (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
 footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
 
 | # | Khối | Residential | Commercial | Tone |

@@ -254,6 +254,8 @@ export const kindFieldErrors = (kind, page, at) => {
     ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
     ...(page.seoTitle === undefined || (page.seoTitle?.vi && page.seoTitle?.en) ? [] : [`${at}: seoTitle phải có vi và en`]),
     ...cardErrors(page.card, at),
+    // The Zalo CTA block is always the last block, right above the footer (owner 2026-11-22).
+    ...(page.blocks?.some((block) => block.type === "contact-quick") && page.blocks.at(-1)?.type !== "contact-quick" ? [`${at}: contact-quick (CTA) must be the last block`] : []),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
