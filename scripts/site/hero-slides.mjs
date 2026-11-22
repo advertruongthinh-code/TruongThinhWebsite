@@ -4,16 +4,34 @@
 //   /* hero-slides-data:KEY */      the `slides` array of the <head> script (first-slide preload)
 //   <!-- hero-order -->             the shared order script right after .hero-slides
 // KEY is a top-level key of the JSON (home, residential, commercial). Invalid data stops the build.
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { escapeHtml, validateImage } from "./lib.mjs";
+import { escapeHtml } from "./lib-pure.mjs";
 
 const MOVES = ["zoom-out", "pan"];
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const inRange = (value) => Number.isFinite(value) && value >= 0 && value <= 100;
 const isPoint = (point) => inRange(point?.x) && inRange(point?.y);
 
-export async function validateHeroSlides(data, siteRoot) {
+// Errors of one slide, without the duplicate id check (that needs the whole page list). checkImage(image, where) as in validateBlockPage.
+export async function heroSlideErrors(slide, at, checkImage) {
+  const errors = [];
+  // "@" would break the CMS clone keys (cms-core splits on it).
+  if (typeof slide.id !== "string" || !KEBAB.test(slide.id)) errors.push(`${at}: id must be kebab-case`);
+  // Hero images are decorative on the home page (empty alt in both languages); elsewhere both alts are required.
+  if (typeof slide.altVi !== "string" || typeof slide.altEn !== "string" || !slide.altVi.trim() !== !slide.altEn.trim()) errors.push(`${at}: altVi and altEn must both be empty or both set`);
+  // The image check insists on non-empty alts, so give it placeholders: the alt rule is checked above.
+  errors.push(...await checkImage({ ...slide, altVi: "-", altEn: "-" }, at));
+  if (!isPoint(slide.focal)) errors.push(`${at}: focal x and y must be 0-100`);
+  const move = slide.phoneMove;
+  if (!MOVES.includes(move?.kind)) errors.push(`${at}: phoneMove.kind must be ${MOVES.join(" or ")}`);
+  else if (move.kind === "pan") {
+    if (!isPoint(move.from) || !isPoint(move.to)) errors.push(`${at}: pan needs from and to points`);
+    else if (move.from.x !== move.to.x && move.from.y !== move.to.y) errors.push(`${at}: pan must be horizontal or vertical (from.x === to.x or from.y === to.y)`);
+    else if (move.from.x === move.to.x && move.from.y === move.to.y) errors.push(`${at}: pan from and to must differ`);
+  }
+  return errors;
+}
+
+export async function validateHeroSlides(data, checkImage) {
   const errors = [];
   for (const key of ["home", "residential", "commercial"]) {
     const slides = data?.[key];
@@ -21,22 +39,11 @@ export async function validateHeroSlides(data, siteRoot) {
     const ids = new Set();
     for (const [index, slide] of slides.entries()) {
       const at = `hero-slides.${key}[${index}]`;
-      // "@" would break the CMS clone keys (cms-core splits on it).
-      if (typeof slide.id !== "string" || !KEBAB.test(slide.id)) errors.push(`${at}: id must be kebab-case`);
-      else if (ids.has(slide.id)) errors.push(`${at}: duplicate id ${slide.id}`);
+      const slideErrors = await heroSlideErrors(slide, at, checkImage);
+      // The duplicate id error keeps its old place, right after the id check.
+      if (typeof slide.id === "string" && KEBAB.test(slide.id) && ids.has(slide.id)) slideErrors.unshift(`${at}: duplicate id ${slide.id}`);
       ids.add(slide.id);
-      // Hero images are decorative on the home page (empty alt in both languages); elsewhere both alts are required.
-      if (typeof slide.altVi !== "string" || typeof slide.altEn !== "string" || !slide.altVi.trim() !== !slide.altEn.trim()) errors.push(`${at}: altVi and altEn must both be empty or both set`);
-      // validateImage insists on non-empty alts, so give it placeholders: the alt rule is checked above.
-      errors.push(...await validateImage({ ...slide, altVi: "-", altEn: "-" }, siteRoot, at));
-      if (!isPoint(slide.focal)) errors.push(`${at}: focal x and y must be 0-100`);
-      const move = slide.phoneMove;
-      if (!MOVES.includes(move?.kind)) errors.push(`${at}: phoneMove.kind must be ${MOVES.join(" or ")}`);
-      else if (move.kind === "pan") {
-        if (!isPoint(move.from) || !isPoint(move.to)) errors.push(`${at}: pan needs from and to points`);
-        else if (move.from.x !== move.to.x && move.from.y !== move.to.y) errors.push(`${at}: pan must be horizontal or vertical (from.x === to.x or from.y === to.y)`);
-        else if (move.from.x === move.to.x && move.from.y === move.to.y) errors.push(`${at}: pan from and to must differ`);
-      }
+      errors.push(...slideErrors);
     }
   }
   if (errors.length) throw new Error(`hero-slides data invalid:\n${errors.join("\n")}`);
@@ -73,9 +80,3 @@ export function expandHero(html, data, orderScript) {
     .replace(/\/\* hero-slides-data:(\w+) \*\//g, (_marker, key) => renderData(slidesOf(key)))
     .replace("<!-- hero-order -->", () => `<script type="module">\n${orderScript}</script>`);
 }
-
-// For the build scripts: load data and the order script from the site source root.
-export const readHeroSources = (siteRoot) => ({
-  data: JSON.parse(readFileSync(path.join(siteRoot, "content", "hero-slides.json"), "utf8")),
-  orderScript: readFileSync(path.join(siteRoot, "hero-order-inline.js"), "utf8"),
-});

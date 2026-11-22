@@ -9,9 +9,10 @@ import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIE
 import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
-import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
+import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
+import { fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
@@ -54,7 +55,7 @@ if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== pat
 const artifact = buildAdvertisingArtifact();
 
 const hero = readHeroSources(sourceRoot);
-await validateHeroSlides(hero.data, sourceRoot);
+await validateHeroSlides(hero.data, fileImageCheck(sourceRoot));
 const homeTemplate = readPageSource("index.html");
 
 await rm(outputRoot, { recursive: true, force: true });

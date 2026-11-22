@@ -6,7 +6,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { loadBlockContent, pageHref } from "../../scripts/site/block-pages.mjs";
+import { pageHref } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");

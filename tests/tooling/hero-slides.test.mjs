@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import sharp from "sharp";
-import { expandHero, validateHeroSlides } from "../../scripts/site/hero-slides.mjs";
+import { fileImageCheck } from "../../scripts/site/content-files.mjs";
+import { expandHero, heroSlideErrors, validateHeroSlides } from "../../scripts/site/hero-slides.mjs";
 
 const SRC = "/assets/content/projects/sample.webp";
 const slide = { id: "sample", src: SRC, width: 40, height: 30, altVi: "", altEn: "", focal: { x: 14, y: 50 }, phoneMove: { kind: "zoom-out" } };
@@ -20,11 +21,11 @@ async function root() {
 
 test("valid data passes, including a decorative slide with empty alt and a horizontal pan", async () => {
   const pan = { ...slide, id: "pan", phoneMove: { kind: "pan", from: { x: 0, y: 50 }, to: { x: 100, y: 50 } } };
-  await validateHeroSlides(dataOf(slide, pan), await root());
+  await validateHeroSlides(dataOf(slide, pan), fileImageCheck(await root()));
 });
 
 test("each broken rule reports its slide and rule", async () => {
-  const dir = await root();
+  const dir = fileImageCheck(await root());
   const cases = [
     [{ ...slide, id: "Bad@Id" }, /id must be kebab-case/],
     [{ ...slide, altVi: "Phòng khách" }, /altVi and altEn must both be empty or both set/],
@@ -38,6 +39,12 @@ test("each broken rule reports its slide and rule", async () => {
     await assert.rejects(validateHeroSlides(dataOf(bad), dir), expected);
   }
   await assert.rejects(validateHeroSlides(dataOf(slide, slide), dir), /duplicate id sample/);
+});
+
+test("heroSlideErrors checks one slide and returns its errors instead of throwing", async () => {
+  const check = fileImageCheck(await root());
+  assert.deepEqual(await heroSlideErrors(slide, "at", check), []);
+  assert.deepEqual(await heroSlideErrors({ ...slide, focal: { x: 120, y: 50 } }, "at", check), ["at: focal x and y must be 0-100"]);
 });
 
 test("expandHero writes the figures, the head array and the order script the CMS Worker expects", () => {
