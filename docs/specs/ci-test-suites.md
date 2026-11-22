@@ -208,7 +208,7 @@ cho lượt đêm. Lượt đêm đỏ là đỏ; người xem lượt đêm có
 
 Workflow `card-report.yml` chạy cùng giờ lượt đêm, ngoài bộ test: `scripts/ci/card-report.mjs` liệt kê PR merge trong 24 giờ
 và dòng `Card:` của từng PR vào job summary, đỏ khi PR thiếu link card hoặc còn `Card: chờ tạo`
-([notion](../operations/notion.md#rule)). Không đọc Notion; điều phối đối chiếu card khi xem lượt đêm.
+([notion](../operations/notion.md#rule)), và liệt kê PR có dòng `Owner đổi:` ([owner lock](docs-system.md#r11-rule-agentsmd-máy-kiểm-được)) để điều phối đối chiếu với lời owner (mục này không làm đỏ). Không đọc Notion; điều phối đối chiếu card khi xem lượt đêm.
 
 ### R10. Đo thời gian từng lệnh
 
