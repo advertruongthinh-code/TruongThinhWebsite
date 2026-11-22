@@ -110,11 +110,7 @@ route trong `ROUTES` (năm trang và sáu trang tương thích, VI và EN) bằn
 `data-en` và `alt`, `aria-label`, `content`, `href` từ `data-en-*` (runtime đổi ngôn ngữ cũng vậy), giữ bản Việt ở
 `data-vi-*`; link nội bộ đổi sang path của locale, trừ `[data-language-option]`.
 Preview (R8) dùng cùng hàm nên host tĩnh không cần rewrite.
-
-Đường dẫn (owner 2026-11-22): tiếng Việt ở gốc (`/`, `/about/`, `/advertising-products/...`), tiếng Anh dưới `/en/`;
-một hàm `localePrefix` (`scripts/site/lib.mjs`) dựng mọi URL. URL `/vi/...` cũ trả 301 về path không tiền tố: `_redirects`
-ghi trang đã dời đi thẳng tới đích cuối (một bước), sau đó `/vi` và `/vi/*` về gốc (`/vi/about/?topic=process` sang
-`/about/?topic=process`); preview (R8) trả cùng 301. Canonical, hreflang và sitemap không còn `/vi/`.
+Đường dẫn (owner 2026-11-22): tiếng Việt ở gốc (`/`, `/about/`, `/advertising-products/...`), tiếng Anh dưới `/en/`; một hàm `localePrefix` (`scripts/site/lib-pure.mjs`) dựng mọi URL. URL `/vi/...` cũ trả 301 về path không tiền tố: `_redirects` ghi trang đã dời đi thẳng tới đích cuối (một bước), sau đó `/vi` và `/vi/*` về gốc (`/vi/about/?topic=process` sang `/about/?topic=process`); preview (R8) trả cùng 301. Canonical, hreflang và sitemap không còn `/vi/`.
 
 ```gherkin
 Given output đã build
@@ -223,8 +219,9 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 `wrangler.toml` (Worker `truong-thinh-website`, `main = "src/worker/index.js"`,
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
-`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `projects-products` và các path `/vi/` cũ của
-Worker CMS dormant chưa đổi theo gốc tiếng Việt (owner 2026-11-22, R5); thread CMS sửa khi mở phase. Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
+`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
+trang gốc như hiện tại). Sau đó owner chọn tiếng Việt ở gốc (R5): `/` là trang chủ tiếng Việt, Worker CMS chưa đổi theo, thread CMS sửa khi mở phase. Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
 ```gherkin
@@ -286,6 +283,9 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 
 - LCP residential mobile đóng (owner 2026-11-15: motion giữ đúng contract, không cắt để đạt LCP): demo 2026-11-14 VI median
   3,01 s, p90 3,22 s; EN 5,14 s là ngoại lệ đã chấp nhận, do chữ title phone phóng sau lần vẽ đầu và hiện cuối reveal.
+- Đóng 2026-11-22: `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/` là trang tiếng Việt đã qua locale (R5); preview
+  và site trả 200 cho `/`. Owner 2026-11-22: giữ như hiện tại, không
+  redirect về `/vi/`.
 
 ## Chú thích thuật ngữ
 
