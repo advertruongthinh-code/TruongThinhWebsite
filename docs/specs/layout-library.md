@@ -84,7 +84,9 @@ Then báo lỗi tên khối và không sinh trang đó
 ### R2. Mẫu trang
 
 Mỗi mẫu là chuỗi khối mặc định cùng danh sách khối được thêm. Admin thêm, bớt, đổi thứ tự khối trong danh sách cho phép
-của mẫu; khối bắt buộc không bỏ được.
+của mẫu; khối bắt buộc không bỏ được. Riêng Bài News và Chi tiết công trình khóa chuỗi theo số media
+([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)): người soạn chọn một layout trong bảng
+[News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình), không thêm, bớt hay đổi thứ tự khối.
 
 | Mẫu | Theo Espacio | Bắt buộc | Chuỗi mặc định (rút gọn) |
 | --- | --- | --- | --- |

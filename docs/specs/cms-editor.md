@@ -106,7 +106,7 @@ các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm porta
 | --- | --- | --- | --- |
 | Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Trang chủ | `.blk-projects__track` | `.blk-projects__card` | Dải công trình |
-| Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`) | `.client-logo-slot` | Logo khách hàng |
+| Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`; markup ở `partials/client-logos.html`) | `.client-logo-slot` | Logo khách hàng |
 | Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Nhà ở, Kinh doanh | `.detail-gallery__slides` | `.detail-gallery__item` | Gallery công trình |
 | Giới thiệu | `.about-timeline` | `.about-timeline__item` | Dòng thời gian |

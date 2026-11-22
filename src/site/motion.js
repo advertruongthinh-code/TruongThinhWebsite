@@ -5,7 +5,7 @@
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
   // Unique id per mount: when Barba switches pages, the old (hidden) container is still in the DOM with the News grid.
-  let newsGridCount = 0;
+  let stickyScopeCount = 0;
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
@@ -1281,11 +1281,11 @@
       return;
     }
     window.scrollTo({ top: 0, behavior: "instant" });
-    // News R2: the sticky mark is read when smooth is enabled (always from 981px) so it does not drift when the header height changes with the breakpoint.
-    const newsMain = state.container.querySelector(".blk-news-list__main[data-scroll-sticky]");
-    if (newsMain) {
-      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(newsMain).top) || 0);
-      newsMain.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
+    // News R2 and every sticky column: the sticky mark is read when smooth is enabled (always from 981px) so it does not drift when the header
+    // height changes with the breakpoint.
+    for (const column of state.container.querySelectorAll("[data-scroll-sticky]")) {
+      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(column).top) || 0);
+      column.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
     }
     state.smoothScroll = new window.LocomotiveScroll({
       el: state.container,
@@ -1993,21 +1993,21 @@
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
-    // News R2: the large card sticks to the left column. Smooth scroll moves the container by transform so CSS sticky does not work; use Locomotive's
-    // sticky, released at the grid bottom; the sticky mark (data-scroll-offset) is set in initSmoothScroll. Native scroll still uses CSS.
-    const newsMain = container.querySelector(".blk-news-list__main");
-    if (newsMain) {
-      const grid = newsMain.parentElement;
-      grid.id ||= `news-grid-${++newsGridCount}`;
-      newsMain.setAttribute("data-scroll", "");
-      newsMain.setAttribute("data-scroll-sticky", "");
-      newsMain.setAttribute("data-scroll-target", `#${grid.id}`);
-      // Locomotive reads the sticky range and scroll limit once; the grid still grows for a few frames after init while its cards lay out,
-      // which released the card early and cut the page end short (1366x650). Re-measure whenever the grid height changes.
+    // Sticky columns (News R2 large card, and any [data-sticky-column]) stick inside their parent. Smooth scroll moves the container by transform
+    // so CSS sticky does not work; use Locomotive's sticky, released at the parent's bottom; the sticky mark (data-scroll-offset) is set in
+    // initSmoothScroll. Native scroll still uses CSS.
+    for (const column of container.querySelectorAll(".blk-news-list__main, [data-sticky-column]")) {
+      const scope = column.parentElement;
+      scope.id ||= `sticky-scope-${++stickyScopeCount}`;
+      column.setAttribute("data-scroll", "");
+      column.setAttribute("data-scroll-sticky", "");
+      column.setAttribute("data-scroll-target", `#${scope.id}`);
+      // Locomotive reads the sticky range and scroll limit once; the parent still grows for a few frames after init while its content lays out,
+      // which released the column early and cut the page end short (News at 1366x650). Re-measure whenever the parent height changes.
       if (typeof ResizeObserver !== "undefined") {
-        const gridObserver = new ResizeObserver(requestLayoutUpdate);
-        gridObserver.observe(grid);
-        state.abort.signal.addEventListener("abort", () => gridObserver.disconnect(), { once: true });
+        const scopeObserver = new ResizeObserver(requestLayoutUpdate);
+        scopeObserver.observe(scope);
+        state.abort.signal.addEventListener("abort", () => scopeObserver.disconnect(), { once: true });
       }
     }
 

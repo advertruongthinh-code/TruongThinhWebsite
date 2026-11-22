@@ -162,7 +162,8 @@ gốc nhỏ hơn 960), `cardSrc` trỏ file bậc 480; `source`, `sha256` là fi
 `cardSrc` như hiện tại. Mỗi video có một thư mục `<id>/` chứa `master.m3u8`, `<bậc>.m3u8`, `<bậc>.mp4`.
 
 `scripts/site/build-video-ladder.mjs <video gốc> <thư mục ra>` sinh thư mục trên từ một video gốc và không sửa dữ liệu
-card; dữ liệu card sửa tay. `main` chưa có video thật ([media-card](media-card.md#gate-còn-mở)).
+card; dữ liệu card sửa tay. CMS chạy script này trong job biến thể cho video upload, không dùng Cloudflare Stream
+([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)). `main` chưa có video thật ([media-card](media-card.md#gate-còn-mở)).
 
 ```gherkin
 Given item video không có hlsSrc
@@ -227,9 +228,6 @@ Không đổi giao diện; card video và player giữ component hiện có
 
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone. Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
-- CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)
-  (mã hóa miễn phí, 5 USD mỗi 1.000 phút lưu mỗi tháng, 1 USD mỗi 1.000 phút phát) hay chạy script trên máy owner; ghi
-  vào [CMS](cms.md) khi CMS mở lại.
 - Giới hạn [Cloudflare static assets](https://developers.cloudflare.com/workers/platform/limits): 25 MiB mỗi file,
   20.000 file (Free). Thang 240, 480, 960 thêm 5 file mỗi video (site hiện khoảng 5.200
   file).

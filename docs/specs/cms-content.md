@@ -81,11 +81,16 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
 - Job biến thể: lệnh upload hay lưu crop gọi `workflow_dispatch` của workflow biến thể mới (cùng token GitHub), job đọc
   bản gốc qua endpoint chỉ đọc sau service token như `snapshot`; media hiện "đang xử lý" tới khi xong, job lỗi thì hiện
   "lỗi" kèm nút thử lại. Bản chụp bỏ qua bản ghi có media chưa sẵn sàng (giữ phiên bản `published` trước của bản ghi
-  đó nếu có), nên upload dở hay job lỗi không chặn lần dựng của người khác; job biến thể dispatch lần dựng khi xong.
+  đó nếu có), nên upload dở hay job lỗi không chặn lần dựng của người khác; admin Worker thấy biến thể đủ thì gọi lần
+  dựng ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 - Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
   quyết định bản gốc trên NAS ngày 2026-10-12).
 
-[CẦN LÀM RÕ: giới hạn cỡ file upload; thang video sinh trong job biến thể hay trên PC lúc upload.]
+Ảnh upload tối đa 25 MB; bản gốc giữ nguyên byte, EXIF và GPS bị bỏ ở mọi biến thể public. SVG logo mở ở phần 2.
+
+Video upload (owner 2026-11-22: bản đầu có video) là MP4 tối đa 95 MB và phải kèm poster. Thang chất lượng sinh trong
+job biến thể bằng script của [tải video R5](video-delivery.md#r5-dữ-liệu-và-script), không cần PC bật; mọi file public bỏ
+metadata vị trí của bản gốc ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 
 ```gherkin
 Given một card có hai ảnh cùng altVi
@@ -114,7 +119,8 @@ lần dựng tạo lại mọi trang lưới cùng dữ liệu card trong cùng 
 
 Card công trình lưu tham chiếu tới media của trang cộng vùng crop theo khung card, không chép file. Gỡ một media khỏi
 trang khi card đang dùng nó trả 409. Dữ liệu hiện tại (`card.media` là
-file cắt riêng như `can-ho-hero-card-wide.webp`) đổi sang tham chiếu ở slice Public projection.
+file cắt riêng như `can-ho-hero-card-wide.webp`) giữ nguyên dưới dạng chỗ đặt `legacySrc` và đổi sang tham chiếu ở phần 2,
+khi có giao diện crop ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 
 ```gherkin
 Given trang công trình có 6 media
@@ -136,10 +142,10 @@ mục bị từ chối ở R1. Khối chưa có renderer (`statement`, `location
 thêm renderer. Layout Bài News và Chi tiết công trình khóa cứng theo số media, theo bảng [News R3](news.md#r3-trang-bài)
 và [công trình R4](projects.md#r4-ảnh-và-video-công-trình): mỗi dòng là một layout, mở khi bài có số media lớn hơn hoặc
 bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Mỗi dòng là một chuỗi khối cố định, mỗi
-khối có số media tối thiểu, tối đa; chỗ hai bảng còn ghi "hoặc", "tùy chọn", "hai tới bốn" được plan chốt thành một
-chuỗi, owner duyệt cùng plan. Media thuộc danh sách media của bài, có thứ tự, trước khi chọn layout; layout đặt chúng vào khối theo thứ tự đó. Sức
-chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17+, công trình 13+) dồn media dư vào `media-carousel`
-cuối. Bài chọn dòng có mức cao nhất nhỏ hơn số media thì admin báo và bài giữ `draft` tới khi bỏ bớt media hoặc chọn
+khối có số media tối thiểu, tối đa, đã chốt trong hai bảng đó. Bài ghi layout ở trường `layout`; trang có trước CMS mà
+chuỗi khác bảng mang `layout: "legacy"`, giữ chuỗi cũ, không tạo mới được. Media thuộc danh sách media của bài, có thứ tự, trước khi chọn layout; layout đặt chúng vào khối theo thứ tự đó. Sức
+chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17 tới 30, công trình 13 tới 23) dồn media dư vào
+`media-carousel` cuối, tối đa 12 media một carousel. Bài chọn dòng có mức cao nhất nhỏ hơn số media thì admin báo và bài giữ `draft` tới khi bỏ bớt media hoặc chọn
 dòng lớn hơn. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài lưu thành `draft`;
 bài đã `published` mà lưu xuống dưới mức thì trả 400 ([CMS R5](cms.md#r5-lệnh-admin-có-kiểu)). Người soạn chọn layout đã mở rồi điền chữ và media; không thêm, bớt hay đổi thứ tự khối. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
 motion (owner 2026-11-15).
@@ -246,7 +252,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 
 ## Gate còn mở
 
-Mục `[CẦN LÀM RÕ]` của R1 và R3; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
+Mục `[CẦN LÀM RÕ]` của R1; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ
 
