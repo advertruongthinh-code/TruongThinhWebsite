@@ -168,17 +168,24 @@ Then trả 400; xóa một mục con của nó thì lưu được và menu, navb
 
 ### R8. Soạn chữ
 
-Người soạn có công cụ trình bày chữ chuyên sâu như phần mềm dàn trang (owner 2026-11-15); mọi tùy chọn đi qua token của
-[Design System](../../design-system/README.md), lưu thành dữ liệu có cấu trúc, không lưu HTML thô. Bộ kiểm chữ chạy khi
-lưu: không chữ mồ côi, dòng ngắt chủ ý không kết thúc bằng "," hay ".".
-[CẦN LÀM RÕ: owner duyệt danh sách tùy chọn. Agent đề xuất: kiểu đoạn (tiêu đề cấp 1 tới 3, dòng nhỏ trên tiêu đề, đoạn
-mở, đoạn thường, trích dẫn, chú thích); đậm, nghiêng, gạch chân; chỉ số trên (m²); link; danh sách; canh trái, giữa,
-phải; xuống dòng chủ ý và giữ cụm từ không tách dòng; bậc cỡ chữ, khoảng chữ, khoảng dòng theo token; màu trong bảng màu
-Design System; chữ cái lớn đầu đoạn.]
+Người soạn có công cụ trình bày chữ như phần mềm dàn trang (owner 2026-11-15), theo đúng thang chữ Espacio đang chạy
+(owner 2026-11-22, `detail.css` "Espacio type scale", [trang chi tiết](detail-pages.md#ui)); lưu thành dữ liệu có cấu
+trúc, không lưu HTML thô. Danh sách theo đúng site hiện tại:
+
+| Nhóm | Tùy chọn |
+| --- | --- |
+| Kiểu đoạn | Tiêu đề mục (400; 64, 56, 48, 40px theo 1200, 960, 750), Đoạn (400; 24, 20.8px), Nhãn (600, dòng nhỏ trên tiêu đề), Thẻ tên (500), Tiêu đề CTA (500; 64, 48px), Trích dẫn (cỡ Đoạn), Chữ nhỏ (16px, chú thích, metadata) |
+| Trong dòng | đậm, nghiêng, chỉ số trên (m²), link, xuống dòng chủ ý, giữ cụm từ không tách dòng |
+| Khối | danh sách gạch đầu dòng, danh sách số |
+
+Slot quyết định kiểu đoạn nào được dùng, canh lề và màu chữ (ink trên giấy, trắng có bóng D trên ảnh); người soạn
+không chọn cỡ chữ, khoảng chữ, khoảng dòng, màu hay font tự do. Hero giữ kiểu `hero-line` theo
+[chữ hero](hero-typography.md). Bộ kiểm chữ chạy khi lưu: không chữ mồ côi, dòng ngắt chủ ý không kết thúc bằng ",",
+"." hay ";".
 
 ```gherkin
-Given người soạn chọn màu chữ ngoài bảng màu Design System
-When lưu
+Given slot đoạn mở trang Nhà ở chỉ nhận kiểu Đoạn
+When gửi một khối kiểu Tiêu đề CTA vào slot đó
 Then trả 400, dữ liệu chữ không đổi
 ```
 

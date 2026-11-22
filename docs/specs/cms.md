@@ -35,7 +35,7 @@ hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng
 
 ### R2. Tài khoản và vai trò
 
-Hai vai trò, lưu trong D1 (bảng tài khoản theo email, chữ thường). Email owner đầu tiên nằm ở secret
+Hai vai trò, không có vai trò admin riêng: admin là owner (owner 2026-11-22). Lưu trong D1 (bảng tài khoản theo email, chữ thường). Email owner đầu tiên nằm ở secret
 `CMS_BOOTSTRAP_OWNER`, không ghi trong repo; lần chạy đầu tạo tài khoản owner từ secret nếu bảng trống.
 
 | Việc | Owner | Nhân viên |
