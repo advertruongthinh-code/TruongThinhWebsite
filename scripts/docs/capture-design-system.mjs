@@ -8,7 +8,7 @@ import { ADVERTISING_CATALOG_ARTIFACT } from '../../.site-output/advertising-pro
 const BASE = process.argv[2] || 'http://127.0.0.1:8787';
 const OUT = 'scripts/docs/captures';
 const GRID = '/vi/advertising-products/';
-const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-26';
+const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-25';
 const CLIP = '/__design_system__/clip.mp4';
 // MediaCard takes the first four cards of the grid with a fixed seed (the virtual grid keeps only cards near the viewport), then turns them
 // into 1 item, 3 items, 11 items and a video cover plus one image (docs/specs/media-card.md).
@@ -51,6 +51,8 @@ function snapshot({ select, cards, focus }) {
   let node = target.cloneNode(true);
   // LazySizes keeps the real URL in data-src until the card is near the viewport.
   node.querySelectorAll('img[data-src]').forEach((img) => img.setAttribute('src', img.dataset.src));
+  // A decoded primary image is a blob URL that dies with the page; keep its file URL instead.
+  node.querySelectorAll('img[data-original]').forEach((img) => img.setAttribute('src', img.dataset.original));
   if (cards) {
     // Grid cards are absolutely positioned; line the kept cards up straight from the origin with the grid gap.
     const kept = cards.map((id) => {
