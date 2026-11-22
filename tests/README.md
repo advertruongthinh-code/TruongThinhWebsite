@@ -240,7 +240,7 @@ Baseline và candidate của [tải ảnh R7](../docs/specs/media-delivery.md#r7
 6 route × VI/EN × `390×844`/`1440×900`, Slow 4G và CPU 4x, mỗi lượt cache tắt.
 
 ```bash
-node tests/site/image-delivery-measure.mjs --base https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev --runs 5
+node tests/site/image-delivery-measure.mjs --base https://truongthinhads.vn --runs 5
 node tests/site/image-delivery-measure.mjs --base http://127.0.0.1:8792 --runs 1 --only advertising-products/
 ```
 

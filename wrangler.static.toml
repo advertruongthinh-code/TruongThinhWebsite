@@ -1,15 +1,13 @@
-# Static demo hosting: assets plus a small script that runs only for /api/*
-# (see docs/specs/advertising-search.md).
-# The CMS Worker config in wrangler.toml stays dormant until the CMS phase.
-name = "truong-thinh-demo"
+# Top level = staging (preview): auto-deployed by CI after each merge to main, behind Cloudflare Access, noindex header.
+# [env.production] = the live site, deployed only by the manual "Release site" workflow (docs/specs/static-release.md R11).
+name = "truong-thinh-staging"
 main = "src/search/worker.mjs"
 compatibility_date = "2026-07-31"
-workers_dev = true
+workers_dev = false
+preview_urls = false
 
-# Production hostname (zone on Cloudflare, nameservers moved from Sapo); workers.dev stays on as the preview URL.
-# www redirects to this host through a zone Redirect Rule, see docs/specs/static-release.md R11.
 [[routes]]
-pattern = "truongthinhads.vn"
+pattern = "staging.truongthinhads.vn"
 custom_domain = true
 
 [assets]
@@ -23,13 +21,37 @@ binding = "AI"
 
 [[ratelimits]]
 name = "SEARCH_TEXT_LIMIT"
-namespace_id = "7301"
+namespace_id = "7303"
 simple = { limit = 30, period = 60 }
 
 [[ratelimits]]
 name = "SEARCH_IMAGE_LIMIT"
-namespace_id = "7302"
+namespace_id = "7304"
 simple = { limit = 10, period = 60 }
 
 [observability]
 enabled = false
+
+# The live Worker keeps its original name so the apex custom domain and rate-limit counters stay put;
+# its old workers.dev URL turns off at the first release. Bindings are not inherited by environments.
+[env.production]
+name = "truong-thinh-demo"
+workers_dev = false
+preview_urls = false
+
+[[env.production.routes]]
+pattern = "truongthinhads.vn"
+custom_domain = true
+
+[env.production.ai]
+binding = "AI"
+
+[[env.production.ratelimits]]
+name = "SEARCH_TEXT_LIMIT"
+namespace_id = "7301"
+simple = { limit = 30, period = 60 }
+
+[[env.production.ratelimits]]
+name = "SEARCH_IMAGE_LIMIT"
+namespace_id = "7302"
+simple = { limit = 10, period = 60 }
