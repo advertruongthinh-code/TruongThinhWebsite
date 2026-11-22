@@ -24,10 +24,9 @@ Product truth nằm ở [PRODUCT.md](../PRODUCT.md).
 
 ## Nguyên tắc hạ tầng
 
-Ưu tiên stack free hoặc phí thấp; hướng hiện tại là Cloudflare (Workers, D1, R2)
-vì khớp scaffold dormant có sẵn. Provider và storage đã chốt ([hướng CMS](specs/cms.md#hướng-cms-đã-chốt-và-câu-còn-mở));
-region, backup và cost vẫn phải revalidate bằng tài liệu
-chính thức ở CMS discovery theo [spec CMS](specs/cms.md#điều-kiện-mở-cms-phase).
+Ưu tiên stack free hoặc phí thấp. Provider đã chốt: Cloudflare Workers static
+assets cho public, admin Worker sau Access, D1, R2
+([spec CMS](specs/cms.md#r1-ranh-giới-public-và-admin), owner 2026-11-15).
 
 Static route luôn là fallback và rollback path; CMS lỗi không được làm mất trang
 public.
@@ -37,7 +36,7 @@ public.
 | Phase | Trạng thái | Phạm vi | Nguồn chuẩn |
 | --- | --- | --- | --- |
 | 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md) |
-| 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [Spec CMS](specs/cms.md) |
+| 2. CMS | Slice Contract (2026-11-15) | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [Spec CMS](specs/cms.md) |
 
 Phát hành chính thức trên `truongthinhads.vn` chỉ sau phase 2, khi admin và nhân viên CRUD được nội dung
 (owner 2026-10-18); bản tĩnh vẫn là fallback và rollback.
@@ -46,10 +45,8 @@ Việc còn mở của phase 1 (owner kiểm nhận giao diện, fact chưa xác
 
 ## Điều kiện chuyển sang phase 2
 
-Giữ nguyên năm điều kiện trong [spec CMS](specs/cms.md#điều-kiện-mở-cms-phase).
-Tóm tắt: bản tĩnh ổn định trên demo với rollback path đã xác nhận, owner chốt role và
-workflow biên tập, kiểm lại tài liệu chính thức của provider, có accepted
-decision, và owner mở explicit implementation slice. Không suy quyền activate
+Năm điều kiện đã đóng ngày 2026-11-15; mỗi slice sau vẫn cần owner mở
+([spec CMS](specs/cms.md#gate-còn-mở)). Không suy quyền activate
 CMS, Wrangler hoặc đổi domain từ tài liệu này.
 
 ## Chi phí tham khảo (kiểm 2026-10-03)

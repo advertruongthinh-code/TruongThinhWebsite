@@ -23,7 +23,7 @@ updated: 2026-11-22
 Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 ảnh (owner 2026-11-21),
 kể cả khi gõ không dấu, gõ sai hay quên bật bộ gõ. Kết quả hiện trên lưới masonry chính, xếp theo điểm. Site không lưu câu
 tìm hay ảnh, trừ ảnh của link chia sẻ. Lưới thuộc [masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm); spec này chỉ gọi
-API của lưới. Tìm trong CMS và tính vector lúc CMS lưu card thuộc [CMS](cms.md), ghi ở Gate còn mở.
+API của lưới. Bản đầu CMS không tính vector lúc lưu; `pnpm search:index` ở mỗi lần dựng là nơi duy nhất tính vector, chỉ từ nội dung `published` ([CMS R9](cms-content.md#r9-tìm-kiếm-ngữ-nghĩa)). Tìm bản ghi nháp trong CMS để sau bản đầu ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
 ## Bản đồ module
 
@@ -267,7 +267,7 @@ Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo [Than
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
-- Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
+- Tính vector lúc CMS lưu card và tìm bản ghi nháp trong CMS (sau Cloudflare Access): sau bản đầu CMS (owner 2026-11-22).
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
 - Audit ([Thanh tìm kiếm R6](search-bar.md#r6-audit-so-với-mock)) chạy sau khi code; owner xem trang so sánh trước khi merge.
 

@@ -82,7 +82,7 @@ Then mục Image metadata hợp lệ, không có lỗi nghiêm trọng
 
 Build sinh `sitemap-advertising.xml`: mỗi trang R1 (VI và EN) một `<url>`, trong đó mỗi media một `<image:image>` với
 `<image:loc>` tuyệt đối, video dùng poster. Chỉ dùng thẻ `loc`; các thẻ caption, title của image sitemap Google đã bỏ.
-`sitemap.xml` của bản tĩnh là sitemap index gồm file này và `sitemap-pages.xml` ([static-release R9](static-release.md#r9-cache-header)). Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
+`sitemap.xml` của bản tĩnh là sitemap index gồm file này và `sitemap-pages.xml` ([static-release R9](static-release.md#r9-cache-header)). Bản dựng do CMS xuất bản giữ sitemap index này ([CMS R6](cms.md#r6-xuất-bản-và-rollback)).
 
 ```gherkin
 Given catalog 285 card, 285 media
