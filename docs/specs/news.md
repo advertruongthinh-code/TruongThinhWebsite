@@ -100,7 +100,7 @@ Then cuối bài có 3 bài khác cùng nhóm, mới nhất trước, và link t
 
 Khối News chỉ có ở trang chủ (owner 2026-11-11), theo trang chủ espaciohomedesign.com/en: ngay dưới hero, 3 bài mới nhất
 thành 3 cột (tablet 2 cột, phone một cột), mỗi bài ảnh bìa nhỏ bên trái, bên phải là nhóm chữ hoa (gạch chân khi rê chuột), tiêu đề và chữ "Đọc tiếp" chỉ hiện khi rê
-chuột hoặc focus, ảnh phóng 1.2 trong 0.6s; nhóm chữ hoa nét 700, ảnh bìa tối thiểu 5:6 và kéo cao theo khối chữ (owner 2026-11-14 giữ bản trước), phone cách hero
+chuột hoặc focus, ảnh phóng 1.2 trong 0.6s; nhóm chữ hoa nét 600, ảnh bìa theo tỉ lệ vàng: cột ảnh : chữ = 1 : 1.618, ảnh tối thiểu 1 : 1.618 dọc và kéo cao theo khối chữ (owner 2026-11-22), phone cách hero
 và khối dưới 30px như Espacio; lề và cột như Espacio ở mọi cỡ: khung tối đa 1500px canh giữa, gap 70px (50px từ 1200px, 30px từ 750px),
 2 cột từ 960px, 1 cột từ 578px (đo lại 384 tới 1920 ngày 2026-11-14); cả bài là một link (`newsTeaser` trong `scripts/site/blocks.mjs`, `renderHomeNews` trong `scripts/site/block-pages.mjs`, chỗ đặt `<!-- home-news -->` trong
 `src/site/index.html`). Trang Nhà ở, Kinh doanh, Advertising và trang chi tiết công trình không có khối News. Cuối bài News vẫn

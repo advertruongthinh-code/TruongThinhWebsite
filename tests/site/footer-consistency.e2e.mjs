@@ -92,7 +92,7 @@ try {
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
-        assert.deepEqual(result.weights, ["500", "500"]);
+        assert.deepEqual(result.weights, ["400", "400"]);
         const [padTop, padRight, padLeft] = result.padding;
         assert.equal(padRight, padLeft, JSON.stringify({ width, route, result }));
         if (!small) assert.ok(padTop >= 40, JSON.stringify({ width, route, result }));

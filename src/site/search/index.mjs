@@ -210,22 +210,29 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     addFiles(event.dataTransfer.files);
   }, { signal });
 
-  // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block's right end (search-bar R5).
+  // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block (search-bar R5).
   const shell = bar.querySelector(".search-bar__shell");
   const syncOffset = () => {
-    const floating = !dock?.docked;
-    document.body.dataset.searchPlace = dock?.place ?? "float";
+    const floating = !dock?.docked && !dock?.off;
+    document.body.dataset.searchPlace = dock?.off ? "off" : dock?.place ?? "float";
     document.body.style.setProperty("--search-bar-offset", `${floating ? bar.offsetHeight + 12 : 0}px`);
     if (!floating) return;
     const rect = shell.getBoundingClientRect();
     document.body.style.setProperty("--search-block-h", `${rect.height}px`);
-    document.body.style.setProperty("--search-block-right", `${Math.max(0, document.documentElement.clientWidth - rect.right)}px`);
   };
   // The width and chip row morph: measure again where they end.
   shell.addEventListener("transitionend", (event) => event.target === shell && syncOffset(), { signal });
   let dock;
   dock = mountDock({ host, bar, top: topSlot, cta: slot, input, signal, onChange: syncOffset });
   syncOffset();
+  // The grid marks pages without search (search-bar R8): filter pages while not searching and cards.
+  const syncOff = () => {
+    dock.setOff(container.hasAttribute("data-search-off"));
+    syncOffset();
+  };
+  const offObserver = new MutationObserver(syncOff);
+  offObserver.observe(container, { attributes: true, attributeFilter: ["data-search-off"] });
+  syncOff();
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -266,9 +273,10 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     clearTimeout(reSearch);
     clearInterval(tipTimer);
     railObserver.disconnect();
+    offObserver.disconnect();
     dropImage();
     host.remove();
-    ["--search-bar-offset", "--search-block-h", "--search-block-right"].forEach((name) => document.body.style.removeProperty(name));
+    ["--search-bar-offset", "--search-block-h"].forEach((name) => document.body.style.removeProperty(name));
     delete document.body.dataset.searchPlace;
   }, { once: true });
 

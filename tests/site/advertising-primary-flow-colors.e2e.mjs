@@ -1,5 +1,5 @@
 // The primary image-wait Flow carries the image's own 4 colors, the batch below the CTA keeps the preset (advertising-skeleton R3, owner 2026-10-31).
-// On the phone (A04s viewport) the primary waits on the same 4 colors as a flat layer instead, then the photo fades in over 450ms (progressive-loading R9).
+// On the phone (A04s viewport) the primary waits on the same 4 colors as a flat layer instead, then the photo fades in over 600ms (progressive-loading R9).
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/advertising-primary-flow-colors.e2e.mjs
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -62,15 +62,15 @@ try {
     const image = document.querySelector("[data-detail-image]");
     return { opacity: getComputedStyle(image).opacity, filter: getComputedStyle(image).filter };
   }), { opacity: "0", filter: "none" }, "phone primary photo waits hidden, unfiltered");
-  // The photo arrives: it fades in 0 to 1 over 450ms on the expo-out curve while the layer is still there, and the layer is removed only after the fade finished.
+  // The photo arrives: it fades in 0 to 1 over 600ms on the card ease-in-out curve while the layer is still there, and the layer is removed only after the fade finished.
   const fade = await phone.waitForFunction(() => {
-    const animation = document.querySelector("[data-detail-image]").getAnimations().find((item) => item.effect.getTiming().duration === 450);
+    const animation = document.querySelector("[data-detail-image]").getAnimations().find((item) => item.effect.getTiming().duration === 600);
     if (!animation) return null;
     const keyframes = animation.effect.getKeyframes();
     return { easing: animation.effect.getTiming().easing, from: keyframes[0].opacity, to: keyframes.at(-1).opacity,
       layer: document.querySelector("[data-detail-image]").parentElement.dataset.mediaWait };
   }, null, { timeout: 15_000, polling: 8 }).then((handle) => handle.jsonValue());
-  assert.deepEqual(fade, { easing: "cubic-bezier(0.16, 1, 0.3, 1)", from: "0", to: "1", layer: "colors" }, "phone primary photo fades in 0 to 1 over the layer");
+  assert.deepEqual(fade, { easing: "cubic-bezier(0.65, 0, 0.35, 1)", from: "0", to: "1", layer: "colors" }, "phone primary photo fades in 0 to 1 over the layer");
   await phone.waitForFunction(() => !document.querySelector("[data-detail-image]").parentElement.hasAttribute("data-media-wait"), null, { timeout: 3000 });
   console.log("advertising primary Flow colours passed");
 } finally {

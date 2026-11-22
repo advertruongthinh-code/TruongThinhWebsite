@@ -3,6 +3,11 @@ import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 import { masonrySpacing, columnsForWidth, computeDetailGeometry } from "../../src/site/masonry/layout.mjs";
 
+// Info stays within 28% of the viewport, unless primary fills its height cap: a short image leaves that space to a long
+// description (advertising-detail R2, owner 2026-11-22).
+const infoWithinCap = (geometry, viewportHeight) => geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28 + 1e-9
+  || Math.abs(geometry.height - geometry.heightCap) <= 0.01;
+
 const closeTo = (actual, expected, tolerance = 1e-9) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} is within ${tolerance} of ${expected}`);
 };
@@ -116,15 +121,16 @@ test("full-span portrait primary caps height and leaves side overflow only", () 
   assert.equal(geometry.hasContainOverflow, true);
 });
 
-test("full-span long description uses the 28 percent viewport ceiling without inner stretch", () => {
+test("full-span long description takes the room a short image leaves, up to the height cap", () => {
   const geometry = computeDetailGeometry({
     layoutViewportWidth: 390, viewportHeight: 800, columns: 1,
     headerHeight: 72.59375, imageWidth: 2000, imageHeight: 1000,
     descriptionHeight: 600,
   });
-  assert(geometry.descriptionHeight + geometry.internalGap <= 800 * 0.28 + 1e-9);
+  assert(infoWithinCap(geometry, 800));
   closeTo(geometry.imageZoneHeight, 180);
   closeTo(geometry.height, geometry.imageZoneHeight + geometry.descriptionHeight + geometry.internalGap);
+  closeTo(geometry.height, geometry.heightCap);
   assert(geometry.height < 800);
 });
 
@@ -154,7 +160,7 @@ test("uses Pinterest layout whenever the primary spans every column", () => {
     assert.equal(geometry.span, geometry.columns);
     assert.equal(geometry.descriptionWidth, geometry.width);
     assert.ok(geometry.top + geometry.height <= 900);
-    assert.ok(geometry.descriptionHeight + geometry.internalGap <= 900 * 0.28);
+    assert.ok(infoWithinCap(geometry, 900));
     closeTo(geometry.imageZoneHeight + geometry.descriptionHeight + geometry.internalGap, geometry.height);
   }
   assert.equal(split.mode, "split");
@@ -263,12 +269,12 @@ test("uses natural full-span description until its viewport cap, then paginates"
   closeTo(measured.descriptionWidth, first.descriptionWidth);
   closeTo(measured.descriptionHeight, 400);
   assert.ok(measured.height < first.height && first.height < 1600);
-  assert.ok(measured.descriptionHeight + measured.internalGap <= 1600 * 0.28);
+  assert.ok(infoWithinCap(measured, 1600));
   closeTo(measured.imageZoneHeight + measured.descriptionHeight + measured.internalGap, measured.height);
   closeTo(measured.imageZoneHeight, first.imageZoneHeight);
   assert(measured.descriptionHeight < first.descriptionHeight);
   assert(overflow.height < 800);
-  assert.ok(overflow.descriptionHeight + overflow.internalGap <= 800 * 0.28);
+  assert.ok(infoWithinCap(overflow, 800));
   closeTo(overflow.imageZoneHeight + overflow.descriptionHeight + overflow.internalGap, overflow.height);
 });
 
@@ -318,7 +324,7 @@ test("preserves output fields and contains every catalog photo across measured v
       } else {
         assert.ok(first.top + first.height <= viewport.viewportHeight);
         assert.ok(first.imageZoneHeight <= first.width / ratio + 1e-9);
-        assert.ok(first.descriptionHeight + first.internalGap <= viewport.viewportHeight * 0.28);
+        assert.ok(infoWithinCap(first, viewport.viewportHeight));
         closeTo(first.imageZoneHeight + first.descriptionHeight + first.internalGap, first.height);
       }
       closeTo(measured.width, first.width);
@@ -389,5 +395,5 @@ test("validates finite inputs and rejects physically impossible geometry", () =>
   });
   assert.equal(compactPinterest.mode, "pinterest");
   assert.ok(compactPinterest.top + compactPinterest.height <= 400);
-  assert.ok(compactPinterest.descriptionHeight + compactPinterest.internalGap <= 400 * 0.28);
+  assert.ok(infoWithinCap(compactPinterest, 400));
 });

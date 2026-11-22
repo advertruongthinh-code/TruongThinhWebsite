@@ -470,7 +470,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   justify-self: center;
   align-self: center;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -630,47 +630,56 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   transform: translateX(0);
 }
 
-/* Back to top (owner 2026-11-13): phones on a page with a masonry layout, past the first screen, in the corner the floating CTA leaves;
-   the same black square as the CTA's icon-only form at 750px (35px plus 9px padding, 15px from the right). motion.js adds .show. */
+/* Back to top (owner 2026-11-13, unified 2026-11-22): every device, on a page with a masonry layout, past the first screen, in the
+   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show.
+   It stays at the right edge on every page and sits under the floating search block so its shadow never covers the bar (owner 2026-11-22). */
 .back-to-top {
-  display: none;
+  position: fixed;
+  z-index: 973;
+  right: 35px;
+  bottom: calc(35px + var(--search-bar-offset, 0px));
+  display: grid;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  cursor: pointer;
+  transform: translateX(150%);
+  transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
+}
+
+.back-to-top.show {
+  transform: translateX(0);
+}
+
+.back-to-top svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+@media (max-width: 1200px) {
+  .back-to-top {
+    right: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
-    position: fixed;
-    z-index: 975;
-    right: 15px;
-    bottom: calc(25px + var(--search-bar-offset, 0px));
-    display: grid;
-    box-sizing: content-box;
-    width: 35px;
-    height: 35px;
-    padding: 9px;
-    place-items: center;
-    border: 2px solid #000;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    transform: translateX(150%);
-    transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
-  }
-
-  .back-to-top.show {
-    transform: translateX(0);
-  }
-
-  .back-to-top svg {
-    width: 25px;
-    height: 25px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: square;
+    right: 16px;
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
   }
@@ -744,7 +753,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
     170px minmax(0, 1fr) minmax(0, 1fr) 50px;
   align-items: center;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .menu-head::after {
@@ -870,7 +879,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   gap: 10px;
   font-size: 0.85rem;
   line-height: 1.4;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -1050,7 +1059,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   overflow-wrap: anywhere;
   margin-bottom: 15px;
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -1107,7 +1116,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   display: inline-block;
   color: inherit;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: max(22.4px, 1.3em);
   text-transform: uppercase;
 }
@@ -1282,7 +1291,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .hero p:where(.hero-title),
 .legacy-copy h2 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -1299,13 +1308,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 }
 
 em {
-  font-weight: 600;
+  font-weight: inherit;
 }
 
-/* Home: two lines bold 700, line 2 "Làm khác" additionally italic (owner 2026-10-24). */
+/* Home: line 2 "Làm khác" italic at the same weight; uppercase display titles are 500 like Espacio (owner 2026-11-22 weight audit). */
 .hero[data-hero-intro] h1 > .hero-line-mask:first-child,
 .hero[data-hero-intro] h1 em {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .hero-line-mask,
@@ -1460,7 +1469,7 @@ em {
   color: currentColor;
   cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-align: center;
   text-transform: uppercase;
@@ -1616,7 +1625,7 @@ em {
 .editorial-item h3 {
   margin: 0 0 0.75rem;
   font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 700;
+  font-weight: 600;
   hyphens: auto;
   letter-spacing: 0;
   line-height: 1.35;
@@ -1708,7 +1717,7 @@ em {
 
 .portal-copy strong {
   font-size: clamp(3.05rem, 4.167vw, 4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.18;
   text-wrap: balance;
@@ -1720,7 +1729,7 @@ em {
 }
 
 .portal-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .portal-title-mask,
@@ -1747,7 +1756,7 @@ em {
 .portal-copy small {
   margin-top: 0.5rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -1765,7 +1774,7 @@ em {
 .commitment-title {
   margin: 0 0 0.625rem;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   line-height: 1.3;
   text-transform: uppercase;
@@ -1871,7 +1880,7 @@ em {
 :is(#dich-vu, #loai-hinh) .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
@@ -1881,7 +1890,7 @@ em {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 :is(#dich-vu, #loai-hinh) .portal-copy small {
@@ -1957,7 +1966,7 @@ em {
   margin: 0;
   align-items: center;
   font-size: min(9.506vw, 6.25rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.08;
   text-transform: uppercase;
@@ -2075,7 +2084,7 @@ em {
   align-items: center;
   gap: 1.4rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2137,7 +2146,7 @@ em {
   margin-top: 5px;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   transition: opacity var(--dur-base) ease-out;
 }
@@ -2326,7 +2335,7 @@ em {
   padding-inline-end: 2.8rem;
   animation: marquee 25s linear infinite;
   font-size: clamp(1.5rem, 2.8vw, 3.2rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   word-spacing: var(--word-spacing-body);
@@ -2515,7 +2524,7 @@ em {
   gap: 1.5rem;
   border-bottom: 1px solid currentColor;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2531,7 +2540,7 @@ em {
   min-width: 0;
   margin: 0;
   font-size: clamp(2.8rem, 4.5vw, 5.4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: calc(0.98em + 14px);
   overflow-wrap: anywhere;
@@ -2562,7 +2571,7 @@ em {
   column-gap: 0.65rem;
   /* From 1440px a text line is 36px tall (1.6rem x 1.4), equal to the social icon. */
   font-size: clamp(1.125rem, 1.8vw, 1.6rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
 }
