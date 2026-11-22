@@ -78,7 +78,8 @@ admin ở slice Storage.
 | Khôi phục từ thùng rác | Có | Có |
 | Xóa hẳn: dọn thùng rác, hoặc xóa thẳng không qua thùng rác | Có | Không |
 | Trang tài khoản: thêm, khóa, đổi vai trò owner hoặc nhân viên | Có | Không |
-| Quay site về bản dựng trước | Có | Không |
+| Phát hành bản staging lên site chính (owner 2026-11-22) | Có | Có |
+| Quay staging hoặc site chính về bản trước | Có | Không |
 | Xem nhật ký thao tác | Có | Chỉ thao tác của mình |
 
 Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Riêng
@@ -153,6 +154,8 @@ API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`
 | `account-add`, `account-update` | Theo R2 (chỉ owner) | 403, 409 owner cuối |
 | `rollback`, `resume-publish` | Quay site về deployment trước; mở lại tự đăng (chỉ owner) | 403 |
 | `rebuild` | Dựng lại từ bản chụp hiện tại sau lần dựng lỗi | 409 khi đang tạm dừng tự đăng |
+| `release` | Đưa đúng bản staging đang chạy lên site chính ([editor vận hành R2](cms-editor-ops.md#r2-phát-hành-lên-site-chính)) | 409 khi staging chưa cập nhật xong, đã đổi, hoặc đang tạm dừng |
+| `reorder`, `retry-variant` | Xếp lại thứ tự bản ghi của một kiểu; gọi lại job biến thể lỗi | 409 danh sách đã đổi; 404 |
 
 Request ghi chỉ nhận `application/json` (upload gửi byte file làm thân, `Content-Type` là loại của file, 415 nếu khác); mọi request không phải GET
 thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
@@ -179,7 +182,7 @@ Lần dựng nội dung dựng trên commit đang chạy trên site ([dữ liệ
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
 hành hiện có, rồi deploy. Hiện tại `Deploy demo` chỉ đưa lên bản thử staging; site thật chỉ cập nhật qua `Release site` khi owner nói
-"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); lần lưu CMS vì vậy lên staging ngay, staging là bản thử cho mọi thao tác thêm, sửa, xóa trên CMS; người dùng thấy ổn thì dùng chức năng "Phát hành" trong CMS để đưa đúng bản staging đang hiện lên site thật, chạy bằng code cố định như mọi lệnh khác của CMS (owner 2026-11-22; phần 2 làm nút này, tới đó site thật dựng từ repo). CMS chỉ có một bộ dữ liệu, staging không có D1 hay R2 riêng. Mục tiêu: lên staging trong 10 phút sau lần lưu cuối, cộng thời
+"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); lần lưu CMS vì vậy lên staging ngay, staging là bản thử cho mọi thao tác thêm, sửa, xóa trên CMS; người dùng thấy ổn thì dùng chức năng "Phát hành" trong CMS để đưa đúng bản staging đang hiện lên site thật, chạy bằng code cố định như mọi lệnh khác của CMS (owner 2026-11-22; phần 2 làm nút này, tới đó site thật dựng từ repo), theo hợp đồng ở [editor vận hành R2](cms-editor-ops.md#r2-phát-hành-lên-site-chính). CMS chỉ có một bộ dữ liệu, staging không có D1 hay R2 riêng. Mục tiêu: lên staging trong 10 phút sau lần lưu cuối, cộng thời
 gian job biến thể nếu có media mới (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing).
 
 Từ khi CMS mở, mọi lần dựng kể cả merge code vào `main` đều lấy bản chụp mới nhất; file chiếu trong repo là seed và
@@ -274,7 +277,7 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng.
 
-Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: khóa slot `page-copy` ở editor. Video upload: [dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể).
+Khóa slot `page-copy` đã chốt ở [editor R6](cms-editor.md#r6-trang-chuẩn). Video upload: [dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể).
 Plan chi tiết đã chốt bảng D1, bản chụp, redirect 301 khi đổi slug, preview URL, đường dựng và bảng lệnh ở
 [dữ liệu CMS](cms-data.md); chuỗi khối cố định ở [News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình).
 

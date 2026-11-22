@@ -47,7 +47,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
-| `fast` | static-release, cms, cms-editor | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route, editor CMS (`tests/admin/`, [cms-editor R9](cms-editor.md#r9-chạy-local-và-ci)); chạy với mọi PR có code |
+| `fast` | static-release, cms, cms-editor | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route, editor CMS (`tests/admin/`, [cms-editor R9](cms-editor.md#r9-dựng-admin-chạy-local-và-ci)); chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại; mọi loại trang VI và EN ở đủ dải `SWEEP_WIDTHS` không có phần tử lòi ra mép màn (`layout-sweep.e2e.mjs`) |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark lật màu, 404, reduced motion, route mềm ngay sau khi tải |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
