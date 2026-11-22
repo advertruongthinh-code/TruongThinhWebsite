@@ -20,7 +20,7 @@ dẫn, liên hệ nhanh, dải công trình, CTA mũi tên, thẻ News liên qua
 | Liên hệ nhanh (`contact-quick`) | Tiêu đề nét 400 trái, nút Zalo nền mực phải | Tiêu đề 64px; nút 14px 600, cao 52px | Tiêu đề 36px, nút xuống dưới |
 | CTA mũi tên (`cta-arrow`) | Chữ hoa 15px 700 canh giữa, mũi tên 144 × 40px; trang News và công trình 16px 600, mũi tên 200 × 44px | Rê chuột: mũi tên trượt 0.75rem `0.4s` | Như PC; mũi tên trang News và công trình 150 × 33px |
 | Dải công trình (`project-slider`) | Thẻ dọc so le cao thấp, dùng ở trang chủ, Residential, Commercial và trang công trình; tên chữ hoa dưới ảnh, track cuộn ngang snap. Trên trang công trình có tiêu đề nghiêng canh giữa "Công trình khác" như Espacio "Other projects" | Thẻ 302.4px, 4 thẻ một màn; tiêu đề 64px nét 300 nghiêng | Thẻ 296.4px; trang công trình thẻ 200 × 300px, gap 15px, thẻ chẵn thấp 120px, tiêu đề 40px |
-| Tin khác (`news-cards`) | Tiêu đề căn giữa, 3 thẻ như dải News trang chủ ([NewsList](../NewsList/README.md)) | Tiêu đề 64px; 3 cột 410px, gap 70px | Tiêu đề 40px; một cột, gap 30px |
+| Tin khác (`news-cards`) | Tiêu đề căn giữa, 3 thẻ như dải News trang chủ ([NewsList](../NewsList/README.md)); không ghim `newsIds` thì build chọn cùng nhóm trước, rồi bài liên quan nhất ([news R3](../../../docs/specs/news.md#r3-trang-bài)) | Tiêu đề 64px; 3 cột 410px, gap 70px | Tiêu đề 40px; một cột, gap 30px |
 | Banner (`banner-links`) | 1 tới 3 ảnh có tiêu đề, bấm sang trang khác | 1, 2 hoặc 3 cột | Một cột |
 
 Khoảng cách giữa khối 90px trên PC, 30px trên phone; lề 35px PC, 15px phone. Hero và đầu bài News nền tối
