@@ -1641,12 +1641,24 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Card removed mid-slide (virtualization): drop every lane so no translate is left behind.
     figure.advertisingSettleStrip = settleLanes;
-    // Card slideshow (R4, owner 2026-11-13): the schedule steps the card to its next media, loaded or not, always moving forward, so
-    // the first media comes in from the right after the last.
+    // Card slideshow (R4): the schedule steps the card to its next media, always moving forward, so the first media comes in from the
+    // right after the last. The next image loads during the dwell and the schedule waits for it (advertisingNextReady): stepping onto a file still
+    // loading put the card back on its wait layer, so the photo seemed to vanish (owner 2026-11-22). A video steps at once (its file
+    // loads only once active, under its poster).
     if (hasCarousel) {
       figure.dataset.masonrySlides = "";
+      const nextIndex = () => (activeIndex + 1) % items.length;
+      figure.advertisingPreloadNext = () => figure.advertisingNextReady();
+      // Ready once the next image's own (hidden) layer holds the loaded file; making the layer asks the queue for it.
+      figure.advertisingNextReady = () => {
+        const index = nextIndex();
+        if (items[index].kind !== "image") return true;
+        const layer = layerFor(index);
+        requestMedia(index);
+        return isReady(layer);
+      };
       figure.advertisingAdvance = () => {
-        const next = (activeIndex + 1) % items.length;
+        const next = nextIndex();
         if (lanes.length) selectMedia(next);
         else slideTo(next, 0, PUSH_TIMING, true);
       };
@@ -5987,11 +5999,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // - Video: every counted card standing on a video plays it, one start per frame (three starts in one frame made an 82ms Commit on PC,
   //   owner 2026-10-25); reduced motion plays only the card under the mouse.
   // - Slideshow (owner 2026-11-13): a counted card with several media stands 4s on an image, plays a video to its end, then steps to its next
-  //   media (wrapping), loaded or not; the first step of a card comes at a random 2-6s so cards never step together, and at most one card
+  //   media (wrapping), an image only once loaded (it loads during the dwell); the first step of a card comes at a random 2-6s so cards never step together, and at most one card
   //   steps per frame. The mouse on a card holds it; leaving, a press or a swipe restarts its 4s. Reduced motion has no slideshow.
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const SLIDE_DWELL_MS = 4000;
+  // A step waiting for its next image retries this often.
+  const SLIDE_RETRY_MS = 500;
   // Card -> time its next step is due; a card leaves the map when it stops counting, so it starts on a new random phase when it returns.
   const slideDue = new Map();
   // Cards whose video has ended and that wait for their step; their video stays out of the play list until the card moves on.
@@ -6029,15 +6043,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         endedCards.delete(figure);
         return;
       }
-      if (!slideDue.has(figure)) slideDue.set(figure, now + SLIDE_DWELL_MS * (0.5 + Math.random()));
-      else if (slideDue.get(figure) === Infinity) slideDue.set(figure, now + SLIDE_DWELL_MS);
+      if (!slideDue.has(figure)) {
+        slideDue.set(figure, now + SLIDE_DWELL_MS * (0.5 + Math.random()));
+        figure.advertisingPreloadNext?.();
+      } else if (slideDue.get(figure) === Infinity) slideDue.set(figure, now + SLIDE_DWELL_MS);
       if (stepped || (figure.advertisingActiveVideo?.() && !endedCards.has(figure)) || slideDue.get(figure) > now) return;
+      // The next image is still loading: the card stays on its media and tries again shortly.
+      if (!figure.advertisingNextReady()) {
+        slideDue.set(figure, now + SLIDE_RETRY_MS);
+        return;
+      }
       stepped = true;
       autoStepping = figure;
       figure.advertisingAdvance();
       autoStepping = null;
       endedCards.delete(figure);
       slideDue.set(figure, now + PUSH_TIMING.duration + SLIDE_DWELL_MS);
+      figure.advertisingPreloadNext?.();
     });
     const next = counted.flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();

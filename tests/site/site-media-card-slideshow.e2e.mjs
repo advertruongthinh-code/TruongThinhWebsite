@@ -4,7 +4,7 @@ import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-pro
 import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 
 // media-card R4 slideshow (owner 2026-11-13): a card with several media showing more than 1/2 below the navbar stands 4s on an image, then
-// steps forward (wrapping, the first media comes in from the right), loaded or not; cards start on a random phase so they never step
+// steps forward (wrapping, the first media comes in from the right), onto an image only once it has loaded (it loads during the dwell); cards start on a random phase so they never step
 // together; the mouse on a card holds it, leaving restarts its 4s, a swipe restarts its 4s; the primary and reduced motion never step.
 const fixtureId = "signage-raised-letters-01";
 const DELAY_MS = 3_000;
@@ -61,7 +61,7 @@ async function open(viewport, options = {}) {
   return { browser, page, card, errors, steps, now };
 }
 
-test("media-card R4 slideshow PC: cards step forward every 4s on a random phase, the late media rides in under its wait layer", async () => {
+test("media-card R4 slideshow PC: cards step forward every 4s on a random phase, the late media loads during the dwell and comes in loaded", async () => {
   const { browser, page, errors, steps } = await open(VIEWPORTS.desktop);
   try {
     const start = await page.evaluate(() => performance.now());
@@ -74,9 +74,10 @@ test("media-card R4 slideshow PC: cards step forward every 4s on a random phase,
     const gaps = mine.slice(1).map((step, index) => step.t - mine[index].t);
     assert(gaps.every((gap) => gap >= 4_000 && gap < 5_500), `4s on each media plus the slide: ${gaps}`);
     assert(mine[0].t - start < 7_000, `the first step comes within the random 2-6s phase: ${mine[0].t - start}`);
-    // The third image is still in flight when its turn comes: the strip slides at once and it rides in under its wait layer.
+    // The third image answers late: it loads while the card stands on the second, so it slides in loaded, with no wait layer
+    // (owner 2026-11-22: sliding onto a loading file put the card back on its wait layer, the photo seemed to vanish).
     const late = mine.find((step) => step.media === `${fixtureId}-slide-2`);
-    assert(late.wait === late.media && late.lanes >= 2, `the late media slides in under its wait layer: ${JSON.stringify(late)}`);
+    assert(late.wait === null && late.lanes >= 2, `the late media slides in loaded: ${JSON.stringify(late)}`);
     // Random phase: first steps of the cards spread out, and no two cards step in the same frame.
     assert(new Set(all.map((step) => step.id)).size >= 2, `several cards run the slideshow: ${JSON.stringify(all)}`);
     const firstSteps = [...new Set(all.map((step) => step.id))].map((id) => all.find((step) => step.id === id).t).sort((a, b) => a - b);
