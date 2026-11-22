@@ -216,7 +216,8 @@ async function evidence(page) {
     const related = [...document.querySelectorAll("[data-masonry-related-card]")]
       .filter((node) => !node.hidden && node.getBoundingClientRect().width > 0)
       .map((node) => {
-        const image = node.querySelector("img");
+        // A slideshow card keeps two image layers and shows one (card slideshow preloads the next image).
+        const image = [...node.querySelectorAll("img")].find((img) => img.getBoundingClientRect().height > 0) || node.querySelector("img");
         return {
           id: node.dataset.masonryRelatedCard,
           rect: box(node),
@@ -303,7 +304,8 @@ async function evidence(page) {
       safeBottom: Number.parseFloat(styles(view)?.getPropertyValue("--masonry-safe-bottom")) || 0,
       primaryGap: Number.parseFloat(styles(primary)?.gap),
       foreground: foreground ? {
-        rect: box(foreground), currentSrc: foreground.currentSrc, naturalWidth: foreground.naturalWidth,
+        // A streamed original shows as a blob URL and names its file in data-original (progressive-loading R10).
+        rect: box(foreground), currentSrc: foreground.currentSrc.startsWith("blob:") ? foreground.dataset.original : foreground.currentSrc, naturalWidth: foreground.naturalWidth,
         naturalHeight: foreground.naturalHeight, widthAttribute: foreground.width, heightAttribute: foreground.height,
         objectFit: foregroundStyle.objectFit,
       } : null,
@@ -349,7 +351,7 @@ async function evidence(page) {
       ctaCount: document.querySelectorAll("[data-detail-cta]").length,
       cta: cta ? {
         tag: cta.tagName, rect: box(cta), href: cta.href, target: cta.target,
-        rel: cta.rel, label: cta.textContent.trim(), labelRect: box(ctaLabel),
+        rel: cta.rel, label: cta.textContent.replaceAll("\u00a0", " ").trim(), labelRect: box(ctaLabel),
         labelOpacity: Number.parseFloat(styles(ctaLabel)?.opacity), icon: iconMetrics(cta),
         transitionDuration: ctaStyle.transitionDuration, inInfo: info?.contains(cta) || false,
       } : null,
@@ -416,10 +418,14 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       `${label}: primary bottom ${actual.primary.bottom} exceeds viewport ${viewportBottom} despite fitting floors`);
   }
   if (expectedLayout === "pinterest") {
-    // Over 28% only when primary fills its cap: a short image leaves that room to a long description (owner 2026-11-22).
+    // Over 28% only into the room a short image leaves (owner 2026-11-22): a scrolling description fills primary to its cap,
+    // a description that fits keeps primary shorter.
+    const primaryCap = viewportBottom - actual.primaryGap - requiredPeek;
+    const descriptionFits = actual.descriptionScroll.scrollHeight <= actual.descriptionScroll.clientHeight + 1;
     if (fitsInfoCap) assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5
-      || Math.abs(actual.primary.bottom - (viewportBottom - actual.primaryGap - requiredPeek)) <= 1.5,
-      `${label}: description and gap exceed the viewport-based 28% cap despite fitting floors`);
+      || Math.abs(actual.primary.bottom - primaryCap) <= 1.5 || (descriptionFits && actual.primary.bottom <= primaryCap + 1.5),
+      `${label}: description and gap exceed the viewport-based 28% cap despite fitting floors `
+      + `(info+gap ${actual.info.height + actual.primaryGap}, primary bottom ${actual.primary.bottom}, viewport bottom ${viewportBottom})`);
     closeTo(actual.frame.height, actual.foreground.rect.height, `${label}: Pinterest image has vertical blur overflow`, 1.5);
   }
   assert.equal(actual.horizontalOverflow, 0, `${label}: horizontal overflow ${actual.horizontalOverflow}px`);
@@ -442,7 +448,9 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.foreground?.naturalWidth > 0 && actual.foreground?.naturalHeight > 0, `${label}: foreground is not hydrated`);
   assert.equal(actual.foreground.objectFit, "contain", `${label}: foreground must use object-fit contain`);
   closeTo(actual.foreground.naturalWidth / actual.foreground.naturalHeight,
-    actual.foreground.widthAttribute / actual.foreground.heightAttribute, `${label}: foreground identity ratio`, 0.005);
+    actual.foreground.widthAttribute / actual.foreground.heightAttribute, `${label}: foreground identity ratio`,
+    // Small width/height attributes are whole pixels (241x160 for a 3:2 photo), so allow one pixel of that rounding.
+    Math.max(0.005, (actual.foreground.widthAttribute + 1) / actual.foreground.heightAttribute ** 2));
   assert(actual.background, `${label}: decorative background is missing`);
   // Same image, possibly a different version: the foreground goes to the original, the blurred background with a filter keeps the frame-fitting version (progressive-loading R10).
   // Only the variant widths of build-image-variants.mjs are a size suffix; a date suffix (-20261018) belongs to the name.
@@ -468,9 +476,10 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   }
 
   assert.deepEqual(actual.flow.map(({ index }) => index), [0, 1, 2], `${label}: info flow is not category-description-CTA`);
-  assert.equal(actual.suggestion?.inInfo, !fullSpan, `${label}: suggestion owner does not match primary span`);
-  assert.equal(actual.suggestion?.inRelated, fullSpan, `${label}: suggestion related-grid ownership is wrong`);
-  assert.equal(actual.suggestion?.first, fullSpan, `${label}: suggestion order does not match layout`);
+  // advertising-detail R5: every layout makes the suggestion the first related card, never part of info (owner 2026-11-22).
+  assert.equal(actual.suggestion?.inInfo, false, `${label}: suggestion sits inside primary info`);
+  assert.equal(actual.suggestion?.inRelated, true, `${label}: suggestion is not in the related grid`);
+  assert.equal(actual.suggestion?.first, true, `${label}: suggestion is not the first related card`);
   assert.deepEqual([actual.suggestion.rank, actual.suggestion.sourceOrder], [0, 0], `${label}: suggestion does not own rank/sourceOrder zero`);
   assert(actual.suggestion.scrollHeight <= actual.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
   assert.equal(actual.suggestion.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
@@ -709,8 +718,10 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
   const before = await geometry();
   assert(before.pageHeight > initial.viewport.height, `${test.label}: nonfit content has no document scroll`);
   assertControls(initial, test.locale, test.hasTouch);
-  const expand = await wheelToHit(page, page.locator("[data-detail-expand]"), `${test.label}: expand`);
-  await page.mouse.click(expand.x, expand.y);
+  // A touch screen hides the expand button (screen readers only) and opens the viewer with one tap on the photo (R7).
+  const expand = await wheelToHit(page, page.locator(test.hasTouch ? "[data-detail-hero]" : "[data-detail-expand]"), `${test.label}: expand`);
+  if (test.hasTouch) await page.touchscreen.tap(expand.x, expand.y);
+  else await page.mouse.click(expand.x, expand.y);
   await page.waitForFunction(() => Boolean(document.querySelector("[data-detail-dialog]")?.open));
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector("[data-detail-dialog]")?.open);
@@ -965,9 +976,10 @@ async function runP7PinterestContract(browser, locale) {
     assert.deepEqual([initial.descriptionScroll.scrollTop, initial.descriptionScroll.fadeEnd], [0, true],
       `${label}: overflow copy starts at the top with its last line fading`);
     assert.equal(initial.glassActive, initial.containOverflow, `${label}: zoom-glass does not follow contain overflow`);
-    assert.equal(initial.suggestion?.inInfo, initial.layout === "split", `${label}: suggestion owner does not match primary span`);
-    assert.equal(initial.suggestion?.inRelated, initial.layout === "pinterest", `${label}: suggestion related-grid ownership is wrong`);
-    assert.equal(initial.suggestion?.first, initial.layout === "pinterest", `${label}: suggestion order does not match layout`);
+    // advertising-detail R5: the suggestion is the first related card in every layout (owner 2026-11-22).
+    assert.equal(initial.suggestion?.inInfo, false, `${label}: suggestion sits inside primary info`);
+    assert.equal(initial.suggestion?.inRelated, true, `${label}: suggestion is not in the related grid`);
+    assert.equal(initial.suggestion?.first, true, `${label}: suggestion is not the first related card`);
     assert.deepEqual([initial.suggestion.rank, initial.suggestion.sourceOrder], [0, 0], `${label}: suggestion is not rank/sourceOrder zero`);
     assert.notEqual(initial.suggestion.ariaHidden, "true", `${label}: first suggestion is hidden from accessibility tree`);
     assert(initial.suggestion.scrollHeight <= initial.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
@@ -1036,9 +1048,10 @@ async function runP7SuggestionCellContract(browser, locale) {
           .map((node) => node.getBoundingClientRect().toJSON()),
       } : null;
     });
-    assert.equal(state?.inInfo, true, `${label}: split suggestion is outside primary info`);
-    assert.equal(state?.inRelated, false, `${label}: split suggestion remains in related grid`);
-    assert.equal(state?.first, false, `${label}: split suggestion incorrectly owns first related-grid cell`);
+    // advertising-detail R5: four columns pin the suggestion as the first related card, not inside info (owner 2026-11-22).
+    assert.equal(state?.inInfo, false, `${label}: suggestion sits inside primary info`);
+    assert.equal(state?.inRelated, true, `${label}: suggestion is not in the related grid`);
+    assert.equal(state?.first, true, `${label}: suggestion is not the first related card`);
     assert(state.scrollHeight <= state.clientHeight + 1, `${label}: suggestion content is clipped`);
     assert.equal(state.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
     for (const button of state.buttons) assert(contained(button, state.rect), `${label}: suggestion button leaves its solver cell`);
