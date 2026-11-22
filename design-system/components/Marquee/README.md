@@ -8,7 +8,7 @@ Hai dải chạy ngang vô tận. Preview: dải chữ năng lực của Residen
 
 - `section.capability-marquee` > hai `div.marquee-line`, mỗi dòng các từ chữ hoa ngăn bằng chấm tròn `blue`,
   `orange-accent` xen kẽ.
-- Chữ 600, chữ hoa: 40.32px ở 1440, 24px ở 390; gap bằng 1.1em (44.8px, 24px).
+- Chữ 500, chữ hoa: 40.32px ở 1440, 24px ở 390; gap bằng 1.1em (44.8px, 24px).
 - Chạy `marquee 25s linear infinite`; dừng khi `motion-paused`.
 
 ## Dải logo khách hàng
