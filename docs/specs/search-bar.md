@@ -72,8 +72,8 @@ dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
 
 ### R5. Nút về đầu trang, phone và chuyển động
 
-**Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Khi thanh nổi: ô 50px nền `paper`, viền 1px `ink`, cùng bóng
-với thanh, nằm hàng riêng phía trên thanh, sát mép phải của thanh, cách 10px. Thanh ở khe thì nút ẩn (như mock). `--search-bar-offset` = chiều cao khối (gồm hàng
+**Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Nút luôn là ô 50px nền `paper`, viền 1px `ink`, cùng bóng
+với thanh ([shell](site-shell.md), owner 2026-11-22). Khi thanh nổi: nằm hàng riêng phía trên thanh, sát mép phải của thanh, cách 10px. Thanh ở khe thì nút ẩn (như mock). `--search-bar-offset` = chiều cao khối (gồm hàng
 chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên không cộng hàng nút.
 
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
