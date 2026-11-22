@@ -10,6 +10,7 @@ const ENTRIES = [
   "scripts/site/hero-slides.mjs",
   "scripts/site/home-projects.mjs",
   "src/site/advertising-products/media-contract.mjs",
+  "src/cms/layouts.mjs",
 ];
 
 for (const entry of ENTRIES) {
