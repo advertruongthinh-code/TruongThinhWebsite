@@ -35,6 +35,8 @@ for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true], ["PC", 
       assert.deepEqual(shown.size, [50, 50], "50px square on every device");
       assert.equal(shown.background, "rgb(255, 255, 255)", "white on every device");
       assert.equal(shown.text, "", "icon only");
+      assert(await page.evaluate(() => Number(getComputedStyle(document.querySelector(".back-to-top")).zIndex)
+        < Number(getComputedStyle(document.querySelector(".search-host")).zIndex)), "its shadow stays under the search bar");
       assert(shown.label, "has an accessible name");
       if (touch) await page.locator(".back-to-top").tap();
       else await page.locator(".back-to-top").click();
@@ -63,3 +65,28 @@ test("pages without masonry never show it", async () => {
     await browser.close();
   }
 });
+
+// Regression (owner 2026-11-22): a card page hides the search bar, and the phone button used to be placed by the hidden bar, off screen.
+for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { width: VIEWPORTS.phone.height, height: VIEWPORTS.phone.width }]]) {
+  test(`phone ${name} card page: the button stays at the right edge`, async () => {
+    const browser = await launchBrowser();
+    const { context, page } = await openPage(browser, viewport, { hasTouch: true, isMobile: true });
+    try {
+      await page.goto(`${BASE_URL}/vi/advertising-products/p/kiosk-posm-01/`, { waitUntil: "load" });
+      await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
+      await page.waitForFunction(() => {
+        scrollTo({ top: innerHeight * 3, behavior: "instant" });
+        return document.querySelector(".back-to-top").classList.contains("show");
+      }, null, { polling: 500, timeout: 10_000 });
+      await page.waitForTimeout(1200);
+      const { onScreen, rightGap } = await page.evaluate(() => {
+        const rect = document.querySelector(".back-to-top").getBoundingClientRect();
+        return { onScreen: rect.left >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight, rightGap: Math.round(innerWidth - rect.right) };
+      });
+      assert(onScreen && rightGap === 16, `on screen at the right edge: ${JSON.stringify({ onScreen, rightGap })}`);
+    } finally {
+      await context.close();
+      await browser.close();
+    }
+  });
+}

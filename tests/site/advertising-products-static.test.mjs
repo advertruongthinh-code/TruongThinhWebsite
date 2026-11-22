@@ -7,6 +7,11 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } f
 import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
 import { bandKey } from "../../src/site/masonry/replay.mjs";
 
+// Info stays within 28% of the viewport, unless primary fills its height cap: a short image leaves that space to a long
+// description (advertising-detail R2, owner 2026-11-22).
+const infoWithinCap = (geometry, viewportHeight) => geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28 + 1e-9
+  || Math.abs(geometry.height - geometry.heightCap) <= 0.01;
+
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
   read("src/site/masonry/runtime.mjs"),
@@ -338,7 +343,7 @@ const tabletSpan3 = compileRelatedLayout({
 });
 assert.ok(tabletSpan3.primary.height <= 1180, "full-span Pinterest group stays within one dynamic viewport");
 assert.equal(tabletSpan3.primary.mode, "pinterest", "span3 switches to Pinterest layout when it fills all three columns");
-assert.ok(tabletSpan3.primary.descriptionHeight + tabletSpan3.primary.internalGap <= 1180 * 0.28,
+assert.ok(infoWithinCap(tabletSpan3.primary, 1180),
   "Pinterest description and gap stay within the viewport-based 28% cap");
 assert.ok(Math.abs(tabletSpan3.primary.imageHeight - tabletSpan3.primary.imageZoneHeight) <= 0.1,
   "Pinterest image has no top or bottom overflow");

@@ -26,8 +26,8 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
 - Đổi chỗ: morph 1s `ease-card` (`--search-morph`, `--search-ease` trên `.search-bar`, `dock.mjs` đọc lại cho cú trượt).
-- Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`,
-  `--search-block-right` đặt nút về đầu trang trên điện thoại ([Floating CTA](../FloatingCta/README.md)). Bàn phím điện thoại mở
+- Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`
+  đặt nút về đầu trang trên điện thoại ([Floating CTA](../FloatingCta/README.md)). Bàn phím điện thoại mở
   thì hàng chip gập lại. Ẩn khi menu hoặc detail view mở. Giảm chuyển động: đổi trạng thái ngay.
 
 Preview: trên là thanh nổi, dưới là thanh dừng trong khe CTA.

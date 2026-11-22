@@ -210,7 +210,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     addFiles(event.dataTransfer.files);
   }, { signal });
 
-  // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block's right end (search-bar R5).
+  // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block (search-bar R5).
   const shell = bar.querySelector(".search-bar__shell");
   const syncOffset = () => {
     const floating = !dock?.docked;
@@ -219,7 +219,6 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     if (!floating) return;
     const rect = shell.getBoundingClientRect();
     document.body.style.setProperty("--search-block-h", `${rect.height}px`);
-    document.body.style.setProperty("--search-block-right", `${Math.max(0, document.documentElement.clientWidth - rect.right)}px`);
   };
   // The width and chip row morph: measure again where they end.
   shell.addEventListener("transitionend", (event) => event.target === shell && syncOffset(), { signal });
@@ -268,7 +267,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     railObserver.disconnect();
     dropImage();
     host.remove();
-    ["--search-bar-offset", "--search-block-h", "--search-block-right"].forEach((name) => document.body.style.removeProperty(name));
+    ["--search-bar-offset", "--search-block-h"].forEach((name) => document.body.style.removeProperty(name));
     delete document.body.dataset.searchPlace;
   }, { once: true });
 
