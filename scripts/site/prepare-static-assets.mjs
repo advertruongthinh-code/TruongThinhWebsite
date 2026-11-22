@@ -260,6 +260,8 @@ const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
 const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
 const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src);
 const mediaSize = (item) => (item.kind === "video" ? [item.posterWidth, item.posterHeight] : [item.width, item.height]);
+// Meta and JSON-LD descriptions take the opening paragraph only; the bullets below it are page copy (media-seo R7).
+const openingOf = (text) => text.split(/\n\s*\n/)[0].trim();
 const renderCardStatic = (card) => {
   const pages = [...new Set([...card.clusterIds, ...card.productIds])]
     .map((id) => ADVERTISING_PAGES.find(({ filter }) => filter === id)).filter(Boolean);
@@ -284,7 +286,7 @@ const cardJsonLd = (card) => {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: card.descriptionVi, inLanguage: "vi",
+      { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: openingOf(card.descriptionVi), inLanguage: "vi",
         primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
       breadcrumbLd([["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
         ...card.clusterIds.slice(0, 1).map((id) => [clusterPageOf(id).labelVi, pageHref("vi", clusterPageOf(id))]), [card.titleVi, cardHref("vi", card)]]),
@@ -304,7 +306,7 @@ const renderCardPage = (card) => advertisingTemplate
       `<script type="application/ld+json">${cardJsonLd(card)}</script>`,
     ].join("\n    "))
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
-      (_match, before, middle) => `${before}${escapeHtml(card.descriptionVi)}${middle}${escapeHtml(card.descriptionEn)}"`)
+      (_match, before, middle) => `${before}${escapeHtml(openingOf(card.descriptionVi))}${middle}${escapeHtml(openingOf(card.descriptionEn))}"`)
     // The slogan becomes p.hero-title keeping its look; h1 is the card name in the static block.
     .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
     .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)

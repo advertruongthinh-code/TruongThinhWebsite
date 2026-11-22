@@ -19,10 +19,10 @@ export const nonPublicSourceAssets = [
   "assets/content/projects/advertising-mobile-retail-cover.jpg",
   "assets/content/projects/advertising-office-wayfinding-cover.jpg",
   "assets/content/projects/advertising-led-lightboxes-cover.jpg",
-  "assets/content/projects/advertising-print-decals-cover.jpg",
+  "assets/content/projects/xuong-in-decal-an-pham.jpg",
   "assets/content/projects/advertising-signage-raised-letters-cover.jpg",
   "assets/content/projects/process-commercial-handover.jpg",
-  "assets/content/projects/process-commercial-survey-v2.png",
+  "assets/content/projects/khao-sat-mat-bang-cua-hang.png",
   "assets/content/projects/process-commercial-survey.jpg",
   "assets/content/projects/process-residential-survey-v2.png",
 ];
