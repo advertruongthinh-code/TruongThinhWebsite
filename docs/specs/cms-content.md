@@ -183,7 +183,9 @@ trúc, không lưu HTML thô. Danh sách theo đúng site hiện tại:
 
 Slot quyết định kiểu đoạn nào được dùng, canh lề và màu chữ (ink trên giấy, trắng có bóng D trên ảnh); người soạn
 không chọn cỡ chữ, khoảng chữ, khoảng dòng, màu hay font tự do. Hero giữ kiểu `hero-line` theo
-[chữ hero](hero-typography.md). Bộ kiểm chữ chạy khi lưu: không chữ mồ côi, dòng ngắt chủ ý không kết thúc bằng ",",
+[chữ hero](hero-typography.md). Mô tả card Advertising (`descriptionVi`, `descriptionEn`) là chữ thuần nhiều dòng (owner
+2026-11-22): đoạn mở 1 tới 3 câu, các dòng bắt đầu bằng "• " là danh sách, một dòng kết; không HTML, markdown, tiêu đề
+hay emoji; thụt lề do CSS, không lưu tab. Bộ kiểm chữ chạy khi lưu: không chữ mồ côi, dòng ngắt chủ ý không kết thúc bằng ",",
 "." hay ";".
 
 ```gherkin
