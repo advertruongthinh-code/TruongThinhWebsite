@@ -56,7 +56,7 @@ EN trong một danh sách riêng. Định dạng chữ theo R8; không nhận HT
 ```gherkin
 Given bài news có đủ VI, thiếu description.en
 When lưu bài
-Then /vi/news/<slugVi>/ lên ở lần dựng sau, /en/news/<slugEn>/ không sinh và sitemap không có URL EN của bài
+Then /news/<slugVi>/ lên ở lần dựng sau, /en/news/<slugEn>/ không sinh và sitemap không có URL EN của bài
 ```
 
 ### R3. Media

@@ -52,7 +52,7 @@ chậm hay chập chờn làm chậm lần lưu (R6).
 
 ### R1. Ranh giới public và admin
 
-Route trang public (`/`, `/vi/*`, `/en/*`, ảnh, sitemap) là Workers static assets, không chạy Worker, không đọc D1. Worker
+Route trang public (trang tiếng Việt ở gốc `/`, `/en/*`, ảnh, sitemap; `/vi/*` cũ trả 301) là Workers static assets, không chạy Worker, không đọc D1. Worker
 public duy nhất là tìm kiếm ở `/api/*` ([tìm kiếm Advertising](advertising-search.md)); nó không đọc D1 của CMS.
 Admin là một Worker riêng ở `admin.truongthinhads.vn` (trước khi đổi domain: một hostname `workers.dev` riêng), sau một
 ứng dụng Access team `truongthinh` đăng nhập Google. Media public ở `media.truongthinhads.vn` (R2 custom domain). CMS
@@ -60,7 +60,7 @@ hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng
 
 ```gherkin
 Given admin Worker đang tắt
-When khách mở /vi/ và một trang công trình
+When khách mở / và một trang công trình
 Then trang trả 200 từ static assets, không request nào tới D1
 ```
 

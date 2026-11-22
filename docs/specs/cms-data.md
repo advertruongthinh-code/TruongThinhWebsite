@@ -100,7 +100,7 @@ dừng build khi quá 1.900 dòng (giới hạn 2.000 redirect tĩnh của Worke
 ```gherkin
 Given bài news đang published đổi slugVi từ "a" sang "b" rồi sang "c"
 When lần dựng xong
-Then /vi/news/a/ và /vi/news/b/ trả 301 thẳng tới /vi/news/c/
+Then /news/a/ và /news/b/ trả 301 thẳng tới /news/c/
 ```
 
 ### R4. Preview URL của `workers.dev`

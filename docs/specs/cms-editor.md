@@ -213,7 +213,7 @@ Then bài lên version 6 với nội dung của nhân viên, nhật ký có đ�
 ```gherkin
 Given pnpm cms:dev đang chạy
 When GET /admin/ và một file module trong /admin/
-Then 200; GET /vi/ của site public không chứa file nào của admin
+Then 200; GET / của site public không chứa file nào của admin
 ```
 
 ## Giao diện và dữ liệu
