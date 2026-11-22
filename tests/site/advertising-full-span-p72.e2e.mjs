@@ -45,7 +45,9 @@ try {
         const label = `${locale} ${photo} ${width}x1000`;
         assert(state.primaryBottom <= 1001, `${label}: primary extends below viewport (${state.primaryBottom}px)`);
         assert(Math.abs(state.frameHeight - state.imageHeight) <= 1, `${label}: top/bottom overflow`);
-        assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1, `${label}: description exceeds cap`);
+        // Over 28% only when primary fills its cap: a short image leaves that room to a long description (owner 2026-11-22).
+        assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1 || Math.abs(state.primaryBottom - (1000 - state.gap - 50)) <= 1.5,
+          `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
           // Ceiling leaves room for the gap and the 50px of related exposed below the primary (advertising-detail R4).

@@ -353,7 +353,9 @@ export function computeDetailGeometry(options = {}) {
     descriptionHeight = height;
   } else {
     const availableHeight = viewportHeight - top - safeBottom;
-    const descriptionCap = Math.min(viewportHeight * 0.28 - internalGap,
+    // Info takes up to 28% of the viewport; when the media is too short to fill the rest, a longer description takes that space
+    // too, so a scrolling description never leaves primary short of the height cap (owner 2026-11-22).
+    const descriptionCap = Math.min(Math.max(viewportHeight * 0.28 - internalGap, heightCap - internalGap - width / ratio),
       heightCap - internalGap - 1);
     descriptionHeight = measuredDescriptionHeight > 0
       ? Math.min(measuredDescriptionHeight, descriptionCap)

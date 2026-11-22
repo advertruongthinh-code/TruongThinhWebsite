@@ -421,17 +421,20 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Phone back-to-top (search-bar R5): while the bar floats it sits on its own row above the block's right end;
-   with the bar in a slot it stays out. */
-@media (hover: none) and (pointer: coarse) {
-  /* The white look holds in every place, so a button leaving as the bar docks does not flash black on its way out. */
-  body[data-search-place]:not([data-search-place="off"]) .back-to-top {
-    right: var(--search-block-right, 16px);
-    bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
-  }
+/* Back-to-top (search-bar R5): with the bar in a slot it stays out on every device. On phones, while the bar floats, it sits on its own
+   row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
+body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
+  transform: translateX(150%);
+}
 
-  body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
-    transform: translateX(150%);
+/* Detail, sub-pages and cards hide the bar (place off), so the button takes the plain corner. */
+body:is(.is-detail, [data-search-place="off"]) .back-to-top {
+  --search-bar-offset: 0px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
+    bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 
   /* Keyboard open: only the input row stays above it. */
@@ -456,7 +459,7 @@ body.is-detail .search-host {
 }
 
 @media (hover: none) and (pointer: coarse) and (max-width: 750px) {
-  body[data-search-place]:not([data-search-place="off"]) .back-to-top {
+  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
     bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 }

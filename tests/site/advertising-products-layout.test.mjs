@@ -29,6 +29,11 @@ import { ADVERTISING_MEDIA_CATEGORY_COUNTS } from "../../src/site/advertising-pr
 import { createGhostLayer } from "../../src/site/masonry/mount-budget.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
 
+// Info stays within 28% of the viewport, unless primary fills its height cap: a short image leaves that space to a long
+// description (advertising-detail R2, owner 2026-11-22).
+const infoWithinCap = (geometry, viewportHeight) => geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28 + 1e-9
+  || Math.abs(geometry.height - geometry.heightCap) <= 0.01;
+
 const previousWindow = globalThis.window;
 globalThis.window = {};
 const { compileRelatedLayout } = await import("../../src/site/masonry/runtime.mjs");
@@ -437,7 +442,7 @@ test("R15 selects Pinterest geometry from full span at every responsive boundary
       headerHeight: 90, imageWidth: 1600, imageHeight: 900 }).mode, "split", `${width}px landscape keeps split`);
     if (!fullSpan) continue;
     assert.ok(geometry.top + geometry.height <= viewportHeight, `${width}px Pinterest primary fits below the header`);
-    assert.ok(geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28,
+    assert.ok(infoWithinCap(geometry, viewportHeight),
       `${width}px description and gap stay within the viewport-based 28% cap`);
     assert.ok(Math.abs(geometry.imageHeight - geometry.imageZoneHeight) <= 0.01,
       `${width}px image leaves no top or bottom overflow`);

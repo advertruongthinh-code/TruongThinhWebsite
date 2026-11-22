@@ -631,10 +631,11 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
 }
 
 /* Back to top (owner 2026-11-13, unified 2026-11-22): every device, on a page with a masonry layout, past the first screen, in the
-   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show. */
+   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show.
+   It stays at the right edge on every page and sits under the floating search block so its shadow never covers the bar (owner 2026-11-22). */
 .back-to-top {
   position: fixed;
-  z-index: 975;
+  z-index: 973;
   right: 35px;
   bottom: calc(35px + var(--search-bar-offset, 0px));
   display: grid;
@@ -674,7 +675,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
 
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
-    right: 15px;
+    right: 16px;
   }
 }
 

@@ -55,7 +55,7 @@ And không có clone ảnh giữa card và primary
 `computeDetailGeometry` (`masonry/layout.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
-thu gọn (R10) trừ gap, safe area và `50px` để related lộ dưới, ở mọi viewport kể cả primary chiếm hết cột (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
+thu gọn (R10) trừ gap, safe area và `50px` để related lộ dưới, ở mọi viewport kể cả primary chiếm hết cột (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên dưới primary luôn còn gap và `50px` related. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
