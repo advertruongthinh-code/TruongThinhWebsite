@@ -25,17 +25,17 @@ const fixture = () => ({
     { id: "title", type: "section-title", text: t("Tổng quan", "Overview") },
     { id: "intro", type: "paragraph", text: t("Đoạn một.\n\nĐoạn hai.", "One.\n\nTwo.") },
     { id: "cols", type: "paragraph-columns", text: t("Cột", "Column") },
-    { id: "img", type: "image-single", position: "left-2-3", image: photo, caption: t("Chú thích", "Caption") },
-    { id: "pair", type: "image-pair", layout: "equal", images: [photo, photo2] },
-    { id: "video", type: "video-single", video: { src: "/assets/content/clip.mp4", poster: "/assets/content/clip.webp", width: 1920, height: 1080 } },
-    { id: "gallery", type: "gallery-carousel", images: [photo, photo2] },
+    { id: "img", type: "media-single", position: "left-2-3", image: photo, caption: t("Chú thích", "Caption") },
+    { id: "pair", type: "media-pair", layout: "equal", images: [photo, photo2] },
+    { id: "video", type: "media-single", position: "wide", video: { src: "/assets/content/clip.mp4", poster: "/assets/content/clip.webp", width: 1920, height: 1080 } },
+    { id: "gallery", type: "media-carousel", images: [photo, photo2] },
     { id: "facts", type: "facts-grid", items: [{ label: t("Loại", "Type"), text: t("Căn hộ", "Apartment") }, { label: t("Khu vực", "Area"), text: t("Bến Tre", "Ben Tre") }] },
     { id: "contact", type: "contact-quick", title: t("Tư vấn", "Talk to us") },
     { id: "slider", type: "project-slider", projectIds: ["other"] },
     { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/vi/residential/", hrefEn: "/en/residential/" },
     { id: "quote", type: "quote", text: t("Trích", "Quote") },
     { id: "news", type: "news-cards", newsIds: ["other"] },
-    { id: "beside", type: "image-text", image: photo, text: t("Cạnh ảnh.", "Beside.") },
+    { id: "beside", type: "media-text", image: photo, text: t("Cạnh ảnh.", "Beside.") },
     { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/vi/residential/", hrefEn: "/en/residential/" }] },
   ],
 });
@@ -43,7 +43,7 @@ const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map([["other",
 
 test("fixture covers every block type and validates", async () => {
   const page = fixture();
-  assert.deepEqual(page.blocks.map((block) => block.type).toSorted(), BLOCK_TYPES.toSorted());
+  assert.deepEqual([...new Set(page.blocks.map((block) => block.type))].toSorted(), BLOCK_TYPES.toSorted());
   assert.deepEqual(await validateBlockPage(page, ctx), []);
 });
 
@@ -110,6 +110,23 @@ test("project hero tagline needs 1 to 3 lines, at most one italic part and no , 
     page.blocks[0].tagline = tagline;
     const errors = await validateBlockPage(page, ctx);
     assert.ok(errors.some((error) => rule.test(error)), `${JSON.stringify(tagline)}: ${errors.join("; ")}`);
+  }
+});
+
+// media-single takes exactly one of image or video; a video is wide and 16:9 (cms-content R5).
+test("media-single needs exactly one of image or video, and a video is wide and 16:9", async () => {
+  const video = { src: "/assets/content/clip.mp4", poster: "/assets/content/clip.webp", width: 1920, height: 1080 };
+  for (const [change, rule] of [
+    [(block) => { block.video = video; }, /blocks\[4\]: needs exactly one of image, video/],
+    [(block) => { delete block.image; }, /blocks\[4\]: needs exactly one of image, video/],
+    [(block) => { delete block.image; block.video = video; }, /blocks\[4\]: a video must use position wide/],
+    [(block) => { delete block.image; block.position = "wide"; block.video = { ...video, height: 1200 }; }, /blocks\[4\]: a video must be 16:9/],
+    [(block) => { delete block.image; block.position = "wide"; block.video = { ...video, src: "/x.mov" }; }, /blocks\[4\]\.video: needs src \.mp4/],
+  ]) {
+    const page = fixture();
+    change(page.blocks[4]);
+    const errors = await validateBlockPage(page, ctx);
+    assert.ok(errors.some((error) => rule.test(error)), `${rule}: ${errors.join("; ")}`);
   }
 });
 

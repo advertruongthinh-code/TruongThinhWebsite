@@ -134,8 +134,8 @@ And danh sách chọn chỉ có 6 media của trang đó
 Khối trang công trình và News sẽ gọi chung theo media (owner 2026-11-15): `image-single` thành `media-single` (gộp
 `video-single`), `image-pair` thành `media-pair`, `image-text` thành `media-text`, `gallery-carousel` thành
 `media-carousel`; mỗi chỗ nhận ảnh hoặc video, khung theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối)
-(video cần poster cùng khung). Tới PR đổi tên, tên contract vẫn là `image-*` như layout-library và News; dữ liệu cũ đổi
-theo trong cùng PR đó. `media-single` giữ bốn tỷ lệ của `image-single` cho ảnh, video chỉ nhận 16:9.
+(video cần poster cùng khung). `media-single` nhận đúng một trong hai trường `image` hoặc `video`: ảnh giữ bốn tỷ lệ cũ,
+video chỉ nhận 16:9 và vị trí `wide`.
 
 `layoutKey` của một khối là một id trong danh mục [layout-library R1](layout-library.md#r1-danh-mục-khối); id ngoài danh
 mục bị từ chối ở R1. Khối chưa có renderer (`statement`, `location-list`, băng logo, banner CTA) hiện khóa tới khi PR

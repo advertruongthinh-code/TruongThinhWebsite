@@ -11,7 +11,7 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const projects = JSON.parse(fs.readFileSync("src/site/content/projects.json", "utf8"));
 const slugs = (Array.isArray(projects) ? projects : projects.projects)
-  .filter((project) => project.blocks.some((block) => block.type === "gallery-carousel"))
+  .filter((project) => project.blocks.some((block) => block.type === "media-carousel"))
   .map((project) => project.slugVi);
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
