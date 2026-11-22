@@ -630,47 +630,55 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   transform: translateX(0);
 }
 
-/* Back to top (owner 2026-11-13): phones on a page with a masonry layout, past the first screen, in the corner the floating CTA leaves;
-   the same black square as the CTA's icon-only form at 750px (35px plus 9px padding, 15px from the right). motion.js adds .show. */
+/* Back to top (owner 2026-11-13, unified 2026-11-22): every device, on a page with a masonry layout, past the first screen, in the
+   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show. */
 .back-to-top {
-  display: none;
+  position: fixed;
+  z-index: 975;
+  right: 35px;
+  bottom: calc(35px + var(--search-bar-offset, 0px));
+  display: grid;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  cursor: pointer;
+  transform: translateX(150%);
+  transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
+}
+
+.back-to-top.show {
+  transform: translateX(0);
+}
+
+.back-to-top svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+@media (max-width: 1200px) {
+  .back-to-top {
+    right: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
-    position: fixed;
-    z-index: 975;
     right: 15px;
-    bottom: calc(25px + var(--search-bar-offset, 0px));
-    display: grid;
-    box-sizing: content-box;
-    width: 35px;
-    height: 35px;
-    padding: 9px;
-    place-items: center;
-    border: 2px solid #000;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    transform: translateX(150%);
-    transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
-  }
-
-  .back-to-top.show {
-    transform: translateX(0);
-  }
-
-  .back-to-top svg {
-    width: 25px;
-    height: 25px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: square;
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
   }

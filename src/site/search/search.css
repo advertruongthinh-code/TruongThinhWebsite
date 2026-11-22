@@ -377,20 +377,12 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Phone back-to-top (search-bar R5): while the bar floats it is white like the block, on its own row above the block's right end;
+/* Phone back-to-top (search-bar R5): while the bar floats it sits on its own row above the block's right end;
    with the bar in a slot it stays out. */
 @media (hover: none) and (pointer: coarse) {
   body[data-search-place="float"] .back-to-top {
     right: var(--search-block-right, 16px);
     bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
-    box-sizing: border-box;
-    width: 50px;
-    height: 50px;
-    padding: 0;
-    border: 1px solid var(--ink);
-    background: var(--paper);
-    color: var(--ink);
-    box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
   }
 
   body[data-search-place="cta"] .back-to-top.show {
