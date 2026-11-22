@@ -10,7 +10,7 @@ import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
-import { fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
+import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
@@ -327,7 +327,7 @@ const blockContent = loadBlockContent(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
 // Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
 // sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
-const homeProjectIds = await readJson(path.join(sourceRoot, "content", "home-projects.json"));
+const homeProjectIds = await readJson(path.join(contentDirOf(sourceRoot), "home-projects.json"));
 const homeProjectErrors = validateHomeProjects(homeProjectIds, blockContext.projects);
 if (homeProjectErrors.length) throw new Error(`home-projects data invalid:\n${homeProjectErrors.join("\n")}`);
 const projectStrips = [

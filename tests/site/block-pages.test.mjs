@@ -13,6 +13,13 @@ const template = templateOf("residential");
 const { projects, news } = loadBlockContent(siteRoot);
 const ctx = { projects: new Map(projects.map((page) => [page.id, page])), news: new Map(news.map((page) => [page.id, page])) };
 
+// The stub pages here test the other kind fields; their layout errors are covered in layouts.test.mjs.
+const LAYOUT_MESSAGE = /: (layout |needs at least \d+ media|blocks do not match layout)/;
+const fieldErrorsWithoutLayout = async () => {
+  const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
+  return (...args) => kindFieldErrors(...args).filter((error) => !LAYOUT_MESSAGE.test(error));
+};
+
 for (const sector of SECTORS) test(`${sector} project page carries its own head, language links and blocks`, () => {
   const project = projects.find((page) => page.sector === sector);
   assert.ok(project, `projects.json has a ${sector} project`);
@@ -91,7 +98,7 @@ test("every page links to News from the hamburger menu only", () => {
 });
 
 test("kind fields: project sector and type, News group, date and reserved slugs", async () => {
-  const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
+  const kindFieldErrors = await fieldErrorsWithoutLayout();
   assert.deepEqual(kindFieldErrors("projects", { sector: "commercial", type: "van-phong", slugVi: "a", slugEn: "b" }, "p"), []);
   assert.deepEqual(kindFieldErrors("projects", { sector: "office", type: "van-phong" }, "p"), ["p: sector phải là residential, commercial", "p: type phải là loại thuộc mảng office: "]);
   // The CTA block closes every project page (owner 2026-11-22).
@@ -112,7 +119,8 @@ test("kind fields: project sector and type, News group, date and reserved slugs"
 });
 
 test("Projects list: all, sectors with projects, every type; filter slugs are reserved; artifact passes the advertising card contract", async () => {
-  const { kindFieldErrors, projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const { projectTypeHref } = await import("../../scripts/site/block-pages.mjs");
+  const kindFieldErrors = await fieldErrorsWithoutLayout();
   const { projectListPages } = await import("../../scripts/site/project-list.mjs");
   const pages = projectListPages([{ id: "a", sector: "commercial", type: "van-phong" }, { id: "b", sector: "commercial", type: "quan-cafe" }]);
   assert.deepEqual(pages.map((page) => [page.path, page.projects.length]), [
@@ -142,7 +150,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
 
 test("Projects SEO: every filter page has its own title and a meta of at most 155 characters; detail pages use seoTitle; renamed slug redirects", async () => {
   const { FILTER_SEO, RENAMED_FILTER_SLUGS, projectListPages, renderRedirectPage } = await import("../../scripts/site/project-list.mjs");
-  const { kindFieldErrors } = await import("../../scripts/site/block-pages.mjs");
+  const kindFieldErrors = await fieldErrorsWithoutLayout();
   const pages = projectListPages(projects);
   for (const { filter } of pages) {
     assert.equal(filter.name, FILTER_SEO[filter.slug ?? "all"].title, filter.slug);

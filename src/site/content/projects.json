@@ -1,6 +1,7 @@
 [
   {
     "id": "can-ho-go-soi",
+    "layout": "legacy",
     "sector": "residential",
     "type": "can-ho",
     "slugVi": "can-ho-go-soi-am",
@@ -244,6 +245,7 @@
   },
   {
     "id": "nha-gieng-troi",
+    "layout": "legacy",
     "sector": "residential",
     "type": "nha-pho",
     "slugVi": "nha-pho-gieng-troi",
@@ -496,6 +498,7 @@
   },
   {
     "id": "van-phong-lam-viec-chung",
+    "layout": "legacy",
     "sector": "commercial",
     "type": "van-phong",
     "slugVi": "van-phong-lam-viec-chung",
@@ -746,6 +749,7 @@
   },
   {
     "id": "tiem-banh-ngot",
+    "layout": "legacy",
     "sector": "commercial",
     "type": "quan-cafe",
     "slugVi": "tiem-banh-ngot",
@@ -997,6 +1001,7 @@
   },
   {
     "id": "cafe-san-vuon",
+    "layout": "project-6-7-a",
     "sector": "commercial",
     "type": "quan-cafe",
     "slugVi": "cafe-san-vuon",
@@ -1235,6 +1240,7 @@
   },
   {
     "id": "can-ho-2pn-be-am",
+    "layout": "project-6-7-b",
     "sector": "residential",
     "type": "can-ho",
     "slugVi": "can-ho-2-phong-ngu-tong-be",
@@ -1480,6 +1486,7 @@
   },
   {
     "id": "can-ho-studio-gap",
+    "layout": "project-6-7-a",
     "sector": "residential",
     "type": "can-ho",
     "slugVi": "can-ho-studio-do-go-da-nang",
@@ -1725,6 +1732,7 @@
   },
   {
     "id": "cua-hang-my-pham",
+    "layout": "project-6-7-b",
     "sector": "commercial",
     "type": "showroom-cua-hang",
     "slugVi": "cua-hang-my-pham",
@@ -1970,6 +1978,7 @@
   },
   {
     "id": "cua-hang-thoi-trang",
+    "layout": "project-6-7-a",
     "sector": "commercial",
     "type": "showroom-cua-hang",
     "slugVi": "cua-hang-thoi-trang",
@@ -2215,6 +2224,7 @@
   },
   {
     "id": "homestay-gac-lung",
+    "layout": "project-6-7-b",
     "sector": "residential",
     "type": "homestay-khach-san",
     "slugVi": "homestay-gac-lung",
@@ -2460,6 +2470,7 @@
   },
   {
     "id": "homestay-nha-go-ven-song",
+    "layout": "legacy",
     "sector": "residential",
     "type": "homestay-khach-san",
     "slugVi": "homestay-nha-go-ven-song",
@@ -2739,6 +2750,7 @@
   },
   {
     "id": "khach-san-boutique",
+    "layout": "project-6-7-b",
     "sector": "residential",
     "type": "homestay-khach-san",
     "slugVi": "khach-san-boutique-nho",
@@ -2984,6 +2996,7 @@
   },
   {
     "id": "nha-hang-mon-viet",
+    "layout": "project-6-7-a",
     "sector": "commercial",
     "type": "nha-hang",
     "slugVi": "nha-hang-mon-viet",
@@ -3229,6 +3242,7 @@
   },
   {
     "id": "phong-giam-doc-hop",
+    "layout": "project-6-7-b",
     "sector": "commercial",
     "type": "van-phong",
     "slugVi": "phong-giam-doc-va-phong-hop",
@@ -3474,6 +3488,7 @@
   },
   {
     "id": "showroom-gach-thiet-bi-ve-sinh",
+    "layout": "project-6-7-a",
     "sector": "commercial",
     "type": "showroom-cua-hang",
     "slugVi": "showroom-gach-thiet-bi-ve-sinh",
@@ -3719,6 +3734,7 @@
   },
   {
     "id": "van-phong-20-cho",
+    "layout": "project-6-7-b",
     "sector": "commercial",
     "type": "van-phong",
     "slugVi": "van-phong-20-cho",
@@ -3964,6 +3980,7 @@
   },
   {
     "id": "nha-pho-indochine",
+    "layout": "project-10-12",
     "sector": "residential",
     "type": "nha-pho",
     "slugVi": "nha-pho-indochine-hien-dai",
@@ -4285,6 +4302,7 @@
   },
   {
     "id": "nha-pho-japandi-san-truoc",
+    "layout": "legacy",
     "sector": "residential",
     "type": "nha-pho",
     "slugVi": "nha-pho-japandi-san-vuon-truoc",

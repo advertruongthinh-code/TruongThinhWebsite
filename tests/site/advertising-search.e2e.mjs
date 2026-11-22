@@ -481,13 +481,13 @@ test("search-bar R1, R2: one white block in the three places; floating it narrow
     await page.waitForFunction(() => document.querySelectorAll(".search-bar__chip").length > 1, null, { timeout: 5000 });
     assert.deepEqual(await look(), { ...block, shadow: true, width: 760, height: 94 }, "floating with results: chip row");
     // A chip filters within the results and keeps the query; again on it returns to all results.
-    const chip = page.locator(".search-bar__chip").nth(1);
+    const chip = page.locator(".search-bar__chiprow .search-bar__chip").nth(1);
     const label = await chip.locator("b").textContent();
     await barStill(page);
     await chip.click();
     await page.waitForFunction((text) => [...document.querySelectorAll(".search-bar__chip")].some((node) => node.textContent.startsWith(text) && node.getAttribute("aria-pressed") === "true"), label, { timeout: 5000 });
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
-    await page.locator(".search-bar__chip[aria-pressed=true]").click();
+    await page.locator(".search-bar__chiprow .search-bar__chip[aria-pressed=true]").click();
     await page.waitForFunction(() => !document.querySelector(".search-bar__chip[aria-pressed=true]"), null, { timeout: 5000 });
     // At the scroll limit the bar has finished turning into its docked look (search-bar R7).
     await scrollToSlot(page);
@@ -636,6 +636,37 @@ for (const viewport of [WIDE, PHONE]) {
     });
   }
 }
+
+// search-bar R2: most cards first; an overflowing row pins "Show all (N)", which opens every product above the bar.
+test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all of them in a panel", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, PHONE);
+    await search(page, "đèn");
+    await page.waitForFunction(() => document.querySelector(".search-bar__more") && !document.querySelector(".search-bar__more").hidden, null, { timeout: 10000 });
+    await page.waitForTimeout(800);
+    const row = await page.evaluate(() => ({
+      counts: [...document.querySelectorAll(".search-bar__chiprow .search-bar__chip sup")].map((node) => Number(node.textContent)),
+      label: document.querySelector(".search-bar__more").textContent,
+    }));
+    assert.deepEqual(row.counts, [...row.counts].sort((a, b) => b - a), "most cards first");
+    assert.equal(row.label, `Hiện tất cả (${row.counts.length})`);
+    await page.click(".search-bar__more");
+    const panel = await page.evaluate(() => {
+      const node = document.querySelector(".search-bar__all");
+      const box = node.getBoundingClientRect();
+      return { open: !node.hidden, chips: node.querySelectorAll(".search-bar__chip").length, above: box.bottom <= document.querySelector(".search-bar__chips").getBoundingClientRect().top, expanded: document.querySelector(".search-bar__more").getAttribute("aria-expanded") };
+    });
+    assert.deepEqual(panel, { open: true, chips: row.counts.length, above: true, expanded: "true" });
+    await page.click(".search-bar__all .search-bar__chip:nth-child(2)");
+    await page.waitForTimeout(900);
+    const picked = await page.evaluate(() => ({ open: !document.querySelector(".search-bar__all").hidden, pressed: document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length, query: document.querySelector(".search-bar input").value }));
+    assert.deepEqual(picked, { open: false, pressed: 1, query: "đèn" });
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
 
 // search-bar R8: the bar lives on the root page only.
 test("search-bar R8: no bar on a filter page; filtering to a group hides it and back to all shows it", async () => {
