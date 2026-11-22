@@ -88,12 +88,18 @@ Số ảnh và bố cục (owner 2026-11-15, CMS khóa theo bảng): rút từ 2
 thân bài, không tính ảnh banner dẫn link; ít nhất 2, trung vị 10). Mỗi khối ảnh đứng sau một đoạn văn; mọi chuỗi kết thúc
 bằng `news-cards`, `cta-arrow`.
 
-| Số ảnh | Bài Espacio | Chuỗi khối ([layout-library](layout-library.md)) |
-| --- | --- | --- |
-| 2-5 | 7 | `section-title`, `image-single`, `paragraph`, `image-pair` hoặc `image-single`, `quote` tùy chọn, `paragraph`, `image-single` |
-| 6-11 | 10 | như 2-5, thêm `paragraph`, `gallery-carousel` (2-6), `paragraph`, `image-pair` |
-| 12-16 | 7 | như 6-11, `gallery-carousel` 5-10 ảnh, hai `image-pair`, `gallery-carousel` thứ hai tùy chọn |
-| 17+ | 2 | hai `gallery-carousel` (8-10), hai tới bốn `image-pair`, `quote` tùy chọn |
+Mỗi dòng là một layout khóa của CMS ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media), owner duyệt cùng plan
+CMS). Số trong ngoặc vuông là số media khối nhận; khối nhận 0 media thì bỏ cùng đoạn văn ngay trước nó; `quote` có
+hay không đều được. Media dư chia theo cột cuối.
+
+| `layout` | Số media | Bài Espacio | Chuỗi khối ([layout-library](layout-library.md)) | Media dư vào |
+| --- | --- | --- | --- | --- |
+| `news-2-5` | 2-5 | 7 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [0 hoặc 2], `paragraph`, `media-single` 2/3 phải [0-1], `paragraph`, `media-single` 2/3 trái [0-1] | theo chuỗi |
+| `news-6-11` | 6-11 | 10 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [2], `quote`, `paragraph`, `media-single` 2/3 phải [1], `paragraph`, `media-carousel` [2-5], `paragraph`, `media-pair` trái lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-12-16` | 12-16 | 7 | như `news-6-11` nhưng `media-carousel` [5-8], `media-pair` trái lớn [2], thêm `paragraph`, `media-pair` phải lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-17` | 17-30 | 2 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [2], `quote`, `paragraph`, `media-carousel` [8-10], `paragraph`, `media-pair` trái lớn [2], `paragraph`, `media-single` 2/3 phải [1], `paragraph`, `media-pair` phải lớn [0 hoặc 2], `paragraph`, `media-carousel` [2-12] | cặp cuối, carousel đầu, carousel cuối |
+
+Bài có trước CMS mà chuỗi khác bảng (`nha-pho-giu-mat`) giữ chuỗi riêng dạng `legacy`.
 
 ```gherkin
 Given một bài thuộc nhóm Sản phẩm quảng cáo

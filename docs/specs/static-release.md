@@ -219,8 +219,8 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` hiện chỉ có ở Worker CMS dormant; CMS R1 bỏ Worker khỏi route public nên
-slice Public projection chuyển chúng sang static assets, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
+trang gốc như hiện tại). Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
 ```gherkin
@@ -283,8 +283,8 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 - LCP residential mobile đóng (owner 2026-11-15: motion giữ đúng contract, không cắt để đạt LCP): demo 2026-11-14 VI median
   3,01 s, p90 3,22 s; EN 5,14 s là ngoại lệ đã chấp nhận, do chữ title phone phóng sau lần vẽ đầu và hiện cuối reveal.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
-  trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
-  `/vi/`, trả 404 hay giữ?]
+  trả 404 cho `/`, site trả 200 cho `/` và `/residential/` (đo 2026-11-22). Owner 2026-11-22: giữ như hiện tại, không
+  redirect về `/vi/`.
 
 ## Chú thích thuật ngữ
 

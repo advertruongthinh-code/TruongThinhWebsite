@@ -18,7 +18,7 @@ Giá theo tài liệu Claude API (2026-11-13).
 
 ### Fable
 
-Owner duyệt 2026-11-11. Fable ưu tiên làm plan chi tiết cho worker rẻ hơn implement. Fable chỉ code hoặc code review khi owner cho phép. Effort bắt đầu `high`; `xhigh` chỉ khi đo thấy lợi (AA: high và xhigh cùng điểm).
+Owner duyệt 2026-11-11. Fable ưu tiên làm plan chi tiết cho worker rẻ hơn implement. Fable chỉ code hoặc code review khi owner cho phép. Owner 2026-11-22: khi implement CMS, worker và reviewer được hỏi advisor Fable (chỉ đọc, không code), và model của worker, reviewer theo bảng trong plan CMS đã duyệt (link trên card của plan). Effort bắt đầu `high`; `xhigh` chỉ khi đo thấy lợi (AA: high và xhigh cùng điểm).
 
 ### Provider và chế độ
 

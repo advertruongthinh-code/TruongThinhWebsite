@@ -90,8 +90,8 @@
         ]
       },
       {
-        "id": "image-text",
-        "type": "image-text",
+        "id": "media-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -106,7 +106,7 @@
       },
       {
         "id": "altar",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "left-large",
         "images": [
           {
@@ -127,7 +127,7 @@
       },
       {
         "id": "detail",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/projects/can-ho-chi-tiet.webp",

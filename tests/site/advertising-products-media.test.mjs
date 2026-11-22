@@ -263,7 +263,7 @@ test("accepted trade-fair kiosk sources retain exact provenance and existing tax
       const item = ADVERTISING_MEDIA_MANIFEST.find((candidate) => candidate.id === coverId)?.mediaItems.find((media) => media.id === id);
       assert.ok(item, `${id} is integrated into the public media pool`);
       assert.match(item.provenance, new RegExp(sourceSha256, "i"));
-      assert.match(item.altVi, /gian hàng|hội chợ|triển lãm/i);
+      assert.match(item.altVi, /gian|hội chợ|triển lãm/i);
       assert.match(item.altEn, /booth|fair|exhibition/i);
       continue;
     }

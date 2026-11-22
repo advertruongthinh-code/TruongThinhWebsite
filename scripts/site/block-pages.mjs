@@ -1,9 +1,8 @@
 // Block-built pages (projects R3, news R3, layout-library R4): header, menu and footer frame come from an existing page,
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
 import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml } from "./lib-pure.mjs";
+import { layoutErrors } from "../../src/cms/layouts.mjs";
 
 export { NEWS_GROUPS };
 
@@ -18,12 +17,6 @@ export const KINDS = {
   // The About page is not on the navbar, so the frame underlines no item; drop the menu's aria-current.
   news: { dir: "news", frame: () => "about", namespace: "news", schema: "BlogPosting", parent: () => ({ name: "Tin tức", path: "/news/" }) },
 };
-
-
-export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KINDS).map((kind) => {
-  const file = path.join(siteRoot, `content/${kind}.json`);
-  return [kind, existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : []];
-}));
 
 export const pageHref = (kind, locale, page) => `/${locale}/${KINDS[kind].dir}/${locale === "vi" ? page.slugVi : page.slugEn}/`;
 export const projectHref = (locale, project) => pageHref("projects", locale, project);
@@ -246,6 +239,7 @@ const cardErrors = (card, at) => {
       ? [] : [`${at}: card.media[${index}] khác tỷ lệ khung thẻ ${card.width}x${card.height}`]),
   ]);
 };
+const pageLayoutErrors = (kind, page, at) => layoutErrors(kind, page).map(({ message }) => `${at}: ${message}`);
 export const kindFieldErrors = (kind, page, at) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
@@ -256,13 +250,15 @@ export const kindFieldErrors = (kind, page, at) => {
     ...cardErrors(page.card, at),
     // The Zalo CTA block is always the last block, right above the footer (owner 2026-11-22).
     ...(page.blocks?.some((block) => block.type === "contact-quick") && page.blocks.at(-1)?.type !== "contact-quick" ? [`${at}: contact-quick (CTA) must be the last block`] : []),
+    // Layout locked by media count (cms-content R5).
+    ...pageLayoutErrors(kind, page, at),
   ];
   const errors = [];
   if (!Object.hasOwn(NEWS_GROUPS, page.group)) errors.push(`${at}: group phải là ${Object.keys(NEWS_GROUPS).join(", ")}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(page.published ?? "")) errors.push(`${at}: published phải là YYYY-MM-DD`);
   // id is also the source file directory (news/<id>/index.html); colliding with a group, year or pagination page would overwrite the list page.
   for (const slug of new Set([page.id, page.slugVi, page.slugEn])) if (slug === "page" || Object.hasOwn(NEWS_GROUPS, slug) || /^\d{4}$/.test(slug ?? "")) errors.push(`${at}: id hoặc slug ${slug} trùng đường dẫn nhóm, năm hoặc phân trang`);
-  return errors;
+  return [...errors, ...pageLayoutErrors(kind, page, at)];
 };
 
 // All-projects page (projects R2): staggered grid like Advertising products, clicking a card opens the project page.

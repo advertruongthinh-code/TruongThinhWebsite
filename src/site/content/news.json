@@ -1,6 +1,7 @@
 [
   {
     "id": "chon-tu-bep",
+    "layout": "news-2-5",
     "group": "nha-o",
     "published": "2026-11-07",
     "slugVi": "chon-tu-bep-go-cong-nghiep",
@@ -14,11 +15,11 @@
       "en": "Board core, surface, edge banding, hardware and measuring: what decides whether a kitchen lasts."
     },
     "cover": {
-      "src": "/assets/content/shared/news-chon-tu-bep-a-20261113.webp",
+      "src": "/assets/content/shared/tu-bep-trang-van-go.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Bếp chữ L tủ trên trắng kịch trần, tủ dưới vân gỗ sáng, nắng sáng chiếu qua cửa kính ban công",
-      "altEn": "L-shaped kitchen with full-height white upper cabinets and light wood-grain base units in morning sun from the balcony door"
+      "altVi": "Tủ bếp gỗ công nghiệp chữ L, tủ trên trắng, tủ dưới vân gỗ",
+      "altEn": "L-shaped laminated kitchen with white upper cabinets and wood-grain base units"
     },
     "blocks": [
       {
@@ -31,14 +32,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-chon-tu-bep-a-20261113.webp",
+          "src": "/assets/content/shared/tu-bep-trang-van-go.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Bếp chữ L tủ trên trắng kịch trần, tủ dưới vân gỗ sáng, nắng sáng chiếu qua cửa kính ban công",
-          "altEn": "L-shaped kitchen with full-height white upper cabinets and light wood-grain base units in morning sun from the balcony door"
+          "altVi": "Tủ bếp gỗ công nghiệp chữ L, tủ trên trắng, tủ dưới vân gỗ",
+          "altEn": "L-shaped laminated kitchen with white upper cabinets and wood-grain base units"
         }
       },
       {
@@ -51,22 +52,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-chon-tu-bep-b-20261113.webp",
+            "src": "/assets/content/shared/tu-chau-rua-bep-mo-canh.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Tủ chậu rửa hai cánh mở, thân tủ hoàn thiện kín, ống xả và van nước gọn bên trong",
-            "altEn": "Open sink cabinet with a fully finished carcass, drain pipe and water valves neatly inside"
+            "altVi": "Tủ chậu rửa bếp mở cánh, ống xả và van nước gọn gàng",
+            "altEn": "Open sink base cabinet with neatly routed drain pipes and water valves"
           },
           {
-            "src": "/assets/content/shared/news-chon-tu-bep-c-20261113.webp",
+            "src": "/assets/content/shared/ban-le-giam-chan-ngan-keo.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Cánh tủ trắng dán cạnh cùng màu, bản lề giảm chấn và ngăn kéo ray hộp kéo mở",
-            "altEn": "White cabinet door edged in matching white, soft-close hinges and an open box-runner drawer"
+            "altVi": "Cánh tủ bếp trắng với bản lề giảm chấn và ngăn kéo ray hộp",
+            "altEn": "White kitchen cabinet with soft-close hinges and a box-runner drawer pulled out"
           }
         ]
       },
@@ -80,14 +81,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-chon-tu-bep-d-20261113.webp",
+          "src": "/assets/content/shared/ngan-keo-dung-noi-tu-bep.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Người chủ nhà ngồi xổm quay lưng, kéo ngăn kéo đựng nồi dưới bếp từ",
-          "altEn": "Homeowner crouching with her back to the camera, pulling out a pot drawer under the induction hob"
+          "altVi": "Chủ nhà kéo ngăn kéo đựng nồi chảo dưới bếp từ",
+          "altEn": "Homeowner pulling out a deep pot drawer beneath the induction hob"
         }
       },
       {
@@ -116,6 +117,7 @@
   },
   {
     "id": "mo-quan-ca-phe",
+    "layout": "news-2-5",
     "group": "kinh-doanh",
     "published": "2026-11-06",
     "slugVi": "lam-noi-that-quan-ca-phe-nho",
@@ -129,11 +131,11 @@
       "en": "The steps of fitting out a small café, and what the owner should prepare at each one."
     },
     "cover": {
-      "src": "/assets/content/shared/news-mo-quan-ca-phe-a-20261113.webp",
+      "src": "/assets/content/shared/mat-tien-quan-ca-phe.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ hoài cổ và đèn vàng ấm, cửa gỗ mở",
-      "altEn": "Townhouse café frontage with a vintage wooden sign, warm lamps and open timber doors"
+      "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ và cửa gỗ",
+      "altEn": "Townhouse cafe frontage with a wooden sign, warm lights and open wooden doors"
     },
     "blocks": [
       {
@@ -146,14 +148,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-mo-quan-ca-phe-a-20261113.webp",
+          "src": "/assets/content/shared/mat-tien-quan-ca-phe.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ hoài cổ và đèn vàng ấm, cửa gỗ mở",
-          "altEn": "Townhouse café frontage with a vintage wooden sign, warm lamps and open timber doors"
+          "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ và cửa gỗ",
+          "altEn": "Townhouse cafe frontage with a wooden sign, warm lights and open wooden doors"
         }
       },
       {
@@ -166,22 +168,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-mo-quan-ca-phe-b-20261113.webp",
+            "src": "/assets/content/shared/quay-pha-che-bo-cong.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Quầy pha chế bo cong vân gỗ sồi, hốc kệ ly có đèn hắt phía sau",
-            "altEn": "Curved oak-grain coffee bar with lit glass shelves in an arched niche behind"
+            "altVi": "Quầy pha chế quán cafe bo cong vân gỗ sồi, kệ ly đèn hắt",
+            "altEn": "Curved oak-grain coffee bar with a backlit glassware shelf behind"
           },
           {
-            "src": "/assets/content/shared/news-mo-quan-ca-phe-c-20261113.webp",
+            "src": "/assets/content/shared/ghe-bang-quan-ca-phe-nho.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Ghế băng bọc nệm sát tường, bàn tròn nhỏ và cửa kính lớn ra phố",
-            "altEn": "Upholstered bench seating along the wall, small round tables and a large window to the street"
+            "altVi": "Ghế băng bọc nệm và bàn tròn nhỏ cạnh cửa kính quán cà phê",
+            "altEn": "Upholstered wall bench with small round tables by a cafe's large window"
           }
         ]
       },
@@ -195,14 +197,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-mo-quan-ca-phe-d-20261113.webp",
+          "src": "/assets/content/shared/lap-tu-quay-ca-phe.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Thợ đội nón lắp bản lề cánh tủ quầy bằng máy khoan pin, hộp đồ nghề gọn dưới chân",
-          "altEn": "Fitter in a cap installing hinges on a counter cabinet door with a cordless drill, toolbox tidy at his feet"
+          "altVi": "Thợ dùng máy khoan pin lắp bản lề cánh tủ quầy quán cà phê",
+          "altEn": "Installer fitting a hinge to a cafe counter cabinet with a cordless drill"
         }
       },
       {
@@ -231,6 +233,7 @@
   },
   {
     "id": "nha-pho-giu-mat",
+    "layout": "legacy",
     "group": "xu-huong",
     "published": "2026-11-05",
     "slugVi": "nha-pho-gieng-troi-go-toi-mau",
@@ -244,11 +247,11 @@
       "en": "How light wells, planting and dark timber keep a narrow townhouse bright without feeling cold."
     },
     "cover": {
-      "src": "/assets/content/shared/news-nha-pho-giu-mat-a-20261113.webp",
+      "src": "/assets/content/shared/phong-khach-nha-pho-gieng-troi.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Phòng khách nhà phố sofa gỗ óc chó, kệ tivi gỗ tối và giếng trời có cây phía sau",
-      "altEn": "Townhouse living room with a walnut sofa, dark wood TV wall and a planted light well behind"
+      "altVi": "Phòng khách nhà phố sofa gỗ tối, kệ tivi và giếng trời",
+      "altEn": "Townhouse living room with a dark wood sofa, TV unit and planted lightwell"
     },
     "blocks": [
       {
@@ -261,14 +264,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-nha-pho-giu-mat-a-20261113.webp",
+          "src": "/assets/content/shared/phong-khach-nha-pho-gieng-troi.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Phòng khách nhà phố sofa gỗ óc chó, kệ tivi gỗ tối và giếng trời có cây phía sau",
-          "altEn": "Townhouse living room with a walnut sofa, dark wood TV wall and a planted light well behind"
+          "altVi": "Phòng khách nhà phố sofa gỗ tối, kệ tivi và giếng trời",
+          "altEn": "Townhouse living room with a dark wood sofa, TV unit and planted lightwell"
         }
       },
       {
@@ -281,22 +284,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-nha-pho-giu-mat-b-20261113.webp",
+            "src": "/assets/content/shared/cau-thang-go-toi-gieng-troi.webp",
             "width": 1024,
             "height": 1536,
             "altVi": "Cầu thang bậc gỗ tối cạnh giếng trời trồng cây, nền sỏi trắng",
-            "altEn": "Dark timber stair beside a planted light well on white pebbles"
+            "altEn": "Dark timber staircase beside a planted lightwell with white pebbles"
           },
           {
-            "src": "/assets/content/shared/news-nha-pho-giu-mat-c-20261113.webp",
+            "src": "/assets/content/shared/tu-xam-hoc-ke-den.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Mảng tủ cánh phẳng xám tay nắm âm, hốc kệ đèn hắt vàng",
-            "altEn": "Flat grey cabinet wall with recessed pulls and warmly lit open niches"
+            "altVi": "Mảng tủ cánh phẳng xám tay nắm âm, hốc kệ có đèn hắt vàng",
+            "altEn": "Flat-panel grey cabinetry with recessed pulls and a warm-lit display niche"
           }
         ]
       },
@@ -310,14 +313,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-nha-pho-giu-mat-d-20261113.webp",
+          "src": "/assets/content/shared/phong-ngu-go-toi-nha-pho.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Phòng ngủ gỗ tối, giường tựa vách gỗ, ánh sáng xanh dịu hắt từ hốc trần",
-          "altEn": "Dark wood bedroom with the bed against a timber wall, soft sky-blue light from a ceiling recess"
+          "altVi": "Phòng ngủ nhà phố gỗ tối, giường tựa vách gỗ, ánh sáng hắt trần",
+          "altEn": "Dark wood townhouse bedroom with a panelled headboard wall and soft ceiling light"
         }
       },
       {
@@ -346,6 +349,7 @@
   },
   {
     "id": "bien-hieu-mat-tien",
+    "layout": "news-2-5",
     "group": "quang-cao",
     "published": "2026-11-09",
     "slugVi": "chon-bien-hieu-chu-noi-hay-hop-den",
@@ -359,11 +363,11 @@
       "en": "Raised letters and light boxes compared by frontage, opening hours and upkeep, so the sign reads well day and night."
     },
     "cover": {
-      "src": "/assets/content/shared/news-bien-hieu-mat-tien-a-20261113.webp",
+      "src": "/assets/content/shared/bien-hieu-chu-noi-tiem-hoa.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Mặt tiền tiệm hoa ốp gỗ, chữ nổi \"Ban Mai Hoa tươi\" sáng đèn chiều tối",
-      "altEn": "Flower shop front clad in timber with lit raised letters reading \"Ban Mai Hoa tươi\" at dusk"
+      "altVi": "Biển hiệu chữ nổi sáng đèn trên mặt tiền tiệm hoa ốp gỗ",
+      "altEn": "Illuminated raised-letter sign on a wood-clad flower shop facade"
     },
     "blocks": [
       {
@@ -376,14 +380,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-bien-hieu-mat-tien-a-20261113.webp",
+          "src": "/assets/content/shared/bien-hieu-chu-noi-tiem-hoa.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Mặt tiền tiệm hoa ốp gỗ, chữ nổi \"Ban Mai Hoa tươi\" sáng đèn chiều tối",
-          "altEn": "Flower shop front clad in timber with lit raised letters reading \"Ban Mai Hoa tươi\" at dusk"
+          "altVi": "Biển hiệu chữ nổi sáng đèn trên mặt tiền tiệm hoa ốp gỗ",
+          "altEn": "Illuminated raised-letter sign on a wood-clad flower shop facade"
         }
       },
       {
@@ -396,22 +400,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-bien-hieu-mat-tien-b-20261113.webp",
+            "src": "/assets/content/shared/chu-noi-den-hat-tuong-son.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Cận chữ nổi inox \"Rêve\" có đèn hắt chân trên tường sơn",
-            "altEn": "Close-up of halo-lit stainless steel raised letters reading \"Rêve\" on a painted wall"
+            "altVi": "Cận chữ nổi kim loại có đèn hắt sau trên tường sơn tiệm bánh",
+            "altEn": "Close-up of halo-lit metal letters on a painted bakery wall"
           },
           {
-            "src": "/assets/content/shared/news-bien-hieu-mat-tien-c-20261113.webp",
+            "src": "/assets/content/shared/hop-den-vay-tiem-banh.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Hộp đèn vẫy vuông \"Mơ Tiệm bánh\" sáng đều trên mặt tiền",
-            "altEn": "Square projecting light box reading \"Mơ Tiệm bánh\", evenly lit on a shopfront"
+            "altVi": "Hộp đèn vẫy vuông sáng đều gắn trên mặt tiền tiệm bánh",
+            "altEn": "Square projecting lightbox sign glowing evenly on a bakery storefront"
           }
         ]
       },
@@ -425,14 +429,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-bien-hieu-mat-tien-d-20261113-v2.webp",
+          "src": "/assets/content/shared/lap-dat-bien-hop-den.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Thợ trên giàn giáo thấp siết bulông bản mã tay đỡ biển hộp \"SOLA\"",
-          "altEn": "Fitter on a low scaffold tightening the mounting plate bolts of a \"SOLA\" box sign"
+          "altVi": "Thợ đứng giàn giáo siết tay đỡ khung biển hộp đèn mặt tiền",
+          "altEn": "Installer on scaffolding fixing the steel bracket of a storefront lightbox sign"
         }
       },
       {
@@ -461,6 +465,7 @@
   },
   {
     "id": "tu-ao-am-tuong",
+    "layout": "news-2-5",
     "group": "nha-o",
     "published": "2026-11-08",
     "slugVi": "thiet-ke-tu-ao-am-tuong",
@@ -474,11 +479,11 @@
       "en": "How to measure the recess, plan the interior around what you own and choose hinged or sliding doors for an engineered wood built-in wardrobe."
     },
     "cover": {
-      "src": "/assets/content/shared/news-tu-ao-am-tuong-a-20261113.webp",
+      "src": "/assets/content/shared/tu-ao-am-tuong-canh-phang.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Phòng ngủ có tủ áo âm tường kịch trần cánh phẳng màu kem, kệ bo góc đầu tủ",
-      "altEn": "Bedroom with a floor-to-ceiling cream built-in wardrobe with flat doors and a rounded end shelf"
+      "altVi": "Phòng ngủ có tủ áo âm tường kịch trần cánh phẳng màu kem",
+      "altEn": "Bedroom with a floor-to-ceiling cream built-in wardrobe and rounded end shelves"
     },
     "blocks": [
       {
@@ -491,14 +496,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-tu-ao-am-tuong-a-20261113.webp",
+          "src": "/assets/content/shared/tu-ao-am-tuong-canh-phang.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Phòng ngủ có tủ áo âm tường kịch trần cánh phẳng màu kem, kệ bo góc đầu tủ",
-          "altEn": "Bedroom with a floor-to-ceiling cream built-in wardrobe with flat doors and a rounded end shelf"
+          "altVi": "Phòng ngủ có tủ áo âm tường kịch trần cánh phẳng màu kem",
+          "altEn": "Bedroom with a floor-to-ceiling cream built-in wardrobe and rounded end shelves"
         }
       },
       {
@@ -511,22 +516,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-tu-ao-am-tuong-b-20261113.webp",
+            "src": "/assets/content/shared/tu-ao-khung-rem-vai.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Tủ áo khung kim loại có rèm vải trên ray, bên trong thanh treo và hộp đựng đồ",
-            "altEn": "Metal-framed wardrobe with a fabric curtain on a rail, hanging rails and storage boxes inside"
+            "altVi": "Tủ áo khung kim loại có rèm vải, thanh treo và hộp đựng đồ",
+            "altEn": "Open metal-frame wardrobe with a fabric curtain, hanging rails and storage boxes"
           },
           {
-            "src": "/assets/content/shared/news-tu-ao-am-tuong-c-20261113.webp",
+            "src": "/assets/content/shared/tu-ao-lua-phong-hep.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Tủ áo cánh lùa kịch trần trong phòng ngủ hẹp",
-            "altEn": "Floor-to-ceiling sliding-door wardrobe in a narrow bedroom"
+            "altVi": "Tủ áo cánh lùa kịch trần trong phòng ngủ hẹp, sơn màu kem",
+            "altEn": "Floor-to-ceiling sliding wardrobe fitted into a narrow bedroom"
           }
         ]
       },
@@ -540,14 +545,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-tu-ao-am-tuong-d-20261113.webp",
+          "src": "/assets/content/shared/tu-ao-kich-tran-nep-bu.webp",
           "width": 1024,
           "height": 1536,
           "altVi": "Cận tủ áo kịch trần với nẹp bù khít trần và tường",
-          "altEn": "Close-up of a full-height wardrobe with filler strips fitted tight to ceiling and wall"
+          "altEn": "Close-up of a ceiling-height wardrobe with filler strips flush to ceiling and wall"
         }
       },
       {
@@ -576,6 +581,7 @@
   },
   {
     "id": "quay-ke-cua-hang",
+    "layout": "news-2-5",
     "group": "kinh-doanh",
     "published": "2026-11-04",
     "slugVi": "bo-tri-quay-ke-cua-hang-nho",
@@ -589,11 +595,11 @@
       "en": "Planning aisles, shelf heights, lighting and the till so a small store sells well and stays tidy."
     },
     "cover": {
-      "src": "/assets/content/shared/news-quay-ke-cua-hang-a-20261113.webp",
+      "src": "/assets/content/shared/cua-hang-my-pham-nho.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Cửa hàng mỹ phẩm nhỏ với lối đi thông từ cửa tới kệ cuối, kệ gỗ hai bên",
-      "altEn": "Small cosmetics shop with a clear aisle from the door to the back shelves, timber shelving on both sides"
+      "altVi": "Cửa hàng mỹ phẩm nhỏ với kệ gỗ hai bên và lối đi thông",
+      "altEn": "Small cosmetics store with wooden shelving on both sides of a clear aisle"
     },
     "blocks": [
       {
@@ -606,14 +612,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-quay-ke-cua-hang-a-20261113.webp",
+          "src": "/assets/content/shared/cua-hang-my-pham-nho.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Cửa hàng mỹ phẩm nhỏ với lối đi thông từ cửa tới kệ cuối, kệ gỗ hai bên",
-          "altEn": "Small cosmetics shop with a clear aisle from the door to the back shelves, timber shelving on both sides"
+          "altVi": "Cửa hàng mỹ phẩm nhỏ với kệ gỗ hai bên và lối đi thông",
+          "altEn": "Small cosmetics store with wooden shelving on both sides of a clear aisle"
         }
       },
       {
@@ -626,22 +632,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-quay-ke-cua-hang-b-20261113.webp",
+            "src": "/assets/content/shared/ke-tuong-go-den-led.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Kệ tường gỗ có đèn LED hắt dưới từng tầng",
-            "altEn": "Timber wall shelving with LED strips lighting each tier"
+            "altVi": "Kệ tường gỗ trưng bày mỹ phẩm có đèn LED hắt dưới từng tầng",
+            "altEn": "Wooden wall shelving for cosmetics with LED strips under each shelf"
           },
           {
-            "src": "/assets/content/shared/news-quay-ke-cua-hang-c-20261113.webp",
+            "src": "/assets/content/shared/ban-trung-bay-dao-bo-cong.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Bàn trưng bày đảo nhiều tầng bo cong có đèn hắt chân",
-            "altEn": "Tiered curved island display with a lit plinth"
+            "altVi": "Bàn trưng bày đảo nhiều tầng bo cong, đèn hắt chân trong cửa hàng",
+            "altEn": "Tiered curved island display table with glowing base lighting in a shop"
           }
         ]
       },
@@ -655,14 +661,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-quay-ke-cua-hang-d-20261113.webp",
+          "src": "/assets/content/shared/quay-thu-ngan-go-cua-hang.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Quầy thu ngân gỗ gần cửa, kệ hàng phía sau",
-          "altEn": "Timber cashier counter near the door with shelving behind"
+          "altVi": "Quầy thu ngân gỗ gần cửa ra vào, kệ hàng đèn hắt phía sau",
+          "altEn": "Wooden checkout counter by the entrance with lit product shelves behind"
         }
       },
       {
@@ -691,6 +697,7 @@
   },
   {
     "id": "man-hinh-led-san-khau",
+    "layout": "news-2-5",
     "group": "quang-cao",
     "published": "2026-11-02",
     "slugVi": "man-hinh-led-module-san-khau-hoi-truong",
@@ -704,11 +711,11 @@
       "en": "Viewing distance, support frame, power and who runs it: what to settle so an LED screen runs reliably."
     },
     "cover": {
-      "src": "/assets/content/shared/news-man-hinh-led-san-khau-a-20261113.webp",
+      "src": "/assets/content/shared/man-hinh-led-san-khau-hoi-truong.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Hội trường có màn LED ghép module lắp cố định trên sân khấu và hai màn phụ hai bên",
-      "altEn": "Auditorium with a fixed modular LED wall on stage and two side screens"
+      "altVi": "Hội trường có màn hình LED ghép module trên sân khấu",
+      "altEn": "Auditorium stage with a modular LED screen and two side displays"
     },
     "blocks": [
       {
@@ -721,14 +728,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-man-hinh-led-san-khau-a-20261113.webp",
+          "src": "/assets/content/shared/man-hinh-led-san-khau-hoi-truong.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Hội trường có màn LED ghép module lắp cố định trên sân khấu và hai màn phụ hai bên",
-          "altEn": "Auditorium with a fixed modular LED wall on stage and two side screens"
+          "altVi": "Hội trường có màn hình LED ghép module trên sân khấu",
+          "altEn": "Auditorium stage with a modular LED screen and two side displays"
         }
       },
       {
@@ -741,22 +748,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-man-hinh-led-san-khau-b-20261113.webp",
+            "src": "/assets/content/shared/can-man-hinh-led-ghep-module.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Cận màn LED ghép module, đường ghép cabinet đều",
-            "altEn": "Close-up of a modular LED wall with even cabinet seams"
+            "altVi": "Cận màn hình LED ghép module với các đường ghép cabinet đều nhau",
+            "altEn": "Close-up of a modular LED wall showing evenly aligned cabinet seams"
           },
           {
-            "src": "/assets/content/shared/news-man-hinh-led-san-khau-c-20261113.webp",
+            "src": "/assets/content/shared/khung-thep-sau-man-hinh-led.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Khung thép đỡ phía sau màn LED, dây nguồn và tín hiệu đi gọn",
-            "altEn": "Steel support frame behind an LED wall with power and signal cables neatly routed"
+            "altVi": "Khung thép đỡ phía sau màn hình LED, dây nguồn và tín hiệu gọn",
+            "altEn": "Steel support frame behind an LED screen with tidy power and data cables"
           }
         ]
       },
@@ -770,14 +777,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-man-hinh-led-san-khau-d-20261113.webp",
+          "src": "/assets/content/shared/phong-hop-man-hinh-led.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Phòng họp có màn LED module gắn tường cuối bàn họp dài",
-          "altEn": "Meeting room with a wall-mounted modular LED screen at the end of a long table"
+          "altVi": "Phòng họp có màn hình LED gắn tường ở cuối bàn họp dài",
+          "altEn": "Meeting room with a wall-mounted LED screen at the end of a long table"
         }
       },
       {
@@ -806,6 +813,7 @@
   },
   {
     "id": "bo-goc-noi-that",
+    "layout": "news-2-5",
     "group": "xu-huong",
     "published": "2026-10-30",
     "slugVi": "xu-huong-bo-goc-cong-noi-that-go",
@@ -819,11 +827,11 @@
       "en": "Why rounded corners and curved edges are popular in homes, and how CNC makes them in engineered board."
     },
     "cover": {
-      "src": "/assets/content/shared/news-bo-goc-noi-that-a-20261113.webp",
+      "src": "/assets/content/shared/phong-khach-japandi-bo-goc.webp",
       "width": 1536,
       "height": 1024,
-      "altVi": "Phòng khách Japandi với sofa, kệ và tủ tivi gỗ bo góc mềm",
-      "altEn": "Japandi living room with softly rounded timber sofa, shelving and TV unit"
+      "altVi": "Phòng khách Japandi với sofa, kệ sách và tủ tivi gỗ bo góc mềm",
+      "altEn": "Japandi living room with rounded wooden sofa, shelving and TV cabinet"
     },
     "blocks": [
       {
@@ -836,14 +844,14 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/shared/news-bo-goc-noi-that-a-20261113.webp",
+          "src": "/assets/content/shared/phong-khach-japandi-bo-goc.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Phòng khách Japandi với sofa, kệ và tủ tivi gỗ bo góc mềm",
-          "altEn": "Japandi living room with softly rounded timber sofa, shelving and TV unit"
+          "altVi": "Phòng khách Japandi với sofa, kệ sách và tủ tivi gỗ bo góc mềm",
+          "altEn": "Japandi living room with rounded wooden sofa, shelving and TV cabinet"
         }
       },
       {
@@ -856,22 +864,22 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
-            "src": "/assets/content/shared/news-bo-goc-noi-that-b-20261113.webp",
+            "src": "/assets/content/shared/may-cnc-phay-bo-canh-van.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Máy CNC đang phay bo cạnh tấm ván trong xưởng",
-            "altEn": "CNC router milling a rounded edge on a board in the workshop"
+            "altVi": "Máy CNC phay bo góc tấm ván gỗ công nghiệp trong xưởng",
+            "altEn": "CNC router rounding the corners of a laminated board in the workshop"
           },
           {
-            "src": "/assets/content/shared/news-bo-goc-noi-that-c-20261113.webp",
+            "src": "/assets/content/shared/mat-ban-go-bo-goc.webp",
             "width": 1024,
             "height": 1536,
-            "altVi": "Cận mặt bàn bo góc, dán cạnh vân gỗ kín liền",
-            "altEn": "Close-up of a rounded table top with seamless wood-grain edge banding"
+            "altVi": "Cận mặt bàn ăn gỗ bo góc, dán cạnh vân gỗ liền mạch",
+            "altEn": "Close-up of a rounded dining table corner with seamless wood-grain edging"
           }
         ]
       },
@@ -885,14 +893,14 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/shared/news-bo-goc-noi-that-d-20261113.webp",
+          "src": "/assets/content/shared/hoc-ke-vom-den-hat.webp",
           "width": 1024,
           "height": 1536,
-          "altVi": "Hốc kệ vòm bo cong có đèn hắt, trưng chậu cây nhỏ",
-          "altEn": "Arched curved niche shelf with warm lighting and small plants"
+          "altVi": "Hốc kệ vòm bo cong có đèn hắt, tủ gỗ bên dưới trưng cây",
+          "altEn": "Arched display niche with LED-lit shelves, plants and a wooden cabinet below"
         }
       },
       {

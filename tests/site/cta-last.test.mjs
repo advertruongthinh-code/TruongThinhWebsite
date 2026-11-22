@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { loadBlockContent } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 
 const CTA = /^<section\b[^>]*\bclass="[^"]*\b(legacy-closer|detail-cta|blk-contact)\b/;
 const lastSection = (html) => {

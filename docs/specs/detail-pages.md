@@ -85,9 +85,9 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 | 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
 | 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "2006", "Hôm nay" (R9) | ink |
-| 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
+| 6–10 | `#cach-lam`, chapter lead, ảnh `thiet-ke-ban-ve-tu-go`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
 | 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `about-materials-samples-20261117`, `cnc-operator-b` | ink |
-| 12–15 | `#cam-ket`, chapter lead, ảnh `about-workshop-edgebander-20261117`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
+| 12–15 | `#cam-ket`, chapter lead, ảnh `may-dan-canh-xuong-noi-that`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
 | 16 | `.detail-cta#tu-van` | "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo" | inverse |
 | 17 | `.capability-marquee` | Giá trị và cách làm | ink |
 
@@ -161,7 +161,7 @@ duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 400, chữ th�
 ở `span` và `i`, R4), cỡ `clamp(2.5rem, 4.45vw, 4rem)` (64px ở 1440px), vẫn tách dòng (R6). Dưới là track
 `[data-gallery-track]`: `region` focus được, `aria-label` trung tính, không ghi số ảnh; không nút prev/next. Track bắt buộc:
 thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo `width`, `height` của ảnh
-nên không crop và khung đúng tỷ lệ trước khi tải. Khối `gallery-carousel` trang công trình có ít ảnh không phủ hết track (Giếng trời: ba ảnh dọc ở 1920px) thì cả hàng cao lên tới khi ảnh cuối chạm mép phải track (owner chọn 2026-11-14): build ghi tổng tỷ lệ ảnh `--gallery-ratio` và số khe `--gallery-gaps` lên section, CSS lấy chiều cao lớn hơn giữa mức thường và mức phủ kín. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
+nên không crop và khung đúng tỷ lệ trước khi tải. Khối `media-carousel` trang công trình có ít ảnh không phủ hết track (Giếng trời: ba ảnh dọc ở 1920px) thì cả hàng cao lên tới khi ảnh cuối chạm mép phải track (owner chọn 2026-11-14): build ghi tổng tỷ lệ ảnh `--gallery-ratio` và số khe `--gallery-gaps` lên section, CSS lấy chiều cao lớn hơn giữa mức thường và mức phủ kín. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
 `.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 600, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
 Kéo, vuốt như gallery Espacio (đo Espacio): gallery cách viewport một màn hình thì `detail.js` tải Swiper
 14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),

@@ -5,6 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
+import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
 import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
@@ -37,10 +38,14 @@ function ownImageReuse(siteRoot, kind, pages, label) {
     }
   }
   if (!owner.size) return errors;
-  const ownFile = path.join(siteRoot, `content/${kind}.json`);
+  const contentDir = contentDirOf(siteRoot);
+  const repoContent = path.join(siteRoot, "content") + path.sep;
+  const external = contentDir + path.sep !== repoContent;
+  const ownFile = path.join(contentDir, `${kind}.json`);
   const assets = path.join(siteRoot, "assets") + path.sep;
-  const files = [".html", ".css", ".json", ".mjs", ".js"].flatMap((extension) => filesUnder(siteRoot, extension))
-    .filter((file) => file !== ownFile && !file.startsWith(assets));
+  // With TT_CONTENT_DIR set, the repo's own data files are stale: scan the snapshot's files in their place.
+  const files = [...[".html", ".css", ".json", ".mjs", ".js"].flatMap((extension) => filesUnder(siteRoot, extension)), ...(external ? filesUnder(contentDir, ".json") : [])]
+    .filter((file) => file !== ownFile && !file.startsWith(assets) && !(external && file.startsWith(repoContent)));
   for (const file of files) {
     for (const src of new Set(readFileSync(file, "utf8").match(CONTENT_PATH) ?? [])) {
       if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
@@ -127,27 +132,28 @@ export async function checkSiteContent(siteRoot) {
     }
   }
 
-  const heroFile = path.join(siteRoot, "content/hero-slides.json");
+  const contentDir = contentDirOf(siteRoot);
+  const heroFile = path.join(contentDir, "hero-slides.json");
   if (existsSync(heroFile)) {
-    await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
+    await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), fileImageCheck(siteRoot)).catch((error) => errors.push(error.message));
   }
   // Project and News pages built from blocks (layout-library R4): blocks, VI/EN text, images, linked ids.
   const pages = {};
   for (const kind of ["projects", "news"]) {
-    const file = path.join(siteRoot, `content/${kind}.json`);
+    const file = path.join(contentDir, `${kind}.json`);
     pages[kind] = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
   }
-  const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
+  const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
     for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
-  const homeProjectsFile = path.join(siteRoot, "content/home-projects.json");
+  const homeProjectsFile = path.join(contentDir, "home-projects.json");
   if (existsSync(homeProjectsFile)) errors.push(...validateHomeProjects(JSON.parse(readFileSync(homeProjectsFile, "utf8")), ctx.projects));
   // Site menu featured items: project ids and Advertising group slugs must exist.
-  const menuFile = path.join(siteRoot, "content/menu.json");
+  const menuFile = path.join(contentDir, "menu.json");
   if (existsSync(menuFile)) {
     const { ADVERTISING_CATEGORIES } = await import("../../src/site/advertising-products/catalog.mjs");
     errors.push(...menuErrors(JSON.parse(readFileSync(menuFile, "utf8")), { projects: pages.projects, categories: ADVERTISING_CATEGORIES }, "content/menu.json"));

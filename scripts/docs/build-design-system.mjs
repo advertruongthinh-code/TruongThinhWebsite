@@ -2,7 +2,8 @@
 // Usage: node scripts/docs/build-design-system.mjs [--check]
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { expandHero, readHeroSources } from '../site/hero-slides.mjs';
+import { expandHero } from '../site/hero-slides.mjs';
+import { readHeroSources } from '../site/content-files.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
 import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';

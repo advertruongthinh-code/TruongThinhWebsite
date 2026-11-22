@@ -4,7 +4,8 @@ import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
-import { blockRoutes, loadBlockContent, newsListRoutes } from "../site/block-pages.mjs";
+import { blockRoutes, newsListRoutes } from "../site/block-pages.mjs";
+import { loadBlockContent } from "../site/content-files.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 import { legacyRedirects } from "../site/redirects.mjs";
 

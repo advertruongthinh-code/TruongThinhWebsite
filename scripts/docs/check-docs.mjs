@@ -159,8 +159,10 @@ if (docsBase) {
   pngAdded = git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(isImageMaster);
   pngBody = body;
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
+  // Owners once per file: a PR renaming thousands of image variants otherwise runs owners() per spec per file (minutes).
+  const changedOwners = new Map(changed.map((f) => [f, owners(f)]));
   for (const spec of specs) {
-    const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
+    const touched = changed.filter((f) => f !== spec.file && changedOwners.get(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
       errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add this line, alone and unformatted, to a commit message on this branch or the PR body: Spec: không đổi - <lý do>`);
     }

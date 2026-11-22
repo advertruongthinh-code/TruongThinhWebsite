@@ -5,7 +5,7 @@
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
   // Unique id per mount: when Barba switches pages, the old (hidden) container is still in the DOM with the News grid.
-  let newsGridCount = 0;
+  let stickyScopeCount = 0;
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
@@ -18,6 +18,22 @@
   const floatingCta = document.querySelector(".floating-cta");
   const backToTop = document.querySelector(".back-to-top");
   const phoneQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
+  // The masonry grid's top in page coordinates (offsetTop ignores Locomotive's transform), read again after a layout change.
+  let masonryGridTop;
+  // The scroll that puts the masonry grid's top one outer margin under the header (search-bar R9, phone back-to-top). The header comes
+  // back going up and slides away going down (phone-header-scroll R2), so `from` says which way the page will move. Null off a masonry page.
+  const masonryTop = (from = getPageScroll()) => {
+    const grid = document.querySelector("[data-project-grid]");
+    if (!grid) return null;
+    if (masonryGridTop === undefined) {
+      masonryGridTop = 0;
+      for (let node = grid; node; node = node.offsetParent) masonryGridTop += node.offsetTop;
+    }
+    const outer = Number.parseFloat(getComputedStyle(grid.closest(".masonry-section") || grid).getPropertyValue("--masonry-outer")) || 0;
+    const headerBottom = header.offsetTop + header.offsetHeight;
+    const top = masonryGridTop - outer;
+    return Math.max(0, top - headerBottom < from ? top - headerBottom : top);
+  };
   const dialog = document.querySelector("#site-menu");
   const openButton = document.querySelector("[data-menu-open]");
   const closeButton = document.querySelector("[data-menu-close]");
@@ -730,9 +746,10 @@
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta?.classList.toggle("show", nextCtaShown);
     }
-    // Back to top (owner 2026-11-13; phones only, owner 2026-11-22): on a page with a masonry layout, once the first screen is passed.
+    // Back to top (owner 2026-11-13; phones only, owner 2026-11-22): on a page with a masonry layout.
     // It takes the corner the floating CTA leaves at that point (masonry browse hides the CTA altogether).
-    const topShown = phoneQuery.matches && scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
+    // Owner 2026-11-23: it shows once the page is below the masonry top and takes the page back there.
+    const topShown = phoneQuery.matches && Boolean(document.querySelector("[data-masonry-item]")) && scrollY > (masonryTop(scrollY) ?? Infinity) + 1;
     if (backToTop && topShown !== backToTop.classList.contains("show")) {
       backToTop.classList.toggle("show", topShown);
       backToTop.tabIndex = topShown ? 0 : -1;
@@ -1099,6 +1116,7 @@
     if (layoutUpdateFrame) return;
     layoutUpdateFrame = window.requestAnimationFrame(() => {
       layoutUpdateFrame = undefined;
+      masonryGridTop = undefined;
       headerFollowStale = true;
       measureDesktopNav();
       pageState?.smoothScroll?.update();
@@ -1173,6 +1191,8 @@
       },
     };
   };
+  let glideFrame = 0;
+  let glideStop;
   window.TruongThinhMotion = {
     maskHiddenY,
     openTextMask,
@@ -1181,6 +1201,35 @@
     onceInView,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
+    masonryTop,
+    // Glides the page to y on the card curve (search-bar R9: to the grid top after a search). Native scroll (phones) has no duration
+    // option, so it is tweened here; a touch, wheel or key stops it.
+    glideTo(y, duration = 600) {
+      const target = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
+      if (pageState?.smoothScroll) {
+        pageState.smoothScroll.scrollTo(target, { duration: reduceMotion ? 0 : duration, easing: [0.65, 0, 0.35, 1], disableLerp: reduceMotion });
+        return;
+      }
+      cancelAnimationFrame(glideFrame);
+      glideStop?.abort();
+      const from = window.scrollY;
+      if (reduceMotion || Math.abs(target - from) < 1) {
+        window.scrollTo({ top: target, behavior: "instant" });
+        return;
+      }
+      const stop = (glideStop = new AbortController());
+      const halt = () => { cancelAnimationFrame(glideFrame); stop.abort(); };
+      for (const type of ["touchstart", "wheel", "keydown"]) window.addEventListener(type, halt, { passive: true, once: true, signal: stop.signal });
+      const start = performance.now();
+      const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        window.scrollTo({ top: from + (target - from) * ease(t), behavior: "instant" });
+        if (t < 1) glideFrame = requestAnimationFrame(step);
+        else stop.abort();
+      };
+      glideFrame = requestAnimationFrame(step);
+    },
     lockLogicalScroll() {
       if (logicalScrollLock) return logicalScrollLock.scrollY;
       logicalScrollLock = {
@@ -1232,11 +1281,11 @@
       return;
     }
     window.scrollTo({ top: 0, behavior: "instant" });
-    // News R2: the sticky mark is read when smooth is enabled (always from 981px) so it does not drift when the header height changes with the breakpoint.
-    const newsMain = state.container.querySelector(".blk-news-list__main[data-scroll-sticky]");
-    if (newsMain) {
-      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(newsMain).top) || 0);
-      newsMain.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
+    // News R2 and every sticky column: the sticky mark is read when smooth is enabled (always from 981px) so it does not drift when the header
+    // height changes with the breakpoint.
+    for (const column of state.container.querySelectorAll("[data-scroll-sticky]")) {
+      const stickyTop = Math.round(Number.parseFloat(getComputedStyle(column).top) || 0);
+      column.setAttribute("data-scroll-offset", `${-stickyTop},${stickyTop}`);
     }
     state.smoothScroll = new window.LocomotiveScroll({
       el: state.container,
@@ -1944,21 +1993,21 @@
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
-    // News R2: the large card sticks to the left column. Smooth scroll moves the container by transform so CSS sticky does not work; use Locomotive's
-    // sticky, released at the grid bottom; the sticky mark (data-scroll-offset) is set in initSmoothScroll. Native scroll still uses CSS.
-    const newsMain = container.querySelector(".blk-news-list__main");
-    if (newsMain) {
-      const grid = newsMain.parentElement;
-      grid.id ||= `news-grid-${++newsGridCount}`;
-      newsMain.setAttribute("data-scroll", "");
-      newsMain.setAttribute("data-scroll-sticky", "");
-      newsMain.setAttribute("data-scroll-target", `#${grid.id}`);
-      // Locomotive reads the sticky range and scroll limit once; the grid still grows for a few frames after init while its cards lay out,
-      // which released the card early and cut the page end short (1366x650). Re-measure whenever the grid height changes.
+    // Sticky columns (News R2 large card, and any [data-sticky-column]) stick inside their parent. Smooth scroll moves the container by transform
+    // so CSS sticky does not work; use Locomotive's sticky, released at the parent's bottom; the sticky mark (data-scroll-offset) is set in
+    // initSmoothScroll. Native scroll still uses CSS.
+    for (const column of container.querySelectorAll(".blk-news-list__main, [data-sticky-column]")) {
+      const scope = column.parentElement;
+      scope.id ||= `sticky-scope-${++stickyScopeCount}`;
+      column.setAttribute("data-scroll", "");
+      column.setAttribute("data-scroll-sticky", "");
+      column.setAttribute("data-scroll-target", `#${scope.id}`);
+      // Locomotive reads the sticky range and scroll limit once; the parent still grows for a few frames after init while its content lays out,
+      // which released the column early and cut the page end short (News at 1366x650). Re-measure whenever the parent height changes.
       if (typeof ResizeObserver !== "undefined") {
-        const gridObserver = new ResizeObserver(requestLayoutUpdate);
-        gridObserver.observe(grid);
-        state.abort.signal.addEventListener("abort", () => gridObserver.disconnect(), { once: true });
+        const scopeObserver = new ResizeObserver(requestLayoutUpdate);
+        scopeObserver.observe(scope);
+        state.abort.signal.addEventListener("abort", () => scopeObserver.disconnect(), { once: true });
       }
     }
 
@@ -2739,10 +2788,7 @@
   );
 
   // Phones scroll natively (Locomotive is off there); reduced motion jumps.
-  backToTop?.addEventListener("click", () => {
-    if (pageState?.smoothScroll) pageState.smoothScroll.scrollTo(0, { duration: reduceMotion ? 0 : undefined });
-    else window.scrollTo({ top: 0, behavior: reduceMotion ? "instant" : "smooth" });
-  }, { signal: runtimeAbort.signal });
+  backToTop?.addEventListener("click", () => window.TruongThinhMotion.glideTo(masonryTop() ?? 0), { signal: runtimeAbort.signal });
   openButton.addEventListener("click", openMenu, {
     signal: runtimeAbort.signal,
   });

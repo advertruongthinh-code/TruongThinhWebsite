@@ -188,8 +188,7 @@ Patch cũng mặc định `serviceWorkers: "block"`: Service Worker chặn `page
 ## Stack AI và media
 
 Owner chốt 2026-10-18. Công cụ tạo ảnh, video, nhạc và rule dùng nằm ở
-[Tạo và chấm media AI](agent-rule-ad-images.md#công-cụ). AI agent (gồm AI agent của
-[CMS](../specs/cms.md)) theo thứ tự fallback: Claude chính chủ, ChatGPT chính chủ, Claude
+[Tạo và chấm media AI](agent-rule-ad-images.md#công-cụ). AI agent theo thứ tự fallback (CMS không có AI agent, [CMS](../specs/cms.md) mục "Bối cảnh và phương án"): Claude chính chủ, ChatGPT chính chủ, Claude
 trên kie.ai, ChatGPT trên kie.ai. Không ghi API key vào file trong repo, log, prompt hay
 Library; chỗ lưu key theo [API key](#api-key).
 

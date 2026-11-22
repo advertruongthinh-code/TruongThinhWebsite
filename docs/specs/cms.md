@@ -26,7 +26,7 @@ giới, quyền, trạng thái, lệnh admin, xuất bản, xem trước; kiểu
 
 ## Bối cảnh và phương án
 
-Bản tĩnh chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
+Bản tĩnh chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). CMS chạy hoàn toàn bằng code cố định: không lệnh admin, Cron hay workflow nào của CMS gọi AI hay AI agent, cùng dữ liệu vào thì cùng kết quả (owner 2026-11-22, thay câu "AI agent của CMS" ngày 2026-10-18). Chỗ duy nhất trên đường dựng có gọi model là `pnpm search:index` tính vector tìm kiếm ([nội dung CMS R9](cms-content.md#r9-tìm-kiếm-ngữ-nghĩa)); lỗi ở đó không chặn deploy.
 Kiến trúc xuất bản tĩnh owner duyệt 2026-11-15 ([ADR trên Notion](https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178)).
 Quyết định owner trước đây vẫn giữ:
 
@@ -78,7 +78,8 @@ admin ở slice Storage.
 | Khôi phục từ thùng rác | Có | Có |
 | Xóa hẳn: dọn thùng rác, hoặc xóa thẳng không qua thùng rác | Có | Không |
 | Trang tài khoản: thêm, khóa, đổi vai trò owner hoặc nhân viên | Có | Không |
-| Quay site về bản dựng trước | Có | Không |
+| Phát hành bản staging lên site chính (owner 2026-11-22) | Có | Có |
+| Quay staging hoặc site chính về bản trước | Có | Không |
 | Xem nhật ký thao tác | Có | Chỉ thao tác của mình |
 
 Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Riêng
@@ -88,8 +89,8 @@ owner luôn còn mở: lệnh khóa hay hạ vai trò owner cuối cùng trả 4
 tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat (suy luận theo tài liệu Access, kiểm
 ở slice Storage). Trang tài khoản tự thêm, gỡ email
 trong chính sách Access qua API Cloudflare (owner 2026-11-15): token chỉ có quyền Access, nằm ở secret, Worker chỉ sửa
-đúng chính sách của app admin (id trong secret). Gọi API Access trước, thành công mới ghi D1; API lỗi thì trả 502, không
-đổi gì; nhật ký ghi cả hai bước. Cron Trigger hằng ngày của admin Worker so chính sách Access với bảng
+đúng chính sách của app admin (id trong secret). Thêm hoặc mở lại: gọi API Access trước, thành công mới ghi D1; API lỗi
+thì trả 502, không đổi gì. Khóa: ghi D1 trước để Worker từ chối ngay, rồi gỡ khỏi Access; API lỗi thì báo lệch. Nhật ký ghi cả lần lỗi. Cron Trigger hằng ngày của admin Worker so chính sách Access với bảng
 tài khoản, lệch thì admin báo owner, không tự sửa.
 
 ```gherkin
@@ -140,7 +141,7 @@ Then nhân viên nhận 409 kèm bản version 5, bài vẫn là bản của own
 
 ### R5. Lệnh admin có kiểu
 
-API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
+API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `media-file`, `account-list`, `audit-log`, `build-status`, `snapshot`, `media-original` (thân, query, mã trả về ở [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin)); mỗi lệnh validate bằng module dùng chung ở
 [nội dung CMS R1](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu), kiểm quyền theo R2, ghi nhật ký theo R4.
 
 | Lệnh | Kết quả | Lỗi |
@@ -153,10 +154,12 @@ API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`
 | `account-add`, `account-update` | Theo R2 (chỉ owner) | 403, 409 owner cuối |
 | `rollback`, `resume-publish` | Quay site về deployment trước; mở lại tự đăng (chỉ owner) | 403 |
 | `rebuild` | Dựng lại từ bản chụp hiện tại sau lần dựng lỗi | 409 khi đang tạm dừng tự đăng |
+| `release` | Đưa đúng bản staging đang chạy lên site chính ([editor vận hành R2](cms-editor-ops.md#r2-phát-hành-lên-site-chính)) | 409 khi staging chưa cập nhật xong, đã đổi, hoặc đang tạm dừng |
+| `reorder`, `retry-variant` | Xếp lại thứ tự bản ghi của một kiểu; gọi lại job biến thể lỗi | 409 danh sách đã đổi; 404 |
 
-Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`, 415 nếu khác); mọi request không phải GET
+Request ghi chỉ nhận `application/json` (upload gửi byte file làm thân, `Content-Type` là loại của file, 415 nếu khác); mọi request không phải GET
 thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
-luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, kể cả multipart không preflight). Email chỉ lấy
+luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, thân upload không phải kiểu form nên luôn preflight). Email chỉ lấy
 từ JWT đã kiểm chữ ký, `aud`, `iss`, `exp`; không đọc header `Cf-Access-Authenticated-User-Email`. Lỗi D1 hay R2 trả 503 cho admin, không chạm site public.
 Rate limit dùng binding `[[ratelimits]]` của Workers như Worker tìm kiếm (`wrangler.static.toml`), quá hạn mức trả 429.
 
@@ -171,14 +174,15 @@ Then trả 415, không phiên bản nào được tạo
 ### R6. Xuất bản và rollback
 
 Lần lưu `published` gọi `workflow_dispatch` của `ci.yml` trên `main` (`ci.yml` gọi `Deploy demo`, workflow này chỉ có
-`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần, vẫn lỗi thì admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
+`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần rồi gọi lại mỗi 5 phút, trong lúc đó admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
 "dựng lại". Không
 có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` giữ một run chạy và một run chờ, run chờ mới thay run
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
+Lần dựng nội dung dựng trên commit đang chạy trên site ([dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci)).
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
 hành hiện có, rồi deploy. Hiện tại `Deploy demo` chỉ đưa lên bản thử staging; site thật chỉ cập nhật qua `Release site` khi owner nói
-"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); slice Publishing chốt lần lưu CMS lên site thật thế nào. Mục tiêu: lên site trong 10 phút sau lần lưu cuối, cộng thời
+"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); lần lưu CMS vì vậy lên staging ngay, staging là bản thử cho mọi thao tác thêm, sửa, xóa trên CMS; người dùng thấy ổn thì dùng chức năng "Phát hành" trong CMS để đưa đúng bản staging đang hiện lên site thật, chạy bằng code cố định như mọi lệnh khác của CMS (owner 2026-11-22; phần 2 làm nút này, tới đó site thật dựng từ repo), theo hợp đồng ở [editor vận hành R2](cms-editor-ops.md#r2-phát-hành-lên-site-chính). CMS chỉ có một bộ dữ liệu, staging không có D1 hay R2 riêng. Mục tiêu: lên staging trong 10 phút sau lần lưu cuối, cộng thời
 gian job biến thể nếu có media mới (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing).
 
 Từ khi CMS mở, mọi lần dựng kể cả merge code vào `main` đều lấy bản chụp mới nhất; file chiếu trong repo là seed và
@@ -187,7 +191,7 @@ chụp không trả lời thì lần dựng lỗi, không dùng file trong repo.
 lý do và nút "dựng lại"; lần lưu kế tiếp cũng dựng lại. Admin đọc trạng thái run qua API GitHub bằng cùng token: chờ,
 đang dựng, đã lên, lỗi.
 
-Owner quay về deployment trước bằng lệnh `rollback` (nút trong admin vì owner không chạy lệnh shell; lệnh
+Owner quay staging về deployment trước bằng lệnh `rollback` (phần 1 chỉ staging, site thật theo phần 2; nút trong admin vì owner không chạy lệnh shell; lệnh
 `pnpm demo:wrangler rollback` ở [phát hành tĩnh](static-release.md) là đường dự phòng): admin Worker gọi workflow rollback
 mới (plan viết), workflow chỉ nhận id một trong 10 deployment gần nhất và dùng token deploy Cloudflare sẵn có của `Deploy
 demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback đặt cờ tạm dừng trong D1; trong lúc dừng,
@@ -266,21 +270,22 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 | Editor Dockview, overlay | `src/admin/` | Giữ; đổi đường lưu sang lệnh R5 ([editor](cms-editor.md)) |
 | Render public SSR, `page_edits`, API public, sitemap từ D1, route `/media/*` | `src/worker/index.js`, `content.mjs` | Bỏ (R1) |
 | CRUD chung sáu resource, `audit_log` | `src/worker/index.js` | Viết lại theo R4, R5 |
-| Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Bỏ; viết `0001` mới theo spec này |
+| Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Đã thay bằng `0001_cms.sql` ([dữ liệu CMS R1](cms-data.md)) |
 | `wrangler.toml` (`run_worker_first` route public), `scripts/cms/` | gốc repo | Viết lại cho admin Worker |
 
 ## Gate còn mở
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng.
 
-Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: cỡ upload, thang video ở Storage; khóa slot `page-copy` ở editor.
-Plan chi tiết phải có: bảng D1, định dạng bản chụp, redirect 301 khi đổi slug qua `scripts/site/redirects.mjs`, tắt preview URL của hostname
-`workers.dev`, chuỗi khối cố định từng dòng layout ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)).
+Khóa slot `page-copy` đã chốt ở [editor R6](cms-editor.md#r6-trang-chuẩn). Video upload: [dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể).
+Plan chi tiết đã chốt bảng D1, bản chụp, redirect 301 khi đổi slug, preview URL, đường dựng và bảng lệnh ở
+[dữ liệu CMS](cms-data.md); chuỗi khối cố định ở [News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình).
 
 Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec),
 Storage (migration `0001` mới, bucket, export; gate: migration có snapshot, khôi phục thử, đường lùi), Publishing
 (lệnh R5, dựng R6; gate: test contract, security, integration), Public projection (file chiếu; gate: bản dựng từ
 bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nối API theo [cms-editor](cms-editor.md) sau Publishing.
+Storage, Publishing, Public projection là phần 1: site vẫn dựng từ repo. Phần 2 (editor, build đọc ảnh R2) kết thúc bằng task bật hẳn dựng từ bản chụp.
 
 ## Chú thích thuật ngữ
 

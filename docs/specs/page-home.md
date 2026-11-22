@@ -189,8 +189,8 @@ Then build dừng với lỗi "home-projects data invalid"
 Closer: ảnh xưởng phủ khung có shade; `h2` hai dòng trượt lên trong mask khi vào viewport, nhãn
 hiện sau; hover zoom ảnh nhẹ; tới 980px khung cao 400px, chữ ngắt dòng trong khung.
 
-Marquee: hai nhóm 12 logo giống hệt, nhóm sau `aria-hidden`, `alt=""`; thứ tự, tên, file khớp
-`content/client-logos.json` (chỉ build, test đọc; không ra output). Logo tải `eager`, không vệt sáng.
+Marquee: markup một bản ở `partials/client-logos.html` (mốc `<!-- shell:client-logos -->`, [Shell R1](site-shell.md#r1-markup-chung-và-thứ-tự-lớp)).
+Hai nhóm 12 logo giống hệt, nhóm sau `aria-hidden`, `alt=""`; thứ tự, tên, file khớp `content/client-logos.json` (chỉ build, test đọc; không ra output). Logo tải `eager`, không vệt sáng.
 Track chạy CSS `client-logo-marquee` lặp, không lộ mép nối, chỉ chạy (`is-running`) khi trong viewport,
 tab hiện và chuyển động không bị dừng (R3). Reduced motion: đứng yên ở nhóm đầu.
 

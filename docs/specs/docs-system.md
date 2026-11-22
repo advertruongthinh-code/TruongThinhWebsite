@@ -93,7 +93,10 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | docs | `docs-system.md` | `check-docs.mjs`, PR template, `docs.yml` | |
 | cms | `cms.md` | contract CMS (planned); `src/worker/`, `src/db/migrations/`, `wrangler.toml` dormant | |
 | cms-content | `cms-content.md` | nội dung CMS: kiểu nội dung, media, card, layout, menu, soạn chữ (planned) | |
-| cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: editor placeholder, overlay, thư viện media (planned, slice 1 local) | |
+| cms-data | `cms-data.md` | dữ liệu CMS: bảng D1, bản chụp, redirect slug, biến thể media, đường dựng CI, bảng lệnh (planned) | |
+| cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: khung editor, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu (planned) | |
+| cms-editor-media | `cms-editor-media.md` | `src/admin/media/`: thư viện, upload ảnh và video, khung crop, card (planned) | |
+| cms-editor-ops | `cms-editor-ops.md` | `src/admin/ops/`, `release.yml`: trạng thái staging, phát hành, rollback, thùng rác, nhật ký, tài khoản (planned) | |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) | |
 
 Mỗi spec theo `docs/specs/_template.md` mới:

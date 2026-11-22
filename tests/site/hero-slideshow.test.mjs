@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { expandHero, readHeroSources } from "../../scripts/site/hero-slides.mjs";
+import { readHeroSources } from "../../scripts/site/content-files.mjs";
+import { expandHero } from "../../scripts/site/hero-slides.mjs";
 
 // page-home R3, detail-pages R5: the three heroes run the same order script (motion.js reruns that text on soft route changes). The pages
 // only hold markers; the build embeds src/site/hero-order-inline.js, so one copy exists and it sits right after .hero-slides.
