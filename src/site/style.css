@@ -1311,10 +1311,15 @@ em {
   font-weight: inherit;
 }
 
-/* Home: line 2 "Làm khác" italic at the same weight; uppercase display titles are 500 like Espacio (owner 2026-11-22 weight audit). */
-.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
-.hero[data-hero-intro] h1 em {
-  font-weight: 500;
+/* Every hero title: the italic part is the em and is always bold, 600 = the heaviest of the 3 site weights (owner 2026-11-22). */
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) em {
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Home hero: both lines bold, line 2 "Làm khác" also italic (owner 2026-11-22). */
+.hero[data-hero-intro] h1 {
+  font-weight: 600;
 }
 
 .hero-line-mask,
