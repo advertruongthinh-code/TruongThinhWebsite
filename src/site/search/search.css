@@ -26,12 +26,49 @@ body.is-detail .search-host {
   pointer-events: auto;
   color: var(--ink);
   font-weight: 500;
-  /* Every place change (dock.mjs reads these too): the card curve over 1s, the length of the site's other screen-sized moves
-     (Floating CTA, route uncover); 700ms read too fast (owner 2026-11-18). */
+  /* The results morph while floating (560 to 760px, chip row): the card curve over 1s, like the site's other screen-sized moves
+     (owner 2026-11-18). Place changes follow the scroll instead (search-bar R7). */
   --search-morph: 1s;
   --search-ease: var(--ease-card);
   --search-hair: color-mix(in srgb, var(--ink) 14%, transparent);
-  --search-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  /* --search-lift (dock.mjs) fades the shadow while the bar turns into its docked look under the finger (search-bar R7). */
+  --search-shadow: 0 12px 32px rgb(0 0 0 / calc(18% * var(--search-lift, 1)));
+}
+
+/* Docked, the bar hangs from the slot's bottom: while it still carries the chip row on its way in, the row reaches above the slot
+   and the slot keeps its height. */
+:where([data-search-dock], [data-search-dock-top]) {
+  position: relative;
+}
+
+.search-bar[data-dock] {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Under the finger the inline values move every frame, and a new place takes its look at once: no transition may smooth them. */
+.search-bar:is(.is-linked, .is-moving) .search-bar__shell {
+  transition: none;
+}
+
+/* Off the root grid (search-bar R8): the floating bar slides down out of view; from a slot it is gone at once. */
+.search-host.is-off {
+  visibility: hidden;
+  transform: translate(-50%, calc(100% + 80px));
+  transition: transform 450ms var(--ease-card), visibility 0s linear 450ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-host.is-off {
+    transition: none;
+  }
+}
+
+.search-host.is-off-now {
+  visibility: hidden;
+  transition: none;
 }
 
 .search-bar__sr {
@@ -200,6 +237,8 @@ body.is-detail .search-host {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* The sliding tip runs on the compositor, where the field's overflow clip did not hold: the old tip showed above the block. */
+  clip-path: inset(0);
 }
 
 .search-bar__hint > span,
@@ -379,17 +418,17 @@ body.is-detail .search-host {
 
 /* Back-to-top (search-bar R5): with the bar in a slot it stays out on every device. On phones, while the bar floats, it sits on its own
    row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
-body[data-search-place="cta"] .back-to-top.show {
+body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
   transform: translateX(150%);
 }
 
-/* Detail hides the bar, so the button takes the plain corner. */
-body.is-detail .back-to-top {
+/* Detail, sub-pages and cards hide the bar (place off), so the button takes the plain corner. */
+body:is(.is-detail, [data-search-place="off"]) .back-to-top {
   --search-bar-offset: 0px;
 }
 
 @media (hover: none) and (pointer: coarse) {
-  body[data-search-place="float"]:not(.is-detail) .back-to-top {
+  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
     bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 
@@ -415,7 +454,7 @@ body.is-detail .back-to-top {
 }
 
 @media (hover: none) and (pointer: coarse) and (max-width: 750px) {
-  body[data-search-place="float"]:not(.is-detail) .back-to-top {
+  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
     bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
   }
 }

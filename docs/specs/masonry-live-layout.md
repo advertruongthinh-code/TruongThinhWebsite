@@ -138,7 +138,7 @@ chỉ đặt lại tọa độ. Thứ tự media trong card không đổi; lư�
   0.5): `"clear"` do `clearResults`; `"filter"` do một lần bấm (navbar hoặc breadcrumb từ card về lưới);
   `"history"` do Back/Forward sang filter khác.
 - Khe thanh tìm kiếm: `<div data-search-dock>` rỗng ngay dưới tiêu đề CTA, trong `.detail-cta__copy`, chỉ trên trang Sản phẩm
-  quảng cáo (VI, EN, mọi trang filter và card); trang Công trình bỏ khe lúc build. Chiều cao cố định bằng CSS, `min-height` 50px,
+  quảng cáo; trang Công trình bỏ khe lúc build. Trang con (filter, card) có khe nhưng tắt bằng `data-search-off` ([Thanh tìm kiếm R8](search-bar.md#r8-chỉ-trang-gốc-có-thanh)). Chiều cao cố định bằng CSS, `min-height` 50px,
   bằng thanh tìm kiếm lúc dừng, nên CTA không đổi cao sau khi lưới xếp; khoảng cách tới tiêu đề và link "Trao đổi ý tưởng" bên dưới,
   vị trí cụm theo [Thanh tìm kiếm R4](search-bar.md#r4-khe-cta) (runtime đo và ghi `--masonry-cta-link-gap`). Khe đi theo CTA khi CTA
   chuyển vào trang card. Thanh tìm kiếm (search P6) tự chuyển vào khe; chưa có P6 hoặc không có JS thì khe là khoảng trống.

@@ -240,7 +240,9 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
   .replace(`data-masonry-chips="${page.cluster}" hidden`, `data-masonry-chips="${page.cluster}"`)
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
-  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
+  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`)
+  // The search bar lives on the root page only (search-bar R8); the runtime clears this when a visitor filters back to all.
+  .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
 for (const page of ADVERTISING_PAGES) {
   const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
@@ -307,7 +309,8 @@ const renderCardPage = (card) => advertisingTemplate
     .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
     .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)
     .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${cardHref("vi", card)}" data-language-option="vi"`)
-    .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`);
+    .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`)
+    .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
 for (const card of ADVERTISING_CARDS) {
   const html = renderCardPage(card);
   for (const locale of ["vi", "en"]) {
